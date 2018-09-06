@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
 
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
 
 #include <meevax/utility/conditionally_trivial_destructible.hpp>
