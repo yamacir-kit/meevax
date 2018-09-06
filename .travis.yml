@@ -7,8 +7,8 @@ before_install:
   - sudo apt update -qq
 
 install:
-  - sudo apt install -qq g++-6 libboost-all-dev
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
+  - sudo apt install -qq g++-7 libboost-all-dev
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
 
 before_script:
   - mkdir -p build
