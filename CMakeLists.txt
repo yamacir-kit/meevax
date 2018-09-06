@@ -33,9 +33,12 @@ link_directories(
 )
 
 file(GLOB ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_SOURCES)
-  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "\\2" TARGET_NAME ${EACH_SOURCE})
-  add_executable(${TARGET_NAME} ${EACH_SOURCE})
-  target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
-endforeach()
+# foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_SOURCES)
+#   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "\\2" TARGET_NAME ${EACH_SOURCE})
+#   add_executable(${TARGET_NAME} ${EACH_SOURCE})
+#   target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
+# endforeach()
+
+add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
