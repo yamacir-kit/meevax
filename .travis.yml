@@ -4,10 +4,10 @@ dist: trusty
 
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
+  - sudo apt update -qq
 
 install:
-  - sudo apt-get install -qq g++-6
+  - sudo apt install -qq g++-6 libboost-all-dev
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
 
 before_script:
