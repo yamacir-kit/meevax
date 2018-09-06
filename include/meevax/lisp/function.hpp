@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_FUNCTION_HPP
 #define INCLUDED_MEEVAX_LISP_FUNCTION_HPP
 
+#include <iostream>
 #include <memory>
 #include <utility>
 
@@ -62,8 +63,13 @@ namespace meevax::lisp
   auto assoc(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
     -> const std::shared_ptr<cell>
   {
-    if (null(x) || null(y))
+    if (null(x))
     {
+      return cell::nil;
+    }
+    else if (null(y))
+    {
+      std::cerr << "[error] unbound symbol: " << x->as<std::string>() << std::endl;
       return cell::nil;
     }
     else
