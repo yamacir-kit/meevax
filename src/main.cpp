@@ -12,7 +12,8 @@ auto main()
     const auto e {meevax::lisp::read(buffer)};
     std::cerr << "read: " << e << std::endl;
 
-    std::cerr << "eval: " << meevax::lisp::eval(e) << std::endl;
+    const auto result {meevax::lisp::eval(e)};
+    std::cerr << "eval: " << result << std::endl;
   }
 
   return 0;

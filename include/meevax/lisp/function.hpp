@@ -22,6 +22,11 @@ namespace meevax::lisp
     return lhs == rhs || lhs->as<T>() == rhs->as<T>();
   }
 
+  bool null(const std::shared_ptr<cell>& e)
+  {
+    return eq(e, cell::nil);
+  }
+
   auto list(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
     -> decltype(auto)
   {

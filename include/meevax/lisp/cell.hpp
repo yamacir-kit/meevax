@@ -60,11 +60,6 @@ namespace meevax::lisp
       return e && !e->cdr_;
     }
 
-    friend bool null(const std::shared_ptr<cell>& e) noexcept
-    {
-      return e && !e->car_ && !e->cdr_;
-    }
-
     friend auto car(const std::shared_ptr<cell>& e) noexcept
       -> decltype(auto)
     {

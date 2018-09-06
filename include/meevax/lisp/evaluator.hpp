@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
+#include <iostream>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -73,10 +74,6 @@ namespace meevax::lisp
         {
           return cons(eval(cadr(e), a), eval(caddr(e), a));
         }
-        else if (null(car(e))) // 空リストとNILの等価性の定義
-        {
-          return cell::nil;
-        }
         else // ラムダ式の実行
         {
           return eval(cons(assoc(car(e), a), cdr(e)), a);
@@ -90,7 +87,10 @@ namespace meevax::lisp
       {
         return eval(caddar(e), append(pair(cadar(e), evlis(cdr(e), a)), a));
       }
-      else return cell::nil;
+      else
+      {
+        return cell::nil;
+      }
     }
 
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
