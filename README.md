@@ -1,6 +1,8 @@
 # meevax
 
-Version 0.0.3 in development.
+[![Build Status](https://travis-ci.org/yamacir-kit/meevax.svg?branch=master)](https://travis-ci.org/yamacir-kit/meevax)
+
+Version 0.0.7 in development.
 
 ## Dependency
 
