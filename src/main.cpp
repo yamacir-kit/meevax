@@ -4,9 +4,9 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <boost/cstdlib.hpp>
-#include <boost/range/combine.hpp>
 
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
@@ -16,33 +16,40 @@ auto main()
 {
   using namespace meevax;
 
-  std::list<std::string> tests {
-    "(quote a)",
-    "(quote (a b c))"
+  std::list<std::pair<std::string, std::string>> tests
+  {
+    {"(quote a)", "a"},
+    {"(quote (a b c))", "(a . (b . (c . nil)))"},
+    {"(atom (quote a))", "true"},
+    {"(atom (quote (a b c)))", "nil"},
+    {"(atom (quote ()))",  "true"},
+    {"(atom (atom (quote a)))",  "true"},
+    {"(atom (quote (atom (quote a))))", "nil"},
+    {"(eq (quote a) (quote a))", "true"},
+    {"(eq (quote a) (quote b))", "nil"},
+    {"(eq (quote ()) (quote ()))", "true"},
+    {"(car (quote (a b c)))", "a"},
+    {"(cdr (quote (a b c)))", "(b . (c . nil))"}
   };
 
-  std::list<std::string> answers {
-    "a",
-    "(a . (b . (c . nil)))"
-  };
-
-  for (const auto& tuple : boost::combine(tests, answers))
+  for (const auto& [test, answer] : tests)
   {
     std::stringstream ss {};
-    ss << lisp::eval(lisp::read(boost::get<0>(tuple)));
+    ss << lisp::eval(lisp::read(test));
 
     std::cerr << "\n"
-              << "test: " << boost::get<0>(tuple) << std::endl
+              << "test: " << test << std::endl
               << "  -> " << ss.str() << std::endl
               << "  -> ";
 
-    if (ss.str() == boost::get<1>(tuple))
+    if (ss.str() == answer)
     {
       std::cerr << "success" << std::endl;
     }
     else
     {
-      std::cerr << "failed" << std::endl;
+      std::cerr << "failed" << std::endl
+                << "expected: " << answer << std::endl;
       std::exit(boost::exit_failure);
     }
 
