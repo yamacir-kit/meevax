@@ -11,120 +11,126 @@
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
 
+#define EXPAND(...) EXPAND_(__VA_ARGS__)
+#define EXPAND_(...) __VA_ARGS__
+
+#define STRING(...) STRING_(__VA_ARGS__)
+#define STRING_(...) #__VA_ARGS__
+
+#define LIST EXPAND( \
+  (lambda (x y) (cons x (cons y (quote ())))) \
+)
+
+#define NULLQ EXPAND( \
+  (lambda (x) (eq x (quote ()))) \
+)
+
+#define AND EXPAND( \
+  (lambda (x y) \
+    (cond \
+      (x (cond \
+           (y (quote true)) \
+           ((quote true) (quote ())))) \
+      ((quote true) (quote ())))) \
+)
+
+#define NOT EXPAND( \
+  (lambda (x) \
+    (cond \
+      (x (quote ())) \
+      ((quote true) (quote true)))) \
+)
+
+#define APPEND EXPAND( \
+  (label append (lambda (x y) \
+    (cond \
+      ((NULLQ x) y) \
+      ((quote true) (cons (car x) (append (cdr x) y)))))) \
+)
+
+#define ZIP EXPAND( \
+  (label zip (lambda (x y) \
+    (cond \
+      ((AND (NULLQ x) (NULLQ y)) (quote ())) \
+      ((AND (NOT (atom x)) (NOT (atom y))) \
+       (cons (LIST (car x) (car y)) \
+             (zip (cdr x) (cdr y)))) \
+      ((quote true) (quote ()))))) \
+)
+
+#define CAAR EXPAND((lambda (x) (car (car x))))
+#define CADR EXPAND((lambda (x) (car (cdr x))))
+#define CADAR EXPAND((lambda (x) (car (cdr (car x)))))
+#define CADDR EXPAND((lambda (x) (car (cdr (cdr x)))))
+#define CADDAR EXPAND((lambda (x) (car (cdr (cdr (car x))))))
+
+#define LOOKUP EXPAND( \
+  (label lookup (lambda (x y) \
+    (cond \
+      ((NULLQ x) (quote ())) \
+      ((NULLQ y) x) \
+      ((quote true) \
+       (cond \
+         ((eq (CAAR y) x) (CADAR y)) \
+         ((quote true) (lookup x (cdr y)))))))) \
+)
+
+#define EVCON EXPAND( \
+  (label evcon (lambda (c a) \
+    (cond \
+      ((eval (CAAR c) a) \
+       (eval (CADAR c) a)) \
+      ((quote true) (evcon (cdr c) a))))) \
+)
+
+#define EVLIS EXPAND( \
+  (label evlis (lambda (m a) \
+    (cond \
+      ((NULLQ m) \
+       (quote ())) \
+      ((quote true) \
+       (cons (eval (car m) a) \
+             (evlis (cdr m) a)))))) \
+)
+
+#define EVAL EXPAND( \
+  (label eval (lambda (e a) \
+    (cond \
+      ((atom e) \
+       (LOOKUP e a)) \
+      ((atom (car e)) \
+       (cond \
+         ((eq (car e) (quote quote)) \
+          (car (cdr e))) \
+         ((eq (car e) (quote atom)) \
+          (atom (eval (CADR e) a))) \
+         ((eq (car e) (quote eq)) \
+          (eq (eval (CADR e) a) \
+              (eval (CADDR e) a))) \
+         ((eq (car e) (quote car)) \
+          (car (eval (CADR e) a))) \
+         ((eq (car e) (quote cdr)) \
+          (cdr (eval (CADR e) a))) \
+         ((eq (car e) (quote cons)) \
+          (cons (eval (CADR e) a) \
+                (eval (CADDR e) a))) \
+         ((eq (car e) (quote cond)) \
+          (EVCON (cdr e) a)) \
+         ((quote true) \
+          (eval (cons (LOOKUP (car e) a) (cdr e)) a)))) \
+      ((eq (CAAR e) (quote label)) \
+       (eval (cons (CADDAR e) (cdr e)) \
+             (cons (LIST (CADAR e) (car e)) a))) \
+      ((eq (CAAR e) (quote lambda)) \
+       (eval (CADDAR e) \
+             (APPEND (ZIP (CADAR e) (EVLIS (cdr e) a)) a))) \
+      ((quote true) nil)))) \
+)
+
 auto main()
   -> int
 {
   using namespace meevax;
-
-  const std::string list {" \
-    (lambda (x y) (cons x (cons y nil))) \
-  "};
-
-  const std::string null {" \
-    (lambda (x) (eq x (quote ()))) \
-  "};
-
-  const std::string and_ {" \
-    (lambda (x y) \
-      (cond \
-        (x (cond \
-             (y (quote true)) \
-             ((quote true) (quote ())))) \
-        ((quote true) (quote ())))) \
-  "};
-
-  const std::string not_ {" \
-    (lambda (x) \
-      (cond \
-        (x (quote ())) \
-        ((quote true) (quote true)))) \
-  "};
-
-  const std::string append {" \
-    (label append (lambda (x y) \
-      (cond \
-        ((" + null + " x) y) \
-        ((quote true) (cons (car x) (append (cdr x) y)))))) \
-  "};
-
-  const std::string pair {" \
-    (label pair (lambda (x y) \
-      (cond \
-        ((" + and_ + " (" + null + " x) (" + null + " y)) (quote ())) \
-        ((" + and_ + " (" + not_ + " (atom x)) (" + not_ + " (atom y))) \
-         (cons (" + list + " (car x) (car y)) \
-               (    pair     (cdr x) (cdr y)))) \
-        ((quote true) (quote ()))))) \
-  "};
-
-  const std::string caar {" \
-    (lambda (x) (car (car x))) \
-  "};
-
-  const std::string assoc {" \
-    (label assoc (lambda (x y) \
-      (cond \
-        ((" + null + " x) (quote ())) \
-        ((" + null + " y) x) \
-        ((quote true) \
-         (cond \
-           ((eq (car (car y)) x) (car (cdr (car y)))) \
-           ((quote true) (assoc x (cdr y)))))))) \
-  "};
-
-  const std::string evcon {" \
-    (label evcon (lambda (c a) \
-      (cond \
-        ((eval (car (car c)) a) \
-         (eval (car (cdr (car c))) a)) \
-        ((quote true) (evcon (cdr c) a))))) \
-  "};
-
-  const std::string evlis {" \
-    (label evlis (lambda (m a) \
-      (cond \
-        ((" + null + " m) \
-         (quote ())) \
-        ((quote true) \
-         (cons (eval (car m) a) \
-               (evlis (cdr m) a)))))) \
-  "};
-
-  const std::string eval {" \
-    (label eval (lambda (e a) \
-      (cond \
-        ((atom e) \
-         (" + assoc + " e a)) \
-        ((atom (car e)) \
-         (cond \
-           ((eq (car e) (quote quote)) \
-            (car (cdr e))) \
-           ((eq (car e) (quote atom)) \
-            (atom (eval (car (cdr e)) a))) \
-           ((eq (car e) (quote eq)) \
-            (eq (eval (car (cdr e)) a) \
-                (eval (car (cdr (cdr e))) a))) \
-           ((eq (car e) (quote car)) \
-            (car (eval (car (cdr e)) a))) \
-           ((eq (car e) (quote cdr)) \
-            (cdr (eval (car (cdr e)) a))) \
-           ((eq (car e) (quote cons)) \
-            (cons (eval (car (cdr e)) a) \
-                  (eval (car (cdr (cdr e))) a))) \
-           ((eq (car e) (quote cond)) \
-            (" + evcon + " (cdr e) a)) \
-           ((quote true) \
-            (eval (cons (" + assoc + " (car e) a) (cdr e)) a)))) \
-        ((eq (car (car e)) (quote label)) \
-         (eval (cons (car (cdr (cdr (car e)))) (cdr e)) \
-               (cons (" + list + " (car (cdr (car e))) (car e)) a))) \
-        ((eq (car (car e)) (quote lambda)) \
-         (eval (car (cdr (cdr (car e)))) \
-               (" + append + " (" + pair + " (car (cdr (car e))) \
-                                             (" + evlis + " (cdr e) a)) \
-                               a))) \
-        ((quote true) nil)))) \
-  "};
 
   const std::list<std::pair<std::string, std::string>> The_Roots_of_Lisp
   {
@@ -168,65 +174,65 @@ auto main()
     {"((label subst (lambda (x y z) (cond ((atom z) (cond ((eq z y) x) ((quote true) z))) ((quote true) (cons (subst x y (car z)) (subst x y (cdr z))))))) (quote m) (quote b) (quote (a b (a b c) d)))", "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"},
 
     // 3.1 null
-    {"(" + null + " (quote a))", "nil"},
+    {STRING((NULLQ (quote a))), "nil"},
 
     // 3.2 and
-    {"(" + and_ + " (atom (quote a)) (eq (quote a) (quote a)))", "true"},
-    {"(" + and_ + " (atom (quote a)) (eq (quote a) (quote b)))", "nil"},
+    {STRING((AND (atom (quote a)) (eq (quote a) (quote a)))), "true"},
+    {STRING((AND (atom (quote a)) (eq (quote a) (quote b)))), "nil"},
 
     // 3.3 not
-    {"(" + not_ + " (eq (quote a) (quote a)))", "nil"},
-    {"(" + not_ + " (eq (quote a) (quote b)))", "true"},
+    {STRING((NOT (eq (quote a) (quote a)))), "nil"},
+    {STRING((NOT (eq (quote a) (quote b)))), "true"},
 
     // 3.4 append
-    {"(" + append + " (quote (a b)) (quote (c d)))", "(a . (b . (c . (d . nil))))"},
-    {"(" + append + " (quote ()) (quote (c d)))", "(c . (d . nil))"},
+    {STRING((APPEND (quote (a b)) (quote (c d)))), "(a . (b . (c . (d . nil))))"},
+    {STRING((APPEND (quote ()) (quote (c d)))), "(c . (d . nil))"},
 
     // 3.5 pair
-    {"(" + pair + " (quote (x y z)) (quote (a b c)))", "((x . (a . nil)) . ((y . (b . nil)) . ((z . (c . nil)) . nil)))"},
+    {STRING((ZIP (quote (x y z)) (quote (a b c)))), "((x . (a . nil)) . ((y . (b . nil)) . ((z . (c . nil)) . nil)))"},
 
     // 3.6 assoc
-    {"(" + assoc + " (quote x) (quote ((x a) (y b))))", "a"},
-    {"(" + assoc + " (quote x) (quote ((x new) (x a) (y b))))", "new"},
+    {STRING((LOOKUP (quote x) (quote ((x a) (y b))))), "a"},
+    {STRING((LOOKUP (quote x) (quote ((x new) (x a) (y b))))), "new"},
 
     // 4.1 quote
-    {"(" + eval + " (quote (quote a)) (quote ()))", "a"},
-    {"(" + eval + " (quote (quote (a b c))) (quote ()))", "(a . (b . (c . nil)))"},
+    {STRING((EVAL (quote (quote a)) (quote ()))), "a"},
+    {STRING((EVAL (quote (quote (a b c))) (quote ()))), "(a . (b . (c . nil)))"},
 
     // 4.2 atom
-    {"(" + eval + " (quote (atom (quote a))) (quote ()))", "true"},
-    {"(" + eval + " (quote (atom (quote (a b c)))) (quote ()))", "nil"},
-    {"(" + eval + " (quote (atom (quote ()))) (quote ()))",  "true"},
-    {"(" + eval + " (quote (atom (atom (quote a)))) (quote ()))",  "true"},
-    {"(" + eval + " (quote (atom (quote (atom (quote a))))) (quote ()))", "nil"},
+    {STRING((EVAL (quote (atom (quote a))) (quote ()))), "true"},
+    {STRING((EVAL (quote (atom (quote (a b c)))) (quote ()))), "nil"},
+    {STRING((EVAL (quote (atom (quote ()))) (quote ()))),  "true"},
+    {STRING((EVAL (quote (atom (atom (quote a)))) (quote ()))),  "true"},
+    {STRING((EVAL (quote (atom (quote (atom (quote a))))) (quote ()))), "nil"},
 
     // 4.3 eq
-    {"(" + eval + " (quote (eq (quote a) (quote a))) (quote ()))", "true"},
-    {"(" + eval + " (quote (eq (quote a) (quote b))) (quote ()))", "nil"},
-    {"(" + eval + " (quote (eq (quote ()) (quote ()))) (quote ()))", "true"},
+    {STRING((EVAL (quote (eq (quote a) (quote a))) (quote ()))), "true"},
+    {STRING((EVAL (quote (eq (quote a) (quote b))) (quote ()))), "nil"},
+    {STRING((EVAL (quote (eq (quote ()) (quote ()))) (quote ()))), "true"},
 
     // 4.4 car
-    {"(" + eval + " (quote (car (quote (a b c)))) (quote ()))", "a"},
+    {STRING((EVAL (quote (car (quote (a b c)))) (quote ()))), "a"},
 
     // 4.5 cdr
-    {"(" + eval + " (quote (cdr (quote (a b c)))) (quote ()))", "(b . (c . nil))"},
+    {STRING((EVAL (quote (cdr (quote (a b c)))) (quote ()))), "(b . (c . nil))"},
 
     // 4.6 cons
-    {"(" + eval + " (quote (cons (quote a) (quote (b c)))) (quote ()))", "(a . (b . (c . nil)))"},
-    {"(" + eval + " (quote (cons (quote a) (cons (quote b) (cons (quote c) (quote ()))))) (quote ()))", "(a . (b . (c . nil)))"},
-    {"(" + eval + " (quote (car (cons (quote a) (quote (b c))))) (quote ()))", "a"},
-    {"(" + eval + " (quote (cdr (cons (quote a) (quote (b c))))) (quote ()))", "(b . (c . nil))"},
+    {STRING((EVAL (quote (cons (quote a) (quote (b c)))) (quote ()))), "(a . (b . (c . nil)))"},
+    {STRING((EVAL (quote (cons (quote a) (cons (quote b) (cons (quote c) (quote ()))))) (quote ()))), "(a . (b . (c . nil)))"},
+    {STRING((EVAL (quote (car (cons (quote a) (quote (b c))))) (quote ()))), "a"},
+    {STRING((EVAL (quote (cdr (cons (quote a) (quote (b c))))) (quote ()))), "(b . (c . nil))"},
 
     // 4.7 cond
-    {"(" + eval + " (quote (cond ((eq (quote a) (quote b)) (quote first)) ((atom (quote a)) (quote second)))) (quote ()))", "second"},
+    {STRING((EVAL (quote (cond ((eq (quote a) (quote b)) (quote first)) ((atom (quote a)) (quote second)))) (quote ()))), "second"},
 
     // 5.1 lambda
-    {"(" + eval + " (quote ((lambda (x) (cons x (quote (b)))) (quote a))) (quote ()))", "(a . (b . nil))"},
-    {"(" + eval + " (quote ((lambda (x y) (cons x (cdr y))) (quote z) (quote (a b c))) (quote ()))", "(z . (b . (c . nil)))"},
-    {"(" + eval + " (quote ((lambda (f) (f (quote (b c)))) (quote (lambda (x) (cons (quote a) x))))) (quote ()))",  "(a . (b . (c . nil)))"},
+    {STRING((EVAL (quote ((lambda (x) (cons x (quote (b)))) (quote a))) (quote ()))), "(a . (b . nil))"},
+    {STRING((EVAL (quote ((lambda (x y) (cons x (cdr y))) (quote z) (quote (a b c))) (quote ())))), "(z . (b . (c . nil)))"},
+    {STRING((EVAL (quote ((lambda (f) (f (quote (b c)))) (quote (lambda (x) (cons (quote a) x))))) (quote ()))),  "(a . (b . (c . nil)))"},
 
     // 5.2 label
-    {"(" + eval + " (quote ((label subst (lambda (x y z) (cond ((atom z) (cond ((eq z y) x) ((quote true) z))) ((quote true) (cons (subst x y (car z)) (subst x y (cdr z))))))) (quote m) (quote b) (quote (a b (a b c) d)))) (quote ()))", "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"},
+    {STRING((EVAL (quote ((label subst (lambda (x y z) (cond ((atom z) (cond ((eq z y) x) ((quote true) z))) ((quote true) (cons (subst x y (car z)) (subst x y (cdr z))))))) (quote m) (quote b) (quote (a b (a b c) d)))) (quote ()))), "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"},
   };
 
   for (const auto& [test, answer] : The_Roots_of_Lisp)
@@ -234,8 +240,7 @@ auto main()
     std::stringstream ss {};
     ss << lisp::eval(lisp::read(test));
 
-    std::cerr << "\n"
-              << "test: \e[32m" << test << "\e[0m\n"
+    std::cerr << "\ntest: \e[32m" << test << "\e[0m\n"
               << "  -> \e[36m" << ss.str() << "\e[0m\n"
               << "  -> \e[31m";
 
@@ -250,11 +255,10 @@ auto main()
       std::exit(boost::exit_failure);
     }
 
-    // std::this_thread::sleep_for(std::chrono::milliseconds {100});
+    std::this_thread::sleep_for(std::chrono::milliseconds {100});
   }
 
-  std::cerr << "\n"
-            << "all tests passed." << std::endl;
+  std::cerr << "\nall tests passed." << std::endl;
 
   for (std::string buffer {}; std::cout << "\n>> ", std::getline(std::cin, buffer); )
   {
