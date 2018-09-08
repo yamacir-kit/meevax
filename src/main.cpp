@@ -11,120 +11,138 @@
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
 
+#define LISP(...) EXPAND(__VA_ARGS__)
+#define EXPAND(...) __VA_ARGS__
+
+#define TO_STRING(...) TO_STRING_(__VA_ARGS__)
+#define TO_STRING_(...) #__VA_ARGS__
+
+#define LIST LISP( \
+  (lambda (x y) (cons x (cons y (quote ())))) \
+)
+
+#define NULLQ LISP( \
+  (lambda (x) (eq x (quote ()))) \
+)
+
+#define AND LISP( \
+(lambda (x y) \
+  (cond \
+    (x (cond \
+         (y (quote true)) \
+         ((quote true) (quote ())))) \
+    ((quote true) (quote ())))) \
+)
+
+#define NOT LISP( \
+(lambda (x) \
+  (cond \
+    (x (quote ())) \
+    ((quote true) (quote true)))) \
+)
+
+#define APPEND LISP( \
+  (label append (lambda (x y) \
+    (cond \
+      ((NULLQ x) y) \
+      ((quote true) (cons (car x) (append (cdr x) y)))))) \
+)
+
+#define ZIP LISP( \
+  (label zip (lambda (x y) \
+    (cond \
+      ((AND (NULLQ x) (NULLQ y)) (quote ())) \
+      ((AND (NOT (atom x)) (NOT (atom y))) \
+       (cons (LIST (car x) (car y)) \
+             (zip (cdr x) (cdr y)))) \
+      ((quote true) (quote ()))))) \
+)
+
+#define CAAR LISP((lambda (x) (car (car x))))
+#define CADR LISP((lambda (x) (car (cdr x))))
+#define CADAR LISP((lambda (x) (car (cdr (car x)))))
+#define CADDR LISP((lambda (x) (car (cdr (cdr x)))))
+#define CADDAR LISP((lambda (x) (car (cdr (cdr (car x))))))
+
+#define LOOKUP LISP( \
+  (label lookup (lambda (x y) \
+    (cond \
+      ((NULLQ x) (quote ())) \
+      ((NULLQ y) x) \
+      ((quote true) \
+       (cond \
+         ((eq (CAAR y) x) (CADAR y)) \
+         ((quote true) (lookup x (cdr y)))))))) \
+)
+
+#define EVCON LISP( \
+  (label evcon (lambda (c a) \
+    (cond \
+      ((eval (CAAR c) a) \
+       (eval (CADAR c) a)) \
+      ((quote true) (evcon (cdr c) a))))) \
+)
+
+#define EVLIS LISP( \
+  (label evlis (lambda (m a) \
+    (cond \
+      ((NULLQ m) \
+       (quote ())) \
+      ((quote true) \
+       (cons (eval (car m) a) \
+             (evlis (cdr m) a)))))) \
+)
+
+#define EVAL LISP( \
+  (label eval (lambda (e a) \
+    (cond \
+      ((atom e) \
+       (LOOKUP e a)) \
+      ((atom (car e)) \
+       (cond \
+         ((eq (car e) (quote quote)) \
+          (car (cdr e))) \
+         ((eq (car e) (quote atom)) \
+          (atom (eval (CADR e) a))) \
+         ((eq (car e) (quote eq)) \
+          (eq (eval (CADR e) a) \
+              (eval (CADDR e) a))) \
+         ((eq (car e) (quote car)) \
+          (car (eval (CADR e) a))) \
+         ((eq (car e) (quote cdr)) \
+          (cdr (eval (CADR e) a))) \
+         ((eq (car e) (quote cons)) \
+          (cons (eval (CADR e) a) \
+                (eval (CADDR e) a))) \
+         ((eq (car e) (quote cond)) \
+          (EVCON (cdr e) a)) \
+         ((quote true) \
+          (eval (cons (LOOKUP (car e) a) (cdr e)) a)))) \
+      ((eq (CAAR e) (quote label)) \
+       (eval (cons (CADDAR e) (cdr e)) \
+             (cons (LIST (CADAR e) (car e)) a))) \
+      ((eq (CAAR e) (quote lambda)) \
+       (eval (CADDAR e) \
+             (APPEND (ZIP (CADAR e) (EVLIS (cdr e) a)) a))) \
+      ((quote true) nil)))) \
+)
+
 auto main()
   -> int
 {
   using namespace meevax;
 
-  const std::string list {" \
-    (lambda (x y) (cons x (cons y nil))) \
-  "};
-
-  const std::string null {" \
-    (lambda (x) (eq x (quote ()))) \
-  "};
-
-  const std::string and_ {" \
-    (lambda (x y) \
-      (cond \
-        (x (cond \
-             (y (quote true)) \
-             ((quote true) (quote ())))) \
-        ((quote true) (quote ())))) \
-  "};
-
-  const std::string not_ {" \
-    (lambda (x) \
-      (cond \
-        (x (quote ())) \
-        ((quote true) (quote true)))) \
-  "};
-
-  const std::string append {" \
-    (label append (lambda (x y) \
-      (cond \
-        ((" + null + " x) y) \
-        ((quote true) (cons (car x) (append (cdr x) y)))))) \
-  "};
-
-  const std::string pair {" \
-    (label pair (lambda (x y) \
-      (cond \
-        ((" + and_ + " (" + null + " x) (" + null + " y)) (quote ())) \
-        ((" + and_ + " (" + not_ + " (atom x)) (" + not_ + " (atom y))) \
-         (cons (" + list + " (car x) (car y)) \
-               (    pair     (cdr x) (cdr y)))) \
-        ((quote true) (quote ()))))) \
-  "};
-
-  const std::string caar {" \
-    (lambda (x) (car (car x))) \
-  "};
-
-  const std::string assoc {" \
-    (label assoc (lambda (x y) \
-      (cond \
-        ((" + null + " x) (quote ())) \
-        ((" + null + " y) x) \
-        ((quote true) \
-         (cond \
-           ((eq (car (car y)) x) (car (cdr (car y)))) \
-           ((quote true) (assoc x (cdr y)))))))) \
-  "};
-
-  const std::string evcon {" \
-    (label evcon (lambda (c a) \
-      (cond \
-        ((eval (car (car c)) a) \
-         (eval (car (cdr (car c))) a)) \
-        ((quote true) (evcon (cdr c) a))))) \
-  "};
-
-  const std::string evlis {" \
-    (label evlis (lambda (m a) \
-      (cond \
-        ((" + null + " m) \
-         (quote ())) \
-        ((quote true) \
-         (cons (eval (car m) a) \
-               (evlis (cdr m) a)))))) \
-  "};
-
-  const std::string eval {" \
-    (label eval (lambda (e a) \
-      (cond \
-        ((atom e) \
-         (" + assoc + " e a)) \
-        ((atom (car e)) \
-         (cond \
-           ((eq (car e) (quote quote)) \
-            (car (cdr e))) \
-           ((eq (car e) (quote atom)) \
-            (atom (eval (car (cdr e)) a))) \
-           ((eq (car e) (quote eq)) \
-            (eq (eval (car (cdr e)) a) \
-                (eval (car (cdr (cdr e))) a))) \
-           ((eq (car e) (quote car)) \
-            (car (eval (car (cdr e)) a))) \
-           ((eq (car e) (quote cdr)) \
-            (cdr (eval (car (cdr e)) a))) \
-           ((eq (car e) (quote cons)) \
-            (cons (eval (car (cdr e)) a) \
-                  (eval (car (cdr (cdr e))) a))) \
-           ((eq (car e) (quote cond)) \
-            (" + evcon + " (cdr e) a)) \
-           ((quote true) \
-            (eval (cons (" + assoc + " (car e) a) (cdr e)) a)))) \
-        ((eq (car (car e)) (quote label)) \
-         (eval (cons (car (cdr (cdr (car e)))) (cdr e)) \
-               (cons (" + list + " (car (cdr (car e))) (car e)) a))) \
-        ((eq (car (car e)) (quote lambda)) \
-         (eval (car (cdr (cdr (car e)))) \
-               (" + append + " (" + pair + " (car (cdr (car e))) \
-                                             (" + evlis + " (cdr e) a)) \
-                               a))) \
-        ((quote true) nil)))) \
-  "};
+  const std::string list {TO_STRING(LIST)};
+  const std::string null {TO_STRING(NULLQ)};
+  const std::string and_ {TO_STRING(AND)};
+  const std::string not_ {TO_STRING(NOT)};
+  const std::string append {TO_STRING(APPEND)};
+  const std::string pair {TO_STRING(ZIP)};
+  const std::string caar {TO_STRING(CAAR)};
+  const std::string assoc {TO_STRING(LOOKUP)};
+  const std::string evcon {TO_STRING(EVCON)};
+  const std::string evlis {TO_STRING(EVLIS)};
+  const std::string eval {TO_STRING(EVAL)};
 
   const std::list<std::pair<std::string, std::string>> The_Roots_of_Lisp
   {
@@ -250,7 +268,7 @@ auto main()
       std::exit(boost::exit_failure);
     }
 
-    // std::this_thread::sleep_for(std::chrono::milliseconds {100});
+    std::this_thread::sleep_for(std::chrono::milliseconds {100});
   }
 
   std::cerr << "\n"
