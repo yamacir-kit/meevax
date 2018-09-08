@@ -12,6 +12,8 @@
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
 
+// TODO 引数をすべて完全転送するようにしたら速くなるかも
+
 namespace meevax::lisp
 {
 inline namespace pure
