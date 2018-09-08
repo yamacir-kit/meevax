@@ -44,7 +44,7 @@ namespace meevax::lisp
     auto as() const noexcept
       -> const T&
     {
-      static const T dummy {};
+      static const T dummy {"dummy"};
       return dynamic_cast<const T*>(this) ? dynamic_cast<const T&>(*this) : dummy;
     }
 
