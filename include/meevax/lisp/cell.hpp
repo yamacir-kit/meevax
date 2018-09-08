@@ -80,7 +80,7 @@ namespace meevax::lisp
     {
       if (!e->cdr_)
       {
-        return os << "\e[0;36m" << e->car_->as<std::string>() << "\e[0m";
+        return os << e->car_->as<std::string>();
       }
       else
       {

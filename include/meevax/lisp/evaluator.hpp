@@ -111,6 +111,10 @@ inline namespace pure
     }
   } static eval {};
 } // namespace pure
+
+namespace lexical_scoping_and_dynamic_toplevel_references
+{
+} // namespace lexical_scoping_and_dynamic_toplevel_references
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
