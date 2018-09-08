@@ -44,7 +44,7 @@ namespace meevax::lisp
     auto as() const noexcept
       -> const T&
     {
-      static const T dummy {"dummy"};
+      static const T dummy {""};
       return dynamic_cast<const T*>(this) ? dynamic_cast<const T&>(*this) : dummy;
     }
 
@@ -65,13 +65,13 @@ namespace meevax::lisp
     friend auto car(const std::shared_ptr<cell>& e) noexcept
       -> decltype(auto)
     {
-      return e && e->car_ ? e->car_ : nil;
+      return (e && e->car_) ? e->car_ : nil;
     }
 
     friend auto cdr(const std::shared_ptr<cell>& e) noexcept
       -> decltype(auto)
     {
-      return e && e->cdr_ ? e->cdr_ : nil;
+      return (e && e->cdr_) ? e->cdr_ : nil;
     }
 
   public:

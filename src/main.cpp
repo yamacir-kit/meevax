@@ -64,8 +64,66 @@ auto main()
   const std::string assoc {" \
     (label assoc (lambda (x y) \
       (cond \
-        ((eq (car (car y)) x) (car (cdr (car y)))) \
-        ((quote true) (assoc x (cdr y)))))) \
+        ((" + null + " x) (quote ())) \
+        ((" + null + " y) x) \
+        ((quote true) \
+         (cond \
+           ((eq (car (car y)) x) (car (cdr (car y)))) \
+           ((quote true) (assoc x (cdr y)))))))) \
+  "};
+
+  const std::string evcon {" \
+    (label evcon (lambda (c a) \
+      (cond \
+        ((eval (car (car c)) a) \
+         (eval (car (cdr (car c))) a)) \
+        ((quote true) (evcon (cdr c) a))))) \
+  "};
+
+  const std::string evlis {" \
+    (label evlis (lambda (m a) \
+      (cond \
+        ((" + null + " m) \
+         (quote ())) \
+        ((quote true) \
+         (cons (eval (car m) a) \
+               (evlis (cdr m) a)))))) \
+  "};
+
+  const std::string eval {" \
+    (label eval (lambda (e a) \
+      (cond \
+        ((atom e) \
+         (" + assoc + " e a)) \
+        ((atom (car e)) \
+         (cond \
+           ((eq (car e) (quote quote)) \
+            (car (cdr e))) \
+           ((eq (car e) (quote atom)) \
+            (atom (eval (car (cdr e)) a))) \
+           ((eq (car e) (quote eq)) \
+            (eq (eval (car (cdr e)) a) \
+                (eval (car (cdr (cdr e))) a))) \
+           ((eq (car e) (quote car)) \
+            (car (eval (car (cdr e)) a))) \
+           ((eq (car e) (quote cdr)) \
+            (cdr (eval (car (cdr e)) a))) \
+           ((eq (car e) (quote cons)) \
+            (cons (eval (car (cdr e)) a) \
+                  (eval (car (cdr (cdr e))) a))) \
+           ((eq (car e) (quote cond)) \
+            (" + evcon + " (cdr e) a)) \
+           ((quote true) \
+            (eval (cons (" + assoc + " (car e) a) (cdr e)) a)))) \
+        ((eq (car (car e)) (quote label)) \
+         (eval (cons (car (cdr (cdr (car e)))) (cdr e)) \
+               (cons (" + list + " (car (cdr (car e))) (car e)) a))) \
+        ((eq (car (car e)) (quote lambda)) \
+         (eval (car (cdr (cdr (car e)))) \
+               (" + append + " (" + pair + " (car (cdr (car e))) \
+                                             (" + evlis + " (cdr e) a)) \
+                               a))) \
+        (true nil)))) \
   "};
 
   const std::list<std::pair<std::string, std::string>> The_Roots_of_Lisp
@@ -134,6 +192,38 @@ auto main()
     {"(" + assoc + " (quote x) (quote ((x a) (y b))))", "a"},
     {"(" + assoc + " (quote x) (quote ((x new) (x a) (y b))))", "new"},
 
+  // Meta-Circular Evaluator
+    // 1. quote
+    {"(" + eval + " (quote (quote a)) (quote ()))", "a"},
+    {"(" + eval + " (quote (quote (a b c))) (quote ()))", "(a . (b . (c . nil)))"},
+
+    // 2. atom
+    {"(" + eval + " (quote (atom (quote a))) (quote ()))", "true"},
+    {"(" + eval + " (quote (atom (quote (a b c)))) (quote ()))", "nil"},
+    {"(" + eval + " (quote (atom (quote ()))) (quote ()))",  "true"},
+    {"(" + eval + " (quote (atom (atom (quote a)))) (quote ()))",  "true"},
+    {"(" + eval + " (quote (atom (quote (atom (quote a))))) (quote ()))", "nil"},
+
+    // 3. eq
+    {"(" + eval + " (quote (eq (quote a) (quote a))) (quote ()))", "true"},
+    {"(" + eval + " (quote (eq (quote a) (quote b))) (quote ()))", "nil"},
+    {"(" + eval + " (quote (eq (quote ()) (quote ()))) (quote ()))", "true"},
+
+    // 4. car
+    {"(" + eval + " (quote (car (quote (a b c)))) (quote ()))", "a"},
+
+    // 5. cdr
+    {"(" + eval + " (quote (cdr (quote (a b c)))) (quote ()))", "(b . (c . nil))"},
+
+    // 6. cons
+    {"(" + eval + " (quote (cons (quote a) (quote (b c)))) (quote ()))", "(a . (b . (c . nil)))"},
+    {"(" + eval + " (quote (cons (quote a) (cons (quote b) (cons (quote c) (quote ()))))) (quote ()))", "(a . (b . (c . nil)))"},
+    {"(" + eval + " (quote (car (cons (quote a) (quote (b c))))) (quote ()))", "a"},
+    {"(" + eval + " (quote (cdr (cons (quote a) (quote (b c))))) (quote ()))", "(b . (c . nil))"},
+
+    // 7. cond
+    {"(" + eval + " (quote (cond ((eq (quote a) (quote b)) (quote first)) ((atom (quote a)) (quote second)))) (quote ()))", "second"},
+
     // ()
     {"", "nil"}
   };
@@ -159,7 +249,7 @@ auto main()
       std::exit(boost::exit_failure);
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds {250});
+    // std::this_thread::sleep_for(std::chrono::milliseconds {100});
   }
 
   std::cerr << "\n"

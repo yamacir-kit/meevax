@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_LISP_FUNCTION_HPP
 #define INCLUDED_MEEVAX_LISP_FUNCTION_HPP
 
-#include <iostream>
 #include <memory>
 #include <utility>
 
