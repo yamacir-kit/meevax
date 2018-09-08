@@ -33,16 +33,18 @@ namespace meevax::lisp
     static auto make_as(Ts&&... xs)
       -> const std::shared_ptr<cell>
     {
-      return std::make_shared<
-               meevax::utility::binder<T, cell>
-             >(std::forward<Ts>(xs)...);
+      return std::make_shared<cell>(
+               std::make_shared<
+                 meevax::utility::binder<T, cell>
+               >(std::forward<Ts>(xs)...)
+             );
     }
 
     template <typename T>
     auto as() const noexcept
       -> const T&
     {
-      static const T dummy {};
+      static const T dummy {""};
       return dynamic_cast<const T*>(this) ? dynamic_cast<const T&>(*this) : dummy;
     }
 
@@ -63,13 +65,13 @@ namespace meevax::lisp
     friend auto car(const std::shared_ptr<cell>& e) noexcept
       -> decltype(auto)
     {
-      return e && e->car_ ? e->car_ : nil;
+      return (e && e->car_) ? e->car_ : nil;
     }
 
     friend auto cdr(const std::shared_ptr<cell>& e) noexcept
       -> decltype(auto)
     {
-      return e && e->cdr_ ? e->cdr_ : nil;
+      return (e && e->cdr_) ? e->cdr_ : nil;
     }
 
   public:
@@ -78,7 +80,7 @@ namespace meevax::lisp
     {
       if (!e->cdr_)
       {
-        return os << "\e[0;36m" << e->as<std::string>() << "\e[0m";
+        return os << e->car_->as<std::string>();
       }
       else
       {

@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_LISP_FUNCTION_HPP
 #define INCLUDED_MEEVAX_LISP_FUNCTION_HPP
 
-#include <iostream>
 #include <memory>
 #include <utility>
 
@@ -20,18 +19,21 @@ namespace meevax::lisp
   template <typename T = std::string>
   bool eq(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
   {
-    return lhs == rhs || lhs->as<T>() == rhs->as<T>();
+    return lhs == rhs || car(lhs)->as<T>() == car(rhs)->as<T>();
   }
 
-  bool null(const std::shared_ptr<cell>& e)
-  {
-    return eq(e, cell::nil);
-  }
-
-  auto list(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
+  template <typename T>
+  auto null(T&& e)
     -> decltype(auto)
   {
-    return cons(lhs, cons(rhs, cell::nil));
+    return eq(std::forward<T>(e), cell::nil);
+  }
+
+  template <typename T, typename U>
+  auto list(T&& lhs, U&& rhs)
+    -> decltype(auto)
+  {
+    return cons(std::forward<T>(lhs), cons(std::forward<U>(rhs), cell::nil));
   }
 
   auto append(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
@@ -69,8 +71,7 @@ namespace meevax::lisp
     }
     else if (null(y))
     {
-      std::cerr << "[error] unbound symbol: " << x->as<std::string>() << std::endl;
-      return cell::nil;
+      return x;
     }
     else
     {

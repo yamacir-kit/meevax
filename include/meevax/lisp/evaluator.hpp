@@ -7,10 +7,16 @@
 #include <unordered_map>
 #include <utility>
 
+#include <meevax/lisp/accessor.hpp>
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
 
+// TODO 引数をすべて完全転送するようにしたら速くなるかも
+
 namespace meevax::lisp
+{
+inline namespace pure
 {
   class evaluator
   {
@@ -74,7 +80,7 @@ namespace meevax::lisp
         {
           return cons(eval(cadr(e), a), eval(caddr(e), a));
         }
-        else // ラムダ式の実行
+        else
         {
           return eval(cons(assoc(car(e), a), cdr(e)), a);
         }
@@ -89,6 +95,7 @@ namespace meevax::lisp
       }
       else
       {
+        std::cerr << error("unknown function \"" << car(e) << "\"") << std::endl;
         return cell::nil;
       }
     }
@@ -105,6 +112,11 @@ namespace meevax::lisp
       return null(m) ? cell::nil : cons(eval(car(m), a), evlis(cdr(m), a));
     }
   } static eval {};
+} // namespace pure
+
+namespace lexical_scoping_and_dynamic_toplevel_references
+{
+} // namespace lexical_scoping_and_dynamic_toplevel_references
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
