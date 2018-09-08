@@ -7,7 +7,9 @@
 #include <unordered_map>
 #include <utility>
 
+#include <meevax/lisp/accessor.hpp>
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
 
 namespace meevax::lisp
@@ -89,6 +91,7 @@ namespace meevax::lisp
       }
       else
       {
+        std::cerr << error("unknown function \"" << car(e) << "\"") << std::endl;
         return cell::nil;
       }
     }

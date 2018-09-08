@@ -69,8 +69,7 @@ namespace meevax::lisp
     }
     else if (null(y))
     {
-      std::cerr << "[error] unbound symbol: " << x->as<std::string>() << std::endl;
-      return cell::nil;
+      return x;
     }
     else
     {
