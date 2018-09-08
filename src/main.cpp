@@ -123,109 +123,110 @@ auto main()
                (" + append + " (" + pair + " (car (cdr (car e))) \
                                              (" + evlis + " (cdr e) a)) \
                                a))) \
-        (true nil)))) \
+        ((quote true) nil)))) \
   "};
 
   const std::list<std::pair<std::string, std::string>> The_Roots_of_Lisp
   {
-  // Seven Primitive Operators
-    // 1. quote
+    // 1.1 quote
     {"(quote a)", "a"},
     {"(quote (a b c))", "(a . (b . (c . nil)))"},
 
-    // 2. atom
+    // 1.2 atom
     {"(atom (quote a))", "true"},
     {"(atom (quote (a b c)))", "nil"},
     {"(atom (quote ()))",  "true"},
     {"(atom (atom (quote a)))",  "true"},
     {"(atom (quote (atom (quote a))))", "nil"},
 
-    // 3. eq
+    // 1.3 eq
     {"(eq (quote a) (quote a))", "true"},
     {"(eq (quote a) (quote b))", "nil"},
     {"(eq (quote ()) (quote ()))", "true"},
 
-    // 4. car
+    // 1.4 car
     {"(car (quote (a b c)))", "a"},
 
-    // 5. cdr
+    // 1.5 cdr
     {"(cdr (quote (a b c)))", "(b . (c . nil))"},
 
-    // 6. cons
+    // 1.6 cons
     {"(cons (quote a) (quote (b c)))", "(a . (b . (c . nil)))"},
     {"(cons (quote a) (cons (quote b) (cons (quote c) (quote ()))))", "(a . (b . (c . nil)))"},
     {"(car (cons (quote a) (quote (b c))))", "a"},
     {"(cdr (cons (quote a) (quote (b c))))", "(b . (c . nil))"},
 
-    // 7. cond
+    // 1.7 cond
     {"(cond ((eq (quote a) (quote b)) (quote first)) ((atom (quote a)) (quote second)))", "second"},
 
-  // Denoting Functions
-    // 1. lambda
+    // 2.1 lambda
     {"((lambda (x) (cons x (quote (b)))) (quote a))", "(a . (b . nil))"},
     {"((lambda (x y) (cons x (cdr y))) (quote z) (quote (a b c)))", "(z . (b . (c . nil)))"},
     {"((lambda (f) (f (quote (b c)))) (quote (lambda (x) (cons (quote a) x))))",  "(a . (b . (c . nil)))"},
 
-    // 2. label
+    // 2.2 label
     {"((label subst (lambda (x y z) (cond ((atom z) (cond ((eq z y) x) ((quote true) z))) ((quote true) (cons (subst x y (car z)) (subst x y (cdr z))))))) (quote m) (quote b) (quote (a b (a b c) d)))", "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"},
 
-  // Some Functions
-    // 1. null
+    // 3.1 null
     {"(" + null + " (quote a))", "nil"},
 
-    // 2. and
+    // 3.2 and
     {"(" + and_ + " (atom (quote a)) (eq (quote a) (quote a)))", "true"},
     {"(" + and_ + " (atom (quote a)) (eq (quote a) (quote b)))", "nil"},
 
-    // 3. not
+    // 3.3 not
     {"(" + not_ + " (eq (quote a) (quote a)))", "nil"},
     {"(" + not_ + " (eq (quote a) (quote b)))", "true"},
 
-    // 4. append
+    // 3.4 append
     {"(" + append + " (quote (a b)) (quote (c d)))", "(a . (b . (c . (d . nil))))"},
     {"(" + append + " (quote ()) (quote (c d)))", "(c . (d . nil))"},
 
-    // 5. pair
+    // 3.5 pair
     {"(" + pair + " (quote (x y z)) (quote (a b c)))", "((x . (a . nil)) . ((y . (b . nil)) . ((z . (c . nil)) . nil)))"},
 
-    // 6. assoc
+    // 3.6 assoc
     {"(" + assoc + " (quote x) (quote ((x a) (y b))))", "a"},
     {"(" + assoc + " (quote x) (quote ((x new) (x a) (y b))))", "new"},
 
-  // Meta-Circular Evaluator
-    // 1. quote
+    // 4.1 quote
     {"(" + eval + " (quote (quote a)) (quote ()))", "a"},
     {"(" + eval + " (quote (quote (a b c))) (quote ()))", "(a . (b . (c . nil)))"},
 
-    // 2. atom
+    // 4.2 atom
     {"(" + eval + " (quote (atom (quote a))) (quote ()))", "true"},
     {"(" + eval + " (quote (atom (quote (a b c)))) (quote ()))", "nil"},
     {"(" + eval + " (quote (atom (quote ()))) (quote ()))",  "true"},
     {"(" + eval + " (quote (atom (atom (quote a)))) (quote ()))",  "true"},
     {"(" + eval + " (quote (atom (quote (atom (quote a))))) (quote ()))", "nil"},
 
-    // 3. eq
+    // 4.3 eq
     {"(" + eval + " (quote (eq (quote a) (quote a))) (quote ()))", "true"},
     {"(" + eval + " (quote (eq (quote a) (quote b))) (quote ()))", "nil"},
     {"(" + eval + " (quote (eq (quote ()) (quote ()))) (quote ()))", "true"},
 
-    // 4. car
+    // 4.4 car
     {"(" + eval + " (quote (car (quote (a b c)))) (quote ()))", "a"},
 
-    // 5. cdr
+    // 4.5 cdr
     {"(" + eval + " (quote (cdr (quote (a b c)))) (quote ()))", "(b . (c . nil))"},
 
-    // 6. cons
+    // 4.6 cons
     {"(" + eval + " (quote (cons (quote a) (quote (b c)))) (quote ()))", "(a . (b . (c . nil)))"},
     {"(" + eval + " (quote (cons (quote a) (cons (quote b) (cons (quote c) (quote ()))))) (quote ()))", "(a . (b . (c . nil)))"},
     {"(" + eval + " (quote (car (cons (quote a) (quote (b c))))) (quote ()))", "a"},
     {"(" + eval + " (quote (cdr (cons (quote a) (quote (b c))))) (quote ()))", "(b . (c . nil))"},
 
-    // 7. cond
+    // 4.7 cond
     {"(" + eval + " (quote (cond ((eq (quote a) (quote b)) (quote first)) ((atom (quote a)) (quote second)))) (quote ()))", "second"},
 
-    // ()
-    {"", "nil"}
+    // 5.1 lambda
+    {"(" + eval + " (quote ((lambda (x) (cons x (quote (b)))) (quote a))) (quote ()))", "(a . (b . nil))"},
+    {"(" + eval + " (quote ((lambda (x y) (cons x (cdr y))) (quote z) (quote (a b c))) (quote ()))", "(z . (b . (c . nil)))"},
+    {"(" + eval + " (quote ((lambda (f) (f (quote (b c)))) (quote (lambda (x) (cons (quote a) x))))) (quote ()))",  "(a . (b . (c . nil)))"},
+
+    // 5.2 label
+    {"(" + eval + " (quote ((label subst (lambda (x y z) (cond ((atom z) (cond ((eq z y) x) ((quote true) z))) ((quote true) (cons (subst x y (car z)) (subst x y (cdr z))))))) (quote m) (quote b) (quote (a b (a b c) d)))) (quote ()))", "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"},
   };
 
   for (const auto& [test, answer] : The_Roots_of_Lisp)
