@@ -20,7 +20,7 @@ namespace meevax::lisp
   template <typename T = std::string>
   bool eq(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
   {
-    return lhs == rhs || lhs->as<T>() == rhs->as<T>();
+    return lhs == rhs || car(lhs)->as<T>() == car(rhs)->as<T>();
   }
 
   bool null(const std::shared_ptr<cell>& e)

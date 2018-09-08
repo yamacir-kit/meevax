@@ -33,9 +33,11 @@ namespace meevax::lisp
     static auto make_as(Ts&&... xs)
       -> const std::shared_ptr<cell>
     {
-      return std::make_shared<
-               meevax::utility::binder<T, cell>
-             >(std::forward<Ts>(xs)...);
+      return std::make_shared<cell>(
+               std::make_shared<
+                 meevax::utility::binder<T, cell>
+               >(std::forward<Ts>(xs)...)
+             );
     }
 
     template <typename T>
@@ -78,7 +80,7 @@ namespace meevax::lisp
     {
       if (!e->cdr_)
       {
-        return os << "\e[0;36m" << e->as<std::string>() << "\e[0m";
+        return os << "\e[0;36m" << e->car_->as<std::string>() << "\e[0m";
       }
       else
       {
