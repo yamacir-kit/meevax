@@ -14,6 +14,8 @@
 
 namespace meevax::lisp
 {
+inline namespace pure
+{
   class evaluator
   {
     using symbol = std::string;
@@ -76,7 +78,7 @@ namespace meevax::lisp
         {
           return cons(eval(cadr(e), a), eval(caddr(e), a));
         }
-        else // ラムダ式の実行
+        else
         {
           return eval(cons(assoc(car(e), a), cdr(e)), a);
         }
@@ -108,6 +110,7 @@ namespace meevax::lisp
       return null(m) ? cell::nil : cons(eval(car(m), a), evlis(cdr(m), a));
     }
   } static eval {};
+} // namespace pure
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
