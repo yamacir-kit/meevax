@@ -14,21 +14,19 @@ namespace meevax::utility
     : public conditionally_trivial_destructible<T>,
       public conditionally_trivial_destructible<U>
   {
-    using bound_type = conditionally_trivial_destructible<T>;
-
     explicit constexpr binder(const T& value)
-      : bound_type {value}
+      : conditionally_trivial_destructible<T> {value}
     {}
 
     template <typename... Ts>
     explicit constexpr binder(Ts&&... xs)
-      : bound_type {std::forward<Ts>(xs)...}
+      : conditionally_trivial_destructible<T> {std::forward<Ts>(xs)...}
     {}
 
     auto type() const noexcept
       -> const std::type_info& override
     {
-      return typeid(bound_type);
+      return typeid(T);
     }
   };
 } // namespace meevex::utility

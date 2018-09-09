@@ -20,20 +20,18 @@ inline namespace pure
 {
   class evaluator
   {
-    using symbol = std::string;
-
     static inline std::unordered_map<std::string, const std::shared_ptr<cell>> s
     {
-      {"atom",   cell::make_as<symbol>("atom")},
-      {"car",    cell::make_as<symbol>("car")},
-      {"cdr",    cell::make_as<symbol>("cdr")},
-      {"cond",   cell::make_as<symbol>("cond")},
-      {"cons",   cell::make_as<symbol>("cons")},
-      {"eq",     cell::make_as<symbol>("eq")},
-      {"label",  cell::make_as<symbol>("label")},
-      {"lambda", cell::make_as<symbol>("lambda")},
-      {"quote",  cell::make_as<symbol>("quote")},
-      {"true",   cell::make_as<symbol>("true")}
+      {"atom",   cell::make_as<std::string>("atom")},
+      {"car",    cell::make_as<std::string>("car")},
+      {"cdr",    cell::make_as<std::string>("cdr")},
+      {"cond",   cell::make_as<std::string>("cond")},
+      {"cons",   cell::make_as<std::string>("cons")},
+      {"eq",     cell::make_as<std::string>("eq")},
+      {"label",  cell::make_as<std::string>("label")},
+      {"lambda", cell::make_as<std::string>("lambda")},
+      {"quote",  cell::make_as<std::string>("quote")},
+      {"true",   cell::make_as<std::string>("true")}
     };
 
   public:

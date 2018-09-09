@@ -19,15 +19,28 @@ namespace meevax::lisp
   template <typename T = std::string>
   bool eq(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
   {
-    return lhs == rhs || car(lhs)->as<T>() == car(rhs)->as<T>();
+    // return lhs == rhs || lhs->as<T>() == rhs->as<T>();
+
+    if (lhs == rhs)
+    {
+      return true;
+    }
+    else if (lhs->type() == typeid(T) && rhs->type() == typeid(T))
+    {
+      return lhs->as<T>() == rhs->as<T>();
+    }
+    else
+    {
+      return false;
+    }
   }
 
-  template <typename T>
-  auto null(T&& e)
-    -> decltype(auto)
-  {
-    return eq(std::forward<T>(e), cell::nil);
-  }
+  // template <typename T>
+  // auto null(T&& e)
+  //   -> decltype(auto)
+  // {
+  //   return eq(std::forward<T>(e), cell::nil);
+  // }
 
   template <typename T, typename U>
   auto list(T&& lhs, U&& rhs)

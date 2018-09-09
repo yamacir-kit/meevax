@@ -2,15 +2,17 @@
 #define INCLUDED_MEEVAX_LISP_ACCESSOR_HPP
 
 #include <memory>
+#include <utility>
 
 #include <meevax/lisp/cell.hpp>
 
 namespace meevax::lisp
 {
-  auto caar(const std::shared_ptr<cell>& e) noexcept
+  template <typename T>
+  auto caar(T&& e) noexcept
     -> decltype(auto)
   {
-    return car(car(e));
+    return car(car(std::forward<T>(e)));
   }
 
   auto cadr(const std::shared_ptr<cell>& e) noexcept
