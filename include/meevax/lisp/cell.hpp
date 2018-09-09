@@ -7,6 +7,9 @@
 #include <typeinfo>
 #include <utility>
 
+#include <boost/cstdlib.hpp>
+
+#include <meevax/lisp/error.hpp>
 #include <meevax/utility/type_erasure.hpp>
 
 namespace meevax::lisp
@@ -33,19 +36,20 @@ namespace meevax::lisp
     static auto make_as(Ts&&... xs)
       -> const std::shared_ptr<cell>
     {
-      return std::make_shared<cell>(
-               std::make_shared<
-                 meevax::utility::binder<T, cell>
-               >(std::forward<Ts>(xs)...)
-             );
+      return std::make_shared<
+               meevax::utility::binder<T, cell>
+             >(std::forward<Ts>(xs)...);
     }
 
     template <typename T>
-    auto as() const noexcept
-      -> const T&
+    auto as() const noexcept try
     {
-      static const T dummy {""};
-      return dynamic_cast<const T*>(this) ? dynamic_cast<const T&>(*this) : dummy;
+      return dynamic_cast<const T&>(*this);
+    }
+    catch (const std::bad_cast& error)
+    {
+      std::cerr << error("dynamic dispatch failed for \"" << type().name() << "\"") << std::endl;
+      std::exit(boost::exit_exception_failure);
     }
 
     virtual auto type() const noexcept
@@ -59,7 +63,24 @@ namespace meevax::lisp
 
     friend bool atom(const std::shared_ptr<cell>& e) noexcept
     {
-      return e && !e->cdr_;
+      return !e->cdr_ && e->type() == typeid(std::string);
+    }
+
+    // TODO dynamic dispatch
+    friend bool null(const std::shared_ptr<cell>& e) noexcept
+    {
+      if (e->type() == typeid(cell))
+      {
+        return !e->car_ && !e->cdr_;
+      }
+      else if (e->type() == typeid(std::string))
+      {
+        return e == cell::nil;
+      }
+      else
+      {
+        return false;
+      }
     }
 
     friend auto car(const std::shared_ptr<cell>& e) noexcept
@@ -75,16 +96,28 @@ namespace meevax::lisp
     }
 
   public:
+    // TODO dynamic dispatch
     friend auto operator<<(std::ostream& os, const std::shared_ptr<cell>& e)
       -> decltype(os)
     {
-      if (!e->cdr_)
+      if (e->type() == typeid(cell))
       {
-        return os << e->car_->as<std::string>();
+        if (!e->car_ && !e->cdr_)
+        {
+          return os << "()";
+        }
+        else
+        {
+          return os << "(" << e->car_ << " . " << e->cdr_ << ")";
+        }
+      }
+      else if (e->type() == typeid(std::string))
+      {
+        return os << e->as<std::string>();
       }
       else
       {
-        return os << "(" << e->car_ << " . " << e->cdr_ << ")";
+        throw std::runtime_error {std::to_string(__LINE__)};
       }
     }
   };

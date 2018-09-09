@@ -19,41 +19,56 @@ namespace meevax::lisp
   template <typename T = std::string>
   bool eq(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
   {
-    return lhs == rhs || car(lhs)->as<T>() == car(rhs)->as<T>();
-  }
-
-  template <typename T>
-  auto null(T&& e)
-    -> decltype(auto)
-  {
-    return eq(std::forward<T>(e), cell::nil);
+    if (lhs == rhs)
+    {
+      return true;
+    }
+    else if (lhs->type() == typeid(T) && rhs->type() == typeid(T))
+    {
+      return lhs->as<T>() == rhs->as<T>();
+    }
+    else
+    {
+      return false;
+    }
   }
 
   template <typename T, typename U>
   auto list(T&& lhs, U&& rhs)
     -> decltype(auto)
   {
-    return cons(std::forward<T>(lhs), cons(std::forward<U>(rhs), cell::nil));
+    return cons(
+             std::forward<T>(lhs),
+             cons(
+               std::forward<U>(rhs),
+               cell::nil
+             )
+           );
   }
 
-  auto append(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
+  auto append(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
     -> const std::shared_ptr<cell>
   {
-    return null(lhs) ? rhs : cons(car(lhs), append(cdr(lhs), rhs));
+    return null(x)
+             ? y
+             : cons(
+                 car(x),
+                 append(cdr(x), y)
+               );
   }
 
-  auto pair(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
+  auto zip(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
     -> const std::shared_ptr<cell>
   {
-    if (null(lhs) && null(rhs))
+    if (null(x) && null(y))
     {
       return cell::nil;
     }
-    else if (!atom(lhs) && !atom(rhs))
+    else if (!atom(x) && !atom(y))
     {
       return cons(
-               list(car(lhs), car(rhs)),
-               pair(cdr(lhs), cdr(rhs))
+               list(car(x), car(y)),
+               zip(cdr(x), cdr(y))
              );
     }
     else
