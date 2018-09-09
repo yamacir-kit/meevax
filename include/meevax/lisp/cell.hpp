@@ -1,12 +1,13 @@
 #ifndef INCLUDED_MEEVAX_LISP_CELL_HPP
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
-#include <cassert>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <typeinfo>
 #include <utility>
+
+#include <boost/cstdlib.hpp>
 
 #include <meevax/lisp/error.hpp>
 #include <meevax/utility/type_erasure.hpp>
@@ -47,9 +48,8 @@ namespace meevax::lisp
     }
     catch (const std::bad_cast& error)
     {
-      std::cerr << error("bad_cast for " << type().name()) << std::endl;
-      static T dummy {};
-      return dummy;
+      std::cerr << error("dynamic dispatch failed for " << type().name()) << std::endl;
+      std::exit(boost::exit_exception_failure);
     }
 
     virtual auto type() const noexcept
@@ -63,14 +63,12 @@ namespace meevax::lisp
 
     friend bool atom(const std::shared_ptr<cell>& e) noexcept
     {
-      assert(e);
       return !e->cdr_ && e->type() == typeid(std::string);
     }
 
+    // TODO dynamic dispatch
     friend bool null(const std::shared_ptr<cell>& e) noexcept
     {
-      assert(e);
-
       if (e->type() == typeid(cell))
       {
         return !e->car_ && !e->cdr_;
@@ -98,6 +96,7 @@ namespace meevax::lisp
     }
 
   public:
+    // TODO dynamic dispatch
     friend auto operator<<(std::ostream& os, const std::shared_ptr<cell>& e)
       -> decltype(os)
     {
