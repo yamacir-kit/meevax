@@ -25,6 +25,7 @@ inline namespace pure
       {"cdr",    cell::make_as<std::string>("cdr")},
       {"cond",   cell::make_as<std::string>("cond")},
       {"cons",   cell::make_as<std::string>("cons")},
+      {"define", cell::make_as<std::string>("define")},
       {"eq",     cell::make_as<std::string>("eq")},
       {"label",  cell::make_as<std::string>("label")},
       {"lambda", cell::make_as<std::string>("lambda")},
@@ -32,10 +33,12 @@ inline namespace pure
       {"true",   cell::make_as<std::string>("true")}
     };
 
+    static inline auto env {cell::nil};
+
   public:
     decltype(auto) operator()(const std::shared_ptr<cell>& e)
     {
-      return eval(e, cell::nil);
+      return eval(e, env);
     }
 
   protected:
@@ -75,6 +78,11 @@ inline namespace pure
         else if (eq(car(e), s["cons"]))
         {
           return cons(eval(cadr(e), a), eval(caddr(e), a));
+        }
+        else if (eq(car(e), s["define"]))
+        {
+          env = cons(list(cadr(e), caddr(e)), env);
+          return assoc(cadr(e), env);
         }
         else
         {
