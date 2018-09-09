@@ -30,6 +30,8 @@ namespace meevax::lisp
       }
     }
 
+    virtual ~builder() = default;
+
     auto operator()() const
       -> const std::shared_ptr<cell>
     {
