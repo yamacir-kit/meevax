@@ -95,10 +95,22 @@ namespace meevax::debug
     },
 
     // 1.4 car
-    {"(car (quote (a b c)))", "a"},
+    {
+      LISP(
+        (car (quote (a b c)))
+      ),
+
+      "a"
+    },
 
     // 1.5 cdr
-    {"(cdr (quote (a b c)))", "(b . (c . nil))"},
+    {
+      LISP(
+        (cdr (quote (a b c)))
+      ),
+
+      "(b . (c . nil))"
+    },
 
     // 1.6 cons
     {
