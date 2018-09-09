@@ -145,11 +145,19 @@ auto main()
     {"((label subst (lambda (x y z) (cond ((atom z) (cond ((eq z y) x) ((quote true) z))) ((quote true) (cons (subst x y (car z)) (subst x y (cdr z))))))) (quote m) (quote b) (quote (a b (a b c) d)))", "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"},
 
     // 3.1 null
-    {S((NULLQ (quote a))), "nil"},
+    {"(define null (lambda (x) (eq x (quote ()))))", ""},
+    {"(null (quote a))", "nil"},
 
     // 3.2 and
-    {S((AND (atom (quote a)) (eq (quote a) (quote a)))), "true"},
-    {S((AND (atom (quote a)) (eq (quote a) (quote b)))), "nil"},
+    {"(define and (lambda (x y) \
+        (cond \
+          (x (cond \
+               (y (quote true)) \
+               ((quote true) (quote ())))) \
+          ((quote true) (quote ()))))) \
+     ", ""},
+    {"(and (atom (quote a)) (eq (quote a) (quote a)))", "true"},
+    {"(and (atom (quote a)) (eq (quote a) (quote b)))", "nil"},
 
     // 3.3 not
     {S((NOT (eq (quote a) (quote a)))), "nil"},
@@ -215,7 +223,7 @@ auto main()
               << "  -> \e[36m" << ss.str() << "\e[0m\n"
               << "  -> \e[31m";
 
-    if (ss.str() == answer)
+    if (std::empty(answer) || ss.str() == answer)
     {
       std::cerr << "success" << "\e[0m\n";
     }
