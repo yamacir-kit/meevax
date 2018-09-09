@@ -12,8 +12,6 @@
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
 
-// TODO 引数をすべて完全転送するようにしたら速くなるかも
-
 namespace meevax::lisp
 {
 inline namespace pure
@@ -89,7 +87,7 @@ inline namespace pure
       }
       else if (eq(caar(e), s["lambda"]))
       {
-        return eval(caddar(e), append(pair(cadar(e), evlis(cdr(e), a)), a));
+        return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
       else
       {
