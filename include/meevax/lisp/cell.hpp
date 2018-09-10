@@ -83,6 +83,7 @@ namespace meevax::lisp
       }
     }
 
+    // こことビルダによって空リストが実行時常にNILと等価になることを定義している
     friend auto car(const std::shared_ptr<cell>& e) noexcept
       -> decltype(auto)
     {
