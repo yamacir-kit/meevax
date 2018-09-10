@@ -14,8 +14,6 @@
 
 namespace meevax::lisp
 {
-inline namespace pure
-{
   class evaluator
   {
     static inline std::unordered_map<std::string, const std::shared_ptr<cell>> s
@@ -107,7 +105,8 @@ inline namespace pure
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return eq(eval(caar(c), a), s["true"]) ? eval(cadar(c), a) : evcon(cdr(c), a);
+      // return eq(eval(caar(c), a), s["true"]) ? eval(cadar(c), a) : evcon(cdr(c), a);
+      return not eq(eval(caar(c), a), cell::nil) ? eval(cadar(c), a) : evcon(cdr(c), a);
     }
 
     auto evlis(const std::shared_ptr<cell>& m, const std::shared_ptr<cell>& a)
@@ -116,11 +115,6 @@ inline namespace pure
       return null(m) ? cell::nil : cons(eval(car(m), a), evlis(cdr(m), a));
     }
   } static eval {};
-} // namespace pure
-
-namespace lexical_scoping_and_dynamic_toplevel_references
-{
-} // namespace lexical_scoping_and_dynamic_toplevel_references
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
