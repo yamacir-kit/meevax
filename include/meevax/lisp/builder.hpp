@@ -44,7 +44,8 @@ namespace meevax::lisp
         }
         else
         {
-          return cell::make_as<std::string>(value);
+          // return cell::make_as<std::string>(value);
+          return evaluator::s[value] = cell::make_as<std::string>(value);
         }
       }
       else

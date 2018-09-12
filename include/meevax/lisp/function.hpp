@@ -24,11 +24,11 @@ namespace meevax::lisp
     {
       return true;
     }
-    else if (lhs->type() == typeid(T) && rhs->type() == typeid(T))
-    {
-      // std::cerr << "[debug] eqv for " << lhs << " and " << rhs << std::endl;
-      return lhs->as<T>() == rhs->as<T>();
-    }
+    // else if (lhs->type() == typeid(T) && rhs->type() == typeid(T))
+    // {
+    //   std::cerr << "[debug] eqv for " << lhs << " and " << rhs << std::endl;
+    //   return lhs->as<T>() == rhs->as<T>();
+    // }
     else
     {
       return false;

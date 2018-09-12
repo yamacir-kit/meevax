@@ -19,7 +19,7 @@ namespace meevax::lisp
     static inline auto env {cell::nil};
 
   public:
-    static inline std::unordered_map<std::string, const std::shared_ptr<cell>> s
+    static inline std::unordered_map<std::string, std::shared_ptr<cell>> s
     {
       {"",       cell::nil},
       {"atom",   cell::make_as<std::string>("atom")},
