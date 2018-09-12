@@ -16,8 +16,12 @@ namespace meevax::lisp
 {
   class evaluator
   {
+    static inline auto env {cell::nil};
+
+  public:
     static inline std::unordered_map<std::string, const std::shared_ptr<cell>> s
     {
+      {"",       cell::nil},
       {"atom",   cell::make_as<std::string>("atom")},
       {"car",    cell::make_as<std::string>("car")},
       {"cdr",    cell::make_as<std::string>("cdr")},
@@ -27,13 +31,11 @@ namespace meevax::lisp
       {"eq",     cell::make_as<std::string>("eq")},
       {"label",  cell::make_as<std::string>("label")},
       {"lambda", cell::make_as<std::string>("lambda")},
+      {"nil",    cell::nil},
       {"quote",  cell::make_as<std::string>("quote")},
       {"true",   cell::make_as<std::string>("true")}
     };
 
-    static inline auto env {cell::nil};
-
-  public:
     decltype(auto) operator()(const std::shared_ptr<cell>& e)
     {
       return eval(e, env);

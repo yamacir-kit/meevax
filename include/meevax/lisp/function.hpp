@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_FUNCTION_HPP
 
 #include <memory>
+#include <string>
 #include <utility>
 
 #include <meevax/lisp/accessor.hpp>
@@ -25,6 +26,7 @@ namespace meevax::lisp
     }
     else if (lhs->type() == typeid(T) && rhs->type() == typeid(T))
     {
+      // std::cerr << "[debug] eqv for " << lhs << " and " << rhs << std::endl;
       return lhs->as<T>() == rhs->as<T>();
     }
     else
@@ -33,17 +35,17 @@ namespace meevax::lisp
     }
   }
 
-  template <typename T, typename U>
-  auto list(T&& lhs, U&& rhs)
+  auto list()
     -> decltype(auto)
   {
-    return cons(
-             std::forward<T>(lhs),
-             cons(
-               std::forward<U>(rhs),
-               cell::nil
-             )
-           );
+    return cell::nil;
+  }
+
+  template <typename T, typename... Ts>
+  auto list(T&& head, Ts&&... tail)
+    -> decltype(auto)
+  {
+    return cons(std::forward<T>(head), list(std::forward<Ts>(tail)...));
   }
 
   auto append(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
