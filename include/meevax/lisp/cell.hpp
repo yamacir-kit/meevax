@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <typeindex>
 #include <typeinfo>
 #include <utility>
 

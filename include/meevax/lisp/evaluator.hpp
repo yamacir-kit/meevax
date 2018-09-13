@@ -18,21 +18,21 @@
   env = cons( \
           list( \
             symbol_table.query(SYMBOL), \
-            cell::make_as<procedure>(__VA_ARGS__) \
+            cell::make_as<special>(__VA_ARGS__) \
           ), \
           env \
         );
 
 namespace meevax::lisp
 {
-  using procedure = std::function<
-                      const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
-                                                   const std::shared_ptr<cell>&)
-                    >;
+  using special = std::function<
+                    const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
+                                                 const std::shared_ptr<cell>&)
+                  >;
 
   class evaluator
   {
-    static inline auto env {cell::nil};
+    static inline auto env {symbol_table.query("nil")};
 
   public:
     evaluator()
@@ -83,23 +83,6 @@ namespace meevax::lisp
       });
     }
 
-    // static inline std::unordered_map<std::string, const std::shared_ptr<cell>> s
-    // {
-    //   // {"",       cell::nil},
-    //   {"atom",   cell::make_as<std::string>("atom")},
-    //   {"car",    cell::make_as<std::string>("car")},
-    //   {"cdr",    cell::make_as<std::string>("cdr")},
-    //   {"cond",   cell::make_as<std::string>("cond")},
-    //   {"cons",   cell::make_as<std::string>("cons")},
-    //   {"define", cell::make_as<std::string>("define")},
-    //   {"eq",     cell::make_as<std::string>("eq")},
-    //   {"label",  cell::make_as<std::string>("label")},
-    //   {"lambda", cell::make_as<std::string>("lambda")},
-    //   // {"nil",    cell::nil},
-    //   {"quote",  cell::make_as<std::string>("quote")},
-    //   {"true",   cell::make_as<std::string>("true")}
-    // };
-
     decltype(auto) operator()(const std::shared_ptr<cell>& e)
     {
       return eval(e, env);
@@ -115,18 +98,18 @@ namespace meevax::lisp
       }
       else if (atom(car(e)))
       {
-        if (auto hoge {assoc(car(e), a)}; hoge->type() == typeid(procedure))
+        if (auto procedure {assoc(car(e), a)}; procedure->type() == typeid(special))
         {
-          return hoge->as<procedure>()(e, a);
+          return procedure->as<special>()(e, a);
         }
-        else if (atom(hoge))
+        else if (atom(procedure))
         {
-          std::cerr << error("using atom \"" << hoge << "\" as procedure") << std::endl;
+          std::cerr << error("using atom \"" << procedure << "\" as procedure") << std::endl;
           return cell::nil;
         }
         else
         {
-          return eval(cons(hoge, cdr(e)), a);
+          return eval(cons(procedure, cdr(e)), a);
         }
       }
       else if (eq(caar(e), symbol_table.query("label")))

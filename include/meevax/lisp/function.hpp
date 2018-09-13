@@ -60,7 +60,7 @@ namespace meevax::lisp
   {
     if (null(x) && null(y))
     {
-      return cell::nil;
+      return symbol_table.query("nil");
     }
     else if (!atom(x) && !atom(y))
     {
@@ -71,7 +71,7 @@ namespace meevax::lisp
     }
     else
     {
-      return cell::nil;
+      return symbol_table.query("nil");
     }
   }
 
@@ -80,7 +80,7 @@ namespace meevax::lisp
   {
     if (null(x))
     {
-      return cell::nil;
+      return symbol_table.query("nil");
     }
     else if (null(y))
     {
