@@ -12,20 +12,27 @@
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
+#include <meevax/lisp/table.hpp>
 
 #define define(SYMBOL, ...) \
-  env = cons(list(s[SYMBOL], cell::make_as<procedure>(__VA_ARGS__)), env);
+  env = cons( \
+          list( \
+            symbol_table.query(SYMBOL), \
+            cell::make_as<procedure>(__VA_ARGS__) \
+          ), \
+          env \
+        );
 
 namespace meevax::lisp
 {
+  using procedure = std::function<
+                      const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
+                                                   const std::shared_ptr<cell>&)
+                    >;
+
   class evaluator
   {
     static inline auto env {cell::nil};
-
-    using procedure = std::function<
-                        const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
-                                                     const std::shared_ptr<cell>&)
-                      >;
 
   public:
     evaluator()
@@ -37,12 +44,16 @@ namespace meevax::lisp
 
       define("atom", [&](const auto& e, const auto& a)
       {
-        return atom(eval(cadr(e), a)) ? s["true"] : cell::nil;
+        return atom(eval(cadr(e), a))
+                 ? symbol_table.query("true")
+                 : symbol_table.query("nil");
       });
 
       define("eq", [&](const auto& e, const auto& a)
       {
-        return eq(eval(cadr(e), a), eval(caddr(e), a)) ? s["true"] : cell::nil;
+        return eq(eval(cadr(e), a), eval(caddr(e), a))
+                 ? symbol_table.query("true")
+                 : symbol_table.query("nil");
       });
 
       define("cond", [&](const auto& e, const auto& a)
@@ -72,22 +83,22 @@ namespace meevax::lisp
       });
     }
 
-    static inline std::unordered_map<std::string, std::shared_ptr<cell>> s
-    {
-      {"",       cell::nil},
-      {"atom",   cell::make_as<std::string>("atom")},
-      {"car",    cell::make_as<std::string>("car")},
-      {"cdr",    cell::make_as<std::string>("cdr")},
-      {"cond",   cell::make_as<std::string>("cond")},
-      {"cons",   cell::make_as<std::string>("cons")},
-      {"define", cell::make_as<std::string>("define")},
-      {"eq",     cell::make_as<std::string>("eq")},
-      {"label",  cell::make_as<std::string>("label")},
-      {"lambda", cell::make_as<std::string>("lambda")},
-      {"nil",    cell::nil},
-      {"quote",  cell::make_as<std::string>("quote")},
-      {"true",   cell::make_as<std::string>("true")}
-    };
+    // static inline std::unordered_map<std::string, const std::shared_ptr<cell>> s
+    // {
+    //   // {"",       cell::nil},
+    //   {"atom",   cell::make_as<std::string>("atom")},
+    //   {"car",    cell::make_as<std::string>("car")},
+    //   {"cdr",    cell::make_as<std::string>("cdr")},
+    //   {"cond",   cell::make_as<std::string>("cond")},
+    //   {"cons",   cell::make_as<std::string>("cons")},
+    //   {"define", cell::make_as<std::string>("define")},
+    //   {"eq",     cell::make_as<std::string>("eq")},
+    //   {"label",  cell::make_as<std::string>("label")},
+    //   {"lambda", cell::make_as<std::string>("lambda")},
+    //   // {"nil",    cell::nil},
+    //   {"quote",  cell::make_as<std::string>("quote")},
+    //   {"true",   cell::make_as<std::string>("true")}
+    // };
 
     decltype(auto) operator()(const std::shared_ptr<cell>& e)
     {
@@ -118,11 +129,11 @@ namespace meevax::lisp
           return eval(cons(hoge, cdr(e)), a);
         }
       }
-      else if (eq(caar(e), s["label"]))
+      else if (eq(caar(e), symbol_table.query("label")))
       {
         return eval(cons(caddar(e), cdr(e)), cons(list(cadar(e), car(e)), a));
       }
-      else if (eq(caar(e), s["lambda"]))
+      else if (eq(caar(e), symbol_table.query("lambda")))
       {
         return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
@@ -136,13 +147,17 @@ namespace meevax::lisp
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return not eq(eval(caar(c), a), cell::nil) ? eval(cadar(c), a) : evcon(cdr(c), a);
+      return not eq(eval(caar(c), a), symbol_table.query("nil"))
+                   ? eval(cadar(c), a)
+                   : evcon(cdr(c), a);
     }
 
     auto evlis(const std::shared_ptr<cell>& m, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return null(m) ? cell::nil : cons(eval(car(m), a), evlis(cdr(m), a));
+      return null(m)
+               ? symbol_table.query("nil")
+               : cons(eval(car(m), a), evlis(cdr(m), a));
     }
   } static eval {};
 } // namespace meevax::lisp

@@ -23,19 +23,16 @@ namespace meevax::lisp
       : hash_table {std::forward<Ts>(xs)...}
     {}
 
-    template <typename... Ts>
-    auto emplace(const std::string key, Ts&&... xs)
+    auto query(const std::string s)
     {
-      const auto result {hash_table::emplace(
-        key,
-        cell::make_as<T>(std::forward<Ts>(xs)...)
-      )};
-
-      return std::get<1>(std::get<0>(result));
+      return std::get<0>(hash_table::emplace(s, cell::make_as<T>(s)))->second;
     }
   };
 
-  static table<symbol> symbol_table {
+  static table<symbol> symbol_table
+  {
+    std::make_pair("",    cell::nil),
+    std::make_pair("nil", cell::nil)
   };
 };
 
