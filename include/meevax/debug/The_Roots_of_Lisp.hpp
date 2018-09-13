@@ -124,7 +124,10 @@ namespace meevax::debug
 
     {
       LISP(
-        (cons (quote a) (cons (quote b) (cons (quote c) (quote ()))))
+        (cons (quote a)
+              (cons (quote b)
+                    (cons (quote c)
+                          (quote ()))))
       ),
 
       "(a . (b . (c . nil)))"
@@ -132,7 +135,8 @@ namespace meevax::debug
 
     {
       LISP(
-        (car (cons (quote a) (quote (b c))))
+        (car (cons (quote a)
+                   (quote (b c))))
       ),
 
       "a"
@@ -140,7 +144,8 @@ namespace meevax::debug
 
     {
       LISP(
-        (cdr (cons (quote a) (quote (b c))))
+        (cdr (cons (quote a)
+                   (quote (b c))))
       ),
 
       "(b . (c . nil))"
@@ -193,14 +198,14 @@ namespace meevax::debug
     {
       LISP(
         ((label subst (lambda (x y z)
-          (cond
-            ((atom z)
-             (cond
-               ((eq z y) x)
-               ((quote true) z)))
-            ((quote true)
-             (cons (subst x y (car z))
-                   (subst x y (cdr z)))))))
+           (cond
+             ((atom z)
+              (cond
+                ((eq z y) x)
+                ((quote true) z)))
+             ((quote true)
+              (cons (subst x y (car z))
+                    (subst x y (cdr z)))))))
          (quote m)
          (quote b)
          (quote (a b (a b c) d)))

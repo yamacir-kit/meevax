@@ -37,6 +37,8 @@ namespace meevax::lisp
     {
       if (std::empty(*this))
       {
+        // 実は空リストとNILの等価性を定義してるのはここ
+        // セルの読み取り時点で空のリストはNILに置き換えられてる
         return std::empty(value) ? cell::nil : cell::make_as<std::string>(value);
       }
       else
