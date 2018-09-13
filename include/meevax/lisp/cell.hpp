@@ -83,7 +83,6 @@ namespace meevax::lisp
       }
     }
 
-    // こことビルダによって空リストが実行時常にNILと等価になることを定義している
     friend auto car(const std::shared_ptr<cell>& e) noexcept
       -> decltype(auto)
     {
@@ -97,20 +96,12 @@ namespace meevax::lisp
     }
 
   public:
-    // TODO dynamic dispatch
     friend auto operator<<(std::ostream& os, const std::shared_ptr<cell>& e)
       -> decltype(os)
     {
       if (e->type() == typeid(cell))
       {
-        if (!e->car_ && !e->cdr_)
-        {
-          return os << "()";
-        }
-        else
-        {
-          return os << "(" << e->car_ << " . " << e->cdr_ << ")";
-        }
+        return os << "(" << e->car_ << " . " << e->cdr_ << ")";
       }
       else if (e->type() == typeid(std::string))
       {

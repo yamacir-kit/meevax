@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -12,13 +13,32 @@
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
 
+#define define(SYMBOL, ...) \
+  env = cons(list(s[#SYMBOL], __VA_ARGS__), env);
+
+#define lambda(...) \
+  cell::make_as<procedure>([](const auto& e, const auto& a) { return __VA_ARGS__; })
+
 namespace meevax::lisp
 {
   class evaluator
   {
     static inline auto env {cell::nil};
 
+    using procedure = std::function<
+                        const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
+                                                     const std::shared_ptr<cell>&)
+                      >;
+
   public:
+    evaluator()
+    {
+      env = cons(list(s["quote"], cell::make_as<procedure>([](const auto& e, const auto&)
+            {
+              return cadr(e);
+            })), env);
+    }
+
     static inline std::unordered_map<std::string, std::shared_ptr<cell>> s
     {
       {"",       cell::nil},
@@ -53,7 +73,8 @@ namespace meevax::lisp
       {
         if (eq(car(e), s["quote"]))
         {
-          return cadr(e);
+          // return cadr(e);
+          return assoc(car(e), a)->as<procedure>()(e, a);
         }
         else if (eq(car(e), s["atom"]))
         {
@@ -107,7 +128,6 @@ namespace meevax::lisp
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      // return eq(eval(caar(c), a), s["true"]) ? eval(cadar(c), a) : evcon(cdr(c), a);
       return not eq(eval(caar(c), a), cell::nil) ? eval(cadar(c), a) : evcon(cdr(c), a);
     }
 
