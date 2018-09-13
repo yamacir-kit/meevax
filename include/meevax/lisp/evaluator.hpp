@@ -14,10 +14,7 @@
 #include <meevax/lisp/function.hpp>
 
 #define define(SYMBOL, ...) \
-  env = cons(list(s[#SYMBOL], __VA_ARGS__), env);
-
-#define lambda(...) \
-  cell::make_as<procedure>([](const auto& e, const auto& a) { return __VA_ARGS__; })
+  env = cons(list(s[SYMBOL], cell::make_as<procedure>(__VA_ARGS__)), env);
 
 namespace meevax::lisp
 {
@@ -33,10 +30,46 @@ namespace meevax::lisp
   public:
     evaluator()
     {
-      env = cons(list(s["quote"], cell::make_as<procedure>([](const auto& e, const auto&)
-            {
-              return cadr(e);
-            })), env);
+      define("quote", [](const auto& e, const auto&)
+      {
+        return cadr(e);
+      });
+
+      define("atom", [&](const auto& e, const auto& a)
+      {
+        return atom(eval(cadr(e), a)) ? s["true"] : cell::nil;
+      });
+
+      define("eq", [&](const auto& e, const auto& a)
+      {
+        return eq(eval(cadr(e), a), eval(caddr(e), a)) ? s["true"] : cell::nil;
+      });
+
+      define("cond", [&](const auto& e, const auto& a)
+      {
+        return evcon(cdr(e), a);
+      });
+
+      define("car", [&](const auto& e, const auto& a)
+      {
+        return car(eval(cadr(e), a));
+      });
+
+      define("cdr", [&](const auto& e, const auto& a)
+      {
+        return cdr(eval(cadr(e), a));
+      });
+
+      define("cons", [&](const auto& e, const auto& a)
+      {
+        return cons(eval(cadr(e), a), eval(caddr(e), a));
+      });
+
+      define("define", [&](const auto& e, const auto& a)
+      {
+        a = cons(list(cadr(e), caddr(e)), env);
+        return assoc(cadr(e), a);
+      });
     }
 
     static inline std::unordered_map<std::string, std::shared_ptr<cell>> s
@@ -71,43 +104,18 @@ namespace meevax::lisp
       }
       else if (atom(car(e)))
       {
-        if (eq(car(e), s["quote"]))
+        if (auto hoge {assoc(car(e), a)}; hoge->type() == typeid(procedure))
         {
-          // return cadr(e);
-          return assoc(car(e), a)->as<procedure>()(e, a);
+          return hoge->as<procedure>()(e, a);
         }
-        else if (eq(car(e), s["atom"]))
+        else if (atom(hoge))
         {
-          return atom(eval(cadr(e), a)) ? s["true"] : cell::nil;
-        }
-        else if (eq(car(e), s["eq"]))
-        {
-          return eq(eval(cadr(e), a), eval(caddr(e), a)) ? s["true"] : cell::nil;
-        }
-        else if (eq(car(e), s["cond"]))
-        {
-          return evcon(cdr(e), a);
-        }
-        else if (eq(car(e), s["car"]))
-        {
-          return car(eval(cadr(e), a));
-        }
-        else if (eq(car(e), s["cdr"]))
-        {
-          return cdr(eval(cadr(e), a));
-        }
-        else if (eq(car(e), s["cons"]))
-        {
-          return cons(eval(cadr(e), a), eval(caddr(e), a));
-        }
-        else if (eq(car(e), s["define"]))
-        {
-          env = cons(list(cadr(e), caddr(e)), env);
-          return assoc(cadr(e), env);
+          std::cerr << error("using atom \"" << hoge << "\" as procedure") << std::endl;
+          return cell::nil;
         }
         else
         {
-          return eval(cons(assoc(car(e), a), cdr(e)), a);
+          return eval(cons(hoge, cdr(e)), a);
         }
       }
       else if (eq(caar(e), s["label"]))
