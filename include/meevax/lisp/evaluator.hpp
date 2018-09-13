@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -12,12 +13,68 @@
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
 
+#define define(SYMBOL, ...) \
+  env = cons(list(s[SYMBOL], cell::make_as<procedure>(__VA_ARGS__)), env);
+
 namespace meevax::lisp
 {
   class evaluator
   {
-    static inline std::unordered_map<std::string, const std::shared_ptr<cell>> s
+    static inline auto env {cell::nil};
+
+    using procedure = std::function<
+                        const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
+                                                     const std::shared_ptr<cell>&)
+                      >;
+
+  public:
+    evaluator()
     {
+      define("quote", [](const auto& e, const auto&)
+      {
+        return cadr(e);
+      });
+
+      define("atom", [&](const auto& e, const auto& a)
+      {
+        return atom(eval(cadr(e), a)) ? s["true"] : cell::nil;
+      });
+
+      define("eq", [&](const auto& e, const auto& a)
+      {
+        return eq(eval(cadr(e), a), eval(caddr(e), a)) ? s["true"] : cell::nil;
+      });
+
+      define("cond", [&](const auto& e, const auto& a)
+      {
+        return evcon(cdr(e), a);
+      });
+
+      define("car", [&](const auto& e, const auto& a)
+      {
+        return car(eval(cadr(e), a));
+      });
+
+      define("cdr", [&](const auto& e, const auto& a)
+      {
+        return cdr(eval(cadr(e), a));
+      });
+
+      define("cons", [&](const auto& e, const auto& a)
+      {
+        return cons(eval(cadr(e), a), eval(caddr(e), a));
+      });
+
+      define("define", [&](const auto& e, const auto& a)
+      {
+        env = cons(list(cadr(e), caddr(e)), env);
+        return assoc(cadr(e), a);
+      });
+    }
+
+    static inline std::unordered_map<std::string, std::shared_ptr<cell>> s
+    {
+      {"",       cell::nil},
       {"atom",   cell::make_as<std::string>("atom")},
       {"car",    cell::make_as<std::string>("car")},
       {"cdr",    cell::make_as<std::string>("cdr")},
@@ -27,13 +84,11 @@ namespace meevax::lisp
       {"eq",     cell::make_as<std::string>("eq")},
       {"label",  cell::make_as<std::string>("label")},
       {"lambda", cell::make_as<std::string>("lambda")},
+      {"nil",    cell::nil},
       {"quote",  cell::make_as<std::string>("quote")},
       {"true",   cell::make_as<std::string>("true")}
     };
 
-    static inline auto env {cell::nil};
-
-  public:
     decltype(auto) operator()(const std::shared_ptr<cell>& e)
     {
       return eval(e, env);
@@ -49,42 +104,18 @@ namespace meevax::lisp
       }
       else if (atom(car(e)))
       {
-        if (eq(car(e), s["quote"]))
+        if (auto hoge {assoc(car(e), a)}; hoge->type() == typeid(procedure))
         {
-          return cadr(e);
+          return hoge->as<procedure>()(e, a);
         }
-        else if (eq(car(e), s["atom"]))
+        else if (atom(hoge))
         {
-          return atom(eval(cadr(e), a)) ? s["true"] : cell::nil;
-        }
-        else if (eq(car(e), s["eq"]))
-        {
-          return eq(eval(cadr(e), a), eval(caddr(e), a)) ? s["true"] : cell::nil;
-        }
-        else if (eq(car(e), s["cond"]))
-        {
-          return evcon(cdr(e), a);
-        }
-        else if (eq(car(e), s["car"]))
-        {
-          return car(eval(cadr(e), a));
-        }
-        else if (eq(car(e), s["cdr"]))
-        {
-          return cdr(eval(cadr(e), a));
-        }
-        else if (eq(car(e), s["cons"]))
-        {
-          return cons(eval(cadr(e), a), eval(caddr(e), a));
-        }
-        else if (eq(car(e), s["define"]))
-        {
-          env = cons(list(cadr(e), caddr(e)), env);
-          return assoc(cadr(e), env);
+          std::cerr << error("using atom \"" << hoge << "\" as procedure") << std::endl;
+          return cell::nil;
         }
         else
         {
-          return eval(cons(assoc(car(e), a), cdr(e)), a);
+          return eval(cons(hoge, cdr(e)), a);
         }
       }
       else if (eq(caar(e), s["label"]))
@@ -105,7 +136,6 @@ namespace meevax::lisp
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      // return eq(eval(caar(c), a), s["true"]) ? eval(cadar(c), a) : evcon(cdr(c), a);
       return not eq(eval(caar(c), a), cell::nil) ? eval(cadar(c), a) : evcon(cdr(c), a);
     }
 

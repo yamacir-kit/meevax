@@ -6,6 +6,7 @@
 #include <string>
 
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/evaluator.hpp>
 
 namespace meevax::lisp
 {
@@ -37,27 +38,18 @@ namespace meevax::lisp
     {
       if (std::empty(*this))
       {
-        // 実は空リストとNILの等価性を定義してるのはここ
-        // セルの読み取り時点で空のリストはNILに置き換えられてる
-        return std::empty(value) ? cell::nil : cell::make_as<std::string>(value);
+        if (auto iter {evaluator::s.find(value)}; iter != std::end(evaluator::s))
+        {
+          return std::get<1>(*iter);
+        }
+        else
+        {
+          // return cell::make_as<std::string>(value);
+          return evaluator::s[value] = cell::make_as<std::string>(value);
+        }
       }
       else
       {
-        // TODO 特殊括弧による組み込みリテラルの直接構築
-        //
-        // std::unordered_map<
-        //   std::string,
-        //   std::function<
-        //     const std::shared_ptr<cell> (std::string::const_iterator begin,
-        //                                  std::string::const_iterator end)
-        //   >
-        // > disp_table {
-        //   {"vector", [](auto begin, auto end)
-        //              {
-        //                return cell::make_as<std::vector>(begin, end);
-        //              }}
-        // };
-
         auto head {cell::nil};
 
         for (auto iter {std::rbegin(*this)}; iter != std::rend(*this); ++iter)
