@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <typeindex>
 #include <typeinfo>
 #include <utility>
 
@@ -14,6 +15,8 @@
 
 namespace meevax::lisp
 {
+  using symbol = std::string;
+
   class cell
   {
     const std::shared_ptr<cell> car_, cdr_;
@@ -59,28 +62,16 @@ namespace meevax::lisp
     }
 
   public:
-    static inline const auto nil {make_as<std::string>("nil")};
+    static inline const auto nil {make_as<symbol>("nil")};
 
-    friend bool atom(const std::shared_ptr<cell>& e) noexcept
+    friend bool atom(const std::shared_ptr<cell>& e)
     {
-      return !e->cdr_ && e->type() == typeid(std::string);
-    }
+      static const std::unordered_map<std::type_index, bool> dispatch
+      {
+        {typeid(symbol), true}
+      };
 
-    // TODO dynamic dispatch
-    friend bool null(const std::shared_ptr<cell>& e) noexcept
-    {
-      if (e->type() == typeid(cell))
-      {
-        return !e->car_ && !e->cdr_;
-      }
-      else if (e->type() == typeid(std::string))
-      {
-        return e == cell::nil;
-      }
-      else
-      {
-        return false;
-      }
+      return !e->cdr_ && dispatch.at(e->type());
     }
 
     friend auto car(const std::shared_ptr<cell>& e) noexcept
@@ -103,9 +94,9 @@ namespace meevax::lisp
       {
         return os << "(" << e->car_ << " . " << e->cdr_ << ")";
       }
-      else if (e->type() == typeid(std::string))
+      else if (e->type() == typeid(symbol))
       {
-        return os << e->as<std::string>();
+        return os << e->as<symbol>();
       }
       else
       {

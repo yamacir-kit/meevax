@@ -6,7 +6,8 @@
 #include <string>
 
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/evaluator.hpp>
+#include <meevax/lisp/function.hpp>
+#include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
 {
@@ -38,15 +39,7 @@ namespace meevax::lisp
     {
       if (std::empty(*this))
       {
-        if (auto iter {evaluator::s.find(value)}; iter != std::end(evaluator::s))
-        {
-          return std::get<1>(*iter);
-        }
-        else
-        {
-          // return cell::make_as<std::string>(value);
-          return evaluator::s[value] = cell::make_as<std::string>(value);
-        }
+        return symbol_table.query(value);
       }
       else
       {

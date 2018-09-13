@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_LISP_ACCESSOR_HPP
 #define INCLUDED_MEEVAX_LISP_ACCESSOR_HPP
 
-#include <memory>
 #include <utility>
 
 #include <meevax/lisp/cell.hpp>
