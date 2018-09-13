@@ -16,23 +16,25 @@ auto main()
   -> int
 {
   using namespace meevax;
+  using namespace meevax::debug;
 
-  for (const auto& [test, answer] : meevax::debug::The_Roots_of_Lisp)
+  for (const auto& [source_code, evaluated] : The_Roots_of_Lisp)
   {
     std::stringstream ss {};
-    ss << lisp::eval(lisp::read(test));
+    ss << lisp::eval(lisp::read(source_code));
 
-    std::cerr << "\ntest: \e[32m" << test << "\e[0m\n"
+    std::cerr << "\n"
+              << "source code: \e[32m" << source_code << "\e[0m\n"
               << "  -> \e[36m" << ss.str() << "\e[0m\n";
 
-    if (answer == "lambda" || ss.str() == answer)
+    if (evaluated == "lambda" || evaluated == ss.str())
     {
-      std::cerr << "  -> \e[1;33msuccess" << "\e[0m\n";
+      std::cerr << "  -> \e[1;33msuccess\e[0m\n";
     }
     else
     {
-      std::cerr << "  -> \e[1;31mfailed" << "\e[0m\n"
-                << "  -> " << answer << " expected" << std::endl;
+      std::cerr << "  -> \e[1;31mfailed\e[0m\n"
+                << "  -> " << evaluated << " expected" << std::endl;
       std::exit(boost::exit_failure);
     }
 
