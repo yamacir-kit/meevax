@@ -7,6 +7,7 @@
 
 #include <meevax/lisp/accessor.hpp>
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
 {
@@ -17,22 +18,17 @@ namespace meevax::lisp
     return std::make_shared<cell>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
 
-  template <typename T = std::string>
-  bool eq(const std::shared_ptr<cell>& lhs, const std::shared_ptr<cell>& rhs)
+  template <typename T, typename U>
+  bool eq(T&& lhs, U&& rhs)
   {
-    if (lhs == rhs)
-    {
-      return true;
-    }
-    // else if (lhs->type() == typeid(T) && rhs->type() == typeid(T))
-    // {
-    //   std::cerr << "[debug] eqv for " << lhs << " and " << rhs << std::endl;
-    //   return lhs->as<T>() == rhs->as<T>();
-    // }
-    else
-    {
-      return false;
-    }
+    return lhs == rhs;
+  }
+
+  template <typename T>
+  auto null(T&& e)
+    -> decltype(auto)
+  {
+    return eq(std::forward<T>(e), symbol_table.query("nil"));
   }
 
   auto list()

@@ -63,26 +63,14 @@ namespace meevax::lisp
   public:
     static inline const auto nil {make_as<symbol>("nil")};
 
-    friend bool atom(const std::shared_ptr<cell>& e) noexcept
+    friend bool atom(const std::shared_ptr<cell>& e)
     {
-      return !e->cdr_ && e->type() == typeid(std::string);
-    }
+      static const std::unordered_map<std::type_index, bool> dispatch
+      {
+        {typeid(symbol), true}
+      };
 
-    // TODO move to function.hpp
-    friend bool null(const std::shared_ptr<cell>& e) noexcept
-    {
-      if (e->type() == typeid(cell))
-      {
-        return !e->car_ && !e->cdr_;
-      }
-      else if (e->type() == typeid(symbol))
-      {
-        return e == cell::nil;
-      }
-      else
-      {
-        return false;
-      }
+      return !e->cdr_ && dispatch.at(e->type());
     }
 
     friend auto car(const std::shared_ptr<cell>& e) noexcept
