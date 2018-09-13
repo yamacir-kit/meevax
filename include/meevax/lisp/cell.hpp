@@ -14,6 +14,8 @@
 
 namespace meevax::lisp
 {
+  using symbol = std::string;
+
   class cell
   {
     const std::shared_ptr<cell> car_, cdr_;
@@ -59,21 +61,21 @@ namespace meevax::lisp
     }
 
   public:
-    static inline const auto nil {make_as<std::string>("nil")};
+    static inline const auto nil {make_as<symbol>("nil")};
 
     friend bool atom(const std::shared_ptr<cell>& e) noexcept
     {
       return !e->cdr_ && e->type() == typeid(std::string);
     }
 
-    // TODO dynamic dispatch
+    // TODO move to function.hpp
     friend bool null(const std::shared_ptr<cell>& e) noexcept
     {
       if (e->type() == typeid(cell))
       {
         return !e->car_ && !e->cdr_;
       }
-      else if (e->type() == typeid(std::string))
+      else if (e->type() == typeid(symbol))
       {
         return e == cell::nil;
       }
@@ -103,9 +105,9 @@ namespace meevax::lisp
       {
         return os << "(" << e->car_ << " . " << e->cdr_ << ")";
       }
-      else if (e->type() == typeid(std::string))
+      else if (e->type() == typeid(symbol))
       {
-        return os << e->as<std::string>();
+        return os << e->as<symbol>();
       }
       else
       {
