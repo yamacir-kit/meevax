@@ -5,60 +5,34 @@
 
 #include <meevax/lisp/cell.hpp>
 
+#define caar(...) car<0, 0>(__VA_ARGS__)
+#define cadar(...) car<0, 1>(__VA_ARGS__)
+#define caddar(...) car<0, 2>(__VA_ARGS__)
+
+#define cadr(...) car<1>(__VA_ARGS__)
+#define caddr(...) car<2>(__VA_ARGS__)
+#define cadddr(...) car<3>(__VA_ARGS__)
+
 namespace meevax::lisp
 {
-  template <typename... Ts>
-  constexpr auto caar(Ts&&... xs) noexcept
-    -> decltype(auto)
+  template <auto N, auto... Ns>
+  decltype(auto) car(const std::shared_ptr<cell>& e)
   {
-    return car(
-             car(std::forward<Ts>(xs)...)
-           );
-  }
+    auto cursor {e};
 
-  template <typename... Ts>
-  constexpr auto cadr(Ts&&... xs) noexcept
-    -> decltype(auto)
-  {
-    return car(
-             cdr(std::forward<Ts>(xs)...)
-           );
-  }
+    for (auto n {0}; n < N; ++n)
+    {
+      cursor = cdr(cursor);
+    }
 
-  template <typename... Ts>
-  constexpr auto cadar(Ts&&... xs) noexcept
-    -> decltype(auto)
-  {
-    return cadr(
-             car(std::forward<Ts>(xs)...)
-           );
-  }
-
-  template <typename... Ts>
-  constexpr auto caddr(Ts&&... xs) noexcept
-    -> decltype(auto)
-  {
-    return cadr(
-             cdr(std::forward<Ts>(xs)...)
-           );
-  }
-
-  template <typename... Ts>
-  constexpr auto caddar(Ts&&... xs) noexcept
-    -> decltype(auto)
-  {
-    return caddr(
-             car(std::forward<Ts>(xs)...)
-           );
-  }
-
-  template <typename... Ts>
-  constexpr auto cadddr(Ts&&... xs) noexcept
-    -> decltype(auto)
-  {
-    return caddr(
-             cdr(std::forward<Ts>(xs)...)
-           );
+    if constexpr (sizeof...(Ns) != 0)
+    {
+      return car<Ns...>(car(cursor));
+    }
+    else
+    {
+      return car(cursor);
+    }
   }
 } // namespace meevax::lisp
 
