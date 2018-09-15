@@ -11,7 +11,7 @@
 #include <boost/cstdlib.hpp>
 
 #include <meevax/lisp/error.hpp>
-#include <meevax/utility/type_erasure.hpp>
+#include <meevax/utility/binder.hpp>
 
 namespace meevax::lisp
 {

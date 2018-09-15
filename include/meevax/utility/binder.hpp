@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
-#define INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_BINDER_HPP
+#define INCLUDED_MEEVAX_UTILITY_BINDER_HPP
 
 #include <type_traits>
 #include <typeinfo>
@@ -31,5 +31,5 @@ namespace meevax::utility
   };
 } // namespace meevex::utility
 
-#endif // INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_BINDER_HPP
 
