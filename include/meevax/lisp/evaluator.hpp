@@ -9,6 +9,7 @@
 #include <utility>
 
 #include <meevax/lisp/accessor.hpp>
+#include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/function.hpp>
@@ -25,11 +26,6 @@
 
 namespace meevax::lisp
 {
-  using special = std::function<
-                    const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
-                                                 const std::shared_ptr<cell>&)
-                  >;
-
   class evaluator
   {
     static inline auto env {symbol_table.query("nil")};

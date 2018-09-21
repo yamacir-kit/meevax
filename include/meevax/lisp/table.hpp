@@ -6,6 +6,8 @@
 
 #include <meevax/lisp/cell.hpp>
 
+// TODO query -> reference
+
 namespace meevax::lisp
 {
   using hash_table = std::unordered_map<

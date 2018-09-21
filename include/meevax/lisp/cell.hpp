@@ -10,13 +10,12 @@
 
 #include <boost/cstdlib.hpp>
 
+#include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/utility/binder.hpp>
 
 namespace meevax::lisp
 {
-  using symbol = std::string;
-
   class cell
   {
     const std::shared_ptr<cell> car_, cdr_;
