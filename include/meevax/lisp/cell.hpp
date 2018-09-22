@@ -73,14 +73,12 @@ namespace meevax::lisp
       return !e->cdr_ && dispatch.at(e->type());
     }
 
-    friend auto car(const std::shared_ptr<cell>& e) noexcept
-      -> decltype(auto)
+    friend decltype(auto) car(const std::shared_ptr<cell>& e) noexcept
     {
       return (e && e->car_) ? e->car_ : nil;
     }
 
-    friend auto cdr(const std::shared_ptr<cell>& e) noexcept
-      -> decltype(auto)
+    friend decltype(auto) cdr(const std::shared_ptr<cell>& e) noexcept
     {
       return (e && e->cdr_) ? e->cdr_ : nil;
     }
@@ -103,6 +101,18 @@ namespace meevax::lisp
       }
     }
   };
+
+  template <typename... Ts>
+  decltype(auto) cons(Ts&&... xs)
+  {
+    return std::make_shared<cell>(std::forward<Ts>(xs)...);
+  }
+
+  template <typename T, typename U>
+  bool eq(T&& lhs, U&& rhs)
+  {
+    return lhs == rhs;
+  }
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP

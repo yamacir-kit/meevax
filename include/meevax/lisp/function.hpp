@@ -11,18 +11,6 @@
 
 namespace meevax::lisp
 {
-  template <typename T, typename U>
-  decltype(auto) cons(T&& lhs, U&& rhs)
-  {
-    return std::make_shared<cell>(std::forward<T>(lhs), std::forward<U>(rhs));
-  }
-
-  template <typename T, typename U>
-  bool eq(T&& lhs, U&& rhs)
-  {
-    return lhs == rhs;
-  }
-
   template <typename T>
   decltype(auto) null(T&& e)
   {
