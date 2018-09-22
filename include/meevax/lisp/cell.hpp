@@ -64,16 +64,14 @@ namespace meevax::lisp
     }
 
   public:
-    // static inline const auto nil {make_as<symbol>("nil")};
-
     friend bool atom(const std::shared_ptr<cell>& e)
     {
-      static const std::unordered_map<std::type_index, bool> dispatch
+      static const std::unordered_map<std::type_index, bool> dispatcher
       {
         {typeid(symbol), true}
       };
 
-      return !e->cdr_ && dispatch.at(e->type());
+      return !e->cdr_ && dispatcher.at(e->type());
     }
 
     template <typename T>
@@ -109,35 +107,17 @@ namespace meevax::lisp
 
   const std::shared_ptr<cell> nil {cell::make_as<symbol>("nil")};
 
-  template <typename T, typename U>
-  decltype(auto) operator+(T&& lhs, U&& rhs)
+  template <typename... Ts>
+  decltype(auto) cons(Ts&&... xs)
   {
-    return std::make_shared<cell>(lhs, rhs);
+    return std::make_shared<cell>(std::forward<Ts>(xs)...);
   }
 
   template <typename T, typename U>
-  auto operator+=(T&& x, U&& y)
-    -> const std::shared_ptr<cell>
+  decltype(auto) operator|(T&& head, U&& tail)
   {
-    return x == nil ? y : car(x) + cdr(x) += y;
+    return cons(head, tail);
   }
-
-  inline namespace deprecated
-  {
-    // same as std::shared_ptr<cell>::operator==()
-    template <typename T, typename U>
-    [[deprecated]] decltype(auto) eq(T&& lhs, U&& rhs)
-    {
-      return lhs == rhs;
-    }
-
-    // same as meevax::lisp::opetator+()
-    template <typename... Ts>
-    [[deprecated]] decltype(auto) cons(Ts&&... xs)
-    {
-      return std::make_shared<cell>(std::forward<Ts>(xs)...);
-    }
-  } // inline namespace deprecated
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP

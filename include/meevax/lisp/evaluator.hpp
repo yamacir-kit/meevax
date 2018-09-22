@@ -53,12 +53,12 @@ namespace meevax::lisp
 
       define("cons", [&](const auto& e, const auto& a)
       {
-        return eval(cadr(e), a) + eval(caddr(e), a);
+        return eval(cadr(e), a) | eval(caddr(e), a);
       });
 
       define("define", [&](const auto& e, const auto& a)
       {
-        env = list(cadr(e), caddr(e)) + env;
+        env = list(cadr(e), caddr(e)) | env;
         return assoc(cadr(e), a);
       });
     }
@@ -71,7 +71,7 @@ namespace meevax::lisp
     template <typename F>
     void define(const std::string& s, F&& proc)
     {
-      env = list(symbols.intern(s), cell::make_as<special>(proc)) + env;
+      env = list(symbols.intern(s), cell::make_as<special>(proc)) | env;
     }
 
   protected:
@@ -95,12 +95,12 @@ namespace meevax::lisp
         }
         else
         {
-          return eval(proc + cdr(e), a);
+          return eval(proc | cdr(e), a);
         }
       }
       else if (caar(e) == symbols.intern("label"))
       {
-        return eval(caddar(e) + cdr(e), list(cadar(e), car(e)) + a);
+        return eval(caddar(e) | cdr(e), list(cadar(e), car(e)) | a);
       }
       else if (caar(e) == symbols.intern("lambda"))
       {
@@ -114,26 +114,18 @@ namespace meevax::lisp
     }
 
   private:
-    // TODO convert to cell::operator bool()
-    template <typename T>
-    [[deprecated]] decltype(auto) null(T&& e)
-    {
-      return e == nil;
-    }
-
     template <typename... Ts>
     auto list(Ts&&... xs)
       -> const std::shared_ptr<cell>
     {
-      return (xs + ... + nil);
+      return (xs | ... | nil);
     }
 
-    // TODO convert to cell::operator+()
     template <typename T, typename U>
     auto append(T&& x, U&& y)
       -> const std::shared_ptr<cell>
     {
-      return x == nil ? y : car(x) + append(cdr(x), y);
+      return x == nil ? y : car(x) | append(cdr(x), y);
     }
 
     template <typename T, typename U>
@@ -146,7 +138,7 @@ namespace meevax::lisp
       }
       else if (!atom(x) && !atom(y))
       {
-        return list(car(x), car(y)) + zip(cdr(x), cdr(y));
+        return list(car(x), car(y)) | zip(cdr(x), cdr(y));
       }
       else
       {
@@ -180,7 +172,7 @@ namespace meevax::lisp
     auto evlis(const std::shared_ptr<cell>& m, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return m == nil ? nil : eval(car(m), a) + evlis(cdr(m), a);
+      return m == nil ? nil : eval(car(m), a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp
