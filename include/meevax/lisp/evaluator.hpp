@@ -57,13 +57,11 @@ namespace meevax::lisp
 
       define("cons", [&](const auto& e, const auto& a)
       {
-        // return cons(eval(cadr(e), a), eval(caddr(e), a));
         return eval(cadr(e), a) + eval(caddr(e), a);
       });
 
       define("define", [&](const auto& e, const auto& a)
       {
-        // env = cons(list(cadr(e), caddr(e)), env);
         env = list(cadr(e), caddr(e)) + env;
         return assoc(cadr(e), a);
       });
@@ -97,7 +95,7 @@ namespace meevax::lisp
         else if (atom(proc))
         {
           std::cerr << error("using atom \"" << proc << "\" as procedure") << std::endl;
-          return cell::nil;
+          return nil;
         }
         else
         {
@@ -115,7 +113,7 @@ namespace meevax::lisp
       else
       {
         std::cerr << error("unknown function \"" << car(e) << "\"") << std::endl;
-        return cell::nil;
+        return nil;
       }
     }
 
@@ -131,7 +129,7 @@ namespace meevax::lisp
     auto list(Ts&&... xs)
       -> const std::shared_ptr<cell>
     {
-      return (xs + ... + cell::nil);
+      return (xs + ... + nil);
     }
 
     // TODO convert to cell::operator+()

@@ -16,6 +16,8 @@
 
 namespace meevax::lisp
 {
+  extern const std::shared_ptr<cell> nil;
+
   class cell
   {
     const std::shared_ptr<cell> car_, cdr_;
@@ -62,7 +64,7 @@ namespace meevax::lisp
     }
 
   public:
-    static inline const auto nil {make_as<symbol>("nil")};
+    // static inline const auto nil {make_as<symbol>("nil")};
 
     friend bool atom(const std::shared_ptr<cell>& e)
     {
@@ -105,22 +107,31 @@ namespace meevax::lisp
     }
   };
 
+  const std::shared_ptr<cell> nil {cell::make_as<symbol>("nil")};
+
   template <typename T, typename U>
   decltype(auto) operator+(T&& lhs, U&& rhs)
   {
     return std::make_shared<cell>(lhs, rhs);
   }
 
+  template <typename T, typename U>
+  auto operator+=(T&& x, U&& y)
+    -> const std::shared_ptr<cell>
+  {
+    return x == nil ? y : car(x) + cdr(x) += y;
+  }
+
   inline namespace deprecated
   {
-    // same as std::shared_ptr<cell>'s compare operator
+    // same as std::shared_ptr<cell>::operator==()
     template <typename T, typename U>
     [[deprecated]] decltype(auto) eq(T&& lhs, U&& rhs)
     {
       return lhs == rhs;
     }
 
-    // same as meevax::lisp::opetator+(T&&, U&&)
+    // same as meevax::lisp::opetator+()
     template <typename... Ts>
     [[deprecated]] decltype(auto) cons(Ts&&... xs)
     {

@@ -40,7 +40,7 @@ namespace meevax::lisp
     {
       return std::empty(*this)
                ? symbols.intern(value)
-               : std::accumulate(std::rbegin(*this), std::rend(*this), cell::nil, [](auto init, auto elem)
+               : std::accumulate(std::rbegin(*this), std::rend(*this), nil, [](auto init, auto elem)
                  {
                    return elem() + init;
                  });
