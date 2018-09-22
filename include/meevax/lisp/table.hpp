@@ -4,14 +4,12 @@
 #include <unordered_map>
 #include <utility>
 
+#include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/cell.hpp>
 
 namespace meevax::lisp
 {
-  using hash_table = std::unordered_map<
-                       std::string,
-                       const std::shared_ptr<cell>
-                     >;
+  using hash_table = std::unordered_map<std::string, cref>;
 
   template <typename T>
   class table
@@ -31,8 +29,8 @@ namespace meevax::lisp
   };
 
   static table<symbol> symbols {
-    std::make_pair("", cell::nil),
-    std::make_pair("nil", cell::nil)
+    std::make_pair("", nil),
+    std::make_pair("nil", nil)
   };
 };
 

@@ -16,7 +16,7 @@
 
 namespace meevax::lisp
 {
-  // cell::operator==() means traditional eq
+  extern const std::shared_ptr<cell> nil;
 
   class cell
   {
@@ -64,16 +64,14 @@ namespace meevax::lisp
     }
 
   public:
-    static inline const auto nil {make_as<symbol>("nil")};
-
     friend bool atom(const std::shared_ptr<cell>& e)
     {
-      static const std::unordered_map<std::type_index, bool> dispatch
+      static const std::unordered_map<std::type_index, bool> dispatcher
       {
         {typeid(symbol), true}
       };
 
-      return !e->cdr_ && dispatch.at(e->type());
+      return !e->cdr_ && dispatcher.at(e->type());
     }
 
     template <typename T>
@@ -107,6 +105,8 @@ namespace meevax::lisp
     }
   };
 
+  const std::shared_ptr<cell> nil {cell::make_as<symbol>("nil")};
+
   template <typename... Ts>
   decltype(auto) cons(Ts&&... xs)
   {
@@ -114,9 +114,9 @@ namespace meevax::lisp
   }
 
   template <typename T, typename U>
-  [[deprecated]] bool eq(T&& lhs, U&& rhs)
+  decltype(auto) operator|(T&& head, U&& tail)
   {
-    return lhs == rhs;
+    return cons(head, tail);
   }
 } // namespace meevax::lisp
 
