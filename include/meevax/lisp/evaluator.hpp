@@ -57,12 +57,14 @@ namespace meevax::lisp
 
       define("cons", [&](const auto& e, const auto& a)
       {
-        return cons(eval(cadr(e), a), eval(caddr(e), a));
+        // return cons(eval(cadr(e), a), eval(caddr(e), a));
+        return eval(cadr(e), a) + eval(caddr(e), a);
       });
 
       define("define", [&](const auto& e, const auto& a)
       {
-        env = cons(list(cadr(e), caddr(e)), env);
+        // env = cons(list(cadr(e), caddr(e)), env);
+        env = list(cadr(e), caddr(e)) + env;
         return assoc(cadr(e), a);
       });
     }
@@ -75,13 +77,15 @@ namespace meevax::lisp
     template <typename F>
     void define(const std::string& s, F&& proc)
     {
-      env = cons(
-              list(
-                symbols.intern(s),
-                cell::make_as<special>(std::forward<F>(proc))
-              ),
-              env
-            );
+      // env = cons(
+      //         list(
+      //           symbols.intern(s),
+      //           cell::make_as<special>(std::forward<F>(proc))
+      //         ),
+      //         env
+      //       );
+
+      env = list(symbols.intern(s), cell::make_as<special>(proc)) + env;
     }
 
   protected:
@@ -105,12 +109,12 @@ namespace meevax::lisp
         }
         else
         {
-          return eval(cons(procedure, cdr(e)), a);
+          return eval(procedure + cdr(e), a);
         }
       }
       else if (caar(e) == symbols.intern("label"))
       {
-        return eval(cons(caddar(e), cdr(e)), cons(list(cadar(e), car(e)), a));
+        return eval(caddar(e) + cdr(e), list(cadar(e), car(e)) + a);
       }
       else if (caar(e) == symbols.intern("lambda"))
       {
@@ -131,19 +135,24 @@ namespace meevax::lisp
       return e == symbols.intern("nil");
     }
 
-    // decltype(auto) list()
-    auto list()
-      -> const std::shared_ptr<cell>
-    {
-      return cell::nil;
-    }
+    // auto list()
+    //   -> const std::shared_ptr<cell>
+    // {
+    //   return cell::nil;
+    // }
 
-    template <typename T, typename... Ts>
-    // decltype(auto) list(T&& head, Ts&&... tail)
-    auto list(T&& head, Ts&&... tail)
+    // template <typename T, typename... Ts>
+    // auto list(T&& head, Ts&&... tail)
+    //   -> const std::shared_ptr<cell>
+    // {
+    //   return cons(std::forward<T>(head), list(std::forward<Ts>(tail)...));
+    // }
+
+    template <typename... Ts>
+    auto list(Ts&&... xs)
       -> const std::shared_ptr<cell>
     {
-      return cons(std::forward<T>(head), list(std::forward<Ts>(tail)...));
+      return (xs + ... + cell::nil);
     }
 
     // TODO convert to cell::operator+()
@@ -152,10 +161,7 @@ namespace meevax::lisp
     {
       return null(x)
                ? y
-               : cons(
-                   car(x),
-                   append(cdr(x), y)
-                 );
+               : car(x) + append(cdr(x), y);
     }
 
     auto zip(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
@@ -167,10 +173,7 @@ namespace meevax::lisp
       }
       else if (!atom(x) && !atom(y))
       {
-        return cons(
-                 list(car(x), car(y)),
-                 zip(cdr(x), cdr(y))
-               );
+        return list(car(x), car(y)) + zip(cdr(x), cdr(y));
       }
       else
       {
@@ -208,7 +211,7 @@ namespace meevax::lisp
     {
       return null(m)
                ? symbols.intern("nil")
-               : cons(eval(car(m), a), evlis(cdr(m), a));
+               : eval(car(m), a) + evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp

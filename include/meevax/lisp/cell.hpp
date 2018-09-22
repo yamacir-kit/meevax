@@ -16,8 +16,6 @@
 
 namespace meevax::lisp
 {
-  // cell::operator==() means traditional eq
-
   class cell
   {
     const std::shared_ptr<cell> car_, cdr_;
@@ -107,17 +105,28 @@ namespace meevax::lisp
     }
   };
 
-  template <typename... Ts>
-  decltype(auto) cons(Ts&&... xs)
+  template <typename T, typename U>
+  decltype(auto) operator+(T&& lhs, U&& rhs)
   {
-    return std::make_shared<cell>(std::forward<Ts>(xs)...);
+    return std::make_shared<cell>(lhs, rhs);
   }
 
-  template <typename T, typename U>
-  [[deprecated]] bool eq(T&& lhs, U&& rhs)
+  inline namespace deprecated
   {
-    return lhs == rhs;
-  }
+    // same as std::shared_ptr<cell>'s compare operator
+    template <typename T, typename U>
+    [[deprecated]] decltype(auto) eq(T&& lhs, U&& rhs)
+    {
+      return lhs == rhs;
+    }
+
+    // same as meevax::lisp::opetator+(T&&, U&&)
+    template <typename... Ts>
+    [[deprecated]] decltype(auto) cons(Ts&&... xs)
+    {
+      return std::make_shared<cell>(std::forward<Ts>(xs)...);
+    }
+  } // inline namespace deprecated
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP

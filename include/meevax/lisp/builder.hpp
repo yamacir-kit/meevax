@@ -46,7 +46,7 @@ namespace meevax::lisp
 
         for (auto iter {std::rbegin(*this)}; iter != std::rend(*this); ++iter)
         {
-          head = cons((*iter)(), head);
+          head = (*iter)() + head;
         }
 
         return head;
