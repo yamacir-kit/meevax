@@ -15,23 +15,29 @@
 
 namespace meevax::lisp
 {
-  template <auto N, auto... Ns>
-  decltype(auto) car(const std::shared_ptr<cell>& e)
+  template <auto N, typename T>
+  decltype(auto) cdr(T&& e)
   {
-    auto cursor {e};
-
-    for (auto n {0}; n < N; ++n)
+    if constexpr (N)
     {
-      cursor = cdr(cursor);
-    }
-
-    if constexpr (sizeof...(Ns) != 0)
-    {
-      return car<Ns...>(car(cursor));
+      return cdr<N-1>(cdr(e));
     }
     else
     {
-      return car(cursor);
+      return e;
+    }
+  }
+
+  template <auto N, auto... Ns, typename T>
+  decltype(auto) car(T&& e)
+  {
+    if constexpr (sizeof...(Ns))
+    {
+      return car<Ns...>(car(cdr<N>(e)));
+    }
+    else
+    {
+      return car(cdr<N>(e));
     }
   }
 } // namespace meevax::lisp

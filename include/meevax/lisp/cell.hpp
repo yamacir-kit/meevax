@@ -50,7 +50,7 @@ namespace meevax::lisp
     }
     catch (const std::bad_cast& error)
     {
-      std::cerr << error("dynamic dispatch failed for \"" << type().name() << "\"") << std::endl;
+      std::cerr << error("dynamic_cast failed for \"" << type().name() << "\"") << std::endl;
       std::exit(boost::exit_exception_failure);
     }
 
