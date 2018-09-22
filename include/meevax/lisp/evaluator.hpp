@@ -136,7 +136,7 @@ namespace meevax::lisp
 
     // TODO convert to cell::operator+()
     template <typename T, typename U>
-    auto append(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+    auto append(T&& x, U&& y)
       -> const std::shared_ptr<cell>
     {
       return null(x) ? y : car(x) + append(cdr(x), y);

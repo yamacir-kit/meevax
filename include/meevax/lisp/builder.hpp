@@ -3,6 +3,7 @@
 
 #include <iterator>
 #include <list>
+#include <numeric>
 #include <string>
 
 #include <meevax/lisp/cell.hpp>
@@ -33,24 +34,16 @@ namespace meevax::lisp
 
     virtual ~builder() = default;
 
+    // TODO define function "foldr"
     auto operator()() const
       -> const std::shared_ptr<cell>
     {
-      if (std::empty(*this))
-      {
-        return symbols.intern(value);
-      }
-      else
-      {
-        auto head {cell::nil};
-
-        for (auto iter {std::rbegin(*this)}; iter != std::rend(*this); ++iter)
-        {
-          head = (*iter)() + head;
-        }
-
-        return head;
-      }
+      return std::empty(*this)
+               ? symbols.intern(value)
+               : std::accumulate(std::rbegin(*this), std::rend(*this), cell::nil, [](auto init, auto elem)
+                 {
+                   return elem() + init;
+                 });
     }
   };
 } // namespace meevax::lisp
