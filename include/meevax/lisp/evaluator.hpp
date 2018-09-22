@@ -16,7 +16,7 @@ namespace meevax::lisp
 {
   class evaluator
   {
-    static inline auto env {symbols.intern("nil")};
+    static inline auto env {nil};
 
   public:
     evaluator()
@@ -28,16 +28,12 @@ namespace meevax::lisp
 
       define("atom", [&](const auto& e, const auto& a)
       {
-        return atom(eval(cadr(e), a))
-                 ? symbols.intern("true")
-                 : symbols.intern("nil");
+        return atom(eval(cadr(e), a)) ? symbols.intern("true") : nil;
       });
 
       define("eq", [&](const auto& e, const auto& a)
       {
-        return eval(cadr(e), a) == eval(caddr(e), a)
-                 ? symbols.intern("true")
-                 : symbols.intern("nil");
+        return eval(cadr(e), a) == eval(caddr(e), a) ? symbols.intern("true") : nil;
       });
 
       define("cond", [&](const auto& e, const auto& a)
@@ -120,9 +116,9 @@ namespace meevax::lisp
   private:
     // TODO convert to cell::operator bool()
     template <typename T>
-    decltype(auto) null(T&& e)
+    [[deprecated]] decltype(auto) null(T&& e)
     {
-      return e == symbols.intern("nil");
+      return e == nil;
     }
 
     template <typename... Ts>
@@ -137,16 +133,16 @@ namespace meevax::lisp
     auto append(T&& x, U&& y)
       -> const std::shared_ptr<cell>
     {
-      return null(x) ? y : car(x) + append(cdr(x), y);
+      return x == nil ? y : car(x) + append(cdr(x), y);
     }
 
     template <typename T, typename U>
     auto zip(T&& x, U&& y)
       -> const std::shared_ptr<cell>
     {
-      if (null(x) && null(y))
+      if (x == nil && y == nil)
       {
-        return symbols.intern("nil");
+        return nil;
       }
       else if (!atom(x) && !atom(y))
       {
@@ -154,18 +150,18 @@ namespace meevax::lisp
       }
       else
       {
-        return symbols.intern("nil");
+        return nil;
       }
     }
 
     auto assoc(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
       -> const std::shared_ptr<cell>
     {
-      if (null(x))
+      if (x == nil)
       {
-        return symbols.intern("nil");
+        return nil;
       }
-      else if (null(y))
+      else if (y == nil)
       {
         return x;
       }
@@ -178,17 +174,13 @@ namespace meevax::lisp
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return eval(caar(c), a) != symbols.intern("nil")
-                   ? eval(cadar(c), a)
-                   : evcon(cdr(c), a);
+      return eval(caar(c), a) != nil ? eval(cadar(c), a) : evcon(cdr(c), a);
     }
 
     auto evlis(const std::shared_ptr<cell>& m, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return null(m)
-               ? symbols.intern("nil")
-               : eval(car(m), a) + evlis(cdr(m), a);
+      return m == nil ? nil : eval(car(m), a) + evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp
