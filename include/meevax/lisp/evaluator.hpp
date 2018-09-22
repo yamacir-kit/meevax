@@ -77,14 +77,6 @@ namespace meevax::lisp
     template <typename F>
     void define(const std::string& s, F&& proc)
     {
-      // env = cons(
-      //         list(
-      //           symbols.intern(s),
-      //           cell::make_as<special>(std::forward<F>(proc))
-      //         ),
-      //         env
-      //       );
-
       env = list(symbols.intern(s), cell::make_as<special>(proc)) + env;
     }
 
@@ -98,18 +90,18 @@ namespace meevax::lisp
       }
       else if (atom(car(e)))
       {
-        if (auto procedure {assoc(car(e), a)}; procedure->type() == typeid(special))
+        if (auto proc {assoc(car(e), a)}; proc->type() == typeid(special))
         {
-          return procedure->as<special>()(e, a);
+          return proc->as<special>()(e, a);
         }
-        else if (atom(procedure))
+        else if (atom(proc))
         {
-          std::cerr << error("using atom \"" << procedure << "\" as procedure") << std::endl;
+          std::cerr << error("using atom \"" << proc << "\" as procedure") << std::endl;
           return cell::nil;
         }
         else
         {
-          return eval(procedure + cdr(e), a);
+          return eval(proc + cdr(e), a);
         }
       }
       else if (caar(e) == symbols.intern("label"))
@@ -135,19 +127,6 @@ namespace meevax::lisp
       return e == symbols.intern("nil");
     }
 
-    // auto list()
-    //   -> const std::shared_ptr<cell>
-    // {
-    //   return cell::nil;
-    // }
-
-    // template <typename T, typename... Ts>
-    // auto list(T&& head, Ts&&... tail)
-    //   -> const std::shared_ptr<cell>
-    // {
-    //   return cons(std::forward<T>(head), list(std::forward<Ts>(tail)...));
-    // }
-
     template <typename... Ts>
     auto list(Ts&&... xs)
       -> const std::shared_ptr<cell>
@@ -156,15 +135,15 @@ namespace meevax::lisp
     }
 
     // TODO convert to cell::operator+()
+    template <typename T, typename U>
     auto append(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
       -> const std::shared_ptr<cell>
     {
-      return null(x)
-               ? y
-               : car(x) + append(cdr(x), y);
+      return null(x) ? y : car(x) + append(cdr(x), y);
     }
 
-    auto zip(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+    template <typename T, typename U>
+    auto zip(T&& x, U&& y)
       -> const std::shared_ptr<cell>
     {
       if (null(x) && null(y))
