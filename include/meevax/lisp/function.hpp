@@ -12,23 +12,23 @@
 namespace meevax::lisp
 {
   template <typename T>
-  decltype(auto) null(T&& e)
+  [[deprecated]] decltype(auto) null(T&& e)
   {
     return eq(std::forward<T>(e), symbols.intern("nil"));
   }
 
-  decltype(auto) list()
+  [[deprecated]] decltype(auto) list()
   {
     return cell::nil;
   }
 
   template <typename T, typename... Ts>
-  decltype(auto) list(T&& head, Ts&&... tail)
+  [[deprecated]] decltype(auto) list(T&& head, Ts&&... tail)
   {
     return cons(std::forward<T>(head), list(std::forward<Ts>(tail)...));
   }
 
-  auto append(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+  [[deprecated]] auto append(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
     -> const std::shared_ptr<cell>
   {
     return null(x)
@@ -39,7 +39,7 @@ namespace meevax::lisp
                );
   }
 
-  auto zip(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+  [[deprecated]] auto zip(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
     -> const std::shared_ptr<cell>
   {
     if (null(x) && null(y))
@@ -59,7 +59,7 @@ namespace meevax::lisp
     }
   }
 
-  auto assoc(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+  [[deprecated]] auto assoc(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
     -> const std::shared_ptr<cell>
   {
     if (null(x))

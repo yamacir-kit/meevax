@@ -1,20 +1,18 @@
 #ifndef INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 #include <meevax/lisp/accessor.hpp>
 #include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
-#include <meevax/lisp/function.hpp>
 #include <meevax/lisp/table.hpp>
 
+// TODO evaluator::define()
 #define define(SYMBOL, ...) \
   env = cons( \
           list( \
@@ -120,6 +118,78 @@ namespace meevax::lisp
       {
         std::cerr << error("unknown function \"" << car(e) << "\"") << std::endl;
         return cell::nil;
+      }
+    }
+
+  private:
+    // TODO convert to cell::operator bool()
+    template <typename T>
+    [[deprecated]] decltype(auto) null(T&& e)
+    {
+      return eq(std::forward<T>(e), symbols.intern("nil"));
+    }
+
+    // decltype(auto) list()
+    auto list()
+      -> const std::shared_ptr<cell>
+    {
+      return cell::nil;
+    }
+
+    template <typename T, typename... Ts>
+    // decltype(auto) list(T&& head, Ts&&... tail)
+    auto list(T&& head, Ts&&... tail)
+      -> const std::shared_ptr<cell>
+    {
+      return cons(std::forward<T>(head), list(std::forward<Ts>(tail)...));
+    }
+
+    // TODO convert to cell::operator+()
+    auto append(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+      -> const std::shared_ptr<cell>
+    {
+      return null(x)
+               ? y
+               : cons(
+                   car(x),
+                   append(cdr(x), y)
+                 );
+    }
+
+    auto zip(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+      -> const std::shared_ptr<cell>
+    {
+      if (null(x) && null(y))
+      {
+        return symbols.intern("nil");
+      }
+      else if (!atom(x) && !atom(y))
+      {
+        return cons(
+                 list(car(x), car(y)),
+                 zip(cdr(x), cdr(y))
+               );
+      }
+      else
+      {
+        return symbols.intern("nil");
+      }
+    }
+
+    auto assoc(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
+      -> const std::shared_ptr<cell>
+    {
+      if (null(x))
+      {
+        return symbols.intern("nil");
+      }
+      else if (null(y))
+      {
+        return x;
+      }
+      else
+      {
+        return eq(caar(y), x) ? cadar(y) : assoc(x, cdr(y));
       }
     }
 
