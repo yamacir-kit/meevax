@@ -16,6 +16,8 @@
 
 namespace meevax::lisp
 {
+  // cell::operator==() means traditional eq
+
   class cell
   {
     const std::shared_ptr<cell> car_, cdr_;
@@ -23,14 +25,15 @@ namespace meevax::lisp
   public:
     explicit cell() noexcept = default;
 
-    explicit cell(const std::shared_ptr<cell>& car)
-      : car_ {car}
+    template <typename T>
+    explicit cell(T&& car)
+      : car_ {std::forward<T>(car)}
     {}
 
-    explicit cell(const std::shared_ptr<cell>& car,
-                  const std::shared_ptr<cell>& cdr)
-      : car_ {car},
-        cdr_ {cdr}
+    template <typename T, typename U>
+    explicit cell(T&& car, U&& cdr)
+      : car_ {std::forward<T>(car)},
+        cdr_ {std::forward<U>(cdr)}
     {}
 
   public:
@@ -73,12 +76,14 @@ namespace meevax::lisp
       return !e->cdr_ && dispatch.at(e->type());
     }
 
-    friend decltype(auto) car(const std::shared_ptr<cell>& e) noexcept
+    template <typename T>
+    friend decltype(auto) car(T&& e) noexcept
     {
       return (e && e->car_) ? e->car_ : nil;
     }
 
-    friend decltype(auto) cdr(const std::shared_ptr<cell>& e) noexcept
+    template <typename T>
+    friend decltype(auto) cdr(T&& e) noexcept
     {
       return (e && e->cdr_) ? e->cdr_ : nil;
     }
@@ -109,7 +114,7 @@ namespace meevax::lisp
   }
 
   template <typename T, typename U>
-  bool eq(T&& lhs, U&& rhs)
+  [[deprecated]] bool eq(T&& lhs, U&& rhs)
   {
     return lhs == rhs;
   }

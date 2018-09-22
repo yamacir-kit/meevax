@@ -35,7 +35,7 @@ namespace meevax::lisp
 
       define("eq", [&](const auto& e, const auto& a)
       {
-        return eq(eval(cadr(e), a), eval(caddr(e), a))
+        return eval(cadr(e), a) == eval(caddr(e), a)
                  ? symbols.intern("true")
                  : symbols.intern("nil");
       });
@@ -108,11 +108,11 @@ namespace meevax::lisp
           return eval(cons(procedure, cdr(e)), a);
         }
       }
-      else if (eq(caar(e), symbols.intern("label")))
+      else if (caar(e) == symbols.intern("label"))
       {
         return eval(cons(caddar(e), cdr(e)), cons(list(cadar(e), car(e)), a));
       }
-      else if (eq(caar(e), symbols.intern("lambda")))
+      else if (caar(e) == symbols.intern("lambda"))
       {
         return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
@@ -126,9 +126,9 @@ namespace meevax::lisp
   private:
     // TODO convert to cell::operator bool()
     template <typename T>
-    [[deprecated]] decltype(auto) null(T&& e)
+    decltype(auto) null(T&& e)
     {
-      return eq(std::forward<T>(e), symbols.intern("nil"));
+      return e == symbols.intern("nil");
     }
 
     // decltype(auto) list()
@@ -191,14 +191,14 @@ namespace meevax::lisp
       }
       else
       {
-        return eq(caar(y), x) ? cadar(y) : assoc(x, cdr(y));
+        return caar(y) == x ? cadar(y) : assoc(x, cdr(y));
       }
     }
 
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return not eq(eval(caar(c), a), symbols.intern("nil"))
+      return eval(caar(c), a) != symbols.intern("nil")
                    ? eval(cadar(c), a)
                    : evcon(cdr(c), a);
     }
