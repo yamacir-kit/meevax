@@ -6,7 +6,6 @@
 #include <string>
 
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/function.hpp>
 #include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
