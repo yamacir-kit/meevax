@@ -12,16 +12,6 @@
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/table.hpp>
 
-// TODO evaluator::define()
-#define define(SYMBOL, ...) \
-  env = cons( \
-          list( \
-            symbols.intern(SYMBOL), \
-            cell::make_as<special>(__VA_ARGS__) \
-          ), \
-          env \
-        );
-
 namespace meevax::lisp
 {
   class evaluator
@@ -80,6 +70,18 @@ namespace meevax::lisp
     decltype(auto) operator()(const std::shared_ptr<cell>& e)
     {
       return eval(e, env);
+    }
+
+    template <typename F>
+    void define(const std::string& s, F&& proc)
+    {
+      env = cons(
+              list(
+                symbols.intern(s),
+                cell::make_as<special>(std::forward<F>(proc))
+              ),
+              env
+            );
     }
 
   protected:
