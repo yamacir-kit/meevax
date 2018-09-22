@@ -39,7 +39,7 @@ namespace meevax::lisp
     {
       if (std::empty(*this))
       {
-        return symbol_table.query(value);
+        return symbols.intern(value);
       }
       else
       {

@@ -9,11 +9,9 @@ namespace meevax::lisp
 {
   class cell;
 
-  using special = std::function<
-                    const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
-                                                 const std::shared_ptr<cell>&)
-                  >;
+  using cref = const std::shared_ptr<cell>;
 
+  using special = std::function<cref (cref&, cref&)>;
   using symbol = std::string;
 } // namespace meevax::lisp
 

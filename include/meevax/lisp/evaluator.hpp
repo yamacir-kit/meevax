@@ -18,7 +18,7 @@
 #define define(SYMBOL, ...) \
   env = cons( \
           list( \
-            symbol_table.query(SYMBOL), \
+            symbols.intern(SYMBOL), \
             cell::make_as<special>(__VA_ARGS__) \
           ), \
           env \
@@ -28,7 +28,7 @@ namespace meevax::lisp
 {
   class evaluator
   {
-    static inline auto env {symbol_table.query("nil")};
+    static inline auto env {symbols.intern("nil")};
 
   public:
     evaluator()
@@ -41,15 +41,15 @@ namespace meevax::lisp
       define("atom", [&](const auto& e, const auto& a)
       {
         return atom(eval(cadr(e), a))
-                 ? symbol_table.query("true")
-                 : symbol_table.query("nil");
+                 ? symbols.intern("true")
+                 : symbols.intern("nil");
       });
 
       define("eq", [&](const auto& e, const auto& a)
       {
         return eq(eval(cadr(e), a), eval(caddr(e), a))
-                 ? symbol_table.query("true")
-                 : symbol_table.query("nil");
+                 ? symbols.intern("true")
+                 : symbols.intern("nil");
       });
 
       define("cond", [&](const auto& e, const auto& a)
@@ -108,11 +108,11 @@ namespace meevax::lisp
           return eval(cons(procedure, cdr(e)), a);
         }
       }
-      else if (eq(caar(e), symbol_table.query("label")))
+      else if (eq(caar(e), symbols.intern("label")))
       {
         return eval(cons(caddar(e), cdr(e)), cons(list(cadar(e), car(e)), a));
       }
-      else if (eq(caar(e), symbol_table.query("lambda")))
+      else if (eq(caar(e), symbols.intern("lambda")))
       {
         return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
@@ -126,7 +126,7 @@ namespace meevax::lisp
     auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
       -> const std::shared_ptr<cell>
     {
-      return not eq(eval(caar(c), a), symbol_table.query("nil"))
+      return not eq(eval(caar(c), a), symbols.intern("nil"))
                    ? eval(cadar(c), a)
                    : evcon(cdr(c), a);
     }
@@ -135,7 +135,7 @@ namespace meevax::lisp
       -> const std::shared_ptr<cell>
     {
       return null(m)
-               ? symbol_table.query("nil")
+               ? symbols.intern("nil")
                : cons(eval(car(m), a), evlis(cdr(m), a));
     }
   } static eval {};

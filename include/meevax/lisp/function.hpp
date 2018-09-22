@@ -12,8 +12,7 @@
 namespace meevax::lisp
 {
   template <typename T, typename U>
-  auto cons(T&& lhs, U&& rhs)
-    -> decltype(auto)
+  decltype(auto) cons(T&& lhs, U&& rhs)
   {
     return std::make_shared<cell>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
@@ -25,21 +24,18 @@ namespace meevax::lisp
   }
 
   template <typename T>
-  auto null(T&& e)
-    -> decltype(auto)
+  decltype(auto) null(T&& e)
   {
-    return eq(std::forward<T>(e), symbol_table.query("nil"));
+    return eq(std::forward<T>(e), symbols.intern("nil"));
   }
 
-  auto list()
-    -> decltype(auto)
+  decltype(auto) list()
   {
     return cell::nil;
   }
 
   template <typename T, typename... Ts>
-  auto list(T&& head, Ts&&... tail)
-    -> decltype(auto)
+  decltype(auto) list(T&& head, Ts&&... tail)
   {
     return cons(std::forward<T>(head), list(std::forward<Ts>(tail)...));
   }
@@ -60,7 +56,7 @@ namespace meevax::lisp
   {
     if (null(x) && null(y))
     {
-      return symbol_table.query("nil");
+      return symbols.intern("nil");
     }
     else if (!atom(x) && !atom(y))
     {
@@ -71,7 +67,7 @@ namespace meevax::lisp
     }
     else
     {
-      return symbol_table.query("nil");
+      return symbols.intern("nil");
     }
   }
 
@@ -80,7 +76,7 @@ namespace meevax::lisp
   {
     if (null(x))
     {
-      return symbol_table.query("nil");
+      return symbols.intern("nil");
     }
     else if (null(y))
     {

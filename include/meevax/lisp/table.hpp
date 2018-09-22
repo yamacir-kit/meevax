@@ -6,8 +6,6 @@
 
 #include <meevax/lisp/cell.hpp>
 
-// TODO query -> reference
-
 namespace meevax::lisp
 {
   using hash_table = std::unordered_map<
@@ -25,15 +23,15 @@ namespace meevax::lisp
       : hash_table {std::forward<Ts>(xs)...}
     {}
 
-    auto query(const std::string s)
+    const auto& intern(const std::string s)
     {
-      return std::get<0>(hash_table::emplace(s, cell::make_as<T>(s)))->second;
+      emplace(s, cell::make_as<T>(s));
+      return (*this)[s];
     }
   };
 
-  static table<symbol> symbol_table
-  {
-    std::make_pair("",    cell::nil),
+  static table<symbol> symbols {
+    std::make_pair("", cell::nil),
     std::make_pair("nil", cell::nil)
   };
 };
