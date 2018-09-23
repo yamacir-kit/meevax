@@ -10,7 +10,7 @@ namespace meevax::lisp
   class cell;
   using cursor = const std::shared_ptr<cell>;
 
-  using special = std::function<cursor (cursor&, cursor&)>;
+  using special = const std::function<cursor (cursor&, cursor&)>;
   using symbol = const std::string;
 } // namespace meevax::lisp
 

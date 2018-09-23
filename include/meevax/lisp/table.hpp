@@ -9,16 +9,14 @@
 
 namespace meevax::lisp
 {
-  using hash_table = std::unordered_map<std::string, cref>;
-
   template <typename T>
   class table
-    : public hash_table
+    : public std::unordered_map<std::string, cursor>
   {
   public:
     template <typename... Ts>
     explicit table(Ts&&... xs)
-      : hash_table {std::forward<Ts>(xs)...}
+      : std::unordered_map<std::string, cursor> {std::forward<Ts>(xs)...}
     {}
 
     const auto& intern(const std::string s)

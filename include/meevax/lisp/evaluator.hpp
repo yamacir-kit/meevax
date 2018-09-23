@@ -63,7 +63,7 @@ namespace meevax::lisp
       });
     }
 
-    decltype(auto) operator()(const std::shared_ptr<cell>& e)
+    decltype(auto) operator()(cursor& e)
     {
       return eval(e, env);
     }
@@ -75,8 +75,8 @@ namespace meevax::lisp
     }
 
   protected:
-    auto eval(const std::shared_ptr<cell>& e, const std::shared_ptr<cell>& a)
-      -> const std::shared_ptr<cell>
+    auto eval(cursor& e, cursor& a)
+      -> cursor
     {
       if (atom(e))
       {
@@ -116,21 +116,21 @@ namespace meevax::lisp
   private:
     template <typename... Ts>
     auto list(Ts&&... xs)
-      -> const std::shared_ptr<cell>
+      -> cursor
     {
       return (xs | ... | nil);
     }
 
     template <typename T, typename U>
     auto append(T&& x, U&& y)
-      -> const std::shared_ptr<cell>
+      -> cursor
     {
       return x == nil ? y : car(x) | append(cdr(x), y);
     }
 
     template <typename T, typename U>
     auto zip(T&& x, U&& y)
-      -> const std::shared_ptr<cell>
+      -> cursor
     {
       if (x == nil && y == nil)
       {
@@ -146,8 +146,8 @@ namespace meevax::lisp
       }
     }
 
-    auto assoc(const std::shared_ptr<cell>& x, const std::shared_ptr<cell>& y)
-      -> const std::shared_ptr<cell>
+    auto assoc(cursor& x, cursor& y)
+      -> cursor
     {
       if (x == nil)
       {
@@ -163,14 +163,14 @@ namespace meevax::lisp
       }
     }
 
-    auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
-      -> const std::shared_ptr<cell>
+    auto evcon(cursor& c, cursor& a)
+      -> cursor
     {
       return eval(caar(c), a) != nil ? eval(cadar(c), a) : evcon(cdr(c), a);
     }
 
-    auto evlis(const std::shared_ptr<cell>& m, const std::shared_ptr<cell>& a)
-      -> const std::shared_ptr<cell>
+    auto evlis(cursor& m, cursor& a)
+      -> cursor
     {
       return m == nil ? nil : eval(car(m), a) | evlis(cdr(m), a);
     }

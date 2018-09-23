@@ -34,16 +34,16 @@ namespace meevax::lisp
 
     virtual ~builder() = default;
 
-    // TODO define function "foldr"
-    auto operator()() const
-      -> const std::shared_ptr<cell>
+    cursor operator()() const
     {
       return std::empty(*this)
                ? symbols.intern(value)
-               : std::accumulate(std::rbegin(*this), std::rend(*this), nil, [](auto init, auto elem)
-                 {
-                   return (elem() | init);
-                 });
+               : std::accumulate(
+                   std::rbegin(*this), std::rend(*this), nil,
+                   [](auto init, auto elem)
+                   {
+                     return (elem() | init);
+                   });
     }
   };
 } // namespace meevax::lisp

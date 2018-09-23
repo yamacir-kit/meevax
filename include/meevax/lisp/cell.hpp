@@ -16,14 +16,14 @@
 
 namespace meevax::lisp
 {
-  extern const std::shared_ptr<cell> nil;
+  extern cursor nil;
 
   class cell
   {
-    const std::shared_ptr<cell> car_, cdr_;
+    cursor car_, cdr_;
 
   public:
-    explicit cell() noexcept = default;
+    explicit constexpr cell() noexcept = default;
 
     template <typename T>
     explicit cell(T&& car)
@@ -38,14 +38,14 @@ namespace meevax::lisp
 
   public:
     template <typename T, typename... Ts>
-    static auto make_as(Ts&&... xs)
-      -> const std::shared_ptr<cell>
+    static cursor make_as(Ts&&... xs)
     {
       return std::make_shared<
                meevax::utility::binder<T, cell>
              >(std::forward<Ts>(xs)...);
     }
 
+    // 型変換に失敗したら元のオブジェクトからその型を構築して返したらダックタイプ出来る？
     template <typename T>
     auto as() const noexcept try
     {
@@ -64,7 +64,8 @@ namespace meevax::lisp
     }
 
   public:
-    friend bool atom(const std::shared_ptr<cell>& e)
+    template <typename T>
+    friend bool atom(T&& e)
     {
       static const std::unordered_map<std::type_index, bool> dispatcher
       {
@@ -87,7 +88,7 @@ namespace meevax::lisp
     }
 
   public:
-    friend auto operator<<(std::ostream& os, const std::shared_ptr<cell>& e)
+    friend auto operator<<(std::ostream& os, cursor& e)
       -> decltype(os)
     {
       if (e->type() == typeid(cell))
@@ -105,7 +106,7 @@ namespace meevax::lisp
     }
   };
 
-  const std::shared_ptr<cell> nil {cell::make_as<symbol>("nil")};
+  cursor nil {cell::make_as<symbol>("nil")};
 
   template <typename... Ts>
   decltype(auto) cons(Ts&&... xs)
