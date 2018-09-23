@@ -6,11 +6,18 @@
 #include <string>
 #include <utility>
 
-#include <meevax/lisp/accessor.hpp>
 #include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/table.hpp>
+
+#define caar(...) car<0, 0>(__VA_ARGS__)
+#define cadar(...) car<0, 1>(__VA_ARGS__)
+#define caddar(...) car<0, 2>(__VA_ARGS__)
+
+#define cadr(...) car<1>(__VA_ARGS__)
+#define caddr(...) car<2>(__VA_ARGS__)
+#define cadddr(...) car<3>(__VA_ARGS__)
 
 namespace meevax::lisp
 {

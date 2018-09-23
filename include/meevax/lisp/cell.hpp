@@ -45,7 +45,6 @@ namespace meevax::lisp
              >(std::forward<Ts>(xs)...);
     }
 
-    // 型変換に失敗したら元のオブジェクトからその型を構築して返したらダックタイプ出来る？
     template <typename T>
     auto as() const noexcept try
     {
@@ -108,6 +107,32 @@ namespace meevax::lisp
 
   cursor nil {cell::make_as<symbol>("nil")};
 
+  template <auto N, typename Sexp>
+  decltype(auto) cdr(Sexp&& e) noexcept
+  {
+    if constexpr (N)
+    {
+      return cdr<N-1>(cdr(e));
+    }
+    else
+    {
+      return e;
+    }
+  }
+
+  template <auto N, auto... Ns, typename Sexp>
+  decltype(auto) car(Sexp&& e) noexcept
+  {
+    if constexpr (sizeof...(Ns))
+    {
+      return car<Ns...>(car(cdr<N>(e)));
+    }
+    else
+    {
+      return car(cdr<N>(e));
+    }
+  }
+
   template <typename... Ts>
   decltype(auto) cons(Ts&&... xs)
   {
@@ -117,7 +142,7 @@ namespace meevax::lisp
   template <typename T, typename U>
   decltype(auto) operator|(T&& head, U&& tail)
   {
-    return cons(head, tail);
+    return cons(std::forward<T>(head), std::forward<U>(tail));
   }
 } // namespace meevax::lisp
 
