@@ -3,10 +3,10 @@
 
 #include <iterator>
 #include <list>
+#include <numeric>
 #include <string>
 
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/function.hpp>
 #include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
@@ -34,24 +34,16 @@ namespace meevax::lisp
 
     virtual ~builder() = default;
 
-    auto operator()() const
-      -> const std::shared_ptr<cell>
+    cursor operator()() const
     {
-      if (std::empty(*this))
-      {
-        return symbol_table.query(value);
-      }
-      else
-      {
-        auto head {cell::nil};
-
-        for (auto iter {std::rbegin(*this)}; iter != std::rend(*this); ++iter)
-        {
-          head = cons((*iter)(), head);
-        }
-
-        return head;
-      }
+      return std::empty(*this)
+               ? symbols.intern(value)
+               : std::accumulate(
+                   std::rbegin(*this), std::rend(*this), nil,
+                   [](auto init, auto elem)
+                   {
+                     return (elem() | init);
+                   });
     }
   };
 } // namespace meevax::lisp

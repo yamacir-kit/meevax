@@ -1,38 +1,29 @@
 #ifndef INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
-#include <meevax/lisp/accessor.hpp>
+#include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
-#include <meevax/lisp/function.hpp>
 #include <meevax/lisp/table.hpp>
 
-#define define(SYMBOL, ...) \
-  env = cons( \
-          list( \
-            symbol_table.query(SYMBOL), \
-            cell::make_as<special>(__VA_ARGS__) \
-          ), \
-          env \
-        );
+#define caar(...) car<0, 0>(__VA_ARGS__)
+#define cadar(...) car<0, 1>(__VA_ARGS__)
+#define caddar(...) car<0, 2>(__VA_ARGS__)
+
+#define cadr(...) car<1>(__VA_ARGS__)
+#define caddr(...) car<2>(__VA_ARGS__)
+#define cadddr(...) car<3>(__VA_ARGS__)
 
 namespace meevax::lisp
 {
-  using special = std::function<
-                    const std::shared_ptr<cell> (const std::shared_ptr<cell>&,
-                                                 const std::shared_ptr<cell>&)
-                  >;
-
   class evaluator
   {
-    static inline auto env {symbol_table.query("nil")};
+    static inline auto env {nil};
 
   public:
     evaluator()
@@ -44,16 +35,12 @@ namespace meevax::lisp
 
       define("atom", [&](const auto& e, const auto& a)
       {
-        return atom(eval(cadr(e), a))
-                 ? symbol_table.query("true")
-                 : symbol_table.query("nil");
+        return atom(eval(cadr(e), a)) ? symbols.intern("true") : nil;
       });
 
       define("eq", [&](const auto& e, const auto& a)
       {
-        return eq(eval(cadr(e), a), eval(caddr(e), a))
-                 ? symbol_table.query("true")
-                 : symbol_table.query("nil");
+        return eval(cadr(e), a) == eval(caddr(e), a) ? symbols.intern("true") : nil;
       });
 
       define("cond", [&](const auto& e, const auto& a)
@@ -73,24 +60,30 @@ namespace meevax::lisp
 
       define("cons", [&](const auto& e, const auto& a)
       {
-        return cons(eval(cadr(e), a), eval(caddr(e), a));
+        return eval(cadr(e), a) | eval(caddr(e), a);
       });
 
       define("define", [&](const auto& e, const auto& a)
       {
-        env = cons(list(cadr(e), caddr(e)), env);
+        env = list(cadr(e), caddr(e)) | env;
         return assoc(cadr(e), a);
       });
     }
 
-    decltype(auto) operator()(const std::shared_ptr<cell>& e)
+    decltype(auto) operator()(cursor& e)
     {
       return eval(e, env);
     }
 
+    template <typename F>
+    void define(const std::string& s, F&& proc)
+    {
+      env = list(symbols.intern(s), cell::make_as<special>(proc)) | env;
+    }
+
   protected:
-    auto eval(const std::shared_ptr<cell>& e, const std::shared_ptr<cell>& a)
-      -> const std::shared_ptr<cell>
+    auto eval(cursor& e, cursor& a)
+      -> cursor
     {
       if (atom(e))
       {
@@ -98,49 +91,95 @@ namespace meevax::lisp
       }
       else if (atom(car(e)))
       {
-        if (auto procedure {assoc(car(e), a)}; procedure->type() == typeid(special))
+        if (auto proc {assoc(car(e), a)}; proc->type() == typeid(special))
         {
-          return procedure->as<special>()(e, a);
+          return proc->as<special>()(e, a);
         }
-        else if (atom(procedure))
+        else if (atom(proc))
         {
-          std::cerr << error("using atom \"" << procedure << "\" as procedure") << std::endl;
-          return cell::nil;
+          std::cerr << error("using atom \"" << proc << "\" as procedure") << std::endl;
+          return nil;
         }
         else
         {
-          return eval(cons(procedure, cdr(e)), a);
+          return eval(proc | cdr(e), a);
         }
       }
-      else if (eq(caar(e), symbol_table.query("label")))
+      else if (caar(e) == symbols.intern("label"))
       {
-        return eval(cons(caddar(e), cdr(e)), cons(list(cadar(e), car(e)), a));
+        return eval(caddar(e) | cdr(e), list(cadar(e), car(e)) | a);
       }
-      else if (eq(caar(e), symbol_table.query("lambda")))
+      else if (caar(e) == symbols.intern("lambda"))
       {
         return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
       else
       {
         std::cerr << error("unknown function \"" << car(e) << "\"") << std::endl;
-        return cell::nil;
+        return nil;
       }
     }
 
-    auto evcon(const std::shared_ptr<cell>& c, const std::shared_ptr<cell>& a)
-      -> const std::shared_ptr<cell>
+  private:
+    template <typename... Ts>
+    auto list(Ts&&... xs)
+      -> cursor
     {
-      return not eq(eval(caar(c), a), symbol_table.query("nil"))
-                   ? eval(cadar(c), a)
-                   : evcon(cdr(c), a);
+      return (xs | ... | nil);
     }
 
-    auto evlis(const std::shared_ptr<cell>& m, const std::shared_ptr<cell>& a)
-      -> const std::shared_ptr<cell>
+    template <typename T, typename U>
+    auto append(T&& x, U&& y)
+      -> cursor
     {
-      return null(m)
-               ? symbol_table.query("nil")
-               : cons(eval(car(m), a), evlis(cdr(m), a));
+      return x == nil ? y : car(x) | append(cdr(x), y);
+    }
+
+    template <typename T, typename U>
+    auto zip(T&& x, U&& y)
+      -> cursor
+    {
+      if (x == nil && y == nil)
+      {
+        return nil;
+      }
+      else if (!atom(x) && !atom(y))
+      {
+        return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+      }
+      else
+      {
+        return nil;
+      }
+    }
+
+    auto assoc(cursor& x, cursor& y)
+      -> cursor
+    {
+      if (x == nil)
+      {
+        return nil;
+      }
+      else if (y == nil)
+      {
+        return x;
+      }
+      else
+      {
+        return caar(y) == x ? cadar(y) : assoc(x, cdr(y));
+      }
+    }
+
+    auto evcon(cursor& c, cursor& a)
+      -> cursor
+    {
+      return eval(caar(c), a) != nil ? eval(cadar(c), a) : evcon(cdr(c), a);
+    }
+
+    auto evlis(cursor& m, cursor& a)
+      -> cursor
+    {
+      return m == nil ? nil : eval(car(m), a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp

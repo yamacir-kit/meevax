@@ -1,10 +1,10 @@
-#ifndef INCLUDED_MEEVAX_UTILITY_CONDITIONALLY_TRIVIAL_DESTRUCTIBLE_HPP
-#define INCLUDED_MEEVAX_UTILITY_CONDITIONALLY_TRIVIAL_DESTRUCTIBLE_HPP
+#ifndef INCLUDED_MEEVAX_FACADE_CONDITIONALLY_TRIVIAL_DESTRUCTIBLE_HPP
+#define INCLUDED_MEEVAX_FACADE_CONDITIONALLY_TRIVIAL_DESTRUCTIBLE_HPP
 
 #include <type_traits>
 #include <utility>
 
-namespace meevax::utility
+namespace meevax::facade
 {
   template <typename T, bool IsTriviallyDestructible = std::is_trivially_destructible<T>::value>
   struct conditionally_trivial_destructible
@@ -34,5 +34,5 @@ namespace meevax::utility
   };
 } // namespace meevex::utility
 
-#endif // INCLUDED_MEEVAX_UTILITY_CONDITIONALLY_TRIVIAL_DESTRUCTIBLE_HPP
+#endif // INCLUDED_MEEVAX_FACADE_CONDITIONALLY_TRIVIAL_DESTRUCTIBLE_HPP
 
