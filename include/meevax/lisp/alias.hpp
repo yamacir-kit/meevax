@@ -8,11 +8,10 @@
 namespace meevax::lisp
 {
   class cell;
+  using cursor = const std::shared_ptr<cell>;
 
-  using cref = const std::shared_ptr<cell>;
-
-  using special = std::function<cref (cref&, cref&)>;
-  using symbol = std::string;
+  using special = std::function<cursor (cursor&, cursor&)>;
+  using symbol = const std::string;
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_ALIAS_HPP
