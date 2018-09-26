@@ -45,7 +45,7 @@ namespace meevax::lisp
       using namespace functional;
 
       return std::empty(*this)
-               ? symbols.intern(value)
+               ? symbols.intern(std::empty(value) ? "nil" : value)
                : foldr(*this, nil, [](auto& build, auto& constructed)
                  {
                    return build() | constructed;
