@@ -3,7 +3,6 @@
 
 #include <iterator>
 #include <list>
-#include <numeric>
 #include <string>
 
 #include <meevax/functional/fold.hpp>
