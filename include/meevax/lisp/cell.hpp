@@ -133,11 +133,10 @@ namespace meevax::lisp
     }
   }
 
-  template <typename... Ts>
-  decltype(auto) cons(Ts&&... xs)
+  auto cons = [](auto&&... args)
   {
-    return std::make_shared<cell>(std::forward<Ts>(xs)...);
-  }
+    return std::make_shared<cell>(std::forward<decltype(args)>(args)...);
+  };
 
   template <typename T, typename U>
   decltype(auto) operator|(T&& head, U&& tail)

@@ -1,7 +1,7 @@
-#ifndef INCLUDED_MEEVAX_UTILITY_CURRY_HPP
-#define INCLUDED_MEEVAX_UTILITY_CURRY_HPP
+#ifndef INCLUDED_MEEVAX_FUNCTIONAL_CURRY_HPP
+#define INCLUDED_MEEVAX_FUNCTIONAL_CURRY_HPP
 
-namespace meevax::utility
+namespace meevax::functional
 {
   template <typename F>
   constexpr decltype(auto) curry(F&& f)
@@ -16,7 +16,7 @@ namespace meevax::utility
       }
     };
   }
-} // namespace meevax::utility
+} // namespace meevax::functional
 
-#endif // INCLUDED_MEEVAX_UTILITY_CURRY_HPP
+#endif // INCLUDED_MEEVAX_FUNCTIONAL_CURRY_HPP
 

@@ -3,9 +3,9 @@
 
 #include <iterator>
 #include <list>
-#include <numeric>
 #include <string>
 
+#include <meevax/functional/fold.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/table.hpp>
 
@@ -34,16 +34,22 @@ namespace meevax::lisp
 
     virtual ~builder() = default;
 
-    cursor operator()() const
+    decltype(auto) operator()() const
     {
+      return build();
+    }
+
+  protected:
+    cursor build() const
+    {
+      using namespace functional;
+
       return std::empty(*this)
                ? symbols.intern(value)
-               : std::accumulate(
-                   std::rbegin(*this), std::rend(*this), nil,
-                   [](auto init, auto elem)
-                   {
-                     return (elem() | init);
-                   });
+               : foldr(*this, nil, [](auto& build, auto& constructed)
+                 {
+                   return build() | constructed;
+                 });
     }
   };
 } // namespace meevax::lisp
