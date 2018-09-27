@@ -37,16 +37,8 @@ namespace meevax::lisp
     {}
 
   public:
-    template <typename T, typename... Ts>
-    static cursor make_as(Ts&&... xs)
-    {
-      return std::make_shared<
-               meevax::utility::binder<T, cell>
-             >(std::forward<Ts>(xs)...);
-    }
-
     template <typename T>
-    auto as() const noexcept try
+    auto as() const try
     {
       return dynamic_cast<const T&>(*this);
     }
@@ -72,7 +64,7 @@ namespace meevax::lisp
         {typeid(symbol), true}
       };
 
-      return !e or (!e->cdr_ and dispatch.at(e->type()));
+      return !e || dispatch.at(e->type());
     }
     catch (const std::out_of_range& error)
     {
@@ -84,14 +76,14 @@ namespace meevax::lisp
     template <typename T>
     friend decltype(auto) car(T&& e) noexcept
     {
-      return (e && e->car_) ? e->car_ : nil;
+      return e ? e->car_ : nil;
     }
 
     // TODO operator++
     template <typename T>
     friend decltype(auto) cdr(T&& e) noexcept
     {
-      return (e && e->cdr_) ? e->cdr_ : nil;
+      return e ? e->cdr_ : nil;
     }
 
   public:
@@ -118,7 +110,13 @@ namespace meevax::lisp
     }
   };
 
-  // cursor nil {cell::make_as<symbol>("nil")};
+  template <typename T, typename... Ts>
+  cursor make_as(Ts&&... args)
+  {
+    return std::make_shared<
+             meevax::utility::binder<T, cell>
+           >(std::forward<Ts>(args)...);
+  }
 
   template <auto N, typename Sexp>
   decltype(auto) cdr(Sexp&& e) noexcept
