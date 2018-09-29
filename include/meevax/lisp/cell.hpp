@@ -24,7 +24,7 @@ namespace meevax::lisp
     using difference_type = std::ptrdiff_t;
     using value_type = cursor;
     using pointer = cursor;
-    using reference = cursor;
+    using reference = cursor&;
     using iterator_category = std::forward_iterator_tag;
 
     template <typename... Ts>
@@ -32,16 +32,15 @@ namespace meevax::lisp
       : std::shared_ptr<cell> {std::forward<Ts>(args)...}
     {}
 
-    cursor operator*() noexcept;
-
+    cursor operator*() const noexcept;
     cursor operator++() noexcept;
-    cursor operator--() = delete;
   };
 
   cursor nil {nullptr};
 
   class cell
   {
+    // Operation is possible only via class cursor.
     friend class cursor;
 
     cursor car_, cdr_;
@@ -77,61 +76,28 @@ namespace meevax::lisp
     {
       return typeid(cell);
     }
-
-  public:
-    // template <typename T>
-    // friend bool atom(T&& e) try
-    // {
-    //   static const std::unordered_map<std::type_index, bool> dispatch
-    //   {
-    //     {typeid(cell), false},
-    //     {typeid(symbol), true}
-    //   };
-    //
-    //   return !e || dispatch.at(e->type());
-    // }
-    // catch (const std::out_of_range& error)
-    // {
-    //   std::cerr << error("boolean dispatch failed for " << e) << std::endl;
-    //   std::exit(boost::exit_exception_failure);
-    // }
-
-    // template <typename T>
-    // friend decltype(auto) car(T&& e) noexcept
-    // {
-    //   return e ? e->car_ : nil;
-    // }
-    //
-    // template <typename T>
-    // friend decltype(auto) cdr(T&& e) noexcept
-    // {
-    //   return e ? e->cdr_ : nil;
-    // }
-
-  public:
-    template <typename T>
-    friend auto operator<<(std::ostream& os, T&& e)
-      -> decltype(os)
-    {
-      if (!e)
-      {
-        return os << "nil";
-      }
-
-      if (e->type() == typeid(cell))
-      {
-        return os << "(" << e->car_ << " . " << e->cdr_ << ")";
-      }
-      else if (e->type() == typeid(symbol))
-      {
-        return os << e->template as<symbol>();
-      }
-      else
-      {
-        throw std::runtime_error {std::to_string(__LINE__)};
-      }
-    }
   };
+
+  std::ostream& operator<<(std::ostream& os, cursor e)
+  {
+    if (!e)
+    {
+      return os << "nil";
+    }
+
+    if (e->type() == typeid(cell))
+    {
+      return os << "(" << *e << " . " << ++e << ")";
+    }
+    else if (e->type() == typeid(symbol))
+    {
+      return os << e->template as<symbol>();
+    }
+    else
+    {
+      throw std::runtime_error {std::to_string(__LINE__)};
+    }
+  }
 
   template <typename T>
   bool atom(T&& e) try
@@ -150,12 +116,12 @@ namespace meevax::lisp
     std::exit(boost::exit_exception_failure);
   }
 
-  cursor cursor::operator*() noexcept
+  inline cursor cursor::operator*() const noexcept
   {
     return get()->car_;
   }
 
-  cursor cursor::operator++() noexcept
+  inline cursor cursor::operator++() noexcept
   {
     return *this = get()->cdr_;
   }
@@ -167,32 +133,6 @@ namespace meevax::lisp
              meevax::utility::binder<T, cell>
            >(std::forward<Ts>(args)...);
   }
-
-  // template <auto N, typename Sexp>
-  // decltype(auto) cdr(Sexp&& e) noexcept
-  // {
-  //   if constexpr (N)
-  //   {
-  //     return cdr<N-1>(cdr(e));
-  //   }
-  //   else
-  //   {
-  //     return e;
-  //   }
-  // }
-  //
-  // template <auto N, auto... Ns, typename Sexp>
-  // decltype(auto) car(Sexp&& e) noexcept
-  // {
-  //   if constexpr (sizeof...(Ns))
-  //   {
-  //     return car<Ns...>(car(cdr<N>(e)));
-  //   }
-  //   else
-  //   {
-  //     return car(cdr<N>(e));
-  //   }
-  // }
 
   auto cons = [](auto&&... args) -> cursor
   {

@@ -22,14 +22,6 @@
 #define caddr(e) *std::next(e, 2)
 #define cadddr(e) *std::next(e, 3)
 
-// #define caar(...) car<0, 0>(__VA_ARGS__)
-// #define cadar(...) car<0, 1>(__VA_ARGS__)
-// #define caddar(...) car<0, 2>(__VA_ARGS__)
-//
-// #define cadr(...) car<1>(__VA_ARGS__)
-// #define caddr(...) car<2>(__VA_ARGS__)
-// #define cadddr(...) car<3>(__VA_ARGS__)
-
 namespace meevax::lisp
 {
   class evaluator
@@ -51,7 +43,6 @@ namespace meevax::lisp
 
       define("eq", [&](auto e, auto a)
       {
-        // return eval(cadr(e), a) == eval(caddr(e), a) ? symbols.intern("true") : nil;
         return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : nil;
       });
 
@@ -133,11 +124,10 @@ namespace meevax::lisp
     }
 
   private:
-    template <typename... Ts>
-    cursor list(Ts&&... xs)
+    static constexpr auto list = [](auto&&... args)
     {
-      return (xs | ... | nil);
-    }
+      return (args | ... | nil);
+    };
 
     cursor append(cursor x, cursor y)
     {
@@ -162,19 +152,6 @@ namespace meevax::lisp
 
     cursor assoc(cursor x, cursor y)
     {
-      // if (!x)
-      // {
-      //   return nil;
-      // }
-      // else if (!y)
-      // {
-      //   return x;
-      // }
-      // else
-      // {
-      //   return caar(y) == x ? cadar(y) : assoc(x, cdr(y));
-      // }
-
       return !x ? nil : !y ? x : caar(y) == x ? cadar(y) : assoc(x, cdr(y));
     }
 
