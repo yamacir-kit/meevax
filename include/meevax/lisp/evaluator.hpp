@@ -96,25 +96,13 @@ namespace meevax::lisp
       }
       else if (atom(*e))
       {
-        if (auto proc {assoc(*e, a)}; proc->type() == typeid(special))
-        {
-          return proc->template as<special>()(e, a);
-        }
-        else if (atom(proc))
-        {
-          std::cerr << error("using atom \"" << proc << "\" as procedure") << std::endl;
-          return nil;
-        }
-        else
-        {
-          return eval(proc | ++e, a);
-        }
+        return apply(e, a);
       }
       else if (**e == symbols.intern("label"))
       {
         return eval(caddar(e) | cdr(e), list(cadar(e), car(e)) | a);
       }
-      else if (caar(e) == symbols.intern("lambda"))
+      else if (**e == symbols.intern("lambda"))
       {
         return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
@@ -126,6 +114,24 @@ namespace meevax::lisp
     }
 
   private:
+    cursor apply(cursor e, cursor a)
+    {
+      // XXX UGLY CODE!
+      if (auto f {assoc(*e, a)}; f->type() == typeid(special))
+      {
+        return f->template as<special>()(e, a);
+      }
+      else if (atom(f))
+      {
+        std::cerr << error("using atom \"" << f << "\" as procedure") << std::endl;
+        return nil;
+      }
+      else
+      {
+        return eval(f | ++e, a);
+      }
+    };
+
     static constexpr auto list = [](auto&&... args)
     {
       return (args | ... | nil);
