@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -16,22 +17,45 @@
 
 namespace meevax::lisp
 {
+  class cursor
+    : public std::shared_ptr<cell>
+  {
+  public:
+    using difference_type = std::ptrdiff_t;
+    using value_type = cursor;
+    using pointer = cursor;
+    using reference = cursor;
+    using iterator_category = std::forward_iterator_tag;
+
+    template <typename... Ts>
+    constexpr cursor(Ts&&... args) noexcept
+      : std::shared_ptr<cell> {std::forward<Ts>(args)...}
+    {}
+
+    cursor operator*() noexcept;
+
+    cursor operator++() noexcept;
+    cursor operator--() = delete;
+  };
+
   cursor nil {nullptr};
 
   class cell
   {
+    friend class cursor;
+
     cursor car_, cdr_;
 
   public:
-    explicit constexpr cell() noexcept = default;
+    constexpr cell() noexcept = default;
 
     template <typename T>
-    explicit cell(T&& car)
+    cell(T&& car)
       : car_ {std::forward<T>(car)}
     {}
 
     template <typename T, typename U>
-    explicit cell(T&& car, U&& cdr)
+    cell(T&& car, U&& cdr)
       : car_ {std::forward<T>(car)},
         cdr_ {std::forward<U>(cdr)}
     {}
@@ -55,39 +79,38 @@ namespace meevax::lisp
     }
 
   public:
-    template <typename T>
-    friend bool atom(T&& e) try
-    {
-      static const std::unordered_map<std::type_index, bool> dispatch
-      {
-        {typeid(cell), false},
-        {typeid(symbol), true}
-      };
+    // template <typename T>
+    // friend bool atom(T&& e) try
+    // {
+    //   static const std::unordered_map<std::type_index, bool> dispatch
+    //   {
+    //     {typeid(cell), false},
+    //     {typeid(symbol), true}
+    //   };
+    //
+    //   return !e || dispatch.at(e->type());
+    // }
+    // catch (const std::out_of_range& error)
+    // {
+    //   std::cerr << error("boolean dispatch failed for " << e) << std::endl;
+    //   std::exit(boost::exit_exception_failure);
+    // }
 
-      return !e || dispatch.at(e->type());
-    }
-    catch (const std::out_of_range& error)
-    {
-      std::cerr << error("boolean dispatch failed for " << e) << std::endl;
-      std::exit(boost::exit_exception_failure);
-    }
-
-    // TODO operator*
-    template <typename T>
-    friend decltype(auto) car(T&& e) noexcept
-    {
-      return e ? e->car_ : nil;
-    }
-
-    // TODO operator++
-    template <typename T>
-    friend decltype(auto) cdr(T&& e) noexcept
-    {
-      return e ? e->cdr_ : nil;
-    }
+    // template <typename T>
+    // friend decltype(auto) car(T&& e) noexcept
+    // {
+    //   return e ? e->car_ : nil;
+    // }
+    //
+    // template <typename T>
+    // friend decltype(auto) cdr(T&& e) noexcept
+    // {
+    //   return e ? e->cdr_ : nil;
+    // }
 
   public:
-    friend auto operator<<(std::ostream& os, cursor& e)
+    template <typename T>
+    friend auto operator<<(std::ostream& os, T&& e)
       -> decltype(os)
     {
       if (!e)
@@ -101,7 +124,7 @@ namespace meevax::lisp
       }
       else if (e->type() == typeid(symbol))
       {
-        return os << e->as<symbol>();
+        return os << e->template as<symbol>();
       }
       else
       {
@@ -109,6 +132,33 @@ namespace meevax::lisp
       }
     }
   };
+
+  template <typename T>
+  bool atom(T&& e) try
+  {
+    static const std::unordered_map<std::type_index, bool> dispatch
+    {
+      {typeid(cell), false},
+      {typeid(symbol), true}
+    };
+
+    return !e || dispatch.at(e->type());
+  }
+  catch (const std::out_of_range& error)
+  {
+    std::cerr << error("boolean dispatch failed for " << e) << std::endl;
+    std::exit(boost::exit_exception_failure);
+  }
+
+  cursor cursor::operator*() noexcept
+  {
+    return get()->car_;
+  }
+
+  cursor cursor::operator++() noexcept
+  {
+    return *this = get()->cdr_;
+  }
 
   template <typename T, typename... Ts>
   cursor make_as(Ts&&... args)
@@ -118,33 +168,33 @@ namespace meevax::lisp
            >(std::forward<Ts>(args)...);
   }
 
-  template <auto N, typename Sexp>
-  decltype(auto) cdr(Sexp&& e) noexcept
-  {
-    if constexpr (N)
-    {
-      return cdr<N-1>(cdr(e));
-    }
-    else
-    {
-      return e;
-    }
-  }
+  // template <auto N, typename Sexp>
+  // decltype(auto) cdr(Sexp&& e) noexcept
+  // {
+  //   if constexpr (N)
+  //   {
+  //     return cdr<N-1>(cdr(e));
+  //   }
+  //   else
+  //   {
+  //     return e;
+  //   }
+  // }
+  //
+  // template <auto N, auto... Ns, typename Sexp>
+  // decltype(auto) car(Sexp&& e) noexcept
+  // {
+  //   if constexpr (sizeof...(Ns))
+  //   {
+  //     return car<Ns...>(car(cdr<N>(e)));
+  //   }
+  //   else
+  //   {
+  //     return car(cdr<N>(e));
+  //   }
+  // }
 
-  template <auto N, auto... Ns, typename Sexp>
-  decltype(auto) car(Sexp&& e) noexcept
-  {
-    if constexpr (sizeof...(Ns))
-    {
-      return car<Ns...>(car(cdr<N>(e)));
-    }
-    else
-    {
-      return car(cdr<N>(e));
-    }
-  }
-
-  auto cons = [](auto&&... args)
+  auto cons = [](auto&&... args) -> cursor
   {
     return std::make_shared<cell>(std::forward<decltype(args)>(args)...);
   };

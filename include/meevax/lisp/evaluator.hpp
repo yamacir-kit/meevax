@@ -11,13 +11,24 @@
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/table.hpp>
 
-#define caar(...) car<0, 0>(__VA_ARGS__)
-#define cadar(...) car<0, 1>(__VA_ARGS__)
-#define caddar(...) car<0, 2>(__VA_ARGS__)
+#define car(e) *e
+#define cdr(e) std::next(e)
 
-#define cadr(...) car<1>(__VA_ARGS__)
-#define caddr(...) car<2>(__VA_ARGS__)
-#define cadddr(...) car<3>(__VA_ARGS__)
+#define caar(e) **e
+#define cadar(e) *std::next(*e)
+#define caddar(e) *std::next(*e, 2)
+
+#define cadr(e) *std::next(e)
+#define caddr(e) *std::next(e, 2)
+#define cadddr(e) *std::next(e, 3)
+
+// #define caar(...) car<0, 0>(__VA_ARGS__)
+// #define cadar(...) car<0, 1>(__VA_ARGS__)
+// #define caddar(...) car<0, 2>(__VA_ARGS__)
+//
+// #define cadr(...) car<1>(__VA_ARGS__)
+// #define caddr(...) car<2>(__VA_ARGS__)
+// #define cadddr(...) car<3>(__VA_ARGS__)
 
 namespace meevax::lisp
 {
@@ -28,51 +39,53 @@ namespace meevax::lisp
   public:
     evaluator()
     {
-      define("quote", [](auto&& e, auto&&)
+      define("quote", [](auto e, auto)
       {
-        return cadr(e);
+        return *++e;
       });
 
-      define("atom", [&](auto&& e, auto&& a)
+      define("atom", [&](auto e, auto a)
       {
-        return atom(eval(cadr(e), a)) ? symbols.intern("true") : nil;
+        return atom(eval(*++e, a)) ? symbols.intern("true") : nil;
       });
 
-      define("eq", [&](auto&& e, auto&& a)
+      define("eq", [&](auto e, auto a)
       {
-        return eval(cadr(e), a) == eval(caddr(e), a) ? symbols.intern("true") : nil;
+        // return eval(cadr(e), a) == eval(caddr(e), a) ? symbols.intern("true") : nil;
+        return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : nil;
       });
 
-      define("cond", [&](auto&& e, auto&& a)
+      define("cond", [&](auto e, auto a)
       {
-        return evcon(cdr(e), a);
+        return evcon(++e, a);
       });
 
-      define("car", [&](auto&& e, auto&& a)
+      define("car", [&](auto e, auto a)
       {
-        return car(eval(cadr(e), a));
+        return car(eval(*++e, a));
       });
 
-      define("cdr", [&](auto&& e, auto&& a)
+      define("cdr", [&](auto e, auto a)
       {
-        return cdr(eval(cadr(e), a));
+        return cdr(eval(*++e, a));
       });
 
-      define("cons", [&](auto&& e, auto&& a)
+      define("cons", [&](auto e, auto a)
       {
         return eval(cadr(e), a) | eval(caddr(e), a);
       });
 
-      define("define", [&](auto&& e, auto&& a)
+      define("define", [&](auto e, auto a)
       {
         env = list(cadr(e), caddr(e)) | env;
         return assoc(cadr(e), a);
       });
     }
 
-    decltype(auto) operator()(cursor& e)
+    template <typename T>
+    decltype(auto) operator()(T&& e)
     {
-      return eval(e, env);
+      return eval(std::forward<T>(e), env);
     }
 
     template <typename F>
@@ -82,18 +95,17 @@ namespace meevax::lisp
     }
 
   protected:
-    auto eval(cursor& e, cursor& a)
-      -> cursor
+    cursor eval(cursor e, cursor a)
     {
       if (atom(e))
       {
         return assoc(e, a);
       }
-      else if (atom(car(e)))
+      else if (atom(*e))
       {
-        if (auto proc {assoc(car(e), a)}; proc->type() == typeid(special))
+        if (auto proc {assoc(*e, a)}; proc->type() == typeid(special))
         {
-          return proc->as<special>()(e, a);
+          return proc->template as<special>()(e, a);
         }
         else if (atom(proc))
         {
@@ -102,10 +114,10 @@ namespace meevax::lisp
         }
         else
         {
-          return eval(proc | cdr(e), a);
+          return eval(proc | ++e, a);
         }
       }
-      else if (caar(e) == symbols.intern("label"))
+      else if (**e == symbols.intern("label"))
       {
         return eval(caddar(e) | cdr(e), list(cadar(e), car(e)) | a);
       }
@@ -115,7 +127,7 @@ namespace meevax::lisp
       }
       else
       {
-        std::cerr << error("unknown function \"" << car(e) << "\"") << std::endl;
+        std::cerr << error("unknown function \"" << *e << "\"") << std::endl;
         return nil;
       }
     }
@@ -127,14 +139,12 @@ namespace meevax::lisp
       return (xs | ... | nil);
     }
 
-    template <typename T, typename U>
-    cursor append(T&& x, U&& y)
+    cursor append(cursor x, cursor y)
     {
       return !x ? y : car(x) | append(cdr(x), y);
     }
 
-    template <typename T, typename U>
-    cursor zip(T&& x, U&& y)
+    cursor zip(cursor x, cursor y)
     {
       if (!x && !y)
       {
@@ -150,28 +160,30 @@ namespace meevax::lisp
       }
     }
 
-    cursor assoc(cursor& x, cursor& y)
+    cursor assoc(cursor x, cursor y)
     {
-      if (!x)
-      {
-        return nil;
-      }
-      else if (!y)
-      {
-        return x;
-      }
-      else
-      {
-        return caar(y) == x ? cadar(y) : assoc(x, cdr(y));
-      }
+      // if (!x)
+      // {
+      //   return nil;
+      // }
+      // else if (!y)
+      // {
+      //   return x;
+      // }
+      // else
+      // {
+      //   return caar(y) == x ? cadar(y) : assoc(x, cdr(y));
+      // }
+
+      return !x ? nil : !y ? x : caar(y) == x ? cadar(y) : assoc(x, cdr(y));
     }
 
-    cursor evcon(cursor& c, cursor& a)
+    cursor evcon(cursor c, cursor a)
     {
       return eval(caar(c), a) ? eval(cadar(c), a) : evcon(cdr(c), a);
     }
 
-    cursor evlis(cursor& m, cursor& a)
+    cursor evlis(cursor m, cursor a)
     {
       return !m ? nil : eval(car(m), a) | evlis(cdr(m), a);
     }
