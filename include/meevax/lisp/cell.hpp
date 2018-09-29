@@ -47,24 +47,18 @@ namespace meevax::lisp
   class cell
     : public std::pair<cursor, cursor>
   {
-    // Operation is possible only via class cursor.
     friend class cursor;
-
-    // cursor car_, cdr_;
 
   public:
     constexpr cell() = default;
 
     template <typename T>
     constexpr cell(T&& car)
-      // : car_ {std::forward<T>(car)}
       : std::pair<cursor, cursor> {std::forward<T>(car), nil}
     {}
 
     template <typename T, typename U>
     cell(T&& car, U&& cdr)
-      // : car_ {std::forward<T>(car)},
-      //   cdr_ {std::forward<U>(cdr)}
       : std::pair<cursor, cursor> {std::forward<T>(car), std::forward<U>(cdr)}
     {}
 
@@ -127,13 +121,11 @@ namespace meevax::lisp
 
   inline cursor cursor::operator*() const noexcept
   {
-    // return get()->car_;
     return get()->first;
   }
 
   inline cursor cursor::operator++() noexcept
   {
-    // return *this = get()->cdr_;
     return *this = get()->second;
   }
 
