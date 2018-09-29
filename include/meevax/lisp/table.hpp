@@ -21,15 +21,12 @@ namespace meevax::lisp
 
     const auto& intern(const std::string s)
     {
-      emplace(s, cell::make_as<T>(s));
+      emplace(s, make_as<T>(s));
       return (*this)[s];
     }
   };
 
-  static table<symbol> symbols {
-    std::make_pair("", nil),
-    std::make_pair("nil", nil)
-  };
+  static table<symbol> symbols {std::make_pair("nil", nil)};
 };
 
 #endif // INCLUDED_MEEVAX_LISP_TABLE_HPP

@@ -16,7 +16,7 @@
 
 namespace meevax::lisp
 {
-  extern cursor nil;
+  cursor nil {nullptr};
 
   class cell
   {
@@ -37,22 +37,14 @@ namespace meevax::lisp
     {}
 
   public:
-    template <typename T, typename... Ts>
-    static cursor make_as(Ts&&... xs)
-    {
-      return std::make_shared<
-               meevax::utility::binder<T, cell>
-             >(std::forward<Ts>(xs)...);
-    }
-
     template <typename T>
-    auto as() const noexcept try
+    auto as() const try
     {
       return dynamic_cast<const T&>(*this);
     }
     catch (const std::bad_cast& error)
     {
-      std::cerr << error("dynamic_cast failed for \"" << type().name() << "\"") << std::endl;
+      std::cerr << error("arbitrary dispatch failed for (" << car_ << " . " << cdr_ << ")") << std::endl;
       std::exit(boost::exit_exception_failure);
     }
 
@@ -64,32 +56,45 @@ namespace meevax::lisp
 
   public:
     template <typename T>
-    friend bool atom(T&& e)
+    friend bool atom(T&& e) try
     {
-      static const std::unordered_map<std::type_index, bool> dispatcher
+      static const std::unordered_map<std::type_index, bool> dispatch
       {
+        {typeid(cell), false},
         {typeid(symbol), true}
       };
 
-      return !e->cdr_ && dispatcher.at(e->type());
+      return !e || dispatch.at(e->type());
+    }
+    catch (const std::out_of_range& error)
+    {
+      std::cerr << error("boolean dispatch failed for " << e) << std::endl;
+      std::exit(boost::exit_exception_failure);
     }
 
+    // TODO operator*
     template <typename T>
     friend decltype(auto) car(T&& e) noexcept
     {
-      return (e && e->car_) ? e->car_ : nil;
+      return e ? e->car_ : nil;
     }
 
+    // TODO operator++
     template <typename T>
     friend decltype(auto) cdr(T&& e) noexcept
     {
-      return (e && e->cdr_) ? e->cdr_ : nil;
+      return e ? e->cdr_ : nil;
     }
 
   public:
     friend auto operator<<(std::ostream& os, cursor& e)
       -> decltype(os)
     {
+      if (!e)
+      {
+        return os << "nil";
+      }
+
       if (e->type() == typeid(cell))
       {
         return os << "(" << e->car_ << " . " << e->cdr_ << ")";
@@ -105,7 +110,13 @@ namespace meevax::lisp
     }
   };
 
-  cursor nil {cell::make_as<symbol>("nil")};
+  template <typename T, typename... Ts>
+  cursor make_as(Ts&&... args)
+  {
+    return std::make_shared<
+             meevax::utility::binder<T, cell>
+           >(std::forward<Ts>(args)...);
+  }
 
   template <auto N, typename Sexp>
   decltype(auto) cdr(Sexp&& e) noexcept
