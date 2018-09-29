@@ -1,12 +1,12 @@
 #ifndef INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
 
-#include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/table.hpp>
@@ -24,6 +24,8 @@
 
 namespace meevax::lisp
 {
+  using special = const std::function<cursor (cursor, cursor)>;
+
   class evaluator
   {
     static inline auto env {nil};

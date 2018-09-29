@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/cell.hpp>
 
 namespace meevax::lisp
