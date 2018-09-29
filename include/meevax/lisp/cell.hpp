@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
 #include <iostream>
-#include <memory>
 #include <string>
 #include <typeindex>
 #include <typeinfo>
@@ -10,33 +9,34 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/lisp/alias.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/utility/binder.hpp>
+#include <meevax/utility/recursive_iterator.hpp>
 
 namespace meevax::lisp
 {
+  class cell;
+
+  using cursor = meevax::utility::recursive_iterator<cell>;
   cursor nil {nullptr};
 
-  class cell
-  {
-    cursor car_, cdr_;
+  using symbol = const std::string;
 
-  public:
-    explicit constexpr cell() noexcept = default;
+  struct cell
+    : public std::pair<cursor, cursor>
+  {
+    constexpr cell() = default;
 
     template <typename T>
-    explicit cell(T&& car)
-      : car_ {std::forward<T>(car)}
+    constexpr cell(T&& car)
+      : std::pair<cursor, cursor> {std::forward<T>(car), nil}
     {}
 
     template <typename T, typename U>
-    explicit cell(T&& car, U&& cdr)
-      : car_ {std::forward<T>(car)},
-        cdr_ {std::forward<U>(cdr)}
+    cell(T&& car, U&& cdr)
+      : std::pair<cursor, cursor> {std::forward<T>(car), std::forward<U>(cdr)}
     {}
 
-  public:
     template <typename T>
     auto as() const try
     {
@@ -44,7 +44,7 @@ namespace meevax::lisp
     }
     catch (const std::bad_cast& error)
     {
-      std::cerr << error("arbitrary dispatch failed for (" << car_ << " . " << cdr_ << ")") << std::endl;
+      std::cerr << error("arbitrary dispatch failed for (" << first << " . " << second << ")") << std::endl;
       std::exit(boost::exit_exception_failure);
     }
 
@@ -53,98 +53,54 @@ namespace meevax::lisp
     {
       return typeid(cell);
     }
-
-  public:
-    template <typename T>
-    friend bool atom(T&& e) try
-    {
-      static const std::unordered_map<std::type_index, bool> dispatch
-      {
-        {typeid(cell), false},
-        {typeid(symbol), true}
-      };
-
-      return !e || dispatch.at(e->type());
-    }
-    catch (const std::out_of_range& error)
-    {
-      std::cerr << error("boolean dispatch failed for " << e) << std::endl;
-      std::exit(boost::exit_exception_failure);
-    }
-
-    // TODO operator*
-    template <typename T>
-    friend decltype(auto) car(T&& e) noexcept
-    {
-      return e ? e->car_ : nil;
-    }
-
-    // TODO operator++
-    template <typename T>
-    friend decltype(auto) cdr(T&& e) noexcept
-    {
-      return e ? e->cdr_ : nil;
-    }
-
-  public:
-    friend auto operator<<(std::ostream& os, cursor& e)
-      -> decltype(os)
-    {
-      if (!e)
-      {
-        return os << "nil";
-      }
-
-      if (e->type() == typeid(cell))
-      {
-        return os << "(" << e->car_ << " . " << e->cdr_ << ")";
-      }
-      else if (e->type() == typeid(symbol))
-      {
-        return os << e->as<symbol>();
-      }
-      else
-      {
-        throw std::runtime_error {std::to_string(__LINE__)};
-      }
-    }
   };
+
+  std::ostream& operator<<(std::ostream& os, cursor e)
+  {
+    if (!e)
+    {
+      return os << "nil";
+    }
+
+    if (e->type() == typeid(cell))
+    {
+      return os << "(" << *e << " . " << ++e << ")";
+    }
+    else if (e->type() == typeid(symbol))
+    {
+      return os << e->template as<symbol>();
+    }
+    else
+    {
+      throw std::runtime_error {std::to_string(__LINE__)};
+    }
+  }
+
+  template <typename T>
+  bool atom(T&& e) try
+  {
+    static const std::unordered_map<std::type_index, bool> dispatch
+    {
+      {typeid(cell), false},
+      {typeid(symbol), true}
+    };
+
+    return !e || dispatch.at(e->type());
+  }
+  catch (const std::out_of_range& error)
+  {
+    std::cerr << error("atom dispatch failed for " << e) << std::endl;
+    std::exit(boost::exit_exception_failure);
+  }
 
   template <typename T, typename... Ts>
   cursor make_as(Ts&&... args)
   {
-    return std::make_shared<
-             meevax::utility::binder<T, cell>
-           >(std::forward<Ts>(args)...);
+    using binder = meevax::utility::binder<T, cell>;
+    return std::make_shared<binder>(std::forward<Ts>(args)...);
   }
 
-  template <auto N, typename Sexp>
-  decltype(auto) cdr(Sexp&& e) noexcept
-  {
-    if constexpr (N)
-    {
-      return cdr<N-1>(cdr(e));
-    }
-    else
-    {
-      return e;
-    }
-  }
-
-  template <auto N, auto... Ns, typename Sexp>
-  decltype(auto) car(Sexp&& e) noexcept
-  {
-    if constexpr (sizeof...(Ns))
-    {
-      return car<Ns...>(car(cdr<N>(e)));
-    }
-    else
-    {
-      return car(cdr<N>(e));
-    }
-  }
-
-  auto cons = [](auto&&... args)
+  auto cons = [](auto&&... args) -> cursor
   {
     return std::make_shared<cell>(std::forward<decltype(args)>(args)...);
   };
