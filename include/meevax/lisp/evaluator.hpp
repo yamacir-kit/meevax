@@ -103,11 +103,24 @@ namespace meevax::lisp
       }
       else if (**e == symbols.intern("lambda"))
       {
-        return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
+        return eval(
+                 caddar(e),
+                 append(zip(cadar(e), evlis(cdr(e), a)), a)
+               );
+      }
+      else if (**e == symbols.intern("macro"))
+      {
+        return eval(
+                 eval(
+                   caddar(e),
+                   append(zip(cadar(e), cdr(a)), a)
+                 ),
+                 a
+               );
       }
       else
       {
-        std::cerr << error("unknown function \"" << *e << "\"") << std::endl;
+        std::cerr << error("eval dispatch failed for \"" << e << "\"") << std::endl;
         return nil;
       }
     }
