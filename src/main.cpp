@@ -1,8 +1,6 @@
-#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <utility>
 
 #include <boost/cstdlib.hpp>
@@ -37,8 +35,6 @@ auto main()
                 << "  -> " << evaluated << " expected" << std::endl;
       std::exit(boost::exit_failure);
     }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds {100});
   }
 
   std::cerr << "\nall tests passed." << std::endl;
