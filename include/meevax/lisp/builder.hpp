@@ -16,6 +16,10 @@ namespace meevax::lisp
   {
     std::string value;
 
+    builder(const std::string& s)
+      : value {s}
+    {}
+
     template <typename InputIterator>
     explicit builder(InputIterator&& begin, InputIterator&& end)
     {
@@ -34,21 +38,41 @@ namespace meevax::lisp
 
     virtual ~builder() = default;
 
-    decltype(auto) operator()() const
+    decltype(auto) operator()()
     {
+      expand();
       return build();
     }
 
   protected:
+    void expand()
+    {
+      for (auto iter {std::begin(*this)}; iter != std::end(*this); ++iter)
+      {
+        if (iter->value == "'")
+        {
+          // クオートの次のフォームを操作中のリストの要素としてムーブする。
+          // 残されたままのクオートはその後の操作に影響を与えない。
+          iter->splice(std::begin(*iter), *this, std::next(iter));
+          iter->emplace_front("quote");
+        }
+        else
+        {
+          iter->expand();
+        }
+      }
+    }
+
     cursor build() const
     {
       using namespace functional;
 
+      // `std::empty(*this)`が`std::empty(value)`の前の条件になっているのがマクロ展開履歴の無視を実現している。
       return std::empty(*this)
                ? symbols.intern(std::empty(value) ? "nil" : value)
-               : foldr(*this, nil, [](auto& build, auto& constructed)
+               : foldr(*this, nil, [](auto& builder, auto& constructed)
                  {
-                   return build() | constructed;
+                   return builder.build() | constructed;
                  });
     }
   };

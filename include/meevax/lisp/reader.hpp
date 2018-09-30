@@ -47,8 +47,7 @@ namespace meevax::lisp
     auto operator()(const std::string& s) const
     {
       const auto tokens {tokenize(s)};
-      const builder build {std::begin(tokens), std::end(tokens)};
-      return build();
+      return builder {std::begin(tokens), std::end(tokens)}();
     }
   } static read {};
 } // namespace meevax::lisp
