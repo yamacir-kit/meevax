@@ -41,7 +41,14 @@ auto main()
 
   for (std::string buffer {}; std::cout << "\n>> ", std::getline(std::cin, buffer); )
   {
-    std::cout << lisp::eval(lisp::read(buffer)) << std::endl;
+    if (buffer == "(exit)")
+    {
+      std::exit(boost::exit_success);
+    }
+    else
+    {
+      std::cout << lisp::eval(lisp::read(buffer)) << std::endl;
+    }
   }
 
   return boost::exit_success;

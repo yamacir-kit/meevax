@@ -20,6 +20,7 @@ namespace meevax::lisp
       : value {s}
     {}
 
+    // 括弧がバランスしていることが保証されていなければならない
     template <typename InputIterator>
     explicit builder(InputIterator&& begin, InputIterator&& end)
     {
@@ -67,7 +68,6 @@ namespace meevax::lisp
     {
       using namespace functional;
 
-      // `std::empty(*this)`が`std::empty(value)`の前の条件になっているのがマクロ展開履歴の無視を実現している。
       return std::empty(*this)
                ? symbols.intern(std::empty(value) ? "nil" : value)
                : foldr(*this, nil, [](auto& builder, auto& constructed)

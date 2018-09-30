@@ -11,9 +11,17 @@
 
 namespace meevax::lisp
 {
-  struct reader
+  class reader
   {
-    static auto tokenize(const std::string& s)
+  public:
+    auto operator()(const std::string& s) const
+    {
+      const auto tokens {tokenize(s)};
+      return builder {std::begin(tokens), std::end(tokens)}();
+    }
+
+  protected:
+    auto tokenize(const std::string& s) const
       -> std::list<std::string>
     {
       std::list<std::string> tokens {};
@@ -42,12 +50,6 @@ namespace meevax::lisp
       }
 
       return tokens;
-    }
-
-    auto operator()(const std::string& s) const
-    {
-      const auto tokens {tokenize(s)};
-      return builder {std::begin(tokens), std::end(tokens)}();
     }
   } static read {};
 } // namespace meevax::lisp

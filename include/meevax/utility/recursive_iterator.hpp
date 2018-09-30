@@ -22,6 +22,18 @@ namespace meevax::utility
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
     {}
 
+    // ~recursive_iterator()
+    // {
+    //   if (auto count {std::shared_ptr<T>::use_count()}; count)
+    //   {
+    //     if (std::shared_ptr<T>::get()->type() == typeid(std::string))
+    //     {
+    //       auto value {std::shared_ptr<T>::get()->template as<std::string>()};
+    //       std::cerr << value << " ... " << count << "\n";
+    //     }
+    //   }
+    // }
+
     reference operator*() const noexcept
     {
       return std::shared_ptr<T>::get()->first;
