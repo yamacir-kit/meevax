@@ -18,12 +18,14 @@ namespace meevax::utility
 
     decltype(auto) increment() noexcept
     {
-      return *this = std::shared_ptr<T>::get()->second;
+      const auto& data {std::shared_ptr<T>::get()};
+      return *this = std::get<1>(*data);
     }
 
     auto& dereference() const noexcept
     {
-      return std::shared_ptr<T>::get()->first;
+      const auto& data {std::shared_ptr<T>::get()};
+      return std::get<0>(*data);
     }
 
   public:
