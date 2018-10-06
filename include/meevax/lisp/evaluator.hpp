@@ -6,6 +6,8 @@
 #include <string>
 #include <utility>
 
+#include <boost/cstdlib.hpp>
+
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/table.hpp>
@@ -71,6 +73,12 @@ namespace meevax::lisp
       {
         env = list(cadr(e), caddr(e)) | env;
         return assoc(cadr(e), a);
+      });
+
+      define("exit", [&](auto, auto)
+      {
+        std::exit(boost::exit_success);
+        return nil;
       });
     }
 

@@ -39,18 +39,6 @@ auto main()
 
   std::cerr << "\nall tests passed." << std::endl;
 
-  // for (std::string buffer {}; std::cout << "\n>> ", std::getline(std::cin, buffer); )
-  // {
-  //   if (buffer == "(exit)")
-  //   {
-  //     std::exit(boost::exit_success);
-  //   }
-  //   else
-  //   {
-  //     std::cout << lisp::eval(lisp::read(buffer)) << std::endl;
-  //   }
-  // }
-
   while (true)
   {
     std::cout << "\n>> " << lisp::eval(lisp::read(std::cin)) << std::endl;
