@@ -3,6 +3,7 @@
 
 #include <iterator>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 #include <boost/iterator/iterator_facade.hpp>
@@ -22,7 +23,7 @@ namespace meevax::utility
       return *this = std::get<1>(*data);
     }
 
-    auto& dereference() const noexcept
+    decltype(auto) dereference() const noexcept
     {
       const auto& data {std::shared_ptr<T>::get()};
       return std::get<0>(*data);
@@ -42,6 +43,13 @@ namespace meevax::utility
     {
       return static_cast<const std::shared_ptr<T>&>(*this)
           == static_cast<const std::shared_ptr<T>&>(rhs);
+    }
+
+    template <auto N>
+    decltype(auto) operator[](std::integral_constant<decltype(N), N>) const noexcept
+    {
+      const auto& data {std::shared_ptr<T>::get()};
+      return std::get<N>(*data);
     }
   };
 } // namespace meevax::utility
