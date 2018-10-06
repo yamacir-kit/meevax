@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <typeindex>
 #include <typeinfo>
@@ -11,13 +12,13 @@
 
 #include <meevax/lisp/error.hpp>
 #include <meevax/utility/binder.hpp>
-#include <meevax/utility/recursive_iterator.hpp>
+#include <meevax/utility/recursive_tuple_iterator.hpp>
 
 namespace meevax::lisp
 {
   class cell;
 
-  using cursor = meevax::utility::recursive_iterator<cell>;
+  using cursor = utility::recursive_tuple_iterator<cell>;
   cursor nil {nullptr};
 
   using symbol = const std::string;
