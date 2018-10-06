@@ -10,6 +10,8 @@
 
 namespace meevax::utility
 {
+  // std::size_t copy {0};
+
   template <typename T>
   class recursive_tuple_iterator
     : public std::shared_ptr<T>,
@@ -34,6 +36,13 @@ namespace meevax::utility
     constexpr recursive_tuple_iterator(Ts&&... args) noexcept
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
     {}
+
+    // template <typename... Ts>
+    // decltype(auto) operator=(Ts&&... args) noexcept
+    // {
+    //   std::cerr << "copy: " << ++copy << "\n";
+    //   return std::shared_ptr<T>::operator=(std::forward<Ts>(args)...);
+    // }
 
     using boost::iterator_facade<recursive_tuple_iterator<T>, recursive_tuple_iterator<T>, boost::forward_traversal_tag>::operator*;
     using std::shared_ptr<T>::operator->;
