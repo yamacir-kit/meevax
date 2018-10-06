@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_READER_HPP
 
 #include <algorithm>
+#include <iostream>
 #include <iterator>
 #include <list>
 #include <locale>
@@ -14,9 +15,31 @@ namespace meevax::lisp
   class reader
   {
   public:
+    // 括弧がバランスしているかのチェックを行わない点に注意
     auto operator()(const std::string& s) const
     {
       const auto tokens {tokenize(s)};
+      return builder {std::begin(tokens), std::end(tokens)}();
+    }
+
+    auto operator()(std::istream& is) const
+    {
+      auto read_as_tokens = [&]()
+      {
+        std::string buffer {};
+        std::getline(is, buffer);
+
+        return tokenize(buffer);
+      };
+
+      auto tokens {read_as_tokens()};
+
+      while (unbalance(tokens))
+      {
+        std::cout << ".. ";
+        tokens.splice(std::end(tokens), read_as_tokens());
+      }
+
       return builder {std::begin(tokens), std::end(tokens)}();
     }
 
@@ -50,6 +73,15 @@ namespace meevax::lisp
       }
 
       return tokens;
+    }
+
+    template <typename T>
+    int unbalance(T&& tokens) const
+    {
+      const auto open {std::count(std::begin(tokens), std::end(tokens), "(")};
+      const auto close {std::count(std::begin(tokens), std::end(tokens), ")")};
+
+      return open - close;
     }
   } static read {};
 } // namespace meevax::lisp
