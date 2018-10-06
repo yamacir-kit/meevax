@@ -68,14 +68,15 @@ namespace meevax::lisp
       return os << e->template as<symbol>();
     }
 
-    os << "(";
-
-    while (e)
+    for (os << '(' << *e; ++e; os << ' ' << *e)
     {
-      os << *e++ << (e != nil ? " " : ")");
+      if (e->type() != typeid(cell)) // is not pure list
+      {
+        return os << " . " << e << ')';
+      }
     }
 
-    return os;
+    return os << ')';
   }
 
   template <typename T>
