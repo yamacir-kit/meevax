@@ -25,7 +25,7 @@ auto main()
               << "source code: \e[32m" << source_code << "\e[0m\n"
               << "  -> \e[36m" << ss.str() << "\e[0m\n";
 
-    if (evaluated == "lambda" || evaluated == ss.str())
+    if (evaluated == ss.str())
     {
       std::cerr << "  -> \e[1;33msuccess\e[0m\n";
     }

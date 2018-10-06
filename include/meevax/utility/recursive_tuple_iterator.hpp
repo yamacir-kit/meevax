@@ -41,8 +41,13 @@ namespace meevax::utility
     template <typename U>
     decltype(auto) operator==(U&& rhs) const noexcept
     {
-      return static_cast<const std::shared_ptr<T>&>(*this)
-          == static_cast<const std::shared_ptr<T>&>(rhs);
+      return std::operator==(*this, std::forward<U>(rhs));
+    }
+
+    template <typename U>
+    decltype(auto) operator!=(U&& rhs) const noexcept
+    {
+      return not operator==(std::forward<U>(rhs));
     }
 
     template <auto N>

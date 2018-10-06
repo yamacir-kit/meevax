@@ -63,18 +63,19 @@ namespace meevax::lisp
       return os << "nil";
     }
 
-    if (e->type() == typeid(cell))
-    {
-      return os << "(" << *e << " . " << ++e << ")";
-    }
-    else if (e->type() == typeid(symbol))
+    if (e->type() == typeid(symbol))
     {
       return os << e->template as<symbol>();
     }
-    else
+
+    os << "(";
+
+    while (e)
     {
-      throw std::runtime_error {std::to_string(__LINE__)};
+      os << *e++ << (e != nil ? " " : ")");
     }
+
+    return os;
   }
 
   template <typename T>
