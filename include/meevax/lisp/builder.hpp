@@ -31,7 +31,7 @@ namespace meevax::lisp
           if (*begin == "'")
           {
             emplace_front("quote");
-            splice(std::end(*this), {++begin, end});
+            splice(std::end(*this), {++begin, std::next(begin)});
           }
           else value = *begin;
         }
@@ -46,29 +46,10 @@ namespace meevax::lisp
 
     decltype(auto) operator()()
     {
-      // expand();
       return build();
     }
 
   protected:
-    // void expand()
-    // {
-    //   for (auto iter {std::begin(*this)}; iter != std::end(*this); ++iter)
-    //   {
-    //     if (iter->value == "'")
-    //     {
-    //       // クオートの次のフォームを操作中のリストの要素としてムーブする。
-    //       // 残されたままのクオートはその後の操作に影響を与えない。
-    //       iter->splice(std::begin(*iter), *this, std::next(iter));
-    //       iter->emplace_front("quote");
-    //     }
-    //     else
-    //     {
-    //       iter->expand();
-    //     }
-    //   }
-    // }
-
     cursor build() const
     {
       using namespace functional;

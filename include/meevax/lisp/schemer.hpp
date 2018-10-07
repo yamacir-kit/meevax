@@ -43,18 +43,34 @@ namespace meevax::lisp
 
     void operator()()
     {
-      while (true)
+      for (std::string buffer {}; true; ) try
       {
-        std::cout << read_sequence() << std::endl;
+        const auto sequence {read_sequence()};
+
+        if (sequence == "\\e")
+        {
+          const auto well_formed_expression {read(buffer)};
+          std::cout << "=> " << eval(well_formed_expression) << std::endl;
+          buffer.clear();
+        }
+        else
+        {
+          std::cout << "\r\e[K>> " << (buffer += sequence) << " == " << read(buffer) << std::endl;
+        }
+      }
+      catch (const std::string&)
+      {
+        std::cout << "(ill-formed)";
       }
     }
 
   protected:
+    // プリント可能な形でシーケンスを返すことに注意
     std::string read_sequence()
     {
       static const std::regex escape_sequence {"^\\\e\\[(\\d*;?)+(.|~)$"};
 
-      std::string buffer {std::cin.get()};
+      std::string buffer {static_cast<char>(std::cin.get())};
 
       switch (buffer[0])
       {
