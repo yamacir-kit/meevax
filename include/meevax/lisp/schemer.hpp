@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_SCHEMER_HPP
 
 #include <iostream>
+#include <regex>
 #include <string>
 
 #include <meevax/lisp/cell.hpp>
@@ -22,12 +23,12 @@ namespace meevax::lisp
       : data {symbols.intern("nil")}
     {}
 
-    void operator()()
+    void operator()(int)
     {
       for (std::string buffer {}; true; ) try
       {
         // 描画（ゆくゆくはASTの書き出しのみに置き換えられるべき）
-        std::cout << ">> " << (buffer += std::getchar()) << std::endl;
+        std::cout << ">> " << (buffer += std::cin.get()) << std::endl;
 
         // ASTの構築（不正な場合は例外を投げて継続）
         const auto well_formed_expression {read(buffer)};
@@ -37,6 +38,42 @@ namespace meevax::lisp
       }
       catch (const std::string&) // unbalance expression
       {
+      }
+    }
+
+    void operator()()
+    {
+      while (true)
+      {
+        std::cout << read_sequence() << std::endl;
+      }
+    }
+
+  protected:
+    std::string read_sequence()
+    {
+      static const std::regex escape_sequence {"^\\\e\\[(\\d*;?)+(.|~)$"};
+
+      std::string buffer {std::cin.get()};
+
+      switch (buffer[0])
+      {
+      case '\e':
+        if (!std::cin.rdbuf()->in_avail())
+        {
+          return {"\\e"};
+        }
+        else while (!std::regex_match(buffer, escape_sequence))
+        {
+          buffer.push_back(std::cin.get());
+        }
+        return std::string {"\\e["} + std::string {std::begin(buffer) + 2, std::end(buffer)};
+
+      case '\n':
+        return {"\\n"};
+
+      default:
+        return buffer;
       }
     }
   };
