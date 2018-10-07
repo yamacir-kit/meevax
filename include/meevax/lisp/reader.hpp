@@ -22,12 +22,16 @@ namespace meevax::lisp
       return builder {std::begin(tokens), std::end(tokens)}();
     }
 
-    auto operator()(std::istream& is) const
+    auto operator()(std::istream& is, const std::string& s = "") const
     {
       auto read_as_tokens = [&]()
       {
         std::string buffer {};
-        std::getline(is, buffer);
+
+        while (std::empty(buffer))
+        {
+          std::getline(is, buffer);
+        }
 
         return tokenize(buffer);
       };
@@ -36,7 +40,7 @@ namespace meevax::lisp
 
       while (unbalance(tokens))
       {
-        std::cout << ".. ";
+        std::cout << s;
         tokens.splice(std::end(tokens), read_as_tokens());
       }
 
