@@ -12,27 +12,24 @@
 
 namespace meevax::lisp
 {
+  // 最も単純なリード処理を提供する（それ以上のことは絶対にしない）
   class reader
   {
   public:
-    // 括弧がバランスしているかのチェックを行わない点に注意
+    // 括弧がバランスした文字列に対するリード処理
     auto operator()(const std::string& s) const
     {
       const auto tokens {tokenize(s)};
       return builder {std::begin(tokens), std::end(tokens)}();
     }
 
+    // インクリメンタルに複数行の入力を受け付けるリード処理
     auto operator()(std::istream& is, const std::string& s = "") const
     {
       auto read_as_tokens = [&]()
       {
         std::string buffer {};
-
-        while (std::empty(buffer))
-        {
-          std::getline(is, buffer);
-        }
-
+        std::getline(is, buffer);
         return tokenize(buffer);
       };
 

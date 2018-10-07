@@ -9,22 +9,9 @@
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
 
-auto main(int argc, char** argv)
-  -> int
+int main()
 {
-  const std::list<std::string> args {argv + 1, argv + argc};
-
   using namespace meevax;
-
-  for (const auto& each : args)
-  {
-    std::ifstream file {each};
-
-    while (file && !file.eof())
-    {
-      std::cout << lisp::eval(lisp::read(file)) << std::endl;
-    }
-  }
 
   while (true)
   {
