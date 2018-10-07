@@ -24,20 +24,19 @@ namespace meevax::lisp
 
     void operator()()
     {
-      for (std::string buffer {}; std::cout << buffer; ) try
+      for (std::string buffer {}; true; ) try
       {
-        buffer.push_back(std::getchar());
+        // 描画（ゆくゆくはASTの書き出しのみに置き換えられるべき）
+        std::cout << ">> " << (buffer += std::getchar()) << std::endl;
 
-        const auto built {read(buffer)};
-        const auto result {eval(built)};
+        // ASTの構築（不正な場合は例外を投げて継続）
+        const auto well_formed_expression {read(buffer)};
 
-        std::cout << "\n\n" << result << "\n\n";
-
+        std::cout << "\n=> " << eval(well_formed_expression) << "\n\n";
         buffer.clear();
       }
-      catch (const std::string&)
+      catch (const std::string&) // unbalance expression
       {
-        std::cout << "\n";
       }
     }
   };
