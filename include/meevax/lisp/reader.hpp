@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_LISP_READER_HPP
 
 #include <algorithm>
-#include <iostream>
 #include <iterator>
 #include <list>
 #include <locale>
@@ -20,28 +19,7 @@ namespace meevax::lisp
     auto operator()(const std::string& s) const
     {
       const auto tokens {tokenize(s)};
-      return builder {std::begin(tokens), std::end(tokens)}();
-    }
-
-    // インクリメンタルに複数行の入力を受け付けるリード処理
-    auto operator()(std::istream& is, const std::string& s = "") const
-    {
-      auto read_as_tokens = [&]()
-      {
-        std::string buffer {};
-        std::getline(is, buffer);
-        return tokenize(buffer);
-      };
-
-      auto tokens {read_as_tokens()};
-
-      while (unbalance(tokens))
-      {
-        std::cout << s;
-        tokens.splice(std::end(tokens), read_as_tokens());
-      }
-
-      return builder {std::begin(tokens), std::end(tokens)}();
+      return unbalance(tokens) ? throw s : builder {std::begin(tokens), std::end(tokens)}();
     }
 
   protected:

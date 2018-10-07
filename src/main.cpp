@@ -1,8 +1,5 @@
-#include <fstream>
 #include <iostream>
-#include <list>
 #include <string>
-#include <utility>
 
 #include <boost/cstdlib.hpp>
 
@@ -13,9 +10,15 @@ int main()
 {
   using namespace meevax;
 
-  while (true)
+  for (std::string buffer {}, continuation {}; std::cout << ">> ", std::getline(std::cin, buffer);) try
   {
-    std::cout << "\n>> " << lisp::eval(lisp::read(std::cin, ".. ")) << std::endl;
+    const auto result {lisp::eval(lisp::read(continuation += buffer))};
+    std::cout << "\n" << result << "\n\n";
+    continuation.clear();
+  }
+  catch (const std::string& unbalance_expression)
+  {
+    continuation = unbalance_expression + " ";
   }
 
   return boost::exit_success;
