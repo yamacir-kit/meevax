@@ -12,13 +12,13 @@
 
 #include <meevax/lisp/error.hpp>
 #include <meevax/utility/binder.hpp>
-#include <meevax/utility/recursive_tuple_iterator.hpp>
+#include <meevax/utility/recursive_binary_tuple_iterator.hpp>
 
 namespace meevax::lisp
 {
   class cell;
 
-  using cursor = utility::recursive_tuple_iterator<cell>;
+  using cursor = utility::recursive_binary_tuple_iterator<cell>;
   using symbol = std::string;
 
   template <typename T, typename... Ts>
