@@ -25,7 +25,8 @@ namespace meevax::lisp
     }
   };
 
-  static table<symbol> symbols {std::make_pair("nil", nil)};
+  // Single Source of Nil
+  static table<symbol> symbols {std::make_pair("nil", cursor {nullptr})};
 };
 
 #endif // INCLUDED_MEEVAX_LISP_TABLE_HPP

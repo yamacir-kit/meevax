@@ -19,10 +19,20 @@ namespace meevax::lisp
   class cell;
 
   using cursor = utility::recursive_tuple_iterator<cell>;
-  cursor nil {nullptr};
-
   using symbol = std::string;
 
+  template <typename T, typename... Ts>
+  cursor make_as(Ts&&... args)
+  {
+    using binder = meevax::utility::binder<T, cell>;
+    return std::make_shared<binder>(std::forward<Ts>(args)...);
+  }
+} // namespace meevax::lisp
+
+#include <meevax/lisp/table.hpp>
+
+namespace meevax::lisp
+{
   struct cell
     : public std::pair<cursor, cursor>
   {
@@ -30,7 +40,7 @@ namespace meevax::lisp
 
     template <typename T>
     constexpr cell(T&& car)
-      : std::pair<cursor, cursor> {std::forward<T>(car), nil}
+      : std::pair<cursor, cursor> {std::forward<T>(car), symbols.intern("nil")}
     {}
 
     template <typename T, typename U>
@@ -68,15 +78,15 @@ namespace meevax::lisp
       return os << e->template as<symbol>();
     }
 
-    for (os << '(' << *e; ++e; os << ' ' << *e)
+    for (os << "(" << *e; ++e; os << " " << *e)
     {
-      if (e->type() != typeid(cell)) // is not pure list
+      if (e->type() != typeid(cell)) // If is not pure-list
       {
-        return os << " . " << e << ')';
+        return os << " . " << e << ")";
       }
     }
 
-    return os << ')';
+    return os << ")";
   }
 
   template <typename T>
@@ -94,13 +104,6 @@ namespace meevax::lisp
   {
     std::cerr << error("atom dispatch failed for " << e) << std::endl;
     std::exit(boost::exit_exception_failure);
-  }
-
-  template <typename T, typename... Ts>
-  cursor make_as(Ts&&... args)
-  {
-    using binder = meevax::utility::binder<T, cell>;
-    return std::make_shared<binder>(std::forward<Ts>(args)...);
   }
 
   auto cons = [](auto&&... args) -> cursor

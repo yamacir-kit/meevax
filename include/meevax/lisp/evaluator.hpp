@@ -29,7 +29,7 @@ namespace meevax::lisp
 
   class evaluator
   {
-    static inline auto env {nil};
+    static inline auto env {symbols.intern("nil")};
 
   public:
     evaluator()
@@ -41,12 +41,12 @@ namespace meevax::lisp
 
       define("atom", [&](auto e, auto a)
       {
-        return atom(eval(*++e, a)) ? symbols.intern("true") : nil;
+        return atom(eval(*++e, a)) ? symbols.intern("true") : symbols.intern("nil");
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : nil;
+        return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : symbols.intern("nil");
       });
 
       define("cond", [&](auto e, auto a)
@@ -78,7 +78,7 @@ namespace meevax::lisp
       define("exit", [&](auto, auto)
       {
         std::exit(boost::exit_success);
-        return nil;
+        return symbols.intern("nil");
       });
     }
 
@@ -128,8 +128,8 @@ namespace meevax::lisp
       }
       else
       {
-        std::cerr << error("eval dispatch failed for \"" << e << "\"") << std::endl;
-        return nil;
+        std::cerr << error("eval dispatch failed for " << e) << std::endl;
+        return symbols.intern("nil");
       }
     }
 
@@ -144,7 +144,7 @@ namespace meevax::lisp
       else if (atom(f))
       {
         std::cerr << error("using atom \"" << f << "\" as procedure") << std::endl;
-        return nil;
+        return symbols.intern("nil");
       }
       else
       {
@@ -154,7 +154,7 @@ namespace meevax::lisp
 
     static constexpr auto list = [](auto&&... args)
     {
-      return (args | ... | nil);
+      return (args | ... | symbols.intern("nil"));
     };
 
     cursor append(cursor x, cursor y)
@@ -166,7 +166,7 @@ namespace meevax::lisp
     {
       if (!x && !y)
       {
-        return nil;
+        return symbols.intern("nil");
       }
       else if (!atom(x) && !atom(y))
       {
@@ -174,13 +174,13 @@ namespace meevax::lisp
       }
       else
       {
-        return nil;
+        return symbols.intern("nil");
       }
     }
 
     cursor assoc(cursor x, cursor y)
     {
-      return !x ? nil : !y ? x : caar(y) == x ? cadar(y) : assoc(x, cdr(y));
+      return !x ? symbols.intern("nil") : !y ? x : caar(y) == x ? cadar(y) : assoc(x, cdr(y));
     }
 
     cursor evcon(cursor c, cursor a)
@@ -190,7 +190,7 @@ namespace meevax::lisp
 
     cursor evlis(cursor m, cursor a)
     {
-      return !m ? nil : eval(car(m), a) | evlis(cdr(m), a);
+      return !m ? symbols.intern("nil") : eval(car(m), a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp
