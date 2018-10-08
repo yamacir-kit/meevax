@@ -10,12 +10,12 @@ namespace meevax::lisp
 {
   template <typename T>
   class table
-    : public std::unordered_map<std::string, cursor>
+    : public std::unordered_map<std::string, const cursor>
   {
   public:
     template <typename... Ts>
-    explicit table(Ts&&... xs)
-      : std::unordered_map<std::string, cursor> {std::forward<Ts>(xs)...}
+    explicit table(Ts&&... args)
+      : std::unordered_map<std::string, const cursor> {std::forward<Ts>(args)...}
     {}
 
     const auto& intern(const std::string s)
