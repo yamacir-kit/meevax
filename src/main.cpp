@@ -16,7 +16,7 @@ int main()
   // lisp::schemer scheme {};
   // scheme();
 
-  for (std::string buffer {}, continuation {}; std::cout << ">> ", std::getline(std::cin, buffer);) try
+  for (std::string buffer {}, continuation {}; std::getline(std::cin, buffer); ) try
   {
     const auto well_formed_expression {lisp::read(continuation += buffer)};
 
