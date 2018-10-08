@@ -23,7 +23,7 @@ namespace meevax::lisp
       : data {symbols.intern("nil")}
     {}
 
-    void operator()(int)
+    void operator_v1()
     {
       for (std::string buffer {}; true; ) try
       {
@@ -37,11 +37,10 @@ namespace meevax::lisp
         buffer.clear();
       }
       catch (const std::string&) // unbalance expression
-      {
-      }
+      {}
     }
 
-    void operator()()
+    void operator_v2()
     {
       for (std::string buffer {}; true; ) try
       {
@@ -61,6 +60,67 @@ namespace meevax::lisp
       catch (const std::string&)
       {
         std::cout << "(ill-formed)";
+      }
+    }
+
+    void operator()()
+    {
+      auto cursor {data};
+      std::size_t distance {0};
+
+      enum class semantics
+      {
+        normal, insert, command
+      } semantic_cursor;
+
+      while (true)
+      {
+        const auto s {read_sequence()};
+
+        if (s == "\\e")
+        {
+          semantic_cursor = semantics::normal;
+          std::cout << "semantic cursor -> normal" << std::endl;
+          continue;
+        }
+        else if (s == "i" && semantic_cursor != semantics::insert)
+        {
+          semantic_cursor = semantics::insert;
+          std::cout << "semantic cursor -> insert" << std::endl;
+          continue;
+        }
+        else if (s == ";" && semantic_cursor != semantics::command)
+        {
+          semantic_cursor = semantics::command;
+          std::cout << "semantic cursor -> command" << std::endl;
+          continue;
+        }
+
+        switch (semantic_cursor)
+        {
+        case semantics::insert:
+          if (s == "(")
+          {
+            std::cout << "open" << std::endl;
+
+            std::cout << "consing empty list to cursor " << cursor << std::endl;
+            cursor = symbols.intern("nil") | cursor;
+          }
+          break;
+
+        case semantics::normal:
+          break;
+
+        case semantics::command:
+          if (s == "q")
+          {
+            std::cout << "quit" << std::endl;
+            std::exit(boost::exit_success);
+          }
+          break;
+        }
+
+        std::cout << data << std::endl;
       }
     }
 
