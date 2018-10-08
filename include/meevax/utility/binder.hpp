@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_BINDER_HPP
 #define INCLUDED_MEEVAX_UTILITY_BINDER_HPP
 
-#include <type_traits>
 #include <typeinfo>
 #include <utility>
 
@@ -14,13 +13,15 @@ namespace meevax::utility
     : public facade::conditionally_trivial_destructible<T>,
       public facade::conditionally_trivial_destructible<U>
   {
+    using bound = facade::conditionally_trivial_destructible<T>;
+
     explicit constexpr binder(const T& value)
-      : facade::conditionally_trivial_destructible<T> {value}
+      : bound {value}
     {}
 
     template <typename... Ts>
     explicit constexpr binder(Ts&&... xs)
-      : facade::conditionally_trivial_destructible<T> {std::forward<Ts>(xs)...}
+      : bound {std::forward<Ts>(xs)...}
     {}
 
     auto type() const noexcept

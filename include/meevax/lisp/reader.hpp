@@ -11,9 +11,19 @@
 
 namespace meevax::lisp
 {
-  struct reader
+  // 最も単純なリード処理を提供する（それ以上のことは絶対にしない）
+  class reader
   {
-    static auto tokenize(const std::string& s)
+  public:
+    // 括弧がバランスした文字列に対するリード処理
+    auto operator()(const std::string& s) const
+    {
+      const auto tokens {tokenize(s)};
+      return unbalance(tokens) ? throw s : builder {std::begin(tokens), std::end(tokens)}();
+    }
+
+  protected:
+    auto tokenize(const std::string& s) const
       -> std::list<std::string>
     {
       std::list<std::string> tokens {};
@@ -44,11 +54,13 @@ namespace meevax::lisp
       return tokens;
     }
 
-    auto operator()(const std::string& s) const
+    template <typename T>
+    int unbalance(T&& tokens) const
     {
-      const auto tokens {tokenize(s)};
-      const builder build {std::begin(tokens), std::end(tokens)};
-      return build();
+      const auto open {std::count(std::begin(tokens), std::end(tokens), "(")};
+      const auto close {std::count(std::begin(tokens), std::end(tokens), ")")};
+
+      return open - close;
     }
   } static read {};
 } // namespace meevax::lisp

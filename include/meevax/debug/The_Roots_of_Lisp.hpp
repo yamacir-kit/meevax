@@ -25,7 +25,7 @@ namespace meevax::debug
         (quote (a b c))
       ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     // 1.2 atom
@@ -109,7 +109,7 @@ namespace meevax::debug
         (cdr (quote (a b c)))
       ),
 
-      "(b . (c . nil))"
+      "(b c)"
     },
 
     // 1.6 cons
@@ -119,7 +119,7 @@ namespace meevax::debug
               (quote (b c)))
        ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     {
@@ -130,7 +130,7 @@ namespace meevax::debug
                           (quote ()))))
       ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     {
@@ -148,7 +148,7 @@ namespace meevax::debug
                    (quote (b c))))
       ),
 
-      "(b . (c . nil))"
+      "(b c)"
     },
 
     // 1.7 cond
@@ -171,7 +171,7 @@ namespace meevax::debug
          (quote a))
       ),
 
-      "(a . (b . nil))"
+      "(a b)"
     },
 
     {
@@ -180,7 +180,7 @@ namespace meevax::debug
          (quote (a b c)))
       ),
 
-      "(z . (b . (c . nil)))"
+      "(z b c)"
     },
 
     {
@@ -191,7 +191,7 @@ namespace meevax::debug
                   (cons (quote a) x))))
       ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     // 2.2 label
@@ -211,7 +211,7 @@ namespace meevax::debug
          (quote (a b (a b c) d)))
       ),
 
-      "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"
+      "(a m (a m c) d)"
     },
 
     // 3.1 null
@@ -221,7 +221,7 @@ namespace meevax::debug
           (eq x (quote ()))))
       ),
 
-      "lambda"
+      "null"
     },
 
     {
@@ -243,7 +243,7 @@ namespace meevax::debug
             ((quote true) (quote ())))))
       ),
 
-      "lambda"
+      "and"
     },
 
     {
@@ -273,7 +273,7 @@ namespace meevax::debug
             ((quote true) (quote true)))))
       ),
 
-      "lambda"
+      "not"
     },
 
     {
@@ -301,7 +301,7 @@ namespace meevax::debug
             ((quote true) (cons (car x) (append (cdr x) y))))))
       ),
 
-      "lambda"
+      "append"
     },
 
     {
@@ -309,7 +309,7 @@ namespace meevax::debug
         (append (quote (a b)) (quote (c d)))
       ),
 
-      "(a . (b . (c . (d . nil))))"
+      "(a b c d)"
     },
 
     {
@@ -317,7 +317,7 @@ namespace meevax::debug
         (append (quote ()) (quote (c d)))
       ),
 
-      "(c . (d . nil))"
+      "(c d)"
     },
 
     // 3.5 zip
@@ -327,7 +327,7 @@ namespace meevax::debug
           (cons x (cons y (quote ())))))
       ),
 
-      "lambda"
+      "list"
     },
 
     {
@@ -342,7 +342,7 @@ namespace meevax::debug
             ((quote true) (quote ())))))
       ),
 
-      "lambda"
+      "zip"
     },
 
     {
@@ -351,7 +351,7 @@ namespace meevax::debug
              (quote (a b c)))
       ),
 
-      "((x . (a . nil)) . ((y . (b . nil)) . ((z . (c . nil)) . nil)))"
+      "((x a) (y b) (z c))"
     },
 
     // 3.6 assoc
@@ -361,7 +361,7 @@ namespace meevax::debug
           (car (car x))))
       ),
 
-      "lambda"
+      "caar"
     },
 
     {
@@ -370,7 +370,7 @@ namespace meevax::debug
           (car (cdr x))))
       ),
 
-      "lambda"
+      "cadr"
     },
 
     {
@@ -379,7 +379,7 @@ namespace meevax::debug
           (car (cdr (car x)))))
       ),
 
-      "lambda"
+      "cadar"
     },
 
     {
@@ -388,7 +388,7 @@ namespace meevax::debug
           (car (cdr (cdr x)))))
       ),
 
-      "lambda"
+      "caddr"
     },
 
     {
@@ -397,7 +397,7 @@ namespace meevax::debug
           (car (cdr (cdr (car x))))))
       ),
 
-      "lambda"
+      "caddar"
     },
 
     {
@@ -412,7 +412,7 @@ namespace meevax::debug
                ((quote true) (assoc x (cdr y))))))))
       ),
 
-      "lambda"
+      "assoc"
     },
 
     {
@@ -443,7 +443,7 @@ namespace meevax::debug
             ((quote true) (evcon (cdr c) a)))))
       ),
 
-      "lambda"
+      "evcon"
     },
 
     // 4.2 evlis
@@ -457,7 +457,7 @@ namespace meevax::debug
                    (evlis (cdr m) a))))))
       ),
 
-      "lambda"
+      "evlis"
     },
 
     // 4.3 eval
@@ -492,7 +492,7 @@ namespace meevax::debug
             ((quote true) (quote error)))))
       ),
 
-      "lambda"
+      "eval"
     },
 
     // Ex1.1 quote
@@ -511,7 +511,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     // Ex1.2 atom
@@ -605,7 +605,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(b . (c . nil))"
+      "(b c)"
     },
 
     // Ex1.6 cons
@@ -615,7 +615,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     {
@@ -624,7 +624,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     {
@@ -642,7 +642,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(b . (c . nil))"
+      "(b c)"
     },
 
     // Ex1.7 cond
@@ -666,7 +666,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(a . (b . nil))"
+      "(a b)"
     },
 
     {
@@ -678,7 +678,7 @@ namespace meevax::debug
               (quote ())))
       ),
 
-      "(z . (b . (c . nil)))"
+      "(z b c)"
     },
 
     {
@@ -689,7 +689,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(a . (b . (c . nil)))"
+      "(a b c)"
     },
 
     // Ex2.2 label
@@ -710,7 +710,7 @@ namespace meevax::debug
               (quote ()))
       ),
 
-      "(a . (m . ((a . (m . (c . nil))) . (d . nil))))"
+      "(a m (a m c) d)"
     }
   };
 } // namespace meevax::debug
