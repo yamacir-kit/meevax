@@ -1,34 +1,30 @@
-#include <fstream>
 #include <iostream>
-#include <list>
 #include <string>
-#include <utility>
 
 #include <boost/cstdlib.hpp>
 
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
+// #include <meevax/lisp/schemer.hpp>
 
-auto main(int argc, char** argv)
-  -> int
+int main()
 {
-  const std::list<std::string> args {argv + 1, argv + argc};
-
   using namespace meevax;
 
-  for (const auto& each : args)
-  {
-    std::ifstream file {each};
+  std::ios_base::sync_with_stdio(false);
 
-    while (file && !file.eof())
-    {
-      std::cout << lisp::eval(lisp::read(file)) << std::endl;
-    }
+  // lisp::schemer scheme {};
+  // scheme();
+
+  for (std::string buffer {}, continuation {}; std::cout << ">> ", std::getline(std::cin, buffer);) try
+  {
+    const auto well_formed_expression {lisp::read(continuation += buffer)};
+    std::cout << "\n=> " << lisp::eval(well_formed_expression) << "\n\n";
+    continuation.clear();
   }
-
-  while (true)
+  catch (const std::string& unbalance_expression)
   {
-    std::cout << "\n>> " << lisp::eval(lisp::read(std::cin, ".. ")) << std::endl;
+    continuation = unbalance_expression + " ";
   }
 
   return boost::exit_success;

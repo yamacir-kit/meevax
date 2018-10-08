@@ -21,7 +21,7 @@ namespace meevax::lisp
   using cursor = utility::recursive_tuple_iterator<cell>;
   cursor nil {nullptr};
 
-  using symbol = const std::string;
+  using symbol = std::string;
 
   struct cell
     : public std::pair<cursor, cursor>
