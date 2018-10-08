@@ -19,8 +19,12 @@ int main()
   for (std::string buffer {}, continuation {}; std::cout << ">> ", std::getline(std::cin, buffer);) try
   {
     const auto well_formed_expression {lisp::read(continuation += buffer)};
-    std::cout << "\n=> " << lisp::eval(well_formed_expression) << "\n\n";
+
+    std::cout << "-> " << well_formed_expression << std::endl;
+    std::cout << "-> " << lisp::eval(well_formed_expression) << std::endl;
+
     continuation.clear();
+    std::cout << std::endl;
   }
   catch (const std::string& unbalance_expression)
   {
