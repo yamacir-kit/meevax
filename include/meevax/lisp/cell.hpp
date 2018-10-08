@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <typeindex>
 #include <typeinfo>
@@ -11,16 +12,16 @@
 
 #include <meevax/lisp/error.hpp>
 #include <meevax/utility/binder.hpp>
-#include <meevax/utility/recursive_iterator.hpp>
+#include <meevax/utility/recursive_tuple_iterator.hpp>
 
 namespace meevax::lisp
 {
   class cell;
 
-  using cursor = meevax::utility::recursive_iterator<cell>;
+  using cursor = utility::recursive_tuple_iterator<cell>;
   cursor nil {nullptr};
 
-  using symbol = const std::string;
+  using symbol = std::string;
 
   struct cell
     : public std::pair<cursor, cursor>
@@ -62,18 +63,20 @@ namespace meevax::lisp
       return os << "nil";
     }
 
-    if (e->type() == typeid(cell))
-    {
-      return os << "(" << *e << " . " << ++e << ")";
-    }
-    else if (e->type() == typeid(symbol))
+    if (e->type() == typeid(symbol))
     {
       return os << e->template as<symbol>();
     }
-    else
+
+    for (os << '(' << *e; ++e; os << ' ' << *e)
     {
-      throw std::runtime_error {std::to_string(__LINE__)};
+      if (e->type() != typeid(cell)) // is not pure list
+      {
+        return os << " . " << e << ')';
+      }
     }
+
+    return os << ')';
   }
 
   template <typename T>

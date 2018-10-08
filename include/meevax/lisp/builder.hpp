@@ -20,6 +20,7 @@ namespace meevax::lisp
       : value {s}
     {}
 
+    // 括弧がバランスしていることが保証されていなければならない
     template <typename InputIterator>
     explicit builder(InputIterator&& begin, InputIterator&& end)
     {
@@ -27,7 +28,12 @@ namespace meevax::lisp
       {
         if (*begin != "(")
         {
-          value = *begin;
+          if (*begin == "'")
+          {
+            emplace_front("quote");
+            splice(std::end(*this), {++begin, std::next(begin)});
+          }
+          else value = *begin;
         }
         else while (++begin != end && *begin != ")")
         {
@@ -40,34 +46,14 @@ namespace meevax::lisp
 
     decltype(auto) operator()()
     {
-      expand();
       return build();
     }
 
   protected:
-    void expand()
-    {
-      for (auto iter {std::begin(*this)}; iter != std::end(*this); ++iter)
-      {
-        if (iter->value == "'")
-        {
-          // クオートの次のフォームを操作中のリストの要素としてムーブする。
-          // 残されたままのクオートはその後の操作に影響を与えない。
-          iter->splice(std::begin(*iter), *this, std::next(iter));
-          iter->emplace_front("quote");
-        }
-        else
-        {
-          iter->expand();
-        }
-      }
-    }
-
     cursor build() const
     {
       using namespace functional;
 
-      // `std::empty(*this)`が`std::empty(value)`の前の条件になっているのがマクロ展開履歴の無視を実現している。
       return std::empty(*this)
                ? symbols.intern(std::empty(value) ? "nil" : value)
                : foldr(*this, nil, [](auto& builder, auto& constructed)
