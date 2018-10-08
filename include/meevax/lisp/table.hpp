@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_TABLE_HPP
 #define INCLUDED_MEEVAX_LISP_TABLE_HPP
 
+#include <string>
 #include <unordered_map>
 #include <utility>
 

@@ -36,16 +36,14 @@ namespace meevax::lisp
   struct cell
     : public std::pair<cursor, cursor>
   {
-    constexpr cell() = default;
-
     template <typename T>
     constexpr cell(T&& car)
       : std::pair<cursor, cursor> {std::forward<T>(car), symbols.intern("nil")}
     {}
 
-    template <typename T, typename U>
-    cell(T&& car, U&& cdr)
-      : std::pair<cursor, cursor> {std::forward<T>(car), std::forward<U>(cdr)}
+    template <typename... Ts>
+    constexpr cell(Ts&&... args)
+      : std::pair<cursor, cursor> {std::forward<Ts>(args)...}
     {}
 
     template <typename T>
