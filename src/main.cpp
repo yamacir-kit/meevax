@@ -5,17 +5,16 @@
 
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
-#include <meevax/lisp/schemer.hpp>
+// #include <meevax/lisp/schemer.hpp>
 
 int main()
 {
   using namespace meevax;
 
   std::ios_base::sync_with_stdio(false);
-  // std::cin.tie(nullptr);
 
-  lisp::schemer scheme {};
-  scheme();
+  // lisp::schemer scheme {};
+  // scheme();
 
   for (std::string buffer {}, continuation {}; std::cout << ">> ", std::getline(std::cin, buffer);) try
   {
