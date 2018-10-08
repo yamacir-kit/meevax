@@ -22,16 +22,19 @@ namespace meevax::utility
   {
     friend class boost::iterator_core_access;
 
+    static constexpr std::size_t car {0};
+    static constexpr std::size_t cdr {1};
+
     decltype(auto) increment() noexcept
     {
       const auto& data {std::shared_ptr<T>::get()};
-      return *this = std::get<1>(*data);
+      return *this = std::get<cdr>(*data);
     }
 
     decltype(auto) dereference() const noexcept
     {
       const auto& data {std::shared_ptr<T>::get()};
-      return std::get<0>(*data);
+      return std::get<car>(*data);
     }
 
   public:
