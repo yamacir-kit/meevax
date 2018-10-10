@@ -6,13 +6,14 @@
 
 namespace meevax::facade
 {
-  template <typename T, bool IsTriviallyDestructible = std::is_trivially_destructible<T>::value>
+  template <typename T, bool Cond = std::is_trivially_destructible<T>::value>
   struct conditionally_trivial_destructible
-    : public T
+    : public T,
+      public std::true_type
   {
     template <typename... Ts>
-    explicit constexpr conditionally_trivial_destructible(Ts&&... xs)
-      : T {std::forward<Ts>(xs)...}
+    explicit constexpr conditionally_trivial_destructible(Ts&&... args)
+      : T {std::forward<Ts>(args)...}
     {}
 
     ~conditionally_trivial_destructible() = default;
@@ -20,11 +21,12 @@ namespace meevax::facade
 
   template <typename T>
   struct conditionally_trivial_destructible<T, false>
-    : public T
+    : public T,
+      public std::false_type
   {
     template <typename... Ts>
-    explicit constexpr conditionally_trivial_destructible(Ts&&... xs)
-      : T {std::forward<Ts>(xs)...}
+    explicit constexpr conditionally_trivial_destructible(Ts&&... args)
+      : T {std::forward<Ts>(args)...}
     {}
 
     virtual ~conditionally_trivial_destructible()

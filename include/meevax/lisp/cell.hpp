@@ -76,12 +76,19 @@ namespace meevax::lisp
       return os << e->template as<symbol>();
     }
 
-    for (os << "(" << *e; ++e; os << " " << *e)
+    if constexpr (true)
     {
-      if (e->type() != typeid(cell)) // If is not pure-list
+      for (os << "(" << *e; ++e; os << " " << *e)
       {
-        return os << " . " << e << ")";
+        if (e->type() != typeid(cell)) // If is not pure-list
+        {
+          return os << " . " << e << ")";
+        }
       }
+    }
+    else
+    {
+      return os << "(" << *e << " . " << ++e << ")";
     }
 
     return os << ")";
