@@ -19,7 +19,6 @@ namespace meevax::lisp
   class cell;
 
   using cursor = utility::recursive_binary_tuple_iterator<cell>;
-  using symbol = std::string;
 
   template <typename T, typename... Ts>
   cursor make_as(Ts&&... args)
@@ -71,9 +70,9 @@ namespace meevax::lisp
       return os << "nil";
     }
 
-    if (e->type() == typeid(symbol))
+    if (e->type() == typeid(std::string))
     {
-      return os << e->template as<symbol>();
+      return os << e->template as<std::string>();
     }
 
     if constexpr (true)
@@ -100,7 +99,7 @@ namespace meevax::lisp
     static const std::unordered_map<std::type_index, bool> dispatch
     {
       {typeid(cell), false},
-      {typeid(symbol), true}
+      {typeid(std::string), true}
     };
 
     return !e || dispatch.at(e->type());
