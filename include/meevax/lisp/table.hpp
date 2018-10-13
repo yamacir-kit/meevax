@@ -26,7 +26,7 @@ namespace meevax::lisp
     }
   };
 
-  // Single Source of Nil
+  // The single source of nil.
   static table<std::string> symbols {std::make_pair("nil", cursor {nullptr})};
 };
 

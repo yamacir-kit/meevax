@@ -36,8 +36,8 @@ namespace meevax::lisp
     : public std::pair<cursor, cursor>
   {
     template <typename T>
-    constexpr cell(T&& car)
-      : std::pair<cursor, cursor> {std::forward<T>(car), symbols.intern("nil")}
+    constexpr cell(T&& head)
+      : std::pair<cursor, cursor> {std::forward<T>(head), symbols.intern("nil")}
     {}
 
     template <typename... Ts>
@@ -46,15 +46,15 @@ namespace meevax::lisp
     {}
 
     template <typename T>
-    auto as() const try
+    auto as() const // try
     {
       return dynamic_cast<const T&>(*this);
     }
-    catch (const std::bad_cast& error)
-    {
-      std::cerr << error("arbitrary dispatch failed for (" << first << " . " << second << ")") << std::endl;
-      std::exit(boost::exit_exception_failure);
-    }
+    // catch (const std::bad_cast& error)
+    // {
+    //   std::cerr << error("arbitrary dispatch failed for (" << first << " . " << second << ")") << std::endl;
+    //   std::exit(boost::exit_exception_failure);
+    // }
 
     virtual auto type() const noexcept
       -> const std::type_info&
@@ -94,7 +94,7 @@ namespace meevax::lisp
   }
 
   template <typename T>
-  bool atom(T&& e) try
+  bool atom(T&& e) // try
   {
     static const std::unordered_map<std::type_index, bool> dispatch
     {
@@ -104,11 +104,11 @@ namespace meevax::lisp
 
     return !e || dispatch.at(e->type());
   }
-  catch (const std::out_of_range& error)
-  {
-    std::cerr << error("atom dispatch failed for " << e) << std::endl;
-    std::exit(boost::exit_exception_failure);
-  }
+  // catch (const std::out_of_range& error)
+  // {
+  //   std::cerr << error("atom dispatch failed for " << e) << std::endl;
+  //   std::exit(boost::exit_exception_failure);
+  // }
 
   auto cons = [](auto&&... args) -> cursor
   {
