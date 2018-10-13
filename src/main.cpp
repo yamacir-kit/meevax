@@ -5,6 +5,8 @@
 
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
+#include <meevax/lisp/writer.hpp>
+
 // #include <meevax/lisp/schemer.hpp>
 
 int main()
@@ -18,10 +20,10 @@ int main()
 
   for (std::string buffer {}, continuation {}; std::getline(std::cin, buffer); ) try
   {
-    const auto well_formed_expression {lisp::read(continuation += buffer)};
+    const auto expression {lisp::read(continuation += buffer)};
 
-    std::cout << "-> " << well_formed_expression << std::endl;
-    std::cout << "-> " << lisp::eval(well_formed_expression) << std::endl;
+    std::cout << "-> " << expression << std::endl;
+    std::cout << "-> " << lisp::eval(expression) << std::endl;
 
     continuation.clear();
     std::cout << std::endl;

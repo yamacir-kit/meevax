@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_CELL_HPP
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
-#include <iostream>
+// #include <iostream>
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -46,15 +46,10 @@ namespace meevax::lisp
     {}
 
     template <typename T>
-    auto as() const // try
+    auto as() const
     {
       return dynamic_cast<const T&>(*this);
     }
-    // catch (const std::bad_cast& error)
-    // {
-    //   std::cerr << error("arbitrary dispatch failed for (" << first << " . " << second << ")") << std::endl;
-    //   std::exit(boost::exit_exception_failure);
-    // }
 
     virtual auto type() const noexcept
       -> const std::type_info&
@@ -63,38 +58,8 @@ namespace meevax::lisp
     }
   };
 
-  std::ostream& operator<<(std::ostream& os, cursor e)
-  {
-    if (!e)
-    {
-      return os << "nil";
-    }
-
-    if (e->type() == typeid(std::string))
-    {
-      return os << e->template as<std::string>();
-    }
-
-    if constexpr (true)
-    {
-      for (os << "(" << *e; ++e; os << " " << *e)
-      {
-        if (e->type() != typeid(cell)) // If is not pure-list
-        {
-          return os << " . " << e << ")";
-        }
-      }
-    }
-    else
-    {
-      return os << "(" << *e << " . " << ++e << ")";
-    }
-
-    return os << ")";
-  }
-
   template <typename T>
-  bool atom(T&& e) // try
+  bool atom(T&& e)
   {
     static const std::unordered_map<std::type_index, bool> dispatch
     {
@@ -104,11 +69,6 @@ namespace meevax::lisp
 
     return !e || dispatch.at(e->type());
   }
-  // catch (const std::out_of_range& error)
-  // {
-  //   std::cerr << error("atom dispatch failed for " << e) << std::endl;
-  //   std::exit(boost::exit_exception_failure);
-  // }
 
   auto cons = [](auto&&... args) -> cursor
   {
