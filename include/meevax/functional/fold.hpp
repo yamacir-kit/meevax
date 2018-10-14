@@ -8,15 +8,15 @@
 namespace meevax::functional
 {
   template <typename... Ts>
-  decltype(auto) foldl(Ts&&... args)
+  decltype(auto) fold(Ts&&... args)
   {
     return std::accumulate(std::forward<Ts>(args)...);
   }
 
   template <typename InputIterator, typename T, typename BinaryOperation>
-  decltype(auto) foldr(InputIterator&& begin, InputIterator&& end, T&& init, BinaryOperation operation = std::plus<T> {})
+  decltype(auto) fold_right(InputIterator&& begin, InputIterator&& end, T&& init, BinaryOperation operation = std::plus<T> {})
   {
-    return foldl(
+    return fold(
              std::reverse_iterator {std::forward<InputIterator>(end)},
              std::reverse_iterator {std::forward<InputIterator>(begin)},
              std::forward<T>(init),
@@ -31,9 +31,9 @@ namespace meevax::functional
   }
 
   template <typename SequenceContainer, typename T, typename BinaryOperation>
-  decltype(auto) foldr(const SequenceContainer& container, T&& init, BinaryOperation&& operation = std::plus<T> {})
+  decltype(auto) fold_right(const SequenceContainer& container, T&& init, BinaryOperation&& operation = std::plus<T> {})
   {
-    return foldr(
+    return fold_right(
              std::begin(container),
              std::end(container),
              std::forward<T>(init),

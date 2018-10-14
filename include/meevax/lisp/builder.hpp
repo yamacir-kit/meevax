@@ -42,8 +42,6 @@ namespace meevax::lisp
       }
     }
 
-    virtual ~builder() = default;
-
     decltype(auto) operator()()
     {
       return build();
@@ -56,7 +54,7 @@ namespace meevax::lisp
 
       return std::empty(*this)
                ? symbols.intern(std::empty(value) ? "nil" : value)
-               : foldr(*this, symbols.intern("nil"), [](auto& builder, auto& constructed)
+               : fold_right(*this, symbols.intern("nil"), [](auto& builder, auto& constructed)
                  {
                    return builder.build() | constructed;
                  });
