@@ -104,7 +104,7 @@ namespace meevax::lisp
       {
         return apply(e, a);
       }
-      else if (**e == symbols.intern("label"))
+      else if (**e == symbols.intern("recursive"))
       {
         return eval(caddar(e) | cdr(e), list(cadar(e), *e) | a);
       }
