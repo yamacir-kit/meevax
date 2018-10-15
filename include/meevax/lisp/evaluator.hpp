@@ -26,8 +26,6 @@
 
 namespace meevax::lisp
 {
-  using special = std::function<cursor (cursor, cursor)>;
-
   std::unordered_map<
     std::shared_ptr<cell>,
     std::function<cursor (cursor, cursor)>
@@ -97,7 +95,6 @@ namespace meevax::lisp
     template <typename F>
     void define(const std::string& s, F&& functor)
     {
-      // env = list(symbols.intern(s), make_as<special>(proc)) | env;
       procedure.emplace(symbols.intern(s), functor);
     }
 
