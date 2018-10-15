@@ -12,7 +12,6 @@
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/table.hpp>
 
-#define car(e) *e
 #define cdr(e) std::next(e)
 
 #define caar(e) **e
@@ -56,12 +55,12 @@ namespace meevax::lisp
 
       define("car", [&](auto e, auto a)
       {
-        return car(eval(*++e, a));
+        return *eval(*++e, a);
       });
 
       define("cdr", [&](auto e, auto a)
       {
-        return cdr(eval(*++e, a));
+        return ++eval(*++e, a);
       });
 
       define("cons", [&](auto e, auto a)
@@ -107,7 +106,7 @@ namespace meevax::lisp
       }
       else if (**e == symbols.intern("label"))
       {
-        return eval(caddar(e) | cdr(e), list(cadar(e), car(e)) | a);
+        return eval(caddar(e) | cdr(e), list(cadar(e), *e) | a);
       }
       else if (**e == symbols.intern("lambda"))
       {
@@ -159,7 +158,7 @@ namespace meevax::lisp
 
     cursor append(cursor x, cursor y)
     {
-      return !x ? y : car(x) | append(cdr(x), y);
+      return !x ? y : *x | append(cdr(x), y);
     }
 
     cursor zip(cursor x, cursor y)
@@ -170,7 +169,7 @@ namespace meevax::lisp
       }
       else if (!atom(x) && !atom(y))
       {
-        return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+        return list(*x, *y) | zip(cdr(x), cdr(y));
       }
       else
       {
@@ -190,7 +189,7 @@ namespace meevax::lisp
 
     cursor evlis(cursor m, cursor a)
     {
-      return !m ? symbols.intern("nil") : eval(car(m), a) | evlis(cdr(m), a);
+      return !m ? symbols.intern("nil") : eval(*m, a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp

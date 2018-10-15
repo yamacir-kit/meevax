@@ -5,6 +5,8 @@
 
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/reader.hpp>
+#include <meevax/lisp/writer.hpp>
+
 // #include <meevax/lisp/schemer.hpp>
 
 int main()
@@ -16,11 +18,15 @@ int main()
   // lisp::schemer scheme {};
   // scheme();
 
-  for (std::string buffer {}, continuation {}; std::cout << ">> ", std::getline(std::cin, buffer);) try
+  for (std::string buffer {}, continuation {}; std::getline(std::cin, buffer); ) try
   {
-    const auto well_formed_expression {lisp::read(continuation += buffer)};
-    std::cout << "\n=> " << lisp::eval(well_formed_expression) << "\n\n";
+    const auto expression {lisp::read(continuation += buffer)};
+
+    std::cout << "-> " << expression << std::endl;
+    std::cout << "-> " << lisp::eval(expression) << std::endl;
+
     continuation.clear();
+    std::cout << std::endl;
   }
   catch (const std::string& unbalance_expression)
   {

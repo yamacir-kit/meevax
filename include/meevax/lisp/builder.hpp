@@ -30,8 +30,8 @@ namespace meevax::lisp
         {
           if (*begin == "'")
           {
-            emplace_front("quote");
-            splice(std::end(*this), {++begin, std::next(begin)});
+            emplace_back("quote");
+            emplace_back(++begin, end);
           }
           else value = *begin;
         }
@@ -41,8 +41,6 @@ namespace meevax::lisp
         }
       }
     }
-
-    virtual ~builder() = default;
 
     decltype(auto) operator()()
     {
@@ -56,7 +54,7 @@ namespace meevax::lisp
 
       return std::empty(*this)
                ? symbols.intern(std::empty(value) ? "nil" : value)
-               : foldr(*this, symbols.intern("nil"), [](auto& builder, auto& constructed)
+               : fold_right(*this, symbols.intern("nil"), [](auto& builder, auto& constructed)
                  {
                    return builder.build() | constructed;
                  });

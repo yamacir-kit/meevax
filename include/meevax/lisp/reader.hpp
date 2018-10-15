@@ -15,11 +15,16 @@ namespace meevax::lisp
   class reader
   {
   public:
-    // 括弧がバランスした文字列に対するリード処理
     auto operator()(const std::string& s) const
     {
-      const auto tokens {tokenize(s)};
-      return unbalance(tokens) ? throw s : builder {std::begin(tokens), std::end(tokens)}();
+      if (const auto tokens {tokenize(s)}; balance(tokens) != 0)
+      {
+        throw s;
+      }
+      else
+      {
+        return builder {std::begin(tokens), std::end(tokens)}();
+      }
     }
 
   protected:
@@ -55,7 +60,7 @@ namespace meevax::lisp
     }
 
     template <typename T>
-    int unbalance(T&& tokens) const
+    int balance(T&& tokens) const
     {
       const auto open {std::count(std::begin(tokens), std::end(tokens), "(")};
       const auto close {std::count(std::begin(tokens), std::end(tokens), ")")};

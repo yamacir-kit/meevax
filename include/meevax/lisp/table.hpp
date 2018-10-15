@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_TABLE_HPP
 #define INCLUDED_MEEVAX_LISP_TABLE_HPP
 
+#include <string>
 #include <unordered_map>
 #include <utility>
 
@@ -10,12 +11,12 @@ namespace meevax::lisp
 {
   template <typename T>
   class table
-    : public std::unordered_map<std::string, cursor>
+    : public std::unordered_map<std::string, const cursor>
   {
   public:
     template <typename... Ts>
-    explicit table(Ts&&... xs)
-      : std::unordered_map<std::string, cursor> {std::forward<Ts>(xs)...}
+    explicit table(Ts&&... args)
+      : std::unordered_map<std::string, const cursor> {std::forward<Ts>(args)...}
     {}
 
     const auto& intern(const std::string s)
@@ -25,8 +26,8 @@ namespace meevax::lisp
     }
   };
 
-  // Single Source of Nil
-  static table<symbol> symbols {std::make_pair("nil", cursor {nullptr})};
+  // The single source of nil.
+  static table<std::string> symbols {std::make_pair("nil", cursor {nullptr})};
 };
 
 #endif // INCLUDED_MEEVAX_LISP_TABLE_HPP

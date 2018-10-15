@@ -1,7 +1,6 @@
-#ifndef INCLUDED_MEEVAX_UTILITY_RECURSIVE_TUPLE_ITERATOR_HPP
-#define INCLUDED_MEEVAX_UTILITY_RECURSIVE_TUPLE_ITERATOR_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_RECURSIVE_BINARY_TUPLE_ITERATOR_HPP
+#define INCLUDED_MEEVAX_UTILITY_RECURSIVE_BINARY_TUPLE_ITERATOR_HPP
 
-#include <iterator>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -10,41 +9,44 @@
 
 namespace meevax::utility
 {
-  // std::size_t copy {0};
+  template <typename T>
+  using recursive_forward_iterator_facade
+    = boost::iterator_facade<T, T, boost::forward_traversal_tag>;
 
   template <typename T>
-  class recursive_tuple_iterator
+  class recursive_binary_tuple_iterator
     : public std::shared_ptr<T>,
-      public boost::iterator_facade<recursive_tuple_iterator<T>, recursive_tuple_iterator<T>, boost::forward_traversal_tag>
+      public recursive_forward_iterator_facade<
+               recursive_binary_tuple_iterator<T>
+             >
   {
     friend class boost::iterator_core_access;
+
+    static constexpr std::size_t car {0};
+    static constexpr std::size_t cdr {1};
 
     decltype(auto) increment() noexcept
     {
       const auto& data {std::shared_ptr<T>::get()};
-      return *this = std::get<1>(*data);
+      return *this = std::get<cdr>(*data);
     }
 
     decltype(auto) dereference() const noexcept
     {
       const auto& data {std::shared_ptr<T>::get()};
-      return std::get<0>(*data);
+      return std::get<car>(*data);
     }
 
   public:
     template <typename... Ts>
-    constexpr recursive_tuple_iterator(Ts&&... args) noexcept
+    constexpr recursive_binary_tuple_iterator(Ts&&... args) noexcept
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
     {}
 
-    // template <typename... Ts>
-    // decltype(auto) operator=(Ts&&... args) noexcept
-    // {
-    //   std::cerr << "copy: " << ++copy << "\n";
-    //   return std::shared_ptr<T>::operator=(std::forward<Ts>(args)...);
-    // }
+    using recursive_forward_iterator_facade<
+            recursive_binary_tuple_iterator<T>
+          >::operator*;
 
-    using boost::iterator_facade<recursive_tuple_iterator<T>, recursive_tuple_iterator<T>, boost::forward_traversal_tag>::operator*;
     using std::shared_ptr<T>::operator->;
 
     template <typename U>
@@ -68,5 +70,5 @@ namespace meevax::utility
   };
 } // namespace meevax::utility
 
-#endif // INCLUDED_MEEVAX_UTILITY_RECURSIVE_TUPLE_ITERATOR_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_RECURSIVE_BINARY_TUPLE_ITERATOR_HPP
 
