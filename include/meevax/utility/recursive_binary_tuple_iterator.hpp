@@ -40,10 +40,16 @@ namespace meevax::utility
       return std::get<car>(*data);
     }
 
-    // decltype(auto) operator->() const noexcept
-    // {
-    //   return operator*();
-    // }
+    decltype(auto) operator->() const noexcept
+    {
+      return operator*();
+    }
+
+    decltype(auto) access() const noexcept
+    {
+      const auto& data {std::shared_ptr<T>::get()};
+      return *data;
+    }
   };
 } // namespace meevax::utility
 

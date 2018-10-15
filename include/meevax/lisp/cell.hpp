@@ -67,7 +67,7 @@ namespace meevax::lisp
       {typeid(std::string), true}
     };
 
-    return !e || dispatch.at(e->type());
+    return !e || dispatch.at(e.access().type());
   }
 
   auto cons = [](auto&&... args) -> cursor

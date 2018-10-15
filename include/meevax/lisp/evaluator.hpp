@@ -75,8 +75,7 @@ namespace meevax::lisp
 
       define("define", [&](auto e, auto)
       {
-        env = list(cadr(e), caddr(e)) | env;
-        return assoc(cadr(e), env);
+        return assoc(cadr(e), env = list(cadr(e), caddr(e)) | env);
       });
 
       define("exit", [&](auto, auto)
