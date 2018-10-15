@@ -4,6 +4,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 #include <boost/cstdlib.hpp>
@@ -11,6 +12,7 @@
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/error.hpp>
 #include <meevax/lisp/table.hpp>
+#include <meevax/lisp/writer.hpp>
 
 #define cdr(e) std::next(e)
 
@@ -24,7 +26,12 @@
 
 namespace meevax::lisp
 {
-  using special = const std::function<cursor (cursor, cursor)>;
+  using special = std::function<cursor (cursor, cursor)>;
+
+  std::unordered_map<
+    std::shared_ptr<cell>,
+    std::function<cursor (cursor, cursor)>
+  > procedure;
 
   class evaluator
   {
@@ -68,10 +75,10 @@ namespace meevax::lisp
         return eval(cadr(e), a) | eval(caddr(e), a);
       });
 
-      define("define", [&](auto e, auto a)
+      define("define", [&](auto e, auto)
       {
         env = list(cadr(e), caddr(e)) | env;
-        return assoc(cadr(e), a);
+        return assoc(cadr(e), env);
       });
 
       define("exit", [&](auto, auto)
@@ -88,9 +95,10 @@ namespace meevax::lisp
     }
 
     template <typename F>
-    void define(const std::string& s, F&& proc)
+    void define(const std::string& s, F&& functor)
     {
-      env = list(symbols.intern(s), make_as<special>(proc)) | env;
+      // env = list(symbols.intern(s), make_as<special>(proc)) | env;
+      procedure.emplace(symbols.intern(s), functor);
     }
 
   protected:
@@ -102,7 +110,7 @@ namespace meevax::lisp
       }
       else if (atom(*e))
       {
-        return apply(e, a);
+        return invoke(e, a);
       }
       else if (**e == symbols.intern("recursive"))
       {
@@ -133,21 +141,20 @@ namespace meevax::lisp
     }
 
   private:
-    cursor apply(cursor e, cursor a)
+    cursor invoke(cursor sexp, cursor alis)
     {
-      // XXX UGLY CODE!
-      if (auto f {assoc(*e, a)}; f->type() == typeid(special))
+      if (const auto callee {assoc(*sexp, alis)}; callee) // user defined procedure
       {
-        return f->template as<special>()(e, a);
+        return eval(callee | cdr(sexp), alis);
       }
-      else if (atom(f))
+      else try
       {
-        std::cerr << error("using atom \"" << f << "\" as procedure") << std::endl;
+        return procedure.at(*sexp)(sexp, alis);
+      }
+      catch (const std::out_of_range& error)
+      {
+        std::cerr << error("using unbound symbol " << *sexp << " as procedure") << std::endl;
         return symbols.intern("nil");
-      }
-      else
-      {
-        return eval(f | ++e, a);
       }
     };
 
@@ -177,14 +184,14 @@ namespace meevax::lisp
       }
     }
 
-    cursor assoc(cursor x, cursor y)
+    cursor assoc(cursor sexp, cursor alis)
     {
-      return !x ? symbols.intern("nil") : !y ? x : caar(y) == x ? cadar(y) : assoc(x, cdr(y));
+      return !sexp or !alis ? symbols.intern("nil") : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
     }
 
-    cursor evcon(cursor c, cursor a)
+    cursor evcon(cursor sexp, cursor alis)
     {
-      return eval(caar(c), a) ? eval(cadar(c), a) : evcon(cdr(c), a);
+      return eval(**sexp, alis) ? eval(cadar(sexp), alis) : evcon(++sexp, alis);
     }
 
     cursor evlis(cursor m, cursor a)

@@ -8,10 +8,10 @@
 
 namespace meevax::utility
 {
-  template <typename T, typename U>
+  template <typename T, typename Base>
   struct binder
     : public facade::conditionally_trivial_destructible<T>,
-      public facade::conditionally_trivial_destructible<U>
+      public Base
   {
     using bound = facade::conditionally_trivial_destructible<T>;
 
