@@ -28,16 +28,20 @@ namespace meevax::utility
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
     {}
 
-    decltype(auto) operator++() noexcept
+    decltype(auto) access() const noexcept
     {
       const auto& data {std::shared_ptr<T>::get()};
-      return *this = std::get<cdr>(*data);
+      return *data;
+    }
+
+    decltype(auto) operator++() noexcept
+    {
+      return *this = std::get<cdr>(access());
     }
 
     decltype(auto) operator*() const noexcept
     {
-      const auto& data {std::shared_ptr<T>::get()};
-      return std::get<car>(*data);
+      return std::get<car>(access());
     }
 
     decltype(auto) operator->() const noexcept
@@ -45,13 +49,27 @@ namespace meevax::utility
       return operator*();
     }
 
-    decltype(auto) access() const noexcept
+  public:
+    template <typename U>
+    friend decltype(auto) car(U&& pair)
     {
-      const auto& data {std::shared_ptr<T>::get()};
-      return *data;
+      return *pair;
+    }
+
+    template <typename U>
+    friend decltype(auto) cdr(U&& pair)
+    {
+      return std::get<cdr>(pair.access());
     }
   };
 } // namespace meevax::utility
+
+#define cadar(e) car(cdr(car(e)))
+#define caddar(e) car(cdr(cdr(car(e))))
+
+#define cadr(e) car(cdr(e))
+#define caddr(e) car(cdr(cdr(e)))
+#define cadddr(e) car(cdr(cdr(cdr(e))))
 
 #endif // INCLUDED_MEEVAX_UTILITY_RECURSIVE_BINARY_TUPLE_ITERATOR_HPP
 

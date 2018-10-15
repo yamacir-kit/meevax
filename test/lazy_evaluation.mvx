@@ -1,0 +1,14 @@
+(define cons. (lambda (x xs)
+  (lambda (f) (f x xs))))
+
+(define car. (lambda (xs)
+  (xs (lambda (y ys) y))))
+
+(define cdr. (lambda (xs)
+  (xs (lambda (y ys) ys))))
+
+(define : (lambda (x xs)
+  (lambda (y) (cons. y (cons. x xs)))))
+
+(cons. 1 nil : 2 : 3 : 4 : 5)
+

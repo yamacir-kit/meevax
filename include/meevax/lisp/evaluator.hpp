@@ -14,16 +14,6 @@
 #include <meevax/lisp/table.hpp>
 #include <meevax/lisp/writer.hpp>
 
-#define cdr(e) std::next(e)
-
-#define caar(e) **e
-#define cadar(e) *std::next(*e)
-#define caddar(e) *std::next(*e, 2)
-
-#define cadr(e) *std::next(e)
-#define caddr(e) *std::next(e, 2)
-#define cadddr(e) *std::next(e, 3)
-
 namespace meevax::lisp
 {
   std::unordered_map<
