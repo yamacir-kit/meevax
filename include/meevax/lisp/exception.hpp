@@ -5,14 +5,8 @@
 #include <stdexcept>
 #include <string>
 
-#include <meevax/lisp/cell.hpp>
-
-#define error(...) \
-  "\e[32m(\e[1;31merror \e[32m(file \e[36m" << __FILE__ << "\e[32m) (line \e[36m" << __LINE__ << ") (" << __VA_ARGS__ << ")\e[32m)\e[0m"
-
 namespace meevax::lisp
 {
-  // XXX UGLY CODE!!!
   class exception
     : public std::runtime_error
   {

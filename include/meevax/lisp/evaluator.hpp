@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
 #include <functional>
-// #include <iostream>
 #include <unordered_map>
 #include <utility>
 
@@ -67,11 +66,9 @@ namespace meevax::lisp
         return assoc(cadr(e), env = list(cadr(e), caddr(e)) | env);
       });
 
-      // TODO remove unused retun value
-      define("exit", [&](auto, auto)
+      define("exit", [&](auto, auto) -> cursor
       {
         std::exit(boost::exit_success);
-        return symbols.intern("nil");
       });
     }
 
@@ -137,8 +134,6 @@ namespace meevax::lisp
       }
       catch (const std::out_of_range& error)
       {
-        // std::cerr << error("using unbound symbol " << *sexp << " as procedure") << std::endl;
-        // return symbols.intern("nil");
         throw generate_exception("using unbound symbol " + to_string(*sexp) + " as procedure");
       }
     };

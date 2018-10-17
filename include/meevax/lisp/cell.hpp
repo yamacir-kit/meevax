@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_LISP_CELL_HPP
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
-// #include <iostream>
 #include <memory>
 #include <string>
 #include <typeindex>
