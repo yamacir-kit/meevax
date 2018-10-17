@@ -7,8 +7,6 @@
 #include <typeinfo>
 #include <utility>
 
-#include <boost/cstdlib.hpp>
-
 #include <meevax/utility/binder.hpp>
 #include <meevax/utility/heterogeneous_dictionary.hpp>
 #include <meevax/utility/recursive_binary_tuple_iterator.hpp>
@@ -19,18 +17,6 @@ namespace meevax::lisp
 
   using cursor = utility::recursive_binary_tuple_iterator<cell>;
 
-//   template <typename T, typename... Ts>
-//   [[deprecated]] cursor make_as(Ts&&... args)
-//   {
-//     using binder = meevax::utility::binder<T, cell>;
-//     return std::make_shared<binder>(std::forward<Ts>(args)...);
-//   }
-// } // namespace meevax::lisp
-//
-// #include <meevax/lisp/table.hpp>
-//
-// namespace meevax::lisp
-// {
   struct symbol_generator
   {
     using binder = utility::binder<std::string, cell>;

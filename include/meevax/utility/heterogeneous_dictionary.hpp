@@ -41,8 +41,8 @@ namespace meevax::utility
     const auto& unchecked_reference(const std::string& s) const noexcept
     {
       const auto iter {base_type::find(s)};
-      cassert(iter != std::end(*this));
-      return std::get<cdr>(iter);
+      assert(iter != std::end(*this));
+      return std::get<cdr>(*iter);
     }
   };
 } // namespace meevax::utility
