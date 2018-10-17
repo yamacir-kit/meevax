@@ -10,7 +10,6 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/lisp/error.hpp>
 #include <meevax/utility/binder.hpp>
 #include <meevax/utility/recursive_binary_tuple_iterator.hpp>
 
