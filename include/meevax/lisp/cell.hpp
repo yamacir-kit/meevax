@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_LISP_CELL_HPP
 #define INCLUDED_MEEVAX_LISP_CELL_HPP
 
-// #include <iostream>
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -10,7 +9,6 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/lisp/error.hpp>
 #include <meevax/utility/binder.hpp>
 #include <meevax/utility/recursive_binary_tuple_iterator.hpp>
 

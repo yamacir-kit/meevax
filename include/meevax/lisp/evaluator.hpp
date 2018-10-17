@@ -2,14 +2,13 @@
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
 #include <functional>
-#include <iostream>
 #include <unordered_map>
 #include <utility>
 
 #include <boost/cstdlib.hpp>
 
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/error.hpp>
+#include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/table.hpp>
 #include <meevax/lisp/writer.hpp>
 
@@ -67,10 +66,9 @@ namespace meevax::lisp
         return assoc(cadr(e), env = list(cadr(e), caddr(e)) | env);
       });
 
-      define("exit", [&](auto, auto)
+      define("exit", [&](auto, auto) -> cursor
       {
         std::exit(boost::exit_success);
-        return symbols.intern("nil");
       });
     }
 
@@ -118,15 +116,13 @@ namespace meevax::lisp
                  a
                );
       }
-      else
-      {
-        std::cerr << error("eval dispatch failed for " << e) << std::endl;
-        return symbols.intern("nil");
-      }
+      else throw generate_exception(
+        "unexpected evaluation dispatch failure for expression " + to_string(e)
+      );
     }
 
   private:
-    cursor invoke(cursor sexp, cursor alis)
+    cursor invoke(cursor sexp, cursor alis) noexcept(false)
     {
       if (const auto callee {assoc(*sexp, alis)}; callee) // user defined procedure
       {
@@ -138,8 +134,7 @@ namespace meevax::lisp
       }
       catch (const std::out_of_range& error)
       {
-        std::cerr << error("using unbound symbol " << *sexp << " as procedure") << std::endl;
-        return symbols.intern("nil");
+        throw generate_exception("using unbound symbol " + to_string(*sexp) + " as procedure");
       }
     };
 

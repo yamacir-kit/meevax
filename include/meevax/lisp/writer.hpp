@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_WRITER_HPP
 
 #include <iostream>
+#include <sstream>
 
 #include <meevax/lisp/cell.hpp>
 
@@ -37,6 +38,13 @@ namespace meevax::lisp
     }
 
     return os << ")";
+  }
+
+  auto to_string(const cursor& cursor)
+  {
+    std::ostringstream ss {};
+    ss << cursor;
+    return ss.str();
   }
 } // namespace meevax::lisp
 
