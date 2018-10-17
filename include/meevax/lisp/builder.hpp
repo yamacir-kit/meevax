@@ -11,16 +11,16 @@
 
 namespace meevax::lisp
 {
-  struct builder
+  class builder
     : public std::list<builder>
   {
-    std::string value;
+    std::string value_;
 
-    builder(const std::string& s)
-      : value {s}
+  public:
+    builder(const std::string& value)
+      : value_ {value}
     {}
 
-    // 括弧がバランスしていることが保証されていなければならない
     template <typename InputIterator>
     explicit builder(InputIterator&& begin, InputIterator&& end)
     {
@@ -33,7 +33,7 @@ namespace meevax::lisp
             emplace_back("quote");
             emplace_back(++begin, end);
           }
-          else value = *begin;
+          else value_ = *begin;
         }
         else while (++begin != end && *begin != ")")
         {
@@ -42,7 +42,7 @@ namespace meevax::lisp
       }
     }
 
-    decltype(auto) operator()()
+    decltype(auto) operator()() const
     {
       return build();
     }
@@ -53,7 +53,7 @@ namespace meevax::lisp
       using namespace functional;
 
       return std::empty(*this)
-               ? symbols.intern(std::empty(value) ? "nil" : value)
+               ? symbols.intern(std::empty(value_) ? "nil" : value_)
                : fold_right(*this, symbols.intern("nil"), [](auto& builder, auto& constructed)
                  {
                    return builder.build() | constructed;

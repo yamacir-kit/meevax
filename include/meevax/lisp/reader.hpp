@@ -28,6 +28,11 @@ namespace meevax::lisp
     }
 
   protected:
+    constexpr bool is_special(unsigned char c) const noexcept
+    {
+      return c == '\'' || c == '(' || c ==')';
+    }
+
     auto tokenize(const std::string& s) const
       -> std::list<std::string>
     {
@@ -43,11 +48,11 @@ namespace meevax::lisp
 
       auto find_end = [&](auto iter)
       {
-        return std::ispunct(*iter)
+        return is_special(*iter)
                  ? std::next(iter)
                  : std::find_if(iter, std::end(s), [&](auto c)
                    {
-                     return std::ispunct(c) or std::isspace(c);
+                     return is_special(c) or std::isspace(c);
                    });
       };
 

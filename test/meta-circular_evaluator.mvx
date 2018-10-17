@@ -28,15 +28,15 @@
 ((lambda (x y) (cons x (cdr y))) 'z '(a b c))
 ((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x)))
 
-((label subst (lambda (x y z)
+((recursive substitute (lambda (x y z)
    (cond
      ((atom z)
       (cond
         ((eq z y) x)
         ('true z)))
      ('true
-      (cons (subst x y (car z))
-            (subst x y (cdr z)))))))
+      (cons (substitute x y (car z))
+            (substitute x y (cdr z)))))))
  'm
  'b
  '(a b (a b c) d))
@@ -142,7 +142,7 @@
         (evcon (cdr e) a))
        ('true
         (eval (cons (assoc (car e) a) (cdr e)) a))))
-    ((eq (caar e) 'label)
+    ((eq (caar e) 'recursive)
      (eval (cons (caddar e) (cdr e)) (cons (list (cadar e) (car e)) a)))
     ((eq (caar e) 'lambda)
      (eval (caddar e) (append (zip (cadar e) (evlis (cdr e) a)) a)))
@@ -176,14 +176,14 @@
 (eval '((lambda (x y) (cons x (cdr y))) 'z '(a b c)) nil)
 (eval '((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x))) nil)
 
-(eval '((label subst (lambda (x y z)
+(eval '((recursive substitute (lambda (x y z)
           (cond
             ((atom z)
              (cond
                ((eq z y) x)
                ('true z)))
                ('true
-                (cons (subst x y (car z))
-                      (subst x y (cdr z)))))))
+                (cons (substitute x y (car z))
+                      (substitute x y (cdr z)))))))
       'm 'b '(a b (a b c) d))
       nil)

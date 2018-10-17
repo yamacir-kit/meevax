@@ -24,8 +24,7 @@ namespace meevax::utility
     return {failed ? name : demangled.get()};
   }
 
-  auto demangle(const std::type_info& info)
-    -> decltype(auto)
+  decltype(auto) demangle(const std::type_info& info)
   {
     return demangle(info.name());
   }

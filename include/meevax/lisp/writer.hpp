@@ -16,16 +16,16 @@ namespace meevax::lisp
       return os << "nil";
     }
 
-    if (e->type() == typeid(std::string))
+    if (e.access().type() == typeid(std::string))
     {
-      return os << e->template as<std::string>();
+      return os << e.access().as<std::string>();
     }
 
     if (abbreviate)
     {
       for (os << "(" << *e; ++e; os << " " << *e)
       {
-        if (e->type() != typeid(cell))
+        if (e.access().type() != typeid(cell))
         {
           return os << " . " << e << ")";
         }
