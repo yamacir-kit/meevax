@@ -19,7 +19,7 @@ namespace meevax::lisp
   using cursor = utility::recursive_binary_tuple_iterator<cell>;
 
   template <typename T, typename... Ts>
-  cursor make_as(Ts&&... args)
+  [[deprecated]] cursor make_as(Ts&&... args)
   {
     using binder = meevax::utility::binder<T, cell>;
     return std::make_shared<binder>(std::forward<Ts>(args)...);
@@ -30,6 +30,21 @@ namespace meevax::lisp
 
 namespace meevax::lisp
 {
+  struct symbol_generator
+  {
+    using binder = utility::binder<std::string, cell>;
+
+    template <typename... Ts>
+    cursor operator()(Ts&&... args)
+    {
+      return std::make_shared<binder>(std::forward<decltype(args)>(args)...);
+    }
+  };
+
+  heterogeneous_dictionary<cursor, symbol_generator> symbols {
+    std::make_pair("nil", cursor {nullptr})
+  };
+
   struct cell
     : public std::pair<cursor, cursor>
   {
