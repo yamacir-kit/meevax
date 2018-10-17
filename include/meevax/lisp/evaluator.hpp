@@ -3,7 +3,6 @@
 
 #include <functional>
 #include <iostream>
-#include <string>
 #include <unordered_map>
 #include <utility>
 
@@ -16,14 +15,14 @@
 
 namespace meevax::lisp
 {
-  std::unordered_map<
-    std::shared_ptr<cell>,
-    std::function<cursor (cursor, cursor)>
-  > procedure;
-
   class evaluator
   {
     static inline auto env {symbols.intern("nil")};
+
+    std::unordered_map<
+      std::shared_ptr<cell>,
+      std::function<cursor (cursor, cursor)>
+    > procedure;
 
   public:
     evaluator()
@@ -81,8 +80,8 @@ namespace meevax::lisp
       return eval(std::forward<T>(e), env);
     }
 
-    template <typename F>
-    void define(const std::string& s, F&& functor)
+    template <typename S, typename F>
+    void define(S&& s, F&& functor)
     {
       procedure.emplace(symbols.intern(s), functor);
     }

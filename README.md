@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/yamacir-kit/meevax.svg?branch=master)](https://travis-ci.org/yamacir-kit/meevax)
 
-Version 0.0.154 in development.
+Version 0.0.156 in development.
 
 ## Dependency
 
