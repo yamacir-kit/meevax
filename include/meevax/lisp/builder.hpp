@@ -7,7 +7,6 @@
 
 #include <meevax/functional/fold.hpp>
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
 {
@@ -53,8 +52,8 @@ namespace meevax::lisp
       using namespace functional;
 
       return std::empty(*this)
-               ? symbols.intern(std::empty(value_) ? "nil" : value_)
-               : fold_right(*this, symbols.intern("nil"), [](auto& builder, auto& constructed)
+               ? std::empty(value_) ? symbols.unchecked_reference("nil") : symbols.intern(value_)
+               : fold_right(*this, symbols.unchecked_reference("nil"), [](auto& builder, auto& constructed)
                  {
                    return builder.build() | constructed;
                  });

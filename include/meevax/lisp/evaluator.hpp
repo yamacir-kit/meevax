@@ -9,7 +9,6 @@
 
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/exception.hpp>
-#include <meevax/lisp/table.hpp>
 #include <meevax/lisp/writer.hpp>
 
 namespace meevax::lisp
