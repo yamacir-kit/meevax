@@ -7,9 +7,10 @@
 
 #include <boost/cstdlib.hpp>
 
+#include <meevax/functional/combinator.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/exception.hpp>
-#include <meevax/lisp/writer.hpp>
+#include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
 {
@@ -40,6 +41,11 @@ namespace meevax::lisp
         return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : symbols.intern("nil");
       });
 
+      define("if", [&](auto e, auto a)
+      {
+        return eval(*++e, a) ? eval(cadr(e), a) : eval(caddr(e), a);
+      });
+
       define("cond", [&](auto e, auto a)
       {
         return evcon(++e, a);
@@ -65,7 +71,35 @@ namespace meevax::lisp
         return assoc(cadr(e), env = list(cadr(e), caddr(e)) | env);
       });
 
-      define("exit", [&](auto, auto) -> cursor
+      using namespace meevax::functional;
+
+      define("list", [&](auto e, auto a)
+      {
+        const auto nil {symbols.unchecked_reference("nil")};
+
+        auto result {z([&](auto proc, auto e, auto a)
+          -> cursor
+        {
+          std::cerr << "[debug] e: " << e << std::endl;
+          std::cerr << "[debug] (car e): " << *e << std::endl;
+          std::cerr << "[debug] (cdr e): " << cdr(e) << std::endl;
+          std::cerr << "[debug] (null (cdr e)): " << std::boolalpha << static_cast<bool>(cdr(e)) << std::endl;
+
+          auto head {eval(*e, a)};
+          std::cerr << "[debug] head: " << head << std::endl;
+
+          auto tail {++e ? std::cerr << "call" << std::endl, proc(proc, e, a) : nil};
+          std::cerr << "[debug] tail: " << tail << std::endl;
+
+          return head | tail;
+        })(++e, a)};
+
+        std::cerr << result << std::endl;
+        return result;
+      });
+
+      define("exit", [&](auto, auto)
+        -> cursor
       {
         std::exit(boost::exit_success);
       });
@@ -100,20 +134,19 @@ namespace meevax::lisp
       }
       else if (**e == symbols.intern("lambda"))
       {
-        return eval(
-                 caddar(e),
-                 append(zip(cadar(e), evlis(cdr(e), a)), a)
-               );
+        return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
       else if (**e == symbols.intern("macro"))
       {
-        return eval(
-                 eval(
-                   caddar(e),
-                   append(zip(cadar(e), cdr(a)), a)
-                 ),
-                 a
-               );
+        // ((macro (params...) (body...)) args...)
+
+        const auto expanded {eval(caddar(e), append(zip(cadar(e), cdr(e)), a))};
+        //                        ~~~~~~~~~             ~~~~~~~~  ~~~~~~
+        //                        ^ body                ^ params  ^ args
+
+        std::cerr << "-> " << expanded << std::endl;
+
+        return eval(expanded, a);
       }
       else throw generate_exception(
         "unexpected evaluation dispatch failure for expression " + to_string(e)
