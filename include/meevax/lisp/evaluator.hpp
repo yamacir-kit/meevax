@@ -4,6 +4,7 @@
 #include <functional>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <boost/cstdlib.hpp>
 
@@ -16,7 +17,7 @@ namespace meevax::lisp
 {
   class evaluator
   {
-    static inline auto env {symbols.intern("nil")};
+    cursor env_, nil_, true_;
 
     std::unordered_map<
       std::shared_ptr<cell>,
@@ -25,6 +26,9 @@ namespace meevax::lisp
 
   public:
     evaluator()
+      : env_ {symbols.unchecked_reference("nil")},
+        nil_ {symbols.unchecked_reference("nil")},
+        true_ {symbols.intern("true")}
     {
       define("quote", [](auto e, auto)
       {
@@ -33,12 +37,12 @@ namespace meevax::lisp
 
       define("atom", [&](auto e, auto a)
       {
-        return atom(eval(*++e, a)) ? symbols.intern("true") : symbols.intern("nil");
+        return atom(eval(*++e, a)) ? true_ : nil_;
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : symbols.intern("nil");
+        return eval(*++e, a) == eval(*++e, a) ? true_ : nil_;
       });
 
       define("if", [&](auto e, auto a)
@@ -68,34 +72,18 @@ namespace meevax::lisp
 
       define("define", [&](auto e, auto)
       {
-        return assoc(cadr(e), env = list(cadr(e), caddr(e)) | env);
+        return assoc(cadr(e), env_ = list(cadr(e), caddr(e)) | env_);
       });
 
       using namespace meevax::functional;
 
       define("list", [&](auto e, auto a)
       {
-        const auto nil {symbols.unchecked_reference("nil")};
-
-        auto result {z([&](auto proc, auto e, auto a)
-          -> cursor
+        return z([&](auto proc, auto e, auto a) -> cursor
         {
-          std::cerr << "[debug] e: " << e << std::endl;
-          std::cerr << "[debug] (car e): " << *e << std::endl;
-          std::cerr << "[debug] (cdr e): " << cdr(e) << std::endl;
-          std::cerr << "[debug] (null (cdr e)): " << std::boolalpha << static_cast<bool>(cdr(e)) << std::endl;
-
-          auto head {eval(*e, a)};
-          std::cerr << "[debug] head: " << head << std::endl;
-
-          auto tail {++e ? std::cerr << "call" << std::endl, proc(proc, e, a) : nil};
-          std::cerr << "[debug] tail: " << tail << std::endl;
-
-          return head | tail;
-        })(++e, a)};
-
-        std::cerr << result << std::endl;
-        return result;
+          const auto buffer {eval(*e, a)};
+          return buffer | (++e ? proc(proc, e, a) : nil_);
+        })(++e, a);
       });
 
       define("exit", [&](auto, auto)
@@ -108,7 +96,7 @@ namespace meevax::lisp
     template <typename T>
     decltype(auto) operator()(T&& e)
     {
-      return eval(std::forward<T>(e), env);
+      return eval(std::forward<T>(e), env_);
     }
 
     template <typename S, typename F>
@@ -170,9 +158,10 @@ namespace meevax::lisp
       }
     };
 
-    static constexpr auto list = [](auto&&... args)
+    template <typename... Ts>
+    cursor list(Ts&&... args)
     {
-      return (args | ... | symbols.intern("nil"));
+      return (args | ... | nil_);
     };
 
     cursor append(cursor x, cursor y)
@@ -184,7 +173,7 @@ namespace meevax::lisp
     {
       if (!x && !y)
       {
-        return symbols.intern("nil");
+        return nil_;
       }
       else if (!atom(x) && !atom(y))
       {
@@ -192,13 +181,13 @@ namespace meevax::lisp
       }
       else
       {
-        return symbols.intern("nil");
+        return nil_;
       }
     }
 
     cursor assoc(cursor sexp, cursor alis)
     {
-      return !sexp or !alis ? symbols.intern("nil") : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
+      return !sexp or !alis ? nil_ : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
     }
 
     cursor evcon(cursor sexp, cursor alis)
@@ -208,7 +197,7 @@ namespace meevax::lisp
 
     cursor evlis(cursor m, cursor a)
     {
-      return !m ? symbols.intern("nil") : eval(*m, a) | evlis(cdr(m), a);
+      return !m ? nil_ : eval(*m, a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp
