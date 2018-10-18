@@ -4,18 +4,20 @@
 #include <functional>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <boost/cstdlib.hpp>
 
+#include <meevax/functional/combinator.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/exception.hpp>
-#include <meevax/lisp/writer.hpp>
+#include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
 {
   class evaluator
   {
-    static inline auto env {symbols.intern("nil")};
+    cursor env_, nil_, true_;
 
     std::unordered_map<
       std::shared_ptr<cell>,
@@ -24,6 +26,9 @@ namespace meevax::lisp
 
   public:
     evaluator()
+      : env_ {symbols.unchecked_reference("nil")},
+        nil_ {symbols.unchecked_reference("nil")},
+        true_ {symbols.intern("true")}
     {
       define("quote", [](auto e, auto)
       {
@@ -32,12 +37,17 @@ namespace meevax::lisp
 
       define("atom", [&](auto e, auto a)
       {
-        return atom(eval(*++e, a)) ? symbols.intern("true") : symbols.intern("nil");
+        return atom(eval(*++e, a)) ? true_ : nil_;
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : symbols.intern("nil");
+        return eval(*++e, a) == eval(*++e, a) ? true_ : nil_;
+      });
+
+      define("if", [&](auto e, auto a)
+      {
+        return eval(*++e, a) ? eval(cadr(e), a) : eval(caddr(e), a);
       });
 
       define("cond", [&](auto e, auto a)
@@ -62,10 +72,21 @@ namespace meevax::lisp
 
       define("define", [&](auto e, auto)
       {
-        return assoc(cadr(e), env = list(cadr(e), caddr(e)) | env);
+        return assoc(cadr(e), env_ = list(cadr(e), caddr(e)) | env_);
       });
 
-      define("exit", [&](auto, auto) -> cursor
+      using namespace meevax::functional;
+
+      define("list", [&](auto e, auto a)
+      {
+        return z([&](auto proc, auto e, auto a) -> cursor
+        {
+          return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : nil_);
+        })(++e, a);
+      });
+
+      define("exit", [&](auto, auto)
+        -> cursor
       {
         std::exit(boost::exit_success);
       });
@@ -74,7 +95,7 @@ namespace meevax::lisp
     template <typename T>
     decltype(auto) operator()(T&& e)
     {
-      return eval(std::forward<T>(e), env);
+      return eval(std::forward<T>(e), env_);
     }
 
     template <typename S, typename F>
@@ -100,20 +121,19 @@ namespace meevax::lisp
       }
       else if (**e == symbols.intern("lambda"))
       {
-        return eval(
-                 caddar(e),
-                 append(zip(cadar(e), evlis(cdr(e), a)), a)
-               );
+        return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
       }
       else if (**e == symbols.intern("macro"))
       {
-        return eval(
-                 eval(
-                   caddar(e),
-                   append(zip(cadar(e), cdr(a)), a)
-                 ),
-                 a
-               );
+        // ((macro (params...) (body...)) args...)
+
+        const auto expanded {eval(caddar(e), append(zip(cadar(e), cdr(e)), a))};
+        //                        ~~~~~~~~~             ~~~~~~~~  ~~~~~~
+        //                        ^ body                ^ params  ^ args
+
+        std::cerr << "-> " << expanded << std::endl;
+
+        return eval(expanded, a);
       }
       else throw generate_exception(
         "unexpected evaluation dispatch failure for expression " + to_string(e)
@@ -137,9 +157,10 @@ namespace meevax::lisp
       }
     };
 
-    static constexpr auto list = [](auto&&... args)
+    template <typename... Ts>
+    cursor list(Ts&&... args)
     {
-      return (args | ... | symbols.intern("nil"));
+      return (args | ... | nil_);
     };
 
     cursor append(cursor x, cursor y)
@@ -151,7 +172,7 @@ namespace meevax::lisp
     {
       if (!x && !y)
       {
-        return symbols.intern("nil");
+        return nil_;
       }
       else if (!atom(x) && !atom(y))
       {
@@ -159,13 +180,13 @@ namespace meevax::lisp
       }
       else
       {
-        return symbols.intern("nil");
+        return nil_;
       }
     }
 
     cursor assoc(cursor sexp, cursor alis)
     {
-      return !sexp or !alis ? symbols.intern("nil") : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
+      return !sexp or !alis ? nil_ : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
     }
 
     cursor evcon(cursor sexp, cursor alis)
@@ -175,7 +196,7 @@ namespace meevax::lisp
 
     cursor evlis(cursor m, cursor a)
     {
-      return !m ? symbols.intern("nil") : eval(*m, a) | evlis(cdr(m), a);
+      return !m ? nil_ : eval(*m, a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp

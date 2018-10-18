@@ -13,7 +13,7 @@ namespace meevax::functional
       {
         return f(std::forward<decltype(xs)>(xs)...,
                  std::forward<decltype(ys)>(ys)...);
-      }
+      };
     };
   }
 } // namespace meevax::functional
