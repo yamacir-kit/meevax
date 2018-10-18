@@ -16,6 +16,11 @@ int main()
 
   for (std::string buffer {}, continuation {}; std::getline(std::cin, buffer); ) try
   {
+    if (std::empty(buffer))
+    {
+      continue;
+    }
+
     const auto expression {lisp::read(continuation += buffer)};
     std::cout << "-> " << expression << std::endl;
 
