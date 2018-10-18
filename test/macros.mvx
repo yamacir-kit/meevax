@@ -1,4 +1,4 @@
 (define if-then-else (macro (c then x else y)
-  (list (if c x y))
+  (list 'if c x y)
 ))
 (if-then-else (eq 'a 'b) then 'same else 'not-same)

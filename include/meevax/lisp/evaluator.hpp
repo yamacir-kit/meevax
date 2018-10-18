@@ -81,8 +81,7 @@ namespace meevax::lisp
       {
         return z([&](auto proc, auto e, auto a) -> cursor
         {
-          const auto buffer {eval(*e, a)};
-          return buffer | (++e ? proc(proc, e, a) : nil_);
+          return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : nil_);
         })(++e, a);
       });
 
