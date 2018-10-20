@@ -28,6 +28,8 @@ namespace meevax::lisp
     evaluator()
       : env_ {symbols("nil")}
     {
+      using namespace meevax::functional;
+
       define("quote", [](auto e, auto)
       {
         return *++e;
@@ -48,9 +50,12 @@ namespace meevax::lisp
         return eval(*++e, a) ? eval(cadr(e), a) : eval(caddr(e), a);
       });
 
-      define("cond", [&](auto e, auto a)
+      define("cond", [&](auto exp, auto env)
       {
-        return evcon(++e, a);
+        return z([&](auto&& proc, auto&& exp, auto&& env) -> cursor
+        {
+          return eval(**exp, env) ? eval(cadar(exp), env) : proc(proc, ++exp, env);
+        })(++exp, env);
       });
 
       define("car", [&](auto e, auto a)
@@ -68,15 +73,13 @@ namespace meevax::lisp
         return eval(cadr(e), a) | eval(caddr(e), a);
       });
 
-      define("define", [&](auto e, auto)
+      define("define", [&](auto value, auto)
       {
-        return assoc(cadr(e), env_ = list(cadr(e), caddr(e)) | env_);
+        return lookup(cadr(value), env_ = list(cadr(value), caddr(value)) | env_);
       });
-
 
       define("list", [&](auto e, auto a)
       {
-        using namespace meevax::functional;
         return z([&](auto proc, auto e, auto a) -> cursor
         {
           return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
