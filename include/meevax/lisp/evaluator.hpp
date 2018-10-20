@@ -26,8 +26,8 @@ namespace meevax::lisp
 
   public:
     evaluator()
-      : env_ {symbols.unchecked_reference("nil")},
-        nil_ {symbols.unchecked_reference("nil")},
+      : env_ {symbols("nil")},
+        nil_ {symbols("nil")},
         true_ {symbols.intern("true")}
     {
       define("quote", [](auto e, auto)
@@ -75,10 +75,10 @@ namespace meevax::lisp
         return assoc(cadr(e), env_ = list(cadr(e), caddr(e)) | env_);
       });
 
-      using namespace meevax::functional;
 
       define("list", [&](auto e, auto a)
       {
+        using namespace meevax::functional;
         return z([&](auto proc, auto e, auto a) -> cursor
         {
           return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : nil_);
@@ -143,9 +143,16 @@ namespace meevax::lisp
   private:
     cursor invoke(cursor sexp, cursor alis) noexcept(false)
     {
-      if (const auto callee {assoc(*sexp, alis)}; callee) // user defined procedure
+      if (auto callee {assoc(*sexp, alis)}; callee) // user defined procedure
       {
-        return eval(callee | cdr(sexp), alis);
+        auto buffer {callee | cdr(sexp)};
+        std::cerr << "-> invoke " << buffer << std::endl;
+        // return eval(callee | cdr(sexp), alis);
+
+        auto result {eval(buffer, alis)};
+        std::cerr << "   result " << result << std::endl;
+
+        return result;
       }
       else try
       {

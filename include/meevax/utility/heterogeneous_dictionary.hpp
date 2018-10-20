@@ -38,7 +38,7 @@ namespace meevax::utility
       return base_type::at(s);
     }
 
-    const auto& unchecked_reference(const std::string& s) const noexcept
+    const auto& operator()(const std::string& s) const noexcept
     {
       const auto iter {base_type::find(s)};
       assert(iter != std::end(*this));
