@@ -17,7 +17,7 @@ namespace meevax::lisp
 {
   class evaluator
   {
-    cursor env_, nil_, true_;
+    cursor env_;
 
     std::unordered_map<
       std::shared_ptr<cell>,
@@ -26,9 +26,7 @@ namespace meevax::lisp
 
   public:
     evaluator()
-      : env_ {symbols("nil")},
-        nil_ {symbols("nil")},
-        true_ {symbols.intern("true")}
+      : env_ {symbols("nil")}
     {
       define("quote", [](auto e, auto)
       {
@@ -37,12 +35,12 @@ namespace meevax::lisp
 
       define("atom", [&](auto e, auto a)
       {
-        return atom(eval(*++e, a)) ? true_ : nil_;
+        return atom(eval(*++e, a)) ? symbols.intern("true") : symbols("nil");
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return eval(*++e, a) == eval(*++e, a) ? true_ : nil_;
+        return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : symbols("nil");
       });
 
       define("if", [&](auto e, auto a)
@@ -81,7 +79,7 @@ namespace meevax::lisp
         using namespace meevax::functional;
         return z([&](auto proc, auto e, auto a) -> cursor
         {
-          return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : nil_);
+          return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
         })(++e, a);
       });
 
@@ -167,7 +165,7 @@ namespace meevax::lisp
     template <typename... Ts>
     cursor list(Ts&&... args)
     {
-      return (args | ... | nil_);
+      return (args | ... | symbols("nil"));
     };
 
     cursor append(cursor x, cursor y)
@@ -179,7 +177,7 @@ namespace meevax::lisp
     {
       if (!x && !y)
       {
-        return nil_;
+        return symbols("nil");
       }
       else if (!atom(x) && !atom(y))
       {
@@ -187,13 +185,13 @@ namespace meevax::lisp
       }
       else
       {
-        return nil_;
+        return symbols("nil");
       }
     }
 
     cursor assoc(cursor sexp, cursor alis)
     {
-      return !sexp or !alis ? nil_ : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
+      return !sexp or !alis ? symbols("nil") : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
     }
 
     cursor evcon(cursor sexp, cursor alis)
@@ -203,7 +201,7 @@ namespace meevax::lisp
 
     cursor evlis(cursor m, cursor a)
     {
-      return !m ? nil_ : eval(*m, a) | evlis(cdr(m), a);
+      return !m ? symbols("nil") : eval(*m, a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp
