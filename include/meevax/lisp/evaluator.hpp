@@ -110,7 +110,12 @@ namespace meevax::lisp
     {
       if (atom(e))
       {
-        return assoc(e, a);
+        // TODO self evaluating?
+
+        // TODO variable?
+        return lookup(e, a);
+        //     ~~~~~~~~~~~~
+        //     ^ lookup variable value
       }
       else if (atom(*e))
       {
@@ -122,7 +127,11 @@ namespace meevax::lisp
       }
       else if (**e == symbols.intern("lambda"))
       {
+        // ((lambda (params...) (body...)) args...)
+
         return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
+        //          ~~~~~~~~~             ~~~~~~~~        ~~~~~~
+        //          ^ body                ^ params        ^ args
       }
       else if (**e == symbols.intern("macro"))
       {
@@ -142,28 +151,26 @@ namespace meevax::lisp
     }
 
   private:
-    cursor invoke(cursor sexp, cursor alis) noexcept(false)
+    cursor invoke(cursor e, cursor a)
     {
-      if (auto callee {assoc(*sexp, alis)}; callee) // user defined procedure
+      if (const auto iter {procedure.find(*e)}; iter != std::end(procedure))
+      //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      //  ^ primitive procedure?
       {
-        auto buffer {callee | cdr(sexp)};
-        std::cerr << "-> invoke " << buffer << std::endl;
-        // return eval(callee | cdr(sexp), alis);
-
-        auto result {eval(buffer, alis)};
-        std::cerr << "   result " << result << std::endl;
-
-        return result;
+        return iter->second(e, a);
+        //     ~~~~~~~~~~~~~~~~~~
+        //     ^ apply primive procedure
       }
-      else try
+      else if (auto callee {lookup(*e, a)}; callee)
+      //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      //       ^ compound procedure?
       {
-        return procedure.at(*sexp)(sexp, alis);
+        return eval(callee | cdr(e), a);
       }
-      catch (const std::out_of_range& error)
-      {
-        throw generate_exception("using unbound symbol " + to_string(*sexp) + " as procedure");
-      }
-    };
+      else throw generate_exception(
+        "using inapplicable symbol " + to_string(*e) + " as procedure"
+      );
+    }
 
     template <typename... Ts>
     cursor list(Ts&&... args)
@@ -192,14 +199,9 @@ namespace meevax::lisp
       }
     }
 
-    cursor assoc(cursor sexp, cursor alis)
+    cursor lookup(cursor var, cursor env)
     {
-      return !sexp or !alis ? symbols("nil") : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
-    }
-
-    cursor evcon(cursor sexp, cursor alis)
-    {
-      return eval(**sexp, alis) ? eval(cadar(sexp), alis) : evcon(++sexp, alis);
+      return !var or !env ? symbols("nil") : var == **env ? cadar(env) : lookup(var, cdr(env));
     }
 
     cursor evlis(cursor m, cursor a)
