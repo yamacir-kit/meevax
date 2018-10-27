@@ -24,6 +24,11 @@ namespace meevax::lisp
       std::function<cursor (cursor, cursor)>
     > procedure;
 
+    struct closure
+    {
+      cursor exp, env;
+    };
+
   public:
     evaluator()
       : env_ {symbols("nil")}
@@ -73,6 +78,15 @@ namespace meevax::lisp
         return evaluate(cadr(e), a) | evaluate(caddr(e), a);
       });
 
+      define("lambda", [&](auto exp, auto env)
+      {
+        using binder = utility::binder<closure, cell>;
+        return std::make_shared<binder>(exp, env);
+               //   std::forward<decltype(exp)>(exp),
+               //   std::forward<decltype(env)>(env)
+               // );
+      } );
+
       define("define", [&](auto value, auto)
       {
         return lookup(cadr(value), env_ = list(cadr(value), caddr(value)) | env_);
@@ -106,7 +120,7 @@ namespace meevax::lisp
     }
 
   protected:
-    cursor eval(cursor e, cursor a)
+    cursor evaluate_(cursor e, cursor a)
     {
       if (atom(e))
       {
@@ -147,6 +161,42 @@ namespace meevax::lisp
       }
       else throw generate_exception(
         "unexpected evaluation dispatch failure for expression " + to_string(e)
+      );
+    }
+
+    cursor evaluate(cursor exp, cursor env)
+    {
+      if (atom(exp))
+      {
+        return lookup(exp, env);
+      }
+
+      if (auto iter {procedure.find(car(exp))}; iter != std::end(procedure))
+      {
+        return (iter->second)(exp, env);
+      }
+
+      if (auto callee {evaluate(car(exp), env)}; callee)
+      {
+        if (callee.access().type() == typeid(closure))
+        {
+          const auto closure_ {(callee).access().as<closure>()};
+          return evaluate(
+                   caddr(closure_.exp),
+                   append(
+                     zip(cadr(closure_.exp), evlis(cdr(exp), env)),
+                     closure_.env
+                   )
+                 );
+        }
+        else
+        {
+          return evaluate(callee | cdr(exp), env);
+        }
+      }
+
+      throw generate_exception(
+        "unexpected evaluation dispatch failure for expression " + to_string(exp)
       );
     }
 
