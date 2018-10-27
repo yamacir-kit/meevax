@@ -30,14 +30,6 @@
 ((lambda (x y) (cons x (cdr y))) 'z '(a b c))
 ((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x)))
 
-((recursive substitute (lambda (x y z)
-   (cond ((atom z)
-          (cond ((eq z y) x)
-                (otherwise z)))
-         (otherwise (cons (substitute x y (car z))
-                          (substitute x y (cdr z)))))))
- 'm 'b '(a b (a b c) d))
-
 (define null (lambda (x)
   (eq x nil)))
 

@@ -37,40 +37,40 @@ namespace meevax::lisp
 
       define("atom", [&](auto e, auto a)
       {
-        return atom(eval(*++e, a)) ? symbols.intern("true") : symbols("nil");
+        return atom(evaluate(*cdr(e), a)) ? symbols.intern("true") : symbols("nil");
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return eval(*++e, a) == eval(*++e, a) ? symbols.intern("true") : symbols("nil");
+        return evaluate(*++e, a) == evaluate(*++e, a) ? symbols.intern("true") : symbols("nil");
       });
 
       define("if", [&](auto e, auto a)
       {
-        return eval(*++e, a) ? eval(cadr(e), a) : eval(caddr(e), a);
+        return evaluate(*++e, a) ? evaluate(cadr(e), a) : evaluate(caddr(e), a);
       });
 
       define("cond", [&](auto exp, auto env)
       {
         return z([&](auto&& proc, auto&& exp, auto&& env) -> cursor
         {
-          return eval(**exp, env) ? eval(cadar(exp), env) : proc(proc, ++exp, env);
+          return evaluate(**exp, env) ? evaluate(cadar(exp), env) : proc(proc, ++exp, env);
         })(++exp, env);
       });
 
       define("car", [&](auto e, auto a)
       {
-        return *eval(*++e, a);
+        return *evaluate(*++e, a);
       });
 
       define("cdr", [&](auto e, auto a)
       {
-        return ++eval(*++e, a);
+        return ++evaluate(*++e, a);
       });
 
       define("cons", [&](auto e, auto a)
       {
-        return eval(cadr(e), a) | eval(caddr(e), a);
+        return evaluate(cadr(e), a) | evaluate(caddr(e), a);
       });
 
       define("define", [&](auto value, auto)
@@ -82,7 +82,7 @@ namespace meevax::lisp
       {
         return z([&](auto proc, auto e, auto a) -> cursor
         {
-          return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
+          return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
         })(++e, a);
       });
 
@@ -96,7 +96,7 @@ namespace meevax::lisp
     template <typename T>
     decltype(auto) operator()(T&& e)
     {
-      return eval(std::forward<T>(e), env_);
+      return evaluate(std::forward<T>(e), env_);
     }
 
     template <typename S, typename F>
@@ -121,15 +121,15 @@ namespace meevax::lisp
       {
         return invoke(e, a);
       }
-      else if (**e == symbols.intern("recursive"))
-      {
-        return eval(caddar(e) | cdr(e), list(cadar(e), *e) | a);
-      }
+      // else if (**e == symbols.intern("recursive"))
+      // {
+      //   return evaluate(caddar(e) | cdr(e), list(cadar(e), *e) | a);
+      // }
       else if (**e == symbols.intern("lambda"))
       {
-        // ((lambda (params...) (body...)) args...)
+        // ((lambda (params...) body) args...)
 
-        return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
+        return evaluate(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
         //          ~~~~~~~~~             ~~~~~~~~        ~~~~~~
         //          ^ body                ^ params        ^ args
       }
@@ -137,13 +137,13 @@ namespace meevax::lisp
       {
         // ((macro (params...) (body...)) args...)
 
-        const auto expanded {eval(caddar(e), append(zip(cadar(e), cdr(e)), a))};
-        //                        ~~~~~~~~~             ~~~~~~~~  ~~~~~~
-        //                        ^ body                ^ params  ^ args
+        const auto expanded {evaluate(caddar(e), append(zip(cadar(e), cdr(e)), a))};
+        //                            ~~~~~~~~~             ~~~~~~~~  ~~~~~~
+        //                            ^ body                ^ params  ^ args
 
         std::cerr << "-> " << expanded << std::endl;
 
-        return eval(expanded, a);
+        return evaluate(expanded, a);
       }
       else throw generate_exception(
         "unexpected evaluation dispatch failure for expression " + to_string(e)
@@ -161,11 +161,11 @@ namespace meevax::lisp
         //     ~~~~~~~~~~~~~~~~~~
         //     ^ apply primive procedure
       }
-      else if (auto callee {lookup(*e, a)}; callee)
-      //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      else if (auto callee {evaluate(*e, a)}; callee)
+      //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       //       ^ compound procedure?
       {
-        return eval(callee | cdr(e), a);
+        return evaluate(callee | cdr(e), a);
       }
       else throw generate_exception(
         "using inapplicable symbol " + to_string(*e) + " as procedure"
@@ -206,7 +206,7 @@ namespace meevax::lisp
 
     cursor evlis(cursor m, cursor a)
     {
-      return !m ? symbols("nil") : eval(*m, a) | evlis(cdr(m), a);
+      return !m ? symbols("nil") : evaluate(*m, a) | evlis(cdr(m), a);
     }
   } static eval {};
 } // namespace meevax::lisp
