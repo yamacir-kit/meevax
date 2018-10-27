@@ -45,6 +45,8 @@ namespace meevax::lisp
       : std::pair<cursor, cursor> {std::forward<Ts>(args)...}
     {}
 
+    virtual ~cell() = default;
+
     template <typename T>
     auto as() const
     {

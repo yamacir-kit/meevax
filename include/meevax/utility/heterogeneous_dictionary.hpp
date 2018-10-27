@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <utility>
 
+// TODO
+// ANYコンテナのように振る舞うデフォルト引数の追加
+
 namespace meevax::utility
 {
   template <typename ErasureBasePointer, typename TypeEraseOperation>
