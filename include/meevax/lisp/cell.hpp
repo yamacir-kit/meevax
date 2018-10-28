@@ -17,18 +17,18 @@ namespace meevax::lisp
 
   using cursor = utility::recursive_binary_tuple_iterator<cell>;
 
-  struct symbol_generator
+  template <typename T>
+  struct bind
   {
-    using binder = utility::binder<std::string, cell>;
-
     template <typename... Ts>
     cursor operator()(Ts&&... args)
     {
-      return std::make_shared<binder>(std::forward<decltype(args)>(args)...);
+      using binder = utility::binder<T, cell>;
+      return std::make_shared<binder>(std::forward<Ts>(args)...);
     }
   };
 
-  utility::heterogeneous_dictionary<cursor, symbol_generator> symbols {
+  utility::heterogeneous_dictionary<cursor, bind<std::string>> symbols {
     std::make_pair("nil", cursor {nullptr})
   };
 

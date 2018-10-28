@@ -5,7 +5,6 @@
 #include <mutex>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 #include <boost/cstdlib.hpp>
 
@@ -155,8 +154,6 @@ namespace meevax::lisp
       {
         if (callee.access().type() == typeid(closure))
         {
-          // const auto closure {callee.access().as<evaluator::closure>()};
-          // return evaluate(caddr(closure.exp), append(zip(cadr(closure.exp), evlis(cdr(exp), env)), closure.env));
           return callee.access().as<closure>()(cdr(exp), env);
         }
         else
@@ -169,7 +166,10 @@ namespace meevax::lisp
         "unexpected evaluation dispatch failure for expression " + to_string(exp)
       );
     }
-  } static eval {};
+  }
+#ifndef MEEVAX_DISABLE_IMPLICIT_STATIC_EVALUATOR_INSTANTIATION
+  static eval {};
+#endif
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
