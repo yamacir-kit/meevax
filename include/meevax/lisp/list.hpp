@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_LIST_HPP
 #define INCLUDED_MEEVAX_LISP_LIST_HPP
 
+#include <iterator>
 #include <utility>
 
 #include <meevax/lisp/cell.hpp>
@@ -24,7 +25,11 @@ namespace meevax::lisp
     return (args | ... | symbols("nil"));
   };
 
-  // TODO variadic
+  decltype(auto) length(const cursor& exp)
+  {
+    return std::distance(exp, symbols("nil"));
+  }
+
   cursor append(const cursor& x, const cursor& y)
   {
     return !x ? y : car(x) | append(cdr(x), y);
@@ -48,7 +53,9 @@ namespace meevax::lisp
 
   cursor lookup(cursor var, cursor env)
   {
-    return !var or !env ? symbols("nil") : var == **env ? cadar(env) : lookup(var, cdr(env));
+    return !var || !env ? symbols("nil")
+                        : var == **env ? cadar(env)
+                                       : lookup(var, cdr(env));
   };
 } // namespace meevax::lisp
 
