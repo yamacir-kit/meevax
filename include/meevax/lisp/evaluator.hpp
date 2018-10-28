@@ -19,10 +19,8 @@ namespace meevax::lisp
   {
     cursor env_;
 
-    std::unordered_map<
-      std::shared_ptr<cell>,
-      std::function<cursor (cursor, cursor)>
-    > procedure;
+    using procedure = std::function<cursor (cursor, cursor)>;
+    std::unordered_map<std::shared_ptr<cell>, procedure> procedures;
 
     // TODO
     // プライベートメンバ関数をクロージャクラスのメンバに変更すること
@@ -116,10 +114,12 @@ namespace meevax::lisp
     template <typename S, typename F>
     void define(S&& s, F&& functor)
     {
-      procedure.emplace(symbols.intern(s), functor);
+      procedures.emplace(symbols.intern(s), functor);
     }
 
   protected:
+    // TODO
+    // コピー削減のためなるべく右辺値参照にすること
     cursor evaluate(cursor exp, cursor env)
     {
       if (atom(exp))
@@ -127,7 +127,7 @@ namespace meevax::lisp
         return lookup(exp, env);
       }
 
-      if (auto iter {procedure.find(car(exp))}; iter != std::end(procedure))
+      if (auto iter {procedures.find(car(exp))}; iter != std::end(procedures))
       {
         return (iter->second)(exp, env);
       }
