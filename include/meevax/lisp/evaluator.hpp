@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
 #include <functional>
+#include <mutex>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -21,14 +22,30 @@ namespace meevax::lisp
     cursor env_;
 
     using procedure = std::function<cursor (const cursor&, const cursor&)>;
-    std::unordered_map<std::shared_ptr<cell>, procedure> procedures;
+    static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
 
-    // TODO
-    // プライベートメンバ関数をクロージャクラスのメンバに変更すること
-    // クロージャクラスを独立したヘッダに移動すること
-    struct closure
+    std::mutex mutex_;
+
+    class closure
     {
-      cursor exp, env;
+      cursor exp_, env_;
+
+    public:
+      explicit closure(const cursor& exp, const cursor& env)
+        : exp_ {exp},
+          env_ {env}
+      {}
+
+      decltype(auto) operator()(const cursor& args, const cursor& env)
+      {
+        return evaluate(caddr(exp_), append(zip(cadr(exp_), evlis(args, env)), env_));
+      }
+
+    protected:
+      cursor evlis(const cursor& exp, const cursor& env) const
+      {
+        return !exp ? symbols("nil") : evaluate(car(exp), env) | evlis(cdr(exp), env);
+      }
     };
 
   public:
@@ -37,19 +54,21 @@ namespace meevax::lisp
     {
       using namespace meevax::functional;
 
-      define("quote", [](auto e, auto)
+      symbols.intern("true");
+
+      define("quote", [](auto exp, auto)
       {
-        return *++e;
+        return cadr(exp);
       });
 
-      define("atom", [&](auto e, auto a)
+      define("atom", [&](auto exp, auto env)
       {
-        return atom(evaluate(*cdr(e), a)) ? symbols.intern("true") : symbols("nil");
+        return atom(evaluate(cadr(exp), env)) ? symbols("true") : symbols("nil");
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return evaluate(*++e, a) == evaluate(*++e, a) ? symbols.intern("true") : symbols("nil");
+        return evaluate(cadr(e), a) == evaluate(caddr(e), a) ? symbols("true") : symbols("nil");
       });
 
       define("if", [&](auto e, auto a)
@@ -115,11 +134,12 @@ namespace meevax::lisp
     template <typename S, typename F>
     void define(S&& s, F&& functor)
     {
+      std::lock_guard<std::mutex> lock {mutex_};
       procedures.emplace(symbols.intern(s), functor);
     }
 
   protected:
-    cursor evaluate(const cursor& exp, cursor env)
+    static cursor evaluate(const cursor& exp, cursor env)
     {
       if (atom(exp))
       {
@@ -135,8 +155,9 @@ namespace meevax::lisp
       {
         if (callee.access().type() == typeid(closure))
         {
-          const auto closure {callee.access().as<evaluator::closure>()};
-          return evaluate(caddr(closure.exp), append(zip(cadr(closure.exp), evlis(cdr(exp), env)), closure.env));
+          // const auto closure {callee.access().as<evaluator::closure>()};
+          // return evaluate(caddr(closure.exp), append(zip(cadr(closure.exp), evlis(cdr(exp), env)), closure.env));
+          return callee.access().as<closure>()(cdr(exp), env);
         }
         else
         {
@@ -147,13 +168,6 @@ namespace meevax::lisp
       throw generate_exception(
         "unexpected evaluation dispatch failure for expression " + to_string(exp)
       );
-    }
-
-  private:
-    cursor evlis(const cursor& exp, const cursor& env)
-    {
-      return !exp ? symbols("nil")
-                   : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }
   } static eval {};
 } // namespace meevax::lisp
