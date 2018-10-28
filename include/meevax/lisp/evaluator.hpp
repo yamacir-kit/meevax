@@ -2,86 +2,118 @@
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
 #include <functional>
+#include <mutex>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 #include <boost/cstdlib.hpp>
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/exception.hpp>
+#include <meevax/lisp/list.hpp>
 #include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
 {
   class evaluator
   {
-    cursor env_, nil_, true_;
+    cursor env_;
 
-    std::unordered_map<
-      std::shared_ptr<cell>,
-      std::function<cursor (cursor, cursor)>
-    > procedure;
+    using procedure = std::function<cursor (const cursor&, const cursor&)>;
+    static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
+
+    std::mutex mutex_;
+
+    class closure
+    {
+      cursor exp_, env_;
+
+    public:
+      explicit closure(const cursor& exp, const cursor& env)
+        : exp_ {exp},
+          env_ {env}
+      {}
+
+      decltype(auto) operator()(const cursor& args, const cursor& env)
+      {
+        return evaluate(caddr(exp_), append(zip(cadr(exp_), evlis(args, env)), env_));
+      }
+
+    protected:
+      cursor evlis(const cursor& exp, const cursor& env) const
+      {
+        return !exp ? symbols("nil") : evaluate(car(exp), env) | evlis(cdr(exp), env);
+      }
+    };
 
   public:
     evaluator()
-      : env_ {symbols.unchecked_reference("nil")},
-        nil_ {symbols.unchecked_reference("nil")},
-        true_ {symbols.intern("true")}
+      : env_ {symbols("nil")}
     {
-      define("quote", [](auto e, auto)
+      using namespace meevax::functional;
+
+      symbols.intern("true");
+
+      define("quote", [](auto exp, auto)
       {
-        return *++e;
+        return cadr(exp);
       });
 
-      define("atom", [&](auto e, auto a)
+      define("atom", [&](auto exp, auto env)
       {
-        return atom(eval(*++e, a)) ? true_ : nil_;
+        return atom(evaluate(cadr(exp), env)) ? symbols("true") : symbols("nil");
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return eval(*++e, a) == eval(*++e, a) ? true_ : nil_;
+        return evaluate(cadr(e), a) == evaluate(caddr(e), a) ? symbols("true") : symbols("nil");
       });
 
       define("if", [&](auto e, auto a)
       {
-        return eval(*++e, a) ? eval(cadr(e), a) : eval(caddr(e), a);
+        return evaluate(*++e, a) ? evaluate(cadr(e), a) : evaluate(caddr(e), a);
       });
 
-      define("cond", [&](auto e, auto a)
+      define("cond", [&](auto exp, auto env)
       {
-        return evcon(++e, a);
+        return z([&](auto&& proc, auto&& exp, auto&& env) -> cursor
+        {
+          return evaluate(**exp, env) ? evaluate(cadar(exp), env) : proc(proc, ++exp, env);
+        })(++exp, env);
       });
 
       define("car", [&](auto e, auto a)
       {
-        return *eval(*++e, a);
+        return *evaluate(*++e, a);
       });
 
       define("cdr", [&](auto e, auto a)
       {
-        return ++eval(*++e, a);
+        return ++evaluate(*++e, a);
       });
 
       define("cons", [&](auto e, auto a)
       {
-        return eval(cadr(e), a) | eval(caddr(e), a);
+        return evaluate(cadr(e), a) | evaluate(caddr(e), a);
       });
 
-      define("define", [&](auto e, auto)
+      define("lambda", [&](auto exp, auto env)
       {
-        return assoc(cadr(e), env_ = list(cadr(e), caddr(e)) | env_);
+        using binder = utility::binder<closure, cell>;
+        return std::make_shared<binder>(exp, env);
       });
 
-      using namespace meevax::functional;
+      define("define", [&](auto value, auto)
+      {
+        return lookup(cadr(value), env_ = list(cadr(value), caddr(value)) | env_);
+      });
 
       define("list", [&](auto e, auto a)
       {
         return z([&](auto proc, auto e, auto a) -> cursor
         {
-          return eval(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : nil_);
+          return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
         })(++e, a);
       });
 
@@ -95,110 +127,49 @@ namespace meevax::lisp
     template <typename T>
     decltype(auto) operator()(T&& e)
     {
-      return eval(std::forward<T>(e), env_);
+      return evaluate(std::forward<T>(e), env_);
     }
 
     template <typename S, typename F>
     void define(S&& s, F&& functor)
     {
-      procedure.emplace(symbols.intern(s), functor);
+      std::lock_guard<std::mutex> lock {mutex_};
+      procedures.emplace(symbols.intern(s), functor);
     }
 
   protected:
-    cursor eval(cursor e, cursor a)
+    static cursor evaluate(const cursor& exp, cursor env)
     {
-      if (atom(e))
+      if (atom(exp))
       {
-        return assoc(e, a);
+        return lookup(exp, env);
       }
-      else if (atom(*e))
-      {
-        return invoke(e, a);
-      }
-      else if (**e == symbols.intern("recursive"))
-      {
-        return eval(caddar(e) | cdr(e), list(cadar(e), *e) | a);
-      }
-      else if (**e == symbols.intern("lambda"))
-      {
-        return eval(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
-      }
-      else if (**e == symbols.intern("macro"))
-      {
-        // ((macro (params...) (body...)) args...)
 
-        const auto expanded {eval(caddar(e), append(zip(cadar(e), cdr(e)), a))};
-        //                        ~~~~~~~~~             ~~~~~~~~  ~~~~~~
-        //                        ^ body                ^ params  ^ args
-
-        std::cerr << "-> " << expanded << std::endl;
-
-        return eval(expanded, a);
+      if (auto iter {procedures.find(car(exp))}; iter != std::end(procedures))
+      {
+        return (iter->second)(exp, env);
       }
-      else throw generate_exception(
-        "unexpected evaluation dispatch failure for expression " + to_string(e)
+
+      if (auto callee {evaluate(car(exp), env)}; callee)
+      {
+        if (callee.access().type() == typeid(closure))
+        {
+          return callee.access().as<closure>()(cdr(exp), env);
+        }
+        else
+        {
+          return evaluate(callee | cdr(exp), env);
+        }
+      }
+
+      throw generate_exception(
+        "unexpected evaluation dispatch failure for expression " + to_string(exp)
       );
     }
-
-  private:
-    cursor invoke(cursor sexp, cursor alis) noexcept(false)
-    {
-      if (const auto callee {assoc(*sexp, alis)}; callee) // user defined procedure
-      {
-        return eval(callee | cdr(sexp), alis);
-      }
-      else try
-      {
-        return procedure.at(*sexp)(sexp, alis);
-      }
-      catch (const std::out_of_range& error)
-      {
-        throw generate_exception("using unbound symbol " + to_string(*sexp) + " as procedure");
-      }
-    };
-
-    template <typename... Ts>
-    cursor list(Ts&&... args)
-    {
-      return (args | ... | nil_);
-    };
-
-    cursor append(cursor x, cursor y)
-    {
-      return !x ? y : *x | append(cdr(x), y);
-    }
-
-    cursor zip(cursor x, cursor y)
-    {
-      if (!x && !y)
-      {
-        return nil_;
-      }
-      else if (!atom(x) && !atom(y))
-      {
-        return list(*x, *y) | zip(cdr(x), cdr(y));
-      }
-      else
-      {
-        return nil_;
-      }
-    }
-
-    cursor assoc(cursor sexp, cursor alis)
-    {
-      return !sexp or !alis ? nil_ : sexp == **alis ? cadar(alis) : assoc(sexp, cdr(alis));
-    }
-
-    cursor evcon(cursor sexp, cursor alis)
-    {
-      return eval(**sexp, alis) ? eval(cadar(sexp), alis) : evcon(++sexp, alis);
-    }
-
-    cursor evlis(cursor m, cursor a)
-    {
-      return !m ? nil_ : eval(*m, a) | evlis(cdr(m), a);
-    }
-  } static eval {};
+  }
+#ifndef MEEVAX_DISABLE_IMPLICIT_STATIC_EVALUATOR_INSTANTIATION
+  static eval {};
+#endif
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP

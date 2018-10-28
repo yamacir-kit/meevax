@@ -22,6 +22,12 @@ namespace meevax::lisp
       return os << e.access().as<std::string>();
     }
 
+    // XXX DIRTY HACK
+    if (e.access().type() != typeid(cell))
+    {
+      return os << "<closure>";
+    }
+
     if (abbreviate)
     {
       for (os << "(" << *e; ++e; os << " " << *e)

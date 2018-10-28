@@ -52,10 +52,10 @@ namespace meevax::lisp
       using namespace functional;
 
       return std::empty(*this)
-               ? std::empty(value_) ? symbols.unchecked_reference("nil") : symbols.intern(value_)
-               : fold_right(*this, symbols.unchecked_reference("nil"), [](auto& builder, auto& constructed)
+               ? std::empty(value_) ? symbols("nil") : symbols.intern(value_)
+               : fold_right(*this, symbols("nil"), [](auto& build, auto& tail)
                  {
-                   return builder.build() | constructed;
+                   return build() | tail;
                  });
     }
   };

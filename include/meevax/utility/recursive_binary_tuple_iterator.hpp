@@ -8,25 +8,23 @@
 
 namespace meevax::utility
 {
+  std::size_t countup {0};
+
   template <typename T>
   class recursive_binary_tuple_iterator
-    : public std::shared_ptr<T>
+    : public std::shared_ptr<T>,
+      public std::iterator<std::input_iterator_tag, recursive_binary_tuple_iterator<T>>
   {
     static constexpr std::size_t car {0};
     static constexpr std::size_t cdr {1};
 
   public:
-    using iterator_category = std::input_iterator_tag;
-    using difference_type = std::ptrdiff_t;
-    using value_type = recursive_binary_tuple_iterator<T>;
-    using reference = value_type&;
-    using pointer = value_type;
-
-  public:
     template <typename... Ts>
     constexpr recursive_binary_tuple_iterator(Ts&&... args) noexcept
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
-    {}
+    {
+      ++countup;
+    }
 
     decltype(auto) access() const noexcept
     {

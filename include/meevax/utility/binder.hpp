@@ -6,14 +6,20 @@
 
 #include <meevax/facade/conditionally_trivial_destructible.hpp>
 
+// TODO
+// デフォルト引数用プレースホルダクラスと基底クラスの追加
+// 基底クラス作成の簡易化のためのファサードクラスの追加
+
 namespace meevax::utility
 {
   template <typename T, typename Base>
   struct binder
-    : public facade::conditionally_trivial_destructible<T>,
+    // : public facade::conditionally_trivial_destructible<T>,
+    : public T,
       public Base
   {
-    using bound = facade::conditionally_trivial_destructible<T>;
+    // using bound = facade::conditionally_trivial_destructible<T>;
+    using bound = T;
 
     explicit constexpr binder(const T& value)
       : bound {value}
