@@ -8,6 +8,8 @@
 
 namespace meevax::utility
 {
+  std::size_t countup {0};
+
   template <typename T>
   class recursive_binary_tuple_iterator
     : public std::shared_ptr<T>,
@@ -20,7 +22,9 @@ namespace meevax::utility
     template <typename... Ts>
     constexpr recursive_binary_tuple_iterator(Ts&&... args) noexcept
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
-    {}
+    {
+      ++countup;
+    }
 
     decltype(auto) access() const noexcept
     {

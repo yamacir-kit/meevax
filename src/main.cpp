@@ -28,7 +28,8 @@ int main()
     std::cout << "-> " << evaluated << std::endl;
 
     continuation.clear();
-    std::cout << std::endl;
+    std::cout << utility::countup << std::endl;
+    utility::countup = 0;
   }
   catch (const std::string& unbalance_expression)
   {

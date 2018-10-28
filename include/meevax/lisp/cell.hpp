@@ -71,17 +71,6 @@ namespace meevax::lisp
 
     return !e || dispatch.at(e.access().type());
   }
-
-  auto cons = [](auto&&... args) -> cursor
-  {
-    return std::make_shared<cell>(std::forward<decltype(args)>(args)...);
-  };
-
-  template <typename T, typename U>
-  decltype(auto) operator|(T&& head, U&& tail)
-  {
-    return cons(std::forward<T>(head), std::forward<U>(tail));
-  }
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP
