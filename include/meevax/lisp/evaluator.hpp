@@ -20,7 +20,7 @@ namespace meevax::lisp
   {
     cursor env_;
 
-    using procedure = std::function<cursor (cursor, cursor)>;
+    using procedure = std::function<cursor (const cursor&, const cursor&)>;
     std::unordered_map<std::shared_ptr<cell>, procedure> procedures;
 
     // TODO
@@ -119,9 +119,7 @@ namespace meevax::lisp
     }
 
   protected:
-    // TODO
-    // コピー削減のためなるべく右辺値参照にすること
-    cursor evaluate(cursor exp, cursor env)
+    cursor evaluate(const cursor& exp, cursor env)
     {
       if (atom(exp))
       {
@@ -152,30 +150,10 @@ namespace meevax::lisp
     }
 
   private:
-    cursor zip(cursor x, cursor y)
+    cursor evlis(const cursor& exp, const cursor& env)
     {
-      if (!x && !y)
-      {
-        return symbols("nil");
-      }
-      else if (!atom(x) && !atom(y))
-      {
-        return list(*x, *y) | zip(cdr(x), cdr(y));
-      }
-      else
-      {
-        return symbols("nil");
-      }
-    }
-
-    cursor lookup(cursor var, cursor env)
-    {
-      return !var or !env ? symbols("nil") : var == **env ? cadar(env) : lookup(var, cdr(env));
-    };
-
-    cursor evlis(cursor m, cursor a)
-    {
-      return !m ? symbols("nil") : evaluate(*m, a) | evlis(cdr(m), a);
+      return !exp ? symbols("nil")
+                   : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }
   } static eval {};
 } // namespace meevax::lisp
