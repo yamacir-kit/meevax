@@ -24,6 +24,9 @@ namespace meevax::lisp
       std::function<cursor (cursor, cursor)>
     > procedure;
 
+    // TODO
+    // プライベートメンバ関数をクロージャクラスのメンバに変更すること
+    // クロージャクラスを独立したヘッダに移動すること
     struct closure
     {
       cursor exp, env;
@@ -82,10 +85,7 @@ namespace meevax::lisp
       {
         using binder = utility::binder<closure, cell>;
         return std::make_shared<binder>(exp, env);
-               //   std::forward<decltype(exp)>(exp),
-               //   std::forward<decltype(env)>(env)
-               // );
-      } );
+      });
 
       define("define", [&](auto value, auto)
       {
@@ -120,50 +120,6 @@ namespace meevax::lisp
     }
 
   protected:
-    cursor evaluate_(cursor e, cursor a)
-    {
-      if (atom(e))
-      {
-        // TODO self evaluating?
-
-        // TODO variable?
-        return lookup(e, a);
-        //     ~~~~~~~~~~~~
-        //     ^ lookup variable value
-      }
-      else if (atom(*e))
-      {
-        return invoke(e, a);
-      }
-      // else if (**e == symbols.intern("recursive"))
-      // {
-      //   return evaluate(caddar(e) | cdr(e), list(cadar(e), *e) | a);
-      // }
-      else if (**e == symbols.intern("lambda"))
-      {
-        // ((lambda (params...) body) args...)
-
-        return evaluate(caddar(e), append(zip(cadar(e), evlis(cdr(e), a)), a));
-        //          ~~~~~~~~~             ~~~~~~~~        ~~~~~~
-        //          ^ body                ^ params        ^ args
-      }
-      else if (**e == symbols.intern("macro"))
-      {
-        // ((macro (params...) (body...)) args...)
-
-        const auto expanded {evaluate(caddar(e), append(zip(cadar(e), cdr(e)), a))};
-        //                            ~~~~~~~~~             ~~~~~~~~  ~~~~~~
-        //                            ^ body                ^ params  ^ args
-
-        std::cerr << "-> " << expanded << std::endl;
-
-        return evaluate(expanded, a);
-      }
-      else throw generate_exception(
-        "unexpected evaluation dispatch failure for expression " + to_string(e)
-      );
-    }
-
     cursor evaluate(cursor exp, cursor env)
     {
       if (atom(exp))
@@ -180,14 +136,8 @@ namespace meevax::lisp
       {
         if (callee.access().type() == typeid(closure))
         {
-          const auto closure_ {(callee).access().as<closure>()};
-          return evaluate(
-                   caddr(closure_.exp),
-                   append(
-                     zip(cadr(closure_.exp), evlis(cdr(exp), env)),
-                     closure_.env
-                   )
-                 );
+          const auto closure {callee.access().as<evaluator::closure>()};
+          return evaluate(caddr(closure.exp), append(zip(cadr(closure.exp), evlis(cdr(exp), env)), closure.env));
         }
         else
         {
@@ -201,27 +151,6 @@ namespace meevax::lisp
     }
 
   private:
-    cursor invoke(cursor e, cursor a)
-    {
-      if (const auto iter {procedure.find(*e)}; iter != std::end(procedure))
-      //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      //  ^ primitive procedure?
-      {
-        return iter->second(e, a);
-        //     ~~~~~~~~~~~~~~~~~~
-        //     ^ apply primive procedure
-      }
-      else if (auto callee {evaluate(*e, a)}; callee)
-      //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      //       ^ compound procedure?
-      {
-        return evaluate(callee | cdr(e), a);
-      }
-      else throw generate_exception(
-        "using inapplicable symbol " + to_string(*e) + " as procedure"
-      );
-    }
-
     template <typename... Ts>
     cursor list(Ts&&... args)
     {
