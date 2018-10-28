@@ -11,6 +11,7 @@
 #include <meevax/functional/combinator.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/exception.hpp>
+#include <meevax/lisp/list.hpp>
 #include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
@@ -151,17 +152,6 @@ namespace meevax::lisp
     }
 
   private:
-    template <typename... Ts>
-    cursor list(Ts&&... args)
-    {
-      return (args | ... | symbols("nil"));
-    };
-
-    cursor append(cursor x, cursor y)
-    {
-      return !x ? y : *x | append(cdr(x), y);
-    }
-
     cursor zip(cursor x, cursor y)
     {
       if (!x && !y)
@@ -181,7 +171,7 @@ namespace meevax::lisp
     cursor lookup(cursor var, cursor env)
     {
       return !var or !env ? symbols("nil") : var == **env ? cadar(env) : lookup(var, cdr(env));
-    }
+    };
 
     cursor evlis(cursor m, cursor a)
     {
