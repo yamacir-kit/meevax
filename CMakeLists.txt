@@ -3,11 +3,15 @@ cmake_minimum_required(VERSION 3.5.1)
 set(MAJOR 0)
 set(MAJOR_OFFSET 0)
 
-set(MINOR 0)
-set(MINOR_OFFSET 0)
+set(MINOR 1)
+set(MINOR_OFFSET 174)
 
-execute_process(COMMAND git log --oneline COMMAND wc --lines OUTPUT_VARIABLE TOTAL_COMMITS)
-math(EXPR SUBMINOR "${TOTAL_COMMITS} - ${MAJOR_OFFSET} - ${MINOR_OFFSET}")
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  execute_process(COMMAND git log --oneline COMMAND wc --lines OUTPUT_VARIABLE TOTAL_COMMITS)
+  math(EXPR SUBMINOR "${TOTAL_COMMITS} - ${MAJOR_OFFSET} - ${MINOR_OFFSET}")
+else()
+  set(SUBMINOR 0)
+endif()
 
 project(meevax VERSION ${MAJOR}.${MINOR}.${SUBMINOR} LANGUAGES CXX)
 
