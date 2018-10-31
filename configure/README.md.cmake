@@ -14,18 +14,17 @@ Installation has been tested on Ubuntu 16.04 only.
 - **Boost C++ Libraries ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}** (Ubuntu 16.04 default) or later
 - **CMake 3.5.1** (Ubuntu 16.04 default) or later
 
-### Ubuntu (16.04 or later)
+### Ubuntu 16.04
 
 ``` bash
 sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 sudo apt update
 sudo apt install g++-7 libboost-all-dev
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
 
 git clone -b master http://github.com/yamacir-kit/meevax.git
 mkdir -p meevax/build
 cd meevax/build
-cmake ..
+cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-7
 make
 ```
 

@@ -4,7 +4,7 @@ set(MAJOR 0)
 set(MAJOR_OFFSET 0)
 
 set(MINOR 1)
-set(MINOR_OFFSET 174)
+set(MINOR_OFFSET 191)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   execute_process(COMMAND git log --oneline COMMAND wc --lines OUTPUT_VARIABLE TOTAL_COMMITS)
