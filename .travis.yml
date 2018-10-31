@@ -8,13 +8,12 @@ before_install:
 
 install:
   - sudo apt install -qq g++-7 libboost-all-dev
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
 
 before_script:
   - mkdir -p build
   - cd build
 
 script:
-  - cmake ..
+  - cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-7
   - make
 
