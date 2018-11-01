@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_FUNCTIONAL_COMBINATOR_HPP
-#define INCLUDED_MEEVAX_FUNCTIONAL_COMBINATOR_HPP
+#ifndef INCLUDED_MEEVAX_LAMBDA_CALCULUS_COMBINATOR_HPP
+#define INCLUDED_MEEVAX_LAMBDA_CALCULUS_COMBINATOR_HPP
 
 #include <utility>
 
-#include <meevax/functional/curry.hpp>
+#include <meevax/lambda_calculus/curry.hpp>
 
-namespace meevax::functional
+namespace meevax::lambda_calculus
 {
   auto y = [](auto&& lambda) constexpr
     -> decltype(auto)
@@ -22,7 +22,7 @@ namespace meevax::functional
   {
     return curry(std::forward<decltype(lambda)>(lambda))(std::forward<decltype(lambda)>(lambda));
   };
-};
+} // namespace meevax::lambda_calculus
 
-#endif // INCLUDED_MEEVAX_FUNCTIONAL_COMBINATOR_HPP
+#endif // INCLUDED_MEEVAX_LAMBDA_CALCULUS_COMBINATOR_HPP
 

@@ -8,7 +8,7 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/functional/combinator.hpp>
+#include <meevax/lambda_calculus/combinator.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/list.hpp>
@@ -51,7 +51,7 @@ namespace meevax::lisp
     evaluator()
       : env_ {symbols("nil")}
     {
-      using namespace meevax::functional;
+      using namespace meevax::lambda_calculus;
 
       symbols.intern("true");
 
@@ -77,7 +77,7 @@ namespace meevax::lisp
 
       define("cond", [&](auto exp, auto env)
       {
-        return z([&](auto&& proc, auto&& exp, auto&& env) -> cursor
+        return y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
         {
           return evaluate(**exp, env) ? evaluate(cadar(exp), env) : proc(proc, ++exp, env);
         })(++exp, env);
@@ -111,7 +111,7 @@ namespace meevax::lisp
 
       define("list", [&](auto e, auto a)
       {
-        return z([&](auto proc, auto e, auto a) -> cursor
+        return y([&](auto proc, auto e, auto a) -> cursor
         {
           return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
         })(++e, a);
