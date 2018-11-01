@@ -5,8 +5,8 @@
 #include <list>
 #include <string>
 
-#include <meevax/functional/fold.hpp>
 #include <meevax/lisp/cell.hpp>
+#include <meevax/utility/fold.hpp>
 
 namespace meevax::lisp
 {
@@ -49,14 +49,18 @@ namespace meevax::lisp
   protected:
     cursor build() const
     {
-      using namespace functional;
-
-      return std::empty(*this)
-               ? std::empty(value_) ? symbols("nil") : symbols.intern(value_)
-               : fold_right(*this, symbols("nil"), [](auto& build, auto& tail)
-                 {
-                   return build() | tail;
-                 });
+      if (std::empty(*this))
+      {
+        return std::empty(value_) ? symbols("nil") : symbols.intern(value_);
+      }
+      else
+      {
+        using namespace utility;
+        return fold_right(std::begin(*this), std::end(*this), symbols("nil"), [](auto& head, auto& tail)
+        {
+          return head() | tail;
+        });
+      }
     }
   };
 } // namespace meevax::lisp
