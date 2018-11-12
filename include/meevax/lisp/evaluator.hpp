@@ -8,7 +8,7 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/lambda_calculus/combinator.hpp>
+#include <meevax/lambda/recursion.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/list.hpp>
@@ -51,7 +51,7 @@ namespace meevax::lisp
     evaluator()
       : env_ {symbols("nil")}
     {
-      using namespace meevax::lambda_calculus;
+      using namespace meevax::lambda;
 
       symbols.intern("true");
 

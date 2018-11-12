@@ -1,7 +1,7 @@
-#ifndef INCLUDED_MEEVAX_LAMBDA_CALCULUS_CURRY_HPP
-#define INCLUDED_MEEVAX_LAMBDA_CALCULUS_CURRY_HPP
+#ifndef INCLUDED_MEEVAX_LAMBDA_CURRY_HPP
+#define INCLUDED_MEEVAX_LAMBDA_CURRY_HPP
 
-namespace meevax::lambda_calculus
+namespace meevax::lambda
 {
   template <typename F>
   constexpr decltype(auto) curry(F&& f)
@@ -15,7 +15,7 @@ namespace meevax::lambda_calculus
       };
     };
   }
-} // namespace meevax::lambda_calculus
+} // namespace meevax::lambda
 
-#endif // INCLUDED_MEEVAX_LAMBDA_CALCULUS_CURRY_HPP
+#endif // INCLUDED_MEEVAX_LAMBDA_CURRY_HPP
 
