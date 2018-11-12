@@ -1,19 +1,17 @@
-#ifndef INCLUDED_MEEVAX_UTILITY_BINDER_HPP
-#define INCLUDED_MEEVAX_UTILITY_BINDER_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
+#define INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
 
 #include <typeinfo>
 #include <utility>
 
-// TODO
-// デフォルト引数用プレースホルダクラスと基底クラスの追加
-// 基底クラス作成の簡易化のためのファサードクラスの追加
+#include <meevax/facade/identity.hpp>
 
 namespace meevax::utility
 {
-  template <typename T, typename Base>
+  template <typename T, typename U>
   struct binder
     : public T,
-      public Base
+      public U
   {
     template <typename... Ts>
     explicit constexpr binder(Ts&&... xs)
@@ -28,5 +26,5 @@ namespace meevax::utility
   };
 } // namespace meevex::utility
 
-#endif // INCLUDED_MEEVAX_UTILITY_BINDER_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
 
