@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_FUNCTIONAL_FOLD_HPP
-#define INCLUDED_MEEVAX_FUNCTIONAL_FOLD_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_FOLD_HPP
+#define INCLUDED_MEEVAX_UTILITY_FOLD_HPP
 
 #include <iterator>
 #include <numeric>
 #include <utility>
 
-namespace meevax::functional
+namespace meevax::utility
 {
   template <typename... Ts>
   decltype(auto) fold(Ts&&... args)
@@ -16,7 +16,7 @@ namespace meevax::functional
   template <typename InputIterator, typename T, typename BinaryOperation>
   decltype(auto) fold_right(InputIterator&& begin, InputIterator&& end, T&& init, BinaryOperation operation = std::plus<T> {})
   {
-    return fold(
+    return std::accumulate(
              std::reverse_iterator {std::forward<InputIterator>(end)},
              std::reverse_iterator {std::forward<InputIterator>(begin)},
              std::forward<T>(init),
@@ -40,7 +40,7 @@ namespace meevax::functional
              std::forward<BinaryOperation>(operation)
            );
   }
-} // namespace meevax::functional
+} // namespace meevax::utility
 
-#endif // INCLUDED_MEEVAX_FUNCTIONAL_FOLD_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_FOLD_HPP
 
