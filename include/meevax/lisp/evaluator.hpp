@@ -35,7 +35,7 @@ namespace meevax::lisp
           env_ {env}
       {}
 
-      decltype(auto) operator()(const cursor& args, const cursor& env)
+      decltype(auto) operator()(const cursor& args, const cursor& env) const
       {
         return evaluate(caddr(exp_), append(zip(cadr(exp_), evlis(args, env)), env_));
       }

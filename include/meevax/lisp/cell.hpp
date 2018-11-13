@@ -3,10 +3,12 @@
 
 #include <memory>
 #include <string>
+#include <tuple>
 #include <typeindex>
 #include <typeinfo>
 #include <utility>
 
+#include <meevax/facade/identity.hpp>
 #include <meevax/utility/type_erasure.hpp>
 #include <meevax/utility/heterogeneous_dictionary.hpp>
 #include <meevax/utility/recursive_binary_tuple_iterator.hpp>
@@ -33,31 +35,20 @@ namespace meevax::lisp
   };
 
   struct cell
-    : public std::pair<cursor, cursor>
+    : public std::tuple<cursor, cursor>,
+      public facade::identity<cell>
   {
     template <typename T>
     constexpr cell(T&& head)
-      : std::pair<cursor, cursor> {std::forward<T>(head), symbols.intern("nil")}
+      : std::tuple<cursor, cursor> {std::forward<T>(head), symbols.intern("nil")}
     {}
 
     template <typename... Ts>
     constexpr cell(Ts&&... args)
-      : std::pair<cursor, cursor> {std::forward<Ts>(args)...}
+      : std::tuple<cursor, cursor> {std::forward<Ts>(args)...}
     {}
 
     virtual ~cell() = default;
-
-    template <typename T>
-    auto as() const
-    {
-      return dynamic_cast<const T&>(*this);
-    }
-
-    virtual auto type() const noexcept
-      -> const std::type_info&
-    {
-      return typeid(cell);
-    }
   };
 
   template <typename T>
