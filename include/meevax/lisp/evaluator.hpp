@@ -25,18 +25,20 @@ namespace meevax::lisp
 
     std::mutex mutex_;
 
-    class closure
+    struct closure
+      : public virtual cell
     {
-      cursor exp_, env_;
-
-    public:
-      explicit closure(const cursor& exp, const cursor& env)
-        : exp_ {exp},
-          env_ {env}
-      {}
+      template <typename... Ts>
+      explicit constexpr closure(Ts&&... args)
+      {
+        cell::operator=({std::forward<Ts>(args)...});
+      }
 
       decltype(auto) operator()(const cursor& args, const cursor& env) const
       {
+        const auto exp_ {std::get<0>(*this)};
+        const auto env_ {std::get<1>(*this)};
+
         return evaluate(caddr(exp_), append(zip(cadr(exp_), evlis(args, env)), env_));
       }
 
@@ -51,8 +53,6 @@ namespace meevax::lisp
     evaluator()
       : env_ {symbols("nil")}
     {
-      using namespace meevax::lambda;
-
       symbols.intern("true");
 
       define("quote", [](auto exp, auto)
@@ -77,7 +77,7 @@ namespace meevax::lisp
 
       define("cond", [&](auto exp, auto env)
       {
-        return y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
+        return lambda::y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
         {
           return evaluate(**exp, env) ? evaluate(cadar(exp), env) : proc(proc, ++exp, env);
         })(++exp, env);
@@ -111,7 +111,7 @@ namespace meevax::lisp
 
       define("list", [&](auto e, auto a)
       {
-        return y([&](auto proc, auto e, auto a) -> cursor
+        return lambda::y([&](auto proc, auto e, auto a) -> cursor
         {
           return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
         })(++e, a);
