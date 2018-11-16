@@ -7,6 +7,7 @@
 
 namespace meevax::lisp
 {
+  // クロージャは関数とそれ自身が定義された環境のペア
   struct closure
     : public virtual cell
   {

@@ -36,66 +36,81 @@ namespace meevax::lisp
     {
       intern("true", symbols);
 
-      define("quote", [](auto exp, auto)
+      define("quote", [&](auto&& exp, auto)
       {
         return cadr(exp);
       });
 
-      define("atom", [&](auto exp, auto env)
+      define("atom", [&](auto&& exp, auto&& env)
       {
-        return atom(evaluate(cadr(exp), env)) ? lookup("true", symbols) : lookup("nil", symbols);
+        return lookup(
+          atom(evaluate(cadr(exp), env)) ? "true" : "nil",
+          symbols
+        );
       });
 
-      define("eq", [&](auto e, auto a)
+      define("eq", [&](auto&& exp, auto&& env)
       {
-        return evaluate(cadr(e), a) == evaluate(caddr(e), a) ? lookup("true", symbols) : lookup("nil", symbols);
+        return lookup(
+          evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? "true" : "nil",
+          symbols
+        );
       });
 
-      define("if", [&](auto e, auto a)
+      define("if", [&](auto&& exp, auto&& env)
       {
-        return evaluate(*++e, a) ? evaluate(cadr(e), a) : evaluate(caddr(e), a);
+        return evaluate(
+          evaluate(cadr(exp), env) ? caddr(exp) : cadddr(exp),
+          env
+        );
       });
 
-      define("cond", [&](auto exp, auto env)
+      define("cond", [&](auto&& exp, auto&& env)
       {
-        return lambda::y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
-        {
-          return evaluate(**exp, env) ? evaluate(cadar(exp), env) : proc(proc, ++exp, env);
-        })(++exp, env);
+        const auto buffer {
+          std::find_if(cdr(exp), lookup("nil", symbols), [&](auto iter)
+          {
+            return evaluate(car(iter), env);
+          })
+        };
+        return evaluate(cadar(buffer), env);
       });
 
-      define("car", [&](auto e, auto a)
+      define("car", [&](auto&& exp, auto&& env)
       {
-        return *evaluate(*++e, a);
+        return car(evaluate(cadr(exp), env));
       });
 
-      define("cdr", [&](auto e, auto a)
+      define("cdr", [&](auto&& exp, auto&& env)
       {
-        return ++evaluate(*++e, a);
+        return cdr(evaluate(cadr(exp), env));
       });
 
-      define("cons", [&](auto e, auto a)
+      define("cons", [&](auto&& e, auto&& a)
       {
         return evaluate(cadr(e), a) | evaluate(caddr(e), a);
       });
 
-      define("lambda", [&](auto exp, auto env)
+      define("lambda", [&](auto&& exp, auto&& env)
       {
         using binder = utility::binder<closure, cell>;
         return std::make_shared<binder>(exp, env);
       });
 
-      define("define", [&](auto value, auto)
+      define("define", [&](auto&& var, auto)
       {
-        return lookup(cadr(value), env_ = list(cadr(value), caddr(value)) | env_);
+        return lookup(
+          cadr(var),
+          env_ = list(cadr(var), caddr(var)) | env_
+        );
       });
 
-      define("list", [&](auto e, auto a)
+      define("list", [&](auto&& exp, auto&& env)
       {
-        return lambda::y([&](auto proc, auto e, auto a) -> cursor
+        return lambda::y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
         {
-          return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : lookup("nil", symbols));
-        })(++e, a);
+          return evaluate(car(exp), env) | (cdr(exp) ? proc(proc, cdr(exp), env) : lookup("nil", symbols));
+        })(cdr(exp), env);
       });
 
       define("exit", [&](auto, auto)
@@ -149,18 +164,7 @@ namespace meevax::lisp
 
     cursor apply(const closure& closure, const cursor& args, const cursor& env) const
     {
-      const auto& exp_ {std::get<0>(closure)};
-      const auto& env_ {std::get<1>(closure)};
-
-      return evaluate(
-        caddr(exp_), // closure body
-        append(
-          zip(
-            cadr(exp_), // closure parameters
-            evlis(args, env) // evaluate arguments
-          ), env_
-        ) // extend
-      );
+      return evaluate(caddar(closure), append(zip(cadar(closure), evlis(args, env)), cdr(closure)));
     }
 
     cursor evlis(const cursor& exp, const cursor& env) const
