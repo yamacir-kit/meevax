@@ -6,6 +6,7 @@
 #include <string>
 
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/list.hpp>
 #include <meevax/utility/fold.hpp>
 
 namespace meevax::lisp
@@ -51,12 +52,12 @@ namespace meevax::lisp
     {
       if (std::empty(*this))
       {
-        return std::empty(value_) ? symbols("nil") : symbols.intern(value_);
+        return std::empty(value_) ? lookup("nil", symbols) : intern(value_, symbols);
       }
       else
       {
         using namespace utility;
-        return fold_right(std::begin(*this), std::end(*this), symbols("nil"), [](auto& head, auto& tail)
+        return fold_right(std::begin(*this), std::end(*this), lookup("nil", symbols), [](auto& head, auto& tail)
         {
           return head() | tail;
         });

@@ -6,12 +6,12 @@
 #include <tuple>
 #include <typeindex>
 #include <typeinfo>
+#include <unordered_map>
 #include <utility>
 
 #include <meevax/facade/identity.hpp>
 #include <meevax/tuple/accessor.hpp>
 #include <meevax/tuple/iterator.hpp>
-#include <meevax/utility/heterogeneous_dictionary.hpp>
 #include <meevax/utility/type_erasure.hpp>
 
 namespace meevax::lisp
@@ -21,7 +21,7 @@ namespace meevax::lisp
   using cursor = tuple::iterator<cell>;
 
   template <typename T>
-  struct bind
+  struct [[deprecated]] bind
   {
     template <typename... Ts>
     cursor operator()(Ts&&... args)
@@ -31,7 +31,7 @@ namespace meevax::lisp
     }
   };
 
-  utility::heterogeneous_dictionary<cursor, bind<std::string>> symbols {
+  std::unordered_map<std::string, cursor> symbols {
     std::make_pair("nil", cursor {nullptr})
   };
 
@@ -39,11 +39,6 @@ namespace meevax::lisp
     : public std::tuple<cursor, cursor>,
       public facade::identity<cell>
   {
-    template <typename T>
-    constexpr cell(T&& head)
-      : std::tuple<cursor, cursor> {std::forward<T>(head), symbols.intern("nil")}
-    {}
-
     template <typename... Ts>
     constexpr cell(Ts&&... args)
       : std::tuple<cursor, cursor> {std::forward<Ts>(args)...}

@@ -45,15 +45,15 @@ namespace meevax::lisp
     protected:
       cursor evlis(const cursor& exp, const cursor& env) const
       {
-        return !exp ? symbols("nil") : evaluate(car(exp), env) | evlis(cdr(exp), env);
+        return !exp ? lookup("nil", symbols) : evaluate(car(exp), env) | evlis(cdr(exp), env);
       }
     };
 
   public:
     evaluator()
-      : env_ {symbols("nil")}
+      : env_ {lookup("nil", symbols)}
     {
-      symbols.intern("true");
+      intern("true", symbols);
 
       define("quote", [](auto exp, auto)
       {
@@ -62,12 +62,12 @@ namespace meevax::lisp
 
       define("atom", [&](auto exp, auto env)
       {
-        return atom(evaluate(cadr(exp), env)) ? symbols("true") : symbols("nil");
+        return atom(evaluate(cadr(exp), env)) ? lookup("true", symbols) : lookup("nil", symbols);
       });
 
       define("eq", [&](auto e, auto a)
       {
-        return evaluate(cadr(e), a) == evaluate(caddr(e), a) ? symbols("true") : symbols("nil");
+        return evaluate(cadr(e), a) == evaluate(caddr(e), a) ? lookup("true", symbols) : lookup("nil", symbols);
       });
 
       define("if", [&](auto e, auto a)
@@ -113,7 +113,7 @@ namespace meevax::lisp
       {
         return lambda::y([&](auto proc, auto e, auto a) -> cursor
         {
-          return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
+          return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : lookup("nil", symbols));
         })(++e, a);
       });
 
@@ -134,7 +134,7 @@ namespace meevax::lisp
     void define(S&& s, F&& functor)
     {
       std::lock_guard<std::mutex> lock {mutex_};
-      procedures.emplace(symbols.intern(s), functor);
+      procedures.emplace(intern(s, symbols), functor);
     }
 
   protected:
