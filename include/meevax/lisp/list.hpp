@@ -6,12 +6,22 @@
 
 #include <meevax/lisp/cell.hpp>
 
+#define caar(e) car(car(e))
+#define cadar(e) car(cdr(car(e)))
+#define caddar(e) car(cdr(cdr(car(e))))
+
+#define cadr(e) car(cdr(e))
+#define caddr(e) car(cdr(cdr(e)))
+#define cadddr(e) car(cdr(cdr(cdr(e))))
+
 namespace meevax::lisp
 {
+  tuple::accessor<0> car {};
+  tuple::accessor<1> cdr {};
+
   auto cons = [](auto&& head, auto&& tail) -> cursor
   {
-    return std::make_shared<cell>(std::forward<decltype(head)>(head),
-                                  std::forward<decltype(tail)>(tail));
+    return std::make_shared<cell>(head, tail);
   };
 
   template <typename T, typename U>

@@ -12,25 +12,13 @@
 #include <meevax/tuple/accessor.hpp>
 #include <meevax/tuple/iterator.hpp>
 #include <meevax/utility/heterogeneous_dictionary.hpp>
-// #include <meevax/utility/recursive_binary_tuple_iterator.hpp>
 #include <meevax/utility/type_erasure.hpp>
-
-#define caar(e) car(car(e))
-#define cadar(e) car(cdr(car(e)))
-#define caddar(e) car(cdr(cdr(car(e))))
-
-#define cadr(e) car(cdr(e))
-#define caddr(e) car(cdr(cdr(e)))
-#define cadddr(e) car(cdr(cdr(cdr(e))))
 
 namespace meevax::lisp
 {
   class cell;
 
   using cursor = tuple::iterator<cell>;
-
-  tuple::accessor<0> car {};
-  tuple::accessor<1> cdr {};
 
   template <typename T>
   struct bind
