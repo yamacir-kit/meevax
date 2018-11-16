@@ -152,9 +152,9 @@ namespace meevax::lisp
 
       if (auto callee {evaluate(car(exp), env)}; callee)
       {
-        if (callee.access().type() == typeid(closure))
+        if (callee->type() == typeid(closure))
         {
-          return callee.access().as<closure>()(cdr(exp), env);
+          return callee->as<closure>()(cdr(exp), env);
         }
         else
         {

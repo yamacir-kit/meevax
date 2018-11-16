@@ -8,6 +8,7 @@
 
 namespace meevax::lisp
 {
+  // TODO command line parameter
   bool abbreviate {true};
 
   std::ostream& operator<<(std::ostream& os, cursor e)
@@ -17,13 +18,13 @@ namespace meevax::lisp
       return os << "nil";
     }
 
-    if (e.access().type() == typeid(std::string))
+    if (e->type() == typeid(std::string))
     {
-      return os << e.access().as<std::string>();
+      return os << e->as<std::string>();
     }
 
     // XXX DIRTY HACK
-    if (e.access().type() != typeid(cell))
+    if (e->type() != typeid(cell))
     {
       return os << "<closure>";
     }
@@ -32,7 +33,7 @@ namespace meevax::lisp
     {
       for (os << "(" << *e; ++e; os << " " << *e)
       {
-        if (e.access().type() != typeid(cell))
+        if (e->type() != typeid(cell))
         {
           return os << " . " << e << ")";
         }
