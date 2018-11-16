@@ -51,18 +51,6 @@ namespace meevax::lisp
 
     virtual ~cell() = default;
   };
-
-  template <typename T>
-  bool atom(T&& e)
-  {
-    static const std::unordered_map<std::type_index, bool> dispatch
-    {
-      {typeid(cell), false},
-      {typeid(std::string), true}
-    };
-
-    return !e || dispatch.at(e->type());
-  }
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP

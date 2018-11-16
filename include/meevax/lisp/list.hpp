@@ -30,6 +30,18 @@ namespace meevax::lisp
     return cons(std::forward<T>(head), std::forward<U>(tail));
   }
 
+  template <typename T>
+  bool atom(T&& e)
+  {
+    static const std::unordered_map<std::type_index, bool> dispatch
+    {
+      {typeid(cell), false},
+      {typeid(std::string), true}
+    };
+
+    return !e || dispatch.at(e->type());
+  }
+
   auto list = [](auto&&... args) constexpr
   {
     return (args | ... | symbols("nil"));
