@@ -114,7 +114,7 @@ namespace meevax::lisp
       });
 
       define("exit", [&](auto, auto)
-        -> cursor
+        -> const cursor&
       {
         std::exit(boost::exit_success);
       });

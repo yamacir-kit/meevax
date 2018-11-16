@@ -4,8 +4,6 @@
 #include <typeinfo>
 #include <utility>
 
-#include <meevax/facade/identity.hpp>
-
 namespace meevax::utility
 {
   template <typename T, typename U>

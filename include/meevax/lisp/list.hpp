@@ -3,9 +3,13 @@
 
 #include <cassert>
 #include <iterator>
+#include <typeindex>
+#include <typeinfo>
 #include <utility>
 
 #include <meevax/lisp/cell.hpp>
+#include <meevax/tuple/accessor.hpp>
+#include <meevax/utility/type_erasure.hpp>
 
 #define caar(e) car(car(e))
 #define cadar(e) car(cdr(car(e)))
