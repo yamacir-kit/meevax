@@ -10,23 +10,13 @@
 
 #include <meevax/lambda/recursion.hpp>
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/closure.hpp>
 #include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/list.hpp>
 #include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
 {
-  struct closure
-    : public virtual cell
-  {
-    template <typename... Ts>
-    explicit constexpr closure(Ts&&... args)
-    {
-      // XXX DIRTY HACK
-      cell::operator=({std::forward<Ts>(args)...});
-    }
-  };
-
   class evaluator
   {
     cursor env_;
@@ -164,7 +154,12 @@ namespace meevax::lisp
 
       return evaluate(
         caddr(exp_), // closure body
-        append(zip(cadr(exp_), evlis(args, env)), env_) // extend env
+        append(
+          zip(
+            cadr(exp_), // closure parameters
+            evlis(args, env) // evaluate arguments
+          ), env_
+        ) // extend
       );
     }
 
