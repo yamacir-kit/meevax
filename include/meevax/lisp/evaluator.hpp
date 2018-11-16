@@ -16,38 +16,29 @@
 
 namespace meevax::lisp
 {
+  struct closure
+    : public virtual cell
+  {
+    template <typename... Ts>
+    explicit constexpr closure(Ts&&... args)
+    {
+      // XXX DIRTY HACK
+      cell::operator=({std::forward<Ts>(args)...});
+    }
+  };
+
   class evaluator
   {
     cursor env_;
 
     using procedure = std::function<cursor (const cursor&, const cursor&)>;
-    static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
+
+    // TODO rename to "primitives"?
+    static inline std::unordered_map<
+      std::shared_ptr<cell>, procedure
+    > procedures {};
 
     std::mutex mutex_;
-
-    struct closure
-      : public virtual cell
-    {
-      template <typename... Ts>
-      explicit constexpr closure(Ts&&... args)
-      {
-        cell::operator=({std::forward<Ts>(args)...});
-      }
-
-      decltype(auto) operator()(const cursor& args, const cursor& env) const
-      {
-        const auto exp_ {std::get<0>(*this)};
-        const auto env_ {std::get<1>(*this)};
-
-        return evaluate(caddr(exp_), append(zip(cadr(exp_), evlis(args, env)), env_));
-      }
-
-    protected:
-      cursor evlis(const cursor& exp, const cursor& env) const
-      {
-        return !exp ? lookup("nil", symbols) : evaluate(car(exp), env) | evlis(cdr(exp), env);
-      }
-    };
 
   public:
     evaluator()
@@ -138,33 +129,48 @@ namespace meevax::lisp
     }
 
   protected:
-    static cursor evaluate(const cursor& exp, cursor env)
+    cursor evaluate(const cursor& exp, cursor env) const
     {
       if (atom(exp))
       {
         return lookup(exp, env);
       }
-
-      if (auto iter {procedures.find(car(exp))}; iter != std::end(procedures))
+      // primitive procedure?
+      else if (auto iter {procedures.find(car(exp))}; iter != std::end(procedures))
       {
         return (iter->second)(exp, env);
       }
-
-      if (auto callee {evaluate(car(exp), env)}; callee)
+      else if (auto callee {evaluate(car(exp), env)}; callee)
       {
         if (callee->type() == typeid(closure))
         {
-          return callee->as<closure>()(cdr(exp), env);
+          // apply compound procedure
+          return apply(callee->as<closure>(), cdr(exp), env);
         }
         else
         {
           return evaluate(callee | cdr(exp), env);
         }
       }
-
-      throw generate_exception(
+      else throw generate_exception(
         "unexpected evaluation dispatch failure for expression " + to_string(exp)
       );
+    }
+
+    cursor apply(const closure& closure, const cursor& args, const cursor& env) const
+    {
+      const auto& exp_ {std::get<0>(closure)};
+      const auto& env_ {std::get<1>(closure)};
+
+      return evaluate(
+        caddr(exp_), // closure body
+        append(zip(cadr(exp_), evlis(args, env)), env_) // extend env
+      );
+    }
+
+    cursor evlis(const cursor& exp, const cursor& env) const
+    {
+      return !exp ? lookup("nil", symbols) : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }
   }
 #ifndef MEEVAX_DISABLE_IMPLICIT_STATIC_EVALUATOR_INSTANTIATION
