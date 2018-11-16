@@ -97,6 +97,7 @@ namespace meevax::lisp
         return std::make_shared<binder>(exp, env);
       });
 
+      // イミュータブルな操作を実行できる式は特別扱いするか？
       define("define", [&](auto&& var, auto)
       {
         return lookup(
@@ -134,13 +135,12 @@ namespace meevax::lisp
     }
 
   protected:
-    cursor evaluate(const cursor& exp, cursor env) const
+    cursor evaluate(const cursor& exp, const cursor& env) const
     {
       if (atom(exp))
       {
         return lookup(exp, env);
       }
-      // primitive procedure?
       else if (auto iter {procedures.find(car(exp))}; iter != std::end(procedures))
       {
         return (iter->second)(exp, env);
@@ -149,7 +149,6 @@ namespace meevax::lisp
       {
         if (callee->type() == typeid(closure))
         {
-          // apply compound procedure
           return apply(callee->as<closure>(), cdr(exp), env);
         }
         else

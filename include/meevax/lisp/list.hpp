@@ -25,9 +25,10 @@ namespace meevax::lisp
   tuple::accessor<1> cdr {};
 
   // TODO move to symbol table utility header
-  decltype(auto) intern(const std::string& s, std::unordered_map<std::string, cursor>& table)
+  auto intern(const std::string& s, std::unordered_map<std::string, cursor>& table)
+    -> const auto&
   {
-    if (const auto iter {table.find(s)}; iter != std::end(table))
+    if (const auto& iter {table.find(s)}; iter != std::end(table))
     {
       return iter->second;
     }
@@ -38,9 +39,10 @@ namespace meevax::lisp
 
   // TODO move to symbol table utility header
   // returns unchecked reference
-  decltype(auto) lookup(const std::string& s, const std::unordered_map<std::string, cursor>& table)
+  auto lookup(const std::string& s, const std::unordered_map<std::string, cursor>& table)
+    -> const auto&
   {
-    const auto iter {table.find(s)};
+    const auto& iter {table.find(s)};
     assert(iter != std::end(table));
     return iter->second;
   }
@@ -100,7 +102,7 @@ namespace meevax::lisp
     }
   }
 
-  cursor lookup(const cursor& var, const cursor& env)
+  const cursor& lookup(const cursor& var, const cursor& env)
   {
     if (!var || !env)
     {
