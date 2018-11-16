@@ -97,7 +97,6 @@ namespace meevax::lisp
         return std::make_shared<binder>(exp, env);
       });
 
-      // イミュータブルな操作を実行できる式は特別扱いするか？
       define("define", [&](auto&& var, auto)
       {
         return lookup(
@@ -141,11 +140,11 @@ namespace meevax::lisp
       {
         return lookup(exp, env);
       }
-      else if (auto iter {procedures.find(car(exp))}; iter != std::end(procedures))
+      else if (const auto& iter {procedures.find(car(exp))}; iter != std::end(procedures))
       {
         return (iter->second)(exp, env);
       }
-      else if (auto callee {evaluate(car(exp), env)}; callee)
+      else if (const auto& callee {evaluate(car(exp), env)}; callee)
       {
         if (callee->type() == typeid(closure))
         {

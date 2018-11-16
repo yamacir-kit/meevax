@@ -25,7 +25,7 @@ int main()
     std::cout << "-> " << expression << std::endl;
 
     const auto evaluated {lisp::eval(expression)};
-    std::cout << "-> " << evaluated << std::endl;
+    std::cout << "-> " << evaluated << ", " << evaluated.n << std::endl;
 
     continuation.clear();
     std::putchar('\n');

@@ -59,8 +59,7 @@ namespace meevax::lisp
     return cons(std::forward<T>(head), std::forward<U>(tail));
   }
 
-  template <typename T>
-  decltype(auto) atom(T&& e)
+  decltype(auto) atom(const cursor& e)
   {
     static const std::unordered_map<std::type_index, bool> dispatch
     {

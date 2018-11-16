@@ -11,10 +11,24 @@ namespace meevax::tuple
     : public std::shared_ptr<T>,
       public std::iterator<std::input_iterator_tag, typename std::shared_ptr<T>::element_type>
   {
+    // XXX デバッグ用
+    static inline std::size_t n {0};
+
     template <typename... Ts>
     constexpr iterator(Ts&&... args) noexcept
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
-    {}
+    {
+      // XXX デバッグ用
+      ++n;
+    }
+
+    // XXX デバッグ用
+    template <typename... Ts>
+    decltype(auto) operator=(Ts&&... args)
+    {
+      ++n;
+      return std::shared_ptr<T>::operator=(std::forward<Ts>(args)...);
+    }
 
     decltype(auto) operator*() const noexcept
     {
