@@ -20,17 +20,6 @@ namespace meevax::lisp
 
   using cursor = tuple::iterator<cell>;
 
-  template <typename T>
-  struct [[deprecated]] bind
-  {
-    template <typename... Ts>
-    cursor operator()(Ts&&... args)
-    {
-      using binder = utility::binder<T, cell>;
-      return std::make_shared<binder>(std::forward<Ts>(args)...);
-    }
-  };
-
   std::unordered_map<std::string, cursor> symbols {
     std::make_pair("nil", cursor {nullptr})
   };
