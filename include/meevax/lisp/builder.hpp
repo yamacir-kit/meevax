@@ -7,6 +7,7 @@
 
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/list.hpp>
+#include <meevax/lisp/table.hpp>
 #include <meevax/utility/fold.hpp>
 
 namespace meevax::lisp

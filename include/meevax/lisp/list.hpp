@@ -1,15 +1,14 @@
 #ifndef INCLUDED_MEEVAX_LISP_LIST_HPP
 #define INCLUDED_MEEVAX_LISP_LIST_HPP
 
-#include <cassert>
 #include <iterator>
 #include <typeindex>
 #include <typeinfo>
 #include <utility>
 
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/table.hpp>
 #include <meevax/tuple/accessor.hpp>
-#include <meevax/utility/type_erasure.hpp>
 
 #define caar(e) car(car(e))
 #define cadar(e) car(cdr(car(e)))
@@ -24,33 +23,10 @@ namespace meevax::lisp
   tuple::accessor<0> car {};
   tuple::accessor<1> cdr {};
 
-  // TODO move to symbol table utility header
-  auto intern(const std::string& s, std::unordered_map<std::string, cursor>& table)
-    -> const auto&
-  {
-    if (const auto& iter {table.find(s)}; iter != std::end(table))
-    {
-      return iter->second;
-    }
-    else return table.emplace(
-      s, std::make_shared<utility::binder<std::string, cell>>(s)
-    ).first->second;
-  }
-
-  // TODO move to symbol table utility header
-  // returns unchecked reference
-  auto lookup(const std::string& s, const std::unordered_map<std::string, cursor>& table)
-    -> const auto&
-  {
-    const auto& iter {table.find(s)};
-    assert(iter != std::end(table));
-    return iter->second;
-  }
-
   auto cons = [](auto&& head, auto&& tail)
-    -> cursor
   {
-    return std::make_shared<cell>(head, tail);
+    // XXX ここで余分なコピーが発生してる説
+    return cursor {std::make_shared<cell>(head, tail)};
   };
 
   template <typename T, typename U>

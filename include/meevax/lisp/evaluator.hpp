@@ -13,6 +13,7 @@
 #include <meevax/lisp/closure.hpp>
 #include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/list.hpp>
+#include <meevax/lisp/table.hpp>
 #include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
