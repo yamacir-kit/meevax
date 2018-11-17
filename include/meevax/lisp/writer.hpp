@@ -3,54 +3,53 @@
 
 #include <iostream>
 #include <sstream>
+#include <typeindex>
+#include <typeinfo>
 
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/closure.hpp>
+#include <meevax/lisp/list.hpp>
 
 namespace meevax::lisp
 {
-  // TODO command line parameter
-  bool abbreviate {true};
-
-  std::ostream& operator<<(std::ostream& os, cursor e)
+  std::ostream& operator<<(std::ostream& os, const cursor& exp)
   {
-    if (!e)
+    if (!exp)
     {
       return os << "nil";
     }
 
-    if (e->type() == typeid(std::string))
+    if (exp->type() == typeid(std::string))
     {
-      return os << e->as<std::string>();
+      return os << exp->as<std::string>();
     }
-
-    // XXX DIRTY HACK
-    if (e->type() != typeid(cell))
+    else if (exp->type() == typeid(closure))
     {
       return os << "<closure>";
     }
 
-    if (abbreviate)
+    os << "(" << car(exp);
+
+    for (auto iter {cdr(exp)}; iter; ++iter)
     {
-      for (os << "(" << *e; ++e; os << " " << *e)
+      if (iter->type() != typeid(cell))
       {
-        if (e->type() != typeid(cell))
-        {
-          return os << " . " << e << ")";
-        }
+        return os << " . " << iter << ")";
+      }
+      else
+      {
+        os << " " << car(iter);
       }
     }
-    else
-    {
-      return os << "(" << *e << " . " << ++e << ")";
-    }
 
+    // return os << "(" << car(e) << " . " << cdr(e) << ")";
     return os << ")";
   }
 
-  auto to_string(const cursor& cursor)
+  decltype(auto) to_string(const cursor& exp)
   {
     std::ostringstream ss {};
-    ss << cursor;
+    ss << exp;
     return ss.str();
   }
 } // namespace meevax::lisp
