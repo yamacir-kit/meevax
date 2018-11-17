@@ -43,12 +43,6 @@ namespace meevax::lisp
       }
     }
 
-    decltype(auto) operator()() const
-    {
-      return build();
-    }
-
-  protected:
     cursor build() const
     {
       if (std::empty(*this))
@@ -57,9 +51,9 @@ namespace meevax::lisp
       }
       else
       {
-        return algorithm::fold_right(std::begin(*this), std::end(*this), lookup("nil", symbols), [](auto& head, auto& tail)
+        return algorithm::fold_right(std::begin(*this), std::end(*this), lookup("nil", symbols), [](auto&& car, auto&& cdr)
         {
-          return head() | tail;
+          return car.build() | cdr;
         });
       }
     }
