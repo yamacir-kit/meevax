@@ -11,7 +11,7 @@
 
 namespace meevax::lisp
 {
-  class cell;
+  struct cell;
 
   using cursor = tuple::iterator<cell>;
 

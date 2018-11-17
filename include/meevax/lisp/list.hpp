@@ -7,7 +7,6 @@
 #include <utility>
 
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/table.hpp>
 #include <meevax/tuple/accessor.hpp>
 
 #define caar(e) car(car(e))
@@ -48,12 +47,12 @@ namespace meevax::lisp
 
   auto list = [](auto&&... args) constexpr
   {
-    return (args | ... | lookup("nil", symbols));
+    return (args | ... | nil);
   };
 
   decltype(auto) length(const cursor& exp)
   {
-    return std::distance(exp, lookup("nil", symbols));
+    return std::distance(exp, nil);
   }
 
   cursor append(const cursor& x, const cursor& y)
@@ -65,7 +64,7 @@ namespace meevax::lisp
   {
     if (!x && !y)
     {
-      return lookup("nil", symbols);
+      return nil;
     }
     else if (!atom(x) && !atom(y))
     {
@@ -73,7 +72,7 @@ namespace meevax::lisp
     }
     else
     {
-      return lookup("nil", symbols);
+      return nil;
     }
   }
 
@@ -81,7 +80,7 @@ namespace meevax::lisp
   {
     if (!var || !env)
     {
-      return lookup("nil", symbols);
+      return nil;
     }
     else if (caar(env) == var)
     {
