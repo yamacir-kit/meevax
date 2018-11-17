@@ -10,8 +10,10 @@
 
 #include <meevax/lambda/recursion.hpp>
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/closure.hpp>
 #include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/list.hpp>
+#include <meevax/lisp/table.hpp>
 #include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
@@ -21,104 +23,99 @@ namespace meevax::lisp
     cursor env_;
 
     using procedure = std::function<cursor (const cursor&, const cursor&)>;
-    static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
+
+    // TODO rename to "primitives"?
+    static inline std::unordered_map<
+      std::shared_ptr<cell>, procedure
+    > procedures {};
 
     std::mutex mutex_;
 
-    class closure
-    {
-      cursor exp_, env_;
-
-    public:
-      explicit closure(const cursor& exp, const cursor& env)
-        : exp_ {exp},
-          env_ {env}
-      {}
-
-      decltype(auto) operator()(const cursor& args, const cursor& env) const
-      {
-        return evaluate(caddr(exp_), append(zip(cadr(exp_), evlis(args, env)), env_));
-      }
-
-    protected:
-      cursor evlis(const cursor& exp, const cursor& env) const
-      {
-        return !exp ? symbols("nil") : evaluate(car(exp), env) | evlis(cdr(exp), env);
-      }
-    };
-
   public:
     evaluator()
-      : env_ {symbols("nil")}
+      : env_ {lookup("nil", symbols)}
     {
-      using namespace meevax::lambda;
+      intern("true", symbols);
 
-      symbols.intern("true");
-
-      define("quote", [](auto exp, auto)
+      define("quote", [&](auto&& exp, auto)
       {
         return cadr(exp);
       });
 
-      define("atom", [&](auto exp, auto env)
+      define("atom", [&](auto&& exp, auto&& env)
       {
-        return atom(evaluate(cadr(exp), env)) ? symbols("true") : symbols("nil");
+        return lookup(
+          atom(evaluate(cadr(exp), env)) ? "true" : "nil",
+          symbols
+        );
       });
 
-      define("eq", [&](auto e, auto a)
+      define("eq", [&](auto&& exp, auto&& env)
       {
-        return evaluate(cadr(e), a) == evaluate(caddr(e), a) ? symbols("true") : symbols("nil");
+        return lookup(
+          evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? "true" : "nil",
+          symbols
+        );
       });
 
-      define("if", [&](auto e, auto a)
+      define("if", [&](auto&& exp, auto&& env)
       {
-        return evaluate(*++e, a) ? evaluate(cadr(e), a) : evaluate(caddr(e), a);
+        return evaluate(
+          evaluate(cadr(exp), env) ? caddr(exp) : cadddr(exp),
+          env
+        );
       });
 
-      define("cond", [&](auto exp, auto env)
+      define("cond", [&](auto&& exp, auto&& env)
       {
-        return y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
-        {
-          return evaluate(**exp, env) ? evaluate(cadar(exp), env) : proc(proc, ++exp, env);
-        })(++exp, env);
+        const auto buffer {
+          std::find_if(cdr(exp), lookup("nil", symbols), [&](auto iter)
+          {
+            return evaluate(car(iter), env);
+          })
+        };
+        return evaluate(cadar(buffer), env);
       });
 
-      define("car", [&](auto e, auto a)
+      define("car", [&](auto&& exp, auto&& env)
       {
-        return *evaluate(*++e, a);
+        return car(evaluate(cadr(exp), env));
       });
 
-      define("cdr", [&](auto e, auto a)
+      define("cdr", [&](auto&& exp, auto&& env)
       {
-        return ++evaluate(*++e, a);
+        return cdr(evaluate(cadr(exp), env));
       });
 
-      define("cons", [&](auto e, auto a)
+      define("cons", [&](auto&& e, auto&& a)
       {
         return evaluate(cadr(e), a) | evaluate(caddr(e), a);
       });
 
-      define("lambda", [&](auto exp, auto env)
+      define("lambda", [&](auto&& exp, auto&& env)
       {
         using binder = utility::binder<closure, cell>;
         return std::make_shared<binder>(exp, env);
       });
 
-      define("define", [&](auto value, auto)
+      define("define", [&](auto&& var, auto)
       {
-        return lookup(cadr(value), env_ = list(cadr(value), caddr(value)) | env_);
+        return lookup(
+          cadr(var),
+          env_ = list(cadr(var), caddr(var)) | env_
+        );
       });
 
-      define("list", [&](auto e, auto a)
+      define("list", [&](auto&& exp, auto&& env)
       {
-        return y([&](auto proc, auto e, auto a) -> cursor
+        return lambda::y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
         {
-          return evaluate(*e, a) | (cdr(e) ? proc(proc, cdr(e), a) : symbols("nil"));
-        })(++e, a);
+          return evaluate(car(exp), env) | (cdr(exp) ? proc(proc, cdr(exp), env) : lookup("nil", symbols));
+        })(cdr(exp), env);
       });
 
       define("exit", [&](auto, auto)
-        -> cursor
+        -> const cursor&
       {
         std::exit(boost::exit_success);
       });
@@ -134,37 +131,44 @@ namespace meevax::lisp
     void define(S&& s, F&& functor)
     {
       std::lock_guard<std::mutex> lock {mutex_};
-      procedures.emplace(symbols.intern(s), functor);
+      procedures.emplace(intern(s, symbols), functor);
     }
 
   protected:
-    static cursor evaluate(const cursor& exp, cursor env)
+    cursor evaluate(const cursor& exp, const cursor& env) const
     {
       if (atom(exp))
       {
         return lookup(exp, env);
       }
-
-      if (auto iter {procedures.find(car(exp))}; iter != std::end(procedures))
+      else if (const auto& iter {procedures.find(car(exp))}; iter != std::end(procedures))
       {
         return (iter->second)(exp, env);
       }
-
-      if (auto callee {evaluate(car(exp), env)}; callee)
+      else if (const auto& callee {evaluate(car(exp), env)}; callee)
       {
-        if (callee.access().type() == typeid(closure))
+        if (callee->type() == typeid(closure))
         {
-          return callee.access().as<closure>()(cdr(exp), env);
+          return apply(callee->as<closure>(), cdr(exp), env);
         }
         else
         {
           return evaluate(callee | cdr(exp), env);
         }
       }
-
-      throw generate_exception(
+      else throw generate_exception(
         "unexpected evaluation dispatch failure for expression " + to_string(exp)
       );
+    }
+
+    cursor apply(const closure& closure, const cursor& args, const cursor& env) const
+    {
+      return evaluate(caddar(closure), append(zip(cadar(closure), evlis(args, env)), cdr(closure)));
+    }
+
+    cursor evlis(const cursor& exp, const cursor& env) const
+    {
+      return !exp ? lookup("nil", symbols) : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }
   }
 #ifndef MEEVAX_DISABLE_IMPLICIT_STATIC_EVALUATOR_INSTANTIATION

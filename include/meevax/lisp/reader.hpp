@@ -23,7 +23,8 @@ namespace meevax::lisp
       }
       else
       {
-        return builder {std::begin(tokens), std::end(tokens)}();
+        const builder ast {std::begin(tokens), std::end(tokens)};
+        return ast.build();
       }
     }
 

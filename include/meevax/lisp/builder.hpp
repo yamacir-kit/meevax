@@ -5,8 +5,10 @@
 #include <list>
 #include <string>
 
+#include <meevax/algorithm/fold.hpp>
 #include <meevax/lisp/cell.hpp>
-#include <meevax/utility/fold.hpp>
+#include <meevax/lisp/list.hpp>
+#include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
 {
@@ -41,24 +43,17 @@ namespace meevax::lisp
       }
     }
 
-    decltype(auto) operator()() const
-    {
-      return build();
-    }
-
-  protected:
     cursor build() const
     {
       if (std::empty(*this))
       {
-        return std::empty(value_) ? symbols("nil") : symbols.intern(value_);
+        return std::empty(value_) ? lookup("nil", symbols) : intern(value_, symbols);
       }
       else
       {
-        using namespace utility;
-        return fold_right(std::begin(*this), std::end(*this), symbols("nil"), [](auto& head, auto& tail)
+        return algorithm::fold_right(std::begin(*this), std::end(*this), lookup("nil", symbols), [](auto&& car, auto&& cdr)
         {
-          return head() | tail;
+          return car.build() | cdr;
         });
       }
     }

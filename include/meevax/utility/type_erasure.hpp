@@ -4,14 +4,12 @@
 #include <typeinfo>
 #include <utility>
 
-#include <meevax/facade/identity.hpp>
-
 namespace meevax::utility
 {
   template <typename T, typename U>
   struct binder
     : public T,
-      public U
+      public virtual U
   {
     template <typename... Ts>
     explicit constexpr binder(Ts&&... xs)

@@ -2,16 +2,31 @@
 #define INCLUDED_MEEVAX_LISP_LIST_HPP
 
 #include <iterator>
+#include <typeindex>
+#include <typeinfo>
 #include <utility>
 
 #include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/table.hpp>
+#include <meevax/tuple/accessor.hpp>
+
+#define caar(e) car(car(e))
+#define cadar(e) car(cdr(car(e)))
+#define caddar(e) car(cdr(cdr(car(e))))
+
+#define cadr(e) car(cdr(e))
+#define caddr(e) car(cdr(cdr(e)))
+#define cadddr(e) car(cdr(cdr(cdr(e))))
 
 namespace meevax::lisp
 {
-  auto cons = [](auto&& head, auto&& tail) -> cursor
+  tuple::accessor<0> car {};
+  tuple::accessor<1> cdr {};
+
+  auto cons = [](auto&& head, auto&& tail)
   {
-    return std::make_shared<cell>(std::forward<decltype(head)>(head),
-                                  std::forward<decltype(tail)>(tail));
+    // XXX ここで余分なコピーが発生してる説
+    return cursor {std::make_shared<cell>(head, tail)};
   };
 
   template <typename T, typename U>
@@ -20,14 +35,25 @@ namespace meevax::lisp
     return cons(std::forward<T>(head), std::forward<U>(tail));
   }
 
+  decltype(auto) atom(const cursor& e)
+  {
+    static const std::unordered_map<std::type_index, bool> dispatch
+    {
+      {typeid(cell), false},
+      {typeid(std::string), true}
+    };
+
+    return !e || dispatch.at(e->type());
+  }
+
   auto list = [](auto&&... args) constexpr
   {
-    return (args | ... | symbols("nil"));
+    return (args | ... | lookup("nil", symbols));
   };
 
   decltype(auto) length(const cursor& exp)
   {
-    return std::distance(exp, symbols("nil"));
+    return std::distance(exp, lookup("nil", symbols));
   }
 
   cursor append(const cursor& x, const cursor& y)
@@ -35,11 +61,11 @@ namespace meevax::lisp
     return !x ? y : car(x) | append(cdr(x), y);
   }
 
-  cursor zip(cursor x, cursor y)
+  cursor zip(const cursor& x, const cursor& y)
   {
     if (!x && !y)
     {
-      return symbols("nil");
+      return lookup("nil", symbols);
     }
     else if (!atom(x) && !atom(y))
     {
@@ -47,15 +73,24 @@ namespace meevax::lisp
     }
     else
     {
-      return symbols("nil");
+      return lookup("nil", symbols);
     }
   }
 
-  cursor lookup(cursor var, cursor env)
+  const cursor& lookup(const cursor& var, const cursor& env)
   {
-    return !var || !env ? symbols("nil")
-                        : var == **env ? cadar(env)
-                                       : lookup(var, cdr(env));
+    if (!var || !env)
+    {
+      return lookup("nil", symbols);
+    }
+    else if (caar(env) == var)
+    {
+      return cadar(env);
+    }
+    else
+    {
+      return lookup(var, cdr(env));
+    }
   };
 } // namespace meevax::lisp
 

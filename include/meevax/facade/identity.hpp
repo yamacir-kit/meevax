@@ -17,9 +17,9 @@ namespace meevax::facade
     }
 
     template <typename U>
-    decltype(auto) as() const
+    decltype(auto) as(bool check = true) const
     {
-      return dynamic_cast<const U&>(*this);
+      return check ? dynamic_cast<const U&>(*this) : *dynamic_cast<const U*>(this);
     }
   };
 } // namespace meevax::facade

@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
 
-#include <boost/cstdlib.hpp>
-
 #include <meevax/lisp/evaluator.hpp>
 #include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/reader.hpp>
@@ -25,11 +23,10 @@ int main()
     std::cout << "-> " << expression << std::endl;
 
     const auto evaluated {lisp::eval(expression)};
-    std::cout << "-> " << evaluated << std::endl;
+    std::cout << "-> " << evaluated << ", " << evaluated.n << std::endl;
 
     continuation.clear();
-    std::cout << utility::countup << std::endl;
-    utility::countup = 0;
+    std::putchar('\n');
   }
   catch (const std::string& unbalance_expression)
   {
@@ -41,6 +38,6 @@ int main()
     continuation.clear();
   }
 
-  return boost::exit_success;
+  return 0;
 }
 
