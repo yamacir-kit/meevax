@@ -5,10 +5,10 @@
 #include <list>
 #include <string>
 
+#include <meevax/algorithm/fold.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/list.hpp>
 #include <meevax/lisp/table.hpp>
-#include <meevax/utility/fold.hpp>
 
 namespace meevax::lisp
 {
@@ -57,8 +57,7 @@ namespace meevax::lisp
       }
       else
       {
-        using namespace utility;
-        return fold_right(std::begin(*this), std::end(*this), lookup("nil", symbols), [](auto& head, auto& tail)
+        return algorithm::fold_right(std::begin(*this), std::end(*this), lookup("nil", symbols), [](auto& head, auto& tail)
         {
           return head() | tail;
         });
