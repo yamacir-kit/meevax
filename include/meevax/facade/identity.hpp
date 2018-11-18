@@ -8,8 +8,6 @@ namespace meevax::facade
   template <typename T>
   struct identity
   {
-    virtual ~identity() = default;
-
     virtual auto type() const noexcept
       -> const std::type_info&
     {

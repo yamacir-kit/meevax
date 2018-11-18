@@ -27,7 +27,7 @@ namespace meevax::lisp
     virtual ~cell() = default; // removable
   };
 
-  cursor nil {nullptr};
+  const cursor nil {nullptr};
 
   std::unordered_map<std::string, cursor> symbols {std::make_pair("nil", nil)};
 } // namespace meevax::lisp
