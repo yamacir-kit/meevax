@@ -29,7 +29,7 @@ namespace meevax::lisp
 
   const cursor nil {nullptr};
 
-  std::unordered_map<std::string, cursor> symbols {std::make_pair("nil", nil)};
+  std::unordered_map<std::string, cursor> symbols {};
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP
