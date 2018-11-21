@@ -42,7 +42,8 @@ namespace meevax::lisp
       }
     }
 
-    cursor build() const
+    template <typename Symbols>
+    cursor build(Symbols& symbols) const
     {
       if (std::empty(*this))
       {
@@ -50,9 +51,9 @@ namespace meevax::lisp
       }
       else
       {
-        return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [](auto&& car, auto&& cdr)
+        return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [&](auto&& car, auto&& cdr)
         {
-          return car.build() | cdr;
+          return car.build(symbols) | cdr;
         });
       }
     }

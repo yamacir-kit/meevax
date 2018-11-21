@@ -26,7 +26,7 @@ namespace meevax::lisp
       else
       {
         const builder ast {std::begin(tokens), std::end(tokens)};
-        return ast.build();
+        return ast.build(symbols);
       }
     }
 
@@ -70,10 +70,6 @@ namespace meevax::lisp
     template <typename T>
     int balance(T&& tokens) const
     {
-      // const auto open {std::count(std::begin(tokens), std::end(tokens), "(")};
-      // const auto close {std::count(std::begin(tokens), std::end(tokens), ")")};
-      // return open - close;
-
       return boost::count(tokens, "(") - boost::count(tokens, ")");
     }
   };
