@@ -23,11 +23,7 @@ namespace meevax::lisp
     cursor env_;
 
     using procedure = std::function<cursor (const cursor&, const cursor&)>;
-
-    // TODO rename to "primitives"?
-    static inline std::unordered_map<
-      std::shared_ptr<cell>, procedure
-    > procedures {};
+    static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
 
     std::mutex mutex_;
 
@@ -164,10 +160,7 @@ namespace meevax::lisp
     {
       return !exp ? nil : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }
-  }
-#ifndef MEEVAX_DISABLE_IMPLICIT_STATIC_EVALUATOR_INSTANTIATION
-  static eval {};
-#endif
+  };
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP

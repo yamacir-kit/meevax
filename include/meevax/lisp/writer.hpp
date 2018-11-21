@@ -23,7 +23,7 @@ namespace meevax::lisp
     {
       return os << exp->as<std::string>();
     }
-    else if (exp->type() == typeid(closure))
+    else if (exp->type() == typeid(closure)) // XXX dead conditional
     {
       return os << "<closure>";
     }

@@ -7,6 +7,8 @@
 #include <locale>
 #include <string>
 
+#include <boost/range/algorithm.hpp>
+
 #include <meevax/lisp/builder.hpp>
 
 namespace meevax::lisp
@@ -17,7 +19,7 @@ namespace meevax::lisp
   public:
     auto operator()(const std::string& s) const
     {
-      if (const auto tokens {tokenize(s)}; balance(tokens) != 0)
+      if (const auto tokens {tokenize(s)}; 0 < balance(tokens))
       {
         throw s;
       }
@@ -68,12 +70,13 @@ namespace meevax::lisp
     template <typename T>
     int balance(T&& tokens) const
     {
-      const auto open {std::count(std::begin(tokens), std::end(tokens), "(")};
-      const auto close {std::count(std::begin(tokens), std::end(tokens), ")")};
+      // const auto open {std::count(std::begin(tokens), std::end(tokens), "(")};
+      // const auto close {std::count(std::begin(tokens), std::end(tokens), ")")};
+      // return open - close;
 
-      return open - close;
+      return boost::count(tokens, "(") - boost::count(tokens, ")");
     }
-  } static read {};
+  };
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_READER_HPP

@@ -8,9 +8,10 @@
 
 int main()
 {
-  using namespace meevax;
-
   std::ios_base::sync_with_stdio(false);
+
+  meevax::lisp::reader read {};
+  meevax::lisp::evaluator eval {};
 
   for (std::string buffer {}, continuation {}; std::getline(std::cin, buffer); ) try
   {
@@ -19,10 +20,10 @@ int main()
       continue;
     }
 
-    const auto expression {lisp::read(continuation += buffer)};
+    const auto expression {read(continuation += buffer)};
     std::cout << "-> " << expression << std::endl;
 
-    const auto evaluated {lisp::eval(expression)};
+    const auto evaluated {eval(expression)};
     std::cout << "-> " << evaluated << std::endl;
 
     continuation.clear();
