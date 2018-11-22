@@ -76,7 +76,7 @@ namespace meevax::lisp
     }
   }
 
-  const cursor& lookup(const cursor& var, const cursor& env)
+  const cursor& assoc(const cursor& var, const cursor& env)
   {
     if (!var || !env)
     {
@@ -88,7 +88,7 @@ namespace meevax::lisp
     }
     else
     {
-      return lookup(var, cdr(env));
+      return assoc(var, cdr(env));
     }
   }
 } // namespace meevax::lisp

@@ -90,7 +90,7 @@ namespace meevax::lisp
 
       define("define", [&](auto&& var, auto)
       {
-        return lookup(
+        return assoc(
           cadr(var),
           env_ = list(cadr(var), caddr(var)) | env_
         );
@@ -129,7 +129,7 @@ namespace meevax::lisp
     {
       if (atom(exp))
       {
-        return lookup(exp, env);
+        return assoc(exp, env);
       }
       else if (const auto& iter {procedures.find(car(exp))}; iter != std::end(procedures))
       {
