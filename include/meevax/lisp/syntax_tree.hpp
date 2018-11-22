@@ -14,7 +14,7 @@ namespace meevax::lisp
   struct syntax_tree
     : public std::list<syntax_tree>
   {
-    std::string value;
+    const std::string value;
 
     syntax_tree(const std::string& value = 0)
       : value {value}
@@ -22,21 +22,18 @@ namespace meevax::lisp
 
     template <typename InputIterator>
     explicit syntax_tree(InputIterator&& begin, InputIterator&& end)
+      : value {std::distance(begin, end) ? *begin : ""}
     {
-      if (std::distance(begin, end) != 0)
+      if (value != "(")
       {
-        if (*begin != "(")
+        if (value == "'")
         {
-          if (*begin == "'")
-          {
-            emplace_back("quote"), emplace_back(++begin, end);
-          }
-          else value = *begin;
+          emplace_back("quote"), emplace_back(++begin, end);
         }
-        else while (++begin != end && *begin != ")")
-        {
-          emplace_back(begin, end);
-        }
+      }
+      else while (++begin != end && *begin != ")")
+      {
+        emplace_back(begin, end);
       }
     }
 
@@ -47,13 +44,10 @@ namespace meevax::lisp
       {
         return std::empty(value) ? nil : intern(value, symbols);
       }
-      else
+      else return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [&](auto&& car, auto&& cdr)
       {
-        return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [&](auto&& car, auto&& cdr)
-        {
-          return car.compile(symbols) | cdr;
-        });
-      }
+        return car.compile(symbols) | cdr;
+      });
     }
   };
 } // namespace meevax::lisp
