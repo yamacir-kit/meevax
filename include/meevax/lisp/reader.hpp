@@ -7,25 +7,23 @@
 #include <locale>
 #include <string>
 
+#include <boost/range/algorithm.hpp>
+
 #include <meevax/lisp/builder.hpp>
 
 namespace meevax::lisp
 {
-  // 最も単純なリード処理を提供する（それ以上のことは絶対にしない）
   class reader
   {
   public:
     auto operator()(const std::string& s) const
     {
-      if (const auto tokens {tokenize(s)}; balance(tokens) != 0)
-      {
-        throw s;
-      }
-      else
+      if (const auto tokens {tokenize(s)}; balance(tokens) == 0)
       {
         const builder ast {std::begin(tokens), std::end(tokens)};
-        return ast.build();
+        return ast.build(symbols);
       }
+      else throw s;
     }
 
   protected:
@@ -68,12 +66,9 @@ namespace meevax::lisp
     template <typename T>
     int balance(T&& tokens) const
     {
-      const auto open {std::count(std::begin(tokens), std::end(tokens), "(")};
-      const auto close {std::count(std::begin(tokens), std::end(tokens), ")")};
-
-      return open - close;
+      return boost::count(tokens, "(") - boost::count(tokens, ")");
     }
-  } static read {};
+  };
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_READER_HPP

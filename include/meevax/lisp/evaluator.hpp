@@ -23,17 +23,13 @@ namespace meevax::lisp
     cursor env_;
 
     using procedure = std::function<cursor (const cursor&, const cursor&)>;
-
-    // TODO rename to "primitives"?
-    static inline std::unordered_map<
-      std::shared_ptr<cell>, procedure
-    > procedures {};
+    static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
 
     std::mutex mutex_;
 
   public:
     evaluator()
-      : env_ {lookup("nil", symbols)}
+      : env_ {nil}
     {
       intern("true", symbols);
 
@@ -44,18 +40,12 @@ namespace meevax::lisp
 
       define("atom", [&](auto&& exp, auto&& env)
       {
-        return lookup(
-          atom(evaluate(cadr(exp), env)) ? "true" : "nil",
-          symbols
-        );
+        return atom(evaluate(cadr(exp), env)) ? lookup("true", symbols) : nil;
       });
 
       define("eq", [&](auto&& exp, auto&& env)
       {
-        return lookup(
-          evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? "true" : "nil",
-          symbols
-        );
+        return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? lookup("true", symbols) : nil;
       });
 
       define("if", [&](auto&& exp, auto&& env)
@@ -69,7 +59,7 @@ namespace meevax::lisp
       define("cond", [&](auto&& exp, auto&& env)
       {
         const auto buffer {
-          std::find_if(cdr(exp), lookup("nil", symbols), [&](auto iter)
+          std::find_if(cdr(exp), nil, [&](auto iter)
           {
             return evaluate(car(iter), env);
           })
@@ -110,7 +100,7 @@ namespace meevax::lisp
       {
         return lambda::y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
         {
-          return evaluate(car(exp), env) | (cdr(exp) ? proc(proc, cdr(exp), env) : lookup("nil", symbols));
+          return evaluate(car(exp), env) | (cdr(exp) ? proc(proc, cdr(exp), env) : nil);
         })(cdr(exp), env);
       });
 
@@ -168,12 +158,9 @@ namespace meevax::lisp
 
     cursor evlis(const cursor& exp, const cursor& env) const
     {
-      return !exp ? lookup("nil", symbols) : evaluate(car(exp), env) | evlis(cdr(exp), env);
+      return !exp ? nil : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }
-  }
-#ifndef MEEVAX_DISABLE_IMPLICIT_STATIC_EVALUATOR_INSTANTIATION
-  static eval {};
-#endif
+  };
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP

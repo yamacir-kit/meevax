@@ -11,13 +11,9 @@
 
 namespace meevax::lisp
 {
-  class cell;
+  struct cell;
 
   using cursor = tuple::iterator<cell>;
-
-  std::unordered_map<std::string, cursor> symbols {
-    std::make_pair("nil", cursor {nullptr})
-  };
 
   struct cell
     : public std::tuple<cursor, cursor>,
@@ -30,6 +26,10 @@ namespace meevax::lisp
 
     virtual ~cell() = default; // removable
   };
+
+  const cursor nil {nullptr};
+
+  std::unordered_map<std::string, cursor> symbols {};
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP

@@ -7,7 +7,6 @@
 
 #include <meevax/algorithm/fold.hpp>
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/list.hpp>
 #include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
@@ -31,8 +30,7 @@ namespace meevax::lisp
         {
           if (*begin == "'")
           {
-            emplace_back("quote");
-            emplace_back(++begin, end);
+            emplace_back("quote"), emplace_back(++begin, end);
           }
           else value_ = *begin;
         }
@@ -43,17 +41,18 @@ namespace meevax::lisp
       }
     }
 
-    cursor build() const
+    template <typename Symbols>
+    cursor build(Symbols& symbols) const
     {
       if (std::empty(*this))
       {
-        return std::empty(value_) ? lookup("nil", symbols) : intern(value_, symbols);
+        return std::empty(value_) ? nil : intern(value_, symbols);
       }
       else
       {
-        return algorithm::fold_right(std::begin(*this), std::end(*this), lookup("nil", symbols), [](auto&& car, auto&& cdr)
+        return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [&](auto&& car, auto&& cdr)
         {
-          return car.build() | cdr;
+          return car.build(symbols) | cdr;
         });
       }
     }

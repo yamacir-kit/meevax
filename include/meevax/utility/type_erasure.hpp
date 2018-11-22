@@ -6,6 +6,9 @@
 
 namespace meevax::utility
 {
+  // TODO
+  // SFINAEでTがUを仮想継承していたら、
+  // コンストラクタ引数の転送先をUのコンストラクタへ切り替える
   template <typename T, typename U>
   struct binder
     : public T,
