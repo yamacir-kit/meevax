@@ -33,9 +33,9 @@ namespace meevax::lisp
 
   decltype(auto) operator<<(std::ostream& os, const exception& exception)
   {
-    static const auto clear {"\e[0m"};
-    static const auto red   {"\e[0m\e[31m"};
-    static const auto cyan  {"\e[0m\e[36m"};
+    static const auto clear {"\x1B[0m"};
+    static const auto red   {"\x1B[0m\x1B[31m"};
+    static const auto cyan  {"\x1B[0m\x1B[36m"};
 
     os << "(" << red << "error" << clear << "\n"
        << "  (file " << cyan << "\"" << exception.file() << "\"" << clear << ")\n"

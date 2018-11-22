@@ -30,7 +30,7 @@ namespace meevax::lisp
     assert(iter != std::end(table));
     return iter->second;
   }
-};
+} // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_TABLE_HPP
 

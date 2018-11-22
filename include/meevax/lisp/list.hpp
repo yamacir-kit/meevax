@@ -90,7 +90,7 @@ namespace meevax::lisp
     {
       return lookup(var, cdr(env));
     }
-  };
+  }
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_LIST_HPP
