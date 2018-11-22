@@ -47,7 +47,7 @@ namespace meevax::lisp
     {
       if (std::empty(*this))
       {
-        return std::empty(value) ? nil : intern(value, symbols);
+        return std::empty(value) || value == "(" ? nil : intern(value, symbols);
       }
       else return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [&](auto&& car, auto&& cdr)
       {
