@@ -18,7 +18,7 @@ namespace meevax::lisp
   public:
     auto operator()(const std::string& s) const
     {
-      if (const auto tokens {tokenize(s)}; balance(tokens) == 0)
+      if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
       {
         return syntax_tree {tokens}.compile(symbols);
       }
