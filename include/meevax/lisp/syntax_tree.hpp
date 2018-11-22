@@ -20,6 +20,11 @@ namespace meevax::lisp
       : value {value}
     {}
 
+    template <template <typename...> typename SequenceContainer>
+    explicit syntax_tree(const SequenceContainer<std::string>& tokens)
+      : syntax_tree {std::begin(tokens), std::end(tokens)}
+    {}
+
     template <typename InputIterator>
     explicit syntax_tree(InputIterator&& begin, InputIterator&& end)
       : value {std::distance(begin, end) ? *begin : ""}
@@ -37,8 +42,8 @@ namespace meevax::lisp
       }
     }
 
-    template <typename Symbols>
-    cursor compile(Symbols& symbols) const
+    template <typename SymbolTable>
+    cursor compile(SymbolTable& symbols) const
     {
       if (std::empty(*this))
       {

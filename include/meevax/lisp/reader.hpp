@@ -20,8 +20,7 @@ namespace meevax::lisp
     {
       if (const auto tokens {tokenize(s)}; balance(tokens) == 0)
       {
-        const syntax_tree tree {std::begin(tokens), std::end(tokens)};
-        return tree.compile(symbols);
+        return syntax_tree {tokens}.compile(symbols);
       }
       else throw s;
     }
