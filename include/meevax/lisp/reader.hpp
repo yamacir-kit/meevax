@@ -13,21 +13,17 @@
 
 namespace meevax::lisp
 {
-  // 最も単純なリード処理を提供する（それ以上のことは絶対にしない）
   class reader
   {
   public:
     auto operator()(const std::string& s) const
     {
-      if (const auto tokens {tokenize(s)}; 0 < balance(tokens))
-      {
-        throw s;
-      }
-      else
+      if (const auto tokens {tokenize(s)}; balance(tokens) == 0)
       {
         const builder ast {std::begin(tokens), std::end(tokens)};
         return ast.build(symbols);
       }
+      else throw s;
     }
 
   protected:

@@ -30,8 +30,7 @@ namespace meevax::lisp
         {
           if (*begin == "'")
           {
-            emplace_back("quote");
-            emplace_back(++begin, end);
+            emplace_back("quote"), emplace_back(++begin, end);
           }
           else value_ = *begin;
         }
