@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_LISP_BUILDER_HPP
-#define INCLUDED_MEEVAX_LISP_BUILDER_HPP
+#ifndef INCLUDED_MEEVAX_LISP_SYNTAX_TREE_HPP
+#define INCLUDED_MEEVAX_LISP_SYNTAX_TREE_HPP
 
 #include <iterator>
 #include <list>
@@ -11,18 +11,17 @@
 
 namespace meevax::lisp
 {
-  class builder
-    : public std::list<builder>
+  struct syntax_tree
+    : public std::list<syntax_tree>
   {
-    std::string value_;
+    std::string value;
 
-  public:
-    builder(const std::string& value)
-      : value_ {value}
+    syntax_tree(const std::string& value = 0)
+      : value {value}
     {}
 
     template <typename InputIterator>
-    explicit builder(InputIterator&& begin, InputIterator&& end)
+    explicit syntax_tree(InputIterator&& begin, InputIterator&& end)
     {
       if (std::distance(begin, end) != 0)
       {
@@ -32,7 +31,7 @@ namespace meevax::lisp
           {
             emplace_back("quote"), emplace_back(++begin, end);
           }
-          else value_ = *begin;
+          else value = *begin;
         }
         else while (++begin != end && *begin != ")")
         {
@@ -42,22 +41,22 @@ namespace meevax::lisp
     }
 
     template <typename Symbols>
-    cursor build(Symbols& symbols) const
+    cursor compile(Symbols& symbols) const
     {
       if (std::empty(*this))
       {
-        return std::empty(value_) ? nil : intern(value_, symbols);
+        return std::empty(value) ? nil : intern(value, symbols);
       }
       else
       {
         return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [&](auto&& car, auto&& cdr)
         {
-          return car.build(symbols) | cdr;
+          return car.compile(symbols) | cdr;
         });
       }
     }
   };
 } // namespace meevax::lisp
 
-#endif // INCLUDED_MEEVAX_LISP_BUILDER_HPP
+#endif // INCLUDED_MEEVAX_LISP_SYNTAX_TREE_HPP
 
