@@ -11,9 +11,9 @@
 #include <meevax/lambda/recursion.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/closure.hpp>
+#include <meevax/lisp/context.hpp>
 #include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/operator.hpp>
-#include <meevax/lisp/table.hpp>
 #include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp

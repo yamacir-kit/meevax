@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_LISP_TABLE_HPP
-#define INCLUDED_MEEVAX_LISP_TABLE_HPP
+#ifndef INCLUDED_MEEVAX_LISP_CONTEXT_HPP
+#define INCLUDED_MEEVAX_LISP_CONTEXT_HPP
 
 #include <cassert>
 #include <string>
@@ -32,5 +32,5 @@ namespace meevax::lisp
   }
 } // namespace meevax::lisp
 
-#endif // INCLUDED_MEEVAX_LISP_TABLE_HPP
+#endif // INCLUDED_MEEVAX_LISP_CONTEXT_HPP
 
