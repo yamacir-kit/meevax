@@ -119,7 +119,7 @@ namespace meevax::lisp
     void define(String&& s, Function&& functor)
     {
       std::lock_guard<std::mutex> lock {mutex_};
-      procedures.emplace(intern(s, symbols), functor);
+      procedures.emplace(default_context.intern(s), functor);
     }
 
   protected:

@@ -9,6 +9,7 @@
 
 #include <boost/range/algorithm.hpp>
 
+#include <meevax/lisp/context.hpp>
 #include <meevax/lisp/syntax_tree.hpp>
 
 namespace meevax::lisp
@@ -20,7 +21,7 @@ namespace meevax::lisp
     {
       if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
       {
-        return syntax_tree {tokens}.compile(symbols);
+        return syntax_tree {tokens}.compile(default_context);
       }
       else throw s;
     }
