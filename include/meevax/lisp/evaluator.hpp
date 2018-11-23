@@ -109,21 +109,22 @@ namespace meevax::lisp
       });
     }
 
-    template <typename T>
-    decltype(auto) operator()(T&& e)
+    template <typename Expression>
+    constexpr decltype(auto) operator()(Expression&& exp)
     {
-      return evaluate(std::forward<T>(e), env_);
+      return evaluate(std::forward<Expression>(exp), env_);
     }
 
-    template <typename S, typename F>
-    void define(S&& s, F&& functor)
+    template <typename String, typename Function>
+    void define(String&& s, Function&& functor)
     {
       std::lock_guard<std::mutex> lock {mutex_};
       procedures.emplace(intern(s, symbols), functor);
     }
 
   protected:
-    cursor evaluate(const cursor& exp, const cursor& env) const
+    template <typename Expression, typename Environment>
+    cursor evaluate(Expression&& exp, Environment&& env)
     {
       if (atom(exp))
       {
@@ -137,7 +138,7 @@ namespace meevax::lisp
       {
         if (callee->type() == typeid(closure))
         {
-          return apply(callee->as<closure>(), cdr(exp), env);
+          return apply(callee->template as<closure>(), cdr(exp), env);
         }
         else
         {
@@ -149,12 +150,14 @@ namespace meevax::lisp
       );
     }
 
-    cursor apply(const closure& closure, const cursor& args, const cursor& env) const
+    template <typename Closure, typename Expression, typename Environment>
+    cursor apply(Closure&& closure, Expression&& args, Environment&& env)
     {
       return evaluate(caddar(closure), append(zip(cadar(closure), evlis(args, env)), cdr(closure)));
     }
 
-    cursor evlis(const cursor& exp, const cursor& env) const
+    template <typename Expression, typename Environment>
+    cursor evlis(Expression&& exp, Environment&& env)
     {
       return !exp ? nil : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }

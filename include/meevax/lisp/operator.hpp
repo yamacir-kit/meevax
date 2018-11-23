@@ -25,7 +25,7 @@ namespace meevax::lisp
 
   auto cons = [](auto&& head, auto&& tail)
   {
-    // XXX ここで余分なコピーが発生してる説
+    // XXX this may cause copy
     return cursor {std::make_shared<cell>(head, tail)};
   };
 
@@ -56,7 +56,8 @@ namespace meevax::lisp
   //   return std::distance(exp, nil);
   // }
 
-  cursor append(const cursor& x, const cursor& y)
+  template <typename Cursor1, typename Cursor2>
+  cursor append(Cursor1&& x, Cursor2&& y)
   {
     return !x ? y : car(x) | append(cdr(x), y);
   }
