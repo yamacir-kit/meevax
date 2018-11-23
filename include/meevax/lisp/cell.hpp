@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include <tuple>
-#include <unordered_map>
 #include <utility>
 
 #include <meevax/facade/identity.hpp>
@@ -14,7 +13,9 @@
 namespace meevax::lisp
 {
   struct cell; // forward decreation for type `cusror`
+
   using cursor = tuple::iterator<std::shared_ptr<cell>>;
+  const cursor nil {nullptr};
 
   struct cell
     : public std::tuple<cursor, cursor>,
@@ -28,13 +29,9 @@ namespace meevax::lisp
     virtual ~cell() = default; // removable
   };
 
-  const cursor nil {nullptr};
-
   const cursor t {std::make_shared<
     utility::binder<std::string, cell>
   >("true")};
-
-  std::unordered_map<std::string, cursor> symbols {};
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CELL_HPP

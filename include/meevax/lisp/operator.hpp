@@ -35,15 +35,17 @@ namespace meevax::lisp
     return cons(std::forward<T>(head), std::forward<U>(tail));
   }
 
-  decltype(auto) atom(const cursor& e)
+  template <typename Cursor>
+  bool atom(Cursor&& exp)
   {
     static const std::unordered_map<std::type_index, bool> dispatch
     {
       {typeid(cell), false},
+      {typeid(closure), false},
       {typeid(std::string), true}
     };
 
-    return !e || dispatch.at(e->type());
+    return !exp || dispatch.at(exp->type());
   }
 
   auto list = [](auto&&... args) constexpr
