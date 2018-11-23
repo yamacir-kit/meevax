@@ -1,22 +1,20 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
 #define INCLUDED_MEEVAX_UTILITY_TYPE_ERASURE_HPP
 
+#include <type_traits>
 #include <typeinfo>
 #include <utility>
 
 namespace meevax::utility
 {
-  // TODO
-  // SFINAEでTがUを仮想継承していたら、
-  // コンストラクタ引数の転送先をUのコンストラクタへ切り替える
-  template <typename T, typename U>
+  template <typename T, typename B>
   struct binder
     : public T,
-      public virtual U
+      public virtual B
   {
     template <typename... Ts>
     explicit constexpr binder(Ts&&... xs)
-      : T {std::forward<Ts>(xs)...}
+      : std::conditional<std::is_base_of<B, T>::value, B, T>::type {std::forward<Ts>(xs)...}
     {}
 
     auto type() const noexcept
