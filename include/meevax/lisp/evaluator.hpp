@@ -31,8 +31,6 @@ namespace meevax::lisp
     evaluator()
       : env_ {nil}
     {
-      intern("true", symbols);
-
       define("quote", [&](auto&& exp, auto)
       {
         return cadr(exp);
@@ -40,12 +38,12 @@ namespace meevax::lisp
 
       define("atom", [&](auto&& exp, auto&& env)
       {
-        return atom(evaluate(cadr(exp), env)) ? lookup("true", symbols) : nil;
+        return atom(evaluate(cadr(exp), env)) ? t : nil;
       });
 
       define("eq", [&](auto&& exp, auto&& env)
       {
-        return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? lookup("true", symbols) : nil;
+        return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? t : nil;
       });
 
       define("if", [&](auto&& exp, auto&& env)

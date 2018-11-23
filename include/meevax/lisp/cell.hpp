@@ -9,6 +9,7 @@
 
 #include <meevax/facade/identity.hpp>
 #include <meevax/tuple/iterator.hpp>
+#include <meevax/utility/type_erasure.hpp>
 
 namespace meevax::lisp
 {
@@ -28,6 +29,10 @@ namespace meevax::lisp
   };
 
   const cursor nil {nullptr};
+
+  const cursor t {std::make_shared<
+    utility::binder<std::string, cell>
+  >("true")};
 
   std::unordered_map<std::string, cursor> symbols {};
 } // namespace meevax::lisp
