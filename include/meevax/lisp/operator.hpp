@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_LISP_LIST_HPP
-#define INCLUDED_MEEVAX_LISP_LIST_HPP
+#ifndef INCLUDED_MEEVAX_LISP_OPERATOR_HPP
+#define INCLUDED_MEEVAX_LISP_OPERATOR_HPP
 
 #include <iterator>
 #include <typeindex>
@@ -10,12 +10,13 @@
 #include <meevax/tuple/accessor.hpp>
 
 #define caar(e) car(car(e))
-#define cadar(e) car(cdr(car(e)))
-#define caddar(e) car(cdr(cdr(car(e))))
-
 #define cadr(e) car(cdr(e))
-#define caddr(e) car(cdr(cdr(e)))
-#define cadddr(e) car(cdr(cdr(cdr(e))))
+
+#define cadar(e) cadr(car(e))
+#define caddr(e) cadr(cdr(e))
+
+#define caddar(e) caddr(car(e))
+#define cadddr(e) caddr(cdr(e))
 
 namespace meevax::lisp
 {
@@ -50,10 +51,10 @@ namespace meevax::lisp
     return (args | ... | nil);
   };
 
-  decltype(auto) length(const cursor& exp)
-  {
-    return std::distance(exp, nil);
-  }
+  // decltype(auto) length(const cursor& exp)
+  // {
+  //   return std::distance(exp, nil);
+  // }
 
   cursor append(const cursor& x, const cursor& y)
   {
@@ -93,5 +94,5 @@ namespace meevax::lisp
   }
 } // namespace meevax::lisp
 
-#endif // INCLUDED_MEEVAX_LISP_LIST_HPP
+#endif // INCLUDED_MEEVAX_LISP_OPERATOR_HPP
 

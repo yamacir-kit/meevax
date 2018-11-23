@@ -8,7 +8,7 @@
 
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/closure.hpp>
-#include <meevax/lisp/list.hpp>
+#include <meevax/lisp/operator.hpp>
 
 namespace meevax::lisp
 {
@@ -23,7 +23,7 @@ namespace meevax::lisp
     {
       return os << exp->as<std::string>();
     }
-    else if (exp->type() == typeid(closure)) // XXX dead conditional
+    else if (exp->type() == typeid(closure))
     {
       return os << "<closure>";
     }
