@@ -18,13 +18,22 @@
 
 namespace meevax::lisp
 {
+  // For builtin procedures.
+  struct procedure
+    : public std::function<cursor (cursor&, cursor&)>
+  {
+    template <typename... Ts>
+    explicit constexpr procedure(Ts&&... args)
+      : std::function<cursor (cursor&, cursor&)> {std::forward<Ts>(args)...}
+    {}
+  };
+
+  // Evaluator is a functor provides eval-apply cycle,
+  // also holds builtin procesure table.
   class evaluator
+    : public std::unordered_map<std::shared_ptr<cell>, procedure>
   {
     cursor env_;
-
-    using procedure = std::function<cursor (cursor&, cursor&)>;
-    static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
-
     std::mutex mutex_;
 
   public:
@@ -119,7 +128,7 @@ namespace meevax::lisp
     void define(String&& s, Function&& functor)
     {
       std::lock_guard<std::mutex> lock {mutex_};
-      procedures.emplace(default_context.intern(s), functor);
+      emplace(default_context.intern(s), functor);
     }
 
   protected:
@@ -130,7 +139,7 @@ namespace meevax::lisp
       {
         return assoc(exp, env);
       }
-      else if (const auto& iter {procedures.find(car(exp))}; iter != std::end(procedures))
+      else if (const auto& iter {find(car(exp))}; iter != std::end(*this))
       {
         return (iter->second)(exp, env);
       }
