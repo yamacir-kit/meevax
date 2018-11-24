@@ -32,6 +32,7 @@ namespace meevax::lisp
     }
 
     // returns unchecked reference
+    // TODO rename to 'reference'
     template <typename String>
     const auto& lookup(String&& s)
     {

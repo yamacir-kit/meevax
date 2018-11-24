@@ -18,8 +18,7 @@
 namespace meevax::lisp
 {
   // For builtin procedures.
-  // dispatch using std::unordered_map and std::function is flexible but, may
-  // be too slowly.
+  // Dispatch using std::unordered_map and std::function is flexible but, may be too slowly.
   struct procedure
     : public std::function<cursor (cursor&, cursor&)>
   {
@@ -27,10 +26,14 @@ namespace meevax::lisp
     explicit constexpr procedure(Ts&&... args)
       : std::function<cursor (cursor&, cursor&)> {std::forward<Ts>(args)...}
     {}
+
+    // XXX
+    // Change signature to receive evaluator as first argument?
+    // It is not necessary if we request to use A lambda expression capturing
+    // instance of the evaluator defined in the main function for defining procedures.
   };
 
-  // Evaluator is a functor provides eval-apply cycle,
-  // also holds builtin procedure table.
+  // Evaluator is a functor provides eval-apply cycle, also holds builtin procedure table.
   class evaluator
     : public std::unordered_map<std::shared_ptr<cell>, procedure>
   {
@@ -39,17 +42,23 @@ namespace meevax::lisp
   public:
     evaluator(); // The definition is at the end of this file.
 
-    template <typename Expression>
-    constexpr decltype(auto) operator()(Expression&& exp)
-    {
-      return evaluate(std::forward<Expression>(exp), env_);
-    }
-
     // Assign primitive procedure to dispatch table with it's name.
     template <typename String, typename Function>
     void define(String&& s, Function&& functor)
     {
       emplace(default_context.intern(s), functor);
+    }
+
+    template <typename Expression>
+    constexpr decltype(auto) operator()(Expression&& exp)
+    {
+      return operator()(std::forward<Expression>(exp), env_);
+    }
+
+    template <typename... Ts>
+    constexpr decltype(auto) operator()(Ts&&... args)
+    {
+      return evaluate(std::forward<Ts>(args)...);
     }
 
   protected:
