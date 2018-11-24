@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
 #include <functional>
-#include <mutex>
 #include <unordered_map>
 #include <utility>
 
@@ -19,6 +18,8 @@
 namespace meevax::lisp
 {
   // For builtin procedures.
+  // dispatch using std::unordered_map and std::function is flexible but, may
+  // be too slowly.
   struct procedure
     : public std::function<cursor (cursor&, cursor&)>
   {
@@ -29,93 +30,17 @@ namespace meevax::lisp
   };
 
   // Evaluator is a functor provides eval-apply cycle,
-  // also holds builtin procesure table.
+  // also holds builtin procedure table.
   class evaluator
     : public std::unordered_map<std::shared_ptr<cell>, procedure>
   {
     cursor env_;
-    std::mutex mutex_;
 
   public:
     evaluator()
       : env_ {nil}
     {
-      define("quote", [&](auto&& exp, auto)
-      {
-        return cadr(exp);
-      });
-
-      define("atom", [&](auto&& exp, auto&& env)
-      {
-        return atom(evaluate(cadr(exp), env)) ? t : nil;
-      });
-
-      define("eq", [&](auto&& exp, auto&& env)
-      {
-        return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? t : nil;
-      });
-
-      define("if", [&](auto&& exp, auto&& env)
-      {
-        return evaluate(
-          evaluate(cadr(exp), env) ? caddr(exp) : cadddr(exp),
-          env
-        );
-      });
-
-      define("cond", [&](auto&& exp, auto&& env)
-      {
-        const auto buffer {
-          std::find_if(cdr(exp), nil, [&](auto iter)
-          {
-            return evaluate(car(iter), env);
-          })
-        };
-        return evaluate(cadar(buffer), env);
-      });
-
-      define("car", [&](auto&& exp, auto&& env)
-      {
-        return car(evaluate(cadr(exp), env));
-      });
-
-      define("cdr", [&](auto&& exp, auto&& env)
-      {
-        return cdr(evaluate(cadr(exp), env));
-      });
-
-      define("cons", [&](auto&& e, auto&& a)
-      {
-        return evaluate(cadr(e), a) | evaluate(caddr(e), a);
-      });
-
-      define("lambda", [&](auto&& exp, auto&& env)
-      {
-        using binder = utility::binder<closure, cell>;
-        return std::make_shared<binder>(exp, env);
-      });
-
-      define("define", [&](auto&& var, auto)
-      {
-        return assoc(
-          cadr(var),
-          env_ = list(cadr(var), caddr(var)) | env_
-        );
-      });
-
-      define("list", [&](auto&& exp, auto&& env)
-      {
-        return lambda::y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
-        {
-          return evaluate(car(exp), env) | (cdr(exp) ? proc(proc, cdr(exp), env) : nil);
-        })(cdr(exp), env);
-      });
-
-      define("exit", [&](auto, auto)
-        -> const cursor&
-      {
-        std::exit(boost::exit_success);
-      });
+      #include <meevax/lisp/procedure.hpp>
     }
 
     template <typename Expression>
@@ -124,10 +49,10 @@ namespace meevax::lisp
       return evaluate(std::forward<Expression>(exp), env_);
     }
 
+    // Assign primitive procedure to dispatch table with it's name.
     template <typename String, typename Function>
     void define(String&& s, Function&& functor)
     {
-      std::lock_guard<std::mutex> lock {mutex_};
       emplace(default_context.intern(s), functor);
     }
 
@@ -139,9 +64,10 @@ namespace meevax::lisp
       {
         return assoc(exp, env);
       }
+      // XXX This dispatching is too slowly but, useful for incremental prototyping.
       else if (const auto& iter {find(car(exp))}; iter != std::end(*this))
       {
-        return (iter->second)(exp, env);
+        return std::get<1>(*iter)(exp, env);
       }
       else if (const auto& callee {evaluate(car(exp), env)}; callee)
       {
