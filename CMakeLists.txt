@@ -16,7 +16,7 @@ endif()
 project(meevax VERSION ${MAJOR}.${MINOR}.${SUBMINOR} LANGUAGES CXX)
 
 set(CMAKE_BUILD_TYPE minsizerel)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++17 -s")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -s")
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Boost REQUIRED)

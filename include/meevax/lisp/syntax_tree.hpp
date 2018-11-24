@@ -7,7 +7,6 @@
 
 #include <meevax/algorithm/fold.hpp>
 #include <meevax/lisp/cell.hpp>
-#include <meevax/lisp/table.hpp>
 
 namespace meevax::lisp
 {
@@ -42,16 +41,16 @@ namespace meevax::lisp
       }
     }
 
-    template <typename SymbolTable>
-    cursor compile(SymbolTable& symbols) const
+    template <typename Context>
+    cursor compile(Context&& context) const
     {
       if (std::empty(*this))
       {
-        return std::empty(value) ? nil : intern(value, symbols);
+        return std::empty(value) || value == "(" ? nil : context.intern(value);
       }
       else return algorithm::fold_right(std::begin(*this), std::end(*this), nil, [&](auto&& car, auto&& cdr)
       {
-        return car.compile(symbols) | cdr;
+        return car.compile(context) | cdr;
       });
     }
   };

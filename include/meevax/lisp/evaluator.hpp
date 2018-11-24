@@ -11,9 +11,9 @@
 #include <meevax/lambda/recursion.hpp>
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/closure.hpp>
+#include <meevax/lisp/context.hpp>
 #include <meevax/lisp/exception.hpp>
-#include <meevax/lisp/list.hpp>
-#include <meevax/lisp/table.hpp>
+#include <meevax/lisp/operator.hpp>
 #include <meevax/lisp/writer.hpp> // to_string
 
 namespace meevax::lisp
@@ -31,8 +31,6 @@ namespace meevax::lisp
     evaluator()
       : env_ {nil}
     {
-      intern("true", symbols);
-
       define("quote", [&](auto&& exp, auto)
       {
         return cadr(exp);
@@ -40,12 +38,12 @@ namespace meevax::lisp
 
       define("atom", [&](auto&& exp, auto&& env)
       {
-        return atom(evaluate(cadr(exp), env)) ? lookup("true", symbols) : nil;
+        return atom(evaluate(cadr(exp), env)) ? t : nil;
       });
 
       define("eq", [&](auto&& exp, auto&& env)
       {
-        return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? lookup("true", symbols) : nil;
+        return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? t : nil;
       });
 
       define("if", [&](auto&& exp, auto&& env)
@@ -90,7 +88,7 @@ namespace meevax::lisp
 
       define("define", [&](auto&& var, auto)
       {
-        return lookup(
+        return assoc(
           cadr(var),
           env_ = list(cadr(var), caddr(var)) | env_
         );
@@ -111,25 +109,26 @@ namespace meevax::lisp
       });
     }
 
-    template <typename T>
-    decltype(auto) operator()(T&& e)
+    template <typename Expression>
+    constexpr decltype(auto) operator()(Expression&& exp)
     {
-      return evaluate(std::forward<T>(e), env_);
+      return evaluate(std::forward<Expression>(exp), env_);
     }
 
-    template <typename S, typename F>
-    void define(S&& s, F&& functor)
+    template <typename String, typename Function>
+    void define(String&& s, Function&& functor)
     {
       std::lock_guard<std::mutex> lock {mutex_};
-      procedures.emplace(intern(s, symbols), functor);
+      procedures.emplace(default_context.intern(s), functor);
     }
 
   protected:
-    cursor evaluate(const cursor& exp, const cursor& env) const
+    template <typename Expression, typename Environment>
+    cursor evaluate(Expression&& exp, Environment&& env)
     {
       if (atom(exp))
       {
-        return lookup(exp, env);
+        return assoc(exp, env);
       }
       else if (const auto& iter {procedures.find(car(exp))}; iter != std::end(procedures))
       {
@@ -139,7 +138,7 @@ namespace meevax::lisp
       {
         if (callee->type() == typeid(closure))
         {
-          return apply(callee->as<closure>(), cdr(exp), env);
+          return apply(callee->template as<closure>(), cdr(exp), env);
         }
         else
         {
@@ -151,12 +150,14 @@ namespace meevax::lisp
       );
     }
 
-    cursor apply(const closure& closure, const cursor& args, const cursor& env) const
+    template <typename Closure, typename Expression, typename Environment>
+    cursor apply(Closure&& closure, Expression&& args, Environment&& env)
     {
       return evaluate(caddar(closure), append(zip(cadar(closure), evlis(args, env)), cdr(closure)));
     }
 
-    cursor evlis(const cursor& exp, const cursor& env) const
+    template <typename Expression, typename Environment>
+    cursor evlis(Expression&& exp, Environment&& env)
     {
       return !exp ? nil : evaluate(car(exp), env) | evlis(cdr(exp), env);
     }

@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_LISP_LIST_HPP
-#define INCLUDED_MEEVAX_LISP_LIST_HPP
+#ifndef INCLUDED_MEEVAX_LISP_OPERATOR_HPP
+#define INCLUDED_MEEVAX_LISP_OPERATOR_HPP
 
 #include <iterator>
 #include <typeindex>
@@ -10,12 +10,13 @@
 #include <meevax/tuple/accessor.hpp>
 
 #define caar(e) car(car(e))
-#define cadar(e) car(cdr(car(e)))
-#define caddar(e) car(cdr(cdr(car(e))))
-
 #define cadr(e) car(cdr(e))
-#define caddr(e) car(cdr(cdr(e)))
-#define cadddr(e) car(cdr(cdr(cdr(e))))
+
+#define cadar(e) cadr(car(e))
+#define caddr(e) cadr(cdr(e))
+
+#define caddar(e) caddr(car(e))
+#define cadddr(e) caddr(cdr(e))
 
 namespace meevax::lisp
 {
@@ -24,7 +25,7 @@ namespace meevax::lisp
 
   auto cons = [](auto&& head, auto&& tail)
   {
-    // XXX ここで余分なコピーが発生してる説
+    // XXX this may cause copy
     return cursor {std::make_shared<cell>(head, tail)};
   };
 
@@ -34,15 +35,17 @@ namespace meevax::lisp
     return cons(std::forward<T>(head), std::forward<U>(tail));
   }
 
-  decltype(auto) atom(const cursor& e)
+  template <typename Cursor>
+  bool atom(Cursor&& exp)
   {
     static const std::unordered_map<std::type_index, bool> dispatch
     {
       {typeid(cell), false},
+      {typeid(closure), false},
       {typeid(std::string), true}
     };
 
-    return !e || dispatch.at(e->type());
+    return !exp || dispatch.at(exp->type());
   }
 
   auto list = [](auto&&... args) constexpr
@@ -50,12 +53,13 @@ namespace meevax::lisp
     return (args | ... | nil);
   };
 
-  decltype(auto) length(const cursor& exp)
-  {
-    return std::distance(exp, nil);
-  }
+  // decltype(auto) length(const cursor& exp)
+  // {
+  //   return std::distance(exp, nil);
+  // }
 
-  cursor append(const cursor& x, const cursor& y)
+  template <typename Cursor1, typename Cursor2>
+  cursor append(Cursor1&& x, Cursor2&& y)
   {
     return !x ? y : car(x) | append(cdr(x), y);
   }
@@ -76,7 +80,7 @@ namespace meevax::lisp
     }
   }
 
-  const cursor& lookup(const cursor& var, const cursor& env)
+  const cursor& assoc(const cursor& var, const cursor& env)
   {
     if (!var || !env)
     {
@@ -88,10 +92,10 @@ namespace meevax::lisp
     }
     else
     {
-      return lookup(var, cdr(env));
+      return assoc(var, cdr(env));
     }
-  };
+  }
 } // namespace meevax::lisp
 
-#endif // INCLUDED_MEEVAX_LISP_LIST_HPP
+#endif // INCLUDED_MEEVAX_LISP_OPERATOR_HPP
 
