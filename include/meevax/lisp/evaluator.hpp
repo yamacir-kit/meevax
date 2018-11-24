@@ -22,7 +22,7 @@ namespace meevax::lisp
   {
     cursor env_;
 
-    using procedure = std::function<cursor (const cursor&, const cursor&)>;
+    using procedure = std::function<cursor (cursor&, cursor&)>;
     static inline std::unordered_map<std::shared_ptr<cell>, procedure> procedures {};
 
     std::mutex mutex_;

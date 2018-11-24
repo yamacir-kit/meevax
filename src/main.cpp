@@ -20,7 +20,7 @@ int main()
       continue;
     }
 
-    const auto expression {read(continuation += buffer)};
+    auto expression {read(continuation += buffer)};
     std::cout << "-> " << expression << std::endl;
 
     const auto evaluated {eval(expression)};
