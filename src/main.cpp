@@ -2,7 +2,6 @@
 #include <string>
 
 #include <meevax/lisp/evaluator.hpp>
-#include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/reader.hpp>
 #include <meevax/lisp/writer.hpp>
 
@@ -33,9 +32,9 @@ int main()
   {
     continuation = unbalance_expression + " ";
   }
-  catch (const meevax::lisp::exception& exception)
+  catch (const std::runtime_error& error)
   {
-    std::cerr << exception << std::endl;
+    std::cerr << "[error] standard exception occurred: " << error.what() << std::endl;
     continuation.clear();
   }
 

@@ -4,6 +4,7 @@
 #include <functional>
 #include <unordered_map>
 #include <utility>
+#include <stdexcept>
 
 #include <boost/cstdlib.hpp>
 
@@ -11,9 +12,8 @@
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/closure.hpp>
 #include <meevax/lisp/context.hpp>
-#include <meevax/lisp/exception.hpp>
 #include <meevax/lisp/operator.hpp>
-#include <meevax/lisp/writer.hpp> // to_string
+#include <meevax/lisp/reader.hpp>
 
 namespace meevax::lisp
 {
@@ -80,9 +80,7 @@ namespace meevax::lisp
           return evaluate(callee | cdr(exp), env);
         }
       }
-      else throw generate_exception(
-        "unexpected evaluation dispatch failure for expression " + to_string(exp)
-      );
+      else throw std::runtime_error {"unexpected evaluation dispatch failure"};
     }
 
     template <typename Closure, typename Expression, typename Environment>
