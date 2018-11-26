@@ -41,9 +41,6 @@ namespace meevax::lisp
       return iter->second;
     }
   };
-
-  // XXX temporary
-  context default_context {};
 } // namespace meevax::lisp
 
 #endif // INCLUDED_MEEVAX_LISP_CONTEXT_HPP

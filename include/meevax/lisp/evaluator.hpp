@@ -2,9 +2,10 @@
 #define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
 
 #include <functional>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <utility>
-#include <stdexcept>
 
 #include <boost/cstdlib.hpp>
 
@@ -40,25 +41,26 @@ namespace meevax::lisp
     cursor env_;
 
   public:
+    reader read;
+
     evaluator(); // The definition is at the end of this file.
 
     // Assign primitive procedure to dispatch table with it's name.
     template <typename String, typename Function>
     void define(String&& s, Function&& functor)
     {
-      emplace(default_context.intern(s), functor);
+      // TODO change reader interface. this is weird.
+      emplace(read->intern(s), functor);
     }
 
-    template <typename Expression>
-    constexpr decltype(auto) operator()(Expression&& exp)
+    decltype(auto) operator()(cursor& exp)
     {
-      return operator()(std::forward<Expression>(exp), env_);
+      return evaluate(exp, env_);
     }
 
-    template <typename... Ts>
-    constexpr decltype(auto) operator()(Ts&&... args)
+    decltype(auto) operator()(const std::string& s)
     {
-      return evaluate(std::forward<Ts>(args)...);
+      return evaluate(read(s), env_);
     }
 
   protected:
@@ -102,7 +104,8 @@ namespace meevax::lisp
   };
 
   evaluator::evaluator()
-    : env_ {nil}
+    : env_ {nil},
+      read {std::make_shared<context>()}
   {
     define("quote", [](auto&& exp, auto)
     {
