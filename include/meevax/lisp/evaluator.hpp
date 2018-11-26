@@ -48,10 +48,10 @@ namespace meevax::lisp
 
     // Assign primitive procedure to dispatch table with it's name.
     template <typename String, typename Function>
-    void define(String&& s, Function&& functor)
+    void define(String&& s, Function&& function)
     {
       // TODO change reader interface. this is weird.
-      emplace(read->intern(s), functor);
+      emplace(read->intern(s), std::forward<Function>(function));
     }
 
     decltype(auto) operator()(cursor& exp)
@@ -144,12 +144,14 @@ namespace meevax::lisp
 
     define("car", [&](auto&& exp, auto&& env)
     {
-      return car(evaluate(cadr(exp), env));
+      auto&& buffer {evaluate(cadr(exp), env)};
+      return buffer ? car(buffer) : nil;
     });
 
     define("cdr", [&](auto&& exp, auto&& env)
     {
-      return cdr(evaluate(cadr(exp), env));
+      auto&& buffer {evaluate(cadr(exp), env)};
+      return buffer ? cdr(buffer) : nil;
     });
 
     define("cons", [&](auto&& exp, auto&& env)
@@ -157,10 +159,10 @@ namespace meevax::lisp
       return evaluate(cadr(exp), env) | evaluate(caddr(exp), env);
     });
 
-    define("lambda", [&](auto&& exp, auto&& env)
+    define("lambda", [&](auto&&... args)
     {
       using binder = utility::binder<closure, cell>;
-      return std::make_shared<binder>(exp, env);
+      return std::make_shared<binder>(std::forward<decltype(args)>(args)...);
     });
 
     define("define", [&](auto&& var, auto)

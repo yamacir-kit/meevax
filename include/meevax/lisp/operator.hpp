@@ -19,16 +19,15 @@
 
 namespace meevax::lisp
 {
-  auto cons = [](auto&& head, auto&& tail)
+  auto cons = [](auto&&... args)
   {
-    // XXX this may cause copy
-    return cursor {std::make_shared<cell>(head, tail)};
+    return cursor {std::make_shared<cell>(std::forward<decltype(args)>(args)...)};
   };
 
   template <typename T, typename U>
-  decltype(auto) operator|(T&& head, U&& tail)
+  decltype(auto) operator|(T&& car, U&& cdr)
   {
-    return cons(std::forward<T>(head), std::forward<U>(tail));
+    return cons(std::forward<T>(car), std::forward<U>(cdr));
   }
 
   template <typename Cursor>
@@ -54,8 +53,8 @@ namespace meevax::lisp
   //   return std::distance(exp, nil);
   // }
 
-  template <typename Cursor1, typename Cursor2>
-  cursor append(Cursor1&& x, Cursor2&& y)
+  template <typename T, typename U>
+  cursor append(T&& x, U&& y)
   {
     return !x ? y : car(x) | append(cdr(x), y);
   }
