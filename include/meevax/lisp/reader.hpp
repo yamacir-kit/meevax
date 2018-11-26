@@ -6,6 +6,7 @@
 #include <list>
 #include <locale>
 #include <string>
+#include <utility>
 
 #include <boost/range/algorithm.hpp>
 
@@ -15,13 +16,19 @@
 namespace meevax::lisp
 {
   class reader
+    : public std::shared_ptr<context>
   {
   public:
+    template <typename... Ts>
+    explicit constexpr reader(Ts&&... args)
+      : std::shared_ptr<context> {std::forward<Ts>(args)...}
+    {}
+
     auto operator()(const std::string& s) const
     {
       if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
       {
-        return syntax_tree {tokens}.compile(default_context);
+        return syntax_tree {tokens}.compile(**this);
       }
       else throw s;
     }
