@@ -7,7 +7,7 @@
 #include <utility>
 
 #include <meevax/lisp/cell.hpp>
-#include <meevax/tuple/accessor.hpp>
+// #include <meevax/tuple/accessor.hpp>
 
 #define caar(e) car(car(e))
 #define cadr(e) car(cdr(e))
@@ -20,8 +20,8 @@
 
 namespace meevax::lisp
 {
-  tuple::accessor<0> car {};
-  tuple::accessor<1> cdr {};
+  // tuple::accessor<0> car {};
+  // tuple::accessor<1> cdr {};
 
   auto cons = [](auto&& head, auto&& tail)
   {

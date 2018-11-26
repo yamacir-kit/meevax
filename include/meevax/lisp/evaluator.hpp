@@ -43,6 +43,7 @@ namespace meevax::lisp
   public:
     reader read;
 
+    // TODO need more constructor.
     evaluator(); // The definition is at the end of this file.
 
     // Assign primitive procedure to dispatch table with it's name.
@@ -80,7 +81,7 @@ namespace meevax::lisp
       {
         if (callee->type() == typeid(closure))
         {
-          return apply(callee->template as<closure>(), cdr(exp), env);
+          return apply(callee, cdr(exp), env);
         }
         else
         {

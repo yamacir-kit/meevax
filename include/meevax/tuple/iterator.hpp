@@ -6,7 +6,7 @@
 namespace meevax::tuple
 {
   template <typename SmartPointer, auto N = 1>
-  struct iterator
+  struct [[deprecated]] iterator
     : public SmartPointer,
       public std::iterator<std::input_iterator_tag, typename SmartPointer::element_type>
   {

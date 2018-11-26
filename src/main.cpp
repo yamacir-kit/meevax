@@ -18,9 +18,6 @@ int main()
       continue;
     }
 
-    // auto expression {read(continuation += buffer)};
-    // std::cout << "-> " << expression << std::endl;
-
     const auto result {evaluate(continuation += buffer)};
     std::cout << "-> " << result << std::endl;
 

@@ -9,7 +9,7 @@
 namespace meevax::tuple
 {
   template <auto N>
-  struct accessor
+  struct [[deprecated]] accessor
     : public std::integral_constant<std::size_t, N>
   {
     template <typename... Ts>
