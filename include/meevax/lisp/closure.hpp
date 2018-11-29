@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LISP_CLOSURE_HPP
 #define INCLUDED_MEEVAX_LISP_CLOSURE_HPP
 
-#include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/pair.hpp>
 
 namespace meevax::lisp
 {

@@ -6,7 +6,7 @@
 #include <typeinfo>
 #include <utility>
 
-#include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/pair.hpp>
 
 #define caar(e) car(car(e))
 #define cadr(e) car(cdr(e))
@@ -19,16 +19,15 @@
 
 namespace meevax::lisp
 {
-  // TODO convert to using for type cell
-  auto cons = [](auto&&... args)
+  template <typename... Ts>
+  constexpr cursor cons(Ts&&... args)
   {
-    // よく考えたらここの make_shared は要らなくないか？
-    return cursor {std::make_shared<pair>(std::forward<decltype(args)>(args)...)};
-  };
+    return std::make_shared<pair>(std::forward<Ts>(args)...);
+  }
 
   // For C++17 fold-expression
   template <typename T, typename U>
-  decltype(auto) operator|(T&& car, U&& cdr)
+  constexpr decltype(auto) operator|(T&& car, U&& cdr)
   {
     return cons(std::forward<T>(car), std::forward<U>(cdr));
   }

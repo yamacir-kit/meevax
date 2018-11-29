@@ -10,10 +10,10 @@
 #include <boost/cstdlib.hpp>
 
 #include <meevax/lambda/recursion.hpp>
-#include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/closure.hpp>
 #include <meevax/lisp/context.hpp>
 #include <meevax/lisp/operator.hpp>
+#include <meevax/lisp/pair.hpp>
 #include <meevax/lisp/reader.hpp>
 
 namespace meevax::lisp

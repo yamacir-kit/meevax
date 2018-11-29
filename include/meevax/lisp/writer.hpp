@@ -5,9 +5,9 @@
 #include <sstream>
 #include <typeinfo>
 
-#include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/closure.hpp>
 #include <meevax/lisp/iterator.hpp>
+#include <meevax/lisp/pair.hpp>
 
 namespace meevax::lisp
 {

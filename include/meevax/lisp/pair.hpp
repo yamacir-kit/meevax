@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_LISP_CELL_HPP
-#define INCLUDED_MEEVAX_LISP_CELL_HPP
+#ifndef INCLUDED_MEEVAX_LISP_PAIR_HPP
+#define INCLUDED_MEEVAX_LISP_PAIR_HPP
 
 #include <memory>
 #include <string>
@@ -13,10 +13,10 @@ namespace meevax::lisp
 {
   struct pair; // forward decreation for type `cusror`
 
-  // TODO using iterator = meevax::lisp::cursor<pair>;
   using cursor = iterator<pair>;
   const cursor nil {nullptr};
 
+  // This class must be constructed by std::make_shared<pair>.
   struct pair
     : public std::pair<cursor, cursor>,
       public facade::identity<pair>
@@ -29,13 +29,10 @@ namespace meevax::lisp
     virtual ~pair() = default; // removable
   };
 
-  // Constructor interface like a traditional function.
-  // using cons = pair;
-
   const cursor t {std::make_shared<
     utility::binder<std::string, pair>
   >("true")};
 } // namespace meevax::lisp
 
-#endif // INCLUDED_MEEVAX_LISP_CELL_HPP
+#endif // INCLUDED_MEEVAX_LISP_PAIR_HPP
 

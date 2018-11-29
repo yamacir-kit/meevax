@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include <meevax/lisp/cell.hpp>
+#include <meevax/lisp/pair.hpp>
 #include <meevax/utility/type_erasure.hpp>
 
 namespace meevax::lisp
