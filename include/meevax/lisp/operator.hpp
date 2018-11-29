@@ -19,11 +19,14 @@
 
 namespace meevax::lisp
 {
+  // TODO convert to using for type cell
   auto cons = [](auto&&... args)
   {
-    return cursor {std::make_shared<cell>(std::forward<decltype(args)>(args)...)};
+    // よく考えたらここの make_shared は要らなくないか？
+    return cursor {std::make_shared<pair>(std::forward<decltype(args)>(args)...)};
   };
 
+  // For C++17 fold-expression
   template <typename T, typename U>
   decltype(auto) operator|(T&& car, U&& cdr)
   {
@@ -35,7 +38,7 @@ namespace meevax::lisp
   {
     static const std::unordered_map<std::type_index, bool> dispatch
     {
-      {typeid(cell), false},
+      {typeid(pair), false},
       {typeid(closure), false},
       {typeid(std::string), true}
     };

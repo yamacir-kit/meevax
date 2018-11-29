@@ -7,7 +7,7 @@ namespace meevax::lisp
 {
   // Closure is pair of function and environment.
   struct closure
-    : public virtual cell
+    : public virtual pair
   {};
 } // namespace meevax::lisp
 

@@ -36,7 +36,7 @@ namespace meevax::lisp
 
   // Evaluator is a functor provides eval-apply cycle, also holds builtin procedure table.
   class evaluator
-    : public std::unordered_map<std::shared_ptr<cell>, procedure>
+    : public std::unordered_map<std::shared_ptr<pair>, procedure>
   {
     cursor env_;
 
@@ -161,7 +161,7 @@ namespace meevax::lisp
 
     define("lambda", [&](auto&&... args)
     {
-      using binder = utility::binder<closure, cell>;
+      using binder = utility::binder<closure, pair>;
       return std::make_shared<binder>(std::forward<decltype(args)>(args)...);
     });
 

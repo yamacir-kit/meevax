@@ -11,25 +11,29 @@
 
 namespace meevax::lisp
 {
-  struct cell; // forward decreation for type `cusror`
+  struct pair; // forward decreation for type `cusror`
 
-  using cursor = iterator<cell>;
+  // TODO using iterator = meevax::lisp::cursor<pair>;
+  using cursor = iterator<pair>;
   const cursor nil {nullptr};
 
-  struct cell
+  struct pair
     : public std::pair<cursor, cursor>,
-      public facade::identity<cell>
+      public facade::identity<pair>
   {
     template <typename... Ts>
-    constexpr cell(Ts&&... args)
+    constexpr pair(Ts&&... args)
       : std::pair<cursor, cursor> {std::forward<Ts>(args)...}
     {}
 
-    virtual ~cell() = default; // removable
+    virtual ~pair() = default; // removable
   };
 
+  // Constructor interface like a traditional function.
+  // using cons = pair;
+
   const cursor t {std::make_shared<
-    utility::binder<std::string, cell>
+    utility::binder<std::string, pair>
   >("true")};
 } // namespace meevax::lisp
 

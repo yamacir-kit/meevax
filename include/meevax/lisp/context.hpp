@@ -27,7 +27,7 @@ namespace meevax::lisp
         return iter->second;
       }
       else return emplace(
-        s, std::make_shared<utility::binder<std::string, cell>>(s)
+        s, std::make_shared<utility::binder<std::string, pair>>(s)
       ).first->second;
     }
 

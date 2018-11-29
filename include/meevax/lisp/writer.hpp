@@ -3,12 +3,11 @@
 
 #include <iostream>
 #include <sstream>
-#include <typeindex>
 #include <typeinfo>
 
 #include <meevax/lisp/cell.hpp>
 #include <meevax/lisp/closure.hpp>
-#include <meevax/lisp/operator.hpp>
+#include <meevax/lisp/iterator.hpp>
 
 namespace meevax::lisp
 {
@@ -32,7 +31,7 @@ namespace meevax::lisp
 
     for (auto iter {cdr(exp)}; iter; ++iter)
     {
-      if (iter->type() != typeid(cell))
+      if (iter->type() != typeid(pair))
       {
         return os << " . " << iter << ")";
       }
