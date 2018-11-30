@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_LISP_OPERATOR_HPP
 
 #include <iterator>
-#include <typeindex>
 #include <typeinfo>
 #include <utility>
 
@@ -32,23 +31,17 @@ namespace meevax::lisp
     return cons(std::forward<T>(car), std::forward<U>(cdr));
   }
 
-  template <typename Cursor>
-  bool atom(Cursor&& exp)
+  template <typename T>
+  decltype(auto) atom(const T& exp)
   {
-    static const std::unordered_map<std::type_index, bool> dispatch
-    {
-      {typeid(pair), false},
-      {typeid(closure), false},
-      {typeid(std::string), true}
-    };
-
-    return !exp || dispatch.at(exp->type());
+    return !exp || exp->type() != typeid(pair);
   }
 
-  auto list = [](auto&&... args) constexpr
+  template <typename... Ts>
+  constexpr decltype(auto) list(Ts&&... args)
   {
     return (args | ... | nil);
-  };
+  }
 
   // decltype(auto) length(const cursor& exp)
   // {
