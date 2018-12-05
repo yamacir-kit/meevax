@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
-#define INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
+#ifndef INCLUDED_MEEVAX_CORE_EVALUATOR_HPP
+#define INCLUDED_MEEVAX_CORE_EVALUATOR_HPP
 
 #include <functional>
 #include <stdexcept>
@@ -9,14 +9,14 @@
 
 #include <boost/cstdlib.hpp>
 
+#include <meevax/core/closure.hpp>
+#include <meevax/core/context.hpp>
+#include <meevax/core/operator.hpp>
+#include <meevax/core/pair.hpp>
+#include <meevax/core/reader.hpp>
 #include <meevax/lambda/recursion.hpp>
-#include <meevax/lisp/closure.hpp>
-#include <meevax/lisp/context.hpp>
-#include <meevax/lisp/operator.hpp>
-#include <meevax/lisp/pair.hpp>
-#include <meevax/lisp/reader.hpp>
 
-namespace meevax::lisp
+namespace meevax::core
 {
   // For builtin procedures.
   // Dispatch using std::unordered_map and std::function is flexible but, may be too slowly.
@@ -184,7 +184,7 @@ namespace meevax::lisp
       std::exit(boost::exit_success);
     });
   }
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_EVALUATOR_HPP
+#endif // INCLUDED_MEEVAX_CORE_EVALUATOR_HPP
 

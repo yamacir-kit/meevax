@@ -1,15 +1,15 @@
-#ifndef INCLUDED_MEEVAX_LISP_CONTEXT_HPP
-#define INCLUDED_MEEVAX_LISP_CONTEXT_HPP
+#ifndef INCLUDED_MEEVAX_CORE_CONTEXT_HPP
+#define INCLUDED_MEEVAX_CORE_CONTEXT_HPP
 
 #include <cassert>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#include <meevax/lisp/pair.hpp>
+#include <meevax/core/pair.hpp>
 #include <meevax/utility/type_erasure.hpp>
 
-namespace meevax::lisp
+namespace meevax::core
 {
   struct context
     : public std::unordered_map<std::string, cursor>
@@ -41,7 +41,7 @@ namespace meevax::lisp
       return iter->second;
     }
   };
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_CONTEXT_HPP
+#endif // INCLUDED_MEEVAX_CORE_CONTEXT_HPP
 

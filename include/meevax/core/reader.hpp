@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_LISP_READER_HPP
-#define INCLUDED_MEEVAX_LISP_READER_HPP
+#ifndef INCLUDED_MEEVAX_CORE_READER_HPP
+#define INCLUDED_MEEVAX_CORE_READER_HPP
 
 #include <algorithm>
 #include <iterator>
@@ -10,10 +10,10 @@
 
 #include <boost/range/algorithm.hpp>
 
-#include <meevax/lisp/context.hpp>
-#include <meevax/lisp/syntax_tree.hpp>
+#include <meevax/core/context.hpp>
+#include <meevax/core/syntax_tree.hpp>
 
-namespace meevax::lisp
+namespace meevax::core
 {
   class reader
     : public std::shared_ptr<context>
@@ -76,7 +76,7 @@ namespace meevax::lisp
       return boost::count(tokens, "(") - boost::count(tokens, ")");
     }
   };
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_READER_HPP
+#endif // INCLUDED_MEEVAX_CORE_READER_HPP
 

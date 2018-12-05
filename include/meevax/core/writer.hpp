@@ -1,15 +1,15 @@
-#ifndef INCLUDED_MEEVAX_LISP_WRITER_HPP
-#define INCLUDED_MEEVAX_LISP_WRITER_HPP
+#ifndef INCLUDED_MEEVAX_CORE_WRITER_HPP
+#define INCLUDED_MEEVAX_CORE_WRITER_HPP
 
 #include <iostream>
 #include <sstream>
 #include <typeinfo>
 
-#include <meevax/lisp/closure.hpp>
-#include <meevax/lisp/iterator.hpp>
-#include <meevax/lisp/pair.hpp>
+#include <meevax/core/closure.hpp>
+#include <meevax/core/iterator.hpp>
+#include <meevax/core/pair.hpp>
 
-namespace meevax::lisp
+namespace meevax::core
 {
   std::ostream& operator<<(std::ostream& os, const cursor& exp)
   {
@@ -51,7 +51,7 @@ namespace meevax::lisp
     ss << exp;
     return ss.str();
   }
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_WRITER_HPP
+#endif // INCLUDED_MEEVAX_CORE_WRITER_HPP
 

@@ -1,15 +1,15 @@
-#ifndef INCLUDED_MEEVAX_LISP_PAIR_HPP
-#define INCLUDED_MEEVAX_LISP_PAIR_HPP
+#ifndef INCLUDED_MEEVAX_CORE_PAIR_HPP
+#define INCLUDED_MEEVAX_CORE_PAIR_HPP
 
 #include <memory>
 #include <string>
 #include <utility>
 
 #include <meevax/facade/identity.hpp>
-#include <meevax/lisp/iterator.hpp>
+#include <meevax/core/iterator.hpp>
 #include <meevax/utility/type_erasure.hpp>
 
-namespace meevax::lisp
+namespace meevax::core
 {
   struct pair; // forward decreation for type `cusror`
 
@@ -33,7 +33,7 @@ namespace meevax::lisp
   const cursor t {std::make_shared<
     utility::binder<std::string, pair>
   >("true")};
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_PAIR_HPP
+#endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
 

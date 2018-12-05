@@ -7,7 +7,7 @@
 
 namespace meevax::lisp
 {
-  class exception
+  class [[deprecated]] exception
     : public std::runtime_error
   {
     const std::string file_;

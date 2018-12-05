@@ -1,10 +1,10 @@
-#ifndef INCLUDED_MEEVAX_LISP_ITERATOR_HPP
-#define INCLUDED_MEEVAX_LISP_ITERATOR_HPP
+#ifndef INCLUDED_MEEVAX_CORE_ITERATOR_HPP
+#define INCLUDED_MEEVAX_CORE_ITERATOR_HPP
 
 #include <memory>
 #include <utility>
 
-namespace meevax::lisp
+namespace meevax::core
 {
   template <typename T>
   struct iterator
@@ -36,7 +36,7 @@ namespace meevax::lisp
       return *this = cdr(*this);
     }
   };
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_ITERATOR_HPP
+#endif // INCLUDED_MEEVAX_CORE_ITERATOR_HPP
 

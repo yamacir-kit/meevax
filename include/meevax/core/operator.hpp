@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_LISP_OPERATOR_HPP
-#define INCLUDED_MEEVAX_LISP_OPERATOR_HPP
+#ifndef INCLUDED_MEEVAX_CORE_OPERATOR_HPP
+#define INCLUDED_MEEVAX_CORE_OPERATOR_HPP
 
 #include <iterator>
 #include <typeinfo>
 #include <utility>
 
-#include <meevax/lisp/pair.hpp>
+#include <meevax/core/pair.hpp>
 
 #define caar(e) car(car(e))
 #define cadr(e) car(cdr(e))
@@ -16,7 +16,7 @@
 #define caddar(e) caddr(car(e))
 #define cadddr(e) caddr(cdr(e))
 
-namespace meevax::lisp
+namespace meevax::core
 {
   template <typename... Ts>
   constexpr cursor cons(Ts&&... args)
@@ -85,7 +85,7 @@ namespace meevax::lisp
       return assoc(var, cdr(env));
     }
   }
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_OPERATOR_HPP
+#endif // INCLUDED_MEEVAX_CORE_OPERATOR_HPP
 
