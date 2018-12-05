@@ -26,7 +26,8 @@ namespace meevax::lisp
       : std::pair<cursor, cursor> {std::forward<Ts>(args)...}
     {}
 
-    virtual ~pair() = default; // removable
+    // NOTE Virtual destructor is removable if instanciate this type only via std::shared_ptr.
+    virtual ~pair() = default;
   };
 
   const cursor t {std::make_shared<

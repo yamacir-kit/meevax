@@ -19,7 +19,7 @@ int main()
     }
 
     const auto result {evaluate(continuation += buffer)};
-    std::cout << "-> " << result << ", " << meevax::lisp::n << std::endl;
+    std::cout << "-> " << result << std::endl;
 
     continuation.clear();
     std::putchar('\n');

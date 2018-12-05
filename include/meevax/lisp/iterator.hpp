@@ -6,8 +6,6 @@
 
 namespace meevax::lisp
 {
-  std::size_t n {0};
-
   template <typename T>
   struct iterator
     : public std::shared_ptr<T>,
@@ -16,16 +14,7 @@ namespace meevax::lisp
     template <typename... Ts>
     constexpr iterator(Ts&&... args)
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
-    {
-      ++n;
-    }
-
-    template <typename... Ts>
-    constexpr decltype(auto) operator=(Ts&&... args)
-    {
-      ++n;
-      return std::shared_ptr<T>::operator=(std::forward<Ts>(args)...);
-    }
+    {}
 
     friend decltype(auto) car(const std::shared_ptr<T>& iter) noexcept
     {
