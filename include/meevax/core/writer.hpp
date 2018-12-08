@@ -5,8 +5,8 @@
 #include <sstream>
 #include <typeinfo>
 
+#include <meevax/core/accessor.hpp>
 #include <meevax/core/closure.hpp>
-#include <meevax/core/iterator.hpp>
 #include <meevax/core/pair.hpp>
 
 namespace meevax::core
