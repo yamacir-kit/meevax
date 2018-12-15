@@ -11,6 +11,11 @@
 
 namespace meevax::core
 {
+  struct pair;
+
+  using cursor = accessor<pair>;
+  const cursor nil {nullptr};
+
   // This class must be constructed by std::make_shared<pair>.
   struct pair
     : public std::pair<accessor<pair>, accessor<pair>>,
@@ -27,12 +32,8 @@ namespace meevax::core
     virtual ~pair() = default;
   };
 
-  using cursor = accessor<pair>;
-
-  const cursor nil {nullptr};
-  const cursor t {std::make_shared<
-    utility::binder<std::string, pair>
-  >("true")};
+  using symbol_binder = utility::binder<std::string, pair>;
+  const cursor t {std::make_shared<symbol_binder>("true")};
 } // namespace meevax::core
 
 #endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
