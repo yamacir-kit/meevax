@@ -1,14 +1,14 @@
-#ifndef INCLUDED_MEEVAX_LISP_SYNTAX_TREE_HPP
-#define INCLUDED_MEEVAX_LISP_SYNTAX_TREE_HPP
+#ifndef INCLUDED_MEEVAX_CORE_SYNTAX_TREE_HPP
+#define INCLUDED_MEEVAX_CORE_SYNTAX_TREE_HPP
 
 #include <iterator>
 #include <list>
 #include <string>
 
 #include <meevax/algorithm/fold.hpp>
-#include <meevax/lisp/cell.hpp>
+#include <meevax/core/pair.hpp>
 
-namespace meevax::lisp
+namespace meevax::core
 {
   struct syntax_tree
     : public std::list<syntax_tree>
@@ -54,7 +54,7 @@ namespace meevax::lisp
       });
     }
   };
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_SYNTAX_TREE_HPP
+#endif // INCLUDED_MEEVAX_CORE_SYNTAX_TREE_HPP
 

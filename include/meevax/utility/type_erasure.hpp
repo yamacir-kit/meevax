@@ -13,8 +13,8 @@ namespace meevax::utility
       public virtual B
   {
     template <typename... Ts>
-    explicit constexpr binder(Ts&&... xs)
-      : std::conditional<std::is_base_of<B, T>::value, B, T>::type {std::forward<Ts>(xs)...}
+    explicit constexpr binder(Ts&&... args)
+      : std::conditional<std::is_base_of<B, T>::value, B, T>::type {std::forward<Ts>(args)...}
     {}
 
     auto type() const noexcept

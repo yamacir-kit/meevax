@@ -1,13 +1,11 @@
-#ifndef INCLUDED_MEEVAX_LISP_OPERATOR_HPP
-#define INCLUDED_MEEVAX_LISP_OPERATOR_HPP
+#ifndef INCLUDED_MEEVAX_CORE_OPERATOR_HPP
+#define INCLUDED_MEEVAX_CORE_OPERATOR_HPP
 
 #include <iterator>
-#include <typeindex>
 #include <typeinfo>
 #include <utility>
 
-#include <meevax/lisp/cell.hpp>
-#include <meevax/tuple/accessor.hpp>
+#include <meevax/core/pair.hpp>
 
 #define caar(e) car(car(e))
 #define cadr(e) car(cdr(e))
@@ -18,48 +16,40 @@
 #define caddar(e) caddr(car(e))
 #define cadddr(e) caddr(cdr(e))
 
-namespace meevax::lisp
+namespace meevax::core
 {
-  tuple::accessor<0> car {};
-  tuple::accessor<1> cdr {};
-
-  auto cons = [](auto&& head, auto&& tail)
+  template <typename... Ts>
+  constexpr cursor cons(Ts&&... args)
   {
-    // XXX this may cause copy
-    return cursor {std::make_shared<cell>(head, tail)};
-  };
+    return std::make_shared<pair>(std::forward<Ts>(args)...);
+  }
 
+  // For C++17 fold-expression
   template <typename T, typename U>
-  decltype(auto) operator|(T&& head, U&& tail)
+  constexpr decltype(auto) operator|(T&& car, U&& cdr)
   {
-    return cons(std::forward<T>(head), std::forward<U>(tail));
+    return cons(std::forward<T>(car), std::forward<U>(cdr));
   }
 
-  template <typename Cursor>
-  bool atom(Cursor&& exp)
+  template <typename T>
+  decltype(auto) atom(const T& exp)
   {
-    static const std::unordered_map<std::type_index, bool> dispatch
-    {
-      {typeid(cell), false},
-      {typeid(closure), false},
-      {typeid(std::string), true}
-    };
-
-    return !exp || dispatch.at(exp->type());
+    return !exp || exp->type() != typeid(pair);
   }
 
-  auto list = [](auto&&... args) constexpr
+  template <typename... Ts>
+  constexpr decltype(auto) list(Ts&&... args)
   {
     return (args | ... | nil);
-  };
+  }
 
   // decltype(auto) length(const cursor& exp)
   // {
   //   return std::distance(exp, nil);
   // }
 
-  template <typename Cursor1, typename Cursor2>
-  cursor append(Cursor1&& x, Cursor2&& y)
+  template <typename T, typename U>
+  cursor append(T&& x, U&& y)
   {
     return !x ? y : car(x) | append(cdr(x), y);
   }
@@ -95,7 +85,7 @@ namespace meevax::lisp
       return assoc(var, cdr(env));
     }
   }
-} // namespace meevax::lisp
+} // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_LISP_OPERATOR_HPP
+#endif // INCLUDED_MEEVAX_CORE_OPERATOR_HPP
 
