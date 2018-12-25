@@ -161,8 +161,7 @@ namespace meevax::core
 
     define("lambda", [&](auto&&... args)
     {
-      using binder = utility::binder<closure, pair>;
-      return std::make_shared<binder>(std::forward<decltype(args)>(args)...);
+      return cursor::bind<closure>(std::forward<decltype(args)>(args)...);
     });
 
     define("define", [&](auto&& var, auto)
