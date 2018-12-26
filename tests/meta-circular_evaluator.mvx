@@ -6,7 +6,7 @@
 
 (atom 'a)
 (atom '(a b c))
-(atom '())
+(atom nil)
 (atom (atom 'a))
 (atom '(atom 'a))
 
@@ -139,7 +139,7 @@
 (eval '(cdr '(a b c)) nil)
 
 (eval '(cons 'a '(b c)) nil)
-(eval '(cons 'a (cons 'b (cons 'c nil))) nil)
+(eval '(cons 'a (cons 'b (cons 'c '()))) nil)
 (eval '(car (cons 'a '(b c))) nil)
 (eval '(cdr (cons 'a '(b c))) nil)
 
