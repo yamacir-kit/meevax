@@ -14,6 +14,7 @@
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp>
 #include <meevax/core/reader.hpp>
+#include <meevax/lambda/curry.hpp>
 #include <meevax/lambda/recursion.hpp>
 
 namespace meevax::core
@@ -39,10 +40,9 @@ namespace meevax::core
     : public std::unordered_map<std::shared_ptr<pair>, procedure>
   {
     cursor env_;
+    context context_;
 
   public:
-    reader read;
-
     // TODO need more constructor.
     evaluator(); // The definition is at the end of this file.
 
@@ -50,8 +50,7 @@ namespace meevax::core
     template <typename String, typename Function>
     void define(String&& s, Function&& function)
     {
-      // TODO change reader interface. this is weird.
-      emplace(read->intern(s), std::forward<Function>(function));
+      emplace(context_.intern(s), std::forward<Function>(function));
     }
 
     decltype(auto) operator()(cursor& exp)
@@ -61,7 +60,12 @@ namespace meevax::core
 
     decltype(auto) operator()(const std::string& s)
     {
-      return evaluate(read(s), env_);
+      return evaluate(read(context_, s), env_);
+    }
+
+    decltype(auto) reader()
+    {
+      return lambda::curry(read)(context_);
     }
 
   protected:
@@ -105,8 +109,7 @@ namespace meevax::core
   };
 
   evaluator::evaluator()
-    : env_ {nil},
-      read {std::make_shared<context>()}
+    : env_ {nil}
   {
     define("quote", [](auto&& exp, auto)
     {
