@@ -9,6 +9,7 @@
 
 #include <boost/cstdlib.hpp>
 
+#include <meevax/core/boolean.hpp>
 #include <meevax/core/closure.hpp>
 #include <meevax/core/context.hpp>
 #include <meevax/core/operator.hpp>
@@ -118,12 +119,12 @@ namespace meevax::core
 
     define("atom", [&](auto&& exp, auto&& env)
     {
-      return atom(evaluate(cadr(exp), env)) ? t : nil;
+      return atom(evaluate(cadr(exp), env)) ? true_v : nil;
     });
 
     define("eq", [&](auto&& exp, auto&& env)
     {
-      return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? t : nil;
+      return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? true_v : nil;
     });
 
     define("if", [&](auto&& exp, auto&& env)
