@@ -10,71 +10,58 @@
 
 #include <boost/range/algorithm.hpp>
 
-#include <meevax/core/context.hpp>
 #include <meevax/core/syntax_tree.hpp>
 
 namespace meevax::core
 {
-  class reader
-    : public std::shared_ptr<context>
+  static constexpr auto is_graph = [](auto c)
   {
-  public:
-    template <typename... Ts>
-    explicit constexpr reader(Ts&&... args)
-      : std::shared_ptr<context> {std::forward<Ts>(args)...}
-    {}
+    return std::isgraph(c);
+  };
 
-    auto operator()(const std::string& s) const
+  static constexpr auto is_paren = [](auto c)
+  {
+    // TODO this is weird (single quote is not parenthesis)
+    return c == '(' or c == ')' or c == '\'';
+  };
+
+  static constexpr auto is_delim = [](auto c)
+  {
+    return is_paren(c) or std::isspace(c);
+  };
+
+  auto tokenize(const std::string& s)
+  {
+    std::list<std::string> tokens {};
+
+    auto seek = [&](auto iter)
     {
-      if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
-      {
-        return syntax_tree {tokens}.compile(**this);
-      }
-      else throw s;
+      return std::find_if(iter, std::end(s), is_graph);
+    };
+
+    for (auto begin {seek(std::begin(s))}, end {begin}; begin != std::end(s); begin = seek(end))
+    {
+      tokens.emplace_back(
+        begin, end = is_paren(*begin) ? std::next(begin) : std::find_if(begin, std::end(s), is_delim)
+      );
     }
 
-  protected:
-    constexpr bool is_special(unsigned char c) const noexcept
+    return tokens;
+  }
+
+  template <typename T>
+  int balance(T&& tokens)
+  {
+    return boost::count(tokens, "(") - boost::count(tokens, ")");
+  }
+
+  auto read = [](auto&& context, const std::string& s)
+  {
+    if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
     {
-      return c == '\'' || c == '(' || c ==')';
+      return syntax_tree {tokens}.compile(std::forward<decltype(context)>(context));
     }
-
-    auto tokenize(const std::string& s) const
-      -> std::list<std::string>
-    {
-      std::list<std::string> tokens {};
-
-      auto find_begin = [&](auto iter)
-      {
-        return std::find_if(iter, std::end(s), [](auto c)
-               {
-                 return std::isgraph(c);
-               });
-      };
-
-      auto find_end = [&](auto iter)
-      {
-        return is_special(*iter)
-                 ? std::next(iter)
-                 : std::find_if(iter, std::end(s), [&](auto c)
-                   {
-                     return is_special(c) or std::isspace(c);
-                   });
-      };
-
-      for (auto iter {find_begin(std::begin(s))}; iter != std::end(s); iter = find_begin(find_end(iter)))
-      {
-        tokens.emplace_back(iter, find_end(iter));
-      }
-
-      return tokens;
-    }
-
-    template <typename T>
-    int balance(T&& tokens) const
-    {
-      return boost::count(tokens, "(") - boost::count(tokens, ")");
-    }
+    else throw s;
   };
 } // namespace meevax::core
 

@@ -7,7 +7,6 @@
 #include <utility>
 
 #include <meevax/core/pair.hpp>
-#include <meevax/utility/type_erasure.hpp>
 
 namespace meevax::core
 {
@@ -26,9 +25,7 @@ namespace meevax::core
       {
         return iter->second;
       }
-      else return emplace(
-        s, std::make_shared<utility::binder<std::string, pair>>(s)
-      ).first->second;
+      else return emplace(s, cursor::bind<std::string>(s)).first->second;
     }
 
     // returns unchecked reference
