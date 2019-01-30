@@ -8,27 +8,26 @@
 #include <string>
 #include <utility>
 
-#include <boost/range/algorithm.hpp>
-
 #include <meevax/core/syntax_tree.hpp>
 
 namespace meevax::core
 {
-  static constexpr auto is_graph = [](auto c)
+  auto is_graph = [](auto c) constexpr
   {
     return std::isgraph(c);
   };
 
-  static constexpr auto is_paren = [](auto c)
+  auto is_paren = [](auto c) constexpr
   {
-    // TODO this is weird (single quote is not parenthesis)
-    return c == '(' or c == ')' or c == '\'';
+    return c == '(' or c == ')';
   };
 
-  // TODO 関数ディスパッチテーブルにでもしてカスタム可能にすること。
-  // static constexpr auto is_macro
+  auto is_macro = [](auto c) constexpr
+  {
+    return c == '\'' or c == '`' or c == '#';
+  };
 
-  static constexpr auto is_delim = [](auto c)
+  auto is_delim = [](auto c) constexpr
   {
     return is_paren(c) or std::isspace(c);
   };
@@ -44,18 +43,11 @@ namespace meevax::core
 
     for (auto begin {seek(std::begin(s))}, end {begin}; begin != std::end(s); begin = seek(end))
     {
-      tokens.emplace_back(
-        begin, end = is_paren(*begin) ? std::next(begin) : std::find_if(begin, std::end(s), is_delim)
-      );
+      end = is_paren(*begin) or is_macro(*begin) ? std::next(begin) : std::find_if(begin, std::end(s), is_delim);
+      tokens.emplace_back(begin, end);
     }
 
     return tokens;
-  }
-
-  template <typename T>
-  int balance(T&& tokens)
-  {
-    return boost::count(tokens, "(") - boost::count(tokens, ")");
   }
 
   [[deprecated]] auto read = [](auto&& context, auto&& tokens)
