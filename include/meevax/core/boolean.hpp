@@ -14,7 +14,7 @@ namespace meevax::core
   template <auto Value>
   std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)
   {
-    return os << "\e[36m#" << std::boolalpha << Value << "\e[0m";
+    return os << "\x1b[36m#" << std::boolalpha << Value << "\x1b[0m";
   }
 } // namespace meevax::core
 
