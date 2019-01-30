@@ -7,14 +7,36 @@
 
 #include <meevax/core/pair.hpp>
 
-#define caar(e) car(car(e))
-#define cadr(e) car(cdr(e))
+#define caar(...) car(car(__VA_ARGS__))
+#define cadr(...) car(cdr(__VA_ARGS__))
+#define cdar(...) cdr(car(__VA_ARGS__))
+#define cddr(...) cdr(cdr(__VA_ARGS__))
 
-#define cadar(e) cadr(car(e))
-#define caddr(e) cadr(cdr(e))
+#define caaar(...) car(caar(__VA_ARGS__))
+#define caadr(...) car(cadr(__VA_ARGS__))
+#define cadar(...) car(cdar(__VA_ARGS__))
+#define caddr(...) car(cddr(__VA_ARGS__))
+#define cdaar(...) cdr(caar(__VA_ARGS__))
+#define cdadr(...) cdr(cadr(__VA_ARGS__))
+#define cddar(...) cdr(cdar(__VA_ARGS__))
+#define cdddr(...) cdr(cddr(__VA_ARGS__))
 
-#define caddar(e) caddr(car(e))
-#define cadddr(e) caddr(cdr(e))
+#define caaaar(...) car(caaar(__VA_ARGS__))
+#define caaadr(...) car(caadr(__VA_ARGS__))
+#define caadar(...) car(cadar(__VA_ARGS__))
+#define caaddr(...) car(caddr(__VA_ARGS__))
+#define cadaar(...) car(cdaar(__VA_ARGS__))
+#define cadadr(...) car(cdadr(__VA_ARGS__))
+#define caddar(...) car(cddar(__VA_ARGS__))
+#define cadddr(...) car(cdddr(__VA_ARGS__))
+#define cdaaar(...) cdr(caaar(__VA_ARGS__))
+#define cdaadr(...) cdr(caadr(__VA_ARGS__))
+#define cdadar(...) cdr(cadar(__VA_ARGS__))
+#define cdaddr(...) cdr(caddr(__VA_ARGS__))
+#define cddaar(...) cdr(cdaar(__VA_ARGS__))
+#define cddadr(...) cdr(cdadr(__VA_ARGS__))
+#define cdddar(...) cdr(cddar(__VA_ARGS__))
+#define cddddr(...) cdr(cdddr(__VA_ARGS__))
 
 namespace meevax::core
 {
