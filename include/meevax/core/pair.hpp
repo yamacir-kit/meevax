@@ -6,12 +6,11 @@
 #include <string>
 #include <utility>
 
-#include <meevax/facade/identity.hpp>
 #include <meevax/core/accessor.hpp>
 
 namespace meevax::core
 {
-  // Forward decleation for struct cursor.
+  // Forward decleation for cursor class.
   struct pair;
 
   template <typename... Ts>
@@ -38,13 +37,13 @@ namespace meevax::core
 
     decltype(auto) operator*() const;
     // TODO operator->
-    decltype(auto) operator++();
+    cursor& operator++();
   };
 
   // This class must be constructed by std::make_shared<pair>.
   struct pair
     : public std::pair<cursor, cursor>,
-      public facade::identity<pair>
+      public universal_base<pair>
   {
     template <typename... Ts>
     constexpr pair(Ts&&... args)
@@ -53,6 +52,25 @@ namespace meevax::core
 
     // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
     virtual ~pair() = default;
+
+    friend std::ostream& operator<<(std::ostream& os, const pair& exp)
+    {
+      os << "(" << exp.first;
+
+      for (auto iter {exp.second}; iter; ++iter)
+      {
+        if (iter.is<pair>())
+        {
+          os << " " << car(iter);
+        }
+        else // iter is the last element of dotted-list.
+        {
+          os << " . " << iter;
+        }
+      }
+
+      return os << ")";
+    }
   };
 
   decltype(auto) cursor::operator*() const
@@ -60,7 +78,7 @@ namespace meevax::core
     return car(*this);
   }
 
-  decltype(auto) cursor::operator++()
+  cursor& cursor::operator++()
   {
     return *this = cdr(*this);
   }
