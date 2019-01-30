@@ -10,8 +10,7 @@ namespace meevax::core
 {
   template <typename T>
   struct accessor
-    : public std::shared_ptr<T>,
-      public std::iterator<std::input_iterator_tag, typename std::shared_ptr<T>::element_type>
+    : public std::shared_ptr<T>
   {
     template <typename U>
     struct binder
@@ -30,20 +29,11 @@ namespace meevax::core
       }
     };
 
-    #define meevax_core_indirect_accessor(name, index) \
-    friend decltype(auto) name(const accessor<T>& accessor) noexcept \
-    { \
-      return std::get<index>(accessor.std::shared_ptr<T>::operator*()); \
-    }
-
   public:
     template <typename... Ts>
     constexpr accessor(Ts&&... args)
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
     {}
-
-    meevax_core_indirect_accessor(car, 0);
-    meevax_core_indirect_accessor(cdr, 1);
 
     template <typename U, typename... Ts>
     static constexpr decltype(auto) bind(Ts&&... args)
@@ -51,43 +41,43 @@ namespace meevax::core
       return std::make_shared<binder<U>>(std::forward<Ts>(args)...);
     }
 
-  public: // iterator supports
-    decltype(auto) operator*() const noexcept
+    decltype(auto) data() const noexcept
     {
-      return car(*this);
+      return std::shared_ptr<T>::operator*();
     }
 
-    decltype(auto) operator++() noexcept
+    template <typename U>
+    decltype(auto) is() const noexcept
     {
-      return *this = cdr(*this);
+      return data().type() == typeid(U);
     }
 
   public: // stack supports
-    using size_type = std::size_t;
-
-    using reference = accessor<T>&;
-    using const_reference = const reference;
-
-    decltype(auto) back() noexcept
-    {
-      return *this ? operator*() : *this;
-    }
-
-    decltype(auto) push_back(const accessor<T>& access)
-    {
-      return *this = std::make_shared<T>(access, *this);
-    }
-
-    decltype(auto) pop_back()
-    {
-      return operator++();
-    }
-
-    template <typename... Ts>
-    decltype(auto) emplace_back(Ts&&... args)
-    {
-      return *this = std::make_shared<T>(std::forward<Ts>(args)..., *this);
-    }
+    // using size_type = std::size_t;
+    //
+    // using reference = accessor<T>&;
+    // using const_reference = const reference;
+    //
+    // decltype(auto) back() noexcept
+    // {
+    //   return *this ? operator*() : *this;
+    // }
+    //
+    // decltype(auto) push_back(const accessor<T>& access)
+    // {
+    //   return *this = std::make_shared<T>(access, *this);
+    // }
+    //
+    // decltype(auto) pop_back()
+    // {
+    //   return operator++();
+    // }
+    //
+    // template <typename... Ts>
+    // decltype(auto) emplace_back(Ts&&... args)
+    // {
+    //   return *this = std::make_shared<T>(std::forward<Ts>(args)..., *this);
+    // }
   };
 } // namespace meevax::core
 

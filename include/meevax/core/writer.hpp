@@ -18,11 +18,11 @@ namespace meevax::core
       return os << "nil";
     }
 
-    if (exp->type() == typeid(std::string))
+    if (exp.is<std::string>())
     {
       return os << exp->as<std::string>();
     }
-    else if (exp->type() == typeid(closure))
+    else if (exp.is<closure>())
     {
       return os << "<closure>";
     }
@@ -31,7 +31,7 @@ namespace meevax::core
 
     for (auto iter {cdr(exp)}; iter; ++iter)
     {
-      if (iter->type() != typeid(pair))
+      if (!iter.is<pair>())
       {
         return os << " . " << iter << ")";
       }

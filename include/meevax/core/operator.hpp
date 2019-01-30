@@ -31,10 +31,9 @@ namespace meevax::core
     return cons(std::forward<T>(car), std::forward<U>(cdr));
   }
 
-  template <typename T>
-  decltype(auto) atom(const T& exp)
+  decltype(auto) atom(const cursor& exp)
   {
-    return !exp || exp->type() != typeid(pair);
+    return !exp || !exp.is<pair>();
   }
 
   template <typename... Ts>
