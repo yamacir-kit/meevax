@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include <meevax/core/context.hpp>
 #include <meevax/core/evaluator.hpp>
 #include <meevax/core/reader.hpp>
 
@@ -8,7 +9,9 @@ int main()
 {
   std::ios_base::sync_with_stdio(false);
 
-  meevax::core::evaluator evaluate {};
+  auto package {std::make_shared<meevax::core::context>()};
+
+  meevax::core::evaluator evaluate {package};
 
   for (std::string buffer {}, continuation {}; std::getline(std::cin, buffer); ) try
   {

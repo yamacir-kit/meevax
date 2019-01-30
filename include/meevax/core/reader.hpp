@@ -25,6 +25,9 @@ namespace meevax::core
     return c == '(' or c == ')' or c == '\'';
   };
 
+  // TODO 関数ディスパッチテーブルにでもしてカスタム可能にすること。
+  // static constexpr auto is_macro
+
   static constexpr auto is_delim = [](auto c)
   {
     return is_paren(c) or std::isspace(c);

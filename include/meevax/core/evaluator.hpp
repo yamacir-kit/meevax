@@ -41,18 +41,19 @@ namespace meevax::core
     : public std::unordered_map<std::shared_ptr<pair>, procedure>
   {
     cursor env_;
-    context context_;
+    // context context_;
+    std::shared_ptr<context> package_;
 
   public:
     // TODO need more constructor.
-    evaluator(); // The definition is at the end of this file.
+    evaluator(const std::shared_ptr<context>&); // The definition is at the end of this file.
 
     // Assign primitive procedure to dispatch table with it's name.
-    template <typename String, typename Function>
-    void define(String&& s, Function&& function)
-    {
-      emplace(context_.intern(s), std::forward<Function>(function));
-    }
+    // template <typename String, typename Function>
+    // void define(String&& s, Function&& function)
+    // {
+    //   emplace(context_.intern(s), std::forward<Function>(function));
+    // }
 
     decltype(auto) operator()(cursor& exp)
     {
@@ -61,12 +62,12 @@ namespace meevax::core
 
     decltype(auto) operator()(const std::string& s)
     {
-      return evaluate(read(context_, s), env_);
+      return evaluate(read(*package_, s), env_);
     }
 
     decltype(auto) reader()
     {
-      return lambda::curry(read)(context_);
+      return lambda::curry(read)(*package_);
     }
 
   protected:
@@ -109,25 +110,28 @@ namespace meevax::core
     }
   };
 
-  evaluator::evaluator()
-    : env_ {nil}
+  evaluator::evaluator(const std::shared_ptr<context>& package)
+    : env_ {nil},
+      package_ {package}
   {
-    define("quote", [](auto&& exp, auto)
+    #define DEFINE_PROCEDURE(NAME, ...) emplace(package->intern(NAME), __VA_ARGS__)
+
+    DEFINE_PROCEDURE("quote", [](auto&& exp, auto)
     {
       return cadr(exp);
     });
 
-    define("atom", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("atom", [&](auto&& exp, auto&& env)
     {
       return atom(evaluate(cadr(exp), env)) ? true_v : nil;
     });
 
-    define("eq", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("eq", [&](auto&& exp, auto&& env)
     {
       return evaluate(cadr(exp), env) == evaluate(caddr(exp), env) ? true_v : nil;
     });
 
-    define("if", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("if", [&](auto&& exp, auto&& env)
     {
       return evaluate(
         evaluate(cadr(exp), env) ? caddr(exp) : cadddr(exp),
@@ -135,7 +139,7 @@ namespace meevax::core
       );
     });
 
-    define("cond", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("cond", [&](auto&& exp, auto&& env)
     {
       const auto buffer {
         std::find_if(cdr(exp), nil, [&](auto iter)
@@ -146,34 +150,34 @@ namespace meevax::core
       return evaluate(cadar(buffer), env);
     });
 
-    define("car", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("car", [&](auto&& exp, auto&& env)
     {
       auto&& buffer {evaluate(cadr(exp), env)};
       return buffer ? car(buffer) : nil;
     });
 
-    define("cdr", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("cdr", [&](auto&& exp, auto&& env)
     {
       auto&& buffer {evaluate(cadr(exp), env)};
       return buffer ? cdr(buffer) : nil;
     });
 
-    define("cons", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("cons", [&](auto&& exp, auto&& env)
     {
       return evaluate(cadr(exp), env) | evaluate(caddr(exp), env);
     });
 
-    define("lambda", [&](auto&&... args)
+    DEFINE_PROCEDURE("lambda", [&](auto&&... args)
     {
       return cursor::bind<closure>(std::forward<decltype(args)>(args)...);
     });
 
-    define("define", [&](auto&& var, auto)
+    DEFINE_PROCEDURE("define", [&](auto&& var, auto)
     {
       return assoc(cadr(var), env_ = list(cadr(var), caddr(var)) | env_);
     });
 
-    define("list", [&](auto&& exp, auto&& env)
+    DEFINE_PROCEDURE("list", [&](auto&& exp, auto&& env)
     {
       return lambda::y([&](auto&& proc, auto&& exp, auto&& env) -> cursor
       {
@@ -181,7 +185,7 @@ namespace meevax::core
       })(cdr(exp), env);
     });
 
-    define("exit", [](auto, auto)
+    DEFINE_PROCEDURE("exit", [](auto, auto)
       -> cursor
     {
       std::exit(boost::exit_success);
