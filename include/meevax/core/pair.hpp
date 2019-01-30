@@ -11,7 +11,7 @@
 
 namespace meevax::core
 {
-  // Forward decleation for struct cursor.
+  // Forward decleation for cursor class.
   struct pair;
 
   template <typename... Ts>

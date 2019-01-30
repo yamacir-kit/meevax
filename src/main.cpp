@@ -3,7 +3,6 @@
 
 #include <meevax/core/evaluator.hpp>
 #include <meevax/core/reader.hpp>
-// #include <meevax/core/writer.hpp>
 
 int main()
 {
