@@ -51,6 +51,11 @@ namespace meevax::core
       return std::make_shared<binder<U>>(std::forward<Ts>(args)...);
     }
 
+    decltype(auto) access() const noexcept
+    {
+      return std::shared_ptr<T>::operator*();
+    }
+
   public: // iterator supports
     decltype(auto) operator*() const noexcept
     {
