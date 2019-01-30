@@ -84,9 +84,6 @@ namespace meevax::core
   }
 
   const cursor nil {nullptr};
-
-  const auto t {cursor::bind<std::string>("true")};
-  const auto f {cursor::bind<std::string>("false")};
 } // namespace meevax::core
 
 #endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
