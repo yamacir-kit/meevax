@@ -40,8 +40,6 @@ namespace meevax::core
     : public std::unordered_map<std::shared_ptr<pair>, procedure>
   {
     cursor env_;
-    // context context_;
-    const std::shared_ptr<context> package_;
 
   public:
     // TODO need more constructor.
@@ -93,8 +91,7 @@ namespace meevax::core
   };
 
   evaluator::evaluator(const std::shared_ptr<context>& package)
-    : env_ {nil},
-      package_ {package}
+    : env_ {nil}
   {
     #define DEFINE_PROCEDURE(NAME, ...) emplace(package->intern(NAME), __VA_ARGS__)
 
