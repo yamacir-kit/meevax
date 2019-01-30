@@ -10,21 +10,33 @@
 
 namespace meevax::core
 {
+  // Forward decleation for struct cursor.
+  struct pair;
+
+  struct cursor
+    : public accessor<pair>
+  {
+    template <typename... Ts>
+    constexpr cursor(Ts&&... args)
+      : accessor<pair> {std::forward<Ts>(args)...}
+    {}
+  };
+
   // This class must be constructed by std::make_shared<pair>.
   struct pair
-    : public std::pair<accessor<pair>, accessor<pair>>,
+    : public std::pair<cursor, cursor>,
       public facade::identity<pair>
   {
     template <typename... Ts>
     constexpr pair(Ts&&... args)
-      : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
+      : std::pair<cursor, cursor> {std::forward<Ts>(args)...}
     {}
 
-    // NOTE Virtual destructor is removable if instanciate this type only via std::shared_ptr.
+    // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
     virtual ~pair() = default;
   };
 
-  using cursor = accessor<pair>;
+  // using cursor = accessor<pair>;
   const cursor nil {nullptr};
 
   const auto t {cursor::bind<std::string>("true")};
