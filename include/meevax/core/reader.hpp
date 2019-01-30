@@ -58,13 +58,13 @@ namespace meevax::core
     return boost::count(tokens, "(") - boost::count(tokens, ")");
   }
 
-  auto read = [](auto&& context, const std::string& s)
+  [[deprecated]] auto read = [](auto&& context, auto&& tokens)
   {
-    if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
-    {
+    // if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
+    // {
       return syntax_tree {tokens}.compile(std::forward<decltype(context)>(context));
-    }
-    else throw s;
+    // }
+    // else throw s;
   };
 } // namespace meevax::core
 
