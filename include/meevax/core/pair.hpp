@@ -14,8 +14,21 @@ namespace meevax::core
   // Forward decleation for struct cursor.
   struct pair;
 
+  template <typename... Ts>
+  constexpr decltype(auto) car(Ts&&... args)
+  {
+    return std::get<0>(std::data(std::forward<Ts>(args)...));
+  }
+
+  template <typename... Ts>
+  constexpr decltype(auto) cdr(Ts&&... args)
+  {
+    return std::get<1>(std::data(std::forward<Ts>(args)...));
+  }
+
   struct cursor
     : public accessor<pair>,
+      // TODO replace boost::iterator_facade
       public std::iterator<std::input_iterator_tag, accessor<pair>>
   {
     template <typename... Ts>
@@ -24,6 +37,7 @@ namespace meevax::core
     {}
 
     decltype(auto) operator*() const;
+    // TODO operator->
     decltype(auto) operator++();
   };
 
@@ -41,9 +55,6 @@ namespace meevax::core
     virtual ~pair() = default;
   };
 
-  decltype(auto) car(const cursor& exp) { return std::get<0>(exp.data()); }
-  decltype(auto) cdr(const cursor& exp) { return std::get<1>(exp.data()); }
-
   decltype(auto) cursor::operator*() const
   {
     return car(*this);
@@ -54,7 +65,6 @@ namespace meevax::core
     return *this = cdr(*this);
   }
 
-  // using cursor = accessor<pair>;
   const cursor nil {nullptr};
 
   const auto t {cursor::bind<std::string>("true")};
