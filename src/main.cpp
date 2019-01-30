@@ -9,7 +9,7 @@ int main()
 {
   std::ios_base::sync_with_stdio(false);
 
-  auto package {std::make_shared<meevax::core::context>()};
+  const auto package {std::make_shared<meevax::core::context>()};
 
   meevax::core::evaluator evaluate {package};
 
@@ -20,7 +20,8 @@ int main()
       continue;
     }
 
-    const auto result {evaluate(continuation += buffer)};
+    auto expression {meevax::core::read(*package, continuation += buffer)};
+    const auto result {evaluate(expression)};
     std::cout << "-> " << result << std::endl;
 
     continuation.clear();

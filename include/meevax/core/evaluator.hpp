@@ -14,7 +14,6 @@
 #include <meevax/core/context.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp>
-#include <meevax/core/reader.hpp>
 #include <meevax/lambda/curry.hpp>
 #include <meevax/lambda/recursion.hpp>
 
@@ -42,32 +41,15 @@ namespace meevax::core
   {
     cursor env_;
     // context context_;
-    std::shared_ptr<context> package_;
+    const std::shared_ptr<context> package_;
 
   public:
     // TODO need more constructor.
     evaluator(const std::shared_ptr<context>&); // The definition is at the end of this file.
 
-    // Assign primitive procedure to dispatch table with it's name.
-    // template <typename String, typename Function>
-    // void define(String&& s, Function&& function)
-    // {
-    //   emplace(context_.intern(s), std::forward<Function>(function));
-    // }
-
     decltype(auto) operator()(cursor& exp)
     {
       return evaluate(exp, env_);
-    }
-
-    decltype(auto) operator()(const std::string& s)
-    {
-      return evaluate(read(*package_, s), env_);
-    }
-
-    decltype(auto) reader()
-    {
-      return lambda::curry(read)(*package_);
     }
 
   protected:
