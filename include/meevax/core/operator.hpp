@@ -18,28 +18,28 @@
 
 namespace meevax::core
 {
-  template <typename... Ts>
-  constexpr cursor cons(Ts&&... args)
-  {
-    return std::make_shared<pair>(std::forward<Ts>(args)...);
-  }
-
   // For C++17 fold-expression
   template <typename T, typename U>
-  constexpr decltype(auto) operator|(T&& car, U&& cdr)
+  constexpr cursor operator|(T&& lhs, U&& rhs)
   {
-    return cons(std::forward<T>(car), std::forward<U>(cdr));
+    return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
 
-  decltype(auto) atom(const cursor& exp)
+  template <typename... Ts>
+  constexpr decltype(auto) cons(Ts&&... args)
   {
-    return !exp || !exp.is<pair>();
+    return (args | ...);
   }
 
   template <typename... Ts>
   constexpr decltype(auto) list(Ts&&... args)
   {
     return (args | ... | nil);
+  }
+
+  decltype(auto) atom(const cursor& exp)
+  {
+    return !exp || !exp.is<pair>();
   }
 
   // decltype(auto) length(const cursor& exp)
