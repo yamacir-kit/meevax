@@ -46,6 +46,12 @@ namespace meevax::core
       return std::shared_ptr<T>::operator*();
     }
 
+    template <typename U>
+    decltype(auto) is() const noexcept
+    {
+      return data().type() == typeid(U);
+    }
+
   public: // stack supports
     // using size_type = std::size_t;
     //

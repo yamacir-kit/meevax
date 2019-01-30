@@ -83,7 +83,7 @@ namespace meevax::core
       }
       else if (const auto& callee {evaluate(car(exp), env)}; callee)
       {
-        if (callee->type() == typeid(closure))
+        if (callee.template is<closure>())
         {
           return apply(callee, cdr(exp), env);
         }
