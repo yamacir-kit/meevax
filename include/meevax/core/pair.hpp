@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_CORE_PAIR_HPP
 #define INCLUDED_MEEVAX_CORE_PAIR_HPP
 
+#include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
@@ -14,12 +15,16 @@ namespace meevax::core
   struct pair;
 
   struct cursor
-    : public accessor<pair>
+    : public accessor<pair>,
+      public std::iterator<std::input_iterator_tag, accessor<pair>>
   {
     template <typename... Ts>
     constexpr cursor(Ts&&... args)
       : accessor<pair> {std::forward<Ts>(args)...}
     {}
+
+    decltype(auto) operator*() const;
+    decltype(auto) operator++();
   };
 
   // This class must be constructed by std::make_shared<pair>.
@@ -38,6 +43,16 @@ namespace meevax::core
 
   decltype(auto) car(const cursor& exp) { return std::get<0>(exp.access()); }
   decltype(auto) cdr(const cursor& exp) { return std::get<1>(exp.access()); }
+
+  decltype(auto) cursor::operator*() const
+  {
+    return car(*this);
+  }
+
+  decltype(auto) cursor::operator++()
+  {
+    return *this = cdr(*this);
+  }
 
   // using cursor = accessor<pair>;
   const cursor nil {nullptr};

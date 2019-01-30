@@ -10,8 +10,7 @@ namespace meevax::core
 {
   template <typename T>
   struct accessor
-    : public std::shared_ptr<T>,
-      public std::iterator<std::input_iterator_tag, typename std::shared_ptr<T>::element_type>
+    : public std::shared_ptr<T>
   {
     template <typename U>
     struct binder
@@ -45,17 +44,6 @@ namespace meevax::core
     decltype(auto) access() const noexcept
     {
       return std::shared_ptr<T>::operator*();
-    }
-
-  public: // iterator supports
-    decltype(auto) operator*() const noexcept
-    {
-      return car(*this);
-    }
-
-    decltype(auto) operator++() noexcept
-    {
-      return *this = cdr(*this);
     }
 
   public: // stack supports
