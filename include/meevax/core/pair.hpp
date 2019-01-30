@@ -6,7 +6,6 @@
 #include <string>
 #include <utility>
 
-#include <meevax/facade/identity.hpp>
 #include <meevax/core/accessor.hpp>
 
 namespace meevax::core
