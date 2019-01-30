@@ -30,20 +30,11 @@ namespace meevax::core
       }
     };
 
-    // #define meevax_core_indirect_accessor(name, index) \
-    // friend decltype(auto) name(const accessor<T>& accessor) noexcept \
-    // { \
-    //   return std::get<index>(accessor.std::shared_ptr<T>::operator*()); \
-    // }
-
   public:
     template <typename... Ts>
     constexpr accessor(Ts&&... args)
       : std::shared_ptr<T> {std::forward<Ts>(args)...}
     {}
-
-    // meevax_core_indirect_accessor(car, 0);
-    // meevax_core_indirect_accessor(cdr, 1);
 
     template <typename U, typename... Ts>
     static constexpr decltype(auto) bind(Ts&&... args)
