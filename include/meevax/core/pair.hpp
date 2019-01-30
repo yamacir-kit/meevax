@@ -41,8 +41,8 @@ namespace meevax::core
     virtual ~pair() = default;
   };
 
-  decltype(auto) car(const cursor& exp) { return std::get<0>(exp.access()); }
-  decltype(auto) cdr(const cursor& exp) { return std::get<1>(exp.access()); }
+  decltype(auto) car(const cursor& exp) { return std::get<0>(exp.data()); }
+  decltype(auto) cdr(const cursor& exp) { return std::get<1>(exp.data()); }
 
   decltype(auto) cursor::operator*() const
   {
