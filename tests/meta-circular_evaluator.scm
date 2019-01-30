@@ -1,4 +1,4 @@
-(define otherwise 'true)
+(define else 'true)
 
 (quote a)
 'a
@@ -39,23 +39,23 @@
 (define and (lambda (x y)
   (cond (x
          (cond (y 'true)
-               (otherwise nil)))
-        (otherwise nil))))
+               (else nil)))
+        (else nil))))
 
 (and (atom 'a) (eq 'a 'a))
 (and (atom 'a) (eq 'a 'b))
 
 (define not (lambda (x)
   (cond (x nil)
-        (otherwise 'true))))
+        (else 'true))))
 
 (not (eq 'a 'a))
 (not (eq 'a 'b))
 
 (define append (lambda (x y)
   (cond ((null x) y)
-        (otherwise (cons (car x)
-                         (append (cdr x) y))))))
+        (else (cons (car x)
+                    (append (cdr x) y))))))
 
 (append '(a b) '(c d))
 (append nil '(c d))
@@ -71,7 +71,7 @@
               (not (atom y)))
          (cons (list (car x) (car y))
                (zip (cdr x) (cdr y))))
-        (otherwise nil))))
+        (else nil))))
 
 (zip '(x y z) '(a b c))
 
@@ -85,8 +85,8 @@
 (define assoc (lambda (x y)
   (cond ((null x) nil)
         ((null y) x)
-        (otherwise (cond ((eq (caar y) x) (cadar y))
-                         (otherwise (assoc x (cdr y))))))))
+        (else (cond ((eq (caar y) x) (cadar y))
+                         (else (assoc x (cdr y))))))))
 
 (assoc 'x '((x a) (y b)))
 (assoc 'x '((x new) (x a) (y b)))
@@ -114,12 +114,12 @@
            ((eq (car e) 'cdr) (cdr (eval (cadr e) a)))
            ((eq (car e) 'cons) (cons (eval (cadr e) a) (eval (caddr e) a)))
            ((eq (car e) 'cond) (evcon (cdr e) a))
-           (otherwise (eval (cons (assoc (car e) a) (cdr e)) a))))
+           (else (eval (cons (assoc (car e) a) (cdr e)) a))))
     ((eq (caar e) 'recursive)
      (eval (cons (caddar e) (cdr e)) (cons (list (cadar e) (car e)) a)))
     ((eq (caar e) 'lambda)
      (eval (caddar e) (append (zip (cadar e) (evlis (cdr e) a)) a)))
-    (otherwise 'error))))
+    (else 'error))))
 
 (eval '(quote a) nil)
 (eval ''a nil)
@@ -152,8 +152,8 @@
 (eval '((recursive substitute (lambda (x y z)
           (cond ((atom z)
                  (cond ((eq z y) x)
-                       (otherwise z)))
-                (otherwise
+                       (else z)))
+                (else
                  (cons (substitute x y (car z))
                        (substitute x y (cdr z)))))))
       'm 'b '(a b (a b c) d))
