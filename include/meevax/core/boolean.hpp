@@ -8,8 +8,8 @@
 
 namespace meevax::core
 {
-  const auto true_v {cursor::bind<std::true_type>()};
-  const auto false_v {cursor::bind<std::false_type>()};
+  const cursor true_v {cursor::bind<std::true_type>()};
+  const cursor false_v {cursor::bind<std::false_type>()};
 
   template <auto Value>
   std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)

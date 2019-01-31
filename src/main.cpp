@@ -1,38 +1,46 @@
 #include <iostream>
+#include <list>
 #include <string>
 
+#include <meevax/core/context.hpp>
 #include <meevax/core/evaluator.hpp>
 #include <meevax/core/reader.hpp>
 
+#include <boost/cstdlib.hpp>
+#include <boost/range/algorithm.hpp>
+
 int main()
 {
-  std::ios_base::sync_with_stdio(false);
+  const auto package {std::make_shared<meevax::core::context>(
+    std::make_pair("nil", meevax::core::nil)
+  )};
 
-  meevax::core::evaluator evaluate {};
+  meevax::core::reader read {package};
+  meevax::core::evaluator evaluate {package};
 
-  for (std::string buffer {}, continuation {}; std::getline(std::cin, buffer); ) try
+  // TODO Initialize by contents of history file.
+  std::list<std::string> history {""};
+
+  for (std::string buffer {}; std::cout << "> ", std::getline(std::cin, buffer); ) try
   {
-    if (std::empty(buffer))
+    std::string code {std::begin(buffer), boost::find(buffer, ';')};
+    std::cerr << "\x1B[38;5;248m" << buffer << "\x1B[0m" << (std::empty(buffer) ? "\r" : "\n");
+
+    if (auto tokens {meevax::core::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
     {
-      continue;
+      auto expression {read(tokens)};
+      std::cerr << "[debug] reader: " << expression << std::endl;
+
+      std::cerr << evaluate(expression) << "\n\n";
+      history.emplace_back("");
     }
-
-    const auto result {evaluate(continuation += buffer)};
-    std::cout << "-> " << result << std::endl;
-
-    continuation.clear();
-    std::putchar('\n');
-  }
-  catch (const std::string& unbalance_expression)
-  {
-    continuation = unbalance_expression + " ";
   }
   catch (const std::runtime_error& error)
   {
-    std::cerr << "[error] standard exception occurred: " << error.what() << std::endl;
-    continuation.clear();
+    std::cerr << "[error] standard exception occurred: " << error.what() << "\n\n";
+    history.emplace_back("");
   }
 
-  return 0;
+  return boost::exit_success;
 }
 
