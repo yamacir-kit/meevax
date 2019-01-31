@@ -89,6 +89,24 @@ namespace meevax::core
           c = car(d);
           d = cdr(d);
         }
+        else if (instruction == CAR)
+        {
+          DEBUG_0();
+          car(s) = caar(s); // TODO check?
+          c = cdr(c);
+        }
+        else if (car(c) == CDR)
+        {
+          DEBUG_0();
+          car(s) = cdar(s); // TODO check?
+          c = cdr(c);
+        }
+        else if (car(c) == CONS)
+        {
+          DEBUG_0();
+          s = cons(cons(car(s), cadr(s)), cddr(s));
+          c = cdr(c);
+        }
         else if (instruction == STOP) // (result . S) E (STOP . C) D
         {
           DEBUG_0();
