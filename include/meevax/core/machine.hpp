@@ -35,7 +35,7 @@ namespace meevax::core
 
       for (c = exp; c; )
       {
-        if (car(c) == LDX) // S E (LDX (i . j) . C) D
+        if (const auto& instruction {car(c)}; instruction == LDX) // S E (LDX (i . j) . C) D
         {
           DEBUG_0();
 
@@ -58,10 +58,16 @@ namespace meevax::core
 
           c = cddr(c);
         }
+        else if (instruction == STOP) // (x . S) E (STOP . C) D
+        {
+          DEBUG_0();
+          c = cdr(c);
+          return car(s);
+        }
         else
         {
           std::stringstream buffer {};
-          buffer << "unknown instruction \"" << car(c) << "\"";
+          buffer << "unknown instruction \"" << instruction << "\"";
           throw std::runtime_error {buffer.str()};
         }
       }
