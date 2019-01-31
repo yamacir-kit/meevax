@@ -64,6 +64,12 @@ namespace meevax::core
           s = cons(cadr(c), s);
           c = cddr(c);
         }
+        else if (instruction == LDG) // S E (LDG symbol . C) D => (value . S) E C D
+        {
+          DEBUG_1();
+          s = cons(assoc(cadr(c), env), s);
+          c = cddr(c);
+        }
         else if (instruction == STOP) // (result . S) E (STOP . C) D
         {
           DEBUG_0();
