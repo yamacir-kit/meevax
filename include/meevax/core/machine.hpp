@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_CORE_MACHINE_HPP
 
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 #include <meevax/core/boolean.hpp>
@@ -57,9 +58,23 @@ namespace meevax::core
 
           c = cddr(c);
         }
+        else
+        {
+          std::stringstream buffer {};
+          buffer << "unknown instruction \"" << car(c) << "\"";
+          throw std::runtime_error {buffer.str()};
+        }
       }
 
-      throw std::runtime_error {"unterminated machine code executed"};
+      std::stringstream buffer {};
+      buffer << "unterminated machine code executed\n"
+             << "terminated:\n"
+             << "\ts\t" << s << "\n"
+             << "\te\t" << e << "\n"
+             << "\tc\t" << c << "\n"
+             << "\td\t" << d << "\n";
+
+      throw std::runtime_error {buffer.str()};
     }
   };
 } // namespace meevax::core
