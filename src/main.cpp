@@ -22,11 +22,12 @@ int main()
 
   // TODO Initialize by contents of history file.
   std::list<std::string> history {""};
+  std::size_t line {1};
 
-  for (std::string buffer {}; std::cout << "> ", std::getline(std::cin, buffer); ) try
+  for (std::string buffer {}; std::cout << "> ", std::getline(std::cin, buffer); ++line) try
   {
     std::string code {std::begin(buffer), boost::find(buffer, ';')};
-    std::cerr << "\x1B[38;5;248m" << buffer << "\x1B[0m" << (std::empty(buffer) ? "\r" : "\n");
+    std::cerr << "\x1B[38;5;248m" << line << " " << buffer << "\x1B[0m" << (std::empty(buffer) ? "\r" : "\n");
 
     if (auto tokens {meevax::core::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
     {
