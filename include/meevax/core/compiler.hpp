@@ -26,6 +26,12 @@ namespace meevax::core
     {
     }
 
+    decltype(auto) operator()(const cursor& exp)
+    {
+      return compile(exp, nil, list(STOP));
+    }
+
+  protected:
     cursor compile(const cursor& exp,
                    const cursor& env,
                    const cursor& continuation)
@@ -62,6 +68,32 @@ namespace meevax::core
         {
           return args(cdr(exp), env, compile(car(exp), env, cons(APPLY, continuation)));
         }
+      }
+    }
+
+    cursor begin(const cursor& exp,
+                 const cursor& env,
+                 const cursor& continuation)
+    {
+      return compile(car(exp), env,
+        cdr(exp) ? cons(POP, begin(cdr(exp), env, continuation))
+                 :                                continuation
+      );
+    }
+
+    cursor args(const cursor& exp,
+                const cursor& env,
+                const cursor& continuation)
+    {
+      if (exp && exp.is<pair>())
+      {
+        return args(cdr(exp), env,
+          compile(car(exp), env, cons(CONS, continuation))
+        );
+      }
+      else
+      {
+        return compile(exp, env, continuation);
       }
     }
   };
