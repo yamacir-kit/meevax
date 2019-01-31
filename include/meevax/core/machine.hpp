@@ -83,6 +83,12 @@ namespace meevax::core
           c = (car(s) != false_v ? cadr(c) : caddr(c));
           s = cdr(s);
         }
+        else if (instruction == JOIN) // S E (JOIN . x) (C . D) => S E C D
+        {
+          DEBUG_0();
+          c = car(d);
+          d = cdr(d);
+        }
         else if (instruction == STOP) // (result . S) E (STOP . C) D
         {
           DEBUG_0();
