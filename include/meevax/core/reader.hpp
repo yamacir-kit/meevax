@@ -13,6 +13,7 @@
 
 #include <meevax/core/boolean.hpp>
 #include <meevax/core/context.hpp>
+#include <meevax/core/number.hpp>
 #include <meevax/core/pair.hpp>
 
 namespace meevax::core
@@ -126,14 +127,14 @@ namespace meevax::core
             return expand_macro(++iter, end);
 
           default:
-            // try
-            // {
-            //   return {cursor::bind<number>(*iter)};
-            // }
-            // catch (const std::runtime_error&)
-            // {
+            try
+            {
+              return {cursor::bind<number>(*iter)};
+            }
+            catch (const std::runtime_error&)
+            {
               return package->intern(*iter);
-            // }
+            }
           }
         }
       // }
