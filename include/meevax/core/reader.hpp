@@ -99,26 +99,26 @@ namespace meevax::core
     auto parse(InputIterator&& iter, InputIterator&& end)
       -> abstract_syntax_tree
     {
-      abstract_syntax_tree tree {};
+      abstract_syntax_tree buffer {};
 
-      if (std::distance(iter, end) != 0)
-      {
+      // if (std::distance(iter, end) != 0) // リーダが空トークンを投げてこないなら要らない？
+      // {
         if (*iter == "(") while (++iter != end && *iter != ")")
         {
-          tree.emplace_back(parse(iter, end)); // TODO Able to convert constructor?
+          buffer.emplace_back(parse(iter, end)); // TODO Able to convert constructor?
         }
         else
         {
-          switch ((*iter)[0]) // スプライシングオペレータ解析
+          switch ((*iter)[0])
           {
           case '\'':
-            tree.emplace_back(package->intern("quote"));
-            tree.emplace_back(parse(++iter, end));
+            buffer.emplace_back(package->intern("quote"));
+            buffer.emplace_back(parse(++iter, end));
             break;
 
           case '`':
-            tree.emplace_back(package->intern("quasiquote"));
-            tree.emplace_back(parse(++iter, end));
+            buffer.emplace_back(package->intern("quasiquote"));
+            buffer.emplace_back(parse(++iter, end));
             break;
 
           case '#':
@@ -131,35 +131,34 @@ namespace meevax::core
             // }
             // catch (const std::runtime_error&)
             // {
-              return {package->intern(*iter)};
+              return package->intern(*iter);
             // }
           }
         }
-      }
+      // }
 
-      return tree;
+      return buffer;
     }
 
     template <typename InputIterator>
     auto expand_macro(InputIterator&& iter, InputIterator&& end)
       -> abstract_syntax_tree
     {
-      abstract_syntax_tree tree {};
-
       if (std::distance(iter, end) != 0)
       {
         if (*iter == "(")
         {
-          tree.emplace_back(package->intern("vector"));
-          tree.splice(std::next(std::begin(tree)), parse(iter, end));
+          auto buffer {parse(iter, end)};
+          buffer.emplace_front(package->intern("vector"));
+          return buffer;
         }
         else switch ((*iter)[0])
         {
         case 't':
-          return {true_v};
+          return true_v;
 
         case 'f':
-          return {false_v};
+          return false_v;
 
         // case 'x':
         //   return {cursor::bind<number>("0x" + std::string {std::begin(*iter) + 1, std::end(*iter)})};
@@ -168,8 +167,10 @@ namespace meevax::core
           throw std::runtime_error {"unknown reader macro #" + *iter};
         }
       }
-
-      return tree;
+      else
+      {
+        throw std::runtime_error {"reader dispatch macro requires at least one character as argument"};
+      }
     }
   };
 

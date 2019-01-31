@@ -11,7 +11,9 @@
 
 int main()
 {
-  const auto package {std::make_shared<meevax::core::context>()};
+  const auto package {std::make_shared<meevax::core::context>(
+    std::make_pair("nil", meevax::core::nil)
+  )};
 
   meevax::core::reader read {package};
   meevax::core::evaluator evaluate {package};
