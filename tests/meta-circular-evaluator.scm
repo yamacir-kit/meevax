@@ -21,12 +21,13 @@
 (car (cons 'a '(b c)))
 (cdr (cons 'a '(b c)))
 
-; (cond ((eq 'a 'b) 'first)
-;       ((atom 'a) 'second))
+; (if (eq? 'a 'b)
+;     'first
+;     (if (atom? 'a) 'second 'third))
 
 ((lambda (x) (cons x '(b))) 'a)
 ((lambda (x y) (cons x (cdr y))) 'z '(a b c))
-((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x)))
+((lambda (f) (f '(b c))) (lambda (x) (cons 'a x)))
 
 (define null? (lambda (x)
   (eq? x nil)
@@ -45,17 +46,18 @@
 ; (and (atom 'a) (eq 'a 'b))
 
 (define not (lambda (x)
-  (cond (x nil)
-        (else 'true))
+  (if x #false #true)
 ))
 
-(not (eq 'a 'a))
-(not (eq 'a 'b))
+(not (eq? 'a 'a))
+(not (eq? 'a 'b))
 
 (define append (lambda (x y)
-  (cond ((null x) y)
-        (else (cons (car x)
-                    (append (cdr x) y))))))
+  (if (null? x)
+      y
+      (cons (car x)
+            (append (cdr x) y)))
+))
 
 (append '(a b) '(c d))
 (append nil '(c d))
