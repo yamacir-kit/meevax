@@ -23,7 +23,7 @@ int main()
     std::string code {std::begin(buffer), boost::find(buffer, ';')};
     std::cerr << "\x1B[38;5;248m" << buffer << "\x1B[0m" << (std::empty(buffer) ? "\r" : "\n");
 
-    if (auto tokens {meevax::core::tokenize(history.back() += code)}; boost::count(tokens, "(") <= boost::count(tokens, ")"))
+    if (auto tokens {meevax::core::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
     {
       auto expression {meevax::core::read(*package, tokens)};
       std::cerr << "[debug] reader: " << expression << std::endl;
@@ -34,7 +34,8 @@ int main()
   }
   catch (const std::runtime_error& error)
   {
-    std::cerr << "[error] standard exception occurred: " << error.what() << std::endl;
+    std::cerr << "[error] standard exception occurred: " << error.what() << "\n\n";
+    history.emplace_back("");
   }
 
   return boost::exit_success;
