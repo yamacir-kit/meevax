@@ -7,11 +7,13 @@
 #include <string>
 #include <unordered_map>
 
+#include <meevax/core/closure.hpp>
 #include <meevax/core/context.hpp>
 #include <meevax/core/instruction.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp>
+#include <meevax/core/procedure.hpp>
 
 namespace meevax::core
 {
@@ -19,35 +21,42 @@ namespace meevax::core
   {
     std::unordered_map<
       std::shared_ptr<pair>,
-      std::function<const cursor&, const cursor&, const cursor&>
+      std::function<cursor (const cursor&, const cursor&, const cursor&)>
     > syntaxes;
 
   public:
+    // auto [iterator_to_defined_syntax, succeeded] = define_syntax(...);
+    template <typename... Ts>
+    decltype(auto) define_syntax(const cursor& keyword, Ts&&... args)
+    {
+      return syntaxes.emplace(keyword, std::forward<Ts>(args)...);
+    }
+
     // Intern syntax symbols to given package.
     // スペシャルフォームとVMインストラクションの対応はコンパイラ内部で完結した処理で、
     // スペシャルフォームのシンボルはパッケージを通じてリーダが文字列と対応付ける。
-    explicit compiler(context& package)
+    explicit compiler(const std::shared_ptr<context>& package)
     {
       // TODO Check number of arguments
 
-      define_syntax(package.intern("quote"), [&](auto&& exp, auto&&, auto&& continuation)
+      define_syntax(package->intern("quote"), [&](auto&& exp, auto&&, auto&& continuation)
       {
         return cons(LDC, cadr(exp), continuation);
       });
 
-      define_syntax(package.intern("if"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(package->intern("if"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         const auto&& then_exp {compile( caddr(exp), env, list(JOIN))};
         const auto&& else_exp {compile(cadddr(exp), env, list(JOIN))}; // TODO check cdddr is not nil
         return compile(cadr(exp), env, cons(SELECT, then_exp, else_exp, continuation));
       });
 
-      define_syntax(package.intern("define"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(package->intern("define"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(caddr(exp), env, cons(DEFINE, cadr(exp), continuation));
       });
 
-      define_syntax(package.intern("lambda"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(package->intern("lambda"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return cons(
           LDF,
@@ -61,19 +70,19 @@ namespace meevax::core
       });
 
       // TODO Eliminate the distinction between the instruction and the symbol interned in the package.
-      define_syntax(package.intern("car"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(package->intern("car"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(cadr(exp), env, cons(CAR, continuation));
       });
 
       // TODO Eliminate the distinction between the instruction and the symbol interned in the package.
-      define_syntax(package.intern("cdr"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(package->intern("cdr"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(cadr(exp), env, cons(CDR, continuation));
       });
 
       // TODO Eliminate the distinction between the instruction and the symbol interned in the package.
-      define_syntax(package.intern("cons"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(package->intern("cons"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(
           caddr(exp), // Next of the second argument of cons
@@ -86,13 +95,6 @@ namespace meevax::core
     decltype(auto) operator()(const cursor& exp)
     {
       return compile(exp, nil, list(STOP));
-    }
-
-    // auto [iterator_to_defined_syntax, succeeded] = define_syntax(...);
-    template <typename... Ts>
-    decltype(auto) define_syntax(const cursor& keyword, Ts&&... args)
-    {
-      return syntaxes.emplace(keyword, std::forward<Ts>(args)...);
     }
 
   protected:

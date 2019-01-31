@@ -21,7 +21,7 @@ namespace meevax::core
 {
   // For builtin procedures.
   // Dispatch using std::unordered_map and std::function is flexible but, may be too slowly.
-  struct procedure
+  struct [[deprecated]] procedure
     : public std::function<cursor (cursor&, cursor&)>
   {
     template <typename... Ts>
@@ -36,7 +36,7 @@ namespace meevax::core
   };
 
   // Evaluator is a functor provides eval-apply cycle, also holds builtin procedure table.
-  class evaluator
+  class [[deprecated]] evaluator
     : public std::unordered_map<std::shared_ptr<pair>, procedure>
   {
     cursor env_;

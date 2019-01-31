@@ -2,15 +2,16 @@
 #define INCLUDED_MEEVAX_CORE_MACHINE_HPP
 
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 
 #include <meevax/core/boolean.hpp>
 #include <meevax/core/context.hpp>
-#include <meevax/core/cursor.hpp>
 #include <meevax/core/instruction.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
+#include <meevax/core/pair.hpp>
 
 namespace meevax::core
 {
@@ -25,7 +26,7 @@ namespace meevax::core
     #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << std::endl;
 
   public:
-    explicit machine(const std::shared_ptr<context>& package)
+    explicit machine(const std::shared_ptr<context>&)
       : env {nil}
     {}
 
@@ -53,7 +54,7 @@ namespace meevax::core
           }
           else
           {
-            s = cons(car(std::next(target_stack_frame, j), s);
+            s = cons(car(std::next(target_stack_frame, j)), s);
           }
 
           c = cddr(c);

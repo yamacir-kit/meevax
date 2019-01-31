@@ -23,7 +23,7 @@ namespace meevax::core
 
     friend std::ostream& operator<<(std::ostream& os, const procedure& procedure)
     {
-      return os << "<procedure: " << description << ">";
+      return os << "<procedure: " << procedure.description << ">";
     }
   };
 } // namespace meevax::core

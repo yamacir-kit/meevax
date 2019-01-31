@@ -2,8 +2,9 @@
 #include <list>
 #include <string>
 
+#include <meevax/core/compiler.hpp>
 #include <meevax/core/context.hpp>
-#include <meevax/core/evaluator.hpp>
+#include <meevax/core/machine.hpp>
 #include <meevax/core/reader.hpp>
 
 #include <boost/cstdlib.hpp>
@@ -16,7 +17,8 @@ int main()
   )};
 
   meevax::core::reader read {package};
-  meevax::core::evaluator evaluate {package};
+  meevax::core::compiler compile {package};
+  meevax::core::machine machine {package};
 
   // TODO Initialize by contents of history file.
   std::list<std::string> history {""};
@@ -29,9 +31,13 @@ int main()
     if (auto tokens {meevax::core::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
     {
       auto expression {read(tokens)};
-      std::cerr << "[debug] reader: " << expression << std::endl;
+      // std::cerr << "[debug] read: " << expression << std::endl;
+      std::cerr << expression << std::endl;
 
-      std::cerr << evaluate(expression) << "\n\n";
+      auto machine_code {compile(expression)};
+      // std::cerr << "[debug] compile: " << machine_code << std::endl;
+
+      std::cerr << machine.execute(machine_code) << "\n\n";
       history.emplace_back("");
     }
   }
