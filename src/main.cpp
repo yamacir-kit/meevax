@@ -43,8 +43,12 @@ int main()
   }
   catch (const std::runtime_error& error)
   {
-    std::cerr << "[error] standard exception occurred: " << error.what() << "\n\n";
-    history.emplace_back("");
+    std::cerr << "\x1B[31m[error] " << error.what() << "\x1B[0m\n\n";
+
+    // TODO stack trace or abort or exit/quit
+    // history.emplace_back("");
+
+    return boost::exit_failure;
   }
 
   return boost::exit_success;

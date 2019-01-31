@@ -1,5 +1,3 @@
-(define else #true)
-
 (quote a)
 'a
 (quote (a b c))
@@ -30,24 +28,26 @@
 ((lambda (x y) (cons x (cdr y))) 'z '(a b c))
 ((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x)))
 
-(define null (lambda (x)
-  (eq x nil)))
+(define null? (lambda (x)
+  (eq? x nil)
+))
 
-(null 'a)
-(null nil)
+(null? 'a)
+(null? nil)
 
 (define and (lambda (x y)
-  (cond (x
-         (cond (y 'true)
-               (else nil)))
-        (else nil))))
+  (if (x)
+      (if (y) #true #false)
+      #false)
+))
 
-(and (atom 'a) (eq 'a 'a))
-(and (atom 'a) (eq 'a 'b))
+; (and (atom 'a) (eq 'a 'a))
+; (and (atom 'a) (eq 'a 'b))
 
 (define not (lambda (x)
   (cond (x nil)
-        (else 'true))))
+        (else 'true))
+))
 
 (not (eq 'a 'a))
 (not (eq 'a 'b))
