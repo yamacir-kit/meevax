@@ -76,6 +76,13 @@ namespace meevax::core
           s = cons(cursor::bind<closure>(cadr(c), e), s);
           c = cddr(c);
         }
+        else if (instruction == SELECT) // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
+        {
+          DEBUG_2();
+          d = cons(cdddr(c), d);
+          c = (car(s) != false_v ? cadr(c) : caddr(c));
+          s = cdr(s);
+        }
         else if (instruction == STOP) // (result . S) E (STOP . C) D
         {
           DEBUG_0();
