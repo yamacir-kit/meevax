@@ -60,6 +60,7 @@ namespace meevax::core
         }
         else if (instruction == LDC) // S E (LDC constant . C) D => (constant . S) E C D
         {
+          // XXX Add (LDC nil) combination as new instruction NIL?
           DEBUG_1();
           s = cons(cadr(c), s);
           c = cddr(c);
@@ -119,6 +120,45 @@ namespace meevax::core
           DEBUG_0();
           c = cdr(c);
           return car(s);
+        }
+        else if (instruction == APPLY)
+        {
+          DEBUG_1();
+
+          // XXX Maybe this error won't occur.
+          if (auto applicable {car(s)}; not applicable)
+          {
+            std::stringstream buffer {};
+            buffer << applicable << " is not applicable";
+            throw std::runtime_error {buffer.str()};
+          }
+          else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
+          {
+            d = cons(cddr(s), e, cdr(c), d);
+            c = car(applicable);
+            e = cons(cadr(s), cdr(applicable));
+            s = nil;
+          }
+          else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
+          {
+            // XXX This dynamic_cast is removable?
+            s = cons(applicable.data().as<procedure>()(cadr(s)), cddr(s));
+            c = cdr(c);
+          }
+          else
+          {
+            std::stringstream buffer {};
+            buffer << "unimplemented operator " << applicable;
+            throw std::runtime_error {buffer.str()};
+          }
+        }
+        else if (instruction == RETURN)
+        {
+          DEBUG_0();
+          s = cons(car(s), car(d));
+          e = cadr(d);
+          c = caddr(d);
+          d = cdddr(d);
         }
         else
         {
