@@ -13,6 +13,7 @@ int main()
 {
   const auto package {std::make_shared<meevax::core::context>()};
 
+  meevax::core::reader read {package};
   meevax::core::evaluator evaluate {package};
 
   // TODO Initialize by contents of history file.
@@ -25,7 +26,7 @@ int main()
 
     if (auto tokens {meevax::core::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
     {
-      auto expression {meevax::core::read(*package, tokens)};
+      auto expression {read(tokens)};
       std::cerr << "[debug] reader: " << expression << std::endl;
 
       std::cerr << evaluate(expression) << "\n\n";
