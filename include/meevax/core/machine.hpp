@@ -2,9 +2,11 @@
 #define INCLUDED_MEEVAX_CORE_MACHINE_HPP
 
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 #include <meevax/core/boolean.hpp>
 #include <meevax/core/context.hpp>
@@ -12,6 +14,7 @@
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp>
+#include <meevax/core/procedure.hpp>
 
 namespace meevax::core
 {
@@ -21,14 +24,36 @@ namespace meevax::core
     cursor s, e, c, d;
     cursor env; // global environment
 
-    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << std::endl;
-    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << std::endl;
-    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << std::endl;
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << std::endl
 
   public:
-    explicit machine(const std::shared_ptr<context>&)
+    template <typename... Ts>
+    void define(const cursor& var, Ts&&... args)
+    {
+      env = list(var, std::forward<Ts>(args)...) | env;
+    }
+
+    #define define_procedure(NAME, ...) \
+      define(package->intern(NAME), cursor::bind<procedure>(#__VA_ARGS__, __VA_ARGS__))
+
+    explicit machine(const std::shared_ptr<context>& package)
       : env {nil}
-    {}
+    {
+      define_procedure("pair?", [&](const cursor& args)
+      {
+        for (auto iter {args}; iter; ++iter)
+        {
+          if (auto exp {*iter}; not exp or not exp.is<pair>())
+          {
+            return false_v;
+          }
+        }
+
+        return true_v;
+      });
+    }
 
     auto execute(const cursor& exp)
     {
@@ -112,7 +137,8 @@ namespace meevax::core
         else if (instruction == DEFINE)
         {
           DEBUG_1();
-          env = cons(list(cadr(c), car(s)), env);
+          // env = cons(list(cadr(c), car(s)), env);
+          define(cadr(c), car(s));
           car(s) = cadr(c);
           c = cddr(c);
         }
@@ -124,7 +150,7 @@ namespace meevax::core
         }
         else if (instruction == APPLY)
         {
-          DEBUG_1();
+          DEBUG_0();
 
           // XXX Maybe this error won't occur.
           if (auto applicable {car(s)}; not applicable)

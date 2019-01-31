@@ -1,4 +1,4 @@
-(define else 'true)
+(define else #true)
 
 (quote a)
 'a
