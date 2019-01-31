@@ -4,15 +4,15 @@
 'a
 (quote (a b c))
 
-(atom 'a)
-(atom '(a b c))
-(atom nil)
-(atom (atom 'a))
-(atom '(atom 'a))
+; (atom 'a)
+; (atom '(a b c))
+; (atom nil)
+; (atom (atom 'a))
+; (atom '(atom 'a))
 
-(eq 'a 'a)
-(eq 'a 'b)
-(eq '() '())
+(eq? 'a 'a)
+(eq? 'a 'b)
+(eq? '() '())
 
 (car '(a b c))
 (cdr '(a b c))
@@ -23,8 +23,8 @@
 (car (cons 'a '(b c)))
 (cdr (cons 'a '(b c)))
 
-(cond ((eq 'a 'b) 'first)
-      ((atom 'a) 'second))
+; (cond ((eq 'a 'b) 'first)
+;       ((atom 'a) 'second))
 
 ((lambda (x) (cons x '(b))) 'a)
 ((lambda (x y) (cons x (cdr y))) 'z '(a b c))

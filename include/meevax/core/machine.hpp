@@ -43,6 +43,8 @@ namespace meevax::core
     {
       define_procedure("pair?", [&](const cursor& args)
       {
+        assert(0 < std::distance(args, nil));
+
         for (auto iter {args}; iter; ++iter)
         {
           if (auto exp {*iter}; not exp or not exp.is<pair>())
@@ -52,6 +54,12 @@ namespace meevax::core
         }
 
         return true_v;
+      });
+
+      define_procedure("eq?", [&](const cursor& args)
+      {
+        assert(1 < std::distance(args, nil));
+        return car(args) == cadr(args) ? true_v : false_v;
       });
     }
 
