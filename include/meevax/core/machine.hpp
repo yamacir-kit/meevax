@@ -35,7 +35,7 @@ namespace meevax::core
 
       for (c = exp; c; )
       {
-        if (const auto& instruction {car(c)}; instruction == LDX) // S E (LDX (i . j) . C) D
+        if (const auto& instruction {car(c)}; instruction == LDX) // S E (LDX (i . j) . C) D => (value . S) E C D
         {
           DEBUG_0();
 
@@ -58,7 +58,13 @@ namespace meevax::core
 
           c = cddr(c);
         }
-        else if (instruction == STOP) // (x . S) E (STOP . C) D
+        else if (instruction == LDC) // S E (LDC constant . C) D => (constant . S) E C D
+        {
+          DEBUG_1();
+          s = cons(cadr(c), s);
+          c = cddr(c);
+        }
+        else if (instruction == STOP) // (result . S) E (STOP . C) D
         {
           DEBUG_0();
           c = cdr(c);
