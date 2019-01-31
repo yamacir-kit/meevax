@@ -13,6 +13,7 @@ Installation has been tested on Ubuntu 16.04 only.
 - **C++17**
 - **Boost C++ Libraries ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}** (Ubuntu 16.04 default) or later
 - **CMake 3.5.1** (Ubuntu 16.04 default) or later
+- **GNU Multi-Precision Library**
 
 ### Ubuntu 16.04
 

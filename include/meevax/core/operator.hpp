@@ -7,6 +7,8 @@
 
 #include <meevax/core/pair.hpp>
 
+// TODO 純LISPコアに必要なものは移設すること
+
 #define caar(...) car(car(__VA_ARGS__))
 #define cadr(...) car(cdr(__VA_ARGS__))
 #define cdar(...) cdr(car(__VA_ARGS__))
