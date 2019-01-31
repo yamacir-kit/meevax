@@ -70,6 +70,12 @@ namespace meevax::core
           s = cons(assoc(cadr(c), env), s);
           c = cddr(c);
         }
+        else if (instruction == LDF) // S E (LDF code . C) => (closure . S) E C D
+        {
+          DEBUG_1();
+          s = cons(cursor::bind<closure>(cadr(c), e), s);
+          c = cddr(c);
+        }
         else if (instruction == STOP) // (result . S) E (STOP . C) D
         {
           DEBUG_0();
