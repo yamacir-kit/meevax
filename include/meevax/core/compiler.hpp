@@ -9,6 +9,7 @@
 
 #include <meevax/core/context.hpp>
 #include <meevax/core/instruction.hpp>
+#include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp>
 
@@ -95,6 +96,29 @@ namespace meevax::core
       {
         return compile(exp, env, continuation);
       }
+    }
+
+    cursor locate(const cursor& exp, const cursor& env)
+    {
+      auto i {0}, j {0};
+
+      for (auto x {env}; x; ++x, ++i)
+      {
+        for (auto y {car(x)}; y; ++y, ++j)
+        {
+          if (y.is<pair>() && car(y) == exp)
+          {
+            return cons(cursor::bind<number>(i), cursor::bind<number>(j));
+          }
+
+          if (!y.is<pair>() && y == exp)
+          {
+            return cons(cursor::bind<number>(i), cursor::bind<number>(-++j));
+          }
+        }
+      }
+
+      return nil;
     }
   };
 } // namespace meevax::core
