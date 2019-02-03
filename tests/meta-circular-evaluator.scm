@@ -4,7 +4,7 @@
 
 ; (atom 'a)
 ; (atom '(a b c))
-; (atom nil)
+; (atom ())
 ; (atom (atom 'a))
 ; (atom '(atom 'a))
 
@@ -16,7 +16,7 @@
 (cdr '(a b c))
 
 (cons 'a '(b c))
-(cons 'a (cons 'b (cons 'c nil)))
+(cons 'a (cons 'b (cons 'c ())))
 
 (car (cons 'a '(b c)))
 (cdr (cons 'a '(b c)))
@@ -30,24 +30,27 @@
 ((lambda (f) (f '(b c))) (lambda (x) (cons 'a x)))
 
 (define null? (lambda (x)
-  (eq? x nil)
+  (eq? x ())
 ))
 
 (null? 'a)
-(null? nil)
-
-(define and (lambda (x y)
-  (if (x)
-      (if (y) #true #false)
-      #false)
-))
-
-; (and (atom 'a) (eq 'a 'a))
-; (and (atom 'a) (eq 'a 'b))
+(null? ())
 
 (define not (lambda (x)
   (if x #false #true)
 ))
+
+(not #true)
+(not #false)
+
+(define and (lambda (x y)
+  (if x
+      (if y #true #false)
+      #false)
+))
+
+(and (not (pair? 'a)) (eq? 'a 'a))
+(and (not (pair? 'a)) (eq? 'a 'b))
 
 (not (eq? 'a 'a))
 (not (eq? 'a 'b))
@@ -60,22 +63,22 @@
 ))
 
 (append '(a b) '(c d))
-(append nil '(c d))
+(append () '(c d))
 
 (define list (lambda (x y)
-  (cons x (cons y nil))))
+  (cons x (cons y ()))))
 
 (define zip (lambda (x y)
-  (cond ((and (null x)
-              (null y))
-         nil)
-        ((and (not (atom x))
-              (not (atom y)))
-         (cons (list (car x) (car y))
-               (zip (cdr x) (cdr y))))
-        (else nil))))
+  (if (and (null? x) (null? y))
+    ()
+  (if (and (pair? x) (pair? y))
+    (cons (list (car x) (car y))
+          (zip  (cdr x) (cdr y)))
+    ()
+  ))
+))
 
-(zip '(x y z) '(a b c))
+(zip '(x y z) '(a b c)); => ((x a) (y b) (z c))
 
 (define caar (lambda (x) (car (car x))))
 (define cadr (lambda (x) (car (cdr x))))
@@ -85,24 +88,37 @@
 (define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
 
 (define assoc (lambda (x y)
-  (cond ((null x) nil)
-        ((null y) x)
-        (else (cond ((eq (caar y) x) (cadar y))
-                         (else (assoc x (cdr y))))))))
+  (if (null? x)
+    ()
+  (if (null? y)
+    x
+    (if (eq? (caar y) x)
+      (cadar y)
+      (assoc x (cdr y)))
+  ))
+))
 
-(assoc 'x '((x a) (y b)))
-(assoc 'x '((x new) (x a) (y b)))
+; (define assoc (lambda (x y)
+;   (cond ((null x) ())
+;         ((null y) x)
+;         (else (cond ((eq (caar y) x) (cadar y))
+;                          (else (assoc x (cdr y))))))))
+
+(assoc 'x '((x a) (y b))); => a
+(assoc 'x '((x new) (x a) (y b))); => new
 
 (define evcon (lambda (c a)
   (if (eval (caar c) a)
     (eval (cadar c) a)
-    (evcon (cdr c) a))))
+    (evcon (cdr c) a))
+))
 
 (define evlis (lambda (m a)
   (if (null m)
-      nil
-      (cons (eval (car m) a)
-            (evlis (cdr m) a)))))
+    ()
+    (cons (eval  (car m) a)
+          (evlis (cdr m) a)))
+))
 
 (define eval (lambda (e a)
   (cond
@@ -123,33 +139,33 @@
      (eval (caddar e) (append (zip (cadar e) (evlis (cdr e) a)) a)))
     (else 'error))))
 
-(eval '(quote a) nil)
-(eval ''a nil)
-(eval '(quote (a b c)) nil)
+(eval '(quote a) ())
+(eval ''a ())
+(eval '(quote (a b c)) ())
 
-(eval '(atom 'a) nil)
-(eval '(atom (quote (a b c))) nil)
-(eval '(atom nil) nil)
-(eval '(atom (atom 'a)) nil)
-(eval '(atom (quote (atom 'a))) nil)
+(eval '(atom 'a) ())
+(eval '(atom (quote (a b c))) ())
+(eval '(atom ()) ())
+(eval '(atom (atom 'a)) ())
+(eval '(atom (quote (atom 'a))) ())
 
-(eval '(eq 'a 'a) nil)
-(eval '(eq 'a 'b) nil)
-(eval '(eq nil nil) nil)
+(eval '(eq 'a 'a) ())
+(eval '(eq 'a 'b) ())
+(eval '(eq () ()) ())
 
-(eval '(car '(a b c)) nil)
-(eval '(cdr '(a b c)) nil)
+(eval '(car '(a b c)) ())
+(eval '(cdr '(a b c)) ())
 
-(eval '(cons 'a '(b c)) nil)
-(eval '(cons 'a (cons 'b (cons 'c '()))) nil)
-(eval '(car (cons 'a '(b c))) nil)
-(eval '(cdr (cons 'a '(b c))) nil)
+(eval '(cons 'a '(b c)) ())
+(eval '(cons 'a (cons 'b (cons 'c '()))) ())
+(eval '(car (cons 'a '(b c))) ())
+(eval '(cdr (cons 'a '(b c))) ())
 
-(eval '(cond ((eq 'a 'b) 'first) ((atom 'a) 'second)) nil)
+(eval '(cond ((eq 'a 'b) 'first) ((atom 'a) 'second)) ())
 
-(eval '((lambda (x) (cons x '(b))) 'a) nil)
-(eval '((lambda (x y) (cons x (cdr y))) 'z '(a b c)) nil)
-(eval '((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x))) nil)
+(eval '((lambda (x) (cons x '(b))) 'a) ())
+(eval '((lambda (x y) (cons x (cdr y))) 'z '(a b c)) ())
+(eval '((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x))) ())
 
 (eval '((recursive substitute (lambda (x y z)
           (cond ((atom z)
@@ -159,4 +175,4 @@
                  (cons (substitute x y (car z))
                        (substitute x y (cdr z)))))))
       'm 'b '(a b (a b c) d))
-      nil)
+      ())
