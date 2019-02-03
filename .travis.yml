@@ -2,6 +2,9 @@ language: cpp
 compiler: gcc
 dist: xenial
 
+git:
+  depth: false
+
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt update -qq
