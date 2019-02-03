@@ -71,12 +71,12 @@ namespace meevax::core
     decltype(auto) operator()(const SequenceContainer<std::string>& tokens)
     {
       // return parse(std::cbegin(tokens), std::cend(tokens)).generate();
-      return parse_(std::cbegin(tokens), std::cend(tokens));
+      return operator()(std::cbegin(tokens), std::cend(tokens));
     }
 
   protected:
     // TODO Rename constractor?
-    struct abstract_syntax_tree
+    struct [[deprecated]] abstract_syntax_tree
       : public std::list<abstract_syntax_tree>
     {
       cursor value;
@@ -100,75 +100,76 @@ namespace meevax::core
     };
 
     template <typename InputIterator>
-    cursor parse__(InputIterator&& iter, InputIterator&& end)
+    cursor list_(InputIterator&& iter, InputIterator&& end)
     {
-      std::cerr << "        sequence" << std::endl;
+      // std::cerr << "        sequence" << std::endl;
       if (*iter == "(")
       {
-        auto buffer {parse_(iter, end)};
-        return cons(buffer, parse__(++iter, end));
+        auto buffer {operator()(iter, end)};
+        return cons(buffer, list_(++iter, end));
       }
       else
       {
-        auto buffer {parse_(iter, end)};
-        return buffer ? cons(buffer, parse__(++iter, end)) : buffer;
+        auto buffer {operator()(iter, end)};
+        return buffer ? cons(buffer, list_(++iter, end)) : buffer;
       }
     }
 
     template <typename InputIterator>
-    cursor parse_(InputIterator&& iter, InputIterator&& end)
+    cursor operator()(InputIterator&& iter, InputIterator&& end)
     {
-      std::cerr << "[debug] parsing {";
-      for (auto hoge {iter}; hoge != end; ++hoge)
-      {
-        std::cerr << "\x1B[33m" << *hoge << (std::next(hoge) != end ? "\x1B[0m, " : "\x1B[0m}\n");
-      }
-
-      if (std::distance(iter, end) == 0)
-      {
-        std::cerr << "!!!" << std::endl;
-        return nil;
-      }
-      else switch (auto token {*iter}; token[0])
+      // std::cerr << "[debug] parsing {";
+      // for (auto hoge {iter}; hoge != end; ++hoge)
+      // {
+      //   std::cerr << "\x1B[33m" << *hoge << (std::next(hoge) != end ? "\x1B[0m, " : "\x1B[0m}\n");
+      // }
+      //
+      // if (std::distance(iter, end) == 0)
+      // {
+      //   std::cerr << "!!!" << std::endl;
+      //   return nil;
+      // }
+      // else
+      switch (auto token {*iter}; token[0])
       {
       case '(':
-        std::cerr << "        open" << std::endl;
-        if (auto&& car {parse_(++iter, end)}; !car)
+        // std::cerr << "        open" << std::endl;
+        if (auto&& car {operator()(++iter, end)}; !car)
         {
-          std::cerr << "        car is nil" << std::endl;
+          // std::cerr << "        car is nil" << std::endl;
           return nil;
         }
         else if (*++iter != ".")
-        // if (auto&& car {parse_(++iter, end)}; *++iter != ".")
+        // if (auto&& car {operator()(++iter, end)}; *++iter != ".")
         {
-          std::cerr << "        list" << std::endl;
+          // std::cerr << "        list" << std::endl;
           return cons(
             std::forward<decltype(car)>(car),
-            parse__(std::forward<InputIterator>(iter), std::forward<InputIterator>(end))
+            list_(std::forward<InputIterator>(iter), std::forward<InputIterator>(end))
           );
         }
         else
         {
-          std::cerr << "        pair" << std::endl;
-          return cons(std::forward<decltype(car)>(car), parse_(++iter, end));
+          // std::cerr << "        pair" << std::endl;
+          return cons(std::forward<decltype(car)>(car), operator()(++iter, end));
         }
 
       case ')':
-        std::cerr << "        close" << std::endl;
+        // std::cerr << "        close" << std::endl;
         return nil;
 
       case '\'':
-        std::cerr << "        quote" << std::endl;
-        return list(package->intern("quote"), parse_(++iter, end));
+        // std::cerr << "        quote" << std::endl;
+        return list(package->intern("quote"), operator()(++iter, end));
 
       case '`':
-        return list(package->intern("quasiquote"), parse_(++iter, end));
+        return list(package->intern("quasiquote"), operator()(++iter, end));
 
       case '#':
         switch ((*++iter)[0]) // TODO check next iterator is valid
         {
         case '(':
-          return cons(package->intern("vector"), parse_(iter, end));
+          return cons(package->intern("vector"), operator()(iter, end));
 
         case 't':
           return true_v;
@@ -190,7 +191,7 @@ namespace meevax::core
         }
         catch (const std::runtime_error&) // is not number
         {
-          std::cerr << "        symbol" << std::endl;
+          // std::cerr << "        symbol" << std::endl;
           return package->intern(*iter);
         }
       }
@@ -198,7 +199,7 @@ namespace meevax::core
 
     // Recursive Descent Parser
     template <typename InputIterator>
-    auto parse(InputIterator&& iter, InputIterator&& end)
+    [[deprecated]] auto parse(InputIterator&& iter, InputIterator&& end)
       -> abstract_syntax_tree
     {
       abstract_syntax_tree buffer {};
@@ -243,7 +244,7 @@ namespace meevax::core
     }
 
     template <typename InputIterator>
-    auto expand_macro(InputIterator&& iter, InputIterator&& end)
+    [[deprecated]] auto expand_macro(InputIterator&& iter, InputIterator&& end)
       -> abstract_syntax_tree
     {
       if (std::distance(iter, end) != 0)
