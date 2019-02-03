@@ -1,34 +1,3 @@
-(quote a)
-'a
-(quote (a b c))
-
-; (atom 'a)
-; (atom '(a b c))
-; (atom ())
-; (atom (atom 'a))
-; (atom '(atom 'a))
-
-(eq? 'a 'a)
-(eq? 'a 'b)
-(eq? '() '())
-
-(car '(a b c))
-(cdr '(a b c))
-
-(cons 'a '(b c))
-(cons 'a (cons 'b (cons 'c ())))
-
-(car (cons 'a '(b c)))
-(cdr (cons 'a '(b c)))
-
-; (if (eq? 'a 'b)
-;     'first
-;     (if (atom? 'a) 'second 'third))
-
-((lambda (x) (cons x '(b))) 'a)
-((lambda (x y) (cons x (cdr y))) 'z '(a b c))
-((lambda (f) (f '(b c))) (lambda (x) (cons 'a x)))
-
 (define null? (lambda (x)
   (eq? x ())
 ))
@@ -43,6 +12,9 @@
 (not #true)
 (not #false)
 
+(not (eq? 'a 'a))
+(not (eq? 'a 'b))
+
 (define and (lambda (x y)
   (if x
       (if y #true #false)
@@ -51,9 +23,6 @@
 
 (and (not (pair? 'a)) (eq? 'a 'a))
 (and (not (pair? 'a)) (eq? 'a 'b))
-
-(not (eq? 'a 'a))
-(not (eq? 'a 'b))
 
 (define append (lambda (x y)
   (if (null? x)
@@ -92,17 +61,11 @@
     ()
   (if (null? y)
     x
-    (if (eq? (caar y) x)
-      (cadar y)
-      (assoc x (cdr y)))
-  ))
+  (if (eq? (caar y) x)
+    (cadar y)
+    (assoc x (cdr y))
+  )))
 ))
-
-; (define assoc (lambda (x y)
-;   (cond ((null x) ())
-;         ((null y) x)
-;         (else (cond ((eq (caar y) x) (cadar y))
-;                          (else (assoc x (cdr y))))))))
 
 (assoc 'x '((x a) (y b))); => a
 (assoc 'x '((x new) (x a) (y b))); => new
@@ -179,13 +142,10 @@
 
 (eval '((label subst (lambda (x y z)
           (cond ((atom z)
-                 (cond ((eq z y) x)
-                       (else z)))
-                (else
+                 (cond ((eq z y) x) (#true z)))
+                (#true
                  (cons (subst x y (car z))
-                       (subst x y (cdr z)))
-                )
-          )
+                       (subst x y (cdr z)))))
         ))
         'm 'b '(a b (a b c) d)
       )
