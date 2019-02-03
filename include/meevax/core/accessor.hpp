@@ -124,7 +124,7 @@ namespace meevax::core
   std::ostream& operator<<(std::ostream& os, const accessor<T>& rhs)
   {
     // TODO Provide custamizable printer for nullptr.
-    return !rhs ? os << "nil" : rhs.data().write(os);
+    return !rhs ? (os << "()") : rhs.data().write(os);
   }
 } // namespace meevax::core
 
