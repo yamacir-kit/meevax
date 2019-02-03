@@ -27,9 +27,9 @@ namespace meevax::core
     #define END std::flush << "\r\x1B[K"
     // #define END std::endl
 
-    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
-    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
-    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
+    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
+    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
+    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
 
   public:
     template <typename... Ts>

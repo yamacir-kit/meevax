@@ -75,40 +75,42 @@ namespace meevax::core
 
   protected:
     template <typename InputIterator>
-    cursor list_(InputIterator&& iter, InputIterator&& end)
+    cursor rest(InputIterator&& iter, InputIterator&& end)
     {
       if (*iter == "(")
       {
         auto buffer {operator()(iter, end)};
-        return cons(buffer, list_(++iter, end));
+        return cons(buffer, rest(++iter, end));
       }
       else
       {
         auto buffer {operator()(iter, end)};
-        return buffer ? cons(buffer, list_(++iter, end)) : buffer;
+        return buffer ? cons(buffer, rest(++iter, end)) : buffer;
       }
     }
 
     template <typename InputIterator>
     cursor operator()(InputIterator&& iter, InputIterator&& end)
     {
-      switch (auto token {*iter}; token[0])
+      switch ((*iter)[0])
       {
-      case '(':
-        if (auto&& car {operator()(++iter, end)}; !car)
+      case '(': // ここで少なくともペア型であることが確定
+        if (auto&& head {operator()(++iter, end)}; !head) // 先頭要素をパース
         {
-          return nil;
+          return nil; // 空リスト
         }
-        else if (*++iter != ".")
+        else if (*++iter != ".") // トークンをひとつ先読みしてドット対かの判定
         {
-          return cons(car, list_(iter, end));
+          // このブロックは自分がプロパーリストを構築していることを知っている
+          return cons(head, rest(iter, end));
         }
         else
         {
-          return cons(car, operator()(++iter, end));
+          // 非プロパーリストであるため単に次の式をコンスする。
+          return cons(head, operator()(++iter, end));
         }
 
-      case ')':
+      case ')': // リスト終端もアトムであるためイテレータを進めない
         return nil;
 
       case '\'':
@@ -117,10 +119,10 @@ namespace meevax::core
       case '`':
         return list(package->intern("quasiquote"), operator()(++iter, end));
 
-      case '#':
+      case '#': // reader macros
         switch ((*++iter)[0]) // TODO check next iterator is valid
         {
-        case '(':
+        case '(': // 続くリストをベクタコンストラクタにスプライシング
           return cons(package->intern("vector"), operator()(iter, end));
 
         case 't':
@@ -145,6 +147,28 @@ namespace meevax::core
         {
           return package->intern(*iter);
         }
+      }
+    }
+
+    template <typename InputIterator>
+    cursor expand_macro(InputIterator&& iter, InputIterator&& end)
+    {
+      switch ((*iter)[0])
+      {
+      case '(':
+        return cons(package->intern("vector"), operator()(iter, end));
+
+      case 't':
+        return true_v;
+
+      case 'f':
+        return false_v;
+
+      // case 'x':
+      //   return {cursor::bind<number>("0x" + std::string {std::begin(*iter) + 1, std::end(*iter)})};
+
+      default:
+        throw std::runtime_error {"unknown reader macro #" + *iter};
       }
     }
   };
