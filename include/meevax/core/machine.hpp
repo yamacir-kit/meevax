@@ -71,7 +71,7 @@ namespace meevax::core
       {
         if (const auto& instruction {car(c)}; instruction == LDX) // S E (LDX (i . j) . C) D => (value . S) E C D
         {
-          DEBUG_0();
+          DEBUG_1();
 
           // Distance to target stack frame from current stack frame.
           int i {caadr(c).data().as<number>()};
@@ -102,7 +102,16 @@ namespace meevax::core
         else if (instruction == LDG) // S E (LDG symbol . C) D => (value . S) E C D
         {
           DEBUG_1();
-          s = cons(assoc(cadr(c), env), s);
+          if (const auto& var {assoc(cadr(c), env)}; var == undefined)
+          {
+            std::stringstream buffer {};
+            buffer << cadr(c) << " is undefined variable";
+            throw std::runtime_error {buffer.str()};
+          }
+          else
+          {
+            s = cons(var, s);
+          }
           c = cddr(c);
         }
         else if (instruction == LDF) // S E (LDF code . C) => (closure . S) E C D

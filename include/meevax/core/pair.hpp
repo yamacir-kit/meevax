@@ -84,6 +84,7 @@ namespace meevax::core
   }
 
   const cursor nil {nullptr};
+  const cursor undefined {nullptr};
 } // namespace meevax::core
 
 #endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
