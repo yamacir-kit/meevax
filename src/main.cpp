@@ -22,11 +22,12 @@ int main()
 
   // TODO Initialize by contents of history file.
   std::list<std::string> history {""};
+  std::size_t index {0};
 
   for (std::string buffer {}; std::cout << "> ", std::getline(std::cin, buffer); ) try
   {
     std::string code {std::begin(buffer), boost::find(buffer, ';')};
-    std::cerr << "\x1B[38;5;248m" << buffer << "\x1B[0m" << (std::empty(buffer) ? "\r" : "\n");
+    std::cerr << "\x1B[38;5;240m" << ++index << " " << buffer << "\x1B[0m" << (std::empty(buffer) ? "\r" : "\n");
 
     if (auto tokens {meevax::core::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
     {
@@ -37,14 +38,18 @@ int main()
       auto machine_code {compile(expression)};
       // std::cerr << "[debug] compile: " << machine_code << std::endl;
 
-      std::cerr << machine.execute(machine_code) << "\n\n";
+      std::cout << machine.execute(machine_code) << "\n\n";
       history.emplace_back("");
     }
   }
   catch (const std::runtime_error& error)
   {
-    std::cerr << "[error] standard exception occurred: " << error.what() << "\n\n";
-    history.emplace_back("");
+    std::cerr << "\x1B[31m[error] " << error.what() << "\x1B[0m\n\n";
+
+    // TODO stack trace or abort or exit/quit
+    // history.emplace_back("");
+
+    return boost::exit_failure;
   }
 
   return boost::exit_success;

@@ -95,9 +95,13 @@ namespace meevax::core
 
   const cursor& assoc(const cursor& var, const cursor& env)
   {
-    if (!var || !env)
+    if (!var)
     {
-      return nil;
+      return var;
+    }
+    else if (!env)
+    {
+      return undefined;
     }
     else if (caar(env) == var)
     {
