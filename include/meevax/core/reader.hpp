@@ -103,8 +103,16 @@ namespace meevax::core
     cursor parse__(InputIterator&& iter, InputIterator&& end)
     {
       std::cerr << "        sequence" << std::endl;
-      auto buffer {parse_(iter, end)};
-      return buffer ? cons(buffer, parse__(++iter, end)) : buffer;
+      if (*iter == "(")
+      {
+        auto buffer {parse_(iter, end)};
+        return cons(buffer, parse__(++iter, end));
+      }
+      else
+      {
+        auto buffer {parse_(iter, end)};
+        return buffer ? cons(buffer, parse__(++iter, end)) : buffer;
+      }
     }
 
     template <typename InputIterator>
