@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/yamacir-kit/meevax.svg?branch=master)](https://travis-ci.org/yamacir-kit/meevax)
 
-Version 0.1.79 in development.
+Version 0.1.155 in development.
 
 ## Installation
 
@@ -13,6 +13,7 @@ Installation has been tested on Ubuntu 16.04 only.
 - **C++17**
 - **Boost C++ Libraries 1.58.0** (Ubuntu 16.04 default) or later
 - **CMake 3.5.1** (Ubuntu 16.04 default) or later
+- **GNU Multi-Precision Library**
 
 ### Ubuntu 16.04
 
