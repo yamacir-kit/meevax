@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <list>
 #include <locale>
 #include <memory>
 #include <numeric>
@@ -69,93 +70,61 @@ namespace meevax::core
     template <template <typename...> typename SequenceContainer>
     decltype(auto) operator()(const SequenceContainer<std::string>& tokens)
     {
-      return parse(std::cbegin(tokens), std::cend(tokens)).generate();
+      return operator()(std::cbegin(tokens), std::cend(tokens));
     }
 
   protected:
-    struct abstract_syntax_tree
-      : public std::list<abstract_syntax_tree>
-    {
-      cursor value;
-
-      abstract_syntax_tree(const cursor& value = nil)
-        : value {value}
-      {}
-
-      cursor generate() const
-      {
-        if (std::empty(*this)) // is atomic value
-        {
-          return value;
-        }
-        // Following weird code performs "fold-right" algorithm.
-        else return std::accumulate(std::rbegin(*this), std::rend(*this), nil, [&](auto&& rhs, auto&& lhs)
-        {
-          return cons(lhs.generate(), rhs);
-        });
-      }
-    };
-
-    // Recursive Descent Parser
     template <typename InputIterator>
-    auto parse(InputIterator&& iter, InputIterator&& end)
-      -> abstract_syntax_tree
+    cursor rest(InputIterator&& iter, InputIterator&& end)
     {
-      abstract_syntax_tree buffer {};
-
-      // if (std::distance(iter, end) != 0) // リーダが空トークンを投げてこないなら要らない？
-      // {
-        if (*iter == "(") while (++iter != end && *iter != ")")
-        {
-          buffer.emplace_back(parse(iter, end)); // TODO Able to convert constructor?
-        }
-        else
-        {
-          switch ((*iter)[0])
-          {
-          case '\'':
-            buffer.emplace_back(package->intern("quote"));
-            buffer.emplace_back(parse(++iter, end));
-            break;
-
-          case '`':
-            buffer.emplace_back(package->intern("quasiquote"));
-            buffer.emplace_back(parse(++iter, end));
-            break;
-
-          case '#':
-            return expand_macro(++iter, end);
-
-          default:
-            try
-            {
-              return {cursor::bind<number>(*iter)};
-            }
-            catch (const std::runtime_error&)
-            {
-              return package->intern(*iter);
-            }
-          }
-        }
-      // }
-
-      return buffer;
+      if (*iter == "(")
+      {
+        auto buffer {operator()(iter, end)};
+        return cons(buffer, rest(++iter, end));
+      }
+      else
+      {
+        auto buffer {operator()(iter, end)};
+        return buffer ? cons(buffer, rest(++iter, end)) : buffer;
+      }
     }
 
     template <typename InputIterator>
-    auto expand_macro(InputIterator&& iter, InputIterator&& end)
-      -> abstract_syntax_tree
+    cursor operator()(InputIterator&& iter, InputIterator&& end)
     {
-      if (std::distance(iter, end) != 0)
+      switch ((*iter)[0])
       {
-        if (*iter == "(")
+      case '(': // ここで少なくともペア型であることが確定
+        if (auto&& head {operator()(++iter, end)}; !head) // 先頭要素をパース
         {
-          auto buffer {parse(iter, end)};
-          buffer.emplace_front(package->intern("vector"));
-          return buffer;
+          return nil; // 空リスト
         }
-        else switch ((*iter)[0])
+        else if (*++iter != ".") // トークンをひとつ先読みしてドット対かの判定
         {
+          // このブロックは自分がプロパーリストを構築していることを知っている
+          return cons(head, rest(iter, end));
+        }
+        else
+        {
+          // 非プロパーリストであるため単に次の式をコンスする。
+          return cons(head, operator()(++iter, end));
+        }
+
+      case ')': // リスト終端もアトムであるためイテレータを進めない
+        return nil;
+
+      case '\'':
+        return list(package->intern("quote"), operator()(++iter, end));
+
+      case '`':
+        return list(package->intern("quasiquote"), operator()(++iter, end));
+
+      case '#': // reader macros
+        switch ((*++iter)[0]) // TODO check next iterator is valid
+        {
+        case '(': // 続くリストをベクタコンストラクタにスプライシング
+          return cons(package->intern("vector"), operator()(iter, end));
+
         case 't':
           return true_v;
 
@@ -168,21 +137,40 @@ namespace meevax::core
         default:
           throw std::runtime_error {"unknown reader macro #" + *iter};
         }
-      }
-      else
-      {
-        throw std::runtime_error {"reader dispatch macro requires at least one character as argument"};
+
+      default:
+        try // XXX Dirty hack!!!
+        {
+          return {cursor::bind<number>(*iter)};
+        }
+        catch (const std::runtime_error&) // is not number
+        {
+          return package->intern(*iter);
+        }
       }
     }
-  };
 
-  [[deprecated]] auto read = [](auto&& context, auto&& tokens)
-  {
-    // if (const auto tokens {tokenize(s)}; balance(tokens) <= 0)
-    // {
-      return syntax_tree {tokens}.compile(std::forward<decltype(context)>(context));
-    // }
-    // else throw s;
+    template <typename InputIterator>
+    cursor expand_macro(InputIterator&& iter, InputIterator&& end)
+    {
+      switch ((*iter)[0])
+      {
+      case '(':
+        return cons(package->intern("vector"), operator()(iter, end));
+
+      case 't':
+        return true_v;
+
+      case 'f':
+        return false_v;
+
+      // case 'x':
+      //   return {cursor::bind<number>("0x" + std::string {std::begin(*iter) + 1, std::end(*iter)})};
+
+      default:
+        throw std::runtime_error {"unknown reader macro #" + *iter};
+      }
+    }
   };
 } // namespace meevax::core
 
