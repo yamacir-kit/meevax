@@ -1,9 +1,11 @@
 #ifndef INCLUDED_MEEVAX_CORE_MACHINE_HPP
 #define INCLUDED_MEEVAX_CORE_MACHINE_HPP
 
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -63,6 +65,12 @@ namespace meevax::core
       {
         assert(1 < std::distance(args, nil));
         return car(args) == cadr(args) ? true_v : false_v;
+      });
+
+      define_procedure("+", [&](const cursor& args)
+      {
+        assert(0 < std::distance(args, nil));
+        return std::accumulate(args, nil, cursor::bind<number>(0), std::plus {});
       });
     }
 
