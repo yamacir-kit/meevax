@@ -18,12 +18,27 @@ namespace meevax::core
     return os << "\x1B[36m" << number.str() << "\x1B[0m";
   }
 
-  cursor operator+(const cursor& lhs, const cursor& rhs)
-  {
-    return cursor::bind<number>(
-      lhs.data().as<number>() + rhs.data().as<number>()
-    );
+  #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
+  cursor operator OPERATOR(const cursor& lhs, cursor& rhs) \
+  { \
+    return cursor::bind<number>( \
+      lhs.data().as<number>() OPERATOR rhs.data().as<number>() \
+    ); \
   }
+
+  DEFINE_NUMERIC_BINARY_OPERATOR(+)
+  DEFINE_NUMERIC_BINARY_OPERATOR(*)
+  DEFINE_NUMERIC_BINARY_OPERATOR(-)
+  DEFINE_NUMERIC_BINARY_OPERATOR(/)
+
+  // #define DEFINE_NUMERIC_UNARY_OPERATOR(OPERATOR) \
+  // cursor operator OPERATOR(const cursor& exp) \
+  // { \
+  //   return cursor::bind<number>(std::negate {}(exp.data().as<number>())); \
+  // }
+  //
+  // DEFINE_NUMERIC_UNARY_OPERATOR(+)
+  // DEFINE_NUMERIC_UNARY_OPERATOR(-)
 } // namespace meevax::core
 
 #endif // INCLUDED_MEEVAX_CORE_NUMBER_HPP

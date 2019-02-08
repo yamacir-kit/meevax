@@ -26,8 +26,8 @@ namespace meevax::core
     cursor s, e, c, d;
     cursor env; // global environment
 
-    #define END std::flush << "\r\x1B[K"
-    // #define END std::endl
+    // #define END std::flush << "\r\x1B[K"
+    #define END std::endl
 
     #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
     #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
@@ -70,8 +70,30 @@ namespace meevax::core
 
       DEFINE_PROCEDURE("+", [&](const cursor& args)
       {
-        assert(0 < std::distance(args, nil));
         return std::accumulate(args, nil, cursor::bind<number>(0), std::plus {});
+      });
+
+      DEFINE_PROCEDURE("*", [&](const cursor& args)
+      {
+        return std::accumulate(args, nil, cursor::bind<number>(1), std::multiplies {});
+      });
+
+      // XXX UGLY CODE
+      DEFINE_PROCEDURE("-", [&](const cursor& args) -> cursor
+      {
+        if (std::distance(args, nil) < 2)
+        {
+          return std::accumulate(args, nil, cursor::bind<number>(0), std::minus {});
+        }
+        else
+        {
+          return std::accumulate(cdr(args), nil, car(args), std::minus {});
+        }
+      });
+
+      DEFINE_PROCEDURE("/", [&](const cursor& args)
+      {
+        return std::accumulate(args, nil, cursor::bind<number>(1), std::divides {});
       });
     }
 
