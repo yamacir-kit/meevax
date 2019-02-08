@@ -29,24 +29,25 @@ namespace meevax::core
     #define END std::flush << "\r\x1B[K"
     // #define END std::endl
 
-    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
-    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
-    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
 
   public:
     template <typename... Ts>
-    void define(const cursor& var, Ts&&... args)
+    const auto& define(const cursor& var, Ts&&... args)
     {
-      env = list(var, std::forward<Ts>(args)...) | env;
+      return env = list(var, std::forward<Ts>(args)...) | env;
     }
 
-    #define define_procedure(NAME, ...) \
+    // XXX This sets C++ procedure definition as help message.
+    #define DEFINE_PROCEDURE(NAME, ...) \
       define(package->intern(NAME), cursor::bind<procedure>(#__VA_ARGS__, __VA_ARGS__))
 
     explicit machine(const std::shared_ptr<context>& package)
       : env {nil}
     {
-      define_procedure("pair?", [&](const cursor& args)
+      DEFINE_PROCEDURE("pair?", [&](const cursor& args)
       {
         assert(0 < std::distance(args, nil));
 
@@ -61,13 +62,13 @@ namespace meevax::core
         return true_v;
       });
 
-      define_procedure("eq?", [&](const cursor& args)
+      DEFINE_PROCEDURE("eq?", [&](const cursor& args)
       {
         assert(1 < std::distance(args, nil));
         return car(args) == cadr(args) ? true_v : false_v;
       });
 
-      define_procedure("+", [&](const cursor& args)
+      DEFINE_PROCEDURE("+", [&](const cursor& args)
       {
         assert(0 < std::distance(args, nil));
         return std::accumulate(args, nil, cursor::bind<number>(0), std::plus {});
