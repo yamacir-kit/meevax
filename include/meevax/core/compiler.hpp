@@ -47,7 +47,7 @@ namespace meevax::core
       define_syntax(package->intern("if"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         const auto&& then_exp {compile( caddr(exp), env, list(JOIN))};
-        const auto&& else_exp {compile(cadddr(exp), env, list(JOIN))}; // TODO check cdddr is not nil
+        const auto&& else_exp {compile(cadddr(exp), env, list(JOIN))}; // TODO check cdddr is not unit
         return compile(cadr(exp), env, cons(SELECT, then_exp, else_exp, continuation));
       });
 
@@ -94,7 +94,7 @@ namespace meevax::core
 
     decltype(auto) operator()(const cursor& exp)
     {
-      return compile(exp, nil, list(STOP));
+      return compile(exp, unit, list(STOP));
     }
 
   protected:
@@ -104,7 +104,7 @@ namespace meevax::core
     {
       if (not exp)
       {
-        return cons(LDC, nil, continuation); // TODO Add NIL instruction?
+        return cons(LDC, unit, continuation); // TODO Add NIL instruction?
       }
       else if (not exp.is<pair>())
       {
@@ -183,7 +183,7 @@ namespace meevax::core
         }
       }
 
-      return nil;
+      return unit;
     }
   };
 } // namespace meevax::core

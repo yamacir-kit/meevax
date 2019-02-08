@@ -2,8 +2,12 @@
 #define INCLUDED_MEEVAX_CORE_NUMBER_HPP
 
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 
 #include <boost/multiprecision/gmp.hpp>
+
+#include <meevax/core/pair.hpp>
 
 namespace meevax::core
 {
@@ -13,6 +17,28 @@ namespace meevax::core
   {
     return os << "\x1B[36m" << number.str() << "\x1B[0m";
   }
+
+  #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
+  cursor operator OPERATOR(const cursor& lhs, cursor& rhs) \
+  { \
+    return cursor::bind<number>( \
+      lhs.data().as<number>() OPERATOR rhs.data().as<number>() \
+    ); \
+  }
+
+  DEFINE_NUMERIC_BINARY_OPERATOR(+)
+  DEFINE_NUMERIC_BINARY_OPERATOR(*)
+  DEFINE_NUMERIC_BINARY_OPERATOR(-)
+  DEFINE_NUMERIC_BINARY_OPERATOR(/)
+
+  // #define DEFINE_NUMERIC_UNARY_OPERATOR(OPERATOR) \
+  // cursor operator OPERATOR(const cursor& exp) \
+  // { \
+  //   return cursor::bind<number>(std::negate {}(exp.data().as<number>())); \
+  // }
+  //
+  // DEFINE_NUMERIC_UNARY_OPERATOR(+)
+  // DEFINE_NUMERIC_UNARY_OPERATOR(-)
 } // namespace meevax::core
 
 #endif // INCLUDED_MEEVAX_CORE_NUMBER_HPP

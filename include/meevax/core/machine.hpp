@@ -1,9 +1,11 @@
 #ifndef INCLUDED_MEEVAX_CORE_MACHINE_HPP
 #define INCLUDED_MEEVAX_CORE_MACHINE_HPP
 
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -24,29 +26,30 @@ namespace meevax::core
     cursor s, e, c, d;
     cursor env; // global environment
 
-    #define END std::flush << "\r\x1B[K"
-    // #define END std::endl
+    // #define END std::flush << "\r\x1B[K"
+    #define END std::endl
 
-    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
-    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
-    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
 
   public:
     template <typename... Ts>
-    void define(const cursor& var, Ts&&... args)
+    const auto& define(const cursor& var, Ts&&... args)
     {
-      env = list(var, std::forward<Ts>(args)...) | env;
+      return env = list(var, std::forward<Ts>(args)...) | env;
     }
 
-    #define define_procedure(NAME, ...) \
+    // XXX This sets C++ procedure definition as help message.
+    #define DEFINE_PROCEDURE(NAME, ...) \
       define(package->intern(NAME), cursor::bind<procedure>(#__VA_ARGS__, __VA_ARGS__))
 
     explicit machine(const std::shared_ptr<context>& package)
-      : env {nil}
+      : env {unit}
     {
-      define_procedure("pair?", [&](const cursor& args)
+      DEFINE_PROCEDURE("pair?", [&](const cursor& args)
       {
-        assert(0 < std::distance(args, nil));
+        assert(0 < std::distance(args, unit));
 
         for (auto iter {args}; iter; ++iter)
         {
@@ -59,16 +62,44 @@ namespace meevax::core
         return true_v;
       });
 
-      define_procedure("eq?", [&](const cursor& args)
+      DEFINE_PROCEDURE("eq?", [&](const cursor& args)
       {
-        assert(1 < std::distance(args, nil));
+        assert(1 < std::distance(args, unit));
         return car(args) == cadr(args) ? true_v : false_v;
+      });
+
+      DEFINE_PROCEDURE("+", [&](const cursor& args)
+      {
+        return std::accumulate(args, unit, cursor::bind<number>(0), std::plus {});
+      });
+
+      DEFINE_PROCEDURE("*", [&](const cursor& args)
+      {
+        return std::accumulate(args, unit, cursor::bind<number>(1), std::multiplies {});
+      });
+
+      // XXX UGLY CODE
+      DEFINE_PROCEDURE("-", [&](const cursor& args) -> cursor
+      {
+        if (std::distance(args, unit) < 2)
+        {
+          return std::accumulate(args, unit, cursor::bind<number>(0), std::minus {});
+        }
+        else
+        {
+          return std::accumulate(cdr(args), unit, car(args), std::minus {});
+        }
+      });
+
+      DEFINE_PROCEDURE("/", [&](const cursor& args)
+      {
+        return std::accumulate(args, unit, cursor::bind<number>(1), std::divides {});
       });
     }
 
     auto execute(const cursor& exp)
     {
-      s = e = d = nil;
+      s = e = d = unit;
 
       for (c = exp; c; )
       {
@@ -97,7 +128,7 @@ namespace meevax::core
         }
         else if (instruction == LDC) // S E (LDC constant . C) D => (constant . S) E C D
         {
-          // XXX Add (LDC nil) combination as new instruction NIL?
+          // XXX Add (LDC unit) combination as new instruction NIL?
           DEBUG_1();
           s = cons(cadr(c), s);
           c = cddr(c);
@@ -184,7 +215,7 @@ namespace meevax::core
             d = cons(cddr(s), e, cdr(c), d);
             c = car(applicable);
             e = cons(cadr(s), cdr(applicable));
-            s = nil;
+            s = unit;
           }
           else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
           {
