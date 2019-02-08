@@ -58,7 +58,7 @@ namespace meevax::core
   template <typename... Ts>
   constexpr decltype(auto) list(Ts&&... args)
   {
-    return (args | ... | nil);
+    return (args | ... | unit);
   }
 
   decltype(auto) atom(const cursor& exp)
@@ -68,7 +68,7 @@ namespace meevax::core
 
   // decltype(auto) length(const cursor& exp)
   // {
-  //   return std::distance(exp, nil);
+  //   return std::distance(exp, unit);
   // }
 
   template <typename T, typename U>
@@ -81,7 +81,7 @@ namespace meevax::core
   {
     if (!x && !y)
     {
-      return nil;
+      return unit;
     }
     else if (!atom(x) && !atom(y))
     {
@@ -89,7 +89,7 @@ namespace meevax::core
     }
     else
     {
-      return nil;
+      return unit;
     }
   }
 

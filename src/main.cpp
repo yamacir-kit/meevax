@@ -13,7 +13,7 @@
 int main()
 {
   const auto package {std::make_shared<meevax::core::context>(
-    std::make_pair("nil", meevax::core::nil)
+    std::make_pair("nil", meevax::core::unit)
   )};
 
   meevax::core::reader read {package};

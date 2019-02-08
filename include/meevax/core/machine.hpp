@@ -45,11 +45,11 @@ namespace meevax::core
       define(package->intern(NAME), cursor::bind<procedure>(#__VA_ARGS__, __VA_ARGS__))
 
     explicit machine(const std::shared_ptr<context>& package)
-      : env {nil}
+      : env {unit}
     {
       DEFINE_PROCEDURE("pair?", [&](const cursor& args)
       {
-        assert(0 < std::distance(args, nil));
+        assert(0 < std::distance(args, unit));
 
         for (auto iter {args}; iter; ++iter)
         {
@@ -64,42 +64,42 @@ namespace meevax::core
 
       DEFINE_PROCEDURE("eq?", [&](const cursor& args)
       {
-        assert(1 < std::distance(args, nil));
+        assert(1 < std::distance(args, unit));
         return car(args) == cadr(args) ? true_v : false_v;
       });
 
       DEFINE_PROCEDURE("+", [&](const cursor& args)
       {
-        return std::accumulate(args, nil, cursor::bind<number>(0), std::plus {});
+        return std::accumulate(args, unit, cursor::bind<number>(0), std::plus {});
       });
 
       DEFINE_PROCEDURE("*", [&](const cursor& args)
       {
-        return std::accumulate(args, nil, cursor::bind<number>(1), std::multiplies {});
+        return std::accumulate(args, unit, cursor::bind<number>(1), std::multiplies {});
       });
 
       // XXX UGLY CODE
       DEFINE_PROCEDURE("-", [&](const cursor& args) -> cursor
       {
-        if (std::distance(args, nil) < 2)
+        if (std::distance(args, unit) < 2)
         {
-          return std::accumulate(args, nil, cursor::bind<number>(0), std::minus {});
+          return std::accumulate(args, unit, cursor::bind<number>(0), std::minus {});
         }
         else
         {
-          return std::accumulate(cdr(args), nil, car(args), std::minus {});
+          return std::accumulate(cdr(args), unit, car(args), std::minus {});
         }
       });
 
       DEFINE_PROCEDURE("/", [&](const cursor& args)
       {
-        return std::accumulate(args, nil, cursor::bind<number>(1), std::divides {});
+        return std::accumulate(args, unit, cursor::bind<number>(1), std::divides {});
       });
     }
 
     auto execute(const cursor& exp)
     {
-      s = e = d = nil;
+      s = e = d = unit;
 
       for (c = exp; c; )
       {
@@ -128,7 +128,7 @@ namespace meevax::core
         }
         else if (instruction == LDC) // S E (LDC constant . C) D => (constant . S) E C D
         {
-          // XXX Add (LDC nil) combination as new instruction NIL?
+          // XXX Add (LDC unit) combination as new instruction NIL?
           DEBUG_1();
           s = cons(cadr(c), s);
           c = cddr(c);
@@ -215,7 +215,7 @@ namespace meevax::core
             d = cons(cddr(s), e, cdr(c), d);
             c = car(applicable);
             e = cons(cadr(s), cdr(applicable));
-            s = nil;
+            s = unit;
           }
           else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
           {

@@ -10,8 +10,6 @@
 #include <string>
 #include <utility>
 
-#include <meevax/core/syntax_tree.hpp>
-
 #include <meevax/core/boolean.hpp>
 #include <meevax/core/context.hpp>
 #include <meevax/core/number.hpp>
@@ -97,7 +95,7 @@ namespace meevax::core
       case '(': // ここで少なくともペア型であることが確定
         if (auto&& head {operator()(++iter, end)}; !head) // 先頭要素をパース
         {
-          return nil; // 空リスト
+          return unit; // 空リスト
         }
         else if (*++iter != ".") // トークンをひとつ先読みしてドット対かの判定
         {
@@ -111,7 +109,7 @@ namespace meevax::core
         }
 
       case ')': // リスト終端もアトムであるためイテレータを進めない
-        return nil;
+        return unit;
 
       case '\'':
         return list(package->intern("quote"), operator()(++iter, end));

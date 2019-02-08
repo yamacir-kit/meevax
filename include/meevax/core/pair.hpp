@@ -83,7 +83,7 @@ namespace meevax::core
     return *this = cdr(*this);
   }
 
-  const cursor nil {nullptr};
+  const cursor unit {nullptr};
   const cursor undefined {nullptr};
 } // namespace meevax::core
 
