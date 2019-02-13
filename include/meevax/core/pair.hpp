@@ -66,7 +66,7 @@ namespace meevax::core
   {
     os << "(" << exp.first;
 
-    for (cursor iter {exp.second}; iter; ++iter)
+    for (auto iter {exp.second}; iter; iter = cdr(iter))
     {
       if (iter.is<pair>())
       {
@@ -83,6 +83,16 @@ namespace meevax::core
 
   const cursor unit {nullptr};
   const cursor undefined {nullptr};
+
+  cursor begin(const accessor<pair>& pair) noexcept
+  {
+    return pair;
+  }
+
+  cursor end(const accessor<pair>& pair) noexcept
+  {
+    return unit;
+  }
 } // namespace meevax::core
 
 #endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
