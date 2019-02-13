@@ -6,12 +6,49 @@
 #include <string>
 #include <utility>
 
+#include <boost/iterator/iterator_facade.hpp>
+
 #include <meevax/core/accessor.hpp>
 
 namespace meevax::core
 {
-  // Forward decleation for cursor class.
-  struct pair;
+  struct pair
+    : public std::pair<accessor<pair>, accessor<pair>>,
+      public universal_base<pair>
+  {
+    template <typename... Ts>
+    constexpr pair(Ts&&... args)
+      : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
+    {}
+
+    // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
+    virtual ~pair() = default;
+  };
+
+  struct cursor
+    : public accessor<pair>,
+      public std::iterator<std::input_iterator_tag, cursor>
+  {
+    template <typename... Ts>
+    constexpr cursor(Ts&&... args)
+      : accessor<pair> {std::forward<Ts>(args)...}
+    {}
+
+    decltype(auto) operator*() const
+    {
+      return std::data(*this).first;
+    }
+
+    decltype(auto) operator->() const
+    {
+      return std::data(*this).first;
+    }
+
+    decltype(auto) operator++()
+    {
+      return *this = std::data(*this).second;
+    }
+  };
 
   template <typename... Ts>
   constexpr decltype(auto) car(Ts&&... args)
@@ -25,66 +62,37 @@ namespace meevax::core
     return std::get<1>(std::data(std::forward<Ts>(args)...));
   }
 
-  struct cursor
-    : public accessor<pair>,
-      // TODO replace boost::iterator_facade
-      public std::iterator<std::input_iterator_tag, accessor<pair>>
+  std::ostream& operator<<(std::ostream& os, const pair& exp)
   {
-    template <typename... Ts>
-    constexpr cursor(Ts&&... args)
-      : accessor<pair> {std::forward<Ts>(args)...}
-    {}
+    os << "(" << exp.first;
 
-    decltype(auto) operator*() const;
-    // TODO operator->
-    cursor& operator++();
-  };
-
-  // This class must be constructed by std::make_shared<pair>.
-  struct pair
-    : public std::pair<cursor, cursor>,
-      public universal_base<pair>
-  {
-    template <typename... Ts>
-    constexpr pair(Ts&&... args)
-      : std::pair<cursor, cursor> {std::forward<Ts>(args)...}
-    {}
-
-    // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
-    virtual ~pair() = default;
-
-    friend std::ostream& operator<<(std::ostream& os, const pair& exp)
+    for (auto iter {exp.second}; iter; iter = cdr(iter))
     {
-      os << "(" << exp.first;
-
-      for (auto iter {exp.second}; iter; ++iter)
+      if (iter.is<pair>())
       {
-        if (iter.is<pair>())
-        {
-          os << " " << car(iter);
-        }
-        else // iter is the last element of dotted-list.
-        {
-          os << " . " << iter;
-        }
+        os << " " << car(iter);
       }
-
-      return os << ")";
+      else // iter is the last element of dotted-list.
+      {
+        os << " . " << iter;
+      }
     }
-  };
 
-  decltype(auto) cursor::operator*() const
-  {
-    return car(*this);
-  }
-
-  cursor& cursor::operator++()
-  {
-    return *this = cdr(*this);
+    return os << ")";
   }
 
   const cursor unit {nullptr};
   const cursor undefined {nullptr};
+
+  cursor begin(const accessor<pair>& pair) noexcept
+  {
+    return pair;
+  }
+
+  cursor end(const accessor<pair>& pair) noexcept
+  {
+    return unit;
+  }
 } // namespace meevax::core
 
 #endif // INCLUDED_MEEVAX_CORE_PAIR_HPP

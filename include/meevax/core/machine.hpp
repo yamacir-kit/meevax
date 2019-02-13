@@ -87,7 +87,7 @@ namespace meevax::core
         }
         else
         {
-          return std::accumulate(cdr(args), unit, car(args), std::minus {});
+          return std::accumulate(cursor {cdr(args)}, unit, car(args), std::minus {});
         }
       });
 
@@ -115,7 +115,7 @@ namespace meevax::core
           int j {cdadr(c).data().as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (auto target_stack_frame {car(std::next(e, i))}; j < 0)
+          if (cursor target_stack_frame {car(std::next(e, i))}; j < 0)
           {
             s = cons(std::next(target_stack_frame, -++j), s);
           }

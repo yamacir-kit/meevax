@@ -93,7 +93,7 @@ namespace meevax::core
     }
   }
 
-  const cursor& assoc(const cursor& var, const cursor& env)
+  cursor assoc(const cursor& var, const cursor& env)
   {
     if (!var)
     {

@@ -21,7 +21,7 @@ namespace meevax::core
     template <typename String>
     const auto& intern(String&& s)
     {
-      if (const auto& iter {find(s)}; iter != std::end(*this))
+      if (const auto iter {find(s)}; iter != std::end(*this))
       {
         return iter->second;
       }
@@ -33,7 +33,7 @@ namespace meevax::core
     template <typename String>
     const auto& lookup(String&& s)
     {
-      const auto& iter {find(s)};
+      const auto iter {find(s)};
       assert(iter != std::end(*this));
       return iter->second;
     }

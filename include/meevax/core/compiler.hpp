@@ -169,7 +169,7 @@ namespace meevax::core
 
       for (auto x {env}; x; ++x, ++i)
       {
-        for (auto y {car(x)}; y; ++y, ++j)
+        for (cursor y {car(x)}; y; ++y, ++j)
         {
           if (y.is<pair>() && car(y) == exp)
           {
