@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 
-#include <meevax/core/pair.hpp>
+#include <meevax/core/cursor.hpp>
 
 namespace meevax::core
 {

@@ -6,7 +6,9 @@
 #include <unordered_map>
 #include <utility>
 
-#include <meevax/core/pair.hpp>
+#include <meevax/core/cursor.hpp>
+
+// TODO rename to "hash_table"
 
 namespace meevax::core
 {

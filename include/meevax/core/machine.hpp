@@ -4,23 +4,36 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
-#include <memory>
-#include <numeric>
+#include <memory> // std::shared_ptr<context>
+#include <numeric> // std::accumulate
 #include <sstream>
-#include <stdexcept>
+#include <stdexcept> // std::runtime_error
 #include <unordered_map>
-#include <utility>
+#include <utility> // std::forward
 
 #include <meevax/core/boolean.hpp>
 #include <meevax/core/context.hpp>
+#include <meevax/core/cursor.hpp>
 #include <meevax/core/instruction.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
-#include <meevax/core/pair.hpp>
+#include <meevax/core/pair.hpp> // pair?
 #include <meevax/core/procedure.hpp>
 
 namespace meevax::core
 {
+  cursor take(const cursor& exp, std::size_t size)
+  {
+    if (0 < size)
+    {
+      return car(exp) | take(cdr(exp), --size);
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
   // Simple SECD machine.
   class machine
   {
@@ -29,12 +42,9 @@ namespace meevax::core
     // cursor env; // global environment
     std::unordered_map<cursor, cursor> env;
 
-    // #define END std::flush << "\r\x1B[K"
-    #define END std::endl
-
-    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
-    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
-    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     template <typename... Ts>
@@ -44,9 +54,8 @@ namespace meevax::core
       return env.insert_or_assign(var, std::forward<Ts>(args)...);
     }
 
-    // XXX This sets C++ procedure definition as help message.
     #define DEFINE_PROCEDURE(NAME, ...) \
-      define(package->intern(NAME), cursor::bind<procedure>(#__VA_ARGS__, __VA_ARGS__))
+      define(package->intern(NAME), cursor::bind<procedure>(NAME, __VA_ARGS__))
 
     explicit machine(const std::shared_ptr<context>& package)
       // : env {unit}
@@ -156,7 +165,7 @@ namespace meevax::core
           {
             s = cons(iter->second, s);
           }
-          else
+          else // TODO Detect searching exposed vm instruction (car, cdr, cons)
           {
             std::stringstream buffer {};
             buffer << cadr(c) << " is undefined variable";
