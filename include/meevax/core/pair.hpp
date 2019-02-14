@@ -1,13 +1,8 @@
 #ifndef INCLUDED_MEEVAX_CORE_PAIR_HPP
 #define INCLUDED_MEEVAX_CORE_PAIR_HPP
 
-#include <iterator>
-#include <memory>
-#include <string>
+#include <iostream>
 #include <utility>
-#include <functional> // std::hash
-
-#include <boost/iterator/iterator_facade.hpp>
 
 #include <meevax/core/accessor.hpp>
 
@@ -24,31 +19,6 @@ namespace meevax::core
 
     // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
     virtual ~pair() = default;
-  };
-
-  struct cursor
-    : public accessor<pair>,
-      public std::iterator<std::input_iterator_tag, cursor>
-  {
-    template <typename... Ts>
-    constexpr cursor(Ts&&... args)
-      : accessor<pair> {std::forward<Ts>(args)...}
-    {}
-
-    decltype(auto) operator*() const
-    {
-      return std::data(*this).first;
-    }
-
-    decltype(auto) operator->() const
-    {
-      return std::data(*this).first;
-    }
-
-    decltype(auto) operator++()
-    {
-      return *this = std::data(*this).second;
-    }
   };
 
   template <typename... Ts>
@@ -81,31 +51,7 @@ namespace meevax::core
 
     return os << ")";
   }
-
-  const cursor unit {nullptr};
-  const cursor undefined {nullptr};
-
-  cursor begin(const accessor<pair>& pair) noexcept
-  {
-    return pair;
-  }
-
-  cursor end(const accessor<pair>& pair) noexcept
-  {
-    return unit;
-  }
 } // namespace meevax::core
-
-namespace std
-{
-  template <typename T>
-  struct hash;
-
-  template <>
-  struct hash<meevax::core::cursor>
-    : public std::hash<std::shared_ptr<meevax::core::pair>>
-  {};
-} // namespace std
 
 #endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
 

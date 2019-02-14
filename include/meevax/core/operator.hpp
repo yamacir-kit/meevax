@@ -101,7 +101,7 @@ namespace meevax::core
     }
     else if (!env)
     {
-      return undefined;
+      return unit;
     }
     else if (caar(env) == var)
     {
