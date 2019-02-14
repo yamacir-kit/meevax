@@ -21,6 +21,18 @@
 
 namespace meevax::core
 {
+  cursor take(const cursor& exp, std::size_t size)
+  {
+    if (0 < size)
+    {
+      return car(exp) | take(cdr(exp), --size);
+    }
+    else
+    {
+      return unit;
+    }
+  }
+
   // Simple SECD machine.
   class machine
   {
@@ -29,12 +41,9 @@ namespace meevax::core
     // cursor env; // global environment
     std::unordered_map<cursor, cursor> env;
 
-    // #define END std::flush << "\r\x1B[K"
-    #define END std::endl
-
-    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << car(c) << "\x1B[?7h" << END
-    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << "\x1B[?7h" << END
-    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << car(c) << " " << cadr(c) << " " << caddr(c) << "\x1B[?7h" << END
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     template <typename... Ts>
