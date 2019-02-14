@@ -1,8 +1,7 @@
 #ifndef INCLUDED_MEEVAX_CORE_OPERATOR_HPP
 #define INCLUDED_MEEVAX_CORE_OPERATOR_HPP
 
-#include <iterator>
-#include <typeinfo>
+#include <memory> // std::make_shared
 #include <utility>
 
 #include <meevax/core/pair.hpp>
@@ -61,15 +60,10 @@ namespace meevax::core
     return (args | ... | unit);
   }
 
-  decltype(auto) atom(const cursor& exp)
+  [[deprecated]] decltype(auto) atom(const cursor& exp)
   {
     return !exp || !exp.is<pair>();
   }
-
-  // decltype(auto) length(const cursor& exp)
-  // {
-  //   return std::distance(exp, unit);
-  // }
 
   template <typename T, typename U>
   cursor append(T&& x, U&& y)
@@ -83,7 +77,7 @@ namespace meevax::core
     {
       return unit;
     }
-    else if (!atom(x) && !atom(y))
+    else if (x.is<pair>() && y.is<pair>())
     {
       return list(car(x), car(y)) | zip(cdr(x), cdr(y));
     }
