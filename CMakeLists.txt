@@ -36,13 +36,28 @@ link_directories(
   ${Boost_LIBRARY_DIRS}
 )
 
-file(GLOB ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-# foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_SOURCES)
-#   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "\\2" TARGET_NAME ${EACH_SOURCE})
-#   add_executable(${TARGET_NAME} ${EACH_SOURCE})
-#   target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
-# endforeach()
+add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} gmp)
+target_link_libraries(${PROJECT_NAME}
+  ${Boost_LIBRARIES}
+  dl
+  gmp
+)
+
+file(GLOB ${PROJECT_NAME}_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+list(REMOVE_ITEM ${PROJECT_NAME}_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+
+foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_MODULES)
+  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
+
+  add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
+
+  set_target_properties(
+    ${TARGET_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+
+  # target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES} gmp)
+endforeach()
 
