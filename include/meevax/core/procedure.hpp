@@ -9,12 +9,13 @@
 
 namespace meevax::core
 {
-  class procedure
+  struct procedure
     : public std::function<cursor (const cursor&)>
   {
     const std::string name;
 
-  public:
+    using signature = cursor (*)(const cursor&);
+
     template <typename... Ts>
     procedure(const std::string& name, Ts&&... args)
       : std::function<cursor (const cursor&)> {std::forward<Ts>(args)...}
