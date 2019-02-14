@@ -42,9 +42,9 @@ namespace meevax::core
     // cursor env; // global environment
     std::unordered_map<cursor, cursor> env;
 
-    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     template <typename... Ts>
@@ -128,13 +128,13 @@ namespace meevax::core
           int j {cdadr(c).data().as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (cursor target_stack_frame {car(std::next(e, i))}; j < 0)
+          if (cursor lexical_scope {car(std::next(e, i))}; j < 0)
           {
-            s = cons(std::next(target_stack_frame, -++j), s);
+            s = cons(std::next(lexical_scope, -++j), s);
           }
           else
           {
-            s = cons(car(std::next(target_stack_frame, j)), s);
+            s = cons(car(std::next(lexical_scope, j)), s);
           }
 
           c = cddr(c);
