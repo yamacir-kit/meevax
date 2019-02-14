@@ -1,8 +1,7 @@
 #ifndef INCLUDED_MEEVAX_CORE_CURSOR_HPP
 #define INCLUDED_MEEVAX_CORE_CURSOR_HPP
 
-#include <functional> // std::hash
-#include <iterator>
+#include <iterator> // std::iterator, std::data
 
 #include <meevax/core/accessor.hpp>
 #include <meevax/core/pair.hpp>
@@ -36,12 +35,12 @@ namespace meevax::core
 
   const cursor unit {nullptr};
 
-  cursor begin(const accessor<pair>& pair) noexcept
+  inline cursor begin(const accessor<pair>& pair) noexcept
   {
     return pair;
   }
 
-  cursor end(const accessor<pair>& pair) noexcept
+  inline cursor end(const accessor<pair>&) noexcept
   {
     return unit;
   }
@@ -49,7 +48,7 @@ namespace meevax::core
 
 namespace std
 {
-  template <typename T>
+  template <typename>
   struct hash;
 
   template <>
