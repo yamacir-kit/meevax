@@ -4,19 +4,20 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
-#include <memory>
-#include <numeric>
+#include <memory> // std::shared_ptr<context>
+#include <numeric> // std::accumulate
 #include <sstream>
-#include <stdexcept>
+#include <stdexcept> // std::runtime_error
 #include <unordered_map>
-#include <utility>
+#include <utility> // std::forward
 
 #include <meevax/core/boolean.hpp>
 #include <meevax/core/context.hpp>
+#include <meevax/core/cursor.hpp>
 #include <meevax/core/instruction.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
-#include <meevax/core/pair.hpp>
+#include <meevax/core/pair.hpp> // pair?
 #include <meevax/core/procedure.hpp>
 
 namespace meevax::core
@@ -53,9 +54,8 @@ namespace meevax::core
       return env.insert_or_assign(var, std::forward<Ts>(args)...);
     }
 
-    // XXX This sets C++ procedure definition as help message.
     #define DEFINE_PROCEDURE(NAME, ...) \
-      define(package->intern(NAME), cursor::bind<procedure>(#__VA_ARGS__, __VA_ARGS__))
+      define(package->intern(NAME), cursor::bind<procedure>(NAME, __VA_ARGS__))
 
     explicit machine(const std::shared_ptr<context>& package)
       // : env {unit}
@@ -165,7 +165,7 @@ namespace meevax::core
           {
             s = cons(iter->second, s);
           }
-          else
+          else // TODO Detect searching exposed vm instruction (car, cdr, cons)
           {
             std::stringstream buffer {};
             buffer << cadr(c) << " is undefined variable";

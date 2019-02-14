@@ -1,10 +1,10 @@
 #ifndef INCLUDED_MEEVAX_CORE_READER_HPP
 #define INCLUDED_MEEVAX_CORE_READER_HPP
 
-#include <algorithm>
-#include <iterator>
+#include <algorithm> // std::find_if
+#include <iterator> // std::begin, std::end
 #include <list>
-#include <locale>
+#include <locale> // std::isgraph, std::isspace
 #include <memory>
 #include <numeric>
 #include <string>
@@ -12,8 +12,8 @@
 
 #include <meevax/core/boolean.hpp>
 #include <meevax/core/context.hpp>
+#include <meevax/core/cursor.hpp>
 #include <meevax/core/number.hpp>
-#include <meevax/core/pair.hpp>
 
 namespace meevax::core
 {
@@ -149,7 +149,7 @@ namespace meevax::core
     }
 
     template <typename InputIterator>
-    cursor expand_macro(InputIterator&& iter, InputIterator&& end)
+    [[deprecated]] cursor expand_macro(InputIterator&& iter, InputIterator&& end)
     {
       switch ((*iter)[0])
       {

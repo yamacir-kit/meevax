@@ -5,7 +5,7 @@
 
 #include <boost/multiprecision/gmp.hpp>
 
-#include <meevax/core/pair.hpp>
+#include <meevax/core/cursor.hpp>
 
 namespace meevax::core
 {

@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_CORE_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_CORE_INSTRUCTION_HPP
 
-#include <meevax/core/pair.hpp>
+#include <meevax/core/cursor.hpp>
 
 namespace meevax::core
 {
