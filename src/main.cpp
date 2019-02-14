@@ -17,22 +17,8 @@ int main()
     std::make_pair("nil", meevax::core::unit)
   )};
 
-  auto handle {meevax::posix::link("/home/yamasa/works/meevax/build/libmeevax-base.so")};
-  void* pointer {dlsym(handle.get(), "banner")};
-
-  if (pointer)
-  {
-    meevax::core::procedure func {
-      "banner",
-      reinterpret_cast<meevax::core::procedure::signature>(pointer)
-    };
-    func(meevax::core::unit);
-  }
-  else
-  {
-    std::cerr << dlerror() << std::endl;
-    std::exit(boost::exit_failure);
-  }
+  auto link {meevax::posix::link("/home/yamasa/works/meevax/build/libmeevax-base.so")};
+  load(link, "banner").data().as<meevax::core::procedure>()(meevax::core::unit);
 
   meevax::core::reader read {package};
   meevax::core::compiler compile {package};
