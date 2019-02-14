@@ -17,7 +17,7 @@ int main()
     std::make_pair("nil", meevax::core::unit)
   )};
 
-  auto handle {meevax::posix::dynamic_link("/home/yamasa/works/meevax/build/libmeevax-base.so")};
+  auto handle {meevax::posix::link("/home/yamasa/works/meevax/build/libmeevax-base.so")};
   void* pointer {dlsym(handle.get(), "banner")};
 
   if (pointer)

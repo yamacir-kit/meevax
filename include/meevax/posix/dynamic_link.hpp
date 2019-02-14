@@ -9,23 +9,28 @@
 
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
+#include <boost/cstdlib.hpp>
+
 namespace meevax::posix
 {
-  auto close_dynamic_link = [](void* handle)
+  decltype(auto) link(const std::string& name)
   {
-    dlclose(handle);
-  };
+    auto close = [&](void* handle)
+    {
+      if (dlclose(handle))
+      {
+        std::cerr << "failed to close " << name << " : " << dlerror() << std::endl;
+      }
+    };
 
-  decltype(auto) dynamic_link(const std::string& name)
-  {
-    if (std::unique_ptr<void, decltype(close_dynamic_link)> handle {dlopen(name.c_str(), RTLD_LAZY), close_dynamic_link}; handle)
+    if (std::unique_ptr<void, decltype(close)> handle {dlopen(name.c_str(), RTLD_LAZY), close}; handle)
     {
       return handle;
     }
     else
     {
       std::stringstream buffer {};
-      buffer << "failed to dynamic link " << name << " : " << dlerror();
+      buffer << "failed to link " << name << " : " << dlerror();
       throw std::runtime_error {buffer.str()};
     }
   }
