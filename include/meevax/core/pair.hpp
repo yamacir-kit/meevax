@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <functional> // std::hash
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -94,6 +95,17 @@ namespace meevax::core
     return unit;
   }
 } // namespace meevax::core
+
+namespace std
+{
+  template <typename T>
+  struct hash;
+
+  template <>
+  struct hash<meevax::core::cursor>
+    : public std::hash<std::shared_ptr<meevax::core::pair>>
+  {};
+} // namespace std
 
 #endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
 

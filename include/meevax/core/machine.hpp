@@ -8,6 +8,7 @@
 #include <numeric>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
 #include <utility>
 
 #include <meevax/core/boolean.hpp>
@@ -24,7 +25,9 @@ namespace meevax::core
   class machine
   {
     cursor s, e, c, d;
-    cursor env; // global environment
+
+    // cursor env; // global environment
+    std::unordered_map<cursor, cursor> env;
 
     // #define END std::flush << "\r\x1B[K"
     #define END std::endl
@@ -35,9 +38,10 @@ namespace meevax::core
 
   public:
     template <typename... Ts>
-    const auto& define(const cursor& var, Ts&&... args)
+    decltype(auto) define(const cursor& var, Ts&&... args)
     {
-      return env = list(var, std::forward<Ts>(args)...) | env;
+      // return env = list(var, std::forward<Ts>(args)...) | env;
+      return env.insert_or_assign(var, std::forward<Ts>(args)...);
     }
 
     // XXX This sets C++ procedure definition as help message.
@@ -45,7 +49,7 @@ namespace meevax::core
       define(package->intern(NAME), cursor::bind<procedure>(#__VA_ARGS__, __VA_ARGS__))
 
     explicit machine(const std::shared_ptr<context>& package)
-      : env {unit}
+      // : env {unit}
     {
       DEFINE_PROCEDURE("pair?", [&](const cursor& args)
       {
@@ -79,7 +83,7 @@ namespace meevax::core
       });
 
       // XXX UGLY CODE
-      DEFINE_PROCEDURE("-", [&](const cursor& args) -> cursor
+      DEFINE_PROCEDURE("-", [&](const cursor& args)
       {
         if (std::distance(args, unit) < 2)
         {
@@ -136,16 +140,29 @@ namespace meevax::core
         else if (instruction == LDG) // S E (LDG symbol . C) D => (value . S) E C D
         {
           DEBUG_1();
-          if (const auto& var {assoc(cadr(c), env)}; var == undefined)
+
+          // if (const auto& var {assoc(cadr(c), env)}; var == undefined)
+          // {
+          //   std::stringstream buffer {};
+          //   buffer << cadr(c) << " is undefined variable";
+          //   throw std::runtime_error {buffer.str()};
+          // }
+          // else
+          // {
+          //   s = cons(var, s);
+          // }
+
+          if (auto iter {env.find(cadr(c))}; iter != std::end(env))
+          {
+            s = cons(iter->second, s);
+          }
+          else
           {
             std::stringstream buffer {};
             buffer << cadr(c) << " is undefined variable";
             throw std::runtime_error {buffer.str()};
           }
-          else
-          {
-            s = cons(var, s);
-          }
+
           c = cddr(c);
         }
         else if (instruction == LDF) // S E (LDF code . C) => (closure . S) E C D
