@@ -6,6 +6,7 @@
 #include <meevax/core/context.hpp>
 #include <meevax/core/machine.hpp>
 #include <meevax/core/reader.hpp>
+#include <meevax/posix/dynamic_link.hpp>
 
 #include <boost/cstdlib.hpp>
 #include <boost/range/algorithm.hpp>
@@ -15,6 +16,9 @@ int main()
   const auto package {std::make_shared<meevax::core::context>(
     std::make_pair("nil", meevax::core::unit)
   )};
+
+  const auto link {meevax::posix::link("/home/yamasa/works/meevax/build/libmeevax-base.so")};
+  load(link, "banner").data().as<meevax::core::procedure>()(meevax::core::unit);
 
   meevax::core::reader read {package};
   meevax::core::compiler compile {package};

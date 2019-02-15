@@ -34,6 +34,7 @@ namespace meevax::core
   };
 
   const cursor unit {nullptr};
+  const cursor undefined {nullptr};
 
   inline cursor begin(const accessor<pair>& pair) noexcept
   {
