@@ -17,7 +17,7 @@ int main()
     std::make_pair("nil", meevax::core::unit)
   )};
 
-  auto link {meevax::posix::link("/home/yamasa/works/meevax/build/libmeevax-base.so")};
+  const auto link {meevax::posix::link("/home/yamasa/works/meevax/build/libmeevax-base.so")};
   load(link, "banner").data().as<meevax::core::procedure>()(meevax::core::unit);
 
   meevax::core::reader read {package};

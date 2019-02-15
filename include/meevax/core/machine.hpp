@@ -39,8 +39,8 @@ namespace meevax::core
   {
     cursor s, e, c, d;
 
-    // cursor env; // global environment
-    std::unordered_map<cursor, cursor> env;
+    cursor env; // global environment
+    // std::unordered_map<cursor, cursor> env;
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
     #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
@@ -50,8 +50,8 @@ namespace meevax::core
     template <typename... Ts>
     decltype(auto) define(const cursor& var, Ts&&... args)
     {
-      // return env = list(var, std::forward<Ts>(args)...) | env;
-      return env.insert_or_assign(var, std::forward<Ts>(args)...);
+      return env = list(var, std::forward<Ts>(args)...) | env;
+      // return env.insert_or_assign(var, std::forward<Ts>(args)...);
     }
 
     #define DEFINE_PROCEDURE(NAME, ...) \
@@ -150,27 +150,27 @@ namespace meevax::core
         {
           DEBUG_1();
 
-          // if (const auto& var {assoc(cadr(c), env)}; var == undefined)
-          // {
-          //   std::stringstream buffer {};
-          //   buffer << cadr(c) << " is undefined variable";
-          //   throw std::runtime_error {buffer.str()};
-          // }
-          // else
-          // {
-          //   s = cons(var, s);
-          // }
-
-          if (auto iter {env.find(cadr(c))}; iter != std::end(env))
-          {
-            s = cons(iter->second, s);
-          }
-          else // TODO Detect searching exposed vm instruction (car, cdr, cons)
+          if (const auto& var {assoc(cadr(c), env)}; var == undefined)
           {
             std::stringstream buffer {};
             buffer << cadr(c) << " is undefined variable";
             throw std::runtime_error {buffer.str()};
           }
+          else
+          {
+            s = cons(var, s);
+          }
+
+          // if (auto iter {env.find(cadr(c))}; iter != std::end(env))
+          // {
+          //   s = cons(iter->second, s);
+          // }
+          // else // TODO Detect searching exposed vm instruction (car, cdr, cons)
+          // {
+          //   std::stringstream buffer {};
+          //   buffer << cadr(c) << " is undefined variable";
+          //   throw std::runtime_error {buffer.str()};
+          // }
 
           c = cddr(c);
         }
