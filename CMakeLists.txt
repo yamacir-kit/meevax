@@ -48,7 +48,7 @@ file(GLOB ${PROJECT_NAME}_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 list(REMOVE_ITEM ${PROJECT_NAME}_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_MODULES)
-  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
+  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "scheme-\\2" TARGET_NAME ${EACH_SOURCE})
 
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
 
