@@ -8,8 +8,8 @@
 #include <unordered_map>
 
 #include <meevax/core/closure.hpp>
-#include <meevax/core/context.hpp>
 #include <meevax/core/instruction.hpp>
+#include <meevax/core/namescope.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp>
@@ -20,7 +20,7 @@ namespace meevax::core
   class compiler
   {
     std::unordered_map<
-      std::shared_ptr<pair>,
+      cursor,
       std::function<cursor (const cursor&, const cursor&, const cursor&)>
     > syntaxes;
 
@@ -35,7 +35,7 @@ namespace meevax::core
     // Intern syntax symbols to given package.
     // スペシャルフォームとVMインストラクションの対応はコンパイラ内部で完結した処理で、
     // スペシャルフォームのシンボルはパッケージを通じてリーダが文字列と対応付ける。
-    explicit compiler(const std::shared_ptr<context>& package)
+    explicit compiler(const std::shared_ptr<namescope>& package)
     {
       // TODO Check number of arguments
 

@@ -3,8 +3,8 @@
 #include <string>
 
 #include <meevax/core/compiler.hpp>
-#include <meevax/core/context.hpp>
 #include <meevax/core/machine.hpp>
+#include <meevax/core/namescope.hpp>
 #include <meevax/core/reader.hpp>
 #include <meevax/posix/dynamic_link.hpp>
 
@@ -13,7 +13,7 @@
 
 int main()
 {
-  const auto package {std::make_shared<meevax::core::context>(
+  const auto package {std::make_shared<meevax::core::namescope>(
     std::make_pair("nil", meevax::core::unit)
   )};
 

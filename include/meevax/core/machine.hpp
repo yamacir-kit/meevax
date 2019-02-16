@@ -12,9 +12,9 @@
 #include <utility> // std::forward
 
 #include <meevax/core/boolean.hpp>
-#include <meevax/core/context.hpp>
 #include <meevax/core/cursor.hpp>
 #include <meevax/core/instruction.hpp>
+#include <meevax/core/namescope.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp> // pair?
@@ -57,7 +57,7 @@ namespace meevax::core
     #define DEFINE_PROCEDURE(NAME, ...) \
       define(package->intern(NAME), cursor::bind<procedure>(NAME, __VA_ARGS__))
 
-    explicit machine(const std::shared_ptr<context>& package)
+    explicit machine(const std::shared_ptr<namescope>& package)
       // : env {unit}
     {
       DEFINE_PROCEDURE("pair?", [&](const cursor& args)

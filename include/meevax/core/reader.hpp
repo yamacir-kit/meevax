@@ -11,8 +11,8 @@
 #include <utility>
 
 #include <meevax/core/boolean.hpp>
-#include <meevax/core/context.hpp>
 #include <meevax/core/cursor.hpp>
+#include <meevax/core/namescope.hpp>
 #include <meevax/core/number.hpp>
 
 namespace meevax::core
@@ -58,10 +58,10 @@ namespace meevax::core
 
   class reader
   {
-    const std::shared_ptr<context> package;
+    const std::shared_ptr<namescope> package;
 
   public:
-    explicit reader(const std::shared_ptr<context>& package)
+    explicit reader(const std::shared_ptr<namescope>& package)
       : package {package}
     {}
 
