@@ -21,17 +21,11 @@ namespace meevax::core
     virtual ~pair() = default;
   };
 
-  template <typename... Ts>
-  constexpr decltype(auto) car(Ts&&... args)
-  {
-    return std::get<0>(std::data(std::forward<Ts>(args)...));
-  }
+  decltype(auto) car(      accessor<pair>& pair) { return std::get<0>(pair.access()); }
+  decltype(auto) car(const accessor<pair>& pair) { return std::get<0>(pair.access()); }
 
-  template <typename... Ts>
-  constexpr decltype(auto) cdr(Ts&&... args)
-  {
-    return std::get<1>(std::data(std::forward<Ts>(args)...));
-  }
+  decltype(auto) cdr(      accessor<pair>& pair) { return std::get<1>(pair.access()); }
+  decltype(auto) cdr(const accessor<pair>& pair) { return std::get<1>(pair.access()); }
 
   std::ostream& operator<<(std::ostream& os, const pair& exp)
   {

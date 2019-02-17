@@ -1,7 +1,9 @@
-#ifndef INCLUDED_MEEVAX_CORE_NAMESCOPE_HPP
-#define INCLUDED_MEEVAX_CORE_NAMESCOPE_HPP
+#ifndef INCLUDED_MEEVAX_CORE_MODULAR_HPP
+#define INCLUDED_MEEVAX_CORE_MODULAR_HPP
 
 #include <cassert>
+#include <iostream>
+#include <iterator> // std::end
 #include <string>
 #include <unordered_map>
 #include <utility> // std::forward
@@ -10,12 +12,14 @@
 
 namespace meevax::core
 {
-  struct namescope
+  struct modular
     : public std::unordered_map<std::string, cursor>
   {
+    const cursor enclosure;
+
     template <typename... Ts>
-    explicit constexpr namescope(Ts&&... args)
-      : std::unordered_map<std::string, cursor> {std::forward<Ts>(args)...}
+    explicit modular(const cursor& enclosure)
+      : enclosure {enclosure}
     {}
 
     const auto& intern(const std::string& s)
@@ -40,7 +44,12 @@ namespace meevax::core
       return iter->second;
     }
   };
+
+  std::ostream& operator<<(std::ostream& os, const modular&)
+  {
+    return os << "#<module>";
+  }
 } // namespace meevax::core
 
-#endif // INCLUDED_MEEVAX_CORE_NAMESCOPE_HPP
+#endif // INCLUDED_MEEVAX_CORE_MODULAR_HPP
 

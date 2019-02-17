@@ -18,11 +18,11 @@ namespace meevax::core
       return typeid(T);
     }
 
-    template <typename U>
-    decltype(auto) as() const noexcept(false)
-    {
-      return dynamic_cast<const U&>(*this);
-    }
+    // template <typename U>
+    // decltype(auto) as() const noexcept(false)
+    // {
+    //   return dynamic_cast<const U&>(*this);
+    // }
 
     // Type T is able to customize print function via stream output operator.
     virtual std::ostream& write(std::ostream& os) const
@@ -80,15 +80,25 @@ namespace meevax::core
       return std::make_shared<bindings>(std::forward<Ts>(args)...);
     }
 
-    decltype(auto) data() const noexcept
+    decltype(auto) access()       { return std::shared_ptr<UniversalBaseType>::operator*(); }
+    decltype(auto) access() const { return std::shared_ptr<UniversalBaseType>::operator*(); }
+
+    template <typename T>
+    decltype(auto) is() const
     {
-      return std::shared_ptr<UniversalBaseType>::operator*();
+      return access().type() == typeid(T);
     }
 
     template <typename T>
-    decltype(auto) is() const noexcept
+    decltype(auto) as()
     {
-      return data().type() == typeid(T);
+      return dynamic_cast<T&>(access());
+    }
+
+    template <typename T>
+    decltype(auto) as() const
+    {
+      return dynamic_cast<T&>(access());
     }
 
   public: // stack supports
@@ -124,7 +134,7 @@ namespace meevax::core
   std::ostream& operator<<(std::ostream& os, const accessor<T>& rhs)
   {
     // TODO Provide custamizable printer for nullptr.
-    return !rhs ? (os << "()") : rhs.data().write(os);
+    return !rhs ? (os << "()") : rhs.access().write(os);
   }
 } // namespace meevax::core
 

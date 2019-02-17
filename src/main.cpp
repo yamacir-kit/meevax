@@ -4,25 +4,29 @@
 
 #include <meevax/core/compiler.hpp>
 #include <meevax/core/machine.hpp>
-#include <meevax/core/namescope.hpp>
+#include <meevax/core/modular.hpp>
 #include <meevax/core/reader.hpp>
-#include <meevax/posix/dynamic_link.hpp>
+// #include <meevax/posix/dynamic_link.hpp>
 
 #include <boost/cstdlib.hpp>
 #include <boost/range/algorithm.hpp>
 
 int main()
 {
-  const auto package {std::make_shared<meevax::core::namescope>(
-    std::make_pair("nil", meevax::core::unit)
-  )};
+  // const auto package {std::make_shared<meevax::core::namescope>(
+  //   std::make_pair("nil", meevax::core::unit)
+  // )};
 
-  const auto link {meevax::posix::link("/home/yamasa/works/meevax/build/libscheme-base.so")};
-  load(link, "banner").data().as<meevax::core::procedure>()(meevax::core::unit);
+  using namespace meevax::core;
 
-  meevax::core::reader read {package};
-  meevax::core::compiler compile {package};
-  meevax::core::machine machine {package};
+  cursor module {cursor::bind<modular>(unit)};
+
+  // const auto link {meevax::posix::link("/home/yamasa/works/meevax/build/libscheme-base.so")};
+  // load(link, "banner").data().as<meevax::core::procedure>()(meevax::core::unit);
+
+  meevax::core::reader read {module};
+  meevax::core::compiler compile {module.as<modular>()};
+  meevax::core::machine machine {module.as<modular>()};
 
   // TODO Initialize by contents of history file.
   std::list<std::string> history {""};

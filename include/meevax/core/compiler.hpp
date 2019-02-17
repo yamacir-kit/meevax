@@ -9,7 +9,7 @@
 
 #include <meevax/core/closure.hpp>
 #include <meevax/core/instruction.hpp>
-#include <meevax/core/namescope.hpp>
+#include <meevax/core/modular.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp>
@@ -35,28 +35,28 @@ namespace meevax::core
     // Intern syntax symbols to given package.
     // スペシャルフォームとVMインストラクションの対応はコンパイラ内部で完結した処理で、
     // スペシャルフォームのシンボルはパッケージを通じてリーダが文字列と対応付ける。
-    explicit compiler(const std::shared_ptr<namescope>& package)
+    explicit compiler(modular& module)
     {
       // TODO Check number of arguments
 
-      define_syntax(package->intern("quote"), [&](auto&& exp, auto&&, auto&& continuation)
+      define_syntax(module.intern("quote"), [&](auto&& exp, auto&&, auto&& continuation)
       {
         return cons(LDC, cadr(exp), continuation);
       });
 
-      define_syntax(package->intern("if"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(module.intern("if"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         const auto&& then_exp {compile( caddr(exp), env, list(JOIN))};
         const auto&& else_exp {compile(cadddr(exp), env, list(JOIN))}; // TODO check cdddr is not unit
         return compile(cadr(exp), env, cons(SELECT, then_exp, else_exp, continuation));
       });
 
-      define_syntax(package->intern("define"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(module.intern("define"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(caddr(exp), env, cons(DEFINE, cadr(exp), continuation));
       });
 
-      define_syntax(package->intern("lambda"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(module.intern("lambda"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return cons(
           LDF,
@@ -70,19 +70,19 @@ namespace meevax::core
       });
 
       // TODO Eliminate the distinction between the instruction and the symbol interned in the package.
-      define_syntax(package->intern("car"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(module.intern("car"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(cadr(exp), env, cons(CAR, continuation));
       });
 
       // TODO Eliminate the distinction between the instruction and the symbol interned in the package.
-      define_syntax(package->intern("cdr"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(module.intern("cdr"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(cadr(exp), env, cons(CDR, continuation));
       });
 
       // TODO Eliminate the distinction between the instruction and the symbol interned in the package.
-      define_syntax(package->intern("cons"), [&](auto&& exp, auto&& env, auto&& continuation)
+      define_syntax(module.intern("cons"), [&](auto&& exp, auto&& env, auto&& continuation)
       {
         return compile(
           caddr(exp), // Next of the second argument of cons
