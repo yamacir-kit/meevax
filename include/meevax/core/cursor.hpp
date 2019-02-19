@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_CORE_CURSOR_HPP
 #define INCLUDED_MEEVAX_CORE_CURSOR_HPP
 
-#include <iterator> // std::iterator, std::data
-
 #include <meevax/core/accessor.hpp>
 #include <meevax/core/pair.hpp>
 
@@ -17,19 +15,19 @@ namespace meevax::core
       : accessor<pair> {std::forward<Ts>(args)...}
     {}
 
-    decltype(auto) operator*() const
+    decltype(auto) operator*()
     {
-      return std::data(*this).first;
+      return std::get<0>(access());
     }
 
-    decltype(auto) operator->() const
+    decltype(auto) operator->()
     {
       return operator*();
     }
 
     decltype(auto) operator++()
     {
-      return *this = std::data(*this).second;
+      return *this = std::get<1>(access());
     }
   };
 

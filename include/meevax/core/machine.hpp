@@ -12,9 +12,9 @@
 #include <utility> // std::forward
 
 #include <meevax/core/boolean.hpp>
-#include <meevax/core/context.hpp>
 #include <meevax/core/cursor.hpp>
 #include <meevax/core/instruction.hpp>
+#include <meevax/core/modular.hpp>
 #include <meevax/core/number.hpp>
 #include <meevax/core/operator.hpp>
 #include <meevax/core/pair.hpp> // pair?
@@ -55,9 +55,9 @@ namespace meevax::core
     }
 
     #define DEFINE_PROCEDURE(NAME, ...) \
-      define(package->intern(NAME), cursor::bind<procedure>(NAME, __VA_ARGS__))
+      define(module.intern(NAME), cursor::bind<procedure>(NAME, __VA_ARGS__))
 
-    explicit machine(const std::shared_ptr<context>& package)
+    explicit machine(modular& module)
       // : env {unit}
     {
       DEFINE_PROCEDURE("pair?", [&](const cursor& args)
@@ -121,11 +121,11 @@ namespace meevax::core
           DEBUG_1();
 
           // Distance to target stack frame from current stack frame.
-          int i {caadr(c).data().as<number>()};
+          int i {caadr(c).as<number>()};
 
           // Index of target value in the target stack frame.
           // If value is lower than 0, the target value is variadic parameter.
-          int j {cdadr(c).data().as<number>()};
+          int j {cdadr(c).as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
           if (cursor lexical_scope {car(std::next(e, i))}; j < 0)
@@ -246,7 +246,7 @@ namespace meevax::core
           else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
           {
             // XXX This dynamic_cast is removable?
-            s = cons(applicable.data().as<procedure>()(cadr(s)), cddr(s));
+            s = cons(applicable.as<procedure>()(cadr(s)), cddr(s));
             c = cdr(c);
           }
           else

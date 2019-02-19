@@ -11,8 +11,8 @@
 #include <utility>
 
 #include <meevax/core/boolean.hpp>
-#include <meevax/core/context.hpp>
 #include <meevax/core/cursor.hpp>
+#include <meevax/core/modular.hpp>
 #include <meevax/core/number.hpp>
 
 namespace meevax::core
@@ -58,11 +58,13 @@ namespace meevax::core
 
   class reader
   {
-    const std::shared_ptr<context> package;
+    const cursor module;
+
+    #define INTERN(...) as<modular>().intern(__VA_ARGS__)
 
   public:
-    explicit reader(const std::shared_ptr<context>& package)
-      : package {package}
+    explicit reader(const cursor& module)
+      : module {module}
     {}
 
     template <template <typename...> typename SequenceContainer>
@@ -112,16 +114,16 @@ namespace meevax::core
         return unit;
 
       case '\'':
-        return list(package->intern("quote"), operator()(++iter, end));
+        return list(module.INTERN("quote"), operator()(++iter, end));
 
       case '`':
-        return list(package->intern("quasiquote"), operator()(++iter, end));
+        return list(module.INTERN("quasiquote"), operator()(++iter, end));
 
       case '#': // reader macros
         switch ((*++iter)[0]) // TODO check next iterator is valid
         {
         case '(': // 続くリストをベクタコンストラクタにスプライシング
-          return cons(package->intern("vector"), operator()(iter, end));
+          return cons(module.INTERN("vector"), operator()(iter, end));
 
         case 't':
           return true_v;
@@ -143,7 +145,7 @@ namespace meevax::core
         }
         catch (const std::runtime_error&) // is not number
         {
-          return package->intern(*iter);
+          return module.INTERN(*iter);
         }
       }
     }
@@ -154,7 +156,7 @@ namespace meevax::core
       switch ((*iter)[0])
       {
       case '(':
-        return cons(package->intern("vector"), operator()(iter, end));
+        return cons(module.INTERN("vector"), operator()(iter, end));
 
       case 't':
         return true_v;

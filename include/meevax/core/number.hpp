@@ -20,7 +20,7 @@ namespace meevax::core
   cursor operator OPERATOR(const cursor& lhs, const cursor& rhs) \
   { \
     return cursor::bind<number>( \
-      lhs.data().as<number>() OPERATOR rhs.data().as<number>() \
+      lhs.as<number>() OPERATOR rhs.as<number>() \
     ); \
   }
 

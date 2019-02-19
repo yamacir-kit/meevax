@@ -17,8 +17,8 @@
 
 (define and (lambda (x y)
   (if x
-      (if y #true #false)
-      #false)
+    (if y #true #false)
+    #false)
 ))
 
 (and (not (pair? 'a)) (eq? 'a 'a))
