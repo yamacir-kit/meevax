@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_CORE_CLOSURE_HPP
-#define INCLUDED_MEEVAX_CORE_CLOSURE_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
+#define INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
 
 #include <iostream>
 
-#include <meevax/core/pair.hpp>
+#include <meevax/system/pair.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   // Closure is pair of function and environment.
   struct closure
@@ -16,7 +16,7 @@ namespace meevax::core
       return os << "<closure>";
     }
   };
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_CLOSURE_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
 

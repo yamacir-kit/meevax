@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CORE_MACHINE_HPP
-#define INCLUDED_MEEVAX_CORE_MACHINE_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
+#define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
 #include <functional>
 #include <iostream>
@@ -11,16 +11,16 @@
 #include <unordered_map>
 #include <utility> // std::forward
 
-#include <meevax/core/boolean.hpp>
-#include <meevax/core/cursor.hpp>
-#include <meevax/core/instruction.hpp>
-#include <meevax/core/modular.hpp>
-#include <meevax/core/number.hpp>
-#include <meevax/core/operator.hpp>
-#include <meevax/core/pair.hpp> // pair?
-#include <meevax/core/procedure.hpp>
+#include <meevax/system/boolean.hpp>
+#include <meevax/system/cursor.hpp>
+#include <meevax/system/instruction.hpp>
+#include <meevax/system/modular.hpp>
+#include <meevax/system/number.hpp>
+#include <meevax/system/operator.hpp>
+#include <meevax/system/pair.hpp> // pair?
+#include <meevax/system/procedure.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   cursor take(const cursor& exp, std::size_t size)
   {
@@ -283,7 +283,7 @@ namespace meevax::core
       throw std::runtime_error {buffer.str()};
     }
   };
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_MACHINE_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 

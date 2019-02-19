@@ -1,10 +1,10 @@
-#ifndef INCLUDED_MEEVAX_CORE_CURSOR_HPP
-#define INCLUDED_MEEVAX_CORE_CURSOR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
+#define INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 
-#include <meevax/core/accessor.hpp>
-#include <meevax/core/pair.hpp>
+#include <meevax/system/accessor.hpp>
+#include <meevax/system/pair.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   struct cursor
     : public accessor<pair>,
@@ -43,7 +43,7 @@ namespace meevax::core
   {
     return unit;
   }
-} // namespace meevax::core
+} // namespace meevax::system
 
 namespace std
 {
@@ -51,10 +51,10 @@ namespace std
   struct hash;
 
   template <>
-  struct hash<meevax::core::cursor>
-    : public std::hash<std::shared_ptr<meevax::core::pair>>
+  struct hash<meevax::system::cursor>
+    : public std::hash<std::shared_ptr<meevax::system::pair>>
   {};
 } // namespace std
 
-#endif // INCLUDED_MEEVAX_CORE_CURSOR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 

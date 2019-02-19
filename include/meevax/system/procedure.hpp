@@ -1,13 +1,13 @@
-#ifndef INCLUDED_MEEVAX_CORE_PROCEDURE_HPP
-#define INCLUDED_MEEVAX_CORE_PROCEDURE_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_PROCEDURE_HPP
+#define INCLUDED_MEEVAX_SYSTEM_PROCEDURE_HPP
 
 #include <functional> // std::funstion
 #include <iostream>
 #include <string>
 
-#include <meevax/core/cursor.hpp>
+#include <meevax/system/cursor.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   struct procedure
     : public std::function<cursor (const cursor&)>
@@ -27,7 +27,7 @@ namespace meevax::core
       return os << "<procedure: " << procedure.name << ">";
     }
   };
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_PROCEDURE_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_PROCEDURE_HPP
 

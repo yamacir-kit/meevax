@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CORE_READER_HPP
-#define INCLUDED_MEEVAX_CORE_READER_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_READER_HPP
+#define INCLUDED_MEEVAX_SYSTEM_READER_HPP
 
 #include <algorithm> // std::find_if
 #include <iterator> // std::begin, std::end
@@ -10,12 +10,12 @@
 #include <string>
 #include <utility>
 
-#include <meevax/core/boolean.hpp>
-#include <meevax/core/cursor.hpp>
-#include <meevax/core/modular.hpp>
-#include <meevax/core/number.hpp>
+#include <meevax/system/boolean.hpp>
+#include <meevax/system/cursor.hpp>
+#include <meevax/system/modular.hpp>
+#include <meevax/system/number.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   auto is_graph = [](auto c) constexpr
   {
@@ -172,7 +172,7 @@ namespace meevax::core
       }
     }
   };
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_READER_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_READER_HPP
 

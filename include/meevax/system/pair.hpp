@@ -1,12 +1,12 @@
-#ifndef INCLUDED_MEEVAX_CORE_PAIR_HPP
-#define INCLUDED_MEEVAX_CORE_PAIR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
+#define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
 #include <iostream>
 #include <utility>
 
-#include <meevax/core/accessor.hpp>
+#include <meevax/system/accessor.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   struct pair
     : public std::pair<accessor<pair>, accessor<pair>>,
@@ -45,7 +45,7 @@ namespace meevax::core
 
     return os << ")";
   }
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 

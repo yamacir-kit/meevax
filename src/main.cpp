@@ -2,10 +2,10 @@
 #include <list>
 #include <string>
 
-#include <meevax/core/compiler.hpp>
-#include <meevax/core/machine.hpp>
-#include <meevax/core/modular.hpp>
-#include <meevax/core/reader.hpp>
+#include <meevax/system/compiler.hpp>
+#include <meevax/system/machine.hpp>
+#include <meevax/system/modular.hpp>
+#include <meevax/system/reader.hpp>
 // #include <meevax/posix/dynamic_link.hpp>
 
 #include <boost/cstdlib.hpp>
@@ -13,20 +13,20 @@
 
 int main()
 {
-  // const auto package {std::make_shared<meevax::core::namescope>(
-  //   std::make_pair("nil", meevax::core::unit)
+  // const auto package {std::make_shared<meevax::system::namescope>(
+  //   std::make_pair("nil", meevax::system::unit)
   // )};
 
-  using namespace meevax::core;
+  using namespace meevax::system;
 
   cursor module {cursor::bind<modular>(unit)};
 
   // const auto link {meevax::posix::link("/home/yamasa/works/meevax/build/libscheme-base.so")};
-  // load(link, "banner").data().as<meevax::core::procedure>()(meevax::core::unit);
+  // load(link, "banner").data().as<meevax::system::procedure>()(meevax::system::unit);
 
-  meevax::core::reader read {module};
-  meevax::core::compiler compile {module.as<modular>()};
-  meevax::core::machine machine {module.as<modular>()};
+  meevax::system::reader read {module};
+  meevax::system::compiler compile {module.as<modular>()};
+  meevax::system::machine machine {module.as<modular>()};
 
   // TODO Initialize by contents of history file.
   std::list<std::string> history {""};
@@ -37,7 +37,7 @@ int main()
     std::string code {std::begin(buffer), boost::find(buffer, ';')};
     std::cerr << "\x1B[38;5;240m" << ++index << " " << buffer << "\x1B[0m" << (std::empty(buffer) ? "\r" : "\n");
 
-    if (auto tokens {meevax::core::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
+    if (auto tokens {meevax::system::tokenize<std::list>(history.back() += code)}; not std::empty(tokens) and boost::count(tokens, "(") <= boost::count(tokens, ")"))
     {
       auto expression {read(tokens)};
       // std::cerr << "[debug] read: " << expression << std::endl;

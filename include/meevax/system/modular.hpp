@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CORE_MODULAR_HPP
-#define INCLUDED_MEEVAX_CORE_MODULAR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
+#define INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
 
 #include <cassert>
 #include <iostream>
@@ -8,9 +8,9 @@
 #include <unordered_map>
 #include <utility> // std::forward
 
-#include <meevax/core/cursor.hpp>
+#include <meevax/system/cursor.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   struct modular
     : public std::unordered_map<std::string, cursor>
@@ -49,7 +49,7 @@ namespace meevax::core
   {
     return os << "#<module>";
   }
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_MODULAR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
 

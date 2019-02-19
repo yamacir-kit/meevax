@@ -12,8 +12,8 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/core/cursor.hpp>
-#include <meevax/core/procedure.hpp>
+#include <meevax/system/cursor.hpp>
+#include <meevax/system/procedure.hpp>
 
 namespace meevax::posix
 {
@@ -48,7 +48,7 @@ namespace meevax::posix
   {
     if (void* function {dlsym(link.get(), symbol.c_str())}; function)
     {
-      return core::cursor::bind<core::procedure>(symbol, reinterpret_cast<core::procedure::signature>(function));
+      return system::cursor::bind<system::procedure>(symbol, reinterpret_cast<system::procedure::signature>(function));
     }
     else
     {

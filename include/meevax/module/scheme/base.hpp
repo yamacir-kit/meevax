@@ -1,11 +1,11 @@
 #ifndef INCLUDED_MODULE_SCHEME_BASE_HPP
 #define INCLUDED_MODULE_SCHEME_BASE_HPP
 
-#include <meevax/core/cursor.hpp>
+#include <meevax/system/cursor.hpp>
 
 extern "C"
 {
-  meevax::core::cursor banner(const meevax::core::cursor&);
+  meevax::system::cursor banner(const meevax::system::cursor&);
 } // extern "C"
 
 #endif // INCLUDED_MODULE_SCHEME_BASE_HPP
