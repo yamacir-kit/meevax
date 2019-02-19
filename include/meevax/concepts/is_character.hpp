@@ -5,7 +5,8 @@
 
 namespace meevax::concepts
 {
-  DEFINE_CONCEPT(is_character);
+  DEFINE_CONCEPT(is_character)
+  DEFINE_VARIADIC_CONCEPT(are_characters, is_character)
 
   DEFINE_CONCEPT_SPECIALIZATON(is_character, char)
   DEFINE_CONCEPT_SPECIALIZATON(is_character, char16_t)
@@ -13,6 +14,7 @@ namespace meevax::concepts
   DEFINE_CONCEPT_SPECIALIZATON(is_character, wchar_t)
 
   DEFINE_CONCEPT(is_primitive_character);
+  DEFINE_VARIADIC_CONCEPT(are_primitive_characters, is_primitive_character)
 
   DEFINE_CONCEPT_SPECIALIZATON(is_primitive_character, char)
   DEFINE_CONCEPT_SPECIALIZATON(is_primitive_character, char16_t)
