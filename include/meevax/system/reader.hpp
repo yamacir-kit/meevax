@@ -33,13 +33,19 @@ namespace meevax::system
         {
         case '(':
         case ')':
-          tokens.emplace_back("");
+          if (not tokens.back().empty())
+          {
+            tokens.emplace_back("");
+          }
           tokens.back().push_back(c);
           tokens.emplace_back("");
           break;
 
         case ' ':
-          tokens.emplace_back("");
+          if (not tokens.back().empty())
+          {
+            tokens.emplace_back("");
+          }
           break;
 
         default:
