@@ -33,7 +33,7 @@ namespace meevax::system
         switch (c)
         {
         case ';':
-          is.ignore(std::numeric_limits<std::streamsize>::max(), c);
+          is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
 
         case '(':
