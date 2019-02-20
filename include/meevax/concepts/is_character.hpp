@@ -5,21 +5,21 @@
 
 namespace meevax::concepts
 {
-  DEFINE_CONCEPT(is_character)
-  DEFINE_VARIADIC_CONCEPT(are_characters, is_character)
+  CONCEPT(is_character)
+  VARIADIC_CONCEPT(are_characters, is_character)
 
-  DEFINE_CONCEPT_SPECIALIZATION(is_character, char)
-  DEFINE_CONCEPT_SPECIALIZATION(is_character, char16_t)
-  DEFINE_CONCEPT_SPECIALIZATION(is_character, char32_t)
-  DEFINE_CONCEPT_SPECIALIZATION(is_character, wchar_t)
+  CONCEPT_SPECIALIZATION(is_character, char)
+  CONCEPT_SPECIALIZATION(is_character, char16_t)
+  CONCEPT_SPECIALIZATION(is_character, char32_t)
+  CONCEPT_SPECIALIZATION(is_character, wchar_t)
 
-  DEFINE_CONCEPT(is_primitive_character)
-  DEFINE_VARIADIC_CONCEPT(are_primitive_characters, is_primitive_character)
+  CONCEPT(is_primitive_character)
+  VARIADIC_CONCEPT(are_primitive_characters, is_primitive_character)
 
-  DEFINE_CONCEPT_SPECIALIZATION(is_primitive_character, char)
-  DEFINE_CONCEPT_SPECIALIZATION(is_primitive_character, char16_t)
-  DEFINE_CONCEPT_SPECIALIZATION(is_primitive_character, char32_t)
-  DEFINE_CONCEPT_SPECIALIZATION(is_primitive_character, wchar_t)
+  CONCEPT_SPECIALIZATION(is_primitive_character, char)
+  CONCEPT_SPECIALIZATION(is_primitive_character, char16_t)
+  CONCEPT_SPECIALIZATION(is_primitive_character, char32_t)
+  CONCEPT_SPECIALIZATION(is_primitive_character, wchar_t)
 } // namespace meevax::concepts
 
 #endif // INCLUDED_MEEVAX_CONCEPTS_IS_CHARACTER_HPP

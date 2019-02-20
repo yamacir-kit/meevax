@@ -8,13 +8,13 @@ typename = typename std::enable_if< \
                       std::conjunction<__VA_ARGS__>::value \
                     >::type
 
-#define DEFINE_CONCEPT(NAME) \
+#define CONCEPT(NAME, ...) \
 template <typename...> \
 struct NAME \
   : public std::false_type \
 {};
 
-#define DEFINE_VARIADIC_CONCEPT(NAME, PREDICATE) \
+#define VARIADIC_CONCEPT(NAME, PREDICATE) \
 template <typename... Ts> \
 struct NAME \
   : public std::conjunction< \
@@ -22,7 +22,7 @@ struct NAME \
            > \
 {};
 
-#define DEFINE_CONCEPT_SPECIALIZATION(NAME, ...) \
+#define CONCEPT_SPECIALIZATION(NAME, ...) \
 template <> \
 struct NAME<__VA_ARGS__> \
   : public std::true_type \
