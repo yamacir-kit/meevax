@@ -1,11 +1,28 @@
 #ifndef INCLUDED_MEEVAX_CHARACTER_CATEGORY_HPP
 #define INCLUDED_MEEVAX_CHARACTER_CATEGORY_HPP
 
+#include <cctype> // std::isgraph, std::isspace
+
 #include <meevax/concepts/is_character.hpp>
 #include <meevax/concepts/macro.hpp>
 
 namespace meevax::character
 {
+  [[deprecated]] auto is_paren = [](auto c) constexpr
+  {
+    return c == '(' or c == ')';
+  };
+
+  [[deprecated]] auto is_macro = [](auto c) constexpr
+  {
+    return c == '\'' or c == '`' or c == '#';
+  };
+
+  [[deprecated]] auto is_delim = [](auto c) constexpr
+  {
+    return is_paren(c) or std::isspace(c);
+  };
+
   template <typename T>
   struct category
   {};

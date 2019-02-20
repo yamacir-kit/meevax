@@ -15,7 +15,7 @@ namespace meevax::character
     : public std::string
   {};
 
-  DEFINE_CONCEPT_IS_CHARACTER_SPECIALIZATION(unicode<8>)
+  CONCEPT_SPECIALIZATION(is_character, unicode<8>)
 } // namespace meevax::character
 
 #endif // INCLUDED_MEEVAX_CHARACTER_UNICODE_HPP

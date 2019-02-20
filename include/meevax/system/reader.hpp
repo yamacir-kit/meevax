@@ -3,7 +3,6 @@
 
 #include <algorithm> // std::find_if
 #include <iterator> // std::begin, std::end
-#include <locale> // std::isgraph, std::isspace
 #include <stdexcept>
 #include <utility>
 
@@ -15,21 +14,6 @@
 
 namespace meevax::system
 {
-  auto is_paren = [](auto c) constexpr
-  {
-    return c == '(' or c == ')';
-  };
-
-  auto is_macro = [](auto c) constexpr
-  {
-    return c == '\'' or c == '`' or c == '#';
-  };
-
-  auto is_delim = [](auto c) constexpr
-  {
-    return is_paren(c) or std::isspace(c);
-  };
-
   template <template <typename...> typename SequenceContainer, typename String>
   auto tokenize(const String& s)
   {
@@ -42,7 +26,7 @@ namespace meevax::system
 
     for (auto begin {seek(std::begin(s))}, end {begin}; begin != std::end(s); begin = seek(end))
     {
-      end = is_paren(*begin) or is_macro(*begin) ? std::next(begin) : std::find_if(begin, std::end(s), is_delim);
+      end = character::is_paren(*begin) or character::is_macro(*begin) ? std::next(begin) : std::find_if(begin, std::end(s), character::is_delim);
       tokens.emplace_back(begin, end);
     }
 
