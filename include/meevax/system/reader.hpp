@@ -7,10 +7,9 @@
 #include <locale> // std::isgraph, std::isspace
 #include <memory>
 #include <numeric>
-#include <string>
 #include <utility>
 
-#include <meevax/character/predicate.hpp>
+#include <meevax/character/category.hpp>
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/modular.hpp>
@@ -33,14 +32,14 @@ namespace meevax::system
     return is_paren(c) or std::isspace(c);
   };
 
-  template <template <typename...> typename SequenceContainer>
-  auto tokenize(const std::string& s)
+  template <template <typename...> typename SequenceContainer, typename String>
+  auto tokenize(const String& s)
   {
-    SequenceContainer<std::string> tokens {};
+    SequenceContainer<String> tokens {};
 
     auto seek = [&](auto iter)
     {
-      return std::find_if(iter, std::end(s), character::is_graph);
+      return std::find_if(iter, std::end(s), character::graph::predicate);
     };
 
     for (auto begin {seek(std::begin(s))}, end {begin}; begin != std::end(s); begin = seek(end))
@@ -63,8 +62,8 @@ namespace meevax::system
       : module {module}
     {}
 
-    template <template <typename...> typename SequenceContainer>
-    decltype(auto) operator()(const SequenceContainer<std::string>& tokens)
+    template <typename String, template <typename...> typename SequenceContainer>
+    decltype(auto) operator()(const SequenceContainer<String>& tokens)
     {
       return operator()(std::cbegin(tokens), std::cend(tokens));
     }
@@ -128,7 +127,7 @@ namespace meevax::system
           return false_v;
 
         // case 'x':
-        //   return {cursor::bind<number>("0x" + std::string {std::begin(*iter) + 1, std::end(*iter)})};
+        //   return {cursor::bind<number>("0x" + String {std::begin(*iter) + 1, std::end(*iter)})};
 
         default:
           throw std::runtime_error {"unknown reader macro #" + *iter};
@@ -161,7 +160,7 @@ namespace meevax::system
         return false_v;
 
       // case 'x':
-      //   return {cursor::bind<number>("0x" + std::string {std::begin(*iter) + 1, std::end(*iter)})};
+      //   return {cursor::bind<number>("0x" + String {std::begin(*iter) + 1, std::end(*iter)})};
 
       default:
         throw std::runtime_error {"unknown reader macro #" + *iter};
