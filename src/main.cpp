@@ -29,8 +29,8 @@ int main()
   meevax::system::machine machine {module.as<modular>()};
 
   // TODO Initialize by contents of history file.
-  std::list<std::string> history {""};
-  std::size_t index {0};
+  // std::list<std::string> history {""};
+  // std::size_t index {0};
 
   while (std::cin) try
   {
