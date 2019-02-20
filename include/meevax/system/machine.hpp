@@ -4,11 +4,9 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
-#include <memory> // std::shared_ptr<context>
 #include <numeric> // std::accumulate
 #include <sstream>
 #include <stdexcept> // std::runtime_error
-#include <unordered_map>
 #include <utility> // std::forward
 
 #include <meevax/system/boolean.hpp>
@@ -40,7 +38,6 @@ namespace meevax::system
     cursor s, e, c, d;
 
     cursor env; // global environment
-    // std::unordered_map<cursor, cursor> env;
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
     #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl

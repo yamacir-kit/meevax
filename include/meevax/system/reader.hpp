@@ -3,10 +3,8 @@
 
 #include <algorithm> // std::find_if
 #include <iterator> // std::begin, std::end
-#include <list>
 #include <locale> // std::isgraph, std::isspace
-#include <memory>
-#include <numeric>
+#include <stdexcept>
 #include <utility>
 
 #include <meevax/character/category.hpp>
@@ -62,7 +60,7 @@ namespace meevax::system
       : module {module}
     {}
 
-    template <typename String, template <typename...> typename SequenceContainer>
+    template <template <typename...> typename SequenceContainer, typename String>
     decltype(auto) operator()(const SequenceContainer<String>& tokens)
     {
       return operator()(std::cbegin(tokens), std::cend(tokens));
