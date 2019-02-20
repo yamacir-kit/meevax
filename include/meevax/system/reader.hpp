@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 
+#include <meevax/character/predicate.hpp>
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/modular.hpp>
@@ -17,11 +18,6 @@
 
 namespace meevax::system
 {
-  auto is_graph = [](auto c) constexpr
-  {
-    return std::isgraph(c);
-  };
-
   auto is_paren = [](auto c) constexpr
   {
     return c == '(' or c == ')';
@@ -44,7 +40,7 @@ namespace meevax::system
 
     auto seek = [&](auto iter)
     {
-      return std::find_if(iter, std::end(s), is_graph);
+      return std::find_if(iter, std::end(s), character::is_graph);
     };
 
     for (auto begin {seek(std::begin(s))}, end {begin}; begin != std::end(s); begin = seek(end))

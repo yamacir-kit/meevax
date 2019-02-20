@@ -8,7 +8,7 @@ typename = typename std::enable_if< \
                       std::conjunction<__VA_ARGS__>::value \
                     >::type
 
-#define CONCEPT(NAME, ...) \
+#define CONCEPT(NAME) \
 template <typename...> \
 struct NAME \
   : public std::false_type \
