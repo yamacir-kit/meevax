@@ -17,12 +17,14 @@ struct NAME \
 #define DEFINE_VARIADIC_CONCEPT(NAME, PREDICATE) \
 template <typename... Ts> \
 struct NAME \
-  : public std::conjunction<PREDICATE<Ts>...> \
+  : public std::conjunction< \
+             PREDICATE<typename std::decay<Ts>::type>... \
+           > \
 {};
 
-#define DEFINE_CONCEPT_SPECIALIZATION(CONCEPT, ...) \
+#define DEFINE_CONCEPT_SPECIALIZATION(NAME, ...) \
 template <> \
-struct CONCEPT<__VA_ARGS__> \
+struct NAME<__VA_ARGS__> \
   : public std::true_type \
 {};
 

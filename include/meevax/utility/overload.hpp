@@ -18,7 +18,7 @@ namespace meevax::utility
 
   template <typename... Ts>
   constexpr auto overload(Ts&&... xs)
-    -> typename std::decay<Ts...>::type
+    -> overloaded<typename std::decay<Ts...>::type>
   {
     return {std::forward<Ts>(xs)...};
   }
