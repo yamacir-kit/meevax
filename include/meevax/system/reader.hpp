@@ -4,6 +4,7 @@
 #include <algorithm> // std::find_if
 #include <iostream>
 #include <iterator> // std::begin, std::end
+#include <limits>
 #include <list>
 #include <sstream>
 #include <string>
@@ -31,6 +32,10 @@ namespace meevax::system
       {
         switch (c)
         {
+        case ';':
+          is.ignore(std::numeric_limits<std::streamsize>::max(), c);
+          break;
+
         case '(':
         case ')':
           if (not tokens.back().empty())
