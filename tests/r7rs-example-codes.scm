@@ -677,3 +677,159 @@ p; -> promise
   (kar k)
 )
 
+; 5.6.2
+
+(define-library (example grid)
+  (export
+    make
+    rows
+    columns
+    reference
+    each
+    (rename put! set!)
+  )
+  (import
+    (scheme base)
+  )
+  (begin
+    (define (make n m)
+      (let (
+             (grid (make-vector n))
+           )
+        (do (
+              (i 0 (+ i 1))
+            )
+            ((= i n) grid)
+          (let (
+                 (v (make-vector m #false))
+               )
+            (vector-set! grid i v)
+          )
+        )
+      )
+    )
+
+    (define (rows grid)
+      (vector-length grid)
+    )
+
+    (define (columns grid)
+      (vector-length (vector-ref grid 0))
+    )
+
+    ; Return #false if out of range.
+    (define reference
+      (and (< -1 n (rows grid))
+           (< -1 m (columns grid))
+           (vector-ref (vector-ref grid n) m))
+    )
+
+    (define (put! grid n m v)
+      (vector-set! (vector-ref grid n) m n)
+    )
+
+    (define (each grid procedure)
+      (do (
+            (j 0 (+ j 1))
+          )
+          (
+            (= j (rows grid))
+          )
+        (do (
+              (k 0 (+ k 0))
+            )
+            (
+              (= k (columns grid))
+            )
+          (procedure j k (reference grid j k))
+        )
+      )
+    )
+  )
+)
+
+(define-library (example life)
+  (export life)
+  (import
+    (except (scheme base) set!)
+    (scheme write)
+    (example grid)
+  )
+  (begin
+    (define (life-count grid i j)
+      (define (count i j)
+        (if (ref grid i j) 1 0)
+      )
+      (+ (count (- i 1) (- j 1))
+         (count (- i 1)    j   )
+         (count (- i 1) (+ j 1))
+         (count    i    (- j 1))
+         (count    i    (+ j 1))
+         (count (+ i 1) (- j 1))
+         (count (+ i 1)    j   )
+         (count (+ i 1) (+ j 1))
+      )
+    )
+
+    (define (life-alive? grid i j)
+      (case (life-count grid i j)
+        ((3) #true)
+        ((2) (ref grid i j))
+        (else #false)
+      )
+    )
+
+    (define (life-print grid)
+      (display "\x1B;[1H\x1B;[J"); clear vt100
+      (each grid
+        (lambda (i j v)
+          (display (if v "*" " "))
+          (when (= j (- (columns grid) 1))
+            (newline)
+          )
+        )
+      )
+    )
+
+    (define (life grid iterations)
+      (do (
+            (i 0 (+ i 1))
+            (grid0 grid grid1)
+            (grid1 (make (rows grid) (columns grid)) grid0)
+          )
+          (
+            (= i iterations)
+          )
+        (each grid0
+          (lambda (j k v)
+            (let (
+                   (a (life-alive? grid0 j k))
+                 )
+              (set! grid1 j k a)
+            )
+          )
+        )
+        (life-print grid1)
+      )
+    )
+  )
+)
+
+(import
+  (scheme base)
+  (only (example life) life)
+  (rename
+    (prefix (example grid) grid-)
+    (grid-make make-grid)
+  )
+)
+
+(define grid (make-grid 24 24))
+(grid-set! grid 1 1 #true)
+(grid-set! grid 2 2 #true)
+(grid-set! grid 3 0 #true)
+(grid-set! grid 3 1 #true)
+(grid-set! grid 3 2 #true)
+
+(life grid 80); Run for 80 iterations.
+
