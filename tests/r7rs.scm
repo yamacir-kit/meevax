@@ -391,3 +391,40 @@ p; -> promise
 
 ; 4.2.7
 
+(guard (condition
+         ((assq 'a condition) => cdr)
+         ((assq 'b condition))
+       )
+  (raise (list (cons 'a 42)))
+); -> 42
+
+(guard (condition
+         ((assq 'a condition) => cdr)
+         ((assq 'b condition))
+       )
+  (raise (list (cons 'b 23)))
+); -> (b . 23)
+
+; 4.2.8
+
+`(list ,(+ 1 2) 4); -> (list 3 4)
+
+(let (
+       (name 'a)
+     )
+ `(list ,name ',name)
+); -> (list a (quote a))
+
+`(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b); -> (a 3 4 5 6 b)
+
+`((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons))); -> ((foo 7) . cons)
+
+`#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8); -> #(10 5 2 4 3 8)
+
+(let (
+       (foo ’(foo bar))
+       (@baz ’baz)
+     )
+ `(list ,@foo , @baz)
+); -> (list foo bar baz)
+
