@@ -428,3 +428,115 @@ p; -> promise
  `(list ,@foo , @baz)
 ); -> (list foo bar baz)
 
+; 4.2.9
+
+(define range
+  (case-lambda
+    ((e) (range 0 e))
+    ((b e) (do (
+                 (r '() (cons e r))
+                 (e (- e 1) (- e 1))
+               )
+             ((< e b) r)
+           )
+    )
+  )
+); -> range
+
+(range 3); -> (0 1 2)
+(range 3 5); -> (3 4)
+
+; 4.3.1
+
+(let-syntax (
+              (given-that (syntax-rules ()
+                            (
+                              (given-that test statement1 statement2 ...)
+                              (if test
+                                (begin statement1
+                                       statement2 ...)
+                              )
+                            )
+                          )
+              )
+            )
+  (let (
+         (if #t)
+       )
+    (given-that if (set! if 'now))
+    if
+  )
+); -> now
+
+(let (
+       (x 'outer)
+     )
+  (let-syntax (
+                (m (syntax-rules ()
+                     (
+                       (m) x
+                     )
+                   )
+                )
+              )
+    (let (
+           (x 'inner)
+         )
+      (m)
+    )
+  )
+); -> outer
+
+(letrec-syntax (
+                 (my-or (syntax-rules ()
+                          ((my-or) #false)
+                          ((my-or e) e)
+                          ((my-or e1 e2 ...)
+                            (let (
+                                   (temp e1)
+                                 )
+                              (if temp
+                                temp
+                                (my-or e2 ...)
+                              )
+                            )
+                          )
+                        )
+                 )
+               )
+  (let (
+         (x #false)
+         (y 7)
+         (temp 8)
+         (let odd?)
+         (if even?)
+       )
+    (my-or x
+           (let temp)
+           (if y)
+           y
+    )
+  )
+); -> 7
+
+; 4.3.2
+
+(define-syntax be-like-begin
+  (syntax-rules ()
+    (
+      (be-like-begin name)
+      (define-syntax name
+        (syntax-rules ()
+          (
+            (name expr (... ...))
+            (begin expr (... ...))
+          )
+        )
+      )
+    )
+  )
+)
+
+(be-like-begin sequence)
+(sequence 1 2 3 4); -> 4
+
