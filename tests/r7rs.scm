@@ -44,9 +44,13 @@ x; -> 28
 ))
 (reverse-subtract 7 10); -> 3
 
-(define add4 (let ((x 4))
-  (lambda (y) (+ x y))
-))
+(define add4
+  (let (
+         (x 4)
+       )
+    (lambda (y) (+ x y))
+  )
+)
 (add4 6); -> 10
 
 ((lambda x x) 3 4 5 6); -> (3 4 5 6)
@@ -318,5 +322,72 @@ x; -> 28
       )
     )
   )
-); -> 5
+); -> stream-filter
+
+(head (tail (tail (stream-filter odd? integers)))); -> 5
+
+(define count 0)
+(define p
+  (delay
+    (begin
+      (set! count (+ count 1))
+      (if (> count x)
+        count
+        (force p)
+      )
+    )
+  )
+); -> p
+(define x 5)
+p; -> promise
+(force p); -> promise
+p; -> promise
+(begin
+  (set! x 10)
+  (force p)
+); -> 6
+
+(eqv? (delay 1) 1); -> #<unspecified>
+(pair? (delay (cons 1 3))); -> #<unspecified>
+
+(+ (delay (* 3 7)) 13); -> #<unspecified>
+(car (list (delay (* 3 7)) 13)); -> primise
+
+; 4.2.6
+
+(define radix
+  (make-parameter
+    10
+    (lambda (x)
+      (if (and (exact-integer? x) (<= 2 x 16))
+        x
+        (error "invalid radix")
+      )
+    )
+  )
+); -> radix
+
+(define f
+  (lambda (n)
+    (number->string n (radix))
+  )
+); -> f
+
+(f 12); -> "12"
+(parameterize (
+                (radix 2)
+              )
+  (f 12)
+); -> "1100"
+(f 12); -> "12"
+
+(radix 16); -> #<unspecified>
+
+(parameterize (
+                (radix 0)
+              )
+  (f 12)
+); -> #<error>
+
+; 4.2.7
 
