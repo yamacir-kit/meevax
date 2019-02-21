@@ -46,6 +46,7 @@ namespace meevax::system
           tokens.emplace_back("");
           break;
 
+        case '\n':
         case ' ':
           if (not tokens.back().empty())
           {
@@ -53,17 +54,37 @@ namespace meevax::system
           }
           break;
 
-        default:
-          std::cerr << "[debug] " << tokens.back() << " -> ";
+        case '"':
           tokens.back().push_back(c);
-          std::cerr << tokens.back() << std::endl;
+          tokens.back().push_back(is.get());
+
+          while (tokens.back().back() != '"')
+          {
+            tokens.back().push_back(is.get());
+          }
+          break;
+
+        default:
+          // std::cerr << "[debug] " << tokens.back() << " -> ";
+          tokens.back().push_back(c);
+          // std::cerr << tokens.back() << std::endl;
         }
       }
 
       std::cerr << "[debug] tokens: ";
       for (const auto& each : tokens)
       {
-        std::cerr << "\x1B[33m" << each << "\x1B[0m_";
+        switch (each[0])
+        {
+        case '"':
+          std::cerr << "\x1B[36m";
+          break;
+
+        default:
+          std::cerr << "\x1B[33m";
+        }
+
+        std::cerr << each << "\x1B[0m_";
       }
       std::cerr << std::endl;
     }
