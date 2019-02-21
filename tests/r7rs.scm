@@ -540,3 +540,140 @@ p; -> promise
 (be-like-begin sequence)
 (sequence 1 2 3 4); -> 4
 
+(let (
+       (=> #false)
+     )
+  (cond (#true => 'ok))
+); -> ok
+
+; 4.3.3
+
+(define-syntax simple-let
+  (syntax-rules ()
+    (; rule1
+      (_ (head ... ((x . y) value) . tail) body1 body2 ...)
+      (syntax-error "expected an identifier but got" (x . y))
+    )
+    (; rule2
+      (_ ((name value) ...) body1 body2 ...)
+      ((lambda (name ...) body1 body2 ...) value ...)
+    )
+  )
+)
+
+; 5.3.1
+
+(define add3
+  (lambda (x) (+ x 3))
+); -> add3
+(add3 3); -> 6
+
+(define first car); -> first
+(first '(1 2)); -> 1
+
+; 5.3.2
+
+(let (
+       (x 5)
+     )
+  (define foo
+    (lambda (y) (bar x y))
+  )
+  (define bar
+    (lambda (a b) (+ (* a b) a))
+  )
+  (foo (+ x 3))
+); -> 45
+
+(let (
+       (x 5)
+     )
+  (letrec* (
+             (foo (lambda (y) (bar x y)))
+             (bar (lambda (a b) (+ (* a b) a)))
+           )
+    (foo (+ x 3))
+  )
+)
+
+; 5.3.3
+
+(define-values (x y)
+  (integer-sqrt 17)
+)
+(list x y); -> (4 1)
+
+(let ()
+  (define-values (x y) (values 1 2))
+  (+ x y)
+); -> 3
+
+;  5.4
+
+(let (
+       (x 1)
+       (y 2)
+     )
+  (define-syntax swap!
+    (syntax-rules ()
+      (
+        (swap! a b)
+        (let (
+               (tmp a)
+             )
+          (set! a b)
+          (set! b tmp)
+        )
+      )
+    )
+  )
+  (swap! x y)
+  (list x y)
+); -> (2 1)
+
+(define define 3); -> #<error>
+
+(begin (define begin list)); -> #<error>
+
+(let-syntax (
+              (foo (syntax-rules ()
+                     (
+                       (foo (proc args ...) body ...)
+                       (define proc
+                         (lambda (args ...) body ...)
+                       )
+                     )
+                   )
+              )
+            )
+  (let (
+         (x 3)
+       )
+    (foo (plus x y) (+ x y))
+    (define foo x)
+    (plus foo x)
+  )
+); -> #<error>
+
+; 5.5
+
+(define-record-type <pare>
+  (kons x y)
+  pare?
+  (x kar set-kar!)
+  (y kdr)
+)
+
+(pare? (kons 1 2)); -> #true
+(pare? (cons 1 2)); -> #false
+
+(kar (kons 1 2)); -> 1
+(kdr (kons 1 2)); -> 2
+
+(let (
+       (k (kons 1 2))
+     )
+  (set-kar! k 3)
+  (kar k)
+)
+
