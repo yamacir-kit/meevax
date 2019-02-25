@@ -34,7 +34,7 @@ int main()
 
   while (std::cin) try
   {
-    read(std::cin);
+    std::cout << read(std::cin) << std::endl;
   }
   // for (std::string buffer {}; std::cout << "> ", std::getline(std::cin, buffer); ) try
   // {
