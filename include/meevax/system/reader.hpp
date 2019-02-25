@@ -58,6 +58,13 @@ namespace meevax::system
         {
         case ';': // ONELINE COMMENTS
           is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          [[fallthrough]];
+
+        case ' ': case '\t': case '\n':
+          if (not std::empty(buffer))
+          {
+            return module.as<modular>().intern(buffer);
+          }
           break;
 
         case '(': // CONS CELLS
@@ -73,18 +80,26 @@ namespace meevax::system
           }
 
         case ')':
-          // std::cerr << "[debug] reader: close parentheses, retuning unit" << std::endl;
           return unit;
 
-        case '\n':
-        case '\t':
-        case ' ':
-          break;
+        case '"':
+          // XXX ダミー実装
+          for (auto x {is.get()}; x != '"'; x = is.get())
+          {
+            // TODO ダブルクオートエスケープのサポート
+            switch (x)
+            {
+            case '\\':
+              is.get();
+              break;
+            }
+          }
+          return module.as<modular>().intern("STRING");
 
         default:
           buffer.push_back(c);
 
-          if (is_delimiter(is.peek()))
+          if (is.peek() == ')')
           {
             return module.as<modular>().intern(buffer);
           }
