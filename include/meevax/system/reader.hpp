@@ -23,57 +23,71 @@ namespace meevax::system
       : module {module}
     {}
 
+    template <typename CharType>
+    constexpr auto is_delimiter(CharType c) noexcept
+    {
+      return c == ' ' or c == '\t' or c == '\n' or c == '|' or c == '(' or c == ')' or c == '"' or c == ';';
+    }
+
     cursor operator()(std::istream& is)
     {
       std::string buffer {};
 
-      while (is) switch (auto c {is.get()}; c)
+      auto peek = [&]()
       {
-      case ';': // ONELINE COMMENTS
-        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        break;
-
-      case '(': // CONS CELLS
-        while (!std::isgraph(is.peek()))
+        while (std::isspace(is.peek()) or is.peek() == ';')
         {
-          is.get();
+          switch (is.peek())
+          {
+          case ';':
+            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            break;
+
+          default:
+            is.get();
+            break;
+          }
         }
 
-        if (is.peek() == ')') // 要素ゼロのリスト
+        return is.peek();
+      };
+
+      while (is)
+      {
+        switch (auto c {is.get()}; c)
         {
-          is.get();
-          return unit;
-        }
-        else
-        {
-          // std::cerr << "[debug] reader: open parentheses, invoking list constructor" << std::endl;
-          return std::make_shared<pair>(is, *this);
-        }
+        case ';': // ONELINE COMMENTS
+          is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          break;
 
-      case ')':
-        // std::cerr << "[debug] reader: close parentheses, retuning unit" << std::endl;
-        return unit;
+        case '(': // CONS CELLS
+          if (peek() == ')') // 要素ゼロのリスト
+          {
+            is.get();
+            return unit;
+          }
+          else
+          {
+            // std::cerr << "[debug] reader: open parentheses, invoking list constructor" << std::endl;
+            return std::make_shared<pair>(is, *this);
+          }
 
-      case '\n':
-      case '\t':
-      case ' ':
-        break;
-
-      default:
-        buffer.push_back(c);
-
-        switch (is.peek())
-        {
-        case ';':
-        case '(':
         case ')':
+          // std::cerr << "[debug] reader: close parentheses, retuning unit" << std::endl;
+          return unit;
+
         case '\n':
         case '\t':
         case ' ':
-          return module.as<modular>().intern(buffer);
+          break;
 
         default:
-          break;
+          buffer.push_back(c);
+
+          if (is_delimiter(is.peek()))
+          {
+            return module.as<modular>().intern(buffer);
+          }
         }
       }
 

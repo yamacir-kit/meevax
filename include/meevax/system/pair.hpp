@@ -22,7 +22,10 @@ namespace meevax::system
     {
       first = read(is);
 
+      // あくまでストリームから読みだしているという背景あってのハックなので意味を考えると若干おかしい
+      // TODO ドット対サポートのために '.', ', ' '(' をputbackするように拡張しないといけない？
       is.putback('(');
+
       second = read(is);
     }
 
