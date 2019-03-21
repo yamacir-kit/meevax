@@ -17,17 +17,14 @@ namespace meevax::system
       : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
     {}
 
-    template <typename Reader>
-    explicit pair(std::istream& is, Reader&& read)
-    {
-      first = read(is);
-
-      // あくまでストリームから読みだしているという背景あってのハックなので意味を考えると若干おかしい
-      // TODO ドット対サポートのために '.', ', ' '(' をputbackするように拡張しないといけない？
-      is.putback('(');
-
-      second = read(is);
-    }
+    // template <typename Reader>
+    // explicit pair(std::istream& is, Reader&& read)
+    // {
+    //   first = read(is);
+    //   is.putback('(');
+    //   is.putback('.');
+    //   second = read(is);
+    // }
 
     // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
     virtual ~pair() = default;

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iterator> // std::begin, std::end
 #include <limits> // std::numeric_limits<std::streamsize>
-#include <sstream>
+#include <list>
 #include <string>
 #include <utility>
 
@@ -17,92 +17,63 @@ namespace meevax::system
   class reader
   {
     const cursor module;
+    const cursor close, dot;
 
   public:
     explicit reader(const cursor& module)
       : module {module}
+      , close {cursor::bind<std::string>("#<close-parenthesis>")}
+      , dot {cursor::bind<std::string>("#<dot>")}
     {}
-
-    template <typename CharType>
-    constexpr auto is_delimiter(CharType c) noexcept
-    {
-      return c == ' ' or c == '\t' or c == '\n' or c == '|' or c == '(' or c == ')' or c == '"' or c == ';';
-    }
 
     cursor operator()(std::istream& is)
     {
-      std::string buffer {};
-
-      auto peek = [&]()
+      for (std::string buffer {is.get()}; is; buffer.push_back(is.get())) switch (buffer.back())
       {
-        while (std::isspace(is.peek()) or is.peek() == ';')
-        {
-          switch (is.peek())
-          {
-          case ';':
-            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            break;
+      case ';':
+        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        [[fallthrough]];
 
-          default:
-            is.get();
-            break;
-          }
+      case ' ': case '\t': case '\n':
+        buffer.pop_back();
+        break;
+
+      case '(':
+        if (auto first {(*this)(is)}; first == close) // 0
+        {
+          return unit;
+        }
+        else if (auto second {(*this)(is)}; second == close) // 1
+        {
+          return list(first);
+        }
+        else if (second == dot) // 2
+        {
+          return cons(first, (*this)(is));
+        }
+        else // 3
+        {
+          is.putback('(');
+          return cons(first, second, (*this)(is));
         }
 
-        return is.peek();
-      };
+      case ')':
+        return close;
 
-      while (is)
-      {
-        switch (auto c {is.get()}; c)
+      case '\'':
+        return list(module.as<modular>().intern("quote"), (*this)(is));
+
+      case '.':
+        if (is.peek() != '.' && buffer == ".")
         {
-        case ';': // ONELINE COMMENTS
-          is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-          [[fallthrough]];
+          return dot;
+        }
+        [[fallthrough]];
 
-        case ' ': case '\t': case '\n':
-          if (not std::empty(buffer))
-          {
-            return module.as<modular>().intern(buffer);
-          }
-          break;
-
-        case '(': // CONS CELLS
-          if (peek() == ')') // 要素ゼロのリスト
-          {
-            is.get();
-            return unit;
-          }
-          else
-          {
-            // std::cerr << "[debug] reader: open parentheses, invoking list constructor" << std::endl;
-            return std::make_shared<pair>(is, *this);
-          }
-
-        case ')':
-          return unit;
-
-        case '"': // STRING
-          // XXX ダミー実装
-          for (auto x {is.get()}; x != '"'; x = is.get())
-          {
-            // TODO ダブルクオートエスケープのサポート
-            switch (x)
-            {
-            case '\\':
-              is.get();
-              break;
-            }
-          }
-          return module.as<modular>().intern("STRING");
-
-        default: // SYMBOL
-          buffer.push_back(c);
-
-          if (is_delimiter(is.peek()))
-          {
-            return module.as<modular>().intern(buffer);
-          }
+      default:
+        if (auto c {is.peek()}; std::isspace(c) or c == '|' or c == '(' or c == ')' or c == '"' or c == ';') // delimiter
+        {
+          return module.as<modular>().intern(buffer);
         }
       }
 
