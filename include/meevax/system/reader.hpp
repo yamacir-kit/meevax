@@ -82,7 +82,7 @@ namespace meevax::system
         case ')':
           return unit;
 
-        case '"':
+        case '"': // STRING
           // XXX ダミー実装
           for (auto x {is.get()}; x != '"'; x = is.get())
           {
@@ -96,10 +96,10 @@ namespace meevax::system
           }
           return module.as<modular>().intern("STRING");
 
-        default:
+        default: // SYMBOL
           buffer.push_back(c);
 
-          if (is.peek() == ')')
+          if (is_delimiter(is.peek()))
           {
             return module.as<modular>().intern(buffer);
           }
