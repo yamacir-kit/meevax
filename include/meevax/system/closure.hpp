@@ -13,7 +13,7 @@ namespace meevax::system
   {
     friend std::ostream& operator<<(std::ostream& os, const closure&)
     {
-      return os << "<closure>";
+      return os << "#<closure>";
     }
   };
 } // namespace meevax::system

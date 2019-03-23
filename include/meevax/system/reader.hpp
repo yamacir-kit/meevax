@@ -10,6 +10,8 @@
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/modular.hpp>
+#include <meevax/system/number.hpp>
+#include <meevax/system/string.hpp>
 
 namespace meevax::system
 {
@@ -83,6 +85,10 @@ namespace meevax::system
 
       case ')':
         return x0020;
+
+      case '"':
+        std::getline(is, buffer, '"'); // TODO ESCAPE
+        return cursor::bind<string>(buffer);
 
       case '\'':
         return list(module.as<modular>().intern("quote"), (*this)(is));
