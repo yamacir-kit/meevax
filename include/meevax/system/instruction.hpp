@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_CORE_INSTRUCTION_HPP
-#define INCLUDED_MEEVAX_CORE_INSTRUCTION_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
+#define INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 
-#include <meevax/core/cursor.hpp>
+#include <meevax/system/cursor.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   const cursor LDX    {cursor::bind<std::string>("ldx")};
   const cursor LDC    {cursor::bind<std::string>("ldc")};
@@ -19,7 +19,7 @@ namespace meevax::core
   const cursor CONS   {cursor::bind<std::string>("cons")};
   const cursor DEFINE {cursor::bind<std::string>("define")};
   const cursor STOP   {cursor::bind<std::string>("stop")};
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_INSTRUCTION_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 

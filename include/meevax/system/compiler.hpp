@@ -1,21 +1,20 @@
-#ifndef INCLUDED_MEEVAX_CORE_COMPILER_HPP
-#define INCLUDED_MEEVAX_CORE_COMPILER_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_COMPILER_HPP
+#define INCLUDED_MEEVAX_SYSTEM_COMPILER_HPP
 
 #include <functional>
 #include <iostream>
-#include <memory>
 #include <string>
 #include <unordered_map>
 
-#include <meevax/core/closure.hpp>
-#include <meevax/core/instruction.hpp>
-#include <meevax/core/modular.hpp>
-#include <meevax/core/number.hpp>
-#include <meevax/core/operator.hpp>
-#include <meevax/core/pair.hpp>
-#include <meevax/core/procedure.hpp>
+#include <meevax/system/closure.hpp>
+#include <meevax/system/instruction.hpp>
+#include <meevax/system/modular.hpp>
+#include <meevax/system/number.hpp>
+#include <meevax/system/operator.hpp>
+#include <meevax/system/pair.hpp>
+#include <meevax/system/procedure.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   class compiler
   {
@@ -186,7 +185,7 @@ namespace meevax::core
       return unit;
     }
   };
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_COMPILER_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_COMPILER_HPP
 

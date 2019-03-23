@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CORE_ACCESSOR_HPP
-#define INCLUDED_MEEVAX_CORE_ACCESSOR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
+#define INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 
 #include <iostream>
 #include <memory>
@@ -7,7 +7,7 @@
 #include <typeinfo>
 #include <utility>
 
-namespace meevax::core
+namespace meevax::system
 {
   template <typename T>
   struct universal_base
@@ -136,7 +136,7 @@ namespace meevax::core
     // TODO Provide custamizable printer for nullptr.
     return !rhs ? (os << "()") : rhs.access().write(os);
   }
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_ACCESSOR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 

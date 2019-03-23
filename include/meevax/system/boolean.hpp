@@ -1,12 +1,12 @@
-#ifndef INCLUDED_MEEVAX_CORE_BOOLEAN_HPP
-#define INCLUDED_MEEVAX_CORE_BOOLEAN_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
+#define INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 
 #include <iostream>
 #include <type_traits>
 
-#include <meevax/core/cursor.hpp>
+#include <meevax/system/cursor.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   const cursor true_v {cursor::bind<std::true_type>()};
   const cursor false_v {cursor::bind<std::false_type>()};
@@ -16,7 +16,7 @@ namespace meevax::core
   {
     return os << "\x1b[36m#" << std::boolalpha << Value << "\x1b[0m";
   }
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_BOOLEAN_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 

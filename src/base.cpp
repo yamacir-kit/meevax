@@ -2,9 +2,9 @@
 
 #include <meevax/module/scheme/base.hpp>
 
-meevax::core::cursor banner(const meevax::core::cursor&)
+meevax::system::cursor banner(const meevax::system::cursor&)
 {
   std::cout << "Meevax Lisp" << std::endl;
-  return meevax::core::unit;
+  return meevax::system::unit;
 }
 

@@ -1,12 +1,12 @@
-#ifndef INCLUDED_MEEVAX_CORE_PAIR_HPP
-#define INCLUDED_MEEVAX_CORE_PAIR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
+#define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
 #include <iostream>
 #include <utility>
 
-#include <meevax/core/accessor.hpp>
+#include <meevax/system/accessor.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   struct pair
     : public std::pair<accessor<pair>, accessor<pair>>,
@@ -16,6 +16,15 @@ namespace meevax::core
     constexpr pair(Ts&&... args)
       : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
     {}
+
+    // template <typename Reader>
+    // explicit pair(std::istream& is, Reader&& read)
+    // {
+    //   first = read(is);
+    //   is.putback('(');
+    //   is.putback('.');
+    //   second = read(is);
+    // }
 
     // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
     virtual ~pair() = default;
@@ -45,7 +54,7 @@ namespace meevax::core
 
     return os << ")";
   }
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_PAIR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 

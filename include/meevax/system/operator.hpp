@@ -1,10 +1,11 @@
-#ifndef INCLUDED_MEEVAX_CORE_OPERATOR_HPP
-#define INCLUDED_MEEVAX_CORE_OPERATOR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
+#define INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 
 #include <memory> // std::make_shared
 #include <utility>
 
-#include <meevax/core/pair.hpp>
+#include <meevax/system/exception.hpp>
+#include <meevax/system/pair.hpp>
 
 // TODO 純LISPコアに必要なものは移設すること
 
@@ -39,7 +40,7 @@
 #define cdddar(...) cdr(cddar(__VA_ARGS__))
 #define cddddr(...) cdr(cdddr(__VA_ARGS__))
 
-namespace meevax::core
+namespace meevax::system
 {
   // For C++17 fold-expression
   template <typename T, typename U>
@@ -106,7 +107,7 @@ namespace meevax::core
       return assoc(var, cdr(env));
     }
   }
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_OPERATOR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 

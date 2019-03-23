@@ -1,13 +1,13 @@
-#ifndef INCLUDED_MEEVAX_CORE_NUMBER_HPP
-#define INCLUDED_MEEVAX_CORE_NUMBER_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_NUMBER_HPP
+#define INCLUDED_MEEVAX_SYSTEM_NUMBER_HPP
 
 #include <iostream>
 
 #include <boost/multiprecision/gmp.hpp>
 
-#include <meevax/core/cursor.hpp>
+#include <meevax/system/cursor.hpp>
 
-namespace meevax::core
+namespace meevax::system
 {
   using number = boost::multiprecision::mpf_float;
 
@@ -28,7 +28,7 @@ namespace meevax::core
   DEFINE_NUMERIC_BINARY_OPERATOR(*)
   DEFINE_NUMERIC_BINARY_OPERATOR(-)
   DEFINE_NUMERIC_BINARY_OPERATOR(/)
-} // namespace meevax::core
+} // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_CORE_NUMBER_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_NUMBER_HPP
 
