@@ -87,8 +87,39 @@ namespace meevax::system
         return x0020;
 
       case '"':
-        std::getline(is, buffer, '"'); // TODO ESCAPE
-        return cursor::bind<string>(buffer);
+        switch (auto c {is.narrow(is.get(), '\0')}; c)
+        {
+        case '"': // termination
+          return cursor::bind<string>(cursor::bind<character>(""), unit);
+
+        case '\\': // escape sequences
+          switch (auto escaped {is.narrow(is.get(), '\0')}; escaped)
+          {
+          case 'n':
+            is.putback('"');
+            return cursor::bind<string>(cursor::bind<character>('\n'), (*this)(is));
+
+          case '\n':
+            while (std::isspace(is.peek()))
+            {
+              is.ignore(1);
+            }
+            is.putback('"');
+            return (*this)(is);
+
+          case '"':
+            is.putback('"');
+            return cursor::bind<string>(cursor::bind<character>("\""), (*this)(is));
+
+          default:
+            is.putback('"');
+            return cursor::bind<string>(cursor::bind<character>("#\\unsupported"), (*this)(is));
+          }
+
+        default:
+          is.putback('"');
+          return cursor::bind<string>(cursor::bind<character>(c), (*this)(is));
+        }
 
       case '\'':
         return list(module.as<modular>().intern("quote"), (*this)(is));
