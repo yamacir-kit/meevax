@@ -1,167 +1,129 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_READER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_READER_HPP
 
-#include <algorithm> // std::find_if
+#include <iostream>
 #include <iterator> // std::begin, std::end
-#include <locale> // std::isgraph, std::isspace
-#include <stdexcept>
+#include <limits> // std::numeric_limits<std::streamsize>
+#include <string>
 #include <utility>
 
-#include <meevax/character/category.hpp>
-#include <meevax/system/boolean.hpp>
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/modular.hpp>
-#include <meevax/system/number.hpp>
 
 namespace meevax::system
 {
-  auto is_paren = [](auto c) constexpr
-  {
-    return c == '(' or c == ')';
-  };
-
-  auto is_macro = [](auto c) constexpr
-  {
-    return c == '\'' or c == '`' or c == '#';
-  };
-
-  auto is_delim = [](auto c) constexpr
-  {
-    return is_paren(c) or std::isspace(c);
-  };
-
-  template <template <typename...> typename SequenceContainer, typename String>
-  auto tokenize(const String& s)
-  {
-    SequenceContainer<String> tokens {};
-
-    auto seek = [&](auto iter)
-    {
-      return std::find_if(iter, std::end(s), character::graph::predicate);
-    };
-
-    for (auto begin {seek(std::begin(s))}, end {begin}; begin != std::end(s); begin = seek(end))
-    {
-      end = is_paren(*begin) or is_macro(*begin) ? std::next(begin) : std::find_if(begin, std::end(s), is_delim);
-      tokens.emplace_back(begin, end);
-    }
-
-    return tokens;
-  }
-
   class reader
   {
     const cursor module;
-
-    #define INTERN(...) as<modular>().intern(__VA_ARGS__)
+    const cursor x0020, x002E;
 
   public:
     explicit reader(const cursor& module)
       : module {module}
+      , x0020 {cursor::bind<std::string>("#\\x0020")}
+      , x002E {cursor::bind<std::string>("#\\x002E")}
     {}
 
-    template <template <typename...> typename SequenceContainer, typename String>
-    decltype(auto) operator()(const SequenceContainer<String>& tokens)
+    template <typename CharType>
+    constexpr auto is_delimiter(CharType&& c) const noexcept
     {
-      return operator()(std::cbegin(tokens), std::cend(tokens));
-    }
-
-  protected:
-    template <typename InputIterator>
-    cursor rest(InputIterator&& iter, InputIterator&& end)
-    {
-      if (*iter == "(")
+      switch (c)
       {
-        auto buffer {operator()(iter, end)};
-        return cons(buffer, rest(++iter, end));
-      }
-      else
-      {
-        auto buffer {operator()(iter, end)};
-        return buffer ? cons(buffer, rest(++iter, end)) : buffer;
-      }
-    }
-
-    template <typename InputIterator>
-    cursor operator()(InputIterator&& iter, InputIterator&& end)
-    {
-      switch ((*iter)[0])
-      {
-      case '(': // ここで少なくともペア型であることが確定
-        if (auto&& head {operator()(++iter, end)}; !head) // 先頭要素をパース
-        {
-          return unit; // 空リスト
-        }
-        else if (*++iter != ".") // トークンをひとつ先読みしてドット対かの判定
-        {
-          // このブロックは自分がプロパーリストを構築していることを知っている
-          return cons(head, rest(iter, end));
-        }
-        else
-        {
-          // 非プロパーリストであるため単に次の式をコンスする。
-          return cons(head, operator()(++iter, end));
-        }
-
-      case ')': // リスト終端もアトムであるためイテレータを進めない
-        return unit;
-
-      case '\'':
-        return list(module.INTERN("quote"), operator()(++iter, end));
-
-      case '`':
-        return list(module.INTERN("quasiquote"), operator()(++iter, end));
-
-      case '#': // reader macros
-        switch ((*++iter)[0]) // TODO check next iterator is valid
-        {
-        case '(': // 続くリストをベクタコンストラクタにスプライシング
-          return cons(module.INTERN("vector"), operator()(iter, end));
-
-        case 't':
-          return true_v;
-
-        case 'f':
-          return false_v;
-
-        // case 'x':
-        //   return {cursor::bind<number>("0x" + String {std::begin(*iter) + 1, std::end(*iter)})};
-
-        default:
-          throw std::runtime_error {"unknown reader macro #" + *iter};
-        }
+      case u8'\x09': // '\t':
+      case u8'\x0A': // '\n':
+      case u8'\x0D': // '\r':
+      case u8'\x20': // ' ':
+      case u8'\x22': // '"':
+      case u8'\x23': // '#':
+      case u8'\x27': // '\'':
+      case u8'\x28': // '(':
+      case u8'\x29': // ')':
+      case u8'\x2C': // ',':
+      case u8'\x3B': // ';':
+      case u8'\x60': // '`':
+      case u8'\x7C': // '|':
+        return true;
 
       default:
-        try // XXX Dirty hack!!!
-        {
-          return {cursor::bind<number>(*iter)};
-        }
-        catch (const std::runtime_error&) // is not number
-        {
-          return module.INTERN(*iter);
-        }
+        return false;
       }
     }
 
-    template <typename InputIterator>
-    [[deprecated]] cursor expand_macro(InputIterator&& iter, InputIterator&& end)
+    cursor operator()(std::istream& is) const
     {
-      switch ((*iter)[0])
+      for (std::string buffer {is.narrow(is.get(), ' ')}; is; buffer.push_back(is.narrow(is.get(), ' '))) switch (buffer.back())
       {
-      case '(':
-        return cons(module.INTERN("vector"), operator()(iter, end));
+      case ';':
+        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        [[fallthrough]];
 
+      case ' ': case '\t': case '\n':
+        buffer.pop_back();
+        break;
+
+      case '(':
+        if (auto first {(*this)(is)}; first == x0020) // 0
+        {
+          return unit;
+        }
+        else if (auto second {(*this)(is)}; second == x0020) // 1
+        {
+          return list(first);
+        }
+        else if (second == x002E) // 2
+        {
+          return cons(first, (*this)(is));
+        }
+        else // 3
+        {
+          is.putback('(');
+          return cons(first, second, (*this)(is));
+        }
+
+      case ')':
+        return x0020;
+
+      case '\'':
+        return list(module.as<modular>().intern("quote"), (*this)(is));
+
+      case '#':
+        return expand(is);
+
+      case '.': // XXX UGLY CODE
+        if (is.peek() != '.' && buffer == ".")
+        {
+          return x002E;
+        }
+        [[fallthrough]];
+
+      default:
+        if (auto c {is.peek()}; is_delimiter(c)) try // delimiter
+        {
+          return cursor::bind<number>(buffer);
+        }
+        catch (const std::runtime_error&)
+        {
+          return module.as<modular>().intern(buffer);
+        }
+      }
+
+      return unit;
+    }
+
+    cursor expand(std::istream& is) const
+    {
+      switch (is.peek())
+      {
       case 't':
+        (*this)(is); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return true_v;
 
       case 'f':
+        (*this)(is); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return false_v;
 
-      // case 'x':
-      //   return {cursor::bind<number>("0x" + String {std::begin(*iter) + 1, std::end(*iter)})};
-
       default:
-        throw std::runtime_error {"unknown reader macro #" + *iter};
+        return undefined;
       }
     }
   };
