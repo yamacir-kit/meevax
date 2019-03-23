@@ -26,8 +26,8 @@ int main()
     auto expression {read(std::cin)};
     std::cerr << expression << std::endl;
 
-    // auto code {compile(expr)};
-    // std::cerr << machine.execute(code) << std::endl;
+    auto code {compile(expression)};
+    std::cerr << machine.execute(code) << std::endl;
   }
   catch (const std::runtime_error& error)
   {

@@ -32,7 +32,8 @@ namespace meevax::system
   };
 
   const cursor unit {nullptr};
-  const cursor undefined {nullptr};
+
+  const auto undefined {cursor::bind<std::string>("#<undefined>")};
 
   inline cursor begin(const accessor<pair>& pair) noexcept
   {
