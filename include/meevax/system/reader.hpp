@@ -8,6 +8,7 @@
 #include <utility>
 
 #include <meevax/system/cursor.hpp>
+#include <meevax/system/exception.hpp>
 #include <meevax/system/modular.hpp>
 
 namespace meevax::system

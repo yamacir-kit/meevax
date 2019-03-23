@@ -4,6 +4,7 @@
 #include <memory> // std::make_shared
 #include <utility>
 
+#include <meevax/system/exception.hpp>
 #include <meevax/system/pair.hpp>
 
 // TODO 純LISPコアに必要なものは移設すること
