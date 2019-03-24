@@ -72,16 +72,8 @@ namespace meevax::system
         else if (first == x002E) // dot-notation
         {
           auto second {(*this)(is)};
-
-          if (auto maybe_x0020 {(*this)(is)}; maybe_x0020 != x0020)
-          {
-            is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
-            throw std::runtime_error {"cdr part of dot-notation allows only one expression"};
-          }
-          else
-          {
-            return second;
-          }
+          is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
+          return second;
         }
         else
         {
