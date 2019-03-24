@@ -9,24 +9,14 @@
 namespace meevax::system
 {
   struct pair
-    : public std::pair<accessor<pair>, accessor<pair>>,
-      public universal_base<pair>
+    : public std::pair<accessor<pair>, accessor<pair>>
+    , public facade<pair>
   {
     template <typename... Ts>
     constexpr pair(Ts&&... args)
       : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
     {}
 
-    // template <typename Reader>
-    // explicit pair(std::istream& is, Reader&& read)
-    // {
-    //   first = read(is);
-    //   is.putback('(');
-    //   is.putback('.');
-    //   second = read(is);
-    // }
-
-    // NOTE Virtual destructor is removable if instantiate this type only via std::shared_ptr.
     virtual ~pair() = default;
   };
 

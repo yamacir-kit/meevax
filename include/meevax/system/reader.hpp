@@ -65,22 +65,20 @@ namespace meevax::system
         break;
 
       case '(':
-        if (auto first {(*this)(is)}; first == x0020) // 0
+        if (auto first {(*this)(is)}; first == x0020) // termination
         {
           return unit;
         }
-        else if (auto second {(*this)(is)}; second == x0020) // 1
+        else if (first == x002E) // dot-notation
         {
-          return list(first);
+          auto second {(*this)(is)};
+          is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
+          return second;
         }
-        else if (second == x002E) // 2
-        {
-          return cons(first, (*this)(is));
-        }
-        else // 3
+        else
         {
           is.putback('(');
-          return cons(first, second, (*this)(is));
+          return cons(first, (*this)(is));
         }
 
       case ')':
@@ -113,7 +111,7 @@ namespace meevax::system
 
           default:
             is.putback('"');
-            return cursor::bind<string>(cursor::bind<character>("#\\unsupported"), (*this)(is));
+            return cursor::bind<string>(cursor::bind<character>("#\\unsupported;"), (*this)(is));
           }
 
         default:
@@ -145,7 +143,7 @@ namespace meevax::system
         }
       }
 
-      return unit;
+      return cursor::bind<character>("end-of-file");
     }
 
     cursor expand(std::istream& is) const
