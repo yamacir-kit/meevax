@@ -18,7 +18,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const character& c)
   {
-    return os << "\x1B[31m#\\" << static_cast<std::string>(c) << "\x1b[0m";
+    return os << "\x1B[1;33m#\\" << static_cast<std::string>(c) << "\x1b[0m";
   }
 } // namespace meevax::system
 
