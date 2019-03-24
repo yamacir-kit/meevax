@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
 
-#include <cassert>
 #include <iostream>
 #include <iterator> // std::end
 #include <string>
@@ -15,11 +14,12 @@ namespace meevax::system
   struct modular
     : public std::unordered_map<std::string, cursor>
   {
-    const cursor enclosure;
+    const std::string name;
 
     template <typename... Ts>
-    explicit modular(const cursor& enclosure)
-      : enclosure {enclosure}
+    modular(const std::string& name, Ts&&... args)
+      : std::unordered_map<std::string, cursor> {std::forward<Ts>(args)...}
+      , name {name}
     {}
 
     const auto& intern(const std::string& s)
@@ -33,15 +33,6 @@ namespace meevax::system
         iter = emplace(s, cursor::bind<std::string>(s)).first;
         return iter->second;
       }
-    }
-
-    // returns unchecked reference
-    template <typename String>
-    [[deprecated]] const auto& reference(String&& s)
-    {
-      const auto iter {find(s)};
-      assert(iter != std::end(*this));
-      return iter->second;
     }
   };
 

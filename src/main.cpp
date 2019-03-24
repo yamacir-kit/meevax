@@ -12,7 +12,7 @@ int main()
 {
   using namespace meevax::system;
 
-  cursor module {cursor::bind<modular>(unit)};
+  cursor module {cursor::bind<modular>("root")};
 
   reader read {module};
   compiler compile {module.as<modular>()};
