@@ -145,7 +145,7 @@ namespace meevax::system
         }
       }
 
-      return unit;
+      return cursor::bind<character>("end-of-file");
     }
 
     cursor expand(std::istream& is) const
