@@ -14,13 +14,13 @@ int main()
 
   cursor module {cursor::bind<modular>("root")};
 
-  reader read {module};
+  reader read {"/dev/stdin"};
   compiler compile {module.as<modular>()};
   machine machine {module.as<modular>()};
 
-  while (std::cin) try
+  while (read) try
   {
-    auto expression {read(std::cin)};
+    auto expression {read(module.as<modular>())};
     std::cerr << "[read] " << expression << std::endl;
 
     auto code {compile(expression)};
