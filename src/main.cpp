@@ -24,10 +24,10 @@ int main()
   while (std::cin) try
   {
     auto expression {read(std::cin)};
-    std::cerr << expression << std::endl;
+    std::cerr << "[read] " << expression << std::endl;
 
     auto code {compile(expression)};
-    std::cerr << machine.execute(code) << std::endl;
+    std::cerr << machine.execute(code) << "\n\n";
   }
   catch (const std::runtime_error& error)
   {
