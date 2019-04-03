@@ -101,17 +101,17 @@ namespace meevax::system
       case '#':
         return expand(module);
 
-      case '.': // XXX UGLY CODE
-        if (peek() != '.' && buffer == ".")
-        {
-          return x002E;
-        }
-        [[fallthrough]];
-
       default:
         if (auto c {peek()}; is_delimiter(c)) try // delimiter
         {
-          return cursor::bind<number>(buffer);
+          if (buffer == ".")
+          {
+            return x002E;
+          }
+          else
+          {
+            return cursor::bind<number>(buffer);
+          }
         }
         catch (const std::runtime_error&)
         {
