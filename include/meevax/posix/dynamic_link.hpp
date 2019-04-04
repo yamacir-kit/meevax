@@ -48,7 +48,7 @@ namespace meevax::posix
   {
     if (void* function {dlsym(link.get(), symbol.c_str())}; function)
     {
-      return system::cursor::bind<system::procedure>(symbol, reinterpret_cast<system::procedure::signature>(function));
+      return system::make<system::procedure>(symbol, reinterpret_cast<system::procedure::signature>(function));
     }
     else
     {

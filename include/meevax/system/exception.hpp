@@ -23,7 +23,7 @@ namespace meevax::system
     return os << "#<" << error.what() << ">";
   }
 
-  const cursor undefined {cursor::bind<exception>("undefined")};
+  const cursor undefined {make<exception>("undefined")};
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP

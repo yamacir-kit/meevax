@@ -24,8 +24,8 @@ namespace meevax::system
     template <typename... Ts>
     reader(Ts&&... args)
       : std::ifstream {std::forward<Ts>(args)...}
-      , x0020 {cursor::bind<std::string>("#\\x0020")}
-      , x002E {cursor::bind<std::string>("#\\x002E")}
+      , x0020 {make<std::string>("#\\x0020")}
+      , x002E {make<std::string>("#\\x002E")}
     {}
 
     cursor read(modular& module)
@@ -64,14 +64,14 @@ namespace meevax::system
         switch (auto c {narrow(get(), '\0')}; c)
         {
         case '"': // termination
-          return cursor::bind<string>(cursor::bind<character>(""), unit);
+          return make<string>(make<character>(""), unit);
 
         case '\\': // escape sequences
           switch (auto escaped {narrow(get(), '\0')}; escaped)
           {
           case 'n':
             putback('"');
-            return cursor::bind<string>(cursor::bind<character>('\n'), read(module));
+            return make<string>(make<character>('\n'), read(module));
 
           case '\n':
             while (std::isspace(peek()))
@@ -83,16 +83,16 @@ namespace meevax::system
 
           case '"':
             putback('"');
-            return cursor::bind<string>(cursor::bind<character>("\""), read(module));
+            return make<string>(make<character>("\""), read(module));
 
           default:
             putback('"');
-            return cursor::bind<string>(cursor::bind<character>("#\\unsupported;"), read(module));
+            return make<string>(make<character>("#\\unsupported;"), read(module));
           }
 
         default:
           putback('"');
-          return cursor::bind<string>(cursor::bind<character>(c), read(module));
+          return make<string>(make<character>(c), read(module));
         }
 
       case '\'':
@@ -110,7 +110,7 @@ namespace meevax::system
           }
           else
           {
-            return cursor::bind<number>(buffer);
+            return make<number>(buffer);
           }
         }
         catch (const std::runtime_error&)
@@ -119,7 +119,7 @@ namespace meevax::system
         }
       }
 
-      return cursor::bind<character>("end-of-file");
+      return make<character>("end-of-file");
     }
 
     template <typename... Ts>

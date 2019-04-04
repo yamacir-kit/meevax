@@ -19,7 +19,7 @@ namespace meevax::system
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
   cursor operator OPERATOR(const cursor& lhs, const cursor& rhs) \
   { \
-    return cursor::bind<number>( \
+    return make<number>( \
       lhs.as<number>() OPERATOR rhs.as<number>() \
     ); \
   }

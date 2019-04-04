@@ -172,12 +172,12 @@ namespace meevax::system
         {
           if (y.is<pair>() && car(y) == exp)
           {
-            return cons(cursor::bind<number>(i), cursor::bind<number>(j));
+            return cons(make<number>(i), make<number>(j));
           }
 
           if (!y.is<pair>() && y == exp)
           {
-            return cons(cursor::bind<number>(i), cursor::bind<number>(-++j));
+            return cons(make<number>(i), make<number>(-++j));
           }
         }
       }

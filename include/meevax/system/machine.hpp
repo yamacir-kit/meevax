@@ -52,7 +52,7 @@ namespace meevax::system
     }
 
     #define DEFINE_PROCEDURE(NAME, ...) \
-      define(module.intern(NAME), cursor::bind<procedure>(NAME, __VA_ARGS__))
+      define(module.intern(NAME), make<procedure>(NAME, __VA_ARGS__))
 
     explicit machine(modular& module)
       // : env {unit}
@@ -80,12 +80,12 @@ namespace meevax::system
 
       DEFINE_PROCEDURE("+", [&](const cursor& args)
       {
-        return std::accumulate(args, unit, cursor::bind<number>(0), std::plus {});
+        return std::accumulate(args, unit, make<number>(0), std::plus {});
       });
 
       DEFINE_PROCEDURE("*", [&](const cursor& args)
       {
-        return std::accumulate(args, unit, cursor::bind<number>(1), std::multiplies {});
+        return std::accumulate(args, unit, make<number>(1), std::multiplies {});
       });
 
       // XXX UGLY CODE
@@ -93,7 +93,7 @@ namespace meevax::system
       {
         if (std::distance(args, unit) < 2)
         {
-          return std::accumulate(args, unit, cursor::bind<number>(0), std::minus {});
+          return std::accumulate(args, unit, make<number>(0), std::minus {});
         }
         else
         {
@@ -103,7 +103,7 @@ namespace meevax::system
 
       DEFINE_PROCEDURE("/", [&](const cursor& args)
       {
-        return std::accumulate(args, unit, cursor::bind<number>(1), std::divides {});
+        return std::accumulate(args, unit, make<number>(1), std::divides {});
       });
     }
 
@@ -174,7 +174,7 @@ namespace meevax::system
         else if (instruction == LDF) // S E (LDF code . C) => (closure . S) E C D
         {
           DEBUG_1();
-          s = cons(cursor::bind<closure>(cadr(c), e), s);
+          s = cons(make<closure>(cadr(c), e), s);
           c = cddr(c);
         }
         else if (instruction == SELECT) // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)

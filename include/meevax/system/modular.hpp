@@ -30,7 +30,7 @@ namespace meevax::system
       }
       else
       {
-        iter = emplace(s, cursor::bind<std::string>(s)).first;
+        iter = emplace(s, make<std::string>(s)).first;
         return iter->second;
       }
     }

@@ -33,6 +33,12 @@ namespace meevax::system
 
   const cursor unit {nullptr};
 
+  template <typename T, typename... Ts>
+  constexpr decltype(auto) make(Ts&&... args)
+  {
+    return cursor::bind<T>(std::forward<Ts>(args)...);
+  }
+
   inline cursor begin(const accessor<pair>& pair) noexcept
   {
     return pair;

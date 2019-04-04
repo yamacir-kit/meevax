@@ -5,20 +5,20 @@
 
 namespace meevax::system
 {
-  const cursor LDX    {cursor::bind<std::string>("ldx")};
-  const cursor LDC    {cursor::bind<std::string>("ldc")};
-  const cursor LDG    {cursor::bind<std::string>("ldg")};
-  const cursor LDF    {cursor::bind<std::string>("ldf")};
-  const cursor APPLY  {cursor::bind<std::string>("apply")};
-  const cursor RETURN {cursor::bind<std::string>("return")};
-  const cursor SELECT {cursor::bind<std::string>("select")};
-  const cursor JOIN   {cursor::bind<std::string>("join")};
-  const cursor POP    {cursor::bind<std::string>("pop")};
-  const cursor CAR    {cursor::bind<std::string>("car")};
-  const cursor CDR    {cursor::bind<std::string>("cdr")};
-  const cursor CONS   {cursor::bind<std::string>("cons")};
-  const cursor DEFINE {cursor::bind<std::string>("define")};
-  const cursor STOP   {cursor::bind<std::string>("stop")};
+  const cursor LDX    {make<std::string>("ldx")};
+  const cursor LDC    {make<std::string>("ldc")};
+  const cursor LDG    {make<std::string>("ldg")};
+  const cursor LDF    {make<std::string>("ldf")};
+  const cursor APPLY  {make<std::string>("apply")};
+  const cursor RETURN {make<std::string>("return")};
+  const cursor SELECT {make<std::string>("select")};
+  const cursor JOIN   {make<std::string>("join")};
+  const cursor POP    {make<std::string>("pop")};
+  const cursor CAR    {make<std::string>("car")};
+  const cursor CDR    {make<std::string>("cdr")};
+  const cursor CONS   {make<std::string>("cons")};
+  const cursor DEFINE {make<std::string>("define")};
+  const cursor STOP   {make<std::string>("stop")};
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
