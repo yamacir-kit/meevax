@@ -12,15 +12,15 @@ int main()
 {
   using namespace meevax::system;
 
-  cursor module {cursor::bind<modular>("root")};
+  modular module {"main"};
 
   reader read {"/dev/stdin"};
-  compiler compile {module.as<modular>()};
-  machine machine {module.as<modular>()};
+  compiler compile {module};
+  machine machine {module};
 
   while (read) try
   {
-    auto expression {read(module.as<modular>())};
+    auto expression {read(module)};
     std::cerr << "[read] " << expression << std::endl;
 
     auto code {compile(expression)};
