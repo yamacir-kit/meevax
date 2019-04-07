@@ -7,12 +7,12 @@
 #include <unordered_map>
 
 #include <meevax/system/closure.hpp>
-#include <meevax/system/instruction.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
@@ -107,7 +107,7 @@ namespace meevax::system
       }
       else if (not exp.is<pair>())
       {
-        if (exp.is<std::string>()) // is variable
+        if (exp.is<symbol>()) // is variable
         {
           if (auto location {locate(exp, env)}; location)
           {

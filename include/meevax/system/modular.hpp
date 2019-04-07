@@ -8,6 +8,7 @@
 #include <utility> // std::forward
 
 #include <meevax/system/cursor.hpp>
+#include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
@@ -30,7 +31,7 @@ namespace meevax::system
       }
       else
       {
-        iter = emplace(s, make<std::string>(s)).first;
+        iter = emplace(s, make<symbol>(s)).first;
         return iter->second;
       }
     }
