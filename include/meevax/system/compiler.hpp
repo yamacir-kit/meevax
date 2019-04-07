@@ -107,7 +107,7 @@ namespace meevax::system
       }
       else if (not exp.is<pair>())
       {
-        if (exp.is<std::string>()) // is variable
+        if (exp.is<symbol>()) // is variable
         {
           if (auto location {locate(exp, env)}; location)
           {

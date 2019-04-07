@@ -11,6 +11,7 @@
 #include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/string.hpp>
+#include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
@@ -23,8 +24,8 @@ namespace meevax::system
     template <typename... Ts>
     reader(Ts&&... args)
       : std::ifstream {std::forward<Ts>(args)...}
-      , x0020 {make<std::string>("#\\x0020")}
-      , x002E {make<std::string>("#\\x002E")}
+      , x0020 {make<symbol>("#\\x0020")}
+      , x002E {make<symbol>("#\\x002E")}
     {}
 
     cursor read(modular& module)
