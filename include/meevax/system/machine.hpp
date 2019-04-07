@@ -11,12 +11,12 @@
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/cursor.hpp>
-#include <meevax/system/instruction.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp>
 #include <meevax/system/pair.hpp> // pair?
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
