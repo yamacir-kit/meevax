@@ -18,6 +18,11 @@ namespace meevax::system
     {}
   };
 
+  std::ostream& operator<<(std::ostream& os, const symbol& symbol)
+  {
+    return os << static_cast<const std::string&>(symbol);
+  }
+
   const cursor APPLY  {make<symbol>("apply")};
   const cursor CAR    {make<symbol>("car")};
   const cursor CDR    {make<symbol>("cdr")};
