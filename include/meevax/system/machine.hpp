@@ -23,7 +23,10 @@ namespace meevax::system
   // Simple SECD machine.
   class machine
   {
-    cursor s, e, c, d;
+    cursor s, // stack
+           e, // local environment
+           c, // code
+           d; // dump
 
     cursor env; // global environment
 
