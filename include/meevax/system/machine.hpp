@@ -17,6 +17,7 @@
 #include <meevax/system/pair.hpp> // pair?
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/symbol.hpp>
+#include <meevax/system/syntax.hpp>
 
 namespace meevax::system
 {
@@ -30,16 +31,20 @@ namespace meevax::system
 
     cursor env; // global environment
 
-    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
+    machine(const cursor& env = unit)
+      : env {env}
+    {}
+
+    // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const cursor& var, Ts&&... args)
+    decltype(auto) define(const cursor& key, Ts&&... args)
     {
-      return env = list(var, std::forward<Ts>(args)...) | env;
-      // return env.insert_or_assign(var, std::forward<Ts>(args)...);
+      return env = list(key, std::forward<Ts>(args)...) | env;
     }
 
     #define DEFINE_PROCEDURE(NAME, ...) \
@@ -97,6 +102,51 @@ namespace meevax::system
       {
         return std::accumulate(args, unit, make<number>(1), std::divides {});
       });
+    }
+
+    cursor compile(const cursor& exp,
+                   const cursor& scope = unit,
+                   const cursor& continuation = list(STOP))
+    {
+      if (not exp)
+      {
+        return cons(LDC, unit, continuation);
+      }
+      else if (not exp.is<pair>())
+      {
+        if (exp.is<symbol>()) // is variable
+        {
+          if (auto location {locate(exp, scope)}; location) // there is local-defined variable
+          {
+            // load variable value (bound to lambda parameter) at runtime
+            return cons(LDX, location, continuation);
+          }
+          else
+          {
+            // load variable value from global-environment at runtime
+            return cons(LDG, exp, continuation);
+          }
+        }
+        else // is self-evaluation
+        {
+          return cons(LDC, exp, continuation);
+        }
+      }
+      else // is (syntax-or-any-application . arguments)
+      {
+        if (auto buffer {assoc(car(exp), env)}; not there_is(car(exp), scope) && buffer && buffer.is<syntax>())
+        {
+          return buffer.as<syntax>()(exp, scope, continuation);
+        }
+        else // is (application . arguments)
+        {
+          return args(
+                   cdr(exp),
+                   scope,
+                   compile(car(exp), scope, cons(APPLY, continuation))
+                 );
+        }
+      }
     }
 
     auto execute(const cursor& exp)
@@ -270,6 +320,81 @@ namespace meevax::system
              << "\td\t" << d << "\n";
 
       throw std::runtime_error {buffer.str()};
+    }
+
+    cursor begin(const cursor& exp,
+                 const cursor& scope,
+                 const cursor& continuation)
+    {
+      return compile(
+                 car(exp),
+                 scope,
+                 cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
+                          :                                  continuation
+             );
+    }
+
+  protected: // Compilation Helpers
+    cursor locate(const cursor& exp, const cursor& scope)
+    {
+      auto i {0}, j {0};
+
+      for (auto x {scope}; x; ++x, ++i)
+      {
+        for (cursor y {car(x)}; y; ++y, ++j)
+        {
+          if (y.is<pair>() && car(y) == exp)
+          {
+            return cons(make<number>(i), make<number>(j));
+          }
+
+          if (!y.is<pair>() && y == exp)
+          {
+            return cons(make<number>(i), make<number>(-++j));
+          }
+        }
+      }
+
+      return unit;
+    }
+
+    bool there_is(const cursor& exp, const cursor& scope)
+    {
+      for (cursor frame : scope)
+      {
+        for (cursor each : frame)
+        {
+          if (each.is<pair>() && car(each) == exp)
+          {
+            return true;
+          }
+
+          if (!each.is<pair>() && each == exp)
+          {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
+
+    cursor args(const cursor& exp,
+                const cursor& scope,
+                const cursor& continuation)
+    {
+      if (exp && exp.is<pair>())
+      {
+        return args(
+                 cdr(exp),
+                 scope,
+                 compile(car(exp), scope, cons(CONS, continuation))
+               );
+      }
+      else
+      {
+        return compile(exp, scope, continuation);
+      }
     }
   };
 } // namespace meevax::system
