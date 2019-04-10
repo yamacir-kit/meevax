@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <meevax/system/compiler.hpp>
 #include <meevax/system/machine.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/reader.hpp>
@@ -15,8 +14,7 @@ int main()
   modular module {"main"};
 
   reader read {"/dev/stdin"};
-  // compiler compile {module};
-  machine machine {module};
+  machine machine {};
 
   // XXX TEMPORARY
   {
@@ -89,6 +87,52 @@ int main()
                ),
                continuation
              );
+    }));
+
+    machine.define(module.intern("pair?"), make<procedure>("pair?", [&](const cursor& args)
+    {
+      for (const cursor& each : args)
+      {
+        if (not each or not each.is<pair>())
+        {
+          return false_v;
+        }
+      }
+
+      return true_v;
+    }));
+
+    machine.define(module.intern("eq?"), make<procedure>("eq?", [&](const cursor& args)
+    {
+      return car(args) == cadr(args) ? true_v : false_v;
+    }));
+
+    machine.define(module.intern("+"), make<procedure>("+", [&](const cursor& args)
+    {
+      return std::accumulate(args, unit, make<number>(0), std::plus {});
+    }));
+
+    machine.define(module.intern("*"), make<procedure>("*", [&](const cursor& args)
+    {
+      return std::accumulate(args, unit, make<number>(1), std::multiplies {});
+    }));
+
+    machine.define(module.intern("-"), make<procedure>("-", [&](const cursor& args)
+    {
+      // TODO LENGTH
+      if (std::distance(args, unit) < 2)
+      {
+        return std::accumulate(args, unit, make<number>(0), std::minus {});
+      }
+      else
+      {
+        return std::accumulate(cursor {cdr(args)}, unit, car(args), std::minus {});
+      }
+    }));
+
+    machine.define(module.intern("/"), make<procedure>("/", [&](const cursor& args)
+    {
+      return std::accumulate(args, unit, make<number>(1), std::divides {});
     }));
   }
 

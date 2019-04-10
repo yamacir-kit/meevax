@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
-#include <functional>
 #include <iostream>
 #include <iterator>
 #include <numeric> // std::accumulate
@@ -10,6 +9,7 @@
 #include <utility> // std::forward
 
 #include <meevax/system/boolean.hpp>
+#include <meevax/system/closure.hpp>
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
@@ -45,63 +45,6 @@ namespace meevax::system
     decltype(auto) define(const cursor& key, Ts&&... args)
     {
       return env = list(key, std::forward<Ts>(args)...) | env;
-    }
-
-    #define DEFINE_PROCEDURE(NAME, ...) \
-      define(module.intern(NAME), make<procedure>(NAME, __VA_ARGS__))
-
-    // TODO MOVE OUT
-    explicit machine(modular& module)
-      // : env {unit}
-    {
-      DEFINE_PROCEDURE("pair?", [&](const cursor& args)
-      {
-        assert(0 < std::distance(args, unit));
-
-        for (auto iter {args}; iter; ++iter)
-        {
-          if (auto exp {*iter}; not exp or not exp.is<pair>())
-          {
-            return false_v;
-          }
-        }
-
-        return true_v;
-      });
-
-      DEFINE_PROCEDURE("eq?", [&](const cursor& args)
-      {
-        assert(1 < std::distance(args, unit));
-        return car(args) == cadr(args) ? true_v : false_v;
-      });
-
-      DEFINE_PROCEDURE("+", [&](const cursor& args)
-      {
-        return std::accumulate(args, unit, make<number>(0), std::plus {});
-      });
-
-      DEFINE_PROCEDURE("*", [&](const cursor& args)
-      {
-        return std::accumulate(args, unit, make<number>(1), std::multiplies {});
-      });
-
-      // XXX UGLY CODE
-      DEFINE_PROCEDURE("-", [&](const cursor& args)
-      {
-        if (std::distance(args, unit) < 2)
-        {
-          return std::accumulate(args, unit, make<number>(0), std::minus {});
-        }
-        else
-        {
-          return std::accumulate(cursor {cdr(args)}, unit, car(args), std::minus {});
-        }
-      });
-
-      DEFINE_PROCEDURE("/", [&](const cursor& args)
-      {
-        return std::accumulate(args, unit, make<number>(1), std::divides {});
-      });
     }
 
     cursor compile(const cursor& exp,
