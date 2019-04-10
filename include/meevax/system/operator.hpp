@@ -107,6 +107,18 @@ namespace meevax::system
       return assoc(var, cdr(env));
     }
   }
+
+  cursor take(const cursor& exp, std::size_t size)
+  {
+    if (0 < size)
+    {
+      return car(exp) | take(cdr(exp), --size);
+    }
+    else
+    {
+      return unit;
+    }
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP

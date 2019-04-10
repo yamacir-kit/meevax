@@ -16,7 +16,7 @@
 
 namespace meevax::system
 {
-  class compiler
+  class [[deprecated]] compiler
   {
     std::unordered_map<
       cursor,

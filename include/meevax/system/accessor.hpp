@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 
+#include <chrono>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
 #include <type_traits> // std::conditional
@@ -12,6 +13,17 @@ namespace meevax::system
   template <typename T>
   struct facade
   {
+    static inline constexpr int id_min {0};
+    static inline           int id_max {0}; // unit has id zero, virtual machine instruction has negative id.
+                            int id;
+
+    const std::chrono::high_resolution_clock::time_point since;
+
+    facade()
+      : id {++id_max} // TODO MUTEX
+      , since {std::chrono::high_resolution_clock::now()}
+    {}
+
     virtual auto type() const noexcept
       -> const std::type_info&
     {
