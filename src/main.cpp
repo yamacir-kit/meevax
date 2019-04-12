@@ -14,9 +14,9 @@ int main()
   modular module {"main"};
 
   reader read {"/dev/stdin"};
-  machine machine {};
 
   // XXX TEMPORARY
+  machine machine {};
   {
     machine.define(module.intern("quote"), make<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
     {
