@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
-#define INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
+#define INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 
 #include <iostream>
 #include <string>
@@ -39,5 +39,5 @@ namespace meevax::system
   const cursor STOP   {make<symbol>("stop")};
 } // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 

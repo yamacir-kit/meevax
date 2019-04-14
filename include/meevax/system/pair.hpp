@@ -1,13 +1,24 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
-#include <iostream>
-#include <utility>
+#include <iostream> // std::ostream
+#include <utility> // std::forward
 
 #include <meevax/system/accessor.hpp>
 
 namespace meevax::system
 {
+  // struct object
+  //   : public facade<object>
+  // {
+  //   template <typename... Ts>
+  //   constexpr object(Ts&&... args)
+  //     : facade<object> {std::forward<Ts>(args)...}
+  //   {}
+  //
+  //   virtual ~object = default;
+  // };
+
   struct pair
     : public std::pair<accessor<pair>, accessor<pair>>
     , public facade<pair>

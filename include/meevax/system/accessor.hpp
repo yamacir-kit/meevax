@@ -82,8 +82,8 @@ namespace meevax::system
     static constexpr auto bind(Ts&&... args)
       -> accessor<TopType>
     {
-      using bindings = binder<BoundType>;
-      return std::make_shared<bindings>(std::forward<Ts>(args)...);
+      using binding = binder<BoundType>;
+      return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
     decltype(auto) access()       { return std::shared_ptr<TopType>::operator*(); }
