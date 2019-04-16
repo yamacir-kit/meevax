@@ -18,14 +18,13 @@ namespace meevax::system
   class reader
     : public std::ifstream
   {
-    const cursor x0020, x002E;
+    static inline const cursor x0020 {make<character>(")")},
+                               x002E {make<character>(".")};
 
   public:
     template <typename... Ts>
     reader(Ts&&... args)
       : std::ifstream {std::forward<Ts>(args)...}
-      , x0020 {make<symbol>("#\\x0020")}
-      , x002E {make<symbol>("#\\x002E")}
     {}
 
     cursor read(modular& module)

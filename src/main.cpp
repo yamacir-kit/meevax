@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <stdexcept>
 
@@ -138,11 +139,43 @@ int main()
 
   while (read) try
   {
-    auto expression {read(module)};
-    std::cerr << "[read] " << expression << std::endl;
+    const auto read_begin {std::chrono::high_resolution_clock::now()};
+    const auto expression {read(module)};
+    const auto read_end {std::chrono::high_resolution_clock::now()};
 
-    auto code {machine.compile(expression)};
-    std::cerr << machine.execute(code) << "\n\n";
+    const auto compile_begin {std::chrono::high_resolution_clock::now()};
+    const auto code {machine.compile(expression)};
+    const auto compile_end {std::chrono::high_resolution_clock::now()};
+
+    const auto execute_begin {std::chrono::high_resolution_clock::now()};
+    const auto result {machine.execute(code)};
+    const auto execute_end {std::chrono::high_resolution_clock::now()};
+
+    std::cerr << "[read] " << expression
+              << " in " << std::chrono::duration_cast<
+                             std::chrono::nanoseconds
+                           >(read_end - read_begin).count()
+                        << " nsec" << std::endl;
+
+    std::cerr << "[compile] " << code
+              << " in " << std::chrono::duration_cast<
+                             std::chrono::nanoseconds
+                           >(compile_end - compile_begin).count()
+                        << " nsec" << std::endl;
+
+    std::cerr << "[execute] " << result
+              << " in " << std::chrono::duration_cast<
+                             std::chrono::nanoseconds
+                           >(execute_end - execute_begin).count()
+                        << " nsec" << std::endl;
+
+    std::cerr << "[total] "
+              << std::chrono::duration_cast<
+                   std::chrono::nanoseconds
+                 >(execute_end - read_begin).count()
+              << " nsec" << std::endl;
+
+    std::cerr << std::endl;
   }
   catch (const std::runtime_error& error)
   {
