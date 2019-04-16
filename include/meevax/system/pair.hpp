@@ -39,7 +39,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const pair& exp)
   {
-    os << "(" << exp.first;
+    os << "\x1b[35m(\x1b[0m" << exp.first;
 
     for (auto iter {exp.second}; iter; iter = cdr(iter))
     {
@@ -49,11 +49,11 @@ namespace meevax::system
       }
       else // iter is the last element of dotted-list.
       {
-        os << " . " << iter;
+        os << " \x1b[35m.\x1b[0m " << iter;
       }
     }
 
-    return os << ")";
+    return os << "\x1b[35m)\x1b[0m";
   }
 } // namespace meevax::system
 
