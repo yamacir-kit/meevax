@@ -113,7 +113,7 @@ namespace meevax::system
   std::ostream& operator<<(std::ostream& os, const accessor<T>& rhs)
   {
     // TODO Provide custamizable printer for nullptr.
-    return !rhs ? (os << "()") : rhs.access().write(os);
+    return !rhs ? (os << "\x1b[35m()\x1b[0m") : rhs.access().write(os);
   }
 } // namespace meevax::system
 
