@@ -135,11 +135,6 @@ int main()
     {
       return std::accumulate(args, unit, make<number>(1), std::divides {});
     }));
-
-    machine.define(module.intern("id"), make<procedure>("id", [&](const cursor& args)
-    {
-      return make<number>(car(args).access().id);
-    }));
   }
 
   while (read) try
