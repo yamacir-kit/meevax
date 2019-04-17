@@ -20,7 +20,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const exception& error)
   {
-    return os << "#<" << error.what() << ">";
+    return os << "\x1b[31m#<exception " << error.what() << ">\x1b[0m";
   }
 
   const cursor undefined {make<exception>("undefined")};
