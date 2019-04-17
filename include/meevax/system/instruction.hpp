@@ -12,7 +12,7 @@ namespace meevax::system
 {
   struct instruction
   {
-    enum class SECD
+    enum class secd
     {
       APPLY,
       CAR,
@@ -38,9 +38,27 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
   {
-    os << "\x1b[32m\\x";
+    os << "\x1b[32m";
 
-    os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(instruction.code);
+    // os << "\\x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(instruction.code);
+
+    switch (instruction.code)
+    {
+    case instruction::secd::APPLY:  os << "apply";  break;
+    case instruction::secd::CAR:    os << "car";    break;
+    case instruction::secd::CDR:    os << "cdr";    break;
+    case instruction::secd::CONS:   os << "cons";   break;
+    case instruction::secd::DEFINE: os << "define"; break;
+    case instruction::secd::JOIN:   os << "join";   break;
+    case instruction::secd::LDC:    os << "ldc";    break;
+    case instruction::secd::LDF:    os << "ldf";    break;
+    case instruction::secd::LDG:    os << "ldg";    break;
+    case instruction::secd::LDX:    os << "ldx";    break;
+    case instruction::secd::POP:    os << "pop";    break;
+    case instruction::secd::RETURN: os << "return"; break;
+    case instruction::secd::SELECT: os << "select"; break;
+    case instruction::secd::STOP:   os << "stop";   break;
+    }
 
     return os << "\x1b[0m";
   }
