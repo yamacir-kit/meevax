@@ -135,13 +135,16 @@ int main()
     {
       return std::accumulate(args, unit, make<number>(1), std::divides {});
     }));
+
+    machine.define(module.intern("id"), make<procedure>("id", [&](const cursor& args)
+    {
+      return make<number>(car(args).access().id);
+    }));
   }
 
   while (read) try
   {
-    const auto read_begin {std::chrono::high_resolution_clock::now()};
     const auto expression {read(module)};
-    const auto read_end {std::chrono::high_resolution_clock::now()};
 
     const auto compile_begin {std::chrono::high_resolution_clock::now()};
     const auto code {machine.compile(expression)};
@@ -151,11 +154,7 @@ int main()
     const auto result {machine.execute(code)};
     const auto execute_end {std::chrono::high_resolution_clock::now()};
 
-    std::cerr << "[read] " << expression
-              << " in " << std::chrono::duration_cast<
-                             std::chrono::nanoseconds
-                           >(read_end - read_begin).count()
-                        << " nsec" << std::endl;
+    std::cerr << "[read] " << expression << std::endl;
 
     std::cerr << "[compile] " << code
               << " in " << std::chrono::duration_cast<
@@ -168,12 +167,6 @@ int main()
                              std::chrono::nanoseconds
                            >(execute_end - execute_begin).count()
                         << " nsec" << std::endl;
-
-    std::cerr << "[total] "
-              << std::chrono::duration_cast<
-                   std::chrono::nanoseconds
-                 >(execute_end - read_begin).count()
-              << " nsec" << std::endl;
 
     std::cerr << std::endl;
   }

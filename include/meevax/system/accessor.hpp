@@ -14,13 +14,13 @@ namespace meevax::system
   struct facade
   {
     static inline constexpr int id_min {0};
-    static inline           int id_max {0}; // unit has id zero, virtual machine instruction has negative id.
+    static inline           int id_max {0}; // unit has id zero (maybe)
                             int id;
 
     const std::chrono::high_resolution_clock::time_point since;
 
     facade()
-      : id {++id_max} // TODO MUTEX
+      : id {id_max++} // TODO MUTEX
       , since {std::chrono::high_resolution_clock::now()}
     {}
 

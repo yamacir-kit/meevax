@@ -11,10 +11,11 @@
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/closure.hpp>
 #include <meevax/system/cursor.hpp>
+#include <meevax/system/instruction.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp>
-#include <meevax/system/pair.hpp> // pair?
+#include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/symbol.hpp>
 #include <meevax/system/syntax.hpp>
@@ -31,9 +32,9 @@ namespace meevax::system
 
     cursor env; // global environment
 
-    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     machine(const cursor& env = unit)
