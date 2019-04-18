@@ -1,7 +1,5 @@
-#include <iostream>
-#include <stdexcept>
+#include <numeric> // std::accumulate
 
-#include <meevax/system/compiler.hpp>
 #include <meevax/system/machine.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/reader.hpp>
@@ -15,10 +13,9 @@ int main()
   modular module {"main"};
 
   reader read {"/dev/stdin"};
-  // compiler compile {module};
-  machine machine {module};
 
   // XXX TEMPORARY
+  machine machine {};
   {
     machine.define(module.intern("quote"), make<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
     {
@@ -90,15 +87,81 @@ int main()
                continuation
              );
     }));
+
+    machine.define(module.intern("pair?"), make<procedure>("pair?", [&](const cursor& args)
+    {
+      for (const cursor& each : args)
+      {
+        if (not each or not each.is<pair>())
+        {
+          return false_v;
+        }
+      }
+
+      return true_v;
+    }));
+
+    machine.define(module.intern("eq?"), make<procedure>("eq?", [&](const cursor& args)
+    {
+      return car(args) == cadr(args) ? true_v : false_v;
+    }));
+
+    machine.define(module.intern("+"), make<procedure>("+", [&](const cursor& args)
+    {
+      return std::accumulate(args, unit, make<number>(0), std::plus {});
+    }));
+
+    machine.define(module.intern("*"), make<procedure>("*", [&](const cursor& args)
+    {
+      return std::accumulate(args, unit, make<number>(1), std::multiplies {});
+    }));
+
+    machine.define(module.intern("-"), make<procedure>("-", [&](const cursor& args)
+    {
+      // TODO LENGTH
+      if (std::distance(args, unit) < 2)
+      {
+        return std::accumulate(args, unit, make<number>(0), std::minus {});
+      }
+      else
+      {
+        return std::accumulate(cursor {cdr(args)}, unit, car(args), std::minus {});
+      }
+    }));
+
+    machine.define(module.intern("/"), make<procedure>("/", [&](const cursor& args)
+    {
+      return std::accumulate(args, unit, make<number>(1), std::divides {});
+    }));
   }
 
   while (read) try
   {
-    auto expression {read(module)};
+    const auto expression {read(module)};
+
+    const auto compile_begin {std::chrono::high_resolution_clock::now()};
+    const auto code {machine.compile(expression)};
+    const auto compile_end {std::chrono::high_resolution_clock::now()};
+
+    const auto execute_begin {std::chrono::high_resolution_clock::now()};
+    const auto result {machine.execute(code)};
+    const auto execute_end {std::chrono::high_resolution_clock::now()};
+
     std::cerr << "[read] " << expression << std::endl;
 
-    auto code {machine.compile(expression)};
-    std::cerr << machine.execute(code) << "\n\n";
+    std::cerr << "[compile] " << code
+              << " in " << std::chrono::duration_cast<
+                             std::chrono::nanoseconds
+                           >(compile_end - compile_begin).count()
+                        << " nsec" << std::endl;
+
+    std::cerr << "[execute] " << result
+              << " in " << std::chrono::duration_cast<
+                             std::chrono::nanoseconds
+                           >(execute_end - execute_begin).count()
+                        << " nsec" << std::endl;
+
+    std::cerr << std::endl;
   }
   catch (const std::runtime_error& error)
   {

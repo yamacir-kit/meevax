@@ -2,9 +2,6 @@
 #define INCLUDED_MEEVAX_SYSTEM_SYNTAX_HPP
 
 #include <functional> // std::function
-#include <iostream> // std::ostream
-#include <string> // std::string
-#include <utility> // std::forward
 
 #include <meevax/system/cursor.hpp>
 

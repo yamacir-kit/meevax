@@ -13,16 +13,16 @@ namespace meevax::system
   template <typename T>
   struct facade
   {
-    static inline constexpr int id_min {0};
-    static inline           int id_max {0}; // unit has id zero, virtual machine instruction has negative id.
-                            int id;
-
-    const std::chrono::high_resolution_clock::time_point since;
-
-    facade()
-      : id {++id_max} // TODO MUTEX
-      , since {std::chrono::high_resolution_clock::now()}
-    {}
+    // static inline constexpr int id_min {0};
+    // static inline           int id_max {0}; // unit has id zero (maybe)
+    //                         int id;
+    //
+    // const std::chrono::high_resolution_clock::time_point since;
+    //
+    // facade()
+    //   : id {id_max++} // TODO MUTEX
+    //   , since {std::chrono::high_resolution_clock::now()}
+    // {}
 
     virtual auto type() const noexcept
       -> const std::type_info&
@@ -82,8 +82,8 @@ namespace meevax::system
     static constexpr auto bind(Ts&&... args)
       -> accessor<TopType>
     {
-      using bindings = binder<BoundType>;
-      return std::make_shared<bindings>(std::forward<Ts>(args)...);
+      using binding = binder<BoundType>;
+      return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
     decltype(auto) access()       { return std::shared_ptr<TopType>::operator*(); }
@@ -113,7 +113,7 @@ namespace meevax::system
   std::ostream& operator<<(std::ostream& os, const accessor<T>& rhs)
   {
     // TODO Provide custamizable printer for nullptr.
-    return !rhs ? (os << "()") : rhs.access().write(os);
+    return !rhs ? (os << "\x1b[35m()\x1b[0m") : rhs.access().write(os);
   }
 } // namespace meevax::system
 

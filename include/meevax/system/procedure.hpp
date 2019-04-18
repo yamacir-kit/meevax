@@ -2,9 +2,6 @@
 #define INCLUDED_MEEVAX_SYSTEM_PROCEDURE_HPP
 
 #include <functional> // std::funstion
-#include <iostream>
-#include <string>
-#include <utility> // std::forward
 
 #include <meevax/system/cursor.hpp>
 

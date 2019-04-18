@@ -1,11 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
 
-#include <iostream>
 #include <iterator> // std::end
-#include <string>
 #include <unordered_map>
-#include <utility> // std::forward
 
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/symbol.hpp>

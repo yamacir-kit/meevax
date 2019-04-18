@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_NUMBER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_NUMBER_HPP
 
-#include <iostream>
-
 #include <boost/multiprecision/gmp.hpp>
 
 #include <meevax/system/cursor.hpp>
