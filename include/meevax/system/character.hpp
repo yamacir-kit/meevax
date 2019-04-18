@@ -1,9 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
 
-#include <iostream>
 #include <string>
-#include <utility>
+
+#include <meevax/system/cursor.hpp>
 
 namespace meevax::system
 {

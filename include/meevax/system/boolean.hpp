@@ -1,9 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 #define INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 
-#include <iostream>
-#include <type_traits>
-
 #include <meevax/system/cursor.hpp>
 
 namespace meevax::system

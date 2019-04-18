@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
 
-#include <iostream>
-
 #include <meevax/system/pair.hpp>
 
 namespace meevax::system

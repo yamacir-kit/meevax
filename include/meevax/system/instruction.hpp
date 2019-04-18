@@ -1,11 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 
-#include <iomanip>
-#include <iostream> // std::ostream
-#include <string>
-#include <utility>
-
 #include <meevax/system/cursor.hpp>
 
 namespace meevax::system
@@ -39,8 +34,6 @@ namespace meevax::system
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
   {
     os << "\x1b[32m";
-
-    // os << "\\x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(instruction.code);
 
     switch (instruction.code)
     {

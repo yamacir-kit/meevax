@@ -1,11 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 
-#include <memory> // std::make_shared
-#include <utility>
-
+#include <meevax/system/cursor.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/pair.hpp>
 
 // TODO 純LISPコアに必要なものは移設すること
 

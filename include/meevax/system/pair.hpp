@@ -1,9 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
-#include <iostream> // std::ostream
-#include <utility> // std::forward
-
 #include <meevax/system/accessor.hpp>
 
 namespace meevax::system

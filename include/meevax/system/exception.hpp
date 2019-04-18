@@ -1,9 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
 #define INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
 
-#include <iostream>
 #include <stdexcept> // std::runtime_error
-#include <utility> // std::forward
 
 #include <meevax/system/cursor.hpp>
 

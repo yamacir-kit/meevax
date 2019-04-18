@@ -1,6 +1,4 @@
-#include <chrono>
-#include <iostream>
-#include <stdexcept>
+#include <numeric> // std::accumulate
 
 #include <meevax/system/machine.hpp>
 #include <meevax/system/modular.hpp>

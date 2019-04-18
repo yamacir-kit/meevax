@@ -4,10 +4,7 @@
 #include <fstream>
 #include <iterator> // std::begin, std::end
 #include <limits> // std::numeric_limits<std::streamsize>
-#include <string>
-#include <utility> // std::forward
 
-#include <meevax/system/cursor.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/string.hpp>

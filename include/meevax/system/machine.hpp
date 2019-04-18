@@ -1,21 +1,14 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
-#include <iostream>
-#include <iterator>
-#include <numeric> // std::accumulate
-#include <sstream>
-#include <stdexcept> // std::runtime_error
-#include <utility> // std::forward
+#include <iterator> // std::next
+#include <sstream> // std::stringstream
 
-#include <meevax/system/boolean.hpp>
+#include <meevax/system/boolean.hpp> // false_v
 #include <meevax/system/closure.hpp>
-#include <meevax/system/cursor.hpp>
 #include <meevax/system/instruction.hpp>
-#include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
-#include <meevax/system/operator.hpp>
-#include <meevax/system/pair.hpp>
+#include <meevax/system/operator.hpp> // assoc
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/symbol.hpp>
 #include <meevax/system/syntax.hpp>

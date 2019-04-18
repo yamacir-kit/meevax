@@ -1,11 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_STRING_HPP
 #define INCLUDED_MEEVAX_SYSTEM_STRING_HPP
 
-#include <iostream>
-#include <string>
-
 #include <meevax/system/character.hpp>
-#include <meevax/system/cursor.hpp>
 #include <meevax/system/pair.hpp>
 
 namespace meevax::system

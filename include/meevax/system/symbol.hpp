@@ -1,9 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 #define INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 
-#include <iostream>
 #include <string>
-#include <utility>
 
 #include <meevax/system/cursor.hpp>
 
