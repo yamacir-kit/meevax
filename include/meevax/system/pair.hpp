@@ -13,15 +13,13 @@ namespace meevax::system
     constexpr pair(Ts&&... args)
       : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
     {}
-
-    virtual ~pair() = default;
   };
 
-  decltype(auto) car(      accessor<pair>& pair) { return std::get<0>(pair.access()); }
-  decltype(auto) car(const accessor<pair>& pair) { return std::get<0>(pair.access()); }
+        auto& car(      accessor<pair>& pair) { return std::get<0>(pair.access()); }
+  const auto& car(const accessor<pair>& pair) { return std::get<0>(pair.access()); }
 
-  decltype(auto) cdr(      accessor<pair>& pair) { return std::get<1>(pair.access()); }
-  decltype(auto) cdr(const accessor<pair>& pair) { return std::get<1>(pair.access()); }
+        auto& cdr(      accessor<pair>& pair) { return std::get<1>(pair.access()); }
+  const auto& cdr(const accessor<pair>& pair) { return std::get<1>(pair.access()); }
 
   std::ostream& operator<<(std::ostream& os, const pair& exp)
   {

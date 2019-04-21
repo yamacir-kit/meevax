@@ -104,7 +104,7 @@ namespace meevax::system
     template <typename T>
     decltype(auto) as() const
     {
-      return dynamic_cast<T&>(access());
+      return dynamic_cast<const T&>(access());
     }
   };
 

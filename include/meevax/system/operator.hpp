@@ -89,7 +89,7 @@ namespace meevax::system
   {
     if (!var)
     {
-      return var;
+      return unit;
     }
     else if (!env)
     {
