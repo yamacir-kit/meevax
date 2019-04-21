@@ -5,7 +5,7 @@
 #include <iterator> // std::begin, std::end
 #include <limits> // std::numeric_limits<std::streamsize>
 
-#include <meevax/system/modular.hpp>
+#include <meevax/system/module.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
@@ -24,7 +24,7 @@ namespace meevax::system
       : std::ifstream {std::forward<Ts>(args)...}
     {}
 
-    cursor read(modular& module)
+    cursor read(module& module)
     {
       for (std::string buffer {narrow(get(), ' ')}; *this; buffer.push_back(narrow(get(), ' '))) switch (buffer.back())
       {
@@ -150,7 +150,7 @@ namespace meevax::system
       }
     }
 
-    cursor expand(modular& module)
+    cursor expand(module& module)
     {
       switch (peek())
       {

@@ -1,7 +1,7 @@
 #include <numeric> // std::accumulate
 
 #include <meevax/system/machine.hpp>
-#include <meevax/system/modular.hpp>
+#include <meevax/system/module.hpp>
 #include <meevax/system/reader.hpp>
 
 #include <boost/cstdlib.hpp>
@@ -10,19 +10,19 @@ int main()
 {
   using namespace meevax::system;
 
-  modular module {"main"};
+  module root {"main"};
 
   reader read {"/dev/stdin"};
 
   // XXX TEMPORARY
   machine machine {};
   {
-    machine.define(module.intern("quote"), make<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
+    machine.define(root.intern("quote"), make<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
     {
       return cons(LDC, cadr(exp), continuation);
     }));
 
-    machine.define(module.intern("car"), make<syntax>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
+    machine.define(root.intern("car"), make<syntax>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return machine.compile(
                cadr(exp),
@@ -31,7 +31,7 @@ int main()
              );
     }));
 
-    machine.define(module.intern("cdr"), make<syntax>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
+    machine.define(root.intern("cdr"), make<syntax>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return machine.compile(
                cadr(exp),
@@ -40,7 +40,7 @@ int main()
              );
     }));
 
-    machine.define(module.intern("cons"), make<syntax>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
+    machine.define(root.intern("cons"), make<syntax>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return machine.compile(
                caddr(exp),
@@ -49,7 +49,7 @@ int main()
              );
     }));
 
-    machine.define(module.intern("if"), make<syntax>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
+    machine.define(root.intern("if"), make<syntax>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return machine.compile(
                cadr(exp), // conditional expression
@@ -63,7 +63,7 @@ int main()
              );
     }));
 
-    machine.define(module.intern("define"), make<syntax>("define", [&](auto&& exp, auto&& scope, auto&& continuation)
+    machine.define(root.intern("define"), make<syntax>("define", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return machine.compile(
                caddr(exp),
@@ -72,7 +72,7 @@ int main()
              );
     }));
 
-    machine.define(module.intern("lambda"), make<syntax>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
+    machine.define(root.intern("lambda"), make<syntax>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return cons(
                LDF,
@@ -88,7 +88,7 @@ int main()
              );
     }));
 
-    machine.define(module.intern("pair?"), make<procedure>("pair?", [&](const cursor& args)
+    machine.define(root.intern("pair?"), make<procedure>("pair?", [&](const cursor& args)
     {
       for (const cursor& each : args)
       {
@@ -101,22 +101,22 @@ int main()
       return true_v;
     }));
 
-    machine.define(module.intern("eq?"), make<procedure>("eq?", [&](const cursor& args)
+    machine.define(root.intern("eq?"), make<procedure>("eq?", [&](const cursor& args)
     {
       return car(args) == cadr(args) ? true_v : false_v;
     }));
 
-    machine.define(module.intern("+"), make<procedure>("+", [&](const cursor& args)
+    machine.define(root.intern("+"), make<procedure>("+", [&](const cursor& args)
     {
       return std::accumulate(args, unit, make<number>(0), std::plus {});
     }));
 
-    machine.define(module.intern("*"), make<procedure>("*", [&](const cursor& args)
+    machine.define(root.intern("*"), make<procedure>("*", [&](const cursor& args)
     {
       return std::accumulate(args, unit, make<number>(1), std::multiplies {});
     }));
 
-    machine.define(module.intern("-"), make<procedure>("-", [&](const cursor& args)
+    machine.define(root.intern("-"), make<procedure>("-", [&](const cursor& args)
     {
       // TODO LENGTH
       if (std::distance(args, unit) < 2)
@@ -129,7 +129,7 @@ int main()
       }
     }));
 
-    machine.define(module.intern("/"), make<procedure>("/", [&](const cursor& args)
+    machine.define(root.intern("/"), make<procedure>("/", [&](const cursor& args)
     {
       return std::accumulate(args, unit, make<number>(1), std::divides {});
     }));
@@ -137,7 +137,7 @@ int main()
 
   while (read) try
   {
-    const auto expression {read(module)};
+    const auto expression {read(root)};
 
     const auto compile_begin {std::chrono::high_resolution_clock::now()};
     const auto code {machine.compile(expression)};

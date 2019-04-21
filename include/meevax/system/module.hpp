@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
-#define INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
+#define INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
 
 #include <iterator> // std::end
 #include <unordered_map>
@@ -9,13 +9,13 @@
 
 namespace meevax::system
 {
-  struct modular
+  struct module
     : public std::unordered_map<std::string, cursor>
   {
     const std::string name;
 
     template <typename... Ts>
-    modular(const std::string& name, Ts&&... args)
+    module(const std::string& name, Ts&&... args)
       : std::unordered_map<std::string, cursor> {std::forward<Ts>(args)...}
       , name {name}
     {}
@@ -34,11 +34,11 @@ namespace meevax::system
     }
   };
 
-  std::ostream& operator<<(std::ostream& os, const modular&)
+  std::ostream& operator<<(std::ostream& os, const module&)
   {
     return os << "#<module>";
   }
 } // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_SYSTEM_MODULAR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
 
