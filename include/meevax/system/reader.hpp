@@ -5,7 +5,6 @@
 #include <iterator> // std::begin, std::end
 #include <limits> // std::numeric_limits<std::streamsize>
 
-#include <meevax/system/module.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
@@ -24,7 +23,8 @@ namespace meevax::system
       : std::ifstream {std::forward<Ts>(args)...}
     {}
 
-    cursor read(module& module)
+    template <typename Interner>
+    cursor read(Interner&& intern)
     {
       for (std::string buffer {narrow(get(), ' ')}; *this; buffer.push_back(narrow(get(), ' '))) switch (buffer.back())
       {
@@ -37,20 +37,20 @@ namespace meevax::system
         break;
 
       case '(':
-        if (auto first {read(module)}; first == x0020) // termination
+        if (auto first {read(intern)}; first == x0020) // termination
         {
           return unit;
         }
         else if (first == x002E) // dot-notation
         {
-          auto second {read(module)};
+          auto second {read(intern)};
           ignore(std::numeric_limits<std::streamsize>::max(), ')');
           return second;
         }
         else
         {
           putback('(');
-          return cons(first, read(module));
+          return cons(first, read(intern));
         }
 
       case ')':
@@ -67,7 +67,7 @@ namespace meevax::system
           {
           case 'n':
             putback('"');
-            return make<string>(make<character>('\n'), read(module));
+            return make<string>(make<character>('\n'), read(intern));
 
           case '\n':
             while (std::isspace(peek()))
@@ -75,27 +75,27 @@ namespace meevax::system
               ignore(1);
             }
             putback('"');
-            return read(module);
+            return read(intern);
 
           case '"':
             putback('"');
-            return make<string>(make<character>("\""), read(module));
+            return make<string>(make<character>("\""), read(intern));
 
           default:
             putback('"');
-            return make<string>(make<character>("#\\unsupported;"), read(module));
+            return make<string>(make<character>("#\\unsupported;"), read(intern));
           }
 
         default:
           putback('"');
-          return make<string>(make<character>(c), read(module));
+          return make<string>(make<character>(c), read(intern));
         }
 
       case '\'':
-        return list(module.intern("quote"), read(module));
+        return list(intern("quote"), read(intern));
 
       case '#':
-        return expand(module);
+        return expand(intern);
 
       default:
         if (auto c {peek()}; is_delimiter(c)) try // delimiter
@@ -111,7 +111,7 @@ namespace meevax::system
         }
         catch (const std::runtime_error&)
         {
-          return module.intern(buffer);
+          return intern(buffer);
         }
       }
 
@@ -150,16 +150,17 @@ namespace meevax::system
       }
     }
 
-    cursor expand(module& module)
+    template <typename Interner>
+    cursor expand(Interner&& intern)
     {
       switch (peek())
       {
       case 't':
-        read(module); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
+        read(intern); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return true_v;
 
       case 'f':
-        read(module); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
+        read(intern); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return false_v;
 
       default:

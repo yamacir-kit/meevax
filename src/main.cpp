@@ -2,7 +2,7 @@
 
 #include <meevax/system/machine.hpp>
 #include <meevax/system/module.hpp>
-#include <meevax/system/reader.hpp>
+// #include <meevax/system/reader.hpp>
 
 #include <boost/cstdlib.hpp>
 
@@ -12,7 +12,7 @@ int main()
 
   module root {"main"};
 
-  reader read {"/dev/stdin"};
+  // reader read {"/dev/stdin"};
 
   // XXX TEMPORARY
   machine machine {};
@@ -135,31 +135,16 @@ int main()
     }));
   }
 
-  while (read) try
+  for (root.open("/dev/stdin"); root.readable(); ) try
   {
-    const auto expression {read(root)};
-
-    const auto compile_begin {std::chrono::high_resolution_clock::now()};
-    const auto code {machine.compile(expression)};
-    const auto compile_end {std::chrono::high_resolution_clock::now()};
-
-    const auto execute_begin {std::chrono::high_resolution_clock::now()};
-    const auto result {machine.execute(code)};
-    const auto execute_end {std::chrono::high_resolution_clock::now()};
-
+    const auto expression {root.read()};
     std::cerr << "[read] " << expression << std::endl;
 
-    std::cerr << "[compile] " << code
-              << " in " << std::chrono::duration_cast<
-                             std::chrono::nanoseconds
-                           >(compile_end - compile_begin).count()
-                        << " nsec" << std::endl;
+    const auto code {machine.compile(expression)};
+    std::cerr << "[compile] " << code << std::endl;
 
-    std::cerr << "[execute] " << result
-              << " in " << std::chrono::duration_cast<
-                             std::chrono::nanoseconds
-                           >(execute_end - execute_begin).count()
-                        << " nsec" << std::endl;
+    const auto result {machine.execute(code)};
+    std::cerr << "[execute] " << result << std::endl;
 
     std::cerr << std::endl;
   }

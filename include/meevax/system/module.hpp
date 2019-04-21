@@ -5,20 +5,41 @@
 #include <unordered_map>
 
 #include <meevax/system/cursor.hpp>
+#include <meevax/system/reader.hpp>
 #include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
   struct module
-    : public std::unordered_map<std::string, cursor>
+    : public std::unordered_map<std::string, cursor> // XXX public?
   {
     const std::string name;
+
+    reader file;
 
     template <typename... Ts>
     module(const std::string& name, Ts&&... args)
       : std::unordered_map<std::string, cursor> {std::forward<Ts>(args)...}
       , name {name}
+      , file {}
     {}
+
+    bool readable() const noexcept
+    {
+      return static_cast<bool>(file);
+    }
+
+    template <typename... Ts>
+    decltype(auto) open(Ts&&... args)
+    {
+      file = reader {std::forward<Ts>(args)...};
+      return readable();
+    }
+
+    decltype(auto) read()
+    {
+      return file.read([&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
+    }
 
     const auto& intern(const std::string& s)
     {
@@ -34,9 +55,9 @@ namespace meevax::system
     }
   };
 
-  std::ostream& operator<<(std::ostream& os, const module&)
+  std::ostream& operator<<(std::ostream& os, const module& module)
   {
-    return os << "#<module>";
+    return os << "#<module " << module.name << ">";
   }
 } // namespace meevax::system
 
