@@ -2,7 +2,6 @@
 
 #include <meevax/system/machine.hpp>
 #include <meevax/system/module.hpp>
-// #include <meevax/system/reader.hpp>
 
 #include <boost/cstdlib.hpp>
 
@@ -11,8 +10,6 @@ int main()
   using namespace meevax::system;
 
   module root {"main"};
-
-  // reader read {"/dev/stdin"};
 
   // XXX TEMPORARY
   machine machine {};

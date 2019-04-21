@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_SYSTEM_READER_HPP
 
 #include <fstream>
-#include <iterator> // std::begin, std::end
 #include <limits> // std::numeric_limits<std::streamsize>
 
 #include <meevax/system/number.hpp>

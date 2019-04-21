@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
-#include <iterator> // std::next
 #include <sstream> // std::stringstream
 
 #include <meevax/system/boolean.hpp> // false_v

@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 
+#include <iterator>
+
 #include <meevax/system/pair.hpp>
 
 namespace meevax::system

@@ -1,12 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
 
-#include <iterator> // std::end
 #include <unordered_map>
 
-#include <meevax/system/cursor.hpp>
 #include <meevax/system/reader.hpp>
-#include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
