@@ -4,6 +4,8 @@
 #include <fstream>
 #include <limits> // std::numeric_limits<std::streamsize>
 
+#include <meevax/system/boolean.hpp>
+#include <meevax/system/exception.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
