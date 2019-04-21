@@ -13,6 +13,8 @@ namespace meevax::system
     constexpr pair(Ts&&... args)
       : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
     {}
+
+    virtual ~pair() = default;
   };
 
         auto& car(      accessor<pair>& pair) { return std::get<0>(pair.access()); }

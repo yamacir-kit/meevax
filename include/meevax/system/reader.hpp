@@ -126,7 +126,7 @@ namespace meevax::system
 
   protected:
     template <typename CharType>
-    constexpr bool is_delimiter(CharType&& c) const noexcept
+    bool is_delimiter(CharType&& c) const noexcept
     {
       switch (c)
       {

@@ -41,19 +41,19 @@ namespace meevax::system
 {
   // For C++17 fold-expression
   template <typename T, typename U>
-  constexpr cursor operator|(T&& lhs, U&& rhs)
+  cursor operator|(T&& lhs, U&& rhs)
   {
     return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) cons(Ts&&... args)
+  decltype(auto) cons(Ts&&... args)
   {
     return (args | ...);
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) list(Ts&&... args)
+  decltype(auto) list(Ts&&... args)
   {
     return (args | ... | unit);
   }
