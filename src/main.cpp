@@ -8,12 +8,10 @@ int main()
 {
   using namespace meevax::system;
 
-  std::cerr << "Booting module system... ";
-  module root {"main"};
-  std::cerr << "done." << std::endl;
+  module root {"root"};
 
   // XXX TEMPORARY
-  std::cerr << "Booting basic scheme operators... ";
+  std::cerr << "loading module \"scheme-base\" into module \"root\" => ";
   {
     root.define<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
     {
@@ -132,13 +130,16 @@ int main()
       return std::accumulate(args, unit, make<number>(1), std::divides {});
     });
   }
-
   std::cerr << "done." << std::endl;
 
   std::cerr << "\n"
             << "\tWelcome, wizard." << std::endl;
 
-  for (root.open("/dev/stdin"); root.readable() && std::cerr << "\nStandard input ready.\n> "; ) try
+  std::cerr << "\nentering interactive mode." << std::endl;
+  std::cerr << "opening \"/dev/stdin\"... ";
+
+  for (root.open("/dev/stdin") && std::cerr << "done." << std::endl;
+       root.readable() && std::cerr << "\nstandard-input ready.\n> "; ) try
   {
     const auto expression {root.read()};
 

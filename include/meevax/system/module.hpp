@@ -13,33 +13,36 @@ namespace meevax::system
   {
     const std::string name;
 
-    reader file;
+    reader source;
     machine secd;
 
     template <typename... Ts>
     module(const std::string& name, Ts&&... args)
       : std::unordered_map<std::string, cursor> {std::forward<Ts>(args)...}
       , name {name}
-      , file {}
+      , source {}
       , secd {}
-    {}
+    {
+      std::cerr << "constructing module \"" << name << "\" => ";
+      std::cerr << "done." << std::endl;
+    }
 
   public: // reader interface
     bool readable() const noexcept
     {
-      return static_cast<bool>(file);
+      return static_cast<bool>(source);
     }
 
     template <typename... Ts>
     decltype(auto) open(Ts&&... args)
     {
-      file = reader {std::forward<Ts>(args)...};
+      source = reader {std::forward<Ts>(args)...};
       return readable();
     }
 
     decltype(auto) read()
     {
-      return file.read([&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
+      return source.read([&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
     }
 
   public: // virtual machine interface
