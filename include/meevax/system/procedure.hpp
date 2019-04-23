@@ -10,9 +10,9 @@ namespace meevax::system
   struct procedure
     : public std::function<cursor (const cursor&)>
   {
-    const std::string name;
-
     using signature = cursor (*)(const cursor&);
+
+    const std::string name;
 
     template <typename... Ts>
     procedure(const std::string& name, Ts&&... args)
