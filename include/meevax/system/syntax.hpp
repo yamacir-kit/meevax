@@ -7,16 +7,16 @@
 
 namespace meevax::system
 {
-  using syntax_signature = std::function<cursor (const cursor&, const cursor&, const cursor&)>;
-
   struct syntax
-    : public syntax_signature
+    : public std::function<cursor (const cursor&, const cursor&, const cursor&)>
   {
+    using signature = cursor (*)(const cursor&, const cursor&, const cursor&);
+
     const std::string name;
 
     template <typename... Ts>
     syntax(const std::string& name, Ts&&... args)
-      : syntax_signature {std::forward<Ts>(args)...}
+      : std::function<cursor (const cursor&, const cursor&, const cursor&)> {std::forward<Ts>(args)...}
       , name {name}
     {}
   };
