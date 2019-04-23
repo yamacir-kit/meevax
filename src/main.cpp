@@ -10,13 +10,17 @@ int main()
 
   module root {"root"};
 
+  meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
+
   // XXX TEMPORARY
-  std::cerr << "loading module \"scheme-base\" into module \"root\" => ";
+  // std::cerr << "loading module \"scheme-base\" into module \"root\" => ";
   {
-    root.define<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
-    {
-      return cons(LDC, cadr(exp), continuation);
-    });
+    // root.define<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
+    // {
+    //   return cons(LDC, cadr(exp), continuation);
+    // });
+
+    root.define<syntax>("quote", library.link<syntax::signature>("quote"));
 
     root.define<syntax>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
@@ -130,7 +134,7 @@ int main()
       return std::accumulate(args, unit, make<number>(1), std::divides {});
     });
   }
-  std::cerr << "done." << std::endl;
+  // std::cerr << "done." << std::endl;
 
   std::cerr << "\n"
             << "\tWelcome, wizard." << std::endl;

@@ -3,8 +3,9 @@
 
 #include <unordered_map>
 
-#include <meevax/system/reader.hpp>
+#include <meevax/posix/linker.hpp>
 #include <meevax/system/machine.hpp>
+#include <meevax/system/reader.hpp>
 
 namespace meevax::system
 {
@@ -70,7 +71,7 @@ namespace meevax::system
       return secd.execute(std::forward<Ts>(args)...);
     }
 
-  private: // symbol table interface
+  private: // module interface
     const auto& intern(const std::string& s)
     {
       if (auto iter {find(s)}; iter != std::end(*this))
