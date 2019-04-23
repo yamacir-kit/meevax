@@ -52,6 +52,7 @@ namespace meevax::posix
       if (auto* message {dlerror()}; message)
       {
         std::cerr << "failed to open shared library, " << message << std::endl;
+        std::exit(EXIT_FAILURE);
       }
       else
       {
@@ -91,10 +92,12 @@ namespace meevax::posix
         else if (auto* message {dlerror()}; message)
         {
           std::cerr << "failed to link symbol, " << message << std::endl;
+          std::exit(EXIT_FAILURE);
         }
         else
         {
           std::cerr << "failed to link symbol in unexpected situation." << std::endl;
+          std::exit(EXIT_FAILURE);
         }
       }
       else

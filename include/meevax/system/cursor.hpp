@@ -33,6 +33,7 @@ namespace meevax::system
     }
   };
 
+  // XXX need extern?
   const cursor unit {nullptr};
 
   template <typename T, typename... Ts>
