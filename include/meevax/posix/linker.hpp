@@ -7,6 +7,8 @@
 
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
+#include <meevax/utility/demangle.hpp>
+
 namespace meevax::posix
 {
   class linker
@@ -53,7 +55,7 @@ namespace meevax::posix
       }
       else
       {
-        std::cerr << "succeeded" << std::endl;
+        std::cerr << "succeeded." << std::endl;
         path_ = path;
       }
 
@@ -73,7 +75,7 @@ namespace meevax::posix
     template <typename Signature>
     Signature link(const std::string& name)
     {
-      std::cerr << "linking symbol \"" << name << "\" in shared library \"" << path_ << "\" => ";
+      std::cerr << "linking symbol \"" << name << "\" in shared library \"" << path_ << "\" as signature " << utility::demangle(typeid(Signature)) << " => ";
 
       if (handle_)
       {
@@ -81,7 +83,7 @@ namespace meevax::posix
 
         if (void* function {dlsym(handle_.get(), name.c_str())}; function)
         {
-          std::cerr << "succeeded" << std::endl;
+          std::cerr << "succeeded." << std::endl;
 
           // XXX Result of this cast is undefined (maybe works file).
           return reinterpret_cast<Signature>(function);
@@ -92,12 +94,12 @@ namespace meevax::posix
         }
         else
         {
-          std::cerr << "failed to link symbol in unexpected situation" << std::endl;
+          std::cerr << "failed to link symbol in unexpected situation." << std::endl;
         }
       }
       else
       {
-        std::cerr << " shared library is not opened" << std::endl;
+        std::cerr << " shared library is not opened." << std::endl;
       }
 
       return nullptr;
