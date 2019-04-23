@@ -1,5 +1,3 @@
-#include <numeric> // std::accumulate
-
 #include <meevax/system/module.hpp>
 
 #include <boost/cstdlib.hpp>
@@ -15,11 +13,6 @@ int main()
   // XXX TEMPORARY
   // std::cerr << "loading module \"scheme-base\" into module \"root\" => ";
   {
-    // root.define<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
-    // {
-    //   return cons(LDC, cadr(exp), continuation);
-    // });
-
     root.define<syntax>("quote", library.link<syntax::signature>("quote"));
 
     root.define<syntax>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
@@ -106,35 +99,11 @@ int main()
       return car(args) == cadr(args) ? true_v : false_v;
     });
 
-    root.define<procedure>("+", [&](const cursor& args)
-    {
-      return std::accumulate(args, unit, make<number>(0), std::plus {});
-    });
-
-    root.define<procedure>("*", [&](const cursor& args)
-    {
-      return std::accumulate(args, unit, make<number>(1), std::multiplies {});
-    });
-
-    root.define<procedure>("-", [&](const cursor& args)
-    {
-      // TODO LENGTH
-      if (std::distance(args, unit) < 2)
-      {
-        return std::accumulate(args, unit, make<number>(0), std::minus {});
-      }
-      else
-      {
-        return std::accumulate(cursor {cdr(args)}, unit, car(args), std::minus {});
-      }
-    });
-
-    root.define<procedure>("/", [&](const cursor& args)
-    {
-      return std::accumulate(args, unit, make<number>(1), std::divides {});
-    });
+    root.define<procedure>("+", library.link<procedure::signature>("plus"));
+    root.define<procedure>("*", library.link<procedure::signature>("multiply"));
+    root.define<procedure>("-", library.link<procedure::signature>("minus"));
+    root.define<procedure>("/", library.link<procedure::signature>("divide"));
   }
-  // std::cerr << "done." << std::endl;
 
   std::cerr << "\n"
             << "\tWelcome, wizard." << std::endl;
