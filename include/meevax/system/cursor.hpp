@@ -33,8 +33,7 @@ namespace meevax::system
     }
   };
 
-  // XXX need extern?
-  const cursor unit {nullptr};
+  extern "C" const cursor unit;
 
   template <typename T, typename... Ts>
   constexpr decltype(auto) make(Ts&&... args)

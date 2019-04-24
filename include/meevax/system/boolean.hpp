@@ -7,8 +7,8 @@
 
 namespace meevax::system
 {
-  const cursor true_v {make<std::true_type>()};
-  const cursor false_v {make<std::false_type>()};
+  extern "C" const cursor true_v;
+  extern "C" const cursor false_v;
 
   template <bool Value>
   std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)

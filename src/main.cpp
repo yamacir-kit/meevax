@@ -11,7 +11,6 @@ int main()
   meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
 
   // XXX TEMPORARY
-  // std::cerr << "loading module \"scheme-base\" into module \"root\" => ";
   {
     root.define<syntax>("quote", library.link<syntax::signature>("quote"));
 
@@ -94,10 +93,11 @@ int main()
       return true_v;
     });
 
-    root.define<procedure>("eq?", [&](const cursor& args)
-    {
-      return car(args) == cadr(args) ? true_v : false_v;
-    });
+    root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
+    // root.define<procedure>("eq?", [&](const cursor& args)
+    // {
+    //   return car(args) == cadr(args) ? true_v : false_v;
+    // });
 
     root.define<procedure>("+", library.link<procedure::signature>("plus"));
     root.define<procedure>("*", library.link<procedure::signature>("multiply"));
@@ -106,9 +106,10 @@ int main()
   }
 
   std::cerr << "\n"
-            << "\tWelcome, wizard." << std::endl;
+            << "\tWelcome, wizard.\n"
+            << std::endl;
 
-  std::cerr << "\nentering interactive mode." << std::endl;
+  std::cerr << "entering interactive mode." << std::endl;
   std::cerr << "opening \"/dev/stdin\"... ";
 
   for (root.open("/dev/stdin") && std::cerr << "done." << std::endl;
