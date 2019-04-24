@@ -7,16 +7,16 @@
 #include <unordered_map>
 
 #include <meevax/system/closure.hpp>
-#include <meevax/system/instruction.hpp>
 #include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
-  class compiler
+  class [[deprecated]] compiler
   {
     std::unordered_map<
       cursor,
@@ -107,7 +107,7 @@ namespace meevax::system
       }
       else if (not exp.is<pair>())
       {
-        if (exp.is<std::string>()) // is variable
+        if (exp.is<symbol>()) // is variable
         {
           if (auto location {locate(exp, env)}; location)
           {
@@ -172,12 +172,12 @@ namespace meevax::system
         {
           if (y.is<pair>() && car(y) == exp)
           {
-            return cons(cursor::bind<number>(i), cursor::bind<number>(j));
+            return cons(make<number>(i), make<number>(j));
           }
 
           if (!y.is<pair>() && y == exp)
           {
-            return cons(cursor::bind<number>(i), cursor::bind<number>(-++j));
+            return cons(make<number>(i), make<number>(-++j));
           }
         }
       }

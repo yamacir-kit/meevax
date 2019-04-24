@@ -1,9 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
 
-#include <iostream>
 #include <string>
-#include <utility>
+
+#include <meevax/system/cursor.hpp>
 
 namespace meevax::system
 {
@@ -18,7 +18,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const character& c)
   {
-    return os << "\x1B[1;33m#\\" << static_cast<std::string>(c) << "\x1b[0m";
+    return os << "\x1B[0;36m#\\" << static_cast<const std::string&>(c) << "\x1b[0m";
   }
 } // namespace meevax::system
 

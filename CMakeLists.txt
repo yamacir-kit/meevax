@@ -15,8 +15,10 @@ endif()
 
 project(meevax VERSION ${MAJOR}.${MINOR}.${SUBMINOR} LANGUAGES CXX)
 
-set(CMAKE_BUILD_TYPE minsizerel)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -s")
+# set(CMAKE_BUILD_TYPE minsizerel)
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -s")
+set(CMAKE_BUILD_TYPE debug)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -pg -fno-omit-frame-pointer")
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Boost REQUIRED)
@@ -36,28 +38,39 @@ link_directories(
   ${Boost_LIBRARY_DIRS}
 )
 
-add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+add_library(${PROJECT_NAME}-base SHARED
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/meevax.cpp
+)
+set_target_properties(${PROJECT_NAME}-base PROPERTIES
+  VERSION   ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
 
+add_executable(${PROJECT_NAME}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+)
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
+  ${PROJECT_NAME}-base
   dl
   gmp
 )
 
-file(GLOB ${PROJECT_NAME}_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+file(GLOB ${PROJECT_NAME}_SCHEME_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/scheme/*.cpp)
 
-foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_MODULES)
+foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_SCHEME_SOURCES)
   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "scheme-\\2" TARGET_NAME ${EACH_SOURCE})
-
-  add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
-
-  set_target_properties(
-    ${TARGET_NAME} PROPERTIES
-    VERSION ${PROJECT_VERSION}
+  add_library(${TARGET_NAME} SHARED
+    ${EACH_SOURCE}
+  )
+  set_target_properties(${TARGET_NAME} PROPERTIES
+    VERSION   ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
   )
-
-  # target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES} gmp)
+  target_link_libraries(${TARGET_NAME}
+    ${Boost_LIBRARIES}
+    ${PROJECT_NAME}-base
+    gmp
+  )
 endforeach()
 

@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_NUMBER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_NUMBER_HPP
 
-#include <iostream>
-
 #include <boost/multiprecision/gmp.hpp>
 
 #include <meevax/system/cursor.hpp>
@@ -19,7 +17,7 @@ namespace meevax::system
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
   cursor operator OPERATOR(const cursor& lhs, const cursor& rhs) \
   { \
-    return cursor::bind<number>( \
+    return make<number>( \
       lhs.as<number>() OPERATOR rhs.as<number>() \
     ); \
   }

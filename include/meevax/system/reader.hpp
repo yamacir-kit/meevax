@@ -1,34 +1,133 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_READER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_READER_HPP
 
-#include <iostream>
-#include <iterator> // std::begin, std::end
+#include <fstream>
 #include <limits> // std::numeric_limits<std::streamsize>
-#include <string>
-#include <utility>
 
-#include <meevax/system/cursor.hpp>
+#include <meevax/system/boolean.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/modular.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/string.hpp>
+#include <meevax/system/symbol.hpp>
 
 namespace meevax::system
 {
   class reader
+    : public std::ifstream
   {
-    const cursor module;
-    const cursor x0020, x002E;
+    static inline const cursor x0020 {make<character>(")")},
+                               x002E {make<character>(".")};
 
   public:
-    explicit reader(const cursor& module)
-      : module {module}
-      , x0020 {cursor::bind<std::string>("#\\x0020")}
-      , x002E {cursor::bind<std::string>("#\\x002E")}
+    template <typename... Ts>
+    reader(Ts&&... args)
+      : std::ifstream {std::forward<Ts>(args)...}
     {}
 
+    template <typename Interner>
+    cursor read(Interner&& intern)
+    {
+      for (std::string buffer {narrow(get(), ' ')}; *this; buffer.push_back(narrow(get(), ' '))) switch (buffer.back())
+      {
+      case ';':
+        ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        [[fallthrough]];
+
+      case ' ': case '\t': case '\n':
+        buffer.pop_back();
+        break;
+
+      case '(':
+        if (auto first {read(intern)}; first == x0020) // termination
+        {
+          return unit;
+        }
+        else if (first == x002E) // dot-notation
+        {
+          auto second {read(intern)};
+          ignore(std::numeric_limits<std::streamsize>::max(), ')');
+          return second;
+        }
+        else
+        {
+          putback('(');
+          return cons(first, read(intern));
+        }
+
+      case ')':
+        return x0020;
+
+      case '"':
+        switch (auto c {narrow(get(), '\0')}; c)
+        {
+        case '"': // termination
+          return make<string>(make<character>(""), unit);
+
+        case '\\': // escape sequences
+          switch (auto escaped {narrow(get(), '\0')}; escaped)
+          {
+          case 'n':
+            putback('"');
+            return make<string>(make<character>('\n'), read(intern));
+
+          case '\n':
+            while (std::isspace(peek()))
+            {
+              ignore(1);
+            }
+            putback('"');
+            return read(intern);
+
+          case '"':
+            putback('"');
+            return make<string>(make<character>("\""), read(intern));
+
+          default:
+            putback('"');
+            return make<string>(make<character>("#\\unsupported;"), read(intern));
+          }
+
+        default:
+          putback('"');
+          return make<string>(make<character>(c), read(intern));
+        }
+
+      case '\'':
+        return list(intern("quote"), read(intern));
+
+      case '#':
+        return expand(intern);
+
+      default:
+        if (auto c {peek()}; is_delimiter(c)) try // delimiter
+        {
+          if (buffer == ".")
+          {
+            return x002E;
+          }
+          else
+          {
+            return make<number>(buffer);
+          }
+        }
+        catch (const std::runtime_error&)
+        {
+          return intern(buffer);
+        }
+      }
+
+      return make<character>("end-of-file");
+    }
+
+    template <typename... Ts>
+    decltype(auto) operator()(Ts&&... args)
+    {
+      return read(std::forward<Ts>(args)...);
+    }
+
+  protected:
     template <typename CharType>
-    constexpr auto is_delimiter(CharType&& c) const noexcept
+    bool is_delimiter(CharType&& c) const noexcept
     {
       switch (c)
       {
@@ -52,110 +151,17 @@ namespace meevax::system
       }
     }
 
-    cursor operator()(std::istream& is) const
+    template <typename Interner>
+    cursor expand(Interner&& intern)
     {
-      for (std::string buffer {is.narrow(is.get(), ' ')}; is; buffer.push_back(is.narrow(is.get(), ' '))) switch (buffer.back())
-      {
-      case ';':
-        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        [[fallthrough]];
-
-      case ' ': case '\t': case '\n':
-        buffer.pop_back();
-        break;
-
-      case '(':
-        if (auto first {(*this)(is)}; first == x0020) // termination
-        {
-          return unit;
-        }
-        else if (first == x002E) // dot-notation
-        {
-          auto second {(*this)(is)};
-          is.ignore(std::numeric_limits<std::streamsize>::max(), ')');
-          return second;
-        }
-        else
-        {
-          is.putback('(');
-          return cons(first, (*this)(is));
-        }
-
-      case ')':
-        return x0020;
-
-      case '"':
-        switch (auto c {is.narrow(is.get(), '\0')}; c)
-        {
-        case '"': // termination
-          return cursor::bind<string>(cursor::bind<character>(""), unit);
-
-        case '\\': // escape sequences
-          switch (auto escaped {is.narrow(is.get(), '\0')}; escaped)
-          {
-          case 'n':
-            is.putback('"');
-            return cursor::bind<string>(cursor::bind<character>('\n'), (*this)(is));
-
-          case '\n':
-            while (std::isspace(is.peek()))
-            {
-              is.ignore(1);
-            }
-            is.putback('"');
-            return (*this)(is);
-
-          case '"':
-            is.putback('"');
-            return cursor::bind<string>(cursor::bind<character>("\""), (*this)(is));
-
-          default:
-            is.putback('"');
-            return cursor::bind<string>(cursor::bind<character>("#\\unsupported;"), (*this)(is));
-          }
-
-        default:
-          is.putback('"');
-          return cursor::bind<string>(cursor::bind<character>(c), (*this)(is));
-        }
-
-      case '\'':
-        return list(module.as<modular>().intern("quote"), (*this)(is));
-
-      case '#':
-        return expand(is);
-
-      case '.': // XXX UGLY CODE
-        if (is.peek() != '.' && buffer == ".")
-        {
-          return x002E;
-        }
-        [[fallthrough]];
-
-      default:
-        if (auto c {is.peek()}; is_delimiter(c)) try // delimiter
-        {
-          return cursor::bind<number>(buffer);
-        }
-        catch (const std::runtime_error&)
-        {
-          return module.as<modular>().intern(buffer);
-        }
-      }
-
-      return cursor::bind<character>("end-of-file");
-    }
-
-    cursor expand(std::istream& is) const
-    {
-      switch (is.peek())
+      switch (peek())
       {
       case 't':
-        (*this)(is); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
+        read(intern); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return true_v;
 
       case 'f':
-        (*this)(is); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
+        read(intern); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return false_v;
 
       default:

@@ -1,14 +1,16 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 
-#include <meevax/system/accessor.hpp>
+#include <iterator>
+
 #include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {
+  // The object cursor
   struct cursor
-    : public accessor<pair>,
-      public std::iterator<std::input_iterator_tag, cursor>
+    : public accessor<pair>
+    , public std::iterator<std::input_iterator_tag, cursor>
   {
     template <typename... Ts>
     constexpr cursor(Ts&&... args)
@@ -17,7 +19,7 @@ namespace meevax::system
 
     decltype(auto) operator*()
     {
-      return std::get<0>(access());
+      return car(*this);
     }
 
     decltype(auto) operator->()
@@ -27,11 +29,17 @@ namespace meevax::system
 
     decltype(auto) operator++()
     {
-      return *this = std::get<1>(access());
+      return *this = cdr(*this);
     }
   };
 
-  const cursor unit {nullptr};
+  extern "C" const cursor unit;
+
+  template <typename T, typename... Ts>
+  constexpr decltype(auto) make(Ts&&... args)
+  {
+    return cursor::bind<T>(std::forward<Ts>(args)...);
+  }
 
   inline cursor begin(const accessor<pair>& pair) noexcept
   {

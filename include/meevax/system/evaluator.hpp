@@ -148,7 +148,7 @@ namespace meevax::core
 
     DEFINE_PROCEDURE("lambda", [&](auto&&... args)
     {
-      return cursor::bind<closure>(std::forward<decltype(args)>(args)...);
+      return make<closure>(std::forward<decltype(args)>(args)...);
     });
 
     DEFINE_PROCEDURE("define", [&](auto&& var, auto)

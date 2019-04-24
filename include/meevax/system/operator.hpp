@@ -1,11 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 
-#include <memory> // std::make_shared
-#include <utility>
-
+#include <meevax/system/cursor.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/pair.hpp>
 
 // TODO 純LISPコアに必要なものは移設すること
 
@@ -44,19 +41,19 @@ namespace meevax::system
 {
   // For C++17 fold-expression
   template <typename T, typename U>
-  constexpr cursor operator|(T&& lhs, U&& rhs)
+  cursor operator|(T&& lhs, U&& rhs)
   {
     return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) cons(Ts&&... args)
+  decltype(auto) cons(Ts&&... args)
   {
     return (args | ...);
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) list(Ts&&... args)
+  decltype(auto) list(Ts&&... args)
   {
     return (args | ... | unit);
   }
@@ -92,7 +89,7 @@ namespace meevax::system
   {
     if (!var)
     {
-      return var;
+      return unit;
     }
     else if (!env)
     {
@@ -105,6 +102,18 @@ namespace meevax::system
     else
     {
       return assoc(var, cdr(env));
+    }
+  }
+
+  cursor take(const cursor& exp, std::size_t size)
+  {
+    if (0 < size)
+    {
+      return car(exp) | take(cdr(exp), --size);
+    }
+    else
+    {
+      return unit;
     }
   }
 } // namespace meevax::system
