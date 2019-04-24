@@ -9,8 +9,6 @@ int main()
   module root {"root"};
 
   meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
-
-  // XXX TEMPORARY
   {
     root.define<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
     {
