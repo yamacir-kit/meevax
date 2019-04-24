@@ -12,7 +12,10 @@ int main()
 
   // XXX TEMPORARY
   {
-    root.define<syntax>("quote", library.link<syntax::signature>("quote"));
+    root.define<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
+    {
+      return cons(LDC, cadr(exp), continuation);
+    });
 
     root.define<syntax>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
@@ -80,27 +83,11 @@ int main()
              );
     });
 
-    root.define<procedure>("pair?", [&](const cursor& args)
-    {
-      for (const cursor& each : args)
-      {
-        if (not each or not each.is<pair>())
-        {
-          return false_v;
-        }
-      }
-
-      return true_v;
-    });
-
     root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
-    // root.define<procedure>("eq?", [&](const cursor& args)
-    // {
-    //   return car(args) == cadr(args) ? true_v : false_v;
-    // });
+    root.define<procedure>("pair?", library.link<procedure::signature>("is_pair"));
 
-    root.define<procedure>("+", library.link<procedure::signature>("plus"));
     root.define<procedure>("*", library.link<procedure::signature>("multiply"));
+    root.define<procedure>("+", library.link<procedure::signature>("plus"));
     root.define<procedure>("-", library.link<procedure::signature>("minus"));
     root.define<procedure>("/", library.link<procedure::signature>("divide"));
   }

@@ -2,13 +2,6 @@
 
 using namespace meevax::system;
 
-cursor quote(const cursor& exp,
-             const cursor&,
-             const cursor& continuation)
-{
-  return cons(LDC, cadr(exp), continuation);
-}
-
 cursor eq(const cursor& args)
 {
   return car(args) == cadr(args) ? true_v : false_v;
@@ -27,14 +20,9 @@ cursor is_pair(const cursor& args)
   return true_v;
 }
 
-cursor plus(const cursor& args)
+cursor divide(const cursor& args)
 {
-  return std::accumulate(args, unit, make<number>(0), std::plus {});
-}
-
-cursor multiply(const cursor& args)
-{
-  return std::accumulate(args, unit, make<number>(1), std::multiplies {});
+  return std::accumulate(args, unit, make<number>(1), std::divides {});
 }
 
 cursor minus(const cursor& args)
@@ -49,8 +37,13 @@ cursor minus(const cursor& args)
   }
 }
 
-cursor divide(const cursor& args)
+cursor multiply(const cursor& args)
 {
-  return std::accumulate(args, unit, make<number>(1), std::divides {});
+  return std::accumulate(args, unit, make<number>(1), std::multiplies {});
+}
+
+cursor plus(const cursor& args)
+{
+  return std::accumulate(args, unit, make<number>(0), std::plus {});
 }
 
