@@ -84,6 +84,35 @@ namespace meevax::system
         return iter->second;
       }
     }
+
+  public:
+    // XXX TEMPORARY DIRTY HACK
+    template <typename... Ts>
+    bool load(Ts&&... args) noexcept(false)
+    {
+      if (reader file {std::forward<Ts>(args)...}; file)
+      {
+        std::cerr << "[debug] succeeded to open file" << std::endl;
+
+        for (std::size_t size {0}; file; ++size)
+        {
+          auto expression {file.read([&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); })};
+          execute(compile(expression));
+
+          std::cerr << "\r[debug] " << size << " expression loaded" << std::flush;
+        }
+
+        std::cerr << std::endl;
+
+        return true;
+      }
+      else
+      {
+        std::cerr << "[debug] failed to open file" << std::endl;
+      }
+
+      return false;
+    }
   };
 
   std::ostream& operator<<(std::ostream& os, const module& module)

@@ -86,8 +86,29 @@ namespace meevax::system
       return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
-    decltype(auto) access()       { return std::shared_ptr<TopType>::operator*(); }
-    decltype(auto) access() const { return std::shared_ptr<TopType>::operator*(); }
+    decltype(auto) access()
+    {
+      if (*this)
+      {
+        return std::shared_ptr<TopType>::operator*();
+      }
+      else
+      {
+        throw std::runtime_error {"dereferencing unit!"};
+      }
+    }
+
+    decltype(auto) access() const
+    {
+      if (*this)
+      {
+        return std::shared_ptr<TopType>::operator*();
+      }
+      else
+      {
+        throw std::runtime_error {"dereferencing unit!"};
+      }
+    }
 
     template <typename T>
     decltype(auto) is() const

@@ -81,6 +81,13 @@ int main()
              );
     });
 
+    // XXX DIRTY HACK
+    root.define<procedure>("load", [&](const cursor& args)
+    {
+      root.load(car(args).template as<const string>());
+      return args;
+    });
+
     root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
     root.define<procedure>("pair?", library.link<procedure::signature>("is_pair"));
 
@@ -94,22 +101,16 @@ int main()
             << "\tWelcome, wizard.\n"
             << std::endl;
 
-  std::cerr << "entering interactive mode." << std::endl;
-  std::cerr << "opening \"/dev/stdin\"... ";
-
-  for (root.open("/dev/stdin") && std::cerr << "done." << std::endl;
-       root.readable() && std::cerr << "\nstandard-input ready.\n> "; ) try
+  for (root.open("/dev/stdin"); root.readable() && std::cerr << "\nstandard-input ready.\n> "; ) try
   {
     const auto expression {root.read()};
+    std::cerr << "\r\x1b[K> " << expression << std::endl;
 
-    std::cerr << "\n";
-    std::cerr << "[read] " << expression << std::endl;
+    const auto executable {root.compile(expression)};
+    std::cerr << "; " << executable << std::endl;
 
-    const auto code {root.compile(expression)};
-    std::cerr << "[compile] " << code << std::endl;
-
-    const auto result {root.execute(code)};
-    std::cerr << "[execute] " << result << std::endl;
+    const auto evaluation {root.execute(executable)};
+    std::cerr << "; " << evaluation << std::endl;
   }
   catch (const std::runtime_error& error)
   {

@@ -8,8 +8,23 @@ namespace meevax::system
 {
   struct string
     : public virtual pair
-  {};
+  {
+    // TODO REPLACE TO BOOST::LEXICAL_CAST
+    operator std::string() const
+    {
+      std::stringstream buffer {};
+      buffer << first.as<std::string>();
 
+      for (cursor c {second}; c; ++c)
+      {
+        buffer << (*c).as<std::string>();
+      }
+
+      return buffer.str();
+    }
+  };
+
+  // TODO PROVIDE API "SYNTAX-HIGHLIGHT-OFF"
   std::ostream& operator<<(std::ostream& os, const string& s)
   {
     os << "\x1b[36m\"" << s.first.as<std::string>();
