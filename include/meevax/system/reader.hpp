@@ -15,19 +15,25 @@ namespace meevax::system
   class reader // is character oriented state machine.
     : public std::ifstream
   {
-    static inline const cursor x0020 {make<character>(")")},
-                               x002E {make<character>(".")};
-
     using seeker = std::istream_iterator<char8_t>;
+
+    struct dot_notation
+      : public exception
+    {
+      template <typename... Ts>
+      constexpr dot_notation(Ts&&... args)
+        : exception {std::forward<Ts>(args)...}
+      {}
+    };
 
   public:
     template <typename... Ts>
-    reader(Ts&&... args)
+    constexpr reader(Ts&&... args)
       : std::ifstream {std::forward<Ts>(args)...}
     {}
 
     template <typename Interner>
-    cursor read(Interner&& intern)
+    cursor read(Interner&& intern) noexcept(false)
     {
       std::string buffer {};
 
@@ -41,24 +47,30 @@ namespace meevax::system
         break;
 
       case '(':
-        if (auto first {read(intern)}; first == x0020) // termination
+        try
         {
-          return unit;
-        }
-        else if (first == x002E) // dot-notation
-        {
-          auto second {read(intern)};
-          ignore(std::numeric_limits<std::streamsize>::max(), ')');
-          return second;
-        }
-        else
-        {
+          auto buffer {read(intern)};
           putback('(');
-          return cons(first, read(intern));
+          return cons(buffer, read(intern));
+        }
+        catch (const cursor& something)
+        {
+          if (!something)
+          {
+            return unit;
+          }
+          else if (something && something.is<dot_notation>())
+          {
+            auto buffer {read(intern)};
+            ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            return buffer;
+          }
+
+          throw;
         }
 
       case ')':
-        return x0020;
+        throw unit;
 
       case '"':
         switch (auto c {narrow(get(), '\0')}; c)
@@ -108,7 +120,7 @@ namespace meevax::system
         {
           if (buffer == ".")
           {
-            return x002E;
+            throw make<dot_notation>("unexpected dot-notation");
           }
           else
           {
