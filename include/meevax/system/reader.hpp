@@ -12,11 +12,13 @@
 
 namespace meevax::system
 {
-  class reader
+  class reader // is character oriented state machine.
     : public std::ifstream
   {
     static inline const cursor x0020 {make<character>(")")},
                                x002E {make<character>(".")};
+
+    using seeker = std::istream_iterator<char8_t>;
 
   public:
     template <typename... Ts>
@@ -29,8 +31,7 @@ namespace meevax::system
     {
       std::string buffer {};
 
-      // TODO OSTREAM_ITERATOR
-      for (auto key {narrow(get(), ' ')}; *this; key = narrow(get(), ' ')) switch (key)
+      for (seeker head {*this}; head != seeker {}; ++head) switch (*head)
       {
       case ';':
         ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -101,7 +102,7 @@ namespace meevax::system
         return expand(intern);
 
       default:
-        buffer.push_back(key);
+        buffer.push_back(*head);
 
         if (auto c {peek()}; is_delimiter(c)) try // delimiter
         {
