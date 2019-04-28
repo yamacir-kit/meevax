@@ -27,14 +27,16 @@ namespace meevax::system
     template <typename Interner>
     cursor read(Interner&& intern)
     {
-      for (std::string buffer {narrow(get(), ' ')}; *this; buffer.push_back(narrow(get(), ' '))) switch (buffer.back())
+      std::string buffer {};
+
+      // TODO OSTREAM_ITERATOR
+      for (auto key {narrow(get(), ' ')}; *this; key = narrow(get(), ' ')) switch (key)
       {
       case ';':
         ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        [[fallthrough]];
+        break;
 
       case ' ': case '\t': case '\n':
-        buffer.pop_back();
         break;
 
       case '(':
@@ -99,6 +101,8 @@ namespace meevax::system
         return expand(intern);
 
       default:
+        buffer.push_back(key);
+
         if (auto c {peek()}; is_delimiter(c)) try // delimiter
         {
           if (buffer == ".")
