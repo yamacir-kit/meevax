@@ -17,11 +17,20 @@ namespace meevax::system
   {
     using seeker = std::istream_iterator<char8_t>;
 
-    struct dot_notation
+    struct dot_notation // XXX TEMPORARY
       : public exception
     {
       template <typename... Ts>
       constexpr dot_notation(Ts&&... args)
+        : exception {std::forward<Ts>(args)...}
+      {}
+    };
+
+    struct list_termination // XXX TEMPORARY
+      : public exception
+    {
+      template <typename... Ts>
+      constexpr list_termination(Ts&&... args)
         : exception {std::forward<Ts>(args)...}
       {}
     };
@@ -53,24 +62,19 @@ namespace meevax::system
           putback('(');
           return cons(buffer, read(intern));
         }
-        catch (const cursor& something)
+        catch (const list_termination&)
         {
-          if (!something)
-          {
-            return unit;
-          }
-          else if (something && something.is<dot_notation>())
-          {
-            auto buffer {read(intern)};
-            ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-            return buffer;
-          }
-
-          throw;
+          return unit;
+        }
+        catch (const dot_notation&)
+        {
+          auto buffer {read(intern)};
+          ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+          return buffer;
         }
 
       case ')':
-        throw unit;
+        throw list_termination {"ill-formed-expression"};
 
       case '"':
         switch (auto c {narrow(get(), '\0')}; c)
@@ -120,7 +124,7 @@ namespace meevax::system
         {
           if (buffer == ".")
           {
-            throw make<dot_notation>("unexpected dot-notation");
+            throw dot_notation {"ill-formed-expresion with dot-notation"};
           }
           else
           {
