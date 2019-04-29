@@ -34,6 +34,7 @@ namespace meevax::system
   };
 
   extern "C" const cursor unit;
+  extern "C" const cursor undefined;
 
   template <typename T, typename... Ts>
   constexpr cursor make(Ts&&... args)

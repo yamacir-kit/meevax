@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 
+#include <sstream>
+
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/exception.hpp>
 
@@ -115,6 +117,20 @@ namespace meevax::system
     {
       return unit;
     }
+  }
+
+  template <typename... Ts>
+  decltype(auto) display(Ts&&... args)
+  {
+    return (std::cout << ... << args) << std::endl;
+  }
+
+  template <typename... Ts>
+  std::string to_string(Ts&&... args)
+  {
+    std::stringstream buffer {};
+    (buffer << ... << args);
+    return buffer.str();
   }
 } // namespace meevax::system
 

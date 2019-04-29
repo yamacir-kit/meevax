@@ -1,10 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
-#include <sstream> // std::stringstream
-
 #include <meevax/system/boolean.hpp> // false_v
 #include <meevax/system/closure.hpp>
+#include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp> // assoc
@@ -85,7 +84,7 @@ namespace meevax::system
       }
     }
 
-    auto execute(const cursor& exp)
+    auto execute(const cursor& exp) noexcept(false)
     {
       s = e = d = unit;
 
@@ -133,9 +132,7 @@ namespace meevax::system
 
         if (const auto& var {assoc(cadr(c), env)}; var == undefined)
         {
-          std::stringstream buffer {};
-          buffer << cadr(c) << " is undefined variable";
-          throw std::runtime_error {buffer.str()};
+          throw error {to_string(cadr(c), "\x0b[31m", " is unbound")};
         }
         else
         {
@@ -203,9 +200,7 @@ namespace meevax::system
 
         if (auto applicable {car(s)}; not applicable)
         {
-          std::stringstream buffer {};
-          buffer << applicable << " is not applicable";
-          throw std::runtime_error {buffer.str()};
+          throw error {"unit is not applicable"};
         }
         else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
@@ -222,9 +217,7 @@ namespace meevax::system
         }
         else
         {
-          std::stringstream buffer {};
-          buffer << "unimplemented operator " << applicable;
-          throw std::runtime_error {buffer.str()};
+          throw error {to_string(applicable, "\x1b[31m", " is not applicable")};
         }
         goto dispatch;
 
@@ -237,21 +230,10 @@ namespace meevax::system
         goto dispatch;
 
       default:
-        break;
-        // std::stringstream buffer {};
-        // buffer << "unknown instruction \"" << instruction << "\"";
-        // throw std::runtime_error {buffer.str()};
+        throw error {to_string(car(c), " is not virtual machine instruction")};
       }
 
-      std::stringstream buffer {};
-      buffer << "unterminated machine code executed\n"
-             << "terminated:\n"
-             << "\ts\t" << s << "\n"
-             << "\te\t" << e << "\n"
-             << "\tc\t" << c << "\n"
-             << "\td\t" << d << "\n";
-
-      throw std::runtime_error {buffer.str()};
+      throw error {to_string("unterminated execution")};
     }
 
     cursor begin(const cursor& exp,
