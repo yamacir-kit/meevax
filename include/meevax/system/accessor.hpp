@@ -8,6 +8,8 @@
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
+#include <meevax/system/exception.hpp>
+
 namespace meevax::system
 {
   template <typename T>
@@ -86,7 +88,7 @@ namespace meevax::system
       return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
-    decltype(auto) access()
+    auto& access()
     {
       if (*this)
       {
@@ -94,11 +96,12 @@ namespace meevax::system
       }
       else
       {
-        throw std::runtime_error {"dereferencing unit!"};
+        // This exception occurrence is guarded by selecter
+        throw error {"accessing to unit"};
       }
     }
 
-    decltype(auto) access() const
+    auto& access() const
     {
       if (*this)
       {
@@ -106,7 +109,8 @@ namespace meevax::system
       }
       else
       {
-        throw std::runtime_error {"dereferencing unit!"};
+        // This exception occurrence is guarded by selecter
+        throw error {"accessing to unit"};
       }
     }
 
