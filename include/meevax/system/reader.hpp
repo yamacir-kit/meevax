@@ -17,20 +17,17 @@ namespace meevax::system
   {
     using seeker = std::istream_iterator<char8_t>;
 
-    struct dot_notation // XXX TEMPORARY
-      : public exception
+    enum class category
     {
-      template <typename... Ts>
-      constexpr dot_notation(Ts&&... args)
-        : exception {std::forward<Ts>(args)...}
-      {}
+      pair, parentheses
     };
 
-    struct list_termination // XXX TEMPORARY
+    template <category>
+    struct ill_formed_expression
       : public exception
     {
       template <typename... Ts>
-      constexpr list_termination(Ts&&... args)
+      constexpr ill_formed_expression(Ts&&... args)
         : exception {std::forward<Ts>(args)...}
       {}
     };
@@ -62,11 +59,11 @@ namespace meevax::system
           putback('(');
           return cons(buffer, read(intern));
         }
-        catch (const list_termination&)
+        catch (const ill_formed_expression<category::parentheses>&)
         {
           return unit;
         }
-        catch (const dot_notation&)
+        catch (const ill_formed_expression<category::pair>&)
         {
           auto buffer {read(intern)};
           ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
@@ -74,7 +71,7 @@ namespace meevax::system
         }
 
       case ')':
-        throw list_termination {"ill-formed-expression"};
+        throw ill_formed_expression<category::parentheses> {"unexpected close parentheses inserted"};
 
       case '"':
         switch (auto c {narrow(get(), '\0')}; c)
@@ -120,20 +117,20 @@ namespace meevax::system
       default:
         buffer.push_back(*head);
 
-        if (auto c {peek()}; is_delimiter(c)) try // delimiter
+        if (auto c {peek()}; is_delimiter(c)) // delimiter
         {
           if (buffer == ".")
           {
-            throw dot_notation {"ill-formed-expresion with dot-notation"};
+            throw ill_formed_expression<category::pair> {"ill-formed dot-notation detected"};
           }
-          else
+          else try // is symbol or number
           {
             return make<number>(buffer);
           }
-        }
-        catch (const std::runtime_error&)
-        {
-          return intern(buffer);
+          catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
+          {
+            return intern(buffer);
+          }
         }
       }
 
