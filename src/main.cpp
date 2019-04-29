@@ -112,9 +112,22 @@ int main()
     const auto evaluation {root.execute(executable)};
     std::cerr << "; " << evaluation << std::endl;
   }
+  catch (const cursor& something)
+  {
+    if (something && something.is<exception>())
+    {
+      std::cerr << something << std::endl;
+      continue;
+    }
+    else
+    {
+      std::cerr << "\x1b[31m[debug] unexpected object thrown: " << something << std::endl;
+      return boost::exit_exception_failure;
+    }
+  }
   catch (const std::runtime_error& error)
   {
-    std::cerr << "\x1B[31m[error] " << error.what() << "\x1B[0m\n\n";
+    std::cerr << "\x1b[31m[fatal] " << error.what() << "\x1B[0m\n\n";
     continue;
   }
 
