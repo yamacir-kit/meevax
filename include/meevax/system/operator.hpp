@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 
+#include <sstream>
+
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/exception.hpp>
 
@@ -127,7 +129,8 @@ namespace meevax::system
   std::string to_string(Ts&&... args)
   {
     std::stringstream buffer {};
-    return (buffer << ... << args).str();
+    (buffer << ... << args);
+    return buffer.str();
   }
 } // namespace meevax::system
 

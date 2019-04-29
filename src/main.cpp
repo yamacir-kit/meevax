@@ -128,7 +128,7 @@ int main()
   catch (const std::exception& error)
   {
     std::cerr << "\x1b[1;31m"
-              << "unexpected standard exception occurred.\n"
+              << "unexpected standard exception: \"" << error.what() << "\"\n"
               << "this maybe implementation bug. report this to developer.\n"
               << "shutting down meevax system.\n"
               << "\x1b[0m";

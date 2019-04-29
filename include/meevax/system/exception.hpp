@@ -18,8 +18,17 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const exception& error)
   {
-    return os << "\x1b[31m#<exception " << error.what() << ">\x1b[0m";
+    return os << "\x1b[31m#<exception \"" << error.what() << "\">\x1b[0m";
   }
+
+  struct error
+    : public exception
+  {
+    template <typename... Ts>
+    constexpr error(Ts&&... args)
+      : exception {std::forward<Ts>(args)...}
+    {}
+  };
 
   const cursor undefined {make<exception>("undefined")};
 } // namespace meevax::system
