@@ -116,6 +116,19 @@ namespace meevax::system
       return unit;
     }
   }
+
+  template <typename... Ts>
+  decltype(auto) display(Ts&&... args)
+  {
+    return (std::cout << ... << args) << std::endl;
+  }
+
+  template <typename... Ts>
+  std::string to_string(Ts&&... args)
+  {
+    std::stringstream buffer {};
+    return (buffer << ... << args).str();
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
