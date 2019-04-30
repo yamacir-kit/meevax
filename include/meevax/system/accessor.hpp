@@ -88,7 +88,7 @@ namespace meevax::system
       return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
-    auto& access()
+    decltype(auto) access()
     {
       if (*this)
       {
@@ -101,7 +101,7 @@ namespace meevax::system
       }
     }
 
-    auto& access() const
+    decltype(auto) access() const
     {
       if (*this)
       {

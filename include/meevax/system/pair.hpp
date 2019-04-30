@@ -19,8 +19,6 @@ namespace meevax::system
 
   static constexpr auto* acception_message {"accessing to unit; meevax accept this (treat unit as injective) but is non-standard Scheme behavior"};
 
-  // TODO RENAME SELECT<N>
-
         auto& car(      accessor<pair>& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
   const auto& car(const accessor<pair>& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
         auto& cdr(      accessor<pair>& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
