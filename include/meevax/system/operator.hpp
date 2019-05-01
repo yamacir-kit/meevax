@@ -60,7 +60,7 @@ namespace meevax::system
     return (args | ... | unit);
   }
 
-  [[deprecated]] decltype(auto) atom(const cursor& exp)
+  decltype(auto) is_atomic(const cursor& exp)
   {
     return !exp || !exp.is<pair>();
   }

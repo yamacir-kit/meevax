@@ -5,6 +5,10 @@
 
 #include <meevax/system/cursor.hpp>
 
+// exception
+//  |-- error
+//  `-- warning
+
 namespace meevax::system
 {
   struct exception
