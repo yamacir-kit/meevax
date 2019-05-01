@@ -6,6 +6,8 @@
 namespace meevax::system
 {
   const cursor unit {nullptr};
+
+  const cursor unbound   {make<exception>("unbound")};
   const cursor undefined {make<exception>("undefined")};
 
   const cursor true_v {make<std::true_type>()};

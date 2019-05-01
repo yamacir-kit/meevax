@@ -95,7 +95,7 @@ namespace meevax::system
     }
     else if (!env)
     {
-      return undefined;
+      return unbound;
     }
     else if (caar(env) == var)
     {

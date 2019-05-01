@@ -86,16 +86,15 @@ namespace meevax::system
 
     auto execute(const cursor& exp) noexcept(false)
     {
-      s = e = d = unit;
+      // s = e = d = unit;
 
       c = exp;
 
     dispatch:
       switch (car(c).as<instruction>().code)
       {
-      case instruction::secd::LDX:
+      case instruction::secd::LDX: // S E (LDX (i . j) . C) D => (value . S) E C D
         {
-          // S E (LDX (i . j) . C) D => (value . S) E C D
           DEBUG_1();
 
           // Distance to target stack frame from current stack frame.
@@ -106,31 +105,29 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (cursor lexical_scope {car(std::next(e, i))}; j < 0)
+          if (cursor scope {car(std::next(e, i))}; j < 0)
           {
-            s = cons(std::next(lexical_scope, -++j), s);
+            s = cons(std::next(scope, -++j), s);
           }
           else
           {
-            s = cons(car(std::next(lexical_scope, j)), s);
+            s = cons(car(std::next(scope, j)), s);
           }
 
           c = cddr(c);
         }
         goto dispatch;
 
-      case instruction::secd::LDC:
-        // S E (LDC constant . C) D => (constant . S) E C D
+      case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
         DEBUG_1();
         s = cons(cadr(c), s);
         c = cddr(c);
         goto dispatch;
 
-      case instruction::secd::LDG:
-        // S E (LDG symbol . C) D => (value . S) E C D
+      case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG_1();
 
-        if (const auto& var {assoc(cadr(c), env)}; var == undefined)
+        if (const auto& var {assoc(cadr(c), env)}; var == unbound)
         {
           throw error {to_string(cadr(c), "\x0b[31m", " is unbound")};
         }
@@ -142,23 +139,20 @@ namespace meevax::system
         c = cddr(c);
         goto dispatch;
 
-      case instruction::secd::LDF:
-        // S E (LDF code . C) => (closure . S) E C D
+      case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
         DEBUG_1();
         s = cons(make<closure>(cadr(c), e), s);
         c = cddr(c);
         goto dispatch;
 
-      case instruction::secd::SELECT:
-        // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
+      case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG_2();
         d = cons(cdddr(c), d);
         c = (car(s) != false_v ? cadr(c) : caddr(c));
         s = cdr(s);
         goto dispatch;
 
-      case instruction::secd::JOIN:
-        // S E (JOIN . x) (C . D) => S E C D
+      case instruction::secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
         DEBUG_0();
         c = car(d);
         d = cdr(d);
@@ -189,8 +183,7 @@ namespace meevax::system
         c = cddr(c);
         goto dispatch;
 
-      case instruction::secd::STOP:
-        // (result . S) E (STOP . C) D
+      case instruction::secd::STOP: // (result . S) E (STOP . C) D
         DEBUG_0();
         c = cdr(c);
         return car(s);
