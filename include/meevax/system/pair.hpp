@@ -17,11 +17,12 @@ namespace meevax::system
     virtual ~pair() = default;
   };
 
-        auto& car(      accessor<pair>& pair) { return std::get<0>(pair.access()); }
-  const auto& car(const accessor<pair>& pair) { return std::get<0>(pair.access()); }
+  static constexpr auto* acception_message {"accessing to unit; meevax accept this (treat unit as injective) but is non-standard Scheme behavior"};
 
-        auto& cdr(      accessor<pair>& pair) { return std::get<1>(pair.access()); }
-  const auto& cdr(const accessor<pair>& pair) { return std::get<1>(pair.access()); }
+        auto& car(      accessor<pair>& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+  const auto& car(const accessor<pair>& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+        auto& cdr(      accessor<pair>& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+  const auto& cdr(const accessor<pair>& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
 
   std::ostream& operator<<(std::ostream& os, const pair& exp)
   {

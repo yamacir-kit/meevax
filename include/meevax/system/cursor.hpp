@@ -34,9 +34,10 @@ namespace meevax::system
   };
 
   extern "C" const cursor unit;
+  extern "C" const cursor undefined;
 
   template <typename T, typename... Ts>
-  constexpr decltype(auto) make(Ts&&... args)
+  constexpr cursor make(Ts&&... args)
   {
     return cursor::bind<T>(std::forward<Ts>(args)...);
   }

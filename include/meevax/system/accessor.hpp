@@ -8,6 +8,8 @@
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
+#include <meevax/system/exception.hpp>
+
 namespace meevax::system
 {
   template <typename T>
@@ -86,8 +88,31 @@ namespace meevax::system
       return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
-    decltype(auto) access()       { return std::shared_ptr<TopType>::operator*(); }
-    decltype(auto) access() const { return std::shared_ptr<TopType>::operator*(); }
+    decltype(auto) access()
+    {
+      if (*this)
+      {
+        return std::shared_ptr<TopType>::operator*();
+      }
+      else
+      {
+        // This exception occurrence is guarded by selecter
+        throw error {"accessing to unit"};
+      }
+    }
+
+    decltype(auto) access() const
+    {
+      if (*this)
+      {
+        return std::shared_ptr<TopType>::operator*();
+      }
+      else
+      {
+        // This exception occurrence is guarded by selecter
+        throw error {"accessing to unit"};
+      }
+    }
 
     template <typename T>
     decltype(auto) is() const

@@ -12,50 +12,66 @@
 
 namespace meevax::system
 {
-  class reader
+  class reader // is character oriented state machine.
     : public std::ifstream
   {
-    static inline const cursor x0020 {make<character>(")")},
-                               x002E {make<character>(".")};
+    using seeker = std::istream_iterator<char8_t>;
+
+    enum class category
+    {
+      pair, parentheses
+    };
+
+    template <category>
+    struct ill_formed_expression
+      : public exception
+    {
+      template <typename... Ts>
+      constexpr ill_formed_expression(Ts&&... args)
+        : exception {std::forward<Ts>(args)...}
+      {}
+    };
 
   public:
     template <typename... Ts>
-    reader(Ts&&... args)
+    constexpr reader(Ts&&... args)
       : std::ifstream {std::forward<Ts>(args)...}
     {}
 
     template <typename Interner>
-    cursor read(Interner&& intern)
+    cursor read(Interner&& intern) noexcept(false)
     {
-      for (std::string buffer {narrow(get(), ' ')}; *this; buffer.push_back(narrow(get(), ' '))) switch (buffer.back())
+      std::string buffer {};
+
+      for (seeker head {*this}; head != seeker {}; ++head) switch (*head)
       {
       case ';':
         ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        [[fallthrough]];
+        break;
 
       case ' ': case '\t': case '\n':
-        buffer.pop_back();
         break;
 
       case '(':
-        if (auto first {read(intern)}; first == x0020) // termination
+        try
+        {
+          auto buffer {read(intern)};
+          putback('(');
+          return cons(buffer, read(intern));
+        }
+        catch (const ill_formed_expression<category::parentheses>&)
         {
           return unit;
         }
-        else if (first == x002E) // dot-notation
+        catch (const ill_formed_expression<category::pair>&)
         {
-          auto second {read(intern)};
-          ignore(std::numeric_limits<std::streamsize>::max(), ')');
-          return second;
-        }
-        else
-        {
-          putback('(');
-          return cons(first, read(intern));
+          auto buffer {read(intern)};
+          ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+          return buffer;
         }
 
       case ')':
-        return x0020;
+        throw ill_formed_expression<category::parentheses> {"unexpected close parentheses inserted"};
 
       case '"':
         switch (auto c {narrow(get(), '\0')}; c)
@@ -99,20 +115,22 @@ namespace meevax::system
         return expand(intern);
 
       default:
-        if (auto c {peek()}; is_delimiter(c)) try // delimiter
+        buffer.push_back(*head);
+
+        if (auto c {peek()}; is_delimiter(c)) // delimiter
         {
           if (buffer == ".")
           {
-            return x002E;
+            throw ill_formed_expression<category::pair> {"ill-formed dot-notation detected"};
           }
-          else
+          else try // is symbol or number
           {
             return make<number>(buffer);
           }
-        }
-        catch (const std::runtime_error&)
-        {
-          return intern(buffer);
+          catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
+          {
+            return intern(buffer);
+          }
         }
       }
 
