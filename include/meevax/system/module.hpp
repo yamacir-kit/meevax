@@ -21,8 +21,6 @@ namespace meevax::system
     module(const std::string& name, Ts&&... args)
       : std::unordered_map<std::string, cursor> {std::forward<Ts>(args)...}
       , name {name}
-      , source {}
-      , secd {}
     {
       std::cerr << "constructing module \"" << name << "\" => ";
       std::cerr << "done." << std::endl;
@@ -71,7 +69,7 @@ namespace meevax::system
       return secd.execute(std::forward<Ts>(args)...);
     }
 
-  private: // module interface
+  protected: // module interface
     const auto& intern(const std::string& s)
     {
       if (auto iter {find(s)}; iter != std::end(*this))
