@@ -129,7 +129,7 @@ namespace meevax::system
 
         if (const auto& var {assoc(cadr(c), env)}; var == unbound)
         {
-          throw error {to_string(cadr(c), "\x0b[31m", " is unbound")};
+          throw error {pseudo_display(cadr(c), "\x0b[31m", " is unbound")};
         }
         else
         {
@@ -210,7 +210,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {to_string(applicable, "\x1b[31m", " is not applicable")};
+          throw error {pseudo_display(applicable, "\x1b[31m", " is not applicable")};
         }
         goto dispatch;
 
@@ -223,10 +223,10 @@ namespace meevax::system
         goto dispatch;
 
       default:
-        throw error {to_string(car(c), " is not virtual machine instruction")};
+        throw error {pseudo_display(car(c), " is not virtual machine instruction")};
       }
 
-      throw error {to_string("unterminated execution")};
+      throw error {pseudo_display("unterminated execution")};
     }
 
     cursor begin(const cursor& exp,

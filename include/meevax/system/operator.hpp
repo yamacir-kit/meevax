@@ -126,7 +126,7 @@ namespace meevax::system
   }
 
   template <typename... Ts>
-  std::string to_string(Ts&&... args)
+  std::string pseudo_display(Ts&&... args)
   {
     std::stringstream buffer {};
     (buffer << ... << args);
