@@ -129,7 +129,7 @@ namespace meevax::system
 
         if (const auto& var {assoc(cadr(c), env)}; var == unbound)
         {
-          throw error {pseudo_display(cadr(c), "\x0b[31m", " is unbound")};
+          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
         }
         else
         {
