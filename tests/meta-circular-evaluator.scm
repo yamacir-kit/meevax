@@ -1,9 +1,9 @@
 (define null? (lambda (x)
-  (eq? x ())
+  (eq? x '())
 ))
 
 (null? 'a)
-(null? ())
+(null? '())
 
 (define not (lambda (x)
   (if x #false #true)
@@ -32,18 +32,18 @@
 ))
 
 (append '(a b) '(c d))
-(append () '(c d))
+(append '() '(c d))
 
 (define list (lambda (x y)
-  (cons x (cons y ()))))
+  (cons x (cons y '()))))
 
 (define zip (lambda (x y)
   (if (and (null? x) (null? y))
-    ()
+    '()
   (if (and (pair? x) (pair? y))
     (cons (list (car x) (car y))
           (zip  (cdr x) (cdr y)))
-    ()
+    '()
   ))
 ))
 
@@ -58,7 +58,7 @@
 
 (define assoc (lambda (x y)
   (if (null? x)
-    ()
+    '()
   (if (null? y)
     x
   (if (eq? (caar y) x)
@@ -78,7 +78,7 @@
 
 (define evlis (lambda (m a)
   (if (null? m)
-    ()
+    '()
     (cons (eval  (car m) a)
           (evlis (cdr m) a)))
 ))
@@ -112,33 +112,33 @@
   ))))
 ))
 
-(eval '(quote a) ())
-(eval ''a ())
-(eval '(quote (a b c)) ())
+(eval '(quote a) '())
+(eval ''a '())
+(eval '(quote (a b c)) '())
 
-(eval '(atom 'a) ())
-(eval '(atom (quote (a b c))) ())
-(eval '(atom ()) ())
-(eval '(atom (atom 'a)) ())
-(eval '(atom (quote (atom 'a))) ())
+(eval '(atom 'a) '())
+(eval '(atom (quote (a b c))) '())
+(eval '(atom '()) '())
+(eval '(atom (atom 'a)) '())
+(eval '(atom (quote (atom 'a))) '())
 
-(eval '(eq 'a 'a) ())
-(eval '(eq 'a 'b) ())
-(eval '(eq () ()) ())
+(eval '(eq 'a 'a) '())
+(eval '(eq 'a 'b) '())
+(eval '(eq '() '()) '())
 
-(eval '(car '(a b c)) ())
-(eval '(cdr '(a b c)) ())
+(eval '(car '(a b c)) '())
+(eval '(cdr '(a b c)) '())
 
-(eval '(cons 'a '(b c)) ())
-(eval '(cons 'a (cons 'b (cons 'c '()))) ())
-(eval '(car (cons 'a '(b c))) ())
-(eval '(cdr (cons 'a '(b c))) ())
+(eval '(cons 'a '(b c)) '())
+(eval '(cons 'a (cons 'b (cons 'c '()))) '())
+(eval '(car (cons 'a '(b c))) '())
+(eval '(cdr (cons 'a '(b c))) '())
 
-(eval '(cond ((eq 'a 'b) 'first) ((atom 'a) 'second)) ())
+(eval '(cond ((eq 'a 'b) 'first) ((atom 'a) 'second)) '())
 
-(eval '((lambda (x) (cons x '(b))) 'a) ())
-(eval '((lambda (x y) (cons x (cdr y))) 'z '(a b c)) ())
-(eval '((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x))) ())
+(eval '((lambda (x) (cons x '(b))) 'a) '())
+(eval '((lambda (x y) (cons x (cdr y))) 'z '(a b c)) '())
+(eval '((lambda (f) (f '(b c))) '(lambda (x) (cons 'a x))) '())
 
 (eval '((label subst (lambda (x y z)
           (cond ((atom z)
@@ -149,4 +149,5 @@
         ))
         'm 'b '(a b (a b c) d)
       )
-      ())
+      '())
+
