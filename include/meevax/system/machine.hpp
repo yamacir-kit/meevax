@@ -166,6 +166,12 @@ namespace meevax::system
         c = cddr(c);
         goto dispatch;
 
+      case instruction::secd::LDS:
+        DEBUG_1();
+        s = cons(make<syntax>(cadr(c), e), s);
+        c = cddr(c);
+        goto dispatch;
+
       case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
         DEBUG_1();
         s = cons(make<closure>(cadr(c), e), s);
