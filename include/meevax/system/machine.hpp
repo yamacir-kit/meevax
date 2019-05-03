@@ -16,6 +16,7 @@ namespace meevax::system
   // Simple SECD machine.
   class machine
   {
+  protected:
     cursor s, // stack
            e, // lexical environment
            c, // code
@@ -69,9 +70,35 @@ namespace meevax::system
       }
       else // is (syntax-or-any-application . arguments)
       {
-        if (auto buffer {assoc(car(exp), env)}; not there_is(car(exp), scope) && buffer && buffer.is<syntax>())
+        if (auto buffer {assoc(car(exp), env)};
+            buffer != unbound &&
+            buffer.is<native_syntax>() &&
+            not local_defined(car(exp), scope))
         {
-          return buffer.as<syntax>()(exp, scope, continuation);
+          return buffer.as<native_syntax>()(exp, scope, continuation);
+        }
+        else if (buffer != unbound &&
+                 buffer.is<syntax>() &&
+                 not local_defined(car(exp), scope))
+        {
+          std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
+          std::cerr << "        arguments: " << cdr(exp) << std::endl;
+
+          machine expander {env};
+          expander.s = unit;
+          expander.e = cdr(exp);
+
+          expander.d = cons(
+                         unit,       // s
+                         unit,       // e
+                         list(STOP), // c
+                         unit        // d
+                       );
+
+          auto expanded {expander.execute(car(buffer))};
+          std::cerr << "        expanded: " << expanded << std::endl;
+
+          return compile(expanded, scope, continuation);
         }
         else // is (application . arguments)
         {
@@ -84,7 +111,7 @@ namespace meevax::system
       }
     }
 
-    auto execute(const cursor& exp) noexcept(false)
+    cursor execute(const cursor& exp) noexcept(false)
     {
       // s = e = d = unit;
 
@@ -265,7 +292,7 @@ namespace meevax::system
       return unit;
     }
 
-    bool there_is(const cursor& exp, const cursor& scope)
+    bool local_defined(const cursor& exp, const cursor& scope)
     {
       for (cursor frame : scope)
       {

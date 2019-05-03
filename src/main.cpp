@@ -12,12 +12,12 @@ int main()
 
   meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
   {
-    root.define<syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
+    root.define<native_syntax>("quote", [&](auto&& exp, auto&&, auto&& continuation)
     {
       return cons(LDC, cadr(exp), continuation);
     });
 
-    root.define<syntax>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
+    root.define<native_syntax>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return root.compile(
                cadr(exp),
@@ -26,7 +26,7 @@ int main()
              );
     });
 
-    root.define<syntax>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
+    root.define<native_syntax>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return root.compile(
                cadr(exp),
@@ -35,7 +35,7 @@ int main()
              );
     });
 
-    root.define<syntax>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
+    root.define<native_syntax>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return root.compile(
                caddr(exp),
@@ -44,7 +44,7 @@ int main()
              );
     });
 
-    root.define<syntax>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
+    root.define<native_syntax>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return root.compile(
                cadr(exp), // conditional expression
@@ -58,7 +58,7 @@ int main()
              );
     });
 
-    root.define<syntax>("define", [&](auto&& exp, auto&& scope, auto&& continuation)
+    root.define<native_syntax>("define", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return root.compile(
                caddr(exp),
@@ -67,7 +67,7 @@ int main()
              );
     });
 
-    root.define<syntax>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
+    root.define<native_syntax>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return cons(
                LDF,

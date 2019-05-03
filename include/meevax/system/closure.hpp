@@ -13,10 +13,6 @@ namespace meevax::system
   {
     return os << "#<closure>";
   }
-
-  struct macro // is traditional macro
-    : public closure
-  {};
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
