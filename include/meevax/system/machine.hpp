@@ -255,6 +255,11 @@ namespace meevax::system
         d = cdddr(d);
         goto dispatch;
 
+      case instruction::secd::POP:
+        s = cdr(s);
+        c = cdr(c);
+        goto dispatch;
+
       default:
         throw error {pseudo_display(car(c), " is not virtual machine instruction")};
       }
