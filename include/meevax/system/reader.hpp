@@ -111,6 +111,20 @@ namespace meevax::system
       case '\'':
         return list(intern("quote"), read(intern));
 
+      case '`':
+        return list(intern("quasiquote"), read(intern));
+
+      case ',':
+        if (peek() != '@')
+        {
+          return list(intern("unquote"), read(intern));
+        }
+        else
+        {
+          get();
+          return list(intern("unquote-splicing"), read(intern));
+        }
+
       case '#':
         return expand(intern);
 
