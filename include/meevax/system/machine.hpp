@@ -17,7 +17,7 @@ namespace meevax::system
   class machine
   {
     cursor s, // stack
-           e, // local environment
+           e, // lexical environment
            c, // code
            d; // dump
 
@@ -141,7 +141,7 @@ namespace meevax::system
 
       case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
         DEBUG_1();
-        s = cons(make<closure>(cadr(c), env), s);
+        s = cons(make<closure>(cadr(c), e), s);
         c = cddr(c);
         goto dispatch;
 
