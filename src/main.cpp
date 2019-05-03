@@ -83,6 +83,22 @@ int main()
              );
     });
 
+    root.define<native_syntax>("syntax", [&](auto&& exp, auto&& scope, auto&& continuation)
+    {
+      return cons(
+               LDS,
+               root.begin(
+                 cddr(exp),
+                 cons(
+                   cadr(exp), // parameters
+                   scope
+                 ),
+                 list(RETURN)
+               ),
+               continuation
+             );
+    });
+
     // XXX DIRTY HACK
     root.define<procedure>("load", [&](const cursor& args)
     {
