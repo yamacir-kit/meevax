@@ -99,6 +99,28 @@ int main()
              );
     });
 
+    root.define<native_syntax>("set!", [&](auto&& exp, auto&& scope, auto&& continuation)
+    {
+      std::cerr << "[debug] compiling set! " << caddr(exp) << " to " << cadr(exp) << std::endl;
+
+      if (auto location {root.secd.locate(cadr(exp), scope)}; location)
+      {
+        return root.compile(
+                 caddr(exp),
+                 scope,
+                 cons(SETL, location, continuation)
+               );
+      }
+      else
+      {
+        return root.compile(
+                 caddr(exp),
+                 scope,
+                 cons(SETG, cadr(exp), continuation)
+               );
+      }
+    });
+
     // XXX DIRTY HACK
     root.define<procedure>("load", [&](const cursor& args)
     {

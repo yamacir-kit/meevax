@@ -255,9 +255,53 @@ namespace meevax::system
         d = cdddr(d);
         goto dispatch;
 
-      case instruction::secd::POP:
+      case instruction::secd::POP: // (var . S) E (POP . C) D => S E C D
+        DEBUG_0();
         s = cdr(s);
         c = cdr(c);
+        goto dispatch;
+
+      case instruction::secd::SETG: // (var . S) E (SETG symbol . C) D => (var . S) E C D
+        DEBUG_1();
+
+        if (auto var {assoc(cadr(c), env)}; var == unbound)
+        {
+          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
+        }
+        else
+        {
+          // TODO ASSIGN
+          // var = car(s);
+        }
+
+        c = cddr(c);
+        goto dispatch;
+
+      case instruction::secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
+        {
+          DEBUG_1();
+
+          // Distance to target stack frame from current stack frame.
+          int i {caadr(c).as<number>()};
+
+          // Index of target value in the target stack frame.
+          // If value is lower than 0, the target value is variadic parameter.
+          int j {cdadr(c).as<number>()};
+
+          // TODO Add SETV (set-variadic) instruction to remove this conditional.
+          if (cursor scope {car(std::next(e, i))}; j < 0)
+          {
+            // TODO ASSIGN
+            // std::next(scope, -++j) <= car(s);
+          }
+          else
+          {
+            // TODO ASSIGN
+            // car(std::next(scope, j)) <= car(s);
+          }
+
+          c = cddr(c);
+        }
         goto dispatch;
 
       default:
@@ -279,7 +323,6 @@ namespace meevax::system
              );
     }
 
-  protected: // Compilation Helpers
     cursor locate(const cursor& exp, const cursor& scope)
     {
       auto i {0}, j {0};
@@ -303,6 +346,7 @@ namespace meevax::system
       return unit;
     }
 
+  protected: // Compilation Helpers
     bool local_defined(const cursor& exp, const cursor& scope)
     {
       for (cursor frame : scope)

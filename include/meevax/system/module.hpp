@@ -15,7 +15,7 @@ namespace meevax::system
     const std::string name;
 
     reader source;
-    machine secd;
+    machine secd; // TODO RENAME
 
     template <typename... Ts>
     module(const std::string& name, Ts&&... args)
