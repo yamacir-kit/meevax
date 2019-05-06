@@ -37,7 +37,7 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) define(const cursor& key, Ts&&... args)
     {
-      return env = list(key, std::forward<Ts>(args)...) | env;
+      return env.push(list(key, std::forward<Ts>(args)...));
     }
 
     cursor compile(const cursor& exp,
@@ -113,12 +113,10 @@ namespace meevax::system
 
     cursor execute(const cursor& exp) noexcept(false)
     {
-      // s = e = d = unit;
-
       c = exp;
 
     dispatch:
-      switch (car(c).as<instruction>().code)
+      switch (c.top().as<instruction>().code)
       {
       case instruction::secd::LDX: // S E (LDX (i . j) . C) D => (value . S) E C D
         {
@@ -134,21 +132,21 @@ namespace meevax::system
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
           if (cursor scope {car(std::next(e, i))}; j < 0)
           {
-            s = cons(std::next(scope, -++j), s);
+            s.push(std::next(scope, -++j));
           }
           else
           {
-            s = cons(car(std::next(scope, j)), s);
+            s.push(car(std::next(scope, j)));
           }
 
-          c = cddr(c);
+          c.pop(2);
         }
         goto dispatch;
 
       case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
         DEBUG_1();
-        s = cons(cadr(c), s);
-        c = cddr(c);
+        s.push(cadr(c));
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
@@ -160,65 +158,65 @@ namespace meevax::system
         }
         else
         {
-          s = cons(var, s);
+          s.push(var);
         }
 
-        c = cddr(c);
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::LDS:
         DEBUG_1();
-        s = cons(make<syntax>(cadr(c), e), s);
-        c = cddr(c);
+        s.push(make<syntax>(cadr(c), e));
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
         DEBUG_1();
-        s = cons(make<closure>(cadr(c), e), s);
-        c = cddr(c);
+        s.push(make<closure>(cadr(c), e));
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG_2();
-        d = cons(cdddr(c), d);
+        d.push(cdddr(c));
         c = (car(s) != false_v ? cadr(c) : caddr(c));
-        s = cdr(s);
+        s.pop(1);
         goto dispatch;
 
       case instruction::secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
         DEBUG_0();
         c = car(d);
-        d = cdr(d);
+        d.pop(1);
         goto dispatch;
 
       case instruction::secd::CAR:
         DEBUG_0();
         car(s) = caar(s); // TODO check?
-        c = cdr(c);
+        c.pop(1);
         goto dispatch;
 
       case instruction::secd::CDR:
         DEBUG_0();
         car(s) = cdar(s); // TODO check?
-        c = cdr(c);
+        c.pop(1);
         goto dispatch;
 
       case instruction::secd::CONS:
         DEBUG_0();
         s = cons(cons(car(s), cadr(s)), cddr(s));
-        c = cdr(c);
+        c.pop();
         goto dispatch;
 
       case instruction::secd::DEFINE:
         DEBUG_1();
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define (change to #<undefined>?)
-        c = cddr(c);
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::STOP: // (result . S) E (STOP . C) D
         DEBUG_0();
-        c = cdr(c);
+        c.pop(1);
         return car(s);
 
       case instruction::secd::APPLY:
@@ -230,16 +228,15 @@ namespace meevax::system
         }
         else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
-          d = cons(cddr(s), e, cdr(c), d);
+          d.push(cddr(s), e, cdr(c));
           c = car(applicable);
           e = cons(cadr(s), cdr(applicable));
           s = unit;
         }
         else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
         {
-          // XXX This dynamic_cast is removable?
           s = cons(applicable.as<procedure>()(cadr(s)), cddr(s));
-          c = cdr(c);
+          c.pop(1);
         }
         else
         {
@@ -247,18 +244,17 @@ namespace meevax::system
         }
         goto dispatch;
 
-      case instruction::secd::RETURN:
+      case instruction::secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
         DEBUG_0();
-        s = cons(car(s), car(d));
-        e = cadr(d);
-        c = caddr(d);
-        d = cdddr(d);
+        s = cons(car(s), d.pop());
+        e = d.pop();
+        c = d.pop();
         goto dispatch;
 
       case instruction::secd::POP: // (var . S) E (POP . C) D => S E C D
         DEBUG_0();
-        s = cdr(s);
-        c = cdr(c);
+        s.pop(1);
+        c.pop(1);
         goto dispatch;
 
       case instruction::secd::SETG: // (var . S) E (SETG symbol . C) D => (var . S) E C D
@@ -274,7 +270,7 @@ namespace meevax::system
           // var = car(s);
         }
 
-        c = cddr(c);
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
@@ -300,7 +296,7 @@ namespace meevax::system
             // car(std::next(scope, j)) <= car(s);
           }
 
-          c = cddr(c);
+          c.pop(2);
         }
         goto dispatch;
 
