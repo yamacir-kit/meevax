@@ -52,8 +52,12 @@ namespace meevax::system
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... args)
-        : std::conditional< // XXX
+        : std::conditional<
+            // XXX 注意
+            // トップ型を仮想継承した型をバインドする場合は、コンストラクタ引数をすべて基底クラスに流し込む
+            // かなりクセのある挙動だが、初期化タイミング都合こうするしか無さそう
             std::is_base_of<TopType, BoundType>::value, TopType, BoundType
+            // TODO std::is_virtual_base_of があるなら置き換えること
           >::type {std::forward<Ts>(args)...}
       {}
 
