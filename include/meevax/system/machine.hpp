@@ -257,17 +257,18 @@ namespace meevax::system
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::SETG: // (var . S) E (SETG symbol . C) D => (var . S) E C D
+      case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG_1();
 
-        if (auto var {assoc(cadr(c), env)}; var == unbound)
+        // if (auto lhs {assoc(cadr(c), env)}; lhs == unbound)
+        if (auto& lhs {assoc_(cadr(c), env)}; !lhs)
         {
           throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
         }
-        else
+        else // TODO ASSIGN
         {
-          // TODO ASSIGN
-          // var = car(s);
+          // lhs.access() = car(s).access();
+          lhs = car(s).access().copy();
         }
 
         c.pop(2);
