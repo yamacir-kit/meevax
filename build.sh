@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 
-project=$(cd "$(dirname $0)"; pwd)
+project=$(cd "$(dirname $0)"; pwd) # script path
 
 build="$project/build"
 
