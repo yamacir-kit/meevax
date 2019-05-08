@@ -22,7 +22,6 @@ namespace meevax::system
 
     virtual std::shared_ptr<T> copy() const
     {
-      std::cerr << __LINE__ << std::endl;
       return std::make_shared<T>(static_cast<const T&>(*this));
     }
 
@@ -75,7 +74,6 @@ namespace meevax::system
       // XXX BoundType required CopyConstructible?
       std::shared_ptr<TopType> copy() const override
       {
-        std::cerr << __LINE__ << std::endl;
         using binding = binder<BoundType>;
         return std::make_shared<binding>(*this);
       }

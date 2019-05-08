@@ -24,9 +24,9 @@ namespace meevax::system
 
     cursor env; // global environment
 
-    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     machine(const cursor& env = unit)
@@ -267,8 +267,7 @@ namespace meevax::system
         }
         else // TODO ASSIGN
         {
-          // lhs.access() = car(s).access();
-          lhs = car(s).access().copy();
+          std::atomic_store(&lhs, car(s).access().copy());
         }
 
         c.pop(2);
@@ -286,15 +285,32 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add SETV (set-variadic) instruction to remove this conditional.
-          if (cursor scope {car(std::next(e, i))}; j < 0)
+          auto& tmp {e};
+
+          while (0 < i--)
           {
-            // TODO ASSIGN
+            tmp = cdr(tmp);
+          }
+
+          if (auto& scope {car(tmp)}; j < 0)
+          {
             // std::next(scope, -++j) <= car(s);
+            auto& var {scope};
+            while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
+            {
+              var = cdr(var);
+            }
+            std::atomic_store(&var, car(s));
           }
           else
           {
-            // TODO ASSIGN
             // car(std::next(scope, j)) <= car(s);
+            auto& var {scope};
+            while (0 < j--)
+            {
+              var = cdr(var);
+            }
+            std::atomic_store(&car(var), car(s));
           }
 
           c.pop(2);
