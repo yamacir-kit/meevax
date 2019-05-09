@@ -24,9 +24,9 @@ namespace meevax::system
 
     cursor env; // global environment
 
-    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     machine(const cursor& env = unit)
@@ -71,23 +71,19 @@ namespace meevax::system
       else // is (syntax-or-any-application . arguments)
       {
         if (auto buffer {assoc(car(exp), env)};
-            buffer != unbound &&
-            buffer.is<native_syntax>() &&
-            not local_defined(car(exp), scope))
+            buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
         {
           return buffer.as<native_syntax>()(exp, scope, continuation);
         }
-        else if (buffer != unbound &&
-                 buffer.is<syntax>() &&
-                 not local_defined(car(exp), scope))
+        else if (buffer != unbound && buffer.is<syntax>() && not local_defined(car(exp), scope))
         {
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
 
           machine expander {env};
-          expander.s = unit;
-          expander.e = cdr(exp);
 
+          expander.s = unit;
+          expander.e = list(cdr(exp));
           expander.d = cons(
                          unit,       // s
                          unit,       // e
@@ -329,10 +325,10 @@ namespace meevax::system
                  const cursor& continuation)
     {
       return compile(
-                 car(exp),
-                 scope,
-                 cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
-                          :                                  continuation
+               car(exp),
+               scope,
+               cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
+                        :                                  continuation
              );
     }
 
