@@ -107,6 +107,26 @@ namespace meevax::system
     }
   }
 
+  accessor<pair>& assoc_(accessor<pair>& var, accessor<pair>& env)
+  {
+    if (!var)
+    {
+      return var;
+    }
+    else if (!env)
+    {
+      return env;
+    }
+    else if (caar(env) == var)
+    {
+      return cadar(env);
+    }
+    else
+    {
+      return assoc_(var, cdr(env));
+    }
+  }
+
   cursor take(const cursor& exp, std::size_t size)
   {
     if (0 < size)

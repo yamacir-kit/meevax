@@ -15,7 +15,7 @@ namespace meevax::system
     const std::string name;
 
     reader source;
-    machine secd;
+    machine secd; // TODO RENAME
 
     template <typename... Ts>
     module(const std::string& name, Ts&&... args)
@@ -92,16 +92,16 @@ namespace meevax::system
       {
         std::cerr << "[debug] succeeded to open file" << std::endl;
 
-        for (std::size_t size {0}; file; ++size)
+        std::size_t size {0};
+
+        while (file)
         {
           auto expression {file.read([&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); })};
           execute(compile(expression));
-
-          std::cerr << "\r[debug] " << size << " expression loaded" << std::flush;
+          ++size;
         }
 
-        std::cerr << std::endl;
-
+        std::cerr << "[debug] " << size << " expression loaded" << std::endl;
         return true;
       }
       else
