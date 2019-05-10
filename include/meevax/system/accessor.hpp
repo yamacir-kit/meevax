@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 
-#include <chrono>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
 #include <type_traits> // std::conditional
@@ -15,22 +14,28 @@ namespace meevax::system
   template <typename T>
   struct facade
   {
-    // static inline constexpr int id_min {0};
-    // static inline           int id_max {0}; // unit has id zero (maybe)
-    //                         int id;
-    //
-    // const std::chrono::high_resolution_clock::time_point since;
-    //
-    // facade()
-    //   : id {id_max++} // TODO MUTEX
-    //   , since {std::chrono::high_resolution_clock::now()}
-    // {}
-
     virtual auto type() const noexcept
       -> const std::type_info&
     {
       return typeid(T);
     }
+
+    virtual std::shared_ptr<T> copy() const
+    {
+      return std::make_shared<T>(static_cast<const T&>(*this));
+    }
+
+    // // (1)
+    // virtual T& operator=(const T& rhs)
+    // {
+    //   std::cerr << "[debug] (1) " << __LINE__ << std::endl;
+    //   return static_cast<T&>(*this) = rhs;
+    // }
+    //
+    // virtual void placement_copy(T* place) const
+    // {
+    //   new (place) T {static_cast<const T&>(*this)};
+    // }
 
     // Type T is able to customize print function via stream output operator.
     virtual std::ostream& write(std::ostream& os) const
@@ -43,8 +48,6 @@ namespace meevax::system
   struct accessor
     : public std::shared_ptr<TopType>
   {
-    // We use parallel inheritance to bind any typed object because there is no
-    // guarantiee for bound type is static-castable from/to universal base type.
     template <typename BoundType>
     struct binder
       : public BoundType
@@ -52,8 +55,12 @@ namespace meevax::system
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... args)
-        : std::conditional< // XXX
+        : std::conditional<
+            // XXX 注意
+            // トップ型を仮想継承した型をバインドする場合は、コンストラクタ引数をすべて基底クラスに流し込む
+            // かなりクセのある挙動だが、初期化タイミング都合こうするしか無さそう
             std::is_base_of<TopType, BoundType>::value, TopType, BoundType
+            // TODO std::is_virtual_base_of があるなら置き換えること
           >::type {std::forward<Ts>(args)...}
       {}
 
@@ -64,6 +71,37 @@ namespace meevax::system
       }
 
     private:
+      // XXX BoundType required CopyConstructible?
+      std::shared_ptr<TopType> copy() const override
+      {
+        using binding = binder<BoundType>;
+        return std::make_shared<binding>(*this);
+      }
+
+      // void placement_copy(TopType* place) const override
+      // {
+      //   new (place) binder<BoundType> {static_cast<const BoundType&>(*this)};
+      // }
+      //
+      // // (1')
+      // TopType& operator=(const TopType& rhs) override
+      // {
+      //   std::cerr << "[debug] (1')\n";
+      //   std::cerr << "        lhs: " << utility::demangle(type()) << "\n"
+      //             << "        rhs: " << utility::demangle(rhs.type()) << std::endl;
+      //
+      //   if (type() != rhs.type())
+      //   {
+      //     // rhs.placement_copy(this); // XXX WORKS BUT GET SEGV
+      //     return *this;
+      //   }
+      //   else
+      //   {
+      //     static_cast<BoundType&>(*this) = dynamic_cast<const BoundType&>(rhs);
+      //     return *this;
+      //   }
+      // }
+
       // Override TopType::write(), then invoke BoundType's stream output operator.
       std::ostream& write(std::ostream& os) const override
       {

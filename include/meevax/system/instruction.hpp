@@ -17,11 +17,14 @@ namespace meevax::system
       JOIN,
       LDC, // load constant
       LDF, // load function
-      LDG, // load global
-      LDX, // load local
+      LDG, // load globally
+      LDS, // load syntax
+      LDX, // load locally
       POP,
       RETURN,
       SELECT,
+      SETG, // set globally
+      SETL, // set locally
       STOP,
     } const code;
 
@@ -46,10 +49,13 @@ namespace meevax::system
     case instruction::secd::LDC:    os << "ldc";    break;
     case instruction::secd::LDF:    os << "ldf";    break;
     case instruction::secd::LDG:    os << "ldg";    break;
+    case instruction::secd::LDS:    os << "lds";    break;
     case instruction::secd::LDX:    os << "ldx";    break;
     case instruction::secd::POP:    os << "pop";    break;
     case instruction::secd::RETURN: os << "return"; break;
     case instruction::secd::SELECT: os << "select"; break;
+    case instruction::secd::SETG:   os << "setg";   break;
+    case instruction::secd::SETL:   os << "setl";   break;
     case instruction::secd::STOP:   os << "stop";   break;
     }
 
@@ -65,11 +71,14 @@ namespace meevax::system
   static const auto LDC    {make<instruction>(0x06)};
   static const auto LDF    {make<instruction>(0x07)};
   static const auto LDG    {make<instruction>(0x08)};
-  static const auto LDX    {make<instruction>(0x09)};
-  static const auto POP    {make<instruction>(0x0a)};
-  static const auto RETURN {make<instruction>(0x0b)};
-  static const auto SELECT {make<instruction>(0x0c)};
-  static const auto STOP   {make<instruction>(0x0d)};
+  static const auto LDS    {make<instruction>(0x09)};
+  static const auto LDX    {make<instruction>(0x0a)};
+  static const auto POP    {make<instruction>(0x0b)};
+  static const auto RETURN {make<instruction>(0x0c)};
+  static const auto SELECT {make<instruction>(0x0d)};
+  static const auto SETG   {make<instruction>(0x0e)};
+  static const auto SETL   {make<instruction>(0x0f)};
+  static const auto STOP   {make<instruction>(0x10)};
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP

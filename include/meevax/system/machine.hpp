@@ -16,8 +16,9 @@ namespace meevax::system
   // Simple SECD machine.
   class machine
   {
+  protected:
     cursor s, // stack
-           e, // local environment
+           e, // lexical environment
            c, // code
            d; // dump
 
@@ -36,7 +37,7 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) define(const cursor& key, Ts&&... args)
     {
-      return env = list(key, std::forward<Ts>(args)...) | env;
+      return env.push(list(key, std::forward<Ts>(args)...));
     }
 
     cursor compile(const cursor& exp,
@@ -69,9 +70,31 @@ namespace meevax::system
       }
       else // is (syntax-or-any-application . arguments)
       {
-        if (auto buffer {assoc(car(exp), env)}; not there_is(car(exp), scope) && buffer && buffer.is<syntax>())
+        if (auto buffer {assoc(car(exp), env)};
+            buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
         {
-          return buffer.as<syntax>()(exp, scope, continuation);
+          return buffer.as<native_syntax>()(exp, scope, continuation);
+        }
+        else if (buffer != unbound && buffer.is<syntax>() && not local_defined(car(exp), scope))
+        {
+          std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
+          std::cerr << "        arguments: " << cdr(exp) << std::endl;
+
+          machine expander {env};
+
+          expander.s = unit;
+          expander.e = list(cdr(exp));
+          expander.d = cons(
+                         unit,       // s
+                         unit,       // e
+                         list(STOP), // c
+                         unit        // d
+                       );
+
+          auto expanded {expander.execute(car(buffer))};
+          std::cerr << "        expanded: " << expanded << std::endl;
+
+          return compile(expanded, scope, continuation);
         }
         else // is (application . arguments)
         {
@@ -84,18 +107,15 @@ namespace meevax::system
       }
     }
 
-    auto execute(const cursor& exp) noexcept(false)
+    cursor execute(const cursor& exp) noexcept(false)
     {
-      s = e = d = unit;
-
       c = exp;
 
     dispatch:
-      switch (car(c).as<instruction>().code)
+      switch (c.top().as<instruction>().code)
       {
-      case instruction::secd::LDX:
+      case instruction::secd::LDX: // S E (LDX (i . j) . C) D => (value . S) E C D
         {
-          // S E (LDX (i . j) . C) D => (value . S) E C D
           DEBUG_1();
 
           // Distance to target stack frame from current stack frame.
@@ -106,93 +126,93 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (cursor lexical_scope {car(std::next(e, i))}; j < 0)
+          if (cursor scope {car(std::next(e, i))}; j < 0)
           {
-            s = cons(std::next(lexical_scope, -++j), s);
+            s.push(std::next(scope, -++j));
           }
           else
           {
-            s = cons(car(std::next(lexical_scope, j)), s);
+            s.push(car(std::next(scope, j)));
           }
 
-          c = cddr(c);
+          c.pop(2);
         }
         goto dispatch;
 
-      case instruction::secd::LDC:
-        // S E (LDC constant . C) D => (constant . S) E C D
+      case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
         DEBUG_1();
-        s = cons(cadr(c), s);
-        c = cddr(c);
+        s.push(cadr(c));
+        c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDG:
-        // S E (LDG symbol . C) D => (value . S) E C D
+      case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG_1();
 
-        if (const auto& var {assoc(cadr(c), env)}; var == undefined)
+        if (const auto& var {assoc(cadr(c), env)}; var == unbound)
         {
-          throw error {to_string(cadr(c), "\x0b[31m", " is unbound")};
+          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
         }
         else
         {
-          s = cons(var, s);
+          s.push(var);
         }
 
-        c = cddr(c);
+        c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDF:
-        // S E (LDF code . C) => (closure . S) E C D
+      case instruction::secd::LDS:
         DEBUG_1();
-        s = cons(make<closure>(cadr(c), e), s);
-        c = cddr(c);
+        s.push(make<syntax>(cadr(c), e));
+        c.pop(2);
         goto dispatch;
 
-      case instruction::secd::SELECT:
-        // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
+      case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
+        DEBUG_1();
+        s.push(make<closure>(cadr(c), e));
+        c.pop(2);
+        goto dispatch;
+
+      case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG_2();
-        d = cons(cdddr(c), d);
+        d.push(cdddr(c));
         c = (car(s) != false_v ? cadr(c) : caddr(c));
-        s = cdr(s);
+        s.pop(1);
         goto dispatch;
 
-      case instruction::secd::JOIN:
-        // S E (JOIN . x) (C . D) => S E C D
+      case instruction::secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
         DEBUG_0();
         c = car(d);
-        d = cdr(d);
+        d.pop(1);
         goto dispatch;
 
       case instruction::secd::CAR:
         DEBUG_0();
         car(s) = caar(s); // TODO check?
-        c = cdr(c);
+        c.pop(1);
         goto dispatch;
 
       case instruction::secd::CDR:
         DEBUG_0();
         car(s) = cdar(s); // TODO check?
-        c = cdr(c);
+        c.pop(1);
         goto dispatch;
 
       case instruction::secd::CONS:
         DEBUG_0();
         s = cons(cons(car(s), cadr(s)), cddr(s));
-        c = cdr(c);
+        c.pop();
         goto dispatch;
 
       case instruction::secd::DEFINE:
         DEBUG_1();
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define (change to #<undefined>?)
-        c = cddr(c);
+        c.pop(2);
         goto dispatch;
 
-      case instruction::secd::STOP:
-        // (result . S) E (STOP . C) D
+      case instruction::secd::STOP: // (result . S) E (STOP . C) D
         DEBUG_0();
-        c = cdr(c);
+        c.pop(1);
         return car(s);
 
       case instruction::secd::APPLY:
@@ -204,36 +224,100 @@ namespace meevax::system
         }
         else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
-          d = cons(cddr(s), e, cdr(c), d);
+          d.push(cddr(s), e, cdr(c));
           c = car(applicable);
           e = cons(cadr(s), cdr(applicable));
           s = unit;
         }
         else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
         {
-          // XXX This dynamic_cast is removable?
           s = cons(applicable.as<procedure>()(cadr(s)), cddr(s));
-          c = cdr(c);
+          c.pop(1);
         }
         else
         {
-          throw error {to_string(applicable, "\x1b[31m", " is not applicable")};
+          throw error {pseudo_display(applicable, "\x1b[31m", " is not applicable")};
         }
         goto dispatch;
 
-      case instruction::secd::RETURN:
+      case instruction::secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
         DEBUG_0();
-        s = cons(car(s), car(d));
-        e = cadr(d);
-        c = caddr(d);
-        d = cdddr(d);
+        s = cons(car(s), d.pop());
+        e = d.pop();
+        c = d.pop();
+        goto dispatch;
+
+      case instruction::secd::POP: // (var . S) E (POP . C) D => S E C D
+        DEBUG_0();
+        s.pop(1);
+        c.pop(1);
+        goto dispatch;
+
+      case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
+        DEBUG_1();
+
+        // if (auto lhs {assoc(cadr(c), env)}; lhs == unbound)
+        if (auto& lhs {assoc_(cadr(c), env)}; !lhs)
+        {
+          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
+        }
+        else // TODO ASSIGN
+        {
+          std::atomic_store(&lhs, car(s).access().copy());
+        }
+
+        c.pop(2);
+        goto dispatch;
+
+      case instruction::secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
+        {
+          DEBUG_1();
+
+          // Distance to target stack frame from current stack frame.
+          int i {caadr(c).as<number>()};
+
+          // Index of target value in the target stack frame.
+          // If value is lower than 0, the target value is variadic parameter.
+          int j {cdadr(c).as<number>()};
+
+          // TODO Add SETV (set-variadic) instruction to remove this conditional.
+          auto& tmp {e};
+
+          while (0 < i--)
+          {
+            tmp = cdr(tmp);
+          }
+
+          if (auto& scope {car(tmp)}; j < 0)
+          {
+            // std::next(scope, -++j) <= car(s);
+            auto& var {scope};
+            while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
+            {
+              var = cdr(var);
+            }
+            std::atomic_store(&var, car(s));
+          }
+          else
+          {
+            // car(std::next(scope, j)) <= car(s);
+            auto& var {scope};
+            while (0 < j--)
+            {
+              var = cdr(var);
+            }
+            std::atomic_store(&car(var), car(s));
+          }
+
+          c.pop(2);
+        }
         goto dispatch;
 
       default:
-        throw error {to_string(car(c), " is not virtual machine instruction")};
+        throw error {pseudo_display(car(c), " is not virtual machine instruction")};
       }
 
-      throw error {to_string("unterminated execution")};
+      throw error {pseudo_display("unterminated execution")};
     }
 
     cursor begin(const cursor& exp,
@@ -241,14 +325,13 @@ namespace meevax::system
                  const cursor& continuation)
     {
       return compile(
-                 car(exp),
-                 scope,
-                 cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
-                          :                                  continuation
+               car(exp),
+               scope,
+               cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
+                        :                                  continuation
              );
     }
 
-  protected: // Compilation Helpers
     cursor locate(const cursor& exp, const cursor& scope)
     {
       auto i {0}, j {0};
@@ -272,7 +355,8 @@ namespace meevax::system
       return unit;
     }
 
-    bool there_is(const cursor& exp, const cursor& scope)
+  protected: // Compilation Helpers
+    bool local_defined(const cursor& exp, const cursor& scope)
     {
       for (cursor frame : scope)
       {

@@ -95,7 +95,7 @@ namespace meevax::system
     }
     else if (!env)
     {
-      return undefined;
+      return unbound;
     }
     else if (caar(env) == var)
     {
@@ -104,6 +104,26 @@ namespace meevax::system
     else
     {
       return assoc(var, cdr(env));
+    }
+  }
+
+  accessor<pair>& assoc_(accessor<pair>& var, accessor<pair>& env)
+  {
+    if (!var)
+    {
+      return var;
+    }
+    else if (!env)
+    {
+      return env;
+    }
+    else if (caar(env) == var)
+    {
+      return cadar(env);
+    }
+    else
+    {
+      return assoc_(var, cdr(env));
     }
   }
 
@@ -126,7 +146,7 @@ namespace meevax::system
   }
 
   template <typename... Ts>
-  std::string to_string(Ts&&... args)
+  std::string pseudo_display(Ts&&... args)
   {
     std::stringstream buffer {};
     (buffer << ... << args);

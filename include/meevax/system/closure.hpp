@@ -5,15 +5,14 @@
 
 namespace meevax::system
 {
-  // Closure is pair of function and environment.
-  struct closure
+  struct closure // is pair of compiled procedure and environment.
     : public virtual pair
+  {};
+
+  std::ostream& operator<<(std::ostream& os, const closure&)
   {
-    friend std::ostream& operator<<(std::ostream& os, const closure&)
-    {
-      return os << "#<closure>";
-    }
-  };
+    return os << "#<closure>";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
