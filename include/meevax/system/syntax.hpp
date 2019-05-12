@@ -9,15 +9,15 @@
 namespace meevax::system
 {
   struct native_syntax
-    : public std::function<cursor (const cursor&, const cursor&, const cursor&)>
+    : public std::function<objective (const objective&, const objective&, const objective&)>
   {
-    using signature = cursor (*)(const cursor&, const cursor&, const cursor&);
+    using signature = objective (*)(const objective&, const objective&, const objective&);
 
     const std::string name;
 
     template <typename... Ts>
     native_syntax(const std::string& name, Ts&&... args)
-      : std::function<cursor (const cursor&, const cursor&, const cursor&)> {std::forward<Ts>(args)...}
+      : std::function<objective (const objective&, const objective&, const objective&)> {std::forward<Ts>(args)...}
       , name {name}
     {}
   };
@@ -29,8 +29,7 @@ namespace meevax::system
 
   struct syntax
     : public closure
-  {
-  };
+  {};
 
   std::ostream& operator<<(std::ostream& os, const syntax&)
   {

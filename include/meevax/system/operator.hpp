@@ -61,10 +61,10 @@ namespace meevax::system
   }
 
   // TODO REMOVE THIS
-  decltype(auto) is_atomic(const cursor& exp)
-  {
-    return !exp || !exp.is<pair>();
-  }
+  // decltype(auto) is_atomic(const cursor& exp)
+  // {
+  //   return !exp || !exp.is<pair>();
+  // }
 
   template <typename T, typename U>
   objective append(T&& x, U&& y)

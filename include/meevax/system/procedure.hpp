@@ -8,15 +8,15 @@
 namespace meevax::system
 {
   struct procedure
-    : public std::function<cursor (const cursor&)>
+    : public std::function<objective (const objective&)>
   {
-    using signature = cursor (*)(const cursor&);
+    using signature = objective (*)(const objective&);
 
     const std::string name;
 
     template <typename... Ts>
     procedure(const std::string& name, Ts&&... args)
-      : std::function<cursor (const cursor&)> {std::forward<Ts>(args)...}
+      : std::function<objective (const objective&)> {std::forward<Ts>(args)...}
       , name {name}
     {}
   };

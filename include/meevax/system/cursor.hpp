@@ -7,11 +7,6 @@
 
 namespace meevax::system
 {
-  // struct cursor;
-  // extern "C" const cursor unit;
-  // extern "C" const cursor unbound;
-  // extern "C" const cursor undefined;
-
   struct cursor // provides STL supports to cons-cells
     : public objective
     , public std::iterator<std::input_iterator_tag, cursor>
@@ -112,11 +107,15 @@ namespace meevax::system
     }
   };
 
-  // template <typename T, typename... Ts>
-  // constexpr cursor make(Ts&&... args)
-  // {
-  //   return cursor::bind<T>(std::forward<Ts>(args)...);
-  // }
+  cursor begin(const objective& object) noexcept
+  {
+    return object;
+  }
+
+  cursor end(const objective&) noexcept
+  {
+    return unit;
+  }
 } // namespace meevax::system
 
 // namespace std

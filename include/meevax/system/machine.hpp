@@ -107,7 +107,7 @@ namespace meevax::system
       }
     }
 
-    cursor execute(const cursor& exp) noexcept(false)
+    objective execute(const objective& exp) noexcept(false)
     {
       c = exp;
 
