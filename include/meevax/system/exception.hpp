@@ -18,11 +18,6 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream& os, const exception& exception)
-  {
-    return os << "\x1b[31m#<exception \"" << exception.what() << "\">\x1b[0m";
-  }
-
   struct error
     : public exception
   {
@@ -31,11 +26,6 @@ namespace meevax::system
       : exception {std::forward<Ts>(args)...}
     {}
   };
-
-  std::ostream& operator<<(std::ostream& os, const error& error)
-  {
-    return os << "\x1b[31m#<error \"" << error.what() << "\">\x1b[0m";
-  }
 
   struct warning
     : public exception
@@ -46,10 +36,9 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream& os, const warning& warning)
-  {
-    return os << "\x1b[33m#<warning \"" << warning.what() << "\">\x1b[0m";
-  }
+  std::ostream& operator<<(std::ostream&, const exception&);
+  std::ostream& operator<<(std::ostream&, const error&);
+  std::ostream& operator<<(std::ostream&, const warning&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP

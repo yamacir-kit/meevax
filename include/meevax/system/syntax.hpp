@@ -4,7 +4,6 @@
 #include <functional> // std::function
 
 #include <meevax/system/closure.hpp>
-#include <meevax/system/cursor.hpp>
 
 #define SYNTAX(NAME) objective NAME(const objective&, const objective&, const objective&)
 
@@ -24,19 +23,12 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream& os, const native_syntax& syntax)
-  {
-    return os << "#<native-syntax " << syntax.name << ">";
-  }
-
   struct syntax
     : public closure
   {};
 
-  std::ostream& operator<<(std::ostream& os, const syntax&)
-  {
-    return os << "#<syntax>";
-  }
+  std::ostream& operator<<(std::ostream&, const native_syntax&);
+  std::ostream& operator<<(std::ostream&, const syntax&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_SYNTAX_HPP

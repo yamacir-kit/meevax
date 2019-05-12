@@ -9,10 +9,7 @@ namespace meevax::system
 {
   using number = boost::multiprecision::mpf_float;
 
-  std::ostream& operator<<(std::ostream& os, const number& number)
-  {
-    return os << "\x1B[36m" << number.str() << "\x1B[0m";
-  }
+  std::ostream& operator<<(std::ostream&, const number&);
 
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
   decltype(auto) operator OPERATOR(const objective& lhs, const objective& rhs) \
