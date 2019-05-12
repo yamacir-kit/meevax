@@ -3,8 +3,6 @@
 
 #include <stdexcept> // std::runtime_error
 
-#include <meevax/system/cursor.hpp>
-
 // exception
 //  |-- error
 //  `-- warning

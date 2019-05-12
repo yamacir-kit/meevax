@@ -7,10 +7,10 @@
 
 namespace meevax::system
 {
-  struct cursor;
-  extern "C" const cursor unit;
-  extern "C" const cursor unbound;
-  extern "C" const cursor undefined;
+  // struct cursor;
+  // extern "C" const cursor unit;
+  // extern "C" const cursor unbound;
+  // extern "C" const cursor undefined;
 
   struct cursor // provides STL supports to cons-cells
     : public objective
@@ -28,7 +28,7 @@ namespace meevax::system
 
   public: // iterator supports
     const auto& operator*() const { return car(*this); }
-          auto  operator*()       { return car(*this); }
+          auto& operator*()       { return car(*this); }
 
     decltype(auto) operator->()
     {
@@ -44,8 +44,7 @@ namespace meevax::system
     const auto& begin() const noexcept { return *this; }
           auto  begin()       noexcept { return *this; }
 
-    const auto& end() const noexcept { return unit; }
-          auto  end()       noexcept { return unit; }
+    const cursor end() const noexcept { return unit; }
 
   public: // container adapter supports (for std::stack<cursor, cursor>)
     const auto& back() const { return operator*(); }
@@ -115,11 +114,11 @@ namespace meevax::system
     }
   };
 
-  template <typename T, typename... Ts>
-  constexpr cursor make(Ts&&... args)
-  {
-    return cursor::bind<T>(std::forward<Ts>(args)...);
-  }
+  // template <typename T, typename... Ts>
+  // constexpr cursor make(Ts&&... args)
+  // {
+  //   return cursor::bind<T>(std::forward<Ts>(args)...);
+  // }
 } // namespace meevax::system
 
 namespace std

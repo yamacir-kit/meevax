@@ -8,17 +8,26 @@ namespace meevax::system
   struct pair;
 
   using objective = accessor<pair>;
-  using objectives = std::pair<objective, objective>;
+
+  extern "C" const objective unit;
+  extern "C" const objective unbound;
+  extern "C" const objective undefined;
 
   struct pair
-    : public objectives
+    : public std::pair<objective, objective>
     , public facade<pair>
   {
     template <typename... Ts>
     constexpr pair(Ts&&... args)
-      : objectives {std::forward<Ts>(args)...}
+      : std::pair<objective, objective> {std::forward<Ts>(args)...}
     {}
   };
+
+  template <typename T, typename... Ts>
+  constexpr decltype(auto) make(Ts&&... args)
+  {
+    return objective::bind<T>(std::forward<Ts>(args)...);
+  }
 
   static constexpr auto* acception_message {"accessing to unit; meevax accept this (treat unit as injective) but is non-standard Scheme behavior"};
 

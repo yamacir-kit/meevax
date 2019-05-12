@@ -22,28 +22,28 @@ cursor is_pair(const cursor& args)
 
 cursor divide(const cursor& args)
 {
-  return std::accumulate(args, unit, make<number>(1), std::divides {});
+  return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::divides {});
 }
 
 cursor minus(const cursor& args)
 {
-  if (std::distance(args, unit) < 2)
+  if (std::distance(std::begin(args), std::end(args)) < 2)
   {
-    return std::accumulate(args, unit, make<number>(0), std::minus {});
+    return std::accumulate(std::begin(args), std::end(args), make<number>(0), std::minus {});
   }
   else
   {
-    return std::accumulate(cursor {cdr(args)}, unit, car(args), std::minus {});
+    return std::accumulate(std::next(std::begin(args)), std::end(args), *std::begin(args), std::minus {});
   }
 }
 
 cursor multiply(const cursor& args)
 {
-  return std::accumulate(args, unit, make<number>(1), std::multiplies {});
+  return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::multiplies {});
 }
 
 cursor plus(const cursor& args)
 {
-  return std::accumulate(args, unit, make<number>(0), std::plus {});
+  return std::accumulate(std::begin(args), std::end(args), make<number>(0), std::plus {});
 }
 
