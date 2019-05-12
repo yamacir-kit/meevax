@@ -6,18 +6,20 @@
 #include <meevax/system/closure.hpp>
 #include <meevax/system/cursor.hpp>
 
+#define SYNTAX(NAME) objective NAME(const objective&, const objective&, const objective&)
+
 namespace meevax::system
 {
   struct native_syntax
-    : public std::function<objective (const objective&, const objective&, const objective&)>
+    : public std::function<SYNTAX()>
   {
-    using signature = objective (*)(const objective&, const objective&, const objective&);
+    using signature = SYNTAX((*));
 
     const std::string name;
 
     template <typename... Ts>
     native_syntax(const std::string& name, Ts&&... args)
-      : std::function<objective (const objective&, const objective&, const objective&)> {std::forward<Ts>(args)...}
+      : std::function<SYNTAX()> {std::forward<Ts>(args)...}
       , name {name}
     {}
   };

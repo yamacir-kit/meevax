@@ -15,7 +15,7 @@ namespace meevax::system
       std::stringstream buffer {};
       buffer << first.as<std::string>();
 
-      for (auto each : second)
+      for (const auto& each : second)
       {
         buffer << each.as<std::string>();
       }
@@ -29,7 +29,7 @@ namespace meevax::system
   {
     os << "\x1b[36m\"" << s.first.as<std::string>();
 
-    for (auto each : s.second)
+    for (const auto& each : s.second)
     {
       os << each.as<std::string>();
     }
