@@ -88,6 +88,20 @@ namespace meevax::system
     }
   }
 
+  template <typename... Ts>
+  decltype(auto) display(Ts&&... args)
+  {
+    return (std::cout << ... << args) << std::endl;
+  }
+
+  template <typename... Ts>
+  std::string pseudo_display(Ts&&... args) // TODO RENAME TO LEXICAL_CAST
+  {
+    std::stringstream buffer {};
+    (buffer << ... << args);
+    return buffer.str();
+  }
+
   const objective& assoc(const objective& var, const objective& env)
   {
     assert(var); // Compiler and LDG instruction are responsible for this.
@@ -107,13 +121,14 @@ namespace meevax::system
     }
   }
 
-  objective& unsafe_assoc(const objective& var, objective& env)
+  objective& unsafe_assoc(const objective& var, objective& env) noexcept(false)
   {
     assert(var);
 
     if (!env)
     {
-      return env;
+      // return env;
+      throw error {pseudo_display(var, "\x01b[31m", " is unbound")};
     }
     else if (caar(env) == var)
     {
@@ -135,20 +150,6 @@ namespace meevax::system
     {
       return unit;
     }
-  }
-
-  template <typename... Ts>
-  decltype(auto) display(Ts&&... args)
-  {
-    return (std::cout << ... << args) << std::endl;
-  }
-
-  template <typename... Ts>
-  std::string pseudo_display(Ts&&... args)
-  {
-    std::stringstream buffer {};
-    (buffer << ... << args);
-    return buffer.str();
   }
 } // namespace meevax::system
 

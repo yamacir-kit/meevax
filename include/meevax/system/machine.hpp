@@ -259,14 +259,15 @@ namespace meevax::system
       case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG_1();
 
-        if (auto& lhs {unsafe_assoc(cadr(c), env)}; !lhs)
-        {
-          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
-        }
-        else // TODO ASSIGN
-        {
-          std::atomic_store(&lhs, car(s).access().copy());
-        }
+        // if (auto& lhs {unsafe_assoc(cadr(c), env)}; !lhs)
+        // {
+        //   throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
+        // }
+        // else // TODO ASSIGN
+        // {
+        //   std::atomic_store(&lhs, car(s).access().copy());
+        // }
+        std::atomic_store(&unsafe_assoc(cadr(c), env), car(s).access().copy());
 
         c.pop(2);
         goto dispatch;
