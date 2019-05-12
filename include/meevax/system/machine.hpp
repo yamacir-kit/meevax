@@ -70,8 +70,11 @@ namespace meevax::system
       }
       else // is (syntax-or-any-application . arguments)
       {
-        if (auto buffer {assoc(car(exp), env)};
-            buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
+        if (const auto& buffer {assoc(car(exp), env)}; !buffer)
+        {
+          throw error {"unit is not appliciable"};
+        }
+        else if (buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
         {
           return buffer.as<native_syntax>()(exp, scope, continuation);
         }
@@ -220,7 +223,7 @@ namespace meevax::system
 
         if (auto applicable {car(s)}; not applicable)
         {
-          throw error {"unit is not applicable"};
+          throw error {"unit is not appliciable"};
         }
         else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
@@ -256,8 +259,7 @@ namespace meevax::system
       case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG_1();
 
-        // if (auto lhs {assoc(cadr(c), env)}; lhs == unbound)
-        if (auto& lhs {assoc_(cadr(c), env)}; !lhs)
+        if (auto& lhs {unsafe_assoc(cadr(c), env)}; !lhs)
         {
           throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
         }

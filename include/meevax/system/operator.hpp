@@ -90,12 +90,11 @@ namespace meevax::system
 
   const objective& assoc(const objective& var, const objective& env)
   {
-    if (!var)
+    assert(var); // Compiler and LDG instruction are responsible for this.
+
+    if (!env)
     {
-      return unit;
-    }
-    else if (!env)
-    {
+      // TODO EXCEPTION
       return unbound;
     }
     else if (caar(env) == var)
@@ -108,13 +107,11 @@ namespace meevax::system
     }
   }
 
-  objective& assoc_(objective& var, objective& env)
+  objective& unsafe_assoc(const objective& var, objective& env)
   {
-    if (!var)
-    {
-      return var;
-    }
-    else if (!env)
+    assert(var);
+
+    if (!env)
     {
       return env;
     }
@@ -124,7 +121,7 @@ namespace meevax::system
     }
     else
     {
-      return assoc_(var, cdr(env));
+      return unsafe_assoc(var, cdr(env));
     }
   }
 

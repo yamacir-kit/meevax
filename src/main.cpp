@@ -103,7 +103,11 @@ int main()
     {
       std::cerr << "[debug] compiling set! " << caddr(exp) << " to " << cadr(exp) << std::endl;
 
-      if (auto location {root.secd.locate(cadr(exp), scope)}; location)
+      if (!exp)
+      {
+        throw error {"setting to unit"};
+      }
+      else if (auto location {root.secd.locate(cadr(exp), scope)}; location)
       {
         return root.compile(
                  caddr(exp),
