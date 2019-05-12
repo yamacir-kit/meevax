@@ -40,9 +40,9 @@ namespace meevax::system
       return env.push(list(key, std::forward<Ts>(args)...));
     }
 
-    cursor compile(const cursor& exp,
-                   const cursor& scope = unit,
-                   const cursor& continuation = list(STOP))
+    objective compile(const objective& exp,
+                      const objective& scope = unit,
+                      const objective& continuation = list(STOP))
     {
       if (not exp)
       {
@@ -70,8 +70,11 @@ namespace meevax::system
       }
       else // is (syntax-or-any-application . arguments)
       {
-        if (auto buffer {assoc(car(exp), env)};
-            buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
+        if (const auto& buffer {assoc(car(exp), env)}; !buffer)
+        {
+          throw error {"unit is not appliciable"};
+        }
+        else if (buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
         {
           return buffer.as<native_syntax>()(exp, scope, continuation);
         }
@@ -107,7 +110,7 @@ namespace meevax::system
       }
     }
 
-    cursor execute(const cursor& exp) noexcept(false)
+    objective execute(const objective& exp) noexcept(false)
     {
       c = exp;
 
@@ -220,7 +223,7 @@ namespace meevax::system
 
         if (auto applicable {car(s)}; not applicable)
         {
-          throw error {"unit is not applicable"};
+          throw error {"unit is not appliciable"};
         }
         else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
@@ -256,15 +259,15 @@ namespace meevax::system
       case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG_1();
 
-        // if (auto lhs {assoc(cadr(c), env)}; lhs == unbound)
-        if (auto& lhs {assoc_(cadr(c), env)}; !lhs)
-        {
-          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
-        }
-        else // TODO ASSIGN
-        {
-          std::atomic_store(&lhs, car(s).access().copy());
-        }
+        // if (auto& lhs {unsafe_assoc(cadr(c), env)}; !lhs)
+        // {
+        //   throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
+        // }
+        // else // TODO ASSIGN
+        // {
+        //   std::atomic_store(&lhs, car(s).access().copy());
+        // }
+        std::atomic_store(&unsafe_assoc(cadr(c), env), car(s).access().copy());
 
         c.pop(2);
         goto dispatch;
@@ -320,9 +323,9 @@ namespace meevax::system
       throw error {pseudo_display("unterminated execution")};
     }
 
-    cursor begin(const cursor& exp,
-                 const cursor& scope,
-                 const cursor& continuation)
+    objective begin(const objective& exp,
+                    const objective& scope,
+                    const objective& continuation)
     {
       return compile(
                car(exp),
@@ -332,11 +335,11 @@ namespace meevax::system
              );
     }
 
-    cursor locate(const cursor& exp, const cursor& scope)
+    objective locate(const objective& exp, const objective& scope)
     {
       auto i {0}, j {0};
 
-      for (auto x {scope}; x; ++x, ++i)
+      for (cursor x {scope}; x; ++x, ++i)
       {
         for (cursor y {car(x)}; y; ++y, ++j)
         {
@@ -377,9 +380,9 @@ namespace meevax::system
       return false;
     }
 
-    cursor args(const cursor& exp,
-                const cursor& scope,
-                const cursor& continuation)
+    objective args(const objective& exp,
+                   const objective& scope,
+                   const objective& continuation)
     {
       if (exp && exp.is<pair>())
       {

@@ -2,14 +2,14 @@
 
 using namespace meevax::system;
 
-cursor eq(const cursor& args)
+PROCEDURE(eq)
 {
   return car(args) == cadr(args) ? true_v : false_v;
 }
 
-cursor is_pair(const cursor& args)
+PROCEDURE(is_pair)
 {
-  for (const cursor& each : args)
+  for (const auto& each : args)
   {
     if (not each or not each.is<pair>())
     {
@@ -20,30 +20,30 @@ cursor is_pair(const cursor& args)
   return true_v;
 }
 
-cursor divide(const cursor& args)
+PROCEDURE(divide)
 {
-  return std::accumulate(args, unit, make<number>(1), std::divides {});
+  return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::divides {});
 }
 
-cursor minus(const cursor& args)
+PROCEDURE(minus)
 {
-  if (std::distance(args, unit) < 2)
+  if (std::distance(std::begin(args), std::end(args)) < 2)
   {
-    return std::accumulate(args, unit, make<number>(0), std::minus {});
+    return std::accumulate(std::begin(args), std::end(args), make<number>(0), std::minus {});
   }
   else
   {
-    return std::accumulate(cursor {cdr(args)}, unit, car(args), std::minus {});
+    return std::accumulate(std::next(std::begin(args)), std::end(args), *std::begin(args), std::minus {});
   }
 }
 
-cursor multiply(const cursor& args)
+PROCEDURE(multiply)
 {
-  return std::accumulate(args, unit, make<number>(1), std::multiplies {});
+  return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::multiplies {});
 }
 
-cursor plus(const cursor& args)
+PROCEDURE(plus)
 {
-  return std::accumulate(args, unit, make<number>(0), std::plus {});
+  return std::accumulate(std::begin(args), std::end(args), make<number>(0), std::plus {});
 }
 

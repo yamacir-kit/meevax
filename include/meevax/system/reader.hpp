@@ -39,7 +39,7 @@ namespace meevax::system
     {}
 
     template <typename Interner>
-    cursor read(Interner&& intern) noexcept(false)
+    objective read(Interner&& intern) noexcept(false)
     {
       std::string buffer {};
 
@@ -184,7 +184,7 @@ namespace meevax::system
     }
 
     template <typename Interner>
-    cursor expand(Interner&& intern)
+    objective expand(Interner&& intern)
     {
       switch (peek())
       {

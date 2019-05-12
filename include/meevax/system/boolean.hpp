@@ -3,12 +3,12 @@
 
 #include <iomanip>
 
-#include <meevax/system/cursor.hpp>
+#include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {
-  extern "C" const cursor true_v;
-  extern "C" const cursor false_v;
+  extern "C" const objective true_v;
+  extern "C" const objective false_v;
 
   template <bool Value>
   std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)

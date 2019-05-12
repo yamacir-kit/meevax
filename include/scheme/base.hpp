@@ -7,18 +7,18 @@
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp>
+#include <meevax/system/procedure.hpp>
 
 extern "C"
 {
   using namespace meevax::system;
 
-  cursor eq(const cursor&);
-  cursor is_pair(const cursor&);
-
-  cursor divide(const cursor&);
-  cursor minus(const cursor&);
-  cursor multiply(const cursor&);
-  cursor plus(const cursor&);
+  PROCEDURE(divide);
+  PROCEDURE(eq);
+  PROCEDURE(is_pair);
+  PROCEDURE(minus);
+  PROCEDURE(multiply);
+  PROCEDURE(plus);
 } // extern "C"
 
 #endif // INCLUDED_SCHEME_BASE_HPP

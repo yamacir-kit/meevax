@@ -7,13 +7,8 @@
 
 namespace meevax::system
 {
-  struct cursor;
-  extern "C" const cursor unit;
-  extern "C" const cursor unbound;
-  extern "C" const cursor undefined;
-
   struct cursor // provides STL supports to cons-cells
-    : public accessor<pair>
+    : public objective
     , public std::iterator<std::input_iterator_tag, cursor>
   {
     using reference = cursor&;
@@ -23,12 +18,12 @@ namespace meevax::system
 
     template <typename... Ts>
     constexpr cursor(Ts&&... args)
-      : accessor<pair> {std::forward<Ts>(args)...}
+      : objective {std::forward<Ts>(args)...}
     {}
 
   public: // iterator supports
-    const auto& operator*() const { return car(*this); }
-          auto  operator*()       { return car(*this); }
+    decltype(auto) operator*() const { return car(*this); }
+    decltype(auto) operator*()       { return car(*this); }
 
     decltype(auto) operator->()
     {
@@ -44,25 +39,22 @@ namespace meevax::system
     const auto& begin() const noexcept { return *this; }
           auto  begin()       noexcept { return *this; }
 
-    const auto& end() const noexcept { return unit; }
-          auto  end()       noexcept { return unit; }
+    const cursor end() const noexcept { return unit; }
 
   public: // container adapter supports (for std::stack<cursor, cursor>)
     const auto& back() const { return operator*(); }
           auto  back()       { return operator*(); }
 
     template <typename... Ts>
-    decltype(auto) emplace_back(Ts&&... args)
+    void emplace_back(Ts&&... args)
     {
       *this = cons(std::forward<Ts>(args)..., *this);
-      return back();
     }
 
     template <typename... Ts>
     decltype(auto) push_back(Ts&&... args)
     {
-      emplace_back(std::forward<Ts>(args)...);
-      return back();
+      return emplace_back(std::forward<Ts>(args)...);
     }
 
     decltype(auto) pop_back() // returns removed element
@@ -115,23 +107,23 @@ namespace meevax::system
     }
   };
 
-  template <typename T, typename... Ts>
-  constexpr cursor make(Ts&&... args)
-  {
-    return cursor::bind<T>(std::forward<Ts>(args)...);
-  }
+  cursor begin(const objective& object) noexcept { return object; }
+  cursor begin(      objective& object) noexcept { return object; }
+
+  cursor end(const objective&) noexcept { return unit; }
+  cursor end(      objective&) noexcept { return unit; }
 } // namespace meevax::system
 
-namespace std
-{
-  template <typename>
-  struct hash;
-
-  template <>
-  struct hash<meevax::system::cursor>
-    : public std::hash<std::shared_ptr<meevax::system::pair>>
-  {};
-} // namespace std
+// namespace std
+// {
+//   template <typename>
+//   struct hash;
+//
+//   template <>
+//   struct hash<meevax::system::cursor>
+//     : public std::hash<std::shared_ptr<meevax::system::pair>>
+//   {};
+// } // namespace std
 
 #endif // INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 

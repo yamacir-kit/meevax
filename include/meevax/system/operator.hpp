@@ -43,35 +43,36 @@ namespace meevax::system
 {
   // For C++17 fold-expression
   template <typename T, typename U>
-  cursor operator|(T&& lhs, U&& rhs)
+  objective operator|(T&& lhs, U&& rhs)
   {
     return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
 
   template <typename... Ts>
-  decltype(auto) cons(Ts&&... args)
+  constexpr decltype(auto) cons(Ts&&... args)
   {
     return (args | ...);
   }
 
   template <typename... Ts>
-  decltype(auto) list(Ts&&... args)
+  constexpr decltype(auto) list(Ts&&... args)
   {
     return (args | ... | unit);
   }
 
-  decltype(auto) is_atomic(const cursor& exp)
-  {
-    return !exp || !exp.is<pair>();
-  }
+  // TODO REMOVE THIS
+  // decltype(auto) is_atomic(const cursor& exp)
+  // {
+  //   return !exp || !exp.is<pair>();
+  // }
 
   template <typename T, typename U>
-  cursor append(T&& x, U&& y)
+  objective append(T&& x, U&& y)
   {
-    return !x ? y : car(x) | append(cdr(x), y);
+    return !x ? y : car(x) | append(cdr(x), std::forward<U>(y));
   }
 
-  cursor zip(const cursor& x, const cursor& y)
+  objective zip(const objective& x, const objective& y)
   {
     if (!x && !y)
     {
@@ -87,14 +88,27 @@ namespace meevax::system
     }
   }
 
-  cursor assoc(const cursor& var, const cursor& env)
+  template <typename... Ts>
+  decltype(auto) display(Ts&&... args)
   {
-    if (!var)
+    return (std::cout << ... << args) << std::endl;
+  }
+
+  template <typename... Ts>
+  std::string pseudo_display(Ts&&... args) // TODO RENAME TO LEXICAL_CAST
+  {
+    std::stringstream buffer {};
+    (buffer << ... << args);
+    return buffer.str();
+  }
+
+  const objective& assoc(const objective& var, const objective& env)
+  {
+    assert(var); // Compiler and LDG instruction are responsible for this.
+
+    if (!env)
     {
-      return unit;
-    }
-    else if (!env)
-    {
+      // TODO EXCEPTION
       return unbound;
     }
     else if (caar(env) == var)
@@ -107,15 +121,14 @@ namespace meevax::system
     }
   }
 
-  accessor<pair>& assoc_(accessor<pair>& var, accessor<pair>& env)
+  objective& unsafe_assoc(const objective& var, objective& env) noexcept(false)
   {
-    if (!var)
+    assert(var);
+
+    if (!env)
     {
-      return var;
-    }
-    else if (!env)
-    {
-      return env;
+      // return env;
+      throw error {pseudo_display(var, "\x01b[31m", " is unbound")};
     }
     else if (caar(env) == var)
     {
@@ -123,11 +136,11 @@ namespace meevax::system
     }
     else
     {
-      return assoc_(var, cdr(env));
+      return unsafe_assoc(var, cdr(env));
     }
   }
 
-  cursor take(const cursor& exp, std::size_t size)
+  objective take(const objective& exp, std::size_t size)
   {
     if (0 < size)
     {
@@ -137,20 +150,6 @@ namespace meevax::system
     {
       return unit;
     }
-  }
-
-  template <typename... Ts>
-  decltype(auto) display(Ts&&... args)
-  {
-    return (std::cout << ... << args) << std::endl;
-  }
-
-  template <typename... Ts>
-  std::string pseudo_display(Ts&&... args)
-  {
-    std::stringstream buffer {};
-    (buffer << ... << args);
-    return buffer.str();
   }
 } // namespace meevax::system
 

@@ -3,7 +3,7 @@
 
 #include <boost/multiprecision/gmp.hpp>
 
-#include <meevax/system/cursor.hpp>
+#include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {
@@ -15,7 +15,7 @@ namespace meevax::system
   }
 
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
-  cursor operator OPERATOR(const cursor& lhs, const cursor& rhs) \
+  decltype(auto) operator OPERATOR(const objective& lhs, const objective& rhs) \
   { \
     return make<number>( \
       lhs.as<number>() OPERATOR rhs.as<number>() \
