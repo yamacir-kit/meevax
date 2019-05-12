@@ -38,10 +38,35 @@ link_directories(
   ${Boost_LIBRARY_DIRS}
 )
 
-add_library(${PROJECT_NAME}-base SHARED
+# ==============================================================
+#   MEEVAX STANDARD LIBRARIES (SHARED OBJECTS)
+# ==============================================================
+file(GLOB ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/system/*.cpp)
+
+foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
+  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
+
+  list(APPEND ${PROJECT_NAME}_STANDARD_LIBRARIES ${TARGET_NAME})
+  message(${PROJECT_NAME}_STANDARD_LIBRARIES) # DEBUG
+
+  add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
+  set_target_properties(${TARGET_NAME} PROPERTIES
+    VERSION   ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+  target_link_libraries(${TARGET_NAME}
+    ${Boost_LIBRARIES}
+    gmp # XXX DIRTY HACK
+  )
+endforeach()
+
+# ==============================================================
+#   MEEVAX EXECUTABLE
+# ==============================================================
+add_library(${PROJECT_NAME}-core SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/src/meevax.cpp
 )
-set_target_properties(${PROJECT_NAME}-base PROPERTIES
+set_target_properties(${PROJECT_NAME}-core PROPERTIES
   VERSION   ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -51,9 +76,10 @@ add_executable(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
-  ${PROJECT_NAME}-base
+  ${PROJECT_NAME}-core
+  ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   dl
-  gmp
+  # gmp
 )
 
 file(GLOB ${PROJECT_NAME}_SCHEME_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/scheme/*.cpp)
@@ -69,7 +95,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_SCHEME_SOURCES)
   )
   target_link_libraries(${TARGET_NAME}
     ${Boost_LIBRARIES}
-    ${PROJECT_NAME}-base
+    ${PROJECT_NAME}-core
     gmp
   )
 endforeach()
