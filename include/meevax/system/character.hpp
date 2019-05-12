@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include <meevax/system/cursor.hpp>
-
 namespace meevax::system
 {
   using char8_t = char;

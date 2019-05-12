@@ -60,18 +60,19 @@ namespace meevax::system
     return (args | ... | unit);
   }
 
+  // TODO REMOVE THIS
   decltype(auto) is_atomic(const cursor& exp)
   {
     return !exp || !exp.is<pair>();
   }
 
   template <typename T, typename U>
-  cursor append(T&& x, U&& y)
+  objective append(T&& x, U&& y)
   {
     return !x ? y : car(x) | append(cdr(x), y);
   }
 
-  cursor zip(const cursor& x, const cursor& y)
+  objective zip(const objective& x, const objective& y)
   {
     if (!x && !y)
     {
@@ -87,7 +88,7 @@ namespace meevax::system
     }
   }
 
-  cursor assoc(const cursor& var, const cursor& env)
+  const objective& assoc(const objective& var, const objective& env)
   {
     if (!var)
     {

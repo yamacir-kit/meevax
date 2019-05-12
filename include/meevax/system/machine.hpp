@@ -40,9 +40,9 @@ namespace meevax::system
       return env.push(list(key, std::forward<Ts>(args)...));
     }
 
-    cursor compile(const cursor& exp,
-                   const cursor& scope = unit,
-                   const cursor& continuation = list(STOP))
+    objective compile(const objective& exp,
+                      const objective& scope = unit,
+                      const objective& continuation = list(STOP))
     {
       if (not exp)
       {
@@ -320,9 +320,9 @@ namespace meevax::system
       throw error {pseudo_display("unterminated execution")};
     }
 
-    cursor begin(const cursor& exp,
-                 const cursor& scope,
-                 const cursor& continuation)
+    objective begin(const objective& exp,
+                    const objective& scope,
+                    const objective& continuation)
     {
       return compile(
                car(exp),
@@ -332,11 +332,11 @@ namespace meevax::system
              );
     }
 
-    cursor locate(const cursor& exp, const cursor& scope)
+    objective locate(const objective& exp, const objective& scope)
     {
       auto i {0}, j {0};
 
-      for (auto x {scope}; x; ++x, ++i)
+      for (cursor x {scope}; x; ++x, ++i)
       {
         for (cursor y {car(x)}; y; ++y, ++j)
         {
@@ -377,9 +377,9 @@ namespace meevax::system
       return false;
     }
 
-    cursor args(const cursor& exp,
-                const cursor& scope,
-                const cursor& continuation)
+    objective args(const objective& exp,
+                   const objective& scope,
+                   const objective& continuation)
     {
       if (exp && exp.is<pair>())
       {

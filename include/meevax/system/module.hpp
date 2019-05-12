@@ -10,7 +10,7 @@
 namespace meevax::system
 {
   struct module
-    : public std::unordered_map<std::string, cursor> // XXX public?
+    : public std::unordered_map<std::string, objective> // XXX public?
   {
     const std::string name;
 
@@ -19,7 +19,7 @@ namespace meevax::system
 
     template <typename... Ts>
     module(const std::string& name, Ts&&... args)
-      : std::unordered_map<std::string, cursor> {std::forward<Ts>(args)...}
+      : std::unordered_map<std::string, objective> {std::forward<Ts>(args)...}
       , name {name}
     {
       std::cerr << "constructing module \"" << name << "\" => ";
