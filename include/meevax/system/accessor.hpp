@@ -11,9 +11,16 @@
 
 namespace meevax::system
 {
+  std::size_t count {0};
+
   template <typename T>
   struct facade
   {
+    facade()
+    {
+      ++count;
+    }
+
     virtual auto type() const noexcept
       -> const std::type_info&
     {

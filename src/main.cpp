@@ -180,6 +180,8 @@ int main()
     return boost::exit_exception_failure;
   }
 
+  std::cerr << "objective copied: " << count << std::endl;
+
   return boost::exit_success;
 }
 
