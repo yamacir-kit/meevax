@@ -15,11 +15,6 @@ namespace meevax::system
       : std::string {std::forward<Ts>(args)...}
     {}
   };
-
-  std::ostream& operator<<(std::ostream& os, const symbol& symbol)
-  {
-    return os << static_cast<const std::string&>(symbol);
-  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP

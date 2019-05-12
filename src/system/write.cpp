@@ -1,5 +1,14 @@
 #include <meevax/system/accessor.hpp>
+#include <meevax/system/boolean.hpp>
+#include <meevax/system/character.hpp>
+#include <meevax/system/closure.hpp>
+#include <meevax/system/exception.hpp>
+#include <meevax/system/module.hpp>
+#include <meevax/system/number.hpp>
 #include <meevax/system/pair.hpp>
+#include <meevax/system/procedure.hpp>
+#include <meevax/system/string.hpp>
+#include <meevax/system/syntax.hpp>
 
 namespace meevax::system
 {
@@ -8,6 +17,41 @@ namespace meevax::system
   {
     // write(os) will be dispatched to each type's stream output operator.
     return !rhs ? (os << "\x1b[35m()\x1b[0m") : rhs.access().write(os);
+  }
+
+  std::ostream& operator<<(std::ostream& os, const character& c)
+  {
+    return os << "\x1B[0;36m#\\" << static_cast<const std::basic_string<char8_t>&>(c) << "\x1b[0m";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const closure&)
+  {
+    return os << "#<closure>";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const exception& e)
+  {
+    return os << "\x1b[31m#<exception \"" << e.what() << "\">\x1b[0m";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const error& e)
+  {
+    return os << "\x1b[31m#<error \"" << e.what() << "\">\x1b[0m";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const warning& w)
+  {
+    return os << "\x1b[33m#<warning \"" << w.what() << "\">\x1b[0m";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const module& module)
+  {
+    return os << "#<module " << module.name << ">";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const number& number)
+  {
+    return os << "\x1B[36m" << number.str() << "\x1B[0m";
   }
 
   std::ostream& operator<<(std::ostream& os, const pair& p)
@@ -27,6 +71,33 @@ namespace meevax::system
     }
 
     return os << "\x1b[35m)\x1b[0m";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const procedure& procedure)
+  {
+    return os << "#<procedure " << procedure.name << ">";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const string& s)
+  {
+    os << "\x1b[36m\"" << std::get<0>(s).as<std::string>();
+
+    for (const auto& each : std::get<1>(s))
+    {
+      os << each.as<std::string>();
+    }
+
+    return os << "\"\x1b[0m";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const native_syntax& syntax)
+  {
+    return os << "#<native-syntax " << syntax.name << ">";
+  }
+
+  std::ostream& operator<<(std::ostream& os, const syntax&)
+  {
+    return os << "#<syntax>";
   }
 } // namespace meevax::system
 

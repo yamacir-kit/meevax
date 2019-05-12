@@ -23,10 +23,7 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream& os, const procedure& procedure)
-  {
-    return os << "#<procedure " << procedure.name << ">";
-  }
+  std::ostream& operator<<(std::ostream&, const procedure&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_PROCEDURE_HPP

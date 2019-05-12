@@ -24,18 +24,7 @@ namespace meevax::system
     }
   };
 
-  // TODO PROVIDE API "SYNTAX-HIGHLIGHT-OFF"
-  std::ostream& operator<<(std::ostream& os, const string& s)
-  {
-    os << "\x1b[36m\"" << s.first.as<std::string>();
-
-    for (const auto& each : s.second)
-    {
-      os << each.as<std::string>();
-    }
-
-    return os << "\"\x1b[0m";
-  }
+  std::ostream& operator<<(std::ostream&, const string&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_STRING_HPP

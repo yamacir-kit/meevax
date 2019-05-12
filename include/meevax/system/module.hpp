@@ -113,10 +113,7 @@ namespace meevax::system
     }
   };
 
-  std::ostream& operator<<(std::ostream& os, const module& module)
-  {
-    return os << "#<module " << module.name << ">";
-  }
+  std::ostream& operator<<(std::ostream&, const module&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_MODULE_HPP

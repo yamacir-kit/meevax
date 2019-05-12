@@ -16,10 +16,7 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream& os, const character& c)
-  {
-    return os << "\x1B[0;36m#\\" << static_cast<const std::basic_string<char8_t>&>(c) << "\x1b[0m";
-  }
+  std::ostream& operator<<(std::ostream&, const character&);
 
   constexpr auto backspace {u8'\b'};
 } // namespace meevax::system
