@@ -180,11 +180,6 @@ int main()
     return boost::exit_exception_failure;
   }
 
-  std::cerr << "object:\n"
-            << "  init: " << init_count << "\n"
-            << "  copy: " << copy_count << "\n"
-            << "  move: " << move_count << std::endl;
-
   return boost::exit_success;
 }
 
