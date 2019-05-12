@@ -27,8 +27,8 @@ namespace meevax::system
     {}
 
   public: // iterator supports
-    const auto& operator*() const { return car(*this); }
-          auto& operator*()       { return car(*this); }
+    decltype(auto) operator*() const { return car(*this); }
+    decltype(auto) operator*()       { return car(*this); }
 
     decltype(auto) operator->()
     {
@@ -51,17 +51,15 @@ namespace meevax::system
           auto  back()       { return operator*(); }
 
     template <typename... Ts>
-    decltype(auto) emplace_back(Ts&&... args)
+    void emplace_back(Ts&&... args)
     {
       *this = cons(std::forward<Ts>(args)..., *this);
-      return back();
     }
 
     template <typename... Ts>
     decltype(auto) push_back(Ts&&... args)
     {
-      emplace_back(std::forward<Ts>(args)...);
-      return back();
+      return emplace_back(std::forward<Ts>(args)...);
     }
 
     decltype(auto) pop_back() // returns removed element
@@ -121,16 +119,16 @@ namespace meevax::system
   // }
 } // namespace meevax::system
 
-namespace std
-{
-  template <typename>
-  struct hash;
-
-  template <>
-  struct hash<meevax::system::cursor>
-    : public std::hash<std::shared_ptr<meevax::system::pair>>
-  {};
-} // namespace std
+// namespace std
+// {
+//   template <typename>
+//   struct hash;
+//
+//   template <>
+//   struct hash<meevax::system::cursor>
+//     : public std::hash<std::shared_ptr<meevax::system::pair>>
+//   {};
+// } // namespace std
 
 #endif // INCLUDED_MEEVAX_SYSTEM_CURSOR_HPP
 

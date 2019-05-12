@@ -43,19 +43,19 @@ namespace meevax::system
 {
   // For C++17 fold-expression
   template <typename T, typename U>
-  cursor operator|(T&& lhs, U&& rhs)
+  objective operator|(T&& lhs, U&& rhs)
   {
     return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
 
   template <typename... Ts>
-  decltype(auto) cons(Ts&&... args)
+  constexpr decltype(auto) cons(Ts&&... args)
   {
     return (args | ...);
   }
 
   template <typename... Ts>
-  decltype(auto) list(Ts&&... args)
+  constexpr decltype(auto) list(Ts&&... args)
   {
     return (args | ... | unit);
   }
@@ -69,7 +69,7 @@ namespace meevax::system
   template <typename T, typename U>
   objective append(T&& x, U&& y)
   {
-    return !x ? y : car(x) | append(cdr(x), y);
+    return !x ? y : car(x) | append(cdr(x), std::forward<U>(y));
   }
 
   objective zip(const objective& x, const objective& y)
@@ -128,7 +128,7 @@ namespace meevax::system
     }
   }
 
-  cursor take(const cursor& exp, std::size_t size)
+  objective take(const objective& exp, std::size_t size)
   {
     if (0 < size)
     {
