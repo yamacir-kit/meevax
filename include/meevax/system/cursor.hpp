@@ -13,7 +13,7 @@ namespace meevax::system
   extern "C" const cursor undefined;
 
   struct cursor // provides STL supports to cons-cells
-    : public accessor<pair>
+    : public objective
     , public std::iterator<std::input_iterator_tag, cursor>
   {
     using reference = cursor&;
@@ -23,7 +23,7 @@ namespace meevax::system
 
     template <typename... Ts>
     constexpr cursor(Ts&&... args)
-      : accessor<pair> {std::forward<Ts>(args)...}
+      : objective {std::forward<Ts>(args)...}
     {}
 
   public: // iterator supports

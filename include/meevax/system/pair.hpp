@@ -5,24 +5,27 @@
 
 namespace meevax::system
 {
+  struct pair;
+
+  using objective = accessor<pair>;
+  using objectives = std::pair<objective, objective>;
+
   struct pair
-    : public std::pair<accessor<pair>, accessor<pair>>
+    : public objectives
     , public facade<pair>
   {
     template <typename... Ts>
     constexpr pair(Ts&&... args)
-      : std::pair<accessor<pair>, accessor<pair>> {std::forward<Ts>(args)...}
+      : objectives {std::forward<Ts>(args)...}
     {}
-
-    virtual ~pair() = default;
   };
 
   static constexpr auto* acception_message {"accessing to unit; meevax accept this (treat unit as injective) but is non-standard Scheme behavior"};
 
-        auto& car(      accessor<pair>& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-  const auto& car(const accessor<pair>& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-        auto& cdr(      accessor<pair>& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-  const auto& cdr(const accessor<pair>& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+        auto& car(      objective& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+  const auto& car(const objective& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+        auto& cdr(      objective& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+  const auto& cdr(const objective& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
 
   std::ostream& operator<<(std::ostream& os, const pair& exp)
   {

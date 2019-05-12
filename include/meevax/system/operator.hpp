@@ -107,7 +107,7 @@ namespace meevax::system
     }
   }
 
-  accessor<pair>& assoc_(accessor<pair>& var, accessor<pair>& env)
+  objective& assoc_(objective& var, objective& env)
   {
     if (!var)
     {
