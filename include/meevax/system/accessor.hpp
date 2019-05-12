@@ -11,16 +11,13 @@
 
 namespace meevax::system
 {
-  std::size_t count {0};
+  std::size_t init_count {0};
+  std::size_t copy_count {0};
+  std::size_t move_count {0};
 
   template <typename T>
   struct facade
   {
-    facade()
-    {
-      ++count;
-    }
-
     virtual auto type() const noexcept
       -> const std::type_info&
     {
@@ -120,7 +117,34 @@ namespace meevax::system
     template <typename... Ts>
     constexpr accessor(Ts&&... args)
       : std::shared_ptr<TopType> {std::forward<Ts>(args)...}
-    {}
+    {
+      ++init_count;
+    }
+
+    // DEBUG
+    accessor(const accessor& other)
+      : std::shared_ptr<TopType> {other}
+    {
+      ++copy_count;
+    }
+
+    decltype(auto) operator=(const accessor& rhs)
+    {
+      ++copy_count;
+      return std::shared_ptr<TopType>::operator=(rhs);
+    }
+
+    accessor(accessor&& moved)
+      : std::shared_ptr<TopType> {moved}
+    {
+      ++move_count;
+    }
+
+    decltype(auto) operator=(accessor&& rhs)
+    {
+      ++move_count;
+      return std::shared_ptr<TopType>::operator=(rhs);
+    }
 
     // If you initialize accessor<TopType> by accessor<TopType>::bind<BoundType>(args...),
     // std::shared_ptr<TopType> remembers it has assigned accessor<TopType>::binder<BoundType> originally,
