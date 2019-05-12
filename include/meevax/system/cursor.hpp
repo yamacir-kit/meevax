@@ -107,15 +107,11 @@ namespace meevax::system
     }
   };
 
-  cursor begin(const objective& object) noexcept
-  {
-    return object;
-  }
+  cursor begin(const objective& object) noexcept { return object; }
+  cursor begin(      objective& object) noexcept { return object; }
 
-  cursor end(const objective&) noexcept
-  {
-    return unit;
-  }
+  cursor end(const objective&) noexcept { return unit; }
+  cursor end(      objective&) noexcept { return unit; }
 } // namespace meevax::system
 
 // namespace std
