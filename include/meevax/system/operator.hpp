@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <meevax/system/cursor.hpp>
+#include <meevax/system/pair.hpp>
 #include <meevax/system/exception.hpp>
 
 // TODO 純LISPコアに必要なものは移設すること
@@ -60,12 +60,6 @@ namespace meevax::system
     return (args | ... | unit);
   }
 
-  // TODO REMOVE THIS
-  // decltype(auto) is_atomic(const cursor& exp)
-  // {
-  //   return !exp || !exp.is<pair>();
-  // }
-
   template <typename T, typename U>
   objective append(T&& x, U&& y)
   {
@@ -108,7 +102,7 @@ namespace meevax::system
 
     if (!env)
     {
-      // TODO EXCEPTION
+      // throw error {pseudo_display(var, "\x01b[31m", " is unbound")};
       return unbound;
     }
     else if (caar(env) == var)
@@ -127,7 +121,6 @@ namespace meevax::system
 
     if (!env)
     {
-      // return env;
       throw error {pseudo_display(var, "\x01b[31m", " is unbound")};
     }
     else if (caar(env) == var)

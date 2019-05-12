@@ -74,11 +74,11 @@ namespace meevax::system
         {
           throw error {"unit is not appliciable"};
         }
-        else if (buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
+        else if (buffer != unbound && buffer.is<native_syntax>() && not defined(car(exp), scope))
         {
           return buffer.as<native_syntax>()(exp, scope, continuation);
         }
-        else if (buffer != unbound && buffer.is<syntax>() && not local_defined(car(exp), scope))
+        else if (buffer != unbound && buffer.is<syntax>() && not defined(car(exp), scope))
         {
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
@@ -150,16 +150,7 @@ namespace meevax::system
 
       case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG_1();
-
-        if (const auto& var {assoc(cadr(c), env)}; var == unbound)
-        {
-          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
-        }
-        else
-        {
-          s.push(var);
-        }
-
+        s.push(assoc(cadr(c), env));
         c.pop(2);
         goto dispatch;
 
@@ -258,17 +249,7 @@ namespace meevax::system
 
       case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG_1();
-
-        // if (auto& lhs {unsafe_assoc(cadr(c), env)}; !lhs)
-        // {
-        //   throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
-        // }
-        // else // TODO ASSIGN
-        // {
-        //   std::atomic_store(&lhs, car(s).access().copy());
-        // }
         std::atomic_store(&unsafe_assoc(cadr(c), env), car(s).access().copy());
-
         c.pop(2);
         goto dispatch;
 
@@ -359,7 +340,7 @@ namespace meevax::system
     }
 
   protected: // Compilation Helpers
-    bool local_defined(const cursor& exp, const cursor& scope)
+    bool defined(const cursor& exp, const cursor& scope)
     {
       for (cursor frame : scope)
       {
