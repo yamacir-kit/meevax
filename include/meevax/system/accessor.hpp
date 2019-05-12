@@ -37,7 +37,6 @@ namespace meevax::system
     //   new (place) T {static_cast<const T&>(*this)};
     // }
 
-    // Type T is able to customize print function via stream output operator.
     virtual std::ostream& write(std::ostream& os) const
     {
       return os << static_cast<const T&>(*this);
@@ -173,11 +172,7 @@ namespace meevax::system
 
   // Invoke TopType::write()
   template <typename T>
-  std::ostream& operator<<(std::ostream& os, const accessor<T>& rhs)
-  {
-    // TODO Provide custamizable printer for nullptr.
-    return !rhs ? (os << "\x1b[35m()\x1b[0m") : rhs.access().write(os);
-  }
+  std::ostream& operator<<(std::ostream&, const accessor<T>&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
