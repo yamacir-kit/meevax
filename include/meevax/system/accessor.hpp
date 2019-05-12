@@ -44,7 +44,7 @@ namespace meevax::system
   };
 
   template <typename TopType = facade<void>>
-  struct accessor
+  class accessor
     : public std::shared_ptr<TopType>
   {
     template <typename BoundType>
