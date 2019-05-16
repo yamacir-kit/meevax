@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
+#include <functional> // std::invoke
+
 #include <meevax/system/boolean.hpp> // false_v
 #include <meevax/system/closure.hpp>
 #include <meevax/system/exception.hpp>
@@ -225,7 +227,7 @@ namespace meevax::system
         }
         else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
         {
-          s = cons(applicable.as<procedure>()(cadr(s)), cddr(s)); // TODO std::invoke
+          s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
         else
