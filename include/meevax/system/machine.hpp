@@ -8,6 +8,7 @@
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp> // assoc
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/special.hpp>
 #include <meevax/system/symbol.hpp>
 #include <meevax/system/syntax.hpp>
 
@@ -74,9 +75,9 @@ namespace meevax::system
         {
           throw error {"unit is not appliciable"};
         }
-        else if (buffer != unbound && buffer.is<native_syntax>() && not defined(car(exp), scope))
+        else if (buffer != unbound && buffer.is<special>() && not defined(car(exp), scope))
         {
-          return buffer.as<native_syntax>()(exp, scope, continuation);
+          return buffer.as<special>()(exp, scope, continuation);
         }
         else if (buffer != unbound && buffer.is<syntax>() && not defined(car(exp), scope))
         {

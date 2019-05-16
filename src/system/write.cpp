@@ -7,6 +7,7 @@
 #include <meevax/system/number.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/special.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/syntax.hpp>
 
@@ -90,14 +91,14 @@ namespace meevax::system
     return os << "\"\x1b[0m";
   }
 
-  std::ostream& operator<<(std::ostream& os, const native_syntax& syntax)
+  std::ostream& operator<<(std::ostream& os, const special& special)
   {
-    return os << "#<native-syntax " << syntax.name << ">";
+    return os << "#<special " << special.name << ">";
   }
 
-  std::ostream& operator<<(std::ostream& os, const syntax&)
+  std::ostream& operator<<(std::ostream& os, const syntax& syntax)
   {
-    return os << "#<syntax>";
+    return os << "#<syntax " << &syntax << ">";
   }
 } // namespace meevax::system
 
