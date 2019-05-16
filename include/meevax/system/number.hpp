@@ -11,6 +11,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream&, const number&);
 
+  // TODO CHECK IF LHS OR RHS IS UNIQUE, THEN REWRITE VALUE ELSE MAKE NEW OBJECT
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
   decltype(auto) operator OPERATOR(const objective& lhs, const objective& rhs) \
   { \

@@ -79,7 +79,7 @@ namespace meevax::system
         }
         else if (buffer != unbound && buffer.is<special>() && not defined(car(exp), scope))
         {
-          return buffer.as<special>()(exp, scope, continuation);
+          return std::invoke(buffer.as<special>(), exp, scope, continuation);
         }
         else if (buffer != unbound && buffer.is<syntax>() && not defined(car(exp), scope))
         {
