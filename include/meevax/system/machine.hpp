@@ -137,9 +137,8 @@ namespace meevax::system
           {
             s.push(car(std::next(scope, j)));
           }
-
-          c.pop(2);
         }
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
@@ -154,7 +153,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDS:
+      case instruction::secd::LDS: // S E (LDS code . C) => (syntax . S) E C D
         DEBUG_1();
         s.push(make<syntax>(cadr(c), e));
         c.pop(2);
@@ -169,7 +168,7 @@ namespace meevax::system
       case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG_2();
         d.push(cdddr(c));
-        c = (car(s) != false_v ? cadr(c) : caddr(c));
+        c = car(s) != false_v ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
@@ -193,7 +192,7 @@ namespace meevax::system
 
       case instruction::secd::CONS:
         DEBUG_0();
-        s = cons(cons(car(s), cadr(s)), cddr(s));
+        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
         c.pop();
         goto dispatch;
 
@@ -225,7 +224,7 @@ namespace meevax::system
         }
         else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
         {
-          s = cons(applicable.as<procedure>()(cadr(s)), cddr(s));
+          s = cons(applicable.as<procedure>()(cadr(s)), cddr(s)); // TODO std::invoke
           c.pop(1);
         }
         else
@@ -249,6 +248,10 @@ namespace meevax::system
 
       case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG_1();
+        // TODO
+        // (1) 右辺値がユニークな場合はコピーを作らなくても問題ない
+        // (2) 左辺値がユニークな場合は直接書き換えても問題ない
+        // (3) 右辺値が左辺値よりも新しい場合は弱参照をセットしなければならない
         std::atomic_store(&unsafe_assoc(cadr(c), env), car(s).access().copy());
         c.pop(2);
         goto dispatch;
@@ -292,9 +295,8 @@ namespace meevax::system
             }
             std::atomic_store(&car(var), car(s));
           }
-
-          c.pop(2);
         }
+        c.pop(2);
         goto dispatch;
 
       default:
