@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
+#include <functional> // std::invoke
+
 #include <meevax/system/boolean.hpp> // false_v
 #include <meevax/system/closure.hpp>
 #include <meevax/system/exception.hpp>
@@ -8,6 +10,7 @@
 #include <meevax/system/number.hpp>
 #include <meevax/system/operator.hpp> // assoc
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/special.hpp>
 #include <meevax/system/symbol.hpp>
 #include <meevax/system/syntax.hpp>
 
@@ -40,9 +43,9 @@ namespace meevax::system
       return env.push(list(key, std::forward<Ts>(args)...));
     }
 
-    cursor compile(const cursor& exp,
-                   const cursor& scope = unit,
-                   const cursor& continuation = list(STOP))
+    objective compile(const objective& exp,
+                      const objective& scope = unit,
+                      const objective& continuation = list(STOP))
     {
       if (not exp)
       {
@@ -70,12 +73,15 @@ namespace meevax::system
       }
       else // is (syntax-or-any-application . arguments)
       {
-        if (auto buffer {assoc(car(exp), env)};
-            buffer != unbound && buffer.is<native_syntax>() && not local_defined(car(exp), scope))
+        if (const auto& buffer {assoc(car(exp), env)}; !buffer)
         {
-          return buffer.as<native_syntax>()(exp, scope, continuation);
+          throw error {"unit is not appliciable"};
         }
-        else if (buffer != unbound && buffer.is<syntax>() && not local_defined(car(exp), scope))
+        else if (buffer != unbound && buffer.is<special>() && not defined(car(exp), scope))
+        {
+          return std::invoke(buffer.as<special>(), exp, scope, continuation);
+        }
+        else if (buffer != unbound && buffer.is<syntax>() && not defined(car(exp), scope))
         {
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
@@ -107,7 +113,7 @@ namespace meevax::system
       }
     }
 
-    cursor execute(const cursor& exp) noexcept(false)
+    objective execute(const objective& exp) noexcept(false)
     {
       c = exp;
 
@@ -134,9 +140,8 @@ namespace meevax::system
           {
             s.push(car(std::next(scope, j)));
           }
-
-          c.pop(2);
         }
+        c.pop(2);
         goto dispatch;
 
       case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
@@ -147,20 +152,11 @@ namespace meevax::system
 
       case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG_1();
-
-        if (const auto& var {assoc(cadr(c), env)}; var == unbound)
-        {
-          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
-        }
-        else
-        {
-          s.push(var);
-        }
-
+        s.push(assoc(cadr(c), env));
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDS:
+      case instruction::secd::LDS: // S E (LDS code . C) => (syntax . S) E C D
         DEBUG_1();
         s.push(make<syntax>(cadr(c), e));
         c.pop(2);
@@ -175,7 +171,7 @@ namespace meevax::system
       case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG_2();
         d.push(cdddr(c));
-        c = (car(s) != false_v ? cadr(c) : caddr(c));
+        c = car(s) != false_v ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
@@ -199,7 +195,7 @@ namespace meevax::system
 
       case instruction::secd::CONS:
         DEBUG_0();
-        s = cons(cons(car(s), cadr(s)), cddr(s));
+        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
         c.pop();
         goto dispatch;
 
@@ -220,7 +216,7 @@ namespace meevax::system
 
         if (auto applicable {car(s)}; not applicable)
         {
-          throw error {"unit is not applicable"};
+          throw error {"unit is not appliciable"};
         }
         else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
@@ -231,7 +227,7 @@ namespace meevax::system
         }
         else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
         {
-          s = cons(applicable.as<procedure>()(cadr(s)), cddr(s));
+          s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
         else
@@ -255,17 +251,11 @@ namespace meevax::system
 
       case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG_1();
-
-        // if (auto lhs {assoc(cadr(c), env)}; lhs == unbound)
-        if (auto& lhs {assoc_(cadr(c), env)}; !lhs)
-        {
-          throw error {pseudo_display(cadr(c), "\x01b[31m", " is unbound")};
-        }
-        else // TODO ASSIGN
-        {
-          std::atomic_store(&lhs, car(s).access().copy());
-        }
-
+        // TODO
+        // (1) 右辺値がユニークな場合はコピーを作らなくても問題ない
+        // (2) 左辺値がユニークな場合は直接書き換えても問題ない
+        // (3) 右辺値が左辺値よりも新しい場合は弱参照をセットしなければならない
+        std::atomic_store(&unsafe_assoc(cadr(c), env), car(s).access().copy());
         c.pop(2);
         goto dispatch;
 
@@ -308,9 +298,8 @@ namespace meevax::system
             }
             std::atomic_store(&car(var), car(s));
           }
-
-          c.pop(2);
         }
+        c.pop(2);
         goto dispatch;
 
       default:
@@ -320,9 +309,9 @@ namespace meevax::system
       throw error {pseudo_display("unterminated execution")};
     }
 
-    cursor begin(const cursor& exp,
-                 const cursor& scope,
-                 const cursor& continuation)
+    objective begin(const objective& exp,
+                    const objective& scope,
+                    const objective& continuation)
     {
       return compile(
                car(exp),
@@ -332,11 +321,11 @@ namespace meevax::system
              );
     }
 
-    cursor locate(const cursor& exp, const cursor& scope)
+    objective locate(const objective& exp, const objective& scope)
     {
       auto i {0}, j {0};
 
-      for (auto x {scope}; x; ++x, ++i)
+      for (cursor x {scope}; x; ++x, ++i)
       {
         for (cursor y {car(x)}; y; ++y, ++j)
         {
@@ -356,7 +345,7 @@ namespace meevax::system
     }
 
   protected: // Compilation Helpers
-    bool local_defined(const cursor& exp, const cursor& scope)
+    bool defined(const cursor& exp, const cursor& scope)
     {
       for (cursor frame : scope)
       {
@@ -377,9 +366,9 @@ namespace meevax::system
       return false;
     }
 
-    cursor args(const cursor& exp,
-                const cursor& scope,
-                const cursor& continuation)
+    objective args(const objective& exp,
+                   const objective& scope,
+                   const objective& continuation)
     {
       if (exp && exp.is<pair>())
       {

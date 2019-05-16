@@ -9,10 +9,7 @@ namespace meevax::system
     : public virtual pair
   {};
 
-  std::ostream& operator<<(std::ostream& os, const closure&)
-  {
-    return os << "#<closure>";
-  }
+  std::ostream& operator<<(std::ostream&, const closure&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP

@@ -15,27 +15,16 @@ namespace meevax::system
       std::stringstream buffer {};
       buffer << first.as<std::string>();
 
-      for (cursor c {second}; c; ++c)
+      for (const auto& each : second)
       {
-        buffer << (*c).as<std::string>();
+        buffer << each.as<std::string>();
       }
 
       return buffer.str();
     }
   };
 
-  // TODO PROVIDE API "SYNTAX-HIGHLIGHT-OFF"
-  std::ostream& operator<<(std::ostream& os, const string& s)
-  {
-    os << "\x1b[36m\"" << s.first.as<std::string>();
-
-    for (cursor c {s.second}; c; ++c)
-    {
-      os << (*c).as<std::string>();
-    }
-
-    return os << "\"\x1b[0m";
-  }
+  std::ostream& operator<<(std::ostream&, const string&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_STRING_HPP

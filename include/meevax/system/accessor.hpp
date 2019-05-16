@@ -25,19 +25,6 @@ namespace meevax::system
       return std::make_shared<T>(static_cast<const T&>(*this));
     }
 
-    // // (1)
-    // virtual T& operator=(const T& rhs)
-    // {
-    //   std::cerr << "[debug] (1) " << __LINE__ << std::endl;
-    //   return static_cast<T&>(*this) = rhs;
-    // }
-    //
-    // virtual void placement_copy(T* place) const
-    // {
-    //   new (place) T {static_cast<const T&>(*this)};
-    // }
-
-    // Type T is able to customize print function via stream output operator.
     virtual std::ostream& write(std::ostream& os) const
     {
       return os << static_cast<const T&>(*this);
@@ -45,7 +32,7 @@ namespace meevax::system
   };
 
   template <typename TopType = facade<void>>
-  struct accessor
+  class accessor
     : public std::shared_ptr<TopType>
   {
     template <typename BoundType>
@@ -78,30 +65,6 @@ namespace meevax::system
         return std::make_shared<binding>(*this);
       }
 
-      // void placement_copy(TopType* place) const override
-      // {
-      //   new (place) binder<BoundType> {static_cast<const BoundType&>(*this)};
-      // }
-      //
-      // // (1')
-      // TopType& operator=(const TopType& rhs) override
-      // {
-      //   std::cerr << "[debug] (1')\n";
-      //   std::cerr << "        lhs: " << utility::demangle(type()) << "\n"
-      //             << "        rhs: " << utility::demangle(rhs.type()) << std::endl;
-      //
-      //   if (type() != rhs.type())
-      //   {
-      //     // rhs.placement_copy(this); // XXX WORKS BUT GET SEGV
-      //     return *this;
-      //   }
-      //   else
-      //   {
-      //     static_cast<BoundType&>(*this) = dynamic_cast<const BoundType&>(rhs);
-      //     return *this;
-      //   }
-      // }
-
       // Override TopType::write(), then invoke BoundType's stream output operator.
       std::ostream& write(std::ostream& os) const override
       {
@@ -126,19 +89,6 @@ namespace meevax::system
       return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
-    decltype(auto) access()
-    {
-      if (*this)
-      {
-        return std::shared_ptr<TopType>::operator*();
-      }
-      else
-      {
-        // This exception occurrence is guarded by selecter
-        throw error {"accessing to unit"};
-      }
-    }
-
     decltype(auto) access() const
     {
       if (*this)
@@ -159,12 +109,6 @@ namespace meevax::system
     }
 
     template <typename T>
-    decltype(auto) as()
-    {
-      return dynamic_cast<T&>(access());
-    }
-
-    template <typename T>
     decltype(auto) as() const
     {
       return dynamic_cast<const T&>(access());
@@ -173,11 +117,7 @@ namespace meevax::system
 
   // Invoke TopType::write()
   template <typename T>
-  std::ostream& operator<<(std::ostream& os, const accessor<T>& rhs)
-  {
-    // TODO Provide custamizable printer for nullptr.
-    return !rhs ? (os << "\x1b[35m()\x1b[0m") : rhs.access().write(os);
-  }
+  std::ostream& operator<<(std::ostream&, const accessor<T>&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP

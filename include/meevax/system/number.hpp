@@ -3,19 +3,17 @@
 
 #include <boost/multiprecision/gmp.hpp>
 
-#include <meevax/system/cursor.hpp>
+#include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {
   using number = boost::multiprecision::mpf_float;
 
-  std::ostream& operator<<(std::ostream& os, const number& number)
-  {
-    return os << "\x1B[36m" << number.str() << "\x1B[0m";
-  }
+  std::ostream& operator<<(std::ostream&, const number&);
 
+  // TODO CHECK IF LHS OR RHS IS UNIQUE, THEN REWRITE VALUE ELSE MAKE NEW OBJECT
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \
-  cursor operator OPERATOR(const cursor& lhs, const cursor& rhs) \
+  decltype(auto) operator OPERATOR(const objective& lhs, const objective& rhs) \
   { \
     return make<number>( \
       lhs.as<number>() OPERATOR rhs.as<number>() \
