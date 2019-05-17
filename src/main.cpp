@@ -144,7 +144,7 @@ int main()
             << "\n"
             << "you have control" << std::endl;
 
-  for (root.open("/dev/stdin"); root.readable(); ) try
+  for (root.open("/dev/stdin"); root.ready(); ) try
   {
     std::cerr << "\n> " << std::flush;
     const auto expression {root.read()};

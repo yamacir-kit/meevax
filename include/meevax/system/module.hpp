@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
 
+#include <functional> // std::invoke
 #include <unordered_map>
 
 #include <meevax/posix/linker.hpp>
@@ -14,7 +15,7 @@ namespace meevax::system
   {
     const std::string name;
 
-    reader source;
+    reader read_;
     machine secd; // TODO RENAME
 
     template <typename... Ts>
@@ -27,21 +28,21 @@ namespace meevax::system
     }
 
   public: // reader interface
-    bool readable() const noexcept
+    auto ready() const noexcept
     {
-      return static_cast<bool>(source);
+      return static_cast<bool>(read_); // TODO MORE
     }
 
     template <typename... Ts>
     decltype(auto) open(Ts&&... args)
     {
-      source = reader {std::forward<Ts>(args)...};
-      return readable();
+      read_ = reader {std::forward<Ts>(args)...};
+      return ready();
     }
 
-    decltype(auto) read()
+    decltype(auto) read() // XXX DIRTY WRAPPER
     {
-      return source.read([&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
+      return std::invoke(read_, [&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
     }
 
   public: // virtual machine interface

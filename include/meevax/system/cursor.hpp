@@ -101,6 +101,7 @@ namespace meevax::system
     }
 
     // pop() is NOT special case of pop(1) above.
+    // XXX コードは綺麗になるがコピーが発生するため将来的には除去しないといけない
     decltype(auto) pop() // TODO RENAME
     {
       return pop_back();
