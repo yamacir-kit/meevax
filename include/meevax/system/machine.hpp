@@ -309,6 +309,12 @@ namespace meevax::system
       throw error {pseudo_display("unterminated execution")};
     }
 
+    template <typename... Ts>
+    decltype(auto) operator()(Ts&&... args)
+    {
+      return execute(std::forward<Ts>(args)...);
+    }
+
     objective begin(const objective& exp,
                     const objective& scope,
                     const objective& continuation)

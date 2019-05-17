@@ -16,7 +16,7 @@ namespace meevax::system
     const std::string name;
 
     reader read_;
-    machine secd; // TODO RENAME
+    machine execute_; // TODO RENAME
 
     template <typename... Ts>
     module(const std::string& name, Ts&&... args)
@@ -49,25 +49,25 @@ namespace meevax::system
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return secd.define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return execute_.define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
     template <typename... Ts>
     decltype(auto) compile(Ts&&... args)
     {
-      return secd.compile(std::forward<Ts>(args)...);
+      return execute_.compile(std::forward<Ts>(args)...);
     }
 
     template <typename... Ts>
     decltype(auto) begin(Ts&&... args)
     {
-      return secd.begin(std::forward<Ts>(args)...);
+      return execute_.begin(std::forward<Ts>(args)...);
     }
 
     template <typename... Ts>
     decltype(auto) execute(Ts&&... args)
     {
-      return secd.execute(std::forward<Ts>(args)...);
+      return std::invoke(execute_, std::forward<Ts>(args)...);
     }
 
   protected: // module interface
