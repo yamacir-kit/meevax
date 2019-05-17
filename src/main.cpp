@@ -126,8 +126,8 @@ int main()
     // XXX DIRTY HACK
     root.define<procedure>("load", [&](const cursor& args)
     {
-      root.load(car(args).template as<const string>());
-      return args;
+      // XXX 今は雑にブーリアンを返してる
+      return root.load(car(args).template as<const string>());
     });
 
     root.define<procedure>("eq?", library.link<procedure::signature>("eq"));

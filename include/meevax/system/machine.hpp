@@ -19,7 +19,7 @@ namespace meevax::system
   // Simple SECD machine.
   class machine
   {
-  protected:
+  public: // XXX DIRTY HACK
     cursor s, // stack
            e, // lexical environment
            c, // code

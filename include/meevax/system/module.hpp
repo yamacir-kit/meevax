@@ -53,13 +53,13 @@ namespace meevax::system
     }
 
     template <typename... Ts>
-    decltype(auto) compile(Ts&&... args)
+    decltype(auto) compile(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
     {
       return execute_.compile(std::forward<Ts>(args)...);
     }
 
     template <typename... Ts>
-    decltype(auto) begin(Ts&&... args)
+    decltype(auto) begin(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
     {
       return execute_.begin(std::forward<Ts>(args)...);
     }
@@ -87,30 +87,37 @@ namespace meevax::system
   public:
     // XXX TEMPORARY DIRTY HACK
     template <typename... Ts>
-    bool load(Ts&&... args) noexcept(false)
+    decltype(auto) load(Ts&&... args) noexcept(false)
     {
-      if (reader file {std::forward<Ts>(args)...}; file)
+      if (module loader {"unnamed-loader"}; loader.open(std::forward<Ts>(args)...))
       {
-        std::cerr << "[debug] succeeded to open file" << std::endl;
+        loader.merge(*this);
+        loader.execute_.env = execute_.env;
 
-        std::size_t size {0};
-
-        while (file)
+        while (loader.ready())
         {
-          auto expression {file.read([&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); })};
-          execute(compile(expression));
-          ++size;
+          const auto expression {loader.read()};
+          std::cerr << "[" << std::size(loader) << "] " << expression << std::flush;
+
+          const auto executable {compile(expression)};
+          std::cerr << " => " << executable << std::flush;
+
+          const auto evaluation {execute(executable)};
+          std::cerr << " => " << evaluation << std::endl;
         }
 
-        std::cerr << "[debug] " << size << " expression loaded" << std::endl;
-        return true;
+        std::cerr << __LINE__ << std::endl;
+        merge(loader);
+        std::cerr << __LINE__ << std::endl;
+        execute_.env = loader.execute_.env;
+        std::cerr << __LINE__ << std::endl;
+        return true_v;
       }
       else
       {
         std::cerr << "[debug] failed to open file" << std::endl;
+        return false_v;
       }
-
-      return false;
     }
   };
 
