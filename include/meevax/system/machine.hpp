@@ -115,6 +115,7 @@ namespace meevax::system
 
     objective execute(const objective& exp) noexcept(false)
     {
+      // s = e = d = unit;
       c = exp;
 
     dispatch:
@@ -209,7 +210,8 @@ namespace meevax::system
       case instruction::secd::STOP: // (result . S) E (STOP . C) D
         DEBUG_0();
         c.pop(1);
-        return car(s);
+        // return car(s);
+        return s.pop();
 
       case instruction::secd::APPLY:
         DEBUG_0();
@@ -225,7 +227,9 @@ namespace meevax::system
           e = cons(cadr(s), cdr(applicable));
           s = unit;
         }
-        else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D
+        else if (applicable.is<procedure>())
+          //    (procedure args . S) E (APPLY . C) D
+          // =>         (result . S) E          C  D
         {
           s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);

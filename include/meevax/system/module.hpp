@@ -97,20 +97,15 @@ namespace meevax::system
         while (loader.ready())
         {
           const auto expression {loader.read()};
-          std::cerr << "[" << std::size(loader) << "] " << expression << std::flush;
-
-          const auto executable {compile(expression)};
-          std::cerr << " => " << executable << std::flush;
-
-          const auto evaluation {execute(executable)};
-          std::cerr << " => " << evaluation << std::endl;
+          const auto executable {loader.compile(expression)};
+          const auto evaluation {loader.execute(executable)};
         }
 
-        std::cerr << __LINE__ << std::endl;
         merge(loader);
-        std::cerr << __LINE__ << std::endl;
+
+        std::cerr << "[debug] " << std::distance(loader.execute_.env, execute_.env) << " expression defined" << std::endl;
         execute_.env = loader.execute_.env;
-        std::cerr << __LINE__ << std::endl;
+
         return true_v;
       }
       else
