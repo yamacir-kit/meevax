@@ -12,10 +12,11 @@ namespace meevax::system
 {
   struct module
     : public std::unordered_map<std::string, objective> // XXX public?
+    , public reader<module>
   {
     const std::string name;
 
-    reader read_;
+    // reader read_;
 
     machine execute;
 
@@ -31,19 +32,20 @@ namespace meevax::system
   public: // reader interface
     auto ready() const noexcept
     {
-      return static_cast<bool>(read_); // TODO MORE
+      // return static_cast<bool>(read_); // TODO MORE
+      return static_cast<bool>(*this); // TODO MORE
     }
 
-    template <typename... Ts>
-    void open(Ts&&... args) // TODO REMOVE THIS
-    {
-      read_.open(std::forward<Ts>(args)...);
-    }
-
-    decltype(auto) read() // XXX DIRTY WRAPPER
-    {
-      return std::invoke(read_, [&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
-    }
+    // template <typename... Ts>
+    // void open(Ts&&... args) // TODO REMOVE THIS
+    // {
+    //   read_.open(std::forward<Ts>(args)...);
+    // }
+    //
+    // decltype(auto) read() // XXX DIRTY WRAPPER
+    // {
+    //   return std::invoke(read_, [&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
+    // }
 
   public: // virtual machine interface
     template <typename T, typename... Ts>
@@ -70,10 +72,9 @@ namespace meevax::system
     //   return std::invoke(execute_, std::forward<Ts>(args)...);
     // }
 
-  protected: // module interface
     const auto& intern(const std::string& s)
     {
-      if (auto iter {find(s)}; iter != std::end(*this))
+      if (auto iter {find(s)}; iter != std::unordered_map<std::string, objective>::end())
       {
         return iter->second;
       }

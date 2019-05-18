@@ -12,10 +12,11 @@
 
 namespace meevax::system
 {
+  template <typename Module> // XXX 管理上独立しているが、シンボルテーブルを管理するモジュールシステムによって駆動されることを前提とする
   class reader // is character oriented state machine.
     : public std::ifstream
   {
-    using seeker = std::istream_iterator<char8_t>;
+    using seeker = std::istream_iterator<std::ifstream::char_type>;
 
     enum class category
     {
@@ -38,8 +39,13 @@ namespace meevax::system
       : std::ifstream {std::forward<Ts>(args)...}
     {}
 
-    template <typename Interner>
-    objective read(Interner&& intern) noexcept(false)
+    template <typename... Ts>
+    constexpr decltype(auto) intern(Ts&&... args)
+    {
+      return static_cast<Module&>(*this).intern(std::forward<Ts>(args)...);
+    }
+
+    objective read() noexcept(false)
     {
       std::string buffer {};
 
@@ -55,9 +61,9 @@ namespace meevax::system
       case '(':
         try
         {
-          auto buffer {read(intern)};
+          auto buffer {read()};
           putback('(');
-          return cons(buffer, read(intern));
+          return cons(buffer, read());
         }
         catch (const ill_formed_expression<category::parentheses>&)
         {
@@ -65,7 +71,7 @@ namespace meevax::system
         }
         catch (const ill_formed_expression<category::pair>&)
         {
-          auto buffer {read(intern)};
+          auto buffer {read()};
           ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
           return buffer;
         }
@@ -84,7 +90,7 @@ namespace meevax::system
           {
           case 'n':
             putback('"');
-            return make<string>(make<character>('\n'), read(intern));
+            return make<string>(make<character>('\n'), read());
 
           case '\n':
             while (std::isspace(peek()))
@@ -92,41 +98,41 @@ namespace meevax::system
               ignore(1);
             }
             putback('"');
-            return read(intern);
+            return read();
 
           case '"':
             putback('"');
-            return make<string>(make<character>("\""), read(intern));
+            return make<string>(make<character>("\""), read());
 
           default:
             putback('"');
-            return make<string>(make<character>("#\\unsupported;"), read(intern));
+            return make<string>(make<character>("#\\unsupported;"), read());
           }
 
         default:
           putback('"');
-          return make<string>(make<character>(c), read(intern));
+          return make<string>(make<character>(c), read());
         }
 
       case '\'':
-        return list(intern("quote"), read(intern));
+        return list(intern("quote"), read());
 
       case '`':
-        return list(intern("quasiquote"), read(intern));
+        return list(intern("quasiquote"), read());
 
       case ',':
         if (peek() != '@')
         {
-          return list(intern("unquote"), read(intern));
+          return list(intern("unquote"), read());
         }
         else
         {
           get();
-          return list(intern("unquote-splicing"), read(intern));
+          return list(intern("unquote-splicing"), read());
         }
 
       case '#':
-        return expand(intern);
+        return expand();
 
       default:
         buffer.push_back(*head);
@@ -151,11 +157,11 @@ namespace meevax::system
       return make<character>("end-of-file");
     }
 
-    template <typename... Ts>
-    decltype(auto) operator()(Ts&&... args)
-    {
-      return read(std::forward<Ts>(args)...);
-    }
+    // template <typename... Ts>
+    // decltype(auto) operator()(Ts&&... args)
+    // {
+    //   return read(std::forward<Ts>(args)...);
+    // }
 
   protected:
     template <typename CharType>
@@ -183,17 +189,16 @@ namespace meevax::system
       }
     }
 
-    template <typename Interner>
-    objective expand(Interner&& intern)
+    objective expand()
     {
       switch (peek())
       {
       case 't':
-        read(intern); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
+        read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return true_v;
 
       case 'f':
-        read(intern); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
+        read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return false_v;
 
       default:
