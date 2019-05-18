@@ -66,7 +66,6 @@ namespace meevax::system
     }
 
   public:
-    // XXX TEMPORARY DIRTY HACK
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {

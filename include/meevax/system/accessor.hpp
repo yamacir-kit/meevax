@@ -7,6 +7,8 @@
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
+// #include <boost/type_traits/is_virtual_base_of.hpp>
+
 #include <meevax/system/exception.hpp>
 
 namespace meevax::system
@@ -47,7 +49,27 @@ namespace meevax::system
             // トップ型を仮想継承した型をバインドする場合は、コンストラクタ引数をすべて基底クラスに流し込む
             // かなりクセのある挙動だが、初期化タイミング都合こうするしか無さそう
             std::is_base_of<TopType, BoundType>::value, TopType, BoundType
-            // TODO std::is_virtual_base_of があるなら置き換えること
+            // boost::is_virtual_base_of<TopType, BoundType>::value, TopType, BoundType
+            //
+            // struct hoge
+            //   : public virtual TopType
+            // {
+            //   hoge()            = default;
+            //   hoge(const hoge&) = default;
+            //
+            //   hoge(hoge&& moved)
+            //   {
+            //     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
+            //   }
+            //
+            //   hoge& operator=(const hoge&) = default;
+            //
+            //   hoge& operator=(hoge&& moved)
+            //   {
+            //     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
+            //     return *this;
+            //   }
+            // };
           >::type {std::forward<Ts>(args)...}
       {}
 
