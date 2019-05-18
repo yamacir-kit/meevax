@@ -108,9 +108,16 @@ namespace meevax::system
       return access().type() == typeid(T);
     }
 
+    // TODO
+    // ポインタを返すキャストインタフェースを用意して、
+    // ダイナミックキャスト後のポインタの無効値部分に型情報を埋め込む事で、
+    // 将来的なコンパイラ最適化に使えるかも
     template <typename T>
     decltype(auto) as() const
     {
+      // const void* before {&access()};
+      // const void* casted {&dynamic_cast<const T&>(access())};
+      // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
       return dynamic_cast<const T&>(access());
     }
   };

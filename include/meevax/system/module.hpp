@@ -16,7 +16,8 @@ namespace meevax::system
     const std::string name;
 
     reader read_;
-    machine execute_; // TODO RENAME
+
+    machine execute;
 
     template <typename... Ts>
     module(const std::string& name, Ts&&... args)
@@ -49,26 +50,26 @@ namespace meevax::system
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return execute_.define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return execute.define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
     template <typename... Ts>
     decltype(auto) compile(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
     {
-      return execute_.compile(std::forward<Ts>(args)...);
+      return execute.compile(std::forward<Ts>(args)...);
     }
 
     template <typename... Ts>
     decltype(auto) begin(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
     {
-      return execute_.begin(std::forward<Ts>(args)...);
+      return execute.begin(std::forward<Ts>(args)...);
     }
 
-    template <typename... Ts>
-    decltype(auto) execute(Ts&&... args)
-    {
-      return std::invoke(execute_, std::forward<Ts>(args)...);
-    }
+    // template <typename... Ts>
+    // decltype(auto) execute(Ts&&... args)
+    // {
+    //   return std::invoke(execute_, std::forward<Ts>(args)...);
+    // }
 
   protected: // module interface
     const auto& intern(const std::string& s)
@@ -92,7 +93,7 @@ namespace meevax::system
       if (module loader {"unnamed-loader"}; loader.open(std::forward<Ts>(args)...))
       {
         loader.merge(*this);
-        loader.execute_.env = execute_.env;
+        loader.execute.env = execute.env;
 
         while (loader.ready())
         {
@@ -103,8 +104,8 @@ namespace meevax::system
 
         merge(loader);
 
-        std::cerr << "[debug] " << std::distance(loader.execute_.env, execute_.env) << " expression defined" << std::endl;
-        execute_.env = loader.execute_.env;
+        std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
+        execute.env = loader.execute.env;
 
         return true_v;
       }

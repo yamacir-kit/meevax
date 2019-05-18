@@ -105,7 +105,7 @@ int main()
       {
         throw error {"setting to unit"};
       }
-      else if (auto location {root.execute_.locate(cadr(exp), scope)}; location)
+      else if (auto location {root.execute.locate(cadr(exp), scope)}; location)
       {
         return root.compile(
                  caddr(exp),
