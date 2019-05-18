@@ -16,8 +16,6 @@ namespace meevax::system
   {
     const std::string name;
 
-    // reader read_;
-
     machine execute;
 
     template <typename... Ts>
@@ -32,20 +30,8 @@ namespace meevax::system
   public: // reader interface
     auto ready() const noexcept
     {
-      // return static_cast<bool>(read_); // TODO MORE
       return static_cast<bool>(*this); // TODO MORE
     }
-
-    // template <typename... Ts>
-    // void open(Ts&&... args) // TODO REMOVE THIS
-    // {
-    //   read_.open(std::forward<Ts>(args)...);
-    // }
-    //
-    // decltype(auto) read() // XXX DIRTY WRAPPER
-    // {
-    //   return std::invoke(read_, [&](auto&&... args) { return intern(std::forward<decltype(args)>(args)...); });
-    // }
 
   public: // virtual machine interface
     template <typename T, typename... Ts>
@@ -65,12 +51,6 @@ namespace meevax::system
     {
       return execute.begin(std::forward<Ts>(args)...);
     }
-
-    // template <typename... Ts>
-    // decltype(auto) execute(Ts&&... args)
-    // {
-    //   return std::invoke(execute_, std::forward<Ts>(args)...);
-    // }
 
     const auto& intern(const std::string& s)
     {

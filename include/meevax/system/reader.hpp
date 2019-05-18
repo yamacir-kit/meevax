@@ -157,12 +157,6 @@ namespace meevax::system
       return make<character>("end-of-file");
     }
 
-    // template <typename... Ts>
-    // decltype(auto) operator()(Ts&&... args)
-    // {
-    //   return read(std::forward<Ts>(args)...);
-    // }
-
   protected:
     template <typename CharType>
     bool is_delimiter(CharType&& c) const noexcept
