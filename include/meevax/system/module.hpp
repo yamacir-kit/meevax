@@ -35,10 +35,9 @@ namespace meevax::system
     }
 
     template <typename... Ts>
-    decltype(auto) open(Ts&&... args)
+    void open(Ts&&... args) // TODO REMOVE THIS
     {
-      read_ = reader {std::forward<Ts>(args)...};
-      return ready();
+      read_.open(std::forward<Ts>(args)...);
     }
 
     decltype(auto) read() // XXX DIRTY WRAPPER
@@ -90,7 +89,7 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {
-      if (module loader {"unnamed-loader"}; loader.open(std::forward<Ts>(args)...))
+      if (module loader {"unnamed-loader"}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
         loader.merge(*this);
         loader.execute.env = execute.env;
@@ -111,7 +110,7 @@ namespace meevax::system
       }
       else
       {
-        std::cerr << "[debug] failed to open file" << std::endl;
+        std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
         return false_v;
       }
     }
