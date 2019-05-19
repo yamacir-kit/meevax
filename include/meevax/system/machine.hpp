@@ -28,9 +28,9 @@ namespace meevax::system
 
     cursor env; // global environment as associative list
 
-    // // TODO SPECIALIZE HASH FUNCTION FOR OBJECTIVE TYPE
-    // // TODO コンスセルの定義が標準ペアであることを利用した最適化の可能性を考慮すること
-    // std::unordered_map<std::shared_ptr<pair>, objective> index;
+    // TODO SPECIALIZE HASH FUNCTION FOR OBJECTIVE TYPE
+    // TODO コンスセルの定義が標準ペアであることを利用した最適化の可能性を考慮すること
+    std::unordered_map<std::shared_ptr<pair>, objective> index;
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
     #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
@@ -45,9 +45,9 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) define(const objective& key, Ts&&... args)
     {
-      // index.insert_or_assign(key, std::forward<Ts>(args)...);
-      // return env.push(list(key, index[key]));
-      return env.push(list(key, std::forward<Ts>(args)...));
+      index.insert_or_assign(key, std::forward<Ts>(args)...);
+      return env.push(list(key, index[key]));
+      // return env.push(list(key, std::forward<Ts>(args)...));
     }
 
     objective compile(const objective& exp,
@@ -160,7 +160,15 @@ namespace meevax::system
 
       case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG_1();
-        s.push(assoc(cadr(c), env));
+        // s.push(assoc(cadr(c), env));
+        try
+        {
+          s.push(index.at(cadr(c)));
+        }
+        catch (const std::out_of_range&)
+        {
+          throw error {pseudo_display(cadr(c), " is unbound")};
+        }
         c.pop(2);
         goto dispatch;
 
