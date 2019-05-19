@@ -160,15 +160,15 @@ namespace meevax::system
 
       case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG_1();
-        // s.push(assoc(cadr(c), env));
-        try
-        {
-          s.push(index.at(cadr(c)));
-        }
-        catch (const std::out_of_range&)
-        {
-          throw error {pseudo_display(cadr(c), " is unbound")};
-        }
+        s.push(assoc(cadr(c), env));
+        // try
+        // {
+        //   s.push(index.at(cadr(c)));
+        // }
+        // catch (const std::out_of_range&)
+        // {
+        //   throw error {pseudo_display(cadr(c), " is unbound")};
+        // }
         c.pop(2);
         goto dispatch;
 

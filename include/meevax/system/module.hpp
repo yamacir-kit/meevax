@@ -71,7 +71,9 @@ namespace meevax::system
     {
       if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
+        loader.merge(*this);
         loader.execute.env = execute.env;
+        loader.execute.index.merge(execute.index);
 
         while (loader.ready())
         {
@@ -82,9 +84,10 @@ namespace meevax::system
 
         // TODO ここで export 指定の識別子以外をインデックスから削除
         merge(loader);
+        execute.env = loader.execute.env;
+        execute.index.merge(loader.execute.index);
 
         std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
-        execute.env = loader.execute.env;
 
         return true_v;
       }
