@@ -82,12 +82,12 @@ namespace meevax::system
           const auto evaluation {loader.execute(executable)};
         }
 
+        std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
+
         // TODO ここで export 指定の識別子以外をインデックスから削除
         merge(loader);
         execute.env = loader.execute.env;
         execute.index.merge(loader.execute.index);
-
-        std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
 
         return true_v;
       }

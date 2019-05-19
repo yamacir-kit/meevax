@@ -18,8 +18,7 @@ then
   sh $project/build.sh
 fi
 
-tests="$project/tests"
-script="$tests/test.scm"
+script="$project/test/test.scm"
 
 $build/meevax < $script #| sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' | tee $script.result
 
