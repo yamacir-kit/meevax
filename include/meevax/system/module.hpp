@@ -14,16 +14,17 @@ namespace meevax::system
     : public std::unordered_map<std::string, objective> // The symbol table.
     , public reader<module>
   {
-    const objective name;
+    const objective name, declaration;
 
     machine execute;
 
-    module(const objective& name, const objective& env = unit)
+    module(const objective& name, const objective& declaration = unit)
       : name {name}
-      , execute {env}
+      , declaration {declaration}
     {
-      std::cerr << "constructing module \"" << name << "\" => ";
-      std::cerr << "done." << std::endl;
+      std::cerr << "[debug] preparing library:\n"
+                << "        name: " << name << "\n"
+                << "        declaration: " << declaration << std::endl;
     }
 
   public: // Reader Interface
@@ -68,8 +69,10 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {
-      if (module loader {unit, execute.env}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
+        loader.execute.env = execute.env;
+
         while (loader.ready())
         {
           const auto expression {loader.read()};

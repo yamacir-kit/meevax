@@ -130,6 +130,37 @@ int main()
       return root.load(car(args).template as<const string>());
     });
 
+    root.define<procedure>("display", [&](auto&& args)
+    {
+      for (auto each : args)
+      {
+        if (each.template is<string>()) // XXX DIRTY HACK
+        {
+          std::cout << static_cast<std::string>(each.template as<string>());
+        }
+        else
+        {
+          std::cout << each;
+        }
+      }
+      return unit; // XXX DIRTY HACK
+    });
+
+    root.define<procedure>("emergency-exit", [&](auto&& args)
+    {
+      if (not args or not car(args).template is<number>())
+      {
+        std::exit(boost::exit_success);
+      }
+      else
+      {
+        // XXX DIRTY HACK
+        std::exit(static_cast<int>(car(args).template as<number>()));
+      }
+
+      return unit; // XXX DIRTY HACK
+    });
+
     root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
     root.define<procedure>("pair?", library.link<procedure::signature>("is_pair"));
 

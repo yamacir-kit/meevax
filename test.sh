@@ -19,7 +19,7 @@ then
 fi
 
 tests="$project/tests"
-script="$tests/meta-circular-evaluator.scm"
+script="$tests/test.scm"
 
 $build/meevax < $script #| sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' | tee $script.result
 
