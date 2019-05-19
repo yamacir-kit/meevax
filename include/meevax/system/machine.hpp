@@ -19,13 +19,13 @@ namespace meevax::system
   // Simple SECD machine.
   class machine
   {
-  public: // XXX DIRTY HACK
+  public: // XXX TO PRIVATE
     cursor s, // stack
            e, // lexical environment
            c, // code
            d; // dump
 
-    cursor env; // global environment
+    cursor env; // global environment as associative list
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
     #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
@@ -71,7 +71,7 @@ namespace meevax::system
           return cons(LDC, exp, continuation);
         }
       }
-      else // is (syntax-or-any-application . arguments)
+      else // is (application . arguments)
       {
         if (const auto& buffer {assoc(car(exp), env)}; !buffer)
         {
@@ -102,7 +102,7 @@ namespace meevax::system
 
           return compile(expanded, scope, continuation);
         }
-        else // is (application . arguments)
+        else // is (closure . arguments)
         {
           return args(
                    cdr(exp),

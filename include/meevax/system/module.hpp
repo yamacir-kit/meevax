@@ -2,7 +2,7 @@
 #define INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
 
 #include <functional> // std::invoke
-#include <unordered_map>
+#include <unordered_map> // std::unoredered_map
 
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/machine.hpp>
@@ -18,22 +18,21 @@ namespace meevax::system
 
     machine execute;
 
-    template <typename... Ts>
-    module(const std::string& name, Ts&&... args)
-      : std::unordered_map<std::string, objective> {std::forward<Ts>(args)...}
-      , name {name}
+    module(const std::string& name, const objective& env = unit)
+      : name {name}
+      , execute {env}
     {
       std::cerr << "constructing module \"" << name << "\" => ";
       std::cerr << "done." << std::endl;
     }
 
-  public: // reader interface
+  public: // Reader Interface
     auto ready() const noexcept
     {
       return static_cast<bool>(*this); // TODO MORE
     }
 
-  public: // virtual machine interface
+  public: // Virtual Machine Interface
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
@@ -69,11 +68,8 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {
-      if (module loader {"unnamed-loader"}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      if (module loader {"unnamed-loader", execute.env}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
-        loader.merge(*this);
-        loader.execute.env = execute.env;
-
         while (loader.ready())
         {
           const auto expression {loader.read()};
@@ -81,6 +77,7 @@ namespace meevax::system
           const auto evaluation {loader.execute(executable)};
         }
 
+        // TODO ここで export 指定の識別子以外をインデックスから削除
         merge(loader);
 
         std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
