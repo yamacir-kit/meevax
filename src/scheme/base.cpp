@@ -2,7 +2,7 @@
 
 using namespace meevax::system;
 
-PROCEDURE(eq)
+PROCEDURE(symbolic_equal)
 {
   return car(args) == cadr(args) ? true_v : false_v;
 }
@@ -20,7 +20,7 @@ PROCEDURE(is_pair)
   return true_v;
 }
 
-PROCEDURE(divide)
+PROCEDURE(divides)
 {
   return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::divides {});
 }
@@ -37,7 +37,7 @@ PROCEDURE(minus)
   }
 }
 
-PROCEDURE(multiply)
+PROCEDURE(multiplies)
 {
   return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::multiplies {});
 }

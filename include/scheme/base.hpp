@@ -13,12 +13,12 @@ extern "C"
 {
   using namespace meevax::system;
 
-  PROCEDURE(divide);
-  PROCEDURE(eq);
+  PROCEDURE(divides);
   PROCEDURE(is_pair);
   PROCEDURE(minus);
-  PROCEDURE(multiply);
+  PROCEDURE(multiplies);
   PROCEDURE(plus);
+  PROCEDURE(symbolic_equal);
 } // extern "C"
 
 #endif // INCLUDED_SCHEME_BASE_HPP

@@ -10,7 +10,7 @@ int main()
 
   module root {unit};
 
-  meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
+  // meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
   {
     root.define<special>("quote", [&](auto&& exp, auto&&, auto&& continuation)
     {
@@ -172,13 +172,13 @@ int main()
              );
     });
 
-    root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
-    root.define<procedure>("pair?", library.link<procedure::signature>("is_pair"));
-
-    root.define<procedure>("*", library.link<procedure::signature>("multiply"));
-    root.define<procedure>("+", library.link<procedure::signature>("plus"));
-    root.define<procedure>("-", library.link<procedure::signature>("minus"));
-    root.define<procedure>("/", library.link<procedure::signature>("divide"));
+    // root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
+    // root.define<procedure>("pair?", library.link<procedure::signature>("is_pair"));
+    //
+    // root.define<procedure>("*", library.link<procedure::signature>("multiply"));
+    // root.define<procedure>("+", library.link<procedure::signature>("plus"));
+    // root.define<procedure>("-", library.link<procedure::signature>("minus"));
+    // root.define<procedure>("/", library.link<procedure::signature>("divide"));
   }
 
   std::cerr << "\n"

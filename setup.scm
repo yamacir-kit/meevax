@@ -1,3 +1,13 @@
+(define libmeevax-base.so "./libscheme-base.so")
+
+(define eq?   (link-procedure libmeevax-base.so "symbolic_equal"))
+(define pair? (link-procedure libmeevax-base.so "is_pair"))
+
+(define + (link-procedure libmeevax-base.so "plus"))
+(define * (link-procedure libmeevax-base.so "multiplies"))
+(define - (link-procedure libmeevax-base.so "minus"))
+(define / (link-procedure libmeevax-base.so "divides"))
+
 ;; cxr
 
 (define caar (lambda (e) (car (car e))))
