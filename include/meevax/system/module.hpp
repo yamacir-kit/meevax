@@ -11,14 +11,14 @@
 namespace meevax::system
 {
   struct module
-    : public std::unordered_map<std::string, objective> // XXX public?
+    : public std::unordered_map<std::string, objective> // The symbol table.
     , public reader<module>
   {
-    const std::string name;
+    const objective name;
 
     machine execute;
 
-    module(const std::string& name, const objective& env = unit)
+    module(const objective& name, const objective& env = unit)
       : name {name}
       , execute {env}
     {
@@ -68,7 +68,7 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {
-      if (module loader {"unnamed-loader", execute.env}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      if (module loader {unit, execute.env}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
         while (loader.ready())
         {

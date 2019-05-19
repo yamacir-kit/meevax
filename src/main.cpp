@@ -8,7 +8,7 @@ int main()
 
   std::cerr << "starting boot seqence.\n" << std::endl;
 
-  module root {"root"};
+  module root {unit};
 
   meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
   {
