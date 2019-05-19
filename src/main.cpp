@@ -161,6 +161,17 @@ int main()
       return unit; // XXX DIRTY HACK
     });
 
+    root.define<procedure>("link-procedure", [&](auto&& args)
+    {
+      return make<procedure>(
+               "unknown",
+               root.link<procedure>(
+                 car(args).template as<string>(),
+                 cadr(args).template as<string>()
+               )
+             );
+    });
+
     root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
     root.define<procedure>("pair?", library.link<procedure::signature>("is_pair"));
 

@@ -97,6 +97,22 @@ namespace meevax::system
         return false_v;
       }
     }
+
+    std::unordered_map<std::string, posix::linker> shared_objects;
+
+    template <typename T, typename... Ts>
+    decltype(auto) link(const std::string& path, const std::string& name)
+    {
+      try
+      {
+        return shared_objects.at(path).link<typename T::signature>(name);
+      }
+      catch (const std::out_of_range&)
+      {
+        shared_objects.emplace(path, path);
+        return shared_objects.at(path).link<typename T::signature>(name);
+      }
+    }
   };
 
   std::ostream& operator<<(std::ostream&, const module&);
