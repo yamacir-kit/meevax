@@ -47,18 +47,6 @@ namespace meevax::system
       return execute.define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
-    // template <typename... Ts>
-    // [[deprecated]] decltype(auto) compile(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
-    // {
-    //   return execute.compile(std::forward<Ts>(args)...);
-    // }
-
-    // template <typename... Ts>
-    // decltype(auto) begin(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
-    // {
-    //   return execute.begin(std::forward<Ts>(args)...);
-    // }
-
     const auto& intern(const std::string& s)
     {
       if (auto iter {find(s)}; iter != std::unordered_map<std::string, objective>::end())
@@ -253,6 +241,12 @@ namespace meevax::system
                  cons(SETG, cadr(exp), continuation)
                );
       }
+    });
+
+    define<procedure>("load", [&](auto&& args)
+    {
+      // XXX 今は雑にブーリアンを返してる
+      return load(car(args).template as<string>());
     });
   } // module class default constructor
 

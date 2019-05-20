@@ -12,13 +12,6 @@ int main()
 
   // CFFI経由で呼び出すべきものだが手間の都合でここに雑に列挙
   {
-    // XXX DIRTY HACK
-    root.define<procedure>("load", [&](const cursor& args)
-    {
-      // XXX 今は雑にブーリアンを返してる
-      return root.load(car(args).template as<const string>());
-    });
-
     root.define<procedure>("display", [&](auto&& args)
     {
       for (auto each : args)
