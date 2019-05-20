@@ -7,6 +7,7 @@
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/machine.hpp>
 #include <meevax/system/reader.hpp>
+#include <meevax/system/special.hpp>
 
 namespace meevax::system
 {
@@ -17,6 +18,12 @@ namespace meevax::system
     const objective name, declaration;
 
     machine execute;
+
+    // Default constructor provides "pure" execution context.
+    // Pure execution context contains minimal Scheme procedures to bootstrap
+    // any other standard Scheme procedures.
+    // This constructor typically called only once from main function.
+    module();
 
     module(const objective& name, const objective& declaration = unit)
       : name {name}
@@ -40,17 +47,17 @@ namespace meevax::system
       return execute.define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
-    template <typename... Ts>
-    decltype(auto) compile(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
-    {
-      return execute.compile(std::forward<Ts>(args)...);
-    }
+    // template <typename... Ts>
+    // [[deprecated]] decltype(auto) compile(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
+    // {
+    //   return execute.compile(std::forward<Ts>(args)...);
+    // }
 
-    template <typename... Ts>
-    decltype(auto) begin(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
-    {
-      return execute.begin(std::forward<Ts>(args)...);
-    }
+    // template <typename... Ts>
+    // decltype(auto) begin(Ts&&... args) // XXX こんなものを提供しなきゃいけないのがそもそもおかしい
+    // {
+    //   return execute.begin(std::forward<Ts>(args)...);
+    // }
 
     const auto& intern(const std::string& s)
     {
@@ -78,7 +85,7 @@ namespace meevax::system
         while (loader.ready())
         {
           const auto expression {loader.read()};
-          const auto executable {loader.compile(expression)};
+          const auto executable {loader.execute.compile(expression)};
           const auto evaluation {loader.execute(executable)};
         }
 
@@ -114,6 +121,140 @@ namespace meevax::system
       }
     }
   };
+
+
+  module::module()
+    : name {unit} // 文字列を受け取って、stringstream 経由でS式へ変換すること
+  {
+    define<special>("quote", [&](auto&& expr,
+                                 auto&&,
+                                 auto&& continuation)
+    {
+      return cons(LDC, cadr(expr), continuation);
+    });
+
+    define<special>("car", [&](auto&& exp,
+                               auto&& scope,
+                               auto&& continuation)
+    {
+      return execute.compile(
+               cadr(exp),
+               scope,
+               cons(CAR, continuation)
+             );
+    });
+
+    define<special>("cdr", [&](auto&& exp,
+                               auto&& scope,
+                               auto&& continuation)
+    {
+      return execute.compile(
+               cadr(exp),
+               scope,
+               cons(CDR, continuation)
+             );
+    });
+
+    define<special>("cons", [&](auto&& exp,
+                                auto&& scope,
+                                auto&& continuation)
+    {
+      return execute.compile(
+               caddr(exp),
+               scope,
+               execute.compile(cadr(exp), scope, cons(CONS, continuation))
+             );
+    });
+
+    define<special>("if", [&](auto&& exp,
+                              auto&& scope,
+                              auto&& continuation)
+    {
+      return execute.compile(
+               cadr(exp), // conditional expression
+               scope,
+               cons(
+                 SELECT,
+                 execute.compile( caddr(exp), scope, list(JOIN)), // then expression
+                 execute.compile(cadddr(exp), scope, list(JOIN)), // else expression
+                 continuation
+               )
+             );
+    });
+
+    define<special>("define", [&](auto&& exp,
+                                  auto&& scope,
+                                  auto&& continuation)
+    {
+      return execute.compile(
+               caddr(exp),
+               scope,
+               cons(DEFINE, cadr(exp), continuation)
+             );
+    });
+
+    define<special>("lambda", [&](auto&& exp,
+                                  auto&& scope,
+                                  auto&& continuation)
+    {
+      return cons(
+               LDF,
+               execute.begin(
+                 cddr(exp),
+                 cons(
+                   cadr(exp), // parameters
+                   scope
+                 ),
+                 list(RETURN)
+               ),
+               continuation
+             );
+    });
+
+    define<special>("syntax", [&](auto&& exp,
+                                  auto&& scope,
+                                  auto&& continuation)
+    {
+      return cons(
+               LDS,
+               execute.begin(
+                 cddr(exp),
+                 cons(
+                   cadr(exp), // parameters
+                   scope
+                 ),
+                 list(RETURN)
+               ),
+               continuation
+             );
+    });
+
+    define<special>("set!", [&](auto&& exp,
+                                auto&& scope,
+                                auto&& continuation)
+    {
+      if (!exp)
+      {
+        throw error {"setting to unit"};
+      }
+      else if (auto location {execute.locate(cadr(exp), scope)}; location)
+      {
+        return execute.compile(
+                 caddr(exp),
+                 scope,
+                 cons(SETL, location, continuation)
+               );
+      }
+      else
+      {
+        return execute.compile(
+                 caddr(exp),
+                 scope,
+                 cons(SETG, cadr(exp), continuation)
+               );
+      }
+    });
+  } // module class default constructor
 
   std::ostream& operator<<(std::ostream&, const module&);
 } // namespace meevax::system

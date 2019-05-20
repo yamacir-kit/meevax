@@ -29,7 +29,6 @@ namespace meevax::system
     cursor env; // global environment as associative list
 
     // TODO SPECIALIZE HASH FUNCTION FOR OBJECTIVE TYPE
-    // TODO コンスセルの定義が標準ペアであることを利用した最適化の可能性を考慮すること
     std::unordered_map<std::shared_ptr<pair>, objective> index;
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl

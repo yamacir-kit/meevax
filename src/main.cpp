@@ -8,121 +8,10 @@ int main()
 
   std::cerr << "starting boot seqence.\n" << std::endl;
 
-  module root {unit};
+  module root {};
 
-  // meevax::posix::linker library {"/home/yamasa/works/meevax/build/libscheme-base.so"};
+  // CFFI経由で呼び出すべきものだが手間の都合でここに雑に列挙
   {
-    root.define<special>("quote", [&](auto&& exp, auto&&, auto&& continuation)
-    {
-      return cons(LDC, cadr(exp), continuation);
-    });
-
-    root.define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return root.compile(
-               cadr(exp),
-               scope,
-               cons(CAR, continuation)
-             );
-    });
-
-    root.define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return root.compile(
-               cadr(exp),
-               scope,
-               cons(CDR, continuation)
-             );
-    });
-
-    root.define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return root.compile(
-               caddr(exp),
-               scope,
-               root.compile(cadr(exp), scope, cons(CONS, continuation))
-             );
-    });
-
-    root.define<special>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return root.compile(
-               cadr(exp), // conditional expression
-               scope,
-               cons(
-                 SELECT,
-                 root.compile( caddr(exp), scope, list(JOIN)), // then expression
-                 root.compile(cadddr(exp), scope, list(JOIN)), // else expression
-                 continuation
-               )
-             );
-    });
-
-    root.define<special>("define", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return root.compile(
-               caddr(exp),
-               scope,
-               cons(DEFINE, cadr(exp), continuation)
-             );
-    });
-
-    root.define<special>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return cons(
-               LDF,
-               root.begin(
-                 cddr(exp),
-                 cons(
-                   cadr(exp), // parameters
-                   scope
-                 ),
-                 list(RETURN)
-               ),
-               continuation
-             );
-    });
-
-    root.define<special>("syntax", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return cons(
-               LDS,
-               root.begin(
-                 cddr(exp),
-                 cons(
-                   cadr(exp), // parameters
-                   scope
-                 ),
-                 list(RETURN)
-               ),
-               continuation
-             );
-    });
-
-    root.define<special>("set!", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      if (!exp)
-      {
-        throw error {"setting to unit"};
-      }
-      else if (auto location {root.execute.locate(cadr(exp), scope)}; location)
-      {
-        return root.compile(
-                 caddr(exp),
-                 scope,
-                 cons(SETL, location, continuation)
-               );
-      }
-      else
-      {
-        return root.compile(
-                 caddr(exp),
-                 scope,
-                 cons(SETG, cadr(exp), continuation)
-               );
-      }
-    });
-
     // XXX DIRTY HACK
     root.define<procedure>("load", [&](const cursor& args)
     {
@@ -171,14 +60,6 @@ int main()
                )
              );
     });
-
-    // root.define<procedure>("eq?", library.link<procedure::signature>("eq"));
-    // root.define<procedure>("pair?", library.link<procedure::signature>("is_pair"));
-    //
-    // root.define<procedure>("*", library.link<procedure::signature>("multiply"));
-    // root.define<procedure>("+", library.link<procedure::signature>("plus"));
-    // root.define<procedure>("-", library.link<procedure::signature>("minus"));
-    // root.define<procedure>("/", library.link<procedure::signature>("divide"));
   }
 
   std::cerr << "\n"
@@ -192,7 +73,7 @@ int main()
     const auto expression {root.read()};
     std::cerr << "\n; " << expression << std::endl;
 
-    const auto executable {root.compile(expression)};
+    const auto executable {root.execute.compile(expression)};
     std::cerr << "; as " << executable << std::endl;
 
     const auto evaluation {root.execute(executable)};
