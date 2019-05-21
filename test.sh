@@ -5,7 +5,7 @@ project=$(cd "$(dirname $0)"; pwd) # script path
 for each in "$@"
 do
   case "$@" in
-    "--rebuild" )
+    "-b" | "--build" )
       sh $project/build.sh
       break;;
   esac
