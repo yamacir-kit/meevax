@@ -1,30 +1,42 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_HEXDUMP
 #define INCLUDED_MEEVAX_UTILITY_HEXDUMP
 
-#include <iomanip>
-#include <iostream>
-#include <vector>
+#include <functional> // std::invoke
+#include <iomanip> // std::hex,
+#include <iostream> // std::ostream
+#include <vector> // std::vector
 
 namespace meevax::utility
 {
-  // TODO Support stream manipulator
-
-  // For safety and extensibility, we copy all data to std::vector<byte>.
-  // Print data directly using reinterpret_cast will be more faster, but it is low-readability magic code.
   template <typename T>
-  std::ostream& hexdump(std::ostream& os, const T& value)
+  struct hexdump
   {
-    std::vector<std::uint8_t> data {
-      reinterpret_cast<const std::uint8_t*>(&value),
-      reinterpret_cast<const std::uint8_t*>(&value) + sizeof(T)
-    };
+    const std::vector<std::uint8_t> data;
 
-    for (const auto& each : data)
+    hexdump(const T& value)
+      : data {
+          reinterpret_cast<decltype(data)::const_pointer>(&value),
+          reinterpret_cast<decltype(data)::const_pointer>(&value) + sizeof(T)
+        }
+    {}
+
+    // TODO UPDATE WITH STD::ENDIAN (C++20)
+    std::ostream& operator()(std::ostream& os) const
     {
-      os << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(each) << (&each != &data.back() ? " " : "");
-    }
+      for (auto iter {std::rbegin(data)}; iter != std::rend(data); ++iter) // little endian
+      // for (auto iter {std::begin(data)}; iter != std::end(data); ++iter) // big endian
+      {
+        os << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(*iter) << " ";
+      }
 
-    return os;
+      return os;
+    }
+  };
+
+  template <typename T>
+  std::ostream& operator<<(std::ostream& os, const hexdump<T>& hexdump)
+  {
+    return std::invoke(hexdump, os);
   }
 } // meevax::utility
 

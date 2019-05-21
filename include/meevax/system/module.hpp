@@ -68,7 +68,6 @@ namespace meevax::system
       {
         loader.merge(*this);
         loader.execute.env = execute.env;
-        loader.execute.index.merge(execute.index);
 
         while (loader.ready())
         {
@@ -82,7 +81,6 @@ namespace meevax::system
         // TODO ここで export 指定の識別子以外をインデックスから削除
         merge(loader);
         execute.env = loader.execute.env;
-        execute.index.merge(loader.execute.index);
 
         return true_v;
       }

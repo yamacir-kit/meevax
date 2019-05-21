@@ -98,11 +98,12 @@ namespace meevax::system
 
   const objective& assoc(const objective& var, const objective& env)
   {
-    assert(var); // Compiler and LDG instruction are responsible for this.
-
+    if (!var)
+    {
+      return unit;
+    }
     if (!env)
     {
-      // throw error {pseudo_display(var, "\x01b[31m", " is unbound")};
       return unbound;
     }
     else if (caar(env) == var)
