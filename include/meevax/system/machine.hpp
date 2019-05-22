@@ -25,6 +25,7 @@ namespace meevax::system
            c, // code
            d; // dump
 
+    // (1) SETGのために大域変数はユニークなものがひとつだけでなければならない
     cursor env; // global environment as associative list
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl

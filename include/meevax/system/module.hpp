@@ -28,11 +28,7 @@ namespace meevax::system
     module(const objective& name, const objective& declaration = unit)
       : name {name}
       , declaration {declaration}
-    {
-      std::cerr << "[debug] preparing library:\n"
-                << "        name: " << name << "\n"
-                << "        declaration: " << declaration << std::endl;
-    }
+    {}
 
   public: // Reader Interface
     auto ready() const noexcept
@@ -61,15 +57,33 @@ namespace meevax::system
     }
 
   public:
+    // From R7RS 6.14. System Interface
+    //
+    //   (load <filename>)                               load library procedure
+    //
+    //   (load <filename> <environment-specifier>)       load library procedure
+    //
+    // It is an error if filename is not a string.
+    //
+    // An implementation-dependent operation is used to transform filename into
+    // the name of an existing file containing Scheme source code. The load
+    // procedure reads expressions and definitions from the file and evaluates
+    // them sequentially in the environment specified by <environment-specifier>.
+    // If environment-specifier is omitted, (interaction-environment) is assumed.
+    //
+    // Rationale: For portability, load must operate on source files. Its
+    // operation on other kinds of files necessarily varies among implementations.
+    //
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {
       if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
+        // XXX ここクソ
         loader.merge(*this);
         loader.execute.env = execute.env;
 
-        while (loader.ready())
+        while (loader.ready()) // 事実上の begin
         {
           const auto expression {loader.read()};
           const auto executable {loader.execute.compile(expression)};
@@ -109,6 +123,7 @@ namespace meevax::system
   };
 
 
+  // 多くの処理系でmainの最初で呼ばれる「scheme_init」的な名前の関数と同じ仕事をする
   module::module()
     : name {unit} // 文字列を受け取って、stringstream 経由でS式へ変換すること
   {
