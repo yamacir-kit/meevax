@@ -275,9 +275,9 @@ namespace meevax::system
              );
     });
 
-    define<special>("syntax", [&](auto&& exp,
-                                  auto&& scope,
-                                  auto&& continuation)
+    define<special>("syntactic-lambda", [&](auto&& exp,
+                                            auto&& scope,
+                                            auto&& continuation)
     {
       return cons(
                LDS,

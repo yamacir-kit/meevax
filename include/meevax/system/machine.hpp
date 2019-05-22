@@ -12,7 +12,6 @@
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/symbol.hpp>
-// #include <meevax/system/syntax.hpp>
 
 namespace meevax::system
 {
