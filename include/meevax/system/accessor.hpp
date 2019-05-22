@@ -84,7 +84,15 @@ namespace meevax::system
       std::shared_ptr<TopType> copy() const override
       {
         using binding = binder<BoundType>;
-        return std::make_shared<binding>(*this);
+
+        if constexpr (std::is_copy_constructible<binding>::value)
+        {
+          return std::make_shared<binding>(*this);
+        }
+        else
+        {
+          throw error {"std::is_copy_constructible<binding>::value == false"};
+        }
       }
 
       // Override TopType::write(), then invoke BoundType's stream output operator.
