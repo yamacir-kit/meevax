@@ -41,7 +41,13 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) define(const objective& key, Ts&&... args)
     {
+    #if 0
       return env.push(list(key, std::forward<Ts>(args)...));
+    #else
+      env.push(list(key, std::forward<Ts>(args)...));
+      display_assoc(std::cout, env);
+      return env;
+    #endif
     }
 
     objective compile(const objective& exp,

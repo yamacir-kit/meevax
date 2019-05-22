@@ -116,6 +116,19 @@ namespace meevax::system
     }
   }
 
+  std::ostream& display_assoc(std::ostream& os, const objective& env)
+  {
+    if (!env)
+    {
+      return os << unit << std::endl;
+    }
+    else
+    {
+      display_assoc(os, cdr(env));
+      return os << "\t" << caar(env) << "\r\x1b[40C " << cadar(env) << std::endl;
+    }
+  }
+
   objective& unsafe_assoc(const objective& var, objective& env) noexcept(false)
   {
     assert(var);

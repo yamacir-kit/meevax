@@ -72,18 +72,14 @@ namespace meevax::system
     // If environment-specifier is omitted, (interaction-environment) is assumed.
     //
     // Rationale: For portability, load must operate on source files. Its
-    // operation on other kinds of files necessarily varies among implementations.
+    // operation on other kinds of files necessarily varies among
+    // implementations.
     //
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {
-      // ロードは呼び出した実行コンテキスト上で実行されたように振る舞わないといけないので今の動きはおかしい
-      // 入力ストリームを切り換えても元のストリームの続きから復元できるなら、
-      // そもそもローダを介する必要はなくなる
-
       if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
-        // XXX ここクソ
         loader.merge(*this);
         loader.execute.env = execute.env;
 
