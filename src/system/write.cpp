@@ -3,13 +3,12 @@
 #include <meevax/system/character.hpp>
 #include <meevax/system/closure.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/module.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/string.hpp>
-// #include <meevax/system/syntax.hpp>
+#include <meevax/system/syntactic_closure.hpp>
 
 namespace meevax::system
 {

@@ -1,4 +1,4 @@
-#include <meevax/system/module.hpp>
+#include <meevax/system/syntactic_closure.hpp>
 
 #include <boost/cstdlib.hpp>
 

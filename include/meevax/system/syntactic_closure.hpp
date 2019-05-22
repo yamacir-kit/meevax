@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
+#define INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
 
 #include <functional> // std::invoke
 #include <unordered_map> // std::unoredered_map
@@ -12,9 +12,9 @@
 namespace meevax::system
 {
   struct syntactic_closure
-    : public std::unordered_map<std::string, objective> // namespace
+    : public closure
+    , public std::unordered_map<std::string, objective> // namespace
     , public reader<syntactic_closure>
-    , public closure
   {
     // const objective declaration;
 
@@ -329,5 +329,5 @@ namespace meevax::system
   std::ostream& operator<<(std::ostream&, const syntactic_closure&);
 } // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
 
