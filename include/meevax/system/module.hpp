@@ -19,10 +19,10 @@ namespace meevax::system
 
     machine execute;
 
-    // Default constructor provides "pure" execution context.
-    // Pure execution context contains minimal Scheme procedures to bootstrap
-    // any other standard Scheme procedures.
-    // This constructor typically called only once from main function.
+    // Default constructor provides "pure" execution context. Pure execution
+    // context contains minimal Scheme procedures to bootstrap any other
+    // standard Scheme procedures. This constructor typically called only once
+    // from main function.
     module();
 
     module(const objective& name, const objective& declaration = unit)
@@ -77,6 +77,10 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
     {
+      // ロードは呼び出した実行コンテキスト上で実行されたように振る舞わないといけないので今の動きはおかしい
+      // 入力ストリームを切り換えても元のストリームの続きから復元できるなら、
+      // そもそもローダを介する必要はなくなる
+
       if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
         // XXX ここクソ
@@ -103,6 +107,58 @@ namespace meevax::system
         std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
         return false_v;
       }
+    }
+
+    // From R7RS 5.2. Import Declarations
+    //
+    // An import declaration takes the following form:
+    //
+    //   (import <import-set> ...)
+    //
+    // An import declaration provides a way to import identifiers exported by a
+    // library. Each <import-set> names a set of bindings from a library and
+    // possibly specifies local names for the imported bindings. It takes one
+    // of the following forms:
+    //
+    //   <library-name>
+    //
+    //   (only <import-set> <identifier> ...)
+    //
+    //   (except <import-set> <identifier> ...)
+    //
+    //   (prefix <import-set> <identifier>)
+    //
+    //   (rename <import-set> (<identifier_1> <identifier_2> ...)
+    //
+    // In the first form, all of the identifiers in the named library's export
+    // clauses are imported with the same names (or the exported names if
+    // exported with rename). The additional <import-set> forms modify this set
+    // as follows:
+    //
+    //   only produces a subset of the given <import-set> including only the
+    //   listed identifiers (after any renaming). It is an error if any of the
+    //   listed identifiers are not found in the original set.
+    //
+    //   except produces a subset of the given <import-set>, excluding the
+    //   listed identifiers (after any renaming). It is an error if any of the
+    //   listed identifiers are not found in the original set.
+    //
+    //   rename modifies the given <import-set>, replacing each instance of
+    //   <identifier_1> with <identifier_2>. It is an error if any of the listed
+    //   <identifier_1>s are not found in the original set.
+    //
+    //   prefix automatically renames all identifiers in the given <import-set>,
+    //   prefixing each with the specified identifier.
+    //
+    // In a program or library declaration, it is an error to import the same
+    // identifier more than once with different bindings, or to redefine or
+    // mutate an imported binding with a definition or with set!, or to refer to
+    // an identifier before it is imported. However, a REPL should permit these
+    // actions.
+    //
+    template <typename... Ts>
+    decltype(auto) import(Ts&&... args)
+    {
     }
 
     std::unordered_map<std::string, posix::linker> shared_objects;
