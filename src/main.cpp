@@ -6,13 +6,13 @@ int main() try
 {
   using namespace meevax::system;
 
-  module root {};
+  syntactic_closure root {};
 
   // CFFI経由で呼び出すべきものだが手間の都合でここに雑に列挙
   {
     root.define<procedure>("display", [&](auto&& args)
     {
-      for (auto each : args)
+      for (const auto& each : args)
       {
         if (each.template is<string>()) // XXX DIRTY HACK
         {

@@ -11,26 +11,28 @@
 
 namespace meevax::system
 {
-  struct module
-    : public std::unordered_map<std::string, objective> // The symbol table.
-    , public reader<module>
+  struct syntactic_closure
+    : public std::unordered_map<std::string, objective> // namespace
+    , public reader<syntactic_closure>
+    , public closure
   {
-    const objective name, declaration;
+    // const objective declaration;
 
     objective exported;
 
-    machine execute;
+    machine<syntactic_closure> execute; // XXX この名前微妙
 
   public: // Constructors
     // Default constructor provides "pure" execution context. Pure execution
     // context contains minimal Scheme procedures to bootstrap any other
     // standard Scheme procedures. This constructor typically called only once
     // from main function.
-    module();
+    syntactic_closure();
 
-    module(const objective& name, const objective& declaration = unit)
-      : name {name}
-      , declaration {declaration}
+    syntactic_closure(const objective& declaration,
+                      const objective& environment_specifier)
+      : closure {declaration, environment_specifier}
+      , execute {environment_specifier}
     {}
 
   public: // Reader Interface
@@ -59,7 +61,7 @@ namespace meevax::system
       }
     }
 
-    decltype(auto) interaction_environment() const noexcept
+    auto& interaction_environment() noexcept
     {
       return execute.env;
     }
@@ -88,10 +90,10 @@ namespace meevax::system
     // decltype(auto) load(const objective& filename,
     //                     const objective& environment_specifier)
     {
-      if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      if (syntactic_closure loader {unit, interaction_environment()};
+          loader.open(std::forward<Ts>(args)...), loader.ready())
       {
         loader.merge(*this);
-        loader.execute.env = interaction_environment();
 
         while (loader.ready()) // 事実上の begin
         {
@@ -100,10 +102,13 @@ namespace meevax::system
           const auto evaluation {loader.execute(executable)};
         }
 
-        std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
+        std::cerr << "[debug] " << std::distance(
+                                     loader.interaction_environment(),
+                                            interaction_environment())
+                  << " expression defined" << std::endl;
 
         merge(loader);
-        execute.env = loader.execute.env;
+        execute.env = loader.interaction_environment();
 
         return true_v;
       }
@@ -183,8 +188,7 @@ namespace meevax::system
     }
   };
 
-  module::module() // defines interaction-environment
-    : name {unit} // 文字列を受け取って、stringstream 経由でS式へ変換すること
+  syntactic_closure::syntactic_closure() // defines interaction-environment
   {
     define<special>("quote", [&](auto&& expr,
                                  auto&&,
@@ -320,9 +324,9 @@ namespace meevax::system
       // XXX 今は雑にブーリアンを返してる
       return load(car(args).template as<string>());
     });
-  } // module class default constructor
+  } // syntactic_closure class default constructor
 
-  std::ostream& operator<<(std::ostream&, const module&);
+  std::ostream& operator<<(std::ostream&, const syntactic_closure&);
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_MODULE_HPP

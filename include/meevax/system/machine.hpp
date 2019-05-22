@@ -12,12 +12,12 @@
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/symbol.hpp>
-#include <meevax/system/syntax.hpp>
+// #include <meevax/system/syntax.hpp>
 
 namespace meevax::system
 {
-  // Simple SECD machine.
-  class machine
+  template <typename SyntacticClosure>
+  class machine // Simple SECD machine.
   {
   public: // XXX TO PRIVATE
     cursor s, // stack
@@ -33,7 +33,7 @@ namespace meevax::system
     #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
-    machine(const cursor& env = unit)
+    machine(const objective& env = unit)
       : env {env}
     {}
 
@@ -88,7 +88,7 @@ namespace meevax::system
         {
           return std::invoke(buffer.as<special>(), exp, scope, continuation);
         }
-        else if (buffer != unbound && buffer.is<syntax>() && not defined(car(exp), scope))
+        else if (buffer != unbound && buffer.is<SyntacticClosure>() && not defined(car(exp), scope))
         {
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
@@ -171,9 +171,9 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDS: // S E (LDS code . C) => (syntax . S) E C D
+      case instruction::secd::LDS: // S E (LDS code . C) => (syntactic-closure . S) E C D
         DEBUG_1();
-        s.push(make<syntax>(cadr(c), env)); // レキシカル環境が必要ないのかはよく分からん
+        s.push(make<SyntacticClosure>(cadr(c), env)); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
