@@ -17,8 +17,11 @@ namespace meevax::system
   {
     const objective name, declaration;
 
+    objective exported;
+
     machine execute;
 
+  public: // Constructors
     // Default constructor provides "pure" execution context. Pure execution
     // context contains minimal Scheme procedures to bootstrap any other
     // standard Scheme procedures. This constructor typically called only once
@@ -56,6 +59,11 @@ namespace meevax::system
       }
     }
 
+    decltype(auto) interaction_environment() const noexcept
+    {
+      return execute.env;
+    }
+
   public:
     // From R7RS 6.14. System Interface
     //
@@ -77,11 +85,13 @@ namespace meevax::system
     //
     template <typename... Ts>
     decltype(auto) load(Ts&&... args) noexcept(false)
+    // decltype(auto) load(const objective& filename,
+    //                     const objective& environment_specifier)
     {
       if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
         loader.merge(*this);
-        loader.execute.env = execute.env;
+        loader.execute.env = interaction_environment();
 
         while (loader.ready()) // 事実上の begin
         {
@@ -92,7 +102,6 @@ namespace meevax::system
 
         std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
 
-        // TODO ここで export 指定の識別子以外をインデックスから削除
         merge(loader);
         execute.env = loader.execute.env;
 
@@ -174,9 +183,7 @@ namespace meevax::system
     }
   };
 
-
-  // 多くの処理系でmainの最初で呼ばれる「scheme_init」的な名前の関数と同じ仕事をする
-  module::module()
+  module::module() // defines interaction-environment
     : name {unit} // 文字列を受け取って、stringstream 経由でS式へ変換すること
   {
     define<special>("quote", [&](auto&& expr,

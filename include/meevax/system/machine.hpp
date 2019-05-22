@@ -93,7 +93,7 @@ namespace meevax::system
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
 
-          machine expander {env};
+          machine expander {cdr(buffer)};
 
           expander.s = unit;
           expander.e = list(cdr(exp));
@@ -173,7 +173,7 @@ namespace meevax::system
 
       case instruction::secd::LDS: // S E (LDS code . C) => (syntax . S) E C D
         DEBUG_1();
-        s.push(make<syntax>(cadr(c), e));
+        s.push(make<syntax>(cadr(c), env)); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 

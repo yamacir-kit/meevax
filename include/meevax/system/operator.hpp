@@ -120,7 +120,7 @@ namespace meevax::system
   {
     if (!env)
     {
-      return os << unit << std::endl;
+      return os;
     }
     else
     {

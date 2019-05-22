@@ -8,6 +8,8 @@
 (define - (link-procedure libmeevax-base.so "minus"))
 (define / (link-procedure libmeevax-base.so "divides"))
 
+(define (scheme write) "./libmeevax-write.so"); HACK
+
 ;; cxr
 
 (define caar (lambda (e) (car (car e))))
