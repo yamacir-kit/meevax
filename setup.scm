@@ -3,10 +3,12 @@
 (define eq?   (dynamic-link-procedure libmeevax-base.so "symbolic_equal"))
 (define pair? (dynamic-link-procedure libmeevax-base.so "is_pair"))
 
-(define + (dynamic-link-procedure libmeevax-base.so "plus"))
-(define * (dynamic-link-procedure libmeevax-base.so "multiplies"))
-(define - (dynamic-link-procedure libmeevax-base.so "minus"))
-(define / (dynamic-link-procedure libmeevax-base.so "divides"))
+(define libmeevax-numerical.so (dynamic-link-open "./libmeevax-numerical.so"))
+
+(define + (dynamic-link-procedure libmeevax-numerical.so "addition"))
+(define * (dynamic-link-procedure libmeevax-numerical.so "multiplication"))
+(define - (dynamic-link-procedure libmeevax-numerical.so "subtraction"))
+(define / (dynamic-link-procedure libmeevax-numerical.so "division"))
 
 
 ;; cxr
