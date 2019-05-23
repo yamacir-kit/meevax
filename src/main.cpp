@@ -107,17 +107,6 @@ int main() try
                );
       }
     });
-
-    program.define<procedure>("link-procedure", [&](auto&& args)
-    {
-      return make<procedure>(
-               "unknown",
-               program.link<procedure>(
-                 car(args).template as<string>(),
-                 cadr(args).template as<string>()
-               )
-             );
-    });
   }
 
   for (program.open("/dev/stdin"); program.ready(); ) try

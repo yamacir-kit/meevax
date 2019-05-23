@@ -44,7 +44,7 @@ namespace meevax::system
       return env.push(list(key, std::forward<Ts>(args)...));
     #else
       env.push(list(key, std::forward<Ts>(args)...));
-      display_assoc(std::cout, env);
+      std::cout << "\t" << caar(env) << "\r\x1b[40C " << cadar(env) << std::endl;
       return env;
     #endif
     }

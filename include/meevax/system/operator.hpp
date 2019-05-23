@@ -123,7 +123,7 @@ namespace meevax::system
     }
   }
 
-  std::ostream& display_assoc(std::ostream& os, const objective& env)
+  [[deprecated]] std::ostream& display_assoc(std::ostream& os, const objective& env)
   {
     if (!env)
     {
