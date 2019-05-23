@@ -8,9 +8,9 @@
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/number.hpp>
-#include <meevax/system/operator.hpp> // assoc
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
+#include <meevax/system/srfi-1.hpp> // assoc
 #include <meevax/system/symbol.hpp>
 
 namespace meevax::system
@@ -44,7 +44,7 @@ namespace meevax::system
       return env.push(list(key, std::forward<Ts>(args)...));
     #else
       env.push(list(key, std::forward<Ts>(args)...));
-      display_assoc(std::cout, env);
+      std::cout << "\t" << caar(env) << "\r\x1b[40C " << cadar(env) << std::endl;
       return env;
     #endif
     }
@@ -168,7 +168,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {pseudo_display(cadr(c), " is unbound")};
+          throw error {cadr(c), " is unbound"};
         }
         c.pop(2);
         goto dispatch;
@@ -252,7 +252,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {pseudo_display(applicable, "\x1b[31m", " is not applicable")};
+          throw error {applicable, "\x1b[31m", " is not applicable"};
         }
         goto dispatch;
 
@@ -323,10 +323,10 @@ namespace meevax::system
         goto dispatch;
 
       default:
-        throw error {pseudo_display(car(c), " is not virtual machine instruction")};
+        throw error {car(c), "\x1b[31m is not virtual machine instruction"};
       }
 
-      throw error {pseudo_display("unterminated execution")};
+      throw error {"unterminated execution"};
     }
 
     template <typename... Ts>

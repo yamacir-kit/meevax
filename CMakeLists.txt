@@ -42,6 +42,7 @@ link_directories(
 #   MEEVAX STANDARD LIBRARIES (SHARED OBJECTS)
 # ==============================================================
 file(GLOB ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/system/*.cpp)
+message(${${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES})
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})

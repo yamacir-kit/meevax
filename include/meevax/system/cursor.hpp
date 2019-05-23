@@ -4,6 +4,7 @@
 #include <iterator>
 
 #include <meevax/system/pair.hpp>
+#include <meevax/system/srfi-1.hpp>
 
 namespace meevax::system
 {
@@ -78,7 +79,7 @@ namespace meevax::system
 
     decltype(auto) size() const
     {
-      return std::distance(std::begin(*this), std::end(*this));
+      return length(*this);
     }
 
     template <typename... Ts>

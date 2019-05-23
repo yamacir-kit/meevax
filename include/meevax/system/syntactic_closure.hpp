@@ -22,16 +22,16 @@ namespace meevax::system
     machine<syntactic_closure> execute; // XXX この名前微妙
 
   public: // Constructors
-    // TODO デフォルトコンストラクタはマクロ用
+    // for syntactic-lambda
     syntactic_closure()
       : execute {second}
     {}
 
-    // for scheme-report-environment
+    // for bootstrap scheme-report-environment
     template <int Version>
     syntactic_closure(std::integral_constant<int, Version>);
 
-    // ローダ用
+    // for load
     syntactic_closure(const objective& declaration,
                       const objective& environment_specifier)
       : closure {declaration, environment_specifier}
@@ -71,8 +71,6 @@ namespace meevax::system
     decltype(auto) expand(const objective& arguments)
     {
       std::cerr << "[debug] arguments: " << arguments << std::endl;
-
-      display_assoc(std::cout, interaction_environment());
 
       execute.s = unit;
       execute.e = list(arguments);
@@ -189,22 +187,6 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) import(Ts&&... args)
     {
-    }
-
-    std::unordered_map<std::string, posix::linker> shared_objects;
-
-    template <typename T, typename... Ts>
-    decltype(auto) link(const std::string& path, const std::string& name)
-    {
-      try
-      {
-        return shared_objects.at(path).link<typename T::signature>(name);
-      }
-      catch (const std::out_of_range&)
-      {
-        shared_objects.emplace(path, path);
-        return shared_objects.at(path).link<typename T::signature>(name);
-      }
     }
   };
 
