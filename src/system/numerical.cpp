@@ -1,8 +1,8 @@
 #include <numeric>
 
 #include <meevax/system/number.hpp>
-#include <meevax/system/operator.hpp>
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/srfi-1.hpp>
 
 extern "C"
 {

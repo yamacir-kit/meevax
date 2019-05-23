@@ -8,9 +8,9 @@
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/number.hpp>
-#include <meevax/system/operator.hpp> // assoc
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
+#include <meevax/system/srfi-1.hpp> // assoc
 #include <meevax/system/symbol.hpp>
 
 namespace meevax::system
