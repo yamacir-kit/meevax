@@ -79,7 +79,7 @@ namespace meevax::system
       }
       else // is (application . arguments)
       {
-        if (const auto& buffer {assoc(car(exp), env)}; !buffer)
+        if (auto& buffer {assoc(car(exp), env)}; !buffer)
         {
           throw error {"unit is not applicable"};
         }
@@ -92,18 +92,21 @@ namespace meevax::system
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
 
-          machine expander {cdr(buffer)};
+          // machine expander {cdr(buffer)};
+          //
+          // expander.s = unit;
+          // expander.e = list(cdr(exp));
+          // expander.d = cons(
+          //                unit,       // s
+          //                unit,       // e
+          //                list(STOP), // c
+          //                unit        // d
+          //              );
+          //
+          // auto expanded {expander.execute(car(buffer))};
 
-          expander.s = unit;
-          expander.e = list(cdr(exp));
-          expander.d = cons(
-                         unit,       // s
-                         unit,       // e
-                         list(STOP), // c
-                         unit        // d
-                       );
-
-          auto expanded {expander.execute(car(buffer))};
+          // XXX DIRTY HACK!!!
+          auto expanded {unsafe_assoc(car(exp), env).as<SyntacticClosure>().expand(cdr(exp))};
           std::cerr << "        expanded: " << expanded << std::endl;
 
           return compile(expanded, scope, continuation);

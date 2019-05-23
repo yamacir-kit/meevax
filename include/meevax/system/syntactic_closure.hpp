@@ -11,37 +11,39 @@
 
 namespace meevax::system
 {
+  template <int Version>
+  static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
+
   struct syntactic_closure
     : public closure
     , public std::unordered_map<std::string, objective> // namespace
     , public reader<syntactic_closure>
   {
-    // const objective declaration;
-
-    objective exported;
-
     machine<syntactic_closure> execute; // XXX この名前微妙
 
   public: // Constructors
-    // Default constructor provides "pure" execution context. Pure execution
-    // context contains minimal Scheme procedures to bootstrap any other
-    // standard Scheme procedures. This constructor typically called only once
-    // from main function.
-    syntactic_closure();
+    // TODO デフォルトコンストラクタはマクロ用
+    syntactic_closure()
+      : execute {second}
+    {}
 
+    // for scheme-report-environment
+    template <int Version>
+    syntactic_closure(std::integral_constant<int, Version>);
+
+    // ローダ用
     syntactic_closure(const objective& declaration,
                       const objective& environment_specifier)
       : closure {declaration, environment_specifier}
       , execute {environment_specifier}
     {}
 
-  public: // Reader Interface
+  public: // Module System Interface
     auto ready() const noexcept
     {
       return static_cast<bool>(*this); // TODO MORE
     }
 
-  public: // Virtual Machine Interface
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
@@ -61,9 +63,27 @@ namespace meevax::system
       }
     }
 
-    auto& interaction_environment() noexcept
+    decltype(auto) interaction_environment() const noexcept
     {
       return execute.env;
+    }
+
+    decltype(auto) expand(const objective& arguments)
+    {
+      std::cerr << "[debug] arguments: " << arguments << std::endl;
+
+      display_assoc(std::cout, interaction_environment());
+
+      execute.s = unit;
+      execute.e = list(arguments);
+      execute.d = cons(
+                    unit,       // s
+                    unit,       // e
+                    list(STOP), // c
+                    unit        // d
+                  );
+
+      return std::invoke(execute, std::get<0>(*this));
     }
 
   public:
@@ -86,7 +106,7 @@ namespace meevax::system
     // implementations.
     //
     template <typename... Ts>
-    decltype(auto) load(Ts&&... args) noexcept(false)
+    decltype(auto) load(Ts&&... args)
     // decltype(auto) load(const objective& filename,
     //                     const objective& environment_specifier)
     {
@@ -188,7 +208,8 @@ namespace meevax::system
     }
   };
 
-  syntactic_closure::syntactic_closure() // defines interaction-environment
+  template <>
+  syntactic_closure::syntactic_closure<7>(std::integral_constant<int, 7>)
   {
     define<special>("quote", [&](auto&& expr,
                                  auto&&,

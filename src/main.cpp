@@ -6,7 +6,7 @@ int main() try
 {
   using namespace meevax::system;
 
-  syntactic_closure root {};
+  syntactic_closure root {scheme_report_environment<7>};
 
   // CFFI経由で呼び出すべきものだが手間の都合でここに雑に列挙
   {

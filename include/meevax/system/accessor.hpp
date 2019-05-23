@@ -150,6 +150,12 @@ namespace meevax::system
       // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
       return dynamic_cast<const T&>(access());
     }
+
+    template <typename T>
+    decltype(auto) as()
+    {
+      return dynamic_cast<T&>(access());
+    }
   };
 
   // Invoke TopType::write()
