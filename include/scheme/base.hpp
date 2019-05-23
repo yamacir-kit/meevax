@@ -13,11 +13,11 @@ extern "C"
 {
   using namespace meevax::system;
 
-  PROCEDURE(divides);
+  PROCEDURE(divides); // => division
   PROCEDURE(is_pair);
-  PROCEDURE(minus);
-  PROCEDURE(multiplies);
-  PROCEDURE(plus);
+  PROCEDURE(minus); // => subtraction
+  PROCEDURE(multiplies); // => multiplication
+  PROCEDURE(plus); // => addition
   PROCEDURE(symbolic_equal);
 } // extern "C"
 

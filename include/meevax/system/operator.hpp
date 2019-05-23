@@ -96,6 +96,13 @@ namespace meevax::system
     return buffer.str();
   }
 
+  // 統合案
+  // template <typename OutputStream, typename... Ts>
+  // decltype(auto) display(OutputStream&& os, Ts&&... args)
+  // {
+  //   return (os << ... << args);
+  // }
+
   const objective& assoc(const objective& var, const objective& env)
   {
     if (!var)
