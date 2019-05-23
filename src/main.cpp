@@ -46,7 +46,7 @@ int main() try
     // (dynamic-link-open <path>)
     program.define<procedure>("dynamic-link-open", [&](auto&& args)
     {
-      if (auto length {std::distance(std::begin(args), std::end(args))}; length < 1)
+      if (auto size {length(args)}; size < 1)
       {
         throw error {"procedure dynamic-link-open expects a string for argument, but received nothing."};
       }
@@ -55,8 +55,8 @@ int main() try
         throw error {
                 "procedure dynamic-link-open expects a string for argument, but received ",
                 meevax::utility::demangle(s.access().type()),
-                " rest ", length, " argument",
-                (length < 2 ? " " : "s "),
+                " rest ", size, " argument",
+                (size < 2 ? " " : "s "),
                 "were ignored."
               };
       }
@@ -69,11 +69,11 @@ int main() try
     // (dynamic-link-procedure <linker> <name>)
     program.define<procedure>("dynamic-link-procedure", [&](auto&& args)
     {
-      if (auto length {std::distance(std::begin(args), std::end(args))}; length < 1)
+      if (auto size {length(args)}; size < 1)
       {
         throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received nothing."};
       }
-      else if (length < 2)
+      else if (size < 2)
       {
         throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received only one argument."};
       }
@@ -82,8 +82,8 @@ int main() try
         throw error {
                 "procedure dynamic-link-open expects a linker for first argument, but received ",
                 meevax::utility::demangle(linker.access().type()),
-                " rest ", length - 1, " argument",
-                (length < 2 ? " " : "s "),
+                " rest ", size - 1, " argument",
+                (size < 2 ? " " : "s "),
                 "were ignored."
               };
       }
@@ -92,8 +92,8 @@ int main() try
         throw error {
                 "procedure dynamic-link-open expects a string for second argument, but received ",
                 meevax::utility::demangle(name.access().type()),
-                " rest ", length - 2, " argument",
-                (length < 3 ? " " : "s "),
+                " rest ", size - 2, " argument",
+                (size < 3 ? " " : "s "),
                 "were ignored."
               };
       }

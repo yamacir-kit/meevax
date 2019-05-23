@@ -1,6 +1,7 @@
 #include <numeric>
 
 #include <meevax/system/number.hpp>
+#include <meevax/system/operator.hpp>
 #include <meevax/system/procedure.hpp>
 
 extern "C"
@@ -44,7 +45,7 @@ extern "C"
   {
     using namespace meevax::system;
 
-    if (std::distance(std::begin(args), std::end(args)) < 2)
+    if (length(args) < 2)
     {
       return std::accumulate(std::begin(args), std::end(args), make<number>(0), std::minus {});
     }

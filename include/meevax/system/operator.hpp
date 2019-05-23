@@ -1,6 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 
+#include <cassert>
+#include <iterator> // std::begin, std::end, std::distance
+
 #include <meevax/system/pair.hpp>
 #include <meevax/system/exception.hpp>
 
@@ -62,6 +65,12 @@ namespace meevax::system
     return (... | args);
   }
 
+  template <typename E>
+  decltype(auto) length(E&& e)
+  {
+    return std::distance(std::begin(e), std::end(e));
+  }
+
   template <typename T, typename U>
   objective append(T&& x, U&& y)
   {
@@ -110,18 +119,18 @@ namespace meevax::system
     }
   }
 
-  [[deprecated]] std::ostream& display_assoc(std::ostream& os, const objective& env)
-  {
-    if (!env)
-    {
-      return os;
-    }
-    else
-    {
-      display_assoc(os, cdr(env));
-      return os << "\t" << caar(env) << "\r\x1b[40C " << cadar(env) << std::endl;
-    }
-  }
+  // [[deprecated]] std::ostream& display_assoc(std::ostream& os, const objective& env)
+  // {
+  //   if (!env)
+  //   {
+  //     return os;
+  //   }
+  //   else
+  //   {
+  //     display_assoc(os, cdr(env));
+  //     return os << "\t" << caar(env) << "\r\x1b[40C " << cadar(env) << std::endl;
+  //   }
+  // }
 
   objective& unsafe_assoc(const objective& var, objective& env) noexcept(false)
   {
