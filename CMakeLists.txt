@@ -48,7 +48,6 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
 
   list(APPEND ${PROJECT_NAME}_STANDARD_LIBRARIES ${TARGET_NAME})
-  message(${${PROJECT_NAME}_STANDARD_LIBRARIES}) # DEBUG
 
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
   set_target_properties(${TARGET_NAME} PROPERTIES
@@ -60,6 +59,8 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
     gmp # XXX DIRTY HACK
   )
 endforeach()
+
+message("${${PROJECT_NAME}_STANDARD_LIBRARIES}") # DEBUG
 
 # ==============================================================
 #   MEEVAX EXECUTABLE

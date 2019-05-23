@@ -25,27 +25,32 @@ namespace meevax::system
            d; // dump
 
     // (1) SETGのために大域変数はユニークなものがひとつだけでなければならない
-    cursor env; // global environment as associative list
+    // cursor env; // global environment as associative list
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
     #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
     #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
-    machine(const objective& env = unit)
-      : env {env}
-    {}
+    // machine(const objective& env = unit)
+    //   : env {env}
+    // {}
+
+    decltype(auto) interaction_environment()
+    {
+      return static_cast<SyntacticClosure&>(*this).interaction_environment();
+    }
 
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const objective& key, Ts&&... args)
     {
     #if 0
-      return env.push(list(key, std::forward<Ts>(args)...));
+      return interaction_environment().push(list(key, std::forward<Ts>(args)...));
     #else
-      env.push(list(key, std::forward<Ts>(args)...));
-      std::cout << "\t" << caar(env) << "\r\x1b[40C " << cadar(env) << std::endl;
-      return env;
+      interaction_environment().push(list(key, std::forward<Ts>(args)...));
+      std::cout << "\t" << caar(interaction_environment()) << "\r\x1b[40C " << cadar(interaction_environment()) << std::endl;
+      return interaction_environment();
     #endif
     }
 
@@ -79,7 +84,7 @@ namespace meevax::system
       }
       else // is (application . arguments)
       {
-        if (auto& buffer {assoc(car(exp), env)}; !buffer)
+        if (const objective& buffer {assoc(car(exp), interaction_environment())}; !buffer)
         {
           throw error {"unit is not applicable"};
         }
@@ -106,7 +111,14 @@ namespace meevax::system
           // auto expanded {expander.execute(car(buffer))};
 
           // XXX DIRTY HACK!!!
-          auto expanded {unsafe_assoc(car(exp), env).as<SyntacticClosure>().expand(cdr(exp))};
+          auto expanded {
+            unsafe_assoc(
+              car(exp),
+              interaction_environment()
+            ).template as<SyntacticClosure>().expand(
+              cdr(exp)
+            )
+          };
           std::cerr << "        expanded: " << expanded << std::endl;
 
           return compile(expanded, scope, continuation);
@@ -162,7 +174,7 @@ namespace meevax::system
 
       case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG_1();
-        if (auto value {assoc(cadr(c), env)}; value != unbound)
+        if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
           s.push(value);
         }
@@ -175,7 +187,7 @@ namespace meevax::system
 
       case instruction::secd::LDS: // S E (LDS code . C) => (syntactic-closure . S) E C D
         DEBUG_1();
-        s.push(make<SyntacticClosure>(cadr(c), env)); // レキシカル環境が必要ないのかはよく分からん
+        s.push(make<SyntacticClosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
@@ -275,7 +287,7 @@ namespace meevax::system
         // (1) 右辺値がユニークな場合はコピーを作らなくても問題ない
         // (2) 左辺値がユニークな場合は直接書き換えても問題ない
         // (3) 右辺値が左辺値よりも新しい場合は弱参照をセットしなければならない
-        std::atomic_store(&unsafe_assoc(cadr(c), env), car(s).access().copy());
+        std::atomic_store(&unsafe_assoc(cadr(c), interaction_environment()), car(s).access().copy());
         c.pop(2);
         goto dispatch;
 
@@ -329,21 +341,23 @@ namespace meevax::system
       throw error {"unterminated execution"};
     }
 
-    template <typename... Ts>
-    decltype(auto) operator()(Ts&&... args)
-    {
-      return execute(std::forward<Ts>(args)...);
-    }
+    // template <typename... Ts>
+    // decltype(auto) operator()(Ts&&... args)
+    // {
+    //   return execute(std::forward<Ts>(args)...);
+    // }
 
-    objective begin(const objective& exp,
-                    const objective& scope,
-                    const objective& continuation)
+  protected:
+    // 名前をbeginにしたいけどSTLと被る
+    objective body(const objective& exp,
+                   const objective& scope,
+                   const objective& continuation)
     {
       return compile(
                car(exp),
                scope,
-               cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
-                        :                                  continuation
+               cdr(exp) ? cons(POP, body(cdr(exp), scope, continuation))
+                        :                                 continuation
              );
     }
 

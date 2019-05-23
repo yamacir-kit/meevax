@@ -115,7 +115,7 @@ int main() try
     const auto expression {program.read()};
     std::cerr << "\n; " << expression << std::endl;
 
-    const auto executable {program.execute.compile(expression)};
+    const auto executable {program.compile(expression)};
     std::cerr << "; as " << executable << std::endl;
 
     const auto evaluation {program.execute(executable)};
