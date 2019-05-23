@@ -16,9 +16,9 @@ namespace meevax::system
 
   struct syntactic_closure
     : public closure
-    , public std::unordered_map<std::string, objective> // namespace
     , public reader<syntactic_closure> // TODO ポートをサポートしたら外すこと
     , public machine<syntactic_closure>
+    , private std::unordered_map<std::string, objective> // namespace
   {
   public: // Constructors
     // for syntactic-lambda
@@ -29,14 +29,6 @@ namespace meevax::system
     syntactic_closure(std::integral_constant<int, Version>);
 
     // for load
-    // syntactic_closure(const objective& declaration,
-    //                   const objective& environment_specifier)
-    //   : closure {declaration, environment_specifier}
-    // {
-    //   std::cerr << "[constructor] car: " << declaration << std::endl;
-    //   std::cerr << "              cdr: " << environment_specifier << std::endl;
-    // }
-
     template <typename... Ts>
     constexpr syntactic_closure(Ts&&... args)
       : pair {std::forward<Ts>(args)...} // virtual base of closure
@@ -110,9 +102,13 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args)
     {
+      // 面倒だが呼び出し元のストリームとVMを安全に保存するために回りくどいことをしてる。
+      // VMのダンプを上手いこと操作すれば不可能ではないかも知れないけど、
+      // ロード中にシステムが壊れるようなケースを避けたい。
+
       if (syntactic_closure loader {unit, interaction_environment()}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
-        loader.merge(*this);
+        loader.merge(*this); // TODO マージだと呼び出し元がシンボルテーブルを手放すことになるため、コピーに変更すること
 
         while (loader.ready()) // 事実上の begin
         {

@@ -18,24 +18,17 @@ namespace meevax::system
   template <typename SyntacticClosure>
   class machine // Simple SECD machine.
   {
-  public: // XXX TO PRIVATE
+  protected: // XXX TO PRIVATE
     cursor s, // stack
            e, // lexical environment
            c, // code
            d; // dump
-
-    // (1) SETGのために大域変数はユニークなものがひとつだけでなければならない
-    // cursor env; // global environment as associative list
 
     #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
     #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
     #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
-    // machine(const objective& env = unit)
-    //   : env {env}
-    // {}
-
     decltype(auto) interaction_environment()
     {
       return static_cast<SyntacticClosure&>(*this).interaction_environment();
@@ -96,19 +89,6 @@ namespace meevax::system
         {
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
-
-          // machine expander {cdr(buffer)};
-          //
-          // expander.s = unit;
-          // expander.e = list(cdr(exp));
-          // expander.d = cons(
-          //                unit,       // s
-          //                unit,       // e
-          //                list(STOP), // c
-          //                unit        // d
-          //              );
-          //
-          // auto expanded {expander.execute(car(buffer))};
 
           // XXX DIRTY HACK!!!
           auto expanded {
