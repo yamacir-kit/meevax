@@ -16,9 +16,9 @@ namespace meevax::system
       DEFINE,
       JOIN,
       LDC, // load constant
-      LDF, // load function
+      LDF, // load (function) closure
       LDG, // load globally
-      LDS, // load syntax
+      LDS, // load syntactic-closure
       LDX, // load locally
       POP,
       RETURN,

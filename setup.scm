@@ -1,14 +1,15 @@
-(define libmeevax-base.so "./libscheme-base.so")
+(define libmeevax-base.so (dynamic-link-open "./libscheme-base.so"))
 
-(define eq?   (link-procedure libmeevax-base.so "symbolic_equal"))
-(define pair? (link-procedure libmeevax-base.so "is_pair"))
+(define eq?   (dynamic-link-procedure libmeevax-base.so "symbolic_equal"))
+(define pair? (dynamic-link-procedure libmeevax-base.so "is_pair"))
 
-(define + (link-procedure libmeevax-base.so "plus"))
-(define * (link-procedure libmeevax-base.so "multiplies"))
-(define - (link-procedure libmeevax-base.so "minus"))
-(define / (link-procedure libmeevax-base.so "divides"))
+(define libmeevax-numerical.so (dynamic-link-open "./libmeevax-numerical.so"))
 
-(define (scheme write) "./libmeevax-write.so"); HACK
+(define + (dynamic-link-procedure libmeevax-numerical.so "addition"))
+(define * (dynamic-link-procedure libmeevax-numerical.so "multiplication"))
+(define - (dynamic-link-procedure libmeevax-numerical.so "subtraction"))
+(define / (dynamic-link-procedure libmeevax-numerical.so "division"))
+
 
 ;; cxr
 
@@ -80,7 +81,7 @@
 ; (transform '(,(car a) ,@(cdr b) c)); => (cons (car a) (append (cdr b) (cons 'c '())))
 
 (define quasiquote
-  (syntax (e)
+  (syntactic-lambda (e)
     (transform e)))
 
 (define a '(1 2 3))

@@ -3,13 +3,12 @@
 #include <meevax/system/character.hpp>
 #include <meevax/system/closure.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/module.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/string.hpp>
-#include <meevax/system/syntax.hpp>
+#include <meevax/system/syntactic_closure.hpp>
 
 namespace meevax::system
 {
@@ -25,9 +24,9 @@ namespace meevax::system
     return os << "\x1B[0;36m#\\" << static_cast<const std::basic_string<char8_t>&>(c) << "\x1b[0m";
   }
 
-  std::ostream& operator<<(std::ostream& os, const closure&)
+  std::ostream& operator<<(std::ostream& os, const closure& closure)
   {
-    return os << "#<closure>";
+    return os << "#<closure " << &closure << ">";
   }
 
   std::ostream& operator<<(std::ostream& os, const exception& e)
@@ -45,10 +44,10 @@ namespace meevax::system
     return os << "\x1b[33m#<warning \"" << w.what() << "\">\x1b[0m";
   }
 
-  std::ostream& operator<<(std::ostream& os, const module& module)
-  {
-    return os << "#<module " << module.name << ">";
-  }
+  // std::ostream& operator<<(std::ostream& os, const module& module)
+  // {
+  //   return os << "#<module " << module.name << ">";
+  // }
 
   std::ostream& operator<<(std::ostream& os, const number& number)
   {
@@ -96,9 +95,9 @@ namespace meevax::system
     return os << "#<special " << special.name << ">";
   }
 
-  std::ostream& operator<<(std::ostream& os, const syntax& syntax)
+  std::ostream& operator<<(std::ostream& os, const syntactic_closure& closure)
   {
-    return os << "#<syntax " << &syntax << ">";
+    return os << "#<syntactic-closure " << &closure << ">";
   }
 } // namespace meevax::system
 

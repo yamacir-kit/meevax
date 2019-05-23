@@ -1,4 +1,6 @@
-#include <meevax/system/module.hpp>
+#include <meevax/posix/linker.hpp>
+#include <meevax/system/syntactic_closure.hpp>
+#include <meevax/utility/demangle.hpp>
 
 #include <boost/cstdlib.hpp>
 
@@ -6,13 +8,13 @@ int main() try
 {
   using namespace meevax::system;
 
-  module root {};
+  syntactic_closure program {scheme_report_environment<7>};
 
   // CFFI経由で呼び出すべきものだが手間の都合でここに雑に列挙
   {
-    root.define<procedure>("display", [&](auto&& args)
+    program.define<procedure>("display", [&](auto&& args)
     {
-      for (auto each : args)
+      for (const auto& each : args)
       {
         if (each.template is<string>()) // XXX DIRTY HACK
         {
@@ -26,7 +28,7 @@ int main() try
       return unit; // XXX DIRTY HACK
     });
 
-    root.define<procedure>("emergency-exit", [&](auto&& args)
+    program.define<procedure>("emergency-exit", [&](auto&& args)
     {
       if (not args or not car(args).template is<number>())
       {
@@ -41,28 +43,82 @@ int main() try
       return unit; // XXX DIRTY HACK
     });
 
-    root.define<procedure>("link-procedure", [&](auto&& args)
+    // (dynamic-link-open <path>)
+    program.define<procedure>("dynamic-link-open", [&](auto&& args)
     {
-      return make<procedure>(
-               "unknown",
-               root.link<procedure>(
-                 car(args).template as<string>(),
-                 cadr(args).template as<string>()
-               )
-             );
+      if (auto size {length(args)}; size < 1)
+      {
+        throw error {"procedure dynamic-link-open expects a string for argument, but received nothing."};
+      }
+      else if (auto s {car(args)}; not s.template is<string>())
+      {
+        throw error {
+                "procedure dynamic-link-open expects a string for argument, but received ",
+                meevax::utility::demangle(s.access().type()),
+                " rest ", size, " argument",
+                (size < 2 ? " " : "s "),
+                "were ignored."
+              };
+      }
+      else
+      {
+        return make<meevax::posix::linker>(s.template as<string>());
+      }
+    });
+
+    // (dynamic-link-procedure <linker> <name>)
+    program.define<procedure>("dynamic-link-procedure", [&](auto&& args)
+    {
+      if (auto size {length(args)}; size < 1)
+      {
+        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received nothing."};
+      }
+      else if (size < 2)
+      {
+        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received only one argument."};
+      }
+      else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
+      {
+        throw error {
+                "procedure dynamic-link-open expects a linker for first argument, but received ",
+                meevax::utility::demangle(linker.access().type()),
+                " rest ", size - 1, " argument",
+                (size < 2 ? " " : "s "),
+                "were ignored."
+              };
+      }
+      else if (const auto& name {cadr(args)}; not name.template is<string>())
+      {
+        throw error {
+                "procedure dynamic-link-open expects a string for second argument, but received ",
+                meevax::utility::demangle(name.access().type()),
+                " rest ", size - 2, " argument",
+                (size < 3 ? " " : "s "),
+                "were ignored."
+              };
+      }
+      else
+      {
+        const auto& linker_ {car(args).template as<meevax::posix::linker>()};
+        const std::string& name_ {cadr(args).template as<string>()};
+        return make<procedure>(
+                 name_, // TODO リンクしてるライブラリ名を名前に含めること（#<procedure hoge from libhoge.so>）
+                 linker_.template link<typename procedure::signature>(name_)
+               );
+      }
     });
   }
 
-  for (root.open("/dev/stdin"); root.ready(); ) try
+  for (program.open("/dev/stdin"); program.ready(); ) try
   {
     std::cerr << "\n> " << std::flush;
-    const auto expression {root.read()};
+    const auto expression {program.read()};
     std::cerr << "\n; " << expression << std::endl;
 
-    const auto executable {root.execute.compile(expression)};
+    const auto executable {program.compile(expression)};
     std::cerr << "; as " << executable << std::endl;
 
-    const auto evaluation {root.execute(executable)};
+    const auto evaluation {program.execute(executable)};
     std::cerr << "; => " << std::flush;
     std::cout << evaluation << std::endl;
   }

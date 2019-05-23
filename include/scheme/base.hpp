@@ -6,18 +6,18 @@
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/cursor.hpp>
 #include <meevax/system/number.hpp>
-#include <meevax/system/operator.hpp>
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/srfi-1.hpp>
 
 extern "C"
 {
   using namespace meevax::system;
 
-  PROCEDURE(divides);
+  PROCEDURE(divides); // => division
   PROCEDURE(is_pair);
-  PROCEDURE(minus);
-  PROCEDURE(multiplies);
-  PROCEDURE(plus);
+  PROCEDURE(minus); // => subtraction
+  PROCEDURE(multiplies); // => multiplication
+  PROCEDURE(plus); // => addition
   PROCEDURE(symbolic_equal);
 } // extern "C"
 

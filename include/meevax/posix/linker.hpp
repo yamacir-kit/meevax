@@ -38,7 +38,6 @@ namespace meevax::posix
 
   public:
     auto open(const std::string& path = "")
-      -> std::unique_ptr<void, close>
     {
       std::cerr << "opening shared library \"" << path << "\" => ";
 
@@ -74,7 +73,7 @@ namespace meevax::posix
     }
 
     template <typename Signature>
-    Signature link(const std::string& name)
+    Signature link(const std::string& name) const
     {
       std::cerr << "linking symbol \"" << name << "\" in shared library \"" << path_ << "\" as signature " << utility::demangle(typeid(Signature)) << " => ";
 
@@ -86,7 +85,7 @@ namespace meevax::posix
         {
           std::cerr << "succeeded." << std::endl;
 
-          // XXX Result of this cast is undefined (maybe works file).
+          // XXX Result of this cast is undefined (maybe works fine).
           return reinterpret_cast<Signature>(function);
         }
         else if (auto* message {dlerror()}; message)

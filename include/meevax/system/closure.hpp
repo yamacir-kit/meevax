@@ -7,7 +7,12 @@ namespace meevax::system
 {
   struct closure // is pair of compiled procedure and environment.
     : public virtual pair
-  {};
+  {
+    template <typename... Ts>
+    constexpr closure(Ts&&... args)
+      : pair {std::forward<Ts>(args)...}
+    {}
+  };
 
   std::ostream& operator<<(std::ostream&, const closure&);
 } // namespace meevax::system

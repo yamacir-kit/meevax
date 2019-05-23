@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
+#define INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
 
 #include <functional> // std::invoke
 #include <unordered_map> // std::unoredered_map
@@ -11,39 +11,39 @@
 
 namespace meevax::system
 {
-  struct module
-    : public std::unordered_map<std::string, objective> // The symbol table.
-    , public reader<module>
+  template <int Version>
+  static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
+
+  struct syntactic_closure
+    : public closure
+    , public reader<syntactic_closure> // TODO ポートをサポートしたら外すこと
+    , public machine<syntactic_closure>
+    , private std::unordered_map<std::string, objective> // namespace
   {
-    const objective name, declaration;
-
-    objective exported;
-
-    machine execute;
-
   public: // Constructors
-    // Default constructor provides "pure" execution context. Pure execution
-    // context contains minimal Scheme procedures to bootstrap any other
-    // standard Scheme procedures. This constructor typically called only once
-    // from main function.
-    module();
+    // for syntactic-lambda
+    syntactic_closure() = default;
 
-    module(const objective& name, const objective& declaration = unit)
-      : name {name}
-      , declaration {declaration}
+    // for bootstrap scheme-report-environment
+    template <int Version>
+    syntactic_closure(std::integral_constant<int, Version>);
+
+    // for load
+    template <typename... Ts>
+    constexpr syntactic_closure(Ts&&... args)
+      : pair {std::forward<Ts>(args)...} // virtual base of closure
     {}
 
-  public: // Reader Interface
+  public: // Module System Interface
     auto ready() const noexcept
     {
       return static_cast<bool>(*this); // TODO MORE
     }
 
-  public: // Virtual Machine Interface
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return execute.define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return machine<syntactic_closure>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
     const auto& intern(const std::string& s)
@@ -59,9 +59,25 @@ namespace meevax::system
       }
     }
 
-    decltype(auto) interaction_environment() const noexcept
+    decltype(auto) interaction_environment() noexcept
     {
-      return execute.env;
+      return static_cast<cursor&>(std::get<1>(*this));
+    }
+
+    decltype(auto) expand(const objective& arguments)
+    {
+      std::cerr << "[debug] arguments: " << arguments << std::endl;
+
+      s = unit;
+      e = list(arguments);
+      d = cons(
+            unit,       // s
+            unit,       // e
+            list(STOP), // c
+            unit        // d
+          );
+
+      return execute(std::get<0>(*this));
     }
 
   public:
@@ -84,26 +100,33 @@ namespace meevax::system
     // implementations.
     //
     template <typename... Ts>
-    decltype(auto) load(Ts&&... args) noexcept(false)
-    // decltype(auto) load(const objective& filename,
-    //                     const objective& environment_specifier)
+    decltype(auto) load(Ts&&... args)
     {
-      if (module loader {unit, unit}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      // 面倒だが呼び出し元のストリームとVMを安全に保存するために回りくどいことをしてる。
+      // VMのダンプを上手いこと操作すれば不可能ではないかも知れないけど、
+      // ロード中にシステムが壊れるようなケースを避けたい。
+
+      if (syntactic_closure loader {unit, interaction_environment()}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
-        loader.merge(*this);
-        loader.execute.env = interaction_environment();
+        loader.merge(*this); // TODO マージだと呼び出し元がシンボルテーブルを手放すことになるため、コピーに変更すること
 
         while (loader.ready()) // 事実上の begin
         {
           const auto expression {loader.read()};
-          const auto executable {loader.execute.compile(expression)};
+          // std::cerr << "[loader] expression: " << expression << std::endl;
+          const auto executable {loader.compile(expression)};
+          // std::cerr << "[loader] executable: " << executable << std::endl;
           const auto evaluation {loader.execute(executable)};
+          // std::cerr << "[loader] evaluation: " << evaluation << std::endl;
         }
 
-        std::cerr << "[debug] " << std::distance(loader.execute.env, execute.env) << " expression defined" << std::endl;
+        std::cerr << "[debug] " << std::distance(
+                                     loader.interaction_environment(),
+                                            interaction_environment())
+                  << " expression defined" << std::endl;
 
         merge(loader);
-        execute.env = loader.execute.env;
+        interaction_environment() = loader.interaction_environment();
 
         return true_v;
       }
@@ -165,26 +188,10 @@ namespace meevax::system
     decltype(auto) import(Ts&&... args)
     {
     }
-
-    std::unordered_map<std::string, posix::linker> shared_objects;
-
-    template <typename T, typename... Ts>
-    decltype(auto) link(const std::string& path, const std::string& name)
-    {
-      try
-      {
-        return shared_objects.at(path).link<typename T::signature>(name);
-      }
-      catch (const std::out_of_range&)
-      {
-        shared_objects.emplace(path, path);
-        return shared_objects.at(path).link<typename T::signature>(name);
-      }
-    }
   };
 
-  module::module() // defines interaction-environment
-    : name {unit} // 文字列を受け取って、stringstream 経由でS式へ変換すること
+  template <>
+  syntactic_closure::syntactic_closure<7>(std::integral_constant<int, 7>)
   {
     define<special>("quote", [&](auto&& expr,
                                  auto&&,
@@ -197,7 +204,7 @@ namespace meevax::system
                                auto&& scope,
                                auto&& continuation)
     {
-      return execute.compile(
+      return compile(
                cadr(exp),
                scope,
                cons(CAR, continuation)
@@ -208,7 +215,7 @@ namespace meevax::system
                                auto&& scope,
                                auto&& continuation)
     {
-      return execute.compile(
+      return compile(
                cadr(exp),
                scope,
                cons(CDR, continuation)
@@ -219,10 +226,10 @@ namespace meevax::system
                                 auto&& scope,
                                 auto&& continuation)
     {
-      return execute.compile(
+      return compile(
                caddr(exp),
                scope,
-               execute.compile(cadr(exp), scope, cons(CONS, continuation))
+               compile(cadr(exp), scope, cons(CONS, continuation))
              );
     });
 
@@ -230,13 +237,13 @@ namespace meevax::system
                               auto&& scope,
                               auto&& continuation)
     {
-      return execute.compile(
+      return compile(
                cadr(exp), // conditional expression
                scope,
                cons(
                  SELECT,
-                 execute.compile( caddr(exp), scope, list(JOIN)), // then expression
-                 execute.compile(cadddr(exp), scope, list(JOIN)), // else expression
+                 compile( caddr(exp), scope, list(JOIN)), // then expression
+                 compile(cadddr(exp), scope, list(JOIN)), // else expression
                  continuation
                )
              );
@@ -246,7 +253,7 @@ namespace meevax::system
                                   auto&& scope,
                                   auto&& continuation)
     {
-      return execute.compile(
+      return compile(
                caddr(exp),
                scope,
                cons(DEFINE, cadr(exp), continuation)
@@ -259,7 +266,7 @@ namespace meevax::system
     {
       return cons(
                LDF,
-               execute.begin(
+               body(
                  cddr(exp),
                  cons(
                    cadr(exp), // parameters
@@ -271,13 +278,13 @@ namespace meevax::system
              );
     });
 
-    define<special>("syntax", [&](auto&& exp,
-                                  auto&& scope,
-                                  auto&& continuation)
+    define<special>("syntactic-lambda", [&](auto&& exp,
+                                            auto&& scope,
+                                            auto&& continuation)
     {
       return cons(
                LDS,
-               execute.begin(
+               body(
                  cddr(exp),
                  cons(
                    cadr(exp), // parameters
@@ -297,9 +304,9 @@ namespace meevax::system
       {
         throw error {"setting to unit"};
       }
-      else if (auto location {execute.locate(cadr(exp), scope)}; location)
+      else if (auto location {locate(cadr(exp), scope)}; location)
       {
-        return execute.compile(
+        return compile(
                  caddr(exp),
                  scope,
                  cons(SETL, location, continuation)
@@ -307,7 +314,7 @@ namespace meevax::system
       }
       else
       {
-        return execute.compile(
+        return compile(
                  caddr(exp),
                  scope,
                  cons(SETG, cadr(exp), continuation)
@@ -320,10 +327,10 @@ namespace meevax::system
       // XXX 今は雑にブーリアンを返してる
       return load(car(args).template as<string>());
     });
-  } // module class default constructor
+  } // syntactic_closure class default constructor
 
-  std::ostream& operator<<(std::ostream&, const module&);
+  std::ostream& operator<<(std::ostream&, const syntactic_closure&);
 } // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_SYSTEM_MODULE_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
 

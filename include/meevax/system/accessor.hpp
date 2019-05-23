@@ -8,8 +8,31 @@
 #include <utility> // std::forward
 
 // #include <boost/type_traits/is_virtual_base_of.hpp>
+//
+// boost::is_virtual_base_of<TopType, BoundType>::value, TopType, BoundType
+//
+// struct hoge
+//   : public virtual TopType
+// {
+//   hoge()            = default;
+//   hoge(const hoge&) = default;
+//
+//   hoge(hoge&& moved)
+//   {
+//     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
+//   }
+//
+//   hoge& operator=(const hoge&) = default;
+//
+//   hoge& operator=(hoge&& moved)
+//   {
+//     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
+//     return *this;
+//   }
+// };
 
 #include <meevax/system/exception.hpp>
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax::system
 {
@@ -49,27 +72,6 @@ namespace meevax::system
             // トップ型を仮想継承した型をバインドする場合は、コンストラクタ引数をすべて基底クラスに流し込む
             // かなりクセのある挙動だが、初期化タイミング都合こうするしか無さそう
             std::is_base_of<TopType, BoundType>::value, TopType, BoundType
-            // boost::is_virtual_base_of<TopType, BoundType>::value, TopType, BoundType
-            //
-            // struct hoge
-            //   : public virtual TopType
-            // {
-            //   hoge()            = default;
-            //   hoge(const hoge&) = default;
-            //
-            //   hoge(hoge&& moved)
-            //   {
-            //     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
-            //   }
-            //
-            //   hoge& operator=(const hoge&) = default;
-            //
-            //   hoge& operator=(hoge&& moved)
-            //   {
-            //     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
-            //     return *this;
-            //   }
-            // };
           >::type {std::forward<Ts>(args)...}
       {}
 
@@ -84,13 +86,43 @@ namespace meevax::system
       std::shared_ptr<TopType> copy() const override
       {
         using binding = binder<BoundType>;
-        return std::make_shared<binding>(*this);
+
+        if constexpr (std::is_copy_constructible<binding>::value)
+        {
+          return std::make_shared<binding>(*this);
+        }
+        else
+        {
+          throw error {"std::is_copy_constructible<binding>::value == false"};
+        }
       }
+
+      template <typename T, typename = void>
+      struct stream_output_available
+        : public std::false_type
+      {};
+
+      template <typename T>
+      struct stream_output_available<
+               T,
+               std::void_t<decltype(
+                 std::declval<std::ostream&>() << std::declval<const T&>()
+               )>
+             >
+        : public std::true_type
+      {};
 
       // Override TopType::write(), then invoke BoundType's stream output operator.
       std::ostream& write(std::ostream& os) const override
       {
-        return os << static_cast<const BoundType&>(*this);
+        if constexpr (stream_output_available<BoundType>::value)
+        {
+          return os << static_cast<const BoundType&>(*this);
+        }
+        else
+        {
+          return os << "#<" << utility::demangle(typeid(BoundType)) << " " << static_cast<const BoundType*>(this) << ">";
+        }
       }
     };
 
@@ -141,6 +173,12 @@ namespace meevax::system
       // const void* casted {&dynamic_cast<const T&>(access())};
       // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
       return dynamic_cast<const T&>(access());
+    }
+
+    template <typename T>
+    decltype(auto) as()
+    {
+      return dynamic_cast<T&>(access());
     }
   };
 
