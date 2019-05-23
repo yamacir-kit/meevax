@@ -1,14 +1,25 @@
-(define libmeevax-base.so "./libscheme-base.so")
+; (define libmeevax-base.so "./libscheme-base.so")
+;
+; (define eq?   (link-procedure libmeevax-base.so "symbolic_equal"))
+; (define pair? (link-procedure libmeevax-base.so "is_pair"))
+;
+; (define + (link-procedure libmeevax-base.so "plus"))
+; (define * (link-procedure libmeevax-base.so "multiplies"))
+; (define - (link-procedure libmeevax-base.so "minus"))
+; (define / (link-procedure libmeevax-base.so "divides"))
+;
+; (define (scheme write) "./libmeevax-write.so"); HACK
 
-(define eq?   (link-procedure libmeevax-base.so "symbolic_equal"))
-(define pair? (link-procedure libmeevax-base.so "is_pair"))
+(define libmeevax-base.so (dynamic-link-open "./libscheme-base.so"))
 
-(define + (link-procedure libmeevax-base.so "plus"))
-(define * (link-procedure libmeevax-base.so "multiplies"))
-(define - (link-procedure libmeevax-base.so "minus"))
-(define / (link-procedure libmeevax-base.so "divides"))
+(define eq?   (dynamic-link-procedure libmeevax-base.so "symbolic_equal"))
+(define pair? (dynamic-link-procedure libmeevax-base.so "is_pair"))
 
-(define (scheme write) "./libmeevax-write.so"); HACK
+(define + (dynamic-link-procedure libmeevax-base.so "plus"))
+(define * (dynamic-link-procedure libmeevax-base.so "multiplies"))
+(define - (dynamic-link-procedure libmeevax-base.so "minus"))
+(define / (dynamic-link-procedure libmeevax-base.so "divides"))
+
 
 ;; cxr
 
