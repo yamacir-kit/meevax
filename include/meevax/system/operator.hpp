@@ -1,12 +1,8 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_OPERATOR_HPP
 
-#include <sstream>
-
 #include <meevax/system/pair.hpp>
 #include <meevax/system/exception.hpp>
-
-// TODO 純LISPコアに必要なものは移設すること
 
 #define caar(...) car(car(__VA_ARGS__))
 #define cadr(...) car(cdr(__VA_ARGS__))
@@ -60,6 +56,12 @@ namespace meevax::system
     return (args | ... | unit);
   }
 
+  template <typename... Ts>
+  constexpr decltype(auto) xcons(Ts&&... args)
+  {
+    return (... | args);
+  }
+
   template <typename T, typename U>
   objective append(T&& x, U&& y)
   {
@@ -83,25 +85,10 @@ namespace meevax::system
   }
 
   template <typename... Ts>
-  decltype(auto) display(Ts&&... args)
+  decltype(auto) display(std::ostream& os, Ts&&... args)
   {
-    return (std::cout << ... << args) << std::endl;
+    return (os << ... << args);
   }
-
-  template <typename... Ts>
-  std::string pseudo_display(Ts&&... args) // TODO RENAME TO LEXICAL_CAST
-  {
-    std::stringstream buffer {};
-    (buffer << ... << args);
-    return buffer.str();
-  }
-
-  // 統合案
-  // template <typename OutputStream, typename... Ts>
-  // decltype(auto) display(OutputStream&& os, Ts&&... args)
-  // {
-  //   return (os << ... << args);
-  // }
 
   const objective& assoc(const objective& var, const objective& env)
   {
@@ -142,7 +129,7 @@ namespace meevax::system
 
     if (!env)
     {
-      throw error {pseudo_display(var, "\x01b[31m", " is unbound")};
+      throw error {var, " is unbound"};
     }
     else if (caar(env) == var)
     {

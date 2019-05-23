@@ -48,17 +48,17 @@ int main() try
     {
       if (auto length {std::distance(std::begin(args), std::end(args))}; length < 1)
       {
-        throw error {pseudo_display("procedure dynamic-link-open expects a string for argument, but received nothing.")};
+        throw error {"procedure dynamic-link-open expects a string for argument, but received nothing."};
       }
       else if (auto s {car(args)}; not s.template is<string>())
       {
-        throw error {pseudo_display(
-                      "procedure dynamic-link-open expects a string for argument, but received ",
-                      meevax::utility::demangle(s.access().type()),
-                      " rest ", length, " argument",
-                      (length < 2 ? " " : "s "),
-                      "were ignored."
-                    )};
+        throw error {
+                "procedure dynamic-link-open expects a string for argument, but received ",
+                meevax::utility::demangle(s.access().type()),
+                " rest ", length, " argument",
+                (length < 2 ? " " : "s "),
+                "were ignored."
+              };
       }
       else
       {
@@ -71,31 +71,31 @@ int main() try
     {
       if (auto length {std::distance(std::begin(args), std::end(args))}; length < 1)
       {
-        throw error {pseudo_display("procedure dynamic-link-procedure expects two arguments (linker and string), but received nothing.")};
+        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received nothing."};
       }
       else if (length < 2)
       {
-        throw error {pseudo_display("procedure dynamic-link-procedure expects two arguments (linker and string), but received only one argument.")};
+        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received only one argument."};
       }
       else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
       {
-        throw error {pseudo_display(
-                      "procedure dynamic-link-open expects a linker for first argument, but received ",
-                      meevax::utility::demangle(linker.access().type()),
-                      " rest ", length - 1, " argument",
-                      (length < 2 ? " " : "s "),
-                      "were ignored."
-                    )};
+        throw error {
+                "procedure dynamic-link-open expects a linker for first argument, but received ",
+                meevax::utility::demangle(linker.access().type()),
+                " rest ", length - 1, " argument",
+                (length < 2 ? " " : "s "),
+                "were ignored."
+              };
       }
       else if (const auto& name {cadr(args)}; not name.template is<string>())
       {
-        throw error {pseudo_display(
-                      "procedure dynamic-link-open expects a string for second argument, but received ",
-                      meevax::utility::demangle(name.access().type()),
-                      " rest ", length - 2, " argument",
-                      (length < 3 ? " " : "s "),
-                      "were ignored."
-                    )};
+        throw error {
+                "procedure dynamic-link-open expects a string for second argument, but received ",
+                meevax::utility::demangle(name.access().type()),
+                " rest ", length - 2, " argument",
+                (length < 3 ? " " : "s "),
+                "were ignored."
+              };
       }
       else
       {
