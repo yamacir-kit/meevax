@@ -81,7 +81,7 @@
 ; (transform '(,(car a) ,@(cdr b) c)); => (cons (car a) (append (cdr b) (cons 'c '())))
 
 (define quasiquote
-  (syntactic-lambda (e)
+  (macro (e)
     (transform e)))
 
 (define a '(1 2 3))

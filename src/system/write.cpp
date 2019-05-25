@@ -44,11 +44,6 @@ namespace meevax::system
     return os << "\x1b[33m#<warning \"" << w.what() << "\">\x1b[0m";
   }
 
-  // std::ostream& operator<<(std::ostream& os, const module& module)
-  // {
-  //   return os << "#<module " << module.name << ">";
-  // }
-
   std::ostream& operator<<(std::ostream& os, const number& number)
   {
     return os << "\x1B[36m" << number.str() << "\x1B[0m";

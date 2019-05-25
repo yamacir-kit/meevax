@@ -15,8 +15,8 @@ namespace meevax::system
   static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
 
   struct syntactic_closure
-    : public closure
-    , public reader<syntactic_closure> // TODO ポートをサポートしたら外すこと
+    : public closure // inherits pair type virtually
+    , public reader<syntactic_closure> // TODO ポートとして独立させること
     , public machine<syntactic_closure>
     , private std::unordered_map<std::string, objective> // namespace
   {
@@ -278,9 +278,9 @@ namespace meevax::system
              );
     });
 
-    define<special>("syntactic-lambda", [&](auto&& exp,
-                                            auto&& scope,
-                                            auto&& continuation)
+    define<special>("macro", [&](auto&& exp,
+                                 auto&& scope,
+                                 auto&& continuation)
     {
       return cons(
                LDS,

@@ -15,7 +15,7 @@
 
 namespace meevax::system
 {
-  template <typename SyntacticClosure>
+  template <typename Enclosure>
   class machine // Simple SECD machine.
   {
   protected: // XXX TO PRIVATE
@@ -31,7 +31,7 @@ namespace meevax::system
   public:
     decltype(auto) interaction_environment()
     {
-      return static_cast<SyntacticClosure&>(*this).interaction_environment();
+      return static_cast<Enclosure&>(*this).interaction_environment();
     }
 
     // Direct virtual machine instruction invocation.
@@ -85,7 +85,7 @@ namespace meevax::system
         {
           return std::invoke(buffer.as<special>(), exp, scope, continuation);
         }
-        else if (buffer != unbound && buffer.is<SyntacticClosure>() && not defined(car(exp), scope))
+        else if (buffer != unbound && buffer.is<Enclosure>() && not defined(car(exp), scope))
         {
           std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
           std::cerr << "        arguments: " << cdr(exp) << std::endl;
@@ -95,7 +95,7 @@ namespace meevax::system
             unsafe_assoc(
               car(exp),
               interaction_environment()
-            ).template as<SyntacticClosure>().expand(
+            ).template as<Enclosure>().expand(
               cdr(exp)
             )
           };
@@ -167,7 +167,7 @@ namespace meevax::system
 
       case instruction::secd::LDS: // S E (LDS code . C) => (syntactic-closure . S) E C D
         DEBUG_1();
-        s.push(make<SyntacticClosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
+        s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 

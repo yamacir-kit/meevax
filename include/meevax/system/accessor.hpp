@@ -47,7 +47,15 @@ namespace meevax::system
 
     virtual std::shared_ptr<T> copy() const
     {
-      return std::make_shared<T>(static_cast<const T&>(*this));
+      if constexpr (std::is_copy_constructible<T>::value)
+      {
+        return std::make_shared<T>(static_cast<const T&>(*this));
+      }
+      else
+      {
+        using meevax::utility::demangle;
+        throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(T)), " is not copy-constructible."};
+      }
     }
 
     virtual std::ostream& write(std::ostream& os) const
@@ -67,10 +75,7 @@ namespace meevax::system
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... args)
-        : std::conditional<
-            // XXX 注意
-            // トップ型を仮想継承した型をバインドする場合は、コンストラクタ引数をすべて基底クラスに流し込む
-            // かなりクセのある挙動だが、初期化タイミング都合こうするしか無さそう
+        : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<TopType, BoundType>::value, TopType, BoundType
           >::type {std::forward<Ts>(args)...}
       {}
@@ -93,7 +98,8 @@ namespace meevax::system
         }
         else
         {
-          throw error {"std::is_copy_constructible<binding>::value == false"};
+          using meevax::utility::demangle;
+          throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(BoundType)), " is not copy-constructible."};
         }
       }
 
