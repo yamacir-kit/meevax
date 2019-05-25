@@ -2,13 +2,13 @@
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/character.hpp>
 #include <meevax/system/closure.hpp>
+#include <meevax/system/enclosure.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/string.hpp>
-#include <meevax/system/syntactic_closure.hpp>
 
 namespace meevax::system
 {
@@ -90,9 +90,9 @@ namespace meevax::system
     return os << "#<special " << special.name << ">";
   }
 
-  std::ostream& operator<<(std::ostream& os, const syntactic_closure& closure)
+  std::ostream& operator<<(std::ostream& os, const enclosure& closure)
   {
-    return os << "#<syntactic-closure " << &closure << ">";
+    return os << "#<enclosure " << &closure << ">";
   }
 } // namespace meevax::system
 

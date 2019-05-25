@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
+#define INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
 
 #include <functional> // std::invoke
 #include <unordered_map> // std::unoredered_map
@@ -14,23 +14,23 @@ namespace meevax::system
   template <int Version>
   static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
 
-  struct syntactic_closure
+  struct enclosure
     : public closure // inherits pair type virtually
-    , public reader<syntactic_closure> // TODO ポートとして独立させること
-    , public machine<syntactic_closure>
+    , public reader<enclosure> // TODO ポートとして独立させること
+    , public machine<enclosure>
     , private std::unordered_map<std::string, objective> // namespace
   {
   public: // Constructors
     // for syntactic-lambda
-    syntactic_closure() = default;
+    enclosure() = default;
 
     // for bootstrap scheme-report-environment
     template <int Version>
-    syntactic_closure(std::integral_constant<int, Version>);
+    enclosure(std::integral_constant<int, Version>);
 
     // for load
     template <typename... Ts>
-    constexpr syntactic_closure(Ts&&... args)
+    constexpr enclosure(Ts&&... args)
       : pair {std::forward<Ts>(args)...} // virtual base of closure
     {}
 
@@ -43,7 +43,7 @@ namespace meevax::system
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return machine<syntactic_closure>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return machine<enclosure>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
     const auto& intern(const std::string& s)
@@ -106,7 +106,7 @@ namespace meevax::system
       // VMのダンプを上手いこと操作すれば不可能ではないかも知れないけど、
       // ロード中にシステムが壊れるようなケースを避けたい。
 
-      if (syntactic_closure loader {unit, interaction_environment()}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      if (enclosure loader {unit, interaction_environment()}; loader.open(std::forward<Ts>(args)...), loader.ready())
       {
         loader.merge(*this); // TODO マージだと呼び出し元がシンボルテーブルを手放すことになるため、コピーに変更すること
 
@@ -191,7 +191,7 @@ namespace meevax::system
   };
 
   template <>
-  syntactic_closure::syntactic_closure<7>(std::integral_constant<int, 7>)
+  enclosure::enclosure<7>(std::integral_constant<int, 7>)
   {
     define<special>("quote", [&](auto&& expr,
                                  auto&&,
@@ -327,10 +327,10 @@ namespace meevax::system
       // XXX 今は雑にブーリアンを返してる
       return load(car(args).template as<string>());
     });
-  } // syntactic_closure class default constructor
+  } // enclosure class default constructor
 
-  std::ostream& operator<<(std::ostream&, const syntactic_closure&);
+  std::ostream& operator<<(std::ostream&, const enclosure&);
 } // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_SYSTEM_SYNTACTIC_CLOSURE_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
 

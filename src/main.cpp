@@ -1,5 +1,5 @@
 #include <meevax/posix/linker.hpp>
-#include <meevax/system/syntactic_closure.hpp>
+#include <meevax/system/enclosure.hpp>
 #include <meevax/utility/demangle.hpp>
 
 #include <boost/cstdlib.hpp>
@@ -8,7 +8,7 @@ int main() try
 {
   using namespace meevax::system;
 
-  syntactic_closure program {scheme_report_environment<7>};
+  enclosure program {scheme_report_environment<7>};
 
   // CFFI経由で呼び出すべきものだが手間の都合でここに雑に列挙
   {
