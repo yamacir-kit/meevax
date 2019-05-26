@@ -39,11 +39,9 @@ y
 
 (define let
   (macro (bindings . body)
-    ; (append (list (append (list 'lambda (map car args)) body)
-    ;   (map cadr args)
-    ;  ))
-
-    (list 'map 'car bindings)
+    `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))
+    ; ((append (list 'lambda (map car bindings)) body)
+    ;  (map cadr bindings))
 ))
 
 (let ((a 1)

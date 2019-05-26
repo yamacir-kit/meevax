@@ -125,7 +125,8 @@ namespace meevax::system
             )
           };
 
-          TRACE("compile") << expanded << std::endl;
+          TRACE("expanded") << expanded << std::endl;
+
           INDENT_RIGHT;
           auto result {compile(expanded, scope, continuation)};
           INDENT_LEFT;
