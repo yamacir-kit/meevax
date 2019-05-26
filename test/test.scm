@@ -43,16 +43,7 @@ y
     ;   (map cadr args)
     ;  ))
 
-    (display bindings)
-    (display body)
-    (display list)
-    ; 'fuck
-    (+ 1 2)
-    (display (current-global-environment))
-    (display (current-lexical-environment))
-    ; (list 'car)
-    ; (list 'car 'bindings)
-    ; (list 'map 'car bindings)
+    (list 'map 'car bindings)
 ))
 
 (let ((a 1)

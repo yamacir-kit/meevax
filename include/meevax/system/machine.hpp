@@ -63,22 +63,22 @@ namespace meevax::system
       }
       else if (not exp.is<pair>())
       {
-        std::cerr << "is not pair => ";
+        // std::cerr << "is not pair => ";
 
         if (exp.is<symbol>()) // is variable
         {
-          std::cerr << "is variable => ";
+          // std::cerr << "is variable => ";
 
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
-            std::cerr << cons(LDX, location, unit) << std::endl;
+            std::cerr << "is local variable => " << cons(LDX, location, unit) << std::endl;
             return cons(LDX, location, continuation);
           }
           else
           {
             // load variable value from global-environment at runtime
-            std::cerr << cons(LDG, exp, unit) << std::endl;
+            std::cerr << "is global variable => " << cons(LDG, exp, unit) << std::endl;
             return cons(LDG, exp, continuation);
           }
         }
@@ -93,14 +93,14 @@ namespace meevax::system
         std::cerr << "is application of ";
 
         if (const objective& buffer {assoc(car(exp), interaction_environment())};
-            std::cerr << "0" << std::flush, !buffer)
+            std::cerr << "." << std::flush, !buffer)
         {
           std::cerr << "unit => ERROR" << std::endl;
           throw error {"unit is not applicable"};
         }
-        else if ((std::cerr << "1" << std::flush, buffer != unbound) &&
-                 (std::cerr << "2" << std::flush, buffer.is<special>()) &&
-                 (std::cerr << "3" << std::flush, not locate(car(exp), scope)))
+        else if ((std::cerr << "." << std::flush, buffer != unbound) &&
+                 (std::cerr << "." << std::flush, buffer.is<special>()) &&
+                 (std::cerr << "." << std::flush, not locate(car(exp), scope)))
         {
           std::cerr << buffer << std::endl;
           INDENT_RIGHT;
@@ -110,9 +110,9 @@ namespace meevax::system
           INDENT_LEFT;
           return result;
         }
-        else if ((std::cerr << "4" << std::flush, buffer != unbound) &&
-                 (std::cerr << "5" << std::flush, buffer.is<Enclosure>()) &&
-                 (std::cerr << "6" << std::flush, not locate(car(exp), scope)))
+        else if ((std::cerr << "." << std::flush, buffer != unbound) &&
+                 (std::cerr << "." << std::flush, buffer.is<Enclosure>()) &&
+                 (std::cerr << "." << std::flush, not locate(car(exp), scope)))
         {
           std::cerr << buffer << " => " << std::flush;
 
@@ -125,7 +125,7 @@ namespace meevax::system
             )
           };
 
-          std::cerr << expanded << std::endl;
+          TRACE("compile") << expanded << std::endl;
           INDENT_RIGHT;
           auto result {compile(expanded, scope, continuation)};
           INDENT_LEFT;
