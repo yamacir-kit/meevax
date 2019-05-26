@@ -66,7 +66,7 @@ namespace meevax::system
 
     decltype(auto) expand(const objective& arguments)
     {
-      std::cerr << "[debug] arguments: " << arguments << std::endl;
+      std::cerr << "macroexpand " << arguments << std::endl;
 
       s = unit;
       e = list(arguments);

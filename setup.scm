@@ -75,18 +75,20 @@
                     (list 'cons (transform (car e))
                                 (transform (cdr e)))))))))
 
-; (transform '(a b c)); => (cons 'a (cons 'b (cons 'c '())))
-; (transform '(,a b c)); => (cons a (cons 'b (cons 'c '())))
-; (transform '(,a ,@b c)); => (cons a (append b (cons 'c '())))
-; (transform '(,(car a) ,@(cdr b) c)); => (cons (car a) (append (cdr b) (cons 'c '())))
-
 (define quasiquote
   (macro (e)
     (transform e)))
 
-(define a '(1 2 3))
+(define current-lexical-environment
+  (macro ()
+    (list 'cdr (list 'lambda '() '()))))
 
-`(a b c); => (a b c)
-`(,a b c); => ((1 2 3) b c)
-`(,@a b c); => (1 2 3 b c)
+(define current-global-environment
+  (macro ()
+    (list 'cdr (list 'macro '() '()))))
+
+(define rename
+  (lambda (x)
+    (lambda () x)))
+
 
