@@ -1,5 +1,6 @@
 #include <numeric>
 
+#include <meevax/system/boolean.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/srfi-1.hpp>
@@ -59,6 +60,12 @@ extern "C"
   {
     using namespace meevax::system;
     return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::divides {});
+  }
+
+  PROCEDURE(less)
+  {
+    using namespace meevax::system;
+    return car(args).as<number>() < cadr(args).as<number>() ? true_v : false_v;
   }
 } // extern "C"
 

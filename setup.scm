@@ -10,6 +10,8 @@
 (define - (dynamic-link-procedure libmeevax-numerical.so "subtraction"))
 (define / (dynamic-link-procedure libmeevax-numerical.so "division"))
 
+(define < (dynamic-link-procedure libmeevax-numerical.so "less"))
+
 ; HACK
 (define car
   (lambda (e)
@@ -100,5 +102,4 @@
 (define rename
   (lambda (x)
     (lambda () x)))
-
 
