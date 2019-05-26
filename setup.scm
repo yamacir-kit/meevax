@@ -10,6 +10,16 @@
 (define - (dynamic-link-procedure libmeevax-numerical.so "subtraction"))
 (define / (dynamic-link-procedure libmeevax-numerical.so "division"))
 
+; HACK
+(define car
+  (lambda (e)
+    (car e)))
+
+; HACK
+(define cdr
+  (lambda (e)
+    (cdr e)))
+
 
 ;; cxr
 
