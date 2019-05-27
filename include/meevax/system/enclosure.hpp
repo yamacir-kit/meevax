@@ -8,6 +8,7 @@
 #include <meevax/system/machine.hpp>
 #include <meevax/system/reader.hpp>
 #include <meevax/system/special.hpp>
+#include <meevax/utility/debug.hpp>
 
 namespace meevax::system
 {
@@ -102,31 +103,26 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args)
     {
-      // 面倒だが呼び出し元のストリームとVMを安全に保存するために回りくどいことをしてる。
-      // VMのダンプを上手いこと操作すれば不可能ではないかも知れないけど、
-      // ロード中にシステムが壊れるようなケースを避けたい。
-
-      if (enclosure loader {unit, interaction_environment()}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      if (reader<enclosure> port {std::forward<Ts>(args)...}; port)
       {
-        loader.merge(*this); // TODO マージだと呼び出し元がシンボルテーブルを手放すことになるため、コピーに変更すること
+        std::swap(*this, port);
 
-        while (loader.ready()) // 事実上の begin
+        while (ready()) try
         {
-          const auto expression {loader.read()};
+          const auto expression {read()};
           // std::cerr << "[loader] expression: " << expression << std::endl;
-          const auto executable {loader.compile(expression)};
+          const auto executable {compile(expression)};
           // std::cerr << "[loader] executable: " << executable << std::endl;
-          const auto evaluation {loader.execute(executable)};
+          const auto evaluation {execute(executable)};
           // std::cerr << "[loader] evaluation: " << evaluation << std::endl;
         }
+        catch (...)
+        {
+          std::swap(*this, port);
+          throw;
+        }
 
-        std::cerr << "[debug] " << std::distance(
-                                     loader.interaction_environment(),
-                                            interaction_environment())
-                  << " expression defined" << std::endl;
-
-        merge(loader);
-        interaction_environment() = loader.interaction_environment();
+        std::swap(*this, port);
 
         return true_v;
       }
@@ -135,6 +131,36 @@ namespace meevax::system
         std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
         return false_v;
       }
+
+      // if (enclosure loader {unit, interaction_environment()}; loader.open(std::forward<Ts>(args)...), loader.ready())
+      // {
+      //   loader.merge(*this); // TODO マージだと呼び出し元がシンボルテーブルを手放すことになるため、コピーに変更すること
+      //
+      //   while (loader.ready()) // 事実上の begin
+      //   {
+      //     const auto expression {loader.read()};
+      //     // std::cerr << "[loader] expression: " << expression << std::endl;
+      //     const auto executable {loader.compile(expression)};
+      //     // std::cerr << "[loader] executable: " << executable << std::endl;
+      //     const auto evaluation {loader.execute(executable)};
+      //     // std::cerr << "[loader] evaluation: " << evaluation << std::endl;
+      //   }
+      //
+      //   std::cerr << "[debug] " << std::distance(
+      //                                loader.interaction_environment(),
+      //                                       interaction_environment())
+      //             << " expression defined" << std::endl;
+      //
+      //   merge(loader);
+      //   interaction_environment() = loader.interaction_environment();
+      //
+      //   return true_v;
+      // }
+      // else
+      // {
+      //   std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
+      //   return false_v;
+      // }
     }
 
     // From R7RS 5.2. Import Declarations
@@ -197,6 +223,7 @@ namespace meevax::system
                                  auto&&,
                                  auto&& continuation)
     {
+      TRACE("compile") << cadr(expr) << " ; => is quoted data" << std::endl;
       return cons(LDC, cadr(expr), continuation);
     });
 
@@ -237,13 +264,14 @@ namespace meevax::system
                               auto&& scope,
                               auto&& continuation)
     {
+      TRACE("compile") << cadr(exp) << " ; => is <test>" << std::endl;
       return compile(
                cadr(exp), // conditional expression
                scope,
                cons(
                  SELECT,
-                 compile( caddr(exp), scope, list(JOIN)), // then expression
-                 compile(cadddr(exp), scope, list(JOIN)), // else expression
+                 compile( caddr(exp), scope, list(JOIN)), // consequent expression
+                 compile(cadddr(exp), scope, list(JOIN)), // alternate expression
                  continuation
                )
              );
@@ -253,6 +281,7 @@ namespace meevax::system
                                   auto&& scope,
                                   auto&& continuation)
     {
+      TRACE("compile") << cadr(exp) << " ; => is <variable>" << std::endl;
       return compile(
                caddr(exp),
                scope,
@@ -264,6 +293,7 @@ namespace meevax::system
                                   auto&& scope,
                                   auto&& continuation)
     {
+      TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDF,
                body(
@@ -282,6 +312,7 @@ namespace meevax::system
                                  auto&& scope,
                                  auto&& continuation)
     {
+      TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDS,
                body(

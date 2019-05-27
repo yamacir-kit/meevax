@@ -4,20 +4,13 @@
 #include <iomanip>
 #include <iostream>
 
-#define SETUP_TRACER \
-  static std::size_t meevax_utility_debug_indent {0};
+static std::size_t depth {0};
 
-#define INDENT \
-  std::string(meevax_utility_debug_indent * 4, ' ')
+#define TRACE(X) \
+  std::cerr << "; " << X << "\t; " << std::string(depth * 4, ' ') << std::flush
 
-#define INDENT_RIGHT \
-  ++meevax_utility_debug_indent;
-
-#define INDENT_LEFT \
-  --meevax_utility_debug_indent;
-
-#define TRACE(TAG) \
-  std::cerr << "[" << TAG << "] " << INDENT << " " << std::flush
+#define NEST_IN  ++depth
+#define NEST_OUT --depth, TRACE("compile") << ")" << std::endl
 
 #endif // INCLUDED_MEEVAX_UTILITY_DEBUG_HPP
 

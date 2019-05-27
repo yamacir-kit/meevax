@@ -25,9 +25,9 @@ namespace meevax::system
            c, // code
            d; // dump
 
-    #define DEBUG_0() std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG_0() // std::cerr << ";\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() // std::cerr << ";\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() // std::cerr << ";\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     decltype(auto) interaction_environment()
@@ -52,97 +52,82 @@ namespace meevax::system
                       const objective& scope = unit,
                       const objective& continuation = list(STOP))
     {
-      SETUP_TRACER;
-
-      TRACE("compile") << exp << " => ";
-
       if (not exp)
       {
-        std::cerr << "is quoted unit or list termination" << std::endl;
+        // TRACE("compile") << " ; => is quoted unit or list termination" << std::endl;
         return cons(LDC, unit, continuation);
       }
       else if (not exp.is<pair>())
       {
-        // std::cerr << "is not pair => ";
+        TRACE("compile") << exp << " ; => ";
 
         if (exp.is<symbol>()) // is variable
         {
-          // std::cerr << "is variable => ";
-
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << cons(LDX, location, unit) << std::endl;
+            std::cerr << "is local variable => " << list(LDX, location) << std::endl;
             return cons(LDX, location, continuation);
           }
           else
           {
             // load variable value from global-environment at runtime
-            std::cerr << "is global variable => " << cons(LDG, exp, unit) << std::endl;
+            std::cerr << "is global variable => " << list(LDG, exp) << std::endl;
             return cons(LDG, exp, continuation);
           }
         }
         else // is self-evaluation
         {
-          std::cerr << "is self-evaluation => " << cons(LDC, exp, unit) << std::endl;
+          std::cerr << "is self-evaluation => " << list(LDC, exp) << std::endl;
           return cons(LDC, exp, continuation);
         }
       }
       else // is (application . arguments)
       {
-        std::cerr << "is application of ";
-
         if (const objective& buffer {assoc(car(exp), interaction_environment())};
-            std::cerr << "." << std::flush, !buffer)
+            /* std::cerr << "." << std::flush, */ !buffer)
         {
-          std::cerr << "unit => ERROR" << std::endl;
+          TRACE("compile") << "(" << car(exp) << " ; => is application of unit => ERROR" << std::endl;
           throw error {"unit is not applicable"};
         }
-        else if ((std::cerr << "." << std::flush, buffer != unbound) &&
-                 (std::cerr << "." << std::flush, buffer.is<special>()) &&
-                 (std::cerr << "." << std::flush, not locate(car(exp), scope)))
+        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
+                 (/* std::cerr << "." << std::flush, */ buffer.is<special>()) &&
+                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
         {
+          TRACE("compile") << "(" << car(exp) << " ; => is application of ";
           std::cerr << buffer << std::endl;
-          INDENT_RIGHT;
-          // XXX 何故かスペシャルフォームが引数じゃなくて自分自身も受け取るスタイルになってる
-          //     cdr(exp) だけ受け取れば十分
+          NEST_IN;
+          // XXX 何故かスペシャルフォームが引数じゃなくて自分自身も受け取るスタイルになってる、cdr(exp) だけ受け取れば十分
           auto result {std::invoke(buffer.as<special>(), exp, scope, continuation)};
-          INDENT_LEFT;
+          NEST_OUT;
           return result;
         }
-        else if ((std::cerr << "." << std::flush, buffer != unbound) &&
-                 (std::cerr << "." << std::flush, buffer.is<Enclosure>()) &&
-                 (std::cerr << "." << std::flush, not locate(car(exp), scope)))
+        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
+                 (/* std::cerr << "." << std::flush, */ buffer.is<Enclosure>()) &&
+                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
         {
-          std::cerr << buffer << " => " << std::flush;
+          TRACE("compile") << "(" << car(exp) << " ; => is use of " << buffer << " => " << std::flush;
 
-          auto expanded {
-            unsafe_assoc(
-              car(exp),
-              interaction_environment()
-            ).template as<Enclosure>().expand(
-              cdr(exp)
-            )
-          };
-
+          auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Enclosure&>()};
+          auto expanded {macro.expand(cdr(exp))};
           TRACE("expanded") << expanded << std::endl;
 
-          INDENT_RIGHT;
+          NEST_IN;
           auto result {compile(expanded, scope, continuation)};
-          INDENT_LEFT;
+          NEST_OUT;
           return result;
         }
         else // is (closure . arguments)
         {
-          std::cerr << car(exp) << std::endl;
+          TRACE("compile") << "( ; => is any application " << std::endl;
 
-          INDENT_RIGHT;
+          NEST_IN;
           auto result {args(
                    cdr(exp),
                    scope,
                    compile(car(exp), scope, cons(APPLY, continuation))
                  )};
-          INDENT_LEFT;
+          NEST_OUT;
           return result;
         }
       }
