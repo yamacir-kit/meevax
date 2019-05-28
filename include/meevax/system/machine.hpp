@@ -12,6 +12,7 @@
 #include <meevax/system/special.hpp>
 #include <meevax/system/srfi-1.hpp> // assoc
 #include <meevax/system/symbol.hpp>
+#include <meevax/utility/debug.hpp>
 
 namespace meevax::system
 {
@@ -24,9 +25,9 @@ namespace meevax::system
            c, // code
            d; // dump
 
-    #define DEBUG_0() // std::cerr << "\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() // std::cerr << "\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() // std::cerr << "\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG_0() // std::cerr << ";\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
+    #define DEBUG_1() // std::cerr << ";\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
+    #define DEBUG_2() // std::cerr << ";\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
 
   public:
     decltype(auto) interaction_environment()
@@ -53,63 +54,82 @@ namespace meevax::system
     {
       if (not exp)
       {
+        // TRACE("compile") << " ; => is quoted unit or list termination" << std::endl;
         return cons(LDC, unit, continuation);
       }
       else if (not exp.is<pair>())
       {
+        TRACE("compile") << exp << " ; => ";
+
         if (exp.is<symbol>()) // is variable
         {
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
+            std::cerr << "is local variable => " << list(LDX, location) << std::endl;
             return cons(LDX, location, continuation);
           }
           else
           {
             // load variable value from global-environment at runtime
+            std::cerr << "is global variable => " << list(LDG, exp) << std::endl;
             return cons(LDG, exp, continuation);
           }
         }
         else // is self-evaluation
         {
+          std::cerr << "is self-evaluation => " << list(LDC, exp) << std::endl;
           return cons(LDC, exp, continuation);
         }
       }
       else // is (application . arguments)
       {
-        if (const objective& buffer {assoc(car(exp), interaction_environment())}; !buffer)
+        if (const objective& buffer {assoc(car(exp), interaction_environment())};
+            /* std::cerr << "." << std::flush, */ !buffer)
         {
+          TRACE("compile") << "(" << car(exp) << " ; => is application of unit => ERROR" << std::endl;
           throw error {"unit is not applicable"};
         }
-        else if (buffer != unbound && buffer.is<special>() && not defined(car(exp), scope))
+        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
+                 (/* std::cerr << "." << std::flush, */ buffer.is<special>()) &&
+                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
         {
-          return std::invoke(buffer.as<special>(), exp, scope, continuation);
+          TRACE("compile") << "(" << car(exp) << " ; => is application of ";
+          std::cerr << buffer << std::endl;
+          NEST_IN;
+          // XXX 何故かスペシャルフォームが引数じゃなくて自分自身も受け取るスタイルになってる、cdr(exp) だけ受け取れば十分
+          auto result {std::invoke(buffer.as<special>(), exp, scope, continuation)};
+          NEST_OUT;
+          return result;
         }
-        else if (buffer != unbound && buffer.is<Enclosure>() && not defined(car(exp), scope))
+        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
+                 (/* std::cerr << "." << std::flush, */ buffer.is<Enclosure>()) &&
+                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
         {
-          std::cerr << "[debug] expanding syntax: " << car(buffer) << std::endl;
-          std::cerr << "        arguments: " << cdr(exp) << std::endl;
+          TRACE("compile") << "(" << car(exp) << " ; => is use of " << buffer << " => " << std::flush;
 
-          // XXX DIRTY HACK!!!
-          auto expanded {
-            unsafe_assoc(
-              car(exp),
-              interaction_environment()
-            ).template as<Enclosure>().expand(
-              cdr(exp)
-            )
-          };
-          std::cerr << "        expanded: " << expanded << std::endl;
+          auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Enclosure&>()};
+          // auto expanded {macro.expand(cdr(exp), interaction_environment())};
+          auto expanded {macro.expand(cdr(exp))};
+          TRACE("expanded") << expanded << std::endl;
 
-          return compile(expanded, scope, continuation);
+          NEST_IN;
+          auto result {compile(expanded, scope, continuation)};
+          NEST_OUT;
+          return result;
         }
         else // is (closure . arguments)
         {
-          return args(
+          TRACE("compile") << "( ; => is any application " << std::endl;
+
+          NEST_IN;
+          auto result {args(
                    cdr(exp),
                    scope,
                    compile(car(exp), scope, cons(APPLY, continuation))
-                 );
+                 )};
+          NEST_OUT;
+          return result;
         }
       }
     }
@@ -165,7 +185,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDS: // S E (LDS code . C) => (syntactic-closure . S) E C D
+      case instruction::secd::LDS: // S E (LDS code . C) => (enclosure . S) E C D
         DEBUG_1();
         s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
@@ -365,7 +385,7 @@ namespace meevax::system
     }
 
   protected: // Compilation Helpers
-    bool defined(const cursor& exp, const cursor& scope)
+    [[deprecated]] bool defined(const cursor& exp, const cursor& scope)
     {
       for (cursor frame : scope)
       {
