@@ -109,6 +109,7 @@ namespace meevax::system
           TRACE("compile") << "(" << car(exp) << " ; => is use of " << buffer << " => " << std::flush;
 
           auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Enclosure&>()};
+          // auto expanded {macro.expand(cdr(exp), interaction_environment())};
           auto expanded {macro.expand(cdr(exp))};
           TRACE("expanded") << expanded << std::endl;
 

@@ -65,9 +65,12 @@ namespace meevax::system
       return static_cast<cursor&>(std::get<1>(*this));
     }
 
+    // decltype(auto) expand(const objective& arguments, const objective& expansion_context)
     decltype(auto) expand(const objective& arguments)
     {
       std::cerr << "macroexpand " << arguments << std::endl;
+
+      // interaction_environment() = expansion_context;
 
       s = unit;
       e = list(arguments);

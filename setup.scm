@@ -75,7 +75,7 @@
     (if (null? (cdr e)) #true
     (if (null? (cddr e))
         (cadr e)
-        (list (list 'lambda (list head thunk)
+        (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           (list 'thunk)
                           'head))
@@ -90,7 +90,7 @@
     (if (null? (cdr e)) #false
     (if (null? (cddr e))
         (cadr e)
-        (list (list 'lambda (list head thunk)
+        (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           'head
                           (list 'thunk)))
@@ -105,57 +105,43 @@
 
 (define quasiquote-expand
   (lambda (e depth)
-    (if (not (pair? e)) `',e
+    (if (not (pair? e))
+        (list 'quote e)
         (if (eq? (car e) 'quasiquote)
-            `(cons 'quasiquote ,(quasiquote-expand (cdr e) (+ depth 1)))
-            (if (or (eq? (car e) 'unquote)
-                    (eq? (car e) 'unquote-splicing))
+            (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+            (if (eq? (car e) 'unquote)
                 (if (< 0 depth)
-                    `(cons ',(car e) ,(quasiquote-expand (cdr e) (- depth 1)))
-                    (if (and (eq? (car e) 'unquote)
-                             (not (null? (cdr e)))
-                             (null? (cddr e)))
+                    (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+                    (if (and (not (null? (cdr e))) (null? (cddr e)))
                         (cadr e)
-                        (error "illegal")))
-                `(append ,(quasiquote-expand-list (car e) depth)
-                         ,(quasiquote-expand      (cdr e) depth)))))))
+                        (error "illegal unquote")))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+                        (error "illegal unquote-splicing"))
+                    (list 'append (quasiquote-expand-list (car e) depth)
+                                  (quasiquote-expand      (cdr e) depth))))))))
 
 (define quasiquote-expand-list
   (lambda (e depth)
-    (if (not (pair? e)) `'(,e)
+    (if (not (pair? e))
+        (list 'quote (list e))
         (if (eq? (car e) 'quasiquote)
-            `(list (cons 'quasiquote)
-                   ,(quasiquote-expand (cdr e) (+ depth 1)))
-            (if (or (eq? (car e) 'unquote)
-                    (eq? (car e) 'unquote-splicing))
+            (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
+            (if (eq? (car e) 'unquote)
                 (if (< 0 depth)
-                    `(list ',(car e) ,(quasiquote-expand (cdr e) (- depth 1)))
-                    (if (eq? (car e) 'unquote)
-                        `(list . ,(cdr e))
-                        `(append . ,(cdr e))))
-                `(list (append ,(quasiquote-expand-list (car e) depth)
-                               ,(quasiquote-expand      (cdr e) depth))))))))
+                    (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
+                    (cons 'list (cdr e)))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
+                        (cons 'append (cdr e)))
+                    (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+                                              (quasiquote-expand      (cdr e) depth)))))))))
 
 (define quasiquote
-  (macro e
+  (macro (e)
     (quasiquote-expand e 0)))
-
-; (define qq-expand
-;   (lambda (e)
-;     (if (not (pair? e))
-;         (list 'quote e)
-;         (if (not (pair? (car e)))
-;             (list 'cons (list 'quote (car e)) (qq-expand (cdr e)))
-;             (if (eq? (caar e) 'unquote)
-;                 (list 'cons (cadar e) (qq-expand (cdr e)))
-;                 (if (eq? (caar e) 'unquote-splicing)
-;                     (list 'append (cadar e) (qq-expand (cdr e)))
-;                     (list 'cons (qq-expand (car e))
-;                                 (qq-expand (cdr e)))))))))
-;
-; (define quasiquote
-;   (macro (e)
-;     (qq-expand e)))
 
 (define current-lexical-environment
   (macro ()
