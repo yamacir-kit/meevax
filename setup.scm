@@ -1,8 +1,3 @@
-(define libmeevax-experimental.so (dynamic-link-open "./libmeevax-experimental.so"))
-
-(define eq?   (dynamic-link-procedure libmeevax-experimental.so "addressive_equals"))
-(define pair? (dynamic-link-procedure libmeevax-experimental.so "is_pair"))
-
 (define libmeevax-numerical.so (dynamic-link-open "./libmeevax-numerical.so"))
 
 (define * (dynamic-link-procedure libmeevax-numerical.so "multiplication"))
@@ -10,6 +5,11 @@
 (define - (dynamic-link-procedure libmeevax-numerical.so "subtraction"))
 (define / (dynamic-link-procedure libmeevax-numerical.so "division"))
 (define < (dynamic-link-procedure libmeevax-numerical.so "less"))
+
+(define libmeevax-experimental.so (dynamic-link-open "./libmeevax-experimental.so"))
+
+(define eq?   (dynamic-link-procedure libmeevax-experimental.so "addressive_equals"))
+(define pair? (dynamic-link-procedure libmeevax-experimental.so "is_pair"))
 
 ; HACK
 (define car

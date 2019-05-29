@@ -56,7 +56,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   )
   target_link_libraries(${TARGET_NAME}
     ${Boost_LIBRARIES}
-    gmp # XXX DIRTY HACK
+    # gmp # XXX DIRTY HACK
   )
 endforeach()
 
@@ -81,24 +81,6 @@ target_link_libraries(${PROJECT_NAME}
   ${PROJECT_NAME}-core
   ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   dl
-  # gmp
+  gmp
 )
-
-file(GLOB ${PROJECT_NAME}_SCHEME_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/scheme/*.cpp)
-
-foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_SCHEME_SOURCES)
-  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "scheme-\\2" TARGET_NAME ${EACH_SOURCE})
-  add_library(${TARGET_NAME} SHARED
-    ${EACH_SOURCE}
-  )
-  set_target_properties(${TARGET_NAME} PROPERTIES
-    VERSION   ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
-  )
-  target_link_libraries(${TARGET_NAME}
-    ${Boost_LIBRARIES}
-    ${PROJECT_NAME}-core
-    gmp
-  )
-endforeach()
 
