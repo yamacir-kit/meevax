@@ -134,11 +134,14 @@ namespace meevax::system
       }
     }
 
-    objective execute(const objective& exp) noexcept(false)
+    decltype(auto) execute(const objective& exp)
     {
-      // s = e = d = unit;
       c = exp;
+      return execute();
+    }
 
+    objective execute()
+    {
     dispatch:
       switch (c.top().as<instruction>().code)
       {

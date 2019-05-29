@@ -74,6 +74,7 @@ namespace meevax::system
 
       s = unit;
       e = list(arguments);
+      c = std::get<0>(*this);
       d = cons(
             unit,       // s
             unit,       // e
@@ -81,7 +82,7 @@ namespace meevax::system
             unit        // d
           );
 
-      return execute(std::get<0>(*this));
+      return execute();
     }
 
   public:
