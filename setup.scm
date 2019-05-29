@@ -59,8 +59,8 @@
   (lambda xs xs))
 
 (define null?
-  (lambda (e)
-    (eq? e '())))
+  (lambda (object)
+    (eq? object '())))
 
 (define append
   (lambda (xs ys)
@@ -70,38 +70,45 @@
               (append (cdr xs) ys)))))
 
 (define and
-  (macro e
-    (if (null? e) #true
-    (if (null? (cdr e)) #true
-    (if (null? (cddr e))
-        (cadr e)
+  (macro <tests>
+    (if (null? <tests>) #true
+    (if (null? (cdr <tests>)) #true
+    (if (null? (cddr <tests>))
+        (cadr <tests>)
         (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           (list 'thunk)
                           'head))
-              (cadr e)
+              (cadr <tests>)
               (list 'lambda '()
                 (append (list 'and)
-                        (cddr e)))))))))
+                        (cddr <tests>)))))))))
 
 (define or
-  (macro e
-    (if (null? e) #false
-    (if (null? (cdr e)) #false
-    (if (null? (cddr e))
-        (cadr e)
+  (macro <tests>
+    (if (null? <tests>) #false
+    (if (null? (cdr <tests>)) #false
+    (if (null? (cddr <tests>))
+        (cadr <tests>)
         (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           'head
                           (list 'thunk)))
-              (cadr e)
+              (cadr <tests>)
               (list 'lambda '()
                 (append (list 'or)
-                        (cddr e)))))))))
+                        (cddr <tests>)))))))))
 
 (define not
-  (lambda (e)
-    (if e #false #true)))
+  (lambda (test)
+    (if test #false #true)))
+
+(define boolean?
+  (lambda (object)
+    (if (or (eq? object #true)
+            (eq? object #false))
+      #true
+      #false)))
 
 (define quasiquote-expand
   (lambda (e depth)
@@ -140,8 +147,8 @@
                                               (quasiquote-expand      (cdr e) depth)))))))))
 
 (define quasiquote
-  (macro (e)
-    (quasiquote-expand e 0)))
+  (macro (<template>)
+    (quasiquote-expand <template> 0)))
 
 (define current-lexical-environment
   (macro ()
