@@ -62,12 +62,32 @@
   (lambda (object)
     (eq? object '())))
 
+(define append-2
+  (lambda (list.1 list.2)
+    (if (null? list.1) list.2
+        (cons (car list.1)
+              (append-2 (cdr list.1) list.2)))))
+
+;; simple reverse (but slow)
+(define reverse
+  (lambda (list.)
+    (if (null? list.) '()
+        (append-2 (reverse (cdr list.))
+                  (list (car list.))))))
+
+(define append-aux
+  (lambda (list.1 list.2)
+    (if (null? list.1) list.2
+        (append-aux (cdr list.1)
+                    (append-2 (car list.1) list.2)))))
+
 (define append
-  (lambda (xs ys)
-    (if (null? xs)
-        ys
-        (cons (car xs)
-              (append (cdr xs) ys)))))
+  (lambda lists
+    (if (null? lists) '()
+        ((lambda (reversed)
+           (append-aux (cdr reversed)
+                       (car reversed)))
+         (reverse lists)))))
 
 (define and
   (macro <tests>
@@ -165,4 +185,18 @@
 (define apply
   (lambda (proc args)
     (proc . args)))
+
+(define list-copy
+  (lambda (list.)
+    (append-2 list. '())))
+
+(define pair-copy-shallow
+  (lambda (pair)
+    (cons (car pair) (cdr pair))))
+
+(define pair-copy-deep
+  (lambda (object)
+    (if (not (pair? object)) object
+        (cons (pair-copy-deep (car object))
+              (pair-copy-deep (cdr object))))))
 
