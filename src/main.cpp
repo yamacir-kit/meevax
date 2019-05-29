@@ -113,10 +113,9 @@ int main() try
   {
     std::cerr << "\n> " << std::flush;
     const auto expression {program.read()};
-    std::cerr << "\n; " << expression << std::endl;
+    std::cerr << "\n; read    \t; " << expression << std::endl;
 
     const auto executable {program.compile(expression)};
-    std::cerr << "; as " << executable << std::endl;
 
     const auto evaluation {program.execute(executable)};
     std::cerr << "; => " << std::flush;

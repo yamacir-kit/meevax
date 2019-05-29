@@ -43,7 +43,7 @@ namespace meevax::system
       return interaction_environment().push(list(key, std::forward<Ts>(args)...));
     #else
       interaction_environment().push(list(key, std::forward<Ts>(args)...));
-      std::cout << "\t" << caar(interaction_environment()) << "\r\x1b[40C " << cadar(interaction_environment()) << std::endl;
+      std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C " << cadar(interaction_environment()) << std::endl;
       return interaction_environment();
     #endif
     }
@@ -54,7 +54,6 @@ namespace meevax::system
     {
       if (not exp)
       {
-        // TRACE("compile") << " ; => is quoted unit or list termination" << std::endl;
         return cons(LDC, unit, continuation);
       }
       else if (not exp.is<pair>())
@@ -111,7 +110,7 @@ namespace meevax::system
           auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Enclosure&>()};
           // auto expanded {macro.expand(cdr(exp), interaction_environment())};
           auto expanded {macro.expand(cdr(exp))};
-          TRACE("expanded") << expanded << std::endl;
+          TRACE("macro-expand") << expanded << std::endl;
 
           NEST_IN;
           auto result {compile(expanded, scope, continuation)};
@@ -137,6 +136,7 @@ namespace meevax::system
     decltype(auto) execute(const objective& exp)
     {
       c = exp;
+      std::cerr << "; machine\t; " << c << std::endl;
       return execute();
     }
 

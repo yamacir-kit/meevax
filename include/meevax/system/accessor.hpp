@@ -127,7 +127,7 @@ namespace meevax::system
         }
         else
         {
-          return os << "#<" << utility::demangle(typeid(BoundType)) << " " << static_cast<const BoundType*>(this) << ">";
+          return os << "\x1b[36m#<" << utility::demangle(typeid(BoundType)) << " " << static_cast<const BoundType*>(this) << ">\x1b[0m";
         }
       }
     };

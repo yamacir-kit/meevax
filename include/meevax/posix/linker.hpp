@@ -19,7 +19,7 @@ namespace meevax::posix
 
       void operator()(void* handle) noexcept
       {
-        std::cerr << "closing shared library \"" << path << "\" => ";
+        std::cerr << "; linker\t; closing shared library \"" << path << "\" => ";
 
         if (handle && dlclose(handle))
         {
@@ -39,7 +39,7 @@ namespace meevax::posix
   public:
     auto open(const std::string& path = "")
     {
-      std::cerr << "opening shared library \"" << path << "\" => ";
+      std::cerr << "; linker\t; opening shared library \"" << path << "\" => ";
 
       dlerror(); // clear
 
@@ -75,7 +75,8 @@ namespace meevax::posix
     template <typename Signature>
     Signature link(const std::string& name) const
     {
-      std::cerr << "linking symbol \"" << name << "\" in shared library \"" << path_ << "\" as signature " << utility::demangle(typeid(Signature)) << " => ";
+      // std::cerr << "; linker\t; linking symbol \"" << name << "\" in shared library \"" << path_ << "\" as signature " << utility::demangle(typeid(Signature)) << " => ";
+      std::cerr << "; linker\t; linking symbol \"" << name << "\" in shared library \"" << path_ << " => ";
 
       if (handle_)
       {
