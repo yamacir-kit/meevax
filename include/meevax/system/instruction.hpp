@@ -18,8 +18,8 @@ namespace meevax::system
       LDC, // load constant
       LDF, // load (function) closure
       LDG, // load globally
-      LDS, // load syntactic-closure
-      LDX, // load locally
+      LDL, // load locally
+      LDM, // load macro
       POP,
       RETURN,
       SELECT,
@@ -49,8 +49,8 @@ namespace meevax::system
     case instruction::secd::LDC:    os << "ldc";    break;
     case instruction::secd::LDF:    os << "ldf";    break;
     case instruction::secd::LDG:    os << "ldg";    break;
-    case instruction::secd::LDS:    os << "lds";    break;
-    case instruction::secd::LDX:    os << "ldx";    break;
+    case instruction::secd::LDL:    os << "ldl";    break;
+    case instruction::secd::LDM:    os << "ldm";    break;
     case instruction::secd::POP:    os << "pop";    break;
     case instruction::secd::RETURN: os << "return"; break;
     case instruction::secd::SELECT: os << "select"; break;
@@ -71,8 +71,8 @@ namespace meevax::system
   static const auto LDC    {make<instruction>(0x06)};
   static const auto LDF    {make<instruction>(0x07)};
   static const auto LDG    {make<instruction>(0x08)};
-  static const auto LDS    {make<instruction>(0x09)};
-  static const auto LDX    {make<instruction>(0x0a)};
+  static const auto LDL    {make<instruction>(0x09)};
+  static const auto LDM    {make<instruction>(0x0a)};
   static const auto POP    {make<instruction>(0x0b)};
   static const auto RETURN {make<instruction>(0x0c)};
   static const auto SELECT {make<instruction>(0x0d)};

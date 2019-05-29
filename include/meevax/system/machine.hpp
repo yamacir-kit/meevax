@@ -66,8 +66,8 @@ namespace meevax::system
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << list(LDX, location) << std::endl;
-            return cons(LDX, location, continuation);
+            std::cerr << "is local variable => " << list(LDL, location) << std::endl;
+            return cons(LDL, location, continuation);
           }
           else
           {
@@ -145,7 +145,7 @@ namespace meevax::system
     dispatch:
       switch (c.top().as<instruction>().code)
       {
-      case instruction::secd::LDX: // S E (LDX (i . j) . C) D => (value . S) E C D
+      case instruction::secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
         {
           DEBUG_1();
 
@@ -188,7 +188,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDS: // S E (LDS code . C) => (enclosure . S) E C D
+      case instruction::secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
         DEBUG_1();
         s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
@@ -338,9 +338,11 @@ namespace meevax::system
         goto dispatch;
 
       default:
+        // XXX この式、実行されない（switchの方チェックの時点で例外で出て行く）
         throw error {car(c), "\x1b[31m is not virtual machine instruction"};
       }
 
+      // XXX この式、実行されない（そもそもたどり着かない）
       throw error {"unterminated execution"};
     }
 

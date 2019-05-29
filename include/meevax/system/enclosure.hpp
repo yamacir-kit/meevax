@@ -318,7 +318,7 @@ namespace meevax::system
     {
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
-               LDS,
+               LDM,
                body(
                  cddr(exp),
                  cons(
