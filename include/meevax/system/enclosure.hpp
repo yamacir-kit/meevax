@@ -107,9 +107,18 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) load(Ts&&... args)
     {
-      if (reader<enclosure> port {std::forward<Ts>(args)...}; port)
+      const std::string path {std::forward<Ts>(args)...};
+
+      const auto master {interaction_environment()};
+
+      if (reader<enclosure> port {path}; port)
       {
         std::swap(*this, port);
+
+        d.push(s, e, c);
+        s = unit;
+        e = unit;
+        c = unit;
 
         while (ready()) try
         {
@@ -122,11 +131,18 @@ namespace meevax::system
         }
         catch (...)
         {
+          interaction_environment() = master;
+          std::cerr << "[error] failed to load \"" << path << "\" with no-error; reverted changes for interaction-environment (exclude side-effects)." << std::endl;
           std::swap(*this, port);
           throw;
         }
 
         std::swap(*this, port);
+        std::cerr << "; load  \t; " << std::distance(interaction_environment(), master) << " expression defined" << std::endl;
+
+        s = d.pop();
+        e = d.pop();
+        c = d.pop();
 
         return true_v;
       }
@@ -135,36 +151,6 @@ namespace meevax::system
         std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
         return false_v;
       }
-
-      // if (enclosure loader {unit, interaction_environment()}; loader.open(std::forward<Ts>(args)...), loader.ready())
-      // {
-      //   loader.merge(*this); // TODO マージだと呼び出し元がシンボルテーブルを手放すことになるため、コピーに変更すること
-      //
-      //   while (loader.ready()) // 事実上の begin
-      //   {
-      //     const auto expression {loader.read()};
-      //     // std::cerr << "[loader] expression: " << expression << std::endl;
-      //     const auto executable {loader.compile(expression)};
-      //     // std::cerr << "[loader] executable: " << executable << std::endl;
-      //     const auto evaluation {loader.execute(executable)};
-      //     // std::cerr << "[loader] evaluation: " << evaluation << std::endl;
-      //   }
-      //
-      //   std::cerr << "[debug] " << std::distance(
-      //                                loader.interaction_environment(),
-      //                                       interaction_environment())
-      //             << " expression defined" << std::endl;
-      //
-      //   merge(loader);
-      //   interaction_environment() = loader.interaction_environment();
-      //
-      //   return true_v;
-      // }
-      // else
-      // {
-      //   std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
-      //   return false_v;
-      // }
     }
 
     // From R7RS 5.2. Import Declarations

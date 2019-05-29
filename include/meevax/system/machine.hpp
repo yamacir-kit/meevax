@@ -21,8 +21,8 @@ namespace meevax::system
   {
   protected: // XXX TO PRIVATE
     cursor s, // stack
-           e, // lexical environment
-           c, // code
+           e, // lexical environment (rib cage representation)
+           c, // control
            d; // dump
 
     #define DEBUG_0() // std::cerr << ";\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
@@ -366,6 +366,7 @@ namespace meevax::system
              );
     }
 
+    // De Bruijn Index
     objective locate(const objective& exp, const objective& scope)
     {
       auto i {0}, j {0};
