@@ -9,40 +9,7 @@ int main() try
   using namespace meevax::system;
 
   enclosure program {scheme_report_environment<7>};
-
-  // CFFI経由で呼び出すべきものだが手間の都合でここに雑に列挙
   {
-    program.define<procedure>("display", [&](auto&& args)
-    {
-      for (const auto& each : args)
-      {
-        if (each.template is<string>()) // XXX DIRTY HACK
-        {
-          std::cout << static_cast<std::string>(each.template as<string>());
-        }
-        else
-        {
-          std::cout << each;
-        }
-      }
-      return unit; // XXX DIRTY HACK
-    });
-
-    program.define<procedure>("emergency-exit", [&](auto&& args)
-    {
-      if (not args or not car(args).template is<number>())
-      {
-        std::exit(boost::exit_success);
-      }
-      else
-      {
-        // XXX DIRTY HACK
-        std::exit(static_cast<int>(car(args).template as<number>()));
-      }
-
-      return unit; // XXX DIRTY HACK
-    });
-
     // (dynamic-link-open <path>)
     program.define<procedure>("dynamic-link-open", [&](auto&& args)
     {
@@ -111,7 +78,7 @@ int main() try
 
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
-    std::cerr << "\n> " << std::flush;
+    std::cout << "\n> " << std::flush;
     const auto expression {program.read()};
     std::cerr << "\n; read    \t; " << expression << std::endl;
 
