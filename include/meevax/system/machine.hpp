@@ -25,9 +25,7 @@ namespace meevax::system
            c, // control
            d; // dump
 
-    #define DEBUG_0() // std::cerr << ";\x1B[?7l\t" << take(c, 1) << "\x1B[?7h" << std::endl
-    #define DEBUG_1() // std::cerr << ";\x1B[?7l\t" << take(c, 2) << "\x1B[?7h" << std::endl
-    #define DEBUG_2() // std::cerr << ";\x1B[?7l\t" << take(c, 3) << "\x1B[?7h" << std::endl
+    #define DEBUG(N) // std::cerr << ";\x1B[?7l\t" << take(c, N) << "\x1B[?7h" << std::endl
 
   public:
     decltype(auto) interaction_environment()
@@ -43,7 +41,7 @@ namespace meevax::system
       return interaction_environment().push(list(key, std::forward<Ts>(args)...));
     #else
       interaction_environment().push(list(key, std::forward<Ts>(args)...));
-      std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C " << cadar(interaction_environment()) << std::endl;
+      std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
       return interaction_environment();
     #endif
     }
@@ -110,7 +108,7 @@ namespace meevax::system
           auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Enclosure&>()};
           // auto expanded {macro.expand(cdr(exp), interaction_environment())};
           auto expanded {macro.expand(cdr(exp))};
-          TRACE("macro-expand") << expanded << std::endl;
+          TRACE("macroexpand") << expanded << std::endl;
 
           NEST_IN;
           auto result {compile(expanded, scope, continuation)};
@@ -147,7 +145,7 @@ namespace meevax::system
       {
       case instruction::secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
         {
-          DEBUG_1();
+          // DEBUG(2);
 
           // Distance to target stack frame from current stack frame.
           int i {caadr(c).as<number>()};
@@ -170,13 +168,13 @@ namespace meevax::system
         goto dispatch;
 
       case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
-        DEBUG_1();
+        DEBUG(2);
         s.push(cadr(c));
         c.pop(2);
         goto dispatch;
 
       case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
-        DEBUG_1();
+        DEBUG(2);
         if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
           s.push(value);
@@ -189,63 +187,62 @@ namespace meevax::system
         goto dispatch;
 
       case instruction::secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
-        DEBUG_1();
+        DEBUG(2);
         s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
       case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
-        DEBUG_1();
+        DEBUG(2);
         s.push(make<closure>(cadr(c), e));
         c.pop(2);
         goto dispatch;
 
       case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
-        DEBUG_2();
+        DEBUG(3);
         d.push(cdddr(c));
         c = car(s) != false_v ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
       case instruction::secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
-        DEBUG_0();
+        DEBUG(1);
         c = car(d);
         d.pop(1);
         goto dispatch;
 
       case instruction::secd::CAR:
-        DEBUG_0();
+        DEBUG(1);
         car(s) = caar(s); // TODO check?
         c.pop(1);
         goto dispatch;
 
       case instruction::secd::CDR:
-        DEBUG_0();
+        DEBUG(1);
         car(s) = cdar(s); // TODO check?
         c.pop(1);
         goto dispatch;
 
       case instruction::secd::CONS:
-        DEBUG_0();
+        DEBUG(1);
         s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
-        c.pop();
+        c.pop(1);
         goto dispatch;
 
       case instruction::secd::DEFINE:
-        DEBUG_1();
+        DEBUG(2);
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define (change to #<undefined>?)
         c.pop(2);
         goto dispatch;
 
       case instruction::secd::STOP: // (result . S) E (STOP . C) D
-        DEBUG_0();
+        DEBUG(1);
         c.pop(1);
-        // return car(s);
-        return s.pop();
+        return s.pop(); // car(s);
 
       case instruction::secd::APPLY:
-        DEBUG_0();
+        DEBUG(1);
 
         if (auto applicable {car(s)}; not applicable)
         {
@@ -258,9 +255,7 @@ namespace meevax::system
           e = cons(cadr(s), cdr(applicable));
           s = unit;
         }
-        else if (applicable.is<procedure>())
-          //    (procedure args . S) E (APPLY . C) D
-          // =>         (result . S) E          C  D
+        else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
         {
           s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
@@ -272,20 +267,20 @@ namespace meevax::system
         goto dispatch;
 
       case instruction::secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
-        DEBUG_0();
+        DEBUG(1);
         s = cons(car(s), d.pop());
         e = d.pop();
         c = d.pop();
         goto dispatch;
 
       case instruction::secd::POP: // (var . S) E (POP . C) D => S E C D
-        DEBUG_0();
+        DEBUG(1);
         s.pop(1);
         c.pop(1);
         goto dispatch;
 
       case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
-        DEBUG_1();
+        DEBUG(2);
         // TODO
         // (1) 右辺値がユニークな場合はコピーを作らなくても問題ない
         // (2) 左辺値がユニークな場合は直接書き換えても問題ない
@@ -296,7 +291,7 @@ namespace meevax::system
 
       case instruction::secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
         {
-          DEBUG_1();
+          DEBUG(2);
 
           // Distance to target stack frame from current stack frame.
           int i {caadr(c).as<number>()};
@@ -390,7 +385,6 @@ namespace meevax::system
       return unit;
     }
 
-  protected: // Compilation Helpers
     [[deprecated]] bool defined(const cursor& exp, const cursor& scope)
     {
       for (cursor frame : scope)

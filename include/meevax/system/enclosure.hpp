@@ -29,7 +29,7 @@ namespace meevax::system
     template <int Version>
     enclosure(std::integral_constant<int, Version>);
 
-    // for load
+    // for library constructor
     template <typename... Ts>
     constexpr enclosure(Ts&&... args)
       : pair {std::forward<Ts>(args)...} // virtual base of closure
@@ -116,9 +116,7 @@ namespace meevax::system
         std::swap(*this, port);
 
         d.push(s, e, c);
-        s = unit;
-        e = unit;
-        c = unit;
+        s = e = c = unit;
 
         while (ready()) try
         {
@@ -207,7 +205,7 @@ namespace meevax::system
   };
 
   template <>
-  enclosure::enclosure<7>(std::integral_constant<int, 7>)
+  enclosure::enclosure(std::integral_constant<int, 7>)
   {
     define<special>("quote", [&](auto&& expr,
                                  auto&&,
@@ -260,8 +258,8 @@ namespace meevax::system
                scope,
                cons(
                  SELECT,
-                 compile( caddr(exp), scope, list(JOIN)), // consequent expression
-                 compile(cadddr(exp), scope, list(JOIN)), // alternate expression
+                 compile(caddr(exp), scope, list(JOIN)), // consequent expression
+                 cdddr(exp) ? compile(cadddr(exp), scope, list(JOIN)) : unspecified, // alternate expression
                  continuation
                )
              );
@@ -347,6 +345,26 @@ namespace meevax::system
     {
       // XXX 今は雑にブーリアンを返してる
       return load(car(args).template as<string>());
+    });
+
+    // (define-library <name> <declaration>)
+    define<special>("define-library", [&](auto&& exp,
+                                          auto&& scope,
+                                          auto&& continuation)
+    {
+      TRACE("compile") << cadr(exp) << " ; => is <library-name>" << std::endl;
+      return cons(
+               LDM,
+               body(
+                 cddr(exp),
+                 cons(
+                   unit, // parameters
+                   scope
+                 ),
+                 list(RETURN)
+               ),
+               cons(DEFINE, cadr(exp), continuation)
+             );
     });
   } // enclosure class default constructor
 

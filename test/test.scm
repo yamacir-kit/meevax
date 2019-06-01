@@ -36,14 +36,14 @@ y
 (define map
   (lambda (callee &list)
     (if (null? &list)
-        '()
+       '()
         (cons (callee (car &list))
               (map callee (cdr &list))))))
 
 (define let
   (macro (bindings . body)
-    `((lambda ,(map car bindings) ,@body)
-      ,@(map cadr bindings))))
+   `((lambda ,(map car bindings) ,@body)
+     ,@(map cadr bindings))))
 
 (let ((a 1)
       (b 2))
@@ -51,9 +51,10 @@ y
 
 (define begin
   (macro e
-    `((lambda () ,@e))))
+   `((lambda () ,@e))))
 
 (begin (display 1)
        (display 2)
        (display 3))
+
 
