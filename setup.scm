@@ -72,7 +72,8 @@
 ;; simple reverse (but slow)
 (define reverse
   (lambda (list.)
-    (if (null? list.) '()
+    (if (null? list.)
+       '()
         (append-2 (reverse (cdr list.))
                   (list (car list.))))))
 
@@ -84,7 +85,8 @@
 
 (define append
   (lambda lists
-    (if (null? lists) '()
+    (if (null? lists)
+       '()
         ((lambda (reversed)
            (append-aux (cdr reversed)
                        (car reversed)))
