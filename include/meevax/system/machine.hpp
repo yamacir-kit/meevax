@@ -25,7 +25,7 @@ namespace meevax::system
            c, // control
            d; // dump
 
-    #define DEBUG(N) // std::cerr << ";\x1B[?7l\t" << take(c, N) << "\x1B[?7h" << std::endl
+    #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
 
   public:
     decltype(auto) interaction_environment()
