@@ -120,7 +120,7 @@ namespace meevax::system
           TRACE("compile") << "( ; => is any application " << std::endl;
 
           NEST_IN;
-          auto result {args(
+          auto result {operand(
                    cdr(exp),
                    scope,
                    compile(car(exp), scope, cons(APPLY, continuation))
@@ -155,13 +155,13 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (cursor scope {car(std::next(e, i))}; j < 0)
+          if (cursor region {car(std::next(e, i))}; j < 0)
           {
-            s.push(std::next(scope, -++j));
+            s.push(std::next(region, -++j));
           }
           else
           {
-            s.push(car(std::next(scope, j)));
+            s.push(car(std::next(region, j)));
           }
         }
         c.pop(2);
@@ -308,10 +308,10 @@ namespace meevax::system
             tmp = cdr(tmp);
           }
 
-          if (auto& scope {car(tmp)}; j < 0)
+          if (auto& region {car(tmp)}; j < 0)
           {
             // std::next(scope, -++j) <= car(s);
-            auto& var {scope};
+            auto& var {region};
             while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
             {
               var = cdr(var);
@@ -321,7 +321,7 @@ namespace meevax::system
           else
           {
             // car(std::next(scope, j)) <= car(s);
-            auto& var {scope};
+            auto& var {region};
             while (0 < j--)
             {
               var = cdr(var);
@@ -342,15 +342,62 @@ namespace meevax::system
     }
 
   protected:
-    objective begin(const objective& exp,
-                    const objective& scope,
-                    const objective& continuation)
+    /**  7.1.3
+     *
+     * <body> = <definition>* <sequence>
+     *
+     */
+    objective body(const objective& expression,
+                   const objective& region,
+                   const objective& continuation) try
     {
       return compile(
-               car(exp),
-               scope,
-               cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
-                        :                                  continuation
+               car(expression),
+               region,
+               cdr(expression) ? cons(
+                                   POP,
+                                   sequence(cdr(expression), region, continuation)
+                                 )
+                               : continuation
+             );
+    }
+    catch (const error&) // internal define backtrack
+    {
+      std::cerr << cadar(expression) << " ; => is local-variable" << std::endl;
+      throw;
+
+      // (lambda ()
+      //   (define <cadar> . <cddar>)
+      //   <cdr>
+      // )
+      //
+      // (lambda ()
+      //   ((lambda (<cadar>)
+      //      (set! (0 . 0) . <cddar>)
+      //      ...)
+      //    #<undefined>)
+      // )
+    }
+
+    /** 7.1.3
+     *
+     * <sequence> = <command>* <expression>
+     *
+     * <command> = <expression>
+     *
+     */
+    objective sequence(const objective& expression,
+                       const objective& region,
+                       const objective& continuation)
+    {
+      return compile(
+               car(expression),
+               region,
+               cdr(expression) ? cons(
+                                   POP,
+                                   sequence(cdr(expression), region, continuation)
+                                 )
+                               : continuation
              );
     }
 
@@ -378,21 +425,26 @@ namespace meevax::system
       return unit;
     }
 
-    objective args(const objective& exp,
-                   const objective& scope,
-                   const objective& continuation)
+    /** 7.1.3
+     *
+     * <operand> = <expression>
+     *
+     */
+    objective operand(const objective& expression,
+                      const objective& region,
+                      const objective& continuation)
     {
-      if (exp && exp.is<pair>())
+      if (expression && expression.is<pair>())
       {
-        return args(
-                 cdr(exp),
-                 scope,
-                 compile(car(exp), scope, cons(CONS, continuation))
+        return operand(
+                 cdr(expression),
+                 region,
+                 compile(car(expression), region, cons(CONS, continuation))
                );
       }
       else
       {
-        return compile(exp, scope, continuation);
+        return compile(expression, region, continuation);
       }
     }
   };

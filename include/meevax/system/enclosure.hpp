@@ -213,10 +213,15 @@ namespace meevax::system
   template <>
   enclosure::enclosure(std::integral_constant<int, 7>)
   {
-    define<special>("quote", [&](auto&& expr, auto&&, auto&& continuation)
+    /** 7.1.3
+     *
+     * <quoation> = '<datum> | (quote <datum>)
+     *
+     */
+    define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
     {
-      TRACE("compile") << cadr(expr) << " ; => is quoted data" << std::endl;
-      return cons(LDC, cadr(expr), continuation);
+      TRACE("compile") << cadr(expression) << " ; => is <datum>" << std::endl;
+      return cons(LDC, cdr(expression) ? cadr(expression) : unit, continuation);
     });
 
     define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
@@ -246,48 +251,77 @@ namespace meevax::system
              );
     });
 
+    /** 7.1.3
+     *
+     * <conditional> = (if <test> <consequent> <alternate>)
+     *
+     * <test> = <expression>
+     * <consequent> = <expression>
+     * <alternate> = <expression> | <empty>
+     *
+     */
     define<special>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       TRACE("compile") << cadr(exp) << " ; => is <test>" << std::endl;
       return compile(
-               cadr(exp), // conditional expression
+               cadr(exp), // <test>
                scope,
                cons(
                  SELECT,
-                 compile(caddr(exp), scope, list(JOIN)), // consequent expression
-                 cdddr(exp) ? compile(cadddr(exp), scope, list(JOIN)) : unspecified, // alternate expression
+                 compile(caddr(exp), scope, list(JOIN)), // <consequent>
+                 cdddr(exp) ? compile(cadddr(exp), scope, list(JOIN)) : unspecified, // <alternate>
                  continuation
                )
              );
     });
 
-    define<special>("define", [&](auto&& expression, auto&& scope, auto&& continuation)
+    define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
     {
       TRACE("compile") << cadr(expression) << " ; => is <variable>" << std::endl;
 
-      return compile(
-               caddr(expression),
-               scope,
-               cons(DEFINE, cadr(expression), continuation)
-             );
+      std::cerr << region << std::endl;
+
+      if (not region)
+      {
+        return compile(
+                 cddr(expression) ? caddr(expression) : undefined,
+                 region,
+                 cons(DEFINE, cadr(expression), continuation)
+               );
+      }
+      else
+      {
+        throw error {"INTERNAL DEFINE DETECTED (CURRENTLY UNSUPPORTED)"};
+      }
     });
 
-    // (begin . <expressions>)
+    /** 7.1.3
+     *
+     * (begin <sequence>)
+     *
+     */
     define<special>("begin", [&](auto&& expression, auto&& scope, auto&& continuation)
     {
-      return begin(
+      return sequence(
                cdr(expression),
                scope,
                continuation
              );
     });
 
+    /** 7.1.3
+     *
+     * <lambda expression> = (lambda <formals> <body>)
+     *
+     * <formals> = (<identifier>*) | (<identifier>+ . <identifier>) | <identifier>
+     *
+     */
     define<special>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDF,
-               begin(
+               body(
                  cddr(exp),
                  cons(
                    cadr(exp), // parameters
@@ -304,7 +338,7 @@ namespace meevax::system
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDM,
-               begin(
+               body(
                  cddr(exp),
                  cons(
                    cadr(exp), // parameters
