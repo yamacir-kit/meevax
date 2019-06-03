@@ -348,16 +348,15 @@ namespace meevax::system
     // }
 
   protected:
-    // 名前をbeginにしたいけどSTLと被る
-    objective body(const objective& exp,
-                   const objective& scope,
-                   const objective& continuation)
+    objective begin(const objective& exp,
+                    const objective& scope,
+                    const objective& continuation)
     {
       return compile(
                car(exp),
                scope,
-               cdr(exp) ? cons(POP, body(cdr(exp), scope, continuation))
-                        :                                 continuation
+               cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
+                        :                                  continuation
              );
     }
 
@@ -383,27 +382,6 @@ namespace meevax::system
       }
 
       return unit;
-    }
-
-    [[deprecated]] bool defined(const cursor& exp, const cursor& scope)
-    {
-      for (cursor frame : scope)
-      {
-        for (cursor each : frame)
-        {
-          if (each.is<pair>() && car(each) == exp)
-          {
-            return true;
-          }
-
-          if (!each.is<pair>() && each == exp)
-          {
-            return true;
-          }
-        }
-      }
-
-      return false;
     }
 
     objective args(const objective& exp,

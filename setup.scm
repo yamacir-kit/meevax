@@ -177,7 +177,7 @@
   (macro ()
     (list 'cdr (list 'lambda '() '()))))
 
-(define current-global-environment
+(define interaction-environment
   (macro ()
     (list 'cdr (list 'macro '() '()))))
 

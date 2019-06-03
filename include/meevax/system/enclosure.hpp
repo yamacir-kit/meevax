@@ -1,8 +1,11 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
 
+#include <algorithm> // std::equal
 #include <functional> // std::invoke
+#include <string> // std::string
 #include <unordered_map> // std::unoredered_map
+#include <type_traits> // std::integral_constant
 
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/machine.hpp>
@@ -15,12 +18,15 @@ namespace meevax::system
   template <int Version>
   static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
 
-  struct enclosure
+  class enclosure
     : public closure // inherits pair type virtually
     , public reader<enclosure> // TODO ポートとして独立させること
     , public machine<enclosure>
-    , private std::unordered_map<std::string, objective> // namespace
   {
+    std::unordered_map<std::string, objective> symbols;
+
+    cursor exported;
+
   public: // Constructors
     // for syntactic-lambda
     enclosure() = default;
@@ -49,13 +55,13 @@ namespace meevax::system
 
     const auto& intern(const std::string& s)
     {
-      if (auto iter {find(s)}; iter != std::unordered_map<std::string, objective>::end())
+      if (auto iter {symbols.find(s)}; iter != std::end(symbols))
       {
         return iter->second;
       }
       else
       {
-        iter = emplace(s, make<symbol>(s)).first;
+        iter = symbols.emplace(s, make<symbol>(s)).first;
         return iter->second;
       }
     }
@@ -284,7 +290,7 @@ namespace meevax::system
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDF,
-               body(
+               begin(
                  cddr(exp),
                  cons(
                    cadr(exp), // parameters
@@ -303,7 +309,7 @@ namespace meevax::system
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDM,
-               body(
+               begin(
                  cddr(exp),
                  cons(
                    cadr(exp), // parameters
@@ -345,26 +351,6 @@ namespace meevax::system
     {
       // XXX 今は雑にブーリアンを返してる
       return load(car(args).template as<string>());
-    });
-
-    // (define-library <name> <declaration>)
-    define<special>("define-library", [&](auto&& exp,
-                                          auto&& scope,
-                                          auto&& continuation)
-    {
-      TRACE("compile") << cadr(exp) << " ; => is <library-name>" << std::endl;
-      return cons(
-               LDM,
-               body(
-                 cddr(exp),
-                 cons(
-                   unit, // parameters
-                   scope
-                 ),
-                 list(RETURN)
-               ),
-               cons(DEFINE, cadr(exp), continuation)
-             );
     });
   } // enclosure class default constructor
 
