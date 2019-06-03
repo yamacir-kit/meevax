@@ -14,6 +14,8 @@
 #include <meevax/system/symbol.hpp>
 #include <meevax/utility/debug.hpp>
 
+#define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
+
 namespace meevax::system
 {
   template <typename Enclosure>
@@ -24,8 +26,6 @@ namespace meevax::system
            e, // lexical environment (rib cage representation)
            c, // control
            d; // dump
-
-    #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
 
   public:
     decltype(auto) interaction_environment()
@@ -341,6 +341,30 @@ namespace meevax::system
       throw error {"unterminated execution"};
     }
 
+    // De Bruijn Index
+    objective locate(const objective& exp, const objective& scope)
+    {
+      auto i {0}, j {0};
+
+      for (cursor x {scope}; x; ++x, ++i)
+      {
+        for (cursor y {car(x)}; y; ++y, ++j)
+        {
+          if (y.is<pair>() && car(y) == exp)
+          {
+            return cons(make<number>(i), make<number>(j));
+          }
+
+          if (!y.is<pair>() && y == exp)
+          {
+            return cons(make<number>(i), make<number>(-++j));
+          }
+        }
+      }
+
+      return unit;
+    }
+
   protected:
     /**  7.1.3
      *
@@ -401,30 +425,6 @@ namespace meevax::system
              );
     }
 
-    // De Bruijn Index
-    objective locate(const objective& exp, const objective& scope)
-    {
-      auto i {0}, j {0};
-
-      for (cursor x {scope}; x; ++x, ++i)
-      {
-        for (cursor y {car(x)}; y; ++y, ++j)
-        {
-          if (y.is<pair>() && car(y) == exp)
-          {
-            return cons(make<number>(i), make<number>(j));
-          }
-
-          if (!y.is<pair>() && y == exp)
-          {
-            return cons(make<number>(i), make<number>(-++j));
-          }
-        }
-      }
-
-      return unit;
-    }
-
     /** 7.1.3
      *
      * <operand> = <expression>
@@ -447,6 +447,12 @@ namespace meevax::system
         return compile(expression, region, continuation);
       }
     }
+
+    // objective let(const objective& expression,
+    //               const objective& region,
+    //               const objective& continuation)
+    // {
+    // }
   };
 } // namespace meevax::system
 

@@ -333,6 +333,15 @@ namespace meevax::system
              );
     });
 
+    /** 7.1.3
+     *
+     * (let (<binding-spec>*) <body>)
+     *
+     * (let <identifier> (<binding-spec>*) <body>)
+     *
+     */
+    // define<special>("let", )
+
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
