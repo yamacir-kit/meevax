@@ -124,7 +124,7 @@ namespace meevax::system
   }
 
   template <typename List1, typename List2>
-  objective append(List1&& list1, List2&& list2)
+  objective append(List1&& list1, List2&& list2 = unit)
   {
     if (not list1)
     {
@@ -181,11 +181,14 @@ namespace meevax::system
     }
     else
     {
-      return cons(
-               procedure(car(list)),
-               map(procedure, cdr(list))
-             );
+      return procedure(car(list)) | map(procedure, cdr(list));
     }
+  }
+
+  template <typename Procedure, typename List1, typename List2, typename... Lists>
+  objective map(Procedure procedure, List1&& list1, List2&& list2, Lists&&... lists)
+  {
+    // TODO
   }
 
   const objective& assoc(const objective& var, const objective& env)

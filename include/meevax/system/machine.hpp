@@ -448,11 +448,29 @@ namespace meevax::system
       }
     }
 
-    // objective let(const objective& expression,
-    //               const objective& region,
-    //               const objective& continuation)
-    // {
-    // }
+    objective let(const objective& expression,
+                  const objective& lexical_environment,
+                  const objective& continuation)
+    {
+      auto binding_specs {car(expression)};
+
+      return operand(
+               map([](auto&& e) { return cadr(e); }, binding_specs), // <arguments>
+               lexical_environment,
+               cons(
+                 LDF,
+                 body(
+                   cdr(expression), // <body>
+                   cons(
+                     map([](auto&& e) { return car(e); }, binding_specs), // <formals>
+                     lexical_environment
+                   ),
+                   list(RETURN)
+                 ),
+                 APPLY, continuation
+               )
+             );
+    }
   };
 } // namespace meevax::system
 
