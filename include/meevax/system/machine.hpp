@@ -341,12 +341,6 @@ namespace meevax::system
       throw error {"unterminated execution"};
     }
 
-    // template <typename... Ts>
-    // decltype(auto) operator()(Ts&&... args)
-    // {
-    //   return execute(std::forward<Ts>(args)...);
-    // }
-
   protected:
     objective begin(const objective& exp,
                     const objective& scope,

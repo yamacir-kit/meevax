@@ -213,17 +213,13 @@ namespace meevax::system
   template <>
   enclosure::enclosure(std::integral_constant<int, 7>)
   {
-    define<special>("quote", [&](auto&& expr,
-                                 auto&&,
-                                 auto&& continuation)
+    define<special>("quote", [&](auto&& expr, auto&&, auto&& continuation)
     {
       TRACE("compile") << cadr(expr) << " ; => is quoted data" << std::endl;
       return cons(LDC, cadr(expr), continuation);
     });
 
-    define<special>("car", [&](auto&& exp,
-                               auto&& scope,
-                               auto&& continuation)
+    define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
                cadr(exp),
@@ -232,9 +228,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("cdr", [&](auto&& exp,
-                               auto&& scope,
-                               auto&& continuation)
+    define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
                cadr(exp),
@@ -243,9 +237,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("cons", [&](auto&& exp,
-                                auto&& scope,
-                                auto&& continuation)
+    define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
                caddr(exp),
@@ -254,9 +246,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("if", [&](auto&& exp,
-                              auto&& scope,
-                              auto&& continuation)
+    define<special>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       TRACE("compile") << cadr(exp) << " ; => is <test>" << std::endl;
       return compile(
@@ -271,21 +261,28 @@ namespace meevax::system
              );
     });
 
-    define<special>("define", [&](auto&& exp,
-                                  auto&& scope,
-                                  auto&& continuation)
+    define<special>("define", [&](auto&& expression, auto&& scope, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <variable>" << std::endl;
+      TRACE("compile") << cadr(expression) << " ; => is <variable>" << std::endl;
+
       return compile(
-               caddr(exp),
+               caddr(expression),
                scope,
-               cons(DEFINE, cadr(exp), continuation)
+               cons(DEFINE, cadr(expression), continuation)
              );
     });
 
-    define<special>("lambda", [&](auto&& exp,
-                                  auto&& scope,
-                                  auto&& continuation)
+    // (begin . <expressions>)
+    define<special>("begin", [&](auto&& expression, auto&& scope, auto&& continuation)
+    {
+      return begin(
+               cdr(expression),
+               scope,
+               continuation
+             );
+    });
+
+    define<special>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
@@ -302,9 +299,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("macro", [&](auto&& exp,
-                                 auto&& scope,
-                                 auto&& continuation)
+    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
       return cons(
@@ -321,9 +316,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("set!", [&](auto&& exp,
-                                auto&& scope,
-                                auto&& continuation)
+    define<special>("set!", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       if (!exp)
       {

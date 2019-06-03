@@ -64,7 +64,8 @@ extern "C"
         std::cout << each;
       }
     }
-    return unit; // XXX DIRTY HACK
+
+    return undefined; // XXX DIRTY HACK
   }
 } // extern "C"
 
