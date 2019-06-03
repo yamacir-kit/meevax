@@ -26,10 +26,10 @@
 // Miscellaneous
 //   - length
 //   - append
+//   - reverse
 //   - zip
 //
 // Fold, unfold, and map
-//   unimplemented (but, STL support are provided by meevax/system/cursor.hpp)
 //
 // Filtering & partitioning
 //
@@ -123,10 +123,37 @@ namespace meevax::system
     return std::distance(std::begin(e), std::end(e));
   }
 
-  template <typename T, typename U>
-  objective append(T&& x, U&& y)
+  template <typename List1, typename List2>
+  objective append(List1&& list1, List2&& list2)
   {
-    return !x ? y : car(x) | append(cdr(x), std::forward<U>(y));
+    if (not list1)
+    {
+      return list2;
+    }
+    else
+    {
+      return car(list1) | append(cdr(list1), list2);
+    }
+  }
+
+  template <typename List>
+  decltype(auto) reverse(List&& list)
+  {
+    if (not list)
+    {
+      return list;
+    }
+    else
+    {
+      auto buffer {car(list)};
+
+      for (auto& head {cdr(list)}; head; head = cdr(head))
+      {
+        buffer = cons(head, buffer);
+      }
+
+      return buffer;
+    }
   }
 
   objective zip(const objective& x, const objective& y)
