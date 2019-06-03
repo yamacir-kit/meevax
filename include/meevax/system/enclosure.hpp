@@ -316,21 +316,37 @@ namespace meevax::system
      * <formals> = (<identifier>*) | (<identifier>+ . <identifier>) | <identifier>
      *
      */
-    define<special>("lambda", [&](auto&& exp, auto&& scope, auto&& continuation)
+    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
+      TRACE("compile") << cadr(expression) << " ; => is <formals>" << std::endl;
       return cons(
                LDF,
                body(
-                 cddr(exp),
-                 cons(
-                   cadr(exp), // parameters
-                   scope
-                 ),
-                 list(RETURN)
+                 cddr(expression), // <body>
+                 cons(cadr(expression), lexical_environment), // extend lexical environment
+                 list(RETURN) // continuation of body (finally, must be return)
                ),
                continuation
              );
+    });
+
+    /** 7.1.3
+     *
+     * (let (<binding-spec>*) <body>)
+     *
+     * (let <identifier> (<binding-spec>*) <body>)
+     *
+     */
+    define<special>("let", [&](auto&& expression, auto&& region, auto&& continuation)
+    {
+      if (cadr(expression).template is<pair>())
+      {
+        return let(cdr(expression), region, continuation);
+      }
+      else // named-let
+      {
+        return continuation; // TODO
+      }
     });
 
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
@@ -340,10 +356,7 @@ namespace meevax::system
                LDM,
                body(
                  cddr(exp),
-                 cons(
-                   cadr(exp), // parameters
-                   scope
-                 ),
+                 cons(cadr(exp), scope),
                  list(RETURN)
                ),
                continuation
