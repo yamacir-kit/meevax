@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 
+#include <cassert>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
 #include <type_traits> // std::conditional
@@ -65,7 +66,9 @@ namespace meevax::system
     {
       if constexpr (concepts::is_equality_comparable<T>::value)
       {
-        return static_cast<const T&>(*this) == *std::dynamic_pointer_cast<const T>(rhs);
+        const auto rhs_ {std::dynamic_pointer_cast<const T>(rhs)};
+        assert(rhs_);
+        return static_cast<const T&>(*this) == *rhs_;
       }
       else
       {

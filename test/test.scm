@@ -87,3 +87,21 @@ y
   (eqv? p p)
 ); -> #true
 
+(define equal?
+  (lambda (object.1 object.2)
+    (if (and (pair? object.1)
+             (pair? object.2))
+        (and (equal? (car object.1) (car object.2))
+             (equal? (cdr object.1) (cdr object.2)))
+        (eqv? object.1 object.2)
+     )
+   )
+)
+
+(equal? 'a 'a)
+(equal? '(a) '(a))
+(equal? '(a (b) c)
+        '(a (b) c))
+(equal? "abc" "abc")
+(equal? 2 2)
+
