@@ -7,6 +7,7 @@
 
 // exception
 //  |-- error
+//  |    `-- syntax_error
 //  `-- warning
 
 namespace meevax::system
@@ -45,6 +46,15 @@ namespace meevax::system
     {}
   };
 
+  // struct syntax_error
+  //   : public error
+  // {
+  //   template <typename... Ts>
+  //   constexpr syntax_error(Ts&&... args)
+  //     : error {std::forward<Ts>(args)...}
+  //   {}
+  // };
+
   struct warning
     : public exception
   {
@@ -56,6 +66,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream&, const exception&);
   std::ostream& operator<<(std::ostream&, const error&);
+  // std::ostream& operator<<(std::ostream&, const syntax_error&);
   std::ostream& operator<<(std::ostream&, const warning&);
 } // namespace meevax::system
 

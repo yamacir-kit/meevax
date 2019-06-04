@@ -94,8 +94,7 @@ namespace meevax::system
           TRACE("compile") << "(" << car(exp) << " ; => is application of ";
           std::cerr << buffer << std::endl;
           NEST_IN;
-          // XXX 何故かスペシャルフォームが引数じゃなくて自分自身も受け取るスタイルになってる、cdr(exp) だけ受け取れば十分
-          auto result {std::invoke(buffer.as<special>(), exp, scope, continuation)};
+          auto result {std::invoke(buffer.as<special>(), cdr(exp), scope, continuation)};
           NEST_OUT;
           return result;
         }

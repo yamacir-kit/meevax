@@ -20,7 +20,7 @@ namespace meevax::system
 
   class enclosure
     : public closure // inherits pair type virtually
-    , public reader<enclosure> // TODO ポートとして独立させること
+    , public reader<enclosure>
     , public machine<enclosure>
   {
     std::unordered_map<std::string, objective> symbols;
@@ -92,24 +92,6 @@ namespace meevax::system
     }
 
   public:
-    // From R7RS 6.14. System Interface
-    //
-    //   (load <filename>)                               load library procedure
-    //
-    //   (load <filename> <environment-specifier>)       load library procedure
-    //
-    // It is an error if filename is not a string.
-    //
-    // An implementation-dependent operation is used to transform filename into
-    // the name of an existing file containing Scheme source code. The load
-    // procedure reads expressions and definitions from the file and evaluates
-    // them sequentially in the environment specified by <environment-specifier>.
-    // If environment-specifier is omitted, (interaction-environment) is assumed.
-    //
-    // Rationale: For portability, load must operate on source files. Its
-    // operation on other kinds of files necessarily varies among
-    // implementations.
-    //
     template <typename... Ts>
     decltype(auto) load(Ts&&... args)
     {
@@ -157,53 +139,6 @@ namespace meevax::system
       }
     }
 
-    // From R7RS 5.2. Import Declarations
-    //
-    // An import declaration takes the following form:
-    //
-    //   (import <import-set> ...)
-    //
-    // An import declaration provides a way to import identifiers exported by a
-    // library. Each <import-set> names a set of bindings from a library and
-    // possibly specifies local names for the imported bindings. It takes one
-    // of the following forms:
-    //
-    //   <library-name>
-    //
-    //   (only <import-set> <identifier> ...)
-    //
-    //   (except <import-set> <identifier> ...)
-    //
-    //   (prefix <import-set> <identifier>)
-    //
-    //   (rename <import-set> (<identifier_1> <identifier_2> ...)
-    //
-    // In the first form, all of the identifiers in the named library's export
-    // clauses are imported with the same names (or the exported names if
-    // exported with rename). The additional <import-set> forms modify this set
-    // as follows:
-    //
-    //   only produces a subset of the given <import-set> including only the
-    //   listed identifiers (after any renaming). It is an error if any of the
-    //   listed identifiers are not found in the original set.
-    //
-    //   except produces a subset of the given <import-set>, excluding the
-    //   listed identifiers (after any renaming). It is an error if any of the
-    //   listed identifiers are not found in the original set.
-    //
-    //   rename modifies the given <import-set>, replacing each instance of
-    //   <identifier_1> with <identifier_2>. It is an error if any of the listed
-    //   <identifier_1>s are not found in the original set.
-    //
-    //   prefix automatically renames all identifiers in the given <import-set>,
-    //   prefixing each with the specified identifier.
-    //
-    // In a program or library declaration, it is an error to import the same
-    // identifier more than once with different bindings, or to redefine or
-    // mutate an imported binding with a definition or with set!, or to refer to
-    // an identifier before it is imported. However, a REPL should permit these
-    // actions.
-    //
     template <typename... Ts>
     decltype(auto) import(Ts&&... args)
     {
@@ -220,14 +155,14 @@ namespace meevax::system
      */
     define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
     {
-      TRACE("compile") << cadr(expression) << " ; => is <datum>" << std::endl;
-      return cons(LDC, cdr(expression) ? cadr(expression) : unit, continuation);
+      TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
+      return cons(LDC, car(expression), continuation);
     });
 
     define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
-               cadr(exp),
+               car(exp),
                scope,
                cons(CAR, continuation)
              );
@@ -236,7 +171,7 @@ namespace meevax::system
     define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
-               cadr(exp),
+               car(exp),
                scope,
                cons(CDR, continuation)
              );
@@ -245,9 +180,9 @@ namespace meevax::system
     define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
-               caddr(exp),
+               cadr(exp),
                scope,
-               compile(cadr(exp), scope, cons(CONS, continuation))
+               compile(car(exp), scope, cons(CONS, continuation))
              );
     });
 
@@ -260,16 +195,16 @@ namespace meevax::system
      * <alternate> = <expression> | <empty>
      *
      */
-    define<special>("if", [&](auto&& exp, auto&& scope, auto&& continuation)
+    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <test>" << std::endl;
+      TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
       return compile(
-               cadr(exp), // <test>
-               scope,
+               car(expression), // <test>
+               lexical_environment,
                cons(
                  SELECT,
-                 compile(caddr(exp), scope, list(JOIN)), // <consequent>
-                 cdddr(exp) ? compile(cadddr(exp), scope, list(JOIN)) : unspecified, // <alternate>
+                 compile(cadr(expression), lexical_environment, list(JOIN)), // <consequent>
+                 cddr(expression) ? compile(caddr(expression), lexical_environment, list(JOIN)) : unspecified, // <alternate>
                  continuation
                )
              );
@@ -277,16 +212,16 @@ namespace meevax::system
 
     define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
     {
-      TRACE("compile") << cadr(expression) << " ; => is <variable>" << std::endl;
+      TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
 
       std::cerr << region << std::endl;
 
       if (not region)
       {
         return compile(
-                 cddr(expression) ? caddr(expression) : undefined,
+                 cdr(expression) ? cadr(expression) : undefined,
                  region,
-                 cons(DEFINE, cadr(expression), continuation)
+                 cons(DEFINE, car(expression), continuation)
                );
       }
       else
@@ -303,7 +238,7 @@ namespace meevax::system
     define<special>("begin", [&](auto&& expression, auto&& scope, auto&& continuation)
     {
       return sequence(
-               cdr(expression),
+               expression,
                scope,
                continuation
              );
@@ -318,12 +253,12 @@ namespace meevax::system
      */
     define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
     {
-      TRACE("compile") << cadr(expression) << " ; => is <formals>" << std::endl;
+      TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
       return cons(
                LDF,
                body(
-                 cddr(expression), // <body>
-                 cons(cadr(expression), lexical_environment), // extend lexical environment
+                 cdr(expression), // <body>
+                 cons(car(expression), lexical_environment), // extend lexical environment
                  list(RETURN) // continuation of body (finally, must be return)
                ),
                continuation
@@ -339,9 +274,9 @@ namespace meevax::system
      */
     define<special>("let", [&](auto&& expression, auto&& region, auto&& continuation)
     {
-      if (cadr(expression).template is<pair>())
+      if (car(expression).template is<pair>())
       {
-        return let(cdr(expression), region, continuation);
+        return let(expression, region, continuation);
       }
       else // named-let
       {
@@ -351,12 +286,12 @@ namespace meevax::system
 
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
+      TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDM,
                body(
-                 cddr(exp),
-                 cons(cadr(exp), scope),
+                 cdr(exp),
+                 cons(car(exp), scope),
                  list(RETURN)
                ),
                continuation
@@ -367,12 +302,12 @@ namespace meevax::system
     {
       if (!exp)
       {
-        throw error {"setting to unit"};
+        throw error {__FILE__, ": ", __LINE__};
       }
-      else if (auto location {locate(cadr(exp), scope)}; location)
+      else if (auto location {locate(car(exp), scope)}; location)
       {
         return compile(
-                 caddr(exp),
+                 cadr(exp),
                  scope,
                  cons(SETL, location, continuation)
                );
@@ -380,9 +315,9 @@ namespace meevax::system
       else
       {
         return compile(
-                 caddr(exp),
+                 cadr(exp),
                  scope,
-                 cons(SETG, cadr(exp), continuation)
+                 cons(SETG, car(exp), continuation)
                );
       }
     });
