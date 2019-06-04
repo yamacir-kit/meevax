@@ -61,3 +61,29 @@ y
        (display 2)
        (display 3))
 
+(eqv? 'a 'a); -> #true
+(eqv? 'a 'b); -> #false
+
+(eqv? 2 2); -> #true
+(eqv? 2 2.0); -> #false
+
+(eqv? '() '()); -> #true
+
+(eqv? 100000000 100000000); -> #true
+
+(eqv? 0.0 +nan.0); -> #false
+
+(eqv? (cons 1 2)
+      (cons 1 2)
+); -> #false
+
+(eqv? (lambda () 1)
+      (lambda () 2)
+); -> #false
+
+(let (
+       (p (lambda (x) x))
+     )
+  (eqv? p p)
+); -> #true
+

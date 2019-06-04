@@ -7,6 +7,8 @@
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
+#include <meevax/concepts/is_equality_comparable.hpp>
+
 // #include <boost/type_traits/is_virtual_base_of.hpp>
 //
 // boost::is_virtual_base_of<TopType, BoundType>::value, TopType, BoundType
@@ -58,6 +60,18 @@ namespace meevax::system
       }
     }
 
+    virtual bool equals(const std::shared_ptr<T>& rhs) const
+    {
+      if constexpr (meevax::concepts::is_equality_comparable<T>::value)
+      {
+        return static_cast<const T&>(*this) == *std::dynamic_pointer_cast<const T>(rhs);
+      }
+      else
+      {
+        return false;
+      }
+    }
+
     virtual std::ostream& write(std::ostream& os) const
     {
       return os << static_cast<const T&>(*this);
@@ -100,6 +114,18 @@ namespace meevax::system
         {
           using meevax::utility::demangle;
           throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(BoundType)), " is not copy-constructible."};
+        }
+      }
+
+      bool equals(const std::shared_ptr<TopType>& rhs) const override
+      {
+        if constexpr (meevax::concepts::is_equality_comparable<BoundType>::value)
+        {
+          return static_cast<const BoundType&>(*this) == *std::dynamic_pointer_cast<const BoundType>(rhs);
+        }
+        else
+        {
+          return false;
         }
       }
 
@@ -185,6 +211,18 @@ namespace meevax::system
     decltype(auto) as()
     {
       return dynamic_cast<T&>(access());
+    }
+
+    bool equals(const accessor& rhs) const
+    {
+      if (access().type() != rhs.access().type())
+      {
+        return false;
+      }
+      else
+      {
+        return access().equals(rhs);
+      }
     }
   };
 

@@ -20,6 +20,24 @@ extern "C"
     return car(args) == cadr(args) ? true_v : false_v;
   }
 
+  PROCEDURE(semantic_equals)
+  {
+    using namespace meevax::system;
+
+    if (const objective& object1 {car(args)}, object2 {cadr(args)}; object1 == object2)
+    {
+      return true_v;
+    }
+    else if (!object1 or !object2)
+    {
+      return false_v;
+    }
+    else
+    {
+      return object1.equals(object2) ? true_v : false_v;
+    }
+  }
+
   PROCEDURE(is_pair)
   {
     using namespace meevax::system;

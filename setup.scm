@@ -11,6 +11,7 @@
 (define display (dynamic-link-procedure libmeevax-experimental.so "display"))
 (define emergency-exit (dynamic-link-procedure libmeevax-experimental.so "emergency_exit"))
 (define eq? (dynamic-link-procedure libmeevax-experimental.so "addressive_equals"))
+(define eqv? (dynamic-link-procedure libmeevax-experimental.so "semantic_equals"))
 (define pair? (dynamic-link-procedure libmeevax-experimental.so "is_pair"))
 
 ; HACK
