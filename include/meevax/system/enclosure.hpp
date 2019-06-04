@@ -214,8 +214,6 @@ namespace meevax::system
     {
       TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
 
-      std::cerr << region << std::endl;
-
       if (not region)
       {
         return compile(

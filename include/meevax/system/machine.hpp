@@ -466,7 +466,7 @@ namespace meevax::system
                    ),
                    list(RETURN)
                  ),
-                 APPLY, continuation
+                 continuation
                )
              );
     }

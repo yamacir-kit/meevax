@@ -3,9 +3,9 @@
 (define test
   (macro (expression expects)
    `(let ((result ,expression))
-      (if (not (equal? result ,expects))
-          (begin (display "; test          ; expected ")
-                 (display ,expects)
+      (if (not (equal? result ',expects))
+          (begin (display "; test          ; expected ") ; TODO SUPPORT TAB
+                 (display ',expects)
                  (display " as result of ")
                  (display ',expression)
                  (display ", but got ")
@@ -14,8 +14,121 @@
                  (emergency-exit))
           result))))
 
+; ------------------------------------------------------------------------------
+;   4.1.1 Variable References
+; ------------------------------------------------------------------------------
 
-; 6.1 Equivalence Predicates
+(define x 28)
+
+(test x 28)
+
+
+; ------------------------------------------------------------------------------
+;   4.1.2 Literal Expressions
+; ------------------------------------------------------------------------------
+
+(test
+  (quote a)
+  a)
+
+; (test
+;   (quote #(a b c)) ; unimplemented
+;   #(a b c))
+
+(test
+  (quote (+ 1 2))
+  (+ 1 2))
+
+(test 'a a)
+
+; (test
+;  '#(a b c)
+;   #(a b c)) ; unimplemented
+
+(test
+ '()
+  ())
+
+(test
+ '(+ 1 2)
+  (+ 1 2))
+
+(test
+ '(quote a)
+  (quote a))
+
+(test
+  ''a
+  (quote a))
+
+(test '145932 145932)
+(test  145932 145932)
+
+; (test '"abc" "abc")
+; (test  "abc" "abc") ; マクロ中で文字列の挙動がおかしいバグあり
+
+; (test '# #)
+; (test  # #) ; unimplemented
+
+; (test '#(a 10) #(a 10))
+; (test  #(a 10) #(a 10)) ; unimplemented
+
+; (test '#u8(64 65) #u8(64 65))
+; (test  #u8(64 65) #u8(64 65)) ; unimplemented
+
+(test '#t #t)
+(test  #t #t)
+
+
+; ------------------------------------------------------------------------------
+;   4.1.3 Procedure Calls
+; ------------------------------------------------------------------------------
+
+(test (+ 3 4) 7)
+
+(test
+  ((if #false + *) 3 4)
+  12)
+
+
+; ------------------------------------------------------------------------------
+;   4.1.4 Procedures
+; ------------------------------------------------------------------------------
+
+; (lambda (x) (+ x x)) ; untestable output
+
+(test
+  ((lambda (x) (+ x x)) 4)
+  8)
+
+(define reverse-subtract
+  (lambda (x y)
+    (- y x)))
+
+(test
+  (reverse-subtract 7 10)
+  3)
+
+(define add4
+  (let ((x 4))
+    (lambda (y) (+ x y))))
+
+(test
+  (add4 6)
+  10)
+
+(test
+  ((lambda x x) 3 4 5 6)
+  (3 4 5 6))
+
+(test
+  ((lambda (x y . z) z) 3 4 5 6)
+  (5 6))
+
+
+; ------------------------------------------------------------------------------
+;   6.1 Equivalence Predicates
+; ------------------------------------------------------------------------------
 
 (test
   (eqv? 'a
@@ -71,15 +184,17 @@
 
 
 ; (eqv? "" ""); unspecified
+
 ; (eqv? '#() '#()); #unspecified
-;
+
 ; (eqv? (lambda (x) x)
 ;       (lambda (x) x)); #unspecified
-;
+
 ; (eqv? (lambda (x) x)
 ;       (lambda (x) y)); #unspecified
-;
+
 ; (eqv? 1.0e0 1.0f0); #unspecified
+
 ; (eqv? +nan.0 +nan.0); #unspecified
 
 
