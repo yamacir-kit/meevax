@@ -123,6 +123,14 @@
                 (append (list 'or)
                         (cddr <tests>)))))))))
 
+(define equal?
+  (lambda (object.1 object.2)
+    (if (and (pair? object.1)
+             (pair? object.2))
+        (and (equal? (car object.1) (car object.2))
+             (equal? (cdr object.1) (cdr object.2)))
+        (eqv? object.1 object.2))))
+
 (define not
   (lambda (test)
     (if test #false #true)))
@@ -203,4 +211,12 @@
     (if (not (pair? object)) object
         (cons (pair-copy-deep (car object))
               (pair-copy-deep (cdr object))))))
+
+(define when
+  (macro (<test> . <expression>)
+   `(if ,<test> (begin ,@<expression>))))
+
+(define unless
+  (macro (<test> . <expression>)
+   `(if (not ,<test>) (begin ,@<expression>))))
 

@@ -1,5 +1,11 @@
 (load "../setup.scm")
 
+(define assert
+  (macro (expression expects)
+   `(when (not (equal? ,expression ,expects))
+      (display "assertion failed\n")
+      (emergency-exit))))
+
 (define x 42)
 x
 (set! x 100)
@@ -49,14 +55,6 @@ y
       (b 2))
   (+ a b))
 
-(define when
-  (macro (<test> . <expression>)
-   `(if ,@<test> (begin ,@<expression>))))
-
-(define unless
-  (macro (<test> . <expression>)
-   `(if (not ,@<test>) (begin ,@<expression>))))
-
 (begin (display 1)
        (display 2)
        (display 3))
@@ -87,16 +85,6 @@ y
   (eqv? p p)
 ); -> #true
 
-(define equal?
-  (lambda (object.1 object.2)
-    (if (and (pair? object.1)
-             (pair? object.2))
-        (and (equal? (car object.1) (car object.2))
-             (equal? (cdr object.1) (cdr object.2)))
-        (eqv? object.1 object.2)
-     )
-   )
-)
 
 (equal? 'a 'a)
 (equal? '(a) '(a))
