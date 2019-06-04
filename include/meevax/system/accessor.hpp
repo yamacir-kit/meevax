@@ -8,6 +8,7 @@
 #include <utility> // std::forward
 
 #include <meevax/concepts/is_equality_comparable.hpp>
+#include <meevax/concepts/is_stream_insertable.hpp>
 
 // #include <boost/type_traits/is_virtual_base_of.hpp>
 //
@@ -62,7 +63,7 @@ namespace meevax::system
 
     virtual bool equals(const std::shared_ptr<T>& rhs) const
     {
-      if constexpr (meevax::concepts::is_equality_comparable<T>::value)
+      if constexpr (concepts::is_equality_comparable<T>::value)
       {
         return static_cast<const T&>(*this) == *std::dynamic_pointer_cast<const T>(rhs);
       }
@@ -119,7 +120,7 @@ namespace meevax::system
 
       bool equals(const std::shared_ptr<TopType>& rhs) const override
       {
-        if constexpr (meevax::concepts::is_equality_comparable<BoundType>::value)
+        if constexpr (concepts::is_equality_comparable<BoundType>::value)
         {
           return static_cast<const BoundType&>(*this) == *std::dynamic_pointer_cast<const BoundType>(rhs);
         }
@@ -129,25 +130,10 @@ namespace meevax::system
         }
       }
 
-      template <typename T, typename = void>
-      struct stream_output_available
-        : public std::false_type
-      {};
-
-      template <typename T>
-      struct stream_output_available<
-               T,
-               std::void_t<decltype(
-                 std::declval<std::ostream&>() << std::declval<const T&>()
-               )>
-             >
-        : public std::true_type
-      {};
-
       // Override TopType::write(), then invoke BoundType's stream output operator.
       std::ostream& write(std::ostream& os) const override
       {
-        if constexpr (stream_output_available<BoundType>::value)
+        if constexpr (concepts::is_stream_insertable<BoundType>::value)
         {
           return os << static_cast<const BoundType&>(*this);
         }
