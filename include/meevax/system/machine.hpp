@@ -365,6 +365,28 @@ namespace meevax::system
     }
 
   protected:
+    /** 7.1.3
+     *
+     * <sequence> = <command>* <expression>
+     *
+     * <command> = <expression>
+     *
+     */
+    objective sequence(const objective& expression,
+                       const objective& region,
+                       const objective& continuation)
+    {
+      return compile(
+               car(expression),
+               region,
+               cdr(expression) ? cons(
+                                   POP,
+                                   sequence(cdr(expression), region, continuation)
+                                 )
+                               : continuation
+             );
+    }
+
     /**  7.1.3
      *
      * <body> = <definition>* <sequence>
@@ -400,28 +422,6 @@ namespace meevax::system
       //      ...)
       //    #<undefined>)
       // )
-    }
-
-    /** 7.1.3
-     *
-     * <sequence> = <command>* <expression>
-     *
-     * <command> = <expression>
-     *
-     */
-    objective sequence(const objective& expression,
-                       const objective& region,
-                       const objective& continuation)
-    {
-      return compile(
-               car(expression),
-               region,
-               cdr(expression) ? cons(
-                                   POP,
-                                   sequence(cdr(expression), region, continuation)
-                                 )
-                               : continuation
-             );
     }
 
     /** 7.1.3
