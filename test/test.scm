@@ -99,14 +99,14 @@
 ;   4.1.4 Procedures
 ; ------------------------------------------------------------------------------
 
-; (lambda (x) (+ x x)) ; untestable output
+; (λ (x) (+ x x)) ; untestable output
 
 (test
-  ((lambda (x) (+ x x)) 4)
+  ((λ (x) (+ x x)) 4)
   8)
 
 (define reverse-subtract
-  (lambda (x y)
+  (λ (x y)
     (- y x)))
 
 (test
@@ -115,18 +115,18 @@
 
 (define add4
   (let ((x 4))
-    (lambda (y) (+ x y))))
+    (λ (y) (+ x y))))
 
 (test
   (add4 6)
   10)
 
 (test
-  ((lambda x x) 3 4 5 6)
+  ((λ x x) 3 4 5 6)
   (3 4 5 6))
 
 (test
-  ((lambda (x y . z) z) 3 4 5 6)
+  ((λ (x y . z) z) 3 4 5 6)
   (5 6))
 
 
@@ -369,7 +369,7 @@
 ; ------------------------------------------------------------------------------
 
 (define add3
-  (lambda (x) (+ x 3))); => add3
+  (λ (x) (+ x 3))); => add3
 (add3 3); => 6
 
 (define first car); => first
@@ -418,12 +418,12 @@
   #false)
 
 (test
-  (eqv? (lambda () 1)
-        (lambda () 2))
+  (eqv? (λ () 1)
+        (λ () 2))
   #false)
 
 (test
-  (let ((p (lambda (x) x)))
+  (let ((p (λ (x) x)))
     (eqv? p p))
   #true)
 
@@ -436,11 +436,11 @@
 
 ; (eqv? '#() '#()); #unspecified
 
-; (eqv? (lambda (x) x)
-;       (lambda (x) x)); #unspecified
+; (eqv? (λ (x) x)
+;       (λ (x) x)); #unspecified
 
-; (eqv? (lambda (x) x)
-;       (lambda (x) y)); #unspecified
+; (eqv? (λ (x) x)
+;       (λ (x) y)); #unspecified
 
 ; (eqv? 1.0e0 1.0f0); #unspecified
 
@@ -448,9 +448,9 @@
 
 
 (define generate-counter
-  (lambda ()
+  (λ ()
     (let ((n 0))
-      (lambda ()
+      (λ ()
         (set! n (+ n 1))
         n))))
 
@@ -465,9 +465,9 @@
   #false)
 
 (define generate-loser
-  (lambda ()
+  (λ ()
     (let ((n 0))
-      (lambda ()
+      (λ ()
         (set! n (+ n 1))
         27))))
 
@@ -478,13 +478,13 @@
 
 ; (eqv? (generate-loser) (generate-loser)); #unspecified
 
-; (letrec ((f (lambda () (if (eqv? f g) 'both 'f)))
-;          (g (lambda () (if (eqv? f g) 'both 'g))))
+; (letrec ((f (λ () (if (eqv? f g) 'both 'f)))
+;          (g (λ () (if (eqv? f g) 'both 'g))))
 ;   (eqv? f g)); #unspecified
 
 ; (test; #unimplemented
-;   (letrec ((f (lambda () (if (eqv? f g) ’f ’both)))
-;            (g (lambda () (if (eqv? f g) ’g ’both))))
+;   (letrec ((f (λ () (if (eqv? f g) ’f ’both)))
+;            (g (λ () (if (eqv? f g) ’g ’both))))
 ;     (eqv? f g))
 ;   #false)
 
@@ -538,7 +538,7 @@
 ;   #true)
 
 (test
-  (let ((p (lambda (x) x)))
+  (let ((p (λ (x) x)))
     (eq? p p))
   #true)
 
@@ -572,8 +572,8 @@
 ; (equal? '#1=(a b . #1#)
 ;         '#2=(a b a b . #2#)); #true
 ;
-; (equal? (lambda (x) x)
-;         (lambda (y) y)); #unspecified
+; (equal? (λ (x) x)
+;         (λ (y) y)); #unspecified
 
 
 
@@ -588,8 +588,8 @@
 ; y
 ;
 ; (define accumulator
-;   (lambda (n)
-;     (lambda ()
+;   (λ (n)
+;     (λ ()
 ;       (set! n (+ n 1)))))
 ;
 ; (define acc (accumulator x))
