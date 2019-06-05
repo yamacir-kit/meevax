@@ -341,24 +341,31 @@ namespace meevax::system
     }
 
     // De Bruijn Index
-    objective locate(const objective& exp, const objective& scope)
+    objective locate(const objective& variable,
+                     const objective& lexical_environment)
     {
-      auto i {0}, j {0};
+      auto i {0};
 
-      for (cursor x {scope}; x; ++x, ++i)
+      // for (cursor region {lexical_environment}; region; ++region)
+      for (const auto& region : lexical_environment)
       {
-        for (cursor y {car(x)}; y; ++y, ++j)
+        auto j {0};
+
+        for (cursor y {region}; y; ++y)
         {
-          if (y.is<pair>() && car(y) == exp)
+          if (y.is<pair>() && car(y) == variable)
           {
             return cons(make<number>(i), make<number>(j));
           }
-
-          if (!y.is<pair>() && y == exp)
+          else if (!y.is<pair>() && y == variable)
           {
             return cons(make<number>(i), make<number>(-++j));
           }
+
+          ++j;
         }
+
+        ++i;
       }
 
       return unit;
@@ -466,7 +473,7 @@ namespace meevax::system
                    ),
                    list(RETURN)
                  ),
-                 continuation
+                 APPLY, continuation
                )
              );
     }

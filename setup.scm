@@ -5,6 +5,7 @@
 (define - (dynamic-link-procedure libmeevax-numerical.so "subtraction"))
 (define / (dynamic-link-procedure libmeevax-numerical.so "division"))
 (define < (dynamic-link-procedure libmeevax-numerical.so "less"))
+(define > (dynamic-link-procedure libmeevax-numerical.so "greater"))
 
 (define libmeevax-experimental.so (dynamic-link-open "./libmeevax-experimental.so"))
 
@@ -219,4 +220,11 @@
 (define unless
   (macro (<test> . <expression>)
    `(if (not ,<test>) (begin ,@<expression>))))
+
+(define map
+  (lambda (callee list.)
+    (if (null? list.)
+       '()
+        (cons (callee (car list.))
+              (map callee (cdr list.))))))
 
