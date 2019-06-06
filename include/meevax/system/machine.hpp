@@ -14,6 +14,8 @@
 #include <meevax/system/symbol.hpp>
 #include <meevax/utility/debug.hpp>
 
+#define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
+
 namespace meevax::system
 {
   template <typename Enclosure>
@@ -24,8 +26,6 @@ namespace meevax::system
            e, // lexical environment (rib cage representation)
            c, // control
            d; // dump
-
-    #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
 
   public:
     decltype(auto) interaction_environment()
@@ -94,8 +94,7 @@ namespace meevax::system
           TRACE("compile") << "(" << car(exp) << " ; => is application of ";
           std::cerr << buffer << std::endl;
           NEST_IN;
-          // XXX 何故かスペシャルフォームが引数じゃなくて自分自身も受け取るスタイルになってる、cdr(exp) だけ受け取れば十分
-          auto result {std::invoke(buffer.as<special>(), exp, scope, continuation)};
+          auto result {std::invoke(buffer.as<special>(), cdr(exp), scope, continuation)};
           NEST_OUT;
           return result;
         }
@@ -120,7 +119,7 @@ namespace meevax::system
           TRACE("compile") << "( ; => is any application " << std::endl;
 
           NEST_IN;
-          auto result {args(
+          auto result {operand(
                    cdr(exp),
                    scope,
                    compile(car(exp), scope, cons(APPLY, continuation))
@@ -155,13 +154,13 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (cursor scope {car(std::next(e, i))}; j < 0)
+          if (cursor region {car(std::next(e, i))}; j < 0)
           {
-            s.push(std::next(scope, -++j));
+            s.push(std::next(region, -++j));
           }
           else
           {
-            s.push(car(std::next(scope, j)));
+            s.push(car(std::next(region, j)));
           }
         }
         c.pop(2);
@@ -308,10 +307,10 @@ namespace meevax::system
             tmp = cdr(tmp);
           }
 
-          if (auto& scope {car(tmp)}; j < 0)
+          if (auto& region {car(tmp)}; j < 0)
           {
             // std::next(scope, -++j) <= car(s);
-            auto& var {scope};
+            auto& var {region};
             while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
             {
               var = cdr(var);
@@ -321,7 +320,7 @@ namespace meevax::system
           else
           {
             // car(std::next(scope, j)) <= car(s);
-            auto& var {scope};
+            auto& var {region};
             while (0 < j--)
             {
               var = cdr(var);
@@ -341,65 +340,142 @@ namespace meevax::system
       throw error {"unterminated execution"};
     }
 
-    // template <typename... Ts>
-    // decltype(auto) operator()(Ts&&... args)
-    // {
-    //   return execute(std::forward<Ts>(args)...);
-    // }
-
-  protected:
-    objective begin(const objective& exp,
-                    const objective& scope,
-                    const objective& continuation)
-    {
-      return compile(
-               car(exp),
-               scope,
-               cdr(exp) ? cons(POP, begin(cdr(exp), scope, continuation))
-                        :                                  continuation
-             );
-    }
-
     // De Bruijn Index
-    objective locate(const objective& exp, const objective& scope)
+    objective locate(const objective& variable,
+                     const objective& lexical_environment)
     {
-      auto i {0}, j {0};
+      auto i {0};
 
-      for (cursor x {scope}; x; ++x, ++i)
+      // for (cursor region {lexical_environment}; region; ++region)
+      for (const auto& region : lexical_environment)
       {
-        for (cursor y {car(x)}; y; ++y, ++j)
+        auto j {0};
+
+        for (cursor y {region}; y; ++y)
         {
-          if (y.is<pair>() && car(y) == exp)
+          if (y.is<pair>() && car(y) == variable)
           {
             return cons(make<number>(i), make<number>(j));
           }
-
-          if (!y.is<pair>() && y == exp)
+          else if (!y.is<pair>() && y == variable)
           {
             return cons(make<number>(i), make<number>(-++j));
           }
+
+          ++j;
         }
+
+        ++i;
       }
 
       return unit;
     }
 
-    objective args(const objective& exp,
-                   const objective& scope,
-                   const objective& continuation)
+  protected:
+    /** 7.1.3
+     *
+     * <sequence> = <command>* <expression>
+     *
+     * <command> = <expression>
+     *
+     */
+    objective sequence(const objective& expression,
+                       const objective& region,
+                       const objective& continuation)
     {
-      if (exp && exp.is<pair>())
+      return compile(
+               car(expression),
+               region,
+               cdr(expression) ? cons(
+                                   POP,
+                                   sequence(cdr(expression), region, continuation)
+                                 )
+                               : continuation
+             );
+    }
+
+    /**  7.1.3
+     *
+     * <body> = <definition>* <sequence>
+     *
+     */
+    objective body(const objective& expression,
+                   const objective& region,
+                   const objective& continuation) try
+    {
+      return compile(
+               car(expression),
+               region,
+               cdr(expression) ? cons(
+                                   POP,
+                                   sequence(cdr(expression), region, continuation)
+                                 )
+                               : continuation
+             );
+    }
+    catch (const error&) // internal define backtrack
+    {
+      std::cerr << cadar(expression) << " ; => is local-variable" << std::endl;
+      throw;
+
+      // (lambda ()
+      //   (define <cadar> . <cddar>)
+      //   <cdr>
+      // )
+      //
+      // (lambda ()
+      //   ((lambda (<cadar>)
+      //      (set! (0 . 0) . <cddar>)
+      //      ...)
+      //    #<undefined>)
+      // )
+    }
+
+    /** 7.1.3
+     *
+     * <operand> = <expression>
+     *
+     */
+    objective operand(const objective& expression,
+                      const objective& region,
+                      const objective& continuation)
+    {
+      if (expression && expression.is<pair>())
       {
-        return args(
-                 cdr(exp),
-                 scope,
-                 compile(car(exp), scope, cons(CONS, continuation))
+        return operand(
+                 cdr(expression),
+                 region,
+                 compile(car(expression), region, cons(CONS, continuation))
                );
       }
       else
       {
-        return compile(exp, scope, continuation);
+        return compile(expression, region, continuation);
       }
+    }
+
+    objective let(const objective& expression,
+                  const objective& lexical_environment,
+                  const objective& continuation)
+    {
+      auto binding_specs {car(expression)};
+
+      return operand(
+               map([](auto&& e) { return cadr(e); }, binding_specs), // <arguments>
+               lexical_environment,
+               cons(
+                 LDF,
+                 body(
+                   cdr(expression), // <body>
+                   cons(
+                     map([](auto&& e) { return car(e); }, binding_specs), // <formals>
+                     lexical_environment
+                   ),
+                   list(RETURN)
+                 ),
+                 APPLY, continuation
+               )
+             );
     }
   };
 } // namespace meevax::system

@@ -67,5 +67,11 @@ extern "C"
     using namespace meevax::system;
     return car(args).as<number>() < cadr(args).as<number>() ? true_v : false_v;
   }
+
+  PROCEDURE(greater)
+  {
+    using namespace meevax::system;
+    return car(args).as<number>() > cadr(args).as<number>() ? true_v : false_v;
+  }
 } // extern "C"
 
