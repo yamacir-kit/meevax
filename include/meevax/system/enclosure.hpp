@@ -1,8 +1,11 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
 
+#include <algorithm> // std::equal
 #include <functional> // std::invoke
+#include <string> // std::string
 #include <unordered_map> // std::unoredered_map
+#include <type_traits> // std::integral_constant
 
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/machine.hpp>
@@ -15,12 +18,15 @@ namespace meevax::system
   template <int Version>
   static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
 
-  struct enclosure
+  class enclosure
     : public closure // inherits pair type virtually
-    , public reader<enclosure> // TODO ポートとして独立させること
+    , public reader<enclosure>
     , public machine<enclosure>
-    , private std::unordered_map<std::string, objective> // namespace
   {
+    std::unordered_map<std::string, objective> symbols;
+
+    cursor exported;
+
   public: // Constructors
     // for syntactic-lambda
     enclosure() = default;
@@ -29,7 +35,7 @@ namespace meevax::system
     template <int Version>
     enclosure(std::integral_constant<int, Version>);
 
-    // for load
+    // for library constructor
     template <typename... Ts>
     constexpr enclosure(Ts&&... args)
       : pair {std::forward<Ts>(args)...} // virtual base of closure
@@ -49,13 +55,13 @@ namespace meevax::system
 
     const auto& intern(const std::string& s)
     {
-      if (auto iter {find(s)}; iter != std::unordered_map<std::string, objective>::end())
+      if (auto iter {symbols.find(s)}; iter != std::end(symbols))
       {
         return iter->second;
       }
       else
       {
-        iter = emplace(s, make<symbol>(s)).first;
+        iter = symbols.emplace(s, make<symbol>(s)).first;
         return iter->second;
       }
     }
@@ -86,24 +92,6 @@ namespace meevax::system
     }
 
   public:
-    // From R7RS 6.14. System Interface
-    //
-    //   (load <filename>)                               load library procedure
-    //
-    //   (load <filename> <environment-specifier>)       load library procedure
-    //
-    // It is an error if filename is not a string.
-    //
-    // An implementation-dependent operation is used to transform filename into
-    // the name of an existing file containing Scheme source code. The load
-    // procedure reads expressions and definitions from the file and evaluates
-    // them sequentially in the environment specified by <environment-specifier>.
-    // If environment-specifier is omitted, (interaction-environment) is assumed.
-    //
-    // Rationale: For portability, load must operate on source files. Its
-    // operation on other kinds of files necessarily varies among
-    // implementations.
-    //
     template <typename... Ts>
     decltype(auto) load(Ts&&... args)
     {
@@ -116,9 +104,7 @@ namespace meevax::system
         std::swap(*this, port);
 
         d.push(s, e, c);
-        s = unit;
-        e = unit;
-        c = unit;
+        s = e = c = unit;
 
         while (ready()) try
         {
@@ -153,53 +139,6 @@ namespace meevax::system
       }
     }
 
-    // From R7RS 5.2. Import Declarations
-    //
-    // An import declaration takes the following form:
-    //
-    //   (import <import-set> ...)
-    //
-    // An import declaration provides a way to import identifiers exported by a
-    // library. Each <import-set> names a set of bindings from a library and
-    // possibly specifies local names for the imported bindings. It takes one
-    // of the following forms:
-    //
-    //   <library-name>
-    //
-    //   (only <import-set> <identifier> ...)
-    //
-    //   (except <import-set> <identifier> ...)
-    //
-    //   (prefix <import-set> <identifier>)
-    //
-    //   (rename <import-set> (<identifier_1> <identifier_2> ...)
-    //
-    // In the first form, all of the identifiers in the named library's export
-    // clauses are imported with the same names (or the exported names if
-    // exported with rename). The additional <import-set> forms modify this set
-    // as follows:
-    //
-    //   only produces a subset of the given <import-set> including only the
-    //   listed identifiers (after any renaming). It is an error if any of the
-    //   listed identifiers are not found in the original set.
-    //
-    //   except produces a subset of the given <import-set>, excluding the
-    //   listed identifiers (after any renaming). It is an error if any of the
-    //   listed identifiers are not found in the original set.
-    //
-    //   rename modifies the given <import-set>, replacing each instance of
-    //   <identifier_1> with <identifier_2>. It is an error if any of the listed
-    //   <identifier_1>s are not found in the original set.
-    //
-    //   prefix automatically renames all identifiers in the given <import-set>,
-    //   prefixing each with the specified identifier.
-    //
-    // In a program or library declaration, it is an error to import the same
-    // identifier more than once with different bindings, or to redefine or
-    // mutate an imported binding with a definition or with set!, or to refer to
-    // an identifier before it is imported. However, a REPL should permit these
-    // actions.
-    //
     template <typename... Ts>
     decltype(auto) import(Ts&&... args)
     {
@@ -207,128 +146,166 @@ namespace meevax::system
   };
 
   template <>
-  enclosure::enclosure<7>(std::integral_constant<int, 7>)
+  enclosure::enclosure(std::integral_constant<int, 7>)
   {
-    define<special>("quote", [&](auto&& expr,
-                                 auto&&,
-                                 auto&& continuation)
+    /** 7.1.3
+     *
+     * <quoation> = '<datum> | (quote <datum>)
+     *
+     */
+    define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
     {
-      TRACE("compile") << cadr(expr) << " ; => is quoted data" << std::endl;
-      return cons(LDC, cadr(expr), continuation);
+      TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
+      return cons(LDC, car(expression), continuation);
     });
 
-    define<special>("car", [&](auto&& exp,
-                               auto&& scope,
-                               auto&& continuation)
+    define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
-               cadr(exp),
+               car(exp),
                scope,
                cons(CAR, continuation)
              );
     });
 
-    define<special>("cdr", [&](auto&& exp,
-                               auto&& scope,
-                               auto&& continuation)
+    define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
-               cadr(exp),
+               car(exp),
                scope,
                cons(CDR, continuation)
              );
     });
 
-    define<special>("cons", [&](auto&& exp,
-                                auto&& scope,
-                                auto&& continuation)
+    define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       return compile(
-               caddr(exp),
+               cadr(exp),
                scope,
-               compile(cadr(exp), scope, cons(CONS, continuation))
+               compile(car(exp), scope, cons(CONS, continuation))
              );
     });
 
-    define<special>("if", [&](auto&& exp,
-                              auto&& scope,
-                              auto&& continuation)
+    /** 7.1.3
+     *
+     * <conditional> = (if <test> <consequent> <alternate>)
+     *
+     * <test> = <expression>
+     * <consequent> = <expression>
+     * <alternate> = <expression> | <empty>
+     *
+     */
+    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <test>" << std::endl;
+      TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
       return compile(
-               cadr(exp), // conditional expression
-               scope,
+               car(expression), // <test>
+               lexical_environment,
                cons(
                  SELECT,
-                 compile( caddr(exp), scope, list(JOIN)), // consequent expression
-                 compile(cadddr(exp), scope, list(JOIN)), // alternate expression
+                 compile(cadr(expression), lexical_environment, list(JOIN)), // <consequent>
+                 cddr(expression) ? compile(caddr(expression), lexical_environment, list(JOIN)) : unspecified, // <alternate>
                  continuation
                )
              );
     });
 
-    define<special>("define", [&](auto&& exp,
-                                  auto&& scope,
-                                  auto&& continuation)
+    define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <variable>" << std::endl;
-      return compile(
-               caddr(exp),
+      TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
+
+      if (not region)
+      {
+        return compile(
+                 cdr(expression) ? cadr(expression) : undefined,
+                 region,
+                 cons(DEFINE, car(expression), continuation)
+               );
+      }
+      else
+      {
+        throw error {"INTERNAL DEFINE DETECTED (CURRENTLY UNSUPPORTED)"};
+      }
+    });
+
+    /** 7.1.3
+     *
+     * (begin <sequence>)
+     *
+     */
+    define<special>("begin", [&](auto&& expression, auto&& scope, auto&& continuation)
+    {
+      return sequence(
+               expression,
                scope,
-               cons(DEFINE, cadr(exp), continuation)
+               continuation
              );
     });
 
-    define<special>("lambda", [&](auto&& exp,
-                                  auto&& scope,
-                                  auto&& continuation)
+    /** 7.1.3
+     *
+     * <lambda expression> = (lambda <formals> <body>)
+     *
+     * <formals> = (<identifier>*) | (<identifier>+ . <identifier>) | <identifier>
+     *
+     */
+    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
+      TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
       return cons(
                LDF,
                body(
-                 cddr(exp),
-                 cons(
-                   cadr(exp), // parameters
-                   scope
-                 ),
-                 list(RETURN)
+                 cdr(expression), // <body>
+                 cons(car(expression), lexical_environment), // extend lexical environment
+                 list(RETURN) // continuation of body (finally, must be return)
                ),
                continuation
              );
     });
 
-    define<special>("macro", [&](auto&& exp,
-                                 auto&& scope,
-                                 auto&& continuation)
+    /** 7.1.3
+     *
+     * (let (<binding-spec>*) <body>)
+     *
+     * (let <identifier> (<binding-spec>*) <body>)
+     *
+     */
+    define<special>("let", [&](auto&& expression, auto&& region, auto&& continuation)
     {
-      TRACE("compile") << cadr(exp) << " ; => is <formals>" << std::endl;
+      if (car(expression).template is<pair>())
+      {
+        return let(expression, region, continuation);
+      }
+      else // named-let
+      {
+        return continuation; // TODO
+      }
+    });
+
+    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
+    {
+      TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
       return cons(
                LDM,
                body(
-                 cddr(exp),
-                 cons(
-                   cadr(exp), // parameters
-                   scope
-                 ),
+                 cdr(exp),
+                 cons(car(exp), scope),
                  list(RETURN)
                ),
                continuation
              );
     });
 
-    define<special>("set!", [&](auto&& exp,
-                                auto&& scope,
-                                auto&& continuation)
+    define<special>("set!", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       if (!exp)
       {
-        throw error {"setting to unit"};
+        throw error {__FILE__, ": ", __LINE__};
       }
-      else if (auto location {locate(cadr(exp), scope)}; location)
+      else if (auto location {locate(car(exp), scope)}; location)
       {
         return compile(
-                 caddr(exp),
+                 cadr(exp),
                  scope,
                  cons(SETL, location, continuation)
                );
@@ -336,9 +313,9 @@ namespace meevax::system
       else
       {
         return compile(
-                 caddr(exp),
+                 cadr(exp),
                  scope,
-                 cons(SETG, cadr(exp), continuation)
+                 cons(SETG, car(exp), continuation)
                );
       }
     });

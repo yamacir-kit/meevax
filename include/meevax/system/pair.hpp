@@ -12,6 +12,7 @@ namespace meevax::system
   extern "C" const objective unit;
   extern "C" const objective unbound;
   extern "C" const objective undefined;
+  extern "C" const objective unspecified;
 
   struct pair
     : public std::pair<objective, objective>
