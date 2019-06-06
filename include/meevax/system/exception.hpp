@@ -5,6 +5,8 @@
 #include <stdexcept> // std::runtime_error
 #include <type_traits> // std::is_constructible
 
+#include <meevax/concepts/requires.hpp>
+
 // exception
 //  |-- error
 //  |    `-- syntax_error
@@ -15,10 +17,7 @@ namespace meevax::system
   struct exception
     : public std::runtime_error
   {
-    template <typename S,
-              typename = typename std::enable_if<
-                           std::is_constructible<std::string, S>::value
-                         >::type>
+    template <typename S, REQUIRES(std::is_constructible<std::string, S>)>
     constexpr exception(S&& s)
       : std::runtime_error {std::forward<S>(s)}
     {}
