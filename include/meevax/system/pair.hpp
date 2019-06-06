@@ -12,6 +12,7 @@ namespace meevax::system
   extern "C" const objective unit;
   extern "C" const objective unbound;
   extern "C" const objective undefined;
+  extern "C" const objective unspecified;
 
   struct pair
     : public std::pair<objective, objective>
@@ -29,6 +30,9 @@ namespace meevax::system
     return objective::bind<T>(std::forward<Ts>(args)...);
   }
 
+  // TODO ここに書くと内部エラーとユーザコードのエラーが区別できない
+  //      セレクタをプロシージャに変更する時にこれを内部エラー通知にして、
+  //      ヌルチェックを別途プロシージャのスタブ側に追加すること！
   static constexpr auto* acception_message {"accessing to unit; meevax accept this (treat unit as injective) but is non-standard Scheme behavior"};
 
   // XXX UGLY CODE

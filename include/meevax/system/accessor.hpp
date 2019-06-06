@@ -1,13 +1,42 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
 
+#include <cassert>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
 #include <type_traits> // std::conditional
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
+#include <meevax/concepts/is_equality_comparable.hpp>
+#include <meevax/concepts/is_stream_insertable.hpp>
+
+// #include <boost/type_traits/is_virtual_base_of.hpp>
+//
+// boost::is_virtual_base_of<TopType, BoundType>::value, TopType, BoundType
+//
+// struct hoge
+//   : public virtual TopType
+// {
+//   hoge()            = default;
+//   hoge(const hoge&) = default;
+//
+//   hoge(hoge&& moved)
+//   {
+//     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
+//   }
+//
+//   hoge& operator=(const hoge&) = default;
+//
+//   hoge& operator=(hoge&& moved)
+//   {
+//     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
+//     return *this;
+//   }
+// };
+
 #include <meevax/system/exception.hpp>
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax::system
 {
@@ -22,7 +51,29 @@ namespace meevax::system
 
     virtual std::shared_ptr<T> copy() const
     {
-      return std::make_shared<T>(static_cast<const T&>(*this));
+      if constexpr (std::is_copy_constructible<T>::value)
+      {
+        return std::make_shared<T>(static_cast<const T&>(*this));
+      }
+      else
+      {
+        using meevax::utility::demangle;
+        throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(T)), " is not copy-constructible."};
+      }
+    }
+
+    virtual bool equals(const std::shared_ptr<T>& rhs) const
+    {
+      if constexpr (concepts::is_equality_comparable<T>::value)
+      {
+        const auto rhs_ {std::dynamic_pointer_cast<const T>(rhs)};
+        assert(rhs_);
+        return static_cast<const T&>(*this) == *rhs_;
+      }
+      else
+      {
+        return false;
+      }
     }
 
     virtual std::ostream& write(std::ostream& os) const
@@ -42,12 +93,8 @@ namespace meevax::system
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... args)
-        : std::conditional<
-            // XXX 注意
-            // トップ型を仮想継承した型をバインドする場合は、コンストラクタ引数をすべて基底クラスに流し込む
-            // かなりクセのある挙動だが、初期化タイミング都合こうするしか無さそう
+        : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<TopType, BoundType>::value, TopType, BoundType
-            // TODO std::is_virtual_base_of があるなら置き換えること
           >::type {std::forward<Ts>(args)...}
       {}
 
@@ -62,13 +109,41 @@ namespace meevax::system
       std::shared_ptr<TopType> copy() const override
       {
         using binding = binder<BoundType>;
-        return std::make_shared<binding>(*this);
+
+        if constexpr (std::is_copy_constructible<binding>::value)
+        {
+          return std::make_shared<binding>(*this);
+        }
+        else
+        {
+          using meevax::utility::demangle;
+          throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(BoundType)), " is not copy-constructible."};
+        }
+      }
+
+      bool equals(const std::shared_ptr<TopType>& rhs) const override
+      {
+        if constexpr (concepts::is_equality_comparable<BoundType>::value)
+        {
+          return static_cast<const BoundType&>(*this) == *std::dynamic_pointer_cast<const BoundType>(rhs);
+        }
+        else
+        {
+          return false;
+        }
       }
 
       // Override TopType::write(), then invoke BoundType's stream output operator.
       std::ostream& write(std::ostream& os) const override
       {
-        return os << static_cast<const BoundType&>(*this);
+        if constexpr (concepts::is_stream_insertable<BoundType>::value)
+        {
+          return os << static_cast<const BoundType&>(*this);
+        }
+        else
+        {
+          return os << "\x1b[36m#<" << utility::demangle(typeid(BoundType)) << " " << static_cast<const BoundType*>(this) << ">\x1b[0m";
+        }
       }
     };
 
@@ -108,10 +183,35 @@ namespace meevax::system
       return access().type() == typeid(T);
     }
 
+    // TODO
+    // ポインタを返すキャストインタフェースを用意して、
+    // ダイナミックキャスト後のポインタの無効値部分に型情報を埋め込む事で、
+    // 将来的なコンパイラ最適化に使えるかも
     template <typename T>
     decltype(auto) as() const
     {
+      // const void* before {&access()};
+      // const void* casted {&dynamic_cast<const T&>(access())};
+      // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
       return dynamic_cast<const T&>(access());
+    }
+
+    template <typename T>
+    decltype(auto) as()
+    {
+      return dynamic_cast<T&>(access());
+    }
+
+    bool equals(const accessor& rhs) const
+    {
+      if (access().type() != rhs.access().type())
+      {
+        return false;
+      }
+      else
+      {
+        return access().equals(rhs);
+      }
     }
   };
 

@@ -1,11 +1,11 @@
 #!/bin/sh -eu
 
-project=$(cd "$(dirname $0)"; pwd) # script path
+project="$(cd "$(dirname $0)"; pwd)" # script path
 
 for each in "$@"
 do
   case "$@" in
-    "--rebuild" )
+    "-b" | "--build" )
       sh $project/build.sh
       break;;
   esac
@@ -18,12 +18,17 @@ then
   sh $project/build.sh
 fi
 
-tests="$project/tests"
-script="$tests/meta-circular-evaluator.scm"
+script="$project/test/test.scm"
 
 $build/meevax < $script #| sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' | tee $script.result
 
-gprof $build/meevax | grep -e "std::shared_ptr<meevax::system::pair>::shared_ptr(\|std::shared_ptr<meevax::system::pair>::operator=(" | grep -v "\["
+T='std::shared_ptr<meevax::system::pair>'
+
+gprof $build/meevax \
+  | grep -e "$T::shared_ptr(\|$T::operator=(" \
+  | grep -v '\[' \
+  | sed "s/$T:://g" \
+  | sed "s/$T/objective/g"
 
 # gprof $build/meevax | $build/gprof2dot.py -w | dot -Tpng -o $build/output.png
 # eog $build/output.png

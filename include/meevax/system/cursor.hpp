@@ -4,6 +4,7 @@
 #include <iterator>
 
 #include <meevax/system/pair.hpp>
+#include <meevax/system/srfi-1.hpp>
 
 namespace meevax::system
 {
@@ -78,7 +79,7 @@ namespace meevax::system
 
     decltype(auto) size() const
     {
-      return std::distance(std::begin(*this), std::end(*this));
+      return length(*this);
     }
 
     template <typename... Ts>
@@ -101,6 +102,7 @@ namespace meevax::system
     }
 
     // pop() is NOT special case of pop(1) above.
+    // XXX コードは綺麗になるがコピーが発生するため将来的には除去しないといけない
     decltype(auto) pop() // TODO RENAME
     {
       return pop_back();

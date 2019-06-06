@@ -2,14 +2,13 @@
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/character.hpp>
 #include <meevax/system/closure.hpp>
+#include <meevax/system/enclosure.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/module.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/string.hpp>
-#include <meevax/system/syntax.hpp>
 
 namespace meevax::system
 {
@@ -22,12 +21,12 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const character& c)
   {
-    return os << "\x1B[0;36m#\\" << static_cast<const std::basic_string<char8_t>&>(c) << "\x1b[0m";
+    return os << "\x1b[0;36m#\\" << static_cast<const std::basic_string<char8_t>&>(c) << "\x1b[0m";
   }
 
-  std::ostream& operator<<(std::ostream& os, const closure&)
+  std::ostream& operator<<(std::ostream& os, const closure& closure)
   {
-    return os << "#<closure>";
+    return os << "\x1b[0;36m#<closure " << &closure << ">\x1b[0m";
   }
 
   std::ostream& operator<<(std::ostream& os, const exception& e)
@@ -43,11 +42,6 @@ namespace meevax::system
   std::ostream& operator<<(std::ostream& os, const warning& w)
   {
     return os << "\x1b[33m#<warning \"" << w.what() << "\">\x1b[0m";
-  }
-
-  std::ostream& operator<<(std::ostream& os, const module& module)
-  {
-    return os << "#<module " << module.name << ">";
   }
 
   std::ostream& operator<<(std::ostream& os, const number& number)
@@ -76,7 +70,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const procedure& procedure)
   {
-    return os << "#<procedure " << procedure.name << ">";
+    return os << "\x1b[0;36m#<procedure " << procedure.name << ">\x1b[0m";
   }
 
   std::ostream& operator<<(std::ostream& os, const string& s)
@@ -93,12 +87,12 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const special& special)
   {
-    return os << "#<special " << special.name << ">";
+    return os << "\x1B[0;36m#<special " << special.name << ">\x1b[0m";
   }
 
-  std::ostream& operator<<(std::ostream& os, const syntax& syntax)
+  std::ostream& operator<<(std::ostream& os, const enclosure& closure)
   {
-    return os << "#<syntax " << &syntax << ">";
+    return os << "\x1B[0;36m#<enclosure " << &closure << ">\x1b[0m";
   }
 } // namespace meevax::system
 
