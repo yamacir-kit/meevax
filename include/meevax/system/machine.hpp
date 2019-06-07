@@ -3,7 +3,7 @@
 
 #include <functional> // std::invoke
 
-#include <meevax/system/boolean.hpp> // false_v
+#include <meevax/system/boolean.hpp> // _false_
 #include <meevax/system/closure.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
@@ -200,7 +200,7 @@ namespace meevax::system
       case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG(3);
         d.push(cdddr(c));
-        c = car(s) != false_v ? cadr(c) : caddr(c);
+        c = car(s) != _false_ ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 

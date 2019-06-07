@@ -65,13 +65,13 @@ extern "C"
   PROCEDURE(less)
   {
     using namespace meevax::system;
-    return car(args).as<number>() < cadr(args).as<number>() ? true_v : false_v;
+    return car(args).as<number>() < cadr(args).as<number>() ? _true_ : _false_;
   }
 
   PROCEDURE(greater)
   {
     using namespace meevax::system;
-    return car(args).as<number>() > cadr(args).as<number>() ? true_v : false_v;
+    return car(args).as<number>() > cadr(args).as<number>() ? _true_ : _false_;
   }
 } // extern "C"
 

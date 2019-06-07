@@ -10,8 +10,8 @@ namespace meevax::system
   const objective undefined {make<exception>("undefined")};
   const objective unspecified {make<exception>("unspecified")};
 
-  const objective true_v  {make<std::true_type>()};
-  const objective false_v {make<std::false_type>()};
+  const objective _true_  {make<std::true_type>()};
+  const objective _false_ {make<std::false_type>()};
 } // namespace meevax::system
 
 

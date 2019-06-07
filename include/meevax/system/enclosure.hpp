@@ -130,12 +130,12 @@ namespace meevax::system
         e = d.pop();
         c = d.pop();
 
-        return true_v;
+        return _true_;
       }
       else
       {
         std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
-        return false_v;
+        return _false_;
       }
     }
 

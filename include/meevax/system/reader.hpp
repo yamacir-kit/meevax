@@ -10,6 +10,8 @@
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
 
+// TODO ポート型として標準ストリームを使うこと（リーダはストリームアダプタ）
+
 namespace meevax::system
 {
   template <typename Module> // XXX 管理上独立しているが、シンボルテーブルを管理するモジュールシステムによって駆動されることを前提とする
@@ -45,7 +47,7 @@ namespace meevax::system
       return static_cast<Module&>(*this).intern(std::forward<Ts>(args)...);
     }
 
-    objective read() noexcept(false)
+    objective read()
     {
       std::string buffer {};
 
@@ -189,11 +191,11 @@ namespace meevax::system
       {
       case 't':
         read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
-        return true_v;
+        return _true_;
 
       case 'f':
         read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
-        return false_v;
+        return _false_;
 
       default:
         return undefined;
