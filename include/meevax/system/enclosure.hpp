@@ -82,10 +82,10 @@ namespace meevax::system
       e = list(arguments);
       c = std::get<0>(*this);
       d = cons(
-            unit,       // s
-            unit,       // e
-            list(STOP), // c
-            unit        // d
+            unit,         // s
+            unit,         // e
+            list(_stop_), // c
+            unit          // d
           );
 
       return execute();
@@ -156,7 +156,7 @@ namespace meevax::system
     define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
-      return cons(LDC, car(expression), continuation);
+      return cons(_ldc_, car(expression), continuation);
     });
 
     define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
@@ -164,7 +164,7 @@ namespace meevax::system
       return compile(
                car(exp),
                scope,
-               cons(CAR, continuation)
+               cons(_car_, continuation)
              );
     });
 
@@ -173,7 +173,7 @@ namespace meevax::system
       return compile(
                car(exp),
                scope,
-               cons(CDR, continuation)
+               cons(_cdr_, continuation)
              );
     });
 
@@ -182,7 +182,7 @@ namespace meevax::system
       return compile(
                cadr(exp),
                scope,
-               compile(car(exp), scope, cons(CONS, continuation))
+               compile(car(exp), scope, cons(_cons_, continuation))
              );
     });
 
@@ -202,9 +202,9 @@ namespace meevax::system
                car(expression), // <test>
                lexical_environment,
                cons(
-                 SELECT,
-                 compile(cadr(expression), lexical_environment, list(JOIN)), // <consequent>
-                 cddr(expression) ? compile(caddr(expression), lexical_environment, list(JOIN)) : unspecified, // <alternate>
+                 _select_,
+                 compile(cadr(expression), lexical_environment, list(_join_)), // <consequent>
+                 cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_)) : unspecified, // <alternate>
                  continuation
                )
              );
@@ -219,7 +219,7 @@ namespace meevax::system
         return compile(
                  cdr(expression) ? cadr(expression) : undefined,
                  region,
-                 cons(DEFINE, car(expression), continuation)
+                 cons(_define_, car(expression), continuation)
                );
       }
       else
@@ -253,11 +253,11 @@ namespace meevax::system
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
       return cons(
-               LDF,
+               _ldf_,
                body(
                  cdr(expression), // <body>
                  cons(car(expression), lexical_environment), // extend lexical environment
-                 list(RETURN) // continuation of body (finally, must be return)
+                 list(_return_) // continuation of body (finally, must be return)
                ),
                continuation
              );
@@ -286,11 +286,11 @@ namespace meevax::system
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
       return cons(
-               LDM,
+               _ldm_,
                body(
                  cdr(exp),
                  cons(car(exp), scope),
-                 list(RETURN)
+                 list(_return_)
                ),
                continuation
              );
@@ -307,7 +307,7 @@ namespace meevax::system
         return compile(
                  cadr(exp),
                  scope,
-                 cons(SETL, location, continuation)
+                 cons(_setl_, location, continuation)
                );
       }
       else
@@ -315,7 +315,7 @@ namespace meevax::system
         return compile(
                  cadr(exp),
                  scope,
-                 cons(SETG, car(exp), continuation)
+                 cons(_setg_, car(exp), continuation)
                );
       }
     });

@@ -48,11 +48,11 @@ namespace meevax::system
 
     objective compile(const objective& exp,
                       const objective& scope = unit,
-                      const objective& continuation = list(STOP))
+                      const objective& continuation = list(_stop_))
     {
       if (not exp)
       {
-        return cons(LDC, unit, continuation);
+        return cons(_ldc_, unit, continuation);
       }
       else if (not exp.is<pair>())
       {
@@ -63,20 +63,20 @@ namespace meevax::system
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << list(LDL, location) << std::endl;
-            return cons(LDL, location, continuation);
+            std::cerr << "is local variable => " << list(_ldl_, location) << std::endl;
+            return cons(_ldl_, location, continuation);
           }
           else
           {
             // load variable value from global-environment at runtime
-            std::cerr << "is global variable => " << list(LDG, exp) << std::endl;
-            return cons(LDG, exp, continuation);
+            std::cerr << "is global variable => " << list(_ldg_, exp) << std::endl;
+            return cons(_ldg_, exp, continuation);
           }
         }
         else // is self-evaluation
         {
-          std::cerr << "is self-evaluation => " << list(LDC, exp) << std::endl;
-          return cons(LDC, exp, continuation);
+          std::cerr << "is self-evaluation => " << list(_ldc_, exp) << std::endl;
+          return cons(_ldc_, exp, continuation);
         }
       }
       else // is (application . arguments)
@@ -122,7 +122,7 @@ namespace meevax::system
           auto result {operand(
                    cdr(exp),
                    scope,
-                   compile(car(exp), scope, cons(APPLY, continuation))
+                   compile(car(exp), scope, cons(_apply_, continuation))
                  )};
           NEST_OUT;
           return result;
@@ -387,7 +387,7 @@ namespace meevax::system
                car(expression),
                region,
                cdr(expression) ? cons(
-                                   POP,
+                                   _pop_,
                                    sequence(cdr(expression), region, continuation)
                                  )
                                : continuation
@@ -407,7 +407,7 @@ namespace meevax::system
                car(expression),
                region,
                cdr(expression) ? cons(
-                                   POP,
+                                   _pop_,
                                    sequence(cdr(expression), region, continuation)
                                  )
                                : continuation
@@ -445,7 +445,7 @@ namespace meevax::system
         return operand(
                  cdr(expression),
                  region,
-                 compile(car(expression), region, cons(CONS, continuation))
+                 compile(car(expression), region, cons(_cons_, continuation))
                );
       }
       else
@@ -464,16 +464,16 @@ namespace meevax::system
                map([](auto&& e) { return cadr(e); }, binding_specs), // <arguments>
                lexical_environment,
                cons(
-                 LDF,
+                 _ldf_,
                  body(
                    cdr(expression), // <body>
                    cons(
                      map([](auto&& e) { return car(e); }, binding_specs), // <formals>
                      lexical_environment
                    ),
-                   list(RETURN)
+                   list(_return_)
                  ),
-                 APPLY, continuation
+                 _apply_, continuation
                )
              );
     }

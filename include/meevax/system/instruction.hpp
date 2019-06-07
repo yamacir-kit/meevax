@@ -64,23 +64,23 @@ namespace meevax::system
     return os << "\x1b[0m";
   }
 
-  static const auto APPLY  {make<instruction>(0x00)};
-  static const auto CAR    {make<instruction>(0x01)};
-  static const auto CDR    {make<instruction>(0x02)};
-  static const auto CONS   {make<instruction>(0x03)};
-  static const auto DEFINE {make<instruction>(0x04)};
-  static const auto JOIN   {make<instruction>(0x05)};
-  static const auto LDC    {make<instruction>(0x06)};
-  static const auto LDF    {make<instruction>(0x07)};
-  static const auto LDG    {make<instruction>(0x08)};
-  static const auto LDL    {make<instruction>(0x09)};
-  static const auto LDM    {make<instruction>(0x0a)};
-  static const auto POP    {make<instruction>(0x0b)};
-  static const auto RETURN {make<instruction>(0x0c)};
-  static const auto SELECT {make<instruction>(0x0d)};
-  static const auto SETG   {make<instruction>(0x0e)};
-  static const auto SETL   {make<instruction>(0x0f)};
-  static const auto STOP   {make<instruction>(0x10)};
+  static const auto _apply_  {make<instruction>(0x00)};
+  static const auto _car_    {make<instruction>(0x01)};
+  static const auto _cdr_    {make<instruction>(0x02)};
+  static const auto _cons_   {make<instruction>(0x03)};
+  static const auto _define_ {make<instruction>(0x04)};
+  static const auto _join_   {make<instruction>(0x05)};
+  static const auto _ldc_    {make<instruction>(0x06)};
+  static const auto _ldf_    {make<instruction>(0x07)};
+  static const auto _ldg_    {make<instruction>(0x08)};
+  static const auto _ldl_    {make<instruction>(0x09)};
+  static const auto _ldm_    {make<instruction>(0x0a)};
+  static const auto _pop_    {make<instruction>(0x0b)};
+  static const auto _return_ {make<instruction>(0x0c)};
+  static const auto _select_ {make<instruction>(0x0d)};
+  static const auto _setg_   {make<instruction>(0x0e)};
+  static const auto _setl_   {make<instruction>(0x0f)};
+  static const auto _stop_   {make<instruction>(0x10)};
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
