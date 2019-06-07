@@ -142,7 +142,7 @@ namespace meevax::system
     dispatch:
       switch (c.top().as<instruction>().code)
       {
-      case instruction::secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
+      case secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
         {
           // DEBUG(2);
 
@@ -166,13 +166,13 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
+      case secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
         DEBUG(2);
         s.push(cadr(c));
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
+      case secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG(2);
         if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
@@ -185,62 +185,62 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
+      case secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
         DEBUG(2);
         s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
+      case secd::LDF: // S E (LDF code . C) => (closure . S) E C D
         DEBUG(2);
         s.push(make<closure>(cadr(c), e));
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
+      case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG(3);
         d.push(cdddr(c));
         c = car(s) != _false_ ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
-      case instruction::secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
+      case secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
         DEBUG(1);
         c = car(d);
         d.pop(1);
         goto dispatch;
 
-      case instruction::secd::CAR:
+      case secd::CAR:
         DEBUG(1);
         car(s) = caar(s); // TODO check?
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::CDR:
+      case secd::CDR:
         DEBUG(1);
         car(s) = cdar(s); // TODO check?
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::CONS:
+      case secd::CONS:
         DEBUG(1);
         s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::DEFINE:
+      case secd::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define (change to #<undefined>?)
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::STOP: // (result . S) E (STOP . C) D
+      case secd::STOP: // (result . S) E (STOP . C) D
         DEBUG(1);
         c.pop(1);
         return s.pop(); // car(s);
 
-      case instruction::secd::APPLY:
+      case secd::APPLY:
         DEBUG(1);
 
         if (auto applicable {car(s)}; not applicable)
@@ -265,20 +265,20 @@ namespace meevax::system
         }
         goto dispatch;
 
-      case instruction::secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
+      case secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
         DEBUG(1);
         s = cons(car(s), d.pop());
         e = d.pop();
         c = d.pop();
         goto dispatch;
 
-      case instruction::secd::POP: // (var . S) E (POP . C) D => S E C D
+      case secd::POP: // (var . S) E (POP . C) D => S E C D
         DEBUG(1);
         s.pop(1);
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
+      case secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG(2);
         // TODO
         // (1) 右辺値がユニークな場合はコピーを作らなくても問題ない
@@ -288,7 +288,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
+      case secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
         {
           DEBUG(2);
 

@@ -5,28 +5,30 @@
 
 namespace meevax::system
 {
-  struct instruction
+  enum class secd
   {
-    enum class secd
-    {
-      APPLY,
-      CAR,
-      CDR,
-      CONS,
-      DEFINE,
-      JOIN,
-      LDC, // load constant
-      LDF, // load (function) closure
-      LDG, // load globally
-      LDL, // load locally
-      LDM, // load macro
-      POP,
-      RETURN,
-      SELECT,
-      SETG, // set globally
-      SETL, // set locally
-      STOP,
-    } const code;
+    APPLY,
+    CAR,
+    CDR,
+    CONS,
+    DEFINE,
+    JOIN,
+    LDC, // load constant
+    LDF, // load (function) closure
+    LDG, // load globally
+    LDL, // load locally
+    LDM, // load macro
+    POP,
+    RETURN,
+    SELECT,
+    SETG, // set globally
+    SETL, // set locally
+    STOP,
+  };
+
+  struct instruction // XXX CONVERT TO NUMBER TYPE?
+  {
+    const secd code;
 
     template <typename... Ts>
     instruction(Ts&&... args)
@@ -40,23 +42,23 @@ namespace meevax::system
 
     switch (instruction.code)
     {
-    case instruction::secd::APPLY:  os << "apply";  break;
-    case instruction::secd::CAR:    os << "car";    break;
-    case instruction::secd::CDR:    os << "cdr";    break;
-    case instruction::secd::CONS:   os << "cons";   break;
-    case instruction::secd::DEFINE: os << "define"; break;
-    case instruction::secd::JOIN:   os << "join";   break;
-    case instruction::secd::LDC:    os << "ldc";    break;
-    case instruction::secd::LDF:    os << "ldf";    break;
-    case instruction::secd::LDG:    os << "ldg";    break;
-    case instruction::secd::LDL:    os << "ldl";    break;
-    case instruction::secd::LDM:    os << "ldm";    break;
-    case instruction::secd::POP:    os << "pop";    break;
-    case instruction::secd::RETURN: os << "return"; break;
-    case instruction::secd::SELECT: os << "select"; break;
-    case instruction::secd::SETG:   os << "setg";   break;
-    case instruction::secd::SETL:   os << "setl";   break;
-    case instruction::secd::STOP:   os << "stop";   break;
+    case secd::APPLY:  os << "apply";  break;
+    case secd::CAR:    os << "car";    break;
+    case secd::CDR:    os << "cdr";    break;
+    case secd::CONS:   os << "cons";   break;
+    case secd::DEFINE: os << "define"; break;
+    case secd::JOIN:   os << "join";   break;
+    case secd::LDC:    os << "ldc";    break;
+    case secd::LDF:    os << "ldf";    break;
+    case secd::LDG:    os << "ldg";    break;
+    case secd::LDL:    os << "ldl";    break;
+    case secd::LDM:    os << "ldm";    break;
+    case secd::POP:    os << "pop";    break;
+    case secd::RETURN: os << "return"; break;
+    case secd::SELECT: os << "select"; break;
+    case secd::SETG:   os << "setg";   break;
+    case secd::SETL:   os << "setl";   break;
+    case secd::STOP:   os << "stop";   break;
     }
 
     return os << "\x1b[0m";
