@@ -4,9 +4,9 @@
 #include <functional> // std::function
 #include <string>
 
-#include <meevax/system/pair.hpp> // objective
+#include <meevax/system/pair.hpp> // object
 
-#define SPECIAL(NAME) objective NAME(const objective&, const objective&, const objective&)
+#define SPECIAL(NAME) object NAME(const object&, const object&, const object&)
 
 namespace meevax::system
 {

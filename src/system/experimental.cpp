@@ -24,7 +24,7 @@ extern "C"
   {
     using namespace meevax::system;
 
-    if (const objective& object1 {car(args)}, object2 {cadr(args)}; object1 == object2)
+    if (const object& object1 {car(args)}, object2 {cadr(args)}; object1 == object2)
     {
       return _true_;
     }

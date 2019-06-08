@@ -47,7 +47,7 @@ namespace meevax::system
       return static_cast<Module&>(*this).intern(std::forward<Ts>(args)...);
     }
 
-    objective read()
+    object read()
     {
       std::string buffer {};
 
@@ -185,7 +185,7 @@ namespace meevax::system
       }
     }
 
-    objective expand()
+    object expand()
     {
       switch (peek())
       {

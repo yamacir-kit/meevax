@@ -35,7 +35,7 @@ namespace meevax::system
 
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const objective& key, Ts&&... args)
+    decltype(auto) define(const object& key, Ts&&... args)
     {
     #if 0
       return interaction_environment().push(list(key, std::forward<Ts>(args)...));
@@ -46,9 +46,9 @@ namespace meevax::system
     #endif
     }
 
-    objective compile(const objective& exp,
-                      const objective& scope = unit,
-                      const objective& continuation = list(_stop_))
+    object compile(const object& exp,
+                   const object& scope = unit,
+                   const object& continuation = list(_stop_))
     {
       if (not exp)
       {
@@ -81,7 +81,7 @@ namespace meevax::system
       }
       else // is (application . arguments)
       {
-        if (const objective& buffer {assoc(car(exp), interaction_environment())};
+        if (const object& buffer {assoc(car(exp), interaction_environment())};
             /* std::cerr << "." << std::flush, */ !buffer)
         {
           TRACE("compile") << "(" << car(exp) << " ; => is application of unit => ERROR" << std::endl;
@@ -130,14 +130,14 @@ namespace meevax::system
       }
     }
 
-    decltype(auto) execute(const objective& expression)
+    decltype(auto) execute(const object& expression)
     {
       c = expression;
       std::cerr << "; machine\t; " << c << std::endl;
       return execute();
     }
 
-    objective execute()
+    object execute()
     {
     dispatch:
       switch (c.top().as<instruction>().code)
@@ -341,8 +341,8 @@ namespace meevax::system
     }
 
     // De Bruijn Index
-    objective locate(const objective& variable,
-                     const objective& lexical_environment)
+    object locate(const object& variable,
+                  const object& lexical_environment)
     {
       auto i {0};
 
@@ -379,9 +379,9 @@ namespace meevax::system
      * <command> = <expression>
      *
      */
-    objective sequence(const objective& expression,
-                       const objective& region,
-                       const objective& continuation)
+    object sequence(const object& expression,
+                    const object& region,
+                    const object& continuation)
     {
       return compile(
                car(expression),
@@ -399,9 +399,9 @@ namespace meevax::system
      * <body> = <definition>* <sequence>
      *
      */
-    objective body(const objective& expression,
-                   const objective& region,
-                   const objective& continuation) try
+    object body(const object& expression,
+                const object& region,
+                const object& continuation) try
     {
       return compile(
                car(expression),
@@ -436,9 +436,9 @@ namespace meevax::system
      * <operand> = <expression>
      *
      */
-    objective operand(const objective& expression,
-                      const objective& region,
-                      const objective& continuation)
+    object operand(const object& expression,
+                   const object& region,
+                   const object& continuation)
     {
       if (expression && expression.is<pair>())
       {
@@ -454,9 +454,9 @@ namespace meevax::system
       }
     }
 
-    objective let(const objective& expression,
-                  const objective& lexical_environment,
-                  const objective& continuation)
+    object let(const object& expression,
+               const object& lexical_environment,
+               const object& continuation)
     {
       auto binding_specs {car(expression)};
 

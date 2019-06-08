@@ -1,31 +1,43 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
-#include <meevax/system/accessor.hpp>
+#include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
 
 namespace meevax::system
 {
   struct pair;
 
-  using objective = accessor<pair>;
+  /**
+   * The pair type is always underlies any object type (is performance hack).
+   *
+   * We implemented heterogenous pointer by type-erasure, this is very flexible
+   * but, requires dynamic-cast to restore erased type in any case. So, we
+   * decided to remove typecheck for pair type, by always waste  memory space
+   * for two heterogenous pointer slot (yes, is cons-cell). If pair selector
+   * (car/cdr) always requires typecheck, our system will be unbearlably slowly.
+   * Built-in types are designed to make the best possible use of the fact that
+   * these are pair as well (e.g. closure is pair of expression and lexical
+   * environment, string is linear-list of character, complex, rational).
+   */
+  using object = pointer<pair>;
 
-  extern "C" const objective unit, unbound, undefined, unspecified;
+  extern "C" const object unit, unbound, undefined, unspecified;
 
   struct pair
-    : public std::pair<objective, objective>
+    : public std::pair<object, object>
     , public facade<pair>
   {
     template <typename... Ts>
     constexpr pair(Ts&&... args)
-      : std::pair<objective, objective> {std::forward<Ts>(args)...}
+      : std::pair<object, object> {std::forward<Ts>(args)...}
     {}
   };
 
   template <typename T, typename... Ts>
   constexpr decltype(auto) make(Ts&&... args)
   {
-    return objective::bind<T>(std::forward<Ts>(args)...);
+    return object::bind<T>(std::forward<Ts>(args)...);
   }
 
   #define SELECTOR(NAME, INDEX) \
@@ -49,15 +61,15 @@ namespace meevax::system
   {
     os << "\x1b[35m(\x1b[0m" << std::get<0>(p);
 
-    for (auto e {std::get<1>(p)}; e; e = cdr(e))
+    for (auto object {std::get<1>(p)}; object; object = cdr(object))
     {
-      if (e.is<pair>())
+      if (object.is<pair>())
       {
-        os << " " << car(e);
+        os << " " << car(object);
       }
       else // iter is the last element of dotted-list.
       {
-        os << "\x1b[35m . \x1b[0m" << e;
+        os << "\x1b[35m . \x1b[0m" << object;
       }
     }
 

@@ -9,17 +9,24 @@
 namespace meevax::system
 {
   struct cursor // provides STL supports to cons-cells
-    : public objective
-    , public std::iterator<std::input_iterator_tag, cursor>
+    : public object
   {
-    using reference = cursor&;
+    using iterator_category = std::forward_iterator_tag;
+
+    using value_type = object;
+
+    using reference = value_type&;
     using const_reference = const reference;
+
+    using pointer = value_type; // represents homoiconicity
+
+    using difference_type = std::ptrdiff_t;
 
     using size_type = std::size_t;
 
     template <typename... Ts>
     constexpr cursor(Ts&&... args)
-      : objective {std::forward<Ts>(args)...}
+      : object {std::forward<Ts>(args)...}
     {}
 
   public: // iterator supports
@@ -109,11 +116,11 @@ namespace meevax::system
     }
   };
 
-  cursor begin(const objective& object) noexcept { return object; }
-  cursor begin(      objective& object) noexcept { return object; }
+  cursor begin(const object& object) noexcept { return object; }
+  cursor begin(      object& object) noexcept { return object; }
 
-  cursor end(const objective&) noexcept { return unit; }
-  cursor end(      objective&) noexcept { return unit; }
+  cursor end(const object&) noexcept { return unit; }
+  cursor end(      object&) noexcept { return unit; }
 } // namespace meevax::system
 
 // namespace std

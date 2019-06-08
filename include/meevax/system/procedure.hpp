@@ -6,7 +6,7 @@
 #include <meevax/system/cursor.hpp>
 
 #define PROCEDURE(NAME) \
-  meevax::system::objective NAME(const meevax::system::cursor& args)
+  meevax::system::object NAME(const meevax::system::cursor& args)
 
 namespace meevax::system
 {

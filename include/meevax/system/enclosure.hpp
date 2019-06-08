@@ -23,7 +23,7 @@ namespace meevax::system
     , public reader<enclosure>
     , public machine<enclosure>
   {
-    std::unordered_map<std::string, objective> symbols;
+    std::unordered_map<std::string, object> symbols;
 
     cursor exported;
 
@@ -71,8 +71,8 @@ namespace meevax::system
       return static_cast<cursor&>(std::get<1>(*this));
     }
 
-    // decltype(auto) expand(const objective& arguments, const objective& expansion_context)
-    decltype(auto) expand(const objective& arguments)
+    // decltype(auto) expand(const object& arguments, const object& expansion_context)
+    decltype(auto) expand(const object& arguments)
     {
       std::cerr << "macroexpand " << arguments << std::endl;
 
