@@ -148,7 +148,7 @@ namespace meevax::system
   template <>
   enclosure::enclosure(std::integral_constant<int, 7>)
   {
-    /** 7.1.3
+    /* 7.1.3
      *
      * <quoation> = '<datum> | (quote <datum>)
      *
@@ -186,7 +186,7 @@ namespace meevax::system
              );
     });
 
-    /** 7.1.3
+    /* 7.1.3
      *
      * <conditional> = (if <test> <consequent> <alternate>)
      *
@@ -228,7 +228,7 @@ namespace meevax::system
       }
     });
 
-    /** 7.1.3
+    /* 7.1.3
      *
      * (begin <sequence>)
      *
@@ -242,7 +242,7 @@ namespace meevax::system
              );
     });
 
-    /** 7.1.3
+    /* 7.1.3
      *
      * <lambda expression> = (lambda <formals> <body>)
      *
@@ -263,7 +263,7 @@ namespace meevax::system
              );
     });
 
-    /** 7.1.3
+    /* 7.1.3
      *
      * (let (<binding-spec>*) <body>)
      *

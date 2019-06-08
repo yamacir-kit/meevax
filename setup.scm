@@ -1,19 +1,22 @@
-(define libmeevax-numerical.so (dynamic-link-open "./libmeevax-numerical.so"))
+(define dlopen dynamic-link-open)
+(define dlsym dynamic-link-procedure)
 
-(define * (dynamic-link-procedure libmeevax-numerical.so "multiplication"))
-(define + (dynamic-link-procedure libmeevax-numerical.so "addition"))
-(define - (dynamic-link-procedure libmeevax-numerical.so "subtraction"))
-(define / (dynamic-link-procedure libmeevax-numerical.so "division"))
-(define < (dynamic-link-procedure libmeevax-numerical.so "less"))
-(define > (dynamic-link-procedure libmeevax-numerical.so "greater"))
+(define libmeevax-numerical.so (dlopen "./libmeevax-numerical.so"))
 
-(define libmeevax-experimental.so (dynamic-link-open "./libmeevax-experimental.so"))
+(define * (dlsym libmeevax-numerical.so "multiplication"))
+(define + (dlsym libmeevax-numerical.so "addition"))
+(define - (dlsym libmeevax-numerical.so "subtraction"))
+(define / (dlsym libmeevax-numerical.so "division"))
+(define < (dlsym libmeevax-numerical.so "less"))
+(define > (dlsym libmeevax-numerical.so "greater"))
 
-(define display (dynamic-link-procedure libmeevax-experimental.so "display"))
-(define emergency-exit (dynamic-link-procedure libmeevax-experimental.so "emergency_exit"))
-(define eq? (dynamic-link-procedure libmeevax-experimental.so "addressive_equals"))
-(define eqv? (dynamic-link-procedure libmeevax-experimental.so "semantic_equals"))
-(define pair? (dynamic-link-procedure libmeevax-experimental.so "is_pair"))
+(define libmeevax-experimental.so (dlopen "./libmeevax-experimental.so"))
+
+(define display (dlsym libmeevax-experimental.so "display"))
+(define emergency-exit (dlsym libmeevax-experimental.so "emergency_exit"))
+(define eq? (dlsym libmeevax-experimental.so "addressive_equals"))
+(define eqv? (dlsym libmeevax-experimental.so "semantic_equals"))
+(define pair? (dlsym libmeevax-experimental.so "is_pair"))
 
 (define λ lambda)
 

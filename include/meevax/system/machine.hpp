@@ -281,9 +281,9 @@ namespace meevax::system
       case secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG(2);
         // TODO
-        // (1) 右辺値がユニークな場合はコピーを作らなくても問題ない
-        // (2) 左辺値がユニークな場合は直接書き換えても問題ない
-        // (3) 右辺値が左辺値よりも新しい場合は弱参照をセットしなければならない
+        // (1) There is no need to make copy if right hand side is unique.
+        // (2) There is no matter overwrite if left hand side is unique.
+        // (3) Should set with weak reference if right hand side is newer.
         std::atomic_store(&unsafe_assoc(cadr(c), interaction_environment()), car(s).access().copy());
         c.pop(2);
         goto dispatch;
@@ -372,7 +372,7 @@ namespace meevax::system
     }
 
   protected:
-    /** 7.1.3
+    /* 7.1.3
      *
      * <sequence> = <command>* <expression>
      *
@@ -394,7 +394,7 @@ namespace meevax::system
              );
     }
 
-    /**  7.1.3
+    /*  7.1.3
      *
      * <body> = <definition>* <sequence>
      *
@@ -431,7 +431,7 @@ namespace meevax::system
       // )
     }
 
-    /** 7.1.3
+    /* 7.1.3
      *
      * <operand> = <expression>
      *

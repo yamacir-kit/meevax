@@ -5,8 +5,7 @@
 
 namespace meevax::system
 {
-  extern "C" const objective _true_;
-  extern "C" const objective _false_;
+  extern "C" const objective _true_, _false_;
 
   template <auto Value>
   std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)

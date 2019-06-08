@@ -9,10 +9,7 @@ namespace meevax::system
 
   using objective = accessor<pair>;
 
-  extern "C" const objective unit;
-  extern "C" const objective unbound;
-  extern "C" const objective undefined;
-  extern "C" const objective unspecified;
+  extern "C" const objective unit, unbound, undefined, unspecified;
 
   struct pair
     : public std::pair<objective, objective>

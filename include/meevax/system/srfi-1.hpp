@@ -38,7 +38,7 @@
 // Deletion
 //
 // Association lists
-//   - assoc
+//   - assq
 //
 // Set operations on lists
 //   unimplemented
@@ -208,6 +208,23 @@ namespace meevax::system
     else
     {
       return assoc(var, cdr(env));
+    }
+  }
+
+  const objective& assq(const objective& key,
+                        const objective& alist)
+  {
+    if (!key or !alist)
+    {
+      return _false_;
+    }
+    else if (caar(alist) == key)
+    {
+      return car(alist);
+    }
+    else
+    {
+      return assq(key, cdr(alist));
     }
   }
 
