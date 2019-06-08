@@ -42,7 +42,7 @@ namespace meevax::system
     #else
       interaction_environment().push(list(key, std::forward<Ts>(args)...));
       std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
-      return interaction_environment();
+      return interaction_environment(); // temporary
     #endif
     }
 
@@ -130,9 +130,9 @@ namespace meevax::system
       }
     }
 
-    decltype(auto) execute(const objective& exp)
+    decltype(auto) execute(const objective& expression)
     {
-      c = exp;
+      c = expression;
       std::cerr << "; machine\t; " << c << std::endl;
       return execute();
     }

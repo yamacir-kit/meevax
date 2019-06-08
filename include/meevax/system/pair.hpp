@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
 #include <meevax/system/accessor.hpp>
+#include <meevax/system/exception.hpp>
 
 namespace meevax::system
 {
@@ -27,16 +28,22 @@ namespace meevax::system
     return objective::bind<T>(std::forward<Ts>(args)...);
   }
 
-  // TODO ここに書くと内部エラーとユーザコードのエラーが区別できない
-  //      セレクタをプロシージャに変更する時にこれを内部エラー通知にして、
-  //      ヌルチェックを別途プロシージャのスタブ側に追加すること！
-  static constexpr auto* acception_message {"accessing to unit; meevax accept this (treat unit as injective) but is non-standard Scheme behavior"};
+  #define SELECTOR(NAME, INDEX) \
+  template <typename Pointer> \
+  decltype(auto) NAME(Pointer&& object) \
+  { \
+    if (object) \
+    { \
+      return std::get<INDEX>(object.dereference()); \
+    } \
+    else \
+    { \
+      throw error {"internal illegal selection rejected"}; \
+    } \
+  }
 
-  // XXX UGLY CODE
-        auto& car(      objective& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-  const auto& car(const objective& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-        auto& cdr(      objective& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-  const auto& cdr(const objective& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+  SELECTOR(car, 0)
+  SELECTOR(cdr, 1)
 
   std::ostream& operator<<(std::ostream&, const pair&);
 } // namespace meevax::system

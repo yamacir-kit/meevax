@@ -164,6 +164,18 @@ namespace meevax::system
       return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
+    decltype(auto) dereference() const
+    {
+      if (*this)
+      {
+        return std::shared_ptr<TopType>::operator*();
+      }
+      else
+      {
+        throw error {"segmentation fault guarded"};
+      }
+    }
+
     decltype(auto) access() const
     {
       if (*this)
