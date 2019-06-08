@@ -12,13 +12,6 @@
 
 namespace meevax::system
 {
-  template <typename T>
-  std::ostream& operator<<(std::ostream& os, const accessor<T>& rhs)
-  {
-    // write(os) will be dispatched to each type's stream output operator.
-    return !rhs ? (os << "\x1b[35m()\x1b[0m") : rhs.access().write(os);
-  }
-
   std::ostream& operator<<(std::ostream& os, const character& c)
   {
     return os << "\x1b[0;36m#\\" << static_cast<const std::basic_string<char8_t>&>(c) << "\x1b[0m";

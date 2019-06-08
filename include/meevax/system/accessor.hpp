@@ -62,6 +62,7 @@ namespace meevax::system
       }
     }
 
+    // eqv?
     virtual bool equals(const std::shared_ptr<T>& rhs) const
     {
       if constexpr (concepts::is_equality_comparable<T>::value)
@@ -176,23 +177,19 @@ namespace meevax::system
       }
     }
 
-    decltype(auto) access() const
-    {
-      if (*this)
-      {
-        return std::shared_ptr<TopType>::operator*();
-      }
-      else
-      {
-        // This exception occurrence is guarded by selecter
-        throw error {"accessing to unit"};
-      }
+    #define SHORT_ACCESS(NAME) \
+    decltype(auto) NAME() const \
+    { \
+      return dereference().NAME(); \
     }
+
+    SHORT_ACCESS(type);
+    SHORT_ACCESS(copy);
 
     template <typename T>
     decltype(auto) is() const
     {
-      return access().type() == typeid(T);
+      return type() == typeid(T);
     }
 
     // TODO
@@ -205,31 +202,36 @@ namespace meevax::system
       // const void* before {&access()};
       // const void* casted {&dynamic_cast<const T&>(access())};
       // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
-      return dynamic_cast<const T&>(access());
+      return dynamic_cast<const T&>(dereference()); // TODO dynamic_pointer_cast
     }
 
     template <typename T>
     decltype(auto) as()
     {
-      return dynamic_cast<T&>(access());
+      return dynamic_cast<T&>(dereference());
     }
 
     bool equals(const accessor& rhs) const
     {
-      if (access().type() != rhs.access().type())
+      if (type() != rhs.type())
       {
         return false;
       }
       else
       {
-        return access().equals(rhs);
+        return dereference().equals(rhs);
       }
     }
   };
 
   // Invoke TopType::write()
   template <typename T>
-  std::ostream& operator<<(std::ostream&, const accessor<T>&);
+  std::ostream& operator<<(std::ostream& os, const accessor<T>& object)
+  {
+    // write(os) will be dispatched to each type's stream output operator.
+    return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().write(os);
+  }
+
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP

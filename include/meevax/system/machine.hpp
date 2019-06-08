@@ -284,7 +284,7 @@ namespace meevax::system
         // (1) There is no need to make copy if right hand side is unique.
         // (2) There is no matter overwrite if left hand side is unique.
         // (3) Should set with weak reference if right hand side is newer.
-        std::atomic_store(&unsafe_assoc(cadr(c), interaction_environment()), car(s).access().copy());
+        std::atomic_store(&unsafe_assoc(cadr(c), interaction_environment()), car(s).copy());
         c.pop(2);
         goto dispatch;
 

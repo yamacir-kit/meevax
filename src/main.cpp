@@ -21,7 +21,7 @@ int main() try
       {
         throw error {
                 "procedure dynamic-link-open expects a string for argument, but received ",
-                meevax::utility::demangle(s.access().type()),
+                meevax::utility::demangle(s.type()),
                 " rest ", size, " argument",
                 (size < 2 ? " " : "s "),
                 "were ignored."
@@ -48,7 +48,7 @@ int main() try
       {
         throw error {
                 "procedure dynamic-link-open expects a linker for first argument, but received ",
-                meevax::utility::demangle(linker.access().type()),
+                meevax::utility::demangle(linker.type()),
                 " rest ", size - 1, " argument",
                 (size < 2 ? " " : "s "),
                 "were ignored."
@@ -58,7 +58,7 @@ int main() try
       {
         throw error {
                 "procedure dynamic-link-open expects a string for second argument, but received ",
-                meevax::utility::demangle(name.access().type()),
+                meevax::utility::demangle(name.type()),
                 " rest ", size - 2, " argument",
                 (size < 3 ? " " : "s "),
                 "were ignored."
