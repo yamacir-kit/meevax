@@ -82,7 +82,6 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${PROJECT_NAME}-literal
-  ${PROJECT_NAME}-write # TODO REMOVE THIS
   dl
   gmp
 )

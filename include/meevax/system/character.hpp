@@ -3,20 +3,16 @@
 
 #include <string>
 
+#include <meevax/utility/perfect_derive.hpp>
+
 namespace meevax::system
 {
-  using char8_t = char;
+  PERFECT_DERIVE(character, public, std::string)
 
-  struct character
-    : public std::basic_string<char8_t>
+  std::ostream& operator<<(std::ostream& os, const character& c)
   {
-    template <typename... Ts>
-    constexpr character(Ts&&... args)
-      : std::basic_string<char8_t> {std::forward<Ts>(args)...}
-    {}
-  };
-
-  std::ostream& operator<<(std::ostream&, const character&);
+    return os << "\x1b[0;36m#\\" << static_cast<const std::string&>(c) << "\x1b[0m";
+  }
 
   constexpr auto backspace {u8'\b'};
 } // namespace meevax::system

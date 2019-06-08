@@ -24,7 +24,10 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream&, const special&);
+  std::ostream& operator<<(std::ostream& os, const special& special)
+  {
+    return os << "\x1B[0;36m#<special " << special.name << ">\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_SPECIAL_HPP

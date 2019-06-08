@@ -6,6 +6,7 @@
 #include <type_traits> // std::is_constructible
 
 #include <meevax/concepts/requires.hpp>
+#include <meevax/utility/perfect_derive.hpp>
 
 // exception
 //  |-- error
@@ -36,37 +37,23 @@ namespace meevax::system
     }
   };
 
-  struct error
-    : public exception
+  PERFECT_DERIVE(error, public, exception)
+  PERFECT_DERIVE(warning, public, exception)
+
+  std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
-    template <typename... Ts>
-    constexpr error(Ts&&... args)
-      : exception {std::forward<Ts>(args)...}
-    {}
-  };
+    return os << "\x1b[31m#<exception \"" << exception.what() << "\">\x1b[0m";
+  }
 
-  // struct syntax_error
-  //   : public error
-  // {
-  //   template <typename... Ts>
-  //   constexpr syntax_error(Ts&&... args)
-  //     : error {std::forward<Ts>(args)...}
-  //   {}
-  // };
-
-  struct warning
-    : public exception
+  std::ostream& operator<<(std::ostream& os, const error& error)
   {
-    template <typename... Ts>
-    constexpr warning(Ts&&... args)
-      : exception {std::forward<Ts>(args)...}
-    {}
-  };
+    return os << "\x1b[31m#<error \"" << error.what() << "\">\x1b[0m";
+  }
 
-  std::ostream& operator<<(std::ostream&, const exception&);
-  std::ostream& operator<<(std::ostream&, const error&);
-  // std::ostream& operator<<(std::ostream&, const syntax_error&);
-  std::ostream& operator<<(std::ostream&, const warning&);
+  std::ostream& operator<<(std::ostream& os, const warning& warning)
+  {
+    return os << "\x1b[33m#<warning \"" << warning.what() << "\">\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP

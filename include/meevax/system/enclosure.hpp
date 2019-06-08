@@ -327,7 +327,10 @@ namespace meevax::system
     });
   } // enclosure class default constructor
 
-  std::ostream& operator<<(std::ostream&, const enclosure&);
+  std::ostream& operator<<(std::ostream& os, const enclosure& enclosure)
+  {
+    return os << "\x1B[0;36m#<enclosure " << &enclosure << ">\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP

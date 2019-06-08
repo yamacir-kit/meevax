@@ -185,11 +185,11 @@ namespace meevax::system
     }
   }
 
-  template <typename Procedure, typename List1, typename List2, typename... Lists>
-  objective map(Procedure procedure, List1&& list1, List2&& list2, Lists&&... lists)
-  {
-    // TODO
-  }
+  // template <typename Procedure, typename List1, typename List2, typename... Lists>
+  // objective map(Procedure procedure, List1&& list1, List2&& list2, Lists&&... lists)
+  // {
+  //   // TODO
+  // }
 
   const objective& assoc(const objective& var, const objective& env)
   {
