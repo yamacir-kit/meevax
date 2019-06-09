@@ -320,10 +320,9 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("load", [&](auto&& args)
+    define<procedure>("load", [&](const object& args)
     {
-      // XXX 今は雑にブーリアンを返してる
-      return load(car(args).template as<string>());
+      return load(car(args).as<const string>());
     });
   } // enclosure class default constructor
 

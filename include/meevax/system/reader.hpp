@@ -14,8 +14,13 @@
 
 namespace meevax::system
 {
-  template <typename Module> // XXX 管理上独立しているが、シンボルテーブルを管理するモジュールシステムによって駆動されることを前提とする
-  class reader // is character oriented state machine.
+  /**
+   * Reader is character oriented state machine provides "read" primitive.
+   *
+   * This type requires the type manages symbol table as template parameter.
+   */
+  template <typename Module>
+  class reader
     : public std::ifstream
   {
     using seeker = std::istream_iterator<std::ifstream::char_type>;

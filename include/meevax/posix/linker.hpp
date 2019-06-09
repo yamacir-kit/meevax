@@ -11,8 +11,14 @@
 
 namespace meevax::posix
 {
+  /**
+   * A toy dynamic-linker provides interface for "dlopen" and "dlsym".
+   */
   class linker
   {
+    /**
+     * The "dlclose" as custom deleter.
+     */
     struct close
     {
       const std::string path;

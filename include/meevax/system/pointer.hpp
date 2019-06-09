@@ -10,31 +10,6 @@
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-
-// #include <boost/type_traits/is_virtual_base_of.hpp>
-//
-// boost::is_virtual_base_of<T, Bound>::value, T, Bound
-//
-// struct hoge
-//   : public virtual T
-// {
-//   hoge()            = default;
-//   hoge(const hoge&) = default;
-//
-//   hoge(hoge&& moved)
-//   {
-//     static_cast<T&>(*this) = static_cast<T&&>(moved);
-//   }
-//
-//   hoge& operator=(const hoge&) = default;
-//
-//   hoge& operator=(hoge&& moved)
-//   {
-//     static_cast<T&>(*this) = static_cast<T&&>(moved);
-//     return *this;
-//   }
-// };
-
 #include <meevax/system/exception.hpp>
 #include <meevax/utility/demangle.hpp>
 
@@ -202,17 +177,12 @@ namespace meevax::system
     // ダイナミックキャスト後のポインタの無効値部分に型情報を埋め込む事で、
     // 将来的なコンパイラ最適化に使えるかも
     template <typename U>
-    decltype(auto) as() const
+    U& as() const
     {
       // const void* before {&access()};
       // const void* casted {&dynamic_cast<const T&>(access())};
       // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
-      return dynamic_cast<const U&>(dereference()); // TODO dynamic_pointer_cast
-    }
 
-    template <typename U>
-    decltype(auto) as()
-    {
       return dynamic_cast<U&>(dereference());
     }
 
