@@ -5,6 +5,9 @@
 #include <stdexcept> // std::runtime_error
 #include <type_traits> // std::is_constructible
 
+#include <meevax/concepts/requires.hpp>
+#include <meevax/utility/perfect_derive.hpp>
+
 // exception
 //  |-- error
 //  |    `-- syntax_error
@@ -15,10 +18,7 @@ namespace meevax::system
   struct exception
     : public std::runtime_error
   {
-    template <typename S,
-              typename = typename std::enable_if<
-                           std::is_constructible<std::string, S>::value
-                         >::type>
+    template <typename S, REQUIRES(std::is_constructible<std::string, S>)>
     constexpr exception(S&& s)
       : std::runtime_error {std::forward<S>(s)}
     {}
@@ -37,37 +37,23 @@ namespace meevax::system
     }
   };
 
-  struct error
-    : public exception
+  PERFECT_DERIVE(error, public, exception)
+  PERFECT_DERIVE(warning, public, exception)
+
+  std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
-    template <typename... Ts>
-    constexpr error(Ts&&... args)
-      : exception {std::forward<Ts>(args)...}
-    {}
-  };
+    return os << "\x1b[31m#<exception \"" << exception.what() << "\">\x1b[0m";
+  }
 
-  // struct syntax_error
-  //   : public error
-  // {
-  //   template <typename... Ts>
-  //   constexpr syntax_error(Ts&&... args)
-  //     : error {std::forward<Ts>(args)...}
-  //   {}
-  // };
-
-  struct warning
-    : public exception
+  std::ostream& operator<<(std::ostream& os, const error& error)
   {
-    template <typename... Ts>
-    constexpr warning(Ts&&... args)
-      : exception {std::forward<Ts>(args)...}
-    {}
-  };
+    return os << "\x1b[31m#<error \"" << error.what() << "\">\x1b[0m";
+  }
 
-  std::ostream& operator<<(std::ostream&, const exception&);
-  std::ostream& operator<<(std::ostream&, const error&);
-  // std::ostream& operator<<(std::ostream&, const syntax_error&);
-  std::ostream& operator<<(std::ostream&, const warning&);
+  std::ostream& operator<<(std::ostream& os, const warning& warning)
+  {
+    return os << "\x1b[33m#<warning \"" << warning.what() << "\">\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP

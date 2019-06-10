@@ -3,7 +3,7 @@
 
 #include <functional> // std::invoke
 
-#include <meevax/system/boolean.hpp> // false_v
+#include <meevax/system/boolean.hpp> // _false_
 #include <meevax/system/closure.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
@@ -35,24 +35,24 @@ namespace meevax::system
 
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const objective& key, Ts&&... args)
+    decltype(auto) define(const object& key, Ts&&... args)
     {
     #if 0
       return interaction_environment().push(list(key, std::forward<Ts>(args)...));
     #else
       interaction_environment().push(list(key, std::forward<Ts>(args)...));
       std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
-      return interaction_environment();
+      return interaction_environment(); // temporary
     #endif
     }
 
-    objective compile(const objective& exp,
-                      const objective& scope = unit,
-                      const objective& continuation = list(STOP))
+    object compile(const object& exp,
+                   const object& scope = unit,
+                   const object& continuation = list(_stop_))
     {
       if (not exp)
       {
-        return cons(LDC, unit, continuation);
+        return cons(_ldc_, unit, continuation);
       }
       else if (not exp.is<pair>())
       {
@@ -63,25 +63,25 @@ namespace meevax::system
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << list(LDL, location) << std::endl;
-            return cons(LDL, location, continuation);
+            std::cerr << "is local variable => " << list(_ldl_, location) << std::endl;
+            return cons(_ldl_, location, continuation);
           }
           else
           {
             // load variable value from global-environment at runtime
-            std::cerr << "is global variable => " << list(LDG, exp) << std::endl;
-            return cons(LDG, exp, continuation);
+            std::cerr << "is global variable => " << list(_ldg_, exp) << std::endl;
+            return cons(_ldg_, exp, continuation);
           }
         }
         else // is self-evaluation
         {
-          std::cerr << "is self-evaluation => " << list(LDC, exp) << std::endl;
-          return cons(LDC, exp, continuation);
+          std::cerr << "is self-evaluation => " << list(_ldc_, exp) << std::endl;
+          return cons(_ldc_, exp, continuation);
         }
       }
       else // is (application . arguments)
       {
-        if (const objective& buffer {assoc(car(exp), interaction_environment())};
+        if (const object& buffer {assoc(car(exp), interaction_environment())};
             /* std::cerr << "." << std::flush, */ !buffer)
         {
           TRACE("compile") << "(" << car(exp) << " ; => is application of unit => ERROR" << std::endl;
@@ -122,7 +122,7 @@ namespace meevax::system
           auto result {operand(
                    cdr(exp),
                    scope,
-                   compile(car(exp), scope, cons(APPLY, continuation))
+                   compile(car(exp), scope, cons(_apply_, continuation))
                  )};
           NEST_OUT;
           return result;
@@ -130,19 +130,19 @@ namespace meevax::system
       }
     }
 
-    decltype(auto) execute(const objective& exp)
+    decltype(auto) execute(const object& expression)
     {
-      c = exp;
+      c = expression;
       std::cerr << "; machine\t; " << c << std::endl;
       return execute();
     }
 
-    objective execute()
+    object execute()
     {
     dispatch:
       switch (c.top().as<instruction>().code)
       {
-      case instruction::secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
+      case secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
         {
           // DEBUG(2);
 
@@ -166,13 +166,13 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
+      case secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
         DEBUG(2);
         s.push(cadr(c));
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
+      case secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
         DEBUG(2);
         if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
@@ -185,62 +185,62 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
+      case secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
         DEBUG(2);
         s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::LDF: // S E (LDF code . C) => (closure . S) E C D
+      case secd::LDF: // S E (LDF code . C) => (closure . S) E C D
         DEBUG(2);
         s.push(make<closure>(cadr(c), e));
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
+      case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
         DEBUG(3);
         d.push(cdddr(c));
-        c = car(s) != false_v ? cadr(c) : caddr(c);
+        c = car(s) != _false_ ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
-      case instruction::secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
+      case secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
         DEBUG(1);
         c = car(d);
         d.pop(1);
         goto dispatch;
 
-      case instruction::secd::CAR:
+      case secd::CAR:
         DEBUG(1);
         car(s) = caar(s); // TODO check?
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::CDR:
+      case secd::CDR:
         DEBUG(1);
         car(s) = cdar(s); // TODO check?
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::CONS:
+      case secd::CONS:
         DEBUG(1);
         s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::DEFINE:
+      case secd::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define (change to #<undefined>?)
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::STOP: // (result . S) E (STOP . C) D
+      case secd::STOP: // (result . S) E (STOP . C) D
         DEBUG(1);
         c.pop(1);
         return s.pop(); // car(s);
 
-      case instruction::secd::APPLY:
+      case secd::APPLY:
         DEBUG(1);
 
         if (auto applicable {car(s)}; not applicable)
@@ -265,30 +265,30 @@ namespace meevax::system
         }
         goto dispatch;
 
-      case instruction::secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
+      case secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
         DEBUG(1);
         s = cons(car(s), d.pop());
         e = d.pop();
         c = d.pop();
         goto dispatch;
 
-      case instruction::secd::POP: // (var . S) E (POP . C) D => S E C D
+      case secd::POP: // (var . S) E (POP . C) D => S E C D
         DEBUG(1);
         s.pop(1);
         c.pop(1);
         goto dispatch;
 
-      case instruction::secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
+      case secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
         DEBUG(2);
         // TODO
-        // (1) 右辺値がユニークな場合はコピーを作らなくても問題ない
-        // (2) 左辺値がユニークな場合は直接書き換えても問題ない
-        // (3) 右辺値が左辺値よりも新しい場合は弱参照をセットしなければならない
-        std::atomic_store(&unsafe_assoc(cadr(c), interaction_environment()), car(s).access().copy());
+        // (1) There is no need to make copy if right hand side is unique.
+        // (2) There is no matter overwrite if left hand side is unique.
+        // (3) Should set with weak reference if right hand side is newer.
+        std::atomic_store(&unsafe_assoc(cadr(c), interaction_environment()), car(s).copy());
         c.pop(2);
         goto dispatch;
 
-      case instruction::secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
+      case secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
         {
           DEBUG(2);
 
@@ -341,8 +341,8 @@ namespace meevax::system
     }
 
     // De Bruijn Index
-    objective locate(const objective& variable,
-                     const objective& lexical_environment)
+    object locate(const object& variable,
+                  const object& lexical_environment)
     {
       auto i {0};
 
@@ -372,42 +372,42 @@ namespace meevax::system
     }
 
   protected:
-    /** 7.1.3
+    /* 7.1.3
      *
      * <sequence> = <command>* <expression>
      *
      * <command> = <expression>
      *
      */
-    objective sequence(const objective& expression,
-                       const objective& region,
-                       const objective& continuation)
+    object sequence(const object& expression,
+                    const object& region,
+                    const object& continuation)
     {
       return compile(
                car(expression),
                region,
                cdr(expression) ? cons(
-                                   POP,
+                                   _pop_,
                                    sequence(cdr(expression), region, continuation)
                                  )
                                : continuation
              );
     }
 
-    /**  7.1.3
+    /*  7.1.3
      *
      * <body> = <definition>* <sequence>
      *
      */
-    objective body(const objective& expression,
-                   const objective& region,
-                   const objective& continuation) try
+    object body(const object& expression,
+                const object& region,
+                const object& continuation) try
     {
       return compile(
                car(expression),
                region,
                cdr(expression) ? cons(
-                                   POP,
+                                   _pop_,
                                    sequence(cdr(expression), region, continuation)
                                  )
                                : continuation
@@ -431,21 +431,21 @@ namespace meevax::system
       // )
     }
 
-    /** 7.1.3
+    /* 7.1.3
      *
      * <operand> = <expression>
      *
      */
-    objective operand(const objective& expression,
-                      const objective& region,
-                      const objective& continuation)
+    object operand(const object& expression,
+                   const object& region,
+                   const object& continuation)
     {
       if (expression && expression.is<pair>())
       {
         return operand(
                  cdr(expression),
                  region,
-                 compile(car(expression), region, cons(CONS, continuation))
+                 compile(car(expression), region, cons(_cons_, continuation))
                );
       }
       else
@@ -454,9 +454,9 @@ namespace meevax::system
       }
     }
 
-    objective let(const objective& expression,
-                  const objective& lexical_environment,
-                  const objective& continuation)
+    object let(const object& expression,
+               const object& lexical_environment,
+               const object& continuation)
     {
       auto binding_specs {car(expression)};
 
@@ -464,16 +464,16 @@ namespace meevax::system
                map([](auto&& e) { return cadr(e); }, binding_specs), // <arguments>
                lexical_environment,
                cons(
-                 LDF,
+                 _ldf_,
                  body(
                    cdr(expression), // <body>
                    cons(
                      map([](auto&& e) { return car(e); }, binding_specs), // <formals>
                      lexical_environment
                    ),
-                   list(RETURN)
+                   list(_return_)
                  ),
-                 APPLY, continuation
+                 _apply_, continuation
                )
              );
     }

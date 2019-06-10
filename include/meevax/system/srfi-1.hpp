@@ -14,8 +14,8 @@
 //   - cons* ... variadic version of cons
 //
 // Predicators
-//   - pair? ... objective::is<pair>
-//   - null? ... objective::operator bool
+//   - pair? ... object::is<pair>
+//   - null? ... object::operator bool
 //
 // Selectors
 //   - car ... in meevax/system/pair.hpp
@@ -38,20 +38,20 @@
 // Deletion
 //
 // Association lists
-//   - assoc
+//   - assq
 //
 // Set operations on lists
 //   unimplemented
 //
 // Primitive side-effects
-//   - set-car! ... objective::operator=
-//   - set-cdr! ... objective::operator=
+//   - set-car! ... object::operator=
+//   - set-cdr! ... object::operator=
 //
 
 namespace meevax::system
 {
   template <typename T, typename U>
-  objective operator|(T&& lhs, U&& rhs)
+  object operator|(T&& lhs, U&& rhs)
   {
     return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
   }
@@ -105,7 +105,7 @@ namespace meevax::system
   #define cdddar(...) cdr(cddar(__VA_ARGS__))
   #define cddddr(...) cdr(cdddr(__VA_ARGS__))
 
-  objective take(const objective& exp, std::size_t size)
+  object take(const object& exp, std::size_t size)
   {
     if (0 < size)
     {
@@ -124,7 +124,7 @@ namespace meevax::system
   }
 
   template <typename List1, typename List2>
-  objective append(List1&& list1, List2&& list2 = unit)
+  object append(List1&& list1, List2&& list2 = unit)
   {
     if (not list1)
     {
@@ -156,7 +156,7 @@ namespace meevax::system
     }
   }
 
-  objective zip(const objective& x, const objective& y)
+  object zip(const object& x, const object& y)
   {
     if (!x && !y)
     {
@@ -173,7 +173,7 @@ namespace meevax::system
   }
 
   template <typename Procedure, typename List>
-  objective map(Procedure procedure, List&& list)
+  object map(Procedure procedure, List&& list)
   {
     if (not list)
     {
@@ -185,13 +185,13 @@ namespace meevax::system
     }
   }
 
-  template <typename Procedure, typename List1, typename List2, typename... Lists>
-  objective map(Procedure procedure, List1&& list1, List2&& list2, Lists&&... lists)
-  {
-    // TODO
-  }
+  // template <typename Procedure, typename List1, typename List2, typename... Lists>
+  // object map(Procedure procedure, List1&& list1, List2&& list2, Lists&&... lists)
+  // {
+  //   // TODO
+  // }
 
-  const objective& assoc(const objective& var, const objective& env)
+  const object& assoc(const object& var, const object& env)
   {
     if (!var)
     {
@@ -211,7 +211,24 @@ namespace meevax::system
     }
   }
 
-  objective& unsafe_assoc(const objective& var, objective& env) noexcept(false)
+  const object& assq(const object& key,
+                     const object& alist)
+  {
+    if (!key or !alist)
+    {
+      return _false_;
+    }
+    else if (caar(alist) == key)
+    {
+      return car(alist);
+    }
+    else
+    {
+      return assq(key, cdr(alist));
+    }
+  }
+
+  object& unsafe_assoc(const object& var, object& env) noexcept(false)
   {
     assert(var);
 

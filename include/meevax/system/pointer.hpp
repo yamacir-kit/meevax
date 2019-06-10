@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
-#define INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
+#define INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
 
 #include <cassert>
 #include <iostream> // std::ostream
@@ -10,31 +10,6 @@
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-
-// #include <boost/type_traits/is_virtual_base_of.hpp>
-//
-// boost::is_virtual_base_of<TopType, BoundType>::value, TopType, BoundType
-//
-// struct hoge
-//   : public virtual TopType
-// {
-//   hoge()            = default;
-//   hoge(const hoge&) = default;
-//
-//   hoge(hoge&& moved)
-//   {
-//     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
-//   }
-//
-//   hoge& operator=(const hoge&) = default;
-//
-//   hoge& operator=(hoge&& moved)
-//   {
-//     static_cast<TopType&>(*this) = static_cast<TopType&&>(moved);
-//     return *this;
-//   }
-// };
-
 #include <meevax/system/exception.hpp>
 #include <meevax/utility/demangle.hpp>
 
@@ -62,6 +37,7 @@ namespace meevax::system
       }
     }
 
+    // eqv?
     virtual bool equals(const std::shared_ptr<T>& rhs) const
     {
       if constexpr (concepts::is_equality_comparable<T>::value)
@@ -82,33 +58,36 @@ namespace meevax::system
     };
   };
 
-  template <typename TopType = facade<void>>
-  class accessor
-    : public std::shared_ptr<TopType>
+  /**
+   * Reference counting garbage collector built-in heteropointer.
+   */
+  template <typename T>
+  class pointer
+    : public std::shared_ptr<T>
   {
-    template <typename BoundType>
+    template <typename Bound>
     struct binder
-      : public BoundType
-      , public virtual TopType
+      : public Bound
+      , public virtual T
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... args)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
-            std::is_base_of<TopType, BoundType>::value, TopType, BoundType
+            std::is_base_of<T, Bound>::value, T, Bound
           >::type {std::forward<Ts>(args)...}
       {}
 
       auto type() const noexcept
         -> const std::type_info& override
       {
-        return typeid(BoundType);
+        return typeid(Bound);
       }
 
     private:
-      // XXX BoundType required CopyConstructible?
-      std::shared_ptr<TopType> copy() const override
+      // XXX Bound required CopyConstructible?
+      std::shared_ptr<T> copy() const override
       {
-        using binding = binder<BoundType>;
+        using binding = binder<Bound>;
 
         if constexpr (std::is_copy_constructible<binding>::value)
         {
@@ -117,15 +96,15 @@ namespace meevax::system
         else
         {
           using meevax::utility::demangle;
-          throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(BoundType)), " is not copy-constructible."};
+          throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(Bound)), " is not copy-constructible."};
         }
       }
 
-      bool equals(const std::shared_ptr<TopType>& rhs) const override
+      bool equals(const std::shared_ptr<T>& rhs) const override
       {
-        if constexpr (concepts::is_equality_comparable<BoundType>::value)
+        if constexpr (concepts::is_equality_comparable<Bound>::value)
         {
-          return static_cast<const BoundType&>(*this) == *std::dynamic_pointer_cast<const BoundType>(rhs);
+          return static_cast<const Bound&>(*this) == *std::dynamic_pointer_cast<const Bound>(rhs);
         }
         else
         {
@@ -133,92 +112,101 @@ namespace meevax::system
         }
       }
 
-      // Override TopType::write(), then invoke BoundType's stream output operator.
+      // Override T::write(), then invoke Bound's stream output operator.
       std::ostream& write(std::ostream& os) const override
       {
-        if constexpr (concepts::is_stream_insertable<BoundType>::value)
+        if constexpr (concepts::is_stream_insertable<Bound>::value)
         {
-          return os << static_cast<const BoundType&>(*this);
+          return os << static_cast<const Bound&>(*this);
         }
         else
         {
-          return os << "\x1b[36m#<" << utility::demangle(typeid(BoundType)) << " " << static_cast<const BoundType*>(this) << ">\x1b[0m";
+          return os << "\x1b[36m#<" << utility::demangle(typeid(Bound)) << " " << static_cast<const Bound*>(this) << ">\x1b[0m";
         }
       }
     };
 
   public:
     template <typename... Ts>
-    constexpr accessor(Ts&&... args)
-      : std::shared_ptr<TopType> {std::forward<Ts>(args)...}
+    constexpr pointer(Ts&&... args)
+      : std::shared_ptr<T> {std::forward<Ts>(args)...}
     {}
 
-    // If you initialize accessor<TopType> by accessor<TopType>::bind<BoundType>(args...),
-    // std::shared_ptr<TopType> remembers it has assigned accessor<TopType>::binder<BoundType> originally,
-    // thus both TopType and BoundType's destructor will works correctly.
-    template <typename BoundType, typename... Ts>
-    static constexpr auto bind(Ts&&... args)
-      -> accessor<TopType>
+    /**
+     * With this function, you don't have to worry about virtual destructors.
+     * `std::shared_ptr<T>` remembers it has assigned binder type which knows T
+     * and the type you binding (both `T` and `Bound`'s destructor will works
+     * correctly).
+     */
+    template <typename Bound, typename... Ts>
+    static constexpr pointer<T> bind(Ts&&... args)
     {
-      using binding = binder<BoundType>;
+      using binding = binder<Bound>;
       return std::make_shared<binding>(std::forward<Ts>(args)...);
     }
 
-    decltype(auto) access() const
+    decltype(auto) dereference() const
     {
       if (*this)
       {
-        return std::shared_ptr<TopType>::operator*();
+        return std::shared_ptr<T>::operator*();
       }
       else
       {
-        // This exception occurrence is guarded by selecter
-        throw error {"accessing to unit"};
+        throw error {"segmentation fault guarded"};
       }
     }
 
-    template <typename T>
+    #define SHORT_ACCESS(NAME) \
+    decltype(auto) NAME() const \
+    { \
+      return dereference().NAME(); \
+    }
+
+    SHORT_ACCESS(type);
+    SHORT_ACCESS(copy);
+
+    template <typename U>
     decltype(auto) is() const
     {
-      return access().type() == typeid(T);
+      return type() == typeid(U);
     }
 
     // TODO
     // ポインタを返すキャストインタフェースを用意して、
     // ダイナミックキャスト後のポインタの無効値部分に型情報を埋め込む事で、
     // 将来的なコンパイラ最適化に使えるかも
-    template <typename T>
-    decltype(auto) as() const
+    template <typename U>
+    U& as() const
     {
       // const void* before {&access()};
       // const void* casted {&dynamic_cast<const T&>(access())};
       // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
-      return dynamic_cast<const T&>(access());
+
+      return dynamic_cast<U&>(dereference());
     }
 
-    template <typename T>
-    decltype(auto) as()
+    bool equals(const pointer& rhs) const
     {
-      return dynamic_cast<T&>(access());
-    }
-
-    bool equals(const accessor& rhs) const
-    {
-      if (access().type() != rhs.access().type())
+      if (type() != rhs.type())
       {
         return false;
       }
       else
       {
-        return access().equals(rhs);
+        return dereference().equals(rhs);
       }
     }
   };
 
-  // Invoke TopType::write()
+  // Invoke T::write()
   template <typename T>
-  std::ostream& operator<<(std::ostream&, const accessor<T>&);
+  std::ostream& operator<<(std::ostream& os, const pointer<T>& object)
+  {
+    // write(os) will be dispatched to each type's stream output operator.
+    return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().write(os);
+  }
 } // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_SYSTEM_ACCESSOR_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
 

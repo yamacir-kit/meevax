@@ -6,7 +6,7 @@
 #include <meevax/system/cursor.hpp>
 
 #define PROCEDURE(NAME) \
-  meevax::system::objective NAME(const meevax::system::cursor& args)
+  meevax::system::object NAME(const meevax::system::cursor& args)
 
 namespace meevax::system
 {
@@ -24,7 +24,10 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream&, const procedure&);
+  std::ostream& operator<<(std::ostream& os, const procedure& procedure)
+  {
+    return os << "\x1b[0;36m#<procedure " << procedure.name << ">\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_PROCEDURE_HPP

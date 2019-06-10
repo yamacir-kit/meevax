@@ -4,14 +4,14 @@
 
 namespace meevax::system
 {
-  const objective unit {nullptr};
+  const object unit {nullptr};
 
-  const objective unbound {make<exception>("unbound")};
-  const objective undefined {make<exception>("undefined")};
-  const objective unspecified {make<exception>("unspecified")};
+  const object unbound {make<exception>("unbound")};
+  const object undefined {make<exception>("undefined")};
+  const object unspecified {make<exception>("unspecified")};
 
-  const objective true_v  {make<std::true_type>()};
-  const objective false_v {make<std::false_type>()};
+  const object _true_ {make<std::true_type>()};
+  const object _false_ {make<std::false_type>()};
 } // namespace meevax::system
 
 

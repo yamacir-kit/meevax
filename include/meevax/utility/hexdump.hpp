@@ -15,8 +15,8 @@ namespace meevax::utility
 
     hexdump(const T& value)
       : data {
-          reinterpret_cast<decltype(data)::const_pointer>(&value),
-          reinterpret_cast<decltype(data)::const_pointer>(&value) + sizeof(T)
+          reinterpret_cast<typename decltype(data)::const_pointer>(&value),
+          reinterpret_cast<typename decltype(data)::const_pointer>(&value) + sizeof(T)
         }
     {}
 

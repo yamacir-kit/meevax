@@ -1,47 +1,80 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
-#include <meevax/system/accessor.hpp>
+#include <meevax/system/pointer.hpp>
+#include <meevax/system/exception.hpp>
 
 namespace meevax::system
 {
   struct pair;
 
-  using objective = accessor<pair>;
+  /**
+   * The pair type is always underlies any object type (is performance hack).
+   *
+   * We implemented heterogenous pointer by type-erasure, this is very flexible
+   * but, requires dynamic-cast to restore erased type in any case. So, we
+   * decided to remove typecheck for pair type, by always waste  memory space
+   * for two heterogenous pointer slot (yes, is cons-cell). If pair selector
+   * (car/cdr) always requires typecheck, our system will be unbearlably slowly.
+   * Built-in types are designed to make the best possible use of the fact that
+   * these are pair as well (e.g. closure is pair of expression and lexical
+   * environment, string is linear-list of character, complex, rational).
+   */
+  using object = pointer<pair>;
 
-  extern "C" const objective unit;
-  extern "C" const objective unbound;
-  extern "C" const objective undefined;
-  extern "C" const objective unspecified;
+  extern "C" const object unit, unbound, undefined, unspecified;
 
   struct pair
-    : public std::pair<objective, objective>
+    : public std::pair<object, object>
     , public facade<pair>
   {
     template <typename... Ts>
     constexpr pair(Ts&&... args)
-      : std::pair<objective, objective> {std::forward<Ts>(args)...}
+      : std::pair<object, object> {std::forward<Ts>(args)...}
     {}
   };
 
   template <typename T, typename... Ts>
   constexpr decltype(auto) make(Ts&&... args)
   {
-    return objective::bind<T>(std::forward<Ts>(args)...);
+    return object::bind<T>(std::forward<Ts>(args)...);
   }
 
-  // TODO ここに書くと内部エラーとユーザコードのエラーが区別できない
-  //      セレクタをプロシージャに変更する時にこれを内部エラー通知にして、
-  //      ヌルチェックを別途プロシージャのスタブ側に追加すること！
-  static constexpr auto* acception_message {"accessing to unit; meevax accept this (treat unit as injective) but is non-standard Scheme behavior"};
+  #define SELECTOR(NAME, INDEX) \
+  template <typename Pointer> \
+  decltype(auto) NAME(Pointer&& object) \
+  { \
+    if (object) \
+    { \
+      return std::get<INDEX>(object.dereference()); \
+    } \
+    else \
+    { \
+      throw error {"internal illegal selection rejected"}; \
+    } \
+  }
 
-  // XXX UGLY CODE
-        auto& car(      objective& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-  const auto& car(const objective& pair) { if (pair) { return std::get<0>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-        auto& cdr(      objective& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
-  const auto& cdr(const objective& pair) { if (pair) { return std::get<1>(pair.access()); } else { std::cerr << warning {acception_message} << std::endl; return pair; } }
+  SELECTOR(car, 0)
+  SELECTOR(cdr, 1)
 
-  std::ostream& operator<<(std::ostream&, const pair&);
+  std::ostream& operator<<(std::ostream& os, const pair& p)
+  {
+    os << "\x1b[35m(\x1b[0m" << std::get<0>(p);
+
+    for (auto object {std::get<1>(p)}; object; object = cdr(object))
+    {
+      if (object.is<pair>())
+      {
+        os << " " << car(object);
+      }
+      else // iter is the last element of dotted-list.
+      {
+        os << "\x1b[35m . \x1b[0m" << object;
+      }
+    }
+
+    return os << "\x1b[35m)\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_PAIR_HPP

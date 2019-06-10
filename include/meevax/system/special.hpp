@@ -4,9 +4,9 @@
 #include <functional> // std::function
 #include <string>
 
-#include <meevax/system/pair.hpp> // objective
+#include <meevax/system/pair.hpp> // object
 
-#define SPECIAL(NAME) objective NAME(const objective&, const objective&, const objective&)
+#define SPECIAL(NAME) object NAME(const object&, const object&, const object&)
 
 namespace meevax::system
 {
@@ -24,7 +24,10 @@ namespace meevax::system
     {}
   };
 
-  std::ostream& operator<<(std::ostream&, const special&);
+  std::ostream& operator<<(std::ostream& os, const special& special)
+  {
+    return os << "\x1B[0;36m#<special " << special.name << ">\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_SPECIAL_HPP

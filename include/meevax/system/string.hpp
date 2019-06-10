@@ -24,7 +24,17 @@ namespace meevax::system
     }
   };
 
-  std::ostream& operator<<(std::ostream&, const string&);
+  std::ostream& operator<<(std::ostream& os, const string& s)
+  {
+    os << "\x1b[36m\"" << std::get<0>(s).as<std::string>();
+
+    for (const auto& each : std::get<1>(s))
+    {
+      os << each.as<std::string>();
+    }
+
+    return os << "\"\x1b[0m";
+  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_STRING_HPP
