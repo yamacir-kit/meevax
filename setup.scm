@@ -183,9 +183,9 @@
         (cons (callee (car list.))
               (map callee (cdr list.))))))
 
-; (define let
-;   (macro (specs . body)
-;    `((lambda ,(map car specs) ,@body) ,@(map cadr specs))))
+(define let
+  (macro (specs . body)
+   `((lambda ,(map car specs) ,@body) ,@(map cadr specs))))
 
 (define let*
   (macro (<specs> . <body>)
@@ -193,6 +193,23 @@
             (null? (cdr <specs>)))
        `(let (,(car <specs>)) ,@<body>)
        `(let (,(car <specs>)) (let* ,(cdr <specs>) ,@<body>)))))
+
+(define map-2
+  (lambda (callee list.1 list.2)
+    (if (null? list.1)
+       '()
+        (cons (callee (car list.1) (car list.2))
+              (map-2 callee (cdr list.1) (cdr list.2))))))
+
+(define undefined)
+
+(define letrec
+  (macro (bindings . body)
+    (let ((identifiers (map car bindings))
+          (expressions (map cadr bindings)))
+     `(let ,(map (lambda (x) `(,x ,undefined)) identifiers)
+        ,@(map-2 (lambda (x y) `(set! ,x ,y)) identifiers expressions)
+        ,@body))))
 
 (define current-lexical-environment
   (macro ()
@@ -245,5 +262,4 @@
 (define zero?
   (lambda (n)
     (= n 0)))
-
 

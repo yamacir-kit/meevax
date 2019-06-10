@@ -300,17 +300,17 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add SETV (set-variadic) instruction to remove this conditional.
-          auto& tmp {e};
+          auto tmp {e};
 
           while (0 < i--)
           {
             tmp = cdr(tmp);
           }
 
-          if (auto& region {car(tmp)}; j < 0)
+          if (auto region {car(tmp)}; j < 0)
           {
             // std::next(scope, -++j) <= car(s);
-            auto& var {region};
+            auto var {region};
             while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
             {
               var = cdr(var);
@@ -320,7 +320,7 @@ namespace meevax::system
           else
           {
             // car(std::next(scope, j)) <= car(s);
-            auto& var {region};
+            auto var {region};
             while (0 < j--)
             {
               var = cdr(var);

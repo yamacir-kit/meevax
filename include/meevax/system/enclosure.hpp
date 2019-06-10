@@ -296,12 +296,14 @@ namespace meevax::system
 
     define<special>("set!", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
+      TRACE("compile") << car(exp) << " ; => is ";
       if (!exp)
       {
         throw error {__FILE__, ": ", __LINE__};
       }
       else if (auto location {locate(car(exp), scope)}; location)
       {
+        std::cerr << " local variable => " << list(_setl_, location) << std::endl;
         return compile(
                  cadr(exp),
                  scope,
@@ -310,6 +312,7 @@ namespace meevax::system
       }
       else
       {
+        std::cerr << " global variable => " << list(_setg_, location) << std::endl;
         return compile(
                  cadr(exp),
                  scope,

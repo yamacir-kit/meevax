@@ -274,7 +274,25 @@
       (* z x)))
   70)
 
-; TODO
+(test
+  (letrec ((factorial
+            (lambda (n)
+              (if (zero? n) 1
+                  (* n (factorial (- n 1)))))))
+    (factorial 10))
+   3628800)
+
+(test
+  (letrec ((even?
+             (lambda (n)
+               (if (zero? n) #true
+                   (odd? (- n 1)))))
+           (odd?
+             (lambda (n)
+               (if (zero? n) #false
+                   (even? (- n 1))))))
+    (even? 88))
+   #true)
 
 
 ; ------------------------------------------------------------------------------
