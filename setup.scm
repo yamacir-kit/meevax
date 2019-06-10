@@ -100,40 +100,30 @@
 (define and
   (macro <tests>
     (if (null? <tests>) #true
-    (if (null? (cdr <tests>)) #true
-    (if (null? (cddr <tests>))
-        (cadr <tests>)
+    (if (null? (cdr <tests>))
+        (car <tests>)
         (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           (list 'thunk)
                           'head))
-              (cadr <tests>)
+              (car <tests>)
               (list 'lambda '()
                 (append (list 'and)
-                        (cddr <tests>)))))))))
+                        (cdr <tests>))))))))
 
 (define or
   (macro <tests>
     (if (null? <tests>) #false
-    (if (null? (cdr <tests>)) #false
-    (if (null? (cddr <tests>))
-        (cadr <tests>)
+    (if (null? (cdr <tests>))
+        (car <tests>)
         (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           'head
                           (list 'thunk)))
-              (cadr <tests>)
+              (car <tests>)
               (list 'lambda '()
                 (append (list 'or)
-                        (cddr <tests>)))))))))
-
-(define equal?
-  (lambda (object.1 object.2)
-    (if (and (pair? object.1)
-             (pair? object.2))
-        (and (equal? (car object.1) (car object.2))
-             (equal? (cdr object.1) (cdr object.2)))
-        (eqv? object.1 object.2))))
+                        (cdr <tests>))))))))
 
 (define not
   (lambda (test)
@@ -241,4 +231,19 @@
 (define unless
   (macro (<test> . <expression>)
    `(if (not ,<test>) (begin ,@<expression>))))
+
+(define equal?
+  (lambda (object.1 object.2)
+    (if (and (pair? object.1)
+             (pair? object.2))
+        (and (equal? (car object.1) (car object.2))
+             (equal? (cdr object.1) (cdr object.2)))
+        (eqv? object.1 object.2))))
+
+(define = eqv?)
+
+(define zero?
+  (lambda (n)
+    (= n 0)))
+
 
