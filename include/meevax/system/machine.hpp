@@ -373,11 +373,8 @@ namespace meevax::system
 
   protected:
     /* 7.1.3
-     *
-     * <sequence> = <command>* <expression>
-     *
-     * <command> = <expression>
-     *
+     * sequence = command* expression
+     * command = expression
      */
     object sequence(const object& expression,
                     const object& region,

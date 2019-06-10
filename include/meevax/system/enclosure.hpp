@@ -233,13 +233,9 @@ namespace meevax::system
      * (begin <sequence>)
      *
      */
-    define<special>("begin", [&](auto&& expression, auto&& scope, auto&& continuation)
+    define<special>("begin", [&](auto&&... args)
     {
-      return sequence(
-               expression,
-               scope,
-               continuation
-             );
+      return sequence(std::forward<decltype(args)>(args)...);
     });
 
     /* 7.1.3
@@ -270,9 +266,11 @@ namespace meevax::system
      * (let <identifier> (<binding-spec>*) <body>)
      *
      */
-    define<special>("let", [&](auto&& expression, auto&& region, auto&& continuation)
+    define<special>("let", [&](const object& expression,
+                               const object& region,
+                               const object& continuation)
     {
-      if (car(expression).template is<pair>())
+      if (car(expression).is<pair>())
       {
         return let(expression, region, continuation);
       }

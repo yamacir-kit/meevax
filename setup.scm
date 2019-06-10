@@ -188,6 +188,13 @@
   (macro (<template>)
     (quasiquote-expand <template> 0)))
 
+(define let*
+  (macro (<specs> . <body>)
+    (if (or (null? <specs>)
+            (null? (cdr <specs>)))
+       `(let (,(car <specs>)) ,@<body>)
+       `(let (,(car <specs>)) (let* ,(cdr <specs>) ,@<body>)))))
+
 (define current-lexical-environment
   (macro ()
     (list 'cdr (list 'λ '() '()))))
