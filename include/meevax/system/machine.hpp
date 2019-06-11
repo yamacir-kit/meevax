@@ -21,7 +21,7 @@ namespace meevax::system
   template <typename Enclosure>
   class machine // Simple SECD machine.
   {
-  protected: // XXX TO PRIVATE
+  protected:
     cursor s, // stack
            e, // lexical environment (rib cage representation)
            c, // control
@@ -455,19 +455,24 @@ namespace meevax::system
                const object& lexical_environment,
                const object& continuation)
     {
-      auto binding_specs {car(expression)};
+      const auto binding_specs {car(expression)};
+
+      const auto identifiers {
+        map([](auto&& e) { return car(e); }, binding_specs)
+      };
+
+      const auto initializations {
+        map([](auto&& e) { return cadr(e); }, binding_specs)
+      };
 
       return operand(
-               map([](auto&& e) { return cadr(e); }, binding_specs), // <arguments>
+               initializations,
                lexical_environment,
                cons(
                  _ldf_,
                  body(
                    cdr(expression), // <body>
-                   cons(
-                     map([](auto&& e) { return car(e); }, binding_specs), // <formals>
-                     lexical_environment
-                   ),
+                   cons(identifiers, lexical_environment),
                    list(_return_)
                  ),
                  _apply_, continuation

@@ -200,12 +200,12 @@
         ,@(map-2 (lambda (x y) `(set! ,x ,y)) identifiers expressions)
         ,@body))))
 
-(define let
-  (macro (bindings . body)
-    (if (pair? bindings)
-       `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))
-       `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
-          (,bindings ,@(map cadr (car body)))))))
+; (define let
+;   (macro (bindings . body)
+;     (if (pair? bindings)
+;        `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))
+;        `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
+;           (,bindings ,@(map cadr (car body)))))))
 
 (define let*
   (macro (<specs> . <body>)
