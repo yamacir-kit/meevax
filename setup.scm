@@ -1,3 +1,7 @@
+; ------------------------------------------------------------------------------
+;   Link Externals
+; ------------------------------------------------------------------------------
+
 (define dlopen dynamic-link-open)
 (define dlsym dynamic-link-procedure)
 
@@ -18,17 +22,20 @@
 (define eqv? (dlsym libmeevax-experimental.so "semantic_equals"))
 (define pair? (dlsym libmeevax-experimental.so "is_pair"))
 
-; HACK
+
+; ------------------------------------------------------------------------------
+;   Setup CxR
+; ------------------------------------------------------------------------------
+
+; hack (car is special form currently)
 (define car
   (lambda (e)
     (car e)))
 
-; HACK
+; hack (cdr is special form currently)
 (define cdr
   (lambda (e)
     (cdr e)))
-
-;; cxr
 
 (define caar (lambda (e) (car (car e))))
 (define cadr (lambda (e) (car (cdr e))))
@@ -60,6 +67,11 @@
 ; (define cddadr (lambda (e) (cdr (cdr (car (cdr e))))))
 ; (define cdddar (lambda (e) (cdr (cdr (cdr (car e))))))
 ; (define cddddr (lambda (e) (cdr (cdr (cdr (cdr e))))))
+
+
+; ------------------------------------------------------------------------------
+;   Bootstrap Quasiquote
+; ------------------------------------------------------------------------------
 
 (define list
   (lambda xs xs))
@@ -129,13 +141,6 @@
   (lambda (test)
     (if test #false #true)))
 
-(define boolean?
-  (lambda (object)
-    (if (or (eq? object #true)
-            (eq? object #false))
-      #true
-      #false)))
-
 (define quasiquote-expand
   (lambda (e depth)
     (if (not (pair? e))
@@ -176,36 +181,41 @@
   (macro (<template>)
     (quasiquote-expand <template> 0)))
 
-(define map
+
+; ------------------------------------------------------------------------------
+;   Bootstrap Binding Constructors
+; ------------------------------------------------------------------------------
+
+(define map-1
   (lambda (callee list.)
     (if (null? list.)
        '()
         (cons (callee (car list.))
-              (map callee (cdr list.))))))
+              (map-1 callee (cdr list.))))))
 
-(define map-2
-  (lambda (callee list.1 list.2)
-    (if (null? list.1)
-       '()
-        (cons (callee (car list.1) (car list.2))
-              (map-2 callee (cdr list.1) (cdr list.2))))))
+(define map map-1) ; temporary (for unnamed-let)
 
-(define undefined)
+(define unnamed-let
+  (macro (bindings . body)
+   `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
+
+(define undefined) ; hacking (for letrec)
+
+(define let unnamed-let) ; temporary (for letrec)
 
 (define letrec
   (macro (bindings . body)
-    (let ((identifiers (map car bindings))
-          (expressions (map cadr bindings)))
-     `(let ,(map (lambda (x) `(,x ,undefined)) identifiers)
-        ,@(map-2 (lambda (x y) `(set! ,x ,y)) identifiers expressions)
+    (let ((identifiers (map car bindings)))
+     `(let ,(map (lambda (e) `(,e ,undefined)) identifiers)
+        ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
         ,@body))))
 
-; (define let
-;   (macro (bindings . body)
-;     (if (pair? bindings)
-;        `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))
-;        `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
-;           (,bindings ,@(map cadr (car body)))))))
+(define let
+  (macro (bindings . body)
+    (if (pair? bindings)
+       `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))
+       `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
+          (,bindings ,@(map cadr (car body)))))))
 
 (define let*
   (macro (<specs> . <body>)
@@ -213,6 +223,11 @@
             (null? (cdr <specs>)))
        `(let (,(car <specs>)) ,@<body>)
        `(let (,(car <specs>)) (let* ,(cdr <specs>) ,@<body>)))))
+
+
+; ------------------------------------------------------------------------------
+;   Miscellaneous
+; ------------------------------------------------------------------------------
 
 (define current-lexical-environment
   (macro ()
@@ -265,4 +280,11 @@
 (define zero?
   (lambda (n)
     (= n 0)))
+
+(define boolean?
+  (lambda (object)
+    (if (or (eq? object #true)
+            (eq? object #false))
+      #true
+      #false)))
 

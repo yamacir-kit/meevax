@@ -71,12 +71,9 @@ namespace meevax::system
       return static_cast<cursor&>(std::get<1>(*this));
     }
 
-    // decltype(auto) expand(const object& arguments, const object& expansion_context)
     decltype(auto) expand(const object& arguments)
     {
       std::cerr << "macroexpand " << arguments << std::endl;
-
-      // interaction_environment() = expansion_context;
 
       s = unit;
       e = list(arguments);
@@ -266,19 +263,19 @@ namespace meevax::system
      * (let <identifier> (<binding-spec>*) <body>)
      *
      */
-    define<special>("let", [&](const object& expression,
-                               const object& region,
-                               const object& continuation)
-    {
-      if (car(expression).is<pair>())
-      {
-        return let(expression, region, continuation);
-      }
-      else // named-let
-      {
-        return continuation; // TODO
-      }
-    });
+    // define<special>("let", [&](const object& expression,
+    //                            const object& region,
+    //                            const object& continuation)
+    // {
+    //   if (car(expression).is<pair>())
+    //   {
+    //     return let(expression, region, continuation);
+    //   }
+    //   else // named-let
+    //   {
+    //     return continuation; // TODO
+    //   }
+    // });
 
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
