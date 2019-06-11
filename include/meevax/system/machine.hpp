@@ -451,6 +451,7 @@ namespace meevax::system
       }
     }
 
+    [[deprecated]]
     object let(const object& expression,
                const object& lexical_environment,
                const object& continuation)
@@ -478,6 +479,36 @@ namespace meevax::system
                  _apply_, continuation
                )
              );
+    }
+
+    object set(const object& expression,
+               const object& lexical_environment,
+               const object& continuation)
+    {
+      TRACE("compile") << car(expression) << " ; => is ";
+
+      if (!expression)
+      {
+        throw error {"syntax error at #<special set!>"};
+      }
+      else if (auto location {locate(car(expression), lexical_environment)}; location)
+      {
+        std::cerr << " local variable => " << list(_setl_, location) << std::endl;
+        return compile(
+                 cadr(expression),
+                 lexical_environment,
+                 cons(_setl_, location, continuation)
+               );
+      }
+      else
+      {
+        std::cerr << " global variable => " << list(_setg_, location) << std::endl;
+        return compile(
+                 cadr(expression),
+                 lexical_environment,
+                 cons(_setg_, car(expression), continuation)
+               );
+      }
     }
   };
 } // namespace meevax::system

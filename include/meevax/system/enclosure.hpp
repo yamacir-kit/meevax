@@ -291,31 +291,9 @@ namespace meevax::system
              );
     });
 
-    define<special>("set!", [&](auto&& exp, auto&& scope, auto&& continuation)
+    define<special>("set!", [&](auto&&... args)
     {
-      TRACE("compile") << car(exp) << " ; => is ";
-      if (!exp)
-      {
-        throw error {__FILE__, ": ", __LINE__};
-      }
-      else if (auto location {locate(car(exp), scope)}; location)
-      {
-        std::cerr << " local variable => " << list(_setl_, location) << std::endl;
-        return compile(
-                 cadr(exp),
-                 scope,
-                 cons(_setl_, location, continuation)
-               );
-      }
-      else
-      {
-        std::cerr << " global variable => " << list(_setg_, location) << std::endl;
-        return compile(
-                 cadr(exp),
-                 scope,
-                 cons(_setg_, car(exp), continuation)
-               );
-      }
+      return set(std::forward<decltype(args)>(args)...);
     });
 
     define<procedure>("load", [&](const object& args)
