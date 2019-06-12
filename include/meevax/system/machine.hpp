@@ -397,35 +397,56 @@ namespace meevax::system
      *
      */
     object body(const object& expression,
-                const object& region,
+                const object& lexical_environment,
                 const object& continuation) try
     {
       return compile(
                car(expression),
-               region,
+               lexical_environment,
                cdr(expression) ? cons(
                                    _pop_,
-                                   sequence(cdr(expression), region, continuation)
+                                   sequence(cdr(expression), lexical_environment, continuation)
                                  )
                                : continuation
              );
     }
     catch (const error&) // internal define backtrack
     {
-      std::cerr << cadar(expression) << " ; => is local-variable" << std::endl;
-      throw;
+      // TRACE("compile") << expression << " ; => [EXPRESSION]" << std::endl;
 
-      // (lambda ()
-      //   (define <cadar> . <cddar>)
-      //   <cdr>
-      // )
+      const auto definition {car(expression)};
+      std::cerr << "[debug] definition: " << definition << std::endl;
+
+      const auto identifier {cadr(definition)};
+      std::cerr << "[debug] identifier: " << identifier << std::endl;
+
+      const auto initialization {caddr(definition)};
+      std::cerr << "[debug] initialization: " << initialization << std::endl;
+
+      const auto rest {cdr(expression)};
+      std::cerr << "[debug] rest: " << rest << std::endl;
+
+      // const auto extended_environment {cons(
+      //   append(car(lexical_environment), list(identifier)),
+      //   cdr(lexical_environment)
+      // )};
+      // std::cerr << "[debug] extended: " << extended_environment << std::endl;
       //
-      // (lambda ()
-      //   ((lambda (<cadar>)
-      //      (set! (0 . 0) . <cddar>)
-      //      ...)
-      //    #<undefined>)
-      // )
+      // return compile(
+      //          initialization,
+      //          extended_environment,
+      //          cons(
+      //            _setl_,
+      //            locate(identifier, extended_environment),
+      //            body(
+      //              rest,
+      //              extended_environment,
+      //              continuation
+      //            )
+      //          )
+      //        );
+
+      throw;
     }
 
     /* 7.1.3

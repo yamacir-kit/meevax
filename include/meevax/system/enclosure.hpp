@@ -209,10 +209,10 @@ namespace meevax::system
 
     define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
     {
-      TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
-
       if (not region)
       {
+        TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
+
         return compile(
                  cdr(expression) ? cadr(expression) : undefined,
                  region,
@@ -221,7 +221,7 @@ namespace meevax::system
       }
       else
       {
-        throw error {"INTERNAL DEFINE DETECTED (CURRENTLY UNSUPPORTED)"};
+        throw error {"syntax error at internal define"};
       }
     });
 

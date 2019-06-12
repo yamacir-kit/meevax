@@ -203,12 +203,14 @@
 
 (define let unnamed-let) ; temporary (for letrec)
 
-(define letrec
+(define letrec*
   (macro (bindings . body)
     (let ((identifiers (map car bindings)))
      `(let ,(map (lambda (e) `(,e ,undefined)) identifiers)
         ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
         ,@body))))
+
+(define letrec letrec*) ; this is not currect
 
 (define let
   (macro (bindings . body)
