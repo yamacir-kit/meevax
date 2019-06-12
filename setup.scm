@@ -231,17 +231,17 @@
 ;   Miscellaneous
 ; ------------------------------------------------------------------------------
 
-(define current-lexical-environment
-  (macro ()
-    (list 'cdr (list 'lambda '() '()))))
-
-(define interaction-environment
-  (macro ()
-    (list 'cdr (list 'macro '() '()))))
-
-(define rename
-  (lambda (x)
-    (lambda () x)))
+; (define current-lexical-environment
+;   (macro ()
+;     (list 'cdr (list 'lambda '() '()))))
+;
+; (define interaction-environment
+;   (macro ()
+;     (list 'cdr (list 'macro '() '()))))
+;
+; (define rename
+;   (lambda (x)
+;     (lambda () x)))
 
 (define apply
   (lambda (proc args)
@@ -251,15 +251,15 @@
   (lambda (list.)
     (append-2 list. '())))
 
-(define pair-copy-shallow
-  (lambda (pair)
-    (cons (car pair) (cdr pair))))
-
-(define pair-copy-deep
-  (lambda (object)
-    (if (not (pair? object)) object
-        (cons (pair-copy-deep (car object))
-              (pair-copy-deep (cdr object))))))
+; (define pair-copy-shallow
+;   (lambda (pair)
+;     (cons (car pair) (cdr pair))))
+;
+; (define pair-copy-deep
+;   (lambda (object)
+;     (if (not (pair? object)) object
+;         (cons (pair-copy-deep (car object))
+;               (pair-copy-deep (cdr object))))))
 
 (define when
   (macro (<test> . <expression>)
