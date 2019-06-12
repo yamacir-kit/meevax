@@ -410,43 +410,40 @@ namespace meevax::system
                                : continuation
              );
     }
-    catch (const error&) // internal define backtrack
+    catch (const error&) // internal define backtrack (DIRTY HACK)
     {
-      // TRACE("compile") << expression << " ; => [EXPRESSION]" << std::endl;
+      auto binding_specs {list()};
+      auto non_definitions {unit};
 
-      const auto definition {car(expression)};
-      std::cerr << "[debug] definition: " << definition << std::endl;
+      for (cursor iter {expression}; iter; ++iter)
+      {
+        if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
+        {
+          // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
+          binding_specs = cons(cdr(*iter), binding_specs);
+        }
+        else
+        {
+          non_definitions = iter;
+          break;
+        }
+      }
 
-      const auto identifier {cadr(definition)};
-      std::cerr << "[debug] identifier: " << identifier << std::endl;
+      // std::cerr << binding_specs << std::endl;
+      // std::cerr << cons(binding_specs, non_definitions) << std::endl;
 
-      const auto initialization {caddr(definition)};
-      std::cerr << "[debug] initialization: " << initialization << std::endl;
+      object letrec_star {assoc(
+        static_cast<Enclosure&>(*this).intern("letrec*"),
+        interaction_environment()
+      )};
 
-      const auto rest {cdr(expression)};
-      std::cerr << "[debug] rest: " << rest << std::endl;
+      auto expanded {letrec_star.as<Enclosure>().expand(
+        cons(binding_specs, non_definitions)
+      )};
 
-      // const auto extended_environment {cons(
-      //   append(car(lexical_environment), list(identifier)),
-      //   cdr(lexical_environment)
-      // )};
-      // std::cerr << "[debug] extended: " << extended_environment << std::endl;
-      //
-      // return compile(
-      //          initialization,
-      //          extended_environment,
-      //          cons(
-      //            _setl_,
-      //            locate(identifier, extended_environment),
-      //            body(
-      //              rest,
-      //              extended_environment,
-      //              continuation
-      //            )
-      //          )
-      //        );
+      // std::cerr << expanded << std::endl;
 
-      throw;
+      return compile(expanded, lexical_environment, continuation);
     }
 
     /* 7.1.3
