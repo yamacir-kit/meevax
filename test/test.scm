@@ -14,7 +14,8 @@
                  (display ',expression)
                  (display ", but got ")
                  (display result)
-                 (display ".\n")
+                 (display ".")
+                 (newline)
                  (emergency-exit))))))
 
 
@@ -646,8 +647,10 @@
 ; (acc)
 ; (acc)
 
-(begin (display "\ntest ")
+(begin (newline)
+       (display "test ")
        (display test-passed)
-       (display " expression passed (completed).\n")
+       (display " expression passed (completed).")
+       (newline)
        'completed)
 

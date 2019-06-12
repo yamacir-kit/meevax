@@ -290,3 +290,7 @@
       #true
       #false)))
 
+(define newline
+  (lambda ()
+    (display "\n")))
+
