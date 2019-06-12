@@ -86,7 +86,7 @@
         (cons (car list.1)
               (append-2 (cdr list.1) list.2)))))
 
-;; simple reverse (but slow)
+; simple reverse (but slow)
 (define reverse
   (lambda (list.)
     (if (null? list.)
@@ -183,7 +183,7 @@
 
 
 ; ------------------------------------------------------------------------------
-;   Bootstrap Binding Constructors
+;   Bootstrap Derived Expression Types
 ; ------------------------------------------------------------------------------
 
 (define map-1
@@ -199,7 +199,7 @@
   (macro (bindings . body)
    `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
 
-(define undefined) ; hacking (for letrec)
+(define undefined) ; hacking
 
 (define let unnamed-let) ; temporary (for letrec)
 
@@ -215,7 +215,7 @@
 (define let
   (macro (bindings . body)
     (if (pair? bindings)
-       `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))
+       `(unnamed-let ,bindings ,@body)
        `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
           (,bindings ,@(map cadr (car body)))))))
 
@@ -226,6 +226,34 @@
        `(let (,(car <specs>)) ,@<body>)
        `(let (,(car <specs>)) (let* ,(cdr <specs>) ,@<body>)))))
 
+(define else #true)
+
+(define cond
+  (macro clauses
+    (if (null? clauses) undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+            (if (null? (cdar clauses))
+               `(let ((TEST ,(caar clauses)))
+                  (if TEST TEST (cond ,@(cdr clauses))))
+               `(if ,(caar clauses)
+                    (begin ,@(cdar clauses))
+                    (cond ,@(cdr clauses))))))))
+
+(define memv
+  (lambda (object list.)
+    (if (null? list.) #false
+        (if (eqv? object (car list.)) list.
+            (memv object (cdr list.))))))
+
+(define case
+  (macro (key . clauses)
+    (if (null? clauses) 'undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+           `(if (memv ,key ',(caar clauses))
+                (begin ,@(cdar clauses))
+                (case ,key ,@(cdr clauses)))))))
 
 ; ------------------------------------------------------------------------------
 ;   Miscellaneous

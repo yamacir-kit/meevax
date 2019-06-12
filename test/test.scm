@@ -171,38 +171,39 @@
 ;   4.2.1 Conditionals
 ; ------------------------------------------------------------------------------
 
-; (test
-;   (cond ((> 3 2) ’greater)
-;         ((< 3 2) ’less))
-;   greater)
+(test
+  (cond ((> 3 2) 'greater)
+        ((< 3 2) 'less))
+  greater)
+
+(test
+  (cond ((> 3 3) 'greater)
+        ((< 3 3) 'less)
+        (else 'equal))
+  equal)
 
 ; (test
-;   (cond ((> 3 3) ’greater)
-;         ((< 3 3) ’less)
-;         (else ’equal))
-;   equal)
-
-; (test
-;   (cond ((assv ’b ’((a 1) (b 2))) => cadr)
+;   (cond ((assv 'b '((a 1) (b 2))) => cadr)
 ;         (else #f))
 ;   2)
 
-; (test
-;   (case (* 2 3)
-;     ((2 3 5 7) 'prime)
-;     ((1 4 6 8 9) 'composite))
-;   composite)
+(test
+  (case (* 2 3)
+    ((2 3 5 7) 'prime)
+    ((1 4 6 8 9) 'composite))
+  composite)
 
 ; (test
 ;   (case (car '(c d))
 ;     ((a) 'a)
 ;     ((b) 'b))
-;   #undefined)
+;   undefined)
 
 ; (test
 ;   (case (car '(c d))
 ;     ((a e i o u) 'vowel)
-;     ((w y)))
+;     ((w y) 'semivowel)
+;     (else => (lambda (x) x)))
 ;   c)
 
 (test
@@ -221,15 +222,15 @@
 
 (test (and) #true)
 
-; (test
-;   (or (= 2 2) ; = unimplemented
-;       (> 2 1))
-;   #true)
+(test
+  (or (= 2 2)
+      (> 2 1))
+  #true)
 
-; (test
-;   (or (= 1 2) ; = unimplemented
-;       (< 2 1))
-;   #true)
+(test
+  (or (= 2 2)
+      (< 2 1))
+  #true)
 
 (test
   (or #false #false #false)
@@ -302,11 +303,11 @@
 
 (define x 0)
 
-; (test
-;   (and (= x 0)
-;        (begin (set! x 5)
-;               (+ x 1)))
-;   6)
+(test
+  (and (= x 0)
+       (begin (set! x 5)
+              (+ x 1)))
+  6)
 
 (begin (display "4 plus 1 equals ")
        (display (+ 4 1)))
