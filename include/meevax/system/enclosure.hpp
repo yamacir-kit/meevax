@@ -300,6 +300,20 @@ namespace meevax::system
     {
       return load(car(args).as<const string>());
     });
+
+    define<procedure>("gensym", [&](const object& args)
+    {
+      // if (args && car(args) && car(args).type() == typeid(string))
+      try
+      {
+        return make<symbol>(car(args).as<string>());
+      }
+      // else
+      catch (...)
+      {
+        return make<symbol>();
+      }
+    });
   } // enclosure class default constructor
 
   std::ostream& operator<<(std::ostream& os, const enclosure& enclosure)

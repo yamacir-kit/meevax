@@ -662,6 +662,21 @@
 ; (acc)
 ; (acc)
 
+(define A 1)
+(define B 2)
+
+(test
+  (begin (swap! A B)
+         (cons A B))
+  (2 . 1))
+
+(define x 42)
+
+(test ; this test knows swap! uses 'x' as temporary variable.
+  (begin (swap! A x)
+         (cons A x))
+  (42 . 2))
+
 (begin (newline)
        (display "test ")
        (display test-passed)

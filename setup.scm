@@ -327,3 +327,16 @@
   (lambda ()
     (display "\n")))
 
+; (define swap!
+;   (macro (a b)
+;    `(let ((x ,a))
+;       (set! ,a ,b)
+;       (set! ,b x))))
+
+(define swap!
+  (macro (a b)
+    (let ((x (gensym)))
+     `(let ((,x ,a))
+        (set! ,a ,b)
+        (set! ,b ,x)))))
+
