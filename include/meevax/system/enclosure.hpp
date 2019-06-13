@@ -71,12 +71,9 @@ namespace meevax::system
       return static_cast<cursor&>(std::get<1>(*this));
     }
 
-    // decltype(auto) expand(const object& arguments, const object& expansion_context)
     decltype(auto) expand(const object& arguments)
     {
       std::cerr << "macroexpand " << arguments << std::endl;
-
-      // interaction_environment() = expansion_context;
 
       s = unit;
       e = list(arguments);
@@ -212,10 +209,10 @@ namespace meevax::system
 
     define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
     {
-      TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
-
       if (not region)
       {
+        TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
+
         return compile(
                  cdr(expression) ? cadr(expression) : undefined,
                  region,
@@ -224,7 +221,7 @@ namespace meevax::system
       }
       else
       {
-        throw error {"INTERNAL DEFINE DETECTED (CURRENTLY UNSUPPORTED)"};
+        throw error {"syntax error at internal define"};
       }
     });
 
@@ -233,13 +230,9 @@ namespace meevax::system
      * (begin <sequence>)
      *
      */
-    define<special>("begin", [&](auto&& expression, auto&& scope, auto&& continuation)
+    define<special>("begin", [&](auto&&... args)
     {
-      return sequence(
-               expression,
-               scope,
-               continuation
-             );
+      return sequence(std::forward<decltype(args)>(args)...);
     });
 
     /* 7.1.3
@@ -270,17 +263,19 @@ namespace meevax::system
      * (let <identifier> (<binding-spec>*) <body>)
      *
      */
-    define<special>("let", [&](auto&& expression, auto&& region, auto&& continuation)
-    {
-      if (car(expression).template is<pair>())
-      {
-        return let(expression, region, continuation);
-      }
-      else // named-let
-      {
-        return continuation; // TODO
-      }
-    });
+    // define<special>("let", [&](const object& expression,
+    //                            const object& region,
+    //                            const object& continuation)
+    // {
+    //   if (car(expression).is<pair>())
+    //   {
+    //     return let(expression, region, continuation);
+    //   }
+    //   else // named-let
+    //   {
+    //     return continuation; // TODO
+    //   }
+    // });
 
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
@@ -296,28 +291,9 @@ namespace meevax::system
              );
     });
 
-    define<special>("set!", [&](auto&& exp, auto&& scope, auto&& continuation)
+    define<special>("set!", [&](auto&&... args)
     {
-      if (!exp)
-      {
-        throw error {__FILE__, ": ", __LINE__};
-      }
-      else if (auto location {locate(car(exp), scope)}; location)
-      {
-        return compile(
-                 cadr(exp),
-                 scope,
-                 cons(_setl_, location, continuation)
-               );
-      }
-      else
-      {
-        return compile(
-                 cadr(exp),
-                 scope,
-                 cons(_setg_, car(exp), continuation)
-               );
-      }
+      return set(std::forward<decltype(args)>(args)...);
     });
 
     define<procedure>("load", [&](const object& args)

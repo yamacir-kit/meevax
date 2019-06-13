@@ -1,3 +1,7 @@
+; ------------------------------------------------------------------------------
+;   Link Externals
+; ------------------------------------------------------------------------------
+
 (define dlopen dynamic-link-open)
 (define dlsym dynamic-link-procedure)
 
@@ -18,83 +22,89 @@
 (define eqv? (dlsym libmeevax-experimental.so "semantic_equals"))
 (define pair? (dlsym libmeevax-experimental.so "is_pair"))
 
-(define λ lambda)
 
-; HACK
+; ------------------------------------------------------------------------------
+;   Setup CxR
+; ------------------------------------------------------------------------------
+
+; hack (car is special form currently)
 (define car
-  (λ (e)
+  (lambda (e)
     (car e)))
 
-; HACK
+; hack (cdr is special form currently)
 (define cdr
-  (λ (e)
+  (lambda (e)
     (cdr e)))
 
-;; cxr
+(define caar (lambda (e) (car (car e))))
+(define cadr (lambda (e) (car (cdr e))))
+(define cdar (lambda (e) (cdr (car e))))
+(define cddr (lambda (e) (cdr (cdr e))))
 
-(define caar (λ (e) (car (car e))))
-(define cadr (λ (e) (car (cdr e))))
-(define cdar (λ (e) (cdr (car e))))
-(define cddr (λ (e) (cdr (cdr e))))
-
-; (define caaar (λ (e) (car (car (car e)))))
-; (define caadr (λ (e) (car (car (cdr e)))))
-; (define cadar (λ (e) (car (cdr (car e)))))
-; (define caddr (λ (e) (car (cdr (cdr e)))))
-; (define cdaar (λ (e) (cdr (car (car e)))))
-; (define cdadr (λ (e) (cdr (car (cdr e)))))
-; (define cddar (λ (e) (cdr (cdr (car e)))))
-; (define cdddr (λ (e) (cdr (cdr (cdr e)))))
+; (define caaar (lambda (e) (car (car (car e)))))
+; (define caadr (lambda (e) (car (car (cdr e)))))
+; (define cadar (lambda (e) (car (cdr (car e)))))
+; (define caddr (lambda (e) (car (cdr (cdr e)))))
+; (define cdaar (lambda (e) (cdr (car (car e)))))
+; (define cdadr (lambda (e) (cdr (car (cdr e)))))
+; (define cddar (lambda (e) (cdr (cdr (car e)))))
+; (define cdddr (lambda (e) (cdr (cdr (cdr e)))))
 ;
-; (define caaaar (λ (e) (car (car (car (car e))))))
-; (define caaadr (λ (e) (car (car (car (cdr e))))))
-; (define caadar (λ (e) (car (car (cdr (car e))))))
-; (define caaddr (λ (e) (car (car (cdr (cdr e))))))
-; (define cadaar (λ (e) (car (cdr (car (car e))))))
-; (define cadadr (λ (e) (car (cdr (car (cdr e))))))
-; (define caddar (λ (e) (car (cdr (cdr (car e))))))
-; (define cadddr (λ (e) (car (cdr (cdr (cdr e))))))
-; (define cdaaar (λ (e) (cdr (car (car (car e))))))
-; (define cdaadr (λ (e) (cdr (car (car (cdr e))))))
-; (define cdadar (λ (e) (cdr (car (cdr (car e))))))
-; (define cdaddr (λ (e) (cdr (car (cdr (cdr e))))))
-; (define cddaar (λ (e) (cdr (cdr (car (car e))))))
-; (define cddadr (λ (e) (cdr (cdr (car (cdr e))))))
-; (define cdddar (λ (e) (cdr (cdr (cdr (car e))))))
-; (define cddddr (λ (e) (cdr (cdr (cdr (cdr e))))))
+; (define caaaar (lambda (e) (car (car (car (car e))))))
+; (define caaadr (lambda (e) (car (car (car (cdr e))))))
+; (define caadar (lambda (e) (car (car (cdr (car e))))))
+; (define caaddr (lambda (e) (car (car (cdr (cdr e))))))
+; (define cadaar (lambda (e) (car (cdr (car (car e))))))
+; (define cadadr (lambda (e) (car (cdr (car (cdr e))))))
+; (define caddar (lambda (e) (car (cdr (cdr (car e))))))
+; (define cadddr (lambda (e) (car (cdr (cdr (cdr e))))))
+; (define cdaaar (lambda (e) (cdr (car (car (car e))))))
+; (define cdaadr (lambda (e) (cdr (car (car (cdr e))))))
+; (define cdadar (lambda (e) (cdr (car (cdr (car e))))))
+; (define cdaddr (lambda (e) (cdr (car (cdr (cdr e))))))
+; (define cddaar (lambda (e) (cdr (cdr (car (car e))))))
+; (define cddadr (lambda (e) (cdr (cdr (car (cdr e))))))
+; (define cdddar (lambda (e) (cdr (cdr (cdr (car e))))))
+; (define cddddr (lambda (e) (cdr (cdr (cdr (cdr e))))))
+
+
+; ------------------------------------------------------------------------------
+;   Bootstrap Quasiquote
+; ------------------------------------------------------------------------------
 
 (define list
-  (λ xs xs))
+  (lambda xs xs))
 
 (define null?
-  (λ (object)
+  (lambda (object)
     (eq? object '())))
 
 (define append-2
-  (λ (list.1 list.2)
+  (lambda (list.1 list.2)
     (if (null? list.1) list.2
         (cons (car list.1)
               (append-2 (cdr list.1) list.2)))))
 
-;; simple reverse (but slow)
+; simple reverse (but slow)
 (define reverse
-  (λ (list.)
+  (lambda (list.)
     (if (null? list.)
        '()
         (append-2 (reverse (cdr list.))
                   (list (car list.))))))
 
 (define append-aux
-  (λ (list.1 list.2)
+  (lambda (list.1 list.2)
     (if (null? list.1) list.2
         (append-aux (cdr list.1)
                     (append-2 (car list.1) list.2)))))
 
 (define append
-  (λ lists
+  (lambda lists
     (if (null? lists)
        '()
-        ((λ (reversed)
+        ((lambda (reversed)
            (append-aux (cdr reversed)
                        (car reversed)))
          (reverse lists)))))
@@ -102,54 +112,37 @@
 (define and
   (macro <tests>
     (if (null? <tests>) #true
-    (if (null? (cdr <tests>)) #true
-    (if (null? (cddr <tests>))
-        (cadr <tests>)
-        (list (list 'λ (list 'head 'thunk)
+    (if (null? (cdr <tests>))
+        (car <tests>)
+        (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           (list 'thunk)
                           'head))
-              (cadr <tests>)
-              (list 'λ '()
+              (car <tests>)
+              (list 'lambda '()
                 (append (list 'and)
-                        (cddr <tests>)))))))))
+                        (cdr <tests>))))))))
 
 (define or
   (macro <tests>
     (if (null? <tests>) #false
-    (if (null? (cdr <tests>)) #false
-    (if (null? (cddr <tests>))
-        (cadr <tests>)
-        (list (list 'λ (list 'head 'thunk)
+    (if (null? (cdr <tests>))
+        (car <tests>)
+        (list (list 'lambda (list 'head 'thunk)
                 (list 'if 'head
                           'head
                           (list 'thunk)))
-              (cadr <tests>)
-              (list 'λ '()
+              (car <tests>)
+              (list 'lambda '()
                 (append (list 'or)
-                        (cddr <tests>)))))))))
-
-(define equal?
-  (λ (object.1 object.2)
-    (if (and (pair? object.1)
-             (pair? object.2))
-        (and (equal? (car object.1) (car object.2))
-             (equal? (cdr object.1) (cdr object.2)))
-        (eqv? object.1 object.2))))
+                        (cdr <tests>))))))))
 
 (define not
-  (λ (test)
+  (lambda (test)
     (if test #false #true)))
 
-(define boolean?
-  (λ (object)
-    (if (or (eq? object #true)
-            (eq? object #false))
-      #true
-      #false)))
-
 (define quasiquote-expand
-  (λ (e depth)
+  (lambda (e depth)
     (if (not (pair? e))
         (list 'quote e)
         (if (eq? (car e) 'quasiquote)
@@ -168,7 +161,7 @@
                                   (quasiquote-expand      (cdr e) depth))))))))
 
 (define quasiquote-expand-list
-  (λ (e depth)
+  (lambda (e depth)
     (if (not (pair? e))
         (list 'quote (list e))
         (if (eq? (car e) 'quasiquote)
@@ -188,35 +181,118 @@
   (macro (<template>)
     (quasiquote-expand <template> 0)))
 
-(define current-lexical-environment
-  (macro ()
-    (list 'cdr (list 'λ '() '()))))
 
-(define interaction-environment
-  (macro ()
-    (list 'cdr (list 'macro '() '()))))
+; ------------------------------------------------------------------------------
+;   Bootstrap Binding Constuctors
+; ------------------------------------------------------------------------------
 
-(define rename
-  (λ (x)
-    (λ () x)))
+(define map-1
+  (lambda (callee list.)
+    (if (null? list.)
+       '()
+        (cons (callee (car list.))
+              (map-1 callee (cdr list.))))))
+
+(define map map-1) ; temporary (for unnamed-let)
+
+(define unnamed-let
+  (macro (bindings . body)
+   `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
+
+(define undefined) ; hacking
+
+(define let unnamed-let) ; temporary (for letrec)
+
+(define letrec*
+  (macro (bindings . body)
+    (let ((identifiers (map car bindings)))
+     `(let ,(map (lambda (e) `(,e ,undefined)) identifiers)
+        ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
+        ,@body))))
+
+(define letrec letrec*) ; this is not currect
+
+(define let
+  (macro (bindings . body)
+    (if (pair? bindings)
+       `(unnamed-let ,bindings ,@body)
+       `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
+          (,bindings ,@(map cadr (car body)))))))
+
+(define let*
+  (macro (<specs> . <body>)
+    (if (or (null? <specs>)
+            (null? (cdr <specs>)))
+       `(let (,(car <specs>)) ,@<body>)
+       `(let (,(car <specs>)) (let* ,(cdr <specs>) ,@<body>)))))
+
+
+; ------------------------------------------------------------------------------
+;   Bootstrap Other Derived Expression Types
+; ------------------------------------------------------------------------------
+
+(define else #true)
+
+(define cond
+  (macro clauses
+    (if (null? clauses) undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+            (if (null? (cdar clauses))
+               `(let ((TEST ,(caar clauses)))
+                  (if TEST TEST (cond ,@(cdr clauses))))
+               `(if ,(caar clauses)
+                    (begin ,@(cdar clauses))
+                    (cond ,@(cdr clauses))))))))
+
+(define memv
+  (lambda (object list.)
+    (if (null? list.) #false
+        (if (eqv? object (car list.)) list.
+            (memv object (cdr list.))))))
+
+(define case
+  (macro (key . clauses)
+    (if (null? clauses) 'undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+           `(if (memv ,key ',(caar clauses))
+                (begin ,@(cdar clauses))
+                (case ,key ,@(cdr clauses)))))))
+
+; ------------------------------------------------------------------------------
+;   Miscellaneous
+; ------------------------------------------------------------------------------
+
+; (define current-lexical-environment
+;   (macro ()
+;     (list 'cdr (list 'lambda '() '()))))
+;
+; (define interaction-environment
+;   (macro ()
+;     (list 'cdr (list 'macro '() '()))))
+;
+; (define rename
+;   (lambda (x)
+;     (lambda () x)))
 
 (define apply
-  (λ (proc args)
+  (lambda (proc args)
     (proc . args)))
 
 (define list-copy
-  (λ (list.)
+  (lambda (list.)
     (append-2 list. '())))
 
-(define pair-copy-shallow
-  (λ (pair)
-    (cons (car pair) (cdr pair))))
-
-(define pair-copy-deep
-  (λ (object)
-    (if (not (pair? object)) object
-        (cons (pair-copy-deep (car object))
-              (pair-copy-deep (cdr object))))))
+; (define pair-copy-shallow
+;   (lambda (pair)
+;     (cons (car pair) (cdr pair))))
+;
+; (define pair-copy-deep
+;   (lambda (object)
+;     (if (not (pair? object)) object
+;         (cons (pair-copy-deep (car object))
+;               (pair-copy-deep (cdr object))))))
 
 (define when
   (macro (<test> . <expression>)
@@ -226,10 +302,28 @@
   (macro (<test> . <expression>)
    `(if (not ,<test>) (begin ,@<expression>))))
 
-(define map
-  (λ (callee list.)
-    (if (null? list.)
-       '()
-        (cons (callee (car list.))
-              (map callee (cdr list.))))))
+(define equal?
+  (lambda (object.1 object.2)
+    (if (and (pair? object.1)
+             (pair? object.2))
+        (and (equal? (car object.1) (car object.2))
+             (equal? (cdr object.1) (cdr object.2)))
+        (eqv? object.1 object.2))))
+
+(define = eqv?)
+
+(define zero?
+  (lambda (n)
+    (= n 0)))
+
+(define boolean?
+  (lambda (object)
+    (if (or (eq? object #true)
+            (eq? object #false))
+      #true
+      #false)))
+
+(define newline
+  (lambda ()
+    (display "\n")))
 

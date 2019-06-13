@@ -14,7 +14,8 @@
                  (display ',expression)
                  (display ", but got ")
                  (display result)
-                 (display ".\n")
+                 (display ".")
+                 (newline)
                  (emergency-exit))))))
 
 
@@ -99,14 +100,14 @@
 ;   4.1.4 Procedures
 ; ------------------------------------------------------------------------------
 
-; (λ (x) (+ x x)) ; untestable output
+; (lambda (x) (+ x x)) ; untestable output
 
 (test
-  ((λ (x) (+ x x)) 4)
+  ((lambda (x) (+ x x)) 4)
   8)
 
 (define reverse-subtract
-  (λ (x y)
+  (lambda (x y)
     (- y x)))
 
 (test
@@ -115,18 +116,18 @@
 
 (define add4
   (let ((x 4))
-    (λ (y) (+ x y))))
+    (lambda (y) (+ x y))))
 
 (test
   (add4 6)
   10)
 
 (test
-  ((λ x x) 3 4 5 6)
+  ((lambda x x) 3 4 5 6)
   (3 4 5 6))
 
 (test
-  ((λ (x y . z) z) 3 4 5 6)
+  ((lambda (x y . z) z) 3 4 5 6)
   (5 6))
 
 
@@ -170,38 +171,39 @@
 ;   4.2.1 Conditionals
 ; ------------------------------------------------------------------------------
 
-; (test
-;   (cond ((> 3 2) ’greater)
-;         ((< 3 2) ’less))
-;   greater)
+(test
+  (cond ((> 3 2) 'greater)
+        ((< 3 2) 'less))
+  greater)
+
+(test
+  (cond ((> 3 3) 'greater)
+        ((< 3 3) 'less)
+        (else 'equal))
+  equal)
 
 ; (test
-;   (cond ((> 3 3) ’greater)
-;         ((< 3 3) ’less)
-;         (else ’equal))
-;   equal)
-
-; (test
-;   (cond ((assv ’b ’((a 1) (b 2))) => cadr)
+;   (cond ((assv 'b '((a 1) (b 2))) => cadr)
 ;         (else #f))
 ;   2)
 
-; (test
-;   (case (* 2 3)
-;     ((2 3 5 7) 'prime)
-;     ((1 4 6 8 9) 'composite))
-;   composite)
+(test
+  (case (* 2 3)
+    ((2 3 5 7) 'prime)
+    ((1 4 6 8 9) 'composite))
+  composite)
 
 ; (test
 ;   (case (car '(c d))
 ;     ((a) 'a)
 ;     ((b) 'b))
-;   #undefined)
+;   undefined)
 
 ; (test
 ;   (case (car '(c d))
 ;     ((a e i o u) 'vowel)
-;     ((w y)))
+;     ((w y) 'semivowel)
+;     (else => (lambda (x) x)))
 ;   c)
 
 (test
@@ -220,15 +222,15 @@
 
 (test (and) #true)
 
-; (test
-;   (or (= 2 2) ; = unimplemented
-;       (> 2 1))
-;   #true)
+(test
+  (or (= 2 2)
+      (> 2 1))
+  #true)
 
-; (test
-;   (or (= 1 2) ; = unimplemented
-;       (< 2 1))
-;   #true)
+(test
+  (or (= 2 2)
+      (< 2 1))
+  #true)
 
 (test
   (or #false #false #false)
@@ -253,25 +255,46 @@
 ; ------------------------------------------------------------------------------
 
 (test
-  (let ((x 2) (y 3))
+  (let ((x 2)
+        (y 3))
     (* x y))
   6)
 
 (test
-  (let ((x 2) (y 3))
+  (let ((x 2)
+        (y 3))
     (let ((x 7)
           (z (+ x y)))
       (* z x)))
   35)
 
-; (test
-;   (let ((x 2) (y 3))
-;     (let* ((x 7)
-;            (z (+ x y)))
-;       (* z x)))
-;   70)
+(test
+  (let ((x 2)
+        (y 3))
+    (let* ((x 7)
+           (z (+ x y)))
+      (* z x)))
+  70)
 
-; TODO
+(test
+  (letrec ((factorial
+            (lambda (n)
+              (if (zero? n) 1
+                  (* n (factorial (- n 1)))))))
+    (factorial 10))
+   3628800)
+
+(test
+  (letrec ((even?
+             (lambda (n)
+               (if (zero? n) #true
+                   (odd? (- n 1)))))
+           (odd?
+             (lambda (n)
+               (if (zero? n) #false
+                   (even? (- n 1))))))
+    (even? 88))
+   #true)
 
 
 ; ------------------------------------------------------------------------------
@@ -280,11 +303,11 @@
 
 (define x 0)
 
-; (test
-;   (and (= x 0)
-;        (begin (set! x 5)
-;               (+ x 1)))
-;   6)
+(test
+  (and (= x 0)
+       (begin (set! x 5)
+              (+ x 1)))
+  6)
 
 (begin (display "4 plus 1 equals ")
        (display (+ 4 1)))
@@ -293,6 +316,20 @@
 ; ------------------------------------------------------------------------------
 ;   4.2.4 Iteration
 ; ------------------------------------------------------------------------------
+
+; (test
+;   (do ((vec (make-vector 5))
+;        (i 0 (+ i 1)))
+;       ((= i 5) vec)
+;     (vector-set! vec i i))
+;   #(0 1 2 3 4))
+
+; (test
+;   (let ((x '(1 3 5 7 9)))
+;     (do ((x x (cdr x))
+;          (sum 0 (+ sum (car x))))
+;         ((null? x) sum)))
+;   25)
 
 ; ------------------------------------------------------------------------------
 ;   4.2.5 Delayed Evaluation
@@ -369,11 +406,39 @@
 ; ------------------------------------------------------------------------------
 
 (define add3
-  (λ (x) (+ x 3))); => add3
+  (lambda (x) (+ x 3))); => add3
 (add3 3); => 6
 
 (define first car); => first
 (first '(1 2)); => 1
+
+
+; ------------------------------------------------------------------------------
+;   5.3.2 Internal Definitions
+; ------------------------------------------------------------------------------
+
+(test
+  (let ((x 5))
+    (define foo
+      (lambda (y)
+        (bar x y)))
+    (define bar
+      (lambda (a b)
+        (+ (* a b) a)))
+    (foo (+ x 3)))
+  45)
+
+(test
+  (let ((x 5))
+    (letrec* ((foo
+                (lambda (y)
+                  (bar x y)))
+              (bar
+                (lambda (a b)
+                  (+ (* a b) a))))
+      (foo (+ x 3))))
+  45)
+
 
 ; ------------------------------------------------------------------------------
 ;   6.1 Equivalence Predicates
@@ -418,12 +483,12 @@
   #false)
 
 (test
-  (eqv? (λ () 1)
-        (λ () 2))
+  (eqv? (lambda () 1)
+        (lambda () 2))
   #false)
 
 (test
-  (let ((p (λ (x) x)))
+  (let ((p (lambda (x) x)))
     (eqv? p p))
   #true)
 
@@ -436,11 +501,11 @@
 
 ; (eqv? '#() '#()); #unspecified
 
-; (eqv? (λ (x) x)
-;       (λ (x) x)); #unspecified
+; (eqv? (lambda (x) x)
+;       (lambda (x) x)); #unspecified
 
-; (eqv? (λ (x) x)
-;       (λ (x) y)); #unspecified
+; (eqv? (lambda (x) x)
+;       (lambda (x) y)); #unspecified
 
 ; (eqv? 1.0e0 1.0f0); #unspecified
 
@@ -448,9 +513,9 @@
 
 
 (define generate-counter
-  (λ ()
+  (lambda ()
     (let ((n 0))
-      (λ ()
+      (lambda ()
         (set! n (+ n 1))
         n))))
 
@@ -465,9 +530,9 @@
   #false)
 
 (define generate-loser
-  (λ ()
+  (lambda ()
     (let ((n 0))
-      (λ ()
+      (lambda ()
         (set! n (+ n 1))
         27))))
 
@@ -478,13 +543,13 @@
 
 ; (eqv? (generate-loser) (generate-loser)); #unspecified
 
-; (letrec ((f (λ () (if (eqv? f g) 'both 'f)))
-;          (g (λ () (if (eqv? f g) 'both 'g))))
+; (letrec ((f (lambda () (if (eqv? f g) 'both 'f)))
+;          (g (lambda () (if (eqv? f g) 'both 'g))))
 ;   (eqv? f g)); #unspecified
 
 ; (test; #unimplemented
-;   (letrec ((f (λ () (if (eqv? f g) ’f ’both)))
-;            (g (λ () (if (eqv? f g) ’g ’both))))
+;   (letrec ((f (lambda () (if (eqv? f g) ’f ’both)))
+;            (g (lambda () (if (eqv? f g) ’g ’both))))
 ;     (eqv? f g))
 ;   #false)
 
@@ -538,7 +603,7 @@
 ;   #true)
 
 (test
-  (let ((p (λ (x) x)))
+  (let ((p (lambda (x) x)))
     (eq? p p))
   #true)
 
@@ -572,8 +637,8 @@
 ; (equal? '#1=(a b . #1#)
 ;         '#2=(a b a b . #2#)); #true
 ;
-; (equal? (λ (x) x)
-;         (λ (y) y)); #unspecified
+; (equal? (lambda (x) x)
+;         (lambda (y) y)); #unspecified
 
 
 
@@ -588,8 +653,8 @@
 ; y
 ;
 ; (define accumulator
-;   (λ (n)
-;     (λ ()
+;   (lambda (n)
+;     (lambda ()
 ;       (set! n (+ n 1)))))
 ;
 ; (define acc (accumulator x))
@@ -597,8 +662,10 @@
 ; (acc)
 ; (acc)
 
-(begin (display "\ntest ")
+(begin (newline)
+       (display "test ")
        (display test-passed)
-       (display " expression passed (completed).\n")
+       (display " expression passed (completed).")
+       (newline)
        'completed)
 

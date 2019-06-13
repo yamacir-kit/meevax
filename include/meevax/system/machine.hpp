@@ -21,7 +21,7 @@ namespace meevax::system
   template <typename Enclosure>
   class machine // Simple SECD machine.
   {
-  protected: // XXX TO PRIVATE
+  protected:
     cursor s, // stack
            e, // lexical environment (rib cage representation)
            c, // control
@@ -300,17 +300,17 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add SETV (set-variadic) instruction to remove this conditional.
-          auto& tmp {e};
+          auto tmp {e};
 
           while (0 < i--)
           {
             tmp = cdr(tmp);
           }
 
-          if (auto& region {car(tmp)}; j < 0)
+          if (auto region {car(tmp)}; j < 0)
           {
             // std::next(scope, -++j) <= car(s);
-            auto& var {region};
+            auto var {region};
             while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
             {
               var = cdr(var);
@@ -320,7 +320,7 @@ namespace meevax::system
           else
           {
             // car(std::next(scope, j)) <= car(s);
-            auto& var {region};
+            auto var {region};
             while (0 < j--)
             {
               var = cdr(var);
@@ -373,11 +373,8 @@ namespace meevax::system
 
   protected:
     /* 7.1.3
-     *
-     * <sequence> = <command>* <expression>
-     *
-     * <command> = <expression>
-     *
+     * sequence = command* expression
+     * command = expression
      */
     object sequence(const object& expression,
                     const object& region,
@@ -400,35 +397,53 @@ namespace meevax::system
      *
      */
     object body(const object& expression,
-                const object& region,
+                const object& lexical_environment,
                 const object& continuation) try
     {
       return compile(
                car(expression),
-               region,
+               lexical_environment,
                cdr(expression) ? cons(
                                    _pop_,
-                                   sequence(cdr(expression), region, continuation)
+                                   sequence(cdr(expression), lexical_environment, continuation)
                                  )
                                : continuation
              );
     }
-    catch (const error&) // internal define backtrack
+    catch (const error&) // internal define backtrack (DIRTY HACK)
     {
-      std::cerr << cadar(expression) << " ; => is local-variable" << std::endl;
-      throw;
+      auto binding_specs {list()};
+      auto non_definitions {unit};
 
-      // (lambda ()
-      //   (define <cadar> . <cddar>)
-      //   <cdr>
-      // )
-      //
-      // (lambda ()
-      //   ((lambda (<cadar>)
-      //      (set! (0 . 0) . <cddar>)
-      //      ...)
-      //    #<undefined>)
-      // )
+      for (cursor iter {expression}; iter; ++iter)
+      {
+        if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
+        {
+          // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
+          binding_specs = cons(cdr(*iter), binding_specs);
+        }
+        else
+        {
+          non_definitions = iter;
+          break;
+        }
+      }
+
+      // std::cerr << binding_specs << std::endl;
+      // std::cerr << cons(binding_specs, non_definitions) << std::endl;
+
+      object letrec_star {assoc(
+        static_cast<Enclosure&>(*this).intern("letrec*"),
+        interaction_environment()
+      )};
+
+      auto expanded {letrec_star.as<Enclosure>().expand(
+        cons(binding_specs, non_definitions)
+      )};
+
+      // std::cerr << expanded << std::endl;
+
+      return compile(expanded, lexical_environment, continuation);
     }
 
     /* 7.1.3
@@ -454,28 +469,64 @@ namespace meevax::system
       }
     }
 
+    [[deprecated]]
     object let(const object& expression,
                const object& lexical_environment,
                const object& continuation)
     {
-      auto binding_specs {car(expression)};
+      const auto binding_specs {car(expression)};
+
+      const auto identifiers {
+        map([](auto&& e) { return car(e); }, binding_specs)
+      };
+
+      const auto initializations {
+        map([](auto&& e) { return cadr(e); }, binding_specs)
+      };
 
       return operand(
-               map([](auto&& e) { return cadr(e); }, binding_specs), // <arguments>
+               initializations,
                lexical_environment,
                cons(
                  _ldf_,
                  body(
                    cdr(expression), // <body>
-                   cons(
-                     map([](auto&& e) { return car(e); }, binding_specs), // <formals>
-                     lexical_environment
-                   ),
+                   cons(identifiers, lexical_environment),
                    list(_return_)
                  ),
                  _apply_, continuation
                )
              );
+    }
+
+    object set(const object& expression,
+               const object& lexical_environment,
+               const object& continuation)
+    {
+      TRACE("compile") << car(expression) << " ; => is ";
+
+      if (!expression)
+      {
+        throw error {"syntax error at #<special set!>"};
+      }
+      else if (auto location {locate(car(expression), lexical_environment)}; location)
+      {
+        std::cerr << " local variable => " << list(_setl_, location) << std::endl;
+        return compile(
+                 cadr(expression),
+                 lexical_environment,
+                 cons(_setl_, location, continuation)
+               );
+      }
+      else
+      {
+        std::cerr << " global variable => " << list(_setg_, location) << std::endl;
+        return compile(
+                 cadr(expression),
+                 lexical_environment,
+                 cons(_setg_, car(expression), continuation)
+               );
+      }
     }
   };
 } // namespace meevax::system
