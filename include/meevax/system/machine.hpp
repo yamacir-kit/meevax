@@ -232,23 +232,17 @@ namespace meevax::system
         d.pop(1);
         goto dispatch;
 
-      case secd::CAR:
-        DEBUG(1);
-        car(s) = caar(s); // TODO check?
-        c.pop(1);
-        goto dispatch;
-
-      case secd::CDR:
-        DEBUG(1);
-        car(s) = cdar(s); // TODO check?
-        c.pop(1);
-        goto dispatch;
-
-      case secd::CONS:
-        DEBUG(1);
-        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
-        c.pop(1);
-        goto dispatch;
+      // case secd::CAR:
+      //   DEBUG(1);
+      //   car(s) = caar(s); // TODO check?
+      //   c.pop(1);
+      //   goto dispatch;
+      //
+      // case secd::CDR:
+      //   DEBUG(1);
+      //   car(s) = cdar(s); // TODO check?
+      //   c.pop(1);
+      //   goto dispatch;
 
       case secd::DEFINE:
         DEBUG(2);
@@ -299,6 +293,12 @@ namespace meevax::system
         s = cons(car(s), d.pop());
         e = d.pop();
         c = d.pop();
+        goto dispatch;
+
+      case secd::PUSH:
+        DEBUG(1);
+        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
+        c.pop(1);
         goto dispatch;
 
       case secd::POP: // (var . S) E (POP . C) D => S E C D
@@ -489,7 +489,7 @@ namespace meevax::system
         return operand(
                  cdr(expression),
                  region,
-                 compile(car(expression), region, cons(_cons_, continuation))
+                 compile(car(expression), region, cons(_push_, continuation))
                );
       }
       else

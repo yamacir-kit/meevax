@@ -8,9 +8,9 @@ namespace meevax::system
   enum class secd
   {
     APPLY,
-    CAR,
-    CDR,
-    CONS,
+    // CAR,
+    // CDR,
+    PUSH,
     DEFINE,
     JOIN,
     LOAD_GLOBAL,
@@ -47,17 +47,13 @@ namespace meevax::system
       os << "apply";
       break;
 
-    case secd::CAR:
-      os << "car";
-      break;
-
-    case secd::CDR:
-      os << "cdr";
-      break;
-
-    case secd::CONS:
-      os << "cons";
-      break;
+    // case secd::CAR:
+    //   os << "car";
+    //   break;
+    //
+    // case secd::CDR:
+    //   os << "cdr";
+    //   break;
 
     case secd::DEFINE:
       os << "define";
@@ -91,6 +87,10 @@ namespace meevax::system
       os << "make-module";
       break;
 
+    case secd::PUSH:
+      os << "push";
+      break;
+
     case secd::POP:
       os << "pop";
       break;
@@ -120,9 +120,9 @@ namespace meevax::system
   }
 
   static const auto _apply_             {make<instruction>(secd::APPLY)};
-  static const auto _car_               {make<instruction>(secd::CAR)};
-  static const auto _cdr_               {make<instruction>(secd::CDR)};
-  static const auto _cons_              {make<instruction>(secd::CONS)};
+  // static const auto _car_               {make<instruction>(secd::CAR)};
+  // static const auto _cdr_               {make<instruction>(secd::CDR)};
+  static const auto _push_              {make<instruction>(secd::PUSH)};
   static const auto _define_            {make<instruction>(secd::DEFINE)};
   static const auto _join_              {make<instruction>(secd::JOIN)};
   static const auto _load_global_       {make<instruction>(secd::LOAD_GLOBAL)};

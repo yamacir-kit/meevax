@@ -12,8 +12,6 @@
 
 extern "C"
 {
-  using namespace meevax::system;
-
   PROCEDURE(addressive_equals)
   {
     using namespace meevax::system;
@@ -56,14 +54,16 @@ extern "C"
 
   PROCEDURE(emergency_exit)
   {
-    if (not args or not car(args).template is<number>())
+    using namespace meevax::system;
+
+    if (not args or not car(args).is<number>())
     {
       std::exit(boost::exit_success);
     }
     else
     {
       // XXX DIRTY HACK
-      std::exit(static_cast<int>(car(args).template as<number>()));
+      std::exit(static_cast<int>(car(args).as<number>()));
     }
 
     return unit; // XXX DIRTY HACK
@@ -71,11 +71,13 @@ extern "C"
 
   PROCEDURE(display)
   {
-    for (const auto& each : args)
+    using namespace meevax::system;
+
+    for (const object& each : args)
     {
-      if (each.template is<string>()) // XXX DIRTY HACK
+      if (each.is<string>()) // XXX DIRTY HACK
       {
-        std::cout << static_cast<std::string>(each.template as<string>());
+        std::cout << static_cast<std::string>(each.as<string>());
       }
       else
       {

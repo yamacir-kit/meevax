@@ -150,32 +150,32 @@ namespace meevax::system
       return cons(_load_literal_, car(expression), continuation);
     });
 
-    define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return compile(
-               car(exp),
-               scope,
-               cons(_car_, continuation)
-             );
-    });
-
-    define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return compile(
-               car(exp),
-               scope,
-               cons(_cdr_, continuation)
-             );
-    });
-
-    define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return compile(
-               cadr(exp),
-               scope,
-               compile(car(exp), scope, cons(_cons_, continuation))
-             );
-    });
+    // define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
+    // {
+    //   return compile(
+    //            car(exp),
+    //            scope,
+    //            cons(_car_, continuation)
+    //          );
+    // });
+    //
+    // define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
+    // {
+    //   return compile(
+    //            car(exp),
+    //            scope,
+    //            cons(_cdr_, continuation)
+    //          );
+    // });
+    //
+    // define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
+    // {
+    //   return compile(
+    //            cadr(exp),
+    //            scope,
+    //            compile(car(exp), scope, cons(_cons_, continuation))
+    //          );
+    // });
 
     /* 7.1.3
      *
