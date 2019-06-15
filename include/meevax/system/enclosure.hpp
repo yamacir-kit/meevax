@@ -301,7 +301,7 @@ namespace meevax::system
       return load(car(args).as<const string>());
     });
 
-    define<procedure>("gensym", [&](const object& args)
+    define<procedure>("make-symbol", [&](const object& args)
     {
       // if (args && car(args) && car(args).type() == typeid(string))
       try

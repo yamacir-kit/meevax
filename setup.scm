@@ -335,7 +335,7 @@
 
 (define swap!
   (macro (a b)
-    (let ((x (gensym)))
+    (let ((x (make-symbol)))
      `(let ((,x ,a))
         (set! ,a ,b)
         (set! ,b ,x)))))
