@@ -232,18 +232,6 @@ namespace meevax::system
         d.pop(1);
         goto dispatch;
 
-      // case secd::CAR:
-      //   DEBUG(1);
-      //   car(s) = caar(s); // TODO check?
-      //   c.pop(1);
-      //   goto dispatch;
-      //
-      // case secd::CDR:
-      //   DEBUG(1);
-      //   car(s) = cdar(s); // TODO check?
-      //   c.pop(1);
-      //   goto dispatch;
-
       case secd::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));

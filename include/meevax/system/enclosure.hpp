@@ -150,33 +150,6 @@ namespace meevax::system
       return cons(_load_literal_, car(expression), continuation);
     });
 
-    // define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
-    // {
-    //   return compile(
-    //            car(exp),
-    //            scope,
-    //            cons(_car_, continuation)
-    //          );
-    // });
-    //
-    // define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
-    // {
-    //   return compile(
-    //            car(exp),
-    //            scope,
-    //            cons(_cdr_, continuation)
-    //          );
-    // });
-    //
-    // define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
-    // {
-    //   return compile(
-    //            cadr(exp),
-    //            scope,
-    //            compile(car(exp), scope, cons(_cons_, continuation))
-    //          );
-    // });
-
     /* 7.1.3
      *
      * <conditional> = (if <test> <consequent> <alternate>)
@@ -264,27 +237,6 @@ namespace meevax::system
                continuation
              );
     });
-
-    /* 7.1.3
-     *
-     * (let (<binding-spec>*) <body>)
-     *
-     * (let <identifier> (<binding-spec>*) <body>)
-     *
-     */
-    // define<special>("let", [&](const object& expression,
-    //                            const object& region,
-    //                            const object& continuation)
-    // {
-    //   if (car(expression).is<pair>())
-    //   {
-    //     return let(expression, region, continuation);
-    //   }
-    //   else // named-let
-    //   {
-    //     return continuation; // TODO
-    //   }
-    // });
 
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
