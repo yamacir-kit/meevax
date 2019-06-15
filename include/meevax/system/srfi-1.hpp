@@ -4,8 +4,9 @@
 #include <cassert>
 #include <iterator> // std::begin, std::end, std::distance
 
-#include <meevax/system/pair.hpp>
+#include <meevax/system/boolean.hpp>
 #include <meevax/system/exception.hpp>
+#include <meevax/system/pair.hpp>
 
 // Constructors
 //   - cons

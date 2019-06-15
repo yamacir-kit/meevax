@@ -5,37 +5,33 @@
 (define dlopen dynamic-link-open)
 (define dlsym dynamic-link-procedure)
 
-(define libmeevax-numerical.so (dlopen "./libmeevax-numerical.so"))
+(define fundamental.so (dlopen "./libmeevax-fundamental.so"))
 
-(define * (dlsym libmeevax-numerical.so "multiplication"))
-(define + (dlsym libmeevax-numerical.so "addition"))
-(define - (dlsym libmeevax-numerical.so "subtraction"))
-(define / (dlsym libmeevax-numerical.so "division"))
-(define < (dlsym libmeevax-numerical.so "less"))
-(define > (dlsym libmeevax-numerical.so "greater"))
+(define car  (dlsym fundamental.so "car"))
+(define cdr  (dlsym fundamental.so "cdr"))
+(define cons (dlsym fundamental.so "cons"))
 
-(define libmeevax-experimental.so (dlopen "./libmeevax-experimental.so"))
+(define numerical.so (dlopen "./libmeevax-numerical.so"))
 
-(define display (dlsym libmeevax-experimental.so "display"))
-(define emergency-exit (dlsym libmeevax-experimental.so "emergency_exit"))
-(define eq? (dlsym libmeevax-experimental.so "addressive_equals"))
-(define eqv? (dlsym libmeevax-experimental.so "semantic_equals"))
-(define pair? (dlsym libmeevax-experimental.so "is_pair"))
+(define * (dlsym numerical.so "multiplication"))
+(define + (dlsym numerical.so "addition"))
+(define - (dlsym numerical.so "subtraction"))
+(define / (dlsym numerical.so "division"))
+(define < (dlsym numerical.so "less"))
+(define > (dlsym numerical.so "greater"))
+
+(define experimental.so (dlopen "./libmeevax-experimental.so"))
+
+(define display        (dlsym experimental.so "display"))
+(define emergency-exit (dlsym experimental.so "emergency_exit"))
+(define eq?            (dlsym experimental.so "addressive_equals"))
+(define eqv?           (dlsym experimental.so "semantic_equals"))
+(define pair?          (dlsym experimental.so "is_pair"))
 
 
 ; ------------------------------------------------------------------------------
 ;   Setup CxR
 ; ------------------------------------------------------------------------------
-
-; hack (car is special form currently)
-(define car
-  (lambda (e)
-    (car e)))
-
-; hack (cdr is special form currently)
-(define cdr
-  (lambda (e)
-    (cdr e)))
 
 (define caar (lambda (e) (car (car e))))
 (define cadr (lambda (e) (car (cdr e))))
@@ -278,13 +274,51 @@
 ;   (lambda (x)
 ;     (lambda () x)))
 
-(define apply
-  (lambda (proc args)
-    (proc . args)))
-
 (define list-copy
   (lambda (list.)
     (append-2 list. '())))
+
+(define apply-1
+  (lambda (proc args)
+    (proc . (list-copy args))))
+
+(define make-operands
+  (lambda (list.1 list.2)
+    (if (null? list.2) list.1
+        (make-operands (cons (car list.2) list.1) (cdr list.2)))))
+
+; ; This cannot detect circular-list
+; (define length
+;   (lambda (list.)
+;     (let loop ((list. list.)
+;                (result 0))
+;       (if (pair? list.)
+;           (loop (cdr list.) (+ result 1))
+;           result))))
+
+(define length
+  (lambda (list.)
+    (let loop ((list. list.)
+               (lag list.)
+               (result 0))
+      (if (pair? list.)
+          (let ((list. (cdr list.))
+                (result (+ result 1)))
+            (if (pair? list.)
+                (let ((list. (cdr list.))
+                      (lag (cdr lag))
+                      (result (+ result 1)))
+                  (and (not (eq? list. lag))
+                       (loop list. lag result)))
+                result))
+          result))))
+
+(define apply
+  (lambda (procedure . list.)
+    (if (= (length list.) 1)
+        (apply-1 procedure (car list.))
+        (let ((reversed (reverse list.)))
+          (apply-1 procedure (make-operands (car reversed) (cdr reversed)))))))
 
 ; (define pair-copy-shallow
 ;   (lambda (pair)

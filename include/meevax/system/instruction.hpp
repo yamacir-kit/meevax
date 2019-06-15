@@ -8,9 +8,6 @@ namespace meevax::system
   enum class secd
   {
     APPLY,
-    CAR,
-    CDR,
-    CONS,
     DEFINE,
     JOIN,
     LOAD_GLOBAL,
@@ -20,6 +17,7 @@ namespace meevax::system
     MAKE_CONTINUATION,
     MAKE_MODULE,
     POP,
+    PUSH,
     RETURN,
     SELECT,
     SET_GLOBAL,
@@ -47,18 +45,6 @@ namespace meevax::system
       os << "apply";
       break;
 
-    case secd::CAR:
-      os << "car";
-      break;
-
-    case secd::CDR:
-      os << "cdr";
-      break;
-
-    case secd::CONS:
-      os << "cons";
-      break;
-
     case secd::DEFINE:
       os << "define";
       break;
@@ -67,12 +53,12 @@ namespace meevax::system
       os << "join";
       break;
 
-    case secd::LOAD_LITERAL:
-      os << "load-literal";
-      break;
-
     case secd::LOAD_GLOBAL:
       os << "load-global";
+      break;
+
+    case secd::LOAD_LITERAL:
+      os << "load-literal";
       break;
 
     case secd::LOAD_LOCAL:
@@ -93,6 +79,10 @@ namespace meevax::system
 
     case secd::POP:
       os << "pop";
+      break;
+
+    case secd::PUSH:
+      os << "push";
       break;
 
     case secd::RETURN:
@@ -120,9 +110,6 @@ namespace meevax::system
   }
 
   static const auto _apply_             {make<instruction>(secd::APPLY)};
-  static const auto _car_               {make<instruction>(secd::CAR)};
-  static const auto _cdr_               {make<instruction>(secd::CDR)};
-  static const auto _cons_              {make<instruction>(secd::CONS)};
   static const auto _define_            {make<instruction>(secd::DEFINE)};
   static const auto _join_              {make<instruction>(secd::JOIN)};
   static const auto _load_global_       {make<instruction>(secd::LOAD_GLOBAL)};
@@ -132,6 +119,7 @@ namespace meevax::system
   static const auto _make_continuation_ {make<instruction>(secd::MAKE_CONTINUATION)};
   static const auto _make_module_       {make<instruction>(secd::MAKE_MODULE)};
   static const auto _pop_               {make<instruction>(secd::POP)};
+  static const auto _push_              {make<instruction>(secd::PUSH)};
   static const auto _return_            {make<instruction>(secd::RETURN)};
   static const auto _select_            {make<instruction>(secd::SELECT)};
   static const auto _set_global_        {make<instruction>(secd::SET_GLOBAL)};

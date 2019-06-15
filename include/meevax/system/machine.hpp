@@ -211,11 +211,7 @@ namespace meevax::system
         DEBUG(2);
 
         // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
-        s.push(list(
-          make<continuation>(
-            s, cons(e, cadr(c), d) // current-continuation
-          )
-        ));
+        s.push(list(make<continuation>(s, cons(e, cadr(c), d))));
         c.pop(2);
         goto dispatch;
 
@@ -230,24 +226,6 @@ namespace meevax::system
         DEBUG(1);
         c = car(d);
         d.pop(1);
-        goto dispatch;
-
-      case secd::CAR:
-        DEBUG(1);
-        car(s) = caar(s); // TODO check?
-        c.pop(1);
-        goto dispatch;
-
-      case secd::CDR:
-        DEBUG(1);
-        car(s) = cdar(s); // TODO check?
-        c.pop(1);
-        goto dispatch;
-
-      case secd::CONS:
-        DEBUG(1);
-        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
-        c.pop(1);
         goto dispatch;
 
       case secd::DEFINE:
@@ -299,6 +277,12 @@ namespace meevax::system
         s = cons(car(s), d.pop());
         e = d.pop();
         c = d.pop();
+        goto dispatch;
+
+      case secd::PUSH:
+        DEBUG(1);
+        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
+        c.pop(1);
         goto dispatch;
 
       case secd::POP: // (var . S) E (POP . C) D => S E C D
@@ -489,7 +473,7 @@ namespace meevax::system
         return operand(
                  cdr(expression),
                  region,
-                 compile(car(expression), region, cons(_cons_, continuation))
+                 compile(car(expression), region, cons(_push_, continuation))
                );
       }
       else

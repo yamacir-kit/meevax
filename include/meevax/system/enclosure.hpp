@@ -25,8 +25,6 @@ namespace meevax::system
   {
     std::unordered_map<std::string, object> symbols;
 
-    // stack exported;
-
   public: // Constructors
     // for macro
     enclosure() = default;
@@ -42,11 +40,13 @@ namespace meevax::system
     {}
 
   public: // Module System Interface
+    // TODO RENAME TO "char_ready"
     auto ready() const noexcept
     {
-      return static_cast<bool>(*this); // TODO MORE
+      return static_cast<bool>(*this);
     }
 
+    // TODO RENAME TO "global_define"
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
@@ -71,12 +71,12 @@ namespace meevax::system
       return static_cast<stack&>(std::get<1>(*this));
     }
 
-    decltype(auto) expand(const object& arguments)
+    decltype(auto) expand(const object& operands)
     {
-      std::cerr << "macroexpand " << arguments << std::endl;
+      std::cerr << "macroexpand " << operands << std::endl;
 
       s = unit;
-      e = list(arguments);
+      e = list(operands);
       c = std::get<0>(*this);
       d = cons(
             unit,         // s
@@ -94,7 +94,7 @@ namespace meevax::system
     {
       const std::string path {std::forward<Ts>(args)...};
 
-      const auto master {interaction_environment()};
+      const auto checkpoint {interaction_environment()};
 
       if (reader<enclosure> port {path}; port)
       {
@@ -114,31 +114,25 @@ namespace meevax::system
         }
         catch (...)
         {
-          interaction_environment() = master;
+          interaction_environment() = checkpoint;
           std::cerr << "[error] failed to load \"" << path << "\" with no-error; reverted changes for interaction-environment (exclude side-effects)." << std::endl;
           std::swap(*this, port);
           throw;
         }
 
         std::swap(*this, port);
-        std::cerr << "; load  \t; " << std::distance(interaction_environment(), master) << " expression defined" << std::endl;
+        std::cerr << "; load  \t; " << std::distance(interaction_environment(), checkpoint) << " expression defined" << std::endl;
 
         s = d.pop();
         e = d.pop();
         c = d.pop();
 
-        return _true_;
+        return interaction_environment();
       }
       else
       {
-        std::cerr << "[debug] failed to open file" << std::endl; // TODO CONVERT TO EXCEPTION
-        return _false_;
+        throw error {"failed to open file \"", path, "\""};
       }
-    }
-
-    template <typename... Ts>
-    decltype(auto) import(Ts&&... args)
-    {
     }
   };
 
@@ -154,33 +148,6 @@ namespace meevax::system
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
       return cons(_load_literal_, car(expression), continuation);
-    });
-
-    define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return compile(
-               car(exp),
-               scope,
-               cons(_car_, continuation)
-             );
-    });
-
-    define<special>("cdr", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return compile(
-               car(exp),
-               scope,
-               cons(_cdr_, continuation)
-             );
-    });
-
-    define<special>("cons", [&](auto&& exp, auto&& scope, auto&& continuation)
-    {
-      return compile(
-               cadr(exp),
-               scope,
-               compile(car(exp), scope, cons(_cons_, continuation))
-             );
     });
 
     /* 7.1.3
@@ -270,27 +237,6 @@ namespace meevax::system
                continuation
              );
     });
-
-    /* 7.1.3
-     *
-     * (let (<binding-spec>*) <body>)
-     *
-     * (let <identifier> (<binding-spec>*) <body>)
-     *
-     */
-    // define<special>("let", [&](const object& expression,
-    //                            const object& region,
-    //                            const object& continuation)
-    // {
-    //   if (car(expression).is<pair>())
-    //   {
-    //     return let(expression, region, continuation);
-    //   }
-    //   else // named-let
-    //   {
-    //     return continuation; // TODO
-    //   }
-    // });
 
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {

@@ -645,6 +645,19 @@
 ;   6.10 Control Features
 ; ------------------------------------------------------------------------------
 
+(test
+  (apply + (list 3 4))
+  7)
+
+(define compose
+  (lambda (f g)
+    (lambda args
+      (f (apply g args)))))
+
+; (test
+;   ((compose sqrt *) 12 75)
+;   30)
+
 ; (test
 ;   (call-with-current-continuation
 ;     (lambda (exit)
