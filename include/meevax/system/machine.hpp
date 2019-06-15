@@ -211,11 +211,7 @@ namespace meevax::system
         DEBUG(2);
 
         // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
-        s.push(list(
-          make<continuation>(
-            s, cons(e, cadr(c), d) // current-continuation
-          )
-        ));
+        s.push(list(make<continuation>(s, cons(e, cadr(c), d))));
         c.pop(2);
         goto dispatch;
 

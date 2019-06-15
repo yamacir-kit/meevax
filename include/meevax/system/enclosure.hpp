@@ -71,12 +71,12 @@ namespace meevax::system
       return static_cast<stack&>(std::get<1>(*this));
     }
 
-    decltype(auto) expand(const object& arguments)
+    decltype(auto) expand(const object& operands)
     {
-      std::cerr << "macroexpand " << arguments << std::endl;
+      std::cerr << "macroexpand " << operands << std::endl;
 
       s = unit;
-      e = list(arguments);
+      e = list(operands);
       c = std::get<0>(*this);
       d = cons(
             unit,         // s
