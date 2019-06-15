@@ -13,7 +13,7 @@ namespace meevax::system
     CONS,
     DEFINE,
     JOIN,
-    LDC, // load constant
+    LOAD_LITERAL,
     LDF, // load (function) closure
     LDG, // load globally
     LDL, // load locally
@@ -48,7 +48,11 @@ namespace meevax::system
     case secd::CONS:   os << "cons";   break;
     case secd::DEFINE: os << "define"; break;
     case secd::JOIN:   os << "join";   break;
-    case secd::LDC:    os << "ldc";    break;
+
+    case secd::LOAD_LITERAL:
+      os << "load-literal";
+      break;
+
     case secd::LDF:    os << "ldf";    break;
     case secd::LDG:    os << "ldg";    break;
     case secd::LDL:    os << "ldl";    break;
@@ -70,7 +74,7 @@ namespace meevax::system
   static const auto _cons_   {make<instruction>(0x03)};
   static const auto _define_ {make<instruction>(0x04)};
   static const auto _join_   {make<instruction>(0x05)};
-  static const auto _ldc_    {make<instruction>(0x06)};
+  static const auto _load_literal_ {make<instruction>(secd::LOAD_LITERAL)};
   static const auto _ldf_    {make<instruction>(0x07)};
   static const auto _ldg_    {make<instruction>(0x08)};
   static const auto _ldl_    {make<instruction>(0x09)};

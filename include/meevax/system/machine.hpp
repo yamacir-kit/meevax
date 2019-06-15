@@ -61,7 +61,7 @@ namespace meevax::system
     {
       if (not exp)
       {
-        return cons(_ldc_, unit, continuation);
+        return cons(_load_literal_, unit, continuation);
       }
       else if (not exp.is<pair>())
       {
@@ -84,8 +84,8 @@ namespace meevax::system
         }
         else // is self-evaluation
         {
-          std::cerr << "is self-evaluation => " << list(_ldc_, exp) << std::endl;
-          return cons(_ldc_, exp, continuation);
+          std::cerr << "is self-evaluation => " << list(_load_literal_, exp) << std::endl;
+          return cons(_load_literal_, exp, continuation);
         }
       }
       else // is (application . arguments)
@@ -175,7 +175,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
+      case secd::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
         DEBUG(2);
         s.push(cadr(c));
         c.pop(2);

@@ -153,7 +153,7 @@ namespace meevax::system
     define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
-      return cons(_ldc_, car(expression), continuation);
+      return cons(_load_literal_, car(expression), continuation);
     });
 
     define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
