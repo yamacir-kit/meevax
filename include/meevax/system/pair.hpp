@@ -32,6 +32,10 @@ namespace meevax::system
     constexpr pair(Ts&&... args)
       : std::pair<object, object> {std::forward<Ts>(args)...}
     {}
+
+    pair()
+      : std::pair<object, object> {unit, unit}
+    {}
   };
 
   template <typename T, typename... Ts>

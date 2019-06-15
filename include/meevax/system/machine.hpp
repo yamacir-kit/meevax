@@ -30,6 +30,13 @@ namespace meevax::system
           d; // dump
 
   public:
+    machine()
+      : s {unit}
+      , e {unit}
+      , c {unit}
+      , d {unit}
+    {}
+
     decltype(auto) interaction_environment()
     {
       return static_cast<Enclosure&>(*this).interaction_environment();
