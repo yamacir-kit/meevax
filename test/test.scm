@@ -641,6 +641,46 @@
 ;         (lambda (y) y)); #unspecified
 
 
+; ------------------------------------------------------------------------------
+;   6.10 Control Features
+; ------------------------------------------------------------------------------
+
+; (test
+;   (call-with-current-continuation
+;     (lambda (exit)
+;       (for-each (lambda (x)
+;                   (if (negative? x)
+;                       (exit x)))
+;                '(54 0 37 -3 245 19))
+;     #false))
+;   -3)
+
+(define list-length
+  (lambda (object)
+    (call-with-current-continuation
+      (lambda (return)
+        (begin (display "OK:1")
+               (newline))
+        (letrec ((r
+                   (lambda (object)
+                     (cond ((null? object) 0)
+                           ((pair? object)
+                            (+ (r (cdr object)) 1))
+                           (else (return #false))))))
+          (r object))))))
+
+(test
+  (list-length '(1 2 3 4))
+  4)
+
+(test
+  (list-length '(a b . c))
+  #false)
+
+
+; ------------------------------------------------------------------------------
+;   Miscellaneous
+; ------------------------------------------------------------------------------
 
 ; (define x 42)
 ; x

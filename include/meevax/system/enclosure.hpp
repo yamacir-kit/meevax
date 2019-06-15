@@ -153,7 +153,7 @@ namespace meevax::system
     define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
-      return cons(_ldc_, car(expression), continuation);
+      return cons(_load_literal_, car(expression), continuation);
     });
 
     define<special>("car", [&](auto&& exp, auto&& scope, auto&& continuation)
@@ -235,6 +235,21 @@ namespace meevax::system
       return sequence(std::forward<decltype(args)>(args)...);
     });
 
+    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    {
+      TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
+
+      return cons(
+               _make_continuation_,
+               continuation,
+               compile(
+                 car(expression),
+                 lexical_environment,
+                 cons(_apply_, continuation)
+               )
+             );
+    });
+
     /* 7.1.3
      *
      * <lambda expression> = (lambda <formals> <body>)
@@ -246,7 +261,7 @@ namespace meevax::system
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
       return cons(
-               _ldf_,
+               _make_closure_,
                body(
                  cdr(expression), // <body>
                  cons(car(expression), lexical_environment), // extend lexical environment
@@ -281,7 +296,7 @@ namespace meevax::system
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
       return cons(
-               _ldm_,
+               _make_module_,
                body(
                  cdr(exp),
                  cons(car(exp), scope),

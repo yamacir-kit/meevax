@@ -5,6 +5,7 @@
 
 #include <meevax/system/boolean.hpp> // _false_
 #include <meevax/system/closure.hpp>
+#include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/iterator.hpp>
@@ -61,7 +62,7 @@ namespace meevax::system
     {
       if (not exp)
       {
-        return cons(_ldc_, unit, continuation);
+        return cons(_load_literal_, unit, continuation);
       }
       else if (not exp.is<pair>())
       {
@@ -72,20 +73,20 @@ namespace meevax::system
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << list(_ldl_, location) << std::endl;
-            return cons(_ldl_, location, continuation);
+            std::cerr << "is local variable => " << list(_load_local_, location) << std::endl;
+            return cons(_load_local_, location, continuation);
           }
           else
           {
             // load variable value from global-environment at runtime
-            std::cerr << "is global variable => " << list(_ldg_, exp) << std::endl;
-            return cons(_ldg_, exp, continuation);
+            std::cerr << "is global variable => " << list(_load_global_, exp) << std::endl;
+            return cons(_load_global_, exp, continuation);
           }
         }
         else // is self-evaluation
         {
-          std::cerr << "is self-evaluation => " << list(_ldc_, exp) << std::endl;
-          return cons(_ldc_, exp, continuation);
+          std::cerr << "is self-evaluation => " << list(_load_literal_, exp) << std::endl;
+          return cons(_load_literal_, exp, continuation);
         }
       }
       else // is (application . arguments)
@@ -151,7 +152,7 @@ namespace meevax::system
     dispatch:
       switch (c.top().as<instruction>().code)
       {
-      case secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
+      case secd::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         {
           // DEBUG(2);
 
@@ -175,13 +176,13 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::LDC: // S E (LDC constant . C) D => (constant . S) E C D
+      case secd::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
         DEBUG(2);
         s.push(cadr(c));
         c.pop(2);
         goto dispatch;
 
-      case secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
+      case secd::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
         DEBUG(2);
         if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
@@ -194,19 +195,31 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
+      case secd::MAKE_MODULE: // S E (MAKE_MODULE code . C) => (enclosure . S) E C D
         DEBUG(2);
         s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
-      case secd::LDF: // S E (LDF code . C) => (closure . S) E C D
+      case secd::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
         DEBUG(2);
         s.push(make<closure>(cadr(c), e));
         c.pop(2);
         goto dispatch;
 
-      case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
+      case secd::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
+        DEBUG(2);
+
+        // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
+        s.push(list(
+          make<continuation>(
+            s, cons(e, cadr(c), d) // current-continuation
+          )
+        ));
+        c.pop(2);
+        goto dispatch;
+
+      case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         DEBUG(3);
         d.push(cdddr(c));
         c = car(s) != _false_ ? cadr(c) : caddr(c);
@@ -268,6 +281,13 @@ namespace meevax::system
           s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
+        else if (applicable.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        {
+          s = cons(caadr(s), car(applicable));
+          e = cadr(applicable);
+          c = caddr(applicable);
+          d = cdddr(applicable);
+        }
         else
         {
           throw error {applicable, "\x1b[31m", " is not applicable"};
@@ -287,7 +307,7 @@ namespace meevax::system
         c.pop(1);
         goto dispatch;
 
-      case secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
+      case secd::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
         DEBUG(2);
         // TODO
         // (1) There is no need to make copy if right hand side is unique.
@@ -297,7 +317,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
+      case secd::SET_LOCAL: // (var . S) E (SET_LOCAL (i . j) . C) D => (var . S) E C D
         {
           DEBUG(2);
 
@@ -497,7 +517,7 @@ namespace meevax::system
                initializations,
                lexical_environment,
                cons(
-                 _ldf_,
+                 _make_closure_,
                  body(
                    cdr(expression), // <body>
                    cons(identifiers, lexical_environment),
@@ -520,20 +540,20 @@ namespace meevax::system
       }
       else if (auto location {locate(car(expression), lexical_environment)}; location)
       {
-        std::cerr << " local variable => " << list(_setl_, location) << std::endl;
+        std::cerr << " local variable => " << list(_set_local_, location) << std::endl;
         return compile(
                  cadr(expression),
                  lexical_environment,
-                 cons(_setl_, location, continuation)
+                 cons(_set_local_, location, continuation)
                );
       }
       else
       {
-        std::cerr << " global variable => " << list(_setg_, location) << std::endl;
+        std::cerr << " global variable => " << list(_set_global_, location) << std::endl;
         return compile(
                  cadr(expression),
                  lexical_environment,
-                 cons(_setg_, car(expression), continuation)
+                 cons(_set_global_, car(expression), continuation)
                );
       }
     }
