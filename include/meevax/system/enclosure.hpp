@@ -235,6 +235,21 @@ namespace meevax::system
       return sequence(std::forward<decltype(args)>(args)...);
     });
 
+    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    {
+      TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
+
+      return cons(
+               _make_continuation_,
+               continuation,
+               compile(
+                 car(expression),
+                 lexical_environment,
+                 cons(_apply_, continuation)
+               )
+             );
+    });
+
     /* 7.1.3
      *
      * <lambda expression> = (lambda <formals> <body>)

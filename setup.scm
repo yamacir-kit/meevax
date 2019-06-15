@@ -264,6 +264,8 @@
 ;   Miscellaneous
 ; ------------------------------------------------------------------------------
 
+(define call/cc call-with-current-continuation)
+
 ; (define current-lexical-environment
 ;   (macro ()
 ;     (list 'cdr (list 'lambda '() '()))))

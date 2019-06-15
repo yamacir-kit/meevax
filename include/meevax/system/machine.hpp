@@ -5,6 +5,7 @@
 
 #include <meevax/system/boolean.hpp> // _false_
 #include <meevax/system/closure.hpp>
+#include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/iterator.hpp>
@@ -206,7 +207,19 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C. D)
+      case secd::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
+        DEBUG(2);
+
+        // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
+        s.push(list(
+          make<continuation>(
+            s, cons(e, cadr(c), d) // current-continuation
+          )
+        ));
+        c.pop(2);
+        goto dispatch;
+
+      case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         DEBUG(3);
         d.push(cdddr(c));
         c = car(s) != _false_ ? cadr(c) : caddr(c);
@@ -267,6 +280,13 @@ namespace meevax::system
         {
           s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
+        }
+        else if (applicable.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        {
+          s = cons(caadr(s), car(applicable));
+          e = cadr(applicable);
+          c = caddr(applicable);
+          d = cdddr(applicable);
         }
         else
         {
