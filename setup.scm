@@ -274,13 +274,51 @@
 ;   (lambda (x)
 ;     (lambda () x)))
 
-(define apply
-  (lambda (proc args)
-    (proc . args)))
-
 (define list-copy
   (lambda (list.)
     (append-2 list. '())))
+
+(define apply-1
+  (lambda (proc args)
+    (proc . (list-copy args))))
+
+(define make-operands
+  (lambda (list.1 list.2)
+    (if (null? list.2) list.1
+        (make-operands (cons (car list.2) list.1) (cdr list.2)))))
+
+; ; This cannot detect circular-list
+; (define length
+;   (lambda (list.)
+;     (let loop ((list. list.)
+;                (result 0))
+;       (if (pair? list.)
+;           (loop (cdr list.) (+ result 1))
+;           result))))
+
+(define length
+  (lambda (list.)
+    (let loop ((list. list.)
+               (lag list.)
+               (result 0))
+      (if (pair? list.)
+          (let ((list. (cdr list.))
+                (result (+ result 1)))
+            (if (pair? list.)
+                (let ((list. (cdr list.))
+                      (lag (cdr lag))
+                      (result (+ result 1)))
+                  (and (not (eq? list. lag))
+                       (loop list. lag result)))
+                result))
+          result))))
+
+(define apply
+  (lambda (procedure . list.)
+    (if (= (length list.) 1)
+        (apply-1 procedure (car list.))
+        (let ((reversed (reverse list.)))
+          (apply-1 procedure (make-operands (car reversed) (cdr reversed)))))))
 
 ; (define pair-copy-shallow
 ;   (lambda (pair)
