@@ -287,7 +287,7 @@ namespace meevax::system
         c.pop(1);
         goto dispatch;
 
-      case secd::SETG: // (value . S) E (SETG symbol . C) D => (value . S) E C D
+      case secd::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
         DEBUG(2);
         // TODO
         // (1) There is no need to make copy if right hand side is unique.
@@ -297,7 +297,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::SETL: // (var . S) E (SETG (i . j) . C) D => (var . S) E C D
+      case secd::SET_LOCAL: // (var . S) E (SET_LOCAL (i . j) . C) D => (var . S) E C D
         {
           DEBUG(2);
 
@@ -520,20 +520,20 @@ namespace meevax::system
       }
       else if (auto location {locate(car(expression), lexical_environment)}; location)
       {
-        std::cerr << " local variable => " << list(_setl_, location) << std::endl;
+        std::cerr << " local variable => " << list(_set_local_, location) << std::endl;
         return compile(
                  cadr(expression),
                  lexical_environment,
-                 cons(_setl_, location, continuation)
+                 cons(_set_local_, location, continuation)
                );
       }
       else
       {
-        std::cerr << " global variable => " << list(_setg_, location) << std::endl;
+        std::cerr << " global variable => " << list(_set_global_, location) << std::endl;
         return compile(
                  cadr(expression),
                  lexical_environment,
-                 cons(_setg_, car(expression), continuation)
+                 cons(_set_global_, car(expression), continuation)
                );
       }
     }
