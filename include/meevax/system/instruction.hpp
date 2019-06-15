@@ -13,11 +13,11 @@ namespace meevax::system
     CONS,
     DEFINE,
     JOIN,
-    LOAD_LITERAL,
-    LDF, // load (function) closure
     LOAD_GLOBAL,
+    LOAD_LITERAL,
     LOAD_LOCAL,
-    LDM, // load macro
+    MAKE_CLOSURE,
+    MAKE_MODULE,
     POP,
     RETURN,
     SELECT,
@@ -70,10 +70,6 @@ namespace meevax::system
       os << "load-literal";
       break;
 
-    case secd::LDF:
-      os << "ldf";
-      break;
-
     case secd::LOAD_GLOBAL:
       os << "load-global";
       break;
@@ -82,8 +78,12 @@ namespace meevax::system
       os << "load-local";
       break;
 
-    case secd::LDM:
-      os << "ldm";
+    case secd::MAKE_CLOSURE:
+      os << "make-closure";
+      break;
+
+    case secd::MAKE_MODULE:
+      os << "make-module";
       break;
 
     case secd::POP:
@@ -114,23 +114,23 @@ namespace meevax::system
     return os << "\x1b[0m";
   }
 
-  static const auto _apply_        {make<instruction>(0x00)};
-  static const auto _car_          {make<instruction>(0x01)};
-  static const auto _cdr_          {make<instruction>(0x02)};
-  static const auto _cons_         {make<instruction>(0x03)};
-  static const auto _define_       {make<instruction>(0x04)};
-  static const auto _join_         {make<instruction>(0x05)};
-  static const auto _load_literal_ {make<instruction>(secd::LOAD_LITERAL)};
-  static const auto _ldf_          {make<instruction>(0x07)};
+  static const auto _apply_        {make<instruction>(secd::APPLY)};
+  static const auto _car_          {make<instruction>(secd::CAR)};
+  static const auto _cdr_          {make<instruction>(secd::CDR)};
+  static const auto _cons_         {make<instruction>(secd::CONS)};
+  static const auto _define_       {make<instruction>(secd::DEFINE)};
+  static const auto _join_         {make<instruction>(secd::JOIN)};
   static const auto _load_global_  {make<instruction>(secd::LOAD_GLOBAL)};
+  static const auto _load_literal_ {make<instruction>(secd::LOAD_LITERAL)};
   static const auto _load_local_   {make<instruction>(secd::LOAD_LOCAL)};
-  static const auto _ldm_          {make<instruction>(0x0a)};
-  static const auto _pop_          {make<instruction>(0x0b)};
-  static const auto _return_       {make<instruction>(0x0c)};
-  static const auto _select_       {make<instruction>(0x0d)};
+  static const auto _make_closure_ {make<instruction>(secd::MAKE_CLOSURE)};
+  static const auto _make_module_  {make<instruction>(secd::MAKE_MODULE)};
+  static const auto _pop_          {make<instruction>(secd::POP)};
+  static const auto _return_       {make<instruction>(secd::RETURN)};
+  static const auto _select_       {make<instruction>(secd::SELECT)};
   static const auto _set_global_   {make<instruction>(secd::SET_GLOBAL)};
   static const auto _set_local_    {make<instruction>(secd::SET_LOCAL)};
-  static const auto _stop_         {make<instruction>(0x10)};
+  static const auto _stop_         {make<instruction>(secd::STOP)};
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP

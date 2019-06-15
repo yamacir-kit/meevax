@@ -194,13 +194,13 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::LDM: // S E (LDM code . C) => (enclosure . S) E C D
+      case secd::MAKE_MODULE: // S E (MAKE_MODULE code . C) => (enclosure . S) E C D
         DEBUG(2);
         s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
-      case secd::LDF: // S E (LDF code . C) => (closure . S) E C D
+      case secd::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
         DEBUG(2);
         s.push(make<closure>(cadr(c), e));
         c.pop(2);
@@ -497,7 +497,7 @@ namespace meevax::system
                initializations,
                lexical_environment,
                cons(
-                 _ldf_,
+                 _make_closure_,
                  body(
                    cdr(expression), // <body>
                    cons(identifiers, lexical_environment),

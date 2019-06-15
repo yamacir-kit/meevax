@@ -246,7 +246,7 @@ namespace meevax::system
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
       return cons(
-               _ldf_,
+               _make_closure_,
                body(
                  cdr(expression), // <body>
                  cons(car(expression), lexical_environment), // extend lexical environment
@@ -281,7 +281,7 @@ namespace meevax::system
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
       return cons(
-               _ldm_,
+               _make_module_,
                body(
                  cdr(exp),
                  cons(car(exp), scope),
