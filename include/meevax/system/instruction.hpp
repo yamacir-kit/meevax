@@ -15,8 +15,8 @@ namespace meevax::system
     JOIN,
     LOAD_LITERAL,
     LDF, // load (function) closure
-    LDG, // load globally
-    LDL, // load locally
+    LOAD_GLOBAL,
+    LOAD_LOCAL,
     LDM, // load macro
     POP,
     RETURN,
@@ -74,12 +74,12 @@ namespace meevax::system
       os << "ldf";
       break;
 
-    case secd::LDG:
-      os << "ldg";
+    case secd::LOAD_GLOBAL:
+      os << "load-global";
       break;
 
-    case secd::LDL:
-      os << "ldl";
+    case secd::LOAD_LOCAL:
+      os << "load-local";
       break;
 
     case secd::LDM:
@@ -122,8 +122,8 @@ namespace meevax::system
   static const auto _join_         {make<instruction>(0x05)};
   static const auto _load_literal_ {make<instruction>(secd::LOAD_LITERAL)};
   static const auto _ldf_          {make<instruction>(0x07)};
-  static const auto _ldg_          {make<instruction>(0x08)};
-  static const auto _ldl_          {make<instruction>(0x09)};
+  static const auto _load_global_  {make<instruction>(secd::LOAD_GLOBAL)};
+  static const auto _load_local_   {make<instruction>(secd::LOAD_LOCAL)};
   static const auto _ldm_          {make<instruction>(0x0a)};
   static const auto _pop_          {make<instruction>(0x0b)};
   static const auto _return_       {make<instruction>(0x0c)};

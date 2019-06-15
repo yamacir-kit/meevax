@@ -72,14 +72,14 @@ namespace meevax::system
           if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           {
             // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << list(_ldl_, location) << std::endl;
-            return cons(_ldl_, location, continuation);
+            std::cerr << "is local variable => " << list(_load_local_, location) << std::endl;
+            return cons(_load_local_, location, continuation);
           }
           else
           {
             // load variable value from global-environment at runtime
-            std::cerr << "is global variable => " << list(_ldg_, exp) << std::endl;
-            return cons(_ldg_, exp, continuation);
+            std::cerr << "is global variable => " << list(_load_global_, exp) << std::endl;
+            return cons(_load_global_, exp, continuation);
           }
         }
         else // is self-evaluation
@@ -151,7 +151,7 @@ namespace meevax::system
     dispatch:
       switch (c.top().as<instruction>().code)
       {
-      case secd::LDL: // S E (LDL (i . j) . C) D => (value . S) E C D
+      case secd::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         {
           // DEBUG(2);
 
@@ -181,7 +181,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::LDG: // S E (LDG symbol . C) D => (value . S) E C D
+      case secd::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
         DEBUG(2);
         if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
