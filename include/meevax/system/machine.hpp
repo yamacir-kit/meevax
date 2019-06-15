@@ -7,11 +7,13 @@
 #include <meevax/system/closure.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
+#include <meevax/system/iterator.hpp>
 #include <meevax/system/number.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/srfi-1.hpp> // assoc
-#include <meevax/system/symbol.hpp>
+#include <meevax/system/stack.hpp>
+#include <meevax/system/symbol.hpp> // object::is<symbol>()
 #include <meevax/utility/debug.hpp>
 
 #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
@@ -22,12 +24,19 @@ namespace meevax::system
   class machine // Simple SECD machine.
   {
   protected:
-    cursor s, // stack
-           e, // lexical environment (rib cage representation)
-           c, // control
-           d; // dump
+    stack s, // main stack
+          e, // lexical environment (rib cage representation)
+          c, // control
+          d; // dump
 
   public:
+    machine()
+      : s {unit}
+      , e {unit}
+      , c {unit}
+      , d {unit}
+    {}
+
     decltype(auto) interaction_environment()
     {
       return static_cast<Enclosure&>(*this).interaction_environment();
@@ -154,7 +163,7 @@ namespace meevax::system
           int j {cdadr(c).as<number>()};
 
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (cursor region {car(std::next(e, i))}; j < 0)
+          if (iterator region {car(std::next(e, i))}; j < 0)
           {
             s.push(std::next(region, -++j));
           }
@@ -346,12 +355,12 @@ namespace meevax::system
     {
       auto i {0};
 
-      // for (cursor region {lexical_environment}; region; ++region)
+      // for (iterator region {lexical_environment}; region; ++region)
       for (const auto& region : lexical_environment)
       {
         auto j {0};
 
-        for (cursor y {region}; y; ++y)
+        for (iterator y {region}; y; ++y)
         {
           if (y.is<pair>() && car(y) == variable)
           {
@@ -415,7 +424,7 @@ namespace meevax::system
       auto binding_specs {list()};
       auto non_definitions {unit};
 
-      for (cursor iter {expression}; iter; ++iter)
+      for (iterator iter {expression}; iter; ++iter)
       {
         if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
         {

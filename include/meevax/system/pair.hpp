@@ -32,6 +32,10 @@ namespace meevax::system
     constexpr pair(Ts&&... args)
       : std::pair<object, object> {std::forward<Ts>(args)...}
     {}
+
+    pair()
+      : std::pair<object, object> {unit, unit}
+    {}
   };
 
   template <typename T, typename... Ts>
@@ -40,18 +44,18 @@ namespace meevax::system
     return object::bind<T>(std::forward<Ts>(args)...);
   }
 
-  #define SELECTOR(NAME, INDEX) \
-  template <typename Pointer> \
-  decltype(auto) NAME(Pointer&& object) \
-  { \
-    if (object) \
-    { \
-      return std::get<INDEX>(object.dereference()); \
-    } \
-    else \
-    { \
-      throw error {"internal illegal selection rejected"}; \
-    } \
+  #define SELECTOR(NAME, INDEX)                                                \
+  template <typename Pointer>                                                  \
+  decltype(auto) NAME(Pointer&& object)                                        \
+  {                                                                            \
+    if (object)                                                                \
+    {                                                                          \
+      return std::get<INDEX>(object.dereference());                            \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      throw error {"internal illegal selection rejected"};                     \
+    }                                                                          \
   }
 
   SELECTOR(car, 0)

@@ -3,10 +3,10 @@
 
 #include <functional> // std::funstion
 
-#include <meevax/system/cursor.hpp>
+#include <meevax/system/iterator.hpp>
 
 #define PROCEDURE(NAME) \
-  meevax::system::object NAME(const meevax::system::cursor& args)
+  meevax::system::object NAME(const meevax::system::iterator& args)
 
 namespace meevax::system
 {

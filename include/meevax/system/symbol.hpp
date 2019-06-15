@@ -4,8 +4,6 @@
 #include <iostream>
 #include <string>
 
-#include <meevax/system/cursor.hpp>
-
 namespace meevax::system
 {
   struct symbol

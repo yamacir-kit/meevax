@@ -25,10 +25,10 @@ namespace meevax::system
   {
     std::unordered_map<std::string, object> symbols;
 
-    cursor exported;
+    // stack exported;
 
   public: // Constructors
-    // for syntactic-lambda
+    // for macro
     enclosure() = default;
 
     // for bootstrap scheme-report-environment
@@ -68,7 +68,7 @@ namespace meevax::system
 
     decltype(auto) interaction_environment() noexcept
     {
-      return static_cast<cursor&>(std::get<1>(*this));
+      return static_cast<stack&>(std::get<1>(*this));
     }
 
     decltype(auto) expand(const object& arguments)
