@@ -47,13 +47,9 @@ namespace meevax::system
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... args)
     {
-    #if 0
-      return interaction_environment().push(list(key, std::forward<Ts>(args)...));
-    #else
       interaction_environment().push(list(key, std::forward<Ts>(args)...));
       std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
       return interaction_environment(); // temporary
-    #endif
     }
 
     template <bool Elimination = false>
@@ -71,11 +67,18 @@ namespace meevax::system
 
         if (exp.is<symbol>()) // is variable
         {
-          // if (auto location {locate(exp, scope)}; location) // there is local-defined variable
           if (de_bruijn_index index {exp, scope}; index)
           {
-            std::cerr << "is local variable => " << list(_load_local_, index) << std::endl;
-            return cons(_load_local_, index, continuation);
+            if (index.is_tail())
+            {
+              std::cerr << "is local variadic variable => " << list(_load_local_variadic_, index) << std::endl;
+              return cons(_load_local_variadic_, index, continuation);
+            }
+            else
+            {
+              std::cerr << "is local variable => " << list(_load_local_, index) << std::endl;
+              return cons(_load_local_, index, continuation);
+            }
           }
           else
           {
@@ -153,7 +156,7 @@ namespace meevax::system
       {
       case secd::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         {
-          // DEBUG(2);
+          DEBUG(2);
 
           // Distance to target stack frame from current stack frame.
           int i {caadr(c).as<number>()};
@@ -165,12 +168,27 @@ namespace meevax::system
           // TODO Add LDV (load-variadic) instruction to remove this conditional.
           if (iterator region {car(std::next(e, i))}; j < 0)
           {
-            s.push(std::next(region, -++j));
+            s.push(std::next(region, -(j + 1)));
           }
           else
           {
             s.push(car(std::next(region, j)));
           }
+        }
+        c.pop(2);
+        goto dispatch;
+
+      case secd::LOAD_LOCAL_VARIADIC:
+        DEBUG(2);
+        {
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
+
+          iterator position {*region};
+          int distance {cdadr(c).as<number>()};
+          std::advance(position, -(distance + 1));
+
+          s.push(position);
         }
         c.pop(2);
         goto dispatch;
@@ -352,8 +370,9 @@ namespace meevax::system
       throw error {"unterminated execution"};
     }
 
+    // TODO 内部的にランタイム数値オブジェクトじゃない形でインデックスを持つべき
     struct de_bruijn_index
-      : public object
+      : public object // for runtime
     {
       de_bruijn_index(const object& variable,
                       const object& lexical_environment)
@@ -377,7 +396,8 @@ namespace meevax::system
             }
             else if (not position.is<pair>() && position == variable)
             {
-              return cons(make<number>(i), make<number>(-++j));
+              // メモ：取り出すときは j < 0 の間イテレータを進める感じで
+              return cons(make<number>(i), make<number>(-1 - j));
             }
 
             ++j;
@@ -387,6 +407,11 @@ namespace meevax::system
         }
 
         return unit;
+      }
+
+      bool is_tail() const noexcept
+      {
+        return cdr(*this).template as<number>() < 0;
       }
     };
 
