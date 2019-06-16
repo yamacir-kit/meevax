@@ -730,6 +730,22 @@
          (cons A x))
   (42 . 2))
 
+(define fib
+  (lambda (n)
+    (if (< n 2) n
+        (+ (fib (- n 1))
+           (fib (- n 2))))))
+
+; (define fib-i
+;   (lambda (n)
+;     (if (< n 2)
+;         (values 1 1)
+;         (reverive (current previous)
+;           (fib-i (- n 1))
+;           (values (+ current previous) current)))))
+
+; (fib 20)
+
 (begin (newline)
        (display "test ")
        (display test-passed)
