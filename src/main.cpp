@@ -1,5 +1,5 @@
 #include <meevax/posix/linker.hpp>
-#include <meevax/system/enclosure.hpp>
+#include <meevax/system/environment.hpp>
 #include <meevax/utility/demangle.hpp>
 
 #include <boost/cstdlib.hpp>
@@ -8,7 +8,7 @@ int main() try
 {
   using namespace meevax::system;
 
-  enclosure program {scheme_report_environment<7>};
+  environment program {scheme_report_environment<7>};
   {
     // (dynamic-link-open <path>)
     program.define<procedure>("dynamic-link-open", [&](auto&& args)

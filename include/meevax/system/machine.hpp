@@ -21,12 +21,12 @@
 
 namespace meevax::system
 {
-  template <typename Enclosure>
+  template <typename Environment>
   class machine // Simple SECD machine.
   {
   protected:
     stack s, // main stack
-          e, // lexical environment (rib cage representation)
+          e, // lexical environment
           c, // control
           d; // dump
 
@@ -40,7 +40,7 @@ namespace meevax::system
 
     decltype(auto) interaction_environment()
     {
-      return static_cast<Enclosure&>(*this).interaction_environment();
+      return static_cast<Environment&>(*this).interaction_environment();
     }
 
     // Direct virtual machine instruction invocation.
@@ -109,12 +109,12 @@ namespace meevax::system
           return result;
         }
         else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
-                 (/* std::cerr << "." << std::flush, */ buffer.is<Enclosure>()) &&
+                 (/* std::cerr << "." << std::flush, */ buffer.is<Environment>()) &&
                  (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
         {
           TRACE("compile") << "(" << car(exp) << " ; => is use of " << buffer << " => " << std::flush;
 
-          auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Enclosure&>()};
+          auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Environment&>()};
           // auto expanded {macro.expand(cdr(exp), interaction_environment())};
           auto expanded {macro.expand(cdr(exp))};
           TRACE("macroexpand") << expanded << std::endl;
@@ -197,7 +197,7 @@ namespace meevax::system
 
       case secd::MAKE_MODULE: // S E (MAKE_MODULE code . C) => (enclosure . S) E C D
         DEBUG(2);
-        s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
+        s.push(make<Environment>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
@@ -446,11 +446,11 @@ namespace meevax::system
       // std::cerr << cons(binding_specs, non_definitions) << std::endl;
 
       object letrec_star {assoc(
-        static_cast<Enclosure&>(*this).intern("letrec*"),
+        static_cast<Environment&>(*this).intern("letrec*"),
         interaction_environment()
       )};
 
-      auto expanded {letrec_star.as<Enclosure>().expand(
+      auto expanded {letrec_star.as<Environment>().expand(
         cons(binding_specs, non_definitions)
       )};
 
