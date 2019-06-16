@@ -274,13 +274,17 @@
 ;   (lambda (x)
 ;     (lambda () x)))
 
-(define list-copy
+
+(define list-copy ; from srfi-1
   (lambda (list.)
-    (append-2 list. '())))
+    (let rec ((list. list.))
+      (if (pair? list.)
+          (cons (car list.) (rec (cdr list.)))
+          list.))))
 
 (define apply-1
   (lambda (proc args)
-    (proc . (list-copy args))))
+    (proc . args)))
 
 (define make-operands
   (lambda (list.1 list.2)
