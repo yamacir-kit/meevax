@@ -155,25 +155,16 @@ namespace meevax::system
       switch (c.top().as<instruction>().code)
       {
       case secd::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
+        DEBUG(2);
         {
-          DEBUG(2);
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
 
-          // Distance to target stack frame from current stack frame.
-          int i {caadr(c).as<number>()};
+          iterator position {*region};
+          int distance {cdadr(c).as<number>()};
+          std::advance(position, distance);
 
-          // Index of target value in the target stack frame.
-          // If value is lower than 0, the target value is variadic parameter.
-          int j {cdadr(c).as<number>()};
-
-          // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (iterator region {car(std::next(e, i))}; j < 0)
-          {
-            s.push(std::next(region, -(j + 1)));
-          }
-          else
-          {
-            s.push(car(std::next(region, j)));
-          }
+          s.push(*position);
         }
         c.pop(2);
         goto dispatch;

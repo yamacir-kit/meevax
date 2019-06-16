@@ -28,7 +28,7 @@ gprof $build/meevax \
   | grep -e "$T::shared_ptr(\|$T::operator=(" \
   | grep -v '\[' \
   | sed "s/$T:://g" \
-  | sed "s/$T/objective/g"
+  | sed "s/$T/object/g"
 
 # gprof $build/meevax | $build/gprof2dot.py -w | dot -Tpng -o $build/output.png
 # eog $build/output.png
