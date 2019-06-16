@@ -251,32 +251,32 @@ namespace meevax::system
       case secd::APPLY:
         DEBUG(1);
 
-        if (auto applicable {car(s)}; not applicable)
+        if (auto callee {car(s)}; not callee)
         {
           throw error {"unit is not appliciable"};
         }
-        else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
           d.push(cddr(s), e, cdr(c));
-          c = car(applicable);
-          e = cons(cadr(s), cdr(applicable));
+          c = car(callee);
+          e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
-        else if (applicable.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
         {
-          s = cons(caadr(s), car(applicable));
-          e = cadr(applicable);
-          c = caddr(applicable);
-          d = cdddr(applicable);
+          s = cons(caadr(s), car(callee));
+          e = cadr(callee);
+          c = caddr(callee);
+          d = cdddr(callee);
         }
         else
         {
-          throw error {applicable, "\x1b[31m", " is not applicable"};
+          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
         }
         goto dispatch;
 
