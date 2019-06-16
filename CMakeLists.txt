@@ -15,10 +15,9 @@ endif()
 
 project(meevax VERSION ${MAJOR}.${MINOR}.${SUBMINOR} LANGUAGES CXX)
 
-# set(CMAKE_BUILD_TYPE release)
-# set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -O3 -mtune=native -march=native -s")
-set(CMAKE_BUILD_TYPE debug)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -pg")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
+set(CMAKE_CXX_FLAGS_DEBUG "-pg")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mtune=native -march=native -s")
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Boost REQUIRED)
