@@ -56,6 +56,7 @@ namespace meevax::system
     #endif
     }
 
+    template <bool Elimination = false>
     object compile(const object& exp,
                    const object& scope = unit,
                    const object& continuation = list(_stop_))
@@ -70,15 +71,14 @@ namespace meevax::system
 
         if (exp.is<symbol>()) // is variable
         {
-          if (auto location {locate(exp, scope)}; location) // there is local-defined variable
+          // if (auto location {locate(exp, scope)}; location) // there is local-defined variable
+          if (de_bruijn_index index {exp, scope}; index)
           {
-            // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << list(_load_local_, location) << std::endl;
-            return cons(_load_local_, location, continuation);
+            std::cerr << "is local variable => " << list(_load_local_, index) << std::endl;
+            return cons(_load_local_, index, continuation);
           }
           else
           {
-            // load variable value from global-environment at runtime
             std::cerr << "is global variable => " << list(_load_global_, exp) << std::endl;
             return cons(_load_global_, exp, continuation);
           }
@@ -91,15 +91,14 @@ namespace meevax::system
       }
       else // is (application . arguments)
       {
-        if (const object& buffer {assoc(car(exp), interaction_environment())};
-            /* std::cerr << "." << std::flush, */ !buffer)
+        if (const object& buffer {assoc(car(exp), interaction_environment())}; !buffer)
         {
           TRACE("compile") << "(" << car(exp) << " ; => is application of unit => ERROR" << std::endl;
-          throw error {"unit is not applicable"};
+          throw error {"unit is not applicable"}; // TODO syntax-error
         }
         else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
                  (/* std::cerr << "." << std::flush, */ buffer.is<special>()) &&
-                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
+                 (/* std::cerr << "." << std::flush, */ not de_bruijn_index(car(exp), scope)))
         {
           TRACE("compile") << "(" << car(exp) << " ; => is application of ";
           std::cerr << buffer << std::endl;
@@ -110,7 +109,7 @@ namespace meevax::system
         }
         else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
                  (/* std::cerr << "." << std::flush, */ buffer.is<Environment>()) &&
-                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
+                 (/* std::cerr << "." << std::flush, */ not de_bruijn_index(car(exp), scope)))
         {
           TRACE("compile") << "(" << car(exp) << " ; => is use of " << buffer << " => " << std::flush;
 
@@ -353,36 +352,43 @@ namespace meevax::system
       throw error {"unterminated execution"};
     }
 
-    // De Bruijn Index
-    object locate(const object& variable,
-                  const object& lexical_environment)
+    struct de_bruijn_index
+      : public object
     {
-      auto i {0};
+      de_bruijn_index(const object& variable,
+                      const object& lexical_environment)
+        : object {locate(variable, lexical_environment)}
+      {}
 
-      // for (iterator region {lexical_environment}; region; ++region)
-      for (const auto& region : lexical_environment)
+      object locate(const object& variable,
+                    const object& lexical_environment)
       {
-        auto j {0};
+        auto i {0};
 
-        for (iterator y {region}; y; ++y)
+        for (const auto& region : lexical_environment)
         {
-          if (y.is<pair>() && car(y) == variable)
+          auto j {0};
+
+          for (iterator position {region}; position; ++position)
           {
-            return cons(make<number>(i), make<number>(j));
-          }
-          else if (!y.is<pair>() && y == variable)
-          {
-            return cons(make<number>(i), make<number>(-++j));
+            if (position.is<pair>() && *position == variable)
+            {
+              return cons(make<number>(i), make<number>(j));
+            }
+            else if (not position.is<pair>() && position == variable)
+            {
+              return cons(make<number>(i), make<number>(-++j));
+            }
+
+            ++j;
           }
 
-          ++j;
+          ++i;
         }
 
-        ++i;
+        return unit;
       }
-
-      return unit;
-    }
+    };
 
   protected:
     /* 7.1.3
@@ -465,20 +471,20 @@ namespace meevax::system
      *
      */
     object operand(const object& expression,
-                   const object& region,
+                   const object& lexical_environment,
                    const object& continuation)
     {
       if (expression && expression.is<pair>())
       {
         return operand(
                  cdr(expression),
-                 region,
-                 compile(car(expression), region, cons(_push_, continuation))
+                 lexical_environment,
+                 compile(car(expression), lexical_environment, cons(_push_, continuation))
                );
       }
       else
       {
-        return compile(expression, region, continuation);
+        return compile(expression, lexical_environment, continuation);
       }
     }
 
@@ -522,18 +528,20 @@ namespace meevax::system
       {
         throw error {"syntax error at #<special set!>"};
       }
-      else if (auto location {locate(car(expression), lexical_environment)}; location)
+      else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {
-        std::cerr << " local variable => " << list(_set_local_, location) << std::endl;
+        std::cerr << " local variable => " << list(_set_local_, index) << std::endl;
+
         return compile(
                  cadr(expression),
                  lexical_environment,
-                 cons(_set_local_, location, continuation)
+                 cons(_set_local_, index, continuation)
                );
       }
       else
       {
-        std::cerr << " global variable => " << list(_set_global_, location) << std::endl;
+        std::cerr << " global variable => " << list(_set_global_, car(expression)) << std::endl;
+
         return compile(
                  cadr(expression),
                  lexical_environment,
