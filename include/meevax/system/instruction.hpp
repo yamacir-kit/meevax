@@ -23,6 +23,7 @@ namespace meevax::system
     SELECT,
     SET_GLOBAL,
     SET_LOCAL,
+    SET_LOCAL_VARIADIC,
     STOP,
   };
 
@@ -106,6 +107,10 @@ namespace meevax::system
       os << "set-local";
       break;
 
+    case secd::SET_LOCAL_VARIADIC:
+      os << "set-local-variadic";
+      break;
+
     case secd::STOP:
       os << "stop";
       break;
@@ -130,6 +135,7 @@ namespace meevax::system
   static const auto _select_              {make<instruction>(secd::SELECT)};
   static const auto _set_global_          {make<instruction>(secd::SET_GLOBAL)};
   static const auto _set_local_           {make<instruction>(secd::SET_LOCAL)};
+  static const auto _set_local_variadic_  {make<instruction>(secd::SET_LOCAL_VARIADIC)};
   static const auto _stop_                {make<instruction>(secd::STOP)};
 } // namespace meevax::system
 

@@ -69,6 +69,7 @@ namespace meevax::system
         {
           if (de_bruijn_index index {exp, scope}; index)
           {
+            // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
             if (index.is_tail())
             {
               std::cerr << "is local variadic variable => " << list(_load_local_variadic_, index) << std::endl;
@@ -161,8 +162,7 @@ namespace meevax::system
           std::advance(region, int {caadr(c).as<number>()});
 
           iterator position {*region};
-          int distance {cdadr(c).as<number>()};
-          std::advance(position, distance);
+          std::advance(position, int {cdadr(c).as<number>()});
 
           s.push(*position);
         }
@@ -309,45 +309,33 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::SET_LOCAL: // (var . S) E (SET_LOCAL (i . j) . C) D => (var . S) E C D
+      case secd::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
+        DEBUG(2);
         {
-          DEBUG(2);
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
 
-          // Distance to target stack frame from current stack frame.
-          int i {caadr(c).as<number>()};
+          iterator position {*region};
+          std::advance(position, int {cdadr(c).as<number>()});
 
-          // Index of target value in the target stack frame.
-          // If value is lower than 0, the target value is variadic parameter.
-          int j {cdadr(c).as<number>()};
+          std::atomic_store(&car(position), car(s));
+        }
+        c.pop(2);
+        goto dispatch;
 
-          // TODO Add SETV (set-variadic) instruction to remove this conditional.
-          auto tmp {e};
+      case secd::SET_LOCAL_VARIADIC:
+        DEBUG(2);
+        {
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
 
-          while (0 < i--)
-          {
-            tmp = cdr(tmp);
-          }
+          iterator position {*region};
+          int distance {cdadr(c).as<number>()};
+          // std::advance(position, -(distance + 1));
+          std::advance(position, -(distance + 2));
 
-          if (auto region {car(tmp)}; j < 0)
-          {
-            // std::next(scope, -++j) <= car(s);
-            auto var {region};
-            while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
-            {
-              var = cdr(var);
-            }
-            std::atomic_store(&var, car(s));
-          }
-          else
-          {
-            // car(std::next(scope, j)) <= car(s);
-            auto var {region};
-            while (0 < j--)
-            {
-              var = cdr(var);
-            }
-            std::atomic_store(&car(var), car(s));
-          }
+          // std::atomic_store(&position, car(s));
+          std::atomic_store(&cdr(position), car(s));
         }
         c.pop(2);
         goto dispatch;
@@ -546,13 +534,27 @@ namespace meevax::system
       }
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {
-        std::cerr << " local variable => " << list(_set_local_, index) << std::endl;
+        // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
+        if (index.is_tail())
+        {
+          std::cerr << " local variadic variable => " << list(_set_local_variadic_, index) << std::endl;
 
-        return compile(
-                 cadr(expression),
-                 lexical_environment,
-                 cons(_set_local_, index, continuation)
-               );
+          return compile(
+                   cadr(expression),
+                   lexical_environment,
+                   cons(_set_local_variadic_, index, continuation)
+                 );
+        }
+        else
+        {
+          std::cerr << " local variable => " << list(_set_local_, index) << std::endl;
+
+          return compile(
+                   cadr(expression),
+                   lexical_environment,
+                   cons(_set_local_, index, continuation)
+                 );
+        }
       }
       else
       {
