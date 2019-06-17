@@ -85,7 +85,7 @@ extern "C"
       }
     }
 
-    return undefined; // XXX DIRTY HACK
+    return unspecified; // XXX DIRTY HACK
   }
 } // extern "C"
 

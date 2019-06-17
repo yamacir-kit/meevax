@@ -54,7 +54,8 @@ namespace meevax::system
 
     object compile(const object& exp,
                    const object& scope = unit,
-                   const object& continuation = list(_stop_))
+                   const object& continuation = list(_stop_),
+                   bool tail = false)
     {
       if (not exp)
       {
@@ -105,7 +106,7 @@ namespace meevax::system
         {
           TRACE("compile") << "(" << car(exp) << " ; => is application of " << buffer << std::endl;
           NEST_IN;
-          auto result {std::invoke(buffer.as<special>(), cdr(exp), scope, continuation)};
+          auto result {std::invoke(buffer.as<special>(), cdr(exp), scope, continuation, tail)};
           NEST_OUT;
           return result;
         }
@@ -136,7 +137,7 @@ namespace meevax::system
                    compile(
                      car(exp),
                      scope,
-                     cons(is_tail(continuation) ? _apply_tail_ : _apply_, continuation)
+                     cons(tail ? _apply_tail_ : _apply_, continuation)
                    )
                  )};
           NEST_OUT;
@@ -426,10 +427,10 @@ namespace meevax::system
     };
 
   protected:
-    auto is_tail(const object& continuation)
-    {
-      return car(continuation) == _return_;
-    }
+    // auto is_tail(const object& continuation)
+    // {
+    //   return car(continuation) == _return_;
+    // }
 
     /* 7.1.3
      * sequence = command* expression
@@ -437,17 +438,30 @@ namespace meevax::system
      */
     object sequence(const object& expression,
                     const object& region,
-                    const object& continuation)
+                    const object& continuation, bool tail = false)
     {
-      return compile(
-               car(expression),
-               region,
-               cdr(expression) ? cons(
-                                   _pop_,
-                                   sequence(cdr(expression), region, continuation)
-                                 )
-                               : continuation
-             );
+      // return compile(
+      //          car(expression),
+      //          region,
+      //          cdr(expression) ? cons(
+      //                              _pop_,
+      //                              sequence(cdr(expression), region, continuation)
+      //                            )
+      //                          : continuation
+      //        );
+
+      if (not cdr(expression)) // is tail sequence
+      {
+        return compile(car(expression), region, continuation, tail);
+      }
+      else
+      {
+        return compile(
+                 car(expression),
+                 region,
+                 cons(_pop_, sequence(cdr(expression), region, continuation))
+               );
+      }
     }
 
     /*  7.1.3
@@ -457,17 +471,31 @@ namespace meevax::system
      */
     object body(const object& expression,
                 const object& lexical_environment,
-                const object& continuation) try
+                const object& continuation, bool = false) try
     {
-      return compile(
-               car(expression),
-               lexical_environment,
-               cdr(expression) ? cons(
-                                   _pop_,
-                                   sequence(cdr(expression), lexical_environment, continuation)
-                                 )
-                               : continuation
-             );
+      // return compile(
+      //          car(expression),
+      //          lexical_environment,
+      //          cdr(expression) ? cons(
+      //                              _pop_,
+      //                              sequence(cdr(expression), lexical_environment, continuation)
+      //                            )
+      //                          : continuation,
+      //          not cdr(expression)
+      //        );
+
+      if (not cdr(expression)) // is tail sequence
+      {
+        return compile(car(expression), lexical_environment, continuation, true);
+      }
+      else
+      {
+        return compile(
+                 car(expression),
+                 lexical_environment,
+                 cons(_pop_, sequence(cdr(expression), lexical_environment, continuation))
+               );
+      }
     }
     catch (const error&) // internal define backtrack (DIRTY HACK)
     {
@@ -512,7 +540,7 @@ namespace meevax::system
      */
     object operand(const object& expression,
                    const object& lexical_environment,
-                   const object& continuation)
+                   const object& continuation, bool = false)
     {
       if (expression && expression.is<pair>())
       {
@@ -560,7 +588,7 @@ namespace meevax::system
 
     object set(const object& expression,
                const object& lexical_environment,
-               const object& continuation)
+               const object& continuation, bool = false)
     {
       TRACE("compile") << car(expression) << " ; => is ";
 

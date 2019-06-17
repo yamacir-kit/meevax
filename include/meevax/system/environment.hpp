@@ -144,7 +144,7 @@ namespace meevax::system
      * <quoation> = '<datum> | (quote <datum>)
      *
      */
-    define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
+    define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
       return cons(_load_literal_, car(expression), continuation);
@@ -159,23 +159,23 @@ namespace meevax::system
      * <alternate> = <expression> | <empty>
      *
      */
-    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
 
-      if (is_tail(continuation))
+      if (tail)
       {
-        const auto consequent {compile(cadr(expression), lexical_environment, list(_return_))};
+        const auto consequent {compile(cadr(expression), lexical_environment, list(_return_), true)};
 
         const auto alternate {
-          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_))
+          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_), true)
                            : unspecified
         };
 
         return compile(
                  car(expression), // <test>
                  lexical_environment,
-                 cons(_select_tail_, consequent, alternate, continuation)
+                 cons(_select_tail_, consequent, alternate, cdr(continuation))
                );
       }
       else
@@ -197,7 +197,7 @@ namespace meevax::system
       }
     });
 
-    define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
+    define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation, auto)
     {
       if (not region)
       {
@@ -225,7 +225,7 @@ namespace meevax::system
       return sequence(std::forward<decltype(args)>(args)...);
     });
 
-    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
 
@@ -247,7 +247,7 @@ namespace meevax::system
      * <formals> = (<identifier>*) | (<identifier>+ . <identifier>) | <identifier>
      *
      */
-    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
 
@@ -262,7 +262,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
+    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
 

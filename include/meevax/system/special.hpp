@@ -6,7 +6,7 @@
 
 #include <meevax/system/pair.hpp> // object
 
-#define SPECIAL(NAME) object NAME(const object&, const object&, const object&)
+#define SPECIAL(NAME) object NAME(const object&, const object&, const object&, bool)
 
 namespace meevax::system
 {

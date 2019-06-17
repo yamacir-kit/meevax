@@ -679,8 +679,6 @@
   (lambda (object)
     (call-with-current-continuation
       (lambda (return)
-        (begin (display "OK:1")
-               (newline))
         (letrec ((r
                    (lambda (object)
                      (cond ((null? object) 0)
