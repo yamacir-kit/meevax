@@ -52,22 +52,22 @@ namespace meevax::system
       return interaction_environment(); // temporary
     }
 
-    object compile(const object& exp,
-                   const object& scope = unit,
+    object compile(const object& expression,
+                   const object& lexical_environment = unit,
                    const object& continuation = list(_stop_),
                    bool tail = false)
     {
-      if (not exp)
+      if (not expression)
       {
         return cons(_load_literal_, unit, continuation);
       }
-      else if (not exp.is<pair>())
+      else if (not expression.is<pair>())
       {
-        TRACE("compile") << exp << " ; => ";
+        TRACE("compile") << expression << " ; => ";
 
-        if (exp.is<symbol>()) // is variable
+        if (expression.is<symbol>()) // is variable
         {
-          if (de_bruijn_index index {exp, scope}; index)
+          if (de_bruijn_index index {expression, lexical_environment}; index)
           {
             // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
             if (index.is_tail())
@@ -83,46 +83,41 @@ namespace meevax::system
           }
           else
           {
-            std::cerr << "is global variable => " << list(_load_global_, exp) << std::endl;
-            return cons(_load_global_, exp, continuation);
+            std::cerr << "is global variable => " << list(_load_global_, expression) << std::endl;
+            return cons(_load_global_, expression, continuation);
           }
         }
         else
         {
-          std::cerr << "is self-evaluation => " << list(_load_literal_, exp) << std::endl;
-          return cons(_load_literal_, exp, continuation);
+          std::cerr << "is self-evaluation => " << list(_load_literal_, expression) << std::endl;
+          return cons(_load_literal_, expression, continuation);
         }
       }
       else // is (application . arguments)
       {
-        if (const object& buffer {assoc(car(exp), interaction_environment())}; !buffer)
+        if (const object& buffer {assoc(car(expression), interaction_environment())}; !buffer)
         {
-          TRACE("compile") << "(" << car(exp) << " ; => is application of unit => ERROR" << std::endl;
+          TRACE("compile") << "(" << car(expression) << " ; => is application of unit => ERROR" << std::endl;
           throw error {"unit is not applicable"}; // TODO syntax-error
         }
-        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
-                 (/* std::cerr << "." << std::flush, */ buffer.is<special>()) &&
-                 (/* std::cerr << "." << std::flush, */ not de_bruijn_index(car(exp), scope)))
+        else if (buffer != unbound && buffer.is<special>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          TRACE("compile") << "(" << car(exp) << " ; => is application of " << buffer << std::endl;
+          TRACE("compile") << "(" << car(expression) << " ; => is application of " << buffer << std::endl;
           NEST_IN;
-          auto result {std::invoke(buffer.as<special>(), cdr(exp), scope, continuation, tail)};
+          auto result {std::invoke(buffer.as<special>(), cdr(expression), lexical_environment, continuation, tail)};
           NEST_OUT;
           return result;
         }
-        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
-                 (/* std::cerr << "." << std::flush, */ buffer.is<Environment>()) &&
-                 (/* std::cerr << "." << std::flush, */ not de_bruijn_index(car(exp), scope)))
+        else if (buffer != unbound && buffer.is<Environment>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          TRACE("compile") << "(" << car(exp) << " ; => is use of " << buffer << " => " << std::flush;
+          TRACE("compile") << "(" << car(expression) << " ; => is use of " << buffer << " => " << std::flush;
 
-          auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Environment&>()};
-          // auto expanded {macro.expand(cdr(exp), interaction_environment())};
-          auto expanded {macro.expand(cdr(exp))};
+          auto& macro {assoc(car(expression), interaction_environment()).template as<Environment&>()};
+          auto expanded {macro.expand(cdr(expression))};
           TRACE("macroexpand") << expanded << std::endl;
 
           NEST_IN;
-          auto result {compile(expanded, scope, continuation)};
+          auto result {compile(expanded, lexical_environment, continuation)};
           NEST_OUT;
           return result;
         }
@@ -132,11 +127,11 @@ namespace meevax::system
 
           NEST_IN;
           auto result {operand(
-                   cdr(exp),
-                   scope,
+                   cdr(expression),
+                   lexical_environment,
                    compile(
-                     car(exp),
-                     scope,
+                     car(expression),
+                     lexical_environment,
                      cons(tail ? _apply_tail_ : _apply_, continuation)
                    )
                  )};
@@ -440,29 +435,19 @@ namespace meevax::system
      * command = expression
      */
     object sequence(const object& expression,
-                    const object& region,
+                    const object& lexical_environment,
                     const object& continuation, bool tail = false)
     {
-      // return compile(
-      //          car(expression),
-      //          region,
-      //          cdr(expression) ? cons(
-      //                              _pop_,
-      //                              sequence(cdr(expression), region, continuation)
-      //                            )
-      //                          : continuation
-      //        );
-
       if (not cdr(expression)) // is tail sequence
       {
-        return compile(car(expression), region, continuation, tail);
+        return compile(car(expression), lexical_environment, continuation, tail);
       }
       else
       {
         return compile(
                  car(expression),
-                 region,
-                 cons(_pop_, sequence(cdr(expression), region, continuation))
+                 lexical_environment,
+                 cons(_pop_, sequence(cdr(expression), lexical_environment, continuation))
                );
       }
     }
@@ -476,17 +461,6 @@ namespace meevax::system
                 const object& lexical_environment,
                 const object& continuation, bool = false) try
     {
-      // return compile(
-      //          car(expression),
-      //          lexical_environment,
-      //          cdr(expression) ? cons(
-      //                              _pop_,
-      //                              sequence(cdr(expression), lexical_environment, continuation)
-      //                            )
-      //                          : continuation,
-      //          not cdr(expression)
-      //        );
-
       if (not cdr(expression)) // is tail sequence
       {
         return compile(car(expression), lexical_environment, continuation, true);
