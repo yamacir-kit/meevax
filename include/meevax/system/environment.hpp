@@ -180,8 +180,6 @@ namespace meevax::system
       }
       else
       {
-        std::cerr << "[debug] NOT TAIL IF" << std::endl;
-
         const auto consequent {compile(cadr(expression), lexical_environment, list(_join_))};
 
         const auto alternate {
