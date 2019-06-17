@@ -162,15 +162,18 @@ namespace meevax::system
     define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
+
+      const auto consequent {compile(cadr(expression), lexical_environment, list(_join_))};
+
+      const auto alternate {
+        cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
+                         : unspecified
+      };
+
       return compile(
                car(expression), // <test>
                lexical_environment,
-               cons(
-                 _select_,
-                 compile(cadr(expression), lexical_environment, list(_join_)), // <consequent>
-                 cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_)) : unspecified, // <alternate>
-                 continuation
-               )
+               cons(_select_, consequent, alternate, continuation)
              );
     });
 

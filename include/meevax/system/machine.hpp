@@ -52,7 +52,6 @@ namespace meevax::system
       return interaction_environment(); // temporary
     }
 
-    template <bool Elimination = false>
     object compile(const object& exp,
                    const object& scope = unit,
                    const object& continuation = list(_stop_))
@@ -87,7 +86,7 @@ namespace meevax::system
             return cons(_load_global_, exp, continuation);
           }
         }
-        else // is self-evaluation
+        else
         {
           std::cerr << "is self-evaluation => " << list(_load_literal_, exp) << std::endl;
           return cons(_load_literal_, exp, continuation);
@@ -104,8 +103,7 @@ namespace meevax::system
                  (/* std::cerr << "." << std::flush, */ buffer.is<special>()) &&
                  (/* std::cerr << "." << std::flush, */ not de_bruijn_index(car(exp), scope)))
         {
-          TRACE("compile") << "(" << car(exp) << " ; => is application of ";
-          std::cerr << buffer << std::endl;
+          TRACE("compile") << "(" << car(exp) << " ; => is application of " << buffer << std::endl;
           NEST_IN;
           auto result {std::invoke(buffer.as<special>(), cdr(exp), scope, continuation)};
           NEST_OUT;
@@ -217,9 +215,7 @@ namespace meevax::system
 
       case secd::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
         DEBUG(2);
-
-        // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
-        s.push(list(make<continuation>(s, cons(e, cadr(c), d))));
+        s.push(list(make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
         c.pop(2);
         goto dispatch;
 
@@ -239,7 +235,7 @@ namespace meevax::system
       case secd::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));
-        car(s) = cadr(c); // return value of define (change to #<undefined>?)
+        // car(s) = cadr(c); // return value of define (change to #<undefined>?)
         c.pop(2);
         goto dispatch;
 
@@ -331,7 +327,7 @@ namespace meevax::system
 
           iterator position {*region};
           int distance {cdadr(c).as<number>()};
-          // std::advance(position, -(distance + 1));
+          // std::advance(position, -(distance + 1)); // XXX DIRTY HACK
           std::advance(position, -(distance + 2));
 
           // std::atomic_store(&position, car(s));
@@ -344,9 +340,9 @@ namespace meevax::system
         // XXX この式、実行されない（switchの方チェックの時点で例外で出て行く）
         throw error {car(c), "\x1b[31m is not virtual machine instruction"};
       }
-
-      // XXX この式、実行されない（そもそもたどり着かない）
-      throw error {"unterminated execution"};
+      //
+      // // XXX この式、実行されない（そもそもたどり着かない）
+      // throw error {"unterminated execution"};
     }
 
     // TODO 内部的にランタイム数値オブジェクトじゃない形でインデックスを持つべき

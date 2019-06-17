@@ -21,6 +21,7 @@ namespace meevax::system
     PUSH,
     RETURN,
     SELECT,
+    // SELECT_TAIL,
     SET_GLOBAL,
     SET_LOCAL,
     SET_LOCAL_VARIADIC,
@@ -99,6 +100,10 @@ namespace meevax::system
       os << "select";
       break;
 
+    // case secd::SELECT_TAIL:
+    //   os << "select-tail";
+    //   break;
+
     case secd::SET_GLOBAL:
       os << "set-global";
       break;
@@ -133,6 +138,7 @@ namespace meevax::system
   static const auto _push_                {make<instruction>(secd::PUSH)};
   static const auto _return_              {make<instruction>(secd::RETURN)};
   static const auto _select_              {make<instruction>(secd::SELECT)};
+  // static const auto _select_tail_         {make<instruction>(secd::SELECT_TAIL)};
   static const auto _set_global_          {make<instruction>(secd::SET_GLOBAL)};
   static const auto _set_local_           {make<instruction>(secd::SET_LOCAL)};
   static const auto _set_local_variadic_  {make<instruction>(secd::SET_LOCAL_VARIADIC)};
