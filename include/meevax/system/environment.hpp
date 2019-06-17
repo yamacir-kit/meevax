@@ -163,18 +163,38 @@ namespace meevax::system
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
 
-      const auto consequent {compile(cadr(expression), lexical_environment, list(_join_))};
+      if (is_tail(continuation))
+      {
+        const auto consequent {compile(cadr(expression), lexical_environment, list(_return_))};
 
-      const auto alternate {
-        cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
-                         : unspecified
-      };
+        const auto alternate {
+          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_))
+                           : unspecified
+        };
 
-      return compile(
-               car(expression), // <test>
-               lexical_environment,
-               cons(_select_, consequent, alternate, continuation)
-             );
+        return compile(
+                 car(expression), // <test>
+                 lexical_environment,
+                 cons(_select_tail_, consequent, alternate, continuation)
+               );
+      }
+      else
+      {
+        std::cerr << "[debug] NOT TAIL IF" << std::endl;
+
+        const auto consequent {compile(cadr(expression), lexical_environment, list(_join_))};
+
+        const auto alternate {
+          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
+                           : unspecified
+        };
+
+        return compile(
+                 car(expression), // <test>
+                 lexical_environment,
+                 cons(_select_, consequent, alternate, continuation)
+               );
+      }
     });
 
     define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
@@ -230,6 +250,7 @@ namespace meevax::system
     define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
+
       return cons(
                _make_closure_,
                body(
@@ -244,6 +265,7 @@ namespace meevax::system
     define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
+
       return cons(
                _make_module_,
                body(
@@ -267,12 +289,10 @@ namespace meevax::system
 
     define<procedure>("make-symbol", [&](const object& args)
     {
-      // if (args && car(args) && car(args).type() == typeid(string))
       try
       {
         return make<symbol>(car(args).as<string>());
       }
-      // else
       catch (...)
       {
         return make<symbol>();

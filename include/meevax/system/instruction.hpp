@@ -7,7 +7,8 @@ namespace meevax::system
 {
   enum class secd // TODO RENAME TO "code"
   {
-    APPLY,
+    APPLY, // XXX 紛らわしいから CALL と TAIL_CALL に変える？
+    APPLY_TAIL,
     DEFINE,
     JOIN,
     LOAD_GLOBAL,
@@ -21,7 +22,7 @@ namespace meevax::system
     PUSH,
     RETURN,
     SELECT,
-    // SELECT_TAIL,
+    SELECT_TAIL,
     SET_GLOBAL,
     SET_LOCAL,
     SET_LOCAL_VARIADIC,
@@ -46,6 +47,10 @@ namespace meevax::system
     {
     case secd::APPLY:
       os << "apply";
+      break;
+
+    case secd::APPLY_TAIL:
+      os << "apply-tail";
       break;
 
     case secd::DEFINE:
@@ -100,9 +105,9 @@ namespace meevax::system
       os << "select";
       break;
 
-    // case secd::SELECT_TAIL:
-    //   os << "select-tail";
-    //   break;
+    case secd::SELECT_TAIL:
+      os << "select-tail";
+      break;
 
     case secd::SET_GLOBAL:
       os << "set-global";
@@ -125,6 +130,7 @@ namespace meevax::system
   }
 
   static const auto _apply_               {make<instruction>(secd::APPLY)};
+  static const auto _apply_tail_          {make<instruction>(secd::APPLY_TAIL)};
   static const auto _define_              {make<instruction>(secd::DEFINE)};
   static const auto _join_                {make<instruction>(secd::JOIN)};
   static const auto _load_global_         {make<instruction>(secd::LOAD_GLOBAL)};
@@ -138,7 +144,7 @@ namespace meevax::system
   static const auto _push_                {make<instruction>(secd::PUSH)};
   static const auto _return_              {make<instruction>(secd::RETURN)};
   static const auto _select_              {make<instruction>(secd::SELECT)};
-  // static const auto _select_tail_         {make<instruction>(secd::SELECT_TAIL)};
+  static const auto _select_tail_         {make<instruction>(secd::SELECT_TAIL)};
   static const auto _set_global_          {make<instruction>(secd::SET_GLOBAL)};
   static const auto _set_local_           {make<instruction>(secd::SET_LOCAL)};
   static const auto _set_local_variadic_  {make<instruction>(secd::SET_LOCAL_VARIADIC)};

@@ -133,7 +133,11 @@ namespace meevax::system
           auto result {operand(
                    cdr(exp),
                    scope,
-                   compile(car(exp), scope, cons(_apply_, continuation))
+                   compile(
+                     car(exp),
+                     scope,
+                     cons(is_tail(continuation) ? _apply_tail_ : _apply_, continuation)
+                   )
                  )};
           NEST_OUT;
           return result;
@@ -222,6 +226,9 @@ namespace meevax::system
       case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         DEBUG(3);
         d.push(cdddr(c));
+        [[fallthrough]];
+
+      case secd::SELECT_TAIL:
         c = car(s) != _false_ ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
@@ -276,6 +283,37 @@ namespace meevax::system
         }
         goto dispatch;
 
+      case secd::APPLY_TAIL:
+        DEBUG(1);
+
+        if (auto callee {car(s)}; not callee)
+        {
+          throw error {"unit is not appliciable"};
+        }
+        else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
+        {
+          c = car(callee);
+          e = cons(cadr(s), cdr(callee));
+          s = unit;
+        }
+        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        {
+          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
+          c.pop(1);
+        }
+        else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        {
+          s = cons(caadr(s), car(callee));
+          e = cadr(callee);
+          c = caddr(callee);
+          d = cdddr(callee);
+        }
+        else
+        {
+          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
+        }
+        goto dispatch;
+
       case secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
         DEBUG(1);
         s = cons(car(s), d.pop());
@@ -285,7 +323,7 @@ namespace meevax::system
 
       case secd::PUSH:
         DEBUG(1);
-        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
+        s = car(s) | cadr(s) | cddr(s);
         c.pop(1);
         goto dispatch;
 
@@ -340,9 +378,6 @@ namespace meevax::system
         // XXX この式、実行されない（switchの方チェックの時点で例外で出て行く）
         throw error {car(c), "\x1b[31m is not virtual machine instruction"};
       }
-      //
-      // // XXX この式、実行されない（そもそもたどり着かない）
-      // throw error {"unterminated execution"};
     }
 
     // TODO 内部的にランタイム数値オブジェクトじゃない形でインデックスを持つべき
@@ -391,6 +426,11 @@ namespace meevax::system
     };
 
   protected:
+    auto is_tail(const object& continuation)
+    {
+      return car(continuation) == _return_;
+    }
+
     /* 7.1.3
      * sequence = command* expression
      * command = expression
@@ -488,35 +528,35 @@ namespace meevax::system
       }
     }
 
-    [[deprecated]]
-    object let(const object& expression,
-               const object& lexical_environment,
-               const object& continuation)
-    {
-      const auto binding_specs {car(expression)};
-
-      const auto identifiers {
-        map([](auto&& e) { return car(e); }, binding_specs)
-      };
-
-      const auto initializations {
-        map([](auto&& e) { return cadr(e); }, binding_specs)
-      };
-
-      return operand(
-               initializations,
-               lexical_environment,
-               cons(
-                 _make_closure_,
-                 body(
-                   cdr(expression), // <body>
-                   cons(identifiers, lexical_environment),
-                   list(_return_)
-                 ),
-                 _apply_, continuation
-               )
-             );
-    }
+    // [[deprecated]]
+    // object let(const object& expression,
+    //            const object& lexical_environment,
+    //            const object& continuation)
+    // {
+    //   const auto binding_specs {car(expression)};
+    //
+    //   const auto identifiers {
+    //     map([](auto&& e) { return car(e); }, binding_specs)
+    //   };
+    //
+    //   const auto initializations {
+    //     map([](auto&& e) { return cadr(e); }, binding_specs)
+    //   };
+    //
+    //   return operand(
+    //            initializations,
+    //            lexical_environment,
+    //            cons(
+    //              _make_closure_,
+    //              body(
+    //                cdr(expression), // <body>
+    //                cons(identifiers, lexical_environment),
+    //                list(_return_)
+    //              ),
+    //              _apply_, continuation
+    //            )
+    //          );
+    // }
 
     object set(const object& expression,
                const object& lexical_environment,
