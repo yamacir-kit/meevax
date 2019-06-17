@@ -16,7 +16,7 @@ endif()
 project(meevax VERSION ${MAJOR}.${MINOR}.${SUBMINOR} LANGUAGES CXX)
 
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
-set(CMAKE_CXX_FLAGS_DEBUG "-pg")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mtune=native -march=native -s")
 set(CMAKE_CXX_EXTENSIONS OFF)
 
