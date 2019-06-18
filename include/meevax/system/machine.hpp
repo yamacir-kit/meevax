@@ -150,9 +150,9 @@ namespace meevax::system
     object execute()
     {
     dispatch:
-      switch (c.top().as<instruction>().code)
+      switch (c.top().as<instruction>().value)
       {
-      case secd::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
+      case code::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         DEBUG(2);
         {
           iterator region {e};
@@ -166,7 +166,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::LOAD_LOCAL_VARIADIC:
+      case code::LOAD_LOCAL_VARIADIC:
         DEBUG(2);
         {
           iterator region {e};
@@ -180,13 +180,13 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
+      case code::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
         DEBUG(2);
         s.push(cadr(c));
         c.pop(2);
         goto dispatch;
 
-      case secd::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
+      case code::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
         DEBUG(2);
         if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
@@ -199,51 +199,51 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::MAKE_MODULE: // S E (MAKE_MODULE code . C) => (enclosure . S) E C D
+      case code::MAKE_MODULE: // S E (MAKE_MODULE code . C) => (enclosure . S) E C D
         DEBUG(2);
         s.push(make<Environment>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
-      case secd::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
+      case code::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
         DEBUG(2);
         s.push(make<closure>(cadr(c), e));
         c.pop(2);
         goto dispatch;
 
-      case secd::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
+      case code::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
         DEBUG(2);
         s.push(list(make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
         c.pop(2);
         goto dispatch;
 
-      case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
+      case code::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         DEBUG(3);
         d.push(cdddr(c));
         c = car(s) != _false_ ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
-      case secd::SELECT_TAIL:
+      case code::SELECT_TAIL:
         DEBUG(3);
         c = car(s) != _false_ ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
-      case secd::JOIN: // S E (JOIN . x) (C . D) => S E C D
+      case code::JOIN: // S E (JOIN . x) (C . D) => S E C D
         DEBUG(1);
         c = car(d);
         d.pop(1);
         goto dispatch;
 
-      case secd::DEFINE:
+      case code::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));
         // car(s) = cadr(c); // return value of define (change to #<undefined>?)
         c.pop(2);
         goto dispatch;
 
-      case secd::APPLY:
+      case code::APPLY:
         DEBUG(1);
 
         if (auto callee {car(s)}; not callee)
@@ -276,7 +276,7 @@ namespace meevax::system
         }
         goto dispatch;
 
-      case secd::APPLY_TAIL:
+      case code::APPLY_TAIL:
         DEBUG(1);
 
         if (auto callee {car(s)}; not callee)
@@ -307,26 +307,26 @@ namespace meevax::system
         }
         goto dispatch;
 
-      case secd::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
+      case code::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
         DEBUG(1);
         s = cons(car(s), d.pop());
         e = d.pop();
         c = d.pop();
         goto dispatch;
 
-      case secd::PUSH:
+      case code::PUSH:
         DEBUG(1);
         s = car(s) | cadr(s) | cddr(s);
         c.pop(1);
         goto dispatch;
 
-      case secd::POP: // (var . S) E (POP . C) D => S E C D
+      case code::POP: // (var . S) E (POP . C) D => S E C D
         DEBUG(1);
         s.pop(1);
         c.pop(1);
         goto dispatch;
 
-      case secd::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
+      case code::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
         DEBUG(2);
         // TODO
         // (1) There is no need to make copy if right hand side is unique.
@@ -336,7 +336,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
+      case code::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
         DEBUG(2);
         {
           iterator region {e};
@@ -350,7 +350,7 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::SET_LOCAL_VARIADIC:
+      case code::SET_LOCAL_VARIADIC:
         DEBUG(2);
         {
           iterator region {e};
@@ -365,7 +365,7 @@ namespace meevax::system
         goto dispatch;
 
       default:
-      case secd::STOP: // (result . S) E (STOP . C) D
+      case code::STOP: // (result . S) E (STOP . C) D
         DEBUG(1);
         c.pop(1);
         return s.pop(); // car(s);

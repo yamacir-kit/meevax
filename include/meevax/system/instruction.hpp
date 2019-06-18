@@ -5,7 +5,7 @@
 
 namespace meevax::system
 {
-  enum class secd // TODO RENAME TO "code"
+  enum class code // TODO RENAME TO "code"
   {
     APPLY, // XXX 紛らわしいから CALL と TAIL_CALL に変える？
     APPLY_TAIL,
@@ -31,11 +31,11 @@ namespace meevax::system
 
   struct instruction // XXX CONVERT TO NUMBER TYPE?
   {
-    const secd code;
+    const code value;
 
     template <typename... Ts>
     instruction(Ts&&... args)
-      : code {std::forward<Ts>(args)...}
+      : value {std::forward<Ts>(args)...}
     {}
   };
 
@@ -43,85 +43,85 @@ namespace meevax::system
   {
     os << "\x1b[32m";
 
-    switch (instruction.code)
+    switch (instruction.value)
     {
-    case secd::APPLY:
+    case code::APPLY:
       os << "apply";
       break;
 
-    case secd::APPLY_TAIL:
+    case code::APPLY_TAIL:
       os << "apply-tail";
       break;
 
-    case secd::DEFINE:
+    case code::DEFINE:
       os << "define";
       break;
 
-    case secd::JOIN:
+    case code::JOIN:
       os << "join";
       break;
 
-    case secd::LOAD_GLOBAL:
+    case code::LOAD_GLOBAL:
       os << "load-global";
       break;
 
-    case secd::LOAD_LITERAL:
+    case code::LOAD_LITERAL:
       os << "load-literal";
       break;
 
-    case secd::LOAD_LOCAL:
+    case code::LOAD_LOCAL:
       os << "load-local";
       break;
 
-    case secd::LOAD_LOCAL_VARIADIC:
+    case code::LOAD_LOCAL_VARIADIC:
       os << "load-local-variadic";
       break;
 
-    case secd::MAKE_CLOSURE:
+    case code::MAKE_CLOSURE:
       os << "make-closure";
       break;
 
-    case secd::MAKE_CONTINUATION:
+    case code::MAKE_CONTINUATION:
       os << "make-continuation";
       break;
 
-    case secd::MAKE_MODULE:
+    case code::MAKE_MODULE:
       os << "make-module";
       break;
 
-    case secd::POP:
+    case code::POP:
       os << "pop";
       break;
 
-    case secd::PUSH:
+    case code::PUSH:
       os << "push";
       break;
 
-    case secd::RETURN:
+    case code::RETURN:
       os << "return";
       break;
 
-    case secd::SELECT:
+    case code::SELECT:
       os << "select";
       break;
 
-    case secd::SELECT_TAIL:
+    case code::SELECT_TAIL:
       os << "select-tail";
       break;
 
-    case secd::SET_GLOBAL:
+    case code::SET_GLOBAL:
       os << "set-global";
       break;
 
-    case secd::SET_LOCAL:
+    case code::SET_LOCAL:
       os << "set-local";
       break;
 
-    case secd::SET_LOCAL_VARIADIC:
+    case code::SET_LOCAL_VARIADIC:
       os << "set-local-variadic";
       break;
 
-    case secd::STOP:
+    case code::STOP:
       os << "stop";
       break;
     }
@@ -129,26 +129,26 @@ namespace meevax::system
     return os << "\x1b[0m";
   }
 
-  static const auto _apply_               {make<instruction>(secd::APPLY)};
-  static const auto _apply_tail_          {make<instruction>(secd::APPLY_TAIL)};
-  static const auto _define_              {make<instruction>(secd::DEFINE)};
-  static const auto _join_                {make<instruction>(secd::JOIN)};
-  static const auto _load_global_         {make<instruction>(secd::LOAD_GLOBAL)};
-  static const auto _load_literal_        {make<instruction>(secd::LOAD_LITERAL)};
-  static const auto _load_local_          {make<instruction>(secd::LOAD_LOCAL)};
-  static const auto _load_local_variadic_ {make<instruction>(secd::LOAD_LOCAL_VARIADIC)};
-  static const auto _make_closure_        {make<instruction>(secd::MAKE_CLOSURE)};
-  static const auto _make_continuation_   {make<instruction>(secd::MAKE_CONTINUATION)};
-  static const auto _make_module_         {make<instruction>(secd::MAKE_MODULE)};
-  static const auto _pop_                 {make<instruction>(secd::POP)};
-  static const auto _push_                {make<instruction>(secd::PUSH)};
-  static const auto _return_              {make<instruction>(secd::RETURN)};
-  static const auto _select_              {make<instruction>(secd::SELECT)};
-  static const auto _select_tail_         {make<instruction>(secd::SELECT_TAIL)};
-  static const auto _set_global_          {make<instruction>(secd::SET_GLOBAL)};
-  static const auto _set_local_           {make<instruction>(secd::SET_LOCAL)};
-  static const auto _set_local_variadic_  {make<instruction>(secd::SET_LOCAL_VARIADIC)};
-  static const auto _stop_                {make<instruction>(secd::STOP)};
+  static const auto _apply_               {make<instruction>(code::APPLY)};
+  static const auto _apply_tail_          {make<instruction>(code::APPLY_TAIL)};
+  static const auto _define_              {make<instruction>(code::DEFINE)};
+  static const auto _join_                {make<instruction>(code::JOIN)};
+  static const auto _load_global_         {make<instruction>(code::LOAD_GLOBAL)};
+  static const auto _load_literal_        {make<instruction>(code::LOAD_LITERAL)};
+  static const auto _load_local_          {make<instruction>(code::LOAD_LOCAL)};
+  static const auto _load_local_variadic_ {make<instruction>(code::LOAD_LOCAL_VARIADIC)};
+  static const auto _make_closure_        {make<instruction>(code::MAKE_CLOSURE)};
+  static const auto _make_continuation_   {make<instruction>(code::MAKE_CONTINUATION)};
+  static const auto _make_module_         {make<instruction>(code::MAKE_MODULE)};
+  static const auto _pop_                 {make<instruction>(code::POP)};
+  static const auto _push_                {make<instruction>(code::PUSH)};
+  static const auto _return_              {make<instruction>(code::RETURN)};
+  static const auto _select_              {make<instruction>(code::SELECT)};
+  static const auto _select_tail_         {make<instruction>(code::SELECT_TAIL)};
+  static const auto _set_global_          {make<instruction>(code::SET_GLOBAL)};
+  static const auto _set_local_           {make<instruction>(code::SET_LOCAL)};
+  static const auto _set_local_variadic_  {make<instruction>(code::SET_LOCAL_VARIADIC)};
+  static const auto _stop_                {make<instruction>(code::STOP)};
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
