@@ -1,12 +1,68 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
+
 #include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {
-  enum class code // TODO RENAME TO "code"
+  class table
   {
+    std::vector<std::string> to_string;
+
+  public:
+    table(const std::string& s)
+    {
+      boost::algorithm::split(to_string, s, boost::is_any_of(","));
+
+      for (auto&& each : to_string)
+      {
+        boost::algorithm::trim(each);
+      }
+    }
+
+    decltype(auto) operator[](const std::size_t size) const
+    {
+      return to_string[size];
+    }
+  };
+
+  // 列挙体の文字列化定義を簡略化するためのクソコード
+  #define DEFINE_INSTRUCTION(...)                                              \
+                                                                               \
+  enum class code                                                              \
+  {                                                                            \
+    __VA_ARGS__                                                                \
+  };                                                                           \
+                                                                               \
+  struct instruction                                                           \
+  {                                                                            \
+    const code value;                                                          \
+                                                                               \
+    template <typename... Ts>                                                  \
+    instruction(Ts&&... args)                                                  \
+      : value {std::forward<Ts>(args)...}                                      \
+    {}                                                                         \
+                                                                               \
+    static decltype(auto) to_string(const code value)                          \
+    {                                                                          \
+      static const table transform (#__VA_ARGS__);                             \
+                                                                               \
+      return transform[                                                        \
+        static_cast<typename std::underlying_type<code>::type>(value)          \
+      ];                                                                       \
+    }                                                                          \
+                                                                               \
+    decltype(auto) to_string() const noexcept                                  \
+    {                                                                          \
+      return to_string(value);                                                 \
+    }                                                                          \
+  };
+
+  DEFINE_INSTRUCTION(
     APPLY, // XXX 紛らわしいから CALL と TAIL_CALL に変える？
     APPLY_TAIL,
     DEFINE,
@@ -26,107 +82,12 @@ namespace meevax::system
     SET_GLOBAL,
     SET_LOCAL,
     SET_LOCAL_VARIADIC,
-    STOP,
-  };
-
-  struct instruction // XXX CONVERT TO NUMBER TYPE?
-  {
-    const code value;
-
-    template <typename... Ts>
-    instruction(Ts&&... args)
-      : value {std::forward<Ts>(args)...}
-    {}
-  };
+    STOP
+  )
 
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
   {
-    os << "\x1b[32m";
-
-    switch (instruction.value)
-    {
-    case code::APPLY:
-      os << "apply";
-      break;
-
-    case code::APPLY_TAIL:
-      os << "apply-tail";
-      break;
-
-    case code::DEFINE:
-      os << "define";
-      break;
-
-    case code::JOIN:
-      os << "join";
-      break;
-
-    case code::LOAD_GLOBAL:
-      os << "load-global";
-      break;
-
-    case code::LOAD_LITERAL:
-      os << "load-literal";
-      break;
-
-    case code::LOAD_LOCAL:
-      os << "load-local";
-      break;
-
-    case code::LOAD_LOCAL_VARIADIC:
-      os << "load-local-variadic";
-      break;
-
-    case code::MAKE_CLOSURE:
-      os << "make-closure";
-      break;
-
-    case code::MAKE_CONTINUATION:
-      os << "make-continuation";
-      break;
-
-    case code::MAKE_MODULE:
-      os << "make-module";
-      break;
-
-    case code::POP:
-      os << "pop";
-      break;
-
-    case code::PUSH:
-      os << "push";
-      break;
-
-    case code::RETURN:
-      os << "return";
-      break;
-
-    case code::SELECT:
-      os << "select";
-      break;
-
-    case code::SELECT_TAIL:
-      os << "select-tail";
-      break;
-
-    case code::SET_GLOBAL:
-      os << "set-global";
-      break;
-
-    case code::SET_LOCAL:
-      os << "set-local";
-      break;
-
-    case code::SET_LOCAL_VARIADIC:
-      os << "set-local-variadic";
-      break;
-
-    case code::STOP:
-      os << "stop";
-      break;
-    }
-
-    return os << "\x1b[0m";
+    return os << "\x1b[32m" << instruction.to_string() << "\x1b[0m";
   }
 
   static const auto _apply_               {make<instruction>(code::APPLY)};
