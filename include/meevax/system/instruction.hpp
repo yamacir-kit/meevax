@@ -1,94 +1,72 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include <boost/preprocessor.hpp>
 
 #include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {
-  class table
+  #ifdef SEQ
+  #undef SEQ
+  #endif
+
+  #define SEQ \
+    (APPLY) \
+    (APPLY_TAIL) \
+    (DEFINE) \
+    (JOIN) \
+    (LOAD_GLOBAL) \
+    (LOAD_LITERAL) \
+    (LOAD_LOCAL) \
+    (LOAD_LOCAL_VARIADIC) \
+    (MAKE_CLOSURE) \
+    (MAKE_CONTINUATION) \
+    (MAKE_MODULE) \
+    (POP) \
+    (PUSH) \
+    (RETURN) \
+    (SELECT) \
+    (SELECT_TAIL) \
+    (SET_GLOBAL) \
+    (SET_LOCAL) \
+    (SET_LOCAL_VARIADIC) \
+    (STOP)
+
+  enum class code
   {
-    std::vector<std::string> to_string;
-
-  public:
-    table(const std::string& s)
-    {
-      boost::algorithm::split(to_string, s, boost::is_any_of(","));
-
-      for (auto&& each : to_string)
-      {
-        boost::algorithm::trim(each);
-      }
-    }
-
-    decltype(auto) operator[](const std::size_t size) const
-    {
-      return to_string[size];
-    }
+    BOOST_PP_SEQ_ENUM(SEQ)
   };
 
-  // 列挙体の文字列化定義を簡略化するためのクソコード
-  #define DEFINE_INSTRUCTION(...)                                              \
-                                                                               \
-  enum class code                                                              \
-  {                                                                            \
-    __VA_ARGS__                                                                \
-  };                                                                           \
-                                                                               \
-  struct instruction                                                           \
-  {                                                                            \
-    const code value;                                                          \
-                                                                               \
-    template <typename... Ts>                                                  \
-    instruction(Ts&&... args)                                                  \
-      : value {std::forward<Ts>(args)...}                                      \
-    {}                                                                         \
-                                                                               \
-    static decltype(auto) to_string(const code value)                          \
-    {                                                                          \
-      static const table transform (#__VA_ARGS__);                             \
-                                                                               \
-      return transform[                                                        \
-        static_cast<typename std::underlying_type<code>::type>(value)          \
-      ];                                                                       \
-    }                                                                          \
-                                                                               \
-    decltype(auto) to_string() const noexcept                                  \
-    {                                                                          \
-      return to_string(value);                                                 \
-    }                                                                          \
+  struct instruction
+  {
+    const code value;
+
+    template <typename... Ts>
+    instruction(Ts&&... args)
+      : value {std::forward<Ts>(args)...}
+    {}
   };
 
-  DEFINE_INSTRUCTION(
-    APPLY, // XXX 紛らわしいから CALL と TAIL_CALL に変える？
-    APPLY_TAIL,
-    DEFINE,
-    JOIN,
-    LOAD_GLOBAL,
-    LOAD_LITERAL,
-    LOAD_LOCAL,
-    LOAD_LOCAL_VARIADIC,
-    MAKE_CLOSURE,
-    MAKE_CONTINUATION,
-    MAKE_MODULE,
-    POP,
-    PUSH,
-    RETURN,
-    SELECT,
-    SELECT_TAIL,
-    SET_GLOBAL,
-    SET_LOCAL,
-    SET_LOCAL_VARIADIC,
-    STOP
-  )
+  #define INSTRUCTION_CASE(unused, data, elem) \
+  case code::elem: \
+    os << BOOST_PP_STRINGIZE(elem); \
+    break;
 
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
   {
-    return os << "\x1b[32m" << instruction.to_string() << "\x1b[0m";
+    os << "\x1b[32m";
+
+    switch (instruction.value)
+    {
+    BOOST_PP_SEQ_FOR_EACH(INSTRUCTION_CASE, ~, SEQ)
+    }
+
+    return os << "\x1b[0m";
   }
+
+  #define DEFINE_INSTRUCTION_LITERAL(unused, data, elem) \
+  static const auto _##elem##_
 
   static const auto _apply_               {make<instruction>(code::APPLY)};
   static const auto _apply_tail_          {make<instruction>(code::APPLY_TAIL)};
