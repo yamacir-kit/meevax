@@ -10,6 +10,7 @@
 
 // exception
 //  |-- error
+//  |    |-- read_error (private of class "reader")
 //  |    `-- syntax_error
 //  `-- warning
 

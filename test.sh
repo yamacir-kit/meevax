@@ -20,9 +20,9 @@ fi
 
 script="$project/test/test.scm"
 
-sudo perf record -- $build/meevax < $script
-# sudo perf stat -- $build/meevax < $script
-sudo perf report
+# sudo perf record -- $build/meevax < $script
+sudo perf stat -- $build/meevax < $script
+# sudo perf report
 
 
 # T='std::shared_ptr<meevax::system::pair>'

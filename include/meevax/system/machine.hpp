@@ -243,11 +243,6 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::STOP: // (result . S) E (STOP . C) D
-        DEBUG(1);
-        c.pop(1);
-        return s.pop(); // car(s);
-
       case secd::APPLY:
         DEBUG(1);
 
@@ -370,12 +365,13 @@ namespace meevax::system
         goto dispatch;
 
       default:
-        // XXX この式、実行されない（switchの方チェックの時点で例外で出て行く）
-        throw error {car(c), "\x1b[31m is not virtual machine instruction"};
+      case secd::STOP: // (result . S) E (STOP . C) D
+        DEBUG(1);
+        c.pop(1);
+        return s.pop(); // car(s);
       }
     }
 
-    // TODO 内部的にランタイム数値オブジェクトじゃない形でインデックスを持つべき
     class de_bruijn_index
       : public object // for runtime
     {
