@@ -38,8 +38,18 @@ namespace meevax::system
     }
   };
 
+  enum class category
+  {
+    pair, parentheses,
+  };
+
   PERFECT_DERIVE(error, public, exception)
-  PERFECT_DERIVE([[deprecated]] warning, public, exception)
+  // PERFECT_DERIVE([[deprecated]] warning, public, exception)
+
+  template <category>
+  PERFECT_DERIVE(read_error, public, error)
+
+  PERFECT_DERIVE(syntax_error, public, error)
 
   std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
@@ -51,10 +61,33 @@ namespace meevax::system
     return os << "\x1b[31m#<error \"" << error.what() << "\">\x1b[0m";
   }
 
-  [[deprecated]]
-  std::ostream& operator<<(std::ostream& os, const warning& warning)
+  // [[deprecated]]
+  // std::ostream& operator<<(std::ostream& os, const warning& warning)
+  // {
+  //   return os << "\x1b[33m#<warning \"" << warning.what() << "\">\x1b[0m";
+  // }
+
+  template <category Category>
+  std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
   {
-    return os << "\x1b[33m#<warning \"" << warning.what() << "\">\x1b[0m";
+    os << "\x1b[31m#<read-error ";
+
+    switch (Category)
+    {
+    case category::pair:
+      os << "(pair)";
+      break;
+
+    case category::parentheses:
+      os << "(parentheses)";
+      break;
+
+    default:
+      os << "(unknown)";
+      break;
+    }
+
+    return os << " \"" << error.what() << "\">\x1b[0m";
   }
 } // namespace meevax::system
 

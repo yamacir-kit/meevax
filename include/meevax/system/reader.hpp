@@ -25,42 +25,50 @@ namespace meevax::system
   {
     using seeker = std::istream_iterator<std::ifstream::char_type>;
 
-    enum class category
-    {
-      pair, parentheses
-    };
+    // enum class category
+    // {
+    //   pair, parentheses
+    // };
+    //
+    // template <category C>
+    // struct read_error
+    //   : public exception
+    // {
+    //   template <typename... Ts>
+    //   constexpr read_error(Ts&&... args)
+    //     : exception {std::forward<Ts>(args)...}
+    //   {}
+    //
+    //   friend std::ostream& operator<<(std::ostream& os, const read_error& e)
+    //   {
+    //     os << "\x1b[31m#<read-error ";
+    //
+    //     switch (C)
+    //     {
+    //     case category::pair:
+    //       os << "(pair)";
+    //       break;
+    //
+    //     case category::parentheses:
+    //       os << "(parentheses)";
+    //       break;
+    //
+    //     default:
+    //       os << "(unknown)";
+    //       break;
+    //     }
+    //
+    //     return os << " \"" << e.what() << "\">\x1b[0m";
+    //   }
+    // };
 
-    template <category C>
-    struct read_error
-      : public exception
-    {
-      template <typename... Ts>
-      constexpr read_error(Ts&&... args)
-        : exception {std::forward<Ts>(args)...}
-      {}
+    static inline const auto error_pair {make<read_error<category::pair>>(
+      "ill-formed dot-notation"
+    )};
 
-      friend std::ostream& operator<<(std::ostream& os, const read_error& e)
-      {
-        os << "\x1b[31m#<read-error ";
-
-        switch (C)
-        {
-        case category::pair:
-          os << "(pair)";
-          break;
-
-        case category::parentheses:
-          os << "(parentheses)";
-          break;
-
-        default:
-          os << "(unknown)";
-          break;
-        }
-
-        return os << " \"" << e.what() << "\">\x1b[0m";
-      }
-    };
+    static inline const auto error_parentheses {make<read_error<category::parentheses>>(
+      "unexpected close parentheses inserted"
+    )};
 
   public:
     template <typename... Ts>
@@ -94,19 +102,36 @@ namespace meevax::system
           putback('(');
           return cons(buffer, read());
         }
-        catch (const read_error<category::parentheses>&)
+        // catch (const read_error<category::parentheses>&)
+        // {
+        //   return unit;
+        // }
+        // catch (const read_error<category::pair>&)
+        // {
+        //   auto buffer {read()};
+        //   ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+        //   return buffer;
+        // }
+        catch (const object& object)
         {
-          return unit;
-        }
-        catch (const read_error<category::pair>&)
-        {
-          auto buffer {read()};
-          ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-          return buffer;
+          if (object == error_parentheses)
+          {
+            return unit;
+          }
+          else if (object == error_pair)
+          {
+            auto buffer {read()};
+            ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            return buffer;
+          }
+          else
+          {
+            throw;
+          }
         }
 
       case ')':
-        throw read_error<category::parentheses> {"unexpected close parentheses inserted"};
+        throw error_parentheses;
 
       case '"':
         switch (auto c {narrow(get(), '\0')}; c)
@@ -170,7 +195,7 @@ namespace meevax::system
         {
           if (buffer == ".")
           {
-            throw read_error<category::pair> {"ill-formed dot-notation detected"};
+            throw error_pair;
           }
           else try // is symbol or number
           {
