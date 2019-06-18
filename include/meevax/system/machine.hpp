@@ -70,7 +70,7 @@ namespace meevax::system
           if (de_bruijn_index index {expression, lexical_environment}; index)
           {
             // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
-            if (index.is_tail())
+            if (index.is_variadic())
             {
               std::cerr << "is local variadic variable => " << list(_load_local_variadic_, index) << std::endl;
               return cons(_load_local_variadic_, index, continuation);
@@ -174,8 +174,9 @@ namespace meevax::system
           std::advance(region, int {caadr(c).as<number>()});
 
           iterator position {*region};
-          int distance {cdadr(c).as<number>()};
-          std::advance(position, -(distance + 1));
+          // int distance {cdadr(c).as<number>()};
+          // std::advance(position, -(distance + 1));
+          std::advance(position, int {cdadr(c).as<number>()});
 
           s.push(position);
         }
@@ -363,9 +364,10 @@ namespace meevax::system
           std::advance(region, int {caadr(c).as<number>()});
 
           iterator position {*region};
-          int distance {cdadr(c).as<number>()};
+          // int distance {cdadr(c).as<number>()};
           // std::advance(position, -(distance + 1)); // XXX DIRTY HACK
-          std::advance(position, -(distance + 2));
+          // std::advance(position, -(distance + 2));
+          std::advance(position, int {cdadr(c).as<number>()} - 1);
 
           // std::atomic_store(&position, car(s));
           std::atomic_store(&cdr(position), car(s));
@@ -380,9 +382,12 @@ namespace meevax::system
     }
 
     // TODO 内部的にランタイム数値オブジェクトじゃない形でインデックスを持つべき
-    struct de_bruijn_index
+    class de_bruijn_index
       : public object // for runtime
     {
+      bool variadic;
+
+    public:
       de_bruijn_index(const object& variable,
                       const object& lexical_environment)
         : object {locate(variable, lexical_environment)}
@@ -401,12 +406,14 @@ namespace meevax::system
           {
             if (position.is<pair>() && *position == variable)
             {
+              variadic = false;
               return cons(make<number>(i), make<number>(j));
             }
             else if (not position.is<pair>() && position == variable)
             {
-              // メモ：取り出すときは j < 0 の間イテレータを進める感じで
-              return cons(make<number>(i), make<number>(-1 - j));
+              variadic = true;
+              // return cons(make<number>(i), make<number>(-1 - j));
+              return cons(make<number>(i), make<number>(j));
             }
 
             ++j;
@@ -418,18 +425,14 @@ namespace meevax::system
         return unit;
       }
 
-      bool is_tail() const noexcept
+      bool is_variadic() const noexcept
       {
-        return cdr(*this).template as<number>() < 0;
+        // return cdr(*this).template as<number>() < 0;
+        return variadic;
       }
     };
 
   protected:
-    // auto is_tail(const object& continuation)
-    // {
-    //   return car(continuation) == _return_;
-    // }
-
     /* 7.1.3
      * sequence = command* expression
      * command = expression
@@ -576,7 +579,7 @@ namespace meevax::system
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {
         // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
-        if (index.is_tail())
+        if (index.is_variadic())
         {
           std::cerr << " local variadic variable => " << list(_set_local_variadic_, index) << std::endl;
 
