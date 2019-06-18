@@ -10,7 +10,7 @@
 
 // exception
 //  |-- error
-//  |    |-- read_error (private of class "reader")
+//  |    |-- read_error
 //  |    `-- syntax_error
 //  `-- warning
 
@@ -38,13 +38,12 @@ namespace meevax::system
     }
   };
 
+  PERFECT_DERIVE(error, public, exception)
+
   enum class category
   {
     pair, parentheses,
   };
-
-  PERFECT_DERIVE(error, public, exception)
-  // PERFECT_DERIVE([[deprecated]] warning, public, exception)
 
   template <category>
   PERFECT_DERIVE(read_error, public, error)
@@ -60,12 +59,6 @@ namespace meevax::system
   {
     return os << "\x1b[31m#<error \"" << error.what() << "\">\x1b[0m";
   }
-
-  // [[deprecated]]
-  // std::ostream& operator<<(std::ostream& os, const warning& warning)
-  // {
-  //   return os << "\x1b[33m#<warning \"" << warning.what() << "\">\x1b[0m";
-  // }
 
   template <category Category>
   std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)

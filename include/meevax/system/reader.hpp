@@ -25,43 +25,6 @@ namespace meevax::system
   {
     using seeker = std::istream_iterator<std::ifstream::char_type>;
 
-    // enum class category
-    // {
-    //   pair, parentheses
-    // };
-    //
-    // template <category C>
-    // struct read_error
-    //   : public exception
-    // {
-    //   template <typename... Ts>
-    //   constexpr read_error(Ts&&... args)
-    //     : exception {std::forward<Ts>(args)...}
-    //   {}
-    //
-    //   friend std::ostream& operator<<(std::ostream& os, const read_error& e)
-    //   {
-    //     os << "\x1b[31m#<read-error ";
-    //
-    //     switch (C)
-    //     {
-    //     case category::pair:
-    //       os << "(pair)";
-    //       break;
-    //
-    //     case category::parentheses:
-    //       os << "(parentheses)";
-    //       break;
-    //
-    //     default:
-    //       os << "(unknown)";
-    //       break;
-    //     }
-    //
-    //     return os << " \"" << e.what() << "\">\x1b[0m";
-    //   }
-    // };
-
     static inline const auto error_pair {make<read_error<category::pair>>(
       "ill-formed dot-notation"
     )};
@@ -102,16 +65,6 @@ namespace meevax::system
           putback('(');
           return cons(buffer, read());
         }
-        // catch (const read_error<category::parentheses>&)
-        // {
-        //   return unit;
-        // }
-        // catch (const read_error<category::pair>&)
-        // {
-        //   auto buffer {read()};
-        //   ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-        //   return buffer;
-        // }
         catch (const object& object)
         {
           if (object == error_parentheses)
