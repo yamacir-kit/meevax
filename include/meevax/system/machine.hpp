@@ -54,8 +54,7 @@ namespace meevax::system
 
     object compile(const object& expression,
                    const object& lexical_environment = unit,
-                   const object& continuation = list(_stop_),
-                   bool tail = false)
+                   const object& continuation = list(_stop_), bool tail = false)
     {
       if (not expression)
       {
@@ -174,8 +173,6 @@ namespace meevax::system
           std::advance(region, int {caadr(c).as<number>()});
 
           iterator position {*region};
-          // int distance {cdadr(c).as<number>()};
-          // std::advance(position, -(distance + 1));
           std::advance(position, int {cdadr(c).as<number>()});
 
           s.push(position);
@@ -256,7 +253,8 @@ namespace meevax::system
 
         if (auto callee {car(s)}; not callee)
         {
-          throw error {"unit is not appliciable"};
+          static const error e {"unit is not appliciable"};
+          throw e;
         }
         else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
@@ -364,12 +362,8 @@ namespace meevax::system
           std::advance(region, int {caadr(c).as<number>()});
 
           iterator position {*region};
-          // int distance {cdadr(c).as<number>()};
-          // std::advance(position, -(distance + 1)); // XXX DIRTY HACK
-          // std::advance(position, -(distance + 2));
           std::advance(position, int {cdadr(c).as<number>()} - 1);
 
-          // std::atomic_store(&position, car(s));
           std::atomic_store(&cdr(position), car(s));
         }
         c.pop(2);
