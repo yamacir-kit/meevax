@@ -38,7 +38,7 @@ namespace meevax::system
   };
 
   PERFECT_DERIVE(error, public, exception)
-  PERFECT_DERIVE(warning, public, exception)
+  PERFECT_DERIVE([[deprecated]] warning, public, exception)
 
   std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
@@ -50,6 +50,7 @@ namespace meevax::system
     return os << "\x1b[31m#<error \"" << error.what() << "\">\x1b[0m";
   }
 
+  [[deprecated]]
   std::ostream& operator<<(std::ostream& os, const warning& warning)
   {
     return os << "\x1b[33m#<warning \"" << warning.what() << "\">\x1b[0m";

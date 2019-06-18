@@ -10,6 +10,7 @@
 
 namespace meevax::system
 {
+  // TODO RENAME TO "primitive"
   struct procedure
     : public std::function<PROCEDURE()>
   {

@@ -21,12 +21,12 @@
 
 namespace meevax::system
 {
-  template <typename Enclosure>
+  template <typename Environment>
   class machine // Simple SECD machine.
   {
   protected:
     stack s, // main stack
-          e, // lexical environment (rib cage representation)
+          e, // lexical environment
           c, // control
           d; // dump
 
@@ -40,87 +40,83 @@ namespace meevax::system
 
     decltype(auto) interaction_environment()
     {
-      return static_cast<Enclosure&>(*this).interaction_environment();
+      return static_cast<Environment&>(*this).interaction_environment();
     }
 
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... args)
     {
-    #if 0
-      return interaction_environment().push(list(key, std::forward<Ts>(args)...));
-    #else
       interaction_environment().push(list(key, std::forward<Ts>(args)...));
       std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
       return interaction_environment(); // temporary
-    #endif
     }
 
-    object compile(const object& exp,
-                   const object& scope = unit,
-                   const object& continuation = list(_stop_))
+    object compile(const object& expression,
+                   const object& lexical_environment = unit,
+                   const object& continuation = list(_stop_), bool tail = false)
     {
-      if (not exp)
+      if (not expression)
       {
         return cons(_load_literal_, unit, continuation);
       }
-      else if (not exp.is<pair>())
+      else if (not expression.is<pair>())
       {
-        TRACE("compile") << exp << " ; => ";
+        TRACE("compile") << expression << " ; => ";
 
-        if (exp.is<symbol>()) // is variable
+        if (expression.is<symbol>()) // is variable
         {
-          if (auto location {locate(exp, scope)}; location) // there is local-defined variable
+          if (de_bruijn_index index {expression, lexical_environment}; index)
           {
-            // load variable value (bound to lambda parameter) at runtime
-            std::cerr << "is local variable => " << list(_load_local_, location) << std::endl;
-            return cons(_load_local_, location, continuation);
+            // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
+            if (index.is_variadic())
+            {
+              std::cerr << "is local variadic variable => " << list(_load_local_variadic_, index) << std::endl;
+              return cons(_load_local_variadic_, index, continuation);
+            }
+            else
+            {
+              std::cerr << "is local variable => " << list(_load_local_, index) << std::endl;
+              return cons(_load_local_, index, continuation);
+            }
           }
           else
           {
-            // load variable value from global-environment at runtime
-            std::cerr << "is global variable => " << list(_load_global_, exp) << std::endl;
-            return cons(_load_global_, exp, continuation);
+            std::cerr << "is global variable => " << list(_load_global_, expression) << std::endl;
+            return cons(_load_global_, expression, continuation);
           }
         }
-        else // is self-evaluation
+        else
         {
-          std::cerr << "is self-evaluation => " << list(_load_literal_, exp) << std::endl;
-          return cons(_load_literal_, exp, continuation);
+          std::cerr << "is self-evaluation => " << list(_load_literal_, expression) << std::endl;
+          return cons(_load_literal_, expression, continuation);
         }
       }
       else // is (application . arguments)
       {
-        if (const object& buffer {assoc(car(exp), interaction_environment())};
-            /* std::cerr << "." << std::flush, */ !buffer)
+        if (const object& buffer {assoc(car(expression), interaction_environment())}; !buffer)
         {
-          TRACE("compile") << "(" << car(exp) << " ; => is application of unit => ERROR" << std::endl;
-          throw error {"unit is not applicable"};
+          TRACE("compile") << "(" << car(expression) << " ; => is application of unit => ERROR" << std::endl;
+          throw error {"unit is not applicable"}; // TODO syntax-error
         }
-        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
-                 (/* std::cerr << "." << std::flush, */ buffer.is<special>()) &&
-                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
+        else if (buffer != unbound && buffer.is<special>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          TRACE("compile") << "(" << car(exp) << " ; => is application of ";
-          std::cerr << buffer << std::endl;
+          TRACE("compile") << "(" << car(expression) << " ; => is application of " << buffer << std::endl;
           NEST_IN;
-          auto result {std::invoke(buffer.as<special>(), cdr(exp), scope, continuation)};
+          auto result {std::invoke(buffer.as<special>(), cdr(expression), lexical_environment, continuation, tail)};
           NEST_OUT;
           return result;
         }
-        else if ((/* std::cerr << "." << std::flush, */ buffer != unbound) &&
-                 (/* std::cerr << "." << std::flush, */ buffer.is<Enclosure>()) &&
-                 (/* std::cerr << "." << std::flush, */ not locate(car(exp), scope)))
+        else if (buffer != unbound && buffer.is<Environment>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          TRACE("compile") << "(" << car(exp) << " ; => is use of " << buffer << " => " << std::flush;
+          TRACE("compile") << "(" << car(expression) << " ; => is use of " << buffer << " => " << std::flush;
 
-          auto& macro {unsafe_assoc(car(exp), interaction_environment()).template as<Enclosure&>()};
-          // auto expanded {macro.expand(cdr(exp), interaction_environment())};
-          auto expanded {macro.expand(cdr(exp))};
+          auto& macro {assoc(car(expression), interaction_environment()).template as<Environment&>()};
+          auto expanded {macro.expand(cdr(expression))};
           TRACE("macroexpand") << expanded << std::endl;
 
           NEST_IN;
-          auto result {compile(expanded, scope, continuation)};
+          auto result {compile(expanded, lexical_environment, continuation)};
           NEST_OUT;
           return result;
         }
@@ -130,9 +126,13 @@ namespace meevax::system
 
           NEST_IN;
           auto result {operand(
-                   cdr(exp),
-                   scope,
-                   compile(car(exp), scope, cons(_apply_, continuation))
+                   cdr(expression),
+                   lexical_environment,
+                   compile(
+                     car(expression),
+                     lexical_environment,
+                     cons(tail ? _apply_tail_ : _apply_, continuation)
+                   )
                  )};
           NEST_OUT;
           return result;
@@ -153,25 +153,29 @@ namespace meevax::system
       switch (c.top().as<instruction>().code)
       {
       case secd::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
+        DEBUG(2);
         {
-          // DEBUG(2);
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
 
-          // Distance to target stack frame from current stack frame.
-          int i {caadr(c).as<number>()};
+          iterator position {*region};
+          std::advance(position, int {cdadr(c).as<number>()});
 
-          // Index of target value in the target stack frame.
-          // If value is lower than 0, the target value is variadic parameter.
-          int j {cdadr(c).as<number>()};
+          s.push(*position);
+        }
+        c.pop(2);
+        goto dispatch;
 
-          // TODO Add LDV (load-variadic) instruction to remove this conditional.
-          if (iterator region {car(std::next(e, i))}; j < 0)
-          {
-            s.push(std::next(region, -++j));
-          }
-          else
-          {
-            s.push(car(std::next(region, j)));
-          }
+      case secd::LOAD_LOCAL_VARIADIC:
+        DEBUG(2);
+        {
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
+
+          iterator position {*region};
+          std::advance(position, int {cdadr(c).as<number>()});
+
+          s.push(position);
         }
         c.pop(2);
         goto dispatch;
@@ -197,7 +201,7 @@ namespace meevax::system
 
       case secd::MAKE_MODULE: // S E (MAKE_MODULE code . C) => (enclosure . S) E C D
         DEBUG(2);
-        s.push(make<Enclosure>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
+        s.push(make<Environment>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
         c.pop(2);
         goto dispatch;
 
@@ -209,15 +213,19 @@ namespace meevax::system
 
       case secd::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
         DEBUG(2);
-
-        // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
-        s.push(list(make<continuation>(s, cons(e, cadr(c), d))));
+        s.push(list(make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
         c.pop(2);
         goto dispatch;
 
       case secd::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         DEBUG(3);
         d.push(cdddr(c));
+        c = car(s) != _false_ ? cadr(c) : caddr(c);
+        s.pop(1);
+        goto dispatch;
+
+      case secd::SELECT_TAIL:
+        DEBUG(3);
         c = car(s) != _false_ ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
@@ -231,7 +239,7 @@ namespace meevax::system
       case secd::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));
-        car(s) = cadr(c); // return value of define (change to #<undefined>?)
+        // car(s) = cadr(c); // return value of define (change to #<undefined>?)
         c.pop(2);
         goto dispatch;
 
@@ -243,32 +251,64 @@ namespace meevax::system
       case secd::APPLY:
         DEBUG(1);
 
-        if (auto applicable {car(s)}; not applicable)
+        if (auto callee {car(s)}; not callee)
         {
-          throw error {"unit is not appliciable"};
+          static const error e {"unit is not appliciable"};
+          throw e;
         }
-        else if (applicable.is<closure>()) // (closure args . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
           d.push(cddr(s), e, cdr(c));
-          c = car(applicable);
-          e = cons(cadr(s), cdr(applicable));
+          c = car(callee);
+          e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (applicable.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(applicable.as<procedure>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
-        else if (applicable.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
         {
-          s = cons(caadr(s), car(applicable));
-          e = cadr(applicable);
-          c = caddr(applicable);
-          d = cdddr(applicable);
+          s = cons(caadr(s), car(callee));
+          e = cadr(callee);
+          c = caddr(callee);
+          d = cdddr(callee);
         }
         else
         {
-          throw error {applicable, "\x1b[31m", " is not applicable"};
+          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
+        }
+        goto dispatch;
+
+      case secd::APPLY_TAIL:
+        DEBUG(1);
+
+        if (auto callee {car(s)}; not callee)
+        {
+          throw error {"unit is not appliciable"};
+        }
+        else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
+        {
+          c = car(callee);
+          e = cons(cadr(s), cdr(callee));
+          s = unit;
+        }
+        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        {
+          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
+          c.pop(1);
+        }
+        else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        {
+          s = cons(caadr(s), car(callee));
+          e = cadr(callee);
+          c = caddr(callee);
+          d = cdddr(callee);
+        }
+        else
+        {
+          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
         }
         goto dispatch;
 
@@ -281,7 +321,7 @@ namespace meevax::system
 
       case secd::PUSH:
         DEBUG(1);
-        s = cons(cons(car(s), cadr(s)), cddr(s)); // s = car(s) | cadr(s) | cddr(s);
+        s = car(s) | cadr(s) | cddr(s);
         c.pop(1);
         goto dispatch;
 
@@ -301,45 +341,30 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case secd::SET_LOCAL: // (var . S) E (SET_LOCAL (i . j) . C) D => (var . S) E C D
+      case secd::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
+        DEBUG(2);
         {
-          DEBUG(2);
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
 
-          // Distance to target stack frame from current stack frame.
-          int i {caadr(c).as<number>()};
+          iterator position {*region};
+          std::advance(position, int {cdadr(c).as<number>()});
 
-          // Index of target value in the target stack frame.
-          // If value is lower than 0, the target value is variadic parameter.
-          int j {cdadr(c).as<number>()};
+          std::atomic_store(&car(position), car(s));
+        }
+        c.pop(2);
+        goto dispatch;
 
-          // TODO Add SETV (set-variadic) instruction to remove this conditional.
-          auto tmp {e};
+      case secd::SET_LOCAL_VARIADIC:
+        DEBUG(2);
+        {
+          iterator region {e};
+          std::advance(region, int {caadr(c).as<number>()});
 
-          while (0 < i--)
-          {
-            tmp = cdr(tmp);
-          }
+          iterator position {*region};
+          std::advance(position, int {cdadr(c).as<number>()} - 1);
 
-          if (auto region {car(tmp)}; j < 0)
-          {
-            // std::next(scope, -++j) <= car(s);
-            auto var {region};
-            while (++j < -1) // ここ自信ない（一つ多いか少ないかも）
-            {
-              var = cdr(var);
-            }
-            std::atomic_store(&var, car(s));
-          }
-          else
-          {
-            // car(std::next(scope, j)) <= car(s);
-            auto var {region};
-            while (0 < j--)
-            {
-              var = cdr(var);
-            }
-            std::atomic_store(&car(var), car(s));
-          }
+          std::atomic_store(&cdr(position), car(s));
         }
         c.pop(2);
         goto dispatch;
@@ -348,41 +373,58 @@ namespace meevax::system
         // XXX この式、実行されない（switchの方チェックの時点で例外で出て行く）
         throw error {car(c), "\x1b[31m is not virtual machine instruction"};
       }
-
-      // XXX この式、実行されない（そもそもたどり着かない）
-      throw error {"unterminated execution"};
     }
 
-    // De Bruijn Index
-    object locate(const object& variable,
-                  const object& lexical_environment)
+    // TODO 内部的にランタイム数値オブジェクトじゃない形でインデックスを持つべき
+    class de_bruijn_index
+      : public object // for runtime
     {
-      auto i {0};
+      bool variadic;
 
-      // for (iterator region {lexical_environment}; region; ++region)
-      for (const auto& region : lexical_environment)
+    public:
+      de_bruijn_index(const object& variable,
+                      const object& lexical_environment)
+        : object {locate(variable, lexical_environment)}
+      {}
+
+      object locate(const object& variable,
+                    const object& lexical_environment)
       {
-        auto j {0};
+        auto i {0};
 
-        for (iterator y {region}; y; ++y)
+        for (const auto& region : lexical_environment)
         {
-          if (y.is<pair>() && car(y) == variable)
+          auto j {0};
+
+          for (iterator position {region}; position; ++position)
           {
-            return cons(make<number>(i), make<number>(j));
-          }
-          else if (!y.is<pair>() && y == variable)
-          {
-            return cons(make<number>(i), make<number>(-++j));
+            if (position.is<pair>() && *position == variable)
+            {
+              variadic = false;
+              return cons(make<number>(i), make<number>(j));
+            }
+            else if (not position.is<pair>() && position == variable)
+            {
+              variadic = true;
+              // return cons(make<number>(i), make<number>(-1 - j));
+              return cons(make<number>(i), make<number>(j));
+            }
+
+            ++j;
           }
 
-          ++j;
+          ++i;
         }
 
-        ++i;
+        return unit;
       }
 
-      return unit;
-    }
+      bool is_variadic() const noexcept
+      {
+        // return cdr(*this).template as<number>() < 0;
+        return variadic;
+      }
+    };
 
   protected:
     /* 7.1.3
@@ -390,18 +432,21 @@ namespace meevax::system
      * command = expression
      */
     object sequence(const object& expression,
-                    const object& region,
-                    const object& continuation)
+                    const object& lexical_environment,
+                    const object& continuation, bool tail = false)
     {
-      return compile(
-               car(expression),
-               region,
-               cdr(expression) ? cons(
-                                   _pop_,
-                                   sequence(cdr(expression), region, continuation)
-                                 )
-                               : continuation
-             );
+      if (not cdr(expression)) // is tail sequence
+      {
+        return compile(car(expression), lexical_environment, continuation, tail);
+      }
+      else
+      {
+        return compile(
+                 car(expression),
+                 lexical_environment,
+                 cons(_pop_, sequence(cdr(expression), lexical_environment, continuation))
+               );
+      }
     }
 
     /*  7.1.3
@@ -411,17 +456,20 @@ namespace meevax::system
      */
     object body(const object& expression,
                 const object& lexical_environment,
-                const object& continuation) try
+                const object& continuation, bool = false) try
     {
-      return compile(
-               car(expression),
-               lexical_environment,
-               cdr(expression) ? cons(
-                                   _pop_,
-                                   sequence(cdr(expression), lexical_environment, continuation)
-                                 )
-                               : continuation
-             );
+      if (not cdr(expression)) // is tail sequence
+      {
+        return compile(car(expression), lexical_environment, continuation, true);
+      }
+      else
+      {
+        return compile(
+                 car(expression),
+                 lexical_environment,
+                 cons(_pop_, sequence(cdr(expression), lexical_environment, continuation))
+               );
+      }
     }
     catch (const error&) // internal define backtrack (DIRTY HACK)
     {
@@ -446,11 +494,11 @@ namespace meevax::system
       // std::cerr << cons(binding_specs, non_definitions) << std::endl;
 
       object letrec_star {assoc(
-        static_cast<Enclosure&>(*this).intern("letrec*"),
+        static_cast<Environment&>(*this).intern("letrec*"),
         interaction_environment()
       )};
 
-      auto expanded {letrec_star.as<Enclosure>().expand(
+      auto expanded {letrec_star.as<Environment>().expand(
         cons(binding_specs, non_definitions)
       )};
 
@@ -465,56 +513,56 @@ namespace meevax::system
      *
      */
     object operand(const object& expression,
-                   const object& region,
-                   const object& continuation)
+                   const object& lexical_environment,
+                   const object& continuation, bool = false)
     {
       if (expression && expression.is<pair>())
       {
         return operand(
                  cdr(expression),
-                 region,
-                 compile(car(expression), region, cons(_push_, continuation))
+                 lexical_environment,
+                 compile(car(expression), lexical_environment, cons(_push_, continuation))
                );
       }
       else
       {
-        return compile(expression, region, continuation);
+        return compile(expression, lexical_environment, continuation);
       }
     }
 
-    [[deprecated]]
-    object let(const object& expression,
-               const object& lexical_environment,
-               const object& continuation)
-    {
-      const auto binding_specs {car(expression)};
-
-      const auto identifiers {
-        map([](auto&& e) { return car(e); }, binding_specs)
-      };
-
-      const auto initializations {
-        map([](auto&& e) { return cadr(e); }, binding_specs)
-      };
-
-      return operand(
-               initializations,
-               lexical_environment,
-               cons(
-                 _make_closure_,
-                 body(
-                   cdr(expression), // <body>
-                   cons(identifiers, lexical_environment),
-                   list(_return_)
-                 ),
-                 _apply_, continuation
-               )
-             );
-    }
+    // [[deprecated]]
+    // object let(const object& expression,
+    //            const object& lexical_environment,
+    //            const object& continuation)
+    // {
+    //   const auto binding_specs {car(expression)};
+    //
+    //   const auto identifiers {
+    //     map([](auto&& e) { return car(e); }, binding_specs)
+    //   };
+    //
+    //   const auto initializations {
+    //     map([](auto&& e) { return cadr(e); }, binding_specs)
+    //   };
+    //
+    //   return operand(
+    //            initializations,
+    //            lexical_environment,
+    //            cons(
+    //              _make_closure_,
+    //              body(
+    //                cdr(expression), // <body>
+    //                cons(identifiers, lexical_environment),
+    //                list(_return_)
+    //              ),
+    //              _apply_, continuation
+    //            )
+    //          );
+    // }
 
     object set(const object& expression,
                const object& lexical_environment,
-               const object& continuation)
+               const object& continuation, bool = false)
     {
       TRACE("compile") << car(expression) << " ; => is ";
 
@@ -522,18 +570,34 @@ namespace meevax::system
       {
         throw error {"syntax error at #<special set!>"};
       }
-      else if (auto location {locate(car(expression), lexical_environment)}; location)
+      else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {
-        std::cerr << " local variable => " << list(_set_local_, location) << std::endl;
-        return compile(
-                 cadr(expression),
-                 lexical_environment,
-                 cons(_set_local_, location, continuation)
-               );
+        // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
+        if (index.is_variadic())
+        {
+          std::cerr << " local variadic variable => " << list(_set_local_variadic_, index) << std::endl;
+
+          return compile(
+                   cadr(expression),
+                   lexical_environment,
+                   cons(_set_local_variadic_, index, continuation)
+                 );
+        }
+        else
+        {
+          std::cerr << " local variable => " << list(_set_local_, index) << std::endl;
+
+          return compile(
+                   cadr(expression),
+                   lexical_environment,
+                   cons(_set_local_, index, continuation)
+                 );
+        }
       }
       else
       {
-        std::cerr << " global variable => " << list(_set_global_, location) << std::endl;
+        std::cerr << " global variable => " << list(_set_global_, car(expression)) << std::endl;
+
         return compile(
                  cadr(expression),
                  lexical_environment,

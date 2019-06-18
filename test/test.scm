@@ -160,7 +160,7 @@
   (+ x 1)
   3)
 
-(set! x 4) ; #undefined
+(set! x 4) ; #unspecified
 
 (test
   (+ x 1)
@@ -406,11 +406,18 @@
 ; ------------------------------------------------------------------------------
 
 (define add3
-  (lambda (x) (+ x 3))); => add3
-(add3 3); => 6
+  (lambda (x)
+    (+ x 3)))
 
-(define first car); => first
-(first '(1 2)); => 1
+(test
+  (add3 3)
+  6)
+
+(define first car)
+
+(test
+  (first '(1 2))
+  1)
 
 
 ; ------------------------------------------------------------------------------
@@ -547,11 +554,11 @@
 ;          (g (lambda () (if (eqv? f g) 'both 'g))))
 ;   (eqv? f g)); #unspecified
 
-; (test; #unimplemented
-;   (letrec ((f (lambda () (if (eqv? f g) ’f ’both)))
-;            (g (lambda () (if (eqv? f g) ’g ’both))))
-;     (eqv? f g))
-;   #false)
+(test
+  (letrec ((f (lambda () (if (eqv? f g) ’f ’both)))
+           (g (lambda () (if (eqv? f g) ’g ’both))))
+    (eqv? f g))
+  #false)
 
 ; (eqv? '(a) '(a)); #unspecified
 ; (eqv? "a" "a"); #unspecified
@@ -672,8 +679,6 @@
   (lambda (object)
     (call-with-current-continuation
       (lambda (return)
-        (begin (display "OK:1")
-               (newline))
         (letrec ((r
                    (lambda (object)
                      (cond ((null? object) 0)
@@ -695,25 +700,29 @@
 ;   Miscellaneous
 ; ------------------------------------------------------------------------------
 
-; (define x 42)
-; x
-; (set! x 100)
-; x
-;
-; (define y 'hoge)
-; y
-; (set! y 100)
-; y
-;
-; (define accumulator
-;   (lambda (n)
-;     (lambda ()
-;       (set! n (+ n 1)))))
-;
-; (define acc (accumulator x))
-; (acc)
-; (acc)
-; (acc)
+(define x 42)
+(test x 42)
+
+(set! x 100)
+(test x 100)
+
+(define y 'hoge)
+(test y hoge)
+
+(set! y 100)
+(test y 100)
+
+
+(define accumulator
+  (lambda (n)
+    (lambda ()
+      (set! n (+ n 1)))))
+
+(define acc (accumulator x))
+
+(test (acc) 101)
+(test (acc) 102)
+(test (acc) 103)
 
 (define A 1)
 (define B 2)
@@ -729,6 +738,22 @@
   (begin (swap! A x)
          (cons A x))
   (42 . 2))
+
+; (define fib
+;   (lambda (n)
+;     (if (< n 2) n
+;         (+ (fib (- n 1))
+;            (fib (- n 2))))))
+;
+; (define fib-i
+;   (lambda (n)
+;     (if (< n 2)
+;         (values 1 1)
+;         (reverive (current previous)
+;           (fib-i (- n 1))
+;           (values (+ current previous) current)))))
+;
+; (fib 20)
 
 (begin (newline)
        (display "test ")

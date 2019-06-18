@@ -44,6 +44,7 @@ namespace meevax::system
     return object::bind<T>(std::forward<Ts>(args)...);
   }
 
+  #ifndef NDEBUG
   #define SELECTOR(NAME, INDEX)                                                \
   template <typename Pointer>                                                  \
   decltype(auto) NAME(Pointer&& object)                                        \
@@ -57,6 +58,14 @@ namespace meevax::system
       throw error {"internal illegal selection rejected"};                     \
     }                                                                          \
   }
+  #else
+  #define SELECTOR(NAME, INDEX)                                                \
+  template <typename Pointer>                                                  \
+  decltype(auto) NAME(Pointer&& object)                                        \
+  {                                                                            \
+    return std::get<INDEX>(object.dereference());                              \
+  }
+  #endif // NDEBUG
 
   SELECTOR(car, 0)
   SELECTOR(cdr, 1)

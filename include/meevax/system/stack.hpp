@@ -44,10 +44,29 @@ namespace meevax::system
       return push(make<T>(std::forward<Ts>(xs)...));
     }
 
-    template <typename... Ts>
-    decltype(auto) pop(Ts&&... xs) // TODO specialize if in range 4 (standard cxr)
+    void pop(std::size_t size)
     {
-      return std::advance(*this, std::forward<Ts>(xs)...);
+      switch (size)
+      {
+      case 1:
+        *this = cdr(*this);
+        break;
+
+      case 2:
+        *this = cddr(*this);
+        break;
+
+      case 3:
+        *this = cdddr(*this);
+        break;
+
+      case 4:
+        *this = cddddr(*this);
+        break;
+
+      default:
+        std::advance(*this, size);
+      }
     }
 
     decltype(auto) pop()

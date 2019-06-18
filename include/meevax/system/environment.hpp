@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
+#ifndef INCLUDED_MEEVAX_SYSTEM_ENVIRONMENT_HPP
+#define INCLUDED_MEEVAX_SYSTEM_ENVIRONMENT_HPP
 
 #include <algorithm> // std::equal
 #include <functional> // std::invoke
@@ -18,24 +18,24 @@ namespace meevax::system
   template <int Version>
   static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
 
-  class enclosure
+  class environment
     : public closure // inherits pair type virtually
-    , public reader<enclosure>
-    , public machine<enclosure>
+    , public reader<environment>
+    , public machine<environment>
   {
     std::unordered_map<std::string, object> symbols;
 
   public: // Constructors
     // for macro
-    enclosure() = default;
+    environment() = default;
 
     // for bootstrap scheme-report-environment
     template <int Version>
-    enclosure(std::integral_constant<int, Version>);
+    environment(std::integral_constant<int, Version>);
 
     // for library constructor
     template <typename... Ts>
-    constexpr enclosure(Ts&&... args)
+    constexpr environment(Ts&&... args)
       : pair {std::forward<Ts>(args)...} // virtual base of closure
     {}
 
@@ -50,7 +50,7 @@ namespace meevax::system
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return machine<enclosure>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return machine<environment>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
     const auto& intern(const std::string& s)
@@ -96,7 +96,7 @@ namespace meevax::system
 
       const auto checkpoint {interaction_environment()};
 
-      if (reader<enclosure> port {path}; port)
+      if (reader<environment> port {path}; port)
       {
         std::swap(*this, port);
 
@@ -137,14 +137,14 @@ namespace meevax::system
   };
 
   template <>
-  enclosure::enclosure(std::integral_constant<int, 7>)
+  environment::environment(std::integral_constant<int, 7>)
   {
     /* 7.1.3
      *
      * <quoation> = '<datum> | (quote <datum>)
      *
      */
-    define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation)
+    define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
       return cons(_load_literal_, car(expression), continuation);
@@ -159,22 +159,43 @@ namespace meevax::system
      * <alternate> = <expression> | <empty>
      *
      */
-    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
-      return compile(
-               car(expression), // <test>
-               lexical_environment,
-               cons(
-                 _select_,
-                 compile(cadr(expression), lexical_environment, list(_join_)), // <consequent>
-                 cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_)) : unspecified, // <alternate>
-                 continuation
-               )
-             );
+
+      if (tail)
+      {
+        const auto consequent {compile(cadr(expression), lexical_environment, list(_return_), true)};
+
+        const auto alternate {
+          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_), true)
+                           : unspecified
+        };
+
+        return compile(
+                 car(expression), // <test>
+                 lexical_environment,
+                 cons(_select_tail_, consequent, alternate, cdr(continuation))
+               );
+      }
+      else
+      {
+        const auto consequent {compile(cadr(expression), lexical_environment, list(_join_))};
+
+        const auto alternate {
+          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
+                           : unspecified
+        };
+
+        return compile(
+                 car(expression), // <test>
+                 lexical_environment,
+                 cons(_select_, consequent, alternate, continuation)
+               );
+      }
     });
 
-    define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation)
+    define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation, auto)
     {
       if (not region)
       {
@@ -202,7 +223,7 @@ namespace meevax::system
       return sequence(std::forward<decltype(args)>(args)...);
     });
 
-    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
 
@@ -224,9 +245,10 @@ namespace meevax::system
      * <formals> = (<identifier>*) | (<identifier>+ . <identifier>) | <identifier>
      *
      */
-    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation)
+    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
+
       return cons(
                _make_closure_,
                body(
@@ -238,9 +260,10 @@ namespace meevax::system
              );
     });
 
-    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation)
+    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
+
       return cons(
                _make_module_,
                body(
@@ -264,24 +287,22 @@ namespace meevax::system
 
     define<procedure>("make-symbol", [&](const object& args)
     {
-      // if (args && car(args) && car(args).type() == typeid(string))
       try
       {
         return make<symbol>(car(args).as<string>());
       }
-      // else
       catch (...)
       {
         return make<symbol>();
       }
     });
-  } // enclosure class default constructor
+  } // environment class default constructor
 
-  std::ostream& operator<<(std::ostream& os, const enclosure& enclosure)
+  std::ostream& operator<<(std::ostream& os, const environment& environment)
   {
-    return os << "\x1B[0;36m#<enclosure " << &enclosure << ">\x1b[0m";
+    return os << "\x1B[0;36m#<environment " << &environment << ">\x1b[0m";
   }
 } // namespace meevax::system
 
-#endif // INCLUDED_MEEVAX_SYSTEM_ENCLOSURE_HPP
+#endif // INCLUDED_MEEVAX_SYSTEM_ENVIRONMENT_HPP
 
