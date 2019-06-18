@@ -147,14 +147,18 @@ namespace meevax::system
 
     decltype(auto) dereference() const
     {
+    #ifndef NDEBUG
       if (*this)
       {
+    #endif
         return std::shared_ptr<T>::operator*();
+    #ifndef NDEBUG
       }
       else
       {
         throw error {"segmentation fault guarded"};
       }
+    #endif
     }
 
     #define SHORT_ACCESS(NAME) \
