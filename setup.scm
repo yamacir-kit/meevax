@@ -380,3 +380,7 @@
         (set! ,a ,b)
         (set! ,b ,x)))))
 
+(define square
+  (lambda (x)
+    (* x x)))
+
