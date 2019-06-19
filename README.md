@@ -1,24 +1,81 @@
-# meevax
+<h1 align="center">
+  Meevax Lisp System 0
+</h1>
 
-[![Build Status](https://travis-ci.org/yamacir-kit/meevax.svg?branch=master)](https://travis-ci.org/yamacir-kit/meevax)
+<h3 align="center">
+  The Meta Expression EVAluator and eXtensions
+</h3>
 
-Version 0.1.535 in development.
+<div align="center">
+  <a href="https://travis-ci.org/yamacir-kit/meevax">
+    <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Build Status"/>
+  </a>
+
+  *HEAD Version 0.1.549*
+</div>
+
+<br/>
+
+## Contents
+
+- [Introduction](#Introduction)
+- [Usage](#Usage)
+- [Dependency](#Dependency)
+- [Installation](#Installation)
+
+<br/>
+
+## Introduction
+
+Meevax Lisp is a lisp-1 programming language written in C++17.
+This language aiming highly binary level compatibility for modern C++ program.
+
+Meevax gives
+- NOT "ad-hoc informally-specified",
+- NOT "bug-ridden",
+- ~~NOT "slow"~~
+
+implementation of ~~FULL of~~ **Scheme** to C++.
+
+### Characteristic Features
+
+- C++ RTTI based dynamic typing
+- C++ standard smart pointer based **reference counting GC**
+- Simple SECD machine based execution
+
+<br/>
+
+## Usage
+
+| Option | Example&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Effects |
+|:-:|:--|:--|
+| None | `$ meevax` | Start interactive mode ~~with the standard library already imported.~~ |
+| None | `$ meevax < example.scm` | Execute the code in the file as if manually input in interactive mode, and then exit the program in the same way as if you input EOF. |
+
+<br/>
+
+## Dependency
+
+### Build Requirements
+
+- C++17
+- CMake
+
+### Library Dependencies
+
+- Boost C++ Libraries
+- GNU Multi-Precision Library
+
+<br/>
 
 ## Installation
 
 Installation has been tested on Ubuntu 16.04 only.
 
-### Dependency
-
-- **C++17**
-- **Boost C++ Libraries 1.58.0** (Ubuntu 16.04 default) or later
-- **CMake 3.5.1** (Ubuntu 16.04 default) or later
-- **GNU Multi-Precision Library**
-
 ### Ubuntu 16.04
 
 ``` bash
-sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # for g++-7
 sudo apt update
 sudo apt install g++-7 libboost-all-dev
 
@@ -29,3 +86,9 @@ cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-7
 make
 ```
 
+<br/>
+
+## References
+
+- TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
+- SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))

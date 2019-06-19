@@ -19,26 +19,19 @@ namespace meevax::system
    *
    * This type requires the type manages symbol table as template parameter.
    */
-  template <typename Module>
+  template <typename Environment>
   class reader
     : public std::ifstream
   {
     using seeker = std::istream_iterator<std::ifstream::char_type>;
 
-    enum class category
-    {
-      pair, parentheses
-    };
+    static inline const auto error_pair {make<read_error<category::pair>>(
+      "ill-formed dot-notation"
+    )};
 
-    template <category>
-    struct ill_formed_expression
-      : public exception
-    {
-      template <typename... Ts>
-      constexpr ill_formed_expression(Ts&&... args)
-        : exception {std::forward<Ts>(args)...}
-      {}
-    };
+    static inline const auto error_parentheses {make<read_error<category::parentheses>>(
+      "unexpected close parentheses inserted"
+    )};
 
   public:
     template <typename... Ts>
@@ -49,7 +42,7 @@ namespace meevax::system
     template <typename... Ts>
     constexpr decltype(auto) intern(Ts&&... args)
     {
-      return static_cast<Module&>(*this).intern(std::forward<Ts>(args)...);
+      return static_cast<Environment&>(*this).intern(std::forward<Ts>(args)...);
     }
 
     object read()
@@ -72,19 +65,26 @@ namespace meevax::system
           putback('(');
           return cons(buffer, read());
         }
-        catch (const ill_formed_expression<category::parentheses>&)
+        catch (const object& object)
         {
-          return unit;
-        }
-        catch (const ill_formed_expression<category::pair>&)
-        {
-          auto buffer {read()};
-          ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-          return buffer;
+          if (object == error_parentheses)
+          {
+            return unit;
+          }
+          else if (object == error_pair)
+          {
+            auto buffer {read()};
+            ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            return buffer;
+          }
+          else
+          {
+            throw;
+          }
         }
 
       case ')':
-        throw ill_formed_expression<category::parentheses> {"unexpected close parentheses inserted"};
+        throw error_parentheses;
 
       case '"':
         switch (auto c {narrow(get(), '\0')}; c)
@@ -148,7 +148,7 @@ namespace meevax::system
         {
           if (buffer == ".")
           {
-            throw ill_formed_expression<category::pair> {"ill-formed dot-notation detected"};
+            throw error_pair;
           }
           else try // is symbol or number
           {

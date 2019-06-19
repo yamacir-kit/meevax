@@ -1,23 +1,5 @@
 (load "../setup.scm")
-
-(define test-passed 0)
-
-(define test
-  (macro (expression expects)
-   `(let ((result ,expression))
-      (if (equal? result ',expects)
-          (begin (set! test-passed (+ test-passed 1))
-                 result)
-          (begin (display "; test          ; expected ") ; TODO SUPPORT TAB
-                 (display ',expects)
-                 (display " as result of ")
-                 (display ',expression)
-                 (display ", but got ")
-                 (display result)
-                 (display ".")
-                 (newline)
-                 (emergency-exit))))))
-
+(load "../test/expect.scm")
 
 ; ------------------------------------------------------------------------------
 ;   4.1.1 Variable References
@@ -25,75 +7,69 @@
 
 (define x 28)
 
-(test x 28)
+(expect 28 x)
 
 
 ; ------------------------------------------------------------------------------
 ;   4.1.2 Literal Expressions
 ; ------------------------------------------------------------------------------
 
-(test
+(expect a
+  (quote a))
+
+(expect
+  #(a b c)
+  (quote #(a b c))) ; unimplemented
+
+(expect
+  (+ 1 2)
+  (quote (+ 1 2)))
+
+(expect a 'a)
+
+; (expect
+;   #(a b c)
+;  '#(a b c)) ; unimplemented
+
+(expect () '())
+
+(expect
+  (+ 1 2)
+ '(+ 1 2))
+
+(expect
   (quote a)
-  a)
+ '(quote a))
 
-; (test
-;   (quote #(a b c)) ; unimplemented
-;   #(a b c))
+(expect (quote a) ''a)
 
-(test
-  (quote (+ 1 2))
-  (+ 1 2))
+(expect 145932 '145932)
+(expect 145932  145932)
 
-(test 'a a)
+; (expect "abc" '"abc")
+; (expect "abc"  "abc") ; マクロ中で文字列の挙動がおかしいバグあり
 
-; (test
-;  '#(a b c)
-;   #(a b c)) ; unimplemented
+; (expect # '#)
+; (expect #  #) ; unimplemented
 
-(test
- '()
-  ())
+; (expect #(a 10) '#(a 10))
+; (expect #(a 10)  #(a 10)) ; unimplemented
 
-(test
- '(+ 1 2)
-  (+ 1 2))
+; (expect #u8(64 65) '#u8(64 65))
+; (expect #u8(64 65)  #u8(64 65)) ; unimplemented
 
-(test
- '(quote a)
-  (quote a))
-
-(test
-  ''a
-  (quote a))
-
-(test '145932 145932)
-(test  145932 145932)
-
-; (test '"abc" "abc")
-; (test  "abc" "abc") ; マクロ中で文字列の挙動がおかしいバグあり
-
-; (test '# #)
-; (test  # #) ; unimplemented
-
-; (test '#(a 10) #(a 10))
-; (test  #(a 10) #(a 10)) ; unimplemented
-
-; (test '#u8(64 65) #u8(64 65))
-; (test  #u8(64 65) #u8(64 65)) ; unimplemented
-
-(test '#t #t)
-(test  #t #t)
+(expect #t '#t)
+(expect #t  #t)
 
 
 ; ------------------------------------------------------------------------------
 ;   4.1.3 Procedure Calls
 ; ------------------------------------------------------------------------------
 
-(test (+ 3 4) 7)
+(expect 7 (+ 3 4))
 
-(test
-  ((if #false + *) 3 4)
-  12)
+(expect 12
+  ((if #false + *) 3 4))
 
 
 ; ------------------------------------------------------------------------------
@@ -102,52 +78,43 @@
 
 ; (lambda (x) (+ x x)) ; untestable output
 
-(test
-  ((lambda (x) (+ x x)) 4)
-  8)
+(expect 8
+  ((lambda (x) (+ x x)) 4))
 
 (define reverse-subtract
   (lambda (x y)
     (- y x)))
 
-(test
-  (reverse-subtract 7 10)
-  3)
+(expect 3
+  (reverse-subtract 7 10))
 
 (define add4
   (let ((x 4))
     (lambda (y) (+ x y))))
 
-(test
-  (add4 6)
-  10)
+(expect 10 (add4 6))
 
-(test
-  ((lambda x x) 3 4 5 6)
-  (3 4 5 6))
+(expect (3 4 5 6)
+  ((lambda x x) 3 4 5 6))
 
-(test
-  ((lambda (x y . z) z) 3 4 5 6)
-  (5 6))
+(expect (5 6)
+  ((lambda (x y . z) z) 3 4 5 6))
 
 
 ; ------------------------------------------------------------------------------
 ;   4.1.5 Conditionals
 ; ------------------------------------------------------------------------------
 
-(test
-  (if (> 3 2) 'yes 'no)
-  yes)
+(expect yes
+  (if (> 3 2) 'yes 'no))
 
-(test
-  (if (> 2 3) 'yes 'no)
-  no)
+(expect no
+  (if (> 2 3) 'yes 'no))
 
-(test
+(expect 1
   (if (> 3 2)
       (- 3 2)
-      (+ 3 2))
-  1)
+      (+ 3 2)))
 
 
 ; ------------------------------------------------------------------------------
@@ -156,87 +123,75 @@
 
 (define x 2)
 
-(test
-  (+ x 1)
-  3)
+(expect 3 (+ x 1))
 
 (set! x 4) ; #unspecified
 
-(test
-  (+ x 1)
-  5)
+(expect 5
+  (+ x 1))
 
 
 ; ------------------------------------------------------------------------------
 ;   4.2.1 Conditionals
 ; ------------------------------------------------------------------------------
 
-(test
+(expect greater
   (cond ((> 3 2) 'greater)
-        ((< 3 2) 'less))
-  greater)
+        ((< 3 2) 'less)))
 
-(test
+(expect equal
   (cond ((> 3 3) 'greater)
         ((< 3 3) 'less)
-        (else 'equal))
-  equal)
+        (else 'equal)))
 
-; (test
+; (expect
 ;   (cond ((assv 'b '((a 1) (b 2))) => cadr)
 ;         (else #f))
 ;   2)
 
-(test
+(expect composite
   (case (* 2 3)
     ((2 3 5 7) 'prime)
-    ((1 4 6 8 9) 'composite))
-  composite)
+    ((1 4 6 8 9) 'composite)))
 
-; (test
+; (expect
 ;   (case (car '(c d))
 ;     ((a) 'a)
 ;     ((b) 'b))
 ;   undefined)
 
-; (test
+; (expect
 ;   (case (car '(c d))
 ;     ((a e i o u) 'vowel)
 ;     ((w y) 'semivowel)
 ;     (else => (lambda (x) x)))
 ;   c)
 
-(test
+(expect #true
   (and (= 2 2)
-       (> 2 1))
-  #true)
+       (> 2 1)))
 
-(test
+(expect #false
   (and (= 2 2)
-       (< 2 1))
-  #false)
+       (< 2 1)))
 
-(test
-  (and 1 2 'c '(f g))
-  (f g))
+(expect (f g)
+  (and 1 2 'c '(f g)))
 
-(test (and) #true)
+(expect #true (and))
 
-(test
+(expect #true
   (or (= 2 2)
-      (> 2 1))
-  #true)
+      (> 2 1)))
 
-(test
+(expect #true
   (or (= 2 2)
-      (< 2 1))
-  #true)
+      (< 2 1)))
 
-(test
-  (or #false #false #false)
-  #false)
+(expect #false
+  (or #false #false #false))
 
-; (test
+; (expect
 ;   (or (memq 'b '(a b c)) ; memq unimplemented
 ;       (/ 3 0))
 ;   (b c))
@@ -254,37 +209,33 @@
 ;   4.2.2 Binding Constructs
 ; ------------------------------------------------------------------------------
 
-(test
+(expect 6
   (let ((x 2)
         (y 3))
-    (* x y))
-  6)
+    (* x y)))
 
-(test
+(expect 35
   (let ((x 2)
         (y 3))
     (let ((x 7)
           (z (+ x y)))
-      (* z x)))
-  35)
+      (* z x))))
 
-(test
+(expect 70
   (let ((x 2)
         (y 3))
     (let* ((x 7)
            (z (+ x y)))
-      (* z x)))
-  70)
+      (* z x))))
 
-(test
+(expect 3628800
   (letrec ((factorial
             (lambda (n)
               (if (zero? n) 1
                   (* n (factorial (- n 1)))))))
-    (factorial 10))
-   3628800)
+    (factorial 10)))
 
-(test
+(expect #true
   (letrec ((even?
              (lambda (n)
                (if (zero? n) #true
@@ -293,8 +244,7 @@
              (lambda (n)
                (if (zero? n) #false
                    (even? (- n 1))))))
-    (even? 88))
-   #true)
+    (even? 88)))
 
 
 ; ------------------------------------------------------------------------------
@@ -303,11 +253,10 @@
 
 (define x 0)
 
-(test
+(expect 6
   (and (= x 0)
        (begin (set! x 5)
-              (+ x 1)))
-  6)
+              (+ x 1))))
 
 (begin (display "4 plus 1 equals ")
        (display (+ 4 1)))
@@ -317,14 +266,14 @@
 ;   4.2.4 Iteration
 ; ------------------------------------------------------------------------------
 
-; (test
+; (expect
 ;   (do ((vec (make-vector 5))
 ;        (i 0 (+ i 1)))
 ;       ((= i 5) vec)
 ;     (vector-set! vec i i))
 ;   #(0 1 2 3 4))
 
-; (test
+; (expect
 ;   (let ((x '(1 3 5 7 9)))
 ;     (do ((x x (cdr x))
 ;          (sum 0 (+ sum (car x))))
@@ -347,38 +296,38 @@
 ;   4.2.8 Quasiquotation
 ; ------------------------------------------------------------------------------
 
-(test
- `(list ,(+ 1 2) 4)
-  (list 3 4))
+(expect
+  (list 3 4)
+ `(list ,(+ 1 2) 4))
 
-(test
+(expect
+  (list a (quote a))
   (let ((name 'a))
-   `(list ,name ',name))
-  (list a (quote a)))
+   `(list ,name ',name)))
 
-; (test
+; (expect
 ;  `(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b) ; abs unimplemented
 ;   (a 3 4 5 6 b))
 
-(test
- `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons)))
-  ((foo 7) . cons))
+(expect
+  ((foo 7) . cons)
+ `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons))))
 
-; (test
+; (expect
 ;  `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8)
 ;   #(10 5 2 4 3 8))
 
-(test
+(expect
+  (list foo bar baz)
   (let ((foo '(foo bar))
         (@baz 'baz))
-   `(list ,@foo , @baz))
-  (list foo bar baz))
+   `(list ,@foo , @baz)))
 
-; (test
+; (expect
 ;  `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f)
 ;   (a `(b ,(+ 1 2) ,(foo 4 d) e) f))
 
-; (test
+; (expect
 ;   (let ((name1 'x)
 ;         (name2 'y))
 ;    `(a `(b ,,name1 ,',name2 d) e))
@@ -409,22 +358,18 @@
   (lambda (x)
     (+ x 3)))
 
-(test
-  (add3 3)
-  6)
+(expect 6 (add3 3))
 
 (define first car)
 
-(test
-  (first '(1 2))
-  1)
+(expect 1 (first '(1 2)))
 
 
 ; ------------------------------------------------------------------------------
 ;   5.3.2 Internal Definitions
 ; ------------------------------------------------------------------------------
 
-(test
+(expect 45
   (let ((x 5))
     (define foo
       (lambda (y)
@@ -432,10 +377,9 @@
     (define bar
       (lambda (a b)
         (+ (* a b) a)))
-    (foo (+ x 3)))
-  45)
+    (foo (+ x 3))))
 
-(test
+(expect 45
   (let ((x 5))
     (letrec* ((foo
                 (lambda (y)
@@ -443,65 +387,51 @@
               (bar
                 (lambda (a b)
                   (+ (* a b) a))))
-      (foo (+ x 3))))
-  45)
+      (foo (+ x 3)))))
 
 
 ; ------------------------------------------------------------------------------
 ;   6.1 Equivalence Predicates
 ; ------------------------------------------------------------------------------
 
-(test
-  (eqv? 'a
-        'a)
-  #true)
+(expect #true
+  (eqv? 'a 'a))
 
-(test
-  (eqv? 'a
-        'b)
-  #false)
+(expect #false
+  (eqv? 'a 'b))
 
-(test
-  (eqv? '()
-        '())
-  #true)
+(expect #true
+  (eqv? '() '()))
 
-(test
-  (eqv? 2
-        2)
-  #true)
+(expect #true
+  (eqv? 2 2))
 
-; (test ; unimplemented
+; (expect ; unimplemented
 ;   (eqv? 2 2.0)
 ;   #false)
 
-(test
+(expect #true
   (eqv? 100000000
-        100000000)
-  #true)
+        100000000))
 
-; (test ; unimplemented
+; (expect ; unimplemented
 ;   (eqv? 0.0 +nan.0)
 ;   #false)
 
-(test
+(expect #false
   (eqv? (cons 1 2)
-        (cons 1 2))
-  #false)
+        (cons 1 2)))
 
-(test
+(expect #false
   (eqv? (lambda () 1)
-        (lambda () 2))
-  #false)
+        (lambda () 2)))
 
-(test
+(expect #true
   (let ((p (lambda (x) x)))
-    (eqv? p p))
-  #true)
+    (eqv? p p)))
 
-(test
-  (eqv? #false 'nil)
-  #false)
+(expect #false
+  (eqv? #false 'nil))
 
 
 ; (eqv? "" ""); unspecified
@@ -526,15 +456,13 @@
         (set! n (+ n 1))
         n))))
 
-(test
+(expect #true
   (let ((g (generate-counter)))
-    (eqv? g g))
-  #true)
+    (eqv? g g)))
 
-(test
+(expect #false
   (eqv? (generate-counter)
-        (generate-counter))
-  #false)
+        (generate-counter)))
 
 (define generate-loser
   (lambda ()
@@ -543,10 +471,9 @@
         (set! n (+ n 1))
         27))))
 
-(test
+(expect #true
   (let ((g (generate-loser)))
-    (eqv? g g))
-  #true)
+    (eqv? g g)))
 
 ; (eqv? (generate-loser) (generate-loser)); #unspecified
 
@@ -554,89 +481,74 @@
 ;          (g (lambda () (if (eqv? f g) 'both 'g))))
 ;   (eqv? f g)); #unspecified
 
-(test
+(expect #false
   (letrec ((f (lambda () (if (eqv? f g) ’f ’both)))
            (g (lambda () (if (eqv? f g) ’g ’both))))
-    (eqv? f g))
-  #false)
+    (eqv? f g)))
 
 ; (eqv? '(a) '(a)); #unspecified
 ; (eqv? "a" "a"); #unspecified
 ; (eqv? '(b) (cdr '(a b))); #unspecified
 
-(test
+(expect #true
   (let ((x '(a)))
-    (eqv? x x))
-  #true)
+    (eqv? x x)))
 
-(test
-  (eq? 'a
-       'a)
-  #true)
+(expect #true
+  (eq? 'a 'a))
 
 ; (eq? '(a) '(a)); #unspecified
 
-(test
+(expect #false
   (eq? (list 'a)
-       (list 'a))
-  #false)
+       (list 'a)))
 
 ; (eq? "a" "a"); #unspecified
 ; (eq? "" ""); #unspecified
 
-(test
+(expect #true
   (eq? '()
-       '())
-  #true)
+       '()))
 
 ; (eq? 2 2); #unspecified
 ; (eq? #\A #\A); #unspecified
 
-(test
-  (eq? car car)
-  #true)
+(expect #true
+  (eq? car car))
 
 ; (let ((n (+ 2 3)))
 ;   (eq? n n)); #unspecified
 
-(test
+(expect #true
   (let ((x '(a)))
-    (eq? x x))
-  #true)
+    (eq? x x)))
 
-; (test
+; (expect
 ;   (let ((x '#())) ; #unimplemented
 ;     (eq? x x))
 ;   #true)
 
-(test
+(expect #true
   (let ((p (lambda (x) x)))
-    (eq? p p))
-  #true)
+    (eq? p p)))
 
-(test
-  (equal? 'a
-          'a)
-  #true)
+(expect #true
+  (equal? 'a 'a))
 
-(test
-  (equal? '(a)
-          '(a))
-  #true)
+(expect #true
+  (equal? '(a) '(a)))
 
-(test
+(expect #true
   (equal? '(a (b) c)
-          '(a (b) c))
-  #true)
+          '(a (b) c)))
 
-; (test
+; (expect
 ;   (equal? "abc"
 ;           "abc") ; not fully supported yet
 ;   #true)
 
-(test
-  (equal? 2 2)
-  #true)
+(expect #true
+  (equal? 2 2))
 
 ; (equal? (make-vector 5 'a)
 ;         (make-vector 5 'a)); #true
@@ -652,20 +564,19 @@
 ;   6.10 Control Features
 ; ------------------------------------------------------------------------------
 
-(test
-  (apply + (list 3 4))
-  7)
+(expect 7
+  (apply + (list 3 4)))
 
 (define compose
   (lambda (f g)
     (lambda args
       (f (apply g args)))))
 
-; (test
+; (expect
 ;   ((compose sqrt *) 12 75)
 ;   30)
 
-; (test
+; (expect
 ;   (call-with-current-continuation
 ;     (lambda (exit)
 ;       (for-each (lambda (x)
@@ -687,13 +598,11 @@
                            (else (return #false))))))
           (r object))))))
 
-(test
-  (list-length '(1 2 3 4))
-  4)
+(expect 4
+  (list-length '(1 2 3 4)))
 
-(test
-  (list-length '(a b . c))
-  #false)
+(expect #false
+  (list-length '(a b . c)))
 
 
 ; ------------------------------------------------------------------------------
@@ -701,16 +610,16 @@
 ; ------------------------------------------------------------------------------
 
 (define x 42)
-(test x 42)
+(expect 42 x)
 
 (set! x 100)
-(test x 100)
+(expect 100 x)
 
 (define y 'hoge)
-(test y hoge)
+(expect hoge y)
 
 (set! y 100)
-(test y 100)
+(expect 100 y)
 
 
 (define accumulator
@@ -720,24 +629,22 @@
 
 (define acc (accumulator x))
 
-(test (acc) 101)
-(test (acc) 102)
-(test (acc) 103)
+(expect 101 (acc))
+(expect 102 (acc))
+(expect 103 (acc))
 
 (define A 1)
 (define B 2)
 
-(test
+(expect (2 . 1)
   (begin (swap! A B)
-         (cons A B))
-  (2 . 1))
+         (cons A B)))
 
 (define x 42)
 
-(test ; this test knows swap! uses 'x' as temporary variable.
+(expect (42 . 2) ; this test knows swap! uses 'x' as temporary variable.
   (begin (swap! A x)
-         (cons A x))
-  (42 . 2))
+         (cons A x)))
 
 ; (define fib
 ;   (lambda (n)
@@ -757,8 +664,7 @@
 
 (begin (newline)
        (display "test ")
-       (display test-passed)
+       (display passed)
        (display " expression passed (completed).")
-       (newline)
-       'completed)
+       (newline))
 
