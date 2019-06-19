@@ -7,11 +7,7 @@
 
 namespace meevax::system
 {
-  #ifdef SEQ
-  #undef SEQ
-  #endif
-
-  #define SEQ \
+  #define INSTRUCTIONS \
     (APPLY) \
     (APPLY_TAIL) \
     (DEFINE) \
@@ -35,7 +31,7 @@ namespace meevax::system
 
   enum class code
   {
-    BOOST_PP_SEQ_ENUM(SEQ)
+    BOOST_PP_SEQ_ENUM(INSTRUCTIONS)
   };
 
   struct instruction
@@ -48,9 +44,9 @@ namespace meevax::system
     {}
   };
 
-  #define INSTRUCTION_CASE(unused, data, elem) \
-  case code::elem: \
-    os << BOOST_PP_STRINGIZE(elem); \
+  #define INSTRUCTION_CASE(_, AUX, EACH) \
+  case code::EACH: \
+    os << BOOST_PP_STRINGIZE(EACH); \
     break;
 
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
@@ -59,14 +55,11 @@ namespace meevax::system
 
     switch (instruction.value)
     {
-    BOOST_PP_SEQ_FOR_EACH(INSTRUCTION_CASE, ~, SEQ)
+      BOOST_PP_SEQ_FOR_EACH(INSTRUCTION_CASE, _, INSTRUCTIONS)
     }
 
     return os << "\x1b[0m";
   }
-
-  #define DEFINE_INSTRUCTION_LITERAL(unused, data, elem) \
-  static const auto _##elem##_
 
   static const auto _apply_               {make<instruction>(code::APPLY)};
   static const auto _apply_tail_          {make<instruction>(code::APPLY_TAIL)};
