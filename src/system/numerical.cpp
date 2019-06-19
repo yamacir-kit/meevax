@@ -59,7 +59,15 @@ extern "C"
   PROCEDURE(division)
   {
     using namespace meevax::system;
-    return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::divides {});
+
+    if (length(args) < 2)
+    {
+      return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::divides {});
+    }
+    else
+    {
+      return std::accumulate(std::next(std::begin(args)), std::end(args), *std::begin(args), std::divides {});
+    }
   }
 
   PROCEDURE(less)

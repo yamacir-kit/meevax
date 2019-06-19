@@ -15,5 +15,3 @@
                  (newline)
                  (emergency-exit))))))
 
-
-
