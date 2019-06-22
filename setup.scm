@@ -33,37 +33,10 @@
 ;   Setup CxR
 ; ------------------------------------------------------------------------------
 
-(define caar (lambda (e) (car (car e))))
-(define cadr (lambda (e) (car (cdr e))))
-(define cdar (lambda (e) (cdr (car e))))
-(define cddr (lambda (e) (cdr (cdr e))))
-
-; (define caaar (lambda (e) (car (car (car e)))))
-; (define caadr (lambda (e) (car (car (cdr e)))))
-; (define cadar (lambda (e) (car (cdr (car e)))))
-; (define caddr (lambda (e) (car (cdr (cdr e)))))
-; (define cdaar (lambda (e) (cdr (car (car e)))))
-; (define cdadr (lambda (e) (cdr (car (cdr e)))))
-; (define cddar (lambda (e) (cdr (cdr (car e)))))
-; (define cdddr (lambda (e) (cdr (cdr (cdr e)))))
-;
-; (define caaaar (lambda (e) (car (car (car (car e))))))
-; (define caaadr (lambda (e) (car (car (car (cdr e))))))
-; (define caadar (lambda (e) (car (car (cdr (car e))))))
-; (define caaddr (lambda (e) (car (car (cdr (cdr e))))))
-; (define cadaar (lambda (e) (car (cdr (car (car e))))))
-; (define cadadr (lambda (e) (car (cdr (car (cdr e))))))
-; (define caddar (lambda (e) (car (cdr (cdr (car e))))))
-; (define cadddr (lambda (e) (car (cdr (cdr (cdr e))))))
-; (define cdaaar (lambda (e) (cdr (car (car (car e))))))
-; (define cdaadr (lambda (e) (cdr (car (car (cdr e))))))
-; (define cdadar (lambda (e) (cdr (car (cdr (car e))))))
-; (define cdaddr (lambda (e) (cdr (car (cdr (cdr e))))))
-; (define cddaar (lambda (e) (cdr (cdr (car (car e))))))
-; (define cddadr (lambda (e) (cdr (cdr (car (cdr e))))))
-; (define cdddar (lambda (e) (cdr (cdr (cdr (car e))))))
-; (define cddddr (lambda (e) (cdr (cdr (cdr (cdr e))))))
-
+(define caar (lambda (x) (car (car x))))
+(define cadr (lambda (x) (car (cdr x))))
+(define cdar (lambda (x) (cdr (car x))))
+(define cddr (lambda (x) (cdr (cdr x))))
 
 ; ------------------------------------------------------------------------------
 ;   Bootstrap Quasiquote
@@ -71,6 +44,15 @@
 
 (define list
   (lambda xs xs))
+
+(define list-tail
+  (lambda (list. k)
+    (if (eq? k 0) list.
+        (list-tail (cdr list.) (- k 1)))))
+
+(define list-ref
+  (lambda (list. k)
+    (car (list-tail list. k))))
 
 (define null?
   (lambda (object)
@@ -296,19 +278,19 @@
 ;           result))))
 
 (define length
-  (lambda (list.)
-    (let loop ((list. list.)
-               (lag list.)
+  (lambda (x)
+    (let loop ((x x)
+               (lag x)
                (result 0))
-      (if (pair? list.)
-          (let ((list. (cdr list.))
+      (if (pair? x)
+          (let ((x (cdr x))
                 (result (+ result 1)))
-            (if (pair? list.)
-                (let ((list. (cdr list.))
+            (if (pair? x)
+                (let ((x (cdr x))
                       (lag (cdr lag))
                       (result (+ result 1)))
-                  (and (not (eq? list. lag))
-                       (loop list. lag result)))
+                  (and (not (eq? x lag))
+                       (loop x lag result)))
                 result))
           result))))
 
@@ -378,4 +360,86 @@
 (define square
   (lambda (x)
     (* x x)))
+
+
+; ------------------------------------------------------------------------------
+;   Map
+; ------------------------------------------------------------------------------
+
+(define map-1
+  (lambda (procedure x result)
+    (if (pair? x)
+        (map-1 procedure
+               (cdr x)
+               (cons (procedure (car x)) result))
+        (reverse result))))
+
+(define map-n
+  (lambda (procedure xs result)
+    (if (every pair? xs)
+        (map-n procedure
+               (map-1 cdr xs '())
+               (cons (apply procedure (map-1 car xs '())) result))
+        (reverse result))))
+
+(define map
+  (lambda (procedure x . xs)
+    (if (null? xs)
+        (map-1 procedure x '())
+        (map-n procedure (cons x xs) '()))))
+
+(define for-each-1
+  (lambda (f x)
+    (if (pair? x)
+        (begin (f (car x))
+               (for-each-1 f (cdr x))))))
+
+(define for-each
+  (lambda (f x . xs)
+    (if (null? xs)
+        (for-each-1 f x)
+        (begin (apply map f x xs)
+               undefined))))
+
+(define any-1
+  (lambda (predicate x)
+    (if (pair? (cdr x))
+        (let ((result (predicate (car x))))
+          (if result
+              result
+              (any-1 predicate (cdr x))))
+        (predicate (car x)))))
+
+(define any-n
+  (lambda (predicate xs)
+    (if (every pair? xs)
+        (let ((result (apply predicate (map car xs))))
+          (if result
+              result
+              (any-n predicate (map cdr xs))))
+        #false)))
+
+(define any
+  (lambda (predicate x . xs)
+    (if (null? xs)
+        (if (pair? x)
+            (any-1 predicate x)
+            #false)
+        (any-n predicate (cons x xs)))))
+
+(define every-1
+  (lambda (predicate x)
+    (if (null? (cdr x))
+        (predicate (car x))
+        (if (predicate (car x))
+            (every-1 predicate (cdr x))
+            #false))))
+
+(define every
+  (lambda (predicate x . xs)
+    (if (null? xs)
+        (if (pair? x)
+            (every-1 predicate x)
+            #true)
+        (not (apply any (lambda xs (not (apply predicate xs))) x xs)))))
 
