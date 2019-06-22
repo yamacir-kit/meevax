@@ -286,11 +286,6 @@
   (lambda (proc args)
     (proc . args)))
 
-(define make-operands
-  (lambda (list.1 list.2)
-    (if (null? list.2) list.1
-        (make-operands (cons (car list.2) list.1) (cdr list.2)))))
-
 ; ; This cannot detect circular-list
 ; (define length
 ;   (lambda (list.)
@@ -318,11 +313,11 @@
           result))))
 
 (define apply
-  (lambda (procedure . list.)
-    (if (= (length list.) 1)
-        (apply-1 procedure (car list.))
-        (let ((reversed (reverse list.)))
-          (apply-1 procedure (make-operands (car reversed) (cdr reversed)))))))
+  (lambda (procedure x . xs)
+    (if (null? xs)
+        (apply-1 procedure x)
+        (let ((reversed (reverse (cons x xs))))
+          (apply-1 procedure (append-2 (reverse (cdr reversed)) (car reversed)))))))
 
 ; (define pair-copy-shallow
 ;   (lambda (pair)
