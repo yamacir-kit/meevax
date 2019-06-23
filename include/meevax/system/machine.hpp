@@ -199,9 +199,9 @@ namespace meevax::system
         c.pop(2);
         goto dispatch;
 
-      case code::MAKE_MODULE: // S E (MAKE_MODULE code . C) => (enclosure . S) E C D
+      case code::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
         DEBUG(2);
-        s.push(make<Environment>(cadr(c), interaction_environment())); // レキシカル環境が必要ないのかはよく分からん
+        s.push(make<Environment>(cadr(c), interaction_environment()));
         c.pop(2);
         goto dispatch;
 
