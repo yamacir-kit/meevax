@@ -561,6 +561,96 @@
 
 
 ; ------------------------------------------------------------------------------
+;   6.4 Pair and List
+; ------------------------------------------------------------------------------
+
+(expect
+  (a b c d e)
+  (a . (b . (c . (d . (e . ()))))))
+
+(expect
+  (a b c . d)
+  (a . (b . (c . d))))
+
+
+(expect (3 3)
+  (make-list 2 3))
+
+
+(expect (a 7 c)
+  (list 'a (+ 3 4) 'c))
+
+(expect ()
+  (list))
+
+
+(expect 3
+  (length '(a b c)))
+
+(expect 3
+  (length '(a (b) (c d e))))
+
+(expect 0
+  (length '()))
+
+
+(expect (x y)
+  (append '(x) '(y)))
+
+(expect (a b c d)
+  (append '(a) '(b c d)))
+
+(expect (a (b) (c))
+  (append '(a (b)) '((c))))
+
+(expect (a b c . d)
+  (append '(a b) '(c . d)))
+
+(expect a
+  (append '() 'a))
+
+
+(expect (c b a)
+  (reverse '(a b c)))
+
+(expect ((e (f)) d (b c) a)
+  (reverse ’(a (b c) d (e (f)))))
+
+
+(expect c
+  (list-ref '(a b c d) 2))
+
+; (expect c
+;   (list-ref '(a b c d)
+;              (exact (round 1.8))))
+
+
+(expect (a b c)
+  (memq 'a '(a b c)))
+
+(expect (b c)
+  (memq 'b '(a b c)))
+
+(expect #false
+  (memq 'a '(b c d)))
+
+(expect #false
+  (memq (list 'a) '(b (a) c)))
+
+(expect ((a) c)
+  (member (list 'a) '(b (a) c)))
+
+; (expect ("B" "C")
+;   (member "B" '("a" "b" "c") string-ci=?))
+
+(expect #false ; #unspecified
+  (memq 101 '(100 101 102)))
+
+(expect (101 102)
+  (memv 101 '(100 101 102)))
+
+
+; ------------------------------------------------------------------------------
 ;   6.10 Control Features
 ; ------------------------------------------------------------------------------
 

@@ -46,8 +46,8 @@
   (lambda xs xs))
 
 (define list-tail
-  (lambda (list. k)
-    (if (eq? k 0) list.
+  (lambda (x k)
+    (if (zero? k) x
         (list-tail (cdr list.) (- k 1)))))
 
 (define list-ref
@@ -256,13 +256,39 @@
 ;   (lambda (x)
 ;     (lambda () x)))
 
+(define make-list
+  (lambda (n o)
+    (let ((default (if (pair? o) (car o))))
+      (let rec ((n n)
+                (result '()))
+        (if (<= n 0) result
+            (rec (- n 1)
+                 (cons default result)))))))
 
-(define list-copy ; from srfi-1
-  (lambda (list.)
-    (let rec ((list. list.))
-      (if (pair? list.)
-          (cons (car list.) (rec (cdr list.)))
-          list.))))
+(define list-copy
+  (lambda (x)
+    (let rec ((x x)
+              (result '()))
+      (if (pair? x)
+          (rec (cdr x)
+               (cons (car x) result))
+          (append (reverse result) x)))))
+
+(define member
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let rec ((x x))
+        (and (pair? x)
+             (if (compare o (car x)) x
+                 (rec (cdr x))))))))
+
+(define memq
+  (lambda (o x)
+    (member o x eq?)))
+
+(define memv
+  (lambda (o x)
+    (member o x eqv?)))
 
 (define apply-1
   (lambda (proc args)
