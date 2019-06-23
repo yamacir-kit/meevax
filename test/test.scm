@@ -572,9 +572,26 @@
     (lambda args
       (f (apply g args)))))
 
-; (expect
-;   ((compose sqrt *) 12 75)
-;   30)
+; (expect 30
+;   ((compose sqrt *) 12 75))
+
+(expect (b e h)
+  (map cadr '((a b) (d e) (g h))))
+
+; (expect (1 4 27 256 3125)
+;   (map (lambda (n)
+;          (expt n n))
+;       '(1 2 3 4 5)))
+
+(expect (5 7 9)
+  (map + '(1 2 3) '(4 5 6 7)))
+
+(expect (1 2) ; or (2 1)
+  (let ((count 0))
+    (map (lambda (ignored)
+           (set! count (+ count 1))
+           count)
+        '(a b))))
 
 ; (expect
 ;   (call-with-current-continuation
