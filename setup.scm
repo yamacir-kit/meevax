@@ -181,6 +181,11 @@
 
 (define undefined) ; hacking
 
+; TODO
+; (define undefined
+;   (lambda ()
+;     (if #false #false)))
+
 (define let unnamed-let) ; temporary (for letrec)
 
 (define letrec*
@@ -380,13 +385,47 @@
   (lambda (n)
     (< n 0)))
 
-(define even?
-  (lambda (n)
-    (= (remainder n 2) 0)))
+; (define even?
+;   (lambda (n)
+;     (= (remainder n 2) 0)))
+;
+; (define odd?
+;   (lambda (n)
+;     (not (even? n))))
 
-(define odd?
+(define abs
   (lambda (n)
-    (not (even? n))))
+    (if (< n 0) (- n) n)))
+
+; (define quotient truncate-quotient)
+; (define remainder truncate-remainder)
+; (define modulo floor-remainder)
+
+; (define gcd-2
+;   (lambda (a b)
+;     (if (zero? b)
+;         (abs a)
+;         (gcd b (remainder a b)))))
+;
+; (define gcd
+;   (lambda xs
+;     (if (null? xs) 0
+;         (let rec ((n (car xs))
+;                   (ns (cdr xs)))
+;           (if (null? ns) n
+;               (rec (gcd-2 n (car ns)) (cdr ns)))))))
+;
+; (define lcm-2
+;   (lambda (a b)
+;     (abs (quotient (* a b) (gcd a b)))))
+;
+; (define lcm
+;   (lambda xs
+;     (if (null? xs) 1
+;         (let rec ((n (car xs))
+;                   (ns (cdr ns)))
+;           (if (null? ns) n
+;               (rec (lcm-2 n (car ns)) (cdr ns)))))))
 
 (define boolean?
   (lambda (object)
