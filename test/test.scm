@@ -710,15 +710,14 @@
            count)
         '(a b))))
 
-; (expect
-;   (call-with-current-continuation
-;     (lambda (exit)
-;       (for-each (lambda (x)
-;                   (if (negative? x)
-;                       (exit x)))
-;                '(54 0 37 -3 245 19))
-;     #false))
-;   -3)
+(expect -3
+  (call-with-current-continuation
+    (lambda (exit)
+      (for-each (lambda (x)
+                  (if (negative? x)
+                      (exit x)))
+               '(54 0 37 -3 245 19))
+    #false)))
 
 (define list-length
   (lambda (object)
@@ -737,6 +736,15 @@
 
 (expect #false
   (list-length '(a b . c)))
+
+
+(expect 5
+  (call-with-values
+    (lambda () (values 4 5))
+    (lambda (a b) b)))
+
+(expect -1
+  (call-with-values * -))
 
 
 ; ------------------------------------------------------------------------------

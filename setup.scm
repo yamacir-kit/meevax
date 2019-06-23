@@ -370,6 +370,22 @@
   (lambda (n)
     (= n 0)))
 
+(define positive?
+  (lambda (n)
+    (> n 0)))
+
+(define negative?
+  (lambda (n)
+    (< n 0)))
+
+(define even?
+  (lambda (n)
+    (= (remainder n 2) 0)))
+
+(define odd?
+  (lambda (n)
+    (not (even? n))))
+
 (define boolean?
   (lambda (object)
     (if (or (eq? object #true)
@@ -380,12 +396,6 @@
 (define newline
   (lambda ()
     (display "\n")))
-
-; (define swap!
-;   (macro (a b)
-;    `(let ((x ,a))
-;       (set! ,a ,b)
-;       (set! ,b x))))
 
 (define swap!
   (macro (a b)
@@ -479,4 +489,23 @@
             (every-1 predicate x)
             #true)
         (not (apply any (lambda xs (not (apply predicate xs))) x xs)))))
+
+; ------------------------------------------------------------------------------
+;   Values
+; ------------------------------------------------------------------------------
+
+(define values
+  (lambda xs
+    (call-with-current-continuation
+      (lambda (continuation)
+        (apply continuation xs)))))
+
+(define call-with-values
+  (lambda (producer consumer)
+    (let ((result (producer)))
+      (if (and (pair? result)
+               (eq? (car result) 'values))
+          (apply consumer (cdr result))
+          (consumer result)))))
+
 
