@@ -13,12 +13,14 @@
 
 (define numerical.so (dlopen "./libmeevax-numerical.so"))
 
-(define * (dlsym numerical.so "multiplication"))
-(define + (dlsym numerical.so "addition"))
-(define - (dlsym numerical.so "subtraction"))
-(define / (dlsym numerical.so "division"))
-(define < (dlsym numerical.so "less"))
-(define > (dlsym numerical.so "greater"))
+(define *  (dlsym numerical.so "multiplication"))
+(define +  (dlsym numerical.so "addition"))
+(define -  (dlsym numerical.so "subtraction"))
+(define /  (dlsym numerical.so "division"))
+(define <  (dlsym numerical.so "less"))
+(define <= (dlsym numerical.so "less_equal"))
+(define >  (dlsym numerical.so "greater"))
+(define >= (dlsym numerical.so "greater_equal"))
 
 (define experimental.so (dlopen "./libmeevax-experimental.so"))
 
