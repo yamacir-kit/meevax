@@ -13,12 +13,14 @@
 
 (define numerical.so (dlopen "./libmeevax-numerical.so"))
 
-(define * (dlsym numerical.so "multiplication"))
-(define + (dlsym numerical.so "addition"))
-(define - (dlsym numerical.so "subtraction"))
-(define / (dlsym numerical.so "division"))
-(define < (dlsym numerical.so "less"))
-(define > (dlsym numerical.so "greater"))
+(define *  (dlsym numerical.so "multiplication"))
+(define +  (dlsym numerical.so "addition"))
+(define -  (dlsym numerical.so "subtraction"))
+(define /  (dlsym numerical.so "division"))
+(define <  (dlsym numerical.so "less"))
+(define <= (dlsym numerical.so "less_equal"))
+(define >  (dlsym numerical.so "greater"))
+(define >= (dlsym numerical.so "greater_equal"))
 
 (define experimental.so (dlopen "./libmeevax-experimental.so"))
 
@@ -33,37 +35,10 @@
 ;   Setup CxR
 ; ------------------------------------------------------------------------------
 
-(define caar (lambda (e) (car (car e))))
-(define cadr (lambda (e) (car (cdr e))))
-(define cdar (lambda (e) (cdr (car e))))
-(define cddr (lambda (e) (cdr (cdr e))))
-
-; (define caaar (lambda (e) (car (car (car e)))))
-; (define caadr (lambda (e) (car (car (cdr e)))))
-; (define cadar (lambda (e) (car (cdr (car e)))))
-; (define caddr (lambda (e) (car (cdr (cdr e)))))
-; (define cdaar (lambda (e) (cdr (car (car e)))))
-; (define cdadr (lambda (e) (cdr (car (cdr e)))))
-; (define cddar (lambda (e) (cdr (cdr (car e)))))
-; (define cdddr (lambda (e) (cdr (cdr (cdr e)))))
-;
-; (define caaaar (lambda (e) (car (car (car (car e))))))
-; (define caaadr (lambda (e) (car (car (car (cdr e))))))
-; (define caadar (lambda (e) (car (car (cdr (car e))))))
-; (define caaddr (lambda (e) (car (car (cdr (cdr e))))))
-; (define cadaar (lambda (e) (car (cdr (car (car e))))))
-; (define cadadr (lambda (e) (car (cdr (car (cdr e))))))
-; (define caddar (lambda (e) (car (cdr (cdr (car e))))))
-; (define cadddr (lambda (e) (car (cdr (cdr (cdr e))))))
-; (define cdaaar (lambda (e) (cdr (car (car (car e))))))
-; (define cdaadr (lambda (e) (cdr (car (car (cdr e))))))
-; (define cdadar (lambda (e) (cdr (car (cdr (car e))))))
-; (define cdaddr (lambda (e) (cdr (car (cdr (cdr e))))))
-; (define cddaar (lambda (e) (cdr (cdr (car (car e))))))
-; (define cddadr (lambda (e) (cdr (cdr (car (cdr e))))))
-; (define cdddar (lambda (e) (cdr (cdr (cdr (car e))))))
-; (define cddddr (lambda (e) (cdr (cdr (cdr (cdr e))))))
-
+(define caar (lambda (x) (car (car x))))
+(define cadr (lambda (x) (car (cdr x))))
+(define cdar (lambda (x) (cdr (car x))))
+(define cddr (lambda (x) (cdr (cdr x))))
 
 ; ------------------------------------------------------------------------------
 ;   Bootstrap Quasiquote
@@ -71,6 +46,15 @@
 
 (define list
   (lambda xs xs))
+
+(define list-tail
+  (lambda (x k)
+    (if (zero? k) x
+        (list-tail (cdr list.) (- k 1)))))
+
+(define list-ref
+  (lambda (list. k)
+    (car (list-tail list. k))))
 
 (define null?
   (lambda (object)
@@ -197,6 +181,11 @@
 
 (define undefined) ; hacking
 
+; TODO
+; (define undefined
+;   (lambda ()
+;     (if #false #false)))
+
 (define let unnamed-let) ; temporary (for letrec)
 
 (define letrec*
@@ -241,12 +230,6 @@
                     (begin ,@(cdar clauses))
                     (cond ,@(cdr clauses))))))))
 
-(define memv
-  (lambda (object list.)
-    (if (null? list.) #false
-        (if (eqv? object (car list.)) list.
-            (memv object (cdr list.))))))
-
 (define case
   (macro (key . clauses)
     (if (null? clauses) 'undefined
@@ -274,22 +257,60 @@
 ;   (lambda (x)
 ;     (lambda () x)))
 
+(define make-list
+  (lambda (n o)
+    (let ((default (if (pair? o) (car o))))
+      (let rec ((n n)
+                (result '()))
+        (if (<= n 0) result
+            (rec (- n 1)
+                 (cons default result)))))))
 
-(define list-copy ; from srfi-1
-  (lambda (list.)
-    (let rec ((list. list.))
-      (if (pair? list.)
-          (cons (car list.) (rec (cdr list.)))
-          list.))))
+(define list-copy
+  (lambda (x)
+    (let rec ((x x)
+              (result '()))
+      (if (pair? x)
+          (rec (cdr x)
+               (cons (car x) result))
+          (append (reverse result) x)))))
+
+(define member
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let rec ((x x))
+        (and (pair? x)
+             (if (compare o (car x)) x
+                 (rec (cdr x))))))))
+
+(define memq
+  (lambda (o x)
+    (member o x eq?)))
+
+(define memv
+  (lambda (o x)
+    (member o x eqv?)))
+
+(define assoc
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let assoc ((x x))
+        (if (null? x) #false
+            (if (compare o (caar x))
+                (car x)
+                (assoc (cdr x))))))))
+
+(define assq
+  (lambda (o x)
+    (assoc o x eq?)))
+
+(define assv
+  (lambda (o x)
+    (assoc o x eqv?)))
 
 (define apply-1
   (lambda (proc args)
     (proc . args)))
-
-(define make-operands
-  (lambda (list.1 list.2)
-    (if (null? list.2) list.1
-        (make-operands (cons (car list.2) list.1) (cdr list.2)))))
 
 ; ; This cannot detect circular-list
 ; (define length
@@ -301,28 +322,28 @@
 ;           result))))
 
 (define length
-  (lambda (list.)
-    (let loop ((list. list.)
-               (lag list.)
+  (lambda (x)
+    (let loop ((x x)
+               (lag x)
                (result 0))
-      (if (pair? list.)
-          (let ((list. (cdr list.))
+      (if (pair? x)
+          (let ((x (cdr x))
                 (result (+ result 1)))
-            (if (pair? list.)
-                (let ((list. (cdr list.))
+            (if (pair? x)
+                (let ((x (cdr x))
                       (lag (cdr lag))
                       (result (+ result 1)))
-                  (and (not (eq? list. lag))
-                       (loop list. lag result)))
+                  (and (not (eq? x lag))
+                       (loop x lag result)))
                 result))
           result))))
 
 (define apply
-  (lambda (procedure . list.)
-    (if (= (length list.) 1)
-        (apply-1 procedure (car list.))
-        (let ((reversed (reverse list.)))
-          (apply-1 procedure (make-operands (car reversed) (cdr reversed)))))))
+  (lambda (procedure x . xs)
+    (if (null? xs)
+        (apply-1 procedure x)
+        (let ((reversed (reverse (cons x xs))))
+          (apply-1 procedure (append-2 (reverse (cdr reversed)) (car reversed)))))))
 
 ; (define pair-copy-shallow
 ;   (lambda (pair)
@@ -356,6 +377,56 @@
   (lambda (n)
     (= n 0)))
 
+(define positive?
+  (lambda (n)
+    (> n 0)))
+
+(define negative?
+  (lambda (n)
+    (< n 0)))
+
+; (define even?
+;   (lambda (n)
+;     (= (remainder n 2) 0)))
+;
+; (define odd?
+;   (lambda (n)
+;     (not (even? n))))
+
+(define abs
+  (lambda (n)
+    (if (< n 0) (- n) n)))
+
+; (define quotient truncate-quotient)
+; (define remainder truncate-remainder)
+; (define modulo floor-remainder)
+
+; (define gcd-2
+;   (lambda (a b)
+;     (if (zero? b)
+;         (abs a)
+;         (gcd b (remainder a b)))))
+;
+; (define gcd
+;   (lambda xs
+;     (if (null? xs) 0
+;         (let rec ((n (car xs))
+;                   (ns (cdr xs)))
+;           (if (null? ns) n
+;               (rec (gcd-2 n (car ns)) (cdr ns)))))))
+;
+; (define lcm-2
+;   (lambda (a b)
+;     (abs (quotient (* a b) (gcd a b)))))
+;
+; (define lcm
+;   (lambda xs
+;     (if (null? xs) 1
+;         (let rec ((n (car xs))
+;                   (ns (cdr ns)))
+;           (if (null? ns) n
+;               (rec (lcm-2 n (car ns)) (cdr ns)))))))
+
 (define boolean?
   (lambda (object)
     (if (or (eq? object #true)
@@ -367,12 +438,6 @@
   (lambda ()
     (display "\n")))
 
-; (define swap!
-;   (macro (a b)
-;    `(let ((x ,a))
-;       (set! ,a ,b)
-;       (set! ,b x))))
-
 (define swap!
   (macro (a b)
     (let ((x (make-symbol)))
@@ -383,4 +448,105 @@
 (define square
   (lambda (x)
     (* x x)))
+
+
+; ------------------------------------------------------------------------------
+;   Control Features
+; ------------------------------------------------------------------------------
+
+(define map-1
+  (lambda (procedure x result)
+    (if (pair? x)
+        (map-1 procedure
+               (cdr x)
+               (cons (procedure (car x)) result))
+        (reverse result))))
+
+(define map-n
+  (lambda (procedure xs result)
+    (if (every pair? xs)
+        (map-n procedure
+               (map-1 cdr xs '())
+               (cons (apply procedure (map-1 car xs '())) result))
+        (reverse result))))
+
+(define map
+  (lambda (procedure x . xs)
+    (if (null? xs)
+        (map-1 procedure x '())
+        (map-n procedure (cons x xs) '()))))
+
+(define for-each-1
+  (lambda (f x)
+    (if (pair? x)
+        (begin (f (car x))
+               (for-each-1 f (cdr x))))))
+
+(define for-each
+  (lambda (f x . xs)
+    (if (null? xs)
+        (for-each-1 f x)
+        (begin (apply map f x xs)
+               undefined))))
+
+(define any-1
+  (lambda (predicate x)
+    (if (pair? (cdr x))
+        (let ((result (predicate (car x))))
+          (if result
+              result
+              (any-1 predicate (cdr x))))
+        (predicate (car x)))))
+
+(define any-n
+  (lambda (predicate xs)
+    (if (every pair? xs)
+        (let ((result (apply predicate (map car xs))))
+          (if result
+              result
+              (any-n predicate (map cdr xs))))
+        #false)))
+
+(define any
+  (lambda (predicate x . xs)
+    (if (null? xs)
+        (if (pair? x)
+            (any-1 predicate x)
+            #false)
+        (any-n predicate (cons x xs)))))
+
+(define every-1
+  (lambda (predicate x)
+    (if (null? (cdr x))
+        (predicate (car x))
+        (if (predicate (car x))
+            (every-1 predicate (cdr x))
+            #false))))
+
+(define every
+  (lambda (predicate x . xs)
+    (if (null? xs)
+        (if (pair? x)
+            (every-1 predicate x)
+            #true)
+        (not (apply any (lambda xs (not (apply predicate xs))) x xs)))))
+
+; ------------------------------------------------------------------------------
+;   Values
+; ------------------------------------------------------------------------------
+
+(define values
+  (lambda xs
+    (call-with-current-continuation
+      (lambda (continuation)
+        (apply continuation xs)))))
+
+(define call-with-values
+  (lambda (producer consumer)
+    (let ((result (producer)))
+      (if (and (pair? result)
+               (eq? (car result) 'values))
+          (apply consumer (cdr result))
+          (consumer result)))))
+
 

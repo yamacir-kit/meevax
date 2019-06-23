@@ -561,6 +561,123 @@
 
 
 ; ------------------------------------------------------------------------------
+;   6.4 Pair and List
+; ------------------------------------------------------------------------------
+
+(expect
+  (a b c d e)
+  (a . (b . (c . (d . (e . ()))))))
+
+(expect
+  (a b c . d)
+  (a . (b . (c . d))))
+
+
+(expect (3 3)
+  (make-list 2 3))
+
+
+(expect (a 7 c)
+  (list 'a (+ 3 4) 'c))
+
+(expect ()
+  (list))
+
+
+(expect 3
+  (length '(a b c)))
+
+(expect 3
+  (length '(a (b) (c d e))))
+
+(expect 0
+  (length '()))
+
+
+(expect (x y)
+  (append '(x) '(y)))
+
+(expect (a b c d)
+  (append '(a) '(b c d)))
+
+(expect (a (b) (c))
+  (append '(a (b)) '((c))))
+
+(expect (a b c . d)
+  (append '(a b) '(c . d)))
+
+(expect a
+  (append '() 'a))
+
+
+(expect (c b a)
+  (reverse '(a b c)))
+
+(expect ((e (f)) d (b c) a)
+  (reverse ’(a (b c) d (e (f)))))
+
+
+(expect c
+  (list-ref '(a b c d) 2))
+
+; (expect c
+;   (list-ref '(a b c d)
+;              (exact (round 1.8))))
+
+
+(expect (a b c)
+  (memq 'a '(a b c)))
+
+(expect (b c)
+  (memq 'b '(a b c)))
+
+(expect #false
+  (memq 'a '(b c d)))
+
+(expect #false
+  (memq (list 'a) '(b (a) c)))
+
+(expect ((a) c)
+  (member (list 'a) '(b (a) c)))
+
+; (expect ("B" "C")
+;   (member "B" '("a" "b" "c") string-ci=?))
+
+(expect #false ; #unspecified
+  (memq 101 '(100 101 102)))
+
+(expect (101 102)
+  (memv 101 '(100 101 102)))
+
+
+(define e '((a 1) (b 2) (c 3)))
+
+(expect (a 1)
+  (assq 'a e))
+
+(expect (b 2)
+  (assq 'b e))
+
+(expect #false
+  (assq 'd e))
+
+(expect #false
+  (assq (list 'a) '(((a)) ((b)) ((c)))))
+
+(expect ((a))
+  (assoc (list 'a) '(((a)) ((b)) ((c)))))
+
+(expect (2 4)
+  (assoc 2.0 '((1 1) (2 4) (3 9)) =))
+
+(expect #false ; unspecified
+  (assq 5 '((2 3) (5 7) (11 13))))
+
+(expect (5 7)
+  (assv 5 '((2 3) (5 7) (11 13))))
+
+
+; ------------------------------------------------------------------------------
 ;   6.10 Control Features
 ; ------------------------------------------------------------------------------
 
@@ -572,19 +689,35 @@
     (lambda args
       (f (apply g args)))))
 
-; (expect
-;   ((compose sqrt *) 12 75)
-;   30)
+; (expect 30
+;   ((compose sqrt *) 12 75))
 
-; (expect
-;   (call-with-current-continuation
-;     (lambda (exit)
-;       (for-each (lambda (x)
-;                   (if (negative? x)
-;                       (exit x)))
-;                '(54 0 37 -3 245 19))
-;     #false))
-;   -3)
+(expect (b e h)
+  (map cadr '((a b) (d e) (g h))))
+
+; (expect (1 4 27 256 3125)
+;   (map (lambda (n)
+;          (expt n n))
+;       '(1 2 3 4 5)))
+
+(expect (5 7 9)
+  (map + '(1 2 3) '(4 5 6 7)))
+
+(expect (1 2) ; or (2 1)
+  (let ((count 0))
+    (map (lambda (ignored)
+           (set! count (+ count 1))
+           count)
+        '(a b))))
+
+(expect -3
+  (call-with-current-continuation
+    (lambda (exit)
+      (for-each (lambda (x)
+                  (if (negative? x)
+                      (exit x)))
+               '(54 0 37 -3 245 19))
+    #false)))
 
 (define list-length
   (lambda (object)
@@ -603,6 +736,15 @@
 
 (expect #false
   (list-length '(a b . c)))
+
+
+(expect 5
+  (call-with-values
+    (lambda () (values 4 5))
+    (lambda (a b) b)))
+
+(expect -1
+  (call-with-values * -))
 
 
 ; ------------------------------------------------------------------------------
