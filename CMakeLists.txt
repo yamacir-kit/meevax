@@ -83,5 +83,6 @@ target_link_libraries(${PROJECT_NAME}
   ${PROJECT_NAME}-literal
   dl
   gmp
+  mpfr
 )
 

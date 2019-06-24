@@ -10,7 +10,7 @@ before_install:
   - sudo apt update -qq
 
 install:
-  - sudo apt install -qq g++-7 libboost-all-dev
+  - sudo apt install -qq g++-7 libboost-all-dev libgmp-dev libmpfr-dev
 
 before_script:
   - mkdir -p build

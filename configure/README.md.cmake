@@ -64,7 +64,8 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 ### Library Dependencies
 
 - Boost C++ Libraries
-- GNU Multi-Precision Library
+- The GNU Multiple Precision Arithmetic Library
+- The GNU MPFR Library
 
 <br/>
 

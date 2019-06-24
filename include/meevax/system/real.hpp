@@ -1,14 +1,14 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_REAL_HPP
 #define INCLUDED_MEEVAX_SYSTEM_REAL_HPP
 
-#include <boost/multiprecision/gmp.hpp>
+#include <boost/multiprecision/mpfr.hpp>
 
 #include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {
   using real = boost::multiprecision::number<
-                 boost::multiprecision::gmp_float<0>,
+                 boost::multiprecision::mpfr_float_backend<0>,
                  boost::multiprecision::et_off
                >;
 
