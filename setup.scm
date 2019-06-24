@@ -22,6 +22,8 @@
 (define >  (dlsym numerical.so "greater"))
 (define >= (dlsym numerical.so "greater_equal"))
 
+(define real? (dlsym numerical.so "real_"))
+
 (define experimental.so (dlopen "./libmeevax-experimental.so"))
 
 (define display        (dlsym experimental.so "display"))

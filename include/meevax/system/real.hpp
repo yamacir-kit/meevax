@@ -7,7 +7,10 @@
 
 namespace meevax::system
 {
-  using real = boost::multiprecision::mpf_float;
+  using real = boost::multiprecision::number<
+                 boost::multiprecision::gmp_float<0>,
+                 boost::multiprecision::et_off
+               >;
 
   std::ostream& operator<<(std::ostream& os, const real& real)
   {
@@ -19,7 +22,7 @@ namespace meevax::system
   decltype(auto) operator OPERATOR(const object& lhs, const object& rhs) \
   { \
     return make<real>( \
-      lhs.as<real>() OPERATOR rhs.as<real>() \
+      lhs.as<const real>() OPERATOR rhs.as<const real>() \
     ); \
   }
 
