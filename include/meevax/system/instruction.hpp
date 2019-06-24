@@ -18,7 +18,7 @@ namespace meevax::system
     (LOAD_LOCAL_VARIADIC) \
     (MAKE_CLOSURE) \
     (MAKE_CONTINUATION) \
-    (MAKE_MODULE) \
+    (MAKE_ENVIRONMENT) \
     (POP) \
     (PUSH) \
     (RETURN) \
@@ -71,7 +71,7 @@ namespace meevax::system
   static const auto _load_local_variadic_ {make<instruction>(code::LOAD_LOCAL_VARIADIC)};
   static const auto _make_closure_        {make<instruction>(code::MAKE_CLOSURE)};
   static const auto _make_continuation_   {make<instruction>(code::MAKE_CONTINUATION)};
-  static const auto _make_module_         {make<instruction>(code::MAKE_MODULE)};
+  static const auto _make_environment_    {make<instruction>(code::MAKE_ENVIRONMENT)};
   static const auto _pop_                 {make<instruction>(code::POP)};
   static const auto _push_                {make<instruction>(code::PUSH)};
   static const auto _return_              {make<instruction>(code::RETURN)};

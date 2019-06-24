@@ -22,13 +22,15 @@
 (define >  (dlsym numerical.so "greater"))
 (define >= (dlsym numerical.so "greater_equal"))
 
+(define real? (dlsym numerical.so "real_"))
+
 (define experimental.so (dlopen "./libmeevax-experimental.so"))
 
 (define display        (dlsym experimental.so "display"))
 (define emergency-exit (dlsym experimental.so "emergency_exit"))
-(define eq?            (dlsym experimental.so "addressive_equals"))
-(define eqv?           (dlsym experimental.so "semantic_equals"))
-(define pair?          (dlsym experimental.so "is_pair"))
+(define eq?            (dlsym experimental.so "eq_"))
+(define eqv?           (dlsym experimental.so "eqv_"))
+(define pair?          (dlsym experimental.so "pair_"))
 
 
 ; ------------------------------------------------------------------------------

@@ -265,7 +265,7 @@ namespace meevax::system
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
 
       return cons(
-               _make_module_,
+               _make_environment_,
                body(
                  cdr(exp),
                  cons(car(exp), scope),

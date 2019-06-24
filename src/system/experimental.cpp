@@ -4,7 +4,7 @@
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/iterator.hpp>
-#include <meevax/system/number.hpp>
+#include <meevax/system/numerical.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/srfi-1.hpp>
@@ -12,13 +12,13 @@
 
 extern "C"
 {
-  PROCEDURE(addressive_equals)
+  PROCEDURE(eq_)
   {
     using namespace meevax::system;
     return car(args) == cadr(args) ? _true_ : _false_;
   }
 
-  PROCEDURE(semantic_equals)
+  PROCEDURE(eqv_)
   {
     using namespace meevax::system;
 
@@ -36,7 +36,7 @@ extern "C"
     }
   }
 
-  PROCEDURE(is_pair)
+  PROCEDURE(pair_)
   {
     using namespace meevax::system;
 
@@ -56,14 +56,14 @@ extern "C"
   {
     using namespace meevax::system;
 
-    if (not args or not car(args).is<number>())
+    if (not args or not car(args).is<real>())
     {
       std::exit(boost::exit_success);
     }
     else
     {
       // XXX DIRTY HACK
-      std::exit(static_cast<int>(car(args).as<number>()));
+      std::exit(static_cast<int>(car(args).as<real>()));
     }
 
     return unit; // XXX DIRTY HACK

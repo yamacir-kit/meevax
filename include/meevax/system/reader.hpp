@@ -6,7 +6,7 @@
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/number.hpp>
+#include <meevax/system/numerical.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
 
@@ -150,9 +150,9 @@ namespace meevax::system
           {
             throw error_pair;
           }
-          else try // is symbol or number
+          else try // is symbol or real
           {
-            return make<number>(buffer);
+            return make<real>(buffer);
           }
           catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
           {
