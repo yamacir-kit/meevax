@@ -12,13 +12,13 @@
 
 extern "C"
 {
-  PROCEDURE(addressive_equals)
+  PROCEDURE(eq_)
   {
     using namespace meevax::system;
     return car(args) == cadr(args) ? _true_ : _false_;
   }
 
-  PROCEDURE(semantic_equals)
+  PROCEDURE(eqv_)
   {
     using namespace meevax::system;
 
@@ -36,7 +36,7 @@ extern "C"
     }
   }
 
-  PROCEDURE(is_pair)
+  PROCEDURE(pair_)
   {
     using namespace meevax::system;
 

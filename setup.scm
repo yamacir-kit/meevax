@@ -26,9 +26,9 @@
 
 (define display        (dlsym experimental.so "display"))
 (define emergency-exit (dlsym experimental.so "emergency_exit"))
-(define eq?            (dlsym experimental.so "addressive_equals"))
-(define eqv?           (dlsym experimental.so "semantic_equals"))
-(define pair?          (dlsym experimental.so "is_pair"))
+(define eq?            (dlsym experimental.so "eq_"))
+(define eqv?           (dlsym experimental.so "eqv_"))
+(define pair?          (dlsym experimental.so "pair_"))
 
 
 ; ------------------------------------------------------------------------------
