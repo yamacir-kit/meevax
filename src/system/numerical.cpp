@@ -2,8 +2,8 @@
 #include <numeric>
 
 #include <meevax/system/boolean.hpp>
-#include <meevax/system/number.hpp>
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/real.hpp>
 #include <meevax/system/srfi-1.hpp>
 
 extern "C"
@@ -18,13 +18,13 @@ extern "C"
   PROCEDURE(addition)
   {
     using namespace meevax::system;
-    return std::accumulate(std::begin(args), std::end(args), make<number>(0), std::plus {});
+    return std::accumulate(std::begin(args), std::end(args), make<real>(0), std::plus {});
   }
   //
   PROCEDURE(multiplication)
   {
     using namespace meevax::system;
-    return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::multiplies {});
+    return std::accumulate(std::begin(args), std::end(args), make<real>(1), std::multiplies {});
   }
 
   // From R7RS 6.2.6. Numerical operations
@@ -49,7 +49,7 @@ extern "C"
 
     if (length(args) < 2)
     {
-      return std::accumulate(std::begin(args), std::end(args), make<number>(0), std::minus {});
+      return std::accumulate(std::begin(args), std::end(args), make<real>(0), std::minus {});
     }
     else
     {
@@ -63,7 +63,7 @@ extern "C"
 
     if (length(args) < 2)
     {
-      return std::accumulate(std::begin(args), std::end(args), make<number>(1), std::divides {});
+      return std::accumulate(std::begin(args), std::end(args), make<real>(1), std::divides {});
     }
     else
     {
@@ -74,25 +74,25 @@ extern "C"
   PROCEDURE(less)
   {
     using namespace meevax::system;
-    return std::invoke(std::less {}, car(args).as<number>(), cadr(args).as<number>()) ? _true_ : _false_;
+    return std::invoke(std::less {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
   }
 
   PROCEDURE(less_equal)
   {
     using namespace meevax::system;
-    return std::invoke(std::less_equal {}, car(args).as<number>(), cadr(args).as<number>()) ? _true_ : _false_;
+    return std::invoke(std::less_equal {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
   }
 
   PROCEDURE(greater)
   {
     using namespace meevax::system;
-    return std::invoke(std::greater {}, car(args).as<number>(), cadr(args).as<number>()) ? _true_ : _false_;
+    return std::invoke(std::greater {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
   }
 
   PROCEDURE(greater_equal)
   {
     using namespace meevax::system;
-    return std::invoke(std::greater_equal {}, car(args).as<number>(), cadr(args).as<number>()) ? _true_ : _false_;
+    return std::invoke(std::greater_equal {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
   }
 } // extern "C"
 

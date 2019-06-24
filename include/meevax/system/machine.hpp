@@ -9,7 +9,7 @@
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/iterator.hpp>
-#include <meevax/system/number.hpp>
+#include <meevax/system/real.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/srfi-1.hpp> // assoc
@@ -156,10 +156,10 @@ namespace meevax::system
         DEBUG(2);
         {
           iterator region {e};
-          std::advance(region, int {caadr(c).as<number>()});
+          std::advance(region, int {caadr(c).as<real>()});
 
           iterator position {*region};
-          std::advance(position, int {cdadr(c).as<number>()});
+          std::advance(position, int {cdadr(c).as<real>()});
 
           s.push(*position);
         }
@@ -170,10 +170,10 @@ namespace meevax::system
         DEBUG(2);
         {
           iterator region {e};
-          std::advance(region, int {caadr(c).as<number>()});
+          std::advance(region, int {caadr(c).as<real>()});
 
           iterator position {*region};
-          std::advance(position, int {cdadr(c).as<number>()});
+          std::advance(position, int {cdadr(c).as<real>()});
 
           s.push(position);
         }
@@ -340,10 +340,10 @@ namespace meevax::system
         DEBUG(2);
         {
           iterator region {e};
-          std::advance(region, int {caadr(c).as<number>()});
+          std::advance(region, int {caadr(c).as<real>()});
 
           iterator position {*region};
-          std::advance(position, int {cdadr(c).as<number>()});
+          std::advance(position, int {cdadr(c).as<real>()});
 
           std::atomic_store(&car(position), car(s));
         }
@@ -354,10 +354,10 @@ namespace meevax::system
         DEBUG(2);
         {
           iterator region {e};
-          std::advance(region, int {caadr(c).as<number>()});
+          std::advance(region, int {caadr(c).as<real>()});
 
           iterator position {*region};
-          std::advance(position, int {cdadr(c).as<number>()} - 1);
+          std::advance(position, int {cdadr(c).as<real>()} - 1);
 
           std::atomic_store(&cdr(position), car(s));
         }
@@ -397,13 +397,12 @@ namespace meevax::system
             if (position.is<pair>() && *position == variable)
             {
               variadic = false;
-              return cons(make<number>(i), make<number>(j));
+              return cons(make<real>(i), make<real>(j));
             }
             else if (not position.is<pair>() && position == variable)
             {
               variadic = true;
-              // return cons(make<number>(i), make<number>(-1 - j));
-              return cons(make<number>(i), make<number>(j));
+              return cons(make<real>(i), make<real>(j));
             }
 
             ++j;
@@ -417,7 +416,6 @@ namespace meevax::system
 
       bool is_variadic() const noexcept
       {
-        // return cdr(*this).template as<number>() < 0;
         return variadic;
       }
     };

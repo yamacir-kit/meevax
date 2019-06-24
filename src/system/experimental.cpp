@@ -4,9 +4,9 @@
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/iterator.hpp>
-#include <meevax/system/number.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
+#include <meevax/system/real.hpp>
 #include <meevax/system/srfi-1.hpp>
 #include <meevax/system/string.hpp>
 
@@ -56,14 +56,14 @@ extern "C"
   {
     using namespace meevax::system;
 
-    if (not args or not car(args).is<number>())
+    if (not args or not car(args).is<real>())
     {
       std::exit(boost::exit_success);
     }
     else
     {
       // XXX DIRTY HACK
-      std::exit(static_cast<int>(car(args).as<number>()));
+      std::exit(static_cast<int>(car(args).as<real>()));
     }
 
     return unit; // XXX DIRTY HACK
