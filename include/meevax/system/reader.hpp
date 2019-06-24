@@ -6,7 +6,7 @@
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/exception.hpp>
-#include <meevax/system/real.hpp>
+#include <meevax/system/numerical.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
 

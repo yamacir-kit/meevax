@@ -4,9 +4,9 @@
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/iterator.hpp>
+#include <meevax/system/numerical.hpp>
 #include <meevax/system/pair.hpp>
 #include <meevax/system/procedure.hpp>
-#include <meevax/system/real.hpp>
 #include <meevax/system/srfi-1.hpp>
 #include <meevax/system/string.hpp>
 

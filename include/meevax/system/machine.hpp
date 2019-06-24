@@ -9,7 +9,7 @@
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/iterator.hpp>
-#include <meevax/system/real.hpp>
+#include <meevax/system/numerical.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/special.hpp>
 #include <meevax/system/srfi-1.hpp> // assoc
