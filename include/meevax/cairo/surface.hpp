@@ -18,7 +18,7 @@ namespace meevax::cairo
     explicit surface(const xcb::connection& connection)
       : xcb::window {connection, xcb::root_screen(connection)}
       , std::shared_ptr<cairo_surface_t> {
-          cairo_xcb_surface_create(connection, identity, xcb::root_visualtype(connection), 0, 0),
+          cairo_xcb_surface_create(connection, identity, xcb::root_visualtype(connection), 1, 1),
           cairo_surface_destroy
         }
     {}

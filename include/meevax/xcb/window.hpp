@@ -29,8 +29,8 @@ namespace meevax::xcb
         identity, parent_identity,
         std::max(0, 0), // x
         std::max(0, 0), // y
-        std::max(0, 0), // width
-        std::max(0, 0), // height
+        std::max(1, 0), // width
+        std::max(1, 0), // height
         std::max(1, 0), // border width
         XCB_WINDOW_CLASS_INPUT_OUTPUT,
         XCB_COPY_FROM_PARENT, // std::begin(screen {connection})->root_visual,

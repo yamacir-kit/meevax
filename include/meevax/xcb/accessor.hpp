@@ -111,9 +111,9 @@ namespace meevax::xcb
     return setup {connection}.begin()->root;
   }
 
-  DEFINE_XCB_ACCESSOR(screen, depth, allowed_depths)
+  DEFINE_XCB_ACCESSOR(screen, depth, allowed_depths, )
 
-  DEFINE_XCB_ACCESSOR(depth, visualtype, visuals)
+  DEFINE_XCB_ACCESSOR(depth, visualtype, visuals, )
 
   auto root_visualtype(const connection& connection)
   {
