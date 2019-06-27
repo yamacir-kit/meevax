@@ -36,10 +36,10 @@ namespace meevax::cairo
       return get();
     }
 
-    decltype(auto) size(std::uint32_t width, std::uint32_t height) noexcept
+    void size(std::uint32_t width, std::uint32_t height) noexcept
     {
-      configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, width, height);
-      return cairo_xcb_surface_set_size(*this, width, height);
+      cairo_xcb_surface_set_size(*this, width, height);
+      cairo_surface_flush(*this);
     }
   };
 } // namespace meevax::cairo
