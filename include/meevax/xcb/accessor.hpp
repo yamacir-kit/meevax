@@ -47,57 +47,66 @@ namespace meevax::xcb
     {}                                                                         \
   };
 
-  struct setup
-  {
-    DEFINE_XCB_ITERATOR(screen)
+  #define DEFINE_XCB_ACCESSOR(NAME, ITERATOR, SUFFIX, ...)                     \
+  struct NAME                                                                  \
+  {                                                                            \
+    DEFINE_XCB_ITERATOR(screen)                                                \
+                                                                               \
+    using const_iterator = const iterator;                                     \
+                                                                               \
+    const xcb_##NAME##_t* data;                                                \
+                                                                               \
+    explicit NAME(const xcb_##NAME##_t* data)                                  \
+      : data {data}                                                            \
+    {}                                                                         \
+                                                                               \
+    const_iterator cbegin() const noexcept                                     \
+    {                                                                          \
+      return xcb_##NAME##_##SUFFIX##_iterator(data);                           \
+    }                                                                          \
+                                                                               \
+    iterator begin() const noexcept                                            \
+    {                                                                          \
+      return cbegin();                                                         \
+    }                                                                          \
+                                                                               \
+    const_iterator cend() const noexcept                                       \
+    {                                                                          \
+      return xcb_##ITERATOR##_end(cbegin(data));                               \
+    }                                                                          \
+                                                                               \
+    iterator end() const noexcept                                              \
+    {                                                                          \
+      return cend();                                                           \
+    }                                                                          \
+                                                                               \
+    auto size() const noexcept                                                 \
+    {                                                                          \
+      return xcb_##NAME##_##SUFFIX##_length(data);                             \
+    }                                                                          \
+                                                                               \
+    auto empty() const noexcept                                                \
+    {                                                                          \
+      return not size();                                                       \
+    }                                                                          \
+                                                                               \
+    operator xcb_##NAME##_t() const noexcept                                   \
+    {                                                                          \
+      return *data;                                                            \
+    }                                                                          \
+                                                                               \
+    __VA_ARGS__                                                                \
+  };
 
-    using const_iterator = const iterator;
-
-    const xcb_setup_t* data;
-
+  DEFINE_XCB_ACCESSOR(setup, screen, roots,
     explicit setup(const connection& connection)
       : data {xcb_get_setup(connection)}
     {}
+  )
 
-    explicit setup(const xcb_setup_t* data)
-      : data {data}
-    {}
+  DEFINE_XCB_ACCESSOR(screen, depth, allowed_depths)
 
-    const_iterator cbegin() const noexcept
-    {
-      return xcb_setup_roots_iterator(data);
-    }
-
-    iterator begin() const noexcept
-    {
-      return cbegin();
-    }
-
-    const_iterator cend() const noexcept
-    {
-      return xcb_screen_end(cbegin(data));
-    }
-
-    iterator end() const noexcept
-    {
-      return cend();
-    }
-
-    auto size() const noexcept
-    {
-      return xcb_setup_roots_length(data);
-    }
-
-    auto empty() const noexcept
-    {
-      return not size();
-    }
-
-    operator xcb_setup_t() const noexcept
-    {
-      return *data;
-    }
-  };
+  DEFINE_XCB_ACCESSOR(depth, visualtype, visuals)
 } // namespace meevax::xcb
 
 #endif // INCLUDED_MEEVAX_XCB_ACCESSOR_HPP
