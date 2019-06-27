@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CAIRO_SURFACE_HPP
-#define INCLUDED_MEEVAX_CAIRO_SURFACE_HPP
+#ifndef INCLUDED_MEEVAX_CAIRO_CONTEXT_HPP
+#define INCLUDED_MEEVAX_CAIRO_CONTEXT_HPP
 
 #include <memory>
 #include <utility>
@@ -36,5 +36,5 @@ namespace meevax::cairo
   };
 } // namespace meevax::cairo
 
-#endif // INCLUDED_MEEVAX_CAIRO_SURFACE_HPP
+#endif // INCLUDED_MEEVAX_CAIRO_CONTEXT_HPP
 

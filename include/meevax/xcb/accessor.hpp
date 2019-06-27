@@ -34,7 +34,7 @@ namespace meevax::xcb
     template <typename T, REQUIRES(std::is_convertible<T, xcb_##NAME##_iterator_t>)> \
     bool equal(const T& rhs) const noexcept                                    \
     {                                                                          \
-      return data != rhs.data;                                                 \
+      return data == rhs.data;                                                 \
     }                                                                          \
                                                                                \
   public:                                                                      \
@@ -50,7 +50,7 @@ namespace meevax::xcb
   #define DEFINE_XCB_ACCESSOR(NAME, ITERATOR, SUFFIX, ...)                     \
   struct NAME                                                                  \
   {                                                                            \
-    DEFINE_XCB_ITERATOR(screen)                                                \
+    DEFINE_XCB_ITERATOR(ITERATOR)                                              \
                                                                                \
     using const_iterator = const iterator;                                     \
                                                                                \
@@ -72,7 +72,9 @@ namespace meevax::xcb
                                                                                \
     const_iterator cend() const noexcept                                       \
     {                                                                          \
-      return xcb_##ITERATOR##_end(cbegin(data));                               \
+      return xcb_##ITERATOR##_end(                                             \
+               xcb_##NAME##_##SUFFIX##_iterator(data)                          \
+             );                                                                \
     }                                                                          \
                                                                                \
     iterator end() const noexcept                                              \
@@ -119,9 +121,9 @@ namespace meevax::xcb
     {
       for (const auto& each_depth : screen {&each_screen})
       {
-        for (const auto& each_visualtype : depth {&each_depth})
+        for (auto&& each_visualtype : depth {&each_depth})
         {
-          if (each_screen.root_visual == visualtype.visual_id)
+          if (each_screen.root_visual == each_visualtype.visual_id)
           {
             return &each_visualtype;
           }
