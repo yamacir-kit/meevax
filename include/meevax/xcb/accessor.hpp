@@ -104,9 +104,33 @@ namespace meevax::xcb
     {}
   )
 
+  auto root_screen(const connection& connection)
+  {
+    return setup {connection}.begin()->root;
+  }
+
   DEFINE_XCB_ACCESSOR(screen, depth, allowed_depths)
 
   DEFINE_XCB_ACCESSOR(depth, visualtype, visuals)
+
+  auto root_visualtype(const connection& connection)
+  {
+    for (const auto& each_screen : setup {connection})
+    {
+      for (const auto& each_depth : screen {&each_screen})
+      {
+        for (const auto& each_visualtype : depth {&each_depth})
+        {
+          if (each_screen.root_visual == visualtype.visual_id)
+          {
+            return &each_visualtype;
+          }
+        }
+      }
+    }
+
+    throw std::runtime_error {"ROOT_VISUALTYPE NOT FOUND"};
+  }
 } // namespace meevax::xcb
 
 #endif // INCLUDED_MEEVAX_XCB_ACCESSOR_HPP
