@@ -1,12 +1,12 @@
-#ifndef INCLUDED_MEEVAX_XCB_CONNECTION_HPP
-#define INCLUDED_MEEVAX_XCB_CONNECTION_HPP
+#ifndef INCLUDED_MEEVAX_PROTOCOL_CONNECTION_HPP
+#define INCLUDED_MEEVAX_PROTOCOL_CONNECTION_HPP
 
 #include <memory>
 #include <stdexcept>
 
 #include <xcb/xcb.h>
 
-namespace meevax::xcb
+namespace meevax::protocol
 {
   struct connection
     : public std::shared_ptr<xcb_connection_t>
@@ -44,7 +44,7 @@ namespace meevax::xcb
       return get();
     }
   };
-} // namespace meevax::xcb
+} // namespace meevax::protocol
 
-#endif // INCLUDED_MEEVAX_XCB_CONNECTION_HPP
+#endif // INCLUDED_MEEVAX_PROTOCOL_CONNECTION_HPP
 

@@ -9,9 +9,9 @@
 #include <meevax/system/environment.hpp>
 #include <meevax/utility/demangle.hpp>
 
-#include <meevax/xcb/connection.hpp>
-#include <meevax/cairo/context.hpp>
-#include <meevax/cairo/surface.hpp>
+#include <meevax/protocol/connection.hpp>
+#include <meevax/visual/context.hpp>
+#include <meevax/visual/surface.hpp>
 
 int main() try
 {
@@ -41,9 +41,9 @@ int main() try
   //   // return boost::exit_exception_failure;
   // }
 
-  const meevax::xcb::connection connection {};
+  const meevax::protocol::connection connection {};
 
-  meevax::cairo::surface surface {connection};
+  meevax::visual::surface surface {connection};
   {
     surface.map();
 
@@ -78,6 +78,19 @@ int main() try
       // | XCB_EVENT_MASK_COLOR_MAP_CHANGE
       // | XCB_EVENT_MASK_OWNER_GRAB_BUTTON
     );
+
+    const std::string title {"Meevax Lisp System 0"};
+
+    xcb_change_property(
+      connection,
+      XCB_PROP_MODE_REPLACE,
+      surface.identity,
+      XCB_ATOM_WM_NAME,
+      XCB_ATOM_STRING,
+      8,
+      title.size(),
+      title.c_str()
+    );
   }
   xcb_flush(connection);
 
@@ -106,9 +119,9 @@ int main() try
     case XCB_EXPOSE:                                                       // 12
       std::cerr << "expose" << std::endl;
       {
-        meevax::cairo::context context {surface};
+        meevax::visual::context context {surface};
         {
-          context.set_source_rgb(1.0, 1.0, 1.0);
+          context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
           context.paint();
         }
       }

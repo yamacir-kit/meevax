@@ -1,25 +1,25 @@
-#ifndef INCLUDED_MEEVAX_XCB_WINDOW_HPP
-#define INCLUDED_MEEVAX_XCB_WINDOW_HPP
+#ifndef INCLUDED_MEEVAX_PROTOCOL_WINDOW_HPP
+#define INCLUDED_MEEVAX_PROTOCOL_WINDOW_HPP
 
 #include <cstdint>
 #include <vector>
 
 #include <xcb/xcb.h>
 
-#include <meevax/xcb/connection.hpp>
+#include <meevax/protocol/connection.hpp>
 
 // REFERENCES
 // http://manpages.ubuntu.com/manpages/bionic/man3/xcb_create_window.3.html
 
-namespace meevax::xcb
+namespace meevax::protocol
 {
   struct window
   {
-    const xcb::connection connection;
+    const protocol::connection connection;
 
     const xcb_window_t identity;
 
-    explicit window(const xcb::connection& connection, xcb_window_t parent_identity)
+    explicit window(const protocol::connection& connection, xcb_window_t parent_identity)
       : connection {connection}
       , identity {xcb_generate_id(connection)}
     {
@@ -68,7 +68,7 @@ namespace meevax::xcb
       return xcb_change_window_attributes(connection, identity, mask, values.data());
     }
   };
-} // namespace meevax::xcb
+} // namespace meevax::protocol
 
-#endif // INCLUDED_MEEVAX_XCB_WINDOW_HPP
+#endif // INCLUDED_MEEVAX_PROTOCOL_WINDOW_HPP
 

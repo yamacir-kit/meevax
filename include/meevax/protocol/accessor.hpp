@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_XCB_ACCESSOR_HPP
-#define INCLUDED_MEEVAX_XCB_ACCESSOR_HPP
+#ifndef INCLUDED_MEEVAX_PROTOCOL_ACCESSOR_HPP
+#define INCLUDED_MEEVAX_PROTOCOL_ACCESSOR_HPP
 
 #include <iterator>
 #include <memory>
@@ -10,11 +10,11 @@
 #include <xcb/xcb.h>
 
 #include <meevax/concepts/requires.hpp>
-#include <meevax/xcb/connection.hpp>
+#include <meevax/protocol/connection.hpp>
 
-namespace meevax::xcb
+namespace meevax::protocol
 {
-  #define DEFINE_XCB_ITERATOR(NAME)                                            \
+  #define DEFINE_PROTOCOL_ITERATOR(NAME)                                       \
   class iterator                                                               \
     : public boost::iterator_facade<iterator, xcb_##NAME##_t, boost::forward_traversal_tag> \
     , public xcb_##NAME##_iterator_t                                           \
@@ -47,10 +47,10 @@ namespace meevax::xcb
     {}                                                                         \
   };
 
-  #define DEFINE_XCB_ACCESSOR(NAME, ITERATOR, SUFFIX, ...)                     \
+  #define DEFINE_PROTOCOL_ACCESSOR(NAME, ITERATOR, SUFFIX, ...)                \
   struct NAME                                                                  \
   {                                                                            \
-    DEFINE_XCB_ITERATOR(ITERATOR)                                              \
+    DEFINE_PROTOCOL_ITERATOR(ITERATOR)                                         \
                                                                                \
     using const_iterator = const iterator;                                     \
                                                                                \
@@ -100,7 +100,7 @@ namespace meevax::xcb
     __VA_ARGS__                                                                \
   };
 
-  DEFINE_XCB_ACCESSOR(setup, screen, roots,
+  DEFINE_PROTOCOL_ACCESSOR(setup, screen, roots,
     explicit setup(const connection& connection)
       : data {xcb_get_setup(connection)}
     {}
@@ -111,9 +111,9 @@ namespace meevax::xcb
     return setup {connection}.begin()->root;
   }
 
-  DEFINE_XCB_ACCESSOR(screen, depth, allowed_depths, )
+  DEFINE_PROTOCOL_ACCESSOR(screen, depth, allowed_depths, )
 
-  DEFINE_XCB_ACCESSOR(depth, visualtype, visuals, )
+  DEFINE_PROTOCOL_ACCESSOR(depth, visualtype, visuals, )
 
   auto root_visualtype(const connection& connection)
   {
@@ -133,7 +133,7 @@ namespace meevax::xcb
 
     throw std::runtime_error {"ROOT_VISUALTYPE NOT FOUND"};
   }
-} // namespace meevax::xcb
+} // namespace meevax::protocol
 
-#endif // INCLUDED_MEEVAX_XCB_ACCESSOR_HPP
+#endif // INCLUDED_MEEVAX_PROTOCOL_ACCESSOR_HPP
 
