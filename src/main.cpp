@@ -10,7 +10,7 @@
 #include <meevax/utility/demangle.hpp>
 
 #include <meevax/protocol/connection.hpp>
-#include <meevax/protocol/event.hpp>
+#include <meevax/protocol/machine.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/surface.hpp>
 
@@ -79,23 +79,11 @@ int main() try
       // | XCB_EVENT_MASK_COLOR_MAP_CHANGE
       // | XCB_EVENT_MASK_OWNER_GRAB_BUTTON
     );
-
-    const std::string title {"Meevax Lisp System 0"};
-
-    xcb_change_property(
-      connection,
-      XCB_PROP_MODE_REPLACE,
-      surface.identity,
-      XCB_ATOM_WM_NAME,
-      XCB_ATOM_STRING,
-      8,
-      title.size(),
-      title.c_str()
-    );
   }
-  xcb_flush(connection);
 
-  for (meevax::protocol::event event {nullptr}; event.reset(xcb_wait_for_event(connection)), event; xcb_flush(connection))
+  connection.flush();
+
+  for (meevax::protocol::event event {nullptr}; event.wait(connection), event; xcb_flush(connection))
   {
     std::cerr << "; event " << event.type() << "\t; " << event->sequence << " ; ";
 

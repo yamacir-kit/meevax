@@ -43,6 +43,11 @@ namespace meevax::protocol
     {
       return get();
     }
+
+    decltype(auto) flush() const noexcept
+    {
+      return xcb_flush(*this);
+    }
   };
 } // namespace meevax::protocol
 

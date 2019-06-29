@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <memory>
 
-#include <Eigen/Core>
-
 #include <cairo/cairo-xcb.h>
 
 #include <meevax/protocol/accessor.hpp>
@@ -47,11 +45,6 @@ namespace meevax::visual
       height = height;
       cairo_xcb_surface_set_size(*this, width, height);
       cairo_surface_flush(*this);
-    }
-
-    Eigen::Vector2d center() const
-    {
-      return {width, height};
     }
   };
 } // namespace meevax::visual

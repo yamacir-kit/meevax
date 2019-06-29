@@ -21,6 +21,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mtune=native -march=native -g -DNDEBUG")
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Boost REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 set(${PROJECT_NAME}_CONFIGURE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/configure)
 if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/README.md.cmake)
@@ -31,6 +32,7 @@ set(${PROJECT_NAME}_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(
   ${${PROJECT_NAME}_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS}
+  ${Eigen3_INCLUDE_DIRS}
 )
 
 link_directories(

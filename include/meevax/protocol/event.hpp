@@ -20,6 +20,12 @@ namespace meevax::protocol
     {
       return get()->response_type & ~0x80;
     }
+
+    decltype(auto) wait(const connection& connection)
+    {
+      reset(xcb_wait_for_event(connection));
+      return *this;
+    }
   };
 } // namespace meevax::protocol
 
