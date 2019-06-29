@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <memory>
 
+#include <Eigen/Core>
+
 #include <cairo/cairo-xcb.h>
 
 #include <meevax/protocol/accessor.hpp>
@@ -11,10 +13,13 @@
 
 namespace meevax::visual
 {
-  struct surface
+  class surface
     : public protocol::window
     , public std::shared_ptr<cairo_surface_t>
   {
+    std::uint32_t width, height;
+
+  public:
     explicit surface(const protocol::connection& connection)
       : protocol::window {connection, protocol::root_screen(connection)}
       , std::shared_ptr<cairo_surface_t> {
@@ -38,8 +43,15 @@ namespace meevax::visual
 
     void size(std::uint32_t width, std::uint32_t height) noexcept
     {
+      width = width;
+      height = height;
       cairo_xcb_surface_set_size(*this, width, height);
       cairo_surface_flush(*this);
+    }
+
+    Eigen::Vector2d center() const
+    {
+      return {width, height};
     }
   };
 } // namespace meevax::visual

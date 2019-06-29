@@ -10,6 +10,7 @@
 #include <meevax/utility/demangle.hpp>
 
 #include <meevax/protocol/connection.hpp>
+#include <meevax/protocol/event.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/surface.hpp>
 
@@ -94,11 +95,11 @@ int main() try
   }
   xcb_flush(connection);
 
-  for (std::unique_ptr<xcb_generic_event_t> event {nullptr}; event.reset(xcb_wait_for_event(connection)), event; xcb_flush(connection))
+  for (meevax::protocol::event event {nullptr}; event.reset(xcb_wait_for_event(connection)), event; xcb_flush(connection))
   {
-    std::cerr << "; event " << (event->response_type & ~0x80) << "\t; " << event->sequence << " ; ";
+    std::cerr << "; event " << event.type() << "\t; " << event->sequence << " ; ";
 
-    switch (event->response_type & ~0x80)
+    switch (event.type())
     {
     case XCB_KEY_PRESS:                                                    //  2
       std::cerr << "key-press" << std::endl;
