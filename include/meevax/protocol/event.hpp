@@ -26,6 +26,12 @@ namespace meevax::protocol
       reset(xcb_wait_for_event(connection));
       return *this;
     }
+
+    template <typename T>
+    auto release_as()
+    {
+      return std::unique_ptr<T> {reinterpret_cast<T*>((*this).release())};
+    }
   };
 } // namespace meevax::protocol
 
