@@ -29,8 +29,12 @@ namespace meevax::visual
       return cairo_##NAME(*this, std::forward<Ts>(xs)...);                     \
     }
 
-    VISUAL_CONTEXT_OPERATOR(set_source_rgb)
+    VISUAL_CONTEXT_OPERATOR(move_to)
     VISUAL_CONTEXT_OPERATOR(paint)
+    VISUAL_CONTEXT_OPERATOR(select_font_face)
+    VISUAL_CONTEXT_OPERATOR(set_font_size)
+    VISUAL_CONTEXT_OPERATOR(set_source_rgb)
+    VISUAL_CONTEXT_OPERATOR(show_text)
 
     #undef VISUAL_CONTEXT_OPERATOR
   };

@@ -83,7 +83,7 @@ int main() try
 
   connection.flush();
 
-  for (meevax::protocol::event event {nullptr}; event.wait(connection), event; xcb_flush(connection))
+  for (meevax::protocol::event event {nullptr}; event.wait(connection); connection.flush())
   {
     std::cerr << "; event " << event.type() << "\t; " << event->sequence << " ; ";
 
