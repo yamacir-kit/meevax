@@ -4,6 +4,8 @@
 #include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
 
+#include <meevax/visual/surface.hpp>
+
 namespace meevax::system
 {
   struct pair;
@@ -87,6 +89,12 @@ namespace meevax::system
     }
 
     return os << "\x1b[35m)\x1b[0m";
+  }
+
+  auto visualize(visual::surface& surface, const pair& p)
+    -> decltype(surface)
+  {
+    return surface;
   }
 } // namespace meevax::system
 

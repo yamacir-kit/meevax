@@ -13,6 +13,9 @@
 #include <meevax/system/exception.hpp>
 #include <meevax/utility/demangle.hpp>
 
+#include <meevax/concepts/is_visualizable.hpp>
+#include <meevax/visual/surface.hpp>
+
 namespace meevax::system
 {
   template <typename T>
@@ -56,6 +59,12 @@ namespace meevax::system
     {
       return os << static_cast<const T&>(*this);
     };
+
+    virtual auto dispatch(visual::surface& surface)
+      -> decltype(surface) const
+    {
+      return visualize(surface, static_cast<const T&>(*this));
+    }
   };
 
   /**
@@ -124,6 +133,20 @@ namespace meevax::system
           return os << "\x1b[36m#<" << utility::demangle(typeid(Bound)) << " " << static_cast<const Bound*>(this) << ">\x1b[0m";
         }
       }
+
+      auto dispatch(visual::surface& surface)
+        -> decltype(surface) const override
+      {
+        if constexpr (concepts::is_visualizable<Bound>::value)
+        {
+          return visualize(surface, static_cast<const Bound&>(*this));
+        }
+        else
+        {
+          std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(Bound)) << " ignored" << std::endl;
+          return surface;
+        }
+      }
     };
 
   public:
@@ -176,10 +199,6 @@ namespace meevax::system
       return type() == typeid(U);
     }
 
-    // TODO
-    // ポインタを返すキャストインタフェースを用意して、
-    // ダイナミックキャスト後のポインタの無効値部分に型情報を埋め込む事で、
-    // 将来的なコンパイラ最適化に使えるかも
     template <typename U>
     U& as() const
     {
@@ -209,6 +228,20 @@ namespace meevax::system
   {
     // write(os) will be dispatched to each type's stream output operator.
     return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().write(os);
+  }
+
+  template <typename T>
+  auto visualize(visual::surface& surface, const pointer<T>& object)
+    -> decltype(surface)
+  {
+    if (object)
+    {
+      return object.dereference().dispatch(surface);
+    }
+    else
+    {
+      return surface;
+    }
   }
 } // namespace meevax::system
 
