@@ -87,6 +87,7 @@ target_link_libraries(${PROJECT_NAME}
   dl
   gmp
   mpfr
+  pthread
   xcb
 )
 

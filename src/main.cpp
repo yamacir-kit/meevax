@@ -1,4 +1,5 @@
 #include <limits>
+#include <thread>
 
 #include <boost/cstdlib.hpp>
 
@@ -47,14 +48,13 @@ int main() try
   meevax::visual::surface surface {connection};
   {
     surface.map();
-
     surface.configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
     surface.size(1280, 720);
   }
 
   connection.flush();
 
-  surface.visualize();
+  std::thread([&]() { surface.visualize(); }).join();
 
   return boost::exit_success;
 }

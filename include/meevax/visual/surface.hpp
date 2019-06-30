@@ -45,8 +45,6 @@ namespace meevax::visual
     : public protocol::machine<surface, events>
     , public std::shared_ptr<cairo_surface_t>
   {
-    // std::uint32_t width, height;
-
     using machine = protocol::machine<surface, events>;
 
   public:
@@ -58,13 +56,13 @@ namespace meevax::visual
         }
     {}
 
-    // explicit surface(const surface& surface)
-    //   : machine {surface.connection, surface.identity}
-    //   , std::shared_ptr<cairo_surface_t> {
-    //       cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 0, 0),
-    //       cairo_surface_destroy
-    //     }
-    // {}
+    explicit surface(const surface& surface)
+      : machine {surface.connection, surface.identity}
+      , std::shared_ptr<cairo_surface_t> {
+          cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 1, 1),
+          cairo_surface_destroy
+        }
+    {}
 
     operator element_type*() const noexcept
     {
@@ -90,7 +88,7 @@ namespace meevax::visual
       context.paint();
     }
 
-    void operator()(const std::unique_ptr<xcb_configure_notify_event_t>& event)
+    void operator()(const std::unique_ptr<xcb_configure_notify_event_t> event)
     {
       size(event->width, event->height);
     }
