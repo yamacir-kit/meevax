@@ -6,6 +6,7 @@
 #include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
 
+#include <meevax/behavior/steering.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/surface.hpp>
 
@@ -95,10 +96,12 @@ namespace meevax::system
     return os << "\x1b[35m)\x1b[0m";
   }
 
-  auto visualize(visual::surface& surface, const pair& pair)
+  auto visualize(visual::surface& surface, pair& pair)
     -> decltype(surface)
   {
     visual::context context {surface};
+
+    pair.position += behavior::seek(surface.center);
 
     context.set_source_rgb(0xe5 / 256.0, 0x50 / 256.0, 0x39 / 256.0);
     context.arc(pair.position[0], pair.position[1], 10, 0, boost::math::constants::two_pi<double>());

@@ -69,11 +69,11 @@ namespace meevax::system
     };
 
     virtual auto dispatch(visual::surface& surface)
-      -> decltype(surface) const
+      -> decltype(surface)
     {
       if constexpr (concepts::is_visualizable<T>::value)
       {
-        return visualize(surface, static_cast<const T&>(*this));
+        return visualize(surface, static_cast<T&>(*this));
       }
       else
       {
@@ -151,11 +151,11 @@ namespace meevax::system
       }
 
       auto dispatch(visual::surface& surface)
-        -> decltype(surface) const override
+        -> decltype(surface) override
       {
         if constexpr (concepts::is_visualizable<Bound>::value)
         {
-          return visualize(surface, static_cast<const Bound&>(*this));
+          return visualize(surface, static_cast<Bound&>(*this));
         }
         else
         {
