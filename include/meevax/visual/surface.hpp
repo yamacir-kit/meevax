@@ -16,7 +16,7 @@ namespace meevax::visual
     : public protocol::machine<surface>
     , public std::shared_ptr<cairo_surface_t>
   {
-    std::uint32_t width, height;
+    // std::uint32_t width, height;
 
     using machine = protocol::machine<surface>;
 
@@ -42,12 +42,15 @@ namespace meevax::visual
       return get();
     }
 
+    decltype(auto) flush()
+    {
+      return cairo_surface_flush(*this);
+    }
+
     void size(std::uint32_t width, std::uint32_t height) noexcept
     {
-      width = width;
-      height = height;
       cairo_xcb_surface_set_size(*this, width, height);
-      cairo_surface_flush(*this);
+      flush();
     }
 
   public:
@@ -56,6 +59,11 @@ namespace meevax::visual
       context context {*this};
       context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
       context.paint();
+    }
+
+    void operator()(const std::unique_ptr<xcb_configure_notify_event_t>& event)
+    {
+      size(event->width, event->height);
     }
   };
 } // namespace meevax::visual

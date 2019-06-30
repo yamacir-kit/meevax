@@ -91,10 +91,7 @@ namespace meevax::protocol
 
         case XCB_CONFIGURE_NOTIFY:                                         // 22
           std::cerr << "configure-notify" << std::endl;
-          // {
-          //   const auto notify {reinterpret_cast<xcb_configure_notify_event_t*>(event.get())};
-          //   surface.size(notify->width, notify->height);
-          // }
+          static_cast<Visual&>(*this)(event.release_as<xcb_configure_notify_event_t>());
           break;
 
         case XCB_CONFIGURE_REQUEST:                                        // 23
