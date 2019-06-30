@@ -6,15 +6,14 @@
 
 #include <cairo/cairo.h>
 
-#include <meevax/visual/surface.hpp>
-
 namespace meevax::visual
 {
   struct context
     : public std::shared_ptr<cairo_t>
   {
-    explicit context(const surface& surface)
-      : std::shared_ptr<cairo_t> {cairo_create(surface), cairo_destroy}
+    template <typename... Ts>
+    explicit context(Ts&&... xs)
+      : std::shared_ptr<cairo_t> {cairo_create(std::forward<Ts>(xs)...), cairo_destroy}
     {}
 
     operator element_type*() const noexcept
