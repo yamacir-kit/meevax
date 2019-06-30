@@ -9,7 +9,7 @@
 namespace meevax::visual
 {
   struct context
-    : public std::shared_ptr<cairo_t>
+    : public std::shared_ptr<cairo_t> // TODO UNIQUE_PTR
   {
     template <typename... Ts>
     explicit context(Ts&&... xs)
@@ -28,6 +28,8 @@ namespace meevax::visual
       return cairo_##NAME(*this, std::forward<Ts>(xs)...);                     \
     }
 
+    VISUAL_CONTEXT_OPERATOR(arc)
+    VISUAL_CONTEXT_OPERATOR(fill)
     VISUAL_CONTEXT_OPERATOR(move_to)
     VISUAL_CONTEXT_OPERATOR(paint)
     VISUAL_CONTEXT_OPERATOR(select_font_face)

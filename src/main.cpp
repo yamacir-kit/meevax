@@ -36,6 +36,9 @@ int main() try
     const auto expression {program.read()};
     std::cerr << "\n; read    \t; " << expression << std::endl;
 
+    visualize(program.surface, expression);
+    program.surface.flush();
+
     const auto executable {program.compile(expression)};
 
     const auto evaluation {program.execute(executable)};

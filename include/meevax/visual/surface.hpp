@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <memory>
 
+#include <Eigen/Core>
+
 #include <cairo/cairo-xcb.h>
 
 #include <meevax/protocol/accessor.hpp>
@@ -41,13 +43,14 @@ namespace meevax::visual
     // | XCB_EVENT_MASK_OWNER_GRAB_BUTTON
   };
 
-  class surface
+  struct surface
     : public protocol::machine<surface, events>
     , public std::shared_ptr<cairo_surface_t>
   {
     using machine = protocol::machine<surface, events>;
 
-  public:
+    Eigen::Vector2d center;
+
     explicit surface(const protocol::connection& connection)
       : machine {connection, protocol::root_screen(connection)}
       , std::shared_ptr<cairo_surface_t> {
@@ -80,7 +83,6 @@ namespace meevax::visual
       flush();
     }
 
-  public:
     void operator()(const std::unique_ptr<xcb_expose_event_t>)
     {
       context context {*this};
@@ -90,6 +92,8 @@ namespace meevax::visual
 
     void operator()(const std::unique_ptr<xcb_configure_notify_event_t> event)
     {
+      center[0] = event->width / 2;
+      center[1] = event->height / 2;
       size(event->width, event->height);
     }
   };
