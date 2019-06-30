@@ -34,7 +34,7 @@ namespace meevax::system
     , public facade<pair>
   {
     template <typename... Ts>
-    constexpr pair(Ts&&... args)
+    explicit constexpr pair(Ts&&... args)
       : std::pair<object, object> {std::forward<Ts>(args)...}
     {}
 
@@ -75,7 +75,8 @@ namespace meevax::system
   SELECTOR(car, 0)
   SELECTOR(cdr, 1)
 
-  std::ostream& operator<<(std::ostream& os, const pair& p)
+  auto operator<<(std::ostream& os, const pair& p)
+    -> decltype(os)
   {
     os << "\x1b[35m(\x1b[0m" << std::get<0>(p);
 

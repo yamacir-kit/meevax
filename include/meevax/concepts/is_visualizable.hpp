@@ -16,7 +16,7 @@ namespace meevax::concepts
   struct is_visualizable<
            T,
            std::void_t<decltype(
-             std::declval<visual::surface&>().visualize(std::declval<const T&>())
+             visualize(std::declval<visual::surface&>(), std::declval<const T&>())
            )>
          >
     : public std::true_type

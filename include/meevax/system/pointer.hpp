@@ -71,7 +71,15 @@ namespace meevax::system
     virtual auto dispatch(visual::surface& surface)
       -> decltype(surface) const
     {
-      return visualize(surface, static_cast<const T&>(*this));
+      if constexpr (concepts::is_visualizable<T>::value)
+      {
+        return visualize(surface, static_cast<const T&>(*this));
+      }
+      else
+      {
+        std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
+        return surface;
+      }
     }
   };
 
