@@ -6,6 +6,7 @@
 
 #include <Eigen/Core>
 
+#include <meevax/behavior/steering.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/surface.hpp>
 
@@ -35,10 +36,12 @@ namespace meevax::system
     }
   }
 
-  auto visualize(visual::surface& surface, const symbol& symbol)
+  auto visualize(visual::surface& surface, symbol& symbol)
     -> decltype(surface)
   {
     visual::context context {surface};
+
+    symbol.position += behavior::seek(surface.center - symbol.position);
 
     context.set_source_rgb(0xC0 / 256.0, 0xC0 / 256.0, 0xC0 / 256.0);
     context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);

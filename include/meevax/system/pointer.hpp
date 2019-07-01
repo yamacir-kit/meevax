@@ -8,8 +8,6 @@
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
-#include <Eigen/Core>
-
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/system/exception.hpp>
@@ -23,12 +21,6 @@ namespace meevax::system
   template <typename T>
   struct facade
   {
-    Eigen::Vector2d position;
-
-    facade()
-      : position {1, 1}
-    {}
-
     virtual auto type() const noexcept
       -> const std::type_info&
     {

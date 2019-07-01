@@ -30,6 +30,7 @@ namespace meevax::visual
 
     VISUAL_CONTEXT_OPERATOR(arc)
     VISUAL_CONTEXT_OPERATOR(fill)
+    VISUAL_CONTEXT_OPERATOR(line_to)
     VISUAL_CONTEXT_OPERATOR(move_to)
     VISUAL_CONTEXT_OPERATOR(paint)
     VISUAL_CONTEXT_OPERATOR(select_font_face)

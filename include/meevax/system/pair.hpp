@@ -1,7 +1,12 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
+#include <iostream>
+#include <utility>
+
 #include <boost/math/constants/constants.hpp>
+
+#include <Eigen/Core>
 
 #include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
@@ -42,6 +47,8 @@ namespace meevax::system
     pair()
       : std::pair<object, object> {unit, unit}
     {}
+
+    Eigen::Vector2d position;
   };
 
   template <typename T, typename... Ts>
@@ -108,6 +115,9 @@ namespace meevax::system
     context.fill();
 
     visualize(surface, std::get<0>(pair));
+    // context.move_to(pair.position[0], pair.position[1]);
+    // context.line_to();
+
     visualize(surface, std::get<1>(pair));
 
     return surface;

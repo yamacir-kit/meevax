@@ -89,12 +89,13 @@ namespace meevax::visual
       flush();
     }
 
+    // XXX ここに描画を担当させるとちらつく
     void operator()(const std::unique_ptr<xcb_expose_event_t>)
     {
       // context context {*this};
       // context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
       // context.paint();
-      std::invoke(update, *this);
+      // std::invoke(update, *this);
     }
 
     void operator()(const std::unique_ptr<xcb_configure_notify_event_t> event)

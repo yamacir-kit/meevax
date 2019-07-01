@@ -56,8 +56,6 @@ int main() try
     std::cerr << "\n; read    \t; " << expression << std::endl;
 
     program.cursor = expression;
-    // visualize(program.surface, expression);
-    // program.surface.flush();
 
     const auto executable {program.compile(expression)};
 
