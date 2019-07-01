@@ -30,14 +30,20 @@ int main() try
     program.surface.visualize();
   }).detach();
 
+  program.surface.update = [&](auto&& surface)
+  {
+    visualize(surface, program.cursor);
+  };
+
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
     std::cout << "\n> " << std::flush;
     const auto expression {program.read()};
     std::cerr << "\n; read    \t; " << expression << std::endl;
 
-    visualize(program.surface, expression);
-    program.surface.flush();
+    program.cursor = expression;
+    // visualize(program.surface, expression);
+    // program.surface.flush();
 
     const auto executable {program.compile(expression)};
 

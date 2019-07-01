@@ -32,6 +32,8 @@ namespace meevax::system
 
     visual::surface surface;
 
+    object cursor;
+
   public: // Constructors
     // for macro
     environment()

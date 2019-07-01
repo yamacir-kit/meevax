@@ -101,7 +101,7 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    pair.position += behavior::seek(surface.center);
+    pair.position += behavior::seek(surface.center - pair.position);
 
     context.set_source_rgb(0xe5 / 256.0, 0x50 / 256.0, 0x39 / 256.0);
     context.arc(pair.position[0], pair.position[1], 10, 0, boost::math::constants::two_pi<double>());

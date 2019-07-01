@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_VISUAL_SURFACE_HPP
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 
 #include <Eigen/Core>
@@ -51,12 +52,15 @@ namespace meevax::visual
 
     Eigen::Vector2d center;
 
+    std::function<void (surface&)> update;
+
     explicit surface(const protocol::connection& connection)
       : machine {connection, protocol::root_screen(connection)}
       , std::shared_ptr<cairo_surface_t> {
           cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 1, 1),
           cairo_surface_destroy
         }
+      , update {[](auto&&) {}}
     {}
 
     explicit surface(const surface& surface)
@@ -65,6 +69,7 @@ namespace meevax::visual
           cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 1, 1),
           cairo_surface_destroy
         }
+      , update {surface.update}
     {}
 
     operator element_type*() const noexcept
@@ -88,6 +93,7 @@ namespace meevax::visual
       context context {*this};
       context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
       context.paint();
+      std::invoke(update, *this);
     }
 
     void operator()(const std::unique_ptr<xcb_configure_notify_event_t> event)
