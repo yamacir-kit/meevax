@@ -10,6 +10,7 @@
 
 #include <meevax/system/pair.hpp>
 
+#include <meevax/behavior/steering.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/surface.hpp>
 
@@ -53,18 +54,29 @@ namespace meevax::system
     return os << "\x1B[36m" << real.str() << "\x1B[0m";
   }
 
-  auto visualize(visual::surface& surface, const real& real)
-    -> decltype(surface)
+  auto visualize(visual::surface& surface, real& real)
+    -> Eigen::Matrix2d
   {
     visual::context context {surface};
 
-    context.set_source_rgb(0xC0 / 256.0, 0xC0 / 256.0, 0xC0 / 256.0);
+    real.position += behavior::seek(surface.center - real.position);
+
+    context.set_source_rgb(0x4a / 256.0, 0x69 / 256.0, 0xbd / 256.0);
     context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     context.set_font_size(32);
+
     context.move_to(real.position[0], real.position[1]);
     context.show_text(real.str().c_str());
 
-    return surface;
+    cairo_text_extents_t extents {};
+    context.text_extents(real.str().c_str(), &extents);
+
+    Eigen::Matrix2d matrix {};
+
+    matrix << extents.x_bearing, extents.y_bearing,
+              extents.x_advance, extents.y_advance;
+
+    return matrix;
   }
 
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \

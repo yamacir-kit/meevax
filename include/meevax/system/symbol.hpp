@@ -37,7 +37,7 @@ namespace meevax::system
   }
 
   auto visualize(visual::surface& surface, symbol& symbol)
-    -> decltype(surface)
+    -> Eigen::Matrix2d
   {
     visual::context context {surface};
 
@@ -46,10 +46,19 @@ namespace meevax::system
     context.set_source_rgb(0xC0 / 256.0, 0xC0 / 256.0, 0xC0 / 256.0);
     context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     context.set_font_size(32);
+
     context.move_to(symbol.position[0], symbol.position[1]);
     context.show_text(symbol.c_str());
 
-    return surface;
+    cairo_text_extents_t extents {};
+    context.text_extents(symbol.c_str(), &extents);
+
+    Eigen::Matrix2d matrix {};
+
+    matrix << extents.x_bearing, extents.y_bearing,
+              extents.x_advance, extents.y_advance;
+
+    return matrix;
   }
 } // namespace meevax::system
 

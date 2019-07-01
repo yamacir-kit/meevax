@@ -104,7 +104,7 @@ namespace meevax::system
   }
 
   auto visualize(visual::surface& surface, pair& pair)
-    -> decltype(surface)
+    -> Eigen::Matrix2d
   {
     visual::context context {surface};
 
@@ -114,13 +114,13 @@ namespace meevax::system
     context.arc(pair.position[0], pair.position[1], 10, 0, boost::math::constants::two_pi<double>());
     context.fill();
 
-    visualize(surface, std::get<0>(pair));
+    const auto head {visualize(surface, std::get<0>(pair))};
     // context.move_to(pair.position[0], pair.position[1]);
     // context.line_to();
 
-    visualize(surface, std::get<1>(pair));
+    const auto tail {visualize(surface, std::get<1>(pair))};
 
-    return surface;
+    return {};
   }
 } // namespace meevax::system
 

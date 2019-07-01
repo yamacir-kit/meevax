@@ -8,6 +8,8 @@
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
+#include <Eigen/Core>
+
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/system/exception.hpp>
@@ -61,7 +63,7 @@ namespace meevax::system
     };
 
     virtual auto dispatch(visual::surface& surface)
-      -> decltype(surface)
+      -> Eigen::Matrix2d
     {
       if constexpr (concepts::is_visualizable<T>::value)
       {
@@ -70,7 +72,7 @@ namespace meevax::system
       else
       {
         std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
-        return surface;
+        return {};
       }
     }
   };
@@ -143,7 +145,7 @@ namespace meevax::system
       }
 
       auto dispatch(visual::surface& surface)
-        -> decltype(surface) override
+        -> Eigen::Matrix2d override
       {
         if constexpr (concepts::is_visualizable<Bound>::value)
         {
@@ -152,7 +154,7 @@ namespace meevax::system
         else
         {
           std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(Bound)) << " ignored" << std::endl;
-          return surface;
+          return {};
         }
       }
     };
@@ -240,7 +242,7 @@ namespace meevax::system
 
   template <typename T>
   auto visualize(visual::surface& surface, const pointer<T>& object)
-    -> decltype(surface)
+    -> Eigen::Matrix2d
   {
     if (object)
     {
@@ -248,7 +250,7 @@ namespace meevax::system
     }
     else
     {
-      return surface;
+      return {};
     }
   }
 } // namespace meevax::system
