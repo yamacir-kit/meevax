@@ -5,7 +5,7 @@
 
 namespace meevax::behavior
 {
-  auto seek(const Eigen::Vector2d& target, double speed_max = 4)
+  auto seek(const Eigen::Vector2d& target, double speed_max = 1)
     -> Eigen::Vector2d
   {
     return target.normalized() * speed_max;

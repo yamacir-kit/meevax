@@ -1,3 +1,4 @@
+#include <chrono>
 #include <limits>
 #include <thread>
 
@@ -32,8 +33,21 @@ int main() try
 
   program.surface.update = [&](auto&& surface)
   {
+    meevax::visual::context context {surface};
+    context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
+    context.paint();
     visualize(surface, program.cursor);
   };
+
+  std::thread([&]()
+  {
+    while (true)
+    {
+      program.surface.update(program.surface);
+      program.surface.flush();
+      std::this_thread::sleep_for(std::chrono::milliseconds {5});
+    }
+  }).detach();
 
   for (program.open("/dev/stdin"); program.ready(); ) try
   {

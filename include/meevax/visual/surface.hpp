@@ -52,6 +52,7 @@ namespace meevax::visual
 
     Eigen::Vector2d center;
 
+    // XXX この引数は削除できる
     std::function<void (surface&)> update;
 
     explicit surface(const protocol::connection& connection)
@@ -90,9 +91,9 @@ namespace meevax::visual
 
     void operator()(const std::unique_ptr<xcb_expose_event_t>)
     {
-      context context {*this};
-      context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
-      context.paint();
+      // context context {*this};
+      // context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
+      // context.paint();
       std::invoke(update, *this);
     }
 
