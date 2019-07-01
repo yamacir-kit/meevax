@@ -4,10 +4,9 @@
 #include <iostream>
 #include <string>
 
-#include <Eigen/Core>
-
 #include <meevax/behavior/steering.hpp>
 #include <meevax/visual/context.hpp>
+#include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
 
 namespace meevax::system
@@ -15,7 +14,7 @@ namespace meevax::system
   struct symbol
     : public std::string
   {
-    Eigen::Vector2d position;
+    visual::point position;
 
     template <typename... Ts>
     explicit constexpr symbol(Ts&&... args)
@@ -37,7 +36,7 @@ namespace meevax::system
   }
 
   auto visualize(visual::surface& surface, symbol& symbol)
-    -> Eigen::Matrix2d
+    -> visual::geometry
   {
     visual::context context {surface};
 
@@ -50,15 +49,13 @@ namespace meevax::system
     context.move_to(symbol.position[0], symbol.position[1]);
     context.show_text(symbol.c_str());
 
-    cairo_text_extents_t extents {};
-    context.text_extents(symbol.c_str(), &extents);
+    // cairo_text_extents_t extents {};
+    // context.text_extents(symbol.c_str(), &extents);
 
-    Eigen::Matrix2d matrix {};
+    // extents.x_bearing, extents.y_bearing,
+    // extents.x_advance, extents.y_advance;
 
-    matrix << extents.x_bearing, extents.y_bearing,
-              extents.x_advance, extents.y_advance;
-
-    return matrix;
+    return {&symbol.position};
   }
 } // namespace meevax::system
 

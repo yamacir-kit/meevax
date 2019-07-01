@@ -6,13 +6,12 @@
 
 #include <boost/math/constants/constants.hpp>
 
-#include <Eigen/Core>
-
 #include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
 
 #include <meevax/behavior/steering.hpp>
 #include <meevax/visual/context.hpp>
+#include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
 
 namespace meevax::system
@@ -83,12 +82,12 @@ namespace meevax::system
   SELECTOR(car, 0)
   SELECTOR(cdr, 1)
 
-  auto operator<<(std::ostream& os, const pair& p)
+  auto operator<<(std::ostream& os, const pair& pare)
     -> decltype(os)
   {
-    os << "\x1b[35m(\x1b[0m" << std::get<0>(p);
+    os << "\x1b[35m(\x1b[0m" << std::get<0>(pare);
 
-    for (auto object {std::get<1>(p)}; object; object = cdr(object))
+    for (auto object {std::get<1>(pare)}; object; object = cdr(object))
     {
       if (object.is<pair>())
       {
@@ -104,7 +103,7 @@ namespace meevax::system
   }
 
   auto visualize(visual::surface& surface, pair& pair)
-    -> Eigen::Matrix2d
+    -> visual::geometry
   {
     visual::context context {surface};
 
@@ -120,7 +119,7 @@ namespace meevax::system
 
     const auto tail {visualize(surface, std::get<1>(pair))};
 
-    return {};
+    return {nullptr};
   }
 } // namespace meevax::system
 

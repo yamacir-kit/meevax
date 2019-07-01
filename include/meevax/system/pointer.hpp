@@ -8,14 +8,13 @@
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
-#include <Eigen/Core>
-
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/utility/demangle.hpp>
 
 #include <meevax/concepts/is_visualizable.hpp>
+#include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
 
 namespace meevax::system
@@ -63,7 +62,7 @@ namespace meevax::system
     };
 
     virtual auto dispatch(visual::surface& surface)
-      -> Eigen::Matrix2d
+      -> visual::geometry
     {
       if constexpr (concepts::is_visualizable<T>::value)
       {
@@ -72,7 +71,7 @@ namespace meevax::system
       else
       {
         std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
-        return {};
+        return {nullptr};
       }
     }
   };
@@ -145,7 +144,7 @@ namespace meevax::system
       }
 
       auto dispatch(visual::surface& surface)
-        -> Eigen::Matrix2d override
+        -> visual::geometry override
       {
         if constexpr (concepts::is_visualizable<Bound>::value)
         {
@@ -154,7 +153,7 @@ namespace meevax::system
         else
         {
           std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(Bound)) << " ignored" << std::endl;
-          return {};
+          return {nullptr};
         }
       }
     };
@@ -242,7 +241,7 @@ namespace meevax::system
 
   template <typename T>
   auto visualize(visual::surface& surface, const pointer<T>& object)
-    -> Eigen::Matrix2d
+    -> visual::geometry
   {
     if (object)
     {
@@ -250,7 +249,7 @@ namespace meevax::system
     }
     else
     {
-      return {};
+      return {nullptr};
     }
   }
 } // namespace meevax::system

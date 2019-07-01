@@ -80,13 +80,13 @@ namespace meevax::visual
 
     decltype(auto) flush()
     {
-      return cairo_surface_flush(*this);
+      cairo_surface_flush(*this);
+      connection.flush();
     }
 
     void size(std::uint32_t width, std::uint32_t height) noexcept
     {
       cairo_xcb_surface_set_size(*this, width, height);
-      flush();
     }
 
     // XXX ここに描画を担当させるとちらつく

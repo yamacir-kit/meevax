@@ -6,12 +6,11 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/multiprecision/mpfr.hpp>
 
-#include <Eigen/Core>
-
 #include <meevax/system/pair.hpp>
 
 #include <meevax/behavior/steering.hpp>
 #include <meevax/visual/context.hpp>
+#include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
 
 namespace meevax::system
@@ -36,7 +35,7 @@ namespace meevax::system
   struct real
     : public real_base
   {
-    Eigen::Vector2d position;
+    visual::point position;
 
     template <typename... Ts>
     explicit constexpr real(Ts&&... xs)
@@ -55,7 +54,7 @@ namespace meevax::system
   }
 
   auto visualize(visual::surface& surface, real& real)
-    -> Eigen::Matrix2d
+    -> visual::geometry
   {
     visual::context context {surface};
 
@@ -65,18 +64,19 @@ namespace meevax::system
     context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     context.set_font_size(32);
 
-    context.move_to(real.position[0], real.position[1]);
-    context.show_text(real.str().c_str());
-
     cairo_text_extents_t extents {};
     context.text_extents(real.str().c_str(), &extents);
 
-    Eigen::Matrix2d matrix {};
+    context.move_to(
+      real.position[0] - extents.width / 2,
+      real.position[1] + extents.height / 2
+    );
+    context.show_text(real.str().c_str());
 
-    matrix << extents.x_bearing, extents.y_bearing,
-              extents.x_advance, extents.y_advance;
+    // matrix << extents.x_bearing, extents.y_bearing,
+    //           extents.x_advance, extents.y_advance;
 
-    return matrix;
+    return {&real.position};
   }
 
   #define DEFINE_NUMERIC_BINARY_OPERATOR(OPERATOR) \

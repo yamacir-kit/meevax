@@ -45,7 +45,7 @@ int main() try
     {
       program.surface.update(program.surface);
       program.surface.flush();
-      std::this_thread::sleep_for(std::chrono::milliseconds {5});
+      std::this_thread::sleep_for(std::chrono::milliseconds {10});
     }
   }).detach();
 
