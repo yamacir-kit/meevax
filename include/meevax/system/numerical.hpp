@@ -58,7 +58,7 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    real.position += behavior::seek(surface.center - real.position);
+    behavior::seek(real.position, surface.center);
 
     context.set_source_rgb(0x4a / 256.0, 0x69 / 256.0, 0xbd / 256.0);
     context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);

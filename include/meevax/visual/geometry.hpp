@@ -17,15 +17,21 @@ namespace meevax::visual
 
   using polygon = boost::geometry::model::polygon<point>;
 
-  struct geometry
+  class geometry
   {
-    point* position;
+    point* const position_;
 
+  public:
     polygon extents;
 
     geometry(point* p)
-      : position {p}
+      : position_ {p}
     {}
+
+    auto& position()
+    {
+      return *position_;
+    }
   };
 } // namespace meevax::visual
 

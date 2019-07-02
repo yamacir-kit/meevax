@@ -107,17 +107,25 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    pair.position += behavior::seek(surface.center - pair.position);
+    behavior::seek(pair.position, surface.center, 1);
 
     context.set_source_rgb(0xe5 / 256.0, 0x50 / 256.0, 0x39 / 256.0);
     context.arc(pair.position[0], pair.position[1], 10, 0, boost::math::constants::two_pi<double>());
     context.fill();
 
-    const auto head {visualize(surface, std::get<0>(pair))};
-    // context.move_to(pair.position[0], pair.position[1]);
-    // context.line_to();
+    auto head {visualize(surface, std::get<0>(pair))};
+    auto tail {visualize(surface, std::get<1>(pair))};
 
-    const auto tail {visualize(surface, std::get<1>(pair))};
+    behavior::flee(head.position(), pair.position, 0.5);
+    behavior::flee(tail.position(), pair.position, 0.5);
+
+    context.move_to(pair.position[0], pair.position[1]);
+    context.line_to(head.position()[0], head.position()[1]);
+    context.stroke();
+
+    context.move_to(pair.position[0], pair.position[1]);
+    context.line_to(tail.position()[0], tail.position()[1]);
+    context.stroke();
 
     return {nullptr};
   }

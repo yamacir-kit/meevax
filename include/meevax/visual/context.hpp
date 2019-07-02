@@ -37,6 +37,7 @@ namespace meevax::visual
     VISUAL_CONTEXT_OPERATOR(set_font_size)
     VISUAL_CONTEXT_OPERATOR(set_source_rgb)
     VISUAL_CONTEXT_OPERATOR(show_text)
+    VISUAL_CONTEXT_OPERATOR(stroke)
     VISUAL_CONTEXT_OPERATOR(text_extents)
 
     #undef VISUAL_CONTEXT_OPERATOR
