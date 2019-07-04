@@ -8,7 +8,7 @@
 
 #include <meevax/system/pair.hpp>
 
-#include <meevax/behavior/steering.hpp>
+#include <meevax/visual/behavior.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
@@ -58,7 +58,8 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    behavior::seek(real.position, surface.center);
+    // const auto steering {visual::seek(real.position, surface.center)};
+    // real.position += steering;
 
     context.set_source_rgb(0x4a / 256.0, 0x69 / 256.0, 0xbd / 256.0);
     context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
@@ -72,9 +73,6 @@ namespace meevax::system
       real.position[1] + extents.height / 2
     );
     context.show_text(real.str().c_str());
-
-    // matrix << extents.x_bearing, extents.y_bearing,
-    //           extents.x_advance, extents.y_advance;
 
     return {&real.position};
   }

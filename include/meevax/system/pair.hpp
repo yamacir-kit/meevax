@@ -9,7 +9,7 @@
 #include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
 
-#include <meevax/behavior/steering.hpp>
+#include <meevax/visual/behavior.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
@@ -47,7 +47,7 @@ namespace meevax::system
       : std::pair<object, object> {unit, unit}
     {}
 
-    Eigen::Vector2d position;
+    visual::point position;
   };
 
   template <typename T, typename... Ts>
@@ -107,27 +107,46 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    behavior::seek(pair.position, surface.center, 1);
+    // steering of pair
+    {
+      auto steering {visual::seek(pair.position, surface.center)};
+      pair.position += steering;
+    }
 
     context.set_source_rgb(0xe5 / 256.0, 0x50 / 256.0, 0x39 / 256.0);
     context.arc(pair.position[0], pair.position[1], 10, 0, boost::math::constants::two_pi<double>());
     context.fill();
 
     auto head {visualize(surface, std::get<0>(pair))};
+    {
+      auto steering {
+          visual::seek(head.position(), surface.center)
+        + visual::flee(head.position(), pair.position)
+      };
+
+      head.position() += steering;
+    }
+
+
     auto tail {visualize(surface, std::get<1>(pair))};
+    {
+      auto steering {
+          visual::seek(tail.position(), surface.center)
+        + visual::flee(tail.position(), pair.position)
+      };
 
-    behavior::flee(head.position(), pair.position, 0.5);
-    behavior::flee(tail.position(), pair.position, 0.5);
+      tail.position() += steering;
+    }
 
-    context.move_to(pair.position[0], pair.position[1]);
-    context.line_to(head.position()[0], head.position()[1]);
-    context.stroke();
+    // context.move_to(pair.position[0], pair.position[1]);
+    // context.line_to(head.position()[0], head.position()[1]);
+    // context.stroke();
+    //
+    // context.move_to(pair.position[0], pair.position[1]);
+    // context.line_to(tail.position()[0], tail.position()[1]);
+    // context.stroke();
 
-    context.move_to(pair.position[0], pair.position[1]);
-    context.line_to(tail.position()[0], tail.position()[1]);
-    context.stroke();
-
-    return {nullptr};
+    return {&pair.position};
   }
 } // namespace meevax::system
 

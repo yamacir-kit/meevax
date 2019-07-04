@@ -220,7 +220,7 @@ namespace meevax::system
 
     bool equals(const pointer& rhs) const
     {
-      if (type() != rhs.type())
+      if (type() != rhs.type()) // TODO REMOVE IF OTHER NUMERICAL TYPE IMPLEMENTED
       {
         return false;
       }

@@ -8,6 +8,7 @@
 
 namespace meevax::behavior
 {
+  [[deprecated]]
   auto random_point(double max = 42)
     -> visual::point
   {
@@ -17,7 +18,8 @@ namespace meevax::behavior
     return {random(device), random(device)};
   }
 
-  void seek(visual::point& character, const visual::point& to, double speed_max = 1)
+  [[deprecated]]
+  void seek(visual::point& character, const visual::point& to, double speed_max = 2)
   {
     if (auto direction {(to - character).normalized()};
         direction.norm() <= std::numeric_limits<double>::epsilon())
@@ -30,7 +32,8 @@ namespace meevax::behavior
     }
   }
 
-  void flee(visual::point& character, const visual::point& from, double speed_max = 1)
+  [[deprecated]]
+  void flee(visual::point& character, const visual::point& from, double speed_max = 2)
   {
     if (auto direction {(character - from).normalized()};
         direction.norm() <= std::numeric_limits<double>::epsilon())

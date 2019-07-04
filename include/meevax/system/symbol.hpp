@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include <meevax/behavior/steering.hpp>
+#include <meevax/visual/behavior.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
@@ -40,7 +40,7 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    behavior::seek(symbol.position, surface.center);
+    const auto steering {visual::seek(symbol.position, surface.center)};
 
     context.set_source_rgb(0xC0 / 256.0, 0xC0 / 256.0, 0xC0 / 256.0);
     context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);

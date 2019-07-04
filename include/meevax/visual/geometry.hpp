@@ -19,12 +19,14 @@ namespace meevax::visual
 
   class geometry
   {
-    point* const position_;
+    using pointer = point*;
+
+    pointer const position_;
 
   public:
     polygon extents;
 
-    geometry(point* p)
+    geometry(pointer p)
       : position_ {p}
     {}
 
