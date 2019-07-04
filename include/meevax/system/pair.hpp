@@ -107,11 +107,7 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    // steering of pair
-    {
-      auto steering {visual::arrive(pair.position, surface.center, 100)};
-      pair.position += steering * 4;
-    }
+    pair.position += visual::arrive(pair.position, surface.center, 100) * 4;
 
     context.set_source_rgb(0xe5 / 256.0, 0x50 / 256.0, 0x39 / 256.0);
     context.arc(pair.position[0], pair.position[1], 10, 0, boost::math::constants::two_pi<double>());
@@ -123,48 +119,20 @@ namespace meevax::system
 
 
     auto head_a {visual::flee(head.position(), pair.position)};
-    // auto head_a_current_distance {(head.position() - pair.position).norm()};
-    // auto head_a_desired_distance {100.0}; // [px]
-    // auto head_a_force {head_a_desired_distance / head_a_current_distance};
-
     auto head_b {visual::flee(head.position(), tail.position())};
-    // auto head_b_current_distance {(head.position() - tail.position()).norm()};
-    // auto head_b_desired_distance {100.0}; // [px]
-    // auto head_b_force {head_b_desired_distance / head_b_current_distance};
-
     auto head_c {visual::arrive(head.position(), surface.center, 100)};
 
     visual::vector head_steering {
-        head_a + head_b + head_c * 4
+      head_a + head_b + head_c * 4
     };
 
-    // auto head_steering {
-    //                                                            head_a_force * head_a
-    //   + std::max<double>(1 - head_a_force,                0) * head_b_force * head_b
-    //   + std::max<double>(1 - head_a_force - head_b_force, 0)                * head_c
-    // };
-
-
     auto tail_a {visual::flee(tail.position(), pair.position)};
-    // auto tail_a_current_distance {(tail.position() - pair.position).norm()};
-    // auto tail_a_desired_distance {100.0}; // [px]
-    // auto tail_a_force {tail_a_desired_distance / tail_a_current_distance};
-
     auto tail_b {visual::flee(tail.position(), head.position())};
-    // auto tail_b_current_distance {(tail.position() - head.position()).norm()};
-    // auto tail_b_desired_distance {100.0}; // [px]
-    // auto tail_b_force {tail_b_desired_distance / tail_b_current_distance};
-
     auto tail_c {visual::arrive(tail.position(), surface.center, 100)};
 
     visual::vector tail_steering {
-        tail_a + tail_b + tail_c * 4
+      tail_a + tail_b + tail_c * 4
     };
-    // auto tail_steering {
-    //                                                            tail_a_force * tail_a
-    //   + std::max<double>(1 - tail_a_force,                0) * tail_b_force * tail_b
-    //   + std::max<double>(1 - tail_a_force - tail_b_force, 0)                * tail_c
-    // };
 
 
     head.position() += head_steering;

@@ -247,9 +247,28 @@ namespace meevax::system
     {
       return object.dereference().dispatch(surface);
     }
-    else
+    else // visualization of nil
     {
-      return {nullptr};
+      static visual::point position {0, 0};
+
+      visual::context context {surface};
+
+      context.set_source_rgb(0xb7 / 256.0, 0x15 / 256.0, 0x40 / 256.0);
+      context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+      context.set_font_size(32);
+
+      static const char* unit_visual {"()"};
+
+      cairo_text_extents_t extents {};
+      context.text_extents(unit_visual, &extents);
+
+      context.move_to(
+        position[0] - extents.width / 2,
+        position[1] + extents.height / 2
+      );
+      context.show_text(unit_visual);
+
+      return {&position};
     }
   }
 } // namespace meevax::system
