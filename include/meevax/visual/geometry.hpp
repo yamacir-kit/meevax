@@ -13,7 +13,8 @@ BOOST_GEOMETRY_REGISTER_POINT_2D(Eigen::Vector2d, double, cs::cartesian, x(), y(
 
 namespace meevax::visual
 {
-  using point = Eigen::Vector2d;
+  using vector = Eigen::Vector2d;
+  using point = vector;
 
   using polygon = boost::geometry::model::polygon<point>;
 
