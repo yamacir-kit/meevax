@@ -40,10 +40,10 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    const auto steering {visual::seek(symbol.position, surface.center)};
+    // const auto steering {visual::seek(symbol.position, surface.center)};
 
     context.set_source_rgb(0xC0 / 256.0, 0xC0 / 256.0, 0xC0 / 256.0);
-    context.select_font_face("Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     context.set_font_size(32);
 
     context.move_to(symbol.position[0], symbol.position[1]);

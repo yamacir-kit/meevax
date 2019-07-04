@@ -119,32 +119,36 @@ namespace meevax::system
 
     auto head {visualize(surface, std::get<0>(pair))};
     {
-      auto steering {
-          visual::seek(head.position(), surface.center)
-        + visual::flee(head.position(), pair.position)
-      };
+      auto a {visual::flee(head.position(), pair.position)};
+      auto current_distance {(head.position() - pair.position).norm()};
+      auto desired_distance {100.0}; // [px]
+      auto force {desired_distance / current_distance};
 
-      head.position() += steering;
+      auto b {visual::seek(head.position(), surface.center)};
+
+      head.position() += (force * a + b);
     }
 
 
     auto tail {visualize(surface, std::get<1>(pair))};
     {
-      auto steering {
-          visual::seek(tail.position(), surface.center)
-        + visual::flee(tail.position(), pair.position)
-      };
+      auto a {visual::flee(tail.position(), pair.position)};
+      auto current_distance {(tail.position() - pair.position).norm()};
+      auto desired_distance {100.0}; // [px]
+      auto force {desired_distance / current_distance};
 
-      tail.position() += steering;
+      auto b {visual::seek(tail.position(), surface.center)};
+
+      tail.position() += (force * a + b);
     }
 
-    // context.move_to(pair.position[0], pair.position[1]);
-    // context.line_to(head.position()[0], head.position()[1]);
-    // context.stroke();
-    //
-    // context.move_to(pair.position[0], pair.position[1]);
-    // context.line_to(tail.position()[0], tail.position()[1]);
-    // context.stroke();
+    context.move_to(pair.position[0], pair.position[1]);
+    context.line_to(head.position()[0], head.position()[1]);
+    context.stroke();
+
+    context.move_to(pair.position[0], pair.position[1]);
+    context.line_to(tail.position()[0], tail.position()[1]);
+    context.stroke();
 
     return {&pair.position};
   }

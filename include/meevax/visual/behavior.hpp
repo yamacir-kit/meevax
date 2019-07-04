@@ -20,7 +20,7 @@ namespace meevax::visual
     return visual::point {random(device), random(device)}.normalized();
   }
 
-  auto seek(const visual::point& character, const visual::point& to, double speed_max = 1)
+  auto seek(const visual::point& character, const visual::point& to, double speed_max = 2)
     -> visual::point
   {
     if (auto direction {(to - character).normalized()}; direction.norm() < std::numeric_limits<double>::epsilon())
@@ -33,7 +33,7 @@ namespace meevax::visual
     }
   }
 
-  auto flee(const visual::point& character, const visual::point& from, double speed_max = 1)
+  auto flee(const visual::point& character, const visual::point& from, double speed_max = 2)
     -> visual::point
   {
     if (auto direction {(character - from).normalized()}; direction.norm() < std::numeric_limits<double>::epsilon())
