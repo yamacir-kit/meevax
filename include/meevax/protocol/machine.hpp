@@ -22,19 +22,27 @@ namespace meevax::protocol
       change_attributes(XCB_CW_EVENT_MASK, Event);
     }
 
+    static inline constexpr bool debug {false};
+
     #define TRANSFER_THE_EVENT_IF_VISUALIZABLE(EVENT_NAME)                     \
     if constexpr (std::is_invocable<                                           \
                     Visual, std::unique_ptr<xcb_##EVENT_NAME##_event_t>        \
                   >::value)                                                    \
     {                                                                          \
-      std::cerr << #EVENT_NAME << std::endl;                                   \
+      if (debug)                                                               \
+      {                                                                        \
+        std::cerr << #EVENT_NAME << std::endl;                                 \
+      }                                                                        \
       static_cast<Visual&>(*this)(                                             \
         event.release_as<xcb_##EVENT_NAME##_event_t>()                         \
       );                                                                       \
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      std::cerr << #EVENT_NAME << " unimplemented" << std::endl;               \
+      if (debug)                                                               \
+      {                                                                        \
+        std::cerr << #EVENT_NAME << " unimplemented" << std::endl;             \
+      }                                                                        \
     }                                                                          \
     break;
 
@@ -42,7 +50,10 @@ namespace meevax::protocol
     {
       for (event event {nullptr}; event.wait(connection); connection.flush())
       {
-        std::cerr << "; event " << event.type() << "\t; " << event->sequence << "; ";
+        if (debug)
+        {
+          std::cerr << "; event " << event.type() << "\t; " << event->sequence << "; ";
+        }
 
         switch (event.type())
         {

@@ -107,42 +107,53 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    pair.position += visual::arrive(pair.position, surface.center, 100) * 4;
+    static constexpr double length {50};
 
-    context.set_source_rgb(0xe5 / 256.0, 0x50 / 256.0, 0x39 / 256.0);
-    context.arc(pair.position[0], pair.position[1], 10, 0, boost::math::constants::two_pi<double>());
-    context.fill();
+    context.set_source_rgb(0.5, 0.5, 0.5);
+
+    context.set_line_width(3);
+    context.rectangle(pair.position[0] - length, pair.position[1] - length * 0.5, length, length);
+    context.rectangle(pair.position[0],          pair.position[1] - length * 0.5, length, length);
+
+    context.new_sub_path();
+    context.arc(pair.position[0] - length * 0.5, pair.position[1], 5, 0, boost::math::constants::two_pi<double>());
+
+    context.new_sub_path();
+    context.arc(pair.position[0] + length * 0.5, pair.position[1], 5, 0, boost::math::constants::two_pi<double>());
 
 
     auto head {visualize(surface, std::get<0>(pair))};
     auto tail {visualize(surface, std::get<1>(pair))};
 
-
-    auto head_a {visual::flee(head.position(), pair.position)};
-    auto head_b {visual::flee(head.position(), tail.position())};
-    auto head_c {visual::arrive(head.position(), surface.center, 100)};
-
     visual::vector head_steering {
-      head_a + head_b + head_c * 4
+        visual::flee(head.position(), pair.position)
+      + visual::flee(head.position(), tail.position())
+      + visual::arrive(head.position(), surface.center, 100) * 4
     };
-
-    auto tail_a {visual::flee(tail.position(), pair.position)};
-    auto tail_b {visual::flee(tail.position(), head.position())};
-    auto tail_c {visual::arrive(tail.position(), surface.center, 100)};
 
     visual::vector tail_steering {
-      tail_a + tail_b + tail_c * 4
+        visual::flee(tail.position(), pair.position)
+      + visual::flee(tail.position(), head.position())
+      + visual::arrive(tail.position(), surface.center, 100) * 4
     };
 
+    visual::vector pair_steering {
+        visual::flee(pair.position, head.position())
+      + visual::flee(pair.position, tail.position())
+      + visual::arrive(pair.position, surface.center, 100) * 4
+    };
 
+    pair.position += pair_steering;
     head.position() += head_steering;
     tail.position() += tail_steering;
 
-    context.move_to(pair.position[0], pair.position[1]);
+    context.set_source_rgb(0.25, 0.25, 0.25);
+
+    context.move_to(pair.position[0] - length * 0.5, pair.position[1]);
     context.line_to(head.position()[0], head.position()[1]);
     context.stroke();
 
-    context.move_to(pair.position[0], pair.position[1]);
+    context.move_to(pair.position[0] + length * 0.5, pair.position[1]);
     context.line_to(tail.position()[0], tail.position()[1]);
     context.stroke();
 
