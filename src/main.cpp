@@ -24,7 +24,7 @@ int main() try
   program.surface.configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
   program.surface.size(1280, 720);
 
-  program.connection.flush();
+  program.surface.flush();
 
   std::thread([&]()
   {
@@ -55,7 +55,7 @@ int main() try
     const auto expression {program.read()};
     std::cerr << "\n; read    \t; " << expression << std::endl;
 
-    program.cursor = expression;
+    // program.cursor = expression;
 
     const auto executable {program.compile(expression)};
 

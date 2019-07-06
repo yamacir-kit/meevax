@@ -6,6 +6,7 @@
 
 #include <xcb/xcb.h>
 
+#include <meevax/protocol/accessor.hpp>
 #include <meevax/protocol/connection.hpp>
 
 // REFERENCES
@@ -15,13 +16,12 @@ namespace meevax::protocol
 {
   struct window
   {
-    const protocol::connection connection;
+    static inline const protocol::connection connection {};
 
     const xcb_window_t identity;
 
-    explicit window(const protocol::connection& connection, xcb_window_t parent_identity)
-      : connection {connection}
-      , identity {xcb_generate_id(connection)}
+    explicit window(xcb_window_t parent_identity = root_screen(connection))
+      : identity {xcb_generate_id(connection)}
     {
       xcb_create_window(
         connection,

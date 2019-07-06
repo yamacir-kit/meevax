@@ -28,17 +28,13 @@ namespace meevax::system
     std::unordered_map<std::string, object> symbols;
 
   public:
-    static inline const protocol::connection connection {};
-
     visual::surface surface;
 
     object cursor;
 
   public: // Constructors
     // for macro
-    environment()
-      : surface {connection}
-    {}
+    environment() = default;
 
     // for bootstrap scheme-report-environment
     template <int Version>
@@ -48,7 +44,6 @@ namespace meevax::system
     template <typename... Ts>
     constexpr environment(Ts&&... args)
       : pair {std::forward<Ts>(args)...} // virtual base of closure
-      , surface {connection}
     {}
 
   public: // Module System Interface
@@ -62,7 +57,7 @@ namespace meevax::system
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return system::machine<environment>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return machine<environment>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
     }
 
     const auto& intern(const std::string& s)
@@ -150,7 +145,6 @@ namespace meevax::system
 
   template <>
   environment::environment(std::integral_constant<int, 7>)
-    : surface {connection}
   {
     /* 7.1.3
      *

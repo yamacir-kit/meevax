@@ -4,7 +4,7 @@
 #include <memory>
 #include <utility>
 
-#include <xcb/xcb.h>
+#include <meevax/protocol/connection.hpp>
 
 namespace meevax::protocol
 {

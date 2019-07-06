@@ -55,8 +55,8 @@ namespace meevax::visual
     // XXX この引数は削除できる
     std::function<void (surface&)> update;
 
-    explicit surface(const protocol::connection& connection)
-      : machine {connection, protocol::root_screen(connection)}
+    explicit surface()
+      : machine {}
       , std::shared_ptr<cairo_surface_t> {
           cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 1, 1),
           cairo_surface_destroy
@@ -65,7 +65,7 @@ namespace meevax::visual
     {}
 
     explicit surface(const surface& surface)
-      : machine {surface.connection, surface.identity}
+      : machine {surface.identity}
       , std::shared_ptr<cairo_surface_t> {
           cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 1, 1),
           cairo_surface_destroy
