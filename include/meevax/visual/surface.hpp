@@ -15,7 +15,7 @@
 
 namespace meevax::visual
 {
-  constexpr auto events {
+  constexpr std::uint32_t events {
       XCB_EVENT_MASK_NO_EVENT
     // | XCB_EVENT_MASK_KEY_PRESS
     // | XCB_EVENT_MASK_KEY_RELEASE

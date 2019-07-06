@@ -61,19 +61,19 @@ namespace meevax::system
       return os << static_cast<const T&>(*this);
     };
 
-    virtual auto dispatch(visual::surface& surface)
-      -> visual::geometry
-    {
-      if constexpr (concepts::is_visualizable<T>::value)
-      {
-        return visualize(surface, static_cast<T&>(*this));
-      }
-      else
-      {
-        std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
-        return {nullptr};
-      }
-    }
+    // virtual auto dispatch(visual::surface& surface)
+    //   -> visual::geometry
+    // {
+    //   if constexpr (concepts::is_visualizable<T>::value)
+    //   {
+    //     return visualize(surface, static_cast<T&>(*this));
+    //   }
+    //   else
+    //   {
+    //     std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
+    //     return {nullptr};
+    //   }
+    // }
   };
 
   /**
@@ -143,19 +143,19 @@ namespace meevax::system
         }
       }
 
-      auto dispatch(visual::surface& surface)
-        -> visual::geometry override
-      {
-        if constexpr (concepts::is_visualizable<Bound>::value)
-        {
-          return visualize(surface, static_cast<Bound&>(*this));
-        }
-        else
-        {
-          std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(Bound)) << " ignored" << std::endl;
-          return {nullptr};
-        }
-      }
+      // auto dispatch(visual::surface& surface)
+      //   -> visual::geometry override
+      // {
+      //   if constexpr (concepts::is_visualizable<Bound>::value)
+      //   {
+      //     return visualize(surface, static_cast<Bound&>(*this));
+      //   }
+      //   else
+      //   {
+      //     std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(Bound)) << " ignored" << std::endl;
+      //     return {nullptr};
+      //   }
+      // }
     };
 
   public:
@@ -239,38 +239,38 @@ namespace meevax::system
     return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().write(os);
   }
 
-  template <typename T>
-  auto visualize(visual::surface& surface, const pointer<T>& object)
-    -> visual::geometry
-  {
-    if (object)
-    {
-      return object.dereference().dispatch(surface);
-    }
-    else // visualization of nil
-    {
-      static visual::point position {0, 0};
-
-      visual::context context {surface};
-
-      context.set_source_rgb(0xb7 / 256.0, 0x15 / 256.0, 0x40 / 256.0);
-      context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-      context.set_font_size(32);
-
-      static const char* unit_visual {"()"};
-
-      cairo_text_extents_t extents {};
-      context.text_extents(unit_visual, &extents);
-
-      context.move_to(
-        position[0] - extents.width / 2,
-        position[1] + extents.height / 2
-      );
-      context.show_text(unit_visual);
-
-      return {&position};
-    }
-  }
+  // template <typename T>
+  // auto visualize(visual::surface& surface, const pointer<T>& object)
+  //   -> visual::geometry
+  // {
+  //   if (object)
+  //   {
+  //     return object.dereference().dispatch(surface);
+  //   }
+  //   else // visualization of nil
+  //   {
+  //     static visual::point position {0, 0};
+  //
+  //     visual::context context {surface};
+  //
+  //     context.set_source_rgb(0xb7 / 256.0, 0x15 / 256.0, 0x40 / 256.0);
+  //     context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+  //     context.set_font_size(32);
+  //
+  //     static const char* unit_visual {"()"};
+  //
+  //     cairo_text_extents_t extents {};
+  //     context.text_extents(unit_visual, &extents);
+  //
+  //     context.move_to(
+  //       position[0] - extents.width / 2,
+  //       position[1] + extents.height / 2
+  //     );
+  //     context.show_text(unit_visual);
+  //
+  //     return {&position};
+  //   }
+  // }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_POINTER_HPP

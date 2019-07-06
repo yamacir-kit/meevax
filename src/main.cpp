@@ -36,7 +36,7 @@ int main() try
     meevax::visual::context context {surface};
     context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
     context.paint();
-    visualize(surface, program.cursor);
+    // visualize(surface, program.cursor);
   };
 
   std::thread([&]()
