@@ -40,17 +40,18 @@ namespace meevax::system
   {
     visual::context context {surface};
 
-    // const auto steering {visual::seek(symbol.position, surface.center)};
-
-    context.set_source_rgb(0xC0 / 256.0, 0xC0 / 256.0, 0xC0 / 256.0);
+    context.set_source_rgb(0x4a / 256.0, 0x69 / 256.0, 0xbd / 256.0);
     context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     context.set_font_size(32);
 
-    context.move_to(symbol.position[0], symbol.position[1]);
-    context.show_text(symbol.c_str());
+    cairo_text_extents_t extents {};
+    context.text_extents(symbol.c_str(), &extents);
 
-    // cairo_text_extents_t extents {};
-    // context.text_extents(symbol.c_str(), &extents);
+    context.move_to(
+      symbol.position[0] - extents.width / 2,
+      symbol.position[1] + extents.height / 2
+    );
+    context.show_text(symbol.c_str());
 
     // extents.x_bearing, extents.y_bearing,
     // extents.x_advance, extents.y_advance;
