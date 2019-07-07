@@ -65,13 +65,31 @@ namespace meevax::visual
     //   , update {surface.update}
     // {}
 
-    void visible()
+    void visual_enable()
     {
-      create();
+      generate();
+
+      create_window();
+
       std::shared_ptr<cairo_surface_t>::reset(
         cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
         cairo_surface_destroy
       );
+
+      map();
+    }
+
+    void visual_enable(const surface& surface)
+    {
+      generate();
+
+      create_window(surface.value());
+
+      std::shared_ptr<cairo_surface_t>::reset(
+        cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
+        cairo_surface_destroy
+      );
+
       map();
     }
 
@@ -86,12 +104,11 @@ namespace meevax::visual
       connection.flush();
     }
 
-    void size(std::uint32_t width, std::uint32_t height) noexcept
+    void size(std::uint32_t width, std::uint32_t height) const noexcept
     {
       cairo_xcb_surface_set_size(*this, width, height);
     }
 
-    // XXX ここに描画を担当させるとちらつく
     void operator()(const std::unique_ptr<xcb_expose_event_t>)
     {
       // context context {*this};

@@ -51,10 +51,14 @@
 
 namespace meevax::system
 {
-  template <typename T, typename U>
-  object operator|(T&& lhs, U&& rhs)
+  // template <typename T, typename U>
+  // object operator|(T&& lhs, U&& rhs)
+  // {
+  //   return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
+  // }
+  object operator|(const object& lhs, const object& rhs)
   {
-    return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
+    return std::make_shared<pair>(lhs, rhs);
   }
 
   template <typename... Ts>

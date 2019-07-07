@@ -34,19 +34,22 @@ namespace meevax::protocol
       }
     }
 
-    void create(const value_type& parent = root_screen(connection))
+    void generate()
     {
       emplace(xcb_generate_id(connection));
+    }
 
-      xcb_create_window(
+    decltype(auto) create_window(const value_type& parent = root_screen(connection))
+    {
+      return xcb_create_window(
         connection,
         XCB_COPY_FROM_PARENT, // depth
-        value(), // child window id
-        parent, // parent window id
+        value(), // child window (this) identity
+        parent, // parent window identity
         std::max(0, 0), // x
         std::max(0, 0), // y
-        std::max(1, 1), // width
-        std::max(1, 1), // height
+        std::max(1, 1), // width (at least 1 required)
+        std::max(1, 1), // height (at least 1 required)
         std::max(1, 0), // border width
         XCB_WINDOW_CLASS_INPUT_OUTPUT,
         XCB_COPY_FROM_PARENT, // std::begin(screen {connection})->root_visual,
@@ -60,20 +63,20 @@ namespace meevax::protocol
       return xcb_map_window(connection, value());
     }
 
-    decltype(auto) unmap() const noexcept
+    decltype(auto) unmap() const
     {
       return xcb_unmap_window(connection, value());
     }
 
-    template <typename Mask, typename... Ts>
-    decltype(auto) configure(const Mask& mask, Ts&&... configurations)
+    template <typename... Ts>
+    decltype(auto) configure(const std::uint16_t mask, Ts&&... configurations) const
     {
       const std::vector<std::uint32_t> values {std::forward<Ts>(configurations)...};
       return xcb_configure_window(connection, value(), mask, values.data());
     }
 
     template <typename Mask, typename... Ts>
-    decltype(auto) change_attributes(const Mask& mask, Ts&&... attributes)
+    decltype(auto) change_attributes(const Mask& mask, Ts&&... attributes) const
     {
       const std::vector<std::uint32_t> values {std::forward<Ts>(attributes)...};
       return xcb_change_window_attributes(connection, value(), mask, values.data());

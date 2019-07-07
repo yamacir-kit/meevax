@@ -67,9 +67,14 @@ namespace meevax::system
     {
       if constexpr (concepts::is_visualizable<T>::value)
       {
-        return write(static_cast<T&>(*this), surface);
+        if (not static_cast<T&>(*this).has_value())
+        {
+          static_cast<T&>(*this).visual_enable(surface);
+          return write(static_cast<T&>(*this), surface);
+        }
+        else return surface;
       }
-      else
+      else // DEBUG
       {
         std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
         return surface;
@@ -150,7 +155,12 @@ namespace meevax::system
       {
         if constexpr (concepts::is_visualizable<Bound>::value)
         {
-          return write(static_cast<Bound&>(*this), surface);
+          if (not static_cast<T&>(*this).has_value())
+          {
+            static_cast<T&>(*this).visual_enable(surface);
+          }
+
+          return write(static_cast<Bound&>(*this), static_cast<const visual::surface&>(*this));
         }
         else
         {

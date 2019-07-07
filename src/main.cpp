@@ -20,7 +20,7 @@ int main() try
 {
   meevax::system::environment program {meevax::system::scheme_report_environment<7>};
 
-  program.visible();
+  program.visual_enable();
   program.configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
   program.size(1280, 720);
 
@@ -53,6 +53,24 @@ int main() try
     program.drive();
   }).detach();
 
+  meevax::system::object expression {};
+
+  std::thread([&]()
+  {
+    while (true)
+    {
+      meevax::visual::context context {program};
+      {
+        context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
+        context.paint();
+
+        write(expression, program);
+      }
+      program.flush();
+      std::this_thread::sleep_for(std::chrono::milliseconds {10});
+    }
+  }).detach();
+
   // program.surface.update = [&](auto&& surface)
   // {
   //   meevax::visual::context context {surface};
@@ -74,10 +92,8 @@ int main() try
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
     std::cout << "\n> " << std::flush;
-    const auto expression {program.read()};
+    expression = program.read();
     std::cerr << "\n; read    \t; " << expression << std::endl;
-
-    program.cursor = expression;
 
     const auto executable {program.compile(expression)};
 
