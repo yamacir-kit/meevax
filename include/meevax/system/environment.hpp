@@ -13,8 +13,6 @@
 #include <meevax/system/special.hpp>
 #include <meevax/utility/debug.hpp>
 
-#include <meevax/visual/surface.hpp>
-
 namespace meevax::system
 {
   template <int Version>
@@ -26,11 +24,6 @@ namespace meevax::system
     , public machine<environment>
   {
     std::unordered_map<std::string, object> symbols;
-
-  public:
-    visual::surface surface;
-
-    object cursor;
 
   public: // Constructors
     // for macro
@@ -50,14 +43,16 @@ namespace meevax::system
     // TODO RENAME TO "char_ready"
     auto ready() const noexcept
     {
-      return static_cast<bool>(*this);
+      return reader<environment>::operator bool();
     }
 
     // TODO RENAME TO "global_define"
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return machine<environment>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return system::machine<environment>::define(
+               intern(name), make<T>(name, std::forward<Ts>(args)...)
+             );
     }
 
     const auto& intern(const std::string& s)

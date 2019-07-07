@@ -7,20 +7,18 @@
 #include <xcb/xcb.h>
 
 #include <meevax/protocol/event.hpp>
-#include <meevax/protocol/window.hpp>
+#include <meevax/protocol/identity.hpp>
 
 namespace meevax::protocol
 {
-  template <typename Visual, auto Event>
+  template <typename Visual, auto EventMask>
   struct machine
-    : public window
+    : public identity
   {
     template <typename... Ts>
     explicit machine(Ts&&... xs)
-      : window {std::forward<Ts>(xs)...}
-    {
-      change_attributes(XCB_CW_EVENT_MASK, Event);
-    }
+      : identity {std::forward<Ts>(xs)...}
+    {}
 
     static inline constexpr bool debug {false};
 
@@ -46,8 +44,10 @@ namespace meevax::protocol
     }                                                                          \
     break;
 
-    void visualize()
+    void drive()
     {
+      change_attributes(XCB_CW_EVENT_MASK, EventMask);
+
       for (event event {nullptr}; event.wait(connection); connection.flush())
       {
         if (debug)

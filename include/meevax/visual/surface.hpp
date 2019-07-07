@@ -5,8 +5,6 @@
 #include <functional>
 #include <memory>
 
-#include <Eigen/Core>
-
 #include <cairo/cairo-xcb.h>
 
 #include <meevax/protocol/accessor.hpp>
@@ -50,28 +48,32 @@ namespace meevax::visual
   {
     using machine = protocol::machine<surface, events>;
 
-    Eigen::Vector2d center;
+    // explicit surface()
+    //   : machine {}
+    //   , std::shared_ptr<cairo_surface_t> {
+    //       cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
+    //       cairo_surface_destroy
+    //     }
+    // {}
 
-    // XXX この引数は削除できる
-    std::function<void (surface&)> update;
+    // explicit surface(const surface& surface)
+    //   : machine {surface.value()}
+    //   , std::shared_ptr<cairo_surface_t> {
+    //       cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
+    //       cairo_surface_destroy
+    //     }
+    //   , update {surface.update}
+    // {}
 
-    explicit surface()
-      : machine {}
-      , std::shared_ptr<cairo_surface_t> {
-          cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 1, 1),
-          cairo_surface_destroy
-        }
-      , update {[](auto&&) {}}
-    {}
-
-    explicit surface(const surface& surface)
-      : machine {surface.identity}
-      , std::shared_ptr<cairo_surface_t> {
-          cairo_xcb_surface_create(connection, identity, protocol::root_visualtype(connection), 1, 1),
-          cairo_surface_destroy
-        }
-      , update {surface.update}
-    {}
+    void visible()
+    {
+      create();
+      std::shared_ptr<cairo_surface_t>::reset(
+        cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
+        cairo_surface_destroy
+      );
+      map();
+    }
 
     operator element_type*() const noexcept
     {
@@ -95,13 +97,10 @@ namespace meevax::visual
       // context context {*this};
       // context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
       // context.paint();
-      // std::invoke(update, *this);
     }
 
     void operator()(const std::unique_ptr<xcb_configure_notify_event_t> event)
     {
-      center[0] = event->width / 2;
-      center[1] = event->height / 2;
       size(event->width, event->height);
     }
   };

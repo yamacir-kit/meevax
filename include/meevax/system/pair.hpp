@@ -11,7 +11,6 @@
 
 #include <meevax/visual/behavior.hpp>
 #include <meevax/visual/context.hpp>
-#include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
 
 namespace meevax::system
@@ -46,8 +45,6 @@ namespace meevax::system
     pair()
       : std::pair<object, object> {unit, unit}
     {}
-
-    visual::point position;
   };
 
   template <typename T, typename... Ts>
@@ -100,6 +97,12 @@ namespace meevax::system
     }
 
     return os << "\x1b[35m)\x1b[0m";
+  }
+
+  auto write(const pair&, const visual::surface& surface)
+    -> decltype(surface)
+  {
+    return surface;
   }
 
   // auto visualize(visual::surface& surface, pair& pair)
