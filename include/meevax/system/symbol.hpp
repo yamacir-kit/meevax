@@ -39,18 +39,21 @@ namespace meevax::system
   {
     visual::context context {surface};
 
+    // XXX DIRTY HACK
+    context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
+    context.paint();
+
     context.set_source_rgb(0x4a / 256.0, 0x69 / 256.0, 0xbd / 256.0);
     context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     context.set_font_size(32);
 
-    std::cerr << "[debug] " << symbol << std::endl;
-
     cairo_text_extents_t extents {};
     context.text_extents(symbol.c_str(), &extents);
 
-    context.move_to(0, extents.height);
+    context.move_to(0, -extents.y_bearing);
     context.show_text(symbol.c_str());
 
+    // XXX ここの実行は初回だけで十分
     surface.configure(
       XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
       static_cast<std::uint32_t>(extents.x_advance),

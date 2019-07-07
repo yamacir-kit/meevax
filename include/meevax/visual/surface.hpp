@@ -65,6 +65,14 @@ namespace meevax::visual
     //   , update {surface.update}
     // {}
 
+    // bool dragged;
+    //
+    // std::uint32_t offset_x, offset_y;
+    //
+    // surface()
+    //   : dragged {false}
+    // {}
+
     void visual_enable()
     {
       generate();
@@ -120,6 +128,34 @@ namespace meevax::visual
     {
       size(event->width, event->height);
     }
+
+    // void operator()(const std::unique_ptr<xcb_button_press_event_t> event)
+    // {
+    //   if (event->event == value())
+    //   {
+    //     offset_x = event->event_x;
+    //     offset_y = event->event_y;
+    //
+    //     dragged = true;
+    //   }
+    // }
+
+    // void operator()(const std::unique_ptr<xcb_button_release_event_t>)
+    // {
+    //   dragged = false;
+    // }
+
+    // void operator()(const std::unique_ptr<xcb_motion_notify_event_t> event)
+    // {
+    //   if (event->event == value() && dragged)
+    //   {
+    //     configure(
+    //       XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
+    //       static_cast<std::uint32_t>(event->event_x),
+    //       static_cast<std::uint32_t>(event->event_y)
+    //     );
+    //   }
+    // }
   };
 } // namespace meevax::visual
 
