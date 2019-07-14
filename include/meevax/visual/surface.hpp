@@ -73,7 +73,7 @@ namespace meevax::visual
     //   : dragged {false}
     // {}
 
-    void visual_enable()
+    void spawn()
     {
       generate();
 
@@ -87,7 +87,7 @@ namespace meevax::visual
       map();
     }
 
-    void visual_enable(const surface& surface)
+    void spawn(const surface& surface)
     {
       generate();
 

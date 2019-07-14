@@ -20,7 +20,7 @@ namespace meevax::protocol
       : identity {std::forward<Ts>(xs)...}
     {}
 
-    static inline constexpr bool debug {false};
+    static inline constexpr bool debug {true};
 
     #define TRANSFER_THE_EVENT_IF_VISUALIZABLE(EVENT_NAME)                     \
     if constexpr (std::is_invocable<                                           \

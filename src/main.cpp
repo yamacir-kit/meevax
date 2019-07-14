@@ -20,38 +20,10 @@ int main() try
 {
   meevax::system::environment program {meevax::system::scheme_report_environment<7>};
 
-  program.visual_enable();
+  program.spawn();
   program.configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
   program.size(1280, 720);
-
   program.flush();
-
-  const std::string title {"Meevax Lisp System 0"};
-  {
-    meevax::visual::context context {program};
-    context.set_source_rgb(0xf5 / 256.0, 0xf5 / 256.0, 0xf5 / 256.0);
-    context.paint();
-
-    context.set_source_rgb(0, 0, 0);
-    context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    context.set_font_size(1280 / std::size(title) * 1.5);
-
-    cairo_text_extents_t extents {};
-    context.text_extents(title.c_str(), &extents);
-
-    context.move_to(
-      1280 * 0.5 - extents.width  * 0.5,
-       720 * 0.5 + extents.height * 0.5
-    );
-    context.show_text(title.c_str());
-
-    program.flush();
-  }
-
-  std::thread([&]()
-  {
-    program.drive();
-  }).detach();
 
   meevax::system::object expression {};
 
@@ -70,24 +42,6 @@ int main() try
       std::this_thread::sleep_for(std::chrono::milliseconds {10});
     }
   }).detach();
-
-  // program.surface.update = [&](auto&& surface)
-  // {
-  //   meevax::visual::context context {surface};
-  //   context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
-  //   context.paint();
-  //   // visualize(surface, program.cursor);
-  // };
-  //
-  // std::thread([&]()
-  // {
-  //   while (true)
-  //   {
-  //     program.surface.update(program.surface);
-  //     program.surface.flush();
-  //     std::this_thread::sleep_for(std::chrono::milliseconds {10});
-  //   }
-  // }).detach();
 
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
@@ -109,7 +63,7 @@ int main() try
   catch (const meevax::system::exception& exception) // TODO REMOVE THIS
   {
     std::cerr << exception << std::endl;
-    continue; // TODO EXIT IF NOT IN INTARACTIVE MODE
+    continue; // TODO EXIT IF NOT IN INTERACTIVE MODE
     // return boost::exit_exception_failure;
   }
 

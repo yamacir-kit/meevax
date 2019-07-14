@@ -69,7 +69,7 @@ namespace meevax::system
       {
         if (not static_cast<T&>(*this).has_value())
         {
-          static_cast<T&>(*this).visual_enable(surface);
+          static_cast<T&>(*this).spawn(surface);
           return write(static_cast<T&>(*this), surface);
         }
         else return surface;
@@ -157,7 +157,7 @@ namespace meevax::system
         {
           if (not static_cast<T&>(*this).has_value())
           {
-            static_cast<T&>(*this).visual_enable(surface);
+            static_cast<T&>(*this).spawn(surface);
           }
 
           return write(static_cast<Bound&>(*this), static_cast<const visual::surface&>(*this));
