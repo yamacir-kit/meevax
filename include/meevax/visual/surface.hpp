@@ -13,7 +13,8 @@
 
 namespace meevax::visual
 {
-  constexpr std::uint32_t events {
+  constexpr std::uint32_t events
+  {
       XCB_EVENT_MASK_NO_EVENT
     // | XCB_EVENT_MASK_KEY_PRESS
     // | XCB_EVENT_MASK_KEY_RELEASE
@@ -46,24 +47,25 @@ namespace meevax::visual
     : public protocol::machine<surface, events>
     , public std::shared_ptr<cairo_surface_t>
   {
-    using machine = protocol::machine<surface, events>;
+    explicit surface()
+      : protocol::machine<surface, events> {}
+      , std::shared_ptr<cairo_surface_t> {
+          cairo_xcb_surface_create(connection, value, protocol::root_visualtype(connection), 1, 1),
+          cairo_surface_destroy
+        }
+    {
+      map();
+    }
 
-    // explicit surface()
-    //   : machine {}
-    //   , std::shared_ptr<cairo_surface_t> {
-    //       cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
-    //       cairo_surface_destroy
-    //     }
-    // {}
-
-    // explicit surface(const surface& surface)
-    //   : machine {surface.value()}
-    //   , std::shared_ptr<cairo_surface_t> {
-    //       cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
-    //       cairo_surface_destroy
-    //     }
-    //   , update {surface.update}
-    // {}
+    explicit surface(const surface& parent)
+      : protocol::machine<surface, events> {parent.value}
+      , std::shared_ptr<cairo_surface_t> {
+          cairo_xcb_surface_create(connection, value, protocol::root_visualtype(connection), 1, 1),
+          cairo_surface_destroy
+        }
+    {
+      map();
+    }
 
     // bool dragged;
     //
@@ -72,34 +74,6 @@ namespace meevax::visual
     // surface()
     //   : dragged {false}
     // {}
-
-    void spawn()
-    {
-      generate();
-
-      create_window();
-
-      std::shared_ptr<cairo_surface_t>::reset(
-        cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
-        cairo_surface_destroy
-      );
-
-      map();
-    }
-
-    void spawn(const surface& surface)
-    {
-      generate();
-
-      create_window(surface.value());
-
-      std::shared_ptr<cairo_surface_t>::reset(
-        cairo_xcb_surface_create(connection, value(), protocol::root_visualtype(connection), 1, 1),
-        cairo_surface_destroy
-      );
-
-      map();
-    }
 
     operator element_type*() const noexcept
     {
@@ -119,9 +93,9 @@ namespace meevax::visual
 
     void operator()(const std::unique_ptr<xcb_expose_event_t>)
     {
-      // context context {*this};
-      // context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
-      // context.paint();
+      context context {*this};
+      context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
+      context.paint();
     }
 
     void operator()(const std::unique_ptr<xcb_configure_notify_event_t> event)

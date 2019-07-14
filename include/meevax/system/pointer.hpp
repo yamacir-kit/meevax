@@ -4,6 +4,8 @@
 #include <cassert>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
+#include <optional>
+#include <thread>
 #include <type_traits> // std::conditional
 #include <typeinfo> // typeid
 #include <utility> // std::forward
@@ -20,8 +22,29 @@ namespace meevax::system
 {
   template <typename T>
   struct facade
-    : public visual::surface
+    : public std::optional<visual::surface>
   {
+    template <typename... Ts>
+    void visualize(Ts&&... xs)
+    {
+      emplace(std::forward<Ts>(xs)...);
+
+      std::thread([&]()
+      {
+        visual().drive();
+      }).detach();
+    }
+
+    decltype(auto) visual()
+    {
+      return value();
+    }
+
+    decltype(auto) visualized() const noexcept
+    {
+      return has_value();
+    }
+
     virtual auto type() const noexcept
       -> const std::type_info&
     {
@@ -67,9 +90,9 @@ namespace meevax::system
     {
       if constexpr (concepts::is_visualizable<T>::value)
       {
-        if (not static_cast<T&>(*this).has_value())
+        if (not visualized())
         {
-          static_cast<T&>(*this).spawn(surface);
+          visualize();
           return write(static_cast<T&>(*this), surface);
         }
         else return surface;
@@ -155,12 +178,12 @@ namespace meevax::system
       {
         if constexpr (concepts::is_visualizable<Bound>::value)
         {
-          if (not static_cast<T&>(*this).has_value())
+          if (not T::visualized())
           {
-            static_cast<T&>(*this).spawn(surface);
+            T::visualize(surface);
           }
 
-          return write(static_cast<Bound&>(*this), static_cast<const visual::surface&>(*this));
+          return write(static_cast<Bound&>(*this), T::visual());
         }
         else
         {

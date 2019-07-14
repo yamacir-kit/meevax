@@ -20,10 +20,10 @@ int main() try
 {
   meevax::system::environment program {meevax::system::scheme_report_environment<7>};
 
-  program.spawn();
-  program.configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
-  program.size(1280, 720);
-  program.flush();
+  program.visualize();
+  program.visual().configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
+  program.visual().size(1280, 720);
+  program.visual().flush();
 
   meevax::system::object expression {};
 
@@ -31,14 +31,14 @@ int main() try
   {
     while (true)
     {
-      meevax::visual::context context {program};
+      meevax::visual::context context {program.visual()};
       {
         context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
         context.paint();
 
-        write(expression, program);
+        write(expression, program.visual());
       }
-      program.flush();
+      program.visual().flush();
       std::this_thread::sleep_for(std::chrono::milliseconds {10});
     }
   }).detach();
