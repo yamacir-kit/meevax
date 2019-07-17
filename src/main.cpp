@@ -20,31 +20,29 @@ int main() try
 {
   meevax::system::environment program {meevax::system::scheme_report_environment<7>};
 
-  program.surface.map();
-  program.surface.configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
-  program.surface.size(1280, 720);
+  /**
+   * Visualization generates new visual machine as detached thread.
+   */
+  program.visualize();
 
-  program.connection.flush();
+  program.visual().configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
+  program.visual().size(1280, 720);
+  program.visual().flush();
 
-  std::thread([&]()
-  {
-    program.surface.visualize();
-  }).detach();
-
-  program.surface.update = [&](auto&& surface)
-  {
-    meevax::visual::context context {surface};
-    context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
-    context.paint();
-    visualize(surface, program.cursor);
-  };
+  meevax::system::object expression {};
 
   std::thread([&]()
   {
     while (true)
     {
-      program.surface.update(program.surface);
-      program.surface.flush();
+      meevax::visual::context context {program.visual()};
+      {
+        context.set_source_rgb(1, 1, 1);
+        context.paint();
+
+        write(expression, program.visual());
+      }
+      program.visual().flush();
       std::this_thread::sleep_for(std::chrono::milliseconds {10});
     }
   }).detach();
@@ -52,10 +50,8 @@ int main() try
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
     std::cout << "\n> " << std::flush;
-    const auto expression {program.read()};
+    expression = program.read();
     std::cerr << "\n; read    \t; " << expression << std::endl;
-
-    program.cursor = expression;
 
     const auto executable {program.compile(expression)};
 
@@ -71,7 +67,7 @@ int main() try
   catch (const meevax::system::exception& exception) // TODO REMOVE THIS
   {
     std::cerr << exception << std::endl;
-    continue; // TODO EXIT IF NOT IN INTARACTIVE MODE
+    continue; // TODO EXIT IF NOT IN INTERACTIVE MODE
     // return boost::exit_exception_failure;
   }
 

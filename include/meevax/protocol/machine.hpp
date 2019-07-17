@@ -7,22 +7,22 @@
 #include <xcb/xcb.h>
 
 #include <meevax/protocol/event.hpp>
-#include <meevax/protocol/window.hpp>
+#include <meevax/protocol/identity.hpp>
 
 namespace meevax::protocol
 {
-  template <typename Visual, auto Event>
+  template <typename Visual, auto EventMask>
   struct machine
-    : public window
+    : public identity
   {
+    bool pressed {false};
+
     template <typename... Ts>
     explicit machine(Ts&&... xs)
-      : window {std::forward<Ts>(xs)...}
-    {
-      change_attributes(XCB_CW_EVENT_MASK, Event);
-    }
+      : identity {std::forward<Ts>(xs)...}
+    {}
 
-    static inline constexpr bool debug {false};
+    static inline constexpr bool debug {true};
 
     #define TRANSFER_THE_EVENT_IF_VISUALIZABLE(EVENT_NAME)                     \
     if constexpr (std::is_invocable<                                           \
@@ -46,13 +46,15 @@ namespace meevax::protocol
     }                                                                          \
     break;
 
-    void visualize()
+    void drive()
     {
+      change_attributes(XCB_CW_EVENT_MASK, EventMask);
+
       for (event event {nullptr}; event.wait(connection); connection.flush())
       {
         if (debug)
         {
-          std::cerr << "; event " << event.type() << "\t; " << event->sequence << "; ";
+          std::cerr << "; event " << event.type() << "\t; " << event->sequence << " on " << this << "; ";
         }
 
         switch (event.type())
@@ -64,9 +66,11 @@ namespace meevax::protocol
           TRANSFER_THE_EVENT_IF_VISUALIZABLE(key_release)
 
         case XCB_BUTTON_PRESS:                                             //  4
+          pressed = true;
           TRANSFER_THE_EVENT_IF_VISUALIZABLE(button_press)
 
         case XCB_BUTTON_RELEASE:                                           //  5
+          pressed = false;
           TRANSFER_THE_EVENT_IF_VISUALIZABLE(button_release)
 
         case XCB_MOTION_NOTIFY:                                            //  6

@@ -4,6 +4,8 @@
 #include <cassert>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
+#include <optional>
+#include <thread>
 #include <type_traits> // std::conditional
 #include <typeinfo> // typeid
 #include <utility> // std::forward
@@ -14,14 +16,35 @@
 #include <meevax/utility/demangle.hpp>
 
 #include <meevax/concepts/is_visualizable.hpp>
-#include <meevax/visual/geometry.hpp>
 #include <meevax/visual/surface.hpp>
 
 namespace meevax::system
 {
   template <typename T>
   struct facade
+    : public std::optional<visual::surface>
   {
+    template <typename... Ts>
+    void visualize(Ts&&... xs)
+    {
+      emplace(std::forward<Ts>(xs)...);
+
+      std::thread([&]()
+      {
+        visual().drive();
+      }).detach();
+    }
+
+    decltype(auto) visual()
+    {
+      return value();
+    }
+
+    decltype(auto) visualized() const noexcept
+    {
+      return has_value();
+    }
+
     virtual auto type() const noexcept
       -> const std::type_info&
     {
@@ -56,22 +79,28 @@ namespace meevax::system
       }
     }
 
-    virtual std::ostream& write(std::ostream& os) const
+    virtual auto dispatch(std::ostream& os) const
+      -> decltype(os)
     {
       return os << static_cast<const T&>(*this);
     };
 
-    virtual auto dispatch(visual::surface& surface)
-      -> visual::geometry
+    virtual auto dispatch(const visual::surface& surface)
+      -> decltype(surface)
     {
       if constexpr (concepts::is_visualizable<T>::value)
       {
-        return visualize(surface, static_cast<T&>(*this));
+        if (not visualized())
+        {
+          visualize(surface);
+          return write(static_cast<T&>(*this), visual());
+        }
+        else return surface;
       }
-      else
+      else // DEBUG
       {
         std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
-        return {nullptr};
+        return surface;
       }
     }
   };
@@ -130,8 +159,9 @@ namespace meevax::system
         }
       }
 
-      // Override T::write(), then invoke Bound's stream output operator.
-      std::ostream& write(std::ostream& os) const override
+      // Override T::dispatch(), then invoke Bound's stream output operator.
+      auto dispatch(std::ostream& os) const
+        -> decltype(os) override
       {
         if constexpr (concepts::is_stream_insertable<Bound>::value)
         {
@@ -143,17 +173,22 @@ namespace meevax::system
         }
       }
 
-      auto dispatch(visual::surface& surface)
-        -> visual::geometry override
+      auto dispatch(const visual::surface& surface)
+        -> decltype(surface) override
       {
         if constexpr (concepts::is_visualizable<Bound>::value)
         {
-          return visualize(surface, static_cast<Bound&>(*this));
+          if (not T::visualized())
+          {
+            T::visualize(surface);
+          }
+
+          return write(static_cast<Bound&>(*this), T::visual());
         }
         else
         {
           std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(Bound)) << " ignored" << std::endl;
-          return {nullptr};
+          return surface;
         }
       }
     };
@@ -231,17 +266,23 @@ namespace meevax::system
     }
   };
 
-  // Invoke T::write()
   template <typename T>
-  std::ostream& operator<<(std::ostream& os, const pointer<T>& object)
+  auto write(const pointer<T>& object, std::ostream& os = std::cout)
+    -> decltype(os)
   {
     // write(os) will be dispatched to each type's stream output operator.
-    return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().write(os);
+    return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().dispatch(os);
   }
 
   template <typename T>
-  auto visualize(visual::surface& surface, const pointer<T>& object)
-    -> visual::geometry
+  decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
+  {
+    return write(object, os);
+  }
+
+  template <typename T>
+  auto write(const pointer<T>& object, const visual::surface& surface)
+    -> decltype(surface)
   {
     if (object)
     {
@@ -249,26 +290,26 @@ namespace meevax::system
     }
     else // visualization of nil
     {
-      static visual::point position {0, 0};
+      // static visual::point position {0, 0};
+      //
+      // visual::context context {surface};
+      //
+      // context.set_source_rgb(0xb7 / 256.0, 0x15 / 256.0, 0x40 / 256.0);
+      // context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+      // context.set_font_size(32);
+      //
+      // static const char* unit_visual {"()"};
+      //
+      // cairo_text_extents_t extents {};
+      // context.text_extents(unit_visual, &extents);
+      //
+      // context.move_to(
+      //   position[0] - extents.width / 2,
+      //   position[1] + extents.height / 2
+      // );
+      // context.show_text(unit_visual);
 
-      visual::context context {surface};
-
-      context.set_source_rgb(0xb7 / 256.0, 0x15 / 256.0, 0x40 / 256.0);
-      context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-      context.set_font_size(32);
-
-      static const char* unit_visual {"()"};
-
-      cairo_text_extents_t extents {};
-      context.text_extents(unit_visual, &extents);
-
-      context.move_to(
-        position[0] - extents.width / 2,
-        position[1] + extents.height / 2
-      );
-      context.show_text(unit_visual);
-
-      return {&position};
+      return surface;
     }
   }
 } // namespace meevax::system
