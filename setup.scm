@@ -390,10 +390,20 @@
 ; (define even?
 ;   (lambda (n)
 ;     (= (remainder n 2) 0)))
-;
+
+(define even?
+  (lambda (n)
+    (if (zero? n) #true
+        (odd? (- n 1)))))
+
 ; (define odd?
 ;   (lambda (n)
 ;     (not (even? n))))
+
+(define odd?
+  (lambda (n)
+    (if (zero? n) #false
+        (even? (- n 1)))))
 
 (define abs
   (lambda (n)

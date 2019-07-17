@@ -52,7 +52,8 @@ namespace meevax::system
       }
     }
 
-    virtual std::ostream& write(std::ostream& os) const
+    virtual auto dispatch(std::ostream& os) const
+      -> decltype(os)
     {
       return os << static_cast<const T&>(*this);
     };
@@ -112,8 +113,9 @@ namespace meevax::system
         }
       }
 
-      // Override T::write(), then invoke Bound's stream output operator.
-      std::ostream& write(std::ostream& os) const override
+      // Override T::dispatch(), then invoke Bound's stream output operator.
+      auto dispatch(std::ostream& os) const
+        -> decltype(os) override
       {
         if constexpr (concepts::is_stream_insertable<Bound>::value)
         {
@@ -176,10 +178,6 @@ namespace meevax::system
       return type() == typeid(U);
     }
 
-    // TODO
-    // ポインタを返すキャストインタフェースを用意して、
-    // ダイナミックキャスト後のポインタの無効値部分に型情報を埋め込む事で、
-    // 将来的なコンパイラ最適化に使えるかも
     template <typename U>
     U& as() const
     {
@@ -192,7 +190,7 @@ namespace meevax::system
 
     bool equals(const pointer& rhs) const
     {
-      if (type() != rhs.type())
+      if (type() != rhs.type()) // TODO REMOVE IF OTHER NUMERICAL TYPE IMPLEMENTED
       {
         return false;
       }
@@ -203,12 +201,18 @@ namespace meevax::system
     }
   };
 
-  // Invoke T::write()
   template <typename T>
-  std::ostream& operator<<(std::ostream& os, const pointer<T>& object)
+  auto write(const pointer<T>& object, std::ostream& os = std::cout)
+    -> decltype(os)
   {
     // write(os) will be dispatched to each type's stream output operator.
-    return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().write(os);
+    return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().dispatch(os);
+  }
+
+  template <typename T>
+  decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
+  {
+    return write(object, os);
   }
 } // namespace meevax::system
 

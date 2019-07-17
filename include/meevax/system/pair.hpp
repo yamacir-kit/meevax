@@ -1,6 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
+#include <iostream>
+#include <utility>
+
 #include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
 
@@ -13,7 +16,7 @@ namespace meevax::system
    *
    * We implemented heterogenous pointer by type-erasure, this is very flexible
    * but, requires dynamic-cast to restore erased type in any case. So, we
-   * decided to remove typecheck for pair type, by always waste  memory space
+   * decided to remove typecheck for pair type, by always waste memory space
    * for two heterogenous pointer slot (yes, is cons-cell). If pair selector
    * (car/cdr) always requires typecheck, our system will be unbearlably slowly.
    * Built-in types are designed to make the best possible use of the fact that
@@ -29,7 +32,7 @@ namespace meevax::system
     , public facade<pair>
   {
     template <typename... Ts>
-    constexpr pair(Ts&&... args)
+    explicit constexpr pair(Ts&&... args)
       : std::pair<object, object> {std::forward<Ts>(args)...}
     {}
 
@@ -70,11 +73,12 @@ namespace meevax::system
   SELECTOR(car, 0)
   SELECTOR(cdr, 1)
 
-  std::ostream& operator<<(std::ostream& os, const pair& p)
+  auto operator<<(std::ostream& os, const pair& pare)
+    -> decltype(os)
   {
-    os << "\x1b[35m(\x1b[0m" << std::get<0>(p);
+    os << "\x1b[35m(\x1b[0m" << std::get<0>(pare);
 
-    for (auto object {std::get<1>(p)}; object; object = cdr(object))
+    for (auto object {std::get<1>(pare)}; object; object = cdr(object))
     {
       if (object.is<pair>())
       {

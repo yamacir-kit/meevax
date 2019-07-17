@@ -51,25 +51,25 @@ extern "C"
   PROCEDURE(less)
   {
     using namespace meevax::system;
-    return std::invoke(std::less {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
+    return std::invoke(std::less {}, car(args), cadr(args)) ? _true_ : _false_;
   }
 
   PROCEDURE(less_equal)
   {
     using namespace meevax::system;
-    return std::invoke(std::less_equal {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
+    return std::invoke(std::less_equal {}, car(args), cadr(args)) ? _true_ : _false_;
   }
 
   PROCEDURE(greater)
   {
     using namespace meevax::system;
-    return std::invoke(std::greater {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
+    return std::invoke(std::greater {}, car(args), cadr(args)) ? _true_ : _false_;
   }
 
   PROCEDURE(greater_equal)
   {
     using namespace meevax::system;
-    return std::invoke(std::greater_equal {}, car(args).as<real>(), cadr(args).as<real>()) ? _true_ : _false_;
+    return std::invoke(std::greater_equal {}, car(args), cadr(args)) ? _true_ : _false_;
   }
 
   PROCEDURE(real_)

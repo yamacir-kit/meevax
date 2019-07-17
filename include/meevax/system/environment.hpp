@@ -43,14 +43,16 @@ namespace meevax::system
     // TODO RENAME TO "char_ready"
     auto ready() const noexcept
     {
-      return static_cast<bool>(*this);
+      return reader<environment>::operator bool();
     }
 
     // TODO RENAME TO "global_define"
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... args)
     {
-      return machine<environment>::define(intern(name), make<T>(name, std::forward<Ts>(args)...));
+      return system::machine<environment>::define(
+               intern(name), make<T>(name, std::forward<Ts>(args)...)
+             );
     }
 
     const auto& intern(const std::string& s)
@@ -294,6 +296,69 @@ namespace meevax::system
       catch (...)
       {
         return make<symbol>();
+      }
+    });
+
+    define<procedure>("dynamic-link-open", [&](auto&& args)
+    {
+      if (auto size {length(args)}; size < 1)
+      {
+        throw error {"procedure dynamic-link-open expects a string for argument, but received nothing."};
+      }
+      else if (const object& s {car(args)}; not s.is<string>())
+      {
+        throw error {
+                "procedure dynamic-link-open expects a string for argument, but received ",
+                meevax::utility::demangle(s.type()),
+                " rest ", size, " argument",
+                (size < 2 ? " " : "s "),
+                "were ignored."
+              };
+      }
+      else
+      {
+        return make<meevax::posix::linker>(s.template as<string>());
+      }
+    });
+
+    define<procedure>("dynamic-link-procedure", [&](auto&& args)
+    {
+      if (auto size {length(args)}; size < 1)
+      {
+        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received nothing."};
+      }
+      else if (size < 2)
+      {
+        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received only one argument."};
+      }
+      else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
+      {
+        throw error {
+                "procedure dynamic-link-open expects a linker for first argument, but received ",
+                meevax::utility::demangle(linker.type()),
+                " rest ", size - 1, " argument",
+                (size < 2 ? " " : "s "),
+                "were ignored."
+              };
+      }
+      else if (const auto& name {cadr(args)}; not name.template is<string>())
+      {
+        throw error {
+                "procedure dynamic-link-open expects a string for second argument, but received ",
+                meevax::utility::demangle(name.type()),
+                " rest ", size - 2, " argument",
+                (size < 3 ? " " : "s "),
+                "were ignored."
+              };
+      }
+      else
+      {
+        const auto& linker_ {car(args).template as<meevax::posix::linker>()};
+        const std::string& name_ {cadr(args).template as<string>()};
+        return make<procedure>(
+                 name_, // TODO リンクしてるライブラリ名を名前に含めること（#<procedure hoge from libhoge.so>）
+                 linker_.template link<typename procedure::signature>(name_)
+               );
       }
     });
   } // environment class default constructor

@@ -10,12 +10,13 @@ namespace meevax::system
     : public std::string
   {
     template <typename... Ts>
-    constexpr symbol(Ts&&... args)
+    explicit constexpr symbol(Ts&&... args)
       : std::string {std::forward<Ts>(args)...}
     {}
   };
 
-  std::ostream& operator<<(std::ostream& os, const symbol& symbol)
+  auto operator<<(std::ostream& os, const symbol& symbol)
+    -> decltype(os)
   {
     if (symbol.empty())
     {
