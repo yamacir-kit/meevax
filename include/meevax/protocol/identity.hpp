@@ -34,7 +34,7 @@ namespace meevax::protocol
         std::max(0, 0), // y
         std::max(1, 1), // width (at least 1 required)
         std::max(1, 1), // height (at least 1 required)
-        std::max(0, 0), // border width
+        std::max(2, 0), // border width
         XCB_WINDOW_CLASS_INPUT_OUTPUT,
         XCB_COPY_FROM_PARENT, // std::begin(screen {connection})->root_visual,
         0, // window attributes

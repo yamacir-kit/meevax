@@ -20,7 +20,11 @@ int main() try
 {
   meevax::system::environment program {meevax::system::scheme_report_environment<7>};
 
+  /**
+   * Visualization generates new visual machine as detached thread.
+   */
   program.visualize();
+
   program.visual().configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
   program.visual().size(1280, 720);
   program.visual().flush();
@@ -33,7 +37,7 @@ int main() try
     {
       meevax::visual::context context {program.visual()};
       {
-        context.set_source_rgb(0xF5 / 256.0, 0xF5 / 256.0, 0xF5 / 256.0);
+        context.set_source_rgb(1, 1, 1);
         context.paint();
 
         write(expression, program.visual());

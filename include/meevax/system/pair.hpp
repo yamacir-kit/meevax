@@ -9,7 +9,7 @@
 #include <meevax/system/pointer.hpp>
 #include <meevax/system/exception.hpp>
 
-#include <meevax/visual/behavior.hpp>
+// #include <meevax/visual/behavior.hpp>
 #include <meevax/visual/context.hpp>
 #include <meevax/visual/surface.hpp>
 

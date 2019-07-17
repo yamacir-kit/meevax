@@ -92,8 +92,8 @@ namespace meevax::system
       {
         if (not visualized())
         {
-          visualize();
-          return write(static_cast<T&>(*this), surface);
+          visualize(surface);
+          return write(static_cast<T&>(*this), visual());
         }
         else return surface;
       }
