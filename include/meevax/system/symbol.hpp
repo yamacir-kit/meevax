@@ -4,10 +4,6 @@
 #include <iostream>
 #include <string>
 
-// #include <meevax/visual/behavior.hpp>
-#include <meevax/visual/context.hpp>
-#include <meevax/visual/surface.hpp>
-
 namespace meevax::system
 {
   struct symbol
@@ -31,59 +27,6 @@ namespace meevax::system
       return os << static_cast<const std::string&>(symbol);
     }
   }
-
-  auto write(const symbol& symbol, const visual::surface& surface)
-    -> decltype(surface)
-  {
-    visual::context context {surface};
-
-    context.set_source_rgb(1, 1, 1);
-    context.paint();
-
-    context.set_source_rgb(1, 1, 1);
-    context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    context.set_font_size(32);
-
-    cairo_text_extents_t extents {};
-    context.text_extents(symbol.c_str(), &extents);
-
-    context.move_to(0, -extents.y_bearing);
-    context.show_text(symbol.c_str());
-
-    // XXX ここの実行は初回だけで十分
-    surface.configure(
-      XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
-      static_cast<std::uint32_t>(extents.x_advance),
-      static_cast<std::uint32_t>(extents.height)
-    );
-    surface.size(extents.x_advance, extents.height);
-
-    return surface;
-  }
-
-  // auto visualize(visual::surface& surface, symbol& symbol)
-  //   -> visual::geometry
-  // {
-  //   visual::context context {surface};
-  //
-  //   context.set_source_rgb(0x4a / 256.0, 0x69 / 256.0, 0xbd / 256.0);
-  //   context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-  //   context.set_font_size(32);
-  //
-  //   cairo_text_extents_t extents {};
-  //   context.text_extents(symbol.c_str(), &extents);
-  //
-  //   context.move_to(
-  //     symbol.position[0] - extents.width / 2,
-  //     symbol.position[1] + extents.height / 2
-  //   );
-  //   context.show_text(symbol.c_str());
-  //
-  //   // extents.x_bearing, extents.y_bearing,
-  //   // extents.x_advance, extents.y_advance;
-  //
-  //   return {&symbol.position};
-  // }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP

@@ -49,27 +49,6 @@ namespace meevax::system
     return os << "\x1B[36m" << real.str() << "\x1B[0m";
   }
 
-  // auto visualize(visual::surface& surface, real& real)
-  //   -> visual::geometry
-  // {
-  //   visual::context context {surface};
-  //
-  //   context.set_source_rgb(0x4a / 256.0, 0x69 / 256.0, 0xbd / 256.0);
-  //   context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-  //   context.set_font_size(32);
-  //
-  //   cairo_text_extents_t extents {};
-  //   context.text_extents(real.str().c_str(), &extents);
-  //
-  //   context.move_to(
-  //     real.position[0] - extents.width / 2,
-  //     real.position[1] + extents.height / 2
-  //   );
-  //   context.show_text(real.str().c_str());
-  //
-  //   return {&real.position};
-  // }
-
   #define DEFINE_NUMERICAL_BINARY_ARITHMETIC(OPERATOR)                         \
   decltype(auto) operator OPERATOR(const object& lhs, const object& rhs)       \
   {                                                                            \

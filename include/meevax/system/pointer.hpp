@@ -4,8 +4,6 @@
 #include <cassert>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
-#include <optional>
-#include <thread>
 #include <type_traits> // std::conditional
 #include <typeinfo> // typeid
 #include <utility> // std::forward
@@ -15,36 +13,11 @@
 #include <meevax/system/exception.hpp>
 #include <meevax/utility/demangle.hpp>
 
-#include <meevax/concepts/is_visualizable.hpp>
-#include <meevax/visual/surface.hpp>
-
 namespace meevax::system
 {
   template <typename T>
   struct facade
-    : public std::optional<visual::surface>
   {
-    template <typename... Ts>
-    void visualize(Ts&&... xs)
-    {
-      emplace(std::forward<Ts>(xs)...);
-
-      std::thread([&]()
-      {
-        visual().drive();
-      }).detach();
-    }
-
-    decltype(auto) visual()
-    {
-      return value();
-    }
-
-    decltype(auto) visualized() const noexcept
-    {
-      return has_value();
-    }
-
     virtual auto type() const noexcept
       -> const std::type_info&
     {
@@ -84,25 +57,6 @@ namespace meevax::system
     {
       return os << static_cast<const T&>(*this);
     };
-
-    virtual auto dispatch(const visual::surface& surface)
-      -> decltype(surface)
-    {
-      if constexpr (concepts::is_visualizable<T>::value)
-      {
-        if (not visualized())
-        {
-          visualize(surface);
-          return write(static_cast<T&>(*this), visual());
-        }
-        else return surface;
-      }
-      else // DEBUG
-      {
-        std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(T)) << " ignored" << std::endl;
-        return surface;
-      }
-    }
   };
 
   /**
@@ -170,25 +124,6 @@ namespace meevax::system
         else
         {
           return os << "\x1b[36m#<" << utility::demangle(typeid(Bound)) << " " << static_cast<const Bound*>(this) << ">\x1b[0m";
-        }
-      }
-
-      auto dispatch(const visual::surface& surface)
-        -> decltype(surface) override
-      {
-        if constexpr (concepts::is_visualizable<Bound>::value)
-        {
-          if (not T::visualized())
-          {
-            T::visualize(surface);
-          }
-
-          return write(static_cast<Bound&>(*this), T::visual());
-        }
-        else
-        {
-          std::cerr << "; visualize\t; unimplemented type " << utility::demangle(typeid(Bound)) << " ignored" << std::endl;
-          return surface;
         }
       }
     };
@@ -278,39 +213,6 @@ namespace meevax::system
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
   {
     return write(object, os);
-  }
-
-  template <typename T>
-  auto write(const pointer<T>& object, const visual::surface& surface)
-    -> decltype(surface)
-  {
-    if (object)
-    {
-      return object.dereference().dispatch(surface);
-    }
-    else // visualization of nil
-    {
-      // static visual::point position {0, 0};
-      //
-      // visual::context context {surface};
-      //
-      // context.set_source_rgb(0xb7 / 256.0, 0x15 / 256.0, 0x40 / 256.0);
-      // context.select_font_face("Latin Modern Roman", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-      // context.set_font_size(32);
-      //
-      // static const char* unit_visual {"()"};
-      //
-      // cairo_text_extents_t extents {};
-      // context.text_extents(unit_visual, &extents);
-      //
-      // context.move_to(
-      //   position[0] - extents.width / 2,
-      //   position[1] + extents.height / 2
-      // );
-      // context.show_text(unit_visual);
-
-      return surface;
-    }
   }
 } // namespace meevax::system
 

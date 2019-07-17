@@ -1,56 +1,17 @@
-#include <chrono>
-#include <limits>
-#include <thread>
-
 #include <boost/cstdlib.hpp>
-
-#include <xcb/xcb.h>
-#include <xcb/xproto.h>
 
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/environment.hpp>
 #include <meevax/utility/demangle.hpp>
 
-#include <meevax/protocol/connection.hpp>
-#include <meevax/protocol/machine.hpp>
-#include <meevax/visual/context.hpp>
-#include <meevax/visual/surface.hpp>
-
 int main() try
 {
   meevax::system::environment program {meevax::system::scheme_report_environment<7>};
 
-  /**
-   * Visualization generates new visual machine as detached thread.
-   */
-  program.visualize();
-
-  program.visual().configure(XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, 1280u, 720u);
-  program.visual().size(1280, 720);
-  program.visual().flush();
-
-  meevax::system::object expression {};
-
-  std::thread([&]()
-  {
-    while (true)
-    {
-      meevax::visual::context context {program.visual()};
-      {
-        context.set_source_rgb(1, 1, 1);
-        context.paint();
-
-        write(expression, program.visual());
-      }
-      program.visual().flush();
-      std::this_thread::sleep_for(std::chrono::milliseconds {10});
-    }
-  }).detach();
-
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
     std::cout << "\n> " << std::flush;
-    expression = program.read();
+    const auto expression {program.read()};
     std::cerr << "\n; read    \t; " << expression << std::endl;
 
     const auto executable {program.compile(expression)};
