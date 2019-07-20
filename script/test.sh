@@ -1,27 +1,23 @@
 #!/bin/sh -eu
 
-project="$(cd "$(dirname $0)"; pwd)" # script path
+repository="$(git rev-parse --show-toplevel)" # repository root path
 
 for each in "$@"
 do
   case "$@" in
     "-b" | "--build" )
-      sh $project/build.sh
+      sh $repository/script/build.sh
       break;;
   esac
 done
 
-build="$project/build"
-
-if test ! -e $build
+if test ! -e $repository/build
 then
-  sh $project/build.sh
+  sh $repository/script/build.sh
 fi
 
-script="$project/test/test.scm"
-
 # sudo perf record -- $build/meevax < $script
-sudo perf stat -- $build/meevax < $script
+sudo perf stat -- $repository/build/meevax < $repository/test/test.scm
 # sudo perf report
 
 
