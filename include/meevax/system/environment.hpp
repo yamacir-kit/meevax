@@ -68,6 +68,11 @@ namespace meevax::system
       }
     }
 
+    decltype(auto) current_expression() noexcept
+    {
+      return std::get<0>(*this);
+    }
+
     decltype(auto) interaction_environment() noexcept
     {
       return static_cast<stack&>(std::get<1>(*this));
@@ -79,7 +84,7 @@ namespace meevax::system
 
       s = unit;
       e = list(operands);
-      c = std::get<0>(*this);
+      c = current_expression();
       d = cons(
             unit,         // s
             unit,         // e
