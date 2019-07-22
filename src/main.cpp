@@ -1,11 +1,32 @@
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <boost/cstdlib.hpp>
 
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/environment.hpp>
 #include <meevax/utility/demangle.hpp>
 
-int main() try
+int main(int argc, char** argv) try
 {
+  const std::vector<std::string> args {argv + 1, argv + argc};
+
+  for (auto iter {std::begin(args)}; iter != std::end(args); ++iter) [&]()
+  {
+    for (const auto& version : std::vector<std::string> {"-v", "--version"})
+    {
+      if (*iter == version)
+      {
+        std::cout << "Meevax Lisp System 0" << std::endl;
+        std::exit(boost::exit_success);
+      }
+    }
+
+    std::cerr << "; configure\t; unknown option \"" << *iter << "\"" << std::endl;
+    std::exit(boost::exit_failure);
+  }();
+
   meevax::system::environment program {meevax::system::scheme_report_environment<7>};
 
   for (program.open("/dev/stdin"); program.ready(); ) try
