@@ -2,9 +2,6 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(define dlopen dynamic-link-open)
-(define dlsym dynamic-link-procedure)
-
 (define fundamental.so (dlopen "./libmeevax-fundamental.so"))
 
 (define car  (dlsym fundamental.so "car"))

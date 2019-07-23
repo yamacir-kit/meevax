@@ -304,7 +304,7 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("dynamic-link-open", [&](auto&& args)
+    define<procedure>("dlopen", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
@@ -326,7 +326,7 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("dynamic-link-procedure", [&](auto&& args)
+    define<procedure>("dlsym", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
