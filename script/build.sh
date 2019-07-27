@@ -1,8 +1,8 @@
 #!/bin/sh -eu
 
-project=$(cd "$(dirname $0)"; pwd) # script path
+script=$(cd "$(dirname $0)"; pwd) # script path
 
-build="$project/build"
+build="$(git rev-parse --show-toplevel)/build"
 
 mkdir -vp $build
 cd $build

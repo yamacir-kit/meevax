@@ -2,9 +2,6 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(define dlopen dynamic-link-open)
-(define dlsym dynamic-link-procedure)
-
 (define fundamental.so (dlopen "./libmeevax-fundamental.so"))
 
 (define car  (dlsym fundamental.so "car"))
@@ -52,7 +49,7 @@
 (define list-tail
   (lambda (x k)
     (if (zero? k) x
-        (list-tail (cdr list.) (- k 1)))))
+        (list-tail (cdr x) (- k 1)))))
 
 (define list-ref
   (lambda (list. k)

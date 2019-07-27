@@ -27,7 +27,24 @@ if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/README.md.cmake)
   configure_file(${${PROJECT_NAME}_CONFIGURE_DIR}/README.md.cmake ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
 
+string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d %H:%M:%S")
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  execute_process(
+    COMMAND git rev-parse HEAD
+    COMMAND tr -d "\n"
+    OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH)
+else()
+  set(${PROJECT_NAME}_BUILD_HASH "build with no git support")
+endif()
+
 set(${PROJECT_NAME}_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configure.hpp.cmake)
+  configure_file(
+    ${${PROJECT_NAME}_CONFIGURE_DIR}/configure.hpp.cmake
+    ${${PROJECT_NAME}_INCLUDE_DIR}/meevax/configure.hpp)
+endif()
+
 include_directories(
   ${${PROJECT_NAME}_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS}

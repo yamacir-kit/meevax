@@ -15,6 +15,7 @@
 #include <meevax/system/srfi-1.hpp> // assoc
 #include <meevax/system/stack.hpp>
 #include <meevax/system/symbol.hpp> // object::is<symbol>()
+
 #include <meevax/utility/debug.hpp>
 
 #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
@@ -28,15 +29,15 @@ namespace meevax::system
     stack s, // main stack
           e, // lexical environment
           c, // control
-          d; // dump
+          d; // dump (continuation)
 
   public:
-    machine()
-      : s {unit}
-      , e {unit}
-      , c {unit}
-      , d {unit}
-    {}
+    // machine()
+    //   : s {unit}
+    //   , e {unit}
+    //   , c {unit}
+    //   , d {unit}
+    // {}
 
     decltype(auto) interaction_environment()
     {
@@ -378,9 +379,9 @@ namespace meevax::system
       bool variadic;
 
     public:
-      de_bruijn_index(const object& variable,
-                      const object& lexical_environment)
-        : object {locate(variable, lexical_environment)}
+      template <typename... Ts>
+      de_bruijn_index(Ts&&... xs)
+        : object {locate(std::forward<Ts>(xs)...)}
       {}
 
       object locate(const object& variable,
