@@ -35,9 +35,11 @@
 (define file-system.so
   (linker "./libmeevax-file-system.so"))
 
-(define input-port?  (link file-system.so "input_file_"))
-(define output-port? (link file-system.so "output_file_"))
+(define input-file? (link file-system.so "input_file_"))
+(define output-file? (link file-system.so "output_file_"))
 
+(define open-input-file (link file-system.so "open_input_file"))
+(define open-output-file (link file-system.so "open_output_file"))
 
 ; ------------------------------------------------------------------------------
 ;   Setup CxR
