@@ -2,32 +2,32 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(define fundamental.so (dlopen "./libmeevax-fundamental.so"))
+(define fundamental.so (linker "./libmeevax-fundamental.so"))
 
-(define car  (dlsym fundamental.so "car"))
-(define cdr  (dlsym fundamental.so "cdr"))
-(define cons (dlsym fundamental.so "cons"))
+(define car  (link fundamental.so "car"))
+(define cdr  (link fundamental.so "cdr"))
+(define cons (link fundamental.so "cons"))
 
-(define numerical.so (dlopen "./libmeevax-numerical.so"))
+(define numerical.so (linker "./libmeevax-numerical.so"))
 
-(define *  (dlsym numerical.so "multiplication"))
-(define +  (dlsym numerical.so "addition"))
-(define -  (dlsym numerical.so "subtraction"))
-(define /  (dlsym numerical.so "division"))
-(define <  (dlsym numerical.so "less"))
-(define <= (dlsym numerical.so "less_equal"))
-(define >  (dlsym numerical.so "greater"))
-(define >= (dlsym numerical.so "greater_equal"))
+(define *  (link numerical.so "multiplication"))
+(define +  (link numerical.so "addition"))
+(define -  (link numerical.so "subtraction"))
+(define /  (link numerical.so "division"))
+(define <  (link numerical.so "less"))
+(define <= (link numerical.so "less_equal"))
+(define >  (link numerical.so "greater"))
+(define >= (link numerical.so "greater_equal"))
 
-(define real? (dlsym numerical.so "real_"))
+(define real? (link numerical.so "real_"))
 
-(define experimental.so (dlopen "./libmeevax-experimental.so"))
+(define experimental.so (linker "./libmeevax-experimental.so"))
 
-(define display        (dlsym experimental.so "display"))
-(define emergency-exit (dlsym experimental.so "emergency_exit"))
-(define eq?            (dlsym experimental.so "eq_"))
-(define eqv?           (dlsym experimental.so "eqv_"))
-(define pair?          (dlsym experimental.so "pair_"))
+(define display        (link experimental.so "display"))
+(define emergency-exit (link experimental.so "emergency_exit"))
+(define eq?            (link experimental.so "eq_"))
+(define eqv?           (link experimental.so "eqv_"))
+(define pair?          (link experimental.so "pair_"))
 
 
 ; ------------------------------------------------------------------------------
