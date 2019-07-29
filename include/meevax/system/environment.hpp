@@ -43,7 +43,7 @@ namespace meevax::system
     // TODO RENAME TO "char_ready"
     auto ready() const noexcept
     {
-      return reader<environment>::operator bool();
+      return reader<environment>::char_ready();
     }
 
     // TODO RENAME TO "global_define"

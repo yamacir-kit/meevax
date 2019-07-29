@@ -45,6 +45,11 @@ namespace meevax::system
       return static_cast<Environment&>(*this).intern(std::forward<Ts>(args)...);
     }
 
+    auto char_ready() const noexcept
+    {
+      return operator bool();
+    }
+
     object read()
     {
       std::string buffer {};
