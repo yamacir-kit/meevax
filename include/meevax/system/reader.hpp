@@ -1,16 +1,14 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_READER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_READER_HPP
 
-#include <fstream>
 #include <limits> // std::numeric_limits<std::streamsize>
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/exception.hpp>
+#include <meevax/system/file.hpp>
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
-
-// TODO ポート型として標準ストリームを使うこと（リーダはストリームアダプタ）
 
 namespace meevax::system
 {
@@ -21,9 +19,9 @@ namespace meevax::system
    */
   template <typename Environment>
   class reader
-    : public std::ifstream
+    : public input_file
   {
-    using seeker = std::istream_iterator<std::ifstream::char_type>;
+    using seeker = std::istream_iterator<input_file::char_type>;
 
     static inline const auto error_pair {make<read_error<category::pair>>(
       "ill-formed dot-notation"
@@ -36,7 +34,7 @@ namespace meevax::system
   public:
     template <typename... Ts>
     constexpr reader(Ts&&... args)
-      : std::ifstream {std::forward<Ts>(args)...}
+      : input_file {std::forward<Ts>(args)...}
     {}
 
     template <typename... Ts>
