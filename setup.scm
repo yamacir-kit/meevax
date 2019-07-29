@@ -103,7 +103,7 @@
          (reverse lists)))))
 
 (define and
-  (macro <tests>
+  (environment <tests>
     (if (null? <tests>) #true
     (if (null? (cdr <tests>))
         (car <tests>)
@@ -117,7 +117,7 @@
                         (cdr <tests>))))))))
 
 (define or
-  (macro <tests>
+  (environment <tests>
     (if (null? <tests>) #false
     (if (null? (cdr <tests>))
         (car <tests>)
@@ -171,7 +171,7 @@
                                               (quasiquote-expand      (cdr e) depth)))))))))
 
 (define quasiquote
-  (macro (<template>)
+  (environment (<template>)
     (quasiquote-expand <template> 0)))
 
 
@@ -189,7 +189,7 @@
 (define map map-1) ; temporary (for unnamed-let)
 
 (define unnamed-let
-  (macro (bindings . body)
+  (environment (bindings . body)
    `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
 
 (define undefined) ; hacking
@@ -202,7 +202,7 @@
 (define let unnamed-let) ; temporary (for letrec)
 
 (define letrec*
-  (macro (bindings . body)
+  (environment (bindings . body)
     (let ((identifiers (map car bindings)))
      `(let ,(map (lambda (e) `(,e ,undefined)) identifiers)
         ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
@@ -211,14 +211,14 @@
 (define letrec letrec*) ; this is not currect
 
 (define let
-  (macro (bindings . body)
+  (environment (bindings . body)
     (if (pair? bindings)
        `(unnamed-let ,bindings ,@body)
        `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
           (,bindings ,@(map cadr (car body)))))))
 
 (define let*
-  (macro (<specs> . <body>)
+  (environment (<specs> . <body>)
     (if (or (null? <specs>)
             (null? (cdr <specs>)))
        `(let (,(car <specs>)) ,@<body>)
@@ -232,7 +232,7 @@
 (define else #true)
 
 (define cond
-  (macro clauses
+  (environment clauses
     (if (null? clauses) undefined
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
@@ -244,7 +244,7 @@
                     (cond ,@(cdr clauses))))))))
 
 (define case
-  (macro (key . clauses)
+  (environment (key . clauses)
     (if (null? clauses) 'undefined
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
@@ -259,12 +259,12 @@
 (define call/cc call-with-current-continuation)
 
 ; (define current-lexical-environment
-;   (macro ()
+;   (environment ()
 ;     (list 'cdr (list 'lambda '() '()))))
 ;
 ; (define interaction-environment
-;   (macro ()
-;     (list 'cdr (list 'macro '() '()))))
+;   (environment ()
+;     (list 'cdr (list 'environment '() '()))))
 ;
 ; (define rename
 ;   (lambda (x)
@@ -369,11 +369,11 @@
 ;               (pair-copy-deep (cdr object))))))
 
 (define when
-  (macro (<test> . <expression>)
+  (environment (<test> . <expression>)
    `(if ,<test> (begin ,@<expression>))))
 
 (define unless
-  (macro (<test> . <expression>)
+  (environment (<test> . <expression>)
    `(if (not ,<test>) (begin ,@<expression>))))
 
 (define equal?
@@ -462,7 +462,7 @@
     (display "\n")))
 
 (define swap!
-  (macro (a b)
+  (environment (a b)
     (let ((x (symbol)))
      `(let ((,x ,a))
         (set! ,a ,b)

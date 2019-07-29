@@ -50,7 +50,7 @@ namespace meevax::system
 
     object read()
     {
-      std::string buffer {};
+      std::string token {};
 
       for (seeker head {*this}; head != seeker {}; ++head) switch (*head)
       {
@@ -64,9 +64,9 @@ namespace meevax::system
       case '(':
         try
         {
-          auto buffer {read()};
+          auto expression {read()};
           putback('(');
-          return cons(buffer, read());
+          return cons(expression, read());
         }
         catch (const object& object)
         {
@@ -76,9 +76,9 @@ namespace meevax::system
           }
           else if (object == error_pair)
           {
-            auto buffer {read()};
+            auto expression {read()};
             ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-            return buffer;
+            return expression;
           }
           else
           {
@@ -145,21 +145,21 @@ namespace meevax::system
         return discriminate();
 
       default:
-        buffer.push_back(*head);
+        token.push_back(*head);
 
         if (auto c {peek()}; is_delimiter(c)) // delimiter
         {
-          if (buffer == ".")
+          if (token == ".")
           {
             throw error_pair;
           }
           else try // is symbol or real
           {
-            return make<real>(buffer);
+            return make<real>(token);
           }
           catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
           {
-            return intern(buffer);
+            return intern(token);
           }
         }
       }

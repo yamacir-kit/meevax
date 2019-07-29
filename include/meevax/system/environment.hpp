@@ -267,7 +267,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
+    define<special>("environment", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
 
