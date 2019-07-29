@@ -43,7 +43,7 @@ namespace meevax::system
     // TODO RENAME TO "char_ready"
     auto ready() const noexcept
     {
-      return reader<environment>::char_ready();
+      return reader<environment>::ready();
     }
 
     // TODO RENAME TO "global_define"
@@ -292,7 +292,7 @@ namespace meevax::system
       return load(car(args).as<const string>());
     });
 
-    define<procedure>("make-symbol", [&](const object& args)
+    define<procedure>("symbol", [&](const object& args)
     {
       try
       {

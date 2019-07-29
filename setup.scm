@@ -449,7 +449,7 @@
 
 (define swap!
   (macro (a b)
-    (let ((x (make-symbol)))
+    (let ((x (symbol)))
      `(let ((,x ,a))
         (set! ,a ,b)
         (set! ,b ,x)))))

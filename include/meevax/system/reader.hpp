@@ -45,7 +45,7 @@ namespace meevax::system
       return static_cast<Environment&>(*this).intern(std::forward<Ts>(args)...);
     }
 
-    auto char_ready() const noexcept
+    decltype(auto) ready() const noexcept
     {
       return operator bool();
     }
@@ -144,7 +144,7 @@ namespace meevax::system
         }
 
       case '#':
-        return expand();
+        return discriminate();
 
       default:
         buffer.push_back(*head);
@@ -195,7 +195,7 @@ namespace meevax::system
       }
     }
 
-    object expand()
+    object discriminate()
     {
       switch (peek())
       {
