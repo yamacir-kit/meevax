@@ -2,13 +2,15 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(define fundamental.so (linker "./libmeevax-fundamental.so"))
+(define fundamental.so
+  (linker "./libmeevax-fundamental.so"))
 
 (define car  (link fundamental.so "car"))
 (define cdr  (link fundamental.so "cdr"))
 (define cons (link fundamental.so "cons"))
 
-(define numerical.so (linker "./libmeevax-numerical.so"))
+(define numerical.so
+  (linker "./libmeevax-numerical.so"))
 
 (define *  (link numerical.so "multiplication"))
 (define +  (link numerical.so "addition"))
@@ -21,7 +23,8 @@
 
 (define real? (link numerical.so "real_"))
 
-(define experimental.so (linker "./libmeevax-experimental.so"))
+(define experimental.so
+  (linker "./libmeevax-experimental.so"))
 
 (define display        (link experimental.so "display"))
 (define emergency-exit (link experimental.so "emergency_exit"))
@@ -29,6 +32,17 @@
 (define eqv?           (link experimental.so "eqv_"))
 (define pair?          (link experimental.so "pair_"))
 
+(define file-system.so
+  (linker "./libmeevax-file-system.so"))
+
+(define input-file? (link file-system.so "input_file_"))
+(define output-file? (link file-system.so "output_file_"))
+
+(define open-input-file (link file-system.so "open_input_file"))
+(define open-output-file (link file-system.so "open_output_file"))
+
+(define close-input-file (link file-system.so "close_input_file"))
+(define close-output-file (link file-system.so "close_output_file"))
 
 ; ------------------------------------------------------------------------------
 ;   Setup CxR
@@ -449,7 +463,7 @@
 
 (define swap!
   (macro (a b)
-    (let ((x (make-symbol)))
+    (let ((x (symbol)))
      `(let ((,x ,a))
         (set! ,a ,b)
         (set! ,b ,x)))))
@@ -457,6 +471,14 @@
 (define square
   (lambda (x)
     (* x x)))
+
+(define close-file
+  (lambda (object)
+    (if (input-file? object)
+        (close-input-file object)
+        (if (output-file? object)
+            (close-output-file object)
+           '())))) ; TODO unspecified
 
 
 ; ------------------------------------------------------------------------------
