@@ -29,7 +29,14 @@ namespace meevax::system
   auto operator<<(std::ostream& os, const file& file)
     -> decltype(os)
   {
-    return os << "\x1b[36m#(file \"" << file.path << "\")\x1b[0m";
+    os << "#(file";
+
+    if (file.is_open())
+    {
+      os << " \"" << file.path << "\"";
+    }
+
+    return os << ")";
   }
 
   struct input_file
@@ -51,7 +58,14 @@ namespace meevax::system
   auto operator<<(std::ostream& os, const input_file& file)
     -> decltype(os)
   {
-    return os << "\x1b[36m#(input-file \"" << file.path << "\")\x1b[0m";
+    os << "#(input-file";
+
+    if (file.is_open())
+    {
+      os << " \"" << file.path << "\"";
+    }
+
+    return os << ")";
   }
 
   struct output_file
@@ -73,7 +87,14 @@ namespace meevax::system
   auto operator<<(std::ostream& os, const output_file& file)
     -> decltype(os)
   {
-    return os << "\x1b[36m#(output-file \"" << file.path << "\")\x1b[0m";
+    os << "#(output-file";
+
+    if (file.is_open())
+    {
+      os << " \"" << file.path << "\"";
+    }
+
+    return os << ")";
   }
 } // namespace meevax::system
 
