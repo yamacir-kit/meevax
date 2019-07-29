@@ -41,6 +41,9 @@
 (define open-input-file (link file-system.so "open_input_file"))
 (define open-output-file (link file-system.so "open_output_file"))
 
+(define close-input-file (link file-system.so "close_input_file"))
+(define close-output-file (link file-system.so "close_output_file"))
+
 ; ------------------------------------------------------------------------------
 ;   Setup CxR
 ; ------------------------------------------------------------------------------
@@ -468,6 +471,14 @@
 (define square
   (lambda (x)
     (* x x)))
+
+(define close-file
+  (lambda (object)
+    (if (input-file? object)
+        (close-input-file object)
+        (if (output-file? object)
+            (close-output-file object)
+           '())))) ; TODO unspecified
 
 
 ; ------------------------------------------------------------------------------

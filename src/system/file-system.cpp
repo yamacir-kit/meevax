@@ -30,5 +30,19 @@ extern "C"
     using namespace meevax::system;
     return make<output_file>(car(args).as<string>());
   }
+
+  PROCEDURE(close_input_file) // close-input-file
+  {
+    using namespace meevax::system;
+    car(args).as<input_file>().close();
+    return unspecified;
+  }
+
+  PROCEDURE(close_output_file) // close-output-file
+  {
+    using namespace meevax::system;
+    car(args).as<output_file>().close();
+    return unspecified;
+  }
 } // extern "C"
 
