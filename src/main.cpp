@@ -19,22 +19,24 @@ int main(int argc, char** argv) try
 
   for (auto iter {std::begin(args)}; iter != std::end(args); ++iter) [&]()
   {
+    using namespace meevax::system;
+
     if (*iter == "-v")
     {
-      std::cout << meevax::version << std::endl;
+      std::cout << version << std::endl;
       std::exit(boost::exit_success);
     }
 
     if (*iter == "--version")
     {
-      using namespace meevax;
-
       std::cout << "; Meevax Lisp System " << version_major << " - Revision " << version_minor << " Patch " << version_patch << std::endl;
       std::cout << ";" << std::endl;
       std::cout << "; version   \t; " << version    << std::endl;
       std::cout << "; build-date\t; " << build_date << std::endl;
       std::cout << "; build-hash\t; " << build_hash << std::endl;
       std::cout << "; build-type\t; " << build_type << std::endl;
+      std::cout << ";" << std::endl;
+      std::cout << "; install\t; " << install_prefix << std::endl;
 
       std::exit(boost::exit_success);
     }
