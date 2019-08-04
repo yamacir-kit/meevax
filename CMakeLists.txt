@@ -39,6 +39,7 @@ else()
 endif()
 
 set(${PROJECT_NAME}_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configure.hpp.cmake)
   configure_file(
     ${${PROJECT_NAME}_CONFIGURE_DIR}/configure.hpp.cmake

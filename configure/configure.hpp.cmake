@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_CONFIGURE_HPP
 #define INCLUDED_MEEVAX_CONFIGURE_HPP
 
+#include <string>
+
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/srfi-1.hpp>
 
@@ -15,6 +17,8 @@ namespace meevax
   static const std::string build_date {"${${PROJECT_NAME}_BUILD_DATE}"};
   static const std::string build_hash {"${${PROJECT_NAME}_BUILD_HASH}"};
   static const std::string build_type {"${CMAKE_BUILD_TYPE}"};
+
+  static const std::string install_prefix {"${CMAKE_INSTALL_PREFIX}"};
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_CONFIGURE_HPP
