@@ -68,7 +68,7 @@ set_target_properties(${PROJECT_NAME}-literal PROPERTIES
 # ==============================================================
 #   MEEVAX STANDARD LIBRARIES (SHARED OBJECTS)
 # ==============================================================
-file(GLOB ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/system/*.cpp)
+file(GLOB ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/standard/*.cpp)
 # message(${${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES})
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
@@ -87,7 +87,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   )
 endforeach()
 
-# message("${${PROJECT_NAME}_STANDARD_LIBRARIES}") # DEBUG
+message("${${PROJECT_NAME}_STANDARD_LIBRARIES}") # DEBUG
 
 # ==============================================================
 #   MEEVAX EXECUTABLE
