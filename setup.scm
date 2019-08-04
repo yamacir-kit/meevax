@@ -2,33 +2,47 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(define fundamental.so (dlopen "./libmeevax-fundamental.so"))
+(define fundamental.so
+  (linker "./libmeevax-fundamental.so"))
 
-(define car  (dlsym fundamental.so "car"))
-(define cdr  (dlsym fundamental.so "cdr"))
-(define cons (dlsym fundamental.so "cons"))
+(define car  (link fundamental.so "car"))
+(define cdr  (link fundamental.so "cdr"))
+(define cons (link fundamental.so "cons"))
 
-(define numerical.so (dlopen "./libmeevax-numerical.so"))
+(define numerical.so
+  (linker "./libmeevax-numerical.so"))
 
-(define *  (dlsym numerical.so "multiplication"))
-(define +  (dlsym numerical.so "addition"))
-(define -  (dlsym numerical.so "subtraction"))
-(define /  (dlsym numerical.so "division"))
-(define <  (dlsym numerical.so "less"))
-(define <= (dlsym numerical.so "less_equal"))
-(define >  (dlsym numerical.so "greater"))
-(define >= (dlsym numerical.so "greater_equal"))
+(define *  (link numerical.so "multiplication"))
+(define +  (link numerical.so "addition"))
+(define -  (link numerical.so "subtraction"))
+(define /  (link numerical.so "division"))
+(define <  (link numerical.so "less"))
+(define <= (link numerical.so "less_equal"))
+(define >  (link numerical.so "greater"))
+(define >= (link numerical.so "greater_equal"))
 
-(define real? (dlsym numerical.so "real_"))
+(define real? (link numerical.so "real_"))
 
-(define experimental.so (dlopen "./libmeevax-experimental.so"))
+(define experimental.so
+  (linker "./libmeevax-experimental.so"))
 
-(define display        (dlsym experimental.so "display"))
-(define emergency-exit (dlsym experimental.so "emergency_exit"))
-(define eq?            (dlsym experimental.so "eq_"))
-(define eqv?           (dlsym experimental.so "eqv_"))
-(define pair?          (dlsym experimental.so "pair_"))
+(define display        (link experimental.so "display"))
+(define emergency-exit (link experimental.so "emergency_exit"))
+(define eq?            (link experimental.so "eq_"))
+(define eqv?           (link experimental.so "eqv_"))
+(define pair?          (link experimental.so "pair_"))
 
+(define file-system.so
+  (linker "./libmeevax-file-system.so"))
+
+(define input-file? (link file-system.so "input_file_"))
+(define output-file? (link file-system.so "output_file_"))
+
+(define open-input-file (link file-system.so "open_input_file"))
+(define open-output-file (link file-system.so "open_output_file"))
+
+(define close-input-file (link file-system.so "close_input_file"))
+(define close-output-file (link file-system.so "close_output_file"))
 
 ; ------------------------------------------------------------------------------
 ;   Setup CxR
@@ -89,7 +103,7 @@
          (reverse lists)))))
 
 (define and
-  (macro <tests>
+  (environment <tests>
     (if (null? <tests>) #true
     (if (null? (cdr <tests>))
         (car <tests>)
@@ -103,7 +117,7 @@
                         (cdr <tests>))))))))
 
 (define or
-  (macro <tests>
+  (environment <tests>
     (if (null? <tests>) #false
     (if (null? (cdr <tests>))
         (car <tests>)
@@ -157,7 +171,7 @@
                                               (quasiquote-expand      (cdr e) depth)))))))))
 
 (define quasiquote
-  (macro (<template>)
+  (environment (<template>)
     (quasiquote-expand <template> 0)))
 
 
@@ -175,7 +189,7 @@
 (define map map-1) ; temporary (for unnamed-let)
 
 (define unnamed-let
-  (macro (bindings . body)
+  (environment (bindings . body)
    `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
 
 (define undefined) ; hacking
@@ -188,7 +202,7 @@
 (define let unnamed-let) ; temporary (for letrec)
 
 (define letrec*
-  (macro (bindings . body)
+  (environment (bindings . body)
     (let ((identifiers (map car bindings)))
      `(let ,(map (lambda (e) `(,e ,undefined)) identifiers)
         ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
@@ -197,14 +211,14 @@
 (define letrec letrec*) ; this is not currect
 
 (define let
-  (macro (bindings . body)
+  (environment (bindings . body)
     (if (pair? bindings)
        `(unnamed-let ,bindings ,@body)
        `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
           (,bindings ,@(map cadr (car body)))))))
 
 (define let*
-  (macro (<specs> . <body>)
+  (environment (<specs> . <body>)
     (if (or (null? <specs>)
             (null? (cdr <specs>)))
        `(let (,(car <specs>)) ,@<body>)
@@ -218,7 +232,7 @@
 (define else #true)
 
 (define cond
-  (macro clauses
+  (environment clauses
     (if (null? clauses) undefined
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
@@ -230,7 +244,7 @@
                     (cond ,@(cdr clauses))))))))
 
 (define case
-  (macro (key . clauses)
+  (environment (key . clauses)
     (if (null? clauses) 'undefined
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
@@ -245,12 +259,12 @@
 (define call/cc call-with-current-continuation)
 
 ; (define current-lexical-environment
-;   (macro ()
+;   (environment ()
 ;     (list 'cdr (list 'lambda '() '()))))
 ;
 ; (define interaction-environment
-;   (macro ()
-;     (list 'cdr (list 'macro '() '()))))
+;   (environment ()
+;     (list 'cdr (list 'environment '() '()))))
 ;
 ; (define rename
 ;   (lambda (x)
@@ -355,11 +369,11 @@
 ;               (pair-copy-deep (cdr object))))))
 
 (define when
-  (macro (<test> . <expression>)
+  (environment (<test> . <expression>)
    `(if ,<test> (begin ,@<expression>))))
 
 (define unless
-  (macro (<test> . <expression>)
+  (environment (<test> . <expression>)
    `(if (not ,<test>) (begin ,@<expression>))))
 
 (define equal?
@@ -448,8 +462,8 @@
     (display "\n")))
 
 (define swap!
-  (macro (a b)
-    (let ((x (make-symbol)))
+  (environment (a b)
+    (let ((x (symbol)))
      `(let ((,x ,a))
         (set! ,a ,b)
         (set! ,b ,x)))))
@@ -457,6 +471,14 @@
 (define square
   (lambda (x)
     (* x x)))
+
+(define close-file
+  (lambda (object)
+    (if (input-file? object)
+        (close-input-file object)
+        (if (output-file? object)
+            (close-output-file object)
+           '())))) ; TODO unspecified
 
 
 ; ------------------------------------------------------------------------------

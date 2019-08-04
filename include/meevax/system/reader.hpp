@@ -1,16 +1,14 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_READER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_READER_HPP
 
-#include <fstream>
 #include <limits> // std::numeric_limits<std::streamsize>
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/exception.hpp>
+#include <meevax/system/file.hpp>
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/string.hpp>
 #include <meevax/system/symbol.hpp>
-
-// TODO ポート型として標準ストリームを使うこと（リーダはストリームアダプタ）
 
 namespace meevax::system
 {
@@ -21,9 +19,9 @@ namespace meevax::system
    */
   template <typename Environment>
   class reader
-    : public std::ifstream
+    : public input_file
   {
-    using seeker = std::istream_iterator<std::ifstream::char_type>;
+    using seeker = std::istream_iterator<input_file::char_type>;
 
     static inline const auto error_pair {make<read_error<category::pair>>(
       "ill-formed dot-notation"
@@ -36,7 +34,7 @@ namespace meevax::system
   public:
     template <typename... Ts>
     constexpr reader(Ts&&... args)
-      : std::ifstream {std::forward<Ts>(args)...}
+      : input_file {std::forward<Ts>(args)...}
     {}
 
     template <typename... Ts>
@@ -45,9 +43,14 @@ namespace meevax::system
       return static_cast<Environment&>(*this).intern(std::forward<Ts>(args)...);
     }
 
+    decltype(auto) ready() const noexcept
+    {
+      return operator bool();
+    }
+
     object read()
     {
-      std::string buffer {};
+      std::string token {};
 
       for (seeker head {*this}; head != seeker {}; ++head) switch (*head)
       {
@@ -61,9 +64,9 @@ namespace meevax::system
       case '(':
         try
         {
-          auto buffer {read()};
+          auto expression {read()};
           putback('(');
-          return cons(buffer, read());
+          return cons(expression, read());
         }
         catch (const object& object)
         {
@@ -73,9 +76,9 @@ namespace meevax::system
           }
           else if (object == error_pair)
           {
-            auto buffer {read()};
+            auto expression {read()};
             ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-            return buffer;
+            return expression;
           }
           else
           {
@@ -139,24 +142,24 @@ namespace meevax::system
         }
 
       case '#':
-        return expand();
+        return discriminate();
 
       default:
-        buffer.push_back(*head);
+        token.push_back(*head);
 
         if (auto c {peek()}; is_delimiter(c)) // delimiter
         {
-          if (buffer == ".")
+          if (token == ".")
           {
             throw error_pair;
           }
           else try // is symbol or real
           {
-            return make<real>(buffer);
+            return make<real>(token);
           }
           catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
           {
-            return intern(buffer);
+            return intern(token);
           }
         }
       }
@@ -190,7 +193,7 @@ namespace meevax::system
       }
     }
 
-    object expand()
+    object discriminate()
     {
       switch (peek())
       {

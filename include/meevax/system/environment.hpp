@@ -43,7 +43,7 @@ namespace meevax::system
     // TODO RENAME TO "char_ready"
     auto ready() const noexcept
     {
-      return reader<environment>::operator bool();
+      return reader<environment>::ready();
     }
 
     // TODO RENAME TO "global_define"
@@ -267,7 +267,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("macro", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
+    define<special>("environment", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
 
@@ -292,7 +292,7 @@ namespace meevax::system
       return load(car(args).as<const string>());
     });
 
-    define<procedure>("make-symbol", [&](const object& args)
+    define<procedure>("symbol", [&](const object& args)
     {
       try
       {
@@ -304,16 +304,16 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("dlopen", [&](auto&& args)
+    define<procedure>("linker", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
-        throw error {"procedure dynamic-link-open expects a string for argument, but received nothing."};
+        throw error {"procedure linker expects a string for argument, but received nothing."};
       }
       else if (const object& s {car(args)}; not s.is<string>())
       {
         throw error {
-                "procedure dynamic-link-open expects a string for argument, but received ",
+                "procedure linker expects a string for argument, but received ",
                 meevax::utility::demangle(s.type()),
                 " rest ", size, " argument",
                 (size < 2 ? " " : "s "),
@@ -326,15 +326,15 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("dlsym", [&](auto&& args)
+    define<procedure>("link", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
-        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received nothing."};
+        throw error {"procedure link expects two arguments (linker and string), but received nothing."};
       }
       else if (size < 2)
       {
-        throw error {"procedure dynamic-link-procedure expects two arguments (linker and string), but received only one argument."};
+        throw error {"procedure link expects two arguments (linker and string), but received only one argument."};
       }
       else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
       {
