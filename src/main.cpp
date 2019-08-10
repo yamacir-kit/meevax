@@ -23,20 +23,20 @@ int main(int argc, char** argv) try
 
     if (*iter == "-v")
     {
-      std::cout << version << std::endl;
+      std::cout << configure::version << std::endl;
       std::exit(boost::exit_success);
     }
 
     if (*iter == "--version")
     {
-      std::cout << "; Meevax Lisp System " << version_major << " - Revision " << version_minor << " Patch " << version_patch << std::endl;
+      std::cout << "; Meevax Lisp System " << configure::version_major << " - Revision " << configure::version_minor << " Patch " << configure::version_patch << std::endl;
       std::cout << ";" << std::endl;
-      std::cout << "; version   \t; " << version    << std::endl;
-      std::cout << "; build-date\t; " << build_date << std::endl;
-      std::cout << "; build-hash\t; " << build_hash << std::endl;
-      std::cout << "; build-type\t; " << build_type << std::endl;
+      std::cout << "; version   \t; " << configure::version    << std::endl;
+      std::cout << "; build-date\t; " << configure::build_date << std::endl;
+      std::cout << "; build-hash\t; " << configure::build_hash << std::endl;
+      std::cout << "; build-type\t; " << configure::build_type << std::endl;
       std::cout << ";" << std::endl;
-      std::cout << "; install\t; " << install_prefix << std::endl;
+      std::cout << "; install\t; " << configure::install_prefix << std::endl;
 
       std::exit(boost::exit_success);
     }
