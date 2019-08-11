@@ -40,7 +40,7 @@ int main(int argc, char** argv) try
     std::exit(boost::exit_failure);
   }();
 
-  meevax::system::environment program {meevax::system::scheme_report_environment<7>};
+  meevax::system::environment program {meevax::system::standard_environment<0>};
 
   for (program.open("/dev/stdin"); program.ready(); ) try
   {

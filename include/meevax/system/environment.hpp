@@ -21,7 +21,7 @@
 namespace meevax::system
 {
   template <int Version>
-  static constexpr std::integral_constant<int, Version> scheme_report_environment = {};
+  static constexpr std::integral_constant<int, Version> standard_environment {};
 
   class environment
     : public closure // inherits pair type virtually
@@ -159,28 +159,14 @@ namespace meevax::system
   };
 
   template <>
-  environment::environment(std::integral_constant<int, 7>)
+  environment::environment(std::integral_constant<int, 0>)
   {
-    /* 7.1.3
-     *
-     * <quoation> = '<datum> | (quote <datum>)
-     *
-     */
     define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
       return cons(_load_literal_, car(expression), continuation);
     });
 
-    /* 7.1.3
-     *
-     * <conditional> = (if <test> <consequent> <alternate>)
-     *
-     * <test> = <expression>
-     * <consequent> = <expression>
-     * <alternate> = <expression> | <empty>
-     *
-     */
     define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
@@ -235,11 +221,6 @@ namespace meevax::system
       }
     });
 
-    /* 7.1.3
-     *
-     * (begin <sequence>)
-     *
-     */
     define<special>("begin", [&](auto&&... args)
     {
       return sequence(std::forward<decltype(args)>(args)...);
@@ -260,13 +241,6 @@ namespace meevax::system
              );
     });
 
-    /* 7.1.3
-     *
-     * <lambda expression> = (lambda <formals> <body>)
-     *
-     * <formals> = (<identifier>*) | (<identifier>+ . <identifier>) | <identifier>
-     *
-     */
     define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
