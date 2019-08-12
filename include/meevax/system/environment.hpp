@@ -55,7 +55,7 @@ namespace meevax::system
 
     // TODO RENAME TO "global_define"
     template <typename T, typename... Ts>
-    decltype(auto) define(const std::string& name, Ts&&... args)
+    decltype(auto) global_define(const std::string& name, Ts&&... args)
     {
       return system::machine<environment>::define(
                intern(name), make<T>(name, std::forward<Ts>(args)...)
@@ -161,13 +161,13 @@ namespace meevax::system
   template <>
   environment::environment(std::integral_constant<int, 0>)
   {
-    define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation, auto)
+    global_define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
       return cons(_load_literal_, car(expression), continuation);
     });
 
-    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
+    global_define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
 
@@ -203,7 +203,7 @@ namespace meevax::system
       }
     });
 
-    define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation, auto)
+    global_define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation, auto)
     {
       if (not region)
       {
@@ -221,12 +221,12 @@ namespace meevax::system
       }
     });
 
-    define<special>("begin", [&](auto&&... args)
+    global_define<special>("begin", [&](auto&&... args)
     {
       return sequence(std::forward<decltype(args)>(args)...);
     });
 
-    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    global_define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
 
@@ -241,7 +241,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    global_define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
 
@@ -256,7 +256,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("environment", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
+    global_define<special>("environment", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
     {
       TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
 
@@ -271,17 +271,17 @@ namespace meevax::system
              );
     });
 
-    define<special>("set!", [&](auto&&... args)
+    global_define<special>("set!", [&](auto&&... args)
     {
       return set(std::forward<decltype(args)>(args)...);
     });
 
-    define<procedure>("load", [&](const object& args)
+    global_define<procedure>("load", [&](const object& args)
     {
       return load(car(args).as<const string>());
     });
 
-    define<procedure>("symbol", [&](const object& args)
+    global_define<procedure>("symbol", [&](const object& args)
     {
       try
       {
@@ -293,7 +293,7 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("linker", [&](auto&& args)
+    global_define<procedure>("linker", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
@@ -315,7 +315,7 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("link", [&](auto&& args)
+    global_define<procedure>("link", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
