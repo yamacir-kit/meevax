@@ -205,6 +205,13 @@ namespace meevax::system
         read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
         return _false_;
 
+      case '(':
+        return static_cast<Environment&>(*this).execute(
+                 static_cast<Environment&>(*this).compile(
+                   read()
+                 )
+               );
+
       default:
         return undefined;
       }
