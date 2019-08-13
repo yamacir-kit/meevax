@@ -206,11 +206,19 @@ namespace meevax::system
         return _false_;
 
       case '(':
-        return static_cast<Environment&>(*this).execute(
-                 static_cast<Environment&>(*this).compile(
-                   read()
-                 )
-               );
+        {
+          auto evaluation_context {static_cast<Environment&>(*this)};
+
+          auto expression {read()};
+          auto executable {evaluation_context.compile(expression)};
+
+          return evaluation_context.execute(executable);
+        }
+        // return static_cast<Environment&>(*this).execute(
+        //          static_cast<Environment&>(*this).compile(
+        //            read()
+        //          )
+        //        );
 
       default:
         return undefined;
