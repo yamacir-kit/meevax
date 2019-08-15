@@ -15,7 +15,7 @@ extern "C"
   PROCEDURE(eq_)
   {
     using namespace meevax::system;
-    return car(args) == cadr(args) ? _true_ : _false_;
+    return car(args) == cadr(args) ? true_object : false_object;
   }
 
   PROCEDURE(eqv_)
@@ -24,15 +24,15 @@ extern "C"
 
     if (const object& object1 {car(args)}, object2 {cadr(args)}; object1 == object2)
     {
-      return _true_;
+      return true_object;
     }
     else if (!object1 or !object2)
     {
-      return _false_;
+      return false_object;
     }
     else
     {
-      return object1.equals(object2) ? _true_ : _false_;
+      return object1.equals(object2) ? true_object : false_object;
     }
   }
 
@@ -44,11 +44,11 @@ extern "C"
     {
       if (not each or not each.is<pair>())
       {
-        return _false_;
+        return false_object;
       }
     }
 
-    return _true_;
+    return true_object;
   }
 
 

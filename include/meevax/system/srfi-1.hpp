@@ -221,7 +221,7 @@ namespace meevax::system
   {
     if (!key or !alist)
     {
-      return _false_;
+      return false_object;
     }
     else if (caar(alist) == key)
     {

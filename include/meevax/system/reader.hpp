@@ -172,25 +172,43 @@ namespace meevax::system
       }
     }
 
-  protected:
+  public: // LEXICAL STRUCTURE
+    template <typename CharType>
+    constexpr auto is_intraline_whitespace(CharType&& c) const noexcept
+    {
+      return std::isspace(c);
+    }
+
+    template <typename CharType>
+    constexpr auto is_whitespace(CharType&& c) const noexcept
+    {
+      return is_intraline_whitespace(c) or c == u8'\n';
+    }
+
     template <typename CharType>
     bool is_delimiter(CharType&& c) const noexcept
     {
       switch (c)
       {
-      case u8'\x09': // '\t':
-      case u8'\x0A': // '\n':
-      case u8'\x0D': // '\r':
-      case u8'\x20': // ' ':
-      case u8'\x22': // '"':
-      case u8'\x23': // '#':
-      case u8'\x27': // '\'':
-      case u8'\x28': // '(':
-      case u8'\x29': // ')':
-      case u8'\x2C': // ',':
-      case u8'\x3B': // ';':
-      case u8'\x60': // '`':
-      case u8'\x7C': // '|':
+      // intraline whitespace
+      case u8' ':
+      case u8'\t': case u8'\v':
+
+      // line ending
+      case u8'\r': case u8'\n':
+
+      case u8'(': case u8')':
+
+      case u8'#':
+
+      // quotation
+      case u8'\'':
+      case u8',':
+      case u8'`':
+
+      case u8'"':
+      case u8';':
+      case u8'|':
         return true;
 
       default:
@@ -203,12 +221,12 @@ namespace meevax::system
       switch (peek())
       {
       case 't':
-        read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
-        return _true_;
+        read();
+        return true_object;
 
       case 'f':
-        read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
-        return _false_;
+        read();
+        return false_object;
 
       case '(':
         {
@@ -219,11 +237,6 @@ namespace meevax::system
 
           return evaluation_context.execute(executable);
         }
-        // return static_cast<Environment&>(*this).execute(
-        //          static_cast<Environment&>(*this).compile(
-        //            read()
-        //          )
-        //        );
 
       default:
         return undefined;
