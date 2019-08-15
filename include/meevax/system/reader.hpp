@@ -230,12 +230,12 @@ namespace meevax::system
 
       case '(':
         {
-          auto evaluation_context {static_cast<Environment&>(*this)};
+          auto environment {static_cast<Environment&>(*this)};
 
           auto expression {read()};
-          auto executable {evaluation_context.compile(expression)};
+          auto executable {environment.compile(expression)};
 
-          return evaluation_context.execute(executable);
+          return environment.execute(executable);
         }
 
       default:
