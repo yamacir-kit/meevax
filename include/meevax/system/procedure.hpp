@@ -25,9 +25,15 @@ namespace meevax::system
     {}
   };
 
+  // XXX Symmetry breaking
   std::ostream& operator<<(std::ostream& os, const procedure& procedure)
   {
-    return os << "\x1b[0;36m#<procedure " << procedure.name << ">\x1b[0m";
+    os << "\x1b[35m" << "#("
+       << "\x1b[32m" << "native"
+       << "\x1b[0m " << procedure.name
+       << "\x1b[35m" << ")";
+
+    return os << "\x1b[0m";
   }
 } // namespace meevax::system
 

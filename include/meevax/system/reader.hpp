@@ -90,39 +90,7 @@ namespace meevax::system
         throw error_parentheses;
 
       case '"':
-        switch (auto c {narrow(get(), '\0')}; c)
-        {
-        case '"': // termination
-          return make<string>(make<character>(""), unit);
-
-        case '\\': // escape sequences
-          switch (auto escaped {narrow(get(), '\0')}; escaped)
-          {
-          case 'n':
-            putback('"');
-            return make<string>(make<character>('\n'), read());
-
-          case '\n':
-            while (std::isspace(peek()))
-            {
-              ignore(1);
-            }
-            putback('"');
-            return read();
-
-          case '"':
-            putback('"');
-            return make<string>(make<character>("\""), read());
-
-          default:
-            putback('"');
-            return make<string>(make<character>("#\\unsupported;"), read());
-          }
-
-        default:
-          putback('"');
-          return make<string>(make<character>(c), read());
-        }
+        return string_literal();
 
       case '\'':
         return list(intern("quote"), read());
@@ -131,14 +99,14 @@ namespace meevax::system
         return list(intern("quasiquote"), read());
 
       case ',':
-        if (peek() != '@')
+        switch (peek())
         {
-          return list(intern("unquote"), read());
-        }
-        else
-        {
-          get();
+        case '@':
+          ignore(1);
           return list(intern("unquote-splicing"), read());
+
+        default:
+          return list(intern("unquote"), read());
         }
 
       case '#':
@@ -165,6 +133,43 @@ namespace meevax::system
       }
 
       return make<character>("end-of-file");
+    }
+
+    decltype(auto) string_literal()
+    {
+      switch (auto c {narrow(get(), '\0')}; c)
+      {
+      case '"': // termination
+        return make<string>(make<character>(""), unit);
+
+      case '\\': // escape sequences
+        switch (auto escaped {narrow(get(), '\0')}; escaped)
+        {
+        case 'n':
+          putback('"');
+          return make<string>(make<character>('\n'), read());
+
+        case '\n':
+          while (std::isspace(peek()))
+          {
+            ignore(1);
+          }
+          putback('"');
+          return read();
+
+        case '"':
+          putback('"');
+          return make<string>(make<character>("\""), read());
+
+        default:
+          putback('"');
+          return make<string>(make<character>("#\\unsupported;"), read());
+        }
+
+      default:
+        putback('"');
+        return make<string>(make<character>(c), read());
+      }
     }
 
   protected:

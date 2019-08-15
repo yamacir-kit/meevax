@@ -350,7 +350,7 @@ namespace meevax::system
         const auto& linker_ {car(args).template as<meevax::posix::linker>()};
         const std::string& name_ {cadr(args).template as<string>()};
         return make<procedure>(
-                 name_, // TODO リンクしてるライブラリ名を名前に含めること（#<procedure hoge from libhoge.so>）
+                 name_,
                  linker_.template link<typename procedure::signature>(name_)
                );
       }
@@ -362,7 +362,14 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
   {
-    return os << "\x1B[0;36m#<environment " << &environment << ">\x1b[0m";
+    // return os << "\x1B[0;36m#<environment " << &environment << ">\x1b[0m";
+
+    os << "\x1b[35m" << "#("
+       << "\x1b[32m" << "environemnt"
+       << "\x1b[0m " << &environment
+       << "\x1b[35m" << ")";
+
+    return os << "\x1b[0m";
   }
 } // namespace meevax::system
 
