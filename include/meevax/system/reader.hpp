@@ -58,7 +58,7 @@ namespace meevax::system
         ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         break;
 
-      case ' ': case '\t': case '\n':
+      case ' ': case '\t': case '\v': case '\n':
         break;
 
       case '(':
@@ -80,10 +80,7 @@ namespace meevax::system
             ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
             return expression;
           }
-          else
-          {
-            throw;
-          }
+          else throw;
         }
 
       case ')':
@@ -150,10 +147,7 @@ namespace meevax::system
           return make<string>(make<character>('\n'), read());
 
         case '\n':
-          while (std::isspace(peek()))
-          {
-            ignore(1);
-          }
+          discard(whitespace);
           putback('"');
           return read();
 
@@ -172,17 +166,30 @@ namespace meevax::system
       }
     }
 
-  public: // LEXICAL STRUCTURE
-    template <typename CharType>
-    constexpr auto is_intraline_whitespace(CharType&& c) const noexcept
+    template <typename Predicate>
+    void discard(Predicate&& predicate)
+    {
+      while (predicate(peek()))
+      {
+        ignore(1);
+      }
+    }
+
+  public:
+    /*
+     * 〈intraline whitespace〉=〈space or tab〉
+     */
+    static constexpr auto intraline_whitespace(char_type c) noexcept
     {
       return std::isspace(c);
     }
 
-    template <typename CharType>
-    constexpr auto is_whitespace(CharType&& c) const noexcept
+    /*
+     * 〈whitespace〉=〈intraline whitespace〉|〈line ending〉
+     */
+    static constexpr auto whitespace(char_type c) noexcept
     {
-      return is_intraline_whitespace(c) or c == u8'\n';
+      return intraline_whitespace(c) or c == u8'\r' or c == u8'\n';
     }
 
     template <typename CharType>
@@ -237,6 +244,10 @@ namespace meevax::system
 
           return environment.execute(executable);
         }
+
+      case ';':
+        ignore(1);
+        return read(), read();
 
       default:
         return undefined;
