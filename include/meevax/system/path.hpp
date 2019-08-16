@@ -20,10 +20,11 @@ namespace meevax::system
   auto operator<<(std::ostream& os, const path& path)
     -> decltype(os)
   {
-    return os << "\x1b[35m#(\x1b[0m"
-              << "path "
-              << "\x1b[36m\"" << path.c_str() << "\""
-              << "\x1b[35m)\x1b[0m";
+    return os << "\x1b[35m" << "#("
+              << "\x1b[32m" << "path"
+              << "\x1b[36m" << " \"" << path.c_str() << "\""
+              << "\x1b[35m" << ")"
+              << "\x1b[0m";
   }
 } // namespace meevax::system
 

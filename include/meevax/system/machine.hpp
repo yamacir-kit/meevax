@@ -240,7 +240,7 @@ namespace meevax::system
       case code::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));
-        // car(s) = cadr(c); // return value of define (change to #<undefined>?)
+        car(s) = cadr(c); // return value of define
         c.pop(2);
         goto dispatch;
 
@@ -563,7 +563,7 @@ namespace meevax::system
 
       if (!expression)
       {
-        throw error {"syntax error at #<special set!>"};
+        throw error {"syntax error at #(special set!)"};
       }
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {

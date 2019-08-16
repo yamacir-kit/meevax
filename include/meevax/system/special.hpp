@@ -26,7 +26,11 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const special& special)
   {
-    return os << "\x1B[0;36m#<special " << special.name << ">\x1b[0m";
+    return os << "\x1b[35m" << "#("
+              << "\x1b[32m" << "special"
+              << "\x1b[0m " << special.name
+              << "\x1b[35m" << ")"
+              << "\x1b[0m";
   }
 } // namespace meevax::system
 

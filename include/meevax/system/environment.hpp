@@ -362,14 +362,11 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
   {
-    // return os << "\x1B[0;36m#<environment " << &environment << ">\x1b[0m";
-
-    os << "\x1b[35m" << "#("
-       << "\x1b[32m" << "environemnt"
-       << "\x1b[0m " << &environment
-       << "\x1b[35m" << ")";
-
-    return os << "\x1b[0m";
+    return os << "\x1b[35m" << "#("
+              << "\x1b[32m" << "environemnt"
+              << "\x1b[0m " << "#;" << &environment
+              << "\x1b[35m" << ")"
+              << "\x1b[0m";
   }
 } // namespace meevax::system
 
