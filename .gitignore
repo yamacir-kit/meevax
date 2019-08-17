@@ -1,3 +1,4 @@
 build
 include/meevax/configure.hpp
+uninstall.sh
 
