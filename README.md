@@ -11,7 +11,7 @@
     <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Build Status"/>
   </a>
 
-  *HEAD Version 0.1.638*
+  *HEAD Version 0.1.661*
 </div>
 
 <br/>
@@ -64,8 +64,8 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 ### Library Dependencies
 
 - Boost C++ Libraries
-- The GNU Multiple Precision Arithmetic Library
-- The GNU MPFR Library
+- The GNU Multiple Precision Arithmetic Library (a.k.a GMP)
+- The GNU Multiple Precision Floating-Point Reliably Library (a.k.a GNU MPFR)
 
 <br/>
 

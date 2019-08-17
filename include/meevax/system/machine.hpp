@@ -3,7 +3,7 @@
 
 #include <functional> // std::invoke
 
-#include <meevax/system/boolean.hpp> // _false_
+#include <meevax/system/boolean.hpp> // false_object
 #include <meevax/system/closure.hpp>
 #include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>
@@ -221,13 +221,13 @@ namespace meevax::system
       case code::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         DEBUG(3);
         d.push(cdddr(c));
-        c = car(s) != _false_ ? cadr(c) : caddr(c);
+        c = car(s) != false_object ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
       case code::SELECT_TAIL:
         DEBUG(3);
-        c = car(s) != _false_ ? cadr(c) : caddr(c);
+        c = car(s) != false_object ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
@@ -240,7 +240,7 @@ namespace meevax::system
       case code::DEFINE:
         DEBUG(2);
         define(cadr(c), car(s));
-        // car(s) = cadr(c); // return value of define (change to #<undefined>?)
+        car(s) = cadr(c); // return value of define
         c.pop(2);
         goto dispatch;
 
@@ -563,7 +563,7 @@ namespace meevax::system
 
       if (!expression)
       {
-        throw error {"syntax error at #<special set!>"};
+        throw error {"syntax error at #(special set!)"};
       }
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {

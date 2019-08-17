@@ -20,7 +20,11 @@ namespace meevax::system
   {
     if (symbol.empty())
     {
-      return os << "\x1b[36m#<symbol " << &static_cast<const std::string&>(symbol) << ">\x1b[0m";
+      return os << "\x1b[35m" << "#("
+                << "\x1b[32m" << "symbol"
+                << "\x1b[0m " << "#;" << &symbol
+                << "\x1b[35m" << ")"
+                << "\x1b[0m";
     }
     else
     {

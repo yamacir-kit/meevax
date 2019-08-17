@@ -10,13 +10,13 @@ extern "C"
   PROCEDURE(input_file_) // input-file?
   {
     using namespace meevax::system;
-    return car(args).is<input_file>() ? _true_ : _false_;
+    return car(args).is<input_file>() ? true_object : false_object;
   }
 
   PROCEDURE(output_file_) // output-file?
   {
     using namespace meevax::system;
-    return car(args).is<output_file>() ? _true_ : _false_;
+    return car(args).is<output_file>() ? true_object : false_object;
   }
 
   PROCEDURE(open_input_file) // open-input-file

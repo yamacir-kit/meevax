@@ -58,7 +58,7 @@ namespace meevax::system
         ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         break;
 
-      case ' ': case '\t': case '\n':
+      case ' ': case '\t': case '\v': case '\n':
         break;
 
       case '(':
@@ -80,49 +80,14 @@ namespace meevax::system
             ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
             return expression;
           }
-          else
-          {
-            throw;
-          }
+          else throw;
         }
 
       case ')':
         throw error_parentheses;
 
       case '"':
-        switch (auto c {narrow(get(), '\0')}; c)
-        {
-        case '"': // termination
-          return make<string>(make<character>(""), unit);
-
-        case '\\': // escape sequences
-          switch (auto escaped {narrow(get(), '\0')}; escaped)
-          {
-          case 'n':
-            putback('"');
-            return make<string>(make<character>('\n'), read());
-
-          case '\n':
-            while (std::isspace(peek()))
-            {
-              ignore(1);
-            }
-            putback('"');
-            return read();
-
-          case '"':
-            putback('"');
-            return make<string>(make<character>("\""), read());
-
-          default:
-            putback('"');
-            return make<string>(make<character>("#\\unsupported;"), read());
-          }
-
-        default:
-          putback('"');
-          return make<string>(make<character>(c), read());
-        }
+        return string_literal();
 
       case '\'':
         return list(intern("quote"), read());
@@ -131,14 +96,14 @@ namespace meevax::system
         return list(intern("quasiquote"), read());
 
       case ',':
-        if (peek() != '@')
+        switch (peek())
         {
-          return list(intern("unquote"), read());
-        }
-        else
-        {
-          get();
+        case '@':
+          ignore(1);
           return list(intern("unquote-splicing"), read());
+
+        default:
+          return list(intern("unquote"), read());
         }
 
       case '#':
@@ -167,25 +132,90 @@ namespace meevax::system
       return make<character>("end-of-file");
     }
 
-  protected:
+    decltype(auto) string_literal()
+    {
+      switch (auto c {narrow(get(), '\0')}; c)
+      {
+      case '"': // termination
+        return make<string>(make<character>(""), unit);
+
+      case '\\': // escape sequences
+        switch (auto escaped {narrow(get(), '\0')}; escaped)
+        {
+        case 'n':
+          putback('"');
+          return make<string>(make<character>('\n'), read());
+
+        case '\n':
+          discard(whitespace);
+          putback('"');
+          return read();
+
+        case '"':
+          putback('"');
+          return make<string>(make<character>("\""), read());
+
+        default:
+          putback('"');
+          return make<string>(make<character>("#\\unsupported;"), read());
+        }
+
+      default:
+        putback('"');
+        return make<string>(make<character>(c), read());
+      }
+    }
+
+    template <typename Predicate>
+    void discard(Predicate&& predicate)
+    {
+      while (predicate(peek()))
+      {
+        ignore(1);
+      }
+    }
+
+  public:
+    /*
+     * 〈intraline whitespace〉=〈space or tab〉
+     */
+    static constexpr auto intraline_whitespace(char_type c) noexcept
+    {
+      return std::isspace(c);
+    }
+
+    /*
+     * 〈whitespace〉=〈intraline whitespace〉|〈line ending〉
+     */
+    static constexpr auto whitespace(char_type c) noexcept
+    {
+      return intraline_whitespace(c) or c == u8'\r' or c == u8'\n';
+    }
+
     template <typename CharType>
     bool is_delimiter(CharType&& c) const noexcept
     {
       switch (c)
       {
-      case u8'\x09': // '\t':
-      case u8'\x0A': // '\n':
-      case u8'\x0D': // '\r':
-      case u8'\x20': // ' ':
-      case u8'\x22': // '"':
-      case u8'\x23': // '#':
-      case u8'\x27': // '\'':
-      case u8'\x28': // '(':
-      case u8'\x29': // ')':
-      case u8'\x2C': // ',':
-      case u8'\x3B': // ';':
-      case u8'\x60': // '`':
-      case u8'\x7C': // '|':
+      // intraline whitespace
+      case u8' ':
+      case u8'\t': case u8'\v':
+
+      // line ending
+      case u8'\r': case u8'\n':
+
+      case u8'(': case u8')':
+
+      case u8'#':
+
+      // quotation
+      case u8'\'':
+      case u8',':
+      case u8'`':
+
+      case u8'"':
+      case u8';':
+      case u8'|':
         return true;
 
       default:
@@ -198,12 +228,26 @@ namespace meevax::system
       switch (peek())
       {
       case 't':
-        read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
-        return _true_;
+        read();
+        return true_object;
 
       case 'f':
-        read(); // XXX DIRTY HACK (IGNORE FOLLOWING CHARACTERS)
-        return _false_;
+        read();
+        return false_object;
+
+      case '(':
+        {
+          auto environment {static_cast<Environment&>(*this)};
+
+          auto expression {read()};
+          auto executable {environment.compile(expression)};
+
+          return environment.execute(executable);
+        }
+
+      case ';':
+        ignore(1);
+        return read(), read();
 
       default:
         return undefined;

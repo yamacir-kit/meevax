@@ -29,7 +29,7 @@ namespace meevax::posix
 
         if (handle && dlclose(handle))
         {
-          std::cerr << "failed to close shared library, " << dlerror() << std::endl;
+          std::cerr << "failed to close shared library " << dlerror() << std::endl;
         }
         else
         {
@@ -56,7 +56,7 @@ namespace meevax::posix
 
       if (auto* message {dlerror()}; message)
       {
-        std::cerr << "failed to open shared library, " << message << std::endl;
+        std::cerr << "failed to open shared library " << message << std::endl;
         std::exit(EXIT_FAILURE);
       }
       else

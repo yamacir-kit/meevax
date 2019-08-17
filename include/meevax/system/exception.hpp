@@ -52,35 +52,48 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
-    return os << "\x1b[31m#<exception \"" << exception.what() << "\">\x1b[0m";
+    return os << "\x1b[35m" << "#("
+              << "\x1b[32m" << "exception"
+              << "\x1b[36m" << " \"" << exception.what() << "\""
+              << "\x1b[35m" << ")"
+              << "\x1b[0m";
   }
 
   std::ostream& operator<<(std::ostream& os, const error& error)
   {
-    return os << "\x1b[31m#<error \"" << error.what() << "\">\x1b[0m";
+    return os << "\x1b[35m" << "#("
+              << "\x1b[32m" << "error"
+              << "\x1b[36m" << " \"" << error.what() << "\""
+              << "\x1b[35m" << ")"
+              << "\x1b[0m";
   }
 
   template <category Category>
   std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
   {
-    os << "\x1b[31m#<read-error ";
+    os << "\x1b[35m" << "#("
+       << "\x1b[32m" << "read-error"
+       << "\x1b[0m " << "#;(category ";
 
     switch (Category)
     {
     case category::pair:
-      os << "(pair)";
+      os << "pair";
       break;
 
     case category::parentheses:
-      os << "(parentheses)";
+      os << "parentheses";
       break;
 
     default:
-      os << "(unknown)";
+      os << "unknown";
       break;
     }
 
-    return os << " \"" << error.what() << "\">\x1b[0m";
+    return os << ") "
+              << "\x1b[36m" << "\"" << error.what() << "\""
+              << "\x1b[35m" << ")"
+              << "\x1b[0m";
   }
 } // namespace meevax::system
 

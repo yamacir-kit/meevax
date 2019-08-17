@@ -1,4 +1,4 @@
-(load "../setup.scm")
+(load "../bootstrap.scm")
 
 (define tarai
   (lambda (x y z)
