@@ -31,7 +31,7 @@ int main(int argc, char** argv) try
       std::cout << "; build-hash\t; " << configure::build_hash << std::endl;
       std::cout << "; build-type\t; " << configure::build_type << std::endl;
       std::cout << ";" << std::endl;
-      std::cout << "; install\t; " << configure::install_prefix << std::endl;
+      std::cout << "; install-prefix\t; " << configure::install_prefix << std::endl;
 
       std::exit(boost::exit_success);
     }

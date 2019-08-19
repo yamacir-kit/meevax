@@ -24,8 +24,25 @@ namespace meevax::system
   static constexpr std::integral_constant<int, Version> standard_environment {};
 
   class environment
-    : public closure // inherits pair type virtually
+    /*
+     * The environment is a pair of "current expression" and "global environment
+     * (simple association list)". It also has the aspect of a meta-closure that
+     * closes the global environment when it constructed (this feature is known
+     * as syntactic-closure).
+     */
+    : public closure
+
+    /*
+     * Reader access symbol table of this environment (by member function
+     * "intern") via static polymorphism. The environment indirectly inherits
+     * the non-copyable class std::istream (reader base class), so it cannot be
+     * copied.
+     */
     , public reader<environment>
+
+    /*
+     * Each environment has one virtual machine and compiler.
+     */
     , public machine<environment>
   {
     std::unordered_map<std::string, object> symbols;
@@ -47,13 +64,11 @@ namespace meevax::system
     {}
 
   public: // Module System Interface
-    // TODO RENAME TO "char_ready"
     auto ready() const noexcept
     {
       return reader<environment>::ready();
     }
 
-    // TODO RENAME TO "global_define"
     template <typename T, typename... Ts>
     decltype(auto) global_define(const std::string& name, Ts&&... args)
     {
@@ -110,9 +125,14 @@ namespace meevax::system
       return execute();
     }
 
+    template <typename... Ts>
+    decltype(auto) import_native(Ts&&... xs)
+    {
+    }
+
   public:
     template <typename... Ts>
-    decltype(auto) load(Ts&&... args)
+    [[deprecated]] decltype(auto) load(Ts&&... args)
     {
       const std::string path {std::forward<Ts>(args)...};
 
