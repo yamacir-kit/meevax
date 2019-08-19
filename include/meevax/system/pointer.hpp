@@ -78,6 +78,10 @@ namespace meevax::system
           >::type {std::forward<Ts>(args)...}
       {}
 
+      explicit constexpr binder(Bound&& bound)
+        : Bound {std::forward<Bound>(bound)}
+      {}
+
       auto type() const noexcept
         -> const std::type_info& override
       {
