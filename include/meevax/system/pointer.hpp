@@ -224,5 +224,13 @@ namespace meevax::system
   }
 } // namespace meevax::system
 
+namespace std
+{
+  template <typename T>
+  class hash<meevax::system::pointer<T>>
+    : public hash<std::shared_ptr<T>>
+  {};
+}
+
 #endif // INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
 

@@ -8,15 +8,15 @@ extern "C"
     return meevax::system::true_object;
   }
 
-  PROCEDURE(export_native)
+  PROCEDURE(define_library)
   {
     using namespace meevax::system;
 
-    environment module {};
+    environment library {};
 
-    module.global_define<procedure>("dummy", dummy);
+    library.global_define<procedure>("dummy", dummy);
 
-    return make<environment>(module);
+    return make<environment>(library);
   }
 } // extern "C"
 
