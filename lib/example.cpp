@@ -8,9 +8,10 @@ namespace meevax::example
 
     environment library {};
 
-    library.global_define<procedure>("sample-procedure", [](auto&& operands)
+    library.global_define<procedure>("hoge", [](auto&& operands)
     {
-      std::cerr << "; This message is print by procedure \"sample-procedure\" imported from example library" << std::endl;
+      std::cerr << "; This message is print by procedure \"hoge\" imported from example library" << std::endl;
+      std::cerr << "; Operands are " << operands << std::endl;
 
       return undefined;
     });
