@@ -19,6 +19,8 @@
 #include <meevax/system/special.hpp>
 #include <meevax/utility/debug.hpp>
 
+#include <meevax/standard/posix.hpp>
+
 namespace meevax::system
 {
   template <int Version>
@@ -156,6 +158,7 @@ namespace meevax::system
 
     decltype(auto) export_library()
     {
+      return make<environment>(*this);
     }
 
   public:
@@ -369,7 +372,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {"unsupported import-set identifier"};
+          throw error {"unsupported library-name identifier"};
         }
       })};
 
@@ -380,7 +383,7 @@ namespace meevax::system
       linkers.emplace(library_name, p.as<path>().c_str());
 
       object library {std::invoke(
-        linkers[library_name].link<procedure::signature>("define_library"),
+        linkers[library_name].link<procedure::signature>("export_library"),
         unit
       )};
 
@@ -406,6 +409,11 @@ namespace meevax::system
 
       return executable;
     });
+
+    machine<environment>::define(
+      list(intern("standard"), intern("posix")),
+      meevax::posix::export_library(unit)
+    );
 
     global_define<procedure>("load", [&](const object& args)
     {

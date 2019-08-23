@@ -1,14 +1,9 @@
+#include <meevax/standard/posix.hpp>
 #include <meevax/system/environment.hpp>
 
-extern "C"
+extern "C" namespace meevax::posix
 {
-  PROCEDURE(dummy)
-  {
-    std::cerr << "; procedure\t; dummy" << std::endl;
-    return meevax::system::true_object;
-  }
-
-  PROCEDURE(define_library)
+  PROCEDURE(export_library)
   {
     using namespace meevax::system;
 
@@ -16,7 +11,7 @@ extern "C"
 
     library.global_define<procedure>("dummy", dummy);
 
-    return make<environment>(library);
+    return library.export_library();
   }
-} // extern "C"
+} // namespace meevax::posix
 
