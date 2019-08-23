@@ -133,6 +133,31 @@ namespace meevax::system
       return execute();
     }
 
+  public: // LIBRARY SYSTEM INTERFACES
+    auto find_library(const object& name)
+    {
+      for (const object& each : interaction_environment())
+      {
+        if (const object& key {car(each)}; not key.is<symbol>())
+        {
+          if (is_same(key, name))
+          {
+            return cadr(each);
+          }
+        }
+      }
+
+      return unit;
+    }
+
+    decltype(auto) import_library()
+    {
+    }
+
+    decltype(auto) export_library()
+    {
+    }
+
   public:
     template <typename... Ts>
     [[deprecated]] decltype(auto) load(Ts&&... args)
@@ -308,7 +333,15 @@ namespace meevax::system
 
       const object library_name {car(expression)};
 
-      auto hoge {std::find(std::begin(interaction_environment()), std::end(interaction_environment()), car(expression))};
+      if (not library_name)
+      {
+        throw error {library_name, " is not allowed as library-name"};
+      }
+
+      if (const object& library {find_library(library_name)}; library)
+      {
+        std::cerr << "; import\t; found library " << library_name << " as " << library << std::endl;
+      }
 
       iterator library_path {macro.execute(
         operand(library_name, lexical_environment, continuation, false)

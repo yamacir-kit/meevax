@@ -17,6 +17,7 @@
 // Predicators
 //   - pair? ... object::is<pair>
 //   - null? ... object::operator bool
+//   - euqal? ... is_same
 //
 // Selectors
 //   - car ... in meevax/system/pair.hpp
@@ -77,6 +78,22 @@ namespace meevax::system
   constexpr decltype(auto) xcons(Ts&&... args)
   {
     return (... | args);
+  }
+
+  bool is_same(const object& x, const object& y) // equal?
+  {
+    if (not x and not y)
+    {
+      return true;
+    }
+    else if (x.is<pair>() and y.is<pair>())
+    {
+      return is_same(car(x), car(y)) and is_same(cdr(x), cdr(y));
+    }
+    else
+    {
+      return x.equals(y); // eqv?
+    }
   }
 
   #define caar(...) car(car(__VA_ARGS__))
