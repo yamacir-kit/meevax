@@ -3,16 +3,16 @@
 
 #include <meevax/system/procedure.hpp>
 
-extern "C" namespace meevax::posix
+namespace meevax::posix
 {
+  extern "C" PROCEDURE(export_library);
+
   PROCEDURE(dummy)
   {
     std::cerr << "; procedure\t; dummy" << std::endl;
     return meevax::system::true_object;
   }
-
-  PROCEDURE(export_library);
-} // extern "C" namespace meevax::posix
+} // namespace meevax::posix
 
 #endif // INCLUDED_MEEVAX_STANDARD_POSIX_HPP
 

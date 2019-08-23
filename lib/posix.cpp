@@ -1,9 +1,9 @@
 #include <meevax/standard/posix.hpp>
 #include <meevax/system/environment.hpp>
 
-extern "C" namespace meevax::posix
+namespace meevax::posix
 {
-  PROCEDURE(export_library)
+  extern "C" PROCEDURE(export_library)
   {
     using namespace meevax::system;
 

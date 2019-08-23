@@ -57,7 +57,7 @@ namespace meevax::system
      */
     static inline const configure configuration {};
 
-    static inline std::unordered_map<object, posix::linker> linkers {};
+    static inline std::unordered_map<std::string, posix::linker> linkers {};
 
   public: // Constructors
     // for macro
@@ -152,8 +152,36 @@ namespace meevax::system
       return unit;
     }
 
-    decltype(auto) import_library()
+    const auto& dynamic_link(const std::string& path)
     {
+      if (auto iter {linkers.find(path)}; iter != std::end(linkers))
+      {
+        return iter->second;
+      }
+      else
+      {
+        iter = linkers.emplace(path, posix::linker {path}).first;
+        return iter->second;
+      }
+    }
+
+    auto import_library(const object& library, const object& continuation)
+    {
+      stack executable {continuation};
+
+      assert(library.is<environment>());
+
+      for (const object& each : library.as<environment>().interaction_environment())
+      {
+        assert(car(each).is<symbol>());
+
+        executable.push(
+          _load_literal_, cadr(each),
+          _define_, intern(car(each).as<symbol>())
+        );
+      }
+
+      return executable;
     }
 
     decltype(auto) export_library()
@@ -334,80 +362,72 @@ namespace meevax::system
       // オペランド評価のための評価器
       environment macro {*this};
 
-      const object library_name {car(expression)};
-
-      if (not library_name)
-      {
-        throw error {library_name, " is not allowed as library-name"};
-      }
-
-      if (const object& library {find_library(library_name)}; library)
-      {
-        std::cerr << "; import\t; found library " << library_name << " as " << library << std::endl;
-      }
-
-      iterator library_path {macro.execute(
-        operand(library_name, lexical_environment, continuation, false)
-      )};
-
-      std::cerr << "; import\t; library-path\t; " << library_path << std::endl;
-
       using meevax::system::path;
 
-      object p {std::accumulate(
-                  std::begin(library_path),
-                  std::end(library_path),
-                  make<path>(""),
-                  [&](const object& lhs, const object& rhs)
+      if (const object library_name {car(expression)}; not library_name)
       {
-        // std::cerr << ";\t\t; identifier\t; " << rhs << std::endl;
-
-        if (rhs.is<path>())
-        {
-          return make<path>(lhs.as<path>() /= rhs.as<path>());
-        }
-        else if (rhs.is<string>())
-        {
-          return make<path>(lhs.as<path>() /= path {rhs.as<string>()});
-        }
-        else
-        {
-          throw error {"unsupported library-name identifier"};
-        }
-      })};
-
-      std::cerr << ";\t\t; path\t; " << p << std::endl;
-
-      // posix::linker shared_object {library_path.as<path>().c_str()};
-
-      linkers.emplace(library_name, p.as<path>().c_str());
-
-      object library {std::invoke(
-        linkers[library_name].link<procedure::signature>("export_library"),
-        unit
-      )};
-
-      stack executable {cons(
-        _load_literal_, library,
-        _define_, library_name,
-        continuation
-      )};
-
-      for (const object& definition : library.as<environment>().interaction_environment())
-      {
-        std::cerr << "; defition\t; " << definition << std::endl;
-
-        assert(car(definition).is<symbol>());
-
-        executable.push(
-          _load_literal_,
-          cadr(definition),
-          _define_,
-          intern(car(definition).as<symbol>())
-        );
+        throw error {"empty library-name is not allowed"};
       }
+      else if (const object& library {find_library(library_name)}; library)
+      {
+        TRACE("compile") << library_name << " => found library " << library_name << " in this environment as " << library << std::endl;
 
-      return executable;
+        /*
+         * Passing the VM code to load literally library-name as continuation is
+         * for return value of this special form "import".
+         */
+        return import_library(library, cons(_load_literal_, library_name, continuation));
+      }
+      else
+      {
+        // std::cerr << "; import\t; not found library " << library_name << " in this environment" << std::endl;
+        // std::cerr << "; import\t; evaluate library-name " << library_name << " as list of path" << std::endl;
+        TRACE("compile") << "(\t; => unknown library-name" << std::endl;
+        NEST_IN;
+
+        environment macro {*this}; // TODO IN CONSTRUCTOR INITIALIZATION
+
+        path library_path {""};
+
+        for (const object& identifier : macro.execute(operand(library_name, lexical_environment, continuation)))
+        {
+          if (identifier.is<path>())
+          {
+            library_path /= identifier.as<path>();
+          }
+          else if (identifier.is<string>())
+          {
+            library_path /= path {identifier.as<string>()};
+          }
+          else
+          {
+            throw error {identifier, " is not allowed as part of library-name (must be path or string object)"};
+          }
+        }
+
+        NEST_OUT;
+
+        std::cerr << "; import\t; dynamic-link " << library_path << std::endl;
+
+        const object exported {
+          dynamic_link(library_path).link<procedure::signature>("export_library")(unit)
+        };
+
+        /*
+         * Passing the VM code to load literally library-name as continuation is
+         * for return value of this special form "import".
+         */
+        auto decralation {import_library(
+           exported, cons(_load_literal_, library_name, continuation)
+         )};
+
+        /*
+         * Push VM code for define the library exported from shared-object as
+         * given library-name (this will execute on first of VM code which
+         * result of this function).
+         */
+        return decralation.push(_load_literal_, exported, _define_, library_name);
+      }
     });
 
     machine<environment>::define(
