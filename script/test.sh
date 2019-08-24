@@ -16,7 +16,7 @@ then
   sh $repository/script/build.sh
 fi
 
-# sudo perf record -- $build/meevax < $script
+# sudo time perf record -- $repository/build/bin/meevax < $repository/test/test.scm
 perf stat -- $repository/build/bin/meevax < $repository/test/test.scm
 # sudo perf report
 
