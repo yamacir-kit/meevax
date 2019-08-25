@@ -32,13 +32,6 @@ namespace meevax::system
           d; // dump (continuation)
 
   public:
-    // machine()
-    //   : s {unit}
-    //   , e {unit}
-    //   , c {unit}
-    //   , d {unit}
-    // {}
-
     decltype(auto) interaction_environment()
     {
       return static_cast<Environment&>(*this).interaction_environment();
@@ -57,6 +50,19 @@ namespace meevax::system
                    const object& lexical_environment = unit,
                    const object& continuation = list(_stop_), bool tail = false)
     {
+      /*
+       *〈expression〉=〈identifier〉
+       *              |〈literal〉
+       *              |〈procedure call〉
+       *              |〈lambda expression〉
+       *              |〈conditional〉
+       *              |〈assignment〉
+       *              |〈derived expression〉
+       *              |〈macro use〉
+       *              |〈macro block〉
+       *              |〈includer〉
+       */
+
       if (not expression)
       {
         return cons(_load_literal_, unit, continuation);
@@ -422,6 +428,17 @@ namespace meevax::system
     };
 
   protected:
+    /*
+     * <quotation> = (quote <datum>)
+     */
+    object quotation(const object& expression,
+                     const object&,
+                     const object& continuation, bool)
+    {
+      TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
+      return cons(_load_literal_, car(expression), continuation);
+    }
+
     /* 7.1.3
      * sequence = command* expression
      * command = expression
