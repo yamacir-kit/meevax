@@ -523,44 +523,96 @@ namespace meevax::system
     }
     catch (const error&) // internal define backtrack (DIRTY HACK)
     {
-      auto binding_specs {list()};
-      auto non_definitions {unit};
+      stack bindings {};
 
-      for (iterator iter {expression}; iter; ++iter)
+      /*
+       * <sequence> = <command>* <expression>
+       */
+      for (iterator sequences {expression}; sequences; ++sequences)
       {
-        if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
+        /*
+         * <definition> = (define <identifier> <expression>)
+         */
+        if (const object& definition {car(sequences)}; car(definition).as<symbol>() == "define")
         {
-          // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
-          binding_specs = cons(cdr(*iter), binding_specs);
+          /*
+           * <binding> = (<identifier> <expression>)
+           */
+          bindings.push(cdr(definition));
         }
         else
         {
-          non_definitions = iter;
-          break;
+          /*
+           * At least one binding assumed. Because, this catch block execution
+           * will be triggered by encountering the <definition> on compiling
+           * rule <sequence>.
+           */
+          assert(not bindings.empty());
+
+          const object& identifier {
+            static_cast<Environment&>(*this).intern("letrec*")
+          };
+
+          if (const object& internal_define {assoc(identifier, interaction_environment())};
+              internal_define and internal_define.is<Environment>())
+          {
+            /*
+             * (letrec* (<binding>+) <sequence>+)
+             */
+            const auto& transformer {internal_define.as<Environment>().expand(
+              cons(bindings, sequences)
+            )};
+
+            return compile(transformer, lexical_environment, continuation);
+          }
+          else
+          {
+            throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+          }
         }
       }
 
-      // std::cerr << binding_specs << std::endl;
-      // std::cerr << cons(binding_specs, non_definitions) << std::endl;
-
-      object letrec_star {assoc(
-        static_cast<Environment&>(*this).intern("letrec*"),
-        interaction_environment()
-      )};
-
-      auto expanded {letrec_star.as<Environment>().expand(
-        cons(binding_specs, non_definitions)
-      )};
-
-      // std::cerr << expanded << std::endl;
-
-      return compile(expanded, lexical_environment, continuation);
+      // auto binding_specs {list()};
+      // auto non_definitions {unit};
+      //
+      // for (iterator iter {expression}; iter; ++iter)
+      // {
+      //   if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
+      //   {
+      //     // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
+      //     binding_specs = cons(cdr(*iter), binding_specs);
+      //   }
+      //   else
+      //   {
+      //     non_definitions = iter;
+      //     break;
+      //   }
+      // }
+      //
+      // // std::cerr << binding_specs << std::endl;
+      // // std::cerr << cons(binding_specs, non_definitions) << std::endl;
+      //
+      // object letrec_star {assoc(
+      //   static_cast<Environment&>(*this).intern("letrec*"),
+      //   interaction_environment()
+      // )};
+      //
+      // if (not letrec_star or not letrec_star.is<Environment>())
+      // {
+      //   throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+      // }
+      //
+      // auto expanded {letrec_star.as<Environment>().expand(
+      //   cons(binding_specs, non_definitions)
+      // )};
+      //
+      // // std::cerr << expanded << std::endl;
+      //
+      // return compile(expanded, lexical_environment, continuation);
     }
 
-    /* 7.1.3
-     *
+    /*
      * <operand> = <expression>
-     *
      */
     object operand(const object& expression,
                    const object& lexical_environment,
