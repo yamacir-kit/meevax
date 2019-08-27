@@ -435,21 +435,21 @@ namespace meevax::system
                      const object&,
                      const object& continuation, bool)
     {
-      TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
+      TRACE("compile") << car(expression) << "\t; <datum>" << std::endl;
       return cons(_load_literal_, car(expression), continuation);
     }
 
-    /* 7.1.3
-     * sequence = command* expression
-     * command = expression
+    /*
+     * <sequence> = <command>* <expression>
      */
     object sequence(const object& expression,
                     const object& lexical_environment,
-                    const object& continuation, bool tail = false)
+                    const object& continuation,
+                    const bool optimization = false)
     {
       if (not cdr(expression)) // is tail sequence
       {
-        return compile(car(expression), lexical_environment, continuation, tail);
+        return compile(car(expression), lexical_environment, continuation, optimization);
       }
       else
       {
@@ -461,10 +461,48 @@ namespace meevax::system
       }
     }
 
-    /*  7.1.3
+    /*
+     * <program> = <command or definition>+
      *
+     * <command or definition> = <command>
+     *                         | <definition>
+     *                         | (begin <command or definition>+)
+     *
+     * <command> = <expression (the return value will be ignored)>
+     */
+    // object program(const object& expression,
+    //                const object& lexical_environment,
+    //                const object& continuation,
+    //                const bool = false)
+    // {
+    // }
+
+    /*
+     * <definition> = (define <identifier> <expression>)
+     */
+    object definition(const object& expression,
+                      const object& lexical_environment,
+                      const object& continuation,
+                      const bool = false)
+    {
+      if (not lexical_environment)
+      {
+        TRACE("compile") << car(expression) << "\t; => <variable>" << std::endl;
+
+        return compile(
+                 cdr(expression) ? cadr(expression) : undefined,
+                 lexical_environment,
+                 cons(_define_, car(expression), continuation)
+               );
+      }
+      else
+      {
+        throw error {"syntax-error at internal-define"};
+      }
+    }
+
+    /*
      * <body> = <definition>* <sequence>
-     *
      */
     object body(const object& expression,
                 const object& lexical_environment,

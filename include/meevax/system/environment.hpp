@@ -281,22 +281,29 @@ namespace meevax::system
       }
     });
 
-    global_define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation, auto)
-    {
-      if (not region)
-      {
-        TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
+    // global_define<special>("define", [&](auto&& expression,
+    //                                      auto&& region,
+    //                                      auto&& continuation, auto)
+    // {
+    //   if (not region)
+    //   {
+    //     TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
+    //
+    //     return compile(
+    //              cdr(expression) ? cadr(expression) : undefined,
+    //              region,
+    //              cons(_define_, car(expression), continuation)
+    //            );
+    //   }
+    //   else
+    //   {
+    //     throw error {"syntax error at internal define"};
+    //   }
+    // });
 
-        return compile(
-                 cdr(expression) ? cadr(expression) : undefined,
-                 region,
-                 cons(_define_, car(expression), continuation)
-               );
-      }
-      else
-      {
-        throw error {"syntax error at internal define"};
-      }
+    global_define<special>("define", [&](auto&&... operands)
+    {
+      return definition(std::forward<decltype(operands)>(operands)...);
     });
 
     global_define<special>("begin", [&](auto&&... args)
@@ -334,15 +341,17 @@ namespace meevax::system
              );
     });
 
-    global_define<special>("environment", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
+    global_define<special>("environment", [&](auto&& expression,
+                                              auto&& lexical_environment,
+                                              auto&& continuation, auto)
     {
-      TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
+      TRACE("compile") << car(expression) << "\t; => <formals>" << std::endl;
 
       return cons(
                _make_environment_,
                body(
-                 cdr(exp),
-                 cons(car(exp), scope),
+                 cdr(expression),
+                 cons(car(expression), lexical_environment),
                  list(_return_)
                ),
                continuation
