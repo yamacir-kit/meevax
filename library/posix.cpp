@@ -1,17 +1,21 @@
-#include <meevax/library/posix.hpp>
 #include <meevax/system/environment.hpp>
+#include <meevax/system/procedure.hpp>
 
-namespace meevax::posix
+namespace meevax::library
 {
-  extern "C" PROCEDURE(export_library)
+  extern "C" PROCEDURE(library)
   {
     using namespace meevax::system;
 
     environment library {};
 
-    library.define<procedure>("dummy", dummy);
+    library.define<procedure>("dummy", [](auto&&)
+    {
+      std::cout << "dummy!" << std::endl;
+      return unit;
+    });
 
     return make<environment>(library);
   }
-} // namespace meevax::posix
+} // namespace meevax::library
 

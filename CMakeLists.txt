@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.5.1)
 
+# ==============================================================================
+#   Project Version
+# ==============================================================================
 set(MAJOR 0)
 set(MAJOR_OFFSET   0)
 
@@ -20,6 +23,9 @@ endif()
 
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
+# ==============================================================================
+#   CXX Flags
+# ==============================================================================
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mtune=native -march=native -g -DNDEBUG")
@@ -51,6 +57,22 @@ else()
 endif()
 
 set(${PROJECT_NAME}_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+file(GLOB
+  ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/standard/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/library/*.cpp
+  )
+
+foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
+  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
+  list(APPEND ${PROJECT_NAME}_STANDARD_LIBRARIES ${TARGET_NAME})
+endforeach()
+list(SORT ${PROJECT_NAME}_STANDARD_LIBRARIES)
+string(REPLACE ";" ", "
+  ${PROJECT_NAME}_STANDARD_LIBRARIES_IN_COMMA_SEPARATED_STRING
+  "${${PROJECT_NAME}_STANDARD_LIBRARIES}")
+message("${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_COMMA_SEPARATED_STRING}")
 
 if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configure.hpp.cmake)
   configure_file(
@@ -90,12 +112,6 @@ set_target_properties(${PROJECT_NAME}-literal PROPERTIES
 # ==============================================================
 #   MEEVAX STANDARD LIBRARIES (SHARED OBJECTS)
 # ==============================================================
-file(GLOB
-  ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/standard/*.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/library/*.cpp
-  )
-
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   string(REGEX
     REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2"

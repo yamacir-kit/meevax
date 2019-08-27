@@ -18,8 +18,6 @@
 #include <meevax/system/reader.hpp>
 #include <meevax/system/special.hpp>
 
-#include <meevax/library/posix.hpp>
-
 namespace meevax::system
 {
   template <int Version>
@@ -394,9 +392,10 @@ namespace meevax::system
 
         std::cerr << "; import\t; dynamic-link " << library_path << std::endl;
 
-        const object exported {
-          dynamic_link(library_path).link<procedure::signature>("export_library")(unit)
-        };
+        const object exported {std::invoke(
+          dynamic_link(library_path).link<procedure::signature>("library"),
+          unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
+        )};
 
         /*
          * Passing the VM instruction to load literally library-name as
@@ -414,11 +413,6 @@ namespace meevax::system
         return decralation.push(_load_literal_, exported, _define_, library_name);
       }
     });
-
-    machine<environment>::define(
-      list(intern("standard"), intern("posix")),
-      meevax::posix::export_library(unit)
-    );
 
     define<procedure>("load", [&](const object& args)
     {

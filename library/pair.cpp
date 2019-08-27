@@ -1,10 +1,9 @@
-#include <meevax/library/pair.hpp>
-
 #include <meevax/system/environment.hpp>
+#include <meevax/system/procedure.hpp>
 
-namespace meevax::pair
+namespace meevax::library
 {
-  extern "C" PROCEDURE(export_library)
+  extern "C" PROCEDURE(library)
   {
     using namespace meevax::system;
 
@@ -17,5 +16,5 @@ namespace meevax::pair
 
     return make<environment>(library);
   }
-} // namespace meevax::posix
+} // namespace meevax::library
 
