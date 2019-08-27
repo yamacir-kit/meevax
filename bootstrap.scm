@@ -2,6 +2,8 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
+; (import ("libmeevax-pair.so"))
+
 (define fundamental.so
   (linker "./lib/meevax/libmeevax-fundamental.so"))
 

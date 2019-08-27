@@ -141,7 +141,7 @@ namespace meevax::system
       }
       else
       {
-        iter = linkers.emplace(path, posix::linker {path}).first;
+        iter = linkers.emplace(path, path).first;
         return iter->second;
       }
     }
@@ -339,12 +339,6 @@ namespace meevax::system
                                   auto&& lexical_environment,
                                   auto&& continuation, auto)
     {
-      /*
-       * Macro expander for to evaluate library-name on operand compilation
-       * rule.
-       */
-      environment macro {*this};
-
       using meevax::system::path;
 
       if (const object library_name {car(expression)}; not library_name)
@@ -368,7 +362,14 @@ namespace meevax::system
         TRACE("compile") << "(\t; => unknown library-name" << std::endl;
         NEST_IN;
 
-        environment macro {*this}; // TODO IN CONSTRUCTOR INITIALIZATION
+        /*
+         * Macro expander for to evaluate library-name on operand compilation
+         * rule.
+         */
+        environment macro {
+          unit,
+          interaction_environment()
+        }; // TODO IN CONSTRUCTOR INITIALIZATION
 
         path library_path {""};
 
@@ -392,7 +393,7 @@ namespace meevax::system
 
         std::cerr << "; import\t; dynamic-link " << library_path << std::endl;
 
-        const object exported {std::invoke(
+        const object& exported {std::invoke(
           dynamic_link(library_path).link<procedure::signature>("library"),
           unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
         )};

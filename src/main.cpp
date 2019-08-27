@@ -4,8 +4,6 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/posix/linker.hpp>
-
 #include <meevax/system/environment.hpp>
 
 int main(int argc, char** argv) try
