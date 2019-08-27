@@ -93,6 +93,7 @@ set_target_properties(${PROJECT_NAME}-literal PROPERTIES
 file(GLOB
   ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/standard/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp
   )
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
@@ -113,6 +114,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   target_link_libraries(${TARGET_NAME}
     ${Boost_LIBRARIES}
     ${PROJECT_NAME}-literal
+    stdc++fs
     )
 endforeach()
 
@@ -126,6 +128,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${PROJECT_NAME}-literal
+  ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   dl
   gmp
   mpfr

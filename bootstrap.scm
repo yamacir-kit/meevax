@@ -271,7 +271,7 @@
 ;     (lambda () x)))
 
 (define make-list
-  (lambda (n o)
+  (lambda (n . o)
     (let ((default (if (pair? o) (car o))))
       (let rec ((n n)
                 (result '()))

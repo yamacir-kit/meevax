@@ -78,6 +78,10 @@ namespace meevax::system
           >::type {std::forward<Ts>(args)...}
       {}
 
+      explicit constexpr binder(Bound&& bound)
+        : Bound {std::forward<Bound>(bound)}
+      {}
+
       auto type() const noexcept
         -> const std::type_info& override
       {
@@ -219,6 +223,14 @@ namespace meevax::system
     return write(object, os);
   }
 } // namespace meevax::system
+
+namespace std
+{
+  template <typename T>
+  class hash<meevax::system::pointer<T>>
+    : public hash<std::shared_ptr<T>>
+  {};
+}
 
 #endif // INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
 

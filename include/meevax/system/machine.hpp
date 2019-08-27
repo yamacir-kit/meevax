@@ -32,13 +32,6 @@ namespace meevax::system
           d; // dump (continuation)
 
   public:
-    // machine()
-    //   : s {unit}
-    //   , e {unit}
-    //   , c {unit}
-    //   , d {unit}
-    // {}
-
     decltype(auto) interaction_environment()
     {
       return static_cast<Environment&>(*this).interaction_environment();
@@ -57,6 +50,19 @@ namespace meevax::system
                    const object& lexical_environment = unit,
                    const object& continuation = list(_stop_), bool tail = false)
     {
+      /*
+       *〈expression〉=〈identifier〉
+       *              |〈literal〉
+       *              |〈procedure call〉
+       *              |〈lambda expression〉
+       *              |〈conditional〉
+       *              |〈assignment〉
+       *              |〈derived expression〉
+       *              |〈macro use〉
+       *              |〈macro block〉
+       *              |〈includer〉
+       */
+
       if (not expression)
       {
         return cons(_load_literal_, unit, continuation);
@@ -422,17 +428,28 @@ namespace meevax::system
     };
 
   protected:
-    /* 7.1.3
-     * sequence = command* expression
-     * command = expression
+    /*
+     * <quotation> = (quote <datum>)
+     */
+    object quotation(const object& expression,
+                     const object&,
+                     const object& continuation, bool)
+    {
+      TRACE("compile") << car(expression) << "\t; <datum>" << std::endl;
+      return cons(_load_literal_, car(expression), continuation);
+    }
+
+    /*
+     * <sequence> = <command>* <expression>
      */
     object sequence(const object& expression,
                     const object& lexical_environment,
-                    const object& continuation, bool tail = false)
+                    const object& continuation,
+                    const bool optimization = false)
     {
       if (not cdr(expression)) // is tail sequence
       {
-        return compile(car(expression), lexical_environment, continuation, tail);
+        return compile(car(expression), lexical_environment, continuation, optimization);
       }
       else
       {
@@ -444,10 +461,48 @@ namespace meevax::system
       }
     }
 
-    /*  7.1.3
+    /*
+     * <program> = <command or definition>+
      *
+     * <command or definition> = <command>
+     *                         | <definition>
+     *                         | (begin <command or definition>+)
+     *
+     * <command> = <expression (the return value will be ignored)>
+     */
+    // object program(const object& expression,
+    //                const object& lexical_environment,
+    //                const object& continuation,
+    //                const bool = false)
+    // {
+    // }
+
+    /*
+     * <definition> = (define <identifier> <expression>)
+     */
+    object definition(const object& expression,
+                      const object& lexical_environment,
+                      const object& continuation,
+                      const bool = false)
+    {
+      if (not lexical_environment)
+      {
+        TRACE("compile") << car(expression) << "\t; => <variable>" << std::endl;
+
+        return compile(
+                 cdr(expression) ? cadr(expression) : undefined,
+                 lexical_environment,
+                 cons(_define_, car(expression), continuation)
+               );
+      }
+      else
+      {
+        throw error {"syntax-error at internal-define"};
+      }
+    }
+
+    /*
      * <body> = <definition>* <sequence>
-     *
      */
     object body(const object& expression,
                 const object& lexical_environment,
@@ -468,44 +523,96 @@ namespace meevax::system
     }
     catch (const error&) // internal define backtrack (DIRTY HACK)
     {
-      auto binding_specs {list()};
-      auto non_definitions {unit};
+      stack bindings {};
 
-      for (iterator iter {expression}; iter; ++iter)
+      /*
+       * <sequence> = <command>* <expression>
+       */
+      for (iterator sequences {expression}; sequences; ++sequences)
       {
-        if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
+        /*
+         * <definition> = (define <identifier> <expression>)
+         */
+        if (const object& definition {car(sequences)}; car(definition).as<symbol>() == "define")
         {
-          // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
-          binding_specs = cons(cdr(*iter), binding_specs);
+          /*
+           * <binding> = (<identifier> <expression>)
+           */
+          bindings.push(cdr(definition));
         }
         else
         {
-          non_definitions = iter;
-          break;
+          /*
+           * At least one binding assumed. Because, this catch block execution
+           * will be triggered by encountering the <definition> on compiling
+           * rule <sequence>.
+           */
+          assert(not bindings.empty());
+
+          const object& identifier {
+            static_cast<Environment&>(*this).intern("letrec*")
+          };
+
+          if (const object& internal_define {assoc(identifier, interaction_environment())};
+              internal_define and internal_define.is<Environment>())
+          {
+            /*
+             * (letrec* (<binding>+) <sequence>+)
+             */
+            const auto& transformer {internal_define.as<Environment>().expand(
+              cons(bindings, sequences)
+            )};
+
+            return compile(transformer, lexical_environment, continuation);
+          }
+          else
+          {
+            throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+          }
         }
       }
 
-      // std::cerr << binding_specs << std::endl;
-      // std::cerr << cons(binding_specs, non_definitions) << std::endl;
-
-      object letrec_star {assoc(
-        static_cast<Environment&>(*this).intern("letrec*"),
-        interaction_environment()
-      )};
-
-      auto expanded {letrec_star.as<Environment>().expand(
-        cons(binding_specs, non_definitions)
-      )};
-
-      // std::cerr << expanded << std::endl;
-
-      return compile(expanded, lexical_environment, continuation);
+      // auto binding_specs {list()};
+      // auto non_definitions {unit};
+      //
+      // for (iterator iter {expression}; iter; ++iter)
+      // {
+      //   if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
+      //   {
+      //     // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
+      //     binding_specs = cons(cdr(*iter), binding_specs);
+      //   }
+      //   else
+      //   {
+      //     non_definitions = iter;
+      //     break;
+      //   }
+      // }
+      //
+      // // std::cerr << binding_specs << std::endl;
+      // // std::cerr << cons(binding_specs, non_definitions) << std::endl;
+      //
+      // object letrec_star {assoc(
+      //   static_cast<Environment&>(*this).intern("letrec*"),
+      //   interaction_environment()
+      // )};
+      //
+      // if (not letrec_star or not letrec_star.is<Environment>())
+      // {
+      //   throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+      // }
+      //
+      // auto expanded {letrec_star.as<Environment>().expand(
+      //   cons(binding_specs, non_definitions)
+      // )};
+      //
+      // // std::cerr << expanded << std::endl;
+      //
+      // return compile(expanded, lexical_environment, continuation);
     }
 
-    /* 7.1.3
-     *
+    /*
      * <operand> = <expression>
-     *
      */
     object operand(const object& expression,
                    const object& lexical_environment,

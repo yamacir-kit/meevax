@@ -13,6 +13,11 @@ namespace meevax::system
     explicit constexpr symbol(Ts&&... args)
       : std::string {std::forward<Ts>(args)...}
     {}
+
+    operator std::string() const
+    {
+      return *this;
+    }
   };
 
   auto operator<<(std::ostream& os, const symbol& symbol)

@@ -6,7 +6,7 @@
 #include <meevax/system/iterator.hpp>
 
 #define PROCEDURE(NAME) \
-  meevax::system::object NAME(const meevax::system::iterator& args)
+  meevax::system::object NAME([[maybe_unused]] const meevax::system::iterator& args)
 
 namespace meevax::system
 {
