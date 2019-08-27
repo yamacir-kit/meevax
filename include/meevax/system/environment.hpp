@@ -240,10 +240,9 @@ namespace meevax::system
   template <>
   environment::environment(std::integral_constant<int, 0>)
   {
-    global_define<special>("quote", [&](auto&& expression, auto&&, auto&& continuation, auto)
+    global_define<special>("quote", [&](auto&&... xs)
     {
-      TRACE("compile") << car(expression) << " ; => is <datum>" << std::endl;
-      return cons(_load_literal_, car(expression), continuation);
+      return quotation(std::forward<decltype(xs)>(xs)...);
     });
 
     global_define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
@@ -282,22 +281,29 @@ namespace meevax::system
       }
     });
 
-    global_define<special>("define", [&](auto&& expression, auto&& region, auto&& continuation, auto)
-    {
-      if (not region)
-      {
-        TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
+    // global_define<special>("define", [&](auto&& expression,
+    //                                      auto&& region,
+    //                                      auto&& continuation, auto)
+    // {
+    //   if (not region)
+    //   {
+    //     TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
+    //
+    //     return compile(
+    //              cdr(expression) ? cadr(expression) : undefined,
+    //              region,
+    //              cons(_define_, car(expression), continuation)
+    //            );
+    //   }
+    //   else
+    //   {
+    //     throw error {"syntax error at internal define"};
+    //   }
+    // });
 
-        return compile(
-                 cdr(expression) ? cadr(expression) : undefined,
-                 region,
-                 cons(_define_, car(expression), continuation)
-               );
-      }
-      else
-      {
-        throw error {"syntax error at internal define"};
-      }
+    global_define<special>("define", [&](auto&&... operands)
+    {
+      return definition(std::forward<decltype(operands)>(operands)...);
     });
 
     global_define<special>("begin", [&](auto&&... args)
@@ -335,15 +341,17 @@ namespace meevax::system
              );
     });
 
-    global_define<special>("environment", [&](auto&& exp, auto&& scope, auto&& continuation, auto)
+    global_define<special>("environment", [&](auto&& expression,
+                                              auto&& lexical_environment,
+                                              auto&& continuation, auto)
     {
-      TRACE("compile") << car(exp) << " ; => is <formals>" << std::endl;
+      TRACE("compile") << car(expression) << "\t; => <formals>" << std::endl;
 
       return cons(
                _make_environment_,
                body(
-                 cdr(exp),
-                 cons(car(exp), scope),
+                 cdr(expression),
+                 cons(car(expression), lexical_environment),
                  list(_return_)
                ),
                continuation
@@ -359,7 +367,10 @@ namespace meevax::system
                                          auto&& lexical_environment,
                                          auto&& continuation, auto)
     {
-      // オペランド評価のための評価器
+      /*
+       * Macro expander for to evaluate library-name on operand compilation
+       * rule.
+       */
       environment macro {*this};
 
       using meevax::system::path;
@@ -373,8 +384,8 @@ namespace meevax::system
         TRACE("compile") << library_name << " => found library " << library_name << " in this environment as " << library << std::endl;
 
         /*
-         * Passing the VM code to load literally library-name as continuation is
-         * for return value of this special form "import".
+         * Passing the VM instruction to load literally library-name as
+         * continuation is for return value of this special form "import".
          */
         return import_library(library, cons(_load_literal_, library_name, continuation));
       }
@@ -414,17 +425,17 @@ namespace meevax::system
         };
 
         /*
-         * Passing the VM code to load literally library-name as continuation is
-         * for return value of this special form "import".
+         * Passing the VM instruction to load literally library-name as
+         * continuation is for return value of this special form "import".
          */
         auto decralation {import_library(
            exported, cons(_load_literal_, library_name, continuation)
          )};
 
         /*
-         * Push VM code for define the library exported from shared-object as
-         * given library-name (this will execute on first of VM code which
-         * result of this function).
+         * Push VM instruction for define the library exported from
+         * shared-object as given library-name (this will execute on first of VM
+         * instruction which result of this function).
          */
         return decralation.push(_load_literal_, exported, _define_, library_name);
       }
@@ -517,9 +528,6 @@ namespace meevax::system
 
     global_define("version", configuration.version);
     global_define("install-prefix", configuration.install_prefix);
-
-    global_define("standard", make<meevax::system::path>("/home/yamasa/works/meevax/build/lib/meevax"));
-    global_define("posix", make<meevax::system::path>("libmeevax-posix.so"));
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
