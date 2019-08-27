@@ -79,7 +79,7 @@ namespace meevax::system
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) global_define(const std::string& name, Ts&&... args)
+    decltype(auto) define(const std::string& name, Ts&&... args)
     {
       return system::machine<environment>::define(
                intern(name), make<T>(name, std::forward<Ts>(args)...)
@@ -87,7 +87,7 @@ namespace meevax::system
     }
 
     template <typename... Ts>
-    decltype(auto) global_define(const std::string& name, Ts&&... xs)
+    decltype(auto) define(const std::string& name, Ts&&... xs)
     {
       return system::machine<environment>::define(
                intern(name), std::forward<Ts>(xs)...
@@ -134,8 +134,21 @@ namespace meevax::system
       return execute();
     }
 
-  public: // LIBRARY SYSTEM INTERFACES
-    auto find_library(const object& name)
+  public: // Library System Interfaces
+    const auto& dynamic_link(const std::string& path)
+    {
+      if (auto iter {linkers.find(path)}; iter != std::end(linkers))
+      {
+        return iter->second;
+      }
+      else
+      {
+        iter = linkers.emplace(path, posix::linker {path}).first;
+        return iter->second;
+      }
+    }
+
+    auto locate_library(const object& name)
     {
       for (const object& each : interaction_environment())
       {
@@ -149,19 +162,6 @@ namespace meevax::system
       }
 
       return unit;
-    }
-
-    const auto& dynamic_link(const std::string& path)
-    {
-      if (auto iter {linkers.find(path)}; iter != std::end(linkers))
-      {
-        return iter->second;
-      }
-      else
-      {
-        iter = linkers.emplace(path, posix::linker {path}).first;
-        return iter->second;
-      }
     }
 
     auto import_library(const object& library, const object& continuation)
@@ -181,11 +181,6 @@ namespace meevax::system
       }
 
       return executable;
-    }
-
-    decltype(auto) export_library()
-    {
-      return make<environment>(*this);
     }
 
   public:
@@ -239,12 +234,12 @@ namespace meevax::system
   template <>
   environment::environment(std::integral_constant<int, 0>)
   {
-    global_define<special>("quote", [&](auto&&... xs)
+    define<special>("quote", [&](auto&&... xs)
     {
       return quotation(std::forward<decltype(xs)>(xs)...);
     });
 
-    global_define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
+    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
 
@@ -280,37 +275,17 @@ namespace meevax::system
       }
     });
 
-    // global_define<special>("define", [&](auto&& expression,
-    //                                      auto&& region,
-    //                                      auto&& continuation, auto)
-    // {
-    //   if (not region)
-    //   {
-    //     TRACE("compile") << car(expression) << " ; => is <variable>" << std::endl;
-    //
-    //     return compile(
-    //              cdr(expression) ? cadr(expression) : undefined,
-    //              region,
-    //              cons(_define_, car(expression), continuation)
-    //            );
-    //   }
-    //   else
-    //   {
-    //     throw error {"syntax error at internal define"};
-    //   }
-    // });
-
-    global_define<special>("define", [&](auto&&... operands)
+    define<special>("define", [&](auto&&... operands)
     {
       return definition(std::forward<decltype(operands)>(operands)...);
     });
 
-    global_define<special>("begin", [&](auto&&... args)
+    define<special>("begin", [&](auto&&... args)
     {
       return sequence(std::forward<decltype(args)>(args)...);
     });
 
-    global_define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
 
@@ -325,7 +300,7 @@ namespace meevax::system
              );
     });
 
-    global_define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
 
@@ -340,9 +315,9 @@ namespace meevax::system
              );
     });
 
-    global_define<special>("environment", [&](auto&& expression,
-                                              auto&& lexical_environment,
-                                              auto&& continuation, auto)
+    define<special>("environment", [&](auto&& expression,
+                                       auto&& lexical_environment,
+                                       auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << "\t; => <formals>" << std::endl;
 
@@ -357,14 +332,14 @@ namespace meevax::system
              );
     });
 
-    global_define<special>("set!", [&](auto&&... args)
+    define<special>("set!", [&](auto&&... args)
     {
       return set(std::forward<decltype(args)>(args)...);
     });
 
-    global_define<special>("import", [&](auto&& expression,
-                                         auto&& lexical_environment,
-                                         auto&& continuation, auto)
+    define<special>("import", [&](auto&& expression,
+                                  auto&& lexical_environment,
+                                  auto&& continuation, auto)
     {
       /*
        * Macro expander for to evaluate library-name on operand compilation
@@ -378,7 +353,7 @@ namespace meevax::system
       {
         throw error {"empty library-name is not allowed"};
       }
-      else if (const object& library {find_library(library_name)}; library)
+      else if (const object& library {locate_library(library_name)}; library)
       {
         TRACE("compile") << library_name << " => found library " << library_name << " in this environment as " << library << std::endl;
 
@@ -445,12 +420,12 @@ namespace meevax::system
       meevax::posix::export_library(unit)
     );
 
-    global_define<procedure>("load", [&](const object& args)
+    define<procedure>("load", [&](const object& args)
     {
       return load(car(args).as<const string>());
     });
 
-    global_define<procedure>("symbol", [&](const object& args)
+    define<procedure>("symbol", [&](const object& args)
     {
       try
       {
@@ -462,7 +437,7 @@ namespace meevax::system
       }
     });
 
-    global_define<procedure>("linker", [&](auto&& args)
+    define<procedure>("linker", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
@@ -484,7 +459,7 @@ namespace meevax::system
       }
     });
 
-    global_define<procedure>("link", [&](auto&& args)
+    define<procedure>("link", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
@@ -525,8 +500,8 @@ namespace meevax::system
       }
     });
 
-    global_define("version", configuration.version);
-    global_define("install-prefix", configuration.install_prefix);
+    define("version", configuration.version);
+    define("install-prefix", configuration.install_prefix);
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)

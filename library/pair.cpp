@@ -1,7 +1,8 @@
-#include <meevax/library/posix.hpp>
+#include <meevax/library/pair.hpp>
+
 #include <meevax/system/environment.hpp>
 
-namespace meevax::posix
+namespace meevax::pair
 {
   extern "C" PROCEDURE(export_library)
   {
@@ -9,7 +10,10 @@ namespace meevax::posix
 
     environment library {};
 
-    library.define<procedure>("dummy", dummy);
+    library.define<procedure>("pair", [](auto&&)
+    {
+      return unit;
+    });
 
     return make<environment>(library);
   }
