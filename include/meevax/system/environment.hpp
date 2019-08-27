@@ -17,9 +17,8 @@
 #include <meevax/system/machine.hpp>
 #include <meevax/system/reader.hpp>
 #include <meevax/system/special.hpp>
-#include <meevax/utility/debug.hpp>
 
-#include <meevax/standard/posix.hpp>
+#include <meevax/library/posix.hpp>
 
 namespace meevax::system
 {
