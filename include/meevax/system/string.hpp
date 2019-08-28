@@ -24,6 +24,11 @@ namespace meevax::system
     }
   };
 
+  bool operator==(const string& lhs, const string& rhs)
+  {
+    return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);
+  }
+
   std::ostream& operator<<(std::ostream& os, const string& s)
   {
     os << "\x1b[36m\"" << std::get<0>(s).as<std::string>();

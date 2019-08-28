@@ -54,7 +54,7 @@ namespace meevax::system
      */
     static inline const configure configuration {};
 
-    static inline std::unordered_map<std::string, posix::linker> linkers {};
+    // static inline std::unordered_map<std::string, posix::linker> linkers {};
 
   public: // Constructors
     // for macro
@@ -133,18 +133,18 @@ namespace meevax::system
     }
 
   public: // Library System Interfaces
-    const auto& dynamic_link(const std::string& path)
-    {
-      if (auto iter {linkers.find(path)}; iter != std::end(linkers))
-      {
-        return iter->second;
-      }
-      else
-      {
-        iter = linkers.emplace(path, path).first;
-        return iter->second;
-      }
-    }
+    // const auto& dynamic_link(const std::string& path)
+    // {
+    //   if (auto iter {linkers.find(path)}; iter != std::end(linkers))
+    //   {
+    //     return iter->second;
+    //   }
+    //   else
+    //   {
+    //     iter = linkers.emplace(path, path).first;
+    //     return iter->second;
+    //   }
+    // }
 
     auto locate_library(const object& name)
     {
@@ -335,6 +335,9 @@ namespace meevax::system
       return set(std::forward<decltype(args)>(args)...);
     });
 
+    /*
+     * <importation> = (import <library name>)
+     */
     define<special>("import", [&](auto&& expression,
                                   auto&& lexical_environment,
                                   auto&& continuation, auto)
@@ -357,8 +360,6 @@ namespace meevax::system
       }
       else
       {
-        // std::cerr << "; import\t; not found library " << library_name << " in this environment" << std::endl;
-        // std::cerr << "; import\t; evaluate library-name " << library_name << " as list of path" << std::endl;
         TRACE("compile") << "(\t; => unknown library-name" << std::endl;
         NEST_IN;
 
@@ -393,8 +394,12 @@ namespace meevax::system
 
         std::cerr << "; import\t; dynamic-link " << library_path << std::endl;
 
+        // TODO ADD FUNCTION CALL OPERATOR TO LINKER
+        const object& linker {make<posix::linker>(library_path.c_str())};
+
         const object& exported {std::invoke(
-          dynamic_link(library_path).link<procedure::signature>("library"),
+          // dynamic_link(library_path).link<procedure::signature>("library"),
+          linker.as<posix::linker>().link<procedure::signature>("library"),
           unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
         )};
 
@@ -402,7 +407,7 @@ namespace meevax::system
          * Passing the VM instruction to load literally library-name as
          * continuation is for return value of this special form "import".
          */
-        auto decralation {import_library(
+        auto decralations {import_library(
            exported, cons(_load_literal_, library_name, continuation)
          )};
 
@@ -411,7 +416,7 @@ namespace meevax::system
          * shared-object as given library-name (this will execute on first of VM
          * instruction which result of this function).
          */
-        return decralation.push(_load_literal_, exported, _define_, library_name);
+        return decralations.push(_load_literal_, std::move(exported), _define_, library_name);
       }
     });
 
