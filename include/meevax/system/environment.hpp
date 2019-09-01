@@ -105,6 +105,18 @@ namespace meevax::system
       }
     }
 
+    const auto& rename(const object& object)
+    {
+      if (not object.is<symbol>())
+      {
+        throw error {"internal unacceptable renaming"};
+      }
+      else
+      {
+        return intern(object.as<symbol>());
+      }
+    }
+
     decltype(auto) current_expression() noexcept
     {
       return std::get<0>(*this);
@@ -170,18 +182,16 @@ namespace meevax::system
 
       for (const object& each : library.as<environment>().interaction_environment())
       {
-        assert(car(each).is<symbol>());
-
         executable.push(
           _load_literal_, cadr(each),
-          _define_, intern(car(each).as<symbol>())
+          _define_, rename(car(each))
         );
       }
 
       return executable;
     }
 
-  public:
+  public: // deprecated
     template <typename... Ts>
     [[deprecated]] decltype(auto) load(Ts&&... args)
     {

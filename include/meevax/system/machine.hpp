@@ -47,9 +47,9 @@ namespace meevax::system
     }
 
     /*
-     *〈expression〉=〈identifier〉        => LOAD_GLOBAL / LOAD_LOCAL / LOAD_LOCAL_VARIADIC
-     *              |〈literal〉           => LOAD_LITERAL
-     *              |〈procedure call〉
+     *〈expression〉=〈identifier〉
+     *              |〈literal〉
+     *              | (<expression> <expression>*)
      *              |〈lambda expression〉
      *              |〈conditional〉
      *              |〈assignment〉
