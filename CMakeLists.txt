@@ -130,6 +130,9 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   target_link_libraries(${TARGET_NAME}
     ${Boost_LIBRARIES}
     ${PROJECT_NAME}-literal
+    dl
+    gmp
+    mpfr
     stdc++fs
     )
 endforeach()

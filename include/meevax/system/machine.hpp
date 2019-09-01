@@ -46,23 +46,19 @@ namespace meevax::system
       return interaction_environment(); // temporary
     }
 
+    /*
+     *〈expression〉=〈identifier〉        => LOAD_GLOBAL / LOAD_LOCAL / LOAD_LOCAL_VARIADIC
+     *              |〈literal〉           => LOAD_LITERAL
+     *              |〈procedure call〉
+     *              |〈lambda expression〉
+     *              |〈conditional〉
+     *              |〈assignment〉
+     *              |〈derived expression〉
+     */
     object compile(const object& expression,
                    const object& lexical_environment = unit,
                    const object& continuation = list(_stop_), bool tail = false)
     {
-      /*
-       *〈expression〉=〈identifier〉
-       *              |〈literal〉
-       *              |〈procedure call〉
-       *              |〈lambda expression〉
-       *              |〈conditional〉
-       *              |〈assignment〉
-       *              |〈derived expression〉
-       *              |〈macro use〉
-       *              |〈macro block〉
-       *              |〈includer〉
-       */
-
       if (not expression)
       {
         return cons(_load_literal_, unit, continuation);
@@ -427,7 +423,7 @@ namespace meevax::system
       }
     };
 
-  protected:
+  protected: // syntax
     /*
      * <quotation> = (quote <datum>)
      */
@@ -441,6 +437,8 @@ namespace meevax::system
 
     /*
      * <sequence> = <command>* <expression>
+     *
+     * <command> = <expression (the return value will be ignored)>
      */
     object sequence(const object& expression,
                     const object& lexical_environment,
@@ -449,7 +447,46 @@ namespace meevax::system
     {
       if (not cdr(expression)) // is tail sequence
       {
-        return compile(car(expression), lexical_environment, continuation, optimization);
+        return compile(
+                 car(expression),
+                 lexical_environment,
+                 continuation,
+                 optimization
+               );
+      }
+      else
+      {
+        return compile(
+                 car(expression), // first expression
+                 lexical_environment,
+                 cons(
+                   _pop_, // pop first expression
+                   sequence(
+                     cdr(expression), // rest expressions
+                     lexical_environment,
+                     continuation
+                   )
+                 )
+               );
+      }
+    }
+
+    /*
+     * <program> = <command or definition>* <expression>+
+     *
+     * <command or definition> = <command>
+     *                         | <definition>
+     *                         | (begin <command or definition>+)
+     *
+     * <command> = <expression (the return value will be ignored)>
+     */
+    object program(const object& expression,
+                   const object& lexical_environment,
+                   const object& continuation, const bool = false) try
+    {
+      if (not cdr(expression)) // is tail sequence
+      {
+        return compile(car(expression), lexical_environment, continuation, true);
       }
       else
       {
@@ -460,22 +497,29 @@ namespace meevax::system
                );
       }
     }
+    catch (const error&) // XXX <definition> backtrack
+    {
+      // (environment (<unknown>)
+      //   <car expression>
+      //   <cdr expression>
+      //   )
+      //
+      // <car expression> = (<caar expression> <cadar expression> <caddar expression>)
 
-    /*
-     * <program> = <command or definition>+
-     *
-     * <command or definition> = <command>
-     *                         | <definition>
-     *                         | (begin <command or definition>+)
-     *
-     * <command> = <expression (the return value will be ignored)>
-     */
-    // object program(const object& expression,
-    //                const object& lexical_environment,
-    //                const object& continuation,
-    //                const bool = false)
-    // {
-    // }
+      return compile(
+               cddar(expression) ? caddar(expression) : undefined,
+               lexical_environment,
+               cons(
+                 _define_, cadar(expression),
+                 cdr(expression) ? program(
+                                     cdr(expression),
+                                     lexical_environment,
+                                     continuation
+                                   )
+                                 : continuation
+               )
+             );
+    }
 
     /*
      * <definition> = (define <identifier> <expression>)
@@ -497,6 +541,7 @@ namespace meevax::system
       }
       else
       {
+        // TODO COMPILE_ERROR
         throw error {"syntax-error at internal-define"};
       }
     }
@@ -521,7 +566,7 @@ namespace meevax::system
                );
       }
     }
-    catch (const error&) // internal define backtrack (DIRTY HACK)
+    catch (const error&) // <definition> backtrack
     {
       stack bindings {};
 

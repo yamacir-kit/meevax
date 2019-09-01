@@ -2,16 +2,12 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(import ("libmeevax-posix.so"))
+(define fundamental.so
+  (linker "./lib/meevax/libmeevax-fundamental.so"))
 
-(import ("libmeevax-pair.so"))
-
-; (define fundamental.so
-;   (linker "./lib/meevax/libmeevax-fundamental.so"))
-;
-; (define car  (link fundamental.so "car"))
-; (define cdr  (link fundamental.so "cdr"))
-; (define cons (link fundamental.so "cons"))
+(define car  (link fundamental.so "car"))
+(define cdr  (link fundamental.so "cdr"))
+(define cons (link fundamental.so "cons"))
 
 (define numerical.so
   (linker "./lib/meevax/libmeevax-numerical.so"))
