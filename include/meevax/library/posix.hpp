@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_STANDARD_POSIX_HPP
-#define INCLUDED_MEEVAX_STANDARD_POSIX_HPP
+#ifndef INCLUDED_MEEVAX_LIBRARY_POSIX_HPP
+#define INCLUDED_MEEVAX_LIBRARY_POSIX_HPP
 
 #include <meevax/system/procedure.hpp>
 
@@ -14,5 +14,5 @@ namespace meevax::posix
   }
 } // namespace meevax::posix
 
-#endif // INCLUDED_MEEVAX_STANDARD_POSIX_HPP
+#endif // INCLUDED_MEEVAX_LIBRARY_POSIX_HPP
 
