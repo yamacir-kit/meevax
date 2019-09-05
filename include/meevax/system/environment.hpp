@@ -13,7 +13,6 @@
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/machine.hpp>
 #include <meevax/system/reader.hpp>
-#include <meevax/system/syntax.hpp>
 
 namespace meevax::system
 {

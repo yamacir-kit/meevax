@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
 
 #include <sstream>
-#include <stdexcept> // std::runtime_error
 
 #include <meevax/concepts/requires.hpp>
 #include <meevax/system/object.hpp>
