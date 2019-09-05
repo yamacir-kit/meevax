@@ -1,7 +1,10 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 #define INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 
-#include <meevax/system/pair.hpp>
+#include <type_traits>
+
+#include <meevax/system/object.hpp>
+#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {
@@ -10,7 +13,7 @@ namespace meevax::system
   template <auto Value>
   std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)
   {
-    return os << "\x1b[36m#" << std::boolalpha << Value << "\x1b[0m";
+    return os << color::literal << "#" << std::boolalpha << Value << color::normal;
   }
 } // namespace meevax::system
 

@@ -4,7 +4,8 @@
 #include <functional> // std::function
 #include <string>
 
-#include <meevax/system/pair.hpp> // object
+#include <meevax/system/object.hpp>
+#include <meevax/system/writer.hpp>
 
 #define SPECIAL(NAME) object NAME(const object&, const object&, const object&, bool)
 

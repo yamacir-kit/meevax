@@ -21,7 +21,23 @@ namespace meevax::system
    */
   using object = pointer<pair>;
 
+  template <typename T, typename... Ts>
+  constexpr decltype(auto) make(Ts&&... args)
+  {
+    return object::bind<T>(std::forward<Ts>(args)...);
+  }
+
   extern "C" const object unit, unbound, undefined, unspecified;
+
+  #define DERIVE(DERIVED, ACCESS, BASE)                                        \
+  struct DERIVED                                                               \
+    : ACCESS BASE                                                              \
+  {                                                                            \
+    template <typename... Objects>                                             \
+    explicit constexpr DERIVED(Objects&&... object)                            \
+      : BASE {std::forward<Objects>(object)...}                                \
+    {}                                                                         \
+  };
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_OBJECT_HPP

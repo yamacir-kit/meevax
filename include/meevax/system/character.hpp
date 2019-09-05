@@ -4,22 +4,16 @@
 #include <string>
 #include <unordered_map>
 
-#include <meevax/system/pair.hpp>
+#include <meevax/system/object.hpp>
+#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {
-  struct character
-    : public std::string
-  {
-    template <typename... Ts>
-    explicit constexpr character(Ts&&... xs)
-      : std::string {std::forward<Ts>(xs)...}
-    {}
-  };
+  DERIVE(character, public, std::string)
 
   std::ostream& operator<<(std::ostream& os, const character& c)
   {
-    return os << "\x1b[0;36m#\\" << static_cast<const std::string&>(c) << "\x1b[0m";
+    return os << color::literal << "#\\" << static_cast<const std::string&>(c) << color::normal;
   }
 
   extern "C" std::unordered_map<std::string, object> characters;

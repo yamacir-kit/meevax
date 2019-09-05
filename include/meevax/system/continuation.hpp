@@ -3,20 +3,20 @@
 
 #include <iostream>
 
-#include <meevax/system/pair.hpp>
-#include <meevax/utility/perfect_derive.hpp>
+#include <meevax/system/object.hpp>
+#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {
-  PERFECT_DERIVE(continuation, public virtual, pair)
+  DERIVE(continuation, public virtual, pair)
 
   std::ostream& operator<<(std::ostream& os, const continuation& continuation)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[36m" << "continuation"
-              << "\x1b[0m " << &continuation
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << color::syntax << "#("
+              << color::constructor << "continuation"
+              << color::normal << color::faint << " ;#" << &continuation
+              << color::syntax << ")"
+              << color::normal;
   }
 } // namespace meevax::system
 

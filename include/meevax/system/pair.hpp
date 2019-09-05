@@ -1,12 +1,10 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
 
-#include <iostream>
-#include <utility>
-
 #include <meevax/system/exception.hpp>
 #include <meevax/system/object.hpp>
 #include <meevax/system/pointer.hpp>
+#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {
@@ -23,12 +21,6 @@ namespace meevax::system
       : std::pair<object, object> {unit, unit}
     {}
   };
-
-  template <typename T, typename... Ts>
-  constexpr decltype(auto) make(Ts&&... args)
-  {
-    return object::bind<T>(std::forward<Ts>(args)...);
-  }
 
   #ifndef NDEBUG
   #define SELECTOR(NAME, INDEX)                                                \
