@@ -2,7 +2,7 @@
 #define INCLUDED_MEEVAX_SYSTEM_STACK_HPP
 
 #include <meevax/system/iterator.hpp>
-#include <meevax/system/srfi-1.hpp>
+#include <meevax/system/list.hpp>
 
 namespace meevax::system
 {

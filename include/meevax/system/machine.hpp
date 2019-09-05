@@ -7,12 +7,12 @@
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
 #include <meevax/system/iterator.hpp>
+#include <meevax/system/list.hpp> // assoc
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/procedure.hpp>
-#include <meevax/system/syntax.hpp>
-#include <meevax/system/srfi-1.hpp> // assoc
 #include <meevax/system/stack.hpp>
 #include <meevax/system/symbol.hpp> // object::is<symbol>()
+#include <meevax/system/syntax.hpp>
 
 inline namespace debug
 {
