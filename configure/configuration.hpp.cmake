@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CONFIGURE_HPP
-#define INCLUDED_MEEVAX_CONFIGURE_HPP
+#ifndef INCLUDED_MEEVAX_CONFIGURATION_HPP
+#define INCLUDED_MEEVAX_CONFIGURATION_HPP
 
 #include <string>
 
@@ -9,7 +9,7 @@
 
 namespace meevax::system
 {
-  struct configure
+  struct configuration
   {
     static inline const auto version_major {make<real>(${PROJECT_VERSION_MAJOR})};
     static inline const auto version_minor {make<real>(${PROJECT_VERSION_MINOR})};
@@ -29,5 +29,5 @@ namespace meevax::system
   };
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_CONFIGURE_HPP
+#endif // INCLUDED_MEEVAX_CONFIGURATION_HPP
 

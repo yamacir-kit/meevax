@@ -74,10 +74,10 @@ string(REPLACE ";" ", "
   "${${PROJECT_NAME}_STANDARD_LIBRARIES}")
 message("${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_COMMA_SEPARATED_STRING}")
 
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configure.hpp.cmake)
+if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configuration.hpp.cmake)
   configure_file(
-    ${${PROJECT_NAME}_CONFIGURE_DIR}/configure.hpp.cmake
-    ${${PROJECT_NAME}_INCLUDE_DIR}/meevax/configure.hpp
+    ${${PROJECT_NAME}_CONFIGURE_DIR}/configuration.hpp.cmake
+    ${${PROJECT_NAME}_INCLUDE_DIR}/meevax/configuration.hpp
     )
 endif()
 
