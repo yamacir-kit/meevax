@@ -4,7 +4,7 @@
 
 #include <meevax/system/environment.hpp>
 
-int main(int argc, char** argv) try
+int main(const int argc, char const* const* const argv) try
 {
   const std::vector<std::string> args {argv + 1, argv + argc};
 
