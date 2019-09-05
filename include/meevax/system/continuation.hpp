@@ -1,8 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
 
-#include <meevax/system/object.hpp>
-#include <meevax/system/writer.hpp>
+#include <meevax/system/pair.hpp>
 
 namespace meevax::system
 {

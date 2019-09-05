@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
 #define INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
 
-#include <cassert>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/system/boolean.hpp>
@@ -52,11 +51,6 @@
 
 namespace meevax::system
 {
-  // template <typename T, typename U>
-  // object operator|(T&& lhs, U&& rhs)
-  // {
-  //   return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
-  // }
   object operator|(const object& lhs, const object& rhs)
   {
     return std::make_shared<pair>(lhs, rhs);

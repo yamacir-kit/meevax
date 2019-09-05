@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
 
 #include <meevax/system/pair.hpp>
-#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {

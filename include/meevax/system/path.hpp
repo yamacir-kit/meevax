@@ -1,10 +1,10 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_PATH_HPP
 #define INCLUDED_MEEVAX_SYSTEM_PATH_HPP
 
-#include <iostream>
-#include <utility>
-
 #include <experimental/filesystem>
+
+#include <meevax/system/object.hpp>
+#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {

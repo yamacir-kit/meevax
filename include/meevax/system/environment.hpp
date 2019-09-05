@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_SYSTEM_ENVIRONMENT_HPP
 
 #include <algorithm> // std::equal
-#include <string> // std::string
 #include <unordered_map> // std::unoredered_map
 #include <numeric> // std::accumulate
 
