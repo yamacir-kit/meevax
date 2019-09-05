@@ -13,7 +13,7 @@
 #include <meevax/posix/linker.hpp>
 #include <meevax/system/machine.hpp>
 #include <meevax/system/reader.hpp>
-#include <meevax/system/special.hpp>
+#include <meevax/system/syntax.hpp>
 
 namespace meevax::system
 {
@@ -239,12 +239,12 @@ namespace meevax::system
   template <>
   environment::environment(std::integral_constant<int, 0>)
   {
-    define<special>("quote", [&](auto&&... xs)
+    define<syntax>("quote", [&](auto&&... xs)
     {
       return quotation(std::forward<decltype(xs)>(xs)...);
     });
 
-    define<special>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
+    define<syntax>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
     {
       TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
 
@@ -280,17 +280,17 @@ namespace meevax::system
       }
     });
 
-    define<special>("define", [&](auto&&... operands)
+    define<syntax>("define", [&](auto&&... operands)
     {
       return definition(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<special>("begin", [&](auto&&... args)
+    define<syntax>("begin", [&](auto&&... args)
     {
       return sequence(std::forward<decltype(args)>(args)...);
     });
 
-    define<special>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    define<syntax>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
 
@@ -305,7 +305,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    define<syntax>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
     {
       TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
 
@@ -320,7 +320,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("environment", [&](auto&& expression,
+    define<syntax>("environment", [&](auto&& expression,
                                        auto&& lexical_environment,
                                        auto&& continuation, auto)
     {
@@ -337,7 +337,7 @@ namespace meevax::system
              );
     });
 
-    define<special>("set!", [&](auto&&... args)
+    define<syntax>("set!", [&](auto&&... args)
     {
       return set(std::forward<decltype(args)>(args)...);
     });
@@ -345,7 +345,7 @@ namespace meevax::system
     /*
      * <importation> = (import <library name>)
      */
-    define<special>("import", [&](auto&& expression,
+    define<syntax>("import", [&](auto&& expression,
                                   auto&& lexical_environment,
                                   auto&& continuation, auto)
     {
@@ -361,7 +361,7 @@ namespace meevax::system
 
         /*
          * Passing the VM instruction to load literally library-name as
-         * continuation is for return value of this special form "import".
+         * continuation is for return value of this syntax form "import".
          */
         return import_library(library, cons(_load_literal_, library_name, continuation));
       }
@@ -420,7 +420,7 @@ namespace meevax::system
 
         /*
          * Passing the VM instruction to load literally library-name as
-         * continuation is for return value of this special form "import".
+         * continuation is for return value of this syntax form "import".
          */
         auto decralations {import_library(
            exported, cons(_load_literal_, library_name, continuation)

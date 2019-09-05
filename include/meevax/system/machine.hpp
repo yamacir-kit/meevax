@@ -9,7 +9,7 @@
 #include <meevax/system/iterator.hpp>
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/procedure.hpp>
-#include <meevax/system/special.hpp>
+#include <meevax/system/syntax.hpp>
 #include <meevax/system/srfi-1.hpp> // assoc
 #include <meevax/system/stack.hpp>
 #include <meevax/system/symbol.hpp> // object::is<symbol>()
@@ -109,11 +109,11 @@ namespace meevax::system
           TRACE("compile") << "(" << car(expression) << " ; => is application of unit => ERROR" << std::endl;
           throw error {"unit is not applicable"}; // TODO syntax-error
         }
-        else if (buffer != unbound && buffer.is<special>() && not de_bruijn_index(car(expression), lexical_environment))
+        else if (buffer != unbound && buffer.is<syntax>() && not de_bruijn_index(car(expression), lexical_environment))
         {
           TRACE("compile") << "(" << car(expression) << " ; => is application of " << buffer << std::endl;
           NEST_IN;
-          auto result {std::invoke(buffer.as<special>(), cdr(expression), lexical_environment, continuation, tail)};
+          auto result {std::invoke(buffer.as<syntax>(), cdr(expression), lexical_environment, continuation, tail)};
           NEST_OUT;
           return result;
         }
@@ -722,7 +722,7 @@ namespace meevax::system
 
       if (!expression)
       {
-        throw error {"syntax error at #(special set!)"};
+        throw error {"syntax error at #(syntax set!)"};
       }
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {
