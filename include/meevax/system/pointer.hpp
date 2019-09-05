@@ -4,13 +4,14 @@
 #include <cassert>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
+#include <stdexcept>
 #include <type_traits> // std::conditional
 #include <typeinfo> // typeid
 #include <utility> // std::forward
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-#include <meevax/system/exception.hpp>
+
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax::system
@@ -30,11 +31,11 @@ namespace meevax::system
       {
         return std::make_shared<T>(static_cast<const T&>(*this));
       }
-      else
+      else throw std::logic_error
       {
-        using meevax::utility::demangle;
-        throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(T)), " is not copy-constructible."};
-      }
+        "This is a fatal error for Meevax core language hackers. "
+        "The concept CopyConstructible is required for the base type of Meevax::system::pointer."
+      };
     }
 
     // eqv?
@@ -89,7 +90,6 @@ namespace meevax::system
       }
 
     private:
-      // XXX Bound required CopyConstructible?
       std::shared_ptr<T> copy() const override
       {
         using binding = binder<Bound>;
@@ -98,11 +98,11 @@ namespace meevax::system
         {
           return std::make_shared<binding>(*this);
         }
-        else
+        else throw std::logic_error
         {
-          using meevax::utility::demangle;
-          throw error {"from ", demangle(typeid(*this)), "::copy(), type ", demangle(typeid(Bound)), " is not copy-constructible."};
-        }
+          "This is a fatal error for Meevax library developers. "
+          "The bound type of meevax::system::pointer is required the concept CopyConstructible."
+        };
       }
 
       bool equals(const std::shared_ptr<T>& rhs) const override
@@ -164,10 +164,11 @@ namespace meevax::system
         return std::shared_ptr<T>::operator*();
     #ifndef NDEBUG
       }
-      else
+      else throw std::logic_error
       {
-        throw error {"segmentation fault guarded"};
-      }
+        "This is a fatal error that should be reported to Meevax core language developers (this error only occurs in debug builds). "
+        "meevax::system::pointer dererefences nullptr."
+      };
     #endif
     }
 
