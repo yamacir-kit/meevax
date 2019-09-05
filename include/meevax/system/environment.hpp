@@ -2,10 +2,8 @@
 #define INCLUDED_MEEVAX_SYSTEM_ENVIRONMENT_HPP
 
 #include <algorithm> // std::equal
-#include <functional> // std::invoke
 #include <string> // std::string
 #include <unordered_map> // std::unoredered_map
-#include <type_traits> // std::integral_constant
 #include <numeric> // std::accumulate
 
 /**

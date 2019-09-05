@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
 
-#include <iostream>
-
 #include <meevax/system/object.hpp>
 #include <meevax/system/writer.hpp>
 

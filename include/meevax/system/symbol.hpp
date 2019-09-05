@@ -1,8 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 #define INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 
-#include <iostream>
 #include <string>
+
+#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {

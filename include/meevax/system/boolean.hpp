@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 #define INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
 
-#include <type_traits>
-
 #include <meevax/system/object.hpp>
 #include <meevax/system/writer.hpp>
 

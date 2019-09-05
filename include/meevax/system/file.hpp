@@ -2,9 +2,10 @@
 #define INCLUDED_MEEVAX_SYSTEM_FILE_HPP
 
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <utility>
+
+#include <meevax/system/writer.hpp>
 
 // TODO ファイルパスを std::string からランタイムストリングかパス型へ変更
 

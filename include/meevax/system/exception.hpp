@@ -3,12 +3,10 @@
 
 #include <sstream>
 #include <stdexcept> // std::runtime_error
-#include <type_traits> // std::is_constructible
 
 #include <meevax/concepts/requires.hpp>
+#include <meevax/system/object.hpp>
 #include <meevax/system/writer.hpp>
-
-#include <meevax/utility/perfect_derive.hpp>
 
 // exception
 //  |-- error
@@ -34,7 +32,7 @@ namespace meevax::system
     {}
   };
 
-  PERFECT_DERIVE(error, public, exception)
+  DERIVE(error, public, exception)
 
   enum class category
   {
@@ -42,9 +40,9 @@ namespace meevax::system
   };
 
   template <category>
-  PERFECT_DERIVE(read_error, public, error)
+  DERIVE(read_error, public, error)
 
-  PERFECT_DERIVE(syntax_error, public, error)
+  DERIVE(syntax_error, public, error)
 
   std::ostream& operator<<(std::ostream& os, const exception& exception)
   {

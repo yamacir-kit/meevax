@@ -1,6 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_WRITER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_WRITER_HPP
 
+/*
+ * This header is responsible for including <iostream>.
+ */
 #include <iostream>
 
 namespace meevax::system

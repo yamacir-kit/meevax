@@ -4,7 +4,7 @@
 #include <cassert>
 #include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
-#include <stdexcept>
+#include <stdexcept> // std::logic_error
 #include <type_traits> // std::conditional
 #include <typeinfo> // typeid
 #include <utility> // std::forward
