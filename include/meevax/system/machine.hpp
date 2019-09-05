@@ -14,9 +14,18 @@
 #include <meevax/system/stack.hpp>
 #include <meevax/system/symbol.hpp> // object::is<symbol>()
 
-#include <meevax/utility/debug.hpp>
+inline namespace debug
+{
+  #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
 
-#define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
+  static std::size_t depth {0};
+
+  #define TRACE(X) \
+    std::cerr << "; " << X << "\t; " << std::string(depth * 4, ' ') << std::flush
+
+  #define NEST_IN  ++depth
+  #define NEST_OUT --depth, TRACE("compile") << ")" << std::endl
+}
 
 namespace meevax::system
 {
