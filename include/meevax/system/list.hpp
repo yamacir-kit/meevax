@@ -51,6 +51,94 @@
 
 namespace meevax::system
 {
+  #define caar(...) car(car(__VA_ARGS__))
+  #define cadr(...) car(cdr(__VA_ARGS__))
+  #define cdar(...) cdr(car(__VA_ARGS__))
+  #define cddr(...) cdr(cdr(__VA_ARGS__))
+
+  #define caaar(...) car(caar(__VA_ARGS__))
+  #define caadr(...) car(cadr(__VA_ARGS__))
+  #define cadar(...) car(cdar(__VA_ARGS__))
+  #define caddr(...) car(cddr(__VA_ARGS__))
+  #define cdaar(...) cdr(caar(__VA_ARGS__))
+  #define cdadr(...) cdr(cadr(__VA_ARGS__))
+  #define cddar(...) cdr(cdar(__VA_ARGS__))
+  #define cdddr(...) cdr(cddr(__VA_ARGS__))
+
+  #define caaaar(...) car(caaar(__VA_ARGS__))
+  #define caaadr(...) car(caadr(__VA_ARGS__))
+  #define caadar(...) car(cadar(__VA_ARGS__))
+  #define caaddr(...) car(caddr(__VA_ARGS__))
+  #define cadaar(...) car(cdaar(__VA_ARGS__))
+  #define cadadr(...) car(cdadr(__VA_ARGS__))
+  #define caddar(...) car(cddar(__VA_ARGS__))
+  #define cadddr(...) car(cdddr(__VA_ARGS__))
+  #define cdaaar(...) cdr(caaar(__VA_ARGS__))
+  #define cdaadr(...) cdr(caadr(__VA_ARGS__))
+  #define cdadar(...) cdr(cadar(__VA_ARGS__))
+  #define cdaddr(...) cdr(caddr(__VA_ARGS__))
+  #define cddaar(...) cdr(cdaar(__VA_ARGS__))
+  #define cddadr(...) cdr(cdadr(__VA_ARGS__))
+  #define cdddar(...) cdr(cddar(__VA_ARGS__))
+  #define cddddr(...) cdr(cdddr(__VA_ARGS__))
+
+  struct iterator
+    : public object
+  {
+    using iterator_category = std::forward_iterator_tag;
+
+    using value_type = object;
+
+    using reference = value_type&;
+    using const_reference = const reference;
+
+    using pointer = value_type; // represents homoiconicity
+
+    using difference_type = std::ptrdiff_t;
+
+    using size_type = std::size_t;
+
+    template <typename... Ts>
+    constexpr iterator(Ts&&... args)
+      : object {std::forward<Ts>(args)...}
+    {}
+
+    decltype(auto) operator*() const
+    {
+      return car(*this);
+    }
+
+    decltype(auto) operator->() const
+    {
+      return operator*();
+    }
+
+    decltype(auto) operator++()
+    {
+      return *this = cdr(*this);
+    }
+
+    decltype(auto) begin() const noexcept
+    {
+      return *this;
+    }
+
+    const iterator end() const noexcept
+    {
+      return unit;
+    }
+  };
+
+  iterator begin(const object& object) noexcept
+  {
+    return object;
+  }
+
+  iterator end(const object&) noexcept
+  {
+    return unit;
+  }
+
   object operator|(const object& lhs, const object& rhs)
   {
     return std::make_shared<pair>(lhs, rhs);
@@ -89,37 +177,6 @@ namespace meevax::system
       return x.equals(y); // eqv?
     }
   }
-
-  #define caar(...) car(car(__VA_ARGS__))
-  #define cadr(...) car(cdr(__VA_ARGS__))
-  #define cdar(...) cdr(car(__VA_ARGS__))
-  #define cddr(...) cdr(cdr(__VA_ARGS__))
-
-  #define caaar(...) car(caar(__VA_ARGS__))
-  #define caadr(...) car(cadr(__VA_ARGS__))
-  #define cadar(...) car(cdar(__VA_ARGS__))
-  #define caddr(...) car(cddr(__VA_ARGS__))
-  #define cdaar(...) cdr(caar(__VA_ARGS__))
-  #define cdadr(...) cdr(cadr(__VA_ARGS__))
-  #define cddar(...) cdr(cdar(__VA_ARGS__))
-  #define cdddr(...) cdr(cddr(__VA_ARGS__))
-
-  #define caaaar(...) car(caaar(__VA_ARGS__))
-  #define caaadr(...) car(caadr(__VA_ARGS__))
-  #define caadar(...) car(cadar(__VA_ARGS__))
-  #define caaddr(...) car(caddr(__VA_ARGS__))
-  #define cadaar(...) car(cdaar(__VA_ARGS__))
-  #define cadadr(...) car(cdadr(__VA_ARGS__))
-  #define caddar(...) car(cddar(__VA_ARGS__))
-  #define cadddr(...) car(cdddr(__VA_ARGS__))
-  #define cdaaar(...) cdr(caaar(__VA_ARGS__))
-  #define cdaadr(...) cdr(caadr(__VA_ARGS__))
-  #define cdadar(...) cdr(cadar(__VA_ARGS__))
-  #define cdaddr(...) cdr(caddr(__VA_ARGS__))
-  #define cddaar(...) cdr(cdaar(__VA_ARGS__))
-  #define cddadr(...) cdr(cdadr(__VA_ARGS__))
-  #define cdddar(...) cdr(cddar(__VA_ARGS__))
-  #define cddddr(...) cdr(cdddr(__VA_ARGS__))
 
   object take(const object& exp, std::size_t size)
   {

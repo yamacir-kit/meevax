@@ -6,7 +6,6 @@
 #include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
-#include <meevax/system/iterator.hpp>
 #include <meevax/system/list.hpp> // assoc
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/procedure.hpp>

@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_STACK_HPP
 #define INCLUDED_MEEVAX_SYSTEM_STACK_HPP
 
-#include <meevax/system/iterator.hpp>
 #include <meevax/system/list.hpp>
 
 namespace meevax::system

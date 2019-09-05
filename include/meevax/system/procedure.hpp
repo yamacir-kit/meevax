@@ -3,8 +3,9 @@
 
 #include <functional> // std::funstion
 
-#include <meevax/system/iterator.hpp>
+#include <meevax/system/list.hpp>
 
+// TODO Rename args to operands
 #define PROCEDURE(NAME) \
   meevax::system::object NAME([[maybe_unused]] const meevax::system::iterator& args)
 

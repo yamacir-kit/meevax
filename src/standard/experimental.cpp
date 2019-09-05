@@ -3,7 +3,6 @@
 #include <boost/cstdlib.hpp> // boost::exit_success
 
 #include <meevax/system/boolean.hpp>
-#include <meevax/system/iterator.hpp>
 #include <meevax/system/list.hpp>
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/pair.hpp>
