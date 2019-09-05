@@ -48,20 +48,20 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "exception"
-              << "\x1b[36m" << " \"" << exception.what() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << color::syntax << "#("
+              << color::constructor << "exception"
+              << color::literal << " \"" << exception.what() << "\""
+              << color::syntax << ")"
+              << color::normal;
   }
 
   std::ostream& operator<<(std::ostream& os, const error& error)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "error"
-              << "\x1b[36m" << " \"" << error.what() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << color::syntax << "#("
+              << color::constructor << "error"
+              << color::literal << " \"" << error.what() << "\""
+              << color::syntax << ")"
+              << color::normal;
   }
 
   template <category Category>
