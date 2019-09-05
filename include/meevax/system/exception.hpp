@@ -6,11 +6,13 @@
 #include <type_traits> // std::is_constructible
 
 #include <meevax/concepts/requires.hpp>
+#include <meevax/system/writer.hpp>
+
 #include <meevax/utility/perfect_derive.hpp>
 
 // exception
 //  |-- error
-//  |    |-- read_error
+//  |    |-- reader_error
 //  |    `-- syntax_error
 //  `-- warning
 
@@ -24,18 +26,12 @@ namespace meevax::system
       : std::runtime_error {std::forward<S>(s)}
     {}
 
-    template <typename... Ts>
-    exception(Ts&&... args)
-      : std::runtime_error {to_string(std::forward<Ts>(args)...)}
+    template <typename... Objects>
+    exception(Objects&&... objects)
+      : std::runtime_error {write(
+          std::ostringstream {}, std::forward<Objects>(objects)...
+        ).str()}
     {}
-
-    template <typename... Ts>
-    static decltype(auto) to_string(Ts&&... args)
-    {
-      std::stringstream ss {};
-      (ss << ... << args);
-      return ss.str();
-    }
   };
 
   PERFECT_DERIVE(error, public, exception)
