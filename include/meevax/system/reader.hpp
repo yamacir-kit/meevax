@@ -87,7 +87,7 @@ namespace meevax::system
         throw error_parentheses;
 
       case '"':
-        return string_literal();
+        return read<string>(*this);
 
       case '\'':
         return list(intern("quote"), read());
@@ -132,46 +132,44 @@ namespace meevax::system
       return make<character>("end-of-file");
     }
 
-    decltype(auto) string_literal()
+    template <typename T, REQUIRES(std::is_same<T, string>)>
+    static object read(std::istream& stream)
     {
-      switch (auto c {narrow(get(), '\0')}; c)
+      switch (auto c {stream.narrow(stream.get(), '\0')}; c)
       {
       case '"': // termination
-        return make<string>(make<character>(""), unit);
+        // TODO return unit; が正しいのでは？
+        // return make<string>(make<character>(""), unit);
+        return unit;
 
       case '\\': // escape sequences
-        switch (auto escaped {narrow(get(), '\0')}; escaped)
+        switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
         {
         case 'n':
-          putback('"');
-          return make<string>(make<character>('\n'), read());
+          return make<string>(make<character>('\n'), read<string>(stream));
 
         case '\n':
-          discard(whitespace);
-          putback('"');
-          return read();
+          discard(stream, whitespace);
+          return read<string>(stream);
 
         case '"':
-          putback('"');
-          return make<string>(make<character>("\""), read());
+          return make<string>(make<character>("\""), read<string>(stream));
 
         default:
-          putback('"');
-          return make<string>(make<character>("#\\unsupported;"), read());
+          return make<string>(make<character>("#\\unsupported;"), read<string>(stream));
         }
 
       default:
-        putback('"');
-        return make<string>(make<character>(c), read());
+        return make<string>(make<character>(c), read<string>(stream));
       }
     }
 
     template <typename Predicate>
-    void discard(Predicate&& predicate)
+    static void discard(std::istream& stream, Predicate&& predicate)
     {
-      while (predicate(peek()))
+      while (predicate(stream.peek()))
       {
-        ignore(1);
+        stream.ignore(1);
       }
     }
 

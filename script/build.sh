@@ -13,5 +13,5 @@ then
 fi
 
 cmake .. -DCMAKE_BUILD_TYPE=debug
-make -j4
+make
 

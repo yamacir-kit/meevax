@@ -1,6 +1,10 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_STRING_HPP
 #define INCLUDED_MEEVAX_SYSTEM_STRING_HPP
 
+/*
+ * This header is responsible for including <string>. But, this header knows
+ * character.hpp includes <string>.
+ */
 #include <meevax/system/character.hpp>
 #include <meevax/system/pair.hpp>
 
