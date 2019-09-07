@@ -15,7 +15,7 @@ namespace meevax::system
   inline namespace lexical_structure
   {
     /*
-     *〈intraline whitespace〉=〈space or tab〉
+     * <intraline whitespace> = <space or tab>
      */
     static constexpr auto intraline_whitespace(std::istream::char_type c)
     {
@@ -23,7 +23,7 @@ namespace meevax::system
     }
 
     /*
-     *〈whitespace〉=〈intraline whitespace〉|〈line ending〉
+     * <whitespace> = <intraline whitespace> | <line ending>
      */
     static constexpr auto whitespace(std::istream::char_type c)
     {
@@ -61,7 +61,61 @@ namespace meevax::system
     }
   } // inline namespace lexical_structure
 
-  /**
+  template <typename T>
+  decltype(auto) datum(const std::string& expression)
+  {
+    return datum<T>(std::istringstream {expression});
+  }
+
+  inline namespace simple_datum
+  {
+    /*
+     * <string> = " <string element> * "
+     *
+     * <string element> = <any character other than " or \>
+     *                  | <mnemonic escape>
+     *                  | \"
+     *                  | \\
+     *                  | \ <intraline whitespace>* <line ending> <intraline whitespace>
+     *                  | <inline hex escape>
+     */
+    template <typename T, REQUIRES(std::is_same<T, string>)>
+    const object datum(std::istream& stream)
+    {
+      switch (auto c {stream.narrow(stream.get(), '\0')}; c)
+      {
+      case '"': // termination
+        // return make<string>(make<character>(""), unit);
+        return unit;
+
+      case '\\': // escape sequences
+        switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
+        {
+        case 'n':
+          return make<string>(make<character>('\n'), datum<T>(stream));
+
+        case '\n':
+          while (whitespace(stream.peek()))
+          {
+            stream.ignore(1);
+          }
+          return datum<T>(stream);
+
+        case '"':
+          return make<T>(make<character>("\""), datum<T>(stream));
+
+        default:
+          return make<T>(make<character>("#\\unsupported;"), datum<T>(stream));
+        }
+
+      default:
+        return make<T>(make<character>(c), datum<T>(stream));
+      }
+    }
+
+  }
+
+  /*
    * Reader is character oriented state machine provides "read" primitive. This
    * type requires the type manages symbol table as template parameter.
    */
@@ -96,22 +150,43 @@ namespace meevax::system
       return operator bool();
     }
 
-    template <typename T = object>
     const object read() noexcept(false)
     {
-      return read<T>(*this);
+      return read(*this);
     }
 
-    template <typename T = object, REQUIRES(std::is_same<T, object>)>
+    /*
+     * The external representation.
+     *
+     * <Datum> is what the read procedure successfully parses. Note that any
+     * string that parses as an <expression> will also parse as a <datum>.
+     *
+     * <datum> = <simple datum>
+     *         | <compund datum>
+     *
+     * <simple datum> = <boolean>
+     *                | <number>
+     *                | <character>
+     *                | <string>
+     *                | <symbol>
+     *
+     * <compound datum> = <list>
+     *                  | <abbreviation>
+     *                  | <read time evaluation>
+     *
+     * <list> = (<datum>*)
+     *        | (<datum>+ . <datum>)
+     *
+     * <abbreviation> = <abbrev prefix> <datum>
+     *
+     * <abbrev prefix> = ' | ` | , | ,@
+     *
+     * <read time evaluation> = #(<datum>*)
+     *
+     * <label> = # <unsigned integer 10>                           unimplemented
+     */
     const object read(std::istream& stream)
     {
-      /*
-       *〈token〉=〈identifier〉
-       *         |〈boolean〉
-       *         |〈number〉
-       *         |〈character〉
-       *         |〈string〉
-       */
       std::string token {};
 
       for (seeker head {stream}; head != seeker {}; ++head) switch (*head)
@@ -149,7 +224,7 @@ namespace meevax::system
         throw error_parentheses;
 
       case '"':
-        return read<string>(stream);
+        return datum<string>(stream);
 
       case '\'':
         return list(intern("quote"), read(stream));
@@ -194,46 +269,6 @@ namespace meevax::system
       return make<character>("end-of-file");
     }
 
-    template <typename T, REQUIRES(std::is_same<T, string>)>
-    static object read(std::istream& stream)
-    {
-      switch (auto c {stream.narrow(stream.get(), '\0')}; c)
-      {
-      case '"': // termination
-        // return make<string>(make<character>(""), unit);
-        return unit;
-
-      case '\\': // escape sequences
-        switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
-        {
-        case 'n':
-          return make<string>(make<character>('\n'), read<T>(stream));
-
-        case '\n':
-          discard(stream, whitespace);
-          return read<T>(stream);
-
-        case '"':
-          return make<T>(make<character>("\""), read<T>(stream));
-
-        default:
-          return make<T>(make<character>("#\\unsupported;"), read<T>(stream));
-        }
-
-      default:
-        return make<T>(make<character>(c), read<T>(stream));
-      }
-    }
-
-    template <typename Predicate>
-    static void discard(std::istream& stream, Predicate&& predicate)
-    {
-      while (predicate(stream.peek()))
-      {
-        stream.ignore(1);
-      }
-    }
-
     object discriminate()
     {
       switch (peek())
@@ -265,16 +300,6 @@ namespace meevax::system
       }
     }
   };
-
-  /*
-   * You cannot call free function version of read if the type T has no
-   * specialization as static member function of reader.
-   */
-  // template <typename T>
-  // decltype(auto) read(std::istream& stream)
-  // {
-  //   return reader::read<T>(stream);
-  // }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_READER_HPP
