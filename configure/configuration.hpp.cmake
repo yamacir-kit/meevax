@@ -4,6 +4,7 @@
 #include <meevax/system/list.hpp>
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/path.hpp>
+#include <meevax/system/reader.hpp>
 
 namespace meevax::system
 {
@@ -17,7 +18,12 @@ namespace meevax::system
       version_major, version_minor, version_patch
     )};
 
-    static inline const std::string build_date {"${${PROJECT_NAME}_BUILD_DATE}"};
+    // static inline const std::string build_date {"${${PROJECT_NAME}_BUILD_DATE}"};
+
+    static inline const auto build_date {datum<string>(
+      "${${PROJECT_NAME}_BUILD_DATE}"
+    )};
+
     static inline const std::string build_hash {"${${PROJECT_NAME}_BUILD_HASH}"};
     static inline const std::string build_type {"${CMAKE_BUILD_TYPE}"};
 

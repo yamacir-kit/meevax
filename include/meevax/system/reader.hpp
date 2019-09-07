@@ -61,14 +61,11 @@ namespace meevax::system
     }
   } // inline namespace lexical_structure
 
-  template <typename T>
-  decltype(auto) datum(const std::string& expression)
+  namespace
   {
-    return datum<T>(std::istringstream {expression});
-  }
+    template <typename T>
+    const object datum(std::istream& stream);
 
-  inline namespace simple_datum
-  {
     /*
      * <string> = " <string element> * "
      *
@@ -79,8 +76,8 @@ namespace meevax::system
      *                  | \ <intraline whitespace>* <line ending> <intraline whitespace>
      *                  | <inline hex escape>
      */
-    template <typename T, REQUIRES(std::is_same<T, string>)>
-    const object datum(std::istream& stream)
+    template <>
+    const object datum<string>(std::istream& stream)
     {
       switch (auto c {stream.narrow(stream.get(), '\0')}; c)
       {
@@ -92,27 +89,43 @@ namespace meevax::system
         switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
         {
         case 'n':
-          return make<string>(make<character>('\n'), datum<T>(stream));
+          return make<string>(make<character>('\n'), datum<string>(stream));
 
         case '\n':
           while (whitespace(stream.peek()))
           {
             stream.ignore(1);
           }
-          return datum<T>(stream);
+          return datum<string>(stream);
 
         case '"':
-          return make<T>(make<character>("\""), datum<T>(stream));
+          return make<string>(make<character>("\""), datum<string>(stream));
 
         default:
-          return make<T>(make<character>("#\\unsupported;"), datum<T>(stream));
+          return make<string>(make<character>("#\\unsupported;"), datum<string>(stream));
         }
 
       default:
-        return make<T>(make<character>(c), datum<T>(stream));
+        return make<string>(make<character>(c), datum<string>(stream));
       }
     }
 
+    /*
+     * Helper function to construct a datum from std::string. Note that it will
+     * not work properly for ill-formed input.
+     */
+    template <typename T>
+    decltype(auto) datum(const std::string& expression)
+    {
+      return datum<T>(std::istringstream {expression});
+    }
+
+    template <>
+    decltype(auto) datum<string>(const std::string& expression)
+    {
+      std::istringstream stream {expression + "\""};
+      return datum<string>(stream);
+    }
   }
 
   /*
