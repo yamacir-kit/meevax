@@ -12,6 +12,55 @@
 
 namespace meevax::system
 {
+  inline namespace lexical_structure
+  {
+    /*
+     *〈intraline whitespace〉=〈space or tab〉
+     */
+    static constexpr auto intraline_whitespace(std::istream::char_type c)
+    {
+      return std::isspace(c);
+    }
+
+    /*
+     *〈whitespace〉=〈intraline whitespace〉|〈line ending〉
+     */
+    static constexpr auto whitespace(std::istream::char_type c)
+    {
+      return intraline_whitespace(c) or c == u8'\r' or c == u8'\n';
+    }
+
+    static constexpr bool is_delimiter(std::istream::char_type c)
+    {
+      switch (c)
+      {
+      // intraline whitespace
+      case u8' ':
+      case u8'\t': case u8'\v':
+
+      // line ending
+      case u8'\r': case u8'\n':
+
+      case u8'(': case u8')':
+
+      case u8'#':
+
+      // quotation
+      case u8'\'':
+      case u8',':
+      case u8'`':
+
+      case u8'"':
+      case u8';':
+      case u8'|':
+        return true;
+
+      default:
+        return false;
+      }
+    }
+  } // inline namespace lexical_structure
+
   /**
    * Reader is character oriented state machine provides "read" primitive. This
    * type requires the type manages symbol table as template parameter.
@@ -48,7 +97,7 @@ namespace meevax::system
     }
 
     template <typename T = object>
-    const object read()
+    const object read() noexcept(false)
     {
       return read<T>(*this);
     }
@@ -56,6 +105,13 @@ namespace meevax::system
     template <typename T = object, REQUIRES(std::is_same<T, object>)>
     const object read(std::istream& stream)
     {
+      /*
+       *〈token〉=〈identifier〉
+       *         |〈boolean〉
+       *         |〈number〉
+       *         |〈character〉
+       *         |〈string〉
+       */
       std::string token {};
 
       for (seeker head {stream}; head != seeker {}; ++head) switch (*head)
@@ -151,21 +207,21 @@ namespace meevax::system
         switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
         {
         case 'n':
-          return make<string>(make<character>('\n'), read<string>(stream));
+          return make<string>(make<character>('\n'), read<T>(stream));
 
         case '\n':
           discard(stream, whitespace);
-          return read<string>(stream);
+          return read<T>(stream);
 
         case '"':
-          return make<string>(make<character>("\""), read<string>(stream));
+          return make<T>(make<character>("\""), read<T>(stream));
 
         default:
-          return make<string>(make<character>("#\\unsupported;"), read<string>(stream));
+          return make<T>(make<character>("#\\unsupported;"), read<T>(stream));
         }
 
       default:
-        return make<string>(make<character>(c), read<string>(stream));
+        return make<T>(make<character>(c), read<T>(stream));
       }
     }
 
@@ -175,54 +231,6 @@ namespace meevax::system
       while (predicate(stream.peek()))
       {
         stream.ignore(1);
-      }
-    }
-
-  public:
-    /*
-     *〈intraline whitespace〉=〈space or tab〉
-     */
-    static constexpr auto intraline_whitespace(char_type c) noexcept
-    {
-      return std::isspace(c);
-    }
-
-    /*
-     *〈whitespace〉=〈intraline whitespace〉|〈line ending〉
-     */
-    static constexpr auto whitespace(char_type c) noexcept
-    {
-      return intraline_whitespace(c) or c == u8'\r' or c == u8'\n';
-    }
-
-    template <typename CharType>
-    bool is_delimiter(CharType&& c) const noexcept
-    {
-      switch (c)
-      {
-      // intraline whitespace
-      case u8' ':
-      case u8'\t': case u8'\v':
-
-      // line ending
-      case u8'\r': case u8'\n':
-
-      case u8'(': case u8')':
-
-      case u8'#':
-
-      // quotation
-      case u8'\'':
-      case u8',':
-      case u8'`':
-
-      case u8'"':
-      case u8';':
-      case u8'|':
-        return true;
-
-      default:
-        return false;
       }
     }
 
@@ -257,6 +265,16 @@ namespace meevax::system
       }
     }
   };
+
+  /*
+   * You cannot call free function version of read if the type T has no
+   * specialization as static member function of reader.
+   */
+  // template <typename T>
+  // decltype(auto) read(std::istream& stream)
+  // {
+  //   return reader::read<T>(stream);
+  // }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_READER_HPP
