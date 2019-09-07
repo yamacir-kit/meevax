@@ -47,14 +47,21 @@ namespace meevax::system
       return operator bool();
     }
 
-    object read()
+    template <typename T = object>
+    const object read()
+    {
+      return read<T>(*this);
+    }
+
+    template <typename T = object, REQUIRES(std::is_same<T, object>)>
+    const object read(std::istream& stream)
     {
       std::string token {};
 
-      for (seeker head {*this}; head != seeker {}; ++head) switch (*head)
+      for (seeker head {stream}; head != seeker {}; ++head) switch (*head)
       {
       case ';':
-        ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         break;
 
       case ' ': case '\t': case '\v': case '\n':
@@ -63,9 +70,9 @@ namespace meevax::system
       case '(':
         try
         {
-          auto expression {read()};
-          putback('(');
-          return cons(expression, read());
+          auto expression {read(stream)};
+          stream.putback('(');
+          return cons(expression, read(stream));
         }
         catch (const object& object)
         {
@@ -75,8 +82,8 @@ namespace meevax::system
           }
           else if (object == error_pair)
           {
-            auto expression {read()};
-            ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            auto expression {read(stream)};
+            stream.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
             return expression;
           }
           else throw;
@@ -86,23 +93,23 @@ namespace meevax::system
         throw error_parentheses;
 
       case '"':
-        return read<string>(*this);
+        return read<string>(stream);
 
       case '\'':
-        return list(intern("quote"), read());
+        return list(intern("quote"), read(stream));
 
       case '`':
-        return list(intern("quasiquote"), read());
+        return list(intern("quasiquote"), read(stream));
 
       case ',':
-        switch (peek())
+        switch (stream.peek())
         {
         case '@':
-          ignore(1);
-          return list(intern("unquote-splicing"), read());
+          stream.ignore(1);
+          return list(intern("unquote-splicing"), read(stream));
 
         default:
-          return list(intern("unquote"), read());
+          return list(intern("unquote"), read(stream));
         }
 
       case '#':
@@ -111,7 +118,7 @@ namespace meevax::system
       default:
         token.push_back(*head);
 
-        if (auto c {peek()}; is_delimiter(c)) // delimiter
+        if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
         {
           if (token == ".")
           {
@@ -137,7 +144,6 @@ namespace meevax::system
       switch (auto c {stream.narrow(stream.get(), '\0')}; c)
       {
       case '"': // termination
-        // TODO return unit; が正しいのでは？
         // return make<string>(make<character>(""), unit);
         return unit;
 
@@ -174,7 +180,7 @@ namespace meevax::system
 
   public:
     /*
-     * 〈intraline whitespace〉=〈space or tab〉
+     *〈intraline whitespace〉=〈space or tab〉
      */
     static constexpr auto intraline_whitespace(char_type c) noexcept
     {
@@ -182,7 +188,7 @@ namespace meevax::system
     }
 
     /*
-     * 〈whitespace〉=〈intraline whitespace〉|〈line ending〉
+     *〈whitespace〉=〈intraline whitespace〉|〈line ending〉
      */
     static constexpr auto whitespace(char_type c) noexcept
     {
