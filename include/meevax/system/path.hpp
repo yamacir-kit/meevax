@@ -4,7 +4,6 @@
 #include <experimental/filesystem>
 
 #include <meevax/system/object.hpp>
-#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {

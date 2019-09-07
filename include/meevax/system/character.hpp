@@ -1,11 +1,9 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
 
-#include <string>
 // #include <unordered_map>
 
 #include <meevax/system/object.hpp>
-#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {

@@ -2,10 +2,8 @@
 #define INCLUDED_MEEVAX_SYSTEM_SYNTAX_HPP
 
 #include <functional> // std::function
-#include <string>
 
 #include <meevax/system/object.hpp>
-#include <meevax/system/writer.hpp>
 
 #define SYNTAX(NAME) object NAME(const object&, const object&, const object&, bool)
 

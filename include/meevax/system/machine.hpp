@@ -6,7 +6,6 @@
 #include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
-#include <meevax/system/numerical.hpp>
 #include <meevax/system/procedure.hpp>
 #include <meevax/system/stack.hpp>
 #include <meevax/system/symbol.hpp> // object::is<symbol>()

@@ -13,9 +13,8 @@
 namespace meevax::system
 {
   /**
-   * Reader is character oriented state machine provides "read" primitive.
-   *
-   * This type requires the type manages symbol table as template parameter.
+   * Reader is character oriented state machine provides "read" primitive. This
+   * type requires the type manages symbol table as template parameter.
    */
   template <typename Environment>
   class reader

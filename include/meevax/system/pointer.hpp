@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
 
 #include <cassert>
-#include <iostream> // std::ostream
 #include <memory> // std::shared_ptr
 #include <stdexcept> // std::logic_error
 #include <typeinfo> // typeid
@@ -10,6 +9,8 @@
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
+
+#include <meevax/system/writer.hpp>
 
 #include <meevax/utility/demangle.hpp>
 

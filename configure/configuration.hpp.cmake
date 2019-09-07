@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_CONFIGURATION_HPP
 #define INCLUDED_MEEVAX_CONFIGURATION_HPP
 
-#include <string>
-
 #include <meevax/system/list.hpp>
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/path.hpp>

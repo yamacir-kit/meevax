@@ -2,9 +2,10 @@
 #define INCLUDED_MEEVAX_SYSTEM_WRITER_HPP
 
 /*
- * This header is responsible for including <iostream>.
+ * This header is responsible for including <iostream> and <string>.
  */
 #include <iostream>
+#include <string>
 
 namespace meevax::system
 {
