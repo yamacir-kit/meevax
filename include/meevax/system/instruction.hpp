@@ -4,7 +4,6 @@
 #include <boost/preprocessor.hpp>
 
 #include <meevax/system/object.hpp>
-#include <meevax/system/writer.hpp>
 
 namespace meevax::system
 {

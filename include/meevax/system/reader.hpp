@@ -12,10 +12,125 @@
 
 namespace meevax::system
 {
-  /**
-   * Reader is character oriented state machine provides "read" primitive.
-   *
-   * This type requires the type manages symbol table as template parameter.
+  inline namespace lexical_structure
+  {
+    /*
+     * <intraline whitespace> = <space or tab>
+     */
+    static constexpr auto intraline_whitespace(std::istream::char_type c)
+    {
+      return std::isspace(c);
+    }
+
+    /*
+     * <whitespace> = <intraline whitespace> | <line ending>
+     */
+    static constexpr auto whitespace(std::istream::char_type c)
+    {
+      return intraline_whitespace(c) or c == u8'\r' or c == u8'\n';
+    }
+
+    static constexpr bool is_delimiter(std::istream::char_type c)
+    {
+      switch (c)
+      {
+      // intraline whitespace
+      case u8' ':
+      case u8'\t': case u8'\v':
+
+      // line ending
+      case u8'\r': case u8'\n':
+
+      case u8'(': case u8')':
+
+      case u8'#':
+
+      // quotation
+      case u8'\'':
+      case u8',':
+      case u8'`':
+
+      case u8'"':
+      case u8';':
+      case u8'|':
+        return true;
+
+      default:
+        return false;
+      }
+    }
+  } // inline namespace lexical_structure
+
+  namespace
+  {
+    template <typename T>
+    const object datum(std::istream& stream);
+
+    /*
+     * <string> = " <string element> * "
+     *
+     * <string element> = <any character other than " or \>
+     *                  | <mnemonic escape>
+     *                  | \"
+     *                  | \\
+     *                  | \ <intraline whitespace>* <line ending> <intraline whitespace>
+     *                  | <inline hex escape>
+     */
+    template <>
+    const object datum<string>(std::istream& stream)
+    {
+      switch (auto c {stream.narrow(stream.get(), '\0')}; c)
+      {
+      case '"': // termination
+        // return make<string>(make<character>(""), unit);
+        return unit;
+
+      case '\\': // escape sequences
+        switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
+        {
+        case 'n':
+          return make<string>(make<character>('\n'), datum<string>(stream));
+
+        case '\n':
+          while (whitespace(stream.peek()))
+          {
+            stream.ignore(1);
+          }
+          return datum<string>(stream);
+
+        case '"':
+          return make<string>(make<character>("\""), datum<string>(stream));
+
+        default:
+          return make<string>(make<character>("#\\unsupported;"), datum<string>(stream));
+        }
+
+      default:
+        return make<string>(make<character>(c), datum<string>(stream));
+      }
+    }
+
+    /*
+     * Helper function to construct a datum from std::string. Note that it will
+     * not work properly for ill-formed input.
+     */
+    template <typename T>
+    decltype(auto) datum(const std::string& expression)
+    {
+      return datum<T>(std::istringstream {expression});
+    }
+
+    template <>
+    decltype(auto) datum<string>(const std::string& expression)
+    {
+      std::istringstream stream {expression + "\""};
+      return datum<string>(stream);
+    }
+  }
+
+  /*
+   * Reader is character oriented state machine provides "read" primitive. This
+   * type requires the type manages symbol table as template parameter.
    */
   template <typename Environment>
   class reader
@@ -48,14 +163,49 @@ namespace meevax::system
       return operator bool();
     }
 
-    object read()
+    const object read() noexcept(false)
+    {
+      return read(*this);
+    }
+
+    /*
+     * The external representation.
+     *
+     * <Datum> is what the read procedure successfully parses. Note that any
+     * string that parses as an <expression> will also parse as a <datum>.
+     *
+     * <datum> = <simple datum>
+     *         | <compund datum>
+     *
+     * <simple datum> = <boolean>
+     *                | <number>
+     *                | <character>
+     *                | <string>
+     *                | <symbol>
+     *
+     * <compound datum> = <list>
+     *                  | <abbreviation>
+     *                  | <read time evaluation>
+     *
+     * <list> = (<datum>*)
+     *        | (<datum>+ . <datum>)
+     *
+     * <abbreviation> = <abbrev prefix> <datum>
+     *
+     * <abbrev prefix> = ' | ` | , | ,@
+     *
+     * <read time evaluation> = #(<datum>*)
+     *
+     * <label> = # <unsigned integer 10>                           unimplemented
+     */
+    const object read(std::istream& stream)
     {
       std::string token {};
 
-      for (seeker head {*this}; head != seeker {}; ++head) switch (*head)
+      for (seeker head {stream}; head != seeker {}; ++head) switch (*head)
       {
       case ';':
-        ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         break;
 
       case ' ': case '\t': case '\v': case '\n':
@@ -64,9 +214,9 @@ namespace meevax::system
       case '(':
         try
         {
-          auto expression {read()};
-          putback('(');
-          return cons(expression, read());
+          auto expression {read(stream)};
+          stream.putback('(');
+          return cons(expression, read(stream));
         }
         catch (const object& object)
         {
@@ -76,8 +226,8 @@ namespace meevax::system
           }
           else if (object == error_pair)
           {
-            auto expression {read()};
-            ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            auto expression {read(stream)};
+            stream.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
             return expression;
           }
           else throw;
@@ -87,23 +237,23 @@ namespace meevax::system
         throw error_parentheses;
 
       case '"':
-        return read<string>(*this);
+        return datum<string>(stream);
 
       case '\'':
-        return list(intern("quote"), read());
+        return list(intern("quote"), read(stream));
 
       case '`':
-        return list(intern("quasiquote"), read());
+        return list(intern("quasiquote"), read(stream));
 
       case ',':
-        switch (peek())
+        switch (stream.peek())
         {
         case '@':
-          ignore(1);
-          return list(intern("unquote-splicing"), read());
+          stream.ignore(1);
+          return list(intern("unquote-splicing"), read(stream));
 
         default:
-          return list(intern("unquote"), read());
+          return list(intern("unquote"), read(stream));
         }
 
       case '#':
@@ -112,7 +262,7 @@ namespace meevax::system
       default:
         token.push_back(*head);
 
-        if (auto c {peek()}; is_delimiter(c)) // delimiter
+        if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
         {
           if (token == ".")
           {
@@ -130,95 +280,6 @@ namespace meevax::system
       }
 
       return make<character>("end-of-file");
-    }
-
-    template <typename T, REQUIRES(std::is_same<T, string>)>
-    static object read(std::istream& stream)
-    {
-      switch (auto c {stream.narrow(stream.get(), '\0')}; c)
-      {
-      case '"': // termination
-        // TODO return unit; が正しいのでは？
-        // return make<string>(make<character>(""), unit);
-        return unit;
-
-      case '\\': // escape sequences
-        switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
-        {
-        case 'n':
-          return make<string>(make<character>('\n'), read<string>(stream));
-
-        case '\n':
-          discard(stream, whitespace);
-          return read<string>(stream);
-
-        case '"':
-          return make<string>(make<character>("\""), read<string>(stream));
-
-        default:
-          return make<string>(make<character>("#\\unsupported;"), read<string>(stream));
-        }
-
-      default:
-        return make<string>(make<character>(c), read<string>(stream));
-      }
-    }
-
-    template <typename Predicate>
-    static void discard(std::istream& stream, Predicate&& predicate)
-    {
-      while (predicate(stream.peek()))
-      {
-        stream.ignore(1);
-      }
-    }
-
-  public:
-    /*
-     * 〈intraline whitespace〉=〈space or tab〉
-     */
-    static constexpr auto intraline_whitespace(char_type c) noexcept
-    {
-      return std::isspace(c);
-    }
-
-    /*
-     * 〈whitespace〉=〈intraline whitespace〉|〈line ending〉
-     */
-    static constexpr auto whitespace(char_type c) noexcept
-    {
-      return intraline_whitespace(c) or c == u8'\r' or c == u8'\n';
-    }
-
-    template <typename CharType>
-    bool is_delimiter(CharType&& c) const noexcept
-    {
-      switch (c)
-      {
-      // intraline whitespace
-      case u8' ':
-      case u8'\t': case u8'\v':
-
-      // line ending
-      case u8'\r': case u8'\n':
-
-      case u8'(': case u8')':
-
-      case u8'#':
-
-      // quotation
-      case u8'\'':
-      case u8',':
-      case u8'`':
-
-      case u8'"':
-      case u8';':
-      case u8'|':
-        return true;
-
-      default:
-        return false;
-      }
     }
 
     object discriminate()

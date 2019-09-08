@@ -5,7 +5,6 @@
 
 #include <meevax/concepts/requires.hpp>
 #include <meevax/system/object.hpp>
-#include <meevax/system/writer.hpp>
 
 // exception
 //  |-- error
