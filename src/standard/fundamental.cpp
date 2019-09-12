@@ -4,24 +4,17 @@ extern "C"
 {
   NATIVE(car)
   {
-    using meevax::system::car;
-    using meevax::system::cdr;
-    return caar(args);
+    return meevax::system::caar(args);
   }
 
   NATIVE(cdr)
   {
-    using meevax::system::car;
-    using meevax::system::cdr;
-    return cdar(args);
+    return meevax::system::cdar(args);
   }
 
   NATIVE(cons)
   {
-    using meevax::system::car;
-    using meevax::system::cdr;
-    using meevax::system::cons;
-    return cons(car(args), cadr(args));
+    return meevax::system::cons(meevax::system::car(args), meevax::system::cadr(args));
   }
 } // extern "C"
 
