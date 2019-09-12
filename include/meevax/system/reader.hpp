@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_READER_HPP
 #define INCLUDED_MEEVAX_SYSTEM_READER_HPP
 
+#include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
 
 #include <meevax/system/boolean.hpp>

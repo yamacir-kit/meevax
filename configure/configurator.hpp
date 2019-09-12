@@ -8,7 +8,6 @@
 #include <boost/cstdlib.hpp>
 
 #include <meevax/system/native.hpp>
-#include <meevax/system/numerical.hpp>
 #include <meevax/system/path.hpp>
 #include <meevax/system/reader.hpp>
 
