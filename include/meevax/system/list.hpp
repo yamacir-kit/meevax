@@ -300,24 +300,6 @@ namespace meevax::system
       return assq(key, cdr(alist));
     }
   }
-
-  object& unsafe_assoc(const object& var, object& env) noexcept(false)
-  {
-    assert(var);
-
-    if (!env)
-    {
-      throw error {var, " is unbound"};
-    }
-    else if (caar(env) == var)
-    {
-      return cadar(env);
-    }
-    else
-    {
-      return unsafe_assoc(var, cdr(env));
-    }
-  }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
