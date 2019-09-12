@@ -11,7 +11,7 @@ namespace meevax::system
   {
     return os << highlight::syntax << "#("
               << highlight::constructor << "continuation"
-              << attribute::normal << highlight::comment << " ;#" << &continuation
+              << attribute::normal << highlight::comment << " ;#" << &continuation << attribute::normal
               << highlight::syntax << ")"
               << attribute::normal;
   }

@@ -522,7 +522,7 @@ namespace meevax::system
   {
     return os << highlight::syntax << "#("
               << highlight::constructor << "environemnt"
-              << attribute::normal << highlight::comment << " #;" << &environment
+              << attribute::normal << highlight::comment << " #;" << &environment << attribute::normal
               << highlight::syntax << ")"
               << attribute::normal;
   }
