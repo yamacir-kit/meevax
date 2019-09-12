@@ -19,11 +19,11 @@ namespace meevax::system
   auto operator<<(std::ostream& os, const path& path)
     -> decltype(os)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "path"
-              << "\x1b[36m" << " \"" << path.c_str() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "path"
+              << highlight::simple_datum << " \"" << path.c_str() << "\""
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 

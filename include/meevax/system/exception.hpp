@@ -63,9 +63,9 @@ namespace meevax::system
   template <category Category>
   std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
   {
-    os << "\x1b[35m" << "#("
-       << "\x1b[32m" << "read-error"
-       << "\x1b[0m " << "#;(category ";
+    os << highlight::syntax << "#("
+       << highlight::constructor << "read-error"
+       << highlight::comment << " #;(category ";
 
     switch (Category)
     {
@@ -83,9 +83,9 @@ namespace meevax::system
     }
 
     return os << ") "
-              << "\x1b[36m" << "\"" << error.what() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+              << highlight::simple_datum << "\"" << error.what() << "\""
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 

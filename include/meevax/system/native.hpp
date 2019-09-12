@@ -28,12 +28,11 @@ namespace meevax::system
   // XXX Symmetry breaking
   std::ostream& operator<<(std::ostream& os, const native& native)
   {
-    os << "\x1b[35m" << "#("
-       << "\x1b[32m" << "native"
-       << "\x1b[0m " << native.name
-       << "\x1b[35m" << ")";
-
-    return os << "\x1b[0m";
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "native"
+              << attribute::normal << " " << native.name
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 
