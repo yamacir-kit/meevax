@@ -22,8 +22,7 @@ namespace meevax::system
 
   #ifndef NDEBUG
   #define SELECTOR(NAME, INDEX)                                                \
-  template <typename Pointer>                                                  \
-  decltype(auto) NAME(Pointer&& object)                                        \
+  decltype(auto) NAME(const object& object)                                    \
   {                                                                            \
     if (object)                                                                \
     {                                                                          \
@@ -36,8 +35,7 @@ namespace meevax::system
   }
   #else
   #define SELECTOR(NAME, INDEX)                                                \
-  template <typename Pointer>                                                  \
-  decltype(auto) NAME(Pointer&& object)                                        \
+  decltype(auto) NAME(const object& object)                                    \
   {                                                                            \
     return std::get<INDEX>(object.dereference());                              \
   }
