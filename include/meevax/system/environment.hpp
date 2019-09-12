@@ -40,15 +40,15 @@ namespace meevax::system
      * Each environment has one virtual machine and compiler.
      */
     , public machine<environment>
-  {
-    std::unordered_map<std::string, object> symbols;
 
     /*
      * Global configuration is shared in all of environments running on same
-     * program. Thus, any change of configuration member influences any other
+     * process. Thus, any change of configuration member influences any other
      * environments immediately.
      */
-    static inline const configuration configure {};
+    , public configurator<environment>
+  {
+    std::unordered_map<std::string, object> symbols;
 
     static inline std::unordered_map<std::string, posix::linker> linkers {};
 
@@ -517,9 +517,6 @@ namespace meevax::system
                );
       }
     });
-
-    define("version", configure.version);
-    define("install-prefix", configure.install_prefix);
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)

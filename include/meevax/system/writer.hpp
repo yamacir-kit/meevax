@@ -31,7 +31,7 @@ namespace meevax::system
         reverse     {"\x1b[7m"},
         conceal     {"\x1b[8m"}; // Not widely supported.
 
-      static constexpr auto& // alias
+      static constexpr auto // alias
         increased_intensity {bold},
         decreased_intensity {faint};
     }
@@ -48,7 +48,7 @@ namespace meevax::system
         cyan    {"\x1b[36m"},
         white   {"\x1b[37m"};
 
-      static constexpr auto& // alias
+      static constexpr auto // alias
         constructor {green},
         literal {cyan},
         syntax {magenta};

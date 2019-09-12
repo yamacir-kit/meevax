@@ -64,7 +64,7 @@ namespace meevax::system
   namespace
   {
     template <typename T>
-    const object datum(std::istream& stream);
+    const object datum(std::istream& stream); // TODO Rename to simple_datum
 
     /*
      * <string> = " <string element> * "
@@ -163,9 +163,15 @@ namespace meevax::system
       return operator bool();
     }
 
-    const object read() noexcept(false)
+    decltype(auto) read() noexcept(false)
     {
       return read(*this);
+    }
+
+    decltype(auto) read(const std::string& expression) noexcept(false)
+    {
+      std::istringstream stream {expression};
+      return read(stream);
     }
 
     /*

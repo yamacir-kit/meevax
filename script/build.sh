@@ -12,6 +12,8 @@ then
   make clean
 fi
 
-cmake .. -DCMAKE_BUILD_TYPE=debug
+cmake .. -DCMAKE_BUILD_TYPE=debug \
+  -DCMAKE_CXX_COMPILER=g++-7
+  # -DCMAKE_CXX_COMPILER=clang++-6.0
 make
 
