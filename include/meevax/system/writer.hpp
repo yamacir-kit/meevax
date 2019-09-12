@@ -50,7 +50,7 @@ namespace meevax::system
 
       static constexpr auto // alias
         constructor {green},
-        literal {cyan},
+        simple_datum {cyan},
         syntax {magenta};
     }
 

@@ -16,7 +16,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const integral& integral)
   {
-    return os << color::literal << integral.str() << color::normal;
+    return os << color::simple_datum << integral.str() << color::normal;
   }
 
   // using real_base

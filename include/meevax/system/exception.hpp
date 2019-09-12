@@ -46,7 +46,7 @@ namespace meevax::system
   {
     return os << color::syntax << "#("
               << color::constructor << "exception"
-              << color::literal << " \"" << exception.what() << "\""
+              << color::simple_datum << " \"" << exception.what() << "\""
               << color::syntax << ")"
               << color::normal;
   }
@@ -55,7 +55,7 @@ namespace meevax::system
   {
     return os << color::syntax << "#("
               << color::constructor << "error"
-              << color::literal << " \"" << error.what() << "\""
+              << color::simple_datum << " \"" << error.what() << "\""
               << color::syntax << ")"
               << color::normal;
   }
