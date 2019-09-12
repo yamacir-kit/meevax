@@ -35,14 +35,14 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const string& s)
   {
-    os << "\x1b[36m\"" << std::get<0>(s).as<std::string>();
+    os << highlight::simple_datum << "\"" << std::get<0>(s).as<std::string>();
 
     for (const auto& each : std::get<1>(s))
     {
       os << each.as<std::string>();
     }
 
-    return os << "\"\x1b[0m";
+    return os << "\"" << attribute::normal;
   }
 } // namespace meevax::system
 

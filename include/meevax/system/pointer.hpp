@@ -127,11 +127,11 @@ namespace meevax::system
         }
         else
         {
-          return os << "\x1b[35m" << "#("
-                    << "\x1b[32m" << utility::demangle(typeid(Bound))
-                    << "\x1b[0m " << "#;" << static_cast<const Bound*>(this)
-                    << "\x1b[35m" << ")"
-                    << "\x1b[0m";
+          return os << highlight::syntax << "#("
+                    << highlight::constructor << utility::demangle(typeid(Bound))
+                    << highlight::comment << " #;" << static_cast<const Bound*>(this) << attribute::normal
+                    << highlight::syntax << ")"
+                    << attribute::normal;
         }
       }
     };
@@ -215,7 +215,7 @@ namespace meevax::system
     -> decltype(os)
   {
     // write(os) will be dispatched to each type's stream output operator.
-    return !object ? (os << "\x1b[35m()\x1b[0m") : object.dereference().dispatch(os);
+    return !object ? (os << highlight::syntax << "()" << attribute::normal) : object.dereference().dispatch(os);
   }
 
   template <typename T>

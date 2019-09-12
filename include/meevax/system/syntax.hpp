@@ -25,11 +25,11 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const syntax& syntax)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "syntax"
-              << "\x1b[0m " << syntax.name
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "syntax"
+              << attribute::normal << " " << syntax.name
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 

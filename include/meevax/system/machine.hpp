@@ -279,7 +279,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
+          throw error {callee, " is not applicable"};
         }
         goto dispatch;
 
@@ -310,7 +310,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
+          throw error {callee, " is not applicable"};
         }
         goto dispatch;
 

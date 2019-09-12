@@ -44,28 +44,28 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
-    return os << color::syntax << "#("
-              << color::constructor << "exception"
-              << color::literal << " \"" << exception.what() << "\""
-              << color::syntax << ")"
-              << color::normal;
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "exception"
+              << highlight::simple_datum << " \"" << exception.what() << "\""
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 
   std::ostream& operator<<(std::ostream& os, const error& error)
   {
-    return os << color::syntax << "#("
-              << color::constructor << "error"
-              << color::literal << " \"" << error.what() << "\""
-              << color::syntax << ")"
-              << color::normal;
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "error"
+              << highlight::simple_datum << " \"" << error.what() << "\""
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 
   template <category Category>
   std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
   {
-    os << "\x1b[35m" << "#("
-       << "\x1b[32m" << "read-error"
-       << "\x1b[0m " << "#;(category ";
+    os << highlight::syntax << "#("
+       << highlight::constructor << "read-error"
+       << highlight::comment << " #;(category ";
 
     switch (Category)
     {
@@ -83,9 +83,9 @@ namespace meevax::system
     }
 
     return os << ") "
-              << "\x1b[36m" << "\"" << error.what() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+              << highlight::simple_datum << "\"" << error.what() << "\""
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 
