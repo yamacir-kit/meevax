@@ -1,15 +1,15 @@
 #include <meevax/system/environment.hpp>
-#include <meevax/system/procedure.hpp>
+#include <meevax/system/native.hpp>
 
 namespace meevax::library
 {
-  extern "C" PROCEDURE(library)
+  extern "C" NATIVE(library)
   {
     using namespace meevax::system;
 
     environment library {};
 
-    library.define<procedure>("dummy", [](auto&&)
+    library.define<native>("dummy", [](auto&&)
     {
       std::cout << "dummy!" << std::endl;
       return unit;

@@ -1,23 +1,22 @@
-#include <meevax/system/pair.hpp>
-#include <meevax/system/procedure.hpp>
+#include <meevax/system/native.hpp>
 
 extern "C"
 {
-  PROCEDURE(car)
+  NATIVE(car)
   {
     using meevax::system::car;
     using meevax::system::cdr;
     return caar(args);
   }
 
-  PROCEDURE(cdr)
+  NATIVE(cdr)
   {
     using meevax::system::car;
     using meevax::system::cdr;
     return cdar(args);
   }
 
-  PROCEDURE(cons)
+  NATIVE(cons)
   {
     using meevax::system::car;
     using meevax::system::cdr;

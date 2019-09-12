@@ -1,29 +1,23 @@
-#include <functional>
 #include <numeric>
 
 #include <meevax/system/boolean.hpp>
-#include <meevax/system/list.hpp>
+#include <meevax/system/native.hpp>
 #include <meevax/system/numerical.hpp>
-#include <meevax/system/procedure.hpp>
 
-extern "C"
+extern "C" namespace meevax::system
 {
-  PROCEDURE(addition)
+  NATIVE(addition)
   {
-    using namespace meevax::system;
     return std::accumulate(std::begin(args), std::end(args), make<real>(0), std::plus {});
   }
 
-  PROCEDURE(multiplication)
+  NATIVE(multiplication)
   {
-    using namespace meevax::system;
     return std::accumulate(std::begin(args), std::end(args), make<real>(1), std::multiplies {});
   }
 
-  PROCEDURE(subtraction)
+  NATIVE(subtraction)
   {
-    using namespace meevax::system;
-
     if (length(args) < 2)
     {
       return std::accumulate(std::begin(args), std::end(args), make<real>(0), std::minus {});
@@ -34,10 +28,8 @@ extern "C"
     }
   }
 
-  PROCEDURE(division)
+  NATIVE(division)
   {
-    using namespace meevax::system;
-
     if (length(args) < 2)
     {
       return std::accumulate(std::begin(args), std::end(args), make<real>(1), std::divides {});
@@ -48,33 +40,28 @@ extern "C"
     }
   }
 
-  PROCEDURE(less)
+  NATIVE(less)
   {
-    using namespace meevax::system;
     return std::invoke(std::less {}, car(args), cadr(args)) ? true_object : false_object;
   }
 
-  PROCEDURE(less_equal)
+  NATIVE(less_equal)
   {
-    using namespace meevax::system;
     return std::invoke(std::less_equal {}, car(args), cadr(args)) ? true_object : false_object;
   }
 
-  PROCEDURE(greater)
+  NATIVE(greater)
   {
-    using namespace meevax::system;
     return std::invoke(std::greater {}, car(args), cadr(args)) ? true_object : false_object;
   }
 
-  PROCEDURE(greater_equal)
+  NATIVE(greater_equal)
   {
-    using namespace meevax::system;
     return std::invoke(std::greater_equal {}, car(args), cadr(args)) ? true_object : false_object;
   }
 
-  PROCEDURE(real_)
+  NATIVE(real_)
   {
-    using namespace meevax::system;
     return car(args).is<real>() ? true_object : false_object;
   }
 } // extern "C"

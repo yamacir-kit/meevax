@@ -406,14 +406,14 @@ namespace meevax::system
         // machine<environment>::define(
         //   library_name,
         //   std::invoke(
-        //     dynamic_link(library_path).link<procedure::signature>("library"),
+        //     dynamic_link(library_path).link<native::signature>("library"),
         //     unit
         //   )
         // );
 
         const object exported {std::invoke(
-          dynamic_link(library_path).link<procedure::signature>("library"),
-          // linker.as<posix::linker>().link<procedure::signature>("library"),
+          dynamic_link(library_path).link<native::signature>("library"),
+          // linker.as<posix::linker>().link<native::signature>("library"),
           unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
         )};
 
@@ -438,12 +438,12 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("load", [&](const object& args)
+    define<native>("load", [&](const object& args)
     {
       return load(car(args).as<const string>());
     });
 
-    define<procedure>("symbol", [&](const object& args)
+    define<native>("symbol", [&](const object& args)
     {
       try
       {
@@ -455,7 +455,7 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("linker", [&](auto&& args)
+    define<native>("linker", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
@@ -477,7 +477,7 @@ namespace meevax::system
       }
     });
 
-    define<procedure>("link", [&](auto&& args)
+    define<native>("link", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)
       {
@@ -511,9 +511,9 @@ namespace meevax::system
       {
         const auto& linker_ {car(args).template as<meevax::posix::linker>()};
         const std::string& name_ {cadr(args).template as<string>()};
-        return make<procedure>(
+        return make<native>(
                  name_,
-                 linker_.template link<typename procedure::signature>(name_)
+                 linker_.template link<typename native::signature>(name_)
                );
       }
     });

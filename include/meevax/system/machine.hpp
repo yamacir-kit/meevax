@@ -6,7 +6,7 @@
 #include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
-#include <meevax/system/procedure.hpp>
+#include <meevax/system/native.hpp>
 #include <meevax/system/stack.hpp>
 #include <meevax/system/symbol.hpp> // object::is<symbol>()
 #include <meevax/system/syntax.hpp>
@@ -265,9 +265,9 @@ namespace meevax::system
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<native>()) // (native args . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
         else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
@@ -296,9 +296,9 @@ namespace meevax::system
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<native>()) // (native args . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
         else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D

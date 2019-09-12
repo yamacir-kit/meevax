@@ -7,10 +7,9 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/system/list.hpp>
+#include <meevax/system/native.hpp>
 #include <meevax/system/numerical.hpp>
 #include <meevax/system/path.hpp>
-#include <meevax/system/procedure.hpp>
 #include <meevax/system/reader.hpp>
 
 namespace meevax::system
@@ -55,12 +54,12 @@ namespace meevax::system
     template <typename T>
     using dispatcher = std::unordered_map<
                          typename std::decay<T>::type,
-                         std::function<PROCEDURE()>
+                         std::function<NATIVE()>
                        >;
 
     static inline const std::unordered_map<
                           char,
-                          std::function<PROCEDURE()>
+                          std::function<NATIVE()>
                         > short_options_requires_no_operands
     {
       std::make_pair('h', [&](const auto&)
@@ -80,14 +79,14 @@ namespace meevax::system
 
     static inline std::unordered_map<
                     char,
-                    std::function<PROCEDURE()>
+                    std::function<NATIVE()>
                   > short_options_requires_operands
     {
     };
 
     static inline std::unordered_map<
                     std::string,
-                    std::function<PROCEDURE()>
+                    std::function<NATIVE()>
                   > long_options_requires_no_operands
     {
       std::make_pair("help", [&](const auto&)
@@ -115,7 +114,7 @@ namespace meevax::system
 
     static inline const std::unordered_map<
                           std::string,
-                          std::function<PROCEDURE()>
+                          std::function<NATIVE()>
                         > long_options_requires_operands
     {
       std::make_pair("echo", [&](const auto& operands)
