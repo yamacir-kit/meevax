@@ -1,4 +1,4 @@
 build
-include/meevax/configuration.hpp
+include/meevax/system/configurator.hpp
 uninstall.sh
 
