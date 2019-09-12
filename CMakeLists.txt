@@ -74,10 +74,10 @@ string(REPLACE ";" ", "
   "${${PROJECT_NAME}_STANDARD_LIBRARIES}")
 message("${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_COMMA_SEPARATED_STRING}")
 
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configuration.hpp)
+if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configurator.hpp)
   configure_file(
-    ${${PROJECT_NAME}_CONFIGURE_DIR}/configuration.hpp
-    ${${PROJECT_NAME}_INCLUDE_DIR}/meevax/configuration.hpp
+    ${${PROJECT_NAME}_CONFIGURE_DIR}/configurator.hpp
+    ${${PROJECT_NAME}_INCLUDE_DIR}/meevax/system/configurator.hpp
     )
 endif()
 

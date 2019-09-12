@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CONFIGURATION_HPP
-#define INCLUDED_MEEVAX_CONFIGURATION_HPP
+#ifndef INCLUDED_MEEVAX_CONFIGURATOR_HPP
+#define INCLUDED_MEEVAX_CONFIGURATOR_HPP
 
 #include <regex>
 #include <unordered_map>
@@ -256,5 +256,5 @@ namespace meevax::system
   };
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_CONFIGURATION_HPP
+#endif // INCLUDED_MEEVAX_CONFIGURATOR_HPP
 
