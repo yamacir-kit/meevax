@@ -47,11 +47,6 @@ namespace meevax::system
         magenta {"\x1b[35m"},
         cyan    {"\x1b[36m"},
         white   {"\x1b[37m"};
-
-      constexpr auto // alias
-        constructor {green},
-        simple_datum {cyan},
-        syntax {magenta};
     }
 
     namespace background
@@ -66,6 +61,15 @@ namespace meevax::system
         cyan    {"\x1b[46m"},
         white   {"\x1b[47m"};
     }
+  }
+
+  namespace highlight
+  {
+    constexpr auto
+      comment {attribute::faint},
+      constructor {color::green},
+      simple_datum {color::cyan},
+      syntax {color::magenta};
   }
 } // namespace meevax::system
 

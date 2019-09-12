@@ -44,19 +44,19 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const exception& exception)
   {
-    return os << color::syntax << "#("
-              << color::constructor << "exception"
-              << color::simple_datum << " \"" << exception.what() << "\""
-              << color::syntax << ")"
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "exception"
+              << highlight::simple_datum << " \"" << exception.what() << "\""
+              << highlight::syntax << ")"
               << attribute::normal;
   }
 
   std::ostream& operator<<(std::ostream& os, const error& error)
   {
-    return os << color::syntax << "#("
-              << color::constructor << "error"
-              << color::simple_datum << " \"" << error.what() << "\""
-              << color::syntax << ")"
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "error"
+              << highlight::simple_datum << " \"" << error.what() << "\""
+              << highlight::syntax << ")"
               << attribute::normal;
   }
 

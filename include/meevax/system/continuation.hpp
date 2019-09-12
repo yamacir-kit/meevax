@@ -9,10 +9,10 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const continuation& continuation)
   {
-    return os << color::syntax << "#("
-              << color::constructor << "continuation"
-              << attribute::normal << attribute::faint << " ;#" << &continuation
-              << color::syntax << ")"
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "continuation"
+              << attribute::normal << highlight::comment << " ;#" << &continuation
+              << highlight::syntax << ")"
               << attribute::normal;
   }
 } // namespace meevax::system

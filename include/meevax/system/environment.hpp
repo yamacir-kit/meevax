@@ -520,11 +520,11 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "environemnt"
-              << "\x1b[0m " << "#;" << &environment
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "environemnt"
+              << attribute::normal << highlight::comment << "#;" << &environment
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 
