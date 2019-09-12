@@ -11,7 +11,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const character& c)
   {
-    return os << color::simple_datum << "#\\" << static_cast<const std::string&>(c) << color::normal;
+    return os << color::simple_datum << "#\\" << static_cast<const std::string&>(c) << attribute::normal;
   }
 
   // extern "C" std::unordered_map<std::string, object> characters;

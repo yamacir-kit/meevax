@@ -11,9 +11,9 @@ namespace meevax::system
   {
     return os << color::syntax << "#("
               << color::constructor << "continuation"
-              << color::normal << color::faint << " ;#" << &continuation
+              << attribute::normal << attribute::faint << " ;#" << &continuation
               << color::syntax << ")"
-              << color::normal;
+              << attribute::normal;
   }
 } // namespace meevax::system
 

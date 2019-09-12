@@ -47,7 +47,7 @@ namespace meevax::system
   auto operator<<(std::ostream& os, const pair& pare)
     -> decltype(os)
   {
-    os << "\x1b[35m(\x1b[0m" << std::get<0>(pare);
+    os << color::syntax << "(" << attribute::normal << std::get<0>(pare);
 
     for (auto object {std::get<1>(pare)}; object; object = cdr(object))
     {

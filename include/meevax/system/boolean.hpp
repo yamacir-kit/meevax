@@ -10,7 +10,7 @@ namespace meevax::system
   template <auto Value>
   std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)
   {
-    return os << color::simple_datum << "#" << std::boolalpha << Value << color::normal;
+    return os << color::simple_datum << "#" << std::boolalpha << Value << attribute::normal;
   }
 } // namespace meevax::system
 

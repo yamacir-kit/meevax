@@ -48,7 +48,7 @@ namespace meevax::system
               << color::constructor << "exception"
               << color::simple_datum << " \"" << exception.what() << "\""
               << color::syntax << ")"
-              << color::normal;
+              << attribute::normal;
   }
 
   std::ostream& operator<<(std::ostream& os, const error& error)
@@ -57,7 +57,7 @@ namespace meevax::system
               << color::constructor << "error"
               << color::simple_datum << " \"" << error.what() << "\""
               << color::syntax << ")"
-              << color::normal;
+              << attribute::normal;
   }
 
   template <category Category>
