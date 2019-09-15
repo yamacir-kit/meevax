@@ -15,9 +15,9 @@ namespace meevax::system
 
   struct boolean
   {
-    bool data;
+    const bool data;
 
-    explicit operator bool() const noexcept
+    explicit constexpr operator bool() const noexcept
     {
       return data;
     }

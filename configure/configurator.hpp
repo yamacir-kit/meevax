@@ -56,10 +56,7 @@ namespace meevax::system
                          std::function<NATIVE()>
                        >;
 
-    static inline const std::unordered_map<
-                          char,
-                          std::function<NATIVE()>
-                        > short_options_requires_no_operands
+    static inline const dispatcher<char> short_options_requires_no_operands
     {
       std::make_pair('h', [&](const auto&)
       {
@@ -76,17 +73,11 @@ namespace meevax::system
       }),
     };
 
-    static inline std::unordered_map<
-                    char,
-                    std::function<NATIVE()>
-                  > short_options_requires_operands
+    static inline const dispatcher<char> short_options_requires_operands
     {
     };
 
-    static inline std::unordered_map<
-                    std::string,
-                    std::function<NATIVE()>
-                  > long_options_requires_no_operands
+    static inline const dispatcher<std::string> long_options_requires_no_operands
     {
       std::make_pair("help", [&](const auto&)
       {
@@ -111,10 +102,7 @@ namespace meevax::system
       }),
     };
 
-    static inline const std::unordered_map<
-                          std::string,
-                          std::function<NATIVE()>
-                        > long_options_requires_operands
+    static inline const dispatcher<std::string> long_options_requires_operands
     {
       std::make_pair("echo", [&](const auto& operands)
       {
@@ -176,8 +164,9 @@ namespace meevax::system
 
               if (const std::string subsequent {std::next(local), std::end(buffer)}; not subsequent.empty())
               {
-                std::cerr << ";\t\t; operand(s) " << subsequent << std::endl;
-                return std::invoke(std::get<1>(*callee_requires_operands), static_cast<Environment&>(*this).read(subsequent));
+                const auto operands {static_cast<Environment&>(*this).read(subsequent)};
+                std::cerr << ";\t\t; operand(s) " << operands << std::endl;
+                return std::invoke(std::get<1>(*callee_requires_operands), operands);
               }
               else if (std::smatch next_group {};
                        std::next(global) != std::end(args)
@@ -221,8 +210,10 @@ namespace meevax::system
                      std::next(global) != std::end(args)
                      and not std::regex_match(*std::next(global), next_group, pattern))
             {
-              std::cerr << ";\t\t; operand(s) " << *std::next(global) << std::endl;
-              return std::invoke(std::get<1>(*callee_requires_operands), static_cast<Environment&>(*this).read(*++global));
+              std::cerr << ";\t\t; operand(s) " << *std::next(global) << " => ";
+              const auto operands {static_cast<Environment&>(*this).read(*++global)};
+              std::cerr << operands << std::endl;
+              return std::invoke(std::get<1>(*callee_requires_operands), operands);
             }
             else
             {
