@@ -104,7 +104,7 @@ namespace meevax::system
     {
       if (not object.is<symbol>())
       {
-        throw error {"internal unacceptable renaming"};
+        throw system_error {"Not a symbol object was passed to rename"};
       }
       else
       {
@@ -229,7 +229,7 @@ namespace meevax::system
       }
       else
       {
-        throw error {"failed to open file \"", path, "\""};
+        throw evaluation_error {"failed to open file ", std::quoted(path)};
       }
     }
   };
@@ -351,7 +351,7 @@ namespace meevax::system
 
       if (const object& library_name {car(expression)}; not library_name)
       {
-        throw error {"empty library-name is not allowed"};
+        throw evaluation_error {"empty library-name is not allowed"};
       }
       else if (const object& library {locate_library(library_name)}; library)
       {
@@ -391,7 +391,9 @@ namespace meevax::system
           }
           else
           {
-            throw error {identifier, " is not allowed as part of library-name (must be path or string object)"};
+            throw evaluation_error {
+              identifier, " is not allowed as part of library-name (must be path or string object)"
+            };
           }
         }
 
@@ -458,17 +460,19 @@ namespace meevax::system
     {
       if (auto size {length(args)}; size < 1)
       {
-        throw error {"procedure linker expects a string for argument, but received nothing."};
+        throw evaluation_error {
+          "procedure linker expects a string for argument, but received nothing."
+        };
       }
       else if (const object& s {car(args)}; not s.is<string>())
       {
-        throw error {
-                "procedure linker expects a string for argument, but received ",
-                meevax::utility::demangle(s.type()),
-                " rest ", size, " argument",
-                (size < 2 ? " " : "s "),
-                "were ignored."
-              };
+        throw evaluation_error {
+          "procedure linker expects a string for argument, but received ",
+          meevax::utility::demangle(s.type()),
+          " rest ", size, " argument",
+          (size < 2 ? " " : "s "),
+          "were ignored."
+        };
       }
       else
       {
@@ -480,31 +484,35 @@ namespace meevax::system
     {
       if (auto size {length(args)}; size < 1)
       {
-        throw error {"procedure link expects two arguments (linker and string), but received nothing."};
+        throw evaluation_error {
+          "procedure link expects two arguments (linker and string), but received nothing."
+        };
       }
       else if (size < 2)
       {
-        throw error {"procedure link expects two arguments (linker and string), but received only one argument."};
+        throw evaluation_error {
+          "procedure link expects two arguments (linker and string), but received only one argument."
+        };
       }
       else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
       {
-        throw error {
-                "procedure dynamic-link-open expects a linker for first argument, but received ",
-                meevax::utility::demangle(linker.type()),
-                " rest ", size - 1, " argument",
-                (size < 2 ? " " : "s "),
-                "were ignored."
-              };
+        throw evaluation_error {
+          "procedure dynamic-link-open expects a linker for first argument, but received ",
+          meevax::utility::demangle(linker.type()),
+          " rest ", size - 1, " argument",
+          (size < 2 ? " " : "s "),
+          "were ignored."
+        };
       }
       else if (const auto& name {cadr(args)}; not name.template is<string>())
       {
-        throw error {
-                "procedure dynamic-link-open expects a string for second argument, but received ",
-                meevax::utility::demangle(name.type()),
-                " rest ", size - 2, " argument",
-                (size < 3 ? " " : "s "),
-                "were ignored."
-              };
+        throw evaluation_error {
+          "procedure dynamic-link-open expects a string for second argument, but received ",
+          meevax::utility::demangle(name.type()),
+          " rest ", size - 2, " argument",
+          (size < 3 ? " " : "s "),
+          "were ignored."
+        };
       }
       else
       {
