@@ -127,10 +127,12 @@ namespace meevax::system
                                                                                \
   DEFINE_EXCEPTION_WRITER(SECTION##_##CATEGORY##_about_##ABOUT, #SECTION "-" #CATEGORY "-about-" #ABOUT)
 
-  DEFINE_EXCEPTION_ABOUT(parentheses, reader, error)
   DEFINE_EXCEPTION_ABOUT(pair, reader, error)
+  DEFINE_EXCEPTION_ABOUT(parentheses, reader, error)
 
   DEFINE_EXCEPTION_ABOUT(assignment, syntax, error)
+
+  DEFINE_EXCEPTION_ABOUT(pair, system, error)
 
   // enum class [[deprecated]] category
   // {
