@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
-#include <meevax/system/boolean.hpp> // false_object
 #include <meevax/system/closure.hpp>
 #include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>

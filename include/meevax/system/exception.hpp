@@ -3,8 +3,9 @@
 
 #include <sstream>
 
-#include <meevax/concepts/requires.hpp>
 #include <meevax/system/object.hpp>
+
+#include <meevax/utility/requires.hpp>
 
 // exception
 //  |-- error

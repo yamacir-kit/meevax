@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_LAMBDA_FORWARD_CAPTURE_HPP
 #define INCLUDED_MEEVAX_LAMBDA_FORWARD_CAPTURE_HPP
 
-#include <functional>
 #include <utility>
 
 namespace meevax::lambda
