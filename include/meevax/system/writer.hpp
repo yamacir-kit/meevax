@@ -4,6 +4,7 @@
 /*
  * This header is responsible for including <ostream> and <string>.
  */
+#include <iomanip>
 #include <ostream>
 #include <string>
 

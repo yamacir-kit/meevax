@@ -30,7 +30,9 @@ namespace meevax::system
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      throw error {"internal illegal selection rejected"};                     \
+      throw system_error_about_pair {                                          \
+        "internal illegal selection rejected"                                  \
+      };                                                                       \
     }                                                                          \
   }
   #else

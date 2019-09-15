@@ -23,25 +23,29 @@ namespace meevax::system
       return std::isspace(c);
     }
 
+    static constexpr auto line_ending(std::istream::char_type c)
+    {
+      return c == u8'\r' or c == u8'\n';
+    }
+
     /*
      * <whitespace> = <intraline whitespace> | <line ending>
      */
     static constexpr auto whitespace(std::istream::char_type c)
     {
-      return intraline_whitespace(c) or c == u8'\r' or c == u8'\n';
+      return intraline_whitespace(c) or line_ending(c);
     }
 
     static constexpr bool is_delimiter(std::istream::char_type c)
     {
-      switch (c)
+      // return whitespace(c) or ;
+
+      if (whitespace(c))
       {
-      // intraline whitespace
-      case u8' ':
-      case u8'\t': case u8'\v':
-
-      // line ending
-      case u8'\r': case u8'\n':
-
+        return true;
+      }
+      else switch (c)
+      {
       case u8'(': case u8')':
 
       case u8'#':
@@ -139,13 +143,13 @@ namespace meevax::system
   {
     using seeker = std::istream_iterator<input_file::char_type>;
 
-    static inline const auto error_pair {make<read_error<category::pair>>(
-      "ill-formed dot-notation"
-    )};
-
-    static inline const auto error_parentheses {make<read_error<category::parentheses>>(
-      "unexpected close parentheses inserted"
-    )};
+    // static inline const auto error_pair {make<read_error<category::pair>>(
+    //   "ill-formed dot-notation"
+    // )};
+    //
+    // static inline const auto error_parentheses {make<read_error<category::parentheses>>(
+    //   "unexpected close parentheses inserted"
+    // )};
 
   public:
     template <typename... Ts>
@@ -225,23 +229,36 @@ namespace meevax::system
           stream.putback('(');
           return cons(expression, read(stream));
         }
-        catch (const object& object)
+        catch (const reader_error_about_parentheses& error)
         {
-          if (object == error_parentheses)
-          {
-            return unit;
-          }
-          else if (object == error_pair)
-          {
-            auto expression {read(stream)};
-            stream.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-            return expression;
-          }
-          else throw;
+          return unit;
+        }
+        catch (const reader_error_about_pair& error)
+        {
+          auto expression {read(stream)};
+          stream.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+          return expression;
         }
 
+        // catch (const object& object)
+        // {
+        //   if (object == error_parentheses)
+        //   {
+        //     return unit;
+        //   }
+        //   else if (object == error_pair)
+        //   {
+        //     auto expression {read(stream)};
+        //     stream.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+        //     return expression;
+        //   }
+        //   else throw;
+        // }
+
       case ')':
-        throw error_parentheses;
+        throw reader_error_about_parentheses {
+          "unexpected close parentheses inserted"
+        };
 
       case '"':
         return datum<string>(stream);
@@ -273,7 +290,9 @@ namespace meevax::system
         {
           if (token == ".")
           {
-            throw error_pair;
+            throw reader_error_about_pair {
+              "dot-notation"
+            };
           }
           else try // is symbol or real
           {

@@ -177,7 +177,7 @@ namespace meevax::system
               }
               else
               {
-                throw error {*local, " requires operands"};
+                throw configuration_error {*local, " requires operands"};
               }
             }
             else if (auto callee_requires_no_operands {short_options_requires_no_operands.find(*local)};
@@ -187,8 +187,7 @@ namespace meevax::system
             }
             else
             {
-              // TODO config-error
-              throw error {*local, " is unknown short-option (in ", *global, ")"};
+              throw configuration_error {*local, " is unknown short-option (in ", *global, ")"};
             }
           }
         }
@@ -217,7 +216,7 @@ namespace meevax::system
             }
             else
             {
-              throw error {buffer, " requires operands"};
+              throw configuration_error {buffer, " requires operands"};
             }
           }
           else if (auto callee_requires_no_operands {long_options_requires_no_operands.find(buffer)};
@@ -228,7 +227,7 @@ namespace meevax::system
           }
           else
           {
-            throw error {*global, " is unknown long-option"};
+            throw configuration_error {*global, " is unknown long-option"};
           }
         }
         else

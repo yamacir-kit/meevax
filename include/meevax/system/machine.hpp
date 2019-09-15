@@ -103,7 +103,7 @@ namespace meevax::system
         if (const object& buffer {assoc(car(expression), interaction_environment())}; !buffer)
         {
           TRACE("compile") << "(" << car(expression) << " ; => is application of unit => ERROR" << std::endl;
-          throw error {"unit is not applicable"}; // TODO syntax-error
+          throw syntax_error {"unit is not applicable"};
         }
         else if (buffer != unbound && buffer.is<syntax>() && not de_bruijn_index(car(expression), lexical_environment))
         {
@@ -200,7 +200,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {cadr(c), " is unbound"};
+          throw evaluation_error {cadr(c), " is unbound"};
         }
         c.pop(2);
         goto dispatch;
@@ -278,7 +278,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {callee, " is not applicable"};
+          throw evaluation_error {callee, " is not applicable"};
         }
         goto dispatch;
 
@@ -287,7 +287,7 @@ namespace meevax::system
 
         if (auto callee {car(s)}; not callee)
         {
-          throw error {"unit is not appliciable"};
+          throw evaluation_error {"unit is not appliciable"};
         }
         else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
@@ -309,7 +309,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {callee, " is not applicable"};
+          throw evaluation_error {callee, " is not applicable"};
         }
         goto dispatch;
 
@@ -552,8 +552,7 @@ namespace meevax::system
       }
       else
       {
-        // TODO COMPILE_ERROR
-        throw error {"syntax-error at internal-define"};
+        throw syntax_error {"internal-define"};
       }
     }
 
@@ -623,7 +622,7 @@ namespace meevax::system
           }
           else
           {
-            throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+            throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
           }
         }
       }
@@ -655,7 +654,7 @@ namespace meevax::system
       //
       // if (not letrec_star or not letrec_star.is<Environment>())
       // {
-      //   throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+      //   throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
       // }
       //
       // auto expanded {letrec_star.as<Environment>().expand(
@@ -726,7 +725,7 @@ namespace meevax::system
 
       if (!expression)
       {
-        throw error {"syntax error at #(syntax set!)"};
+        throw syntax_error {"set!"};
       }
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {
