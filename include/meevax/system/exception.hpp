@@ -8,12 +8,13 @@
 #include <meevax/utility/requires.hpp>
 
 // - exception
-//    |-- error (category)
-//    |    |-- config_error (section)
-//    |    |-- reader_error (section)
-//    |    |-- syntax_error (section)
-//    |    `-- system_error (section)
-//    `-- warning (category)
+//    |-- error                                                       (category)
+//    |    |-- configuration_error                                     (section)
+//    |    |-- reader_error                                            (section)
+//    |    |    `-- parentheses_reader_error                             (about)
+//    |    |-- syntax_error                                            (section)
+//    |    `-- system_error                                            (section)
+//    `-- warning                                                     (category)
 
 namespace meevax::system
 {
@@ -52,7 +53,7 @@ namespace meevax::system
   {                                                                            \
     return os << highlight::syntax << "#("                                     \
               << highlight::constructor << __VA_ARGS__                         \
-              << highlight::simple_datum << std::quoted(exception.what())      \
+              << highlight::simple_datum << " " <<  std::quoted(exception.what()) \
               << highlight::syntax << ")"                                      \
               << attribute::normal;                                            \
   }
@@ -60,7 +61,7 @@ namespace meevax::system
   DEFINE_EXCEPTION_WRITER(exception, "exception")
 
   #define DEFINE_EXCEPTION_CATEGORY(CATEGORY)                                  \
-  struct CATEGORY                                                              \
+  struct [[maybe_unused]] CATEGORY                                             \
     : public exception                                                         \
   {                                                                            \
     template <typename... Ts>                                                  \
@@ -80,7 +81,7 @@ namespace meevax::system
   DEFINE_EXCEPTION_CATEGORY(warning)
 
   #define DEFINE_EXCEPTION_SECTION(PREFIX, CATEGORY)                           \
-  struct PREFIX##_##CATEGORY                                                   \
+  struct [[maybe_unused]] PREFIX##_##CATEGORY                                  \
     : public CATEGORY                                                          \
   {                                                                            \
     template <typename... Ts>                                                  \
@@ -96,19 +97,48 @@ namespace meevax::system
                                                                                \
   DEFINE_EXCEPTION_WRITER(PREFIX##_##CATEGORY, #PREFIX "-" #CATEGORY)
 
-  DEFINE_EXCEPTION_SECTION(config, error)
+  DEFINE_EXCEPTION_SECTION(configuration, error)
+  DEFINE_EXCEPTION_SECTION(evaluation, error)
   DEFINE_EXCEPTION_SECTION(reader, error)
   DEFINE_EXCEPTION_SECTION(syntax, error)
   DEFINE_EXCEPTION_SECTION(system, error)
 
-  enum class [[deprecated]] category
-  {
-    pair, parentheses,
-  };
+  DEFINE_EXCEPTION_SECTION(configuration, warning)
+  DEFINE_EXCEPTION_SECTION(evaluation, warning)
+  DEFINE_EXCEPTION_SECTION(reader, warning)
+  DEFINE_EXCEPTION_SECTION(syntax, warning)
+  DEFINE_EXCEPTION_SECTION(system, warning)
 
-  template <category>
-  DERIVE([[deprecated]] read_error, public, error)
+  #define DEFINE_EXCEPTION_ABOUT(ABOUT, SECTION, CATEGORY)                     \
+  struct [[maybe_unused]] SECTION##_##CATEGORY##_about_##ABOUT                 \
+    : public SECTION##_##CATEGORY                                              \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    explicit constexpr SECTION##_##CATEGORY##_about_##ABOUT(Ts&&... xs)        \
+      : SECTION##_##CATEGORY {std::forward<Ts>(xs)...}                         \
+    {}                                                                         \
+                                                                               \
+    virtual void raise() const override                                        \
+    {                                                                          \
+      throw *this;                                                             \
+    }                                                                          \
+  };                                                                           \
+                                                                               \
+  DEFINE_EXCEPTION_WRITER(SECTION##_##CATEGORY##_about_##ABOUT, #SECTION "-" #CATEGORY "-about-" #ABOUT)
 
+  DEFINE_EXCEPTION_ABOUT(parentheses, reader, error)
+  DEFINE_EXCEPTION_ABOUT(pair, reader, error)
+
+  DEFINE_EXCEPTION_ABOUT(assignment, syntax, error)
+
+  // enum class [[deprecated]] category
+  // {
+  //   pair, parentheses,
+  // };
+  //
+  // template <category>
+  // DERIVE([[deprecated]] read_error, public, error)
+  //
   // DERIVE([[deprecated]] syntax_error, public, error)
   //
   // std::ostream& operator<<(std::ostream& os, const exception& exception)
@@ -128,34 +158,34 @@ namespace meevax::system
   //             << highlight::syntax << ")"
   //             << attribute::normal;
   // }
-
-  template <category Category>
-  std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
-  {
-    os << highlight::syntax << "#("
-       << highlight::constructor << "read-error"
-       << highlight::comment << " #;(category ";
-
-    switch (Category)
-    {
-    case category::pair:
-      os << "pair";
-      break;
-
-    case category::parentheses:
-      os << "parentheses";
-      break;
-
-    default:
-      os << "unknown";
-      break;
-    }
-
-    return os << ") "
-              << highlight::simple_datum << "\"" << error.what() << "\""
-              << highlight::syntax << ")"
-              << attribute::normal;
-  }
+  //
+  // template <category Category>
+  // std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
+  // {
+  //   os << highlight::syntax << "#("
+  //      << highlight::constructor << "read-error"
+  //      << highlight::comment << " #;(category ";
+  //
+  //   switch (Category)
+  //   {
+  //   case category::pair:
+  //     os << "pair";
+  //     break;
+  //
+  //   case category::parentheses:
+  //     os << "parentheses";
+  //     break;
+  //
+  //   default:
+  //     os << "unknown";
+  //     break;
+  //   }
+  //
+  //   return os << ") "
+  //             << highlight::simple_datum << "\"" << error.what() << "\""
+  //             << highlight::syntax << ")"
+  //             << attribute::normal;
+  // }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
