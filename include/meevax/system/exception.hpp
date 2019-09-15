@@ -10,6 +10,7 @@
 // - exception
 //    |-- error                                                       (category)
 //    |    |-- configuration_error                                     (section)
+//    |    |-- evaluation_error                                        (section)
 //    |    |-- reader_error                                            (section)
 //    |    |    |-- reader_error_about_pair                              (about)
 //    |    |    `-- reader_error_about_parentheses                       (about)
