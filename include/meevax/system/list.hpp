@@ -1,12 +1,13 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
 #define INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
 
-#include <cassert>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/system/boolean.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/pair.hpp>
+
+#include <meevax/lambda/compose.hpp>
 
 // Constructors
 //   - cons
@@ -52,11 +53,94 @@
 
 namespace meevax::system
 {
-  // template <typename T, typename U>
-  // object operator|(T&& lhs, U&& rhs)
-  // {
-  //   return std::make_shared<pair>(std::forward<T>(lhs), std::forward<U>(rhs));
-  // }
+  auto caar = lambda::compose(car, car);
+  auto cadr = lambda::compose(car, cdr);
+  auto cdar = lambda::compose(cdr, car);
+  auto cddr = lambda::compose(cdr, cdr);
+
+  auto caaar = lambda::compose(car, caar);
+  auto caadr = lambda::compose(car, cadr);
+  auto cadar = lambda::compose(car, cdar);
+  auto caddr = lambda::compose(car, cddr);
+  auto cdaar = lambda::compose(cdr, caar);
+  auto cdadr = lambda::compose(cdr, cadr);
+  auto cddar = lambda::compose(cdr, cdar);
+  auto cdddr = lambda::compose(cdr, cddr);
+
+  auto caaaar = lambda::compose(car, caaar);
+  auto caaadr = lambda::compose(car, caadr);
+  auto caadar = lambda::compose(car, cadar);
+  auto caaddr = lambda::compose(car, caddr);
+  auto cadaar = lambda::compose(car, cdaar);
+  auto cadadr = lambda::compose(car, cdadr);
+  auto caddar = lambda::compose(car, cddar);
+  auto cadddr = lambda::compose(car, cdddr);
+  auto cdaaar = lambda::compose(cdr, caaar);
+  auto cdaadr = lambda::compose(cdr, caadr);
+  auto cdadar = lambda::compose(cdr, cadar);
+  auto cdaddr = lambda::compose(cdr, caddr);
+  auto cddaar = lambda::compose(cdr, cdaar);
+  auto cddadr = lambda::compose(cdr, cdadr);
+  auto cdddar = lambda::compose(cdr, cddar);
+  auto cddddr = lambda::compose(cdr, cdddr);
+
+  struct iterator
+    : public object
+  {
+    using iterator_category = std::forward_iterator_tag;
+
+    using value_type = object;
+
+    using reference = value_type&;
+    using const_reference = const reference;
+
+    using pointer = value_type; // represents homoiconicity
+
+    using difference_type = std::ptrdiff_t;
+
+    using size_type = std::size_t;
+
+    template <typename... Ts>
+    constexpr iterator(Ts&&... args)
+      : object {std::forward<Ts>(args)...}
+    {}
+
+    decltype(auto) operator*() const
+    {
+      return car(*this);
+    }
+
+    decltype(auto) operator->() const
+    {
+      return operator*();
+    }
+
+    decltype(auto) operator++()
+    {
+      return *this = cdr(*this);
+    }
+
+    decltype(auto) begin() const noexcept
+    {
+      return *this;
+    }
+
+    const iterator end() const noexcept
+    {
+      return unit;
+    }
+  };
+
+  iterator begin(const object& object) noexcept
+  {
+    return object;
+  }
+
+  iterator end(const object&) noexcept
+  {
+    return unit;
+  }
+
   object operator|(const object& lhs, const object& rhs)
   {
     return std::make_shared<pair>(lhs, rhs);
@@ -95,37 +179,6 @@ namespace meevax::system
       return x.equals(y); // eqv?
     }
   }
-
-  #define caar(...) car(car(__VA_ARGS__))
-  #define cadr(...) car(cdr(__VA_ARGS__))
-  #define cdar(...) cdr(car(__VA_ARGS__))
-  #define cddr(...) cdr(cdr(__VA_ARGS__))
-
-  #define caaar(...) car(caar(__VA_ARGS__))
-  #define caadr(...) car(cadr(__VA_ARGS__))
-  #define cadar(...) car(cdar(__VA_ARGS__))
-  #define caddr(...) car(cddr(__VA_ARGS__))
-  #define cdaar(...) cdr(caar(__VA_ARGS__))
-  #define cdadr(...) cdr(cadr(__VA_ARGS__))
-  #define cddar(...) cdr(cdar(__VA_ARGS__))
-  #define cdddr(...) cdr(cddr(__VA_ARGS__))
-
-  #define caaaar(...) car(caaar(__VA_ARGS__))
-  #define caaadr(...) car(caadr(__VA_ARGS__))
-  #define caadar(...) car(cadar(__VA_ARGS__))
-  #define caaddr(...) car(caddr(__VA_ARGS__))
-  #define cadaar(...) car(cdaar(__VA_ARGS__))
-  #define cadadr(...) car(cdadr(__VA_ARGS__))
-  #define caddar(...) car(cddar(__VA_ARGS__))
-  #define cadddr(...) car(cdddr(__VA_ARGS__))
-  #define cdaaar(...) cdr(caaar(__VA_ARGS__))
-  #define cdaadr(...) cdr(caadr(__VA_ARGS__))
-  #define cdadar(...) cdr(cadar(__VA_ARGS__))
-  #define cdaddr(...) cdr(caddr(__VA_ARGS__))
-  #define cddaar(...) cdr(cdaar(__VA_ARGS__))
-  #define cddadr(...) cdr(cdadr(__VA_ARGS__))
-  #define cdddar(...) cdr(cddar(__VA_ARGS__))
-  #define cddddr(...) cdr(cdddr(__VA_ARGS__))
 
   object take(const object& exp, std::size_t size)
   {
@@ -247,24 +300,6 @@ namespace meevax::system
     else
     {
       return assq(key, cdr(alist));
-    }
-  }
-
-  object& unsafe_assoc(const object& var, object& env) noexcept(false)
-  {
-    assert(var);
-
-    if (!env)
-    {
-      throw error {var, " is unbound"};
-    }
-    else if (caar(env) == var)
-    {
-      return cadar(env);
-    }
-    else
-    {
-      return unsafe_assoc(var, cdr(env));
     }
   }
 } // namespace meevax::system

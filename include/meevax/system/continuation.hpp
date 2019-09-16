@@ -1,22 +1,19 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
 
-#include <iostream>
-
 #include <meevax/system/pair.hpp>
-#include <meevax/utility/perfect_derive.hpp>
 
 namespace meevax::system
 {
-  PERFECT_DERIVE(continuation, public virtual, pair)
+  DERIVE(continuation, public virtual, pair)
 
   std::ostream& operator<<(std::ostream& os, const continuation& continuation)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[36m" << "continuation"
-              << "\x1b[0m " << &continuation
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "continuation"
+              << attribute::normal << highlight::comment << " ;#" << &continuation << attribute::normal
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 

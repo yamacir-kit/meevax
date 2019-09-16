@@ -3,7 +3,7 @@
 
 #include <boost/preprocessor.hpp>
 
-#include <meevax/system/pair.hpp>
+#include <meevax/system/object.hpp>
 
 namespace meevax::system
 {
@@ -51,14 +51,14 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
   {
-    os << "\x1b[32m";
+    os << highlight::system;
 
     switch (instruction.value)
     {
       BOOST_PP_SEQ_FOR_EACH(INSTRUCTION_CASE, _, INSTRUCTIONS)
     }
 
-    return os << "\x1b[0m";
+    return os << attribute::normal;
   }
 
   static const auto _apply_               {make<instruction>(code::APPLY)};

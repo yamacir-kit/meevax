@@ -1,12 +1,10 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_SYSTEM_NUMERICAL_HPP
 
-#include <utility>
-
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/multiprecision/mpfr.hpp>
 
-#include <meevax/system/pair.hpp>
+#include <meevax/system/object.hpp>
 
 namespace meevax::system
 {
@@ -18,7 +16,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const integral& integral)
   {
-    return os << "\x1B[36m" << integral.str() << "\x1B[0m";
+    return os << highlight::simple_datum << integral.str() << attribute::normal;
   }
 
   // using real_base

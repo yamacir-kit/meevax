@@ -1,44 +1,10 @@
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <boost/cstdlib.hpp>
-
 #include <meevax/system/environment.hpp>
 
-int main(int argc, char** argv) try
+int main(const int argc, char const* const* const argv) try
 {
-  const std::vector<std::string> args {argv + 1, argv + argc};
-
-  for (auto iter {std::begin(args)}; iter != std::end(args); ++iter) [&]()
-  {
-    using namespace meevax::system;
-
-    if (*iter == "-v")
-    {
-      std::cout << configure::version << std::endl;
-      std::exit(boost::exit_success);
-    }
-
-    if (*iter == "--version")
-    {
-      std::cout << "; Meevax Lisp System " << configure::version_major << " - Revision " << configure::version_minor << " Patch " << configure::version_patch << std::endl;
-      std::cout << ";" << std::endl;
-      std::cout << "; version   \t; " << configure::version    << std::endl;
-      std::cout << "; build-date\t; " << configure::build_date << std::endl;
-      std::cout << "; build-hash\t; " << configure::build_hash << std::endl;
-      std::cout << "; build-type\t; " << configure::build_type << std::endl;
-      std::cout << ";" << std::endl;
-      std::cout << "; install-prefix\t; " << configure::install_prefix << std::endl;
-
-      std::exit(boost::exit_success);
-    }
-
-    std::cerr << "; configure\t; unknown option \"" << *iter << "\"" << std::endl;
-    std::exit(boost::exit_failure);
-  }();
-
   meevax::system::environment program {meevax::system::standard_environment<0>};
+
+  program.configure(argc, argv);
 
   for (program.open("/dev/stdin"); program.ready(); ) try
   {

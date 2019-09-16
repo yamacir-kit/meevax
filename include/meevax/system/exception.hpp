@@ -2,99 +2,138 @@
 #define INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
 
 #include <sstream>
-#include <stdexcept> // std::runtime_error
-#include <type_traits> // std::is_constructible
 
-#include <meevax/concepts/requires.hpp>
-#include <meevax/utility/perfect_derive.hpp>
+#include <meevax/system/object.hpp>
 
-// exception
-//  |-- error
-//  |    |-- read_error
-//  |    `-- syntax_error
-//  `-- warning
+#include <meevax/utility/requires.hpp>
+
+// - exception
+//    |-- error                                                       (category)
+//    |    |-- configuration_error                                     (section)
+//    |    |-- evaluation_error                                        (section)
+//    |    |-- reader_error                                            (section)
+//    |    |    |-- reader_error_about_pair                              (about)
+//    |    |    `-- reader_error_about_parentheses                       (about)
+//    |    |-- syntax_error                                            (section)
+//    |    `-- system_error                                            (section)
+//    `-- warning                                                     (category)
 
 namespace meevax::system
 {
+  template <typename Exception, typename... Ts>
+  void raise(Ts&&... xs)
+  {
+    Exception {std::forward<Ts>(xs)...}.raise();
+  }
+
   struct exception
     : public std::runtime_error
   {
     template <typename S, REQUIRES(std::is_constructible<std::string, S>)>
-    constexpr exception(S&& s)
+    explicit constexpr exception(S&& s)
       : std::runtime_error {std::forward<S>(s)}
     {}
 
-    template <typename... Ts>
-    exception(Ts&&... args)
-      : std::runtime_error {to_string(std::forward<Ts>(args)...)}
+    template <typename... Objects>
+    explicit exception(Objects&&... objects)
+      : std::runtime_error {write(
+          std::ostringstream {}, std::forward<Objects>(objects)...
+        ).str()}
     {}
 
-    template <typename... Ts>
-    static decltype(auto) to_string(Ts&&... args)
+    virtual ~exception() = default;
+
+    virtual void raise() const
     {
-      std::stringstream ss {};
-      (ss << ... << args);
-      return ss.str();
+      throw *this;
     }
   };
 
-  PERFECT_DERIVE(error, public, exception)
-
-  enum class category
-  {
-    pair, parentheses,
-  };
-
-  template <category>
-  PERFECT_DERIVE(read_error, public, error)
-
-  PERFECT_DERIVE(syntax_error, public, error)
-
-  std::ostream& operator<<(std::ostream& os, const exception& exception)
-  {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "exception"
-              << "\x1b[36m" << " \"" << exception.what() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+  #define DEFINE_EXCEPTION_WRITER(TYPENAME, ...)                               \
+  auto operator<<(std::ostream& os, const TYPENAME& exception)                 \
+    -> decltype(auto)                                                          \
+  {                                                                            \
+    return os << highlight::syntax << "#("                                     \
+              << highlight::constructor << __VA_ARGS__                         \
+              << highlight::simple_datum << " " <<  std::quoted(exception.what()) \
+              << highlight::syntax << ")"                                      \
+              << attribute::normal;                                            \
   }
 
-  std::ostream& operator<<(std::ostream& os, const error& error)
-  {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "error"
-              << "\x1b[36m" << " \"" << error.what() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
-  }
+  DEFINE_EXCEPTION_WRITER(exception, "exception")
 
-  template <category Category>
-  std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
-  {
-    os << "\x1b[35m" << "#("
-       << "\x1b[32m" << "read-error"
-       << "\x1b[0m " << "#;(category ";
+  #define DEFINE_EXCEPTION_CATEGORY(CATEGORY)                                  \
+  struct [[maybe_unused]] CATEGORY                                             \
+    : public exception                                                         \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    explicit constexpr CATEGORY(Ts&&... xs)                                    \
+      : exception {std::forward<Ts>(xs)...}                                    \
+    {}                                                                         \
+                                                                               \
+    virtual void raise() const override                                        \
+    {                                                                          \
+      throw *this;                                                             \
+    }                                                                          \
+  };                                                                           \
+                                                                               \
+  DEFINE_EXCEPTION_WRITER(CATEGORY, #CATEGORY)
 
-    switch (Category)
-    {
-    case category::pair:
-      os << "pair";
-      break;
+  DEFINE_EXCEPTION_CATEGORY(error)
+  DEFINE_EXCEPTION_CATEGORY(warning)
 
-    case category::parentheses:
-      os << "parentheses";
-      break;
+  #define DEFINE_EXCEPTION_SECTION(PREFIX, CATEGORY)                           \
+  struct [[maybe_unused]] PREFIX##_##CATEGORY                                  \
+    : public CATEGORY                                                          \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    explicit constexpr PREFIX##_##CATEGORY(Ts&&... xs)                         \
+      : CATEGORY {std::forward<Ts>(xs)...}                                     \
+    {}                                                                         \
+                                                                               \
+    virtual void raise() const override                                        \
+    {                                                                          \
+      throw *this;                                                             \
+    }                                                                          \
+  };                                                                           \
+                                                                               \
+  DEFINE_EXCEPTION_WRITER(PREFIX##_##CATEGORY, #PREFIX "-" #CATEGORY)
 
-    default:
-      os << "unknown";
-      break;
-    }
+  DEFINE_EXCEPTION_SECTION(configuration, error)
+  DEFINE_EXCEPTION_SECTION(evaluation, error)
+  DEFINE_EXCEPTION_SECTION(reader, error)
+  DEFINE_EXCEPTION_SECTION(syntax, error)
+  DEFINE_EXCEPTION_SECTION(system, error)
 
-    return os << ") "
-              << "\x1b[36m" << "\"" << error.what() << "\""
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
-  }
+  DEFINE_EXCEPTION_SECTION(configuration, warning)
+  DEFINE_EXCEPTION_SECTION(evaluation, warning)
+  DEFINE_EXCEPTION_SECTION(reader, warning)
+  DEFINE_EXCEPTION_SECTION(syntax, warning)
+  DEFINE_EXCEPTION_SECTION(system, warning)
+
+  #define DEFINE_EXCEPTION_ABOUT(ABOUT, SECTION, CATEGORY)                     \
+  struct [[maybe_unused]] SECTION##_##CATEGORY##_about_##ABOUT                 \
+    : public SECTION##_##CATEGORY                                              \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    explicit constexpr SECTION##_##CATEGORY##_about_##ABOUT(Ts&&... xs)        \
+      : SECTION##_##CATEGORY {std::forward<Ts>(xs)...}                         \
+    {}                                                                         \
+                                                                               \
+    virtual void raise() const override                                        \
+    {                                                                          \
+      throw *this;                                                             \
+    }                                                                          \
+  };                                                                           \
+                                                                               \
+  DEFINE_EXCEPTION_WRITER(SECTION##_##CATEGORY##_about_##ABOUT, #SECTION "-" #CATEGORY "-about-" #ABOUT)
+
+  DEFINE_EXCEPTION_ABOUT(pair, reader, error)
+  DEFINE_EXCEPTION_ABOUT(parentheses, reader, error)
+
+  DEFINE_EXCEPTION_ABOUT(assignment, syntax, error)
+
+  DEFINE_EXCEPTION_ABOUT(pair, system, error)
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP

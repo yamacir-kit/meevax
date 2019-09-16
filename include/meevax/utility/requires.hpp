@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CONCEPTS_REQUIRES_HPP
-#define INCLUDED_MEEVAX_CONCEPTS_REQUIRES_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_REQUIRES_HPP
+#define INCLUDED_MEEVAX_UTILITY_REQUIRES_HPP
 
 #include <type_traits>
 
@@ -8,5 +8,5 @@
                         std::conjunction<__VA_ARGS__>::value \
                       >::type
 
-#endif // INCLUDED_MEEVAX_CONCEPTS_REQUIRES_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_REQUIRES_HPP
 

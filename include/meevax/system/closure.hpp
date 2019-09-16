@@ -1,23 +1,20 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
 
-#include <iostream>
-
 #include <meevax/system/pair.hpp>
-#include <meevax/utility/perfect_derive.hpp>
 
 namespace meevax::system
 {
   // closure is pair of expression and lexical-environment
-  PERFECT_DERIVE(closure, public virtual, pair)
+  DERIVE(closure, public virtual, pair)
 
   std::ostream& operator<<(std::ostream& os, const closure& closure)
   {
-    return os << "\x1b[35m" << "#("
-              << "\x1b[32m" << "closure"
-              << "\x1b[0m " << "#;" << &closure
-              << "\x1b[35m" << ")"
-              << "\x1b[0m";
+    return os << highlight::syntax << "#("
+              << highlight::constructor << "closure"
+              << attribute::normal << highlight::comment << " #;" << &closure << attribute::normal
+              << highlight::syntax << ")"
+              << attribute::normal;
   }
 } // namespace meevax::system
 

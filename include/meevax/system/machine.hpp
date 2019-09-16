@@ -1,24 +1,27 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 #define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
 
-#include <functional> // std::invoke
-
-#include <meevax/system/boolean.hpp> // false_object
 #include <meevax/system/closure.hpp>
 #include <meevax/system/continuation.hpp>
 #include <meevax/system/exception.hpp>
 #include <meevax/system/instruction.hpp>
-#include <meevax/system/iterator.hpp>
-#include <meevax/system/numerical.hpp>
-#include <meevax/system/procedure.hpp>
-#include <meevax/system/special.hpp>
-#include <meevax/system/srfi-1.hpp> // assoc
+#include <meevax/system/native.hpp>
 #include <meevax/system/stack.hpp>
 #include <meevax/system/symbol.hpp> // object::is<symbol>()
+#include <meevax/system/syntax.hpp>
 
-#include <meevax/utility/debug.hpp>
+inline namespace debug
+{
+  #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
 
-#define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
+  static std::size_t depth {0};
+
+  #define TRACE(X) \
+    std::cerr << "; " << X << "\t; " << std::string(depth * 4, ' ') << std::flush
+
+  #define NEST_IN  ++depth
+  #define NEST_OUT --depth, TRACE("compile") << ")" << std::endl
+}
 
 namespace meevax::system
 {
@@ -100,13 +103,13 @@ namespace meevax::system
         if (const object& buffer {assoc(car(expression), interaction_environment())}; !buffer)
         {
           TRACE("compile") << "(" << car(expression) << " ; => is application of unit => ERROR" << std::endl;
-          throw error {"unit is not applicable"}; // TODO syntax-error
+          throw syntax_error {"unit is not applicable"};
         }
-        else if (buffer != unbound && buffer.is<special>() && not de_bruijn_index(car(expression), lexical_environment))
+        else if (buffer != unbound && buffer.is<syntax>() && not de_bruijn_index(car(expression), lexical_environment))
         {
           TRACE("compile") << "(" << car(expression) << " ; => is application of " << buffer << std::endl;
           NEST_IN;
-          auto result {std::invoke(buffer.as<special>(), cdr(expression), lexical_environment, continuation, tail)};
+          auto result {std::invoke(buffer.as<syntax>(), cdr(expression), lexical_environment, continuation, tail)};
           NEST_OUT;
           return result;
         }
@@ -197,7 +200,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {cadr(c), " is unbound"};
+          throw evaluation_error {cadr(c), " is unbound"};
         }
         c.pop(2);
         goto dispatch;
@@ -261,9 +264,9 @@ namespace meevax::system
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<native>()) // (native args . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
         else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
@@ -275,7 +278,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
+          throw evaluation_error {callee, " is not applicable"};
         }
         goto dispatch;
 
@@ -284,7 +287,7 @@ namespace meevax::system
 
         if (auto callee {car(s)}; not callee)
         {
-          throw error {"unit is not appliciable"};
+          throw evaluation_error {"unit is not appliciable"};
         }
         else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
         {
@@ -292,9 +295,9 @@ namespace meevax::system
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<native>()) // (native args . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
         else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
@@ -306,7 +309,7 @@ namespace meevax::system
         }
         else
         {
-          throw error {"\x1b[31m", callee, "\x1b[31m", " is not applicable"};
+          throw evaluation_error {callee, " is not applicable"};
         }
         goto dispatch;
 
@@ -335,7 +338,15 @@ namespace meevax::system
         // (1) There is no need to make copy if right hand side is unique.
         // (2) There is no matter overwrite if left hand side is unique.
         // (3) Should set with weak reference if right hand side is newer.
-        std::atomic_store(&unsafe_assoc(cadr(c), interaction_environment()), car(s).copy());
+        if (const auto& key_value {assq(cadr(c), interaction_environment())}; key_value != false_object)
+        {
+          std::cerr << key_value << std::endl;
+          std::atomic_store(&cadr(key_value), car(s).copy());
+        }
+        else
+        {
+          throw make<error>(cadr(c), " is unbound");
+        }
         c.pop(2);
         goto dispatch;
 
@@ -541,8 +552,7 @@ namespace meevax::system
       }
       else
       {
-        // TODO COMPILE_ERROR
-        throw error {"syntax-error at internal-define"};
+        throw syntax_error {"internal-define"};
       }
     }
 
@@ -612,7 +622,7 @@ namespace meevax::system
           }
           else
           {
-            throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+            throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
           }
         }
       }
@@ -644,7 +654,7 @@ namespace meevax::system
       //
       // if (not letrec_star or not letrec_star.is<Environment>())
       // {
-      //   throw error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+      //   throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
       // }
       //
       // auto expanded {letrec_star.as<Environment>().expand(
@@ -715,7 +725,7 @@ namespace meevax::system
 
       if (!expression)
       {
-        throw error {"syntax error at #(special set!)"};
+        throw syntax_error {"set!"};
       }
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {

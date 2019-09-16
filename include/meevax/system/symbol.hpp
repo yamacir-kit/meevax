@@ -1,8 +1,7 @@
 #ifndef INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 #define INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
 
-#include <iostream>
-#include <string>
+#include <meevax/system/object.hpp>
 
 namespace meevax::system
 {
@@ -25,15 +24,15 @@ namespace meevax::system
   {
     if (symbol.empty())
     {
-      return os << "\x1b[35m" << "#("
-                << "\x1b[32m" << "symbol"
-                << "\x1b[0m " << "#;" << &symbol
-                << "\x1b[35m" << ")"
-                << "\x1b[0m";
+      return os << highlight::syntax << "#("
+                << highlight::constructor << "symbol"
+                << attribute::normal << highlight::comment << " #;" << &symbol << attribute::normal
+                << highlight::syntax << ")"
+                << attribute::normal;
     }
     else
     {
-      return os << static_cast<const std::string&>(symbol);
+      return os << attribute::normal << static_cast<const std::string&>(symbol);
     }
   }
 } // namespace meevax::system
