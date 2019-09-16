@@ -134,62 +134,6 @@ namespace meevax::system
   DEFINE_EXCEPTION_ABOUT(assignment, syntax, error)
 
   DEFINE_EXCEPTION_ABOUT(pair, system, error)
-
-  // enum class [[deprecated]] category
-  // {
-  //   pair, parentheses,
-  // };
-  //
-  // template <category>
-  // DERIVE([[deprecated]] read_error, public, error)
-  //
-  // DERIVE([[deprecated]] syntax_error, public, error)
-  //
-  // std::ostream& operator<<(std::ostream& os, const exception& exception)
-  // {
-  //   return os << highlight::syntax << "#("
-  //             << highlight::constructor << "exception"
-  //             << highlight::simple_datum << " \"" << exception.what() << "\""
-  //             << highlight::syntax << ")"
-  //             << attribute::normal;
-  // }
-  //
-  // std::ostream& operator<<(std::ostream& os, const error& error)
-  // {
-  //   return os << highlight::syntax << "#("
-  //             << highlight::constructor << "error"
-  //             << highlight::simple_datum << " \"" << error.what() << "\""
-  //             << highlight::syntax << ")"
-  //             << attribute::normal;
-  // }
-  //
-  // template <category Category>
-  // std::ostream& operator<<(std::ostream& os, const read_error<Category>& error)
-  // {
-  //   os << highlight::syntax << "#("
-  //      << highlight::constructor << "read-error"
-  //      << highlight::comment << " #;(category ";
-  //
-  //   switch (Category)
-  //   {
-  //   case category::pair:
-  //     os << "pair";
-  //     break;
-  //
-  //   case category::parentheses:
-  //     os << "parentheses";
-  //     break;
-  //
-  //   default:
-  //     os << "unknown";
-  //     break;
-  //   }
-  //
-  //   return os << ") "
-  //             << highlight::simple_datum << "\"" << error.what() << "\""
-  //             << highlight::syntax << ")"
-  //             << attribute::normal;
-  // }
 } // namespace meevax::system
 
 #endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
