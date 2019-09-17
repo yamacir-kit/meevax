@@ -10,7 +10,7 @@
 #include <meevax/system/configurator.hpp>
 #include <meevax/system/machine.hpp>
 #include <meevax/system/reader.hpp>
-
+#include <meevax/system/file.hpp>
 #include <meevax/posix/linker.hpp>
 
 namespace meevax::system
@@ -137,6 +137,12 @@ namespace meevax::system
           );
 
       return execute();
+    }
+
+    template <typename... Ts>
+    constexpr decltype(auto) evaluate(Ts&&... xs)
+    {
+      return execute(compile(FORWARD(xs)...));
     }
 
   public: // Library System Interfaces
@@ -523,6 +529,11 @@ namespace meevax::system
                  linker_.template link<typename native::signature>(name_)
                );
       }
+    });
+
+    define<native>("read", [&](const iterator& operands)
+    {
+      return read(operands ? car(operands).as<input_file>() : std::cin);
     });
 
     const auto expression {read(
