@@ -14,9 +14,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
     COMMAND git rev-list --all --count
     OUTPUT_VARIABLE REVISION_COUNT
     )
-  math(EXPR
-    PATCH "${REVISION_COUNT} - ${MAJOR_OFFSET} - ${MINOR_OFFSET}"
-    )
+  math(EXPR PATCH "${REVISION_COUNT} - ${MAJOR_OFFSET} - ${MINOR_OFFSET}")
 else()
   set(PATCH -1)
 endif()
@@ -28,7 +26,7 @@ project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 # ==============================================================================
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -mtune=native -march=native -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${PROJECT_NAME})
@@ -53,7 +51,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
     OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH
     )
 else()
-  set(${PROJECT_NAME}_BUILD_HASH "build with no git support")
+  set(${PROJECT_NAME}_BUILD_HASH "")
 endif()
 
 set(${PROJECT_NAME}_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)

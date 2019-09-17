@@ -524,6 +524,10 @@ namespace meevax::system
                );
       }
     });
+
+    const auto expression {read(
+      #include <meevax/library/experimental.hpp>
+    )};
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
