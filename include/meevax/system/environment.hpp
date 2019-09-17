@@ -536,6 +536,11 @@ namespace meevax::system
       return read(operands ? car(operands).as<input_file>() : std::cin);
     });
 
+    define<native>("evaluate", [&](auto&& operands)
+    {
+      return evaluate(FORWARD(operands));
+    });
+
     const auto expression {read(
       #include <meevax/library/experimental.hpp>
     )};
