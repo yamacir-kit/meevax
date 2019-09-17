@@ -175,7 +175,7 @@ namespace meevax::system
 
     decltype(auto) read(const std::string& expression) noexcept(false)
     {
-      std::istringstream stream {expression};
+      std::stringstream stream {expression};
       return read(stream);
     }
 
