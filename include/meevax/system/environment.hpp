@@ -536,6 +536,12 @@ namespace meevax::system
       return read(operands ? car(operands).as<input_file>() : std::cin);
     });
 
+    define<native>("write", [&](const iterator& operands)
+    {
+      std::cout << car(operands);
+      return unspecified;
+    });
+
     define<native>("evaluate", [&](auto&& operands)
     {
       return evaluate(FORWARD(operands));
