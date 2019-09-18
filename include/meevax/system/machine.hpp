@@ -40,23 +40,31 @@ namespace meevax::system
       return static_cast<Environment&>(*this).interaction_environment();
     }
 
+    template <typename... Ts>
+    decltype(auto) export_(Ts&&... operands)
+    {
+      return static_cast<Environment&>(*this).export_(FORWARD(operands)...);
+    }
+
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... args)
     {
-      interaction_environment().push(list(key, std::forward<Ts>(args)...));
+      auto iter {export_(key, FORWARD(args)...)};
+      // interaction_environment().push(list(key, std::forward<Ts>(args)...));
+      interaction_environment().push(list(iter->first, iter->second));
       std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
       return interaction_environment(); // temporary
     }
 
     /*
-     *〈expression〉=〈identifier〉
-     *              |〈literal〉
+     * <expression> = <identifier>
+     *              | <literal>
      *              | (<expression> <expression>*)
-     *              |〈lambda expression〉
-     *              |〈conditional〉
-     *              |〈assignment〉
-     *              |〈derived expression〉
+     *              | <lambda expression>
+     *              | <conditional>
+     *              | <assignment>
+     *              | <derived expression>
      */
     object compile(const object& expression,
                    const object& lexical_environment = unit,
@@ -517,18 +525,22 @@ namespace meevax::system
       //
       // <car expression> = (<caar expression> <cadar expression> <caddar expression>)
 
+      auto buffer {cons(
+        _define_, cadar(expression),
+        cdr(expression) ? program(
+                            cdr(expression),
+                            lexical_environment,
+                            continuation
+                          )
+                        : continuation
+      )};
+
+      NEST_OUT; // XXX INDENTATION BUG (DIRTY FIX)
+
       return compile(
                cddar(expression) ? caddar(expression) : undefined,
                lexical_environment,
-               cons(
-                 _define_, cadar(expression),
-                 cdr(expression) ? program(
-                                     cdr(expression),
-                                     lexical_environment,
-                                     continuation
-                                   )
-                                 : continuation
-               )
+               buffer
              );
     }
 

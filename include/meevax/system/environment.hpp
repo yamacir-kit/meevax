@@ -15,6 +15,7 @@
 
 namespace meevax::system
 {
+  // TODO Rename to default_environment
   template <int Version>
   static constexpr std::integral_constant<int, Version> standard_environment {};
 
@@ -48,6 +49,8 @@ namespace meevax::system
     , public configurator<environment>
   {
     std::unordered_map<std::string, object> symbols;
+
+    std::unordered_map<object, object> bindings;
 
     static inline std::unordered_map<std::string, posix::linker> linkers {};
 
@@ -109,6 +112,21 @@ namespace meevax::system
       else
       {
         return intern(object.as<symbol>());
+      }
+    }
+
+    decltype(auto) export_(const object& key, const object& value)
+    {
+      if (auto iter {bindings.find(key)}; iter != std::end(bindings))
+      {
+        std::cerr << "; export\t; detected redefinition (interactive mode ignore previous definition)" << std::endl;
+        bindings.at(key) = value;
+        return bindings.find(key);
+      }
+      else
+      {
+        return bindings.emplace(key, value).first;
+        std::cerr << "; export\t; exporting new binding " << key << " and " << value << std::endl;
       }
     }
 
@@ -175,7 +193,7 @@ namespace meevax::system
       return unit;
     }
 
-    auto import_library(const object& library, const object& continuation)
+    [[deprecated]] auto import_library(const object& library, const object& continuation)
     {
       stack executable {continuation};
 
@@ -187,6 +205,25 @@ namespace meevax::system
           _load_literal_, cadr(each),
           _define_, rename(car(each))
         );
+      }
+
+      return executable;
+    }
+
+    auto import_(const object& library, const object& continuation)
+    {
+      auto& source {library.as<environment>()};
+
+      if (source.bindings.empty())
+      {
+        source.expand(unit);
+      }
+
+      stack executable {continuation};
+
+      for (const auto& [key, value] : source.bindings)
+      {
+        executable.push(_load_literal_, value, _define_, rename(key));
       }
 
       return executable;
@@ -243,9 +280,9 @@ namespace meevax::system
   template <>
   environment::environment(std::integral_constant<int, 0>)
   {
-    define<syntax>("quote", [&](auto&&... xs)
+    define<syntax>("quote", [&](auto&&... operands)
     {
-      return quotation(std::forward<decltype(xs)>(xs)...);
+      return quotation(FORWARD(operands)...);
     });
 
     define<syntax>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
@@ -286,12 +323,12 @@ namespace meevax::system
 
     define<syntax>("define", [&](auto&&... operands)
     {
-      return definition(std::forward<decltype(operands)>(operands)...);
+      return definition(FORWARD(operands)...);
     });
 
-    define<syntax>("begin", [&](auto&&... args)
+    define<syntax>("begin", [&](auto&&... operands)
     {
-      return sequence(std::forward<decltype(args)>(args)...);
+      return sequence(FORWARD(operands)...);
     });
 
     define<syntax>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
@@ -343,6 +380,7 @@ namespace meevax::system
 
     define<syntax>("set!", [&](auto&&... args)
     {
+      // TODO Rename "set" to "assignment"?
       return set(std::forward<decltype(args)>(args)...);
     });
 
@@ -350,14 +388,14 @@ namespace meevax::system
      * <importation> = (import <library name>)
      */
     define<syntax>("import", [&](auto&& expression,
-                                  auto&& lexical_environment,
-                                  auto&& continuation, auto)
+                                 auto&& lexical_environment,
+                                 auto&& continuation, auto)
     {
       using meevax::system::path;
 
       if (const object& library_name {car(expression)}; not library_name)
       {
-        throw evaluation_error {"empty library-name is not allowed"};
+        throw syntax_error {"empty library-name is not allowed"};
       }
       else if (const object& library {locate_library(library_name)}; library)
       {
@@ -367,9 +405,10 @@ namespace meevax::system
          * Passing the VM instruction to load literally library-name as
          * continuation is for return value of this syntax form "import".
          */
-        return import_library(library, cons(_load_literal_, library_name, continuation));
+        // return import_library(library, cons(_load_literal_, library_name, continuation));
+        return import_(library, cons(_load_literal_, library_name, continuation));
       }
-      else
+      else // XXX Don't use this library style (deprecated)
       {
         TRACE("compile") << "(\t; => unknown library-name" << std::endl;
         NEST_IN;
@@ -397,7 +436,7 @@ namespace meevax::system
           }
           else
           {
-            throw evaluation_error {
+            throw syntax_error {
               identifier, " is not allowed as part of library-name (must be path or string object)"
             };
           }
@@ -548,8 +587,9 @@ namespace meevax::system
     });
 
     const auto expression {read(
-      #include <meevax/library/experimental.hpp>
+      #include <meevax/library/experimental.meevax>
     )};
+    evaluate(expression);
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
