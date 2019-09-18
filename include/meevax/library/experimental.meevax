@@ -3,7 +3,7 @@ R"##(
 (define (standard pair)
   (environment ()
     (define pair.so
-      (linker "libmeevax-pair.so"))
+      (linker "libmeevax-fundamental.so")) ; TODO RENAME
 
     (define car (link pair.so "car"))
     (define cdr (link pair.so "cdr"))
