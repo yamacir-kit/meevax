@@ -3,14 +3,14 @@
 ; ------------------------------------------------------------------------------
 
 (define fundamental.so
-  (linker "./lib/meevax/libmeevax-fundamental.so"))
+  (linker "./lib/libmeevax-fundamental.so"))
 
 (define car  (link fundamental.so "car"))
 (define cdr  (link fundamental.so "cdr"))
 (define cons (link fundamental.so "cons"))
 
 (define numerical.so
-  (linker "./lib/meevax/libmeevax-numerical.so"))
+  (linker "./lib/libmeevax-numerical.so"))
 
 (define *  (link numerical.so "multiplication"))
 (define +  (link numerical.so "addition"))
@@ -24,7 +24,7 @@
 (define real? (link numerical.so "real_"))
 
 (define experimental.so
-  (linker "./lib/meevax/libmeevax-experimental.so"))
+  (linker "./lib/libmeevax-experimental.so"))
 
 (define display        (link experimental.so "display"))
 (define emergency-exit (link experimental.so "emergency_exit"))
@@ -33,7 +33,7 @@
 (define pair?          (link experimental.so "pair_"))
 
 (define file-system.so
-  (linker "./lib/meevax/libmeevax-file-system.so"))
+  (linker "./lib/libmeevax-file-system.so"))
 
 (define input-file? (link file-system.so "input_file_"))
 (define output-file? (link file-system.so "output_file_"))
