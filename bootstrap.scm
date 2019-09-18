@@ -38,17 +38,7 @@
 ;   Bootstrap Quasiquote
 ; ------------------------------------------------------------------------------
 
-(define list
-  (lambda xs xs))
-
-(define list-tail
-  (lambda (x k)
-    (if (zero? k) x
-        (list-tail (cdr x) (- k 1)))))
-
-(define list-ref
-  (lambda (list. k)
-    (car (list-tail list. k))))
+(import (standard list))
 
 (define null?
   (lambda (object)

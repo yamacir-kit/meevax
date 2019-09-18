@@ -596,6 +596,10 @@ namespace meevax::system
     ));
 
     evaluate(read(
+      #include <meevax/library/list.mvx>
+    ));
+
+    evaluate(read(
       #include <meevax/library/numerical.mvx>
     ));
   } // environment class default constructor
