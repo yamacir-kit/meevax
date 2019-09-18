@@ -1,0 +1,17 @@
+R"##(
+
+(define (standard pair)
+  (environment ()
+    (define pair.so
+      (linker "libmeevax-pair.so"))
+
+    (define car (link pair.so "car"))
+    (define cdr (link pair.so "cdr"))
+
+    (define cons
+      (link pair.so "cons"))
+    )
+  )
+
+)##"
+

@@ -50,13 +50,13 @@ namespace meevax::system
     }
 
     /*
-     *〈expression〉=〈identifier〉
-     *              |〈literal〉
+     * <expression> = <identifier>
+     *              | <literal>
      *              | (<expression> <expression>*)
-     *              |〈lambda expression〉
-     *              |〈conditional〉
-     *              |〈assignment〉
-     *              |〈derived expression〉
+     *              | <lambda expression>
+     *              | <conditional>
+     *              | <assignment>
+     *              | <derived expression>
      */
     object compile(const object& expression,
                    const object& lexical_environment = unit,
@@ -517,6 +517,7 @@ namespace meevax::system
       //
       // <car expression> = (<caar expression> <cadar expression> <caddar expression>)
 
+      // XXX INDENTATION BUG
       return compile(
                cddar(expression) ? caddar(expression) : undefined,
                lexical_environment,

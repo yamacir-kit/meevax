@@ -15,6 +15,7 @@
 
 namespace meevax::system
 {
+  // TODO Rename to default_environment
   template <int Version>
   static constexpr std::integral_constant<int, Version> standard_environment {};
 
@@ -48,6 +49,8 @@ namespace meevax::system
     , public configurator<environment>
   {
     std::unordered_map<std::string, object> symbols;
+
+    std::unordered_map<object, object> exported;
 
     static inline std::unordered_map<std::string, posix::linker> linkers {};
 
@@ -343,6 +346,7 @@ namespace meevax::system
 
     define<syntax>("set!", [&](auto&&... args)
     {
+      // TODO Rename "set" to "assignment"?
       return set(std::forward<decltype(args)>(args)...);
     });
 
@@ -350,14 +354,14 @@ namespace meevax::system
      * <importation> = (import <library name>)
      */
     define<syntax>("import", [&](auto&& expression,
-                                  auto&& lexical_environment,
-                                  auto&& continuation, auto)
+                                 auto&& lexical_environment,
+                                 auto&& continuation, auto)
     {
       using meevax::system::path;
 
       if (const object& library_name {car(expression)}; not library_name)
       {
-        throw evaluation_error {"empty library-name is not allowed"};
+        throw syntax_error {"empty library-name is not allowed"};
       }
       else if (const object& library {locate_library(library_name)}; library)
       {
@@ -369,7 +373,7 @@ namespace meevax::system
          */
         return import_library(library, cons(_load_literal_, library_name, continuation));
       }
-      else
+      else // XXX Don't use this library style (deprecated)
       {
         TRACE("compile") << "(\t; => unknown library-name" << std::endl;
         NEST_IN;
@@ -397,7 +401,7 @@ namespace meevax::system
           }
           else
           {
-            throw evaluation_error {
+            throw syntax_error {
               identifier, " is not allowed as part of library-name (must be path or string object)"
             };
           }
@@ -548,8 +552,9 @@ namespace meevax::system
     });
 
     const auto expression {read(
-      #include <meevax/library/experimental.hpp>
+      #include <meevax/library/experimental.meevax>
     )};
+    evaluate(expression);
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
