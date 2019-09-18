@@ -50,7 +50,7 @@ namespace meevax::system
   {
     std::unordered_map<std::string, object> symbols;
 
-    std::unordered_map<object, object> exported;
+    std::unordered_map<object, object> bindings;
 
     static inline std::unordered_map<std::string, posix::linker> linkers {};
 
@@ -112,6 +112,21 @@ namespace meevax::system
       else
       {
         return intern(object.as<symbol>());
+      }
+    }
+
+    decltype(auto) bind(const object& key, const object& value)
+    {
+      if (auto iter {bindings.find(key)}; iter != std::end(bindings))
+      {
+        std::cerr << "; export\t\t; detected redefinition (interactive mode ignore previous definition)" << std::endl;
+        bindings.at(key) = value;
+        return bindings.find(key);
+      }
+      else
+      {
+        return bindings.emplace(key, value).first;
+        std::cerr << "; export\t\t; exporting new binding " << key << " and " << value << std::endl;
       }
     }
 

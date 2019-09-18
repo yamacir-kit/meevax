@@ -40,11 +40,19 @@ namespace meevax::system
       return static_cast<Environment&>(*this).interaction_environment();
     }
 
+    template <typename... Ts>
+    decltype(auto) bind(Ts&&... operands)
+    {
+      return static_cast<Environment&>(*this).bind(FORWARD(operands)...);
+    }
+
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... args)
     {
-      interaction_environment().push(list(key, std::forward<Ts>(args)...));
+      auto iter {bind(key, FORWARD(args)...)};
+      // interaction_environment().push(list(key, std::forward<Ts>(args)...));
+      interaction_environment().push(list(iter->first, iter->second));
       std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
       return interaction_environment(); // temporary
     }
