@@ -217,6 +217,11 @@ namespace meevax::system
       if (source.bindings.empty())
       {
         source.expand(unit);
+
+        if (source.bindings.empty())
+        {
+          throw syntax_error {library, " is may not be library"};
+        }
       }
 
       stack executable {continuation};

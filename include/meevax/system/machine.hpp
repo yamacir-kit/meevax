@@ -491,7 +491,7 @@ namespace meevax::system
     }
 
     /*
-     * <program> = <command or definition>* <expression>+
+     * <program> = <command or definition>+
      *
      * <command or definition> = <command>
      *                         | <definition>
@@ -524,23 +524,21 @@ namespace meevax::system
       //   )
       //
       // <car expression> = (<caar expression> <cadar expression> <caddar expression>)
+      //                  = (#(syntax define) <identifier> <expression>)
 
-      auto buffer {cons(
-        _define_, cadar(expression),
-        cdr(expression) ? program(
-                            cdr(expression),
-                            lexical_environment,
-                            continuation
-                          )
-                        : continuation
+      auto definition {compile(
+        cddar(expression) ? caddar(expression) : undefined,
+        lexical_environment,
+        list(_define_, cadar(expression))
       )};
 
-      NEST_OUT; // XXX INDENTATION BUG (DIRTY FIX)
+      NEST_OUT;
 
-      return compile(
-               cddar(expression) ? caddar(expression) : undefined,
-               lexical_environment,
-               buffer
+      return append(
+               definition,
+               cdr(expression)
+                 ? program(cdr(expression), lexical_environment, continuation)
+                 : continuation
              );
     }
 
