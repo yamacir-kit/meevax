@@ -594,6 +594,10 @@ namespace meevax::system
     evaluate(read(
       #include <meevax/library/pair.mvx>
     ));
+
+    evaluate(read(
+      #include <meevax/library/numerical.mvx>
+    ));
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)

@@ -3,20 +3,7 @@
 ; ------------------------------------------------------------------------------
 
 (import (standard pair))
-
-(define numerical.so
-  (linker "./lib/libmeevax-numerical.so"))
-
-(define *  (link numerical.so "multiplication"))
-(define +  (link numerical.so "addition"))
-(define -  (link numerical.so "subtraction"))
-(define /  (link numerical.so "division"))
-(define <  (link numerical.so "less"))
-(define <= (link numerical.so "less_equal"))
-(define >  (link numerical.so "greater"))
-(define >= (link numerical.so "greater_equal"))
-
-(define real? (link numerical.so "real_"))
+(import (standard numerical))
 
 (define experimental.so
   (linker "./lib/libmeevax-experimental.so"))
