@@ -5,6 +5,9 @@ R"##(
     (define pair.so
       (linker "libmeevax-pair.so"))
 
+    (define pair?
+      (link pair.so "pair_"))
+
     (define car (link pair.so "car"))
     (define cdr (link pair.so "cdr"))
 

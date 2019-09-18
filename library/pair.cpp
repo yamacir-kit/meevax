@@ -16,5 +16,20 @@ extern "C"
   {
     return meevax::system::cons(meevax::system::car(args), meevax::system::cadr(args));
   }
+
+  NATIVE(pair_)
+  {
+    using namespace meevax::system;
+
+    for (const auto& each : args)
+    {
+      if (not each or not each.is<pair>())
+      {
+        return false_object;
+      }
+    }
+
+    return true_object;
+  }
 } // extern "C"
 

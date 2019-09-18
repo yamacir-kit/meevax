@@ -12,7 +12,6 @@
 (define emergency-exit (link experimental.so "emergency_exit"))
 (define eq?            (link experimental.so "eq_"))
 (define eqv?           (link experimental.so "eqv_"))
-(define pair?          (link experimental.so "pair_"))
 
 (define file-system.so
   (linker "./lib/libmeevax-file-system.so"))
