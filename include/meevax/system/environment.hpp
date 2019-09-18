@@ -586,10 +586,9 @@ namespace meevax::system
       return evaluate(FORWARD(operands));
     });
 
-    const auto expression {read(
-      #include <meevax/library/experimental.meevax>
-    )};
-    evaluate(expression);
+    evaluate(read(
+      #include <meevax/library/pair.mvx>
+    ));
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
