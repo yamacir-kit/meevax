@@ -2,12 +2,7 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(define pair.so
-  (linker "libmeevax-pair.so"))
-
-(define car  (link pair.so "car"))
-(define cdr  (link pair.so "cdr"))
-(define cons (link pair.so "cons"))
+(import (standard pair))
 
 (define numerical.so
   (linker "./lib/libmeevax-numerical.so"))
