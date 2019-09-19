@@ -100,10 +100,6 @@
                 (append (list 'or)
                         (cdr <tests>))))))))
 
-; (define not
-;   (lambda (test)
-;     (if test #false #true)))
-
 (define quasiquote-expand
   (lambda (e depth)
     (if (not (pair? e))

@@ -591,33 +591,40 @@ namespace meevax::system
       return evaluate(FORWARD(operands));
     });
 
-    {
-      const std::string code {
-        #include <meevax/library/boolean.mvx>
-      };
-      std::cerr << code << std::endl;
-
-      const auto library {read(code)};
-      std::cerr << "; standard\t; " << library << std::endl;
-
-      evaluate(library);
+    #define DEFINE_LIBRARY(...)                                                \
+    {                                                                          \
+      std::cerr << __VA_ARGS__ << std::endl;                                   \
+                                                                               \
+      const auto library {read(__VA_ARGS__)};                                  \
+      std::cerr << "; standard\t; " << library << std::endl;                   \
+                                                                               \
+      evaluate(library);                                                       \
     }
 
-    evaluate(read(
+    const std::string standard_boolean {
+      #include <meevax/library/boolean.mvx>
+    };
+    DEFINE_LIBRARY(standard_boolean)
+
+    const std::string standard_equivalence {
       #include <meevax/library/equivalence.mvx>
-    ));
+    };
+    DEFINE_LIBRARY(standard_equivalence)
 
-    evaluate(read(
+    const std::string standard_list {
       #include <meevax/library/list.mvx>
-    ));
+    };
+    DEFINE_LIBRARY(standard_list)
 
-    evaluate(read(
+    const std::string standard_numerical {
       #include <meevax/library/numerical.mvx>
-    ));
+    };
+    DEFINE_LIBRARY(standard_numerical)
 
-    evaluate(read(
+    const std::string standard_pair {
       #include <meevax/library/pair.mvx>
-    ));
+    };
+    DEFINE_LIBRARY(standard_pair)
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
