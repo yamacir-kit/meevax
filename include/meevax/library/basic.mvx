@@ -53,6 +53,40 @@
             (eqv? x y))))
 
     ; --------------------------------------------------------------------------
+    ;  Standard Numerical Library
+    ; --------------------------------------------------------------------------
+
+    (define numerical.so
+      (linker "libmeevax-numerical.so"))
+
+    (define real?
+      (link numerical.so "real_"))
+
+    (define *
+      (link numerical.so "multiplication"))
+
+    (define +
+      (link numerical.so "addition"))
+
+    (define -
+      (link numerical.so "subtraction"))
+
+    (define /
+      (link numerical.so "division"))
+
+    (define <
+      (link numerical.so "less"))
+
+    (define <=
+      (link numerical.so "less_equal"))
+
+    (define >
+      (link numerical.so "greater"))
+
+    (define >=
+      (link numerical.so "greater_equal"))
+
+    ; --------------------------------------------------------------------------
     ;  Standard Boolean Library
     ; --------------------------------------------------------------------------
 
@@ -74,7 +108,7 @@
         (if x #false #true)))
 
     ; --------------------------------------------------------------------------
-    ;  Standard List Library (Part 1 of 2)
+    ;  Standard List Library (Part 1 of 2) (minimal for quasiquote)
     ; --------------------------------------------------------------------------
 
     (define null?
@@ -113,7 +147,7 @@
              (reverse x)))))
 
     ; --------------------------------------------------------------------------
-    ;  Standard Conditional Library
+    ;  Standard Conditional Library (Part 1 of 2) (mininal for quasiquote)
     ; --------------------------------------------------------------------------
 
     (define and
@@ -147,6 +181,50 @@
                                 (cdr xs))))))))
 
     ; --------------------------------------------------------------------------
+    ;  Standard Quasiquote Library
+    ; --------------------------------------------------------------------------
+
+    (define quasiquote-expand
+      (lambda (e depth)
+        (if (not (pair? e))
+            (list 'quote e)
+            (if (eq? (car e) 'quasiquote)
+                (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+                (if (eq? (car e) 'unquote)
+                    (if (< 0 depth)
+                        (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+                        (if (and (not (null? (cdr e))) (null? (cddr e)))
+                            (cadr e)
+                            (error "illegal unquote")))
+                    (if (eq? (car e) 'unquote-splicing)
+                        (if (< 0 depth)
+                            (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+                            (error "illegal unquote-splicing"))
+                        (list 'append (quasiquote-expand-list (car e) depth)
+                                      (quasiquote-expand      (cdr e) depth))))))))
+
+    (define quasiquote-expand-list
+      (lambda (e depth)
+        (if (not (pair? e))
+            (list 'quote (list e))
+            (if (eq? (car e) 'quasiquote)
+                (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
+                (if (eq? (car e) 'unquote)
+                    (if (< 0 depth)
+                        (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
+                        (cons 'list (cdr e)))
+                    (if (eq? (car e) 'unquote-splicing)
+                        (if (< 0 depth)
+                            (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
+                            (cons 'append (cdr e)))
+                        (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+                                                  (quasiquote-expand      (cdr e) depth)))))))))
+
+    (define quasiquote
+      (environment (x)
+        (quasiquote-expand x 0)))
+
+    ; --------------------------------------------------------------------------
     ;  Standard List Library (Part 2 of 2)
     ; --------------------------------------------------------------------------
 
@@ -164,5 +242,5 @@
     )
   )
 
- )##"
+)##"
 

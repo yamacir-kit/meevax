@@ -625,12 +625,12 @@ namespace meevax::system
     //   #include <meevax/library/list.mvx>
     // };
     // DEFINE_LIBRARY(standard_list)
-
-    const std::string standard_numerical {
-      #include <meevax/library/numerical.mvx>
-    };
-    DEFINE_LIBRARY(standard_numerical)
-
+    //
+    // const std::string standard_numerical {
+    //   #include <meevax/library/numerical.mvx>
+    // };
+    // DEFINE_LIBRARY(standard_numerical)
+    //
     // const std::string standard_pair {
     //   #include <meevax/library/pair.mvx>
     // };

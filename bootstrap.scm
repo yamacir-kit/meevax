@@ -4,8 +4,6 @@
 
 (import (standard basic))
 
-(import (standard numerical))
-
 (define experimental.so
   (linker "./lib/libmeevax-experimental.so"))
 
@@ -23,108 +21,6 @@
 
 (define close-input-file (link file-system.so "close_input_file"))
 (define close-output-file (link file-system.so "close_output_file"))
-
-; ------------------------------------------------------------------------------
-;   Bootstrap Quasiquote
-; ------------------------------------------------------------------------------
-
-; (define append-2
-;   (lambda (list.1 list.2)
-;     (if (null? list.1) list.2
-;         (cons (car list.1)
-;               (append-2 (cdr list.1) list.2)))))
-
-; simple reverse (but slow)
-; (define reverse
-;   (lambda (list.)
-;     (if (null? list.)
-;        '()
-;         (append-2 (reverse (cdr list.))
-;                   (list (car list.))))))
-
-; (define append-aux
-;   (lambda (list.1 list.2)
-;     (if (null? list.1) list.2
-;         (append-aux (cdr list.1)
-;                     (append-2 (car list.1) list.2)))))
-
-; (define append
-;   (lambda lists
-;     (if (null? lists)
-;        '()
-;         ((lambda (reversed)
-;            (append-aux (cdr reversed)
-;                        (car reversed)))
-;          (reverse lists)))))
-
-; (define and
-;   (environment <tests>
-;     (if (null? <tests>) #true
-;     (if (null? (cdr <tests>))
-;         (car <tests>)
-;         (list (list 'lambda (list 'head 'thunk)
-;                 (list 'if 'head
-;                           (list 'thunk)
-;                           'head))
-;               (car <tests>)
-;               (list 'lambda '()
-;                 (append (list 'and)
-;                         (cdr <tests>))))))))
-;
-; (define or
-;   (environment <tests>
-;     (if (null? <tests>) #false
-;     (if (null? (cdr <tests>))
-;         (car <tests>)
-;         (list (list 'lambda (list 'head 'thunk)
-;                 (list 'if 'head
-;                           'head
-;                           (list 'thunk)))
-;               (car <tests>)
-;               (list 'lambda '()
-;                 (append (list 'or)
-;                         (cdr <tests>))))))))
-
-(define quasiquote-expand
-  (lambda (e depth)
-    (if (not (pair? e))
-        (list 'quote e)
-        (if (eq? (car e) 'quasiquote)
-            (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
-            (if (eq? (car e) 'unquote)
-                (if (< 0 depth)
-                    (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
-                    (if (and (not (null? (cdr e))) (null? (cddr e)))
-                        (cadr e)
-                        (error "illegal unquote")))
-                (if (eq? (car e) 'unquote-splicing)
-                    (if (< 0 depth)
-                        (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
-                        (error "illegal unquote-splicing"))
-                    (list 'append (quasiquote-expand-list (car e) depth)
-                                  (quasiquote-expand      (cdr e) depth))))))))
-
-(define quasiquote-expand-list
-  (lambda (e depth)
-    (if (not (pair? e))
-        (list 'quote (list e))
-        (if (eq? (car e) 'quasiquote)
-            (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
-            (if (eq? (car e) 'unquote)
-                (if (< 0 depth)
-                    (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
-                    (cons 'list (cdr e)))
-                (if (eq? (car e) 'unquote-splicing)
-                    (if (< 0 depth)
-                        (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
-                        (cons 'append (cdr e)))
-                    (list 'list (list 'append (quasiquote-expand-list (car e) depth)
-                                              (quasiquote-expand      (cdr e) depth)))))))))
-
-(define quasiquote
-  (environment (<template>)
-    (quasiquote-expand <template> 0)))
-
 
 ; ------------------------------------------------------------------------------
 ;   Bootstrap Binding Constuctors
