@@ -592,7 +592,7 @@ namespace meevax::system
     });
 
     evaluate(read(
-      #include <meevax/library/pair.mvx>
+      #include <meevax/library/equivalence.mvx>
     ));
 
     evaluate(read(
@@ -601,6 +601,10 @@ namespace meevax::system
 
     evaluate(read(
       #include <meevax/library/numerical.mvx>
+    ));
+
+    evaluate(read(
+      #include <meevax/library/pair.mvx>
     ));
   } // environment class default constructor
 

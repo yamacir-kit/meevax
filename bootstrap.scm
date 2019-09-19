@@ -2,16 +2,16 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(import (standard pair))
+(import (standard equivalence))
+(import (standard list))
 (import (standard numerical))
+(import (standard pair))
 
 (define experimental.so
   (linker "./lib/libmeevax-experimental.so"))
 
 (define display        (link experimental.so "display"))
 (define emergency-exit (link experimental.so "emergency_exit"))
-(define eq?            (link experimental.so "eq_"))
-(define eqv?           (link experimental.so "eqv_"))
 
 (define file-system.so
   (linker "./lib/libmeevax-file-system.so"))
@@ -37,8 +37,6 @@
 ; ------------------------------------------------------------------------------
 ;   Bootstrap Quasiquote
 ; ------------------------------------------------------------------------------
-
-(import (standard list))
 
 (define null?
   (lambda (object)

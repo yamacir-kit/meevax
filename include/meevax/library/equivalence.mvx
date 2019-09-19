@@ -1,0 +1,25 @@
+R"##(
+
+(define (standard equivalence)
+  (environment ()
+    (define equivalence.so
+      (linker "libmeevax-equivalence.so"))
+
+    (define eq? ; address-equal?
+      (link equivalence.so "address_equal"))
+
+    (define eqv? ; value-equal?
+      (link equivalence.so "value_equal"))
+
+    ; (define equal? ; list-equal?
+    ;   (lambda (x y)
+    ;     (if (and (pair? x)
+    ;              (pair? y))
+    ;         (and (equal? (car x) (car y))
+    ;              (equal? (cdr x) (cdr y)))
+    ;         (eqv? x y))))
+    )
+  )
+
+)##"
+
