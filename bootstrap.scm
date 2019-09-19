@@ -2,11 +2,9 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-(import (standard boolean))
-(import (standard equivalence))
-(import (standard list))
+(import (standard basic))
+
 (import (standard numerical))
-(import (standard pair))
 
 (define experimental.so
   (linker "./lib/libmeevax-experimental.so"))
@@ -30,66 +28,62 @@
 ;   Bootstrap Quasiquote
 ; ------------------------------------------------------------------------------
 
-; (define null?
-;   (lambda (object)
-;     (eq? object '())))
-
-(define append-2
-  (lambda (list.1 list.2)
-    (if (null? list.1) list.2
-        (cons (car list.1)
-              (append-2 (cdr list.1) list.2)))))
+; (define append-2
+;   (lambda (list.1 list.2)
+;     (if (null? list.1) list.2
+;         (cons (car list.1)
+;               (append-2 (cdr list.1) list.2)))))
 
 ; simple reverse (but slow)
-(define reverse
-  (lambda (list.)
-    (if (null? list.)
-       '()
-        (append-2 (reverse (cdr list.))
-                  (list (car list.))))))
+; (define reverse
+;   (lambda (list.)
+;     (if (null? list.)
+;        '()
+;         (append-2 (reverse (cdr list.))
+;                   (list (car list.))))))
 
-(define append-aux
-  (lambda (list.1 list.2)
-    (if (null? list.1) list.2
-        (append-aux (cdr list.1)
-                    (append-2 (car list.1) list.2)))))
+; (define append-aux
+;   (lambda (list.1 list.2)
+;     (if (null? list.1) list.2
+;         (append-aux (cdr list.1)
+;                     (append-2 (car list.1) list.2)))))
 
-(define append
-  (lambda lists
-    (if (null? lists)
-       '()
-        ((lambda (reversed)
-           (append-aux (cdr reversed)
-                       (car reversed)))
-         (reverse lists)))))
+; (define append
+;   (lambda lists
+;     (if (null? lists)
+;        '()
+;         ((lambda (reversed)
+;            (append-aux (cdr reversed)
+;                        (car reversed)))
+;          (reverse lists)))))
 
-(define and
-  (environment <tests>
-    (if (null? <tests>) #true
-    (if (null? (cdr <tests>))
-        (car <tests>)
-        (list (list 'lambda (list 'head 'thunk)
-                (list 'if 'head
-                          (list 'thunk)
-                          'head))
-              (car <tests>)
-              (list 'lambda '()
-                (append (list 'and)
-                        (cdr <tests>))))))))
-
-(define or
-  (environment <tests>
-    (if (null? <tests>) #false
-    (if (null? (cdr <tests>))
-        (car <tests>)
-        (list (list 'lambda (list 'head 'thunk)
-                (list 'if 'head
-                          'head
-                          (list 'thunk)))
-              (car <tests>)
-              (list 'lambda '()
-                (append (list 'or)
-                        (cdr <tests>))))))))
+; (define and
+;   (environment <tests>
+;     (if (null? <tests>) #true
+;     (if (null? (cdr <tests>))
+;         (car <tests>)
+;         (list (list 'lambda (list 'head 'thunk)
+;                 (list 'if 'head
+;                           (list 'thunk)
+;                           'head))
+;               (car <tests>)
+;               (list 'lambda '()
+;                 (append (list 'and)
+;                         (cdr <tests>))))))))
+;
+; (define or
+;   (environment <tests>
+;     (if (null? <tests>) #false
+;     (if (null? (cdr <tests>))
+;         (car <tests>)
+;         (list (list 'lambda (list 'head 'thunk)
+;                 (list 'if 'head
+;                           'head
+;                           (list 'thunk)))
+;               (car <tests>)
+;               (list 'lambda '()
+;                 (append (list 'or)
+;                         (cdr <tests>))))))))
 
 (define quasiquote-expand
   (lambda (e depth)

@@ -601,35 +601,40 @@ namespace meevax::system
       evaluate(library);                                                       \
     }
 
-    const std::string standard_boolean {
-      #include <meevax/library/boolean.mvx>
+    const std::string standard_basic {
+      #include <meevax/library/basic.mvx>
     };
-    DEFINE_LIBRARY(standard_boolean)
+    DEFINE_LIBRARY(standard_basic)
 
-    const std::string standard_conditional {
-      #include <meevax/library/conditional.mvx>
-    };
-    DEFINE_LIBRARY(standard_conditional)
-
-    const std::string standard_equivalence {
-      #include <meevax/library/equivalence.mvx>
-    };
-    DEFINE_LIBRARY(standard_equivalence)
-
-    const std::string standard_list {
-      #include <meevax/library/list.mvx>
-    };
-    DEFINE_LIBRARY(standard_list)
+    // const std::string standard_boolean {
+    //   #include <meevax/library/boolean.mvx>
+    // };
+    // DEFINE_LIBRARY(standard_boolean)
+    //
+    // const std::string standard_conditional {
+    //   #include <meevax/library/conditional.mvx>
+    // };
+    // DEFINE_LIBRARY(standard_conditional)
+    //
+    // const std::string standard_equivalence {
+    //   #include <meevax/library/equivalence.mvx>
+    // };
+    // DEFINE_LIBRARY(standard_equivalence)
+    //
+    // const std::string standard_list {
+    //   #include <meevax/library/list.mvx>
+    // };
+    // DEFINE_LIBRARY(standard_list)
 
     const std::string standard_numerical {
       #include <meevax/library/numerical.mvx>
     };
     DEFINE_LIBRARY(standard_numerical)
 
-    const std::string standard_pair {
-      #include <meevax/library/pair.mvx>
-    };
-    DEFINE_LIBRARY(standard_pair)
+    // const std::string standard_pair {
+    //   #include <meevax/library/pair.mvx>
+    // };
+    // DEFINE_LIBRARY(standard_pair)
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)

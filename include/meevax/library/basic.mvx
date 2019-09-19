@@ -1,0 +1,168 @@
+ R"##(
+
+(define (standard basic)
+  (environment ()
+
+    ; --------------------------------------------------------------------------
+    ;  Standard Pair Library
+    ; --------------------------------------------------------------------------
+
+    (define pair.so
+      (linker "libmeevax-pair.so"))
+
+    (define cons ; pair
+      (link pair.so "cons"))
+
+    (define pair?
+      (link pair.so "pair_"))
+
+    (define car (link pair.so "car"))
+    (define cdr (link pair.so "cdr"))
+
+    (define caar (lambda (x) (car (car x))))
+    (define cadr (lambda (x) (car (cdr x))))
+    (define cdar (lambda (x) (cdr (car x))))
+    (define cddr (lambda (x) (cdr (cdr x))))
+
+    ; TODO set-car!
+    ; TODO set-cdr!
+
+    (define xcons
+      (lambda (x y)
+        (cons y x)))
+
+    ; --------------------------------------------------------------------------
+    ;  Standard Equivalence Library
+    ; --------------------------------------------------------------------------
+
+    (define equivalence.so
+      (linker "libmeevax-equivalence.so"))
+
+    (define eq? ; address-equal?
+      (link equivalence.so "address_equal"))
+
+    (define eqv? ; value-equal?
+      (link equivalence.so "value_equal"))
+
+    (define equal? ; list-equal?
+      (lambda (x y)
+        (if (and (pair? x)
+                 (pair? y))
+            (and (equal? (car x) (car y))
+                 (equal? (cdr x) (cdr y)))
+            (eqv? x y))))
+
+    ; --------------------------------------------------------------------------
+    ;  Standard Boolean Library
+    ; --------------------------------------------------------------------------
+
+    #;(define boolean?
+      (lambda (x)
+        (if (or (eq? x #true)
+                (eq? x #false))
+          #true
+          #false)))
+
+    (define boolean?
+      (lambda (x)
+        (if (eq? x #true)
+            #true
+            (eq? x #false))))
+
+    (define not
+      (lambda (x)
+        (if x #false #true)))
+
+    ; --------------------------------------------------------------------------
+    ;  Standard List Library (Part 1 of 2)
+    ; --------------------------------------------------------------------------
+
+    (define null?
+      (lambda (x)
+        (eq? x '())))
+
+    (define list
+      (lambda x x))
+
+    (define append-2
+      (lambda (x y)
+        (if (null? x) y
+            (cons (car x)
+                  (append-2 (cdr x) y)))))
+
+    (define reverse ; simple but slow
+      (lambda (x)
+        (if (null? x)
+           '()
+            (append-2 (reverse (cdr x))
+                      (list (car x))))))
+
+    (define append-aux
+      (lambda (x y)
+        (if (null? x) y
+            (append-aux (cdr x)
+                        (append-2 (car x) y)))))
+
+    (define append
+      (lambda x
+        (if (null? x)
+           '()
+            ((lambda (reversed)
+               (append-aux (cdr reversed)
+                           (car reversed)))
+             (reverse x)))))
+
+    ; --------------------------------------------------------------------------
+    ;  Standard Conditional Library
+    ; --------------------------------------------------------------------------
+
+    (define and
+      (environment xs
+        (if (null? xs)
+            #true
+            (if (null? (cdr xs))
+                (car xs)
+                (list (list 'lambda (list 'x 'thunk)
+                        (list 'if 'x
+                                  (list 'thunk)
+                                  'x))
+                      (car xs)
+                      (list 'lambda '()
+                        (append (list 'and)
+                                (cdr xs))))))))
+
+    (define or
+      (environment xs
+        (if (null? xs)
+            #false
+            (if (null? (cdr xs))
+                (car xs)
+                (list (list 'lambda (list 'x 'thunk)
+                        (list 'if 'x
+                                  'x
+                                  (list 'thunk)))
+                      (car xs)
+                      (list 'lambda '()
+                        (append (list 'or)
+                                (cdr xs))))))))
+
+    ; --------------------------------------------------------------------------
+    ;  Standard List Library (Part 2 of 2)
+    ; --------------------------------------------------------------------------
+
+    ; TODO list?
+
+    (define list-tail
+      (lambda (x k)
+        (if (zero? k) x
+            (list-tail (cdr x) (- k 1)))))
+
+    (define list-ref
+      (lambda (x k)
+        (car (list-tail x k))))
+
+    )
+  )
+
+ )##"
+
