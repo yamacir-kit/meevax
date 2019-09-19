@@ -2,6 +2,7 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
+(import (standard boolean))
 (import (standard equivalence))
 (import (standard list))
 (import (standard numerical))
@@ -99,9 +100,9 @@
                 (append (list 'or)
                         (cdr <tests>))))))))
 
-(define not
-  (lambda (test)
-    (if test #false #true)))
+; (define not
+;   (lambda (test)
+;     (if test #false #true)))
 
 (define quasiquote-expand
   (lambda (e depth)

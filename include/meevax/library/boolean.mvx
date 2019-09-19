@@ -1,0 +1,12 @@
+R"##(
+
+(define (standard boolean)
+  (environment ()
+    (define not
+      (lambda (x)
+        (if x #false #true)))
+    )
+  )
+
+)##"
+

@@ -591,6 +591,18 @@ namespace meevax::system
       return evaluate(FORWARD(operands));
     });
 
+    {
+      const std::string code {
+        #include <meevax/library/boolean.mvx>
+      };
+      std::cerr << code << std::endl;
+
+      const auto library {read(code)};
+      std::cerr << "; standard\t; " << library << std::endl;
+
+      evaluate(library);
+    }
+
     evaluate(read(
       #include <meevax/library/equivalence.mvx>
     ));
