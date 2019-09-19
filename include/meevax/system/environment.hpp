@@ -606,6 +606,11 @@ namespace meevax::system
     };
     DEFINE_LIBRARY(standard_boolean)
 
+    const std::string standard_conditional {
+      #include <meevax/library/conditional.mvx>
+    };
+    DEFINE_LIBRARY(standard_conditional)
+
     const std::string standard_equivalence {
       #include <meevax/library/equivalence.mvx>
     };

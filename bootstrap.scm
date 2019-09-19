@@ -30,9 +30,9 @@
 ;   Bootstrap Quasiquote
 ; ------------------------------------------------------------------------------
 
-(define null?
-  (lambda (object)
-    (eq? object '())))
+; (define null?
+;   (lambda (object)
+;     (eq? object '())))
 
 (define append-2
   (lambda (list.1 list.2)

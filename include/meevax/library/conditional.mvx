@@ -1,0 +1,41 @@
+R"##(
+
+(define (standard conditional)
+  (environment ()
+
+    (import (standard pair))
+    (import (standard list))
+
+    (define and
+      (environment xs
+        (if (null? xs)
+            #true
+            (if (null? (cdr xs))
+                (car xs)
+                (list (list 'lambda (list 'x 'thunk)
+                        (list 'if 'x
+                                  (list 'thunk)
+                                  'x))
+                      (car xs)
+                      (list 'lambda '()
+                        (append (list 'and)
+                                (cdr xs))))))))
+
+    (define or
+      (environment xs
+        (if (null? xs)
+            #false
+            (if (null? (cdr xs))
+                (car xs)
+                (list (list 'lambda (list 'x 'thunk)
+                        (list 'if 'x
+                                  'x
+                                  (list 'thunk)))
+                      (car xs)
+                      (list 'lambda '()
+                        (append (list 'or)
+                                (cdr xs))))))))
+    )
+  )
+
+)##"
