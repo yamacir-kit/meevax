@@ -27,15 +27,6 @@
 (define close-output-file (link file-system.so "close_output_file"))
 
 ; ------------------------------------------------------------------------------
-;   Setup CxR
-; ------------------------------------------------------------------------------
-
-(define caar (lambda (x) (car (car x))))
-(define cadr (lambda (x) (car (cdr x))))
-(define cdar (lambda (x) (cdr (car x))))
-(define cddr (lambda (x) (cdr (cdr x))))
-
-; ------------------------------------------------------------------------------
 ;   Bootstrap Quasiquote
 ; ------------------------------------------------------------------------------
 
@@ -415,13 +406,6 @@
 ;                   (ns (cdr ns)))
 ;           (if (null? ns) n
 ;               (rec (lcm-2 n (car ns)) (cdr ns)))))))
-
-(define boolean?
-  (lambda (object)
-    (if (or (eq? object #true)
-            (eq? object #false))
-      #true
-      #false)))
 
 (define newline
   (lambda ()

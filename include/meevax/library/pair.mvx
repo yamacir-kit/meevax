@@ -11,6 +11,11 @@ R"##(
     (define car (link pair.so "car"))
     (define cdr (link pair.so "cdr"))
 
+    (define caar (lambda (x) (car (car x))))
+    (define cadr (lambda (x) (car (cdr x))))
+    (define cdar (lambda (x) (cdr (car x))))
+    (define cddr (lambda (x) (cdr (cdr x))))
+
     (define cons
       (link pair.so "cons"))
 
