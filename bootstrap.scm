@@ -4,6 +4,84 @@
 
 (import (standard basic))
 
+(define and
+  (environment xs
+    (if (null? xs)
+        #true
+        (if (null? (cdr xs))
+            (car xs)
+            (list (list 'lambda (list 'x 'thunk)
+                    (list 'if 'x
+                              (list 'thunk)
+                              'x))
+                  (car xs)
+                  (list 'lambda '()
+                    (append (list 'and)
+                            (cdr xs))))))))
+
+(define or
+  (environment xs
+    (if (null? xs)
+        #false
+        (if (null? (cdr xs))
+            (car xs)
+            (list (list 'lambda (list 'x 'thunk)
+                    (list 'if 'x
+                              'x
+                              (list 'thunk)))
+                  (car xs)
+                  (list 'lambda '()
+                    (append (list 'or)
+                            (cdr xs))))))))
+
+(define quasiquote-expand
+  (lambda (e depth)
+    (if (not (pair? e))
+        (list 'quote e)
+        (if (eq? (car e) 'quasiquote)
+            (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+            (if (eq? (car e) 'unquote)
+                (if (< 0 depth)
+                    (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+                    (if (and (not (null? (cdr e))) (null? (cddr e)))
+                        (cadr e)
+                        (error "illegal unquote")))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+                        (error "illegal unquote-splicing"))
+                    (list 'append (quasiquote-expand-list (car e) depth)
+                                  (quasiquote-expand      (cdr e) depth))))))))
+
+(define quasiquote-expand-list
+  (lambda (e depth)
+    (if (not (pair? e))
+        (list 'quote (list e))
+        (if (eq? (car e) 'quasiquote)
+            (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
+            (if (eq? (car e) 'unquote)
+                (if (< 0 depth)
+                    (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
+                    (cons 'list (cdr e)))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
+                        (cons 'append (cdr e)))
+                    (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+                                              (quasiquote-expand      (cdr e) depth)))))))))
+
+(define quasiquote
+  (environment (x)
+    (quasiquote-expand x 0)))
+
+(define equal? ; list-equal?
+  (lambda (x y)
+    (if (and (pair? x)
+             (pair? y))
+        (and (equal? (car x) (car y))
+             (equal? (cdr x) (cdr y)))
+        (eqv? x y))))
+
 (define experimental.so
   (linker "./lib/libmeevax-experimental.so"))
 
@@ -222,80 +300,6 @@
 (define unless
   (environment (<test> . <expression>)
    `(if (not ,<test>) (begin ,@<expression>))))
-
-(define equal?
-  (lambda (object.1 object.2)
-    (if (and (pair? object.1)
-             (pair? object.2))
-        (and (equal? (car object.1) (car object.2))
-             (equal? (cdr object.1) (cdr object.2)))
-        (eqv? object.1 object.2))))
-
-(define = eqv?)
-
-(define zero?
-  (lambda (n)
-    (= n 0)))
-
-(define positive?
-  (lambda (n)
-    (> n 0)))
-
-(define negative?
-  (lambda (n)
-    (< n 0)))
-
-; (define even?
-;   (lambda (n)
-;     (= (remainder n 2) 0)))
-
-(define even?
-  (lambda (n)
-    (if (zero? n) #true
-        (odd? (- n 1)))))
-
-; (define odd?
-;   (lambda (n)
-;     (not (even? n))))
-
-(define odd?
-  (lambda (n)
-    (if (zero? n) #false
-        (even? (- n 1)))))
-
-(define abs
-  (lambda (n)
-    (if (< n 0) (- n) n)))
-
-; (define quotient truncate-quotient)
-; (define remainder truncate-remainder)
-; (define modulo floor-remainder)
-
-; (define gcd-2
-;   (lambda (a b)
-;     (if (zero? b)
-;         (abs a)
-;         (gcd b (remainder a b)))))
-;
-; (define gcd
-;   (lambda xs
-;     (if (null? xs) 0
-;         (let rec ((n (car xs))
-;                   (ns (cdr xs)))
-;           (if (null? ns) n
-;               (rec (gcd-2 n (car ns)) (cdr ns)))))))
-;
-; (define lcm-2
-;   (lambda (a b)
-;     (abs (quotient (* a b) (gcd a b)))))
-;
-; (define lcm
-;   (lambda xs
-;     (if (null? xs) 1
-;         (let rec ((n (car xs))
-;                   (ns (cdr ns)))
-;           (if (null? ns) n
-;               (rec (lcm-2 n (car ns)) (cdr ns)))))))
 
 (define newline
   (lambda ()
