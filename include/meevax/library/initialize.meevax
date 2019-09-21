@@ -312,9 +312,9 @@ R"##(
   (environment (x)
     (quasiquote-expand x 0)))
 
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
 ;  6.10 Standard Control Features Library (Part 1 of 2)
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
 
 (define map-1
   (lambda (callee x)
@@ -323,9 +323,9 @@ R"##(
         (cons (callee (car x))
               (map-1 callee (cdr x))))))
 
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
 ;  4.2.2 Standard Binding Constructors Library
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
 
 (define unnamed-let
   (environment (bindings . body)
@@ -360,9 +360,9 @@ R"##(
 ; TODO let-values
 ; TODO let*-values
 
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 2 of 2)
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
 
 (define else #true) ; auxiliary syntax
 
@@ -505,6 +505,133 @@ R"##(
 ; ------------------------------------------------------------------------------
 ;  6.5 Standard Symbols Library
 ; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.6 Standard Characters Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.7 Standard Strings Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.8 Standard Vectors Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.9 Standard Bytevectors Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.10 Standard Control Features Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+; TODO procedure?
+
+(define apply-1
+  (lambda (proc xs)
+    (proc . xs)))
+
+(define apply
+  (lambda (proc x . xs)
+    (if (null? xs)
+        (apply-1 proc x)
+        (let ((reversed (reverse (cons x xs))))
+          (apply-1 proc (append-2 (reverse (cdr reversed)) (car reversed)))))))
+
+(define map
+  (lambda (proc x . xs)
+    (define map-1
+      (lambda (proc x result)
+        (if (pair? x)
+            (map-1 proc
+                   (cdr x)
+                   (cons (proc (car x)) result))
+            (reverse result))))
+    (define map-n
+      (lambda (proc xs result)
+        (if (every pair? xs)
+            (map-n proc
+                   (map-1 cdr xs '())
+                   (cons (apply proc (map-1 car xs '())) result))
+            (reverse result))))
+    (if (null? xs)
+        (map-1 proc x '())
+        (map-n proc (cons x xs) '()))))
+
+; TODO string-map
+; TODO vector-map
+
+(define for-each
+  (lambda (proc x . xs)
+    (define for-each-1
+      (lambda (proc x)
+        (if (pair? x)
+            (begin (proc (car x))
+                   (for-each-1 proc (cdr x))))))
+    (if (null? xs)
+        (for-each-1 proc x)
+        (begin (apply map proc x xs) undefined))))
+
+; TODO string-for-each
+; TODO vector-for-each
+
+(define any
+  (lambda (pred x . xs)
+    (define any-1
+      (lambda (pred x)
+        (if (pair? (cdr x))
+            (let ((result (pred (car x))))
+              (if result
+                  result
+                  (any-1 pred (cdr x))))
+            (pred (car x)))))
+    (define any-n
+      (lambda (pred xs)
+        (if (every pair? xs)
+            (let ((result (apply pred (map car xs))))
+              (if result
+                  result
+                  (any-n pred (map cdr xs))))
+            #false)))
+    (if (null? xs)
+        (if (pair? x)
+            (any-1 pred x)
+            #false)
+        (any-n pred (cons x xs)))))
+
+(define every
+  (lambda (pred x . xs)
+    (define every-1
+      (lambda (pred x)
+        (if (null? (cdr x))
+            (pred (car x))
+            (if (pred (car x))
+                (every-1 pred (cdr x))
+                #false))))
+    (if (null? xs)
+        (if (pair? x)
+            (every-1 pred x)
+            #true)
+        (not (apply any (lambda xs (not (apply pred xs))) x xs)))))
+
+(define call/cc call-with-current-continuation)
+
+(define values
+  (lambda xs
+    (call-with-current-continuation
+      (lambda (continuation)
+        (apply continuation xs)))))
+
+(define call-with-values
+  (lambda (producer consumer)
+    (let ((result (producer)))
+      (if (and (pair? result)
+               (eq? (car result) 'values))
+          (apply consumer (cdr result))
+          (consumer result)))))
+
+; TODO dynamic-wind
 
 )##"
 
