@@ -1,0 +1,344 @@
+ R"##(
+
+; --------------------------------------------------------------------------
+;  Standard Pair Library
+; --------------------------------------------------------------------------
+
+(define pair.so
+  (linker "libmeevax-pair.so"))
+
+(define cons ; pair
+  (link pair.so "cons"))
+
+(define pair?
+  (link pair.so "pair_"))
+
+(define car (link pair.so "car"))
+(define cdr (link pair.so "cdr"))
+
+(define caar (lambda (x) (car (car x))))
+(define cadr (lambda (x) (car (cdr x))))
+(define cdar (lambda (x) (cdr (car x))))
+(define cddr (lambda (x) (cdr (cdr x))))
+
+; TODO cxr
+
+; TODO set-car!
+; TODO set-cdr!
+
+(define xcons
+  (lambda (x y)
+    (cons y x)))
+
+; --------------------------------------------------------------------------
+;  Standard Equivalence Library (Part 1 of 2)
+; --------------------------------------------------------------------------
+
+(define equivalence.so
+  (linker "libmeevax-equivalence.so"))
+
+(define eq? ; address-equal?
+  (link equivalence.so "address_equal"))
+
+(define eqv? ; value-equal?
+  (link equivalence.so "value_equal"))
+
+; equal? (Part 2)
+
+; --------------------------------------------------------------------------
+;  Standard Numerical Library
+; --------------------------------------------------------------------------
+
+(define numerical.so
+  (linker "libmeevax-numerical.so"))
+
+; TODO number?
+; TODO complex?
+
+(define real?
+  (link numerical.so "real_"))
+
+; TODO rational?
+; TODO integer?
+
+; TODO exact?
+; TODO inexact?
+
+(define = eqv?)
+
+(define <
+  (link numerical.so "less"))
+
+(define <=
+  (link numerical.so "less_equal"))
+
+(define >
+  (link numerical.so "greater"))
+
+(define >=
+  (link numerical.so "greater_equal"))
+
+(define zero?
+  (lambda (n)
+    (= n 0)))
+
+(define positive?
+  (lambda (n)
+    (> n 0)))
+
+(define negative?
+  (lambda (n)
+    (< n 0)))
+
+; (define even?
+;   (lambda (n)
+;     (= (remainder n 2) 0)))
+(define even?
+  (lambda (n)
+    (if (zero? n) #true
+        (odd? (- n 1)))))
+
+; (define odd?
+;   (lambda (n)
+;     (not (even? n))))
+(define odd?
+  (lambda (n)
+    (if (zero? n) #false
+        (even? (- n 1)))))
+
+; TODO max
+; TODO min
+
+(define *
+  (link numerical.so "multiplication"))
+
+(define +
+  (link numerical.so "addition"))
+
+(define -
+  (link numerical.so "subtraction"))
+
+(define /
+  (link numerical.so "division"))
+
+(define abs
+  (lambda (n)
+    (if (< n 0) (- n) n)))
+
+; TODO quotient
+; TODO remainder
+; TODO modulo
+
+; (define gcd-2
+;   (lambda (a b)
+;     (if (zero? b)
+;         (abs a)
+;         (gcd b (remainder a b)))))
+;
+; (define gcd
+;   (lambda xs
+;     (if (null? xs) 0
+;         (let rec ((n (car xs))
+;                   (ns (cdr xs)))
+;           (if (null? ns) n
+;               (rec (gcd-2 n (car ns)) (cdr ns)))))))
+;
+; (define lcm-2
+;   (lambda (a b)
+;     (abs (quotient (* a b) (gcd a b)))))
+;
+; (define lcm
+;   (lambda xs
+;     (if (null? xs) 1
+;         (let rec ((n (car xs))
+;                   (ns (cdr ns)))
+;           (if (null? ns) n
+;               (rec (lcm-2 n (car ns)) (cdr ns)))))))
+
+; TODO numerator
+; TODO denominator
+
+; TODO floor
+; TODO ceiling
+; TODO truncate
+; TODO round
+
+; TODO rationalize
+
+; TODO (exp z)
+; TODO (log z)
+; TODO (sin z)
+; TODO (cos z)
+; TODO (tan z)
+; TODO (asin z)
+; TODO (acos z)
+; TODO (atan z)
+; TODO (atan y z)
+
+; --------------------------------------------------------------------------
+;  Standard Boolean Library
+; --------------------------------------------------------------------------
+
+#;(define boolean?
+  (lambda (x)
+    (if (or (eq? x #true)
+            (eq? x #false))
+      #true
+      #false)))
+
+(define boolean?
+  (lambda (x)
+    (if (eq? x #true)
+        #true
+        (eq? x #false))))
+
+(define not
+  (lambda (x)
+    (if x #false #true)))
+
+; --------------------------------------------------------------------------
+;  Standard List Library (Part 1 of 2) (minimal for quasiquote)
+; --------------------------------------------------------------------------
+
+(define null?
+  (lambda (x)
+    (eq? x '())))
+
+(define list
+  (lambda x x))
+
+(define append-2
+  (lambda (x y)
+    (if (null? x) y
+        (cons (car x)
+              (append-2 (cdr x) y)))))
+
+(define reverse ; simple but slow
+  (lambda (x)
+    (if (null? x)
+       '()
+        (append-2 (reverse (cdr x))
+                  (list (car x))))))
+
+(define append-aux
+  (lambda (x y)
+    (if (null? x) y
+        (append-aux (cdr x)
+                    (append-2 (car x) y)))))
+
+(define append
+  (lambda x
+    (if (null? x)
+       '()
+        ((lambda (reversed)
+           (append-aux (cdr reversed)
+                       (car reversed)))
+         (reverse x)))))
+
+; --------------------------------------------------------------------------
+;  Standard Conditional Library (Part 1 of 2) (mininal for quasiquote)
+; --------------------------------------------------------------------------
+
+(define and
+  (environment xs
+    (if (null? xs)
+        #true
+        (if (null? (cdr xs))
+            (car xs)
+            (list (list 'lambda (list 'x 'thunk)
+                    (list 'if 'x
+                              (list 'thunk)
+                              'x))
+                  (car xs)
+                  (list 'lambda '()
+                    (append (list 'and)
+                            (cdr xs))))))))
+
+(define or
+  (environment xs
+    (if (null? xs)
+        #false
+        (if (null? (cdr xs))
+            (car xs)
+            (list (list 'lambda (list 'x 'thunk)
+                    (list 'if 'x
+                              'x
+                              (list 'thunk)))
+                  (car xs)
+                  (list 'lambda '()
+                    (append (list 'or)
+                            (cdr xs))))))))
+
+; --------------------------------------------------------------------------
+;  Standard Quasiquote Library
+; --------------------------------------------------------------------------
+
+(define quasiquote-expand
+  (lambda (e depth)
+    (if (not (pair? e))
+        (list 'quote e)
+        (if (eq? (car e) 'quasiquote)
+            (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+            (if (eq? (car e) 'unquote)
+                (if (< 0 depth)
+                    (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+                    (if (and (not (null? (cdr e))) (null? (cddr e)))
+                        (cadr e)
+                        (error "illegal unquote")))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+                        (error "illegal unquote-splicing"))
+                    (list 'append (quasiquote-expand-list (car e) depth)
+                                  (quasiquote-expand      (cdr e) depth))))))))
+
+(define quasiquote-expand-list
+  (lambda (e depth)
+    (if (not (pair? e))
+        (list 'quote (list e))
+        (if (eq? (car e) 'quasiquote)
+            (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
+            (if (eq? (car e) 'unquote)
+                (if (< 0 depth)
+                    (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
+                    (cons 'list (cdr e)))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
+                        (cons 'append (cdr e)))
+                    (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+                                              (quasiquote-expand      (cdr e) depth)))))))))
+
+(define quasiquote
+  (environment (x)
+    (quasiquote-expand x 0)))
+
+; --------------------------------------------------------------------------
+;  Standard Equivalence Library (Part 2 of 2)
+; --------------------------------------------------------------------------
+
+(define equal? ; list-equal?
+  (lambda (x y)
+    (if (and (pair? x)
+             (pair? y))
+        (and (equal? (car x) (car y))
+             (equal? (cdr x) (cdr y)))
+        (eqv? x y))))
+
+; --------------------------------------------------------------------------
+;  Standard List Library (Part 2 of 2)
+; --------------------------------------------------------------------------
+
+; TODO list?
+
+(define list-tail
+  (lambda (x k)
+    (if (zero? k) x
+        (list-tail (cdr x) (- k 1)))))
+
+(define list-ref
+  (lambda (x k)
+    (car (list-tail x k))))
+
+)##"
+
