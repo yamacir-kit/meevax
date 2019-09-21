@@ -305,7 +305,8 @@ namespace meevax::system
         }
       }
 
-      return make<character>("end-of-file");
+      // return make<character>("end-of-file");
+      return end_of_file;
     }
 
     object discriminate(std::istream& stream)
