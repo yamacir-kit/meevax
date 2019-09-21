@@ -24,18 +24,6 @@
 ;   Miscellaneous
 ; ------------------------------------------------------------------------------
 
-; (define current-lexical-environment
-;   (environment ()
-;     (list 'cdr (list 'lambda '() '()))))
-;
-; (define interaction-environment
-;   (environment ()
-;     (list 'cdr (list 'environment '() '()))))
-;
-; (define rename
-;   (lambda (x)
-;     (lambda () x)))
-
 ; (define pair-copy-shallow
 ;   (lambda (pair)
 ;     (cons (car pair) (cdr pair))))
@@ -56,10 +44,6 @@
      `(let ((,x ,a))
         (set! ,a ,b)
         (set! ,b ,x)))))
-
-(define square
-  (lambda (x)
-    (* x x)))
 
 (define close-file
   (lambda (object)

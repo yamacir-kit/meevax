@@ -145,6 +145,10 @@ R"##(
 ; TODO (atan z)
 ; TODO (atan y z)
 
+(define square ; This is incorrect definition
+  (lambda (z)
+    (* z z)))
+
 ; ------------------------------------------------------------------------------
 ;  6.3 Standard Boolean Library
 ; ------------------------------------------------------------------------------
@@ -632,6 +636,123 @@ R"##(
           (consumer result)))))
 
 ; TODO dynamic-wind
+
+; ------------------------------------------------------------------------------
+;  6.11 Standard Exceptions Library
+; ------------------------------------------------------------------------------
+
+; TODO with-exception-handler
+; TODO raise
+; TODO raise-continuable
+; TODO error
+; TODO error-object?
+; TODO error-object-message
+; TODO error-object-irritants
+; TODO read-error?
+; TODO file-error?
+
+; ------------------------------------------------------------------------------
+;  6.12 Standard Environments and Evaluation Library
+; ------------------------------------------------------------------------------
+
+; TODO scheme-report-environment
+; TODO null-environment
+
+(define current-lexical-environment
+  (environment ()
+   `(cdr (lambda () ()))))
+
+(define interaction-environment
+  (environment ()
+   `(cdr (environment () ()))))
+
+; ------------------------------------------------------------------------------
+;  6.13 Standard Input and Output Library
+; ------------------------------------------------------------------------------
+
+; TODO call-with-port
+; TODO call-with-input-file
+; TODO call-with-output-file
+
+; TODO input-port?
+; TODO output-port?
+; TODO textual-port?
+; TODO binary-port?
+; TODO port?
+
+; TODO input-port-open?
+; TODO output-port-open?
+
+; TODO current-input-port
+; TODO current-output-port
+; TODO current-error-port
+
+; TODO with-input-from-file
+; TODO with-output-to-file
+
+; TODO open-input-file
+; TODO open-binary-input-file
+
+; TODO open-output-file
+; TODO open-binary-output-file
+
+; TODO close-port
+; TODO close-input-port
+; TODO close-output-port
+
+; TODO open-input-string
+; TODO open-output-string
+; TODO get-output-string
+
+; TODO open-input-bytevector
+; TODO open-output-bytevector
+; TODO get-output-bytevector
+
+; TODO read-char
+; TODO peek-char
+; TODO read-line
+
+; TODO eof-object?
+; TODO eof-object
+
+; TODO char-ready?
+
+; TODO read-string
+; TODO read-u8
+
+; TODO u8-ready?
+
+; TODO read-bytevector
+; TODO read-bytevector!
+
+; TODO write-shared
+
+; TODO display
+; TODO newline
+
+; TODO write-char
+; TODO write-string
+; TODO write-u8
+; TODO write-bytevector
+; TODO flush-output-port
+
+; ------------------------------------------------------------------------------
+;  6.14 Standard System Interface Library
+; ------------------------------------------------------------------------------
+
+; TODO file-exists?
+; TODO delete-file
+; TODO command-line
+
+; TODO exit
+; TODO emergency-exit
+
+; TODO get-environment-variable
+; TODO get-environment-variables
+
+; TODO current-second
+; TODO current-jiffy
+; TODO jiffies-per-second
 
 )##"
 
