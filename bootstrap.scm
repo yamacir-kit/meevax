@@ -38,86 +38,86 @@
 ;   (lambda (x)
 ;     (lambda () x)))
 
-(define make-list
-  (lambda (n . o)
-    (let ((default (if (pair? o) (car o))))
-      (let rec ((n n)
-                (result '()))
-        (if (<= n 0) result
-            (rec (- n 1)
-                 (cons default result)))))))
+; (define make-list
+;   (lambda (n . o)
+;     (let ((default (if (pair? o) (car o))))
+;       (let rec ((n n)
+;                 (result '()))
+;         (if (<= n 0) result
+;             (rec (- n 1)
+;                  (cons default result)))))))
 
-(define list-copy
-  (lambda (x)
-    (let rec ((x x)
-              (result '()))
-      (if (pair? x)
-          (rec (cdr x)
-               (cons (car x) result))
-          (append (reverse result) x)))))
+; (define list-copy
+;   (lambda (x)
+;     (let rec ((x x)
+;               (result '()))
+;       (if (pair? x)
+;           (rec (cdr x)
+;                (cons (car x) result))
+;           (append (reverse result) x)))))
 
-(define member
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let rec ((x x))
-        (and (pair? x)
-             (if (compare o (car x)) x
-                 (rec (cdr x))))))))
+; (define member
+;   (lambda (o x . c)
+;     (let ((compare (if (pair? c) (car c) equal?)))
+;       (let rec ((x x))
+;         (and (pair? x)
+;              (if (compare o (car x)) x
+;                  (rec (cdr x))))))))
+;
+; (define memq
+;   (lambda (o x)
+;     (member o x eq?)))
+;
+; (define memv
+;   (lambda (o x)
+;     (member o x eqv?)))
 
-(define memq
-  (lambda (o x)
-    (member o x eq?)))
-
-(define memv
-  (lambda (o x)
-    (member o x eqv?)))
-
-(define assoc
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let assoc ((x x))
-        (if (null? x) #false
-            (if (compare o (caar x))
-                (car x)
-                (assoc (cdr x))))))))
-
-(define assq
-  (lambda (o x)
-    (assoc o x eq?)))
-
-(define assv
-  (lambda (o x)
-    (assoc o x eqv?)))
+; (define assoc
+;   (lambda (o x . c)
+;     (let ((compare (if (pair? c) (car c) equal?)))
+;       (let assoc ((x x))
+;         (if (null? x) #false
+;             (if (compare o (caar x))
+;                 (car x)
+;                 (assoc (cdr x))))))))
+;
+; (define assq
+;   (lambda (o x)
+;     (assoc o x eq?)))
+;
+; (define assv
+;   (lambda (o x)
+;     (assoc o x eqv?)))
 
 (define apply-1
   (lambda (proc args)
     (proc . args)))
 
-; ; This cannot detect circular-list
+; ; ; This cannot detect circular-list
+; ; (define length
+; ;   (lambda (list.)
+; ;     (let loop ((list. list.)
+; ;                (result 0))
+; ;       (if (pair? list.)
+; ;           (loop (cdr list.) (+ result 1))
+; ;           result))))
+;
 ; (define length
-;   (lambda (list.)
-;     (let loop ((list. list.)
+;   (lambda (x)
+;     (let loop ((x x)
+;                (lag x)
 ;                (result 0))
-;       (if (pair? list.)
-;           (loop (cdr list.) (+ result 1))
+;       (if (pair? x)
+;           (let ((x (cdr x))
+;                 (result (+ result 1)))
+;             (if (pair? x)
+;                 (let ((x (cdr x))
+;                       (lag (cdr lag))
+;                       (result (+ result 1)))
+;                   (and (not (eq? x lag))
+;                        (loop x lag result)))
+;                 result))
 ;           result))))
-
-(define length
-  (lambda (x)
-    (let loop ((x x)
-               (lag x)
-               (result 0))
-      (if (pair? x)
-          (let ((x (cdr x))
-                (result (+ result 1)))
-            (if (pair? x)
-                (let ((x (cdr x))
-                      (lag (cdr lag))
-                      (result (+ result 1)))
-                  (and (not (eq? x lag))
-                       (loop x lag result)))
-                result))
-          result))))
 
 (define apply
   (lambda (procedure x . xs)

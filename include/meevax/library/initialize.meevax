@@ -1,38 +1,8 @@
 R"##(
 
-; --------------------------------------------------------------------------
-;  Standard Pair Library
-; --------------------------------------------------------------------------
-
-(define pair.so
-  (linker "libmeevax-pair.so"))
-
-(define cons ; pair
-  (link pair.so "cons"))
-
-(define pair?
-  (link pair.so "pair_"))
-
-(define car (link pair.so "car"))
-(define cdr (link pair.so "cdr"))
-
-(define caar (lambda (x) (car (car x))))
-(define cadr (lambda (x) (car (cdr x))))
-(define cdar (lambda (x) (cdr (car x))))
-(define cddr (lambda (x) (cdr (cdr x))))
-
-; TODO cxr
-
-; TODO set-car!
-; TODO set-cdr!
-
-(define xcons
-  (lambda (x y)
-    (cons y x)))
-
-; --------------------------------------------------------------------------
-;  Standard Equivalence Library (Part 1 of 2)
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
+;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
 
 (define equivalence.so
   (linker "libmeevax-equivalence.so"))
@@ -45,9 +15,9 @@ R"##(
 
 ; equal? (Part 2)
 
-; --------------------------------------------------------------------------
-;  Standard Numerical Library
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
+;  6.2 Standard Numerical Library
+; ------------------------------------------------------------------------------
 
 (define numerical.so
   (linker "libmeevax-numerical.so"))
@@ -175,9 +145,9 @@ R"##(
 ; TODO (atan z)
 ; TODO (atan y z)
 
-; --------------------------------------------------------------------------
-;  Standard Boolean Library
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
+;  6.3 Standard Boolean Library
+; ------------------------------------------------------------------------------
 
 #;(define boolean?
   (lambda (x)
@@ -196,9 +166,35 @@ R"##(
   (lambda (x)
     (if x #false #true)))
 
-; --------------------------------------------------------------------------
-;  Standard List Library (Part 1 of 2)
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
+;  6.4 Standard Pairs and Lists Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+(define pair.so
+  (linker "libmeevax-pair.so"))
+
+(define pair?
+  (link pair.so "pair_"))
+
+(define cons ; pair
+  (link pair.so "cons"))
+
+(define car (link pair.so "car"))
+(define cdr (link pair.so "cdr"))
+
+; TODO set-car!
+; TODO set-cdr!
+
+(define caar (lambda (x) (car (car x))))
+(define cadr (lambda (x) (car (cdr x))))
+(define cdar (lambda (x) (cdr (car x))))
+(define cddr (lambda (x) (cdr (cdr x))))
+
+; TODO cxr
+
+(define xcons
+  (lambda (x y)
+    (cons y x)))
 
 (define null?
   (lambda (x)
@@ -236,7 +232,7 @@ R"##(
          (reverse x)))))
 
 ; --------------------------------------------------------------------------
-;  Standard Conditional Library (Part 1 of 2)
+;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
 (define and
@@ -270,8 +266,11 @@ R"##(
                             (cdr xs))))))))
 
 ; --------------------------------------------------------------------------
-;  Standard Quasiquote Library
+;  4.2.8 Standard Quasiquotation Library
 ; --------------------------------------------------------------------------
+
+(define unquote ; auxiliary syntax
+  (lambda (x) x))
 
 (define quasiquote-expand
   (lambda (e depth)
@@ -325,16 +324,15 @@ R"##(
               (map-1 callee (cdr x))))))
 
 ; --------------------------------------------------------------------------
-;  4.2 Standard Derived Expression Types Library
+;  4.2.2 Standard Binding Constructors Library
 ; --------------------------------------------------------------------------
 
 (define unnamed-let
   (environment (bindings . body)
    `((lambda ,(map-1 car bindings) ,@body) ,@(map-1 cadr bindings))))
 
-; (define undefined
-;   (if #false #false))
-(define undefined)
+(define undefined
+  (if #false #false))
 
 (define letrec*
   (environment (bindings . body)
@@ -358,6 +356,9 @@ R"##(
             (null? (cdr bindings)))
        `(let (,(car bindings)) ,@body)
        `(let (,(car bindings)) (let* ,(cdr bindings) ,@body)))))
+
+; TODO let-values
+; TODO let*-values
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 2 of 2)
@@ -397,7 +398,7 @@ R"##(
    `(if (not ,test) (begin ,@xs))))
 
 ; --------------------------------------------------------------------------
-;  Standard Equivalence Library (Part 2 of 2)
+;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
 (define equal? ; list-equal?
@@ -408,11 +409,45 @@ R"##(
              (equal? (cdr x) (cdr y)))
         (eqv? x y))))
 
-; --------------------------------------------------------------------------
-;  Standard List Library (Part 2 of 2)
-; --------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
+;  6.4 Standard Pairs and Lists Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
 
 ; TODO list?
+
+(define make-list
+  (lambda (k . x)
+    (let ((default (if (pair? x) (car x) #;undefined)))
+      (let rec ((k k)
+                (result '()))
+        (if (<= k 0) result
+            (rec (- k 1)
+                 (cons default result)))))))
+
+; (define length ; This cannot detect circular-list
+;   (lambda (x)
+;     (let loop ((x x)
+;                (result 0))
+;       (if (pair? x)
+;           (loop (cdr x) (+ result 1))
+;           result))))
+
+(define length
+  (lambda (x)
+    (let rec ((x x)
+              (lag x)
+              (result 0))
+      (if (pair? x)
+          (let ((x (cdr x))
+                (result (+ result 1)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (lag (cdr lag))
+                      (result (+ result 1)))
+                  (and (not (eq? x lag))
+                       (rec x lag result)))
+                result))
+          result))))
 
 (define list-tail
   (lambda (x k)
@@ -422,6 +457,54 @@ R"##(
 (define list-ref
   (lambda (x k)
     (car (list-tail x k))))
+
+; TODO list-set!
+
+(define member
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let rec ((x x))
+        (and (pair? x)
+             (if (compare o (car x)) x
+                 (rec (cdr x))))))))
+
+(define memq
+  (lambda (o x)
+    (member o x eq?)))
+
+(define memv
+  (lambda (o x)
+    (member o x eqv?)))
+
+(define assoc
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let assoc ((x x))
+        (if (null? x) #false
+            (if (compare o (caar x))
+                (car x)
+                (assoc (cdr x))))))))
+
+(define assq
+  (lambda (o x)
+    (assoc o x eq?)))
+
+(define assv
+  (lambda (o x)
+    (assoc o x eqv?)))
+
+(define list-copy
+  (lambda (x)
+    (let rec ((x x)
+              (result '()))
+      (if (pair? x)
+          (rec (cdr x)
+               (cons (car x) result))
+          (append (reverse result) x)))))
+
+; ------------------------------------------------------------------------------
+;  6.5 Standard Symbols Library
+; ------------------------------------------------------------------------------
 
 )##"
 
