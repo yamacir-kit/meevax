@@ -494,18 +494,6 @@ namespace meevax::system
       return load(car(args).as<const string>());
     });
 
-    define<native>("symbol", [&](const object& args)
-    {
-      try
-      {
-        return make<symbol>(car(args).as<string>());
-      }
-      catch (...)
-      {
-        return make<symbol>();
-      }
-    });
-
     define<native>("linker", [&](auto&& args)
     {
       if (auto size {length(args)}; size < 1)

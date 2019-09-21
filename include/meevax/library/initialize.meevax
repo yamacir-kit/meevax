@@ -150,21 +150,8 @@ R"##(
     (* z z)))
 
 ; ------------------------------------------------------------------------------
-;  6.3 Standard Boolean Library
+;  6.3 Standard Boolean Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
-
-#;(define boolean?
-  (lambda (x)
-    (if (or (eq? x #true)
-            (eq? x #false))
-      #true
-      #false)))
-
-(define boolean?
-  (lambda (x)
-    (if (eq? x #true)
-        #true
-        (eq? x #false))))
 
 (define not
   (lambda (x)
@@ -448,6 +435,24 @@ R"##(
         (eqv? x y))))
 
 ; ------------------------------------------------------------------------------
+;  6.3 Standard Boolean Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+(define boolean?
+  (lambda (x)
+    (if (or (eq? x #true)
+            (eq? x #false))
+      #true
+      #false)))
+
+(define boolean=?
+  (lambda (x y . xs)
+    (and (eq? x y)
+         (if (pair? xs)
+             (apply boolean=? y xs)
+             #true))))
+
+; ------------------------------------------------------------------------------
 ;  6.4 Standard Pairs and Lists Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
@@ -543,6 +548,22 @@ R"##(
 ; ------------------------------------------------------------------------------
 ;  6.5 Standard Symbols Library
 ; ------------------------------------------------------------------------------
+
+(define symbol.so
+  (linker "libmeevax-symbol.so"))
+
+(define symbol ; Constructor
+  (link symbol.so "symbol"))
+
+(define symbol?
+  (link symbol.so "is_symbol"))
+
+(define symbol=?
+  (lambda (x y . xs)
+    (and (eq? x y)
+         (if (pair? xs)
+             (apply symbol=? y xs)
+             #true))))
 
 ; ------------------------------------------------------------------------------
 ;  6.6 Standard Characters Library
