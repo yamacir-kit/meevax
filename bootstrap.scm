@@ -2,8 +2,6 @@
 ;   Link Externals
 ; ------------------------------------------------------------------------------
 
-; (import (standard basic))
-
 (define experimental.so
   (linker "./lib/libmeevax-experimental.so"))
 
@@ -21,83 +19,6 @@
 
 (define close-input-file (link file-system.so "close_input_file"))
 (define close-output-file (link file-system.so "close_output_file"))
-
-; ; ------------------------------------------------------------------------------
-; ;   Bootstrap Binding Constuctors
-; ; ------------------------------------------------------------------------------
-;
-; (define map-1
-;   (lambda (callee list.)
-;     (if (null? list.)
-;        '()
-;         (cons (callee (car list.))
-;               (map-1 callee (cdr list.))))))
-;
-; (define map map-1) ; temporary (for unnamed-let)
-;
-; (define unnamed-let
-;   (environment (bindings . body)
-;    `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
-;
-; (define undefined) ; hacking
-;
-; ; TODO
-; ; (define undefined
-; ;   (lambda ()
-; ;     (if #false #false)))
-;
-; (define let unnamed-let) ; temporary (for letrec)
-;
-; (define letrec*
-;   (environment (bindings . body)
-;     (let ((identifiers (map car bindings)))
-;      `(let ,(map (lambda (e) `(,e ,undefined)) identifiers)
-;         ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
-;         ,@body))))
-;
-; (define letrec letrec*) ; this is not currect
-;
-; (define let
-;   (environment (bindings . body)
-;     (if (pair? bindings)
-;        `(unnamed-let ,bindings ,@body)
-;        `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
-;           (,bindings ,@(map cadr (car body)))))))
-;
-; (define let*
-;   (environment (<specs> . <body>)
-;     (if (or (null? <specs>)
-;             (null? (cdr <specs>)))
-;        `(let (,(car <specs>)) ,@<body>)
-;        `(let (,(car <specs>)) (let* ,(cdr <specs>) ,@<body>)))))
-
-
-; ------------------------------------------------------------------------------
-;   Bootstrap Other Derived Expression Types
-; ------------------------------------------------------------------------------
-
-(define else #true)
-
-(define cond
-  (environment clauses
-    (if (null? clauses) undefined
-        (if (eq? (caar clauses) 'else)
-           `(begin ,@(cdar clauses))
-            (if (null? (cdar clauses))
-               `(let ((TEST ,(caar clauses)))
-                  (if TEST TEST (cond ,@(cdr clauses))))
-               `(if ,(caar clauses)
-                    (begin ,@(cdar clauses))
-                    (cond ,@(cdr clauses))))))))
-
-(define case
-  (environment (key . clauses)
-    (if (null? clauses) 'undefined
-        (if (eq? (caar clauses) 'else)
-           `(begin ,@(cdar clauses))
-           `(if (memv ,key ',(caar clauses))
-                (begin ,@(cdar clauses))
-                (case ,key ,@(cdr clauses)))))))
 
 ; ------------------------------------------------------------------------------
 ;   Miscellaneous
@@ -214,14 +135,6 @@
 ;     (if (not (pair? object)) object
 ;         (cons (pair-copy-deep (car object))
 ;               (pair-copy-deep (cdr object))))))
-
-(define when
-  (environment (<test> . <expression>)
-   `(if ,<test> (begin ,@<expression>))))
-
-(define unless
-  (environment (<test> . <expression>)
-   `(if (not ,<test>) (begin ,@<expression>))))
 
 (define newline
   (lambda ()

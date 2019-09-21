@@ -314,7 +314,7 @@ R"##(
     (quasiquote-expand x 0)))
 
 ; --------------------------------------------------------------------------
-;  Standard Control Features Library (Part 1 of 2)
+;  6.10 Standard Control Features Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
 (define map-1
@@ -325,7 +325,7 @@ R"##(
               (map-1 callee (cdr x))))))
 
 ; --------------------------------------------------------------------------
-;  Standard Derived Expression Types Library
+;  4.2 Standard Derived Expression Types Library
 ; --------------------------------------------------------------------------
 
 (define unnamed-let
@@ -358,6 +358,43 @@ R"##(
             (null? (cdr bindings)))
        `(let (,(car bindings)) ,@body)
        `(let (,(car bindings)) (let* ,(cdr bindings) ,@body)))))
+
+; --------------------------------------------------------------------------
+;  4.2.1 Standard Conditional Library (Part 2 of 2)
+; --------------------------------------------------------------------------
+
+(define else #true) ; auxiliary syntax
+
+; TODO =>
+
+(define cond ; This is incorrect definition
+  (environment clauses
+    (if (null? clauses) undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+            (if (null? (cdar clauses))
+               `(let ((test ,(caar clauses)))
+                  (if test test (cond ,@(cdr clauses))))
+               `(if ,(caar clauses)
+                    (begin ,@(cdar clauses))
+                    (cond ,@(cdr clauses))))))))
+
+(define case ; This is incorrect definition
+  (environment (key . clauses)
+    (if (null? clauses) 'undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+           `(if (memv ,key ',(caar clauses))
+                (begin ,@(cdar clauses))
+                (case ,key ,@(cdr clauses)))))))
+
+(define when
+  (environment (test . xs)
+   `(if ,test (begin ,@xs))))
+
+(define unless
+  (environment (test . xs)
+   `(if (not ,test) (begin ,@xs))))
 
 ; --------------------------------------------------------------------------
 ;  Standard Equivalence Library (Part 2 of 2)
