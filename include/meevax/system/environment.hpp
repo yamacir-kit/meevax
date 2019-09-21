@@ -300,7 +300,7 @@ namespace meevax::system
 
         const auto alternate {
           cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_), true)
-                           : list(_load_literal_, unspecified, _return_)
+                           : list(_load_literal_, undefined, _return_)
         };
 
         return compile(
@@ -315,7 +315,7 @@ namespace meevax::system
 
         const auto alternate {
           cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
-                           : list(_load_literal_, unspecified, _join_)
+                           : list(_load_literal_, undefined, _join_)
         };
 
         return compile(
