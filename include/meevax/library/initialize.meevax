@@ -704,15 +704,39 @@ R"##(
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
-; TODO call-with-port
-; TODO call-with-input-file
-; TODO call-with-output-file
+(define io.so
+  (linker "libmeevax-io.so"))
 
-; TODO input-port?
-; TODO output-port?
-; TODO textual-port?
-; TODO binary-port?
-; TODO port?
+; TODO call-with-port
+
+(define call-with-input-file
+  (lambda (path proc)
+    (let* ((input-port (open-input-file path))
+           (result (proc input-port)))
+      (close-input-port input-port)
+      result)))
+
+(define call-with-output-file
+  (lambda (path proc)
+    (let* ((output-port (open-output-file path))
+           (result (proc output-port)))
+      (close-output-port output-port)
+      result)))
+
+(define input-port?
+  (link io.so "is_input_file"))
+
+(define output-port?
+  (link io.so "is_output_file"))
+
+(define port?
+  (lambda (x)
+    (or (input-port? x) (output-port? x))))
+
+(define textual-port? port?)
+
+(define binary-port?
+  (lambda (x) #false))
 
 ; TODO input-port-open?
 ; TODO output-port-open?
@@ -724,15 +748,29 @@ R"##(
 ; TODO with-input-from-file
 ; TODO with-output-to-file
 
-; TODO open-input-file
+(define open-input-file
+  (link io.so "open_input_file"))
+
 ; TODO open-binary-input-file
 
-; TODO open-output-file
+(define open-output-file
+  (link io.so "open_output_file"))
+
 ; TODO open-binary-output-file
 
-; TODO close-port
-; TODO close-input-port
-; TODO close-output-port
+(define close-input-port
+  (link io.so "close_input_file"))
+
+(define close-output-port
+  (link io.so "close_output_file"))
+
+(define close-port
+  (lambda (x)
+    (if (input-port? x)
+        (close-input-port x)
+        (if (output-port? x)
+            (close-output-port x)
+           '())))) ; TODO unspecified
 
 ; TODO open-input-string
 ; TODO open-output-string
@@ -746,7 +784,9 @@ R"##(
 ; TODO peek-char
 ; TODO read-line
 
-; TODO eof-object?
+(define eof-object?
+  (lambda (x) #false))
+
 ; TODO eof-object
 
 ; TODO char-ready?
