@@ -234,46 +234,26 @@ namespace meevax::system
       return executable;
     }
 
-  public: // deprecated
     template <typename... Ts>
-    [[deprecated]] decltype(auto) load(Ts&&... args)
+    decltype(auto) load(Ts&&... operands)
     {
-      const std::string path {std::forward<Ts>(args)...};
+      const std::string path {FORWARD(operands)...};
 
-      const auto checkpoint {interaction_environment()};
-
-      if (reader<environment> port {path}; port)
+      if (std::fstream stream {path}; stream)
       {
-        std::swap(*this, port);
-
         d.push(s, e, c);
         s = e = c = unit;
 
-        while (ready()) try
+        for (auto e {read(stream)}; e != end_of_file; e = read(stream))
         {
-          const auto expression {read()};
-          // std::cerr << "[loader] expression: " << expression << std::endl;
-          const auto executable {compile(expression)};
-          // std::cerr << "[loader] executable: " << executable << std::endl;
-          const auto evaluation {execute(executable)};
-          // std::cerr << "[loader] evaluation: " << evaluation << std::endl;
+          evaluate(e);
         }
-        catch (...)
-        {
-          interaction_environment() = checkpoint;
-          std::cerr << "[error] failed to load \"" << path << "\" with no-error; reverted changes for interaction-environment (exclude side-effects)." << std::endl;
-          std::swap(*this, port);
-          throw;
-        }
-
-        std::swap(*this, port);
-        std::cerr << "; load  \t; " << std::distance(interaction_environment(), checkpoint) << " expression defined" << std::endl;
 
         s = d.pop();
         e = d.pop();
         c = d.pop();
 
-        return interaction_environment();
+        return unspecified;
       }
       else
       {
@@ -578,16 +558,6 @@ namespace meevax::system
     {
       return evaluate(FORWARD(operands));
     });
-
-    #define DEFINE_LIBRARY(...)                                                \
-    {                                                                          \
-      std::cerr << __VA_ARGS__ << std::endl;                                   \
-                                                                               \
-      const auto library {read(__VA_ARGS__)};                                  \
-      std::cerr << "; standard\t; " << library << std::endl;                   \
-                                                                               \
-      evaluate(library);                                                       \
-    }
 
     const std::string code {
       #include <meevax/library/initialize.meevax>
