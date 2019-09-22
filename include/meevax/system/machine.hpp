@@ -628,6 +628,8 @@ namespace meevax::system
               cons(bindings, sequences)
             )};
 
+            NEST_OUT;
+
             return compile(transformer, lexical_environment, continuation);
           }
           else

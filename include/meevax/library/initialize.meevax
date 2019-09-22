@@ -1,5 +1,8 @@
 R"##(
 
+(define identity
+  (lambda (x) x))
+
 ; ------------------------------------------------------------------------------
 ;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
@@ -13,26 +16,12 @@ R"##(
 (define eqv? ; value-equal?
   (link equivalence.so "value_equal"))
 
-; equal? (Part 2)
-
 ; ------------------------------------------------------------------------------
-;  6.2 Standard Numerical Library
+;  6.2 Standard Numerical Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
 (define numerical.so
   (linker "libmeevax-numerical.so"))
-
-; TODO number?
-; TODO complex?
-
-(define real?
-  (link numerical.so "real_"))
-
-; TODO rational?
-; TODO integer?
-
-; TODO exact?
-; TODO inexact?
 
 (define = eqv?)
 
@@ -48,37 +37,6 @@ R"##(
 (define >=
   (link numerical.so "greater_equal"))
 
-(define zero?
-  (lambda (n)
-    (= n 0)))
-
-(define positive?
-  (lambda (n)
-    (> n 0)))
-
-(define negative?
-  (lambda (n)
-    (< n 0)))
-
-; (define even?
-;   (lambda (n)
-;     (= (remainder n 2) 0)))
-(define even?
-  (lambda (n)
-    (if (zero? n) #true
-        (odd? (- n 1)))))
-
-; (define odd?
-;   (lambda (n)
-;     (not (even? n))))
-(define odd?
-  (lambda (n)
-    (if (zero? n) #false
-        (even? (- n 1)))))
-
-; TODO max
-; TODO min
-
 (define *
   (link numerical.so "multiplication"))
 
@@ -90,64 +48,6 @@ R"##(
 
 (define /
   (link numerical.so "division"))
-
-(define abs
-  (lambda (n)
-    (if (< n 0) (- n) n)))
-
-; TODO quotient
-; TODO remainder
-; TODO modulo
-
-; (define gcd-2
-;   (lambda (a b)
-;     (if (zero? b)
-;         (abs a)
-;         (gcd b (remainder a b)))))
-;
-; (define gcd
-;   (lambda xs
-;     (if (null? xs) 0
-;         (let rec ((n (car xs))
-;                   (ns (cdr xs)))
-;           (if (null? ns) n
-;               (rec (gcd-2 n (car ns)) (cdr ns)))))))
-;
-; (define lcm-2
-;   (lambda (a b)
-;     (abs (quotient (* a b) (gcd a b)))))
-;
-; (define lcm
-;   (lambda xs
-;     (if (null? xs) 1
-;         (let rec ((n (car xs))
-;                   (ns (cdr ns)))
-;           (if (null? ns) n
-;               (rec (lcm-2 n (car ns)) (cdr ns)))))))
-
-; TODO numerator
-; TODO denominator
-
-; TODO floor
-; TODO ceiling
-; TODO truncate
-; TODO round
-
-; TODO rationalize
-
-; TODO (exp z)
-; TODO (log z)
-; TODO (sin z)
-; TODO (cos z)
-; TODO (tan z)
-; TODO (asin z)
-; TODO (acos z)
-; TODO (atan z)
-; TODO (atan y z)
-
-(define square ; This is incorrect definition
-  (lambda (z)
-    (* z z)))
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Standard Boolean Library (Part 1 of 2)
@@ -435,6 +335,263 @@ R"##(
         (eqv? x y))))
 
 ; ------------------------------------------------------------------------------
+;  6.2 Standard Numerical Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+(define number?
+  (lambda (x)
+    (or (exact? x)
+        (inexact? x))))
+
+(define complex?
+  (lambda (x)
+    ; (link numerical.so "is_complex") ; unimplemented
+    #false
+    ))
+
+(define real?
+  (link numerical.so "real_"))
+
+(define rational?
+  (lambda (x)
+    ; (link numerical.so "is_rational") ; unimplemented
+    #false
+    ))
+
+(define exact-integer?
+  (lambda (x)
+    ; (link numerical.so "is_exact_integer") ; unimplemented
+    #false
+    ))
+
+(define integer?
+  (lambda (x)
+    (or (exact-integer? x)
+        (and (real? x)
+             (= x (truncate x))))))
+
+(define exact? ; Currently, any real numbers returns #false
+  (lambda (z)
+    (or (integer? z)
+        (rational? z)
+        ; TODO for exact-complex
+        )))
+
+(define inexact?
+  (lambda (z)
+    (not (exact? z))))
+
+(define finite?
+  (lambda (z)
+    (not (infinite? z))))
+
+(define infinite?
+  (lambda (z)
+    #false
+    ; (or (= +inf.0 z)
+    ;     (= -inf.0 z))
+    ))
+
+(define nan?
+  (lambda (z)
+    (if (complex? z)
+        (or (= (real-part z) +nan.0)
+            (= (imag-part z) +nan.0))
+        (= z +nan.0))))
+
+(define zero?
+  (lambda (n)
+    (= n 0)))
+
+(define positive?
+  (lambda (n)
+    (> n 0)))
+
+(define negative?
+  (lambda (n)
+    (< n 0)))
+
+(define even?
+  (lambda (n)
+    ; (= (remainder n 2) 0)
+    (if (zero? n) #true
+        (odd? (- n 1)))
+    ))
+
+(define odd?
+  (lambda (n)
+    ; (not (even? n))))
+    (if (zero? n) #false
+        (even? (- n 1)))
+    ))
+
+; TODO min
+; TODO max
+
+(define abs
+  (lambda (n)
+    (if (< n 0) (- n) n)))
+
+(define floor/)
+(define floor-quotient)
+(define floor-remainder)
+(define truncate/)
+(define truncate-quotient)
+(define truncate-remainder)
+
+(define quotient truncate-quotient)
+(define remainder truncate-remainder)
+(define modulo floor-remainder)
+
+(define gcd
+  (lambda xs
+    (define gcd-2
+      (lambda (a b)
+        (if (zero? b)
+            (abs a)
+            (gcd b (remainder a b)))))
+    (if (null? xs) 0
+        (let rec ((n  (car xs))
+                  (ns (cdr xs)))
+          (if (null? ns) n
+              (rec (gcd-2 n (car ns)) (cdr ns)))))))
+
+(define lcm
+  (lambda xs
+    (define lcm-2
+      (lambda (a b)
+        (abs (quotient (* a b) (gcd a b)))))
+    (if (null? xs) 1
+        (let rec ((n  (car xs))
+                  (ns (cdr ns)))
+          (if (null? ns) n
+              (rec (lcm-2 n (car ns)) (cdr ns)))))))
+
+(define numerator
+  (lambda (x)
+    (if (rational? x)
+        (car x)
+        (if (exact? x) x
+            (inexact (numerator (exact x)))))))
+
+(define denominator
+  (lambda (x)
+    (if (exact? x)
+        (if (rational? x) (cdr x) 1)
+        (if (integer? x) 1.0
+            (inexact (denominator (exact x)))))))
+
+; TODO floor
+; TODO ceiling
+; TODO truncate
+; TODO round
+
+(define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm
+  (lambda (x e)
+    (define sr
+      (lambda (x y return)
+        (let ((fx (floor x))
+              (fy (floor y)))
+          (cond
+            ((>= fx x)
+             (return fx 1))
+            ((= fx fy)
+             (sr (/ (- y fy))
+                 (/ (- x fx))
+                 (lambda (n d)
+                   (return (+ d (* fx n)) n))))
+            (else
+              (return (+ fx 1) 1))))))
+    (let ((return (if (not (negative? x)) /
+                      (lambda (num den)
+                        (/ (- num) den))))
+          (x (abs x))
+          (e (abs e)))
+      (sr (- x e)
+          (+ x e)
+          return))))
+
+; TODO (exp z)
+
+(define log
+  (lambda (z . base)
+    (if (pair? base)
+        (/ (ln x)
+           (ln (car base)))
+        (ln x))))
+
+; TODO (sin z)
+; TODO (cos z)
+; TODO (tan z)
+; TODO (asin z)
+; TODO (acos z)
+
+(define atan
+  (lambda (y . x)
+    (if (not (pair? x))
+        (atan-1 y)
+        (let ((x (inexact (car x))))
+          (if (and (infinite? x)
+                   (infinite? y))
+              (* 0.7853981633974483
+                 (if (< y 0) -1 1)
+                 (if (= x -inf.0) 3 1))
+              (if (negative? x)
+                  (if (or (negative? y)
+                          (= y -0.0))
+                      (- (atan-1 (/ y x)) pi)
+                      (- pi (atan-1 (/ y (- x)))))
+                  (if (and (zero? x)
+                           (zero? y))
+                      (* (if (= y -0.0) -1 1)
+                         (if (= x -0.0) pi x))
+                      (atan-1 (/ y x)))))))))
+
+(define square
+  (lambda (z)
+    (* z z)))
+
+; TODO sqrt
+; TODO exact-integer-sqrt
+; TODO expt
+
+
+;; Standard Complex Library
+
+(define make-rectangular
+  (lambda (x y)
+    (+ x (* y (sqrt -1)))))
+
+(define make-polar
+  (lambda (radius phi)
+    (make-rectangular (* radius (cos phi))
+                      (* radius (sin phi)))))
+
+(define real-part
+  (lambda (z)
+    (if (complex? z) (car z) z)))
+
+(define imag-part
+  (lambda (z)
+    (if (complex? z) (cdr z) 0)))
+
+(define magnitude
+  (lambda (z)
+    (sqrt (+ (square (real-part z))
+             (square (imag-part z))))))
+
+(define angle
+  (lambda (z)
+    (atan (imag-part z)
+          (real-part z))))
+
+(define inexact identity)
+(define exact #;undefined)
+
+; TODO number->string
+; TODO string->number
+
+; ------------------------------------------------------------------------------
 ;  6.3 Standard Boolean Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
@@ -564,6 +721,9 @@ R"##(
          (if (pair? xs)
              (apply symbol=? y xs)
              #true))))
+
+; TODO symbol->string
+; TODO string->symbol
 
 ; ------------------------------------------------------------------------------
 ;  6.6 Standard Characters Library
