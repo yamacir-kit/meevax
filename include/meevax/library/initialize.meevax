@@ -3,9 +3,6 @@ R"##(
 (define identity
   (lambda (x) x))
 
-(define experimental.so
-  (linker "libmeevax-experimental.so"))
-
 ; ------------------------------------------------------------------------------
 ;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
@@ -999,6 +996,9 @@ R"##(
 ; TODO read-bytevector!
 
 ; TODO write-shared
+
+(define experimental.so
+  (linker "libmeevax-experimental.so"))
 
 (define display
   (link experimental.so "display")

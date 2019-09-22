@@ -20,17 +20,15 @@ extern "C"
 
   NATIVE(is_symbol)
   {
-    using namespace meevax::system;
-
     for (const auto& each : args)
     {
-      if (not each or not each.is<pair>())
+      if (not each or not each.is<meevax::system::pair>())
       {
-        return false_object;
+        return meevax::system::false_object;
       }
     }
 
-    return true_object;
+    return meevax::system::true_object;
   }
 } // extern "C"
 

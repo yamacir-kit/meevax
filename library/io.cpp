@@ -2,38 +2,42 @@
 #include <meevax/system/native.hpp>
 #include <meevax/system/string.hpp>
 
-extern "C" namespace meevax::system
+extern "C" namespace meevax::io
 {
   NATIVE(is_input_file)
   {
-    return car(args).is<input_file>() ? true_object : false_object;
+    return system::car(args).is<system::input_file>() ? system::true_object : system::false_object;
   }
 
   NATIVE(is_output_file)
   {
-    return car(args).is<output_file>() ? true_object : false_object;
+    return system::car(args).is<system::output_file>() ? system::true_object : system::false_object;
   }
 
   NATIVE(open_input_file)
   {
-    return make<input_file>(car(args).as<string>());
+    return system::make<system::input_file>(
+             system::car(args).as<system::string>()
+           );
   }
 
   NATIVE(open_output_file)
   {
-    return make<output_file>(car(args).as<string>());
+    return system::make<system::output_file>(
+             system::car(args).as<system::string>()
+           );
   }
 
   NATIVE(close_input_file)
   {
-    car(args).as<input_file>().close();
-    return unspecified;
+    system::car(args).as<system::input_file>().close();
+    return system::unspecified;
   }
 
   NATIVE(close_output_file)
   {
-    car(args).as<output_file>().close();
-    return unspecified;
+    system::car(args).as<system::output_file>().close();
+    return system::unspecified;
   }
 } // extern "C"
 
