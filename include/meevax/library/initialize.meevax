@@ -184,8 +184,7 @@ R"##(
 ;  4.2.8 Standard Quasiquotation Library
 ; --------------------------------------------------------------------------
 
-(define unquote ; auxiliary syntax
-  (lambda (x) x))
+(define unquote identity)
 
 (define quasiquote-expand
   (lambda (e depth)
@@ -723,7 +722,8 @@ R"##(
              #true))))
 
 ; TODO symbol->string
-; TODO string->symbol
+
+(define string->symbol symbol)
 
 ; ------------------------------------------------------------------------------
 ;  6.6 Standard Characters Library
@@ -745,14 +745,17 @@ R"##(
 ;  6.10 Standard Control Features Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-; TODO procedure?
-
-(define apply-1
-  (lambda (proc xs)
-    (proc . xs)))
+(define procedure?
+  (lambda (x)
+    (or (native? x)
+        (closure? x)
+        (continuation? x))))
 
 (define apply
   (lambda (proc x . xs)
+    (define apply-1
+      (lambda (proc xs)
+        (proc . xs)))
     (if (null? xs)
         (apply-1 proc x)
         (let ((reversed (reverse (cons x xs))))
