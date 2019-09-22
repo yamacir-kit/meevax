@@ -3,6 +3,9 @@ R"##(
 (define identity
   (lambda (x) x))
 
+(define experimental.so
+  (linker "libmeevax-experimental.so"))
+
 ; ------------------------------------------------------------------------------
 ;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
@@ -701,6 +704,18 @@ R"##(
                (cons (car x) result))
           (append (reverse result) x)))))
 
+(define shallow-copy
+  (lambda (x)
+    (if (not (pair? x)) x
+        (cons (car x)
+              (cdr x)))))
+
+(define deep-copy
+  (lambda (x)
+    (if (not (pair? x)) x
+        (cons (deep-copy (car x))
+              (deep-copy (cdr x))))))
+
 ; ------------------------------------------------------------------------------
 ;  6.5 Standard Symbols Library
 ; ------------------------------------------------------------------------------
@@ -985,8 +1000,25 @@ R"##(
 
 ; TODO write-shared
 
-; TODO display
-; TODO newline
+(define display
+  (link experimental.so "display")
+  ; (lambda (x . option)
+  ;   (let ((output-port (if (pair? option)
+  ;                          (car option)
+  ;                          (current-output-port))))
+  ;     (if (char? x)
+  ;         (write-char x output-port)
+  ;         (write      x output-port))))
+  )
+
+(define newline
+  (lambda ()
+    (display "\n"))
+  ; (lambda option
+  ;   (write-char #\newline (if (pair? option)
+  ;                             (car option)
+  ;                             (current-output-port))))
+  )
 
 ; TODO write-char
 ; TODO write-string
@@ -1002,8 +1034,10 @@ R"##(
 ; TODO delete-file
 ; TODO command-line
 
-; TODO exit
-; TODO emergency-exit
+(define emergency-exit ;                                (scheme process-context)
+  (link experimental.so "emergency_exit"))
+
+(define exit emergency-exit) ;                          (scheme process-context)
 
 ; TODO get-environment-variable
 ; TODO get-environment-variables
@@ -1011,6 +1045,17 @@ R"##(
 ; TODO current-second
 ; TODO current-jiffy
 ; TODO jiffies-per-second
+
+; ------------------------------------------------------------------------------
+;  6.14 Standard System Interface Library
+; ------------------------------------------------------------------------------
+
+(define swap!
+  (environment (x y)
+    (let ((temporary (string->symbol)))
+     `(let ((,temporary ,x))
+        (set! ,x ,y)
+        (set! ,y ,temporary)))))
 
 )##"
 
