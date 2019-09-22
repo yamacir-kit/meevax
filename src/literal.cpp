@@ -16,6 +16,8 @@ namespace meevax::system
   // const object false_object {make<std::false_type>()};
   const object false_object {make<boolean>(false)};
 
+  const object end_of_file {make<character>("end-of-file")};
+
   // std::unordered_map<std::string, object> characters
   // {
   //   {"null",                      make<character>(u8"\u0000")},

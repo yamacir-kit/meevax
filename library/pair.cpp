@@ -1,30 +1,35 @@
-#include <meevax/system/environment.hpp>
 #include <meevax/system/native.hpp>
 
-namespace meevax::library
+extern "C"
 {
-  extern "C" NATIVE(library)
+  NATIVE(car)
+  {
+    return meevax::system::caar(args);
+  }
+
+  NATIVE(cdr)
+  {
+    return meevax::system::cdar(args);
+  }
+
+  NATIVE(cons)
+  {
+    return meevax::system::cons(meevax::system::car(args), meevax::system::cadr(args));
+  }
+
+  NATIVE(pair_)
   {
     using namespace meevax::system;
 
-    environment library {};
-
-    library.define<native>("cons", [](auto&& operands)
+    for (const auto& each : args)
     {
-      return cons(car(operands), cadr(operands));
-    });
+      if (not each or not each.is<pair>())
+      {
+        return false_object;
+      }
+    }
 
-    library.define<native>("car", [](auto&& operands)
-    {
-      return caar(operands);
-    });
-
-    library.define<native>("cdr", [](auto&& operands)
-    {
-      return cdar(operands);
-    });
-
-    return make<environment>(library);
+    return true_object;
   }
-} // namespace meevax::library
+} // extern "C"
 

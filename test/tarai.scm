@@ -1,5 +1,3 @@
-(load "../bootstrap.scm")
-
 (define tarai
   (lambda (x y z)
     (if (not (< y x)) y

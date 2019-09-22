@@ -1,0 +1,1061 @@
+R"##(
+
+(define identity
+  (lambda (x) x))
+
+(define experimental.so
+  (linker "libmeevax-experimental.so"))
+
+; ------------------------------------------------------------------------------
+;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+(define equivalence.so
+  (linker "libmeevax-equivalence.so"))
+
+(define eq? ; address-equal?
+  (link equivalence.so "address_equal"))
+
+(define eqv? ; value-equal?
+  (link equivalence.so "value_equal"))
+
+; ------------------------------------------------------------------------------
+;  6.2 Standard Numerical Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+(define numerical.so
+  (linker "libmeevax-numerical.so"))
+
+(define = eqv?)
+
+(define <
+  (link numerical.so "less"))
+
+(define <=
+  (link numerical.so "less_equal"))
+
+(define >
+  (link numerical.so "greater"))
+
+(define >=
+  (link numerical.so "greater_equal"))
+
+(define *
+  (link numerical.so "multiplication"))
+
+(define +
+  (link numerical.so "addition"))
+
+(define -
+  (link numerical.so "subtraction"))
+
+(define /
+  (link numerical.so "division"))
+
+; ------------------------------------------------------------------------------
+;  6.3 Standard Boolean Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+(define not
+  (lambda (x)
+    (if x #false #true)))
+
+; ------------------------------------------------------------------------------
+;  6.4 Standard Pairs and Lists Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+(define pair.so
+  (linker "libmeevax-pair.so"))
+
+(define pair?
+  (link pair.so "pair_"))
+
+(define cons ; pair
+  (link pair.so "cons"))
+
+(define car (link pair.so "car"))
+(define cdr (link pair.so "cdr"))
+
+; TODO set-car!
+; TODO set-cdr!
+
+(define caar (lambda (x) (car (car x))))
+(define cadr (lambda (x) (car (cdr x))))
+(define cdar (lambda (x) (cdr (car x))))
+(define cddr (lambda (x) (cdr (cdr x))))
+
+(define caaar (lambda (x) (car (car (car x)))))
+(define caadr (lambda (x) (car (car (cdr x)))))
+(define cadar (lambda (x) (car (cdr (car x)))))
+(define caddr (lambda (x) (car (cdr (cdr x)))))
+(define cdaar (lambda (x) (cdr (car (car x)))))
+(define cdadr (lambda (x) (cdr (car (cdr x)))))
+(define cddar (lambda (x) (cdr (cdr (car x)))))
+(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
+
+(define caaaar (lambda (x) (car (car (car (car x))))))
+(define caaadr (lambda (x) (car (car (car (cdr x))))))
+(define caadar (lambda (x) (car (car (cdr (car x))))))
+(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
+(define cadaar (lambda (x) (car (cdr (car (car x))))))
+(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
+(define caddar (lambda (x) (car (cdr (cdr (car x))))))
+(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
+(define cdaaar (lambda (x) (cdr (car (car (car x))))))
+(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
+(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
+(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
+(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
+(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
+(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
+(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
+
+(define xcons
+  (lambda (x y)
+    (cons y x)))
+
+(define null?
+  (lambda (x)
+    (eq? x '())))
+
+(define list
+  (lambda x x))
+
+(define append-2
+  (lambda (x y)
+    (if (null? x) y
+        (cons (car x)
+              (append-2 (cdr x) y)))))
+
+(define reverse ; simple but slow
+  (lambda (x)
+    (if (null? x)
+       '()
+        (append-2 (reverse (cdr x))
+                  (list (car x))))))
+
+(define append-aux
+  (lambda (x y)
+    (if (null? x) y
+        (append-aux (cdr x)
+                    (append-2 (car x) y)))))
+
+(define append
+  (lambda x
+    (if (null? x)
+       '()
+        ((lambda (reversed)
+           (append-aux (cdr reversed)
+                       (car reversed)))
+         (reverse x)))))
+
+; --------------------------------------------------------------------------
+;  4.2.1 Standard Conditional Library (Part 1 of 2)
+; --------------------------------------------------------------------------
+
+(define and
+  (environment xs
+    (if (null? xs)
+        #true
+        (if (null? (cdr xs))
+            (car xs)
+            (list (list 'lambda (list 'x 'thunk)
+                    (list 'if 'x
+                              (list 'thunk)
+                              'x))
+                  (car xs)
+                  (list 'lambda '()
+                    (append (list 'and)
+                            (cdr xs))))))))
+
+(define or
+  (environment xs
+    (if (null? xs)
+        #false
+        (if (null? (cdr xs))
+            (car xs)
+            (list (list 'lambda (list 'x 'thunk)
+                    (list 'if 'x
+                              'x
+                              (list 'thunk)))
+                  (car xs)
+                  (list 'lambda '()
+                    (append (list 'or)
+                            (cdr xs))))))))
+
+; --------------------------------------------------------------------------
+;  4.2.8 Standard Quasiquotation Library
+; --------------------------------------------------------------------------
+
+(define unquote identity)
+
+(define quasiquote-expand
+  (lambda (e depth)
+    (if (not (pair? e))
+        (list 'quote e)
+        (if (eq? (car e) 'quasiquote)
+            (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+            (if (eq? (car e) 'unquote)
+                (if (< 0 depth)
+                    (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+                    (if (and (not (null? (cdr e))) (null? (cddr e)))
+                        (cadr e)
+                        (error "illegal unquote")))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+                        (error "illegal unquote-splicing"))
+                    (list 'append (quasiquote-expand-list (car e) depth)
+                                  (quasiquote-expand      (cdr e) depth))))))))
+
+(define quasiquote-expand-list
+  (lambda (e depth)
+    (if (not (pair? e))
+        (list 'quote (list e))
+        (if (eq? (car e) 'quasiquote)
+            (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
+            (if (eq? (car e) 'unquote)
+                (if (< 0 depth)
+                    (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
+                    (cons 'list (cdr e)))
+                (if (eq? (car e) 'unquote-splicing)
+                    (if (< 0 depth)
+                        (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
+                        (cons 'append (cdr e)))
+                    (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+                                              (quasiquote-expand      (cdr e) depth)))))))))
+
+(define quasiquote
+  (environment (x)
+    (quasiquote-expand x 0)))
+
+; ------------------------------------------------------------------------------
+;  6.10 Standard Control Features Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+(define map-1
+  (lambda (callee x)
+    (if (null? x)
+       '()
+        (cons (callee (car x))
+              (map-1 callee (cdr x))))))
+
+; ------------------------------------------------------------------------------
+;  4.2.2 Standard Binding Constructors Library
+; ------------------------------------------------------------------------------
+
+(define unnamed-let
+  (environment (bindings . body)
+   `((lambda ,(map-1 car bindings) ,@body) ,@(map-1 cadr bindings))))
+
+(define undefined
+  (if #false #false))
+
+(define letrec*
+  (environment (bindings . body)
+    (unnamed-let ((identifiers (map-1 car bindings)))
+     `(unnamed-let ,(map-1 (lambda (e) `(,e ,undefined)) identifiers)
+        ,@(map-1 (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
+        ,@body))))
+
+(define letrec letrec*) ; this is incorrect definition
+
+(define let
+  (environment (bindings . body)
+    (if (pair? bindings)
+       `(unnamed-let ,bindings ,@body)
+       `(letrec ((,bindings (lambda ,(map-1 car (car body)) ,@(cdr body))))
+          (,bindings ,@(map-1 cadr (car body)))))))
+
+(define let*
+  (environment (bindings . body)
+    (if (or (null? bindings)
+            (null? (cdr bindings)))
+       `(let (,(car bindings)) ,@body)
+       `(let (,(car bindings)) (let* ,(cdr bindings) ,@body)))))
+
+; TODO let-values
+; TODO let*-values
+
+; ------------------------------------------------------------------------------
+;  4.2.1 Standard Conditional Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+(define else #true) ; auxiliary syntax
+
+; TODO =>
+
+(define cond ; This is incorrect definition
+  (environment clauses
+    (if (null? clauses) undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+            (if (null? (cdar clauses))
+               `(let ((test ,(caar clauses)))
+                  (if test test (cond ,@(cdr clauses))))
+               `(if ,(caar clauses)
+                    (begin ,@(cdar clauses))
+                    (cond ,@(cdr clauses))))))))
+
+(define case ; This is incorrect definition
+  (environment (key . clauses)
+    (if (null? clauses) 'undefined
+        (if (eq? (caar clauses) 'else)
+           `(begin ,@(cdar clauses))
+           `(if (memv ,key ',(caar clauses))
+                (begin ,@(cdar clauses))
+                (case ,key ,@(cdr clauses)))))))
+
+(define when
+  (environment (test . xs)
+   `(if ,test (begin ,@xs))))
+
+(define unless
+  (environment (test . xs)
+   `(if (not ,test) (begin ,@xs))))
+
+; ------------------------------------------------------------------------------
+;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+; TODO delay
+; TODO delay-force
+
+; TODO promise?
+; TODO make-promise?
+
+; ------------------------------------------------------------------------------
+;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
+; ------------------------------------------------------------------------------
+
+(define equal? ; list-equal?
+  (lambda (x y)
+    (if (and (pair? x)
+             (pair? y))
+        (and (equal? (car x) (car y))
+             (equal? (cdr x) (cdr y)))
+        (eqv? x y))))
+
+; ------------------------------------------------------------------------------
+;  6.2 Standard Numerical Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+(define number?
+  (lambda (x)
+    (or (exact? x)
+        (inexact? x))))
+
+(define complex?
+  (lambda (x)
+    ; (link numerical.so "is_complex") ; unimplemented
+    #false
+    ))
+
+(define real?
+  (link numerical.so "real_"))
+
+(define rational?
+  (lambda (x)
+    ; (link numerical.so "is_rational") ; unimplemented
+    #false
+    ))
+
+(define exact-integer?
+  (lambda (x)
+    ; (link numerical.so "is_exact_integer") ; unimplemented
+    #false
+    ))
+
+(define integer?
+  (lambda (x)
+    (or (exact-integer? x)
+        (and (real? x)
+             (= x (truncate x))))))
+
+(define exact? ; Currently, any real numbers returns #false
+  (lambda (z)
+    (or (integer? z)
+        (rational? z)
+        ; TODO for exact-complex
+        )))
+
+(define inexact?
+  (lambda (z)
+    (not (exact? z))))
+
+(define finite?
+  (lambda (z)
+    (not (infinite? z))))
+
+(define infinite?
+  (lambda (z)
+    #false
+    ; (or (= +inf.0 z)
+    ;     (= -inf.0 z))
+    ))
+
+(define nan?
+  (lambda (z)
+    (if (complex? z)
+        (or (= (real-part z) +nan.0)
+            (= (imag-part z) +nan.0))
+        (= z +nan.0))))
+
+(define zero?
+  (lambda (n)
+    (= n 0)))
+
+(define positive?
+  (lambda (n)
+    (> n 0)))
+
+(define negative?
+  (lambda (n)
+    (< n 0)))
+
+(define even?
+  (lambda (n)
+    ; (= (remainder n 2) 0)
+    (if (zero? n) #true
+        (odd? (- n 1)))
+    ))
+
+(define odd?
+  (lambda (n)
+    ; (not (even? n))))
+    (if (zero? n) #false
+        (even? (- n 1)))
+    ))
+
+; TODO min
+; TODO max
+
+(define abs
+  (lambda (n)
+    (if (< n 0) (- n) n)))
+
+(define floor/)
+(define floor-quotient)
+(define floor-remainder)
+(define truncate/)
+(define truncate-quotient)
+(define truncate-remainder)
+
+(define quotient truncate-quotient)
+(define remainder truncate-remainder)
+(define modulo floor-remainder)
+
+(define gcd
+  (lambda xs
+    (define gcd-2
+      (lambda (a b)
+        (if (zero? b)
+            (abs a)
+            (gcd b (remainder a b)))))
+    (if (null? xs) 0
+        (let rec ((n  (car xs))
+                  (ns (cdr xs)))
+          (if (null? ns) n
+              (rec (gcd-2 n (car ns)) (cdr ns)))))))
+
+(define lcm
+  (lambda xs
+    (define lcm-2
+      (lambda (a b)
+        (abs (quotient (* a b) (gcd a b)))))
+    (if (null? xs) 1
+        (let rec ((n  (car xs))
+                  (ns (cdr ns)))
+          (if (null? ns) n
+              (rec (lcm-2 n (car ns)) (cdr ns)))))))
+
+(define numerator
+  (lambda (x)
+    (if (rational? x)
+        (car x)
+        (if (exact? x) x
+            (inexact (numerator (exact x)))))))
+
+(define denominator
+  (lambda (x)
+    (if (exact? x)
+        (if (rational? x) (cdr x) 1)
+        (if (integer? x) 1.0
+            (inexact (denominator (exact x)))))))
+
+; TODO floor
+; TODO ceiling
+; TODO truncate
+; TODO round
+
+(define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm
+  (lambda (x e)
+    (define sr
+      (lambda (x y return)
+        (let ((fx (floor x))
+              (fy (floor y)))
+          (cond
+            ((>= fx x)
+             (return fx 1))
+            ((= fx fy)
+             (sr (/ (- y fy))
+                 (/ (- x fx))
+                 (lambda (n d)
+                   (return (+ d (* fx n)) n))))
+            (else
+              (return (+ fx 1) 1))))))
+    (let ((return (if (not (negative? x)) /
+                      (lambda (num den)
+                        (/ (- num) den))))
+          (x (abs x))
+          (e (abs e)))
+      (sr (- x e)
+          (+ x e)
+          return))))
+
+; TODO (exp z)
+
+(define log
+  (lambda (z . base)
+    (if (pair? base)
+        (/ (ln x)
+           (ln (car base)))
+        (ln x))))
+
+; TODO (sin z)
+; TODO (cos z)
+; TODO (tan z)
+; TODO (asin z)
+; TODO (acos z)
+
+(define atan
+  (lambda (y . x)
+    (if (not (pair? x))
+        (atan-1 y)
+        (let ((x (inexact (car x))))
+          (if (and (infinite? x)
+                   (infinite? y))
+              (* 0.7853981633974483
+                 (if (< y 0) -1 1)
+                 (if (= x -inf.0) 3 1))
+              (if (negative? x)
+                  (if (or (negative? y)
+                          (= y -0.0))
+                      (- (atan-1 (/ y x)) pi)
+                      (- pi (atan-1 (/ y (- x)))))
+                  (if (and (zero? x)
+                           (zero? y))
+                      (* (if (= y -0.0) -1 1)
+                         (if (= x -0.0) pi x))
+                      (atan-1 (/ y x)))))))))
+
+(define square
+  (lambda (z)
+    (* z z)))
+
+; TODO sqrt
+; TODO exact-integer-sqrt
+; TODO expt
+
+
+;; Standard Complex Library
+
+(define make-rectangular
+  (lambda (x y)
+    (+ x (* y (sqrt -1)))))
+
+(define make-polar
+  (lambda (radius phi)
+    (make-rectangular (* radius (cos phi))
+                      (* radius (sin phi)))))
+
+(define real-part
+  (lambda (z)
+    (if (complex? z) (car z) z)))
+
+(define imag-part
+  (lambda (z)
+    (if (complex? z) (cdr z) 0)))
+
+(define magnitude
+  (lambda (z)
+    (sqrt (+ (square (real-part z))
+             (square (imag-part z))))))
+
+(define angle
+  (lambda (z)
+    (atan (imag-part z)
+          (real-part z))))
+
+(define inexact identity)
+(define exact #;undefined)
+
+; TODO number->string
+; TODO string->number
+
+; ------------------------------------------------------------------------------
+;  6.3 Standard Boolean Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+(define boolean?
+  (lambda (x)
+    (if (or (eq? x #true)
+            (eq? x #false))
+      #true
+      #false)))
+
+(define boolean=?
+  (lambda (x y . xs)
+    (and (eq? x y)
+         (if (pair? xs)
+             (apply boolean=? y xs)
+             #true))))
+
+; ------------------------------------------------------------------------------
+;  6.4 Standard Pairs and Lists Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+; TODO list?
+
+(define make-list
+  (lambda (k . x)
+    (let ((default (if (pair? x) (car x) #;undefined)))
+      (let rec ((k k)
+                (result '()))
+        (if (<= k 0) result
+            (rec (- k 1)
+                 (cons default result)))))))
+
+; (define length ; This cannot detect circular-list
+;   (lambda (x)
+;     (let loop ((x x)
+;                (result 0))
+;       (if (pair? x)
+;           (loop (cdr x) (+ result 1))
+;           result))))
+
+(define length
+  (lambda (x)
+    (let rec ((x x)
+              (lag x)
+              (result 0))
+      (if (pair? x)
+          (let ((x (cdr x))
+                (result (+ result 1)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (lag (cdr lag))
+                      (result (+ result 1)))
+                  (and (not (eq? x lag))
+                       (rec x lag result)))
+                result))
+          result))))
+
+(define list-tail
+  (lambda (x k)
+    (if (zero? k) x
+        (list-tail (cdr x) (- k 1)))))
+
+(define list-ref
+  (lambda (x k)
+    (car (list-tail x k))))
+
+; TODO list-set!
+
+(define member
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let rec ((x x))
+        (and (pair? x)
+             (if (compare o (car x)) x
+                 (rec (cdr x))))))))
+
+(define memq
+  (lambda (o x)
+    (member o x eq?)))
+
+(define memv
+  (lambda (o x)
+    (member o x eqv?)))
+
+(define assoc
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let assoc ((x x))
+        (if (null? x) #false
+            (if (compare o (caar x))
+                (car x)
+                (assoc (cdr x))))))))
+
+(define assq
+  (lambda (o x)
+    (assoc o x eq?)))
+
+(define assv
+  (lambda (o x)
+    (assoc o x eqv?)))
+
+(define list-copy
+  (lambda (x)
+    (let rec ((x x)
+              (result '()))
+      (if (pair? x)
+          (rec (cdr x)
+               (cons (car x) result))
+          (append (reverse result) x)))))
+
+(define shallow-copy
+  (lambda (x)
+    (if (not (pair? x)) x
+        (cons (car x)
+              (cdr x)))))
+
+(define deep-copy
+  (lambda (x)
+    (if (not (pair? x)) x
+        (cons (deep-copy (car x))
+              (deep-copy (cdr x))))))
+
+; ------------------------------------------------------------------------------
+;  6.5 Standard Symbols Library
+; ------------------------------------------------------------------------------
+
+(define symbol.so
+  (linker "libmeevax-symbol.so"))
+
+(define symbol ; Constructor
+  (link symbol.so "symbol"))
+
+(define symbol?
+  (link symbol.so "is_symbol"))
+
+(define symbol=?
+  (lambda (x y . xs)
+    (and (eq? x y)
+         (if (pair? xs)
+             (apply symbol=? y xs)
+             #true))))
+
+; TODO symbol->string
+
+(define string->symbol symbol)
+
+; ------------------------------------------------------------------------------
+;  6.6 Standard Characters Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.7 Standard Strings Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.8 Standard Vectors Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.9 Standard Bytevectors Library
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+;  6.10 Standard Control Features Library (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+(define procedure?
+  (lambda (x)
+    (or (native? x)
+        (closure? x)
+        (continuation? x))))
+
+(define apply
+  (lambda (proc x . xs)
+    (define apply-1
+      (lambda (proc xs)
+        (proc . xs)))
+    (if (null? xs)
+        (apply-1 proc x)
+        (let ((reversed (reverse (cons x xs))))
+          (apply-1 proc (append-2 (reverse (cdr reversed)) (car reversed)))))))
+
+(define map
+  (lambda (proc x . xs)
+    (define map-1
+      (lambda (proc x result)
+        (if (pair? x)
+            (map-1 proc
+                   (cdr x)
+                   (cons (proc (car x)) result))
+            (reverse result))))
+    (define map-n
+      (lambda (proc xs result)
+        (if (every pair? xs)
+            (map-n proc
+                   (map-1 cdr xs '())
+                   (cons (apply proc (map-1 car xs '())) result))
+            (reverse result))))
+    (if (null? xs)
+        (map-1 proc x '())
+        (map-n proc (cons x xs) '()))))
+
+; TODO string-map
+; TODO vector-map
+
+(define for-each
+  (lambda (proc x . xs)
+    (define for-each-1
+      (lambda (proc x)
+        (if (pair? x)
+            (begin (proc (car x))
+                   (for-each-1 proc (cdr x))))))
+    (if (null? xs)
+        (for-each-1 proc x)
+        (begin (apply map proc x xs) undefined))))
+
+; TODO string-for-each
+; TODO vector-for-each
+
+(define any
+  (lambda (pred x . xs)
+    (define any-1
+      (lambda (pred x)
+        (if (pair? (cdr x))
+            (let ((result (pred (car x))))
+              (if result
+                  result
+                  (any-1 pred (cdr x))))
+            (pred (car x)))))
+    (define any-n
+      (lambda (pred xs)
+        (if (every pair? xs)
+            (let ((result (apply pred (map car xs))))
+              (if result
+                  result
+                  (any-n pred (map cdr xs))))
+            #false)))
+    (if (null? xs)
+        (if (pair? x)
+            (any-1 pred x)
+            #false)
+        (any-n pred (cons x xs)))))
+
+(define every
+  (lambda (pred x . xs)
+    (define every-1
+      (lambda (pred x)
+        (if (null? (cdr x))
+            (pred (car x))
+            (if (pred (car x))
+                (every-1 pred (cdr x))
+                #false))))
+    (if (null? xs)
+        (if (pair? x)
+            (every-1 pred x)
+            #true)
+        (not (apply any (lambda xs (not (apply pred xs))) x xs)))))
+
+(define call/cc call-with-current-continuation)
+
+(define values
+  (lambda xs
+    (call-with-current-continuation
+      (lambda (continuation)
+        (apply continuation xs)))))
+
+(define call-with-values
+  (lambda (producer consumer)
+    (let ((result (producer)))
+      (if (and (pair? result)
+               (eq? (car result) 'values))
+          (apply consumer (cdr result))
+          (consumer result)))))
+
+; TODO dynamic-wind
+
+; ------------------------------------------------------------------------------
+;  6.11 Standard Exceptions Library
+; ------------------------------------------------------------------------------
+
+; TODO with-exception-handler
+; TODO raise
+; TODO raise-continuable
+; TODO error
+; TODO error-object?
+; TODO error-object-message
+; TODO error-object-irritants
+; TODO read-error?
+; TODO file-error?
+
+; ------------------------------------------------------------------------------
+;  6.12 Standard Environments and Evaluation Library
+; ------------------------------------------------------------------------------
+
+; TODO scheme-report-environment
+; TODO null-environment
+
+(define current-lexical-environment
+  (environment ()
+   `(cdr (lambda () ()))))
+
+(define interaction-environment
+  (environment ()
+   `(cdr (environment () ()))))
+
+; ------------------------------------------------------------------------------
+;  6.13 Standard Input and Output Library
+; ------------------------------------------------------------------------------
+
+(define io.so
+  (linker "libmeevax-io.so"))
+
+; TODO call-with-port
+
+(define call-with-input-file
+  (lambda (path proc)
+    (let* ((input-port (open-input-file path))
+           (result (proc input-port)))
+      (close-input-port input-port)
+      result)))
+
+(define call-with-output-file
+  (lambda (path proc)
+    (let* ((output-port (open-output-file path))
+           (result (proc output-port)))
+      (close-output-port output-port)
+      result)))
+
+(define input-port?
+  (link io.so "is_input_file"))
+
+(define output-port?
+  (link io.so "is_output_file"))
+
+(define port?
+  (lambda (x)
+    (or (input-port? x) (output-port? x))))
+
+(define textual-port? port?)
+
+(define binary-port?
+  (lambda (x) #false))
+
+; TODO input-port-open?
+; TODO output-port-open?
+
+; TODO current-input-port
+; TODO current-output-port
+; TODO current-error-port
+
+; TODO with-input-from-file
+; TODO with-output-to-file
+
+(define open-input-file
+  (link io.so "open_input_file"))
+
+; TODO open-binary-input-file
+
+(define open-output-file
+  (link io.so "open_output_file"))
+
+; TODO open-binary-output-file
+
+(define close-input-port
+  (link io.so "close_input_file"))
+
+(define close-output-port
+  (link io.so "close_output_file"))
+
+(define close-port
+  (lambda (x)
+    (if (input-port? x)
+        (close-input-port x)
+        (if (output-port? x)
+            (close-output-port x)
+           '())))) ; TODO unspecified
+
+; TODO open-input-string
+; TODO open-output-string
+; TODO get-output-string
+
+; TODO open-input-bytevector
+; TODO open-output-bytevector
+; TODO get-output-bytevector
+
+; TODO read-char
+; TODO peek-char
+; TODO read-line
+
+(define eof-object?
+  (lambda (x) #false))
+
+; TODO eof-object
+
+; TODO char-ready?
+
+; TODO read-string
+; TODO read-u8
+
+; TODO u8-ready?
+
+; TODO read-bytevector
+; TODO read-bytevector!
+
+; TODO write-shared
+
+(define display
+  (link experimental.so "display")
+  ; (lambda (x . option)
+  ;   (let ((output-port (if (pair? option)
+  ;                          (car option)
+  ;                          (current-output-port))))
+  ;     (if (char? x)
+  ;         (write-char x output-port)
+  ;         (write      x output-port))))
+  )
+
+(define newline
+  (lambda ()
+    (display "\n"))
+  ; (lambda option
+  ;   (write-char #\newline (if (pair? option)
+  ;                             (car option)
+  ;                             (current-output-port))))
+  )
+
+; TODO write-char
+; TODO write-string
+; TODO write-u8
+; TODO write-bytevector
+; TODO flush-output-port
+
+; ------------------------------------------------------------------------------
+;  6.14 Standard System Interface Library
+; ------------------------------------------------------------------------------
+
+; TODO file-exists?
+; TODO delete-file
+; TODO command-line
+
+(define emergency-exit ;                                (scheme process-context)
+  (link experimental.so "emergency_exit"))
+
+(define exit emergency-exit) ;                          (scheme process-context)
+
+; TODO get-environment-variable
+; TODO get-environment-variables
+
+; TODO current-second
+; TODO current-jiffy
+; TODO jiffies-per-second
+
+; ------------------------------------------------------------------------------
+;  6.14 Standard System Interface Library
+; ------------------------------------------------------------------------------
+
+(define swap!
+  (environment (x y)
+    (let ((temporary (string->symbol)))
+     `(let ((,temporary ,x))
+        (set! ,x ,y)
+        (set! ,y ,temporary)))))
+
+)##"
+

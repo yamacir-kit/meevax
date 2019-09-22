@@ -14,6 +14,8 @@ namespace meevax::system
     return os << highlight::simple_datum << "#\\" << static_cast<const std::string&>(c) << attribute::normal;
   }
 
+  extern "C" const object end_of_file;
+
   // extern "C" std::unordered_map<std::string, object> characters;
 } // namespace meevax::system
 

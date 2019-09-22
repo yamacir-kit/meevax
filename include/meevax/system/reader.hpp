@@ -175,7 +175,7 @@ namespace meevax::system
 
     decltype(auto) read(const std::string& expression) noexcept(false)
     {
-      std::istringstream stream {expression};
+      std::stringstream stream {expression};
       return read(stream);
     }
 
@@ -281,7 +281,7 @@ namespace meevax::system
         }
 
       case '#':
-        return discriminate();
+        return discriminate(stream);
 
       default:
         token.push_back(*head);
@@ -305,34 +305,36 @@ namespace meevax::system
         }
       }
 
-      return make<character>("end-of-file");
+      // return make<character>("end-of-file");
+      return end_of_file;
     }
 
-    object discriminate()
+    object discriminate(std::istream& stream)
     {
-      switch (peek())
+      switch (stream.peek())
       {
       case 't':
-        read();
+        read(stream);
         return true_object;
 
       case 'f':
-        read();
+        read(stream);
         return false_object;
 
       case '(':
-        {
-          auto environment {static_cast<Environment&>(*this)};
-
-          auto expression {read()};
-          auto executable {environment.compile(expression)};
-
-          return environment.execute(executable);
-        }
+        return static_cast<Environment&>(*this).evaluate(read(stream));
+        // {
+        //   auto environment {static_cast<Environment&>(*this)};
+        //
+        //   auto expression {read(stream)};
+        //   auto executable {environment.compile(expression)};
+        //
+        //   return environment.execute(executable);
+        // }
 
       case ';':
-        ignore(1);
-        return read(), read();
+        stream.ignore(1);
+        return read(stream), read(stream);
 
       default:
         return undefined;

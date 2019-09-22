@@ -28,20 +28,6 @@ extern "C" namespace meevax::system
     }
   }
 
-  NATIVE(pair_)
-  {
-    for (const auto& each : args)
-    {
-      if (not each or not each.is<pair>())
-      {
-        return false_object;
-      }
-    }
-
-    return true_object;
-  }
-
-
   NATIVE(emergency_exit)
   {
     if (not args or not car(args).is<real>())

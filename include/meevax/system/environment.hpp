@@ -10,11 +10,12 @@
 #include <meevax/system/configurator.hpp>
 #include <meevax/system/machine.hpp>
 #include <meevax/system/reader.hpp>
-
+#include <meevax/system/file.hpp>
 #include <meevax/posix/linker.hpp>
 
 namespace meevax::system
 {
+  // TODO Rename to default_environment
   template <int Version>
   static constexpr std::integral_constant<int, Version> standard_environment {};
 
@@ -48,6 +49,8 @@ namespace meevax::system
     , public configurator<environment>
   {
     std::unordered_map<std::string, object> symbols;
+
+    std::unordered_map<object, object> bindings;
 
     static inline std::unordered_map<std::string, posix::linker> linkers {};
 
@@ -112,6 +115,21 @@ namespace meevax::system
       }
     }
 
+    decltype(auto) export_(const object& key, const object& value)
+    {
+      if (auto iter {bindings.find(key)}; iter != std::end(bindings))
+      {
+        std::cerr << "; export\t; detected redefinition (interactive mode ignore previous definition)" << std::endl;
+        bindings.at(key) = value;
+        return bindings.find(key);
+      }
+      else
+      {
+        return bindings.emplace(key, value).first;
+        std::cerr << "; export\t; exporting new binding " << key << " and " << value << std::endl;
+      }
+    }
+
     decltype(auto) current_expression() noexcept
     {
       return std::get<0>(*this);
@@ -137,6 +155,12 @@ namespace meevax::system
           );
 
       return execute();
+    }
+
+    template <typename... Ts>
+    constexpr decltype(auto) evaluate(Ts&&... xs)
+    {
+      return execute(compile(FORWARD(xs)...));
     }
 
   public: // Library System Interfaces
@@ -169,7 +193,7 @@ namespace meevax::system
       return unit;
     }
 
-    auto import_library(const object& library, const object& continuation)
+    [[deprecated]] auto import_library(const object& library, const object& continuation)
     {
       stack executable {continuation};
 
@@ -181,6 +205,30 @@ namespace meevax::system
           _load_literal_, cadr(each),
           _define_, rename(car(each))
         );
+      }
+
+      return executable;
+    }
+
+    auto import_(const object& library, const object& continuation)
+    {
+      auto& source {library.as<environment>()};
+
+      if (source.bindings.empty())
+      {
+        source.expand(unit);
+
+        if (source.bindings.empty())
+        {
+          throw syntax_error {library, " is may not be library"};
+        }
+      }
+
+      stack executable {continuation};
+
+      for (const auto& [key, value] : source.bindings)
+      {
+        executable.push(_load_literal_, value, _define_, rename(key));
       }
 
       return executable;
@@ -237,9 +285,9 @@ namespace meevax::system
   template <>
   environment::environment(std::integral_constant<int, 0>)
   {
-    define<syntax>("quote", [&](auto&&... xs)
+    define<syntax>("quote", [&](auto&&... operands)
     {
-      return quotation(std::forward<decltype(xs)>(xs)...);
+      return quotation(FORWARD(operands)...);
     });
 
     define<syntax>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
@@ -252,7 +300,7 @@ namespace meevax::system
 
         const auto alternate {
           cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_), true)
-                           : list(_load_literal_, unspecified, _return_)
+                           : list(_load_literal_, undefined, _return_)
         };
 
         return compile(
@@ -267,7 +315,7 @@ namespace meevax::system
 
         const auto alternate {
           cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
-                           : list(_load_literal_, unspecified, _join_)
+                           : list(_load_literal_, undefined, _join_)
         };
 
         return compile(
@@ -280,12 +328,12 @@ namespace meevax::system
 
     define<syntax>("define", [&](auto&&... operands)
     {
-      return definition(std::forward<decltype(operands)>(operands)...);
+      return definition(FORWARD(operands)...);
     });
 
-    define<syntax>("begin", [&](auto&&... args)
+    define<syntax>("begin", [&](auto&&... operands)
     {
-      return sequence(std::forward<decltype(args)>(args)...);
+      return sequence(FORWARD(operands)...);
     });
 
     define<syntax>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
@@ -337,6 +385,7 @@ namespace meevax::system
 
     define<syntax>("set!", [&](auto&&... args)
     {
+      // TODO Rename "set" to "assignment"?
       return set(std::forward<decltype(args)>(args)...);
     });
 
@@ -344,14 +393,14 @@ namespace meevax::system
      * <importation> = (import <library name>)
      */
     define<syntax>("import", [&](auto&& expression,
-                                  auto&& lexical_environment,
-                                  auto&& continuation, auto)
+                                 auto&& lexical_environment,
+                                 auto&& continuation, auto)
     {
       using meevax::system::path;
 
       if (const object& library_name {car(expression)}; not library_name)
       {
-        throw evaluation_error {"empty library-name is not allowed"};
+        throw syntax_error {"empty library-name is not allowed"};
       }
       else if (const object& library {locate_library(library_name)}; library)
       {
@@ -361,9 +410,10 @@ namespace meevax::system
          * Passing the VM instruction to load literally library-name as
          * continuation is for return value of this syntax form "import".
          */
-        return import_library(library, cons(_load_literal_, library_name, continuation));
+        // return import_library(library, cons(_load_literal_, library_name, continuation));
+        return import_(library, cons(_load_literal_, library_name, continuation));
       }
-      else
+      else // XXX Don't use this library style (deprecated)
       {
         TRACE("compile") << "(\t; => unknown library-name" << std::endl;
         NEST_IN;
@@ -391,7 +441,7 @@ namespace meevax::system
           }
           else
           {
-            throw evaluation_error {
+            throw syntax_error {
               identifier, " is not allowed as part of library-name (must be path or string object)"
             };
           }
@@ -442,18 +492,6 @@ namespace meevax::system
     define<native>("load", [&](const object& args)
     {
       return load(car(args).as<const string>());
-    });
-
-    define<native>("symbol", [&](const object& args)
-    {
-      try
-      {
-        return make<symbol>(car(args).as<string>());
-      }
-      catch (...)
-      {
-        return make<symbol>();
-      }
     });
 
     define<native>("linker", [&](auto&& args)
@@ -524,6 +562,46 @@ namespace meevax::system
                );
       }
     });
+
+    define<native>("read", [&](const iterator& operands)
+    {
+      return read(operands ? car(operands).as<input_file>() : std::cin);
+    });
+
+    define<native>("write", [&](const iterator& operands)
+    {
+      std::cout << car(operands);
+      return unspecified;
+    });
+
+    define<native>("evaluate", [&](auto&& operands)
+    {
+      return evaluate(FORWARD(operands));
+    });
+
+    #define DEFINE_LIBRARY(...)                                                \
+    {                                                                          \
+      std::cerr << __VA_ARGS__ << std::endl;                                   \
+                                                                               \
+      const auto library {read(__VA_ARGS__)};                                  \
+      std::cerr << "; standard\t; " << library << std::endl;                   \
+                                                                               \
+      evaluate(library);                                                       \
+    }
+
+    const std::string code {
+      #include <meevax/library/initialize.meevax>
+    };
+    std::cerr << code << std::endl;
+
+    std::stringstream stream {code};
+
+    for (auto e {read(stream)}; e != end_of_file; e = read(stream))
+    {
+      std::cerr << "\n"
+                << "; initialize\t; " << e << std::endl;
+      evaluate(e);
+    }
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
