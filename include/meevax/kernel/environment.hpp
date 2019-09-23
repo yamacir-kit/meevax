@@ -556,7 +556,7 @@ namespace meevax::kernel
 
     define<native>("evaluate", [&](auto&& operands)
     {
-      return evaluate(FORWARD(operands));
+      return evaluate(std::forward<decltype(operands)>(operands));
     });
 
     const std::string code {

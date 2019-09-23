@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_LAMBDA_COMPOSE_HPP
 #define INCLUDED_MEEVAX_LAMBDA_COMPOSE_HPP
 
-#include <meevax/lambda/forward_capture.hpp>
+#include <meevax/utility/forward.hpp>
 
 namespace meevax::lambda
 {

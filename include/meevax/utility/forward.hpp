@@ -1,5 +1,9 @@
-#ifndef INCLUDED_MEEVAX_LAMBDA_FORWARD_CAPTURE_HPP
-#define INCLUDED_MEEVAX_LAMBDA_FORWARD_CAPTURE_HPP
+#ifndef INCLUDED_MEEVAX_UTILITY_FORWARD_HPP
+#define INCLUDED_MEEVAX_UTILITY_FORWARD_HPP
+
+/**
+ * https://vittorioromeo.info/index/blog/capturing_perfectly_forwarded_objects_in_lambdas.html
+ **/
 
 #include <utility>
 
@@ -23,7 +27,7 @@ namespace meevax::lambda
     return std::make_tuple(FORWARD_CAPTURE(xs)...);
   }
 
-  #define FORWARD_CAPTURES(...) \
+  #define FORWARD_VARIADIC_CAPTURE(...) \
     forward_captures(FORWARD(__VA_ARGS__)...)
 
   template <typename T>
@@ -33,5 +37,5 @@ namespace meevax::lambda
   }
 } // namespace meevax::lambda
 
-#endif // INCLUDED_MEEVAX_LAMBDA_FORWARD_CAPTURE_HPP
+#endif // INCLUDED_MEEVAX_UTILITY_FORWARD_HPP
 
