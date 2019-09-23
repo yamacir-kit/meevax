@@ -117,7 +117,7 @@ namespace meevax::kernel
         return verbose = car(operands);
       }),
 
-      std::make_pair("test-boolean-argumented-long-option", [&](const auto& operands)
+      std::make_pair("debug-long-option", [&](const auto& operands)
       {
         std::cout << car(operands) << std::endl;
         return undefined;
