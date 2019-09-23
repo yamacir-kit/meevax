@@ -16,6 +16,10 @@ namespace meevax::kernel
   template <typename Environment>
   struct configurator
   {
+    /**
+     * This structure is a precaution against the possibility of providing part
+     * of the configuration as an object to the runtime in the future.
+     **/
     static inline const struct version
       : public object
     {
@@ -35,7 +39,11 @@ namespace meevax::kernel
       version::patch,
     };
 
-    static inline const struct build
+    /**
+     * This structure is a precaution against the possibility of providing part
+     * of the configuration as an object to the runtime in the future.
+     **/
+    static inline const struct build // TODO Rename
     {
       static inline const auto date {datum<string>("${${PROJECT_NAME}_BUILD_DATE}")};
       static inline const auto hash {datum<string>("${${PROJECT_NAME}_BUILD_HASH}")};
