@@ -25,10 +25,15 @@ namespace meevax::kernel
 
       static inline const auto semantic {"datum<string>(${PROJECT_VERSION})"};
 
-      explicit version()
-        : object {list(major, minor, patch)}
+      template <typename... Ts>
+      explicit constexpr version(Ts&&... operands)
+        : object {list(std::forward<decltype(operands)>(operands)...)}
       {}
-    } version {};
+    } version {
+      version::major,
+      version::minor,
+      version::patch,
+    };
 
     static inline const struct build
     {
@@ -111,6 +116,12 @@ namespace meevax::kernel
         // TODO Accumulate operands with std::logical_and
         return verbose = car(operands);
       }),
+
+      std::make_pair("debug-long-option", [&](const auto& operands)
+      {
+        std::cout << car(operands) << std::endl;
+        return undefined;
+      })
     };
 
     template <typename... Ts>

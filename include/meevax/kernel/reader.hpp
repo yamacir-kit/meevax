@@ -305,32 +305,68 @@ namespace meevax::kernel
         }
       }
 
-      // return make<character>("end-of-file");
-      return end_of_file;
+      return characters.at("end-of-file");
     }
 
     object discriminate(std::istream& stream)
     {
       switch (stream.peek())
       {
-      case 't':
-        read(stream);
-        return true_object;
-
       case 'f':
         read(stream);
         return false_object;
 
+      case 't':
+        read(stream);
+        return true_object;
+
+      /*
+       * Read-time-evaluation #( ... )
+       */
       case '(':
         return static_cast<Environment&>(*this).evaluate(read(stream));
-        // {
-        //   auto environment {static_cast<Environment&>(*this)};
-        //
-        //   auto expression {read(stream)};
-        //   auto executable {environment.compile(expression)};
-        //
-        //   return environment.execute(executable);
-        // }
+
+      case '\\':
+        {
+          stream.get();
+
+          std::string name {};
+
+          for (auto c {stream.peek()}; not is_delimiter(c); c = stream.peek())
+          {
+            name.push_back(stream.get());
+          }
+
+          if (name.empty())
+          {
+            name.push_back(stream.get());
+          }
+
+          // TODO Provide user-defined character-name?
+          static const std::unordered_map<std::string, std::string> alias
+          {
+            {" ", "space"}, // for R7RS
+            {"alarm", "bell"}, // for R7RS
+            {"newline", "line-feed"}, // for R7RS
+            {"return", "carriage-return"}, // for R7RS
+            {"tab", "horizontal-tabulation"}, // for R7RS
+          };
+
+          if (auto iter {alias.find(name)}; iter != std::end(alias))
+          {
+            name = std::get<1>(*iter);
+          }
+
+          // TODO Provide datum<character>(name)?
+          if (auto iter {characters.find(name)}; iter != std::end(characters))
+          {
+            return std::get<1>(*iter);
+          }
+          else
+          {
+            throw reader_error_about_character {name, " is unknown character-name"};
+          }
+        }
 
       case ';':
         stream.ignore(1);
