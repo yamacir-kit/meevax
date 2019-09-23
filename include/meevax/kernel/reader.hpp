@@ -337,6 +337,11 @@ namespace meevax::kernel
             name.push_back(stream.get());
           }
 
+          if (name.empty())
+          {
+            name.push_back(stream.get());
+          }
+
           // TODO Provide user-defined character-name?
           static const std::unordered_map<std::string, std::string> alias
           {
