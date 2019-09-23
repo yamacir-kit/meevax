@@ -39,8 +39,8 @@ namespace meevax::kernel
     const code value;
 
     template <typename... Ts>
-    instruction(Ts&&... args)
-      : value {std::forward<Ts>(args)...}
+    instruction(Ts&&... operands)
+      : value {std::forward<decltype(operands)>(operands)...}
     {}
   };
 

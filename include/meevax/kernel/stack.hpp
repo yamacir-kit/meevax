@@ -12,8 +12,8 @@ namespace meevax::kernel
     : public iterator
   {
     template <typename... Ts>
-    constexpr stack(Ts&&... xs)
-      : iterator {std::forward<Ts>(xs)...}
+    constexpr stack(Ts&&... operands)
+      : iterator {std::forward<decltype(operands)>(operands)...}
     {}
 
     decltype(auto) top() const
@@ -38,9 +38,9 @@ namespace meevax::kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) emplace(Ts&&... xs)
+    decltype(auto) emplace(Ts&&... operands)
     {
-      return push(make<T>(std::forward<Ts>(xs)...));
+      return push(make<T>(std::forward<decltype(operands)>(operands)...));
     }
 
     void pop(std::size_t size)

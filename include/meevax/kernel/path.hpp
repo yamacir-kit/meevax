@@ -11,8 +11,8 @@ namespace meevax::kernel
     : public std::experimental::filesystem::path
   {
     template <typename... Ts>
-    explicit constexpr path(Ts&&... xs)
-      : std::experimental::filesystem::path {std::forward<Ts>(xs)...}
+    explicit constexpr path(Ts&&... operands)
+      : std::experimental::filesystem::path {std::forward<decltype(operands)>(operands)...}
     {}
   };
 

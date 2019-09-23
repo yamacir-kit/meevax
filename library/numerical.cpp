@@ -9,7 +9,7 @@ extern "C" namespace meevax::numerical
   NATIVE(addition)
   {
     return std::accumulate(
-             std::begin(args), std::end(args),
+             std::begin(operands), std::end(operands),
              kernel::make<kernel::real>(0),
              std::plus {}
            );
@@ -18,7 +18,7 @@ extern "C" namespace meevax::numerical
   NATIVE(multiplication)
   {
     return std::accumulate(
-             std::begin(args), std::end(args),
+             std::begin(operands), std::end(operands),
              kernel::make<kernel::real>(1),
              std::multiplies {}
            );
@@ -26,10 +26,10 @@ extern "C" namespace meevax::numerical
 
   NATIVE(subtraction)
   {
-    if (kernel::length(args) < 2)
+    if (kernel::length(operands) < 2)
     {
       return std::accumulate(
-               std::begin(args), std::end(args),
+               std::begin(operands), std::end(operands),
                kernel::make<kernel::real>(0),
                std::minus {}
              );
@@ -37,8 +37,8 @@ extern "C" namespace meevax::numerical
     else
     {
       return std::accumulate(
-               std::next(std::begin(args)), std::end(args),
-               *std::begin(args),
+               std::next(std::begin(operands)), std::end(operands),
+               *std::begin(operands),
                std::minus {}
              );
     }
@@ -46,10 +46,10 @@ extern "C" namespace meevax::numerical
 
   NATIVE(division)
   {
-    if (kernel::length(args) < 2)
+    if (kernel::length(operands) < 2)
     {
       return std::accumulate(
-               std::begin(args), std::end(args),
+               std::begin(operands), std::end(operands),
                kernel::make<kernel::real>(1),
                std::divides {}
              );
@@ -57,8 +57,8 @@ extern "C" namespace meevax::numerical
     else
     {
       return std::accumulate(
-               std::next(std::begin(args)), std::end(args),
-               *std::begin(args),
+               std::next(std::begin(operands)), std::end(operands),
+               *std::begin(operands),
                std::divides {}
              );
     }
@@ -66,27 +66,27 @@ extern "C" namespace meevax::numerical
 
   NATIVE(less)
   {
-    return std::invoke(std::less {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
+    return std::invoke(std::less {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(less_equal)
   {
-    return std::invoke(std::less_equal {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
+    return std::invoke(std::less_equal {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(greater)
   {
-    return std::invoke(std::greater {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
+    return std::invoke(std::greater {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(greater_equal)
   {
-    return std::invoke(std::greater_equal {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
+    return std::invoke(std::greater_equal {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(real_)
   {
-    return kernel::car(args).is<kernel::real>() ? kernel::true_object : kernel::false_object;
+    return kernel::car(operands).is<kernel::real>() ? kernel::true_object : kernel::false_object;
   }
 } // extern "C"
 

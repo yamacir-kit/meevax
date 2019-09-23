@@ -9,7 +9,7 @@ extern "C" namespace meevax::symbol
     try
     {
       return kernel::make<kernel::symbol>(
-               car(args).as<kernel::string>()
+               car(operands).as<kernel::string>()
              );
     }
     catch (...) // XXX DIRTY HACK
@@ -20,7 +20,7 @@ extern "C" namespace meevax::symbol
 
   NATIVE(is_symbol)
   {
-    for (const auto& each : args)
+    for (const auto& each : operands)
     {
       if (not each or not each.is<kernel::pair>())
       {

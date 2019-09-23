@@ -32,8 +32,8 @@ namespace meevax::kernel
   //   visual::point position;
   //
   //   template <typename... Ts>
-  //   explicit constexpr real(Ts&&... xs)
-  //     : real_base {std::forward<Ts>(xs)...}
+  //   explicit constexpr real(Ts&&... operands)
+  //     : real_base {std::forward<decltype(operands)>(operands)...}
   //   {}
   //
   //   const auto& boost() const noexcept

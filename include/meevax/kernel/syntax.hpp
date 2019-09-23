@@ -17,8 +17,8 @@ namespace meevax::kernel
     const std::string name;
 
     template <typename... Ts>
-    syntax(const std::string& name, Ts&&... args)
-      : std::function<SYNTAX()> {std::forward<Ts>(args)...}
+    syntax(const std::string& name, Ts&&... operands)
+      : std::function<SYNTAX()> {std::forward<decltype(operands)>(operands)...}
       , name {name}
     {}
   };

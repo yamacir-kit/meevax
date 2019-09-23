@@ -22,9 +22,9 @@ namespace meevax::kernel
   using object = pointer<pair>;
 
   template <typename T, typename... Ts>
-  constexpr decltype(auto) make(Ts&&... args)
+  constexpr decltype(auto) make(Ts&&... operands)
   {
-    return object::bind<T>(std::forward<Ts>(args)...);
+    return object::bind<T>(std::forward<decltype(operands)>(operands)...);
   }
 
   extern "C" const object unit, unbound, undefined, unspecified;
@@ -33,9 +33,9 @@ namespace meevax::kernel
   struct DERIVED                                                               \
     : ACCESS BASE                                                              \
   {                                                                            \
-    template <typename... Objects>                                             \
-    explicit constexpr DERIVED(Objects&&... object)                            \
-      : BASE {std::forward<Objects>(object)...}                                \
+    template <typename... Ts>                                                  \
+    explicit constexpr DERIVED(Ts&&... operands)                               \
+      : BASE {std::forward<decltype(operands)>(operands)...}                   \
     {}                                                                         \
   };
 } // namespace meevax::kernel

@@ -11,8 +11,8 @@ namespace meevax::kernel
     , public facade<pair>
   {
     template <typename... Ts>
-    explicit constexpr pair(Ts&&... args)
-      : std::pair<object, object> {std::forward<Ts>(args)...}
+    explicit constexpr pair(Ts&&... operands)
+      : std::pair<object, object> {std::forward<decltype(operands)>(operands)...}
     {}
 
     pair()

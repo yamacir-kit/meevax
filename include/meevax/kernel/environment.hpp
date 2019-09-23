@@ -64,8 +64,8 @@ namespace meevax::kernel
 
     // for library constructor
     template <typename... Ts>
-    constexpr environment(Ts&&... args)
-      : pair {std::forward<Ts>(args)...} // virtual base of closure
+    constexpr environment(Ts&&... operands)
+      : pair {std::forward<decltype(operands)>(operands)...} // virtual base of closure
     {}
 
   public: // Module System Interface
@@ -75,18 +75,18 @@ namespace meevax::kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(const std::string& name, Ts&&... args)
+    decltype(auto) define(const std::string& name, Ts&&... operands)
     {
       return kernel::machine<environment>::define(
-               intern(name), make<T>(name, std::forward<Ts>(args)...)
+               intern(name), make<T>(name, std::forward<decltype(operands)>(operands)...)
              );
     }
 
     template <typename... Ts>
-    decltype(auto) define(const std::string& name, Ts&&... xs)
+    decltype(auto) define(const std::string& name, Ts&&... operands)
     {
       return kernel::machine<environment>::define(
-               intern(name), std::forward<Ts>(xs)...
+               intern(name), std::forward<decltype(operands)>(operands)...
              );
     }
 
@@ -158,9 +158,9 @@ namespace meevax::kernel
     }
 
     template <typename... Ts>
-    constexpr decltype(auto) evaluate(Ts&&... xs)
+    constexpr decltype(auto) evaluate(Ts&&... operands)
     {
-      return execute(compile(FORWARD(xs)...));
+      return execute(compile(FORWARD(operands)...));
     }
 
   public: // Library System Interfaces
@@ -363,10 +363,10 @@ namespace meevax::kernel
              );
     });
 
-    define<syntax>("set!", [&](auto&&... args)
+    define<syntax>("set!", [&](auto&&... operands)
     {
       // TODO Rename "set" to "assignment"?
-      return set(std::forward<decltype(args)>(args)...);
+      return set(std::forward<decltype(operands)>(operands)...);
     });
 
     /*
@@ -469,20 +469,20 @@ namespace meevax::kernel
       }
     });
 
-    define<native>("load", [&](const object& args)
+    define<native>("load", [&](const object& operands)
     {
-      return load(car(args).as<const string>());
+      return load(car(operands).as<const string>());
     });
 
-    define<native>("linker", [&](auto&& args)
+    define<native>("linker", [&](auto&& operands)
     {
-      if (auto size {length(args)}; size < 1)
+      if (auto size {length(operands)}; size < 1)
       {
         throw evaluation_error {
           "procedure linker expects a string for argument, but received nothing."
         };
       }
-      else if (const object& s {car(args)}; not s.is<string>())
+      else if (const object& s {car(operands)}; not s.is<string>())
       {
         throw evaluation_error {
           "procedure linker expects a string for argument, but received ",
@@ -500,7 +500,7 @@ namespace meevax::kernel
 
     define<native>("native", [&](const iterator& operands)
     {
-      // if (auto size {length(args)}; size < 1)
+      // if (auto size {length(operands)}; size < 1)
       // {
       //   throw evaluation_error {
       //     "procedure link expects two arguments (linker and string), but received nothing."
@@ -512,7 +512,7 @@ namespace meevax::kernel
       //     "procedure link expects two arguments (linker and string), but received only one argument."
       //   };
       // }
-      // else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
+      // else if (const auto& linker {car(operands)}; not linker.template is<meevax::posix::linker>())
       // {
       //   throw evaluation_error {
       //     "procedure dynamic-link-open expects a linker for first argument, but received ",
@@ -522,7 +522,7 @@ namespace meevax::kernel
       //     "were ignored."
       //   };
       // }
-      // else if (const auto& name {cadr(args)}; not name.template is<string>())
+      // else if (const auto& name {cadr(operands)}; not name.template is<string>())
       // {
       //   throw evaluation_error {
       //     "procedure dynamic-link-open expects a string for second argument, but received ",

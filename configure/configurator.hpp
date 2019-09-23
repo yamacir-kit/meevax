@@ -125,9 +125,9 @@ namespace meevax::kernel
     };
 
     template <typename... Ts>
-    constexpr decltype(auto) configure(Ts&&... xs)
+    constexpr decltype(auto) configure(Ts&&... operands)
     {
-      return (*this)(std::forward<Ts>(xs)...);
+      return (*this)(std::forward<decltype(operands)>(operands)...);
     }
 
     decltype(auto) operator()(const int argc, char const* const* const argv)

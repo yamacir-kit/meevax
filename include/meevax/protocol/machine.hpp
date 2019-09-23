@@ -18,8 +18,8 @@ namespace meevax::protocol
     bool pressed {false};
 
     template <typename... Ts>
-    explicit machine(Ts&&... xs)
-      : identity {std::forward<Ts>(xs)...}
+    explicit machine(Ts&&... operands)
+      : identity {std::forward<decltype(operands)>(operands)...}
     {}
 
     static inline constexpr bool debug {true};

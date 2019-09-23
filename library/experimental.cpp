@@ -9,14 +9,14 @@ extern "C" namespace meevax::experimental
 {
   NATIVE(emergency_exit)
   {
-    if (not args or not kernel::car(args).is<kernel::real>())
+    if (not operands or not kernel::car(operands).is<kernel::real>())
     {
       std::exit(boost::exit_success);
     }
     else
     {
       // XXX DIRTY HACK
-      std::exit(static_cast<int>(kernel::car(args).as<kernel::real>()));
+      std::exit(static_cast<int>(kernel::car(operands).as<kernel::real>()));
     }
 
     return kernel::unspecified;
@@ -24,7 +24,7 @@ extern "C" namespace meevax::experimental
 
   NATIVE(display)
   {
-    for (const kernel::object& each : args)
+    for (const kernel::object& each : operands)
     {
       if (each.is<kernel::string>()) // XXX DIRTY HACK
       {

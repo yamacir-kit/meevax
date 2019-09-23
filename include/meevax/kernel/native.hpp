@@ -5,9 +5,8 @@
 
 #include <meevax/kernel/list.hpp>
 
-// TODO Rename args to operands
 #define NATIVE(NAME) \
-  meevax::kernel::object NAME([[maybe_unused]] const meevax::kernel::iterator& args)
+  meevax::kernel::object NAME([[maybe_unused]] const meevax::kernel::iterator& operands)
 
 namespace meevax::kernel
 {
@@ -19,8 +18,8 @@ namespace meevax::kernel
     const std::string name;
 
     template <typename... Ts>
-    native(const std::string& name, Ts&&... args)
-      : std::function<NATIVE()> {std::forward<Ts>(args)...}
+    native(const std::string& name, Ts&&... operands)
+      : std::function<NATIVE()> {std::forward<decltype(operands)>(operands)...}
       , name {name}
     {}
   };

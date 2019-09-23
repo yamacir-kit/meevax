@@ -101,8 +101,8 @@ namespace meevax::kernel
     using size_type = std::size_t;
 
     template <typename... Ts>
-    constexpr iterator(Ts&&... args)
-      : object {std::forward<Ts>(args)...}
+    constexpr iterator(Ts&&... operands)
+      : object {std::forward<decltype(operands)>(operands)...}
     {}
 
     decltype(auto) operator*() const
@@ -147,21 +147,21 @@ namespace meevax::kernel
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) cons(Ts&&... args) // is also cons*
+  constexpr decltype(auto) cons(Ts&&... operands) // is also cons*
   {
-    return (args | ...);
+    return (operands | ...);
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) list(Ts&&... args)
+  constexpr decltype(auto) list(Ts&&... operands)
   {
-    return (args | ... | unit);
+    return (operands | ... | unit);
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) xcons(Ts&&... args)
+  constexpr decltype(auto) xcons(Ts&&... operands)
   {
-    return (... | args);
+    return (... | operands);
   }
 
   bool is_same(const object& x, const object& y) // equal?

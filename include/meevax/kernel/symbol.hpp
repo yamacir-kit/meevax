@@ -9,8 +9,8 @@ namespace meevax::kernel
     : public std::string
   {
     template <typename... Ts>
-    explicit constexpr symbol(Ts&&... args)
-      : std::string {std::forward<Ts>(args)...}
+    explicit constexpr symbol(Ts&&... operands)
+      : std::string {std::forward<decltype(operands)>(operands)...}
     {}
 
     operator std::string() const

@@ -43,15 +43,15 @@ namespace meevax::kernel
     template <typename... Ts>
     decltype(auto) export_(Ts&&... operands)
     {
-      return static_cast<Environment&>(*this).export_(FORWARD(operands)...);
+      return static_cast<Environment&>(*this).export_(std::forward<decltype(operands)>(operands)...);
     }
 
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const object& key, Ts&&... args)
+    decltype(auto) define(const object& key, Ts&&... operands)
     {
-      auto iter {export_(key, FORWARD(args)...)};
-      // interaction_environment().push(list(key, std::forward<Ts>(args)...));
+      auto iter {export_(key, std::forward<decltype(operands)>(operands)...)};
+      // interaction_environment().push(list(key, std::forward<decltype(operands)>(operands)...));
       interaction_environment().push(list(iter->first, iter->second));
       std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
       return interaction_environment(); // temporary
@@ -265,19 +265,19 @@ namespace meevax::kernel
           static const error e {"unit is not appliciable"};
           throw e;
         }
-        else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure operands . S) E (APPLY . C) D
         {
           d.push(cddr(s), e, cdr(c));
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<native>()) // (native args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<native>()) // (native operands . S) E (APPLY . C) D => (result . S) E C D
         {
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
-        else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
           e = cadr(callee);
@@ -297,18 +297,18 @@ namespace meevax::kernel
         {
           throw evaluation_error {"unit is not appliciable"};
         }
-        else if (callee.is<closure>()) // (closure args . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure operands . S) E (APPLY . C) D
         {
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<native>()) // (native args . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<native>()) // (native operands . S) E (APPLY . C) D => (result . S) E C D
         {
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
-        else if (callee.is<continuation>()) // (continuation args . S) E (APPLY . C) D
+        else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
           e = cadr(callee);
@@ -401,8 +401,8 @@ namespace meevax::kernel
 
     public:
       template <typename... Ts>
-      de_bruijn_index(Ts&&... xs)
-        : object {locate(std::forward<Ts>(xs)...)}
+      de_bruijn_index(Ts&&... operands)
+        : object {locate(std::forward<decltype(operands)>(operands)...)}
       {}
 
       object locate(const object& variable,

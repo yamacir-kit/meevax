@@ -12,8 +12,8 @@ namespace meevax::visual
     : public std::shared_ptr<cairo_t> // TODO UNIQUE_PTR
   {
     template <typename... Ts>
-    explicit context(Ts&&... xs)
-      : std::shared_ptr<cairo_t> {cairo_create(std::forward<Ts>(xs)...), cairo_destroy}
+    explicit context(Ts&&... operands)
+      : std::shared_ptr<cairo_t> {cairo_create(std::forward<decltype(operands)>(operands)...), cairo_destroy}
     {}
 
     operator element_type*() const noexcept
@@ -23,9 +23,9 @@ namespace meevax::visual
 
     #define VISUAL_CONTEXT_OPERATOR(NAME)                                      \
     template <typename... Ts>                                                  \
-    decltype(auto) NAME(Ts&&... xs) noexcept                                   \
+    decltype(auto) NAME(Ts&&... operands) noexcept                             \
     {                                                                          \
-      return cairo_##NAME(*this, std::forward<Ts>(xs)...);                     \
+      return cairo_##NAME(*this, std::forward<decltype(operands)>(operands)...); \
     }
 
     VISUAL_CONTEXT_OPERATOR(arc)

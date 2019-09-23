@@ -4,22 +4,25 @@ extern "C" namespace meevax::pair
 {
   NATIVE(car)
   {
-    return kernel::caar(args);
+    return kernel::caar(operands);
   }
 
   NATIVE(cdr)
   {
-    return kernel::cdar(args);
+    return kernel::cdar(operands);
   }
 
   NATIVE(cons)
   {
-    return kernel::cons(kernel::car(args), kernel::cadr(args));
+    return kernel::cons(
+             kernel::car(operands),
+             kernel::cadr(operands)
+           );
   }
 
   NATIVE(pair_)
   {
-    for (const auto& each : args)
+    for (const auto& each : operands)
     {
       if (not each or not each.is<kernel::pair>())
       {

@@ -153,14 +153,16 @@ namespace meevax::kernel
 
   public:
     template <typename... Ts>
-    constexpr reader(Ts&&... args)
-      : input_file {std::forward<Ts>(args)...}
+    constexpr reader(Ts&&... operands)
+      : input_file {std::forward<decltype(operands)>(operands)...}
     {}
 
     template <typename... Ts>
-    constexpr decltype(auto) intern(Ts&&... args)
+    constexpr decltype(auto) intern(Ts&&... operands)
     {
-      return static_cast<Environment&>(*this).intern(std::forward<Ts>(args)...);
+      return static_cast<Environment&>(*this).intern(
+               std::forward<decltype(operands)>(operands)...
+             );
     }
 
     decltype(auto) ready() const noexcept

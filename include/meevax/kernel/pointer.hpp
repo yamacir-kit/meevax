@@ -73,10 +73,10 @@ namespace meevax::kernel
       , public virtual T
     {
       template <typename... Ts>
-      explicit constexpr binder(Ts&&... args)
+      explicit constexpr binder(Ts&&... operands)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<T, Bound>::value, T, Bound
-          >::type {std::forward<Ts>(args)...}
+          >::type {std::forward<decltype(operands)>(operands)...}
       {}
 
       explicit constexpr binder(Bound&& bound)
@@ -138,8 +138,8 @@ namespace meevax::kernel
 
   public:
     template <typename... Ts>
-    constexpr pointer(Ts&&... args)
-      : std::shared_ptr<T> {std::forward<Ts>(args)...}
+    constexpr pointer(Ts&&... operands)
+      : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
     {}
 
     /**
@@ -149,10 +149,10 @@ namespace meevax::kernel
      * correctly).
      */
     template <typename Bound, typename... Ts>
-    static constexpr pointer<T> bind(Ts&&... args)
+    static constexpr pointer<T> bind(Ts&&... operands)
     {
       using binding = binder<Bound>;
-      return std::make_shared<binding>(std::forward<Ts>(args)...);
+      return std::make_shared<binding>(std::forward<decltype(operands)>(operands)...);
     }
 
     decltype(auto) dereference() const
