@@ -81,36 +81,6 @@ R"##(
 (define cdar (lambda (x) (cdr (car x))))
 (define cddr (lambda (x) (cdr (cdr x))))
 
-(define caaar (lambda (x) (car (car (car x)))))
-(define caadr (lambda (x) (car (car (cdr x)))))
-(define cadar (lambda (x) (car (cdr (car x)))))
-(define caddr (lambda (x) (car (cdr (cdr x)))))
-(define cdaar (lambda (x) (cdr (car (car x)))))
-(define cdadr (lambda (x) (cdr (car (cdr x)))))
-(define cddar (lambda (x) (cdr (cdr (car x)))))
-(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
-
-(define caaaar (lambda (x) (car (car (car (car x))))))
-(define caaadr (lambda (x) (car (car (car (cdr x))))))
-(define caadar (lambda (x) (car (car (cdr (car x))))))
-(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
-(define cadaar (lambda (x) (car (cdr (car (car x))))))
-(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
-(define caddar (lambda (x) (car (cdr (cdr (car x))))))
-(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
-(define cdaaar (lambda (x) (cdr (car (car (car x))))))
-(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
-(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
-(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
-(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
-(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
-(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
-(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
-
-(define xcons
-  (lambda (x y)
-    (cons y x)))
-
 (define null?
   (lambda (x)
     (eq? x '())))
@@ -393,10 +363,12 @@ R"##(
 
 (define nan?
   (lambda (z)
-    (if (complex? z)
-        (or (= (real-part z) +nan.0)
-            (= (imag-part z) +nan.0))
-        (= z +nan.0))))
+    #false
+    ; (if (complex? z)
+    ;     (or (= (real-part z) +nan.0)
+    ;         (= (imag-part z) +nan.0))
+    ;     (= z +nan.0))
+    ))
 
 (define zero?
   (lambda (n)
@@ -612,7 +584,45 @@ R"##(
 ;  6.4 Standard Pairs and Lists Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-; TODO list?
+(define list? ;                                                         (srfi 1)
+  (lambda (x)
+    (let rec ((x x)
+              (lag x))
+      (if (pair? x)
+          (let ((x (cdr x)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (lag (cdr lag)))
+                  (and (not (eq? x lag))
+                       (rec x lag)))
+                (null? x)))
+          (null? x)))))
+
+(define caaar (lambda (x) (car (car (car x)))))
+(define caadr (lambda (x) (car (car (cdr x)))))
+(define cadar (lambda (x) (car (cdr (car x)))))
+(define caddr (lambda (x) (car (cdr (cdr x)))))
+(define cdaar (lambda (x) (cdr (car (car x)))))
+(define cdadr (lambda (x) (cdr (car (cdr x)))))
+(define cddar (lambda (x) (cdr (cdr (car x)))))
+(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
+
+(define caaaar (lambda (x) (car (car (car (car x))))))
+(define caaadr (lambda (x) (car (car (car (cdr x))))))
+(define caadar (lambda (x) (car (car (cdr (car x))))))
+(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
+(define cadaar (lambda (x) (car (cdr (car (car x))))))
+(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
+(define caddar (lambda (x) (car (cdr (cdr (car x))))))
+(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
+(define cdaaar (lambda (x) (cdr (car (car (car x))))))
+(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
+(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
+(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
+(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
+(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
+(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
+(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
 
 (define make-list
   (lambda (k . x)
@@ -1051,7 +1061,15 @@ R"##(
 ; TODO jiffies-per-second
 
 ; ------------------------------------------------------------------------------
-;  6.14 Standard System Interface Library
+;  SRFI 1 Extended Pairs and Lists Library
+; ------------------------------------------------------------------------------
+
+(define xcons
+  (lambda (x y)
+    (cons y x)))
+
+; ------------------------------------------------------------------------------
+;  Miscellaneous
 ; ------------------------------------------------------------------------------
 
 (define swap!
