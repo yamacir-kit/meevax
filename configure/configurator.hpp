@@ -25,10 +25,15 @@ namespace meevax::kernel
 
       static inline const auto semantic {"datum<string>(${PROJECT_VERSION})"};
 
-      explicit version()
-        : object {list(major, minor, patch)}
+      template <typename... Ts>
+      explicit constexpr version(Ts&&... operands)
+        : object {list(std::forward<decltype(operands)>(operands)...)}
       {}
-    } version {};
+    } version {
+      version::major,
+      version::minor,
+      version::patch,
+    };
 
     static inline const struct build
     {
