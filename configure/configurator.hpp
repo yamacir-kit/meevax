@@ -58,13 +58,20 @@ namespace meevax::kernel
     static inline auto verbose {false_object};
 
   public:
+    template <typename... Ts>
+    decltype(auto) evaluate(Ts&&... operands)
+    {
+      return static_cast<Environment&>(*this).evaluate(std::forward<decltype(operands)>(operands)...);
+    }
+
+  public:
     template <typename T>
     using dispatcher = std::unordered_map<
                          typename std::decay<T>::type,
                          std::function<NATIVE()>
                        >;
 
-    static inline const dispatcher<char> short_options_requires_no_operands
+    const dispatcher<char> short_options_requires_no_operands
     {
       std::make_pair('h', [&](const auto&)
       {
@@ -81,17 +88,29 @@ namespace meevax::kernel
       }),
     };
 
-    static inline const dispatcher<char> short_options_requires_operands
+    const dispatcher<char> short_options_requires_operands
     {
     };
 
-    static inline const dispatcher<std::string> long_options_requires_no_operands
+    const dispatcher<char> short_options_requires_evaluated_operands
+    {
+    };
+
+    const dispatcher<std::string> long_options_requires_no_operands
     {
       std::make_pair("help", [&](const auto&)
       {
-        std::cout << "; HELP!" << std::endl;
+        std::cout << "; rather, help me." << std::endl;
         std::exit(boost::exit_success);
         return undefined; // dummy for return type deduction
+      }),
+
+      std::make_pair("verbose", [&](const auto&) mutable
+      {
+        std::cerr << "; configure\t; " << verbose << " => ";
+        verbose = true_object;
+        std::cerr << verbose << std::endl;
+        return verbose;
       }),
 
       std::make_pair("version", [&](const auto&)
@@ -110,26 +129,31 @@ namespace meevax::kernel
       }),
     };
 
-    static inline const dispatcher<std::string> long_options_requires_operands
+    const dispatcher<std::string> long_options_requires_operands
     {
-      std::make_pair("echo", [&](const auto& operands)
+      std::make_pair("echo", [](const auto& operands)
       {
         std::cout << operands << std::endl;
         return undefined;
       }),
 
-      std::make_pair("verbose", [&](const auto& operands)
+      std::make_pair("verbose", [&](const auto& operands) mutable
       {
-        // TODO Typecheck
-        // TODO Accumulate operands with std::logical_and
-        return verbose = car(operands);
+        std::cerr << "; configure\t; " << verbose << " => ";
+        verbose = operands;
+        std::cerr << verbose << std::endl;
+        return verbose;
       }),
+    };
 
-      std::make_pair("debug-long-option", [&](const auto& operands)
+    // TODO
+    const dispatcher<std::string> long_options_requires_evaluated_operands
+    {
+      std::make_pair("evaluate", [&](const auto& operands)
       {
-        std::cout << car(operands) << std::endl;
-        return undefined;
-      })
+        std::cout << operands << std::endl;
+        return operands;
+      }),
     };
 
     template <typename... Ts>
@@ -217,13 +241,16 @@ namespace meevax::kernel
 
             if (group.length(2) != 0)
             {
-              std::cerr << ";\t\t; operand(s) " << group.str(3) << std::endl;
+              std::cerr << ";\t\t; operand(s) \"" << group.str(3) << "\" => ";
+              const auto operands {static_cast<Environment&>(*this).read(group.str(3))};
+              std::cerr << operands << std::endl;
+              return std::invoke(std::get<1>(*callee_requires_operands), operands);
             }
             else if (std::smatch next_group {};
                      std::next(global) != std::end(args)
                      and not std::regex_match(*std::next(global), next_group, pattern))
             {
-              std::cerr << ";\t\t; operand(s) " << *std::next(global) << " => ";
+              std::cerr << ";\t\t; operand(s) \"" << *std::next(global) << "\" => ";
               const auto operands {static_cast<Environment&>(*this).read(*++global)};
               std::cerr << operands << std::endl;
               return std::invoke(std::get<1>(*callee_requires_operands), operands);
