@@ -11,9 +11,7 @@ namespace meevax::system
   const object undefined {make<exception>("undefined")};
   const object unspecified {make<exception>("unspecified")};
 
-  // const object true_object {make<std::true_type>()};
   const object true_object {make<boolean>(true)};
-  // const object false_object {make<std::false_type>()};
   const object false_object {make<boolean>(false)};
 
   const object end_of_file {make<character>("end-of-file")};

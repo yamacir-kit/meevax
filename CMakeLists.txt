@@ -28,6 +28,7 @@ set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_CXX_EXTENSIONS OFF)
+# set(CMAKE_CXX_STANDARD 17) # CMake <= 3.8.2
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -58,7 +59,6 @@ set(${PROJECT_NAME}_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 file(GLOB
   ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/standard/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/library/*.cpp
   )
 
@@ -96,15 +96,24 @@ link_directories(
   )
 
 # ==============================================================
-#   MEEVAX CORE LITERAL
+#   MEEVAX CORE
 # ==============================================================
-add_library(${PROJECT_NAME}-literal SHARED
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/literal.cpp
+add_library(${PROJECT_NAME}-core SHARED
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/core.cpp
   )
 
-set_target_properties(${PROJECT_NAME}-literal PROPERTIES
+set_target_properties(${PROJECT_NAME}-core PROPERTIES
   VERSION   ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+
+set(${PROJECT_NAME}_DEPENDENCIES
+  ${PROJECT_NAME}-core;
+  dl;
+  gmp;
+  m;
+  mpfr;
+  stdc++fs
   )
 
 # ==============================================================
@@ -127,11 +136,12 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 
   target_link_libraries(${TARGET_NAME}
     ${Boost_LIBRARIES}
-    ${PROJECT_NAME}-literal
-    dl
-    gmp
-    mpfr
-    stdc++fs
+    ${${PROJECT_NAME}_DEPENDENCIES}
+    # ${PROJECT_NAME}-core
+    # dl
+    # gmp
+    # mpfr
+    # stdc++fs
     )
 endforeach()
 
@@ -144,11 +154,12 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
-  ${PROJECT_NAME}-literal
-  dl
-  gmp
-  mpfr
-  stdc++fs
+  ${${PROJECT_NAME}_DEPENDENCIES}
+  # ${PROJECT_NAME}-core
+  # dl
+  # gmp
+  # mpfr
+  # stdc++fs
   )
 
 # ==============================================================================

@@ -11,7 +11,7 @@
     <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Build Status"/>
   </a>
 
-  *HEAD Version 0.1.780*
+  *HEAD Version 0.1.781*
 </div>
 
 <br/>
