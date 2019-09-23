@@ -16,31 +16,26 @@ namespace meevax::kernel
   template <typename Environment>
   struct configurator
   {
-    static inline const auto version_major {make<real>(${PROJECT_VERSION_MAJOR})};
-    static inline const auto version_minor {make<real>(${PROJECT_VERSION_MINOR})};
-    static inline const auto version_patch {make<real>(${PROJECT_VERSION_PATCH})};
+    static inline const struct version
+      : public object
+    {
+      static inline const auto major {make<real>(${PROJECT_VERSION_MAJOR})};
+      static inline const auto minor {make<real>(${PROJECT_VERSION_MINOR})};
+      static inline const auto patch {make<real>(${PROJECT_VERSION_PATCH})};
 
-    static inline const auto version {list(
-      version_major, version_minor, version_patch
-    )};
+      static inline const auto semantic {"datum<string>(${PROJECT_VERSION})"};
 
-    // static inline const struct version_container
-    //   : public object
-    // {
-    //   inline const auto major {make<real>(${PROJECT_VERSION_MAJOR})};
-    //   inline const auto minor {make<real>(${PROJECT_VERSION_MINOR})};
-    //   inline const auto patch {make<real>(${PROJECT_VERSION_PATCH})};
-    //
-    //   explicit version_container()
-    //     : object {list(major, minor, patch)}
-    //   {}
-    // } version {};
+      explicit version()
+        : object {list(major, minor, patch)}
+      {}
+    } version {};
 
-    // static inline const std::string build_date {"${${PROJECT_NAME}_BUILD_DATE}"};
-    static inline const auto build_date {datum<string>("${${PROJECT_NAME}_BUILD_DATE}")};
-
-    static inline const std::string build_hash {"${${PROJECT_NAME}_BUILD_HASH}"};
-    static inline const std::string build_type {"${CMAKE_BUILD_TYPE}"};
+    static inline const struct build
+    {
+      static inline const auto date {datum<string>("${${PROJECT_NAME}_BUILD_DATE}")};
+      static inline const auto hash {datum<string>("${${PROJECT_NAME}_BUILD_HASH}")};
+      static inline const auto type {datum<string>("${CMAKE_BUILD_TYPE}")};
+    } build {};
 
     static inline const auto install_prefix {make<path>("${CMAKE_INSTALL_PREFIX}")};
 
@@ -88,12 +83,12 @@ namespace meevax::kernel
 
       std::make_pair("version", [&](const auto&)
       {
-        std::cout << "; Meevax Lisp System " << version_major << " - Revision " << version_minor << " Patch " << version_patch << std::endl;
+        std::cout << "; Meevax Lisp System " << version.major << " - Revision " << version.minor << " Patch " << version.patch << std::endl;
         std::cout << ";" << std::endl;
         std::cout << "; version   \t; " << version    << std::endl;
-        std::cout << "; build-date\t; " << build_date << std::endl;
-        std::cout << "; build-hash\t; " << build_hash << std::endl;
-        std::cout << "; build-type\t; " << build_type << std::endl;
+        std::cout << "; build-date\t; " << build.date << std::endl;
+        std::cout << "; build-hash\t; " << build.hash << std::endl;
+        std::cout << "; build-type\t; " << build.type << std::endl;
         std::cout << ";" << std::endl;
         std::cout << "; install-prefix\t; " << install_prefix << std::endl;
 
