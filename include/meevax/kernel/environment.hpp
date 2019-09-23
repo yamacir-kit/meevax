@@ -244,7 +244,7 @@ namespace meevax::kernel
         d.push(s, e, c);
         s = e = c = unit;
 
-        for (auto e {read(stream)}; e != end_of_file; e = read(stream))
+        for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
         {
           evaluate(e);
         }
@@ -566,7 +566,7 @@ namespace meevax::kernel
 
     std::stringstream stream {code};
 
-    for (auto e {read(stream)}; e != end_of_file; e = read(stream))
+    for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
     {
       std::cerr << "\n"
                 << "; initialize\t; " << e << std::endl;

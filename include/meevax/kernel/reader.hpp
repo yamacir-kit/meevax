@@ -305,8 +305,7 @@ namespace meevax::kernel
         }
       }
 
-      // return make<character>("end-of-file");
-      return end_of_file;
+      return characters.at("end-of-file");
     }
 
     object discriminate(std::istream& stream)
@@ -321,16 +320,11 @@ namespace meevax::kernel
         read(stream);
         return true_object;
 
+      /*
+       * Read-time-evaluation #( ... )
+       */
       case '(':
         return static_cast<Environment&>(*this).evaluate(read(stream));
-        // {
-        //   auto environment {static_cast<Environment&>(*this)};
-        //
-        //   auto expression {read(stream)};
-        //   auto executable {environment.compile(expression)};
-        //
-        //   return environment.execute(executable);
-        // }
 
       case '\\':
         {
@@ -343,6 +337,7 @@ namespace meevax::kernel
             name.push_back(stream.get());
           }
 
+          // TODO Provide datum<character>(name)?
           if (auto iter {characters.find(name)}; iter != std::end(characters))
           {
             return iter->second;

@@ -14,9 +14,7 @@ namespace meevax::kernel
   const object true_object {make<boolean>(true)};
   const object false_object {make<boolean>(false)};
 
-  const object end_of_file {make<character>(std::to_string(EOF), "end-of-file")};
-
-  std::unordered_map<std::string, object> characters
+  const std::unordered_map<std::string, object> characters
   {
     {"end-of-file", make<character>(std::to_string(EOF), "end-of-file")},
 

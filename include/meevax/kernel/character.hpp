@@ -40,9 +40,8 @@ namespace meevax::kernel
   //   port << car(operands).as<std::string>();
   // }
 
-  extern "C" const object end_of_file;
-
-  extern "C" std::unordered_map<std::string, object> characters;
+  // TODO Provide user-defined character-name?
+  extern "C" const std::unordered_map<std::string, object> characters;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
