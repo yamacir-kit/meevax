@@ -128,6 +128,7 @@ namespace meevax::kernel
                                                                                \
   DEFINE_EXCEPTION_WRITER(SECTION##_##CATEGORY##_about_##ABOUT, #SECTION "-" #CATEGORY "-about-" #ABOUT)
 
+  DEFINE_EXCEPTION_ABOUT(character, reader, error)
   DEFINE_EXCEPTION_ABOUT(pair, reader, error)
   DEFINE_EXCEPTION_ABOUT(parentheses, reader, error)
 

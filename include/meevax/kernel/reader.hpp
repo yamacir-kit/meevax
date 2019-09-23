@@ -313,13 +313,13 @@ namespace meevax::kernel
     {
       switch (stream.peek())
       {
-      case 't':
-        read(stream);
-        return true_object;
-
       case 'f':
         read(stream);
         return false_object;
+
+      case 't':
+        read(stream);
+        return true_object;
 
       case '(':
         return static_cast<Environment&>(*this).evaluate(read(stream));
@@ -331,6 +331,27 @@ namespace meevax::kernel
         //
         //   return environment.execute(executable);
         // }
+
+      case '\\':
+        {
+          stream.get();
+
+          std::string name {};
+
+          for (auto c {stream.peek()}; not is_delimiter(c); c = stream.peek())
+          {
+            name.push_back(stream.get());
+          }
+
+          if (auto iter {characters.find(name)}; iter != std::end(characters))
+          {
+            return iter->second;
+          }
+          else
+          {
+            throw reader_error_about_character {name, " is unknown character-name"};
+          }
+        }
 
       case ';':
         stream.ignore(1);
