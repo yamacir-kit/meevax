@@ -40,7 +40,6 @@ namespace meevax::kernel
   //   port << car(operands).as<std::string>();
   // }
 
-  // TODO Provide user-defined character-name?
   extern "C" const std::unordered_map<std::string, object> characters;
 } // namespace meevax::kernel
 

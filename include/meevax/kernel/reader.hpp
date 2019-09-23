@@ -337,10 +337,24 @@ namespace meevax::kernel
             name.push_back(stream.get());
           }
 
+          // TODO Provide user-defined character-name?
+          static const std::unordered_map<std::string, std::string> alias
+          {
+            {"alarm", "bell"}, // for R7RS
+            {"newline", "line-feed"}, // for R7RS
+            {"return", "carriage-return"}, // for R7RS
+            {"tab", "horizontal-tabulation"}, // for R7RS
+          };
+
+          if (auto iter {alias.find(name)}; iter != std::end(alias))
+          {
+            name = std::get<1>(*iter);
+          }
+
           // TODO Provide datum<character>(name)?
           if (auto iter {characters.find(name)}; iter != std::end(characters))
           {
-            return iter->second;
+            return std::get<1>(*iter);
           }
           else
           {
