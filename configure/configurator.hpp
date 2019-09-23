@@ -116,6 +116,12 @@ namespace meevax::kernel
         // TODO Accumulate operands with std::logical_and
         return verbose = car(operands);
       }),
+
+      std::make_pair("test-boolean-argumented-long-option", [&](const auto& operands)
+      {
+        std::cout << car(operands) << std::endl;
+        return undefined;
+      })
     };
 
     template <typename... Ts>
