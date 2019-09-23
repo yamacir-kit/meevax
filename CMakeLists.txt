@@ -75,7 +75,7 @@ message("${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_COMMA_SEPARATED_STRING}")
 if(EXISTS ${${PROJECT_NAME}_CONFIGURE_DIR}/configurator.hpp)
   configure_file(
     ${${PROJECT_NAME}_CONFIGURE_DIR}/configurator.hpp
-    ${${PROJECT_NAME}_INCLUDE_DIR}/meevax/system/configurator.hpp
+    ${${PROJECT_NAME}_INCLUDE_DIR}/meevax/kernel/configurator.hpp
     )
 endif()
 
@@ -96,19 +96,19 @@ link_directories(
   )
 
 # ==============================================================
-#   MEEVAX CORE
+#   MEEVAX KERNEL
 # ==============================================================
-add_library(${PROJECT_NAME}-core SHARED
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/core.cpp
+add_library(${PROJECT_NAME}-kernel SHARED
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel.cpp
   )
 
-set_target_properties(${PROJECT_NAME}-core PROPERTIES
+set_target_properties(${PROJECT_NAME}-kernel PROPERTIES
   VERSION   ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
   )
 
 set(${PROJECT_NAME}_DEPENDENCIES
-  ${PROJECT_NAME}-core;
+  ${PROJECT_NAME}-kernel;
   dl;
   gmp;
   m;
@@ -137,7 +137,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   target_link_libraries(${TARGET_NAME}
     ${Boost_LIBRARIES}
     ${${PROJECT_NAME}_DEPENDENCIES}
-    # ${PROJECT_NAME}-core
+    # ${PROJECT_NAME}-kernel
     # dl
     # gmp
     # mpfr
@@ -155,7 +155,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${${PROJECT_NAME}_DEPENDENCIES}
-  # ${PROJECT_NAME}-core
+  # ${PROJECT_NAME}-kernel
   # dl
   # gmp
   # mpfr

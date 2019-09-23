@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
-#define INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct symbol
     : public std::string
@@ -35,7 +35,7 @@ namespace meevax::system
       return os << attribute::normal << static_cast<const std::string&>(symbol);
     }
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 

@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_PATH_HPP
-#define INCLUDED_MEEVAX_SYSTEM_PATH_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_PATH_HPP
+#define INCLUDED_MEEVAX_KERNEL_PATH_HPP
 
 #include <experimental/filesystem>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct path
     : public std::experimental::filesystem::path
@@ -25,7 +25,7 @@ namespace meevax::system
               << highlight::syntax << ")"
               << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_PATH_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_PATH_HPP
 

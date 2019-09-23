@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
-#define INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
+#define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <cassert>
 #include <memory> // std::shared_ptr
@@ -10,11 +10,11 @@
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 
-#include <meevax/system/writer.hpp>
+#include <meevax/kernel/writer.hpp>
 
 #include <meevax/utility/demangle.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   template <typename T>
   struct facade
@@ -34,7 +34,7 @@ namespace meevax::system
       else throw std::logic_error
       {
         "This is a fatal error for Meevax core language hackers. "
-        "The concept CopyConstructible is required for the base type of Meevax::system::pointer."
+        "The concept CopyConstructible is required for the base type of Meevax::kernel::pointer."
       };
     }
 
@@ -101,7 +101,7 @@ namespace meevax::system
         else throw std::logic_error
         {
           "This is a fatal error for Meevax library developers. "
-          "The bound type of meevax::system::pointer is required the concept CopyConstructible."
+          "The bound type of meevax::kernel::pointer is required the concept CopyConstructible."
         };
       }
 
@@ -167,7 +167,7 @@ namespace meevax::system
       else throw std::logic_error
       {
         "This is a fatal error that should be reported to Meevax core language developers (this error only occurs in debug builds). "
-        "meevax::system::pointer dererefences nullptr."
+        "meevax::kernel::pointer dererefences nullptr."
       };
     #endif
     }
@@ -223,15 +223,15 @@ namespace meevax::system
   {
     return write(object, os);
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
 namespace std
 {
   template <typename T>
-  class hash<meevax::system::pointer<T>>
+  class hash<meevax::kernel::pointer<T>>
     : public hash<std::shared_ptr<T>>
   {};
 }
 
-#endif // INCLUDED_MEEVAX_SYSTEM_POINTER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 

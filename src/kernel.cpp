@@ -1,9 +1,9 @@
-#include <meevax/system/boolean.hpp>
-#include <meevax/system/character.hpp>
-#include <meevax/system/exception.hpp>
-#include <meevax/system/pair.hpp>
+#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/pair.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   const object unit {nullptr};
 
@@ -155,6 +155,6 @@ namespace meevax::system
   //   {"delete",                    make<character>(u8"\u007F")},
   // }; // characters
 
-} // namespace meevax::system
+} // namespace meevax::kernel
 
 

@@ -1,17 +1,17 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_READER_HPP
-#define INCLUDED_MEEVAX_SYSTEM_READER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
+#define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
 #include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
 
-#include <meevax/system/boolean.hpp>
-#include <meevax/system/exception.hpp>
-#include <meevax/system/file.hpp>
-#include <meevax/system/numerical.hpp>
-#include <meevax/system/string.hpp>
-#include <meevax/system/symbol.hpp>
+#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/file.hpp>
+#include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/string.hpp>
+#include <meevax/kernel/symbol.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   inline namespace lexical_structure
   {
@@ -341,7 +341,7 @@ namespace meevax::system
       }
     }
   };
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_READER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_READER_HPP
 

@@ -1,13 +1,13 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_SYNTAX_HPP
-#define INCLUDED_MEEVAX_SYSTEM_SYNTAX_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
 #include <functional> // std::function
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
 #define SYNTAX(NAME) object NAME(const object&, const object&, const object&, bool)
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct syntax
     : public std::function<SYNTAX()>
@@ -31,7 +31,7 @@ namespace meevax::system
               << highlight::syntax << ")"
               << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_SYNTAX_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 

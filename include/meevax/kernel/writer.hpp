@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_WRITER_HPP
-#define INCLUDED_MEEVAX_SYSTEM_WRITER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
+#define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
 /*
  * This header is responsible for including <ostream> and <string>.
@@ -8,7 +8,7 @@
 #include <ostream>
 #include <string>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   template <typename OutputStream, typename... Objects>
   decltype(auto) write(OutputStream&& os, Objects&&... objects)
@@ -66,9 +66,9 @@ namespace meevax::system
     constexpr auto* constructor {color::green};
     constexpr auto* simple_datum {color::cyan};
     constexpr auto* syntax {color::magenta};
-    constexpr auto* system {color::yellow};
+    constexpr auto* kernel {color::yellow};
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_WRITER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 

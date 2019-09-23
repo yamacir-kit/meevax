@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
-#define INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
+#define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
 #include <boost/preprocessor.hpp>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   #define INSTRUCTIONS \
     (APPLY) \
@@ -51,7 +51,7 @@ namespace meevax::system
 
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
   {
-    os << highlight::system;
+    os << highlight::kernel;
 
     switch (instruction.value)
     {
@@ -81,7 +81,7 @@ namespace meevax::system
   static const auto _set_local_           {make<instruction>(code::SET_LOCAL)};
   static const auto _set_local_variadic_  {make<instruction>(code::SET_LOCAL_VARIADIC)};
   static const auto _stop_                {make<instruction>(code::STOP)};
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_INSTRUCTION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 

@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CONFIGURATOR_HPP
-#define INCLUDED_MEEVAX_CONFIGURATOR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
 #include <regex>
 #include <unordered_map>
@@ -7,11 +7,11 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/system/native.hpp>
-#include <meevax/system/path.hpp>
-#include <meevax/system/reader.hpp>
+#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/path.hpp>
+#include <meevax/kernel/reader.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   template <typename Environment>
   struct configurator
@@ -242,7 +242,7 @@ namespace meevax::system
       }();
     }
   };
-} // namespace meevax
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_CONFIGURATOR_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 

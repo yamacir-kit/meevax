@@ -1,20 +1,20 @@
-#include <meevax/system/native.hpp>
-#include <meevax/system/string.hpp>
-#include <meevax/system/symbol.hpp>
+#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/string.hpp>
+#include <meevax/kernel/symbol.hpp>
 
-extern "C"
+extern "C" namespace meevax::symbol
 {
   NATIVE(symbol)
   {
     try
     {
-      return meevax::system::make<meevax::system::symbol>(
-               car(args).as<meevax::system::string>()
+      return kernel::make<kernel::symbol>(
+               car(args).as<kernel::string>()
              );
     }
     catch (...) // XXX DIRTY HACK
     {
-      return meevax::system::make<meevax::system::symbol>();
+      return kernel::make<kernel::symbol>();
     }
   }
 
@@ -22,13 +22,13 @@ extern "C"
   {
     for (const auto& each : args)
     {
-      if (not each or not each.is<meevax::system::pair>())
+      if (not each or not each.is<kernel::pair>())
       {
-        return meevax::system::false_object;
+        return kernel::false_object;
       }
     }
 
-    return meevax::system::true_object;
+    return kernel::true_object;
   }
 } // extern "C"
 

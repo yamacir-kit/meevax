@@ -1,15 +1,15 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_NATIVE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_NATIVE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_NATIVE_HPP
+#define INCLUDED_MEEVAX_KERNEL_NATIVE_HPP
 
 #include <functional> // std::funstion
 
-#include <meevax/system/list.hpp>
+#include <meevax/kernel/list.hpp>
 
 // TODO Rename args to operands
 #define NATIVE(NAME) \
-  meevax::system::object NAME([[maybe_unused]] const meevax::system::iterator& args)
+  meevax::kernel::object NAME([[maybe_unused]] const meevax::kernel::iterator& args)
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct native
     : public std::function<NATIVE()>
@@ -34,7 +34,7 @@ namespace meevax::system
               << highlight::syntax << ")"
               << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_NATIVE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_NATIVE_HPP
 

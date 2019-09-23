@@ -1,14 +1,14 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
+#define INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 
-#include <meevax/system/closure.hpp>
-#include <meevax/system/continuation.hpp>
-#include <meevax/system/exception.hpp>
-#include <meevax/system/instruction.hpp>
-#include <meevax/system/native.hpp>
-#include <meevax/system/stack.hpp>
-#include <meevax/system/symbol.hpp> // object::is<symbol>()
-#include <meevax/system/syntax.hpp>
+#include <meevax/kernel/closure.hpp>
+#include <meevax/kernel/continuation.hpp>
+#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/instruction.hpp>
+#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/stack.hpp>
+#include <meevax/kernel/symbol.hpp> // object::is<symbol>()
+#include <meevax/kernel/syntax.hpp>
 
 inline namespace debug
 {
@@ -23,7 +23,7 @@ inline namespace debug
   #define NEST_OUT --depth, TRACE("compile") << ")" << std::endl
 }
 
-namespace meevax::system
+namespace meevax::kernel
 {
   template <typename Environment>
   class machine // Simple SECD machine.
@@ -775,7 +775,7 @@ namespace meevax::system
       }
     }
   };
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_MACHINE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
 

@@ -1,34 +1,34 @@
 #include <boost/cstdlib.hpp> // boost::exit_success
 
-#include <meevax/system/boolean.hpp>
-#include <meevax/system/native.hpp>
-#include <meevax/system/numerical.hpp>
-#include <meevax/system/string.hpp>
+#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/string.hpp>
 
 extern "C" namespace meevax::experimental
 {
   NATIVE(emergency_exit)
   {
-    if (not args or not system::car(args).is<system::real>())
+    if (not args or not kernel::car(args).is<kernel::real>())
     {
       std::exit(boost::exit_success);
     }
     else
     {
       // XXX DIRTY HACK
-      std::exit(static_cast<int>(system::car(args).as<system::real>()));
+      std::exit(static_cast<int>(kernel::car(args).as<kernel::real>()));
     }
 
-    return system::unspecified;
+    return kernel::unspecified;
   }
 
   NATIVE(display)
   {
-    for (const system::object& each : args)
+    for (const kernel::object& each : args)
     {
-      if (each.is<system::string>()) // XXX DIRTY HACK
+      if (each.is<kernel::string>()) // XXX DIRTY HACK
       {
-        std::cout << static_cast<std::string>(each.as<system::string>());
+        std::cout << static_cast<std::string>(each.as<kernel::string>());
       }
       else
       {
@@ -36,7 +36,7 @@ extern "C" namespace meevax::experimental
       }
     }
 
-    return system::unspecified;
+    return kernel::unspecified;
   }
 } // extern "C"
 

@@ -1,13 +1,13 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_FILE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_FILE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_FILE_HPP
+#define INCLUDED_MEEVAX_KERNEL_FILE_HPP
 
 #include <fstream>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
 // TODO ファイルパスを std::string からランタイムストリングかパス型へ変更
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct file
     : public std::fstream
@@ -95,7 +95,7 @@ namespace meevax::system
 
     return os << ")";
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_FILE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_FILE_HPP
 

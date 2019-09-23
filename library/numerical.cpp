@@ -1,8 +1,8 @@
 #include <numeric>
 
-#include <meevax/system/boolean.hpp>
-#include <meevax/system/native.hpp>
-#include <meevax/system/numerical.hpp>
+#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/numerical.hpp>
 
 extern "C" namespace meevax::numerical
 {
@@ -10,7 +10,7 @@ extern "C" namespace meevax::numerical
   {
     return std::accumulate(
              std::begin(args), std::end(args),
-             system::make<system::real>(0),
+             kernel::make<kernel::real>(0),
              std::plus {}
            );
   }
@@ -19,18 +19,18 @@ extern "C" namespace meevax::numerical
   {
     return std::accumulate(
              std::begin(args), std::end(args),
-             system::make<system::real>(1),
+             kernel::make<kernel::real>(1),
              std::multiplies {}
            );
   }
 
   NATIVE(subtraction)
   {
-    if (system::length(args) < 2)
+    if (kernel::length(args) < 2)
     {
       return std::accumulate(
                std::begin(args), std::end(args),
-               system::make<system::real>(0),
+               kernel::make<kernel::real>(0),
                std::minus {}
              );
     }
@@ -46,11 +46,11 @@ extern "C" namespace meevax::numerical
 
   NATIVE(division)
   {
-    if (system::length(args) < 2)
+    if (kernel::length(args) < 2)
     {
       return std::accumulate(
                std::begin(args), std::end(args),
-               system::make<system::real>(1),
+               kernel::make<kernel::real>(1),
                std::divides {}
              );
     }
@@ -66,27 +66,27 @@ extern "C" namespace meevax::numerical
 
   NATIVE(less)
   {
-    return std::invoke(std::less {}, system::car(args), system::cadr(args)) ? system::true_object : system::false_object;
+    return std::invoke(std::less {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(less_equal)
   {
-    return std::invoke(std::less_equal {}, system::car(args), system::cadr(args)) ? system::true_object : system::false_object;
+    return std::invoke(std::less_equal {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(greater)
   {
-    return std::invoke(std::greater {}, system::car(args), system::cadr(args)) ? system::true_object : system::false_object;
+    return std::invoke(std::greater {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(greater_equal)
   {
-    return std::invoke(std::greater_equal {}, system::car(args), system::cadr(args)) ? system::true_object : system::false_object;
+    return std::invoke(std::greater_equal {}, kernel::car(args), kernel::cadr(args)) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(real_)
   {
-    return system::car(args).is<system::real>() ? system::true_object : system::false_object;
+    return kernel::car(args).is<kernel::real>() ? kernel::true_object : kernel::false_object;
   }
 } // extern "C"
 

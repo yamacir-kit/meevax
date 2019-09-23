@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
-#define INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
+#define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
 // #include <unordered_map>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   DERIVE(character, public, std::string)
 
@@ -17,7 +17,7 @@ namespace meevax::system
   extern "C" const object end_of_file;
 
   // extern "C" std::unordered_map<std::string, object> characters;
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_CHARACTER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 

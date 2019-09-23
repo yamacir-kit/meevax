@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
-#define INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
+#define INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   extern "C" const object true_object, false_object;
 
@@ -28,7 +28,7 @@ namespace meevax::system
   {
     return os << highlight::simple_datum << "#" << std::boolalpha << static_cast<bool>(boolean) << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_BOOLEAN_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
 

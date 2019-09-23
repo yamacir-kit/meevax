@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
-#define INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_EXCEPTION_HPP
+#define INCLUDED_MEEVAX_KERNEL_EXCEPTION_HPP
 
 #include <sstream>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
 #include <meevax/utility/requires.hpp>
 
@@ -15,10 +15,10 @@
 //    |    |    |-- reader_error_about_pair                              (about)
 //    |    |    `-- reader_error_about_parentheses                       (about)
 //    |    |-- syntax_error                                            (section)
-//    |    `-- system_error                                            (section)
+//    |    `-- kernel_error                                            (section)
 //    `-- warning                                                     (category)
 
-namespace meevax::system
+namespace meevax::kernel
 {
   template <typename Exception, typename... Ts>
   void raise(Ts&&... xs)
@@ -103,13 +103,13 @@ namespace meevax::system
   DEFINE_EXCEPTION_SECTION(evaluation, error)
   DEFINE_EXCEPTION_SECTION(reader, error)
   DEFINE_EXCEPTION_SECTION(syntax, error)
-  DEFINE_EXCEPTION_SECTION(system, error)
+  DEFINE_EXCEPTION_SECTION(kernel, error)
 
   DEFINE_EXCEPTION_SECTION(configuration, warning)
   DEFINE_EXCEPTION_SECTION(evaluation, warning)
   DEFINE_EXCEPTION_SECTION(reader, warning)
   DEFINE_EXCEPTION_SECTION(syntax, warning)
-  DEFINE_EXCEPTION_SECTION(system, warning)
+  DEFINE_EXCEPTION_SECTION(kernel, warning)
 
   #define DEFINE_EXCEPTION_ABOUT(ABOUT, SECTION, CATEGORY)                     \
   struct [[maybe_unused]] SECTION##_##CATEGORY##_about_##ABOUT                 \
@@ -133,8 +133,8 @@ namespace meevax::system
 
   DEFINE_EXCEPTION_ABOUT(assignment, syntax, error)
 
-  DEFINE_EXCEPTION_ABOUT(pair, system, error)
-} // namespace meevax::system
+  DEFINE_EXCEPTION_ABOUT(pair, kernel, error)
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_EXCEPTION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_EXCEPTION_HPP
 
