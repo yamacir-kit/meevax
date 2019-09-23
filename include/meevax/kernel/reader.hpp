@@ -345,6 +345,7 @@ namespace meevax::kernel
           // TODO Provide user-defined character-name?
           static const std::unordered_map<std::string, std::string> alias
           {
+            {" ", "space"}, // for R7RS
             {"alarm", "bell"}, // for R7RS
             {"newline", "line-feed"}, // for R7RS
             {"return", "carriage-return"}, // for R7RS
