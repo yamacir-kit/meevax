@@ -11,10 +11,10 @@ R"##(
   (linker "libmeevax-equivalence.so"))
 
 (define eq? ; address-equal?
-  (link equivalence.so "address_equal"))
+  (native equivalence.so "address_equal"))
 
 (define eqv? ; value-equal?
-  (link equivalence.so "value_equal"))
+  (native equivalence.so "value_equal"))
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Standard Numerical Library (Part 1 of 2)
@@ -26,28 +26,28 @@ R"##(
 (define = eqv?)
 
 (define <
-  (link numerical.so "less"))
+  (native numerical.so "less"))
 
 (define <=
-  (link numerical.so "less_equal"))
+  (native numerical.so "less_equal"))
 
 (define >
-  (link numerical.so "greater"))
+  (native numerical.so "greater"))
 
 (define >=
-  (link numerical.so "greater_equal"))
+  (native numerical.so "greater_equal"))
 
 (define *
-  (link numerical.so "multiplication"))
+  (native numerical.so "multiplication"))
 
 (define +
-  (link numerical.so "addition"))
+  (native numerical.so "addition"))
 
 (define -
-  (link numerical.so "subtraction"))
+  (native numerical.so "subtraction"))
 
 (define /
-  (link numerical.so "division"))
+  (native numerical.so "division"))
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Standard Boolean Library (Part 1 of 2)
@@ -65,13 +65,13 @@ R"##(
   (linker "libmeevax-pair.so"))
 
 (define pair?
-  (link pair.so "pair_"))
+  (native pair.so "pair_"))
 
 (define cons ; pair
-  (link pair.so "cons"))
+  (native pair.so "cons"))
 
-(define car (link pair.so "car"))
-(define cdr (link pair.so "cdr"))
+(define car (native pair.so "car"))
+(define cdr (native pair.so "cdr"))
 
 ; TODO set-car!
 ; TODO set-cdr!
@@ -344,22 +344,22 @@ R"##(
 
 (define complex?
   (lambda (x)
-    ; (link numerical.so "is_complex") ; unimplemented
+    ; (native numerical.so "is_complex") ; unimplemented
     #false
     ))
 
 (define real?
-  (link numerical.so "real_"))
+  (native numerical.so "real_"))
 
 (define rational?
   (lambda (x)
-    ; (link numerical.so "is_rational") ; unimplemented
+    ; (native numerical.so "is_rational") ; unimplemented
     #false
     ))
 
 (define exact-integer?
   (lambda (x)
-    ; (link numerical.so "is_exact_integer") ; unimplemented
+    ; (native numerical.so "is_exact_integer") ; unimplemented
     #false
     ))
 
@@ -721,10 +721,10 @@ R"##(
   (linker "libmeevax-symbol.so"))
 
 (define symbol ; Constructor
-  (link symbol.so "symbol"))
+  (native symbol.so "symbol"))
 
 (define symbol?
-  (link symbol.so "is_symbol"))
+  (native symbol.so "is_symbol"))
 
 (define symbol=?
   (lambda (x y . xs)
@@ -920,10 +920,10 @@ R"##(
       result)))
 
 (define input-port?
-  (link io.so "is_input_file"))
+  (native io.so "is_input_file"))
 
 (define output-port?
-  (link io.so "is_output_file"))
+  (native io.so "is_output_file"))
 
 (define port?
   (lambda (x)
@@ -945,20 +945,20 @@ R"##(
 ; TODO with-output-to-file
 
 (define open-input-file
-  (link io.so "open_input_file"))
+  (native io.so "open_input_file"))
 
 ; TODO open-binary-input-file
 
 (define open-output-file
-  (link io.so "open_output_file"))
+  (native io.so "open_output_file"))
 
 ; TODO open-binary-output-file
 
 (define close-input-port
-  (link io.so "close_input_file"))
+  (native io.so "close_input_file"))
 
 (define close-output-port
-  (link io.so "close_output_file"))
+  (native io.so "close_output_file"))
 
 (define close-port
   (lambda (x)
@@ -1005,7 +1005,7 @@ R"##(
   (linker "libmeevax-experimental.so"))
 
 (define display
-  (link experimental.so "display")
+  (native experimental.so "display")
   ; (lambda (x . option)
   ;   (let ((output-port (if (pair? option)
   ;                          (car option)
@@ -1039,7 +1039,7 @@ R"##(
 ; TODO command-line
 
 (define emergency-exit ;                                (scheme process-context)
-  (link experimental.so "emergency_exit"))
+  (native experimental.so "emergency_exit"))
 
 (define exit emergency-exit) ;                          (scheme process-context)
 

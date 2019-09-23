@@ -498,49 +498,49 @@ namespace meevax::kernel
       }
     });
 
-    define<native>("link", [&](auto&& args)
+    define<native>("native", [&](const iterator& operands)
     {
-      if (auto size {length(args)}; size < 1)
-      {
-        throw evaluation_error {
-          "procedure link expects two arguments (linker and string), but received nothing."
-        };
-      }
-      else if (size < 2)
-      {
-        throw evaluation_error {
-          "procedure link expects two arguments (linker and string), but received only one argument."
-        };
-      }
-      else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
-      {
-        throw evaluation_error {
-          "procedure dynamic-link-open expects a linker for first argument, but received ",
-          meevax::utility::demangle(linker.type()),
-          " rest ", size - 1, " argument",
-          (size < 2 ? " " : "s "),
-          "were ignored."
-        };
-      }
-      else if (const auto& name {cadr(args)}; not name.template is<string>())
-      {
-        throw evaluation_error {
-          "procedure dynamic-link-open expects a string for second argument, but received ",
-          meevax::utility::demangle(name.type()),
-          " rest ", size - 2, " argument",
-          (size < 3 ? " " : "s "),
-          "were ignored."
-        };
-      }
-      else
-      {
-        const auto& linker_ {car(args).template as<meevax::posix::linker>()};
-        const std::string& name_ {cadr(args).template as<string>()};
+      // if (auto size {length(args)}; size < 1)
+      // {
+      //   throw evaluation_error {
+      //     "procedure link expects two arguments (linker and string), but received nothing."
+      //   };
+      // }
+      // else if (size < 2)
+      // {
+      //   throw evaluation_error {
+      //     "procedure link expects two arguments (linker and string), but received only one argument."
+      //   };
+      // }
+      // else if (const auto& linker {car(args)}; not linker.template is<meevax::posix::linker>())
+      // {
+      //   throw evaluation_error {
+      //     "procedure dynamic-link-open expects a linker for first argument, but received ",
+      //     meevax::utility::demangle(linker.type()),
+      //     " rest ", size - 1, " argument",
+      //     (size < 2 ? " " : "s "),
+      //     "were ignored."
+      //   };
+      // }
+      // else if (const auto& name {cadr(args)}; not name.template is<string>())
+      // {
+      //   throw evaluation_error {
+      //     "procedure dynamic-link-open expects a string for second argument, but received ",
+      //     meevax::utility::demangle(name.type()),
+      //     " rest ", size - 2, " argument",
+      //     (size < 3 ? " " : "s "),
+      //     "were ignored."
+      //   };
+      // }
+      // else
+      // {
+        const std::string name {cadr(operands).as<string>()};
+
         return make<native>(
-                 name_,
-                 linker_.template link<typename native::signature>(name_)
-               );
-      }
+          name,
+          car(operands).as<posix::linker>().link<native::signature>(name)
+        );
+      // }
     });
 
     define<native>("read", [&](const iterator& operands)
