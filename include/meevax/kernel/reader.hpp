@@ -286,41 +286,87 @@ namespace meevax::kernel
         return discriminate(stream);
 
       default:
-        if (static_cast<Environment&>(*this).experimental == true_object)
+        switch (*head)
         {
-          switch (*head)
+        case 'A': // Assignment
+          return list(intern("set!"), read(stream), read(stream));
+
+        case 'B': // Composition
+          return list(intern("composition"), read(stream), read(stream), read(stream));
+
+        case 'C': // Swap
+          return list(intern("swap"), read(stream), read(stream), read(stream));
+
+        case 'D':
+          return list(intern("define"), read(stream), read(stream));
+
+        // case 'E':
+        // case 'F':
+        // case 'G':
+
+        case 'H': // Head
+          return list(intern("car"), read(stream));
+
+        case 'I': // Identity
+          return list(intern("identity"), read(stream));
+
+        case 'J':
+          return list(intern("call-with-current-continuation"), read(stream));
+
+        case 'K': // Konstant
+          return list(intern("konstant"), read(stream), read(stream));
+
+        // case 'L':
+        // case 'M':
+        // case 'N':
+        // case 'O':
+
+        case 'P': // Pair
+          return list(intern("cons"), read(stream), read(stream));
+
+        case 'Q': // Quote
+          return list(intern("quote"), read(stream));
+
+        // case 'R':
+
+        case 'S': // Substitution
+          return list(intern("substitution"), read(stream), read(stream), read(stream));
+
+        case 'T': // Tail
+          return list(intern("cdr"), read(stream));
+
+        // case 'U':
+        // case 'V':
+
+        case 'W':
+          return list(intern("duplicate"), read(stream), read(stream));
+
+        // case 'X':
+
+        case 'Y':
+          return list(intern("recursion"), read(stream));
+
+        // case 'Z':
+
+        default:
+          token.push_back(*head);
+
+          if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
           {
-          case 'A':
-            return list(intern("car"), read(stream));
-
-          case 'D':
-            return list(intern("cdr"), read(stream));
-
-          case 'Q':
-            return list(intern("quote"), read(stream));
-
-          default:
-            break;
-          }
-        }
-
-        token.push_back(*head);
-
-        if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
-        {
-          if (token == ".")
-          {
-            throw reader_error_about_pair {
-              "dot-notation"
-            };
-          }
-          else try // is symbol or real
-          {
-            return make<real>(token);
-          }
-          catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
-          {
-            return intern(token);
+            if (token == ".")
+            {
+              throw reader_error_about_pair {
+                "dot-notation"
+              };
+            }
+            else try // is symbol or real
+            {
+              return make<real>(token);
+            }
+            catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
+            {
+              return intern(token);
+            }
           }
         }
       }

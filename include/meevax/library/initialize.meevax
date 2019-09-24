@@ -1,7 +1,35 @@
 R"##(
 
-(define identity
+(define composition ; B
+  (lambda (x y z)
+    (x (y z))))
+
+(define swap ; C
+  (lambda (x y z)
+    ((x z) y)))
+
+(define duplicate ; W
+  (lambda (x y)
+    (x y y)))
+
+(define substitution ; S
+  (lambda (x y z)
+    ((x z) (y z))))
+
+(define identity ; I
   (lambda (x) x))
+
+(define konstant ; K
+  (lambda (x y) x))
+
+(define recursion ; Y or Z
+  (lambda (f)
+    ((lambda (g)
+       (f (lambda (x)
+            ((g g) x))))
+     (lambda (g)
+       (f (lambda (x)
+            ((g g) x)))))))
 
 ; ------------------------------------------------------------------------------
 ;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
