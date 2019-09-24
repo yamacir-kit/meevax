@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 3.5.1)
 set(MAJOR 0)
 set(MAJOR_OFFSET   0)
 
-set(MINOR 1)
-set(MINOR_OFFSET 191)
+set(MINOR 2)
+set(MINOR_OFFSET 1000)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   execute_process(
