@@ -286,6 +286,24 @@ namespace meevax::kernel
         return discriminate(stream);
 
       default:
+        if (static_cast<Environment&>(*this).experimental == true_object)
+        {
+          switch (*head)
+          {
+          case 'A':
+            return list(intern("car"), read(stream));
+
+          case 'D':
+            return list(intern("cdr"), read(stream));
+
+          case 'Q':
+            return list(intern("quote"), read(stream));
+
+          default:
+            break;
+          }
+        }
+
         token.push_back(*head);
 
         if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
