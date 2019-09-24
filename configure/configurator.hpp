@@ -11,6 +11,9 @@
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/reader.hpp>
 
+// XXX DIRTY HACK
+#include <meevax/posix/linker.hpp>
+
 namespace meevax::kernel
 {
   template <typename Environment>
@@ -128,6 +131,7 @@ namespace meevax::kernel
       std::make_pair("verbose-compiler",    ENABLE(verbose_compiler)),
       std::make_pair("verbose-define",      ENABLE(verbose_define)),
       std::make_pair("verbose-environment", ENABLE(verbose_environment)),
+      std::make_pair("verbose-linker",      ENABLE(posix::verbose_linker)),
       std::make_pair("verbose-loader",      ENABLE(verbose_loader)),
       std::make_pair("verbose-machine",     ENABLE(verbose_machine)),
       std::make_pair("verbose-reader",      ENABLE(verbose_reader)),

@@ -11,9 +11,20 @@
 
 namespace meevax::posix
 {
+  inline namespace dirty_hacks
+  {
+    kernel::object verbose_linker {kernel::false_object};
+  }
+
+  #define VERBOSE_LINKER(...)                                                  \
+  if (verbose_linker == kernel::true_object)                                   \
+  {                                                                            \
+    std::cerr << __VA_ARGS__;                                                  \
+  }
+
   /**
    * A toy dynamic-linker provides interface for "dlopen" and "dlsym".
-   */
+   **/
   class linker
   {
     /**
@@ -25,15 +36,15 @@ namespace meevax::posix
 
       void operator()(void* handle) noexcept
       {
-        std::cerr << "; linker\t; closing shared library \"" << path << "\" => ";
+        VERBOSE_LINKER("; linker\t; closing shared library \"" << path << "\" => ");
 
         if (handle && dlclose(handle))
         {
-          std::cerr << "failed to close shared library " << dlerror() << std::endl;
+          VERBOSE_LINKER("failed to close shared library " << dlerror() << std::endl);
         }
         else
         {
-          std::cerr << "succeeded" << std::endl;
+          VERBOSE_LINKER("succeeded" << std::endl);
         }
       };
     };
@@ -45,7 +56,7 @@ namespace meevax::posix
   public:
     auto open(const std::string& path = "")
     {
-      std::cerr << "; linker\t; opening shared library \"" << path << "\" => ";
+      VERBOSE_LINKER("; linker\t; opening shared library \"" << path << "\" => ");
 
       dlerror(); // clear
 
@@ -56,12 +67,12 @@ namespace meevax::posix
 
       if (auto* message {dlerror()}; message)
       {
-        std::cerr << "failed to open shared library " << message << std::endl;
+        VERBOSE_LINKER("failed to open shared library " << message << std::endl);
         std::exit(EXIT_FAILURE);
       }
       else
       {
-        std::cerr << "succeeded." << std::endl;
+        VERBOSE_LINKER("succeeded." << std::endl);
         path_ = path;
       }
 
@@ -82,7 +93,7 @@ namespace meevax::posix
     Signature link(const std::string& name) const
     {
       // std::cerr << "; linker\t; linking symbol \"" << name << "\" in shared library \"" << path_ << "\" as signature " << utility::demangle(typeid(Signature)) << " => ";
-      std::cerr << "; linker\t; linking symbol \"" << name << "\" in shared library \"" << path_ << " => ";
+      VERBOSE_LINKER("; linker\t; linking symbol \"" << name << "\" in shared library \"" << path_ << " => ");
 
       if (handle_)
       {
@@ -90,25 +101,25 @@ namespace meevax::posix
 
         if (void* function {dlsym(handle_.get(), name.c_str())}; function)
         {
-          std::cerr << "succeeded." << std::endl;
+          VERBOSE_LINKER("succeeded." << std::endl);
 
           // XXX Result of this cast is undefined (maybe works fine).
           return reinterpret_cast<Signature>(function);
         }
         else if (auto* message {dlerror()}; message)
         {
-          std::cerr << "failed to link symbol, " << message << std::endl;
+          VERBOSE_LINKER("failed to link symbol, " << message << std::endl);
           std::exit(EXIT_FAILURE);
         }
         else
         {
-          std::cerr << "failed to link symbol in unexpected situation." << std::endl;
+          VERBOSE_LINKER("failed to link symbol in unexpected situation." << std::endl);
           std::exit(EXIT_FAILURE);
         }
       }
       else
       {
-        std::cerr << " shared library is not opened." << std::endl;
+        VERBOSE_LINKER(" shared library is not opened." << std::endl);
       }
 
       return nullptr;

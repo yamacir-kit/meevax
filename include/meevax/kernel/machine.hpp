@@ -12,7 +12,11 @@
 
 inline namespace dirty_hacks
 {
-  #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
+  #define TRACE(N)                                                             \
+  if (static_cast<Environment&>(*this).trace == true_object)                   \
+  {                                                                            \
+    std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl; \
+  }
 
   static std::size_t depth {0};
 
@@ -222,7 +226,7 @@ namespace meevax::kernel
       switch (c.top().as<instruction>().value)
       {
       case code::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
-        DEBUG(2);
+        TRACE(2);
         {
           iterator region {e};
           std::advance(region, int {caadr(c).as<real>()});
@@ -236,7 +240,7 @@ namespace meevax::kernel
         goto dispatch;
 
       case code::LOAD_LOCAL_VARIADIC:
-        DEBUG(2);
+        TRACE(2);
         {
           iterator region {e};
           std::advance(region, int {caadr(c).as<real>()});
@@ -250,13 +254,13 @@ namespace meevax::kernel
         goto dispatch;
 
       case code::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
-        DEBUG(2);
+        TRACE(2);
         s.push(cadr(c));
         c.pop(2);
         goto dispatch;
 
       case code::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
-        DEBUG(2);
+        TRACE(2);
         if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
         {
           s.push(value);
@@ -269,51 +273,51 @@ namespace meevax::kernel
         goto dispatch;
 
       case code::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
-        DEBUG(2);
+        TRACE(2);
         s.push(make<Environment>(cadr(c), interaction_environment()));
         c.pop(2);
         goto dispatch;
 
       case code::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
-        DEBUG(2);
+        TRACE(2);
         s.push(make<closure>(cadr(c), e));
         c.pop(2);
         goto dispatch;
 
       case code::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
-        DEBUG(2);
+        TRACE(2);
         s.push(list(make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
         c.pop(2);
         goto dispatch;
 
       case code::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
-        DEBUG(3);
+        TRACE(3);
         d.push(cdddr(c));
         c = car(s) != false_object ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
       case code::SELECT_TAIL:
-        DEBUG(3);
+        TRACE(3);
         c = car(s) != false_object ? cadr(c) : caddr(c);
         s.pop(1);
         goto dispatch;
 
       case code::JOIN: // S E (JOIN . x) (C . D) => S E C D
-        DEBUG(1);
+        TRACE(1);
         c = car(d);
         d.pop(1);
         goto dispatch;
 
       case code::DEFINE:
-        DEBUG(2);
+        TRACE(2);
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define
         c.pop(2);
         goto dispatch;
 
       case code::APPLY:
-        DEBUG(1);
+        TRACE(1);
 
         if (auto callee {car(s)}; not callee)
         {
@@ -346,7 +350,7 @@ namespace meevax::kernel
         goto dispatch;
 
       case code::APPLY_TAIL:
-        DEBUG(1);
+        TRACE(1);
 
         if (auto callee {car(s)}; not callee)
         {
@@ -377,26 +381,26 @@ namespace meevax::kernel
         goto dispatch;
 
       case code::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
-        DEBUG(1);
+        TRACE(1);
         s = cons(car(s), d.pop());
         e = d.pop();
         c = d.pop();
         goto dispatch;
 
       case code::PUSH:
-        DEBUG(1);
+        TRACE(1);
         s = car(s) | cadr(s) | cddr(s);
         c.pop(1);
         goto dispatch;
 
       case code::POP: // (var . S) E (POP . C) D => S E C D
-        DEBUG(1);
+        TRACE(1);
         s.pop(1);
         c.pop(1);
         goto dispatch;
 
       case code::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
-        DEBUG(2);
+        TRACE(2);
         // TODO
         // (1) There is no need to make copy if right hand side is unique.
         // (2) There is no matter overwrite if left hand side is unique.
@@ -414,7 +418,7 @@ namespace meevax::kernel
         goto dispatch;
 
       case code::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
-        DEBUG(2);
+        TRACE(2);
         {
           iterator region {e};
           std::advance(region, int {caadr(c).as<real>()});
@@ -428,7 +432,7 @@ namespace meevax::kernel
         goto dispatch;
 
       case code::SET_LOCAL_VARIADIC:
-        DEBUG(2);
+        TRACE(2);
         {
           iterator region {e};
           std::advance(region, int {caadr(c).as<real>()});
@@ -443,7 +447,7 @@ namespace meevax::kernel
 
       default:
       case code::STOP: // (result . S) E (STOP . C) D
-        DEBUG(1);
+        TRACE(1);
         c.pop(1);
         return s.pop(); // car(s);
       }
