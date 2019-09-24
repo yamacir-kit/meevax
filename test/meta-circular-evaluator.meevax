@@ -28,23 +28,21 @@
 ;   (lambda (x y)
 ;     (if (null? x)
 ;         y
-;         (cons (car x)
-;               (append (cdr x) y)))))
+;         P Hx (append Tx y))))
 
 (append '(a b) '(c d))
-(append '() '(c d))
+(append '()    '(c d))
 
 ; (define list
 ;   (lambda (x y)
-;     (cons x (cons y '()))))
+;     P x P y '()))
 
 (define zip
   (lambda (x y)
     (if (and (null? x) (null? y))
-        '()
+       '()
         (if (and (pair? x) (pair? y))
-            (cons (list Hx Hy)
-                  (zip  Tx Ty))
+            P (list Hx Hy) (zip  Tx Ty)
             '()))))
 
 (zip '(x y z) '(a b c)); => ((x a) (y b) (z c))
@@ -52,21 +50,21 @@
 (define assoc
   (lambda (x y)
     (if (null? x)
-        '()
+       '()
         (if (null? y)
             x
             (if (eq? HHy x)
                 HTHy
                 (assoc x Ty))))))
 
-(assoc 'x '((x a) (y b))); => a
+(assoc 'x '(        (x a) (y b))); => a
 (assoc 'x '((x new) (x a) (y b))); => new
 
 (define evcon
   (lambda (c a)
     (if (eval HHc a)
         (eval HTHc a)
-        (evcon  Tc a))))
+        (evcon Tc a))))
 
 (define evlis
   (lambda (m a)
@@ -79,27 +77,26 @@
   (lambda (e a)
     (if (not (pair? e))
         (assoc e a)
-        (if (not (pair? (car e)))
-            (if (eq? (car e) 'quote)
-                (cadr e)
-                (if (eq? (car e) 'atom)
-                    (not (pair? (eval (cadr e) a)))
-                    (if (eq? (car e) 'eq)
-                        (eq? (eval (cadr  e) a)
-                             (eval (caddr e) a))
-                        (if (eq? (car e) 'car)
-                            (car (eval (cadr e) a))
-                            (if (eq? (car e) 'cdr)
-                                (cdr (eval (cadr e) a))
-                                (if (eq? (car e) 'cons)
-                                    (cons (eval (cadr e) a) (eval (caddr e) a))
-                                    (if (eq? (car e) 'cond)
-                                        (evcon (cdr e) a)
-                                        (eval (cons (assoc (car e) a) (cdr e)) a))))))))
-            (if (eq? (caar e) 'label)
-                (eval (cons (caddar e) (cdr e)) (cons (list (cadar e) (car e)) a))
-                (if (eq? (caar e) 'lambda)
-                    (eval (caddar e) (append (zip (cadar e) (evlis (cdr e) a)) a))
+        (if (not (pair? He))
+            (if (eq? He 'quote) HTe
+                (if (eq? He 'atom)
+                    (not (pair? (eval HTe a)))
+                    (if (eq? He 'eq)
+                        (eq? (eval HTe a)
+                             (eval HTTe a))
+                        (if (eq? He 'car)
+                            H (eval HTe a)
+                            (if (eq? He 'cdr)
+                                T (eval HTe a)
+                                (if (eq? He 'cons)
+                                    P (eval HTe a) (eval HTTe a)
+                                    (if (eq? He 'cond)
+                                        (evcon Te a)
+                                        (eval P (assoc He a) Te a))))))))
+            (if (eq? HHe 'label)
+                (eval P HTTHe Te P (list HTHe He) a)
+                (if (eq? HHe 'lambda)
+                    (eval HTTHe (append (zip HTHe (evlis Te a)) a))
                     'error))))))
 
 (eval '(quote a) '())
