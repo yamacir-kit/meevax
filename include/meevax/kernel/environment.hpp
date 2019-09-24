@@ -131,7 +131,7 @@ namespace meevax::kernel
       {
         if (verbose == true_object or verbose_environment == true_object)
         {
-          std::cerr << "; export\t; exporting new binding " << key << " and " << value << std::endl;
+          std::cerr << "; export\t; exporting new binding (" << key << " . " << value << ")" << std::endl;
         }
 
         return bindings.emplace(key, value).first;
@@ -248,7 +248,7 @@ namespace meevax::kernel
 
       if (verbose == true_object or verbose_loader == true_object)
       {
-        std::cerr << "; loader\t\t; open \"" << path << "\" => ";
+        std::cerr << "; loader\t; open \"" << path << "\" => ";
       }
 
       if (std::fstream stream {path}; stream)
@@ -526,20 +526,20 @@ namespace meevax::kernel
       #include <meevax/library/initialize.meevax>
     };
 
-    if (verbose == true_object or verbose_loader == true_object)
-    {
-      std::cerr << "; loader\t\t; load statically embedded standard library" << std::endl;
-      std::cerr << highlight::simple_datum << code << attribute::normal << std::endl;
-    }
+    // if (verbose == true_object or verbose_loader == true_object)
+    // {
+    //   std::cerr << "; loader\t\t; load statically embedded standard library" << std::endl;
+    //   std::cerr << highlight::simple_datum << code << attribute::normal << std::endl;
+    // }
 
     std::stringstream stream {code};
 
     for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
     {
-      if (verbose == true_object or verbose_reader == true_object)
-      {
-        std::cerr << "; read\t\t; " << e << std::endl;
-      }
+      // if (verbose == true_object or verbose_reader == true_object)
+      // {
+      //   std::cerr << "; read\t\t; " << e << std::endl;
+      // }
 
       evaluate(e);
     }
