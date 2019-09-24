@@ -62,6 +62,7 @@ namespace meevax::kernel
     static inline auto verbose_compiler    {false_object};
     static inline auto verbose_define      {false_object};
     static inline auto verbose_environment {false_object};
+    static inline auto verbose_loader      {false_object};
     static inline auto verbose_machine     {false_object};
     static inline auto verbose_reader      {false_object};
 
@@ -125,8 +126,9 @@ namespace meevax::kernel
 
       std::make_pair("verbose",             ENABLE(verbose)),
       std::make_pair("verbose-compiler",    ENABLE(verbose_compiler)),
-      std::make_pair("verbose-define",      ENABLE(verbose_reader)),
-      std::make_pair("verbose-environment", ENABLE(verbose_reader)),
+      std::make_pair("verbose-define",      ENABLE(verbose_define)),
+      std::make_pair("verbose-environment", ENABLE(verbose_environment)),
+      std::make_pair("verbose-loader",      ENABLE(verbose_loader)),
       std::make_pair("verbose-machine",     ENABLE(verbose_machine)),
       std::make_pair("verbose-reader",      ENABLE(verbose_reader)),
 

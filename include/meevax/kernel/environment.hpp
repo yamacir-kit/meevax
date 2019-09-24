@@ -68,7 +68,7 @@ namespace meevax::kernel
       : pair {std::forward<decltype(operands)>(operands)...} // virtual base of closure
     {}
 
-  public: // Module System Interface
+  public: // Interfaces
     auto ready() const noexcept
     {
       return reader<environment>::ready();
@@ -171,7 +171,6 @@ namespace meevax::kernel
       return execute(compile(std::forward<decltype(operands)>(operands)...));
     }
 
-  public: // Library System Interfaces
     const auto& dynamic_link(const std::string& path)
     {
       if (auto iter {linkers.find(path)}; iter != std::end(linkers))
@@ -245,15 +244,30 @@ namespace meevax::kernel
     template <typename... Ts>
     decltype(auto) load(Ts&&... operands)
     {
-      const std::string path {FORWARD(operands)...};
+      const std::string path {std::forward<decltype(operands)>(operands)...};
+
+      if (verbose == true_object or verbose_loader == true_object)
+      {
+        std::cerr << "; loader\t\t; open \"" << path << "\" => ";
+      }
 
       if (std::fstream stream {path}; stream)
       {
+        if (verbose == true_object or verbose_loader == true_object)
+        {
+          std::cerr << "succeeded" << std::endl;
+        }
+
         d.push(s, e, c);
         s = e = c = unit;
 
         for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
         {
+          if (verbose == true_object or verbose_reader == true_object)
+          {
+            std::cerr << "; read\t\t; " << e << std::endl;
+          }
+
           evaluate(e);
         }
 
@@ -265,6 +279,11 @@ namespace meevax::kernel
       }
       else
       {
+        if (verbose == true_object or verbose_loader == true_object)
+        {
+          std::cerr << "failed" << std::endl;
+        }
+
         throw evaluation_error {"failed to open file ", std::quoted(path)};
       }
     }
@@ -506,14 +525,22 @@ namespace meevax::kernel
     const std::string code {
       #include <meevax/library/initialize.meevax>
     };
-    std::cerr << code << std::endl;
+
+    if (verbose == true_object or verbose_loader == true_object)
+    {
+      std::cerr << "; loader\t\t; load statically embedded standard library" << std::endl;
+      std::cerr << highlight::simple_datum << code << attribute::normal << std::endl;
+    }
 
     std::stringstream stream {code};
 
     for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
     {
-      std::cerr << "\n"
-                << "; initialize\t; " << e << std::endl;
+      if (verbose == true_object or verbose_reader == true_object)
+      {
+        std::cerr << "; read\t\t; " << e << std::endl;
+      }
+
       evaluate(e);
     }
   } // environment class default constructor
