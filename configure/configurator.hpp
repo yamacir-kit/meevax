@@ -54,17 +54,29 @@ namespace meevax::kernel
 
     static inline object preloads {unit};
 
-    static inline auto debug   {false_object};
-    static inline auto verbose {false_object};
+    static inline auto debug           {false_object};
+    static inline auto experimental    {false_object};
+    static inline auto trace           {false_object};
+    static inline auto variable        {unit};
+    static inline auto verbose         {false_object};
+    static inline auto verbose_compile {false_object};
 
-  public:
-    template <typename... Ts>
-    decltype(auto) evaluate(Ts&&... operands)
-    {
-      return static_cast<Environment&>(*this).evaluate(std::forward<decltype(operands)>(operands)...);
+    #define ENABLE(VARIABLE)                                                   \
+    [&](const auto&) mutable                                                   \
+    {                                                                          \
+      std::cerr << ";\t\t; " << VARIABLE << " => ";                            \
+      VARIABLE = true_object;                                                  \
+      std::cerr << VARIABLE << std::endl;                                      \
+      return VARIABLE;                                                         \
     }
 
   public:
+    /**
+     * TODO
+     * Simplify the parser by adding a default constructor that constructs a
+     * procedure that either returns a NIL for a native type or throws an
+     * exception, meaning that it is undecided.
+     **/
     template <typename T>
     using dispatcher = std::unordered_map<
                          typename std::decay<T>::type,
@@ -75,7 +87,7 @@ namespace meevax::kernel
     {
       std::make_pair('h', [&](const auto&)
       {
-        std::cout << "HELP!" << std::endl;
+        std::cout << "; rather, help me." << std::endl;
         std::exit(boost::exit_success);
         return undefined; // dummy for return type deduction
       }),
@@ -92,12 +104,10 @@ namespace meevax::kernel
     {
     };
 
-    const dispatcher<char> short_options_requires_evaluated_operands
-    {
-    };
-
     const dispatcher<std::string> long_options_requires_no_operands
     {
+      std::make_pair("debug", ENABLE(debug)),
+
       std::make_pair("help", [&](const auto&)
       {
         std::cout << "; rather, help me." << std::endl;
@@ -105,13 +115,12 @@ namespace meevax::kernel
         return undefined; // dummy for return type deduction
       }),
 
-      std::make_pair("verbose", [&](const auto&) mutable
-      {
-        std::cerr << "; configure\t; " << verbose << " => ";
-        verbose = true_object;
-        std::cerr << verbose << std::endl;
-        return verbose;
-      }),
+      // TODO quite
+
+      std::make_pair("trace", ENABLE(trace)),
+
+      std::make_pair("verbose",         ENABLE(verbose)),
+      std::make_pair("verbose-compile", ENABLE(verbose_compile)),
 
       std::make_pair("version", [&](const auto&)
       {
@@ -137,22 +146,12 @@ namespace meevax::kernel
         return undefined;
       }),
 
-      std::make_pair("verbose", [&](const auto& operands) mutable
+      std::make_pair("debug-variable", [&](const auto& operands) mutable
       {
         std::cerr << "; configure\t; " << verbose << " => ";
-        verbose = operands;
-        std::cerr << verbose << std::endl;
-        return verbose;
-      }),
-    };
-
-    // TODO
-    const dispatcher<std::string> long_options_requires_evaluated_operands
-    {
-      std::make_pair("evaluate", [&](const auto& operands)
-      {
-        std::cout << operands << std::endl;
-        return operands;
+        variable = operands;
+        std::cerr << variable << std::endl;
+        return variable;
       }),
     };
 
