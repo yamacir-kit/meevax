@@ -119,14 +119,22 @@ namespace meevax::kernel
     {
       if (auto iter {bindings.find(key)}; iter != std::end(bindings))
       {
-        std::cerr << "; export\t; detected redefinition (interactive mode ignore previous definition)" << std::endl;
+        if (verbose == true_object or verbose_environment == true_object)
+        {
+          std::cerr << "; export\t; detected redefinition (interactive mode ignore previous definition)" << std::endl;
+        }
+
         bindings.at(key) = value;
         return bindings.find(key);
       }
       else
       {
+        if (verbose == true_object or verbose_environment == true_object)
+        {
+          std::cerr << "; export\t; exporting new binding " << key << " and " << value << std::endl;
+        }
+
         return bindings.emplace(key, value).first;
-        std::cerr << "; export\t; exporting new binding " << key << " and " << value << std::endl;
       }
     }
 
@@ -142,7 +150,7 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      std::cerr << "macroexpand " << operands << std::endl;
+      // std::cerr << "macroexpand " << operands << std::endl;
 
       s = unit;
       e = list(operands);
@@ -160,7 +168,7 @@ namespace meevax::kernel
     template <typename... Ts>
     constexpr decltype(auto) evaluate(Ts&&... operands)
     {
-      return execute(compile(FORWARD(operands)...));
+      return execute(compile(std::forward<decltype(operands)>(operands)...));
     }
 
   public: // Library System Interfaces
@@ -267,106 +275,42 @@ namespace meevax::kernel
   {
     define<syntax>("quote", [&](auto&&... operands)
     {
-      return quotation(FORWARD(operands)...);
+      return quotation(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("if", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto tail)
+    define<syntax>("if", [&](auto&&... operands)
     {
-      TRACE("compile") << car(expression) << " ; => is <test>" << std::endl;
-
-      if (tail)
-      {
-        const auto consequent {compile(cadr(expression), lexical_environment, list(_return_), true)};
-
-        const auto alternate {
-          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_), true)
-                           : list(_load_literal_, undefined, _return_)
-        };
-
-        return compile(
-                 car(expression), // <test>
-                 lexical_environment,
-                 cons(_select_tail_, consequent, alternate, cdr(continuation))
-               );
-      }
-      else
-      {
-        const auto consequent {compile(cadr(expression), lexical_environment, list(_join_))};
-
-        const auto alternate {
-          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
-                           : list(_load_literal_, undefined, _join_)
-        };
-
-        return compile(
-                 car(expression), // <test>
-                 lexical_environment,
-                 cons(_select_, consequent, alternate, continuation)
-               );
-      }
+      return conditional(std::forward<decltype(operands)>(operands)...);
     });
 
     define<syntax>("define", [&](auto&&... operands)
     {
-      return definition(FORWARD(operands)...);
+      return definition(std::forward<decltype(operands)>(operands)...);
     });
 
     define<syntax>("begin", [&](auto&&... operands)
     {
-      return sequence(FORWARD(operands)...);
+      return sequence(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("call-with-current-continuation", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    define<syntax>("call-with-current-continuation", [&](auto&&... operands)
     {
-      TRACE("compile") << car(expression) << " ; => is <procedure>" << std::endl;
-
-      return cons(
-               _make_continuation_,
-               continuation,
-               compile(
-                 car(expression),
-                 lexical_environment,
-                 cons(_apply_, continuation)
-               )
-             );
+      return call_cc(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("lambda", [&](auto&& expression, auto&& lexical_environment, auto&& continuation, auto)
+    define<syntax>("lambda", [&](auto&&... operands)
     {
-      TRACE("compile") << car(expression) << " ; => is <formals>" << std::endl;
-
-      return cons(
-               _make_closure_,
-               body(
-                 cdr(expression), // <body>
-                 cons(car(expression), lexical_environment), // extend lexical environment
-                 list(_return_) // continuation of body (finally, must be return)
-               ),
-               continuation
-             );
+      return lambda(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("environment", [&](auto&& expression,
-                                       auto&& lexical_environment,
-                                       auto&& continuation, auto)
+    define<syntax>("environment", [&](auto&&... operands)
     {
-      TRACE("compile") << car(expression) << "\t; => <formals>" << std::endl;
-
-      return cons(
-               _make_environment_,
-               program(
-                 cdr(expression),
-                 cons(car(expression), lexical_environment),
-                 list(_return_)
-               ),
-               continuation
-             );
+      return abstraction(std::forward<decltype(operands)>(operands)...);
     });
 
     define<syntax>("set!", [&](auto&&... operands)
     {
-      // TODO Rename "set" to "assignment"?
-      return set(std::forward<decltype(operands)>(operands)...);
+      return assignment(std::forward<decltype(operands)>(operands)...);
     });
 
     /*
@@ -384,7 +328,7 @@ namespace meevax::kernel
       }
       else if (const object& library {locate_library(library_name)}; library)
       {
-        TRACE("compile") << library_name << " => found library " << library_name << " in this environment as " << library << std::endl;
+        DEBUG_COMPILE_SYNTAX(library_name << " => found library " << library_name << " in this environment as " << library << std::endl);
 
         /*
          * Passing the VM instruction to load literally library-name as
@@ -395,7 +339,7 @@ namespace meevax::kernel
       }
       else // XXX Don't use this library style (deprecated)
       {
-        TRACE("compile") << "(\t; => unknown library-name" << std::endl;
+        DEBUG_COMPILE_SYNTAX("(\t; => unknown library-name" << std::endl);
         NEST_IN;
 
         /*
@@ -427,7 +371,7 @@ namespace meevax::kernel
           }
         }
 
-        NEST_OUT;
+        NEST_OUT_SYNTAX;
 
         std::cerr << "; import\t; dynamic-link " << library_path << std::endl;
 

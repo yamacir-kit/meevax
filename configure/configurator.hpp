@@ -54,12 +54,16 @@ namespace meevax::kernel
 
     static inline object preloads {unit};
 
-    static inline auto debug           {false_object};
-    static inline auto experimental    {false_object};
-    static inline auto trace           {false_object};
-    static inline auto variable        {unit};
-    static inline auto verbose         {false_object};
-    static inline auto verbose_compile {false_object};
+    static inline auto debug               {false_object};
+    static inline auto experimental        {false_object};
+    static inline auto trace               {false_object};
+    static inline auto variable            {unit};
+    static inline auto verbose             {false_object};
+    static inline auto verbose_compiler    {false_object};
+    static inline auto verbose_define      {false_object};
+    static inline auto verbose_environment {false_object};
+    static inline auto verbose_machine     {false_object};
+    static inline auto verbose_reader      {false_object};
 
     #define ENABLE(VARIABLE)                                                   \
     [&](const auto&) mutable                                                   \
@@ -119,8 +123,12 @@ namespace meevax::kernel
 
       std::make_pair("trace", ENABLE(trace)),
 
-      std::make_pair("verbose",         ENABLE(verbose)),
-      std::make_pair("verbose-compile", ENABLE(verbose_compile)),
+      std::make_pair("verbose",             ENABLE(verbose)),
+      std::make_pair("verbose-compiler",    ENABLE(verbose_compiler)),
+      std::make_pair("verbose-define",      ENABLE(verbose_reader)),
+      std::make_pair("verbose-environment", ENABLE(verbose_reader)),
+      std::make_pair("verbose-machine",     ENABLE(verbose_machine)),
+      std::make_pair("verbose-reader",      ENABLE(verbose_reader)),
 
       std::make_pair("version", [&](const auto&)
       {

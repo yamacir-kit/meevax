@@ -10,17 +10,45 @@
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
 #include <meevax/kernel/syntax.hpp>
 
-inline namespace debug
+inline namespace dirty_hacks
 {
   #define DEBUG(N) // std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl
 
   static std::size_t depth {0};
 
-  #define TRACE(X) \
-    std::cerr << "; " << X << "\t; " << std::string(depth * 4, ' ') << std::flush
+  #define DEBUG_COMPILE(...)                                                   \
+  if (   static_cast<Environment&>(*this).verbose          == true_object      \
+      or static_cast<Environment&>(*this).verbose_compiler == true_object)     \
+  {                                                                            \
+    std::cerr << "; compile\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
+  }
+
+  #define DEBUG_COMPILE_DECISION(...)                                          \
+  if (   static_cast<Environment&>(*this).verbose          == true_object      \
+      or static_cast<Environment&>(*this).verbose_compiler == true_object)     \
+  {                                                                            \
+    std::cerr << __VA_ARGS__;                                                  \
+  }
+
+  #define DEBUG_MACROEXPAND(...)                                               \
+  if (   static_cast<Environment&>(*this).verbose          == true_object      \
+      or static_cast<Environment&>(*this).verbose_compiler == true_object)     \
+  {                                                                            \
+    std::cerr << "; macroexpand\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
+  }
+
+  // TODO REMOVE THIS!!!
+  #define DEBUG_COMPILE_SYNTAX(...)                                            \
+  if (verbose == true_object or verbose_compiler == true_object)               \
+  {                                                                            \
+    std::cerr << "; compile\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
+  }
 
   #define NEST_IN  ++depth
-  #define NEST_OUT --depth, TRACE("compile") << ")" << std::endl
+  #define NEST_OUT --depth; DEBUG_COMPILE(")" << std::endl)
+
+  // TODO REMOVE THIS!!!
+  #define NEST_OUT_SYNTAX --depth; DEBUG_COMPILE_SYNTAX(")" << std::endl)
 }
 
 namespace meevax::kernel
@@ -53,7 +81,13 @@ namespace meevax::kernel
       auto iter {export_(key, std::forward<decltype(operands)>(operands)...)};
       // interaction_environment().push(list(key, std::forward<decltype(operands)>(operands)...));
       interaction_environment().push(list(iter->first, iter->second));
-      std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
+
+      if (   static_cast<Environment&>(*this).verbose        == true_object
+          or static_cast<Environment&>(*this).verbose_define == true_object)
+      {
+        std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
+      }
+
       return interaction_environment(); // temporary
     }
 
@@ -76,7 +110,7 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        TRACE("compile") << expression << " ; => ";
+        DEBUG_COMPILE(expression << " ; => ");
 
         if (expression.is<symbol>()) // is variable
         {
@@ -85,24 +119,24 @@ namespace meevax::kernel
             // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
             if (index.is_variadic())
             {
-              std::cerr << "is local variadic variable => " << list(_load_local_variadic_, index) << std::endl;
+              DEBUG_COMPILE_DECISION("is local variadic variable => " << list(_load_local_variadic_, index) << std::endl);
               return cons(_load_local_variadic_, index, continuation);
             }
             else
             {
-              std::cerr << "is local variable => " << list(_load_local_, index) << std::endl;
+              DEBUG_COMPILE_DECISION("is local variable => " << list(_load_local_, index) << std::endl);
               return cons(_load_local_, index, continuation);
             }
           }
           else
           {
-            std::cerr << "is global variable => " << list(_load_global_, expression) << std::endl;
+            DEBUG_COMPILE_DECISION("is global variable => " << list(_load_global_, expression) << std::endl);
             return cons(_load_global_, expression, continuation);
           }
         }
         else
         {
-          std::cerr << "is self-evaluation => " << list(_load_literal_, expression) << std::endl;
+          DEBUG_COMPILE_DECISION("is self-evaluation => " << list(_load_literal_, expression) << std::endl);
           return cons(_load_literal_, expression, continuation);
         }
       }
@@ -110,12 +144,12 @@ namespace meevax::kernel
       {
         if (const object& buffer {assoc(car(expression), interaction_environment())}; !buffer)
         {
-          TRACE("compile") << "(" << car(expression) << " ; => is application of unit => ERROR" << std::endl;
+          DEBUG_COMPILE("(" << car(expression) << " ; => is application of unit => ERROR" << std::endl);
           throw syntax_error {"unit is not applicable"};
         }
         else if (buffer != unbound && buffer.is<syntax>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          TRACE("compile") << "(" << car(expression) << " ; => is application of " << buffer << std::endl;
+          DEBUG_COMPILE("(" << car(expression) << " ; => is application of " << buffer << std::endl);
           NEST_IN;
           auto result {std::invoke(buffer.as<syntax>(), cdr(expression), lexical_environment, continuation, tail)};
           NEST_OUT;
@@ -123,20 +157,28 @@ namespace meevax::kernel
         }
         else if (buffer != unbound && buffer.is<Environment>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          TRACE("compile") << "(" << car(expression) << " ; => is use of " << buffer << " => " << std::flush;
+          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << buffer << " => " << std::flush);
 
-          auto& macro {assoc(car(expression), interaction_environment()).template as<Environment&>()};
-          auto expanded {macro.expand(cdr(expression))};
-          TRACE("macroexpand") << expanded << std::endl;
+          // auto& macro {assoc(car(expression), interaction_environment()).template as<Environment&>()};
+          // auto expanded {macro.expand(cdr(expression))};
+          const auto expanded {
+            assoc(
+              car(expression),
+              interaction_environment()
+            ).template as<Environment&>().expand(cdr(expression))
+          };
+
+          DEBUG_MACROEXPAND(expanded << std::endl);
 
           NEST_IN;
           auto result {compile(expanded, lexical_environment, continuation)};
           NEST_OUT;
+
           return result;
         }
         else // is (closure . arguments)
         {
-          TRACE("compile") << "( ; => is any application " << std::endl;
+          DEBUG_COMPILE("( ; => is any application " << std::endl);
 
           NEST_IN;
           auto result {operand(
@@ -157,12 +199,25 @@ namespace meevax::kernel
     decltype(auto) execute(const object& expression)
     {
       c = expression;
-      std::cerr << "; machine\t; " << c << std::endl;
+
+      if (   static_cast<Environment&>(*this).verbose         == true_object
+          or static_cast<Environment&>(*this).verbose_machine == true_object)
+      {
+        std::cerr << "; machine\t; " << c << std::endl;
+      }
+
       return execute();
     }
 
     object execute()
     {
+      // TODO
+      // 上の引数付き版ではない、execute の直接呼び出しはおそらくマクロ展開にしか使われていないはずで、
+      // --debug-macroexpand で下のプリントを有効にするべきだと思うが、
+      // ここまでそれを意識して実装していないため保留する
+      //
+      // std::cerr << "; machine\t; " << c << std::endl;
+
     dispatch:
       switch (c.top().as<instruction>().value)
       {
@@ -348,7 +403,7 @@ namespace meevax::kernel
         // (3) Should set with weak reference if right hand side is newer.
         if (const auto& key_value {assq(cadr(c), interaction_environment())}; key_value != false_object)
         {
-          std::cerr << key_value << std::endl;
+          // std::cerr << key_value << std::endl;
           std::atomic_store(&cadr(key_value), car(s).copy());
         }
         else
@@ -450,7 +505,7 @@ namespace meevax::kernel
                      const object&,
                      const object& continuation, bool)
     {
-      TRACE("compile") << car(expression) << "\t; <datum>" << std::endl;
+      DEBUG_COMPILE(car(expression) << "\t; <datum>" << std::endl);
       return cons(_load_literal_, car(expression), continuation);
     }
 
@@ -552,7 +607,7 @@ namespace meevax::kernel
     {
       if (not lexical_environment)
       {
-        TRACE("compile") << car(expression) << "\t; => <variable>" << std::endl;
+        DEBUG_COMPILE(car(expression) << "\t; => <variable>" << std::endl);
 
         return compile(
                  cdr(expression) ? cadr(expression) : undefined,
@@ -699,6 +754,89 @@ namespace meevax::kernel
       }
     }
 
+    /**
+     * <conditional> = (if <test> <consequent> <alternate>)
+     **/
+    object conditional(const object& expression,
+                       const object& lexical_environment,
+                       const object& continuation,
+                       const bool optimization = false)
+    {
+      DEBUG_COMPILE(car(expression) << " ; => is <test>" << std::endl);
+
+      if (optimization)
+      {
+        const auto consequent {compile(
+          cadr(expression), lexical_environment, list(_return_), true
+        )};
+
+        const auto alternate {
+          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_return_), true)
+                           : list(_load_literal_, undefined, _return_)
+        };
+
+        return compile(
+                 car(expression), // <test>
+                 lexical_environment,
+                 cons(_select_tail_, consequent, alternate, cdr(continuation))
+               );
+      }
+      else
+      {
+        const auto consequent {compile(cadr(expression), lexical_environment, list(_join_))};
+
+        const auto alternate {
+          cddr(expression) ? compile(caddr(expression), lexical_environment, list(_join_))
+                           : list(_load_literal_, undefined, _join_)
+        };
+
+        return compile(
+                 car(expression), // <test>
+                 lexical_environment,
+                 cons(_select_, consequent, alternate, continuation)
+               );
+      }
+    }
+
+    /**
+     * <lambda expression> = (lambda <formals> <body>)
+     **/
+    object lambda(const object& expression,
+                  const object& lexical_environment,
+                  const object& continuation,
+                  const bool = false)
+    {
+      DEBUG_COMPILE(car(expression) << " ; => is <formals>" << std::endl);
+
+      return cons(
+               _make_closure_,
+               body(
+                 cdr(expression), // <body>
+                 cons(car(expression), lexical_environment), // extend lexical environment
+                 list(_return_) // continuation of body (finally, must be return)
+               ),
+               continuation
+             );
+    }
+
+    object call_cc(const object& expression,
+                   const object& lexical_environment,
+                   const object& continuation,
+                   const bool = false)
+    {
+      DEBUG_COMPILE(car(expression) << " ; => is <procedure>" << std::endl);
+
+      return cons(
+               _make_continuation_,
+               continuation,
+               compile(
+                 car(expression),
+                 lexical_environment,
+                 cons(_apply_, continuation)
+               )
+             );
+    }
+
     // [[deprecated]]
     // object let(const object& expression,
     //            const object& lexical_environment,
@@ -729,11 +867,28 @@ namespace meevax::kernel
     //          );
     // }
 
-    object set(const object& expression,
-               const object& lexical_environment,
-               const object& continuation, bool = false)
+    object abstraction(const object& expression,
+                       const object& lexical_environment,
+                       const object& continuation, bool = false)
     {
-      TRACE("compile") << car(expression) << " ; => is ";
+      DEBUG_COMPILE(car(expression) << "\t; => <formals>" << std::endl);
+
+      return cons(
+               _make_environment_,
+               program(
+                 cdr(expression),
+                 cons(car(expression), lexical_environment),
+                 list(_return_)
+               ),
+               continuation
+             );
+    }
+
+    object assignment(const object& expression,
+                      const object& lexical_environment,
+                      const object& continuation, bool = false)
+    {
+      DEBUG_COMPILE(car(expression) << " ; => is ");
 
       if (!expression)
       {
@@ -744,7 +899,7 @@ namespace meevax::kernel
         // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
         if (index.is_variadic())
         {
-          std::cerr << " local variadic variable => " << list(_set_local_variadic_, index) << std::endl;
+          DEBUG_COMPILE_DECISION(" local variadic variable => " << list(_set_local_variadic_, index) << std::endl);
 
           return compile(
                    cadr(expression),
@@ -754,7 +909,7 @@ namespace meevax::kernel
         }
         else
         {
-          std::cerr << " local variable => " << list(_set_local_, index) << std::endl;
+          DEBUG_COMPILE_DECISION(" local variable => " << list(_set_local_, index) << std::endl);
 
           return compile(
                    cadr(expression),
@@ -765,7 +920,7 @@ namespace meevax::kernel
       }
       else
       {
-        std::cerr << " global variable => " << list(_set_global_, car(expression)) << std::endl;
+        DEBUG_COMPILE_DECISION(" global variable => " << list(_set_global_, car(expression)) << std::endl);
 
         return compile(
                  cadr(expression),
