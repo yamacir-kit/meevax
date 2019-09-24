@@ -1,9 +1,9 @@
 ; (define null?
 ;   (lambda (x)
-;     (eq? x '())))
+;     (eq? x Q())))
 
-(null? 'a)
-(null? '())
+(null? Qa)
+(null? Q())
 
 ; (define not
 ;   (lambda (x)
@@ -12,53 +12,46 @@
 (not #true)
 (not #false)
 
-(not (eq? 'a 'a))
-(not (eq? 'a 'b))
+(not (eq? Qa Qa))
+(not (eq? Qa Qb))
 
 ; (define and
 ;   (lambda (x y)
-;     (if x
-;         (if y #true #false)
-;         #false)))
+;     (if x (if y #true #false) #false)))
 
-(and (not (pair? 'a)) (eq? 'a 'a))
-(and (not (pair? 'a)) (eq? 'a 'b))
+(and (not (pair? Qa)) (eq? Qa Qa))
+(and (not (pair? Qa)) (eq? Qa Qb))
 
 ; (define append
 ;   (lambda (x y)
-;     (if (null? x)
-;         y
-;         P Hx (append Tx y))))
+;     (if (null? x) y P Hx (append Tx y))))
 
-(append '(a b) '(c d))
-(append '()    '(c d))
+(append Q(a b) Q(c d))
+(append Q()    Q(c d))
 
 ; (define list
 ;   (lambda (x y)
-;     P x P y '()))
+;     P x P y Q()))
 
 (define zip
   (lambda (x y)
     (if (and (null? x) (null? y))
-       '()
+       Q()
         (if (and (pair? x) (pair? y))
             P (list Hx Hy) (zip  Tx Ty)
-            '()))))
+           Q()))))
 
-(zip '(x y z) '(a b c)); => ((x a) (y b) (z c))
+(zip Q(x y z) Q(a b c)); => ((x a) (y b) (z c))
 
 (define assoc
   (lambda (x y)
-    (if (null? x)
-       '()
-        (if (null? y)
-            x
-            (if (eq? HHy x)
-                HTHy
+    (if (null? x) Q()
+        (if (null? y) x
+            (if (eq? HHy x) HTHy
                 (assoc x Ty))))))
 
-(assoc 'x '(        (x a) (y b))); => a
-(assoc 'x '((x new) (x a) (y b))); => new
+(assoc Qx Q(        (x a) (y b))); => a
+(assoc Qx Q((x new) (x a) (y b))); => new
 
 (define evcon
   (lambda (c a)
@@ -68,36 +61,24 @@
 
 (define evlis
   (lambda (m a)
-    (if (null? m)
-       '()
-        P (eval  Hm a)
-          (evlis Tm a))))
+    (if (null? m) Q()
+        P (eval  Hm a) (evlis Tm a))))
 
 (define eval
   (lambda (e a)
-    (if (not (pair? e))
-        (assoc e a)
+    (if (not (pair? e)) (assoc e a)
         (if (not (pair? He))
-            (if (eq? He 'quote) HTe
-                (if (eq? He 'atom)
-                    (not (pair? (eval HTe a)))
-                    (if (eq? He 'eq)
-                        (eq? (eval HTe a)
-                             (eval HTTe a))
-                        (if (eq? He 'car)
-                            H (eval HTe a)
-                            (if (eq? He 'cdr)
-                                T (eval HTe a)
-                                (if (eq? He 'cons)
-                                    P (eval HTe a) (eval HTTe a)
-                                    (if (eq? He 'cond)
-                                        (evcon Te a)
+            (if (eq? He Qquote) HTe
+                (if (eq? He Qatom) (not (pair? (eval HTe a)))
+                    (if (eq? He Qeq) (eq? (eval HTe a) (eval HTTe a))
+                        (if (eq? He Qcar) H (eval HTe a)
+                            (if (eq? He Qcdr) T (eval HTe a)
+                                (if (eq? He Qcons) P (eval HTe a) (eval HTTe a)
+                                    (if (eq? He Qcond) (evcon Te a)
                                         (eval P (assoc He a) Te a))))))))
-            (if (eq? HHe 'label)
-                (eval P HTTHe Te P (list HTHe He) a)
-                (if (eq? HHe 'lambda)
-                    (eval HTTHe (append (zip HTHe (evlis Te a)) a))
-                    'error))))))
+            (if (eq? HHe Qlabel) (eval P HTTHe Te P (list HTHe He) a)
+                (if (eq? HHe Qlambda) (eval HTTHe (append (zip HTHe (evlis Te a)) a))
+                    Qerror))))))
 
 (eval '(quote a) '())
 (eval ''a '())

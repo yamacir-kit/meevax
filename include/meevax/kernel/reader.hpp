@@ -366,7 +366,9 @@ namespace meevax::kernel
         case 'T': // Tail
           return list(intern("cdr"), read(stream));
 
-        // case 'U':
+        case 'U':
+          return unit;
+
         // case 'V':
 
         case 'W':
