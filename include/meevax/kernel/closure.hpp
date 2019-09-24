@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
+#define INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
 
-#include <meevax/system/pair.hpp>
+#include <meevax/kernel/pair.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   // closure is pair of expression and lexical-environment
   DERIVE(closure, public virtual, pair)
@@ -16,7 +16,7 @@ namespace meevax::system
               << highlight::syntax << ")"
               << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_CLOSURE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
 

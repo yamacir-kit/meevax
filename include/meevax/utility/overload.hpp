@@ -17,10 +17,10 @@ namespace meevax::utility
     -> overloaded<Ts...>;
 
   template <typename... Ts>
-  constexpr auto overload(Ts&&... xs)
+  constexpr auto overload(Ts&&... operands)
     -> overloaded<typename std::decay<Ts...>::type>
   {
-    return {std::forward<Ts>(xs)...};
+    return {std::forward<decltype(operands)>(operands)...};
   }
 } // namespace meevax::utility
 

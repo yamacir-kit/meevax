@@ -1,12 +1,12 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_NUMERICAL_HPP
-#define INCLUDED_MEEVAX_SYSTEM_NUMERICAL_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
+#define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/multiprecision/mpfr.hpp>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   using integral
     = boost::multiprecision::number<
@@ -32,8 +32,8 @@ namespace meevax::system
   //   visual::point position;
   //
   //   template <typename... Ts>
-  //   explicit constexpr real(Ts&&... xs)
-  //     : real_base {std::forward<Ts>(xs)...}
+  //   explicit constexpr real(Ts&&... operands)
+  //     : real_base {std::forward<decltype(operands)>(operands)...}
   //   {}
   //
   //   const auto& boost() const noexcept
@@ -70,7 +70,7 @@ namespace meevax::system
   DEFINE_NUMERICAL_BINARY_COMPARISON(<=)
   DEFINE_NUMERICAL_BINARY_COMPARISON(>)
   DEFINE_NUMERICAL_BINARY_COMPARISON(>=)
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_NUMERICAL_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 

@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_STACK_HPP
-#define INCLUDED_MEEVAX_SYSTEM_STACK_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_STACK_HPP
+#define INCLUDED_MEEVAX_KERNEL_STACK_HPP
 
-#include <meevax/system/list.hpp>
+#include <meevax/kernel/list.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   /**
    * Stack structure provides Scheme-like stack operation to linear list.
@@ -12,8 +12,8 @@ namespace meevax::system
     : public iterator
   {
     template <typename... Ts>
-    constexpr stack(Ts&&... xs)
-      : iterator {std::forward<Ts>(xs)...}
+    constexpr stack(Ts&&... operands)
+      : iterator {std::forward<decltype(operands)>(operands)...}
     {}
 
     decltype(auto) top() const
@@ -38,9 +38,9 @@ namespace meevax::system
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) emplace(Ts&&... xs)
+    decltype(auto) emplace(Ts&&... operands)
     {
-      return push(make<T>(std::forward<Ts>(xs)...));
+      return push(make<T>(std::forward<decltype(operands)>(operands)...));
     }
 
     void pop(std::size_t size)
@@ -75,7 +75,7 @@ namespace meevax::system
       return buffer;
     }
   };
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_STACK_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_STACK_HPP
 

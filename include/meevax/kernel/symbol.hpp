@@ -1,16 +1,16 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
-#define INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct symbol
     : public std::string
   {
     template <typename... Ts>
-    explicit constexpr symbol(Ts&&... args)
-      : std::string {std::forward<Ts>(args)...}
+    explicit constexpr symbol(Ts&&... operands)
+      : std::string {std::forward<decltype(operands)>(operands)...}
     {}
 
     operator std::string() const
@@ -35,7 +35,7 @@ namespace meevax::system
       return os << attribute::normal << static_cast<const std::string&>(symbol);
     }
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_SYMBOL_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 

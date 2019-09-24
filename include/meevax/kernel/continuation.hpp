@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
-#define INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP
 
-#include <meevax/system/pair.hpp>
+#include <meevax/kernel/pair.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   DERIVE(continuation, public virtual, pair)
 
@@ -15,7 +15,7 @@ namespace meevax::system
               << highlight::syntax << ")"
               << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_CONTINUATION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP
 

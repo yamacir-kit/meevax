@@ -10,10 +10,10 @@ namespace meevax::lambda
   auto y = [](auto&& lambda) constexpr
     -> decltype(auto)
   {
-    return [&](auto&&... args)
+    return [&](auto&&... operands)
       -> decltype(auto)
     {
-      return lambda(lambda, std::forward<decltype(args)>(args)...);
+      return lambda(lambda, std::forward<decltype(operands)>(operands)...);
     };
   };
 

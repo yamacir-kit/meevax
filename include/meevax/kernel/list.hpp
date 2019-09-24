@@ -1,11 +1,11 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
-#define INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SRFI_1_HPP
+#define INCLUDED_MEEVAX_KERNEL_SRFI_1_HPP
 
 #include <iterator> // std::begin, std::end, std::distance
 
-#include <meevax/system/boolean.hpp>
-#include <meevax/system/exception.hpp>
-#include <meevax/system/pair.hpp>
+#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/pair.hpp>
 
 #include <meevax/lambda/compose.hpp>
 
@@ -21,8 +21,8 @@
 //   - euqal? ... is_same
 //
 // Selectors
-//   - car ... in meevax/system/pair.hpp
-//   - cdr ... in meevax/system/pair.hpp
+//   - car ... in meevax/kernel/pair.hpp
+//   - cdr ... in meevax/kernel/pair.hpp
 //   - cxr ... by preprocessor macro
 //   - take
 //
@@ -51,7 +51,7 @@
 //   - set-cdr! ... object::operator=
 //
 
-namespace meevax::system
+namespace meevax::kernel
 {
   auto caar = lambda::compose(car, car);
   auto cadr = lambda::compose(car, cdr);
@@ -101,8 +101,8 @@ namespace meevax::system
     using size_type = std::size_t;
 
     template <typename... Ts>
-    constexpr iterator(Ts&&... args)
-      : object {std::forward<Ts>(args)...}
+    constexpr iterator(Ts&&... operands)
+      : object {std::forward<decltype(operands)>(operands)...}
     {}
 
     decltype(auto) operator*() const
@@ -147,21 +147,21 @@ namespace meevax::system
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) cons(Ts&&... args) // is also cons*
+  constexpr decltype(auto) cons(Ts&&... operands) // is also cons*
   {
-    return (args | ...);
+    return (operands | ...);
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) list(Ts&&... args)
+  constexpr decltype(auto) list(Ts&&... operands)
   {
-    return (args | ... | unit);
+    return (operands | ... | unit);
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) xcons(Ts&&... args)
+  constexpr decltype(auto) xcons(Ts&&... operands)
   {
-    return (... | args);
+    return (... | operands);
   }
 
   bool is_same(const object& x, const object& y) // equal?
@@ -302,7 +302,7 @@ namespace meevax::system
       return assq(key, cdr(alist));
     }
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_SRFI_1_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SRFI_1_HPP
 

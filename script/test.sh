@@ -21,7 +21,7 @@ perf stat -- $repository/build/bin/meevax < $repository/test/test.scm
 # sudo perf report
 
 
-# T='std::shared_ptr<meevax::system::pair>'
+# T='std::shared_ptr<meevax::kernel::pair>'
 #
 # gprof $build/meevax \
 #   | grep -e "$T::shared_ptr(\|$T::operator=(" \

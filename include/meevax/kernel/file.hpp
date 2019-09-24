@@ -1,13 +1,13 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_FILE_HPP
-#define INCLUDED_MEEVAX_SYSTEM_FILE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_FILE_HPP
+#define INCLUDED_MEEVAX_KERNEL_FILE_HPP
 
 #include <fstream>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
 // TODO ファイルパスを std::string からランタイムストリングかパス型へ変更
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct file
     : public std::fstream
@@ -20,8 +20,8 @@ namespace meevax::system
     {}
 
     template <typename... Ts>
-    explicit constexpr file(Ts&&... xs)
-      : std::fstream {std::forward<Ts>(xs)...}
+    explicit constexpr file(Ts&&... operands)
+      : std::fstream {std::forward<decltype(operands)>(operands)...}
     {}
   };
 
@@ -49,8 +49,8 @@ namespace meevax::system
     {}
 
     template <typename... Ts>
-    explicit constexpr input_file(Ts&&... xs)
-      : std::ifstream {std::forward<Ts>(xs)...}
+    explicit constexpr input_file(Ts&&... operands)
+      : std::ifstream {std::forward<decltype(operands)>(operands)...}
     {}
   };
 
@@ -78,8 +78,8 @@ namespace meevax::system
     {}
 
     template <typename... Ts>
-    explicit constexpr output_file(Ts&&... xs)
-      : std::ofstream {std::forward<Ts>(xs)...}
+    explicit constexpr output_file(Ts&&... operands)
+      : std::ofstream {std::forward<decltype(operands)>(operands)...}
     {}
   };
 
@@ -95,7 +95,7 @@ namespace meevax::system
 
     return os << ")";
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_FILE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_FILE_HPP
 

@@ -1,14 +1,14 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_STRING_HPP
-#define INCLUDED_MEEVAX_SYSTEM_STRING_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
+#define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
 /*
  * This header is responsible for including <string>. But, this header knows
  * character.hpp includes <string>.
  */
-#include <meevax/system/character.hpp>
-#include <meevax/system/pair.hpp>
+#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/pair.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct string
     : public virtual pair
@@ -44,7 +44,7 @@ namespace meevax::system
 
     return os << "\"" << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_STRING_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP
 

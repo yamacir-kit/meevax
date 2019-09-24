@@ -1,39 +1,43 @@
-#include <meevax/system/file.hpp>
-#include <meevax/system/native.hpp>
-#include <meevax/system/string.hpp>
+#include <meevax/kernel/file.hpp>
+#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/string.hpp>
 
-extern "C" namespace meevax::system
+extern "C" namespace meevax::io
 {
   NATIVE(is_input_file)
   {
-    return car(args).is<input_file>() ? true_object : false_object;
+    return kernel::car(operands).is<kernel::input_file>() ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(is_output_file)
   {
-    return car(args).is<output_file>() ? true_object : false_object;
+    return kernel::car(operands).is<kernel::output_file>() ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(open_input_file)
   {
-    return make<input_file>(car(args).as<string>());
+    return kernel::make<kernel::input_file>(
+             kernel::car(operands).as<kernel::string>()
+           );
   }
 
   NATIVE(open_output_file)
   {
-    return make<output_file>(car(args).as<string>());
+    return kernel::make<kernel::output_file>(
+             kernel::car(operands).as<kernel::string>()
+           );
   }
 
   NATIVE(close_input_file)
   {
-    car(args).as<input_file>().close();
-    return unspecified;
+    kernel::car(operands).as<kernel::input_file>().close();
+    return kernel::unspecified;
   }
 
   NATIVE(close_output_file)
   {
-    car(args).as<output_file>().close();
-    return unspecified;
+    kernel::car(operands).as<kernel::output_file>().close();
+    return kernel::unspecified;
   }
 } // extern "C"
 

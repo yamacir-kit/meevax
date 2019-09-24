@@ -1,35 +1,36 @@
-#include <meevax/system/native.hpp>
+#include <meevax/kernel/native.hpp>
 
-extern "C"
+extern "C" namespace meevax::pair
 {
   NATIVE(car)
   {
-    return meevax::system::caar(args);
+    return kernel::caar(operands);
   }
 
   NATIVE(cdr)
   {
-    return meevax::system::cdar(args);
+    return kernel::cdar(operands);
   }
 
   NATIVE(cons)
   {
-    return meevax::system::cons(meevax::system::car(args), meevax::system::cadr(args));
+    return kernel::cons(
+             kernel::car(operands),
+             kernel::cadr(operands)
+           );
   }
 
   NATIVE(pair_)
   {
-    using namespace meevax::system;
-
-    for (const auto& each : args)
+    for (const auto& each : operands)
     {
-      if (not each or not each.is<pair>())
+      if (not each or not each.is<kernel::pair>())
       {
-        return false_object;
+        return kernel::false_object;
       }
     }
 
-    return true_object;
+    return kernel::true_object;
   }
 } // extern "C"
 

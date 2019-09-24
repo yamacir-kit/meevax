@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_CONFIGURATOR_HPP
-#define INCLUDED_MEEVAX_CONFIGURATOR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
+#define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
 #include <regex>
 #include <unordered_map>
@@ -7,60 +7,92 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/system/native.hpp>
-#include <meevax/system/path.hpp>
-#include <meevax/system/reader.hpp>
+#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/path.hpp>
+#include <meevax/kernel/reader.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   template <typename Environment>
   struct configurator
   {
-    static inline const auto version_major {make<real>(${PROJECT_VERSION_MAJOR})};
-    static inline const auto version_minor {make<real>(${PROJECT_VERSION_MINOR})};
-    static inline const auto version_patch {make<real>(${PROJECT_VERSION_PATCH})};
+    /**
+     * This structure is a precaution against the possibility of providing part
+     * of the configuration as an object to the runtime in the future.
+     **/
+    static inline const struct version
+      : public object
+    {
+      static inline const auto major {make<real>(${PROJECT_VERSION_MAJOR})};
+      static inline const auto minor {make<real>(${PROJECT_VERSION_MINOR})};
+      static inline const auto patch {make<real>(${PROJECT_VERSION_PATCH})};
 
-    static inline const auto version {list(
-      version_major, version_minor, version_patch
-    )};
+      static inline const auto semantic {"datum<string>(${PROJECT_VERSION})"};
 
-    // static inline const struct version_container
-    //   : public object
-    // {
-    //   inline const auto major {make<real>(${PROJECT_VERSION_MAJOR})};
-    //   inline const auto minor {make<real>(${PROJECT_VERSION_MINOR})};
-    //   inline const auto patch {make<real>(${PROJECT_VERSION_PATCH})};
-    //
-    //   explicit version_container()
-    //     : object {list(major, minor, patch)}
-    //   {}
-    // } version {};
+      template <typename... Ts>
+      explicit constexpr version(Ts&&... operands)
+        : object {list(std::forward<decltype(operands)>(operands)...)}
+      {}
+    } version {
+      version::major,
+      version::minor,
+      version::patch,
+    };
 
-    // static inline const std::string build_date {"${${PROJECT_NAME}_BUILD_DATE}"};
-    static inline const auto build_date {datum<string>("${${PROJECT_NAME}_BUILD_DATE}")};
-
-    static inline const std::string build_hash {"${${PROJECT_NAME}_BUILD_HASH}"};
-    static inline const std::string build_type {"${CMAKE_BUILD_TYPE}"};
+    /**
+     * This structure is a precaution against the possibility of providing part
+     * of the configuration as an object to the runtime in the future.
+     **/
+    static inline const struct build // TODO Rename
+    {
+      static inline const auto date {datum<string>("${${PROJECT_NAME}_BUILD_DATE}")};
+      static inline const auto hash {datum<string>("${${PROJECT_NAME}_BUILD_HASH}")};
+      static inline const auto type {datum<string>("${CMAKE_BUILD_TYPE}")};
+    } build {};
 
     static inline const auto install_prefix {make<path>("${CMAKE_INSTALL_PREFIX}")};
 
     static inline object preloads {unit};
 
-    static inline auto debug   {false_object};
-    static inline auto verbose {false_object};
+    static inline auto debug               {false_object};
+    static inline auto experimental        {false_object};
+    static inline auto trace               {false_object};
+    static inline auto variable            {unit};
+    static inline auto verbose             {false_object};
+    static inline auto verbose_compiler    {false_object};
+    static inline auto verbose_define      {false_object};
+    static inline auto verbose_environment {false_object};
+    static inline auto verbose_loader      {false_object};
+    static inline auto verbose_machine     {false_object};
+    static inline auto verbose_reader      {false_object};
+
+    #define ENABLE(VARIABLE)                                                   \
+    [&](const auto&) mutable                                                   \
+    {                                                                          \
+      std::cerr << ";\t\t; " << VARIABLE << " => ";                            \
+      VARIABLE = true_object;                                                  \
+      std::cerr << VARIABLE << std::endl;                                      \
+      return VARIABLE;                                                         \
+    }
 
   public:
+    /**
+     * TODO
+     * Simplify the parser by adding a default constructor that constructs a
+     * procedure that either returns a NIL for a native type or throws an
+     * exception, meaning that it is undecided.
+     **/
     template <typename T>
     using dispatcher = std::unordered_map<
                          typename std::decay<T>::type,
                          std::function<NATIVE()>
                        >;
 
-    static inline const dispatcher<char> short_options_requires_no_operands
+    const dispatcher<char> short_options_requires_no_operands
     {
       std::make_pair('h', [&](const auto&)
       {
-        std::cout << "HELP!" << std::endl;
+        std::cout << "; rather, help me." << std::endl;
         std::exit(boost::exit_success);
         return undefined; // dummy for return type deduction
       }),
@@ -73,27 +105,41 @@ namespace meevax::system
       }),
     };
 
-    static inline const dispatcher<char> short_options_requires_operands
+    const dispatcher<char> short_options_requires_operands
     {
     };
 
-    static inline const dispatcher<std::string> long_options_requires_no_operands
+    const dispatcher<std::string> long_options_requires_no_operands
     {
+      std::make_pair("debug", ENABLE(debug)),
+
       std::make_pair("help", [&](const auto&)
       {
-        std::cout << "; HELP!" << std::endl;
+        std::cout << "; rather, help me." << std::endl;
         std::exit(boost::exit_success);
         return undefined; // dummy for return type deduction
       }),
 
+      // TODO quite
+
+      std::make_pair("trace", ENABLE(trace)),
+
+      std::make_pair("verbose",             ENABLE(verbose)),
+      std::make_pair("verbose-compiler",    ENABLE(verbose_compiler)),
+      std::make_pair("verbose-define",      ENABLE(verbose_define)),
+      std::make_pair("verbose-environment", ENABLE(verbose_environment)),
+      std::make_pair("verbose-loader",      ENABLE(verbose_loader)),
+      std::make_pair("verbose-machine",     ENABLE(verbose_machine)),
+      std::make_pair("verbose-reader",      ENABLE(verbose_reader)),
+
       std::make_pair("version", [&](const auto&)
       {
-        std::cout << "; Meevax Lisp System " << version_major << " - Revision " << version_minor << " Patch " << version_patch << std::endl;
+        std::cout << "; Meevax Lisp System " << version.major << " - Revision " << version.minor << " Patch " << version.patch << std::endl;
         std::cout << ";" << std::endl;
         std::cout << "; version   \t; " << version    << std::endl;
-        std::cout << "; build-date\t; " << build_date << std::endl;
-        std::cout << "; build-hash\t; " << build_hash << std::endl;
-        std::cout << "; build-type\t; " << build_type << std::endl;
+        std::cout << "; build-date\t; " << build.date << std::endl;
+        std::cout << "; build-hash\t; " << build.hash << std::endl;
+        std::cout << "; build-type\t; " << build.type << std::endl;
         std::cout << ";" << std::endl;
         std::cout << "; install-prefix\t; " << install_prefix << std::endl;
 
@@ -102,26 +148,27 @@ namespace meevax::system
       }),
     };
 
-    static inline const dispatcher<std::string> long_options_requires_operands
+    const dispatcher<std::string> long_options_requires_operands
     {
-      std::make_pair("echo", [&](const auto& operands)
+      std::make_pair("echo", [](const auto& operands)
       {
         std::cout << operands << std::endl;
         return undefined;
       }),
 
-      std::make_pair("verbose", [&](const auto& operands)
+      std::make_pair("debug-variable", [&](const auto& operands) mutable
       {
-        // TODO Typecheck
-        // TODO Accumulate operands with std::logical_and
-        return verbose = car(operands);
+        std::cerr << "; configure\t; " << verbose << " => ";
+        variable = operands;
+        std::cerr << variable << std::endl;
+        return variable;
       }),
     };
 
     template <typename... Ts>
-    constexpr decltype(auto) configure(Ts&&... xs)
+    constexpr decltype(auto) configure(Ts&&... operands)
     {
-      return (*this)(std::forward<Ts>(xs)...);
+      return (*this)(std::forward<decltype(operands)>(operands)...);
     }
 
     decltype(auto) operator()(const int argc, char const* const* const argv)
@@ -203,13 +250,16 @@ namespace meevax::system
 
             if (group.length(2) != 0)
             {
-              std::cerr << ";\t\t; operand(s) " << group.str(3) << std::endl;
+              std::cerr << ";\t\t; operand(s) \"" << group.str(3) << "\" => ";
+              const auto operands {static_cast<Environment&>(*this).read(group.str(3))};
+              std::cerr << operands << std::endl;
+              return std::invoke(std::get<1>(*callee_requires_operands), operands);
             }
             else if (std::smatch next_group {};
                      std::next(global) != std::end(args)
                      and not std::regex_match(*std::next(global), next_group, pattern))
             {
-              std::cerr << ";\t\t; operand(s) " << *std::next(global) << " => ";
+              std::cerr << ";\t\t; operand(s) \"" << *std::next(global) << "\" => ";
               const auto operands {static_cast<Environment&>(*this).read(*++global)};
               std::cerr << operands << std::endl;
               return std::invoke(std::get<1>(*callee_requires_operands), operands);
@@ -242,7 +292,7 @@ namespace meevax::system
       }();
     }
   };
-} // namespace meevax
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_CONFIGURATOR_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 

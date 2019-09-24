@@ -12,8 +12,8 @@ namespace meevax::protocol
     : public std::unique_ptr<xcb_generic_event_t>
   {
     template <typename... Ts>
-    explicit event(Ts&&... xs)
-      : std::unique_ptr<xcb_generic_event_t> {std::forward<Ts>(xs)...}
+    explicit event(Ts&&... operands)
+      : std::unique_ptr<xcb_generic_event_t> {std::forward<decltype(operands)>(operands)...}
     {}
 
     auto type() const noexcept

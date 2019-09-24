@@ -1,18 +1,18 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_PATH_HPP
-#define INCLUDED_MEEVAX_SYSTEM_PATH_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_PATH_HPP
+#define INCLUDED_MEEVAX_KERNEL_PATH_HPP
 
 #include <experimental/filesystem>
 
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct path
     : public std::experimental::filesystem::path
   {
     template <typename... Ts>
-    explicit constexpr path(Ts&&... xs)
-      : std::experimental::filesystem::path {std::forward<Ts>(xs)...}
+    explicit constexpr path(Ts&&... operands)
+      : std::experimental::filesystem::path {std::forward<decltype(operands)>(operands)...}
     {}
   };
 
@@ -25,7 +25,7 @@ namespace meevax::system
               << highlight::syntax << ")"
               << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_PATH_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_PATH_HPP
 

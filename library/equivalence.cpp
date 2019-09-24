@@ -1,29 +1,26 @@
-#include <meevax/system/native.hpp>
+#include <meevax/kernel/native.hpp>
 
-extern "C"
+extern "C" namespace meevax::equivalence
 {
   NATIVE(address_equal)
   {
-    using namespace meevax::system;
-
-    return car(args) == cadr(args) ? true_object : false_object;
+    return kernel::car(operands) == kernel::cadr(operands) ? kernel::true_object : kernel::false_object;
   }
 
   NATIVE(value_equal)
   {
-    using namespace meevax::system;
-
-    if (const object& object1 {car(args)}, object2 {cadr(args)}; object1 == object2)
+    if (const kernel::object& object1 {kernel::car(operands)},
+                              object2 {kernel::cadr(operands)}; object1 == object2)
     {
-      return true_object;
+      return kernel::true_object;
     }
     else if (!object1 or !object2)
     {
-      return false_object;
+      return kernel::false_object;
     }
     else
     {
-      return object1.equals(object2) ? true_object : false_object;
+      return object1.equals(object2) ? kernel::true_object : kernel::false_object;
     }
   }
 } // extern "C"

@@ -1,18 +1,18 @@
-#ifndef INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
-#define INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
+#define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/system/exception.hpp>
-#include <meevax/system/object.hpp>
+#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/object.hpp>
 
-namespace meevax::system
+namespace meevax::kernel
 {
   struct pair
     : public std::pair<object, object>
     , public facade<pair>
   {
     template <typename... Ts>
-    explicit constexpr pair(Ts&&... args)
-      : std::pair<object, object> {std::forward<Ts>(args)...}
+    explicit constexpr pair(Ts&&... operands)
+      : std::pair<object, object> {std::forward<decltype(operands)>(operands)...}
     {}
 
     pair()
@@ -30,7 +30,7 @@ namespace meevax::system
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      throw system_error_about_pair {                                          \
+      throw kernel_error_about_pair {                                          \
         "internal illegal selection rejected"                                  \
       };                                                                       \
     }                                                                          \
@@ -65,7 +65,7 @@ namespace meevax::system
 
     return os << highlight::syntax << ")" << attribute::normal;
   }
-} // namespace meevax::system
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_SYSTEM_PAIR_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 

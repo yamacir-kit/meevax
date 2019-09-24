@@ -60,14 +60,14 @@ namespace meevax::protocol
     template <typename... Ts>
     decltype(auto) configure(const std::uint16_t mask, Ts&&... configurations) const
     {
-      const std::vector<std::uint32_t> values {std::forward<Ts>(configurations)...};
+      const std::vector<std::uint32_t> values {std::forward<decltype(configurations)>(configurations)...};
       return xcb_configure_window(connection, value, mask, values.data());
     }
 
     template <typename Mask, typename... Ts>
     decltype(auto) change_attributes(const Mask& mask, Ts&&... attributes) const
     {
-      const std::vector<std::uint32_t> values {std::forward<Ts>(attributes)...};
+      const std::vector<std::uint32_t> values {std::forward<decltype(attributes)>(attributes)...};
       return xcb_change_window_attributes(connection, value, mask, values.data());
     }
   };
