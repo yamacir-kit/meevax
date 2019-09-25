@@ -1,99 +1,37 @@
-; (define null?
-;   (lambda (x)
-;     EQUx))
-
-; EQU Qa
-; EQU QU
-
-; (define not
-;   (lambda (x)
-;     (if x #false #true)))
-
-; N#t
-; N#f
-
-; NEQaQa
-; NEQaQb
-
-; (define and
-;   (lambda (x y)
-;     (if x (if y #true #false) #false)))
-
-; (and N(pair? Qa) EQaQa)
-; (and N(pair? Qa) EQaQb)
-
-; (define append
-;   (lambda (x y)
-;     (if EQUx y P Hx (append Tx y))))
-
-; (append Q(a b) Q(c d))
-; (append QU     Q(c d))
-
-; (define list
-;   (lambda (x y)
-;     P x P y QU))
-
-; Dzip Y
-;   (lambda (f)
-;     (lambda (x y)
-;       (if (and EQUx EQUy) QU
-;           (if (and (pair? x) (pair? y)) P (list Hx Hy) (f Tx Ty) QU))))
-
-; (zip Q(x y z) Q(a b c)); => ((x a) (y b) (z c))
-
-; Dassoc Y
-;   (lambda (f)
-;     (lambda (x y)
-;       (if EQUx QU
-;           (if EQUy x
-;               (if E HHy x HTHy
-;                   (f x Ty))))))
-
-; (assoc Qx Q(        (x a) (y b))); => a
-; (assoc Qx Q((x new) (x a) (y b))); => new
-
 Deval Y
   L (f)
     (lambda (e a)
-      Dappend Y
-        L (g)
-          L (x y)
-            MEQUx y PHx (g Tx y)
-      Dzip Y
-        L (g)
-          L (x y)
-            MMEQUx EQUy #f QU
-                MMRx Ry #f P (list Hx Hy) (g Tx Ty) QU
-      Dassoc Y
-        L (g)
-          L (x y)
-            MEQUx QU
-                MEQUy x
-                    MEHHy x HTHy (g x Ty)
-      Devcon Y
-        L (g)
-          L (c a)
-            M (f HHc a) (f HTHc a) (g Tc a)
-      Devlis Y
-        L (g)
-          L (m a)
-            MEQUm QU P (f Hm a) (g Tm a)
+      Dzip
+        YL (g) L (x y)
+          MMEQUx EQUy #f QU
+          MMRx Ry #f P (list Hx Hy) (g Tx Ty) QU
+      Dassoc
+        YL (g) L (x y)
+          MEQUx QU
+          MEQUy x
+          MEHHy x HTHy (g x Ty)
       MNRe (assoc e a)
-        MNRHe
-          MEHe Qquote HTe
-            MEHe Qatom NR (f HTe a)
-              MEHe Qeq E (f HTe a) (f HTTe a)
-                MEHe Qcar H (f HTe a)
-                  MEHe Qcdr T (f HTe a)
-                    MEHe Qcons P (f HTe a) (f HTTe a)
-                      MEHe Qcond
-                        (evcon Te a)
-                        (f P (assoc He a) Te a)
-        MEHHe Qlabel
-          (f PHTTHe Te P (list HTHe He) a)
-          MEHHe Qlambda
-            (f HTTHe (append (zip HTHe (evlis Te a)) a))
-            Qerror)
+      MNRHe
+        MEHe Qquote HTe
+        MEHe Qatom NR (f HTe a)
+        MEHe Qeq E (f HTe a) (f HTTe a)
+        MEHe Qcar H (f HTe a)
+        MEHe Qcdr T (f HTe a)
+        MEHe Qcons P (f HTe a) (f HTTe a)
+        MEHe Qcond
+          (YL (g) L (c a) M (f HHc a) (f HTHc a) (g Tc a) Te a)
+          (f P (assoc He a) Te a)
+      MEHHe Qlabel
+        (f PHTTHe Te P (list HTHe He) a)
+      MEHHe Qlambda
+        (f HTTHe
+           (YL (g)
+             L (x y)
+               MEQUx y
+                 PHx (g Tx y)
+                 (zip HTHe (YL (g) L (m a) MEQUm QU P (f Hm a) (g Tm a) Te a))
+            a))
+        Qerror)
 
 (eval '(quote a) '())
 (eval ''a '())
