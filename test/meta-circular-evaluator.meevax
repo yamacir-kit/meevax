@@ -2,18 +2,18 @@
 ;   (lambda (x)
 ;     EQUx))
 
-EQU Qa
-EQU QU
+; EQU Qa
+; EQU QU
 
 ; (define not
 ;   (lambda (x)
 ;     (if x #false #true)))
 
-N#t
-N#f
+; N#t
+; N#f
 
-NEQaQa
-NEQaQb
+; NEQaQa
+; NEQaQb
 
 ; (define and
 ;   (lambda (x y)
@@ -52,52 +52,51 @@ NEQaQb
 ; (assoc Qx Q(        (x a) (y b))); => a
 ; (assoc Qx Q((x new) (x a) (y b))); => new
 
-Deval Y (lambda (f)
-  (lambda (e a)
-    Dappend Y
-      (lambda (g)
+Deval Y
+  (lambda (f)
+    (lambda (e a)
+      Dand
         (lambda (x y)
-          (if EQUx y P Hx (g Tx y))))
-    Dzip Y
-      (lambda (g)
-        (lambda (x y)
-          (if (and EQUx EQUy) QU
-              (if (and (pair? x) (pair? y)) P (list Hx Hy) (g Tx Ty) QU))))
-    Dassoc Y
-      (lambda (g)
-        (lambda (x y)
-          (if EQUx QU
-              (if EQUy x
-                  (if E HHy x HTHy (g x Ty))))))
-    Devcon Y
-      (lambda (g)
-        (lambda (c a)
-          (if (f HHc a) (f HTHc a) (g Tc a))))
-    Devlis Y
-      (lambda (g)
-        (lambda (m a)
-          (if EQUm QU P (f  Hm a) (g Tm a))))
-    (if N (pair? e) (assoc e a)
-        (if N (pair? He)
-            (if EHe Qquote
-                HTe
-                (if EHe Qatom
-                    N (pair? (f HTe a))
-                    (if EHe Qeq
-                        E (f HTe a) (f HTTe a)
-                        (if EHe Qcar
-                            H (f HTe a)
-                            (if EHe Qcdr
-                                T (f HTe a)
-                                (if EHe Qcons
-                                    P (f HTe a) (f HTTe a)
-                                    (if EHe Qcond
-                                        (evcon Te a)
-                                        (f P (assoc He a) Te a))))))))
-            (if EHHe Qlabel
-                (f P HTTHe Te P (list HTHe He) a)
-                (if EHHe Qlambda
-                    (f HTTHe (append (zip HTHe (evlis Te a)) a)) Qerror))))))
+          (if x (if y #t #f) #f)))
+      Dappend Y
+        (lambda (g)
+          (lambda (x y)
+            (if EQUx y PHx (g Tx y))))
+      Dzip Y
+        (lambda (g)
+          (lambda (x y)
+            (if (and EQUx EQUy) QU
+                (if (and P?x P?y) P (list Hx Hy) (g Tx Ty) QU))))
+      Dassoc Y
+        (lambda (g)
+          (lambda (x y)
+            (if EQUx QU
+                (if EQUy x
+                    (if EHHy x HTHy (g x Ty))))))
+      Devcon Y
+        (lambda (g)
+          (lambda (c a)
+            (if (f HHc a) (f HTHc a) (g Tc a))))
+      Devlis Y
+        (lambda (g)
+          (lambda (m a)
+            (if EQUm QU P (f Hm a) (g Tm a))))
+      (if NP?e (assoc e a)
+          (if NP?He
+              (if EHe Qquote HTe
+                  (if EHe Qatom NP? (f HTe a)
+                      (if EHe Qeq E (f HTe a) (f HTTe a)
+                          (if EHe Qcar H (f HTe a)
+                              (if EHe Qcdr T (f HTe a)
+                                  (if EHe Qcons P (f HTe a) (f HTTe a)
+                                      (if EHe Qcond
+                                          (evcon Te a)
+                                          (f P (assoc He a) Te a))))))))
+              (if EHHe Qlabel
+                  (f PHTTHe Te P (list HTHe He) a)
+                  (if EHHe Qlambda
+                      (f HTTHe (append (zip HTHe (evlis Te a)) a))
+                      Qerror))))))
 
 (eval '(quote a) '())
 (eval ''a '())
