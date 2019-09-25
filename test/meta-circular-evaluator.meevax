@@ -33,36 +33,37 @@ NEQaQb
 ;   (lambda (x y)
 ;     P x P y QU))
 
-(define zip
+Dzip
   (lambda (x y)
     (if (and EQUx EQUy) QU
         (if (and (pair? x) (pair? y))
             P (list Hx Hy) (zip  Tx Ty)
-            QU))))
+            QU)))
 
 (zip Q(x y z) Q(a b c)); => ((x a) (y b) (z c))
 
-(define assoc
-  (lambda (x y)
-    (if EQUx QU
-        (if EQUy x
-            (if E HHy x HTHy
-                (assoc x Ty))))))
+Dassoc Y
+  (lambda (f)
+    (lambda (x y)
+      (if EQUx QU
+          (if EQUy x
+              (if E HHy x HTHy
+                  (f x Ty))))))
 
 (assoc Qx Q(        (x a) (y b))); => a
 (assoc Qx Q((x new) (x a) (y b))); => new
 
-(define eval
+Deval
   (lambda (e a)
-    (define evcon
+    Devcon
       (lambda (c a)
         (if (eval HHc a)
             (eval HTHc a)
-            (evcon Tc a))))
-    (define evlis
+            (evcon Tc a)))
+    Devlis
       (lambda (m a)
         (if EQUm QU
-            P (eval  Hm a) (evlis Tm a))))
+            P (eval  Hm a) (evlis Tm a)))
     (if N (pair? e) (assoc e a)
         (if N (pair? He)
             (if EHe Qquote
@@ -83,7 +84,7 @@ NEQaQb
             (if EHHe Qlabel
                 (eval P HTTHe Te P (list HTHe He) a)
                 (if EHHe Qlambda
-                    (eval HTTHe (append (zip HTHe (evlis Te a)) a)) Qerror))))))
+                    (eval HTTHe (append (zip HTHe (evlis Te a)) a)) Qerror)))))
 
 (eval '(quote a) '())
 (eval ''a '())

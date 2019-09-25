@@ -30,13 +30,19 @@ R"##(
     (x S K)))
 
 (define recursion ; Y or Z
+  ; (lambda (f)
+  ;   ((lambda (g)
+  ;      (f (lambda (x)
+  ;           ((g g) x))))
+  ;    (lambda (g)
+  ;      (f (lambda (x)
+  ;           ((g g) x))))))
   (lambda (f)
-    ((lambda (g)
-       (f (lambda (x)
-            ((g g) x))))
+    ((lambda (h)
+       (h h))
      (lambda (g)
-       (f (lambda (x)
-            ((g g) x)))))))
+       (f (lambda x (apply (g g) x))))))
+  )
 
 ; ------------------------------------------------------------------------------
 ;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
