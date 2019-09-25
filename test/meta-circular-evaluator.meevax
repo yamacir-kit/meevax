@@ -65,24 +65,24 @@ NEQaQb
             P (eval  Hm a) (evlis Tm a))))
     (if N (pair? e) (assoc e a)
         (if N (pair? He)
-            (if E He Qquote
+            (if EHe Qquote
                 HTe
-                (if E He Qatom
+                (if EHe Qatom
                     N (pair? (eval HTe a))
-                    (if E He Qeq
+                    (if EHe Qeq
                         E (eval HTe a) (eval HTTe a)
-                        (if E He Qcar
+                        (if EHe Qcar
                             H (eval HTe a)
-                            (if E He Qcdr
+                            (if EHe Qcdr
                                 T (eval HTe a)
-                                (if E He Qcons
+                                (if EHe Qcons
                                     P (eval HTe a) (eval HTTe a)
-                                    (if E He Qcond
+                                    (if EHe Qcond
                                         (evcon Te a)
                                         (eval P (assoc He a) Te a))))))))
-            (if E HHe Qlabel
+            (if EHHe Qlabel
                 (eval P HTTHe Te P (list HTHe He) a)
-                (if E HHe Qlambda
+                (if EHHe Qlambda
                     (eval HTTHe (append (zip HTHe (evlis Te a)) a)) Qerror))))))
 
 (eval '(quote a) '())
