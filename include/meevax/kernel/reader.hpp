@@ -350,8 +350,18 @@ namespace meevax::kernel
             return list(intern("konstant"), x, y);
           }
 
-        // case 'L':
-        // case 'M':
+        case 'L':
+          {
+            const auto formals {read(stream)};
+            return list(intern("lambda"), formals, read(stream));
+          }
+
+        case 'M':
+          {
+            const auto test {read(stream)};
+            const auto consequent {read(stream)};
+            return list(intern("if"), test, consequent, read(stream));
+          }
 
         case 'N':
           return list(intern("not"), read(stream));
@@ -359,22 +369,17 @@ namespace meevax::kernel
         // case 'O':
 
         case 'P': // Pair
-          if (stream.peek() != '?')
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
             return list(intern("cons"), x, y);
           }
-          else
-          {
-            stream.get();
-            return list(intern("pair?"), read(stream));
-          }
 
         case 'Q': // Quote
           return list(intern("quote"), read(stream));
 
-        // case 'R':
+        case 'R':
+          return list(intern("pair?"), read(stream));
 
         case 'S': // Substitution
           {
