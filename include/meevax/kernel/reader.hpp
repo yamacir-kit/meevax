@@ -352,7 +352,10 @@ namespace meevax::kernel
 
         // case 'L':
         // case 'M':
-        // case 'N':
+
+        case 'N':
+          return list(intern("not"), read(stream));
+
         // case 'O':
 
         case 'P': // Pair

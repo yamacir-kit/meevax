@@ -1,30 +1,30 @@
 ; (define null?
 ;   (lambda (x)
-;     (eq? x QU)))
+;     EQUx))
 
-(null? Qa)
-(null? QU)
+EQU Qa
+EQU QU
 
 ; (define not
 ;   (lambda (x)
 ;     (if x #false #true)))
 
-(not #true)
-(not #false)
+N#t
+N#f
 
-(not (eq? Qa Qa))
-(not (eq? Qa Qb))
+NEQaQa
+NEQaQb
 
 ; (define and
 ;   (lambda (x y)
 ;     (if x (if y #true #false) #false)))
 
-(and (not (pair? Qa)) (eq? Qa Qa))
-(and (not (pair? Qa)) (eq? Qa Qb))
+(and N(pair? Qa) EQaQa)
+(and N(pair? Qa) EQaQb)
 
 ; (define append
 ;   (lambda (x y)
-;     (if (null? x) y P Hx (append Tx y))))
+;     (if EQUx y P Hx (append Tx y))))
 
 (append Q(a b) Q(c d))
 (append QU     Q(c d))
@@ -35,7 +35,7 @@
 
 (define zip
   (lambda (x y)
-    (if (and (null? x) (null? y)) QU
+    (if (and EQUx EQUy) QU
         (if (and (pair? x) (pair? y))
             P (list Hx Hy) (zip  Tx Ty)
             QU))))
@@ -44,39 +44,46 @@
 
 (define assoc
   (lambda (x y)
-    (if (null? x) QU
-        (if (null? y) x
-            (if (eq? HHy x) HTHy
+    (if EQUx QU
+        (if EQUy x
+            (if E HHy x HTHy
                 (assoc x Ty))))))
 
 (assoc Qx Q(        (x a) (y b))); => a
 (assoc Qx Q((x new) (x a) (y b))); => new
 
-(define evcon
-  (lambda (c a)
-    (if (eval HHc a)
-        (eval HTHc a)
-        (evcon Tc a))))
-
-(define evlis
-  (lambda (m a)
-    (if (null? m) QU
-        P (eval  Hm a) (evlis Tm a))))
-
 (define eval
   (lambda (e a)
-    (if (not (pair? e)) (assoc e a)
-        (if (not (pair? He))
-            (if (eq? He Qquote) HTe
-                (if (eq? He Qatom) (not (pair? (eval HTe a)))
-                    (if (eq? He Qeq) (eq? (eval HTe a) (eval HTTe a))
-                        (if (eq? He Qcar) H (eval HTe a)
-                            (if (eq? He Qcdr) T (eval HTe a)
-                                (if (eq? He Qcons) P (eval HTe a) (eval HTTe a)
-                                    (if (eq? He Qcond) (evcon Te a)
+    (define evcon
+      (lambda (c a)
+        (if (eval HHc a)
+            (eval HTHc a)
+            (evcon Tc a))))
+    (define evlis
+      (lambda (m a)
+        (if EQUm QU
+            P (eval  Hm a) (evlis Tm a))))
+    (if N (pair? e) (assoc e a)
+        (if N (pair? He)
+            (if E He Qquote
+                HTe
+                (if E He Qatom
+                    N (pair? (eval HTe a))
+                    (if E He Qeq
+                        E (eval HTe a) (eval HTTe a)
+                        (if E He Qcar
+                            H (eval HTe a)
+                            (if E He Qcdr
+                                T (eval HTe a)
+                                (if E He Qcons
+                                    P (eval HTe a) (eval HTTe a)
+                                    (if E He Qcond
+                                        (evcon Te a)
                                         (eval P (assoc He a) Te a))))))))
-            (if (eq? HHe Qlabel) (eval P HTTHe Te P (list HTHe He) a)
-                (if (eq? HHe Qlambda) (eval HTTHe (append (zip HTHe (evlis Te a)) a)) Qerror))))))
+            (if E HHe Qlabel
+                (eval P HTTHe Te P (list HTHe He) a)
+                (if E HHe Qlambda
+                    (eval HTTHe (append (zip HTHe (evlis Te a)) a)) Qerror))))))
 
 (eval '(quote a) '())
 (eval ''a '())
