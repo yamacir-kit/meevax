@@ -1,37 +1,33 @@
-Deval Y
-  L (f)
-    (lambda (e a)
-      Dzip
-        YL (g) L (x y)
-          MMEQUx EQUy #f QU
-          MMRx Ry #f P (list Hx Hy) (g Tx Ty) QU
-      Dassoc
-        YL (g) L (x y)
-          MEQUx QU
-          MEQUy x
-          MEHHy x HTHy (g x Ty)
-      MNRe (assoc e a)
-      MNRHe
-        MEHe Qquote HTe
-        MEHe Qatom NR (f HTe a)
-        MEHe Qeq E (f HTe a) (f HTTe a)
-        MEHe Qcar H (f HTe a)
-        MEHe Qcdr T (f HTe a)
-        MEHe Qcons P (f HTe a) (f HTTe a)
-        MEHe Qcond
-          (YL (g) L (c a) M (f HHc a) (f HTHc a) (g Tc a) Te a)
-          (f P (assoc He a) Te a)
-      MEHHe Qlabel
-        (f PHTTHe Te P (list HTHe He) a)
-      MEHHe Qlambda
-        (f HTTHe
-           (YL (g)
-             L (x y)
-               MEQUx y
-                 PHx (g Tx y)
-                 (zip HTHe (YL (g) L (m a) MEQUm QU P (f Hm a) (g Tm a) Te a))
-            a))
-        Qerror)
+Deval YL (f)
+  (lambda (e a)
+    Dzip
+      YL (g) L (x y)
+        MMEQUx EQUy #f QU
+        MMRx Ry #f PPHx PHy QU (g Tx Ty) QU
+    Dassoc
+      YL (g) L (x y)
+        MEQUx QU MEQUy x MEHHy x HTHy (g x Ty)
+    MNRe (assoc e a)
+    MNRHe
+      MEHe Qquote HTe
+      MEHe Qatom NR (f HTe a)
+      MEHe Qeq E (f HTe a) (f HTTe a)
+      MEHe Qcar H (f HTe a)
+      MEHe Qcdr T (f HTe a)
+      MEHe Qcons P (f HTe a) (f HTTe a)
+      MEHe Qcond
+        (YL (g) L (c a) M (f HHc a) (f HTHc a) (g Tc a) Te a)
+        (f P (assoc He a) Te a)
+    MEHHe Qlabel
+      (f PHTTHe Te PPHTHe PHe QU a)
+    MEHHe Qlambda
+      (f HTTHe
+         (YL (g) L (x y)
+           MEQUx y
+             PHx (g Tx y)
+             (zip HTHe (YL (g) L (m a) MEQUm QU P (f Hm a) (g Tm a) Te a))
+          a))
+      Qerror)
 
 (eval '(quote a) '())
 (eval ''a '())

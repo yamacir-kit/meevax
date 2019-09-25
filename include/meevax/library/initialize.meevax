@@ -27,7 +27,7 @@ R"##(
 
 (define one-point-basis ; X
   (lambda (x) ; λx. ((x S) K)
-    (x S K)))
+    ((x S) K)))
 
 (define recursion ; Y or Z
   ; (lambda (f)
