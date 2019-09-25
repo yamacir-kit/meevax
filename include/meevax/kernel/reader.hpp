@@ -359,10 +359,16 @@ namespace meevax::kernel
         // case 'O':
 
         case 'P': // Pair
+          if (stream.peek() != '?')
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
             return list(intern("cons"), x, y);
+          }
+          else
+          {
+            stream.get();
+            return list(intern("pair?"), read(stream));
           }
 
         case 'Q': // Quote
