@@ -318,8 +318,20 @@ namespace meevax::kernel
             return list(intern("define"), x, y);
           }
 
-        // case 'E':
-        // case 'F':
+        case 'E':
+          {
+            const auto x {read(stream)};
+            const auto y {read(stream)};
+            return list(intern("eq?"), x, y);
+          }
+
+        case 'F':
+          {
+            const auto x {read(stream)};
+            const auto y {read(stream)};
+            return list(intern("false"), x, y);
+          }
+
         // case 'G':
 
         case 'H': // Head
@@ -369,7 +381,12 @@ namespace meevax::kernel
         case 'U':
           return unit;
 
-        // case 'V':
+        case 'V':
+          {
+            const auto x {read(stream)};
+            const auto y {read(stream)};
+            return list(intern("eqv?"), x, y);
+          }
 
         case 'W':
           {
@@ -378,7 +395,8 @@ namespace meevax::kernel
             return list(intern("duplicate"), x, y);
           }
 
-        // case 'X':
+        case 'X':
+          return list(intern("one-point-basis"), read(stream));
 
         case 'Y':
           return list(intern("recursion"), read(stream));

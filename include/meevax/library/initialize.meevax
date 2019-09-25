@@ -8,6 +8,9 @@ R"##(
   (lambda (x y z)
     ((x z) y)))
 
+(define false ; F
+  (lambda (x y) y))
+
 (define duplicate ; W
   (lambda (x y)
     (x y y)))
@@ -21,6 +24,10 @@ R"##(
 
 (define konstant ; K
   (lambda (x y) x))
+
+(define one-point-basis ; X
+  (lambda (x) ; λx. ((x S) K)
+    (x S K)))
 
 (define recursion ; Y or Z
   (lambda (f)

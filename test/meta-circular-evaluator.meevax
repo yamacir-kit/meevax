@@ -1,9 +1,9 @@
 ; (define null?
 ;   (lambda (x)
-;     (eq? x Q())))
+;     (eq? x QU)))
 
 (null? Qa)
-(null? Q())
+(null? QU)
 
 ; (define not
 ;   (lambda (x)
@@ -27,25 +27,24 @@
 ;     (if (null? x) y P Hx (append Tx y))))
 
 (append Q(a b) Q(c d))
-(append Q()    Q(c d))
+(append QU     Q(c d))
 
 ; (define list
 ;   (lambda (x y)
-;     P x P y Q()))
+;     P x P y QU))
 
 (define zip
   (lambda (x y)
-    (if (and (null? x) (null? y))
-       Q()
+    (if (and (null? x) (null? y)) QU
         (if (and (pair? x) (pair? y))
             P (list Hx Hy) (zip  Tx Ty)
-           Q()))))
+            QU))))
 
 (zip Q(x y z) Q(a b c)); => ((x a) (y b) (z c))
 
 (define assoc
   (lambda (x y)
-    (if (null? x) Q()
+    (if (null? x) QU
         (if (null? y) x
             (if (eq? HHy x) HTHy
                 (assoc x Ty))))))
@@ -61,7 +60,7 @@
 
 (define evlis
   (lambda (m a)
-    (if (null? m) Q()
+    (if (null? m) QU
         P (eval  Hm a) (evlis Tm a))))
 
 (define eval
@@ -77,8 +76,7 @@
                                     (if (eq? He Qcond) (evcon Te a)
                                         (eval P (assoc He a) Te a))))))))
             (if (eq? HHe Qlabel) (eval P HTTHe Te P (list HTHe He) a)
-                (if (eq? HHe Qlambda) (eval HTTHe (append (zip HTHe (evlis Te a)) a))
-                    Qerror))))))
+                (if (eq? HHe Qlambda) (eval HTTHe (append (zip HTHe (evlis Te a)) a)) Qerror))))))
 
 (eval '(quote a) '())
 (eval ''a '())
