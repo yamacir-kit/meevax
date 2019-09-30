@@ -1,12 +1,10 @@
 Deval YL (f)
   (lambda (e a)
-    Dzip
-      YL (g) L (x y)
-        MMEQUx EQUy #f QU
-        MMRx Ry #f PPHx PHy QU (g Tx Ty) QU
-    Dassoc
-      YL (g) L (x y)
-        MEQUx QU MEQUy x MEHHy x HTHy (g x Ty)
+    Dzip YL (g) L (x y)
+      MMEQUx EQUy #f QU
+      MMRx Ry #f PPHx PHy QU (g Tx Ty) QU
+    Dassoc YL (g) L (x y)
+      MEQUx QU MEQUy x MEHHy x HTHy (g x Ty)
     MNRe (assoc e a)
     MNRHe
       MEHe Qquote HTe
@@ -21,13 +19,7 @@ Deval YL (f)
     MEHHe Qlabel
       (f PHTTHe Te PPHTHe PHe QU a)
     MEHHe Qlambda
-      (f HTTHe
-         (YL (g) L (x y)
-           MEQUx y
-             PHx (g Tx y)
-             (zip HTHe (YL (g) L (m a) MEQUm QU P (f Hm a) (g Tm a) Te a))
-          a))
-      Qerror)
+      (f HTTHe (YL (g) L (x y) MEQUx y PHx (g Tx y) (zip HTHe (YL (g) L (m a) MEQUm QUP (f Hm a) (g Tm a) Te a)) a)) Qerror)
 
 (eval '(quote a) '())
 (eval ''a '())
