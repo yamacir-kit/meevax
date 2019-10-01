@@ -523,7 +523,7 @@ namespace meevax::kernel
     });
 
     const std::string code {
-      #include <meevax/library/initialize.meevax>
+      #include <meevax/library/r7rs.xss>
     };
 
     // if (verbose == true_object or verbose_loader == true_object)
