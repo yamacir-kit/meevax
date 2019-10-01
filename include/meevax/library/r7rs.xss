@@ -945,6 +945,16 @@ R"##(
                             (list->string (cdr x)))
             (character-cons x '())))))
 
+(define string->list
+  (lambda (x)
+    (if (null? x)
+       '()
+        (if (string? x)
+            (cons (car x)
+                  (string->list (cdr x)))
+            (cons x '()) ; This maybe error
+          ))))
+
 (define string-length
   (lambda (x)
     (let rec ((x x)
@@ -971,25 +981,12 @@ R"##(
           (and (compare 0 (lexicographical-compare-2 x (car xs)))
                (lexicographical-compare (car xs) (cdr xs) compare))))))
 
-(define string=?
-  (lambda (x . xs)
-    (lexicographical-compare x xs =)))
+(define string=? (lambda (x . xs) (lexicographical-compare x xs =)))
+(define string<? (lambda (x . xs) (lexicographical-compare x xs <)))
+(define string>? (lambda (x . xs) (lexicographical-compare x xs >)))
 
-(define string<?
-  (lambda (x . xs)
-    (lexicographical-compare x xs <)))
-
-(define string>?
-  (lambda (x . xs)
-    (lexicographical-compare x xs >)))
-
-(define string<=?
-  (lambda (x . xs)
-    (lexicographical-compare x xs <=)))
-
-(define string>=?
-  (lambda (x . xs)
-    (lexicographical-compare x xs >=)))
+(define string<=? (lambda (x . xs) (lexicographical-compare x xs <=)))
+(define string>=? (lambda (x . xs) (lexicographical-compare x xs >=)))
 
 (define case-insensitive-lexicographical-compare-2
   (lambda (x y)
@@ -1010,25 +1007,12 @@ R"##(
           (and (compare 0 (case-insensitive-lexicographical-compare-2 x (car xs)))
                (case-insensitive-lexicographical-compare (car xs) (cdr xs) compare))))))
 
-(define string-ci=? ;                                              (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-lexicographical-compare x xs =)))
+(define string-ci=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs =)))
+(define string-ci<? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <)))
+(define string-ci>? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >)))
 
-(define string-ci<? ;                                              (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-lexicographical-compare x xs <)))
-
-(define string-ci>? ;                                              (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-lexicographical-compare x xs >)))
-
-(define string-ci<=? ;                                             (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-lexicographical-compare x xs <=)))
-
-(define string-ci>=? ;                                             (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-lexicographical-compare x xs >=)))
+(define string-ci<=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <=)))
+(define string-ci>=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >=)))
 
 (define string-reference list-ref)
 (define string-ref string-reference)
