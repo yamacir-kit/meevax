@@ -336,7 +336,7 @@ R"##(
 ; TODO make-promise?
 
 ; ------------------------------------------------------------------------------
-;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
+;  6.1 Standard Equivalence Predicates Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
 (define equal? ; list-equal?
@@ -607,10 +607,8 @@ R"##(
 
 (define boolean?
   (lambda (x)
-    (if (or (eq? x #true)
-            (eq? x #false))
-      #true
-      #false)))
+    (or (eq? x #true)
+        (eq? x #false))))
 
 (define boolean=?
   (lambda (x y . xs)
