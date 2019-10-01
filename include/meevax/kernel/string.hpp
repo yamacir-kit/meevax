@@ -39,7 +39,11 @@ namespace meevax::kernel
 
     for (const auto& each : std::get<1>(s))
     {
-      os << each.as<std::string>();
+      if (each) // guard for malformed string
+      {
+        os << each.as<std::string>();
+      }
+      else break;
     }
 
     return os << "\"" << attribute::normal;

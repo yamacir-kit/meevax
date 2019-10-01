@@ -291,6 +291,9 @@ R"##(
 
 (define else #true) ; auxiliary syntax
 
+; (define else begin)
+; (define then begin)
+
 ; TODO =>
 
 (define cond ; This is incorrect definition
@@ -333,7 +336,7 @@ R"##(
 ; TODO make-promise?
 
 ; ------------------------------------------------------------------------------
-;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
+;  6.1 Standard Equivalence Predicates Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
 (define equal? ; list-equal?
@@ -415,13 +418,8 @@ R"##(
   (lambda (n)
     (= n 0)))
 
-(define positive?
-  (lambda (n)
-    (> n 0)))
-
-(define negative?
-  (lambda (n)
-    (< n 0)))
+(define positive?  (lambda (n) (> n 0)))
+(define negative?  (lambda (n) (< n 0)))
 
 (define even?
   (lambda (n)
@@ -437,8 +435,43 @@ R"##(
         (even? (- n 1)))
     ))
 
-; TODO min
-; TODO max
+(define minimum
+  (lambda (x . xs)
+    (define minimum-aux
+      (lambda (x xs)
+        (if (null? xs)
+            (inexact x)
+            (minimum-aux (if (< (car xs) x) (car xs) x)
+                         (cdr xs)))))
+    (if (inexact? x)
+        (minimum-aux x xs)
+        (let rec ((x x) (xs xs))
+          (if (null? xs) x
+              (if (inexact? (car xs))
+                  (mimimum-aux x xs)
+                  (rec (if (< (car xs) x) (car xs) x)
+                       (cdr xs))))))))
+
+(define min minimum)
+
+(define maximum
+  (lambda (x . xs)
+    (define maximum-aux
+      (lambda (x xs)
+        (if (null? xs)
+            (inexact x)
+            (maximum-aux (if (> (car xs) x) (car xs) x)
+                         (cdr xs)))))
+    (if (inexact? x)
+        (maximum-aux x xs)
+        (let rec ((x x) (xs xs))
+          (if (null? xs) x
+              (if (inexact? (car xs))
+                  (maximum-aux x xs)
+                  (rec (if (> (car xs) x) (car xs) x)
+                       (cdr xs))))))))
+
+(define max maximum)
 
 (define abs
   (lambda (n)
@@ -609,10 +642,8 @@ R"##(
 
 (define boolean?
   (lambda (x)
-    (if (or (eq? x #true)
-            (eq? x #false))
-      #true
-      #false)))
+    (or (eq? x #true)
+        (eq? x #false))))
 
 (define boolean=?
   (lambda (x y . xs)
@@ -792,9 +823,266 @@ R"##(
 ;  6.6 Standard Characters Library
 ; ------------------------------------------------------------------------------
 
+(define character.so
+  (linker "libmeevax-character.so"))
+
+(define character?
+  (native character.so "is_character"))
+
+(define char? character?)
+
+(define character-compare
+  (lambda (x xs compare)
+    (let rec ((compare compare)
+              (lhs (char->integer x))
+              (xs xs))
+      (if (null? xs) #true
+          (let ((rhs (char->integer (car xs))))
+            (and (compare lhs rhs)
+                 (rec rhs (cdr xs) compare)))))))
+
+(define char=?
+  (lambda (x . xs)
+    (character-compare x xs =)))
+
+(define char<?
+  (lambda (x . xs)
+    (character-compare x xs <)))
+
+(define char>?
+  (lambda (x . xs)
+    (character-compare x xs >)))
+
+(define char<=?
+  (lambda (x . xs)
+    (character-compare x xs <=)))
+
+(define char>=?
+  (lambda (x . xs)
+    (character-compare x xs >=)))
+
+(define case-insensitive-character-compare
+  (lambda (x xs compare)
+    (let rec ((compare compare)
+              (lhs (char->integer (char-downcase x)))
+              (xs xs))
+      (if (null? xs) #true
+          (let ((rhs (char->integer (char-downcase (car xs)))))
+            (and (compare lhs rhs)
+                 (rec rhs (cdr xs) compare)))))))
+
+(define char-ci=? ;                                                (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs =)))
+
+(define char-ci<? ;                                                (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs <)))
+
+(define char-ci>? ;                                                (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs >)))
+
+(define char-ci<=? ;                                               (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs <=)))
+
+(define char-ci>=? ;                                               (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs >=)))
+
+(define codepoint
+  (native character.so "codepoint"))
+
+(define char->integer codepoint)
+
+(define alphabetical-character?
+  (lambda (x)
+    (<= #(char->integer #\A)
+         (char->integer (char-upcase x))
+        #(char->integer #\Z))))
+
+(define char-alphabetic? alphabetical-character?) ;                (scheme char)
+
+(define digit-value ;                                              (scheme char)
+  (native character.so "digit_value"))
+
+(define numerical-character?
+  (lambda (x)
+    (<= #(char->integer #\0)
+         (char->integer x)
+        #(char->integer #\9))))
+
+(define char-numeric? numerical-character?) ;                      (scheme char)
+
+(define whitespace-character?
+  (lambda (x)
+    (or (eq? x #\space)
+        (eq? x #\tab)
+        (eq? x #\newline)
+        (eq? x #\return))))
+
+(define char-whitespace? whitespace-character?) ;                  (scheme char)
+
+(define uppercase-character?
+  (lambda (x)
+    (<= #(char->integer #\A)
+         (char->integer x)
+        #(char->integer #\Z))))
+
+(define char-upper-case? uppercase-character?) ;                   (scheme char)
+
+(define lowercase-character?
+  (lambda (x)
+    (<= #(char->integer #\a)
+         (char->integer x)
+        #(char->integer #\z))))
+
+(define char-lower-case? lowercase-character?) ;                   (scheme char)
+
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
+
+(define string.so
+  (linker "libmeevax-string.so"))
+
+(define string?
+  (native string.so "is_string"))
+
+(define character-pair
+  (native string.so "character_pair"))
+
+(define character-cons character-pair)
+(define char-cons character-cons)
+
+(define make-string
+  (lambda (k . x)
+    (let ((default (if (pair? x) (car x) #\null)))
+      (let rec ((k k)
+                (result '()))
+        (if (<= k 0) result
+            (rec (- k 1)
+                 (character-cons default result)))))))
+
+(define string
+  (lambda xs
+    (if (null? xs)
+       '()
+        (list->string xs))))
+
+(define list->string
+  (lambda (x)
+    (if (null? x)
+       '()
+        (if (pair? x)
+            (character-cons (car x)
+                            (list->string (cdr x)))
+            (character-cons x '())))))
+
+(define string->list
+  (lambda (x)
+    (if (null? x)
+       '()
+        (if (string? x)
+            (cons (car x)
+                  (string->list (cdr x)))
+            (cons x '()) ; This maybe error
+          ))))
+
+(define string-length
+  (lambda (x)
+    (let rec ((x x)
+              (result 0))
+      (if (null? x) result
+          (rec (cdr x) (+ result 1))))))
+
+(define lexicographical-compare-2
+  (lambda (x y)
+    (if (or (null? x)
+            (null? y))
+        (- (string-length y)
+           (string-length x))
+        (let ((distance (- (char->integer (car y))
+                           (char->integer (car x)))))
+          (if (not (zero? distance)) distance
+              (lexicographical-compare-2 (cdr x)
+                                         (cdr y)))))))
+
+(define lexicographical-compare
+  (lambda (x xs . compare)
+    (let ((compare (if (pair? compare) (car compare) =)))
+      (if (null? xs) #true
+          (and (compare 0 (lexicographical-compare-2 x (car xs)))
+               (lexicographical-compare (car xs) (cdr xs) compare))))))
+
+(define string=? (lambda (x . xs) (lexicographical-compare x xs =)))
+(define string<? (lambda (x . xs) (lexicographical-compare x xs <)))
+(define string>? (lambda (x . xs) (lexicographical-compare x xs >)))
+
+(define string<=? (lambda (x . xs) (lexicographical-compare x xs <=)))
+(define string>=? (lambda (x . xs) (lexicographical-compare x xs >=)))
+
+(define case-insensitive-lexicographical-compare-2
+  (lambda (x y)
+    (if (or (null? x)
+            (null? y))
+        (- (string-length y)
+           (string-length x))
+        (let ((distance (- (char->integer (char-downcase (car y)))
+                           (char->integer (char-downcase (car x))))))
+          (if (not (zero? distance)) distance
+              (case-insensitive-lexicographical-compare-2 (cdr x)
+                                                          (cdr y)))))))
+
+(define case-insensitive-lexicographical-compare
+  (lambda (x xs . compare)
+    (let ((compare (if (pair? compare) (car compare) =)))
+      (if (null? xs) #true
+          (and (compare 0 (case-insensitive-lexicographical-compare-2 x (car xs)))
+               (case-insensitive-lexicographical-compare (car xs) (cdr xs) compare))))))
+
+(define string-ci=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs =)))
+(define string-ci<? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <)))
+(define string-ci>? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >)))
+
+(define string-ci<=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <=)))
+(define string-ci>=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >=)))
+
+(define string-reference list-ref)
+(define string-ref string-reference)
+
+(define string-append-2
+  (lambda (x y)
+    (if (null? x) y
+        (character-cons (car x)
+                        (string-append-2 (cdr x) y)))))
+
+(define string-reverse
+  (lambda (x)
+    (if (null? x)
+       '()
+        (string-append-2 (string-reverse (cdr x))
+                         (string (car x))))))
+
+(define string-append
+  (lambda x
+    (define string-append-aux
+      (lambda (x y)
+        (if (null? x) y
+            (string-append-aux (cdr x)
+                               (string-append-2 (car x) y)))))
+    (if (null? x)
+       '()
+        (let ((reversed (string-reverse x)))
+          (string-append-aux (cdr reversed)
+                             (car reversed))))))
+
+; string->list
+
+; string-copy
+; string-copy!
+; string-fill!
 
 ; ------------------------------------------------------------------------------
 ;  6.8 Standard Vectors Library
