@@ -291,6 +291,9 @@ R"##(
 
 (define else #true) ; auxiliary syntax
 
+; (define else begin)
+; (define then begin)
+
 ; TODO =>
 
 (define cond ; This is incorrect definition
@@ -805,11 +808,25 @@ R"##(
             (and (compare lhs rhs)
                  (rec rhs (cdr xs) compare)))))))
 
-(define char=?  (lambda (x . xs) (character-compare x xs =)))
-(define char<?  (lambda (x . xs) (character-compare x xs <)))
-(define char>?  (lambda (x . xs) (character-compare x xs >)))
-(define char<=? (lambda (x . xs) (character-compare x xs <=)))
-(define char>=? (lambda (x . xs) (character-compare x xs >=)))
+(define char=?
+  (lambda (x . xs)
+    (character-compare x xs =)))
+
+(define char<?
+  (lambda (x . xs)
+    (character-compare x xs <)))
+
+(define char>?
+  (lambda (x . xs)
+    (character-compare x xs >)))
+
+(define char<=?
+  (lambda (x . xs)
+    (character-compare x xs <=)))
+
+(define char>=?
+  (lambda (x . xs)
+    (character-compare x xs >=)))
 
 (define case-insensitive-character-compare
   (lambda (x xs compare)
@@ -821,11 +838,76 @@ R"##(
             (and (compare lhs rhs)
                  (rec rhs (cdr xs) compare)))))))
 
-(define char-ci=?  (lambda (x . xs) (case-insensitive-character-compare x xs =)))
-(define char-ci<?  (lambda (x . xs) (case-insensitive-character-compare x xs <)))
-(define char-ci>?  (lambda (x . xs) (case-insensitive-character-compare x xs >)))
-(define char-ci<=? (lambda (x . xs) (case-insensitive-character-compare x xs <=)))
-(define char-ci>=? (lambda (x . xs) (case-insensitive-character-compare x xs >=)))
+(define char-ci=? ;                                                (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs =)))
+
+(define char-ci<? ;                                                (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs <)))
+
+(define char-ci>? ;                                                (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs >)))
+
+(define char-ci<=? ;                                               (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs <=)))
+
+(define char-ci>=? ;                                               (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-character-compare x xs >=)))
+
+(define character=>real
+  (native character.so "character_to_real"))
+
+(define character=>integer character=>real) ; DIRTY HACK
+
+(define char->integer character=>integer)
+
+(define alphabetical-character?
+  (lambda (x)
+    (<= #(character=>integer #\A)
+         (character=>integer (char-upcase x))
+        #(character=>integer #\Z))))
+
+(define char-alphabetic? alphabetical-character?) ;                (scheme char)
+
+(define digit-value ;                                              (scheme char)
+  (native character.so "digit_value"))
+
+(define numerical-character?
+  (lambda (x)
+    (<= #(character=>integer #\0)
+         (character=>integer x)
+        #(character=>integer #\9))))
+
+(define char-numeric? numerical-character?) ;                      (scheme char)
+
+(define whitespace-character?
+  (lambda (x)
+    (or (eq? x #\space)
+        (eq? x #\tab)
+        (eq? x #\newline)
+        (eq? x #\return))))
+
+(define char-whitespace? whitespace-character?) ;                  (scheme char)
+
+(define uppercase-character?
+  (lambda (x)
+    (<= #(char->integer #\A)
+         (char->integer x)
+        #(char->integer #\Z))))
+
+(define char-upper-case? uppercase-character?) ;                   (scheme char)
+
+(define lowercase-character?
+  (lambda (x)
+    (<= #(char->integer #\a)
+         (char->integer x)
+        #(char->integer #\z))))
+
+(define char-lower-case? lowercase-character?) ;                   (scheme char)
 
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
