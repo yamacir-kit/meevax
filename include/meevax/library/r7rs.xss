@@ -933,8 +933,19 @@ R"##(
                  (character-cons default result)))))))
 
 (define string
-  (lambda cs
-    (list->string cs)))
+  (lambda xs
+    (if (null? xs)
+       '()
+        (list->string xs))))
+
+(define list->string
+  (lambda (x)
+    (if (null? x)
+       '()
+        (if (pair? x)
+            (character-cons (car x)
+                            (list->string (cdr x)))
+            (character-cons x '())))))
 
 (define string-length
   (lambda (x)
@@ -943,16 +954,34 @@ R"##(
       (if (null? x) result
           (rec (cdr x) (+ result 1))))))
 
-; (define string-fill!)
-;
-; (define list->string
-;   (lambda (x)
-;     (let* ((size (length x))
-;            (buffer (make-string size))
-;            )
-;       )
-;     )
-;   )
+(define string-reference list-ref)
+(define string-ref string-reference)
+
+(define string-append-2
+  (lambda (x y)
+    (if (null? x) y
+        (character-cons (car x)
+                        (string-append-2 (cdr x) y)))))
+
+(define string-reverse
+  (lambda (x)
+    (if (null? x)
+       '()
+        (string-append-2 (string-reverse (cdr x))
+                         (string (car x))))))
+
+(define string-append
+  (lambda x
+    (define string-append-aux
+      (lambda (x y)
+        (if (null? x) y
+            (string-append-aux (cdr x)
+                               (string-append-2 (car x) y)))))
+    (if (null? x)
+       '()
+        (let ((reversed (string-reverse x)))
+          (string-append-aux (cdr reversed)
+                             (car reversed))))))
 
 ; ------------------------------------------------------------------------------
 ;  6.8 Standard Vectors Library
