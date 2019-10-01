@@ -2,7 +2,7 @@
 #include <meevax/kernel/native.hpp>
 #include <meevax/kernel/numerical.hpp>
 
-extern "C" namespace meevax::string
+extern "C" namespace meevax::character
 {
   NATIVE(is_character)
   {
@@ -17,7 +17,7 @@ extern "C" namespace meevax::string
            );
   }
 
-  NATIVE(character_to_real)
+  NATIVE(codepoint)
   {
     switch (const std::string& s {
               kernel::car(operands).as<const std::string&>()

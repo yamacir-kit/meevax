@@ -856,18 +856,16 @@ R"##(
   (lambda (x . xs)
     (case-insensitive-character-compare x xs >=)))
 
-(define character=>real
-  (native character.so "character_to_real"))
+(define codepoint
+  (native character.so "codepoint"))
 
-(define character=>integer character=>real) ; DIRTY HACK
-
-(define char->integer character=>integer)
+(define char->integer codepoint)
 
 (define alphabetical-character?
   (lambda (x)
-    (<= #(character=>integer #\A)
-         (character=>integer (char-upcase x))
-        #(character=>integer #\Z))))
+    (<= #(char->integer #\A)
+         (char->integer (char-upcase x))
+        #(char->integer #\Z))))
 
 (define char-alphabetic? alphabetical-character?) ;                (scheme char)
 
@@ -876,9 +874,9 @@ R"##(
 
 (define numerical-character?
   (lambda (x)
-    (<= #(character=>integer #\0)
-         (character=>integer x)
-        #(character=>integer #\9))))
+    (<= #(char->integer #\0)
+         (char->integer x)
+        #(char->integer #\9))))
 
 (define char-numeric? numerical-character?) ;                      (scheme char)
 
@@ -954,6 +952,84 @@ R"##(
       (if (null? x) result
           (rec (cdr x) (+ result 1))))))
 
+(define lexicographical-compare-2
+  (lambda (x y)
+    (if (or (null? x)
+            (null? y))
+        (- (string-length y)
+           (string-length x))
+        (let ((distance (- (char->integer (car y))
+                           (char->integer (car x)))))
+          (if (not (zero? distance)) distance
+              (lexicographical-compare-2 (cdr x)
+                                         (cdr y)))))))
+
+(define lexicographical-compare
+  (lambda (x xs . compare)
+    (let ((compare (if (pair? compare) (car compare) =)))
+      (if (null? xs) #true
+          (and (compare 0 (lexicographical-compare-2 x (car xs)))
+               (lexicographical-compare (car xs) (cdr xs) compare))))))
+
+(define string=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs =)))
+
+(define string<?
+  (lambda (x . xs)
+    (lexicographical-compare x xs <)))
+
+(define string>?
+  (lambda (x . xs)
+    (lexicographical-compare x xs >)))
+
+(define string<=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs <=)))
+
+(define string>=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs >=)))
+
+(define case-insensitive-lexicographical-compare-2
+  (lambda (x y)
+    (if (or (null? x)
+            (null? y))
+        (- (string-length y)
+           (string-length x))
+        (let ((distance (- (char->integer (char-downcase (car y)))
+                           (char->integer (char-downcase (car x))))))
+          (if (not (zero? distance)) distance
+              (case-insensitive-lexicographical-compare-2 (cdr x)
+                                                          (cdr y)))))))
+
+(define case-insensitive-lexicographical-compare
+  (lambda (x xs . compare)
+    (let ((compare (if (pair? compare) (car compare) =)))
+      (if (null? xs) #true
+          (and (compare 0 (case-insensitive-lexicographical-compare-2 x (car xs)))
+               (case-insensitive-lexicographical-compare (car xs) (cdr xs) compare))))))
+
+(define string-ci=? ;                                              (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-lexicographical-compare x xs =)))
+
+(define string-ci<? ;                                              (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-lexicographical-compare x xs <)))
+
+(define string-ci>? ;                                              (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-lexicographical-compare x xs >)))
+
+(define string-ci<=? ;                                             (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-lexicographical-compare x xs <=)))
+
+(define string-ci>=? ;                                             (scheme char)
+  (lambda (x . xs)
+    (case-insensitive-lexicographical-compare x xs >=)))
+
 (define string-reference list-ref)
 (define string-ref string-reference)
 
@@ -982,6 +1058,12 @@ R"##(
         (let ((reversed (string-reverse x)))
           (string-append-aux (cdr reversed)
                              (car reversed))))))
+
+; string->list
+
+; string-copy
+; string-copy!
+; string-fill!
 
 ; ------------------------------------------------------------------------------
 ;  6.8 Standard Vectors Library
