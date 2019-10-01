@@ -435,8 +435,43 @@ R"##(
         (even? (- n 1)))
     ))
 
-; TODO min
-; TODO max
+(define minimum
+  (lambda (x . xs)
+    (define minimum-aux
+      (lambda (x xs)
+        (if (null? xs)
+            (inexact x)
+            (minimum-aux (if (< (car xs) x) (car xs) x)
+                         (cdr xs)))))
+    (if (inexact? x)
+        (minimum-aux x xs)
+        (let rec ((x x) (xs xs))
+          (if (null? xs) x
+              (if (inexact? (car xs))
+                  (mimimum-aux x xs)
+                  (rec (if (< (car xs) x) (car xs) x)
+                       (cdr xs))))))))
+
+(define min minimum)
+
+(define maximum
+  (lambda (x . xs)
+    (define maximum-aux
+      (lambda (x xs)
+        (if (null? xs)
+            (inexact x)
+            (maximum-aux (if (> (car xs) x) (car xs) x)
+                         (cdr xs)))))
+    (if (inexact? x)
+        (maximum-aux x xs)
+        (let rec ((x x) (xs xs))
+          (if (null? xs) x
+              (if (inexact? (car xs))
+                  (maximum-aux x xs)
+                  (rec (if (> (car xs) x) (car xs) x)
+                       (cdr xs))))))))
+
+(define max maximum)
 
 (define abs
   (lambda (n)
