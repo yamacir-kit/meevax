@@ -810,6 +810,20 @@ R"##(
 (define string?
   (native string.so "is_string"))
 
+(define character-pair
+  (native string.so "character_pair"))
+
+(define character-cons character-pair)
+(define char-cons character-cons)
+
+(define make-string
+  (lambda (k . x)
+    (let ((default (if (pair? x) (car x) #\null)))
+      (let rec ((k k)
+                (result '()))
+        (if (<= k 0) result
+            (rec (- k 1)
+                 (character-cons default result)))))))
 ; TODO make-string
 ; TODO string
 
