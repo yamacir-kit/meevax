@@ -796,6 +796,22 @@ R"##(
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
 
+(define string.so
+  (linker "libmeevax-string.so"))
+
+(define string?
+  (native string.so "is_string"))
+
+; TODO make-string
+; TODO string
+
+(define string-length
+  (lambda (x)
+    (let rec ((x x)
+              (result 0))
+      (if (null? x) result
+          (rec (cdr x) (+ result 1))))))
+
 ; ------------------------------------------------------------------------------
 ;  6.8 Standard Vectors Library
 ; ------------------------------------------------------------------------------
