@@ -522,27 +522,32 @@ namespace meevax::kernel
       return evaluate(std::forward<decltype(operands)>(operands));
     });
 
-    const std::string code {
+    std::stringstream stream {
       #include <meevax/library/r7rs.xss>
     };
 
-    // if (verbose == true_object or verbose_loader == true_object)
-    // {
-    //   std::cerr << "; loader\t\t; load statically embedded standard library" << std::endl;
-    //   std::cerr << highlight::simple_datum << code << attribute::normal << std::endl;
-    // }
-
-    std::stringstream stream {code};
+    std::size_t loaded {0};
 
     for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
     {
-      // if (verbose == true_object or verbose_reader == true_object)
+      // if (verbose == true_object or verbose_environment == true_object)
       // {
-      //   std::cerr << "; read\t\t; " << e << std::endl;
+        std::cerr << "; standard\t; " << loaded << " expression loaded";
       // }
 
       evaluate(e);
+
+      // if (verbose == true_object or verbose_environment == true_object)
+      // {
+        ++loaded;
+        std::cerr << "\r" << std::flush;
+      // }
     }
+
+    // if (verbose == true_object or verbose_environment == true_object)
+    // {
+      std::cerr << std::endl;
+    // }
   } // environment class default constructor
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
