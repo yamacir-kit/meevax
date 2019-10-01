@@ -774,18 +774,18 @@
 (expect 102 (acc))
 (expect 103 (acc))
 
-(define A 1)
-(define B 2)
+(define a 1)
+(define b 2)
 
 (expect (2 . 1)
-  (begin (swap! A B)
-         (cons A B)))
+  (begin (swap! a b)
+         (cons a b)))
 
 (define x 42)
 
 (expect (42 . 2) ; this test knows swap! uses 'x' as temporary variable.
-  (begin (swap! A x)
-         (cons A x)))
+  (begin (swap! a x)
+         (cons a x)))
 
 ; (define fib
 ;   (lambda (n)
