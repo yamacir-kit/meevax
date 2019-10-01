@@ -792,6 +792,14 @@ R"##(
 ;  6.6 Standard Characters Library
 ; ------------------------------------------------------------------------------
 
+(define character.so
+  (linker "libmeevax-character.so"))
+
+(define character?
+  (native character.so "is_character"))
+
+(define char? character?)
+
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
