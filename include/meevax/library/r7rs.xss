@@ -795,6 +795,38 @@ R"##(
 
 (define char? character?)
 
+(define character-compare
+  (lambda (x xs compare)
+    (let rec ((compare compare)
+              (lhs (char->integer x))
+              (xs xs))
+      (if (null? xs) #true
+          (let ((rhs (char->integer (car xs))))
+            (and (compare lhs rhs)
+                 (rec rhs (cdr xs) compare)))))))
+
+(define char=?  (lambda (x . xs) (character-compare x xs =)))
+(define char<?  (lambda (x . xs) (character-compare x xs <)))
+(define char>?  (lambda (x . xs) (character-compare x xs >)))
+(define char<=? (lambda (x . xs) (character-compare x xs <=)))
+(define char>=? (lambda (x . xs) (character-compare x xs >=)))
+
+(define case-insensitive-character-compare
+  (lambda (x xs compare)
+    (let rec ((compare compare)
+              (lhs (char->integer (char-downcase x)))
+              (xs xs))
+      (if (null? xs) #true
+          (let ((rhs (char->integer (char-downcase (car xs)))))
+            (and (compare lhs rhs)
+                 (rec rhs (cdr xs) compare)))))))
+
+(define char-ci=?  (lambda (x . xs) (case-insensitive-character-compare x xs =)))
+(define char-ci<?  (lambda (x . xs) (case-insensitive-character-compare x xs <)))
+(define char-ci>?  (lambda (x . xs) (case-insensitive-character-compare x xs >)))
+(define char-ci<=? (lambda (x . xs) (case-insensitive-character-compare x xs <=)))
+(define char-ci>=? (lambda (x . xs) (case-insensitive-character-compare x xs >=)))
+
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
