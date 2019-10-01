@@ -286,7 +286,7 @@ namespace meevax::kernel
         return discriminate(stream);
 
       default:
-        switch (*head)
+        if (static_cast<const Environment&>(*this).experimental == true_object) switch (*head)
         {
         case 'A': // Assignment
           {
@@ -418,24 +418,26 @@ namespace meevax::kernel
         // case 'Z':
 
         default:
-          token.push_back(*head);
+          break;
+        }
 
-          if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
+        token.push_back(*head);
+
+        if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
+        {
+          if (token == ".")
           {
-            if (token == ".")
-            {
-              throw reader_error_about_pair {
-                "dot-notation"
-              };
-            }
-            else try // is symbol or real
-            {
-              return make<real>(token);
-            }
-            catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
-            {
-              return intern(token);
-            }
+            throw reader_error_about_pair {
+              "dot-notation"
+            };
+          }
+          else try // is symbol or real
+          {
+            return make<real>(token);
+          }
+          catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
+          {
+            return intern(token);
           }
         }
       }

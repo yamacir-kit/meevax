@@ -116,6 +116,8 @@ namespace meevax::kernel
     {
       std::make_pair("debug", ENABLE(debug)),
 
+      std::make_pair("experimental", ENABLE(experimental)),
+
       std::make_pair("help", [&](const auto&)
       {
         std::cout << "; rather, help me." << std::endl;
