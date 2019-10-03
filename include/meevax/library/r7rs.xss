@@ -122,6 +122,32 @@ R"##(
 (define cdar (lambda (x) (cdr (car x))))
 (define cddr (lambda (x) (cdr (cdr x))))
 
+(define caaar (lambda (x) (car (car (car x)))))
+(define caadr (lambda (x) (car (car (cdr x)))))
+(define cadar (lambda (x) (car (cdr (car x)))))
+(define caddr (lambda (x) (car (cdr (cdr x)))))
+(define cdaar (lambda (x) (cdr (car (car x)))))
+(define cdadr (lambda (x) (cdr (car (cdr x)))))
+(define cddar (lambda (x) (cdr (cdr (car x)))))
+(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
+
+(define caaaar (lambda (x) (car (car (car (car x))))))
+(define caaadr (lambda (x) (car (car (car (cdr x))))))
+(define caadar (lambda (x) (car (car (cdr (car x))))))
+(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
+(define cadaar (lambda (x) (car (cdr (car (car x))))))
+(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
+(define caddar (lambda (x) (car (cdr (cdr (car x))))))
+(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
+(define cdaaar (lambda (x) (cdr (car (car (car x))))))
+(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
+(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
+(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
+(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
+(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
+(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
+(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
+
 (define null?
   (lambda (x)
     (eq? x '())))
@@ -158,8 +184,84 @@ R"##(
          (reverse x)))))
 
 ; --------------------------------------------------------------------------
+;  Explicit Renaming Macro Transformer
+; --------------------------------------------------------------------------
+
+(define define-syntax define)
+
+(define explicit-renaming-macro-transformer
+  (lambda (transform)
+    (environment (expression)
+      (transform expression (environment (x) (identity (cadr x))) eq?))))
+
+; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
+
+(define then begin)
+(define else begin)
+
+(define undefined
+  (lambda ()
+    (if #false #false #;undefined)))
+
+(define-syntax conditional
+  (explicit-renaming-macro-transformer
+    (lambda (expression rename compare)
+      (if (null? (cdr expression))
+          (undefined)
+          ((lambda (clause)
+             (if (compare (rename 'else) (car clause))
+                 (if (pair? (cddr expression))
+                     (error "")
+                     (cons (rename 'begin) (cdr clause)))
+                 (if (if (null? (cdr clause)) #true
+                         (compare (rename '=>) (cadr clause)))
+                     (list (list (rename 'lambda) (list (rename 'result))
+                                 (list (rename 'if) (rename 'result)
+                                       (if (null? (cdr clause))
+                                           (rename 'result)
+                                           (list (caddr clause) (rename 'result)))
+                                       (cons (rename 'conditional) (cddr expression))))
+                           (car clause))
+                     (list (rename 'if) (car clause)
+                           (cons (rename 'begin) (cdr clause))
+                           (cons (rename 'conditional) (cddr expression))))))
+           (cadr expression))))))
+
+(define cond conditional)
+
+; (define-syntax and
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (conditional
+;         ((null? (cdr expression)))
+;         ((null? (cddr expression))
+;          (cadr expression))
+;         (else
+;           (list (rename 'if) (cadr expression)
+;                 (cons (rename 'and) (cddr expression))
+;                 #false))))))
+
+; (define-syntax or
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (if (null? (cdr expression)) #false
+;           (if (null? (cddr expression))
+;               (cadr expression)
+;               (list (rename 'let) (list (list (rename 'result) (cadr expression)))
+;                     (list (rename 'if) (rename 'result)
+;                           (rename 'result)
+;                           ; (cons (rename 'or) (cddr expression)
+;                           (cons 'or (cddr expression)
+;                             )
+;                       )
+;                 )
+;             )
+;         )
+;       )
+;     )
+;   )
 
 (define and
   (environment xs
@@ -245,7 +347,7 @@ R"##(
   (lambda (callee x)
     (if (null? x)
        '()
-        (cons (callee (car x))
+        (cons       (callee (car x))
               (map-1 callee (cdr x))))))
 
 ; ------------------------------------------------------------------------------
@@ -669,32 +771,6 @@ R"##(
                        (rec x lag)))
                 (null? x)))
           (null? x)))))
-
-(define caaar (lambda (x) (car (car (car x)))))
-(define caadr (lambda (x) (car (car (cdr x)))))
-(define cadar (lambda (x) (car (cdr (car x)))))
-(define caddr (lambda (x) (car (cdr (cdr x)))))
-(define cdaar (lambda (x) (cdr (car (car x)))))
-(define cdadr (lambda (x) (cdr (car (cdr x)))))
-(define cddar (lambda (x) (cdr (cdr (car x)))))
-(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
-
-(define caaaar (lambda (x) (car (car (car (car x))))))
-(define caaadr (lambda (x) (car (car (car (cdr x))))))
-(define caadar (lambda (x) (car (car (cdr (car x))))))
-(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
-(define cadaar (lambda (x) (car (cdr (car (car x))))))
-(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
-(define caddar (lambda (x) (car (cdr (cdr (car x))))))
-(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
-(define cdaaar (lambda (x) (cdr (car (car (car x))))))
-(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
-(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
-(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
-(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
-(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
-(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
-(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
 
 (define make-list
   (lambda (k . x)
@@ -1407,6 +1483,15 @@ R"##(
      `(let ((,temporary ,x))
         (set! ,x ,y)
         (set! ,y ,temporary)))))
+
+; (define-syntax swap!
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (let ((a (car expression))
+;             (b (cadr expression)))
+;        `(,(rename 'let) ((,(rename 'value) ,a))
+;           (,(rename 'set!) ,a ,b)
+;           (,(rename 'set!) ,b ,(rename 'value)))))))
 
 )##"
 
