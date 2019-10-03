@@ -161,16 +161,12 @@ namespace meevax::kernel
         }
         else if (buffer != unbound && buffer.is<Environment>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << buffer << " => " << std::flush);
+          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << buffer << std::endl);
 
-          // auto& macro {assoc(car(expression), interaction_environment()).template as<Environment&>()};
-          // auto expanded {macro.expand(cdr(expression))};
-          const auto expanded {
-            assoc(
-              car(expression),
-              interaction_environment()
-            ).template as<Environment&>().expand(cdr(expression))
-          };
+          const auto expanded {assoc(
+            car(expression),
+            interaction_environment()
+          ).template as<Environment&>().expand(cdr(expression))};
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
@@ -186,14 +182,14 @@ namespace meevax::kernel
 
           NEST_IN;
           auto result {operand(
-                   cdr(expression),
-                   lexical_environment,
-                   compile(
-                     car(expression),
-                     lexical_environment,
-                     cons(tail ? _apply_tail_ : _apply_, continuation)
-                   )
-                 )};
+            cdr(expression),
+            lexical_environment,
+            compile(
+              car(expression),
+              lexical_environment,
+              cons(tail ? _apply_tail_ : _apply_, continuation)
+            )
+          )};
           NEST_OUT;
           return result;
         }
@@ -267,7 +263,21 @@ namespace meevax::kernel
         }
         else
         {
-          throw evaluation_error {cadr(c), " is unbound"};
+          // throw evaluation_error {cadr(c), " is unbound"};
+
+          if (   static_cast<Environment&>(*this).verbose == true_object
+              or static_cast<Environment&>(*this).verbose_machine == true_object)
+          {
+            std::cerr << "; machine\t; instruction " << car(c) << " received undefined variable " << cadr(c) << ".\n"
+                      << ";\t\t; start implicit renaming..." << std::endl;
+          }
+
+          /*********************************************************************
+          * When an undefined symbol is evaluated, it returns a symbol that is
+          * guaranteed not to collide with any symbol from the past to the
+          * future. This behavior is defined for the macrotransformer.
+          *********************************************************************/
+          s.push(static_cast<Environment&>(*this).rename(cadr(c)));
         }
         c.pop(2);
         goto dispatch;

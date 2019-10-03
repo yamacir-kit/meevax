@@ -107,10 +107,20 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        throw kernel_error {"Not a symbol object was passed to rename"};
+        if (verbose == true_object or verbose_environment == true_object)
+        {
+          std::cerr << "; environment\t; " << object << std::endl;
+        }
+
+        return object;
       }
       else
       {
+        if (verbose == true_object or verbose_environment == true_object)
+        {
+          std::cerr << "; environment\t; rename " << object << std::endl;
+        }
+
         return intern(object.as<symbol>());
       }
     }
