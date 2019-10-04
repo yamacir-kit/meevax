@@ -631,7 +631,7 @@ namespace meevax::kernel
       }
       else
       {
-        throw syntax_error {"internal-define"};
+        throw syntax_error_about_internal_define {"internal-define"};
       }
     }
 
@@ -655,7 +655,7 @@ namespace meevax::kernel
                );
       }
     }
-    catch (const error&) // <definition> backtrack
+    catch (const syntax_error_about_internal_define&)
     {
       stack bindings {};
 

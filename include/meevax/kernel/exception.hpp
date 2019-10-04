@@ -15,6 +15,8 @@
 //    |    |    |-- reader_error_about_pair                              (about)
 //    |    |    `-- reader_error_about_parentheses                       (about)
 //    |    |-- syntax_error                                            (section)
+//    |    |    |-- syntax_error_about_assignment                        (about)
+//    |    |    `-- syntax_error_about_internal_define                   (about)
 //    |    `-- kernel_error                                            (section)
 //    `-- warning                                                     (category)
 
@@ -133,6 +135,7 @@ namespace meevax::kernel
   DEFINE_EXCEPTION_ABOUT(parentheses, reader, error)
 
   DEFINE_EXCEPTION_ABOUT(assignment, syntax, error)
+  DEFINE_EXCEPTION_ABOUT(internal_define, syntax, error)
 
   DEFINE_EXCEPTION_ABOUT(pair, kernel, error)
 } // namespace meevax::kernel
