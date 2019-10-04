@@ -166,7 +166,8 @@ namespace meevax::kernel
           const auto expanded {assoc(
             car(expression),
             interaction_environment()
-          ).template as<Environment&>().expand(cdr(expression))};
+          // ).template as<Environment&>().expand(cdr(expression))};
+          ).template as<Environment&>().expand(expression)};
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
@@ -683,18 +684,18 @@ namespace meevax::kernel
            */
           assert(not bindings.empty());
 
-          const object& identifier {
+          const object& keyword {
             static_cast<Environment&>(*this).intern("letrec*")
           };
 
-          if (const object& internal_define {assoc(identifier, interaction_environment())};
+          if (const object& internal_define {assoc(keyword, interaction_environment())};
               internal_define and internal_define.is<Environment>())
           {
             /*
              * (letrec* (<binding>+) <sequence>+)
              */
-            const auto& transformer {internal_define.as<Environment>().expand(
-              cons(bindings, sequences)
+            const auto& transformer {internal_define.as<Environment&>().expand(
+              cons(internal_define, bindings, sequences)
             )};
 
             NEST_OUT;

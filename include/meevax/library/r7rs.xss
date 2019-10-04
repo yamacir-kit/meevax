@@ -187,12 +187,31 @@ R"##(
 ;  Explicit Renaming Macro Transformer
 ; --------------------------------------------------------------------------
 
+(define rename-syntax
+  (environment (rename-syntax x)
+    ((lambda (y) y) (cadr x))))
+
 (define define-syntax define)
+
+; (define define-syntax
+;   (environment (keyword transformer-spec)
+;     (list 'begin
+;           (list 'define keyword '())
+;           (list 'set! keyword transformer-spec)
+;       )
+;     )
+;   )
 
 (define explicit-renaming-macro-transformer
   (lambda (transform)
-    (environment (expression)
-      (transform expression (environment (x) (identity (cadr x))) eq?))))
+    (environment (keyword . expression)
+      (list transform
+            expression
+            (list 'environment (cons 'keyword-quote 'x)
+                  (list 'identity 'x))
+            'eq?)
+      )
+    ))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
@@ -205,32 +224,34 @@ R"##(
   (lambda ()
     (if #false #false #;undefined)))
 
-(define-syntax conditional
-  (explicit-renaming-macro-transformer
-    (lambda (expression rename compare)
-      (if (null? (cdr expression))
-          (undefined)
-          ((lambda (clause)
-             (if (compare (rename 'else) (car clause))
-                 (if (pair? (cddr expression))
-                     (error "")
-                     (cons (rename 'begin) (cdr clause)))
-                 (if (if (null? (cdr clause)) #true
-                         (compare (rename '=>) (cadr clause)))
-                     (list (list (rename 'lambda) (list (rename 'result))
-                                 (list (rename 'if) (rename 'result)
-                                       (if (null? (cdr clause))
-                                           (rename 'result)
-                                           (list (caddr clause) (rename 'result)))
-                                       (cons (rename 'conditional) (cddr expression))))
-                           (car clause))
-                     (list (rename 'if) (car clause)
-                           (cons (rename 'begin) (cdr clause))
-                           (cons (rename 'conditional) (cddr expression))))))
-           (cadr expression))))))
-
-(define cond conditional)
-
+; (define-syntax conditional
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (if (null? (cdr expression))
+;           (undefined)
+;           ((lambda (clause)
+;              (if (compare (rename 'else) (car clause))
+;                  (if (pair? (cddr expression))
+;                      (error "")
+;                      (cons (rename 'begin) (cdr clause)))
+;                  (if (if (null? (cdr clause)) #true
+;                          (compare (rename '=>) (cadr clause)))
+;                      (list (list (rename 'lambda) (list (rename 'result))
+;                                  (list (rename 'if) (rename 'result)
+;                                        (if (null? (cdr clause))
+;                                            (rename 'result)
+;                                            (list (caddr clause) (rename 'result)))
+;                                        ; (cons (rename 'conditional) (cddr expression))))
+;                                        (cons (car expression) (cddr expression))))
+;                            (car clause))
+;                      (list (rename 'if) (car clause)
+;                            (cons (rename 'begin) (cdr clause))
+;                            ; (cons (rename 'conditional) (cddr expression))))))
+;                            (cons (car expression) (cddr expression))))))
+;            (cadr expression))))))
+;
+; (define cond conditional)
+;
 ; (define-syntax and
 ;   (explicit-renaming-macro-transformer
 ;     (lambda (expression rename compare)
@@ -240,9 +261,10 @@ R"##(
 ;          (cadr expression))
 ;         (else
 ;           (list (rename 'if) (cadr expression)
-;                 (cons (rename 'and) (cddr expression))
+;                 ; (cons (rename 'and) (cddr expression))
+;                 (cons (car expression) (cddr expression))
 ;                 #false))))))
-
+;
 ; (define-syntax or
 ;   (explicit-renaming-macro-transformer
 ;     (lambda (expression rename compare)
@@ -252,19 +274,10 @@ R"##(
 ;               (list (rename 'let) (list (list (rename 'result) (cadr expression)))
 ;                     (list (rename 'if) (rename 'result)
 ;                           (rename 'result)
-;                           ; (cons (rename 'or) (cddr expression)
-;                           (cons 'or (cddr expression)
-;                             )
-;                       )
-;                 )
-;             )
-;         )
-;       )
-;     )
-;   )
+;                           (cons (rename 'or) (cddr expression)))))))))
 
 (define and
-  (environment xs
+  (environment (and . xs)
     (if (null? xs)
         #true
         (if (null? (cdr xs))
@@ -279,7 +292,7 @@ R"##(
                             (cdr xs))))))))
 
 (define or
-  (environment xs
+  (environment (or . xs)
     (if (null? xs)
         #false
         (if (null? (cdr xs))
@@ -336,7 +349,7 @@ R"##(
                                               (quasiquote-expand      (cdr e) depth)))))))))
 
 (define quasiquote
-  (environment (x)
+  (environment (quasiquote x)
     (quasiquote-expand x 0)))
 
 ; ------------------------------------------------------------------------------
@@ -355,14 +368,14 @@ R"##(
 ; ------------------------------------------------------------------------------
 
 (define unnamed-let
-  (environment (bindings . body)
+  (environment (unnamed-let bindings . body)
    `((lambda ,(map-1 car bindings) ,@body) ,@(map-1 cadr bindings))))
 
 (define undefined
   (if #false #false))
 
 (define letrec*
-  (environment (bindings . body)
+  (environment (letrec* bindings . body)
     (unnamed-let ((identifiers (map-1 car bindings)))
      `(unnamed-let ,(map-1 (lambda (e) `(,e ,undefined)) identifiers)
         ,@(map-1 (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
@@ -371,14 +384,55 @@ R"##(
 (define letrec letrec*) ; this is incorrect definition
 
 (define let
-  (environment (bindings . body)
+  (environment (let bindings . body)
     (if (pair? bindings)
        `(unnamed-let ,bindings ,@body)
        `(letrec ((,bindings (lambda ,(map-1 car (car body)) ,@(cdr body))))
           (,bindings ,@(map-1 cadr (car body)))))))
 
+; (define-syntax let
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (if (null? (cdr expression))
+;           (error "The let syntax is defined as the form (let <bindings> <body>) \
+;                   but lacks <bindings> and <body>."))
+;       (if (null? (cddr expression))
+;           (error "The let syntax is defined as the form (let <bindings> <body>) \
+;                   but lacks <body>."))
+;       ((lambda (bindings)
+;          ; (if (list? bindings)
+;          (if (pair? bindings) #false
+;              (error "The <bindings> of the let syntax is defined as the form \
+;                      ((<variable1> <init1>) ...) but <bindings> is not a list."))
+;          (if (every (lambda (x)
+;                       (and (pair? x)
+;                            (pair? (cdr x))
+;                            (null? (cddr x))))
+;                       ; (if (pair? x)
+;                       ;     (if (pair? (cdr x))
+;                       ;         (null? (cddr x))
+;                       ;         #false)
+;                       ;     #false))
+;                     bindings)
+;              ((lambda (variables inits)
+;                 (if (symbol? (cadr expression))
+;                    `((,(rename 'lambda) ,variables
+;                        (,(rename 'letrec) ((,(cadr expression)
+;                                              (,(rename 'lambda) ,variables
+;                                               ,@(cdddr expression))))
+;                          (,(cadr expression) ,@variables)))
+;                      ,@inits)
+;                    `((,(rename 'lambda) ,variables ,@(cddr expression))
+;                      ,@inits)))
+;               (map car bindings)
+;               (map cadr bindings))
+;              (error "")))
+;        (if (symbol? (cadr expression))
+;            (caddr expression)
+;            (cadr expression))))))
+
 (define let*
-  (environment (bindings . body)
+  (environment (let* bindings . body)
     (if (or (null? bindings)
             (null? (cdr bindings)))
        `(let (,(car bindings)) ,@body)
@@ -399,7 +453,7 @@ R"##(
 ; TODO =>
 
 (define cond ; This is incorrect definition
-  (environment clauses
+  (environment (cond . clauses)
     (if (null? clauses) undefined
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
@@ -411,7 +465,7 @@ R"##(
                     (cond ,@(cdr clauses))))))))
 
 (define case ; This is incorrect definition
-  (environment (key . clauses)
+  (environment (case key . clauses)
     (if (null? clauses) 'undefined
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
@@ -420,11 +474,11 @@ R"##(
                 (case ,key ,@(cdr clauses)))))))
 
 (define when
-  (environment (test . xs)
+  (environment (when test . xs)
    `(if ,test (begin ,@xs))))
 
 (define unless
-  (environment (test . xs)
+  (environment (unless test . xs)
    `(if (not ,test) (begin ,@xs))))
 
 ; ------------------------------------------------------------------------------
@@ -1478,7 +1532,7 @@ R"##(
 ; ------------------------------------------------------------------------------
 
 (define swap!
-  (environment (x y)
+  (environment (swap! x y)
     (let ((temporary (string->symbol)))
      `(let ((,temporary ,x))
         (set! ,x ,y)

@@ -160,7 +160,7 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      // std::cerr << "macroexpand " << operands << std::endl;
+      std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       s = unit;
       e = list(operands);
@@ -172,7 +172,9 @@ namespace meevax::kernel
             unit          // d
           );
 
-      return execute();
+      const auto result {execute()};
+      std::cerr << "; \t\t; " << result << std::endl;
+      return result;
     }
 
     template <typename... Ts>
@@ -233,7 +235,7 @@ namespace meevax::kernel
 
       if (source.bindings.empty())
       {
-        source.expand(unit);
+        source.expand(list(library));
 
         if (source.bindings.empty())
         {
