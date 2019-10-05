@@ -26,7 +26,8 @@ namespace meevax::kernel
      * closes the global environment when it constructed (this feature is known
      * as syntactic-closure).
      */
-    : public closure
+    // : public closure
+    : public virtual pair
 
     /*
      * Reader access symbol table of this environment (by member function
@@ -148,9 +149,14 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) current_expression() noexcept
+    decltype(auto) current_expression()
     {
-      return std::get<0>(*this);
+      return car(std::get<0>(*this));
+    }
+
+    decltype(auto) lexical_environment()
+    {
+      return cdr(std::get<0>(*this));
     }
 
     decltype(auto) interaction_environment() noexcept
@@ -162,8 +168,12 @@ namespace meevax::kernel
     {
       std::cerr << "; macroexpand\t; " << operands << std::endl;
 
+      std::cerr << "DEBUG! operands = " << operands << std::endl;
+      std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
+      std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
+
       s = unit;
-      e = list(operands);
+      e = cons(operands, lexical_environment());
       c = current_expression();
       d = cons(
             unit,         // s
@@ -533,6 +543,11 @@ namespace meevax::kernel
     {
       return evaluate(std::forward<decltype(operands)>(operands));
     });
+
+    // define<native>("rename", [&](auto&& operands)
+    // {
+    //   return rename(car(operands));
+    // });
 
     std::stringstream stream {
       #include <meevax/library/r7rs.xss>

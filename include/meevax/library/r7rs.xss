@@ -204,14 +204,26 @@ R"##(
 
 (define explicit-renaming-macro-transformer
   (lambda (transform)
-    (environment (keyword . expression)
-      (list transform
-            expression
-            (list 'environment (cons 'keyword-quote 'x)
-                  (list 'identity 'x))
-            'eq?)
-      )
-    ))
+    (environment expression
+      ; (transform expression (environment (rename x) (identity x)) eq?))))
+      (transform expression identity eq?))))
+
+; (define-syntax set-1!
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (list (rename 'set!) (cadr expression) 1)
+;       )
+;     )
+;   )
+
+(define set-1!
+  (environment (_ variable)
+    (list set! variable 1)
+    )
+  )
+
+(define x 42)
+(set-1! x)
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)

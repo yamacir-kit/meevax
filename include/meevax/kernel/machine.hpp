@@ -146,7 +146,17 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        if (const object& buffer {assoc(car(expression), interaction_environment())}; !buffer)
+        // TODO Rename to applicant?
+        object buffer {assoc(
+          car(expression), interaction_environment()
+        )};
+
+        if (buffer == unbound)
+        {
+          buffer = car(expression);
+        }
+
+        if (not buffer)
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is application of unit => ERROR" << std::endl);
           throw syntax_error {"unit is not applicable"};
@@ -285,7 +295,8 @@ namespace meevax::kernel
 
       case code::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
         TRACE(2);
-        s.push(make<Environment>(cadr(c), interaction_environment()));
+        // s.push(make<Environment>(cadr(c), interaction_environment()));
+        s.push(make<Environment>(make<closure>(cadr(c), e), interaction_environment()));
         c.pop(2);
         goto dispatch;
 
@@ -347,6 +358,11 @@ namespace meevax::kernel
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
+        // else if (callee.is<Environment>())
+        // {
+        //   s = callee.as<Environment>().expand(car(s) | cadr(s)) | cddr(s);
+        //   c.pop(1);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
@@ -378,6 +394,11 @@ namespace meevax::kernel
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
+        // else if (callee.is<Environment>())
+        // {
+        //   s = callee.as<Environment>().expand(car(s) | cadr(s)) | cddr(s);
+        //   c.pop(1);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
