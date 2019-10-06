@@ -187,43 +187,36 @@ R"##(
 ;  Explicit Renaming Macro Transformer
 ; --------------------------------------------------------------------------
 
-(define rename-syntax
-  (environment (rename-syntax x)
-    ((lambda (y) y) (cadr x))))
-
 (define define-syntax define)
-
-; (define define-syntax
-;   (environment (keyword transformer-spec)
-;     (list 'begin
-;           (list 'define keyword '())
-;           (list 'set! keyword transformer-spec)
-;       )
-;     )
-;   )
 
 (define explicit-renaming-macro-transformer
   (lambda (transform)
     (environment expression
-      ; (transform expression (environment (rename x) (identity x)) eq?))))
-      (transform expression identity eq?))))
-
-; (define-syntax set-1!
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (list (rename 'set!) (cadr expression) 1)
-;       )
-;     )
-;   )
-
-(define set-1!
-  (environment (_ variable)
-    (list set! variable 1)
+      (transform expression #;??? eq?)
+      )
     )
   )
 
-(define x 42)
-(set-1! x)
+; (define set-1!
+;   (environment (set-1! variable)
+;     (list set! variable 1)))
+;
+; (define x 42)
+; (if (eqv? x 42) 'ok (car '()))
+;
+; (set-1! x)
+; (if (eqv? x 1) 'ok (car '()))
+;
+; (set! x 42)
+; (if (eqv? x 42) 'ok (car '()))
+;
+; (define escape-set! set!)
+; (define set! 'this-is-not-applicable)
+;
+; (set-1! x)
+; (if (eqv? x 1) 'ok (car '()))
+;
+; (define set! escape-set!)
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
@@ -236,87 +229,51 @@ R"##(
   (lambda ()
     (if #false #false #;undefined)))
 
-; (define-syntax conditional
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (if (null? (cdr expression))
-;           (undefined)
-;           ((lambda (clause)
-;              (if (compare (rename 'else) (car clause))
-;                  (if (pair? (cddr expression))
-;                      (error "")
-;                      (cons (rename 'begin) (cdr clause)))
-;                  (if (if (null? (cdr clause)) #true
-;                          (compare (rename '=>) (cadr clause)))
-;                      (list (list (rename 'lambda) (list (rename 'result))
-;                                  (list (rename 'if) (rename 'result)
-;                                        (if (null? (cdr clause))
-;                                            (rename 'result)
-;                                            (list (caddr clause) (rename 'result)))
-;                                        ; (cons (rename 'conditional) (cddr expression))))
-;                                        (cons (car expression) (cddr expression))))
-;                            (car clause))
-;                      (list (rename 'if) (car clause)
-;                            (cons (rename 'begin) (cdr clause))
-;                            ; (cons (rename 'conditional) (cddr expression))))))
-;                            (cons (car expression) (cddr expression))))))
-;            (cadr expression))))))
-;
-; (define cond conditional)
-;
-; (define-syntax and
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (conditional
-;         ((null? (cdr expression)))
-;         ((null? (cddr expression))
-;          (cadr expression))
-;         (else
-;           (list (rename 'if) (cadr expression)
-;                 ; (cons (rename 'and) (cddr expression))
-;                 (cons (car expression) (cddr expression))
-;                 #false))))))
-;
-; (define-syntax or
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (if (null? (cdr expression)) #false
-;           (if (null? (cddr expression))
-;               (cadr expression)
-;               (list (rename 'let) (list (list (rename 'result) (cadr expression)))
-;                     (list (rename 'if) (rename 'result)
-;                           (rename 'result)
-;                           (cons (rename 'or) (cddr expression)))))))))
+(define conditional
+  (environment (conditional . clauses)
+    (if (null? clauses)
+        (if #false #false #;unspecified)
+        ((lambda (clause)
+           (if (eq? else (car clause))
+               (if (pair? (cdr clauses))
+                   (error "")
+                   (cons begin (cdr clause)))
+               (if (if (null? (cdr clause)) #true
+                       (eq? => (cadr clause)))
+                   (list (list lambda (list result)
+                               (list if result
+                                     (if (null? (cdr clause)) result
+                                         (list (caddr clause) result))
+                                     (cons conditional (cdr clauses))))
+                         (car clause))
+                   (list if (car clause)
+                         (cons begin (cdr clause))
+                         (cons conditional (cdr clauses))))))
+         (car clauses)))))
+
+(define cond conditional)
 
 (define and
-  (environment (and . xs)
-    (if (null? xs)
-        #true
-        (if (null? (cdr xs))
-            (car xs)
-            (list (list 'lambda (list 'x 'thunk)
-                    (list 'if 'x
-                              (list 'thunk)
-                              'x))
-                  (car xs)
-                  (list 'lambda '()
-                    (append (list 'and)
-                            (cdr xs))))))))
+  (environment (and . tests)
+    (conditional
+      ((null? tests) #true)
+      ((null? (cdr tests)) (car tests))
+      (else
+        (list if (car tests)
+                 (cons and (cdr tests))
+                 #false)))))
 
 (define or
-  (environment (or . xs)
-    (if (null? xs)
-        #false
-        (if (null? (cdr xs))
-            (car xs)
-            (list (list 'lambda (list 'x 'thunk)
-                    (list 'if 'x
-                              'x
-                              (list 'thunk)))
-                  (car xs)
-                  (list 'lambda '()
-                    (append (list 'or)
-                            (cdr xs))))))))
+  (environment (or . tests)
+    (conditional
+      ((null? tests) #false)
+      ((null? (cdr tests)) (car tests))
+      (else
+        (list (list lambda (list result thunk)
+                    (list if result result (list thunk)))
+              (car tests)
+              (list lambda (list)
+                    (append (list or) (cdr tests))))))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.8 Standard Quasiquotation Library
@@ -464,17 +421,17 @@ R"##(
 
 ; TODO =>
 
-(define cond ; This is incorrect definition
-  (environment (cond . clauses)
-    (if (null? clauses) undefined
-        (if (eq? (caar clauses) 'else)
-           `(begin ,@(cdar clauses))
-            (if (null? (cdar clauses))
-               `(let ((test ,(caar clauses)))
-                  (if test test (cond ,@(cdr clauses))))
-               `(if ,(caar clauses)
-                    (begin ,@(cdar clauses))
-                    (cond ,@(cdr clauses))))))))
+; (define cond ; This is incorrect definition
+;   (environment (cond . clauses)
+;     (if (null? clauses) undefined
+;         (if (eq? (caar clauses) 'else)
+;            `(begin ,@(cdar clauses))
+;             (if (null? (cdar clauses))
+;                `(let ((test ,(caar clauses)))
+;                   (if test test (cond ,@(cdr clauses))))
+;                `(if ,(caar clauses)
+;                     (begin ,@(cdar clauses))
+;                     (cond ,@(cdr clauses))))))))
 
 (define case ; This is incorrect definition
   (environment (case key . clauses)

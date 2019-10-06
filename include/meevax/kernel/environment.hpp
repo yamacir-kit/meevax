@@ -79,7 +79,8 @@ namespace meevax::kernel
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
       return kernel::machine<environment>::define(
-               intern(name), make<T>(name, std::forward<decltype(operands)>(operands)...)
+               intern(name),
+               make<T>(name, std::forward<decltype(operands)>(operands)...)
              );
     }
 
@@ -168,9 +169,9 @@ namespace meevax::kernel
     {
       std::cerr << "; macroexpand\t; " << operands << std::endl;
 
-      std::cerr << "DEBUG! operands = " << operands << std::endl;
-      std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
-      std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
+      // std::cerr << "DEBUG! operands = " << operands << std::endl;
+      // std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
+      // std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
 
       s = unit;
       e = cons(operands, lexical_environment());
@@ -183,7 +184,7 @@ namespace meevax::kernel
           );
 
       const auto result {execute()};
-      std::cerr << "; \t\t; " << result << std::endl;
+      // std::cerr << "; \t\t; " << result << std::endl;
       return result;
     }
 
@@ -541,7 +542,7 @@ namespace meevax::kernel
 
     define<native>("evaluate", [&](auto&& operands)
     {
-      return evaluate(std::forward<decltype(operands)>(operands));
+      return evaluate(car(operands));
     });
 
     // define<native>("rename", [&](auto&& operands)
