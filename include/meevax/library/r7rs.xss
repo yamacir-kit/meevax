@@ -279,7 +279,8 @@ R"##(
 ;  4.2.8 Standard Quasiquotation Library
 ; --------------------------------------------------------------------------
 
-(define unquote identity)
+(define unquote          identity)
+(define unquote-splicing identity)
 
 (define quasiquote-expand
   (lambda (e depth)
@@ -336,6 +337,14 @@ R"##(
 ;  4.2.2 Standard Binding Constructors Library
 ; ------------------------------------------------------------------------------
 
+; (define letrec
+;   (environment (letrec . expression)
+;     ((lambda (bindings)
+;       `((,lambda () ,@bindings ,@(cdr expression))))
+;      (map-1 (lambda (x)
+;               (cons define x))
+;             (car expression)))))
+
 (define unnamed-let
   (environment (unnamed-let bindings . body)
    `((lambda ,(map-1 car bindings) ,@body) ,@(map-1 cadr bindings))))
@@ -359,46 +368,18 @@ R"##(
        `(letrec ((,bindings (lambda ,(map-1 car (car body)) ,@(cdr body))))
           (,bindings ,@(map-1 cadr (car body)))))))
 
-; (define-syntax let
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (if (null? (cdr expression))
-;           (error "The let syntax is defined as the form (let <bindings> <body>) \
-;                   but lacks <bindings> and <body>."))
-;       (if (null? (cddr expression))
-;           (error "The let syntax is defined as the form (let <bindings> <body>) \
-;                   but lacks <body>."))
-;       ((lambda (bindings)
-;          ; (if (list? bindings)
-;          (if (pair? bindings) #false
-;              (error "The <bindings> of the let syntax is defined as the form \
-;                      ((<variable1> <init1>) ...) but <bindings> is not a list."))
-;          (if (every (lambda (x)
-;                       (and (pair? x)
-;                            (pair? (cdr x))
-;                            (null? (cddr x))))
-;                       ; (if (pair? x)
-;                       ;     (if (pair? (cdr x))
-;                       ;         (null? (cddr x))
-;                       ;         #false)
-;                       ;     #false))
-;                     bindings)
-;              ((lambda (variables inits)
-;                 (if (symbol? (cadr expression))
-;                    `((,(rename 'lambda) ,variables
-;                        (,(rename 'letrec) ((,(cadr expression)
-;                                              (,(rename 'lambda) ,variables
-;                                               ,@(cdddr expression))))
-;                          (,(cadr expression) ,@variables)))
-;                      ,@inits)
-;                    `((,(rename 'lambda) ,variables ,@(cddr expression))
-;                      ,@inits)))
-;               (map car bindings)
-;               (map cadr bindings))
-;              (error "")))
-;        (if (symbol? (cadr expression))
-;            (caddr expression)
-;            (cadr expression))))))
+; (define let
+;   (environment (let bindings . body)
+;     (if (null? bindings)
+;         (error "The let syntax is defined as the form (let <bindings> <body>) \
+;                 but lacks <bindings> and <body>."))
+;     (if (null? body)
+;         (error "The let syntax is defined as the form (let <bindings> <body>) \
+;                 but lacks <body>."))
+;     ((lambda ())
+;      )
+;     )
+;   )
 
 (define let*
   (environment (let* bindings . body)
@@ -413,25 +394,6 @@ R"##(
 ; ------------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
-
-(define else #true) ; auxiliary syntax
-
-; (define else begin)
-; (define then begin)
-
-; TODO =>
-
-; (define cond ; This is incorrect definition
-;   (environment (cond . clauses)
-;     (if (null? clauses) undefined
-;         (if (eq? (caar clauses) 'else)
-;            `(begin ,@(cdar clauses))
-;             (if (null? (cdar clauses))
-;                `(let ((test ,(caar clauses)))
-;                   (if test test (cond ,@(cdr clauses))))
-;                `(if ,(caar clauses)
-;                     (begin ,@(cdar clauses))
-;                     (cond ,@(cdr clauses))))))))
 
 (define case ; This is incorrect definition
   (environment (case key . clauses)
@@ -454,8 +416,13 @@ R"##(
 ;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-; TODO delay
-; TODO delay-force
+(define delay-force
+  (environment (delay-force expression)
+   `(,promise #false (,lambda () ,expression))))
+
+(define delay
+  (environment (delay expression)
+   `(,delay-force (,promise #true expression))))
 
 ; TODO promise?
 ; TODO make-promise?
