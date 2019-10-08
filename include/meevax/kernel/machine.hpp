@@ -63,21 +63,31 @@ namespace meevax::kernel
   protected:
     stack s, // main stack
           e, // lexical environment
-          c, // control
-          d; // dump (continuation)
+          c, // control stack
+          d; // dump stack (current-continuation)
 
-  public:
+  private: // CRTP Interfaces
     decltype(auto) interaction_environment()
     {
       return static_cast<Environment&>(*this).interaction_environment();
     }
 
     template <typename... Ts>
+    decltype(auto) intern(Ts&&... operands)
+    {
+      return static_cast<Environment&>(*this).intern(
+               std::forward<decltype(operands)>(operands)...
+             );
+    }
+
+    // TODO Remove
+    template <typename... Ts>
     decltype(auto) export_(Ts&&... operands)
     {
       return static_cast<Environment&>(*this).export_(std::forward<decltype(operands)>(operands)...);
     }
 
+  public:
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... operands)
@@ -95,6 +105,7 @@ namespace meevax::kernel
       return interaction_environment(); // temporary
     }
 
+    // TODO Change last boolean argument to template parameter (use if constexpr)
     /*
      * <expression> = <identifier>
      *              | <literal>
@@ -151,7 +162,7 @@ namespace meevax::kernel
           car(expression), interaction_environment()
         )};
 
-        if (buffer == unbound)
+        if (buffer == unbound) // maybe, car(expression) is <identifier>
         {
           buffer = car(expression);
         }
@@ -653,121 +664,236 @@ namespace meevax::kernel
       }
       else
       {
-        throw syntax_error_about_internal_define {"internal-define"};
+        throw syntax_error_about_internal_define {
+          "definition cannot appear in this context"
+        };
       }
     }
 
     /*
-     * <body> = <definition>* <sequence>
+     * <body> := <definition>* <sequence>
      */
     object body(const object& expression,
                 const object& lexical_environment,
-                const object& continuation, bool = false) try
+                const object& continuation, bool = false) // try
     {
+      /************************************************************************
+      * The expression may have following form.
+      *
+      * (lambda (...)
+      *   <definition or command> ;= <car expression>
+      *   <definition or sequence> ;= <cdr expression>
+      *   )
+      ************************************************************************/
       if (not cdr(expression)) // is tail sequence
       {
-        return compile(car(expression), lexical_environment, continuation, true);
-      }
-      else
-      {
+        /**********************************************************************
+        * The expression may have following form.
+        * If definition appears in <car expression>, it is an syntax error.
+        *
+        * (lambda (...)
+        *   <expression> ;= <car expression>
+        *   )
+        **********************************************************************/
         return compile(
                  car(expression),
                  lexical_environment,
-                 cons(_pop_, sequence(cdr(expression), lexical_environment, continuation))
+                 continuation,
+                 true // tail-call optimization
                );
       }
-    }
-    catch (const syntax_error_about_internal_define&)
-    {
-      stack bindings {};
-
-      /*
-       * <sequence> = <command>* <expression>
-       */
-      for (iterator sequences {expression}; sequences; ++sequences)
+      else if (not car(expression))
       {
-        /*
-         * <definition> = (define <identifier> <expression>)
-         */
-        if (const object& definition {car(sequences)}; car(definition).as<symbol>() == "define")
-        {
-          /*
-           * <binding> = (<identifier> <expression>)
-           */
-          bindings.push(cdr(definition));
-        }
-        else
-        {
-          /*
-           * At least one binding assumed. Because, this catch block execution
-           * will be triggered by encountering the <definition> on compiling
-           * rule <sequence>.
-           */
-          assert(not bindings.empty());
+        /**********************************************************************
+        * The expression may have following form.
+        * If definition appears in <cdr expression>, it is an syntax error.
+        *
+        * (lambda (...)
+        *   () ;= <car expression>
+        *   <sequence> ;= <cdr expression>)
+        **********************************************************************/
+        return sequence(
+                 cdr(expression),
+                 lexical_environment,
+                 continuation
+               );
+      }
+      else if (not car(expression).is<pair>()
+               or caar(expression) != intern("define"))
+      {
+        /**********************************************************************
+        * The expression may have following form.
+        *
+        * (lambda (...)
+        *   <non-definition expression> ;= <car expression>
+        *   <sequence> ;= <cdr expression>)
+        **********************************************************************/
+        return compile(
+                 car(expression), // <non-definition expression>
+                 lexical_environment,
+                 cons(
+                   _pop_, // remove result of expression
+                   sequence(
+                     cdr(expression),
+                     lexical_environment,
+                     continuation
+                   )
+                 )
+               );
+      }
+      else // 5.3.2 Internal Definitions
+      {
+        /**********************************************************************
+         * The expression may have following form.
+         * If definition appears in <car expression> or <cdr expression>, it is
+         * an syntax error.
+         *
+         * (lambda (...)
+         *   (define <variable> <initialization>) ;= <car expression>
+         *   <sequence> ;= <cdr expression>)
+         *********************************************************************/
+        std::cerr << "; letrec*\t; <expression> := "
+                  << expression
+                  << std::endl;
 
-          const object& keyword {
-            static_cast<Environment&>(*this).intern("letrec*")
-          };
+        // <bindings> := ( (<variable> <initialization>) ...)
+        object bindings {list(
+          cdar(expression) // (<variable> <initialization>)
+        )};
 
-          if (const object& internal_define {assoc(keyword, interaction_environment())};
-              internal_define and internal_define.is<Environment>())
+        // <body> of letrec* := <sequence>+
+        object body {};
+
+        /**********************************************************************
+        * Collect <definition>s from <cdr expression>.
+        * It is guaranteed that <cdr expression> is not unit from first
+        * conditional of this member function.
+        *
+        * The <cdr expression> may have following form.
+        *
+        * ( <expression 1>
+        *   <expression 2>
+        *   ...
+        *   <expression N> )
+        *
+        **********************************************************************/
+        for (iterator each {cdr(expression)}; each; ++each)
+        {
+          if (not car(each) or // unit (TODO? syntax-error)
+              not car(each).is<pair>() or // <identifier or literal>
+              caar(each) != intern("define"))
           {
-            /*
-             * (letrec* (<binding>+) <sequence>+)
-             */
-            const auto& transformer {internal_define.as<Environment&>().expand(
-              cons(internal_define, bindings, sequences)
-            )};
+            body = each;
 
-            NEST_OUT;
+            std::cerr << "; letrec*\t; <bindings> := "
+                      << bindings
+                      << std::endl;
 
-            return compile(transformer, lexical_environment, continuation);
+            std::cerr << "; letrec*\t; <body> := "
+                      << body
+                      << std::endl;
           }
           else
           {
-            throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+            bindings = append(bindings, list(cdar(each)));
           }
         }
-      }
 
-      // auto binding_specs {list()};
-      // auto non_definitions {unit};
-      //
-      // for (iterator iter {expression}; iter; ++iter)
-      // {
-      //   if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
-      //   {
-      //     // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
-      //     binding_specs = cons(cdr(*iter), binding_specs);
-      //   }
-      //   else
-      //   {
-      //     non_definitions = iter;
-      //     break;
-      //   }
-      // }
-      //
-      // // std::cerr << binding_specs << std::endl;
-      // // std::cerr << cons(binding_specs, non_definitions) << std::endl;
-      //
-      // object letrec_star {assoc(
-      //   static_cast<Environment&>(*this).intern("letrec*"),
-      //   interaction_environment()
-      // )};
-      //
-      // if (not letrec_star or not letrec_star.is<Environment>())
-      // {
-      //   throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
-      // }
-      //
-      // auto expanded {letrec_star.as<Environment>().expand(
-      //   cons(binding_specs, non_definitions)
-      // )};
-      //
-      // // std::cerr << expanded << std::endl;
-      //
-      // return compile(expanded, lexical_environment, continuation);
+        const object formals {map(car, bindings)};
+        std::cerr << "; letrec*\t; <formals> := " << formals << std::endl;
+
+        auto make_list = [&](auto size, const object& fill)
+        {
+          object result {};
+
+          for (std::size_t k {0}; k < size; ++k)
+          {
+            result = cons(fill, result);
+          }
+
+          return result;
+        };
+
+        const object operands {make_list(length(formals), undefined)};
+        std::cerr << "; letrec*\t; <operands> := " << operands << std::endl;
+
+        const object assignments {map(
+          [this](auto&& each)
+          {
+            return intern("set!") | each;
+          },
+          bindings
+        )};
+        std::cerr << "; letrec*\t; <assignments> := " << assignments << std::endl;
+
+        const object result {cons(
+          cons(
+            intern("lambda"), formals, append(assignments, body)
+          ),
+          operands
+        )};
+        std::cerr << "; letrec*\t; result := " << result << std::endl;
+
+        return compile(
+                 result,
+                 lexical_environment,
+                 continuation
+               );
+      }
     }
+    // catch (const syntax_error_about_internal_define&)
+    // {
+    //   stack bindings {};
+    //
+    //   /*
+    //    * <sequence> = <command>* <expression>
+    //    */
+    //   for (iterator sequences {expression}; sequences; ++sequences)
+    //   {
+    //     /*
+    //      * <definition> = (define <identifier> <expression>)
+    //      */
+    //     if (const object& definition {car(sequences)}; car(definition).as<symbol>() == "define")
+    //     {
+    //       /*
+    //        * <binding> = (<identifier> <expression>)
+    //        */
+    //       bindings.push(cdr(definition));
+    //     }
+    //     else
+    //     {
+    //       /*
+    //        * At least one binding assumed. Because, this catch block execution
+    //        * will be triggered by encountering the <definition> on compiling
+    //        * rule <sequence>.
+    //        */
+    //       assert(not bindings.empty());
+    //
+    //       const object& keyword {
+    //         static_cast<Environment&>(*this).intern("letrec*")
+    //       };
+    //
+    //       if (const object& internal_define {assoc(keyword, interaction_environment())};
+    //           internal_define and internal_define.is<Environment>())
+    //       {
+    //         /*
+    //          * (letrec* (<binding>+) <sequence>+)
+    //          */
+    //         const auto& transformer {internal_define.as<Environment&>().expand(
+    //           cons(internal_define, bindings, sequences)
+    //         )};
+    //
+    //         NEST_OUT;
+    //
+    //         return compile(transformer, lexical_environment, continuation);
+    //       }
+    //       else
+    //       {
+    //         throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+    //       }
+    //     }
+    //   }
+    // }
 
     /*
      * <operand> = <expression>

@@ -192,8 +192,7 @@ namespace meevax::kernel
     }
   }
 
-  template <typename E>
-  decltype(auto) length(E&& e)
+  decltype(auto) length(const iterator& e)
   {
     return std::distance(std::begin(e), std::end(e));
   }
