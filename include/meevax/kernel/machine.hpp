@@ -752,9 +752,7 @@ namespace meevax::kernel
          *   (define <variable> <initialization>) ;= <car expression>
          *   <sequence> ;= <cdr expression>)
          *********************************************************************/
-        std::cerr << "; letrec*\t; <expression> := "
-                  << expression
-                  << std::endl;
+        // std::cerr << "; letrec*\t; <expression> := " << expression << std::endl;
 
         // <bindings> := ( (<variable> <initialization>) ...)
         object bindings {list(
@@ -785,13 +783,9 @@ namespace meevax::kernel
           {
             body = each;
 
-            std::cerr << "; letrec*\t; <bindings> := "
-                      << bindings
-                      << std::endl;
-
-            std::cerr << "; letrec*\t; <body> := "
-                      << body
-                      << std::endl;
+            // std::cerr << "; letrec*\t; <bindings> := " << bindings << std::endl;
+            //
+            // std::cerr << "; letrec*\t; <body> := " << body << std::endl;
           }
           else
           {
@@ -800,7 +794,7 @@ namespace meevax::kernel
         }
 
         const object formals {map(car, bindings)};
-        std::cerr << "; letrec*\t; <formals> := " << formals << std::endl;
+        // std::cerr << "; letrec*\t; <formals> := " << formals << std::endl;
 
         auto make_list = [&](auto size, const object& fill)
         {
@@ -815,7 +809,7 @@ namespace meevax::kernel
         };
 
         const object operands {make_list(length(formals), undefined)};
-        std::cerr << "; letrec*\t; <operands> := " << operands << std::endl;
+        // std::cerr << "; letrec*\t; <operands> := " << operands << std::endl;
 
         const object assignments {map(
           [this](auto&& each)
@@ -824,7 +818,7 @@ namespace meevax::kernel
           },
           bindings
         )};
-        std::cerr << "; letrec*\t; <assignments> := " << assignments << std::endl;
+        // std::cerr << "; letrec*\t; <assignments> := " << assignments << std::endl;
 
         const object result {cons(
           cons(
@@ -832,7 +826,7 @@ namespace meevax::kernel
           ),
           operands
         )};
-        std::cerr << "; letrec*\t; result := " << result << std::endl;
+        // std::cerr << "; letrec*\t; result := " << result << std::endl;
 
         return compile(
                  result,
@@ -841,59 +835,6 @@ namespace meevax::kernel
                );
       }
     }
-    // catch (const syntax_error_about_internal_define&)
-    // {
-    //   stack bindings {};
-    //
-    //   /*
-    //    * <sequence> = <command>* <expression>
-    //    */
-    //   for (iterator sequences {expression}; sequences; ++sequences)
-    //   {
-    //     /*
-    //      * <definition> = (define <identifier> <expression>)
-    //      */
-    //     if (const object& definition {car(sequences)}; car(definition).as<symbol>() == "define")
-    //     {
-    //       /*
-    //        * <binding> = (<identifier> <expression>)
-    //        */
-    //       bindings.push(cdr(definition));
-    //     }
-    //     else
-    //     {
-    //       /*
-    //        * At least one binding assumed. Because, this catch block execution
-    //        * will be triggered by encountering the <definition> on compiling
-    //        * rule <sequence>.
-    //        */
-    //       assert(not bindings.empty());
-    //
-    //       const object& keyword {
-    //         static_cast<Environment&>(*this).intern("letrec*")
-    //       };
-    //
-    //       if (const object& internal_define {assoc(keyword, interaction_environment())};
-    //           internal_define and internal_define.is<Environment>())
-    //       {
-    //         /*
-    //          * (letrec* (<binding>+) <sequence>+)
-    //          */
-    //         const auto& transformer {internal_define.as<Environment&>().expand(
-    //           cons(internal_define, bindings, sequences)
-    //         )};
-    //
-    //         NEST_OUT;
-    //
-    //         return compile(transformer, lexical_environment, continuation);
-    //       }
-    //       else
-    //       {
-    //         throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
-    //       }
-    //     }
-    //   }
-    // }
 
     /*
      * <operand> = <expression>
@@ -998,36 +939,6 @@ namespace meevax::kernel
                )
              );
     }
-
-    // [[deprecated]]
-    // object let(const object& expression,
-    //            const object& lexical_environment,
-    //            const object& continuation)
-    // {
-    //   const auto binding_specs {car(expression)};
-    //
-    //   const auto identifiers {
-    //     map([](auto&& e) { return car(e); }, binding_specs)
-    //   };
-    //
-    //   const auto initializations {
-    //     map([](auto&& e) { return cadr(e); }, binding_specs)
-    //   };
-    //
-    //   return operand(
-    //            initializations,
-    //            lexical_environment,
-    //            cons(
-    //              _make_closure_,
-    //              body(
-    //                cdr(expression), // <body>
-    //                cons(identifiers, lexical_environment),
-    //                list(_return_)
-    //              ),
-    //              _apply_, continuation
-    //            )
-    //          );
-    // }
 
     object abstraction(const object& expression,
                        const object& lexical_environment,

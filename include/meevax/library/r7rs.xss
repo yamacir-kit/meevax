@@ -189,13 +189,13 @@ R"##(
 
 (define define-syntax define)
 
-(define explicit-renaming-macro-transformer
-  (lambda (transform)
-    (environment expression
-      (transform expression #;??? eq?)
-      )
-    )
-  )
+; (define explicit-renaming-macro-transformer
+;   (lambda (transform)
+;     (environment expression
+;       (transform expression #;??? eq?)
+;       )
+;     )
+;   )
 
 ; (define set-1!
 ;   (environment (set-1! variable)
