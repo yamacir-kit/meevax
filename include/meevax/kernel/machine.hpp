@@ -796,18 +796,6 @@ namespace meevax::kernel
         const object formals {map(car, bindings)};
         // std::cerr << "; letrec*\t; <formals> := " << formals << std::endl;
 
-        auto make_list = [&](auto size, const object& fill)
-        {
-          object result {};
-
-          for (std::size_t k {0}; k < size; ++k)
-          {
-            result = cons(fill, result);
-          }
-
-          return result;
-        };
-
         const object operands {make_list(length(formals), undefined)};
         // std::cerr << "; letrec*\t; <operands> := " << operands << std::endl;
 

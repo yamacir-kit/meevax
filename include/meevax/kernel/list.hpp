@@ -141,7 +141,7 @@ namespace meevax::kernel
     return unit;
   }
 
-  object operator|(const object& lhs, const object& rhs)
+  object operator bitor(const object& lhs, const object& rhs)
   {
     return std::make_shared<pair>(lhs, rhs);
   }
@@ -157,6 +157,18 @@ namespace meevax::kernel
   {
     return (operands | ... | unit);
   }
+
+  auto make_list = [](std::size_t size, const object& fill)
+  {
+    object result;
+
+    for (std::size_t k {0}; k < size; ++k)
+    {
+      result = cons(fill, result);
+    }
+
+    return result;
+  };
 
   template <typename... Ts>
   constexpr decltype(auto) xcons(Ts&&... operands)
