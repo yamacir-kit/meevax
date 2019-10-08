@@ -13,6 +13,9 @@
 #include <meevax/kernel/file.hpp>
 #include <meevax/posix/linker.hpp>
 
+extern char _binary_layer_1_ss_start;
+extern char _binary_layer_1_ss_end;
+
 namespace meevax::kernel
 {
   /****************************************************************************
@@ -556,6 +559,11 @@ namespace meevax::kernel
   environment::environment(std::integral_constant<int, 1>)
     : environment::environment {layer<0>}
   {
+    static const std::string layer_1 {
+      &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
+    };
+    std::cerr << layer << std::endl;
+
     std::stringstream stream {
       #include <meevax/library/r7rs.xss>
     };

@@ -4,6 +4,11 @@ int main(const int argc, char const* const* const argv) try
 {
   meevax::kernel::environment program {meevax::kernel::layer<1>};
 
+  /****************************************************************************
+  * The environment system includes a command line option parser. The parser is
+  * internally called the "configurator" and is primarily responsible for
+  * changing the behavior of the environment.
+  ****************************************************************************/
   program.configure(argc, argv);
 
   for (program.open("/dev/stdin"); program.ready(); ) try
