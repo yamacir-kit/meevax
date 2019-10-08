@@ -63,21 +63,31 @@ namespace meevax::kernel
   protected:
     stack s, // main stack
           e, // lexical environment
-          c, // control
-          d; // dump (continuation)
+          c, // control stack
+          d; // dump stack (current-continuation)
 
-  public:
+  private: // CRTP Interfaces
     decltype(auto) interaction_environment()
     {
       return static_cast<Environment&>(*this).interaction_environment();
     }
 
     template <typename... Ts>
+    decltype(auto) intern(Ts&&... operands)
+    {
+      return static_cast<Environment&>(*this).intern(
+               std::forward<decltype(operands)>(operands)...
+             );
+    }
+
+    // TODO Remove
+    template <typename... Ts>
     decltype(auto) export_(Ts&&... operands)
     {
       return static_cast<Environment&>(*this).export_(std::forward<decltype(operands)>(operands)...);
     }
 
+  public:
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... operands)
@@ -95,6 +105,7 @@ namespace meevax::kernel
       return interaction_environment(); // temporary
     }
 
+    // TODO Change last boolean argument to template parameter (use if constexpr)
     /*
      * <expression> = <identifier>
      *              | <literal>
@@ -146,7 +157,17 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        if (const object& buffer {assoc(car(expression), interaction_environment())}; !buffer)
+        // TODO Rename to applicant?
+        object buffer {assoc(
+          car(expression), interaction_environment()
+        )};
+
+        if (buffer == unbound) // maybe, car(expression) is <identifier>
+        {
+          buffer = car(expression);
+        }
+
+        if (not buffer)
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is application of unit => ERROR" << std::endl);
           throw syntax_error {"unit is not applicable"};
@@ -161,16 +182,13 @@ namespace meevax::kernel
         }
         else if (buffer != unbound && buffer.is<Environment>() && not de_bruijn_index(car(expression), lexical_environment))
         {
-          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << buffer << " => " << std::flush);
+          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << buffer << std::endl);
 
-          // auto& macro {assoc(car(expression), interaction_environment()).template as<Environment&>()};
-          // auto expanded {macro.expand(cdr(expression))};
-          const auto expanded {
-            assoc(
-              car(expression),
-              interaction_environment()
-            ).template as<Environment&>().expand(cdr(expression))
-          };
+          const auto expanded {assoc(
+            car(expression),
+            interaction_environment()
+          // ).template as<Environment&>().expand(cdr(expression))};
+          ).template as<Environment&>().expand(expression)};
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
@@ -186,14 +204,14 @@ namespace meevax::kernel
 
           NEST_IN;
           auto result {operand(
-                   cdr(expression),
-                   lexical_environment,
-                   compile(
-                     car(expression),
-                     lexical_environment,
-                     cons(tail ? _apply_tail_ : _apply_, continuation)
-                   )
-                 )};
+            cdr(expression),
+            lexical_environment,
+            compile(
+              car(expression),
+              lexical_environment,
+              cons(tail ? _apply_tail_ : _apply_, continuation)
+            )
+          )};
           NEST_OUT;
           return result;
         }
@@ -267,14 +285,29 @@ namespace meevax::kernel
         }
         else
         {
-          throw evaluation_error {cadr(c), " is unbound"};
+          // throw evaluation_error {cadr(c), " is unbound"};
+
+          if (   static_cast<Environment&>(*this).verbose == true_object
+              or static_cast<Environment&>(*this).verbose_machine == true_object)
+          {
+            std::cerr << "; machine\t; instruction " << car(c) << " received undefined variable " << cadr(c) << ".\n"
+                      << ";\t\t; start implicit renaming..." << std::endl;
+          }
+
+          /*********************************************************************
+          * When an undefined symbol is evaluated, it returns a symbol that is
+          * guaranteed not to collide with any symbol from the past to the
+          * future. This behavior is defined for the macrotransformer.
+          *********************************************************************/
+          s.push(static_cast<Environment&>(*this).rename(cadr(c)));
         }
         c.pop(2);
         goto dispatch;
 
       case code::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
         TRACE(2);
-        s.push(make<Environment>(cadr(c), interaction_environment()));
+        // s.push(make<Environment>(cadr(c), interaction_environment()));
+        s.push(make<Environment>(make<closure>(cadr(c), e), interaction_environment()));
         c.pop(2);
         goto dispatch;
 
@@ -336,6 +369,11 @@ namespace meevax::kernel
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
+        // else if (callee.is<Environment>())
+        // {
+        //   s = callee.as<Environment>().expand(car(s) | cadr(s)) | cddr(s);
+        //   c.pop(1);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
@@ -367,6 +405,11 @@ namespace meevax::kernel
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
+        // else if (callee.is<Environment>())
+        // {
+        //   s = callee.as<Environment>().expand(car(s) | cadr(s)) | cddr(s);
+        //   c.pop(1);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
@@ -621,120 +664,164 @@ namespace meevax::kernel
       }
       else
       {
-        throw syntax_error {"internal-define"};
+        throw syntax_error_about_internal_define {
+          "definition cannot appear in this context"
+        };
       }
     }
 
     /*
-     * <body> = <definition>* <sequence>
+     * <body> := <definition>* <sequence>
      */
     object body(const object& expression,
                 const object& lexical_environment,
-                const object& continuation, bool = false) try
+                const object& continuation, bool = false) // try
     {
+      /************************************************************************
+      * The expression may have following form.
+      *
+      * (lambda (...)
+      *   <definition or command> ;= <car expression>
+      *   <definition or sequence> ;= <cdr expression>
+      *   )
+      ************************************************************************/
       if (not cdr(expression)) // is tail sequence
       {
-        return compile(car(expression), lexical_environment, continuation, true);
-      }
-      else
-      {
+        /**********************************************************************
+        * The expression may have following form.
+        * If definition appears in <car expression>, it is an syntax error.
+        *
+        * (lambda (...)
+        *   <expression> ;= <car expression>
+        *   )
+        **********************************************************************/
         return compile(
                  car(expression),
                  lexical_environment,
-                 cons(_pop_, sequence(cdr(expression), lexical_environment, continuation))
+                 continuation,
+                 true // tail-call optimization
                );
       }
-    }
-    catch (const error&) // <definition> backtrack
-    {
-      stack bindings {};
-
-      /*
-       * <sequence> = <command>* <expression>
-       */
-      for (iterator sequences {expression}; sequences; ++sequences)
+      else if (not car(expression))
       {
-        /*
-         * <definition> = (define <identifier> <expression>)
-         */
-        if (const object& definition {car(sequences)}; car(definition).as<symbol>() == "define")
-        {
-          /*
-           * <binding> = (<identifier> <expression>)
-           */
-          bindings.push(cdr(definition));
-        }
-        else
-        {
-          /*
-           * At least one binding assumed. Because, this catch block execution
-           * will be triggered by encountering the <definition> on compiling
-           * rule <sequence>.
-           */
-          assert(not bindings.empty());
+        /**********************************************************************
+        * The expression may have following form.
+        * If definition appears in <cdr expression>, it is an syntax error.
+        *
+        * (lambda (...)
+        *   () ;= <car expression>
+        *   <sequence> ;= <cdr expression>)
+        **********************************************************************/
+        return sequence(
+                 cdr(expression),
+                 lexical_environment,
+                 continuation
+               );
+      }
+      else if (not car(expression).is<pair>()
+               or caar(expression) != intern("define"))
+      {
+        /**********************************************************************
+        * The expression may have following form.
+        *
+        * (lambda (...)
+        *   <non-definition expression> ;= <car expression>
+        *   <sequence> ;= <cdr expression>)
+        **********************************************************************/
+        return compile(
+                 car(expression), // <non-definition expression>
+                 lexical_environment,
+                 cons(
+                   _pop_, // remove result of expression
+                   sequence(
+                     cdr(expression),
+                     lexical_environment,
+                     continuation
+                   )
+                 )
+               );
+      }
+      else // 5.3.2 Internal Definitions
+      {
+        /**********************************************************************
+         * The expression may have following form.
+         * If definition appears in <car expression> or <cdr expression>, it is
+         * an syntax error.
+         *
+         * (lambda (...)
+         *   (define <variable> <initialization>) ;= <car expression>
+         *   <sequence> ;= <cdr expression>)
+         *********************************************************************/
+        // std::cerr << "; letrec*\t; <expression> := " << expression << std::endl;
 
-          const object& identifier {
-            static_cast<Environment&>(*this).intern("letrec*")
-          };
+        // <bindings> := ( (<variable> <initialization>) ...)
+        object bindings {list(
+          cdar(expression) // (<variable> <initialization>)
+        )};
 
-          if (const object& internal_define {assoc(identifier, interaction_environment())};
-              internal_define and internal_define.is<Environment>())
+        // <body> of letrec* := <sequence>+
+        object body {};
+
+        /**********************************************************************
+        * Collect <definition>s from <cdr expression>.
+        * It is guaranteed that <cdr expression> is not unit from first
+        * conditional of this member function.
+        *
+        * The <cdr expression> may have following form.
+        *
+        * ( <expression 1>
+        *   <expression 2>
+        *   ...
+        *   <expression N> )
+        *
+        **********************************************************************/
+        for (iterator each {cdr(expression)}; each; ++each)
+        {
+          if (not car(each) or // unit (TODO? syntax-error)
+              not car(each).is<pair>() or // <identifier or literal>
+              caar(each) != intern("define"))
           {
-            /*
-             * (letrec* (<binding>+) <sequence>+)
-             */
-            const auto& transformer {internal_define.as<Environment>().expand(
-              cons(bindings, sequences)
-            )};
+            body = each;
 
-            NEST_OUT;
-
-            return compile(transformer, lexical_environment, continuation);
+            // std::cerr << "; letrec*\t; <bindings> := " << bindings << std::endl;
+            //
+            // std::cerr << "; letrec*\t; <body> := " << body << std::endl;
           }
           else
           {
-            throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
+            bindings = append(bindings, list(cdar(each)));
           }
         }
-      }
 
-      // auto binding_specs {list()};
-      // auto non_definitions {unit};
-      //
-      // for (iterator iter {expression}; iter; ++iter)
-      // {
-      //   if (const object operation {car(*iter)}; operation.as<symbol>() == "define")
-      //   {
-      //     // std::cerr << "[INTERNAL DEFINE] " << cdr(*iter) << std::endl;
-      //     binding_specs = cons(cdr(*iter), binding_specs);
-      //   }
-      //   else
-      //   {
-      //     non_definitions = iter;
-      //     break;
-      //   }
-      // }
-      //
-      // // std::cerr << binding_specs << std::endl;
-      // // std::cerr << cons(binding_specs, non_definitions) << std::endl;
-      //
-      // object letrec_star {assoc(
-      //   static_cast<Environment&>(*this).intern("letrec*"),
-      //   interaction_environment()
-      // )};
-      //
-      // if (not letrec_star or not letrec_star.is<Environment>())
-      // {
-      //   throw syntax_error {"internal-define requires derived expression \"letrec*\" (This inconvenience will be resolved in the future)"};
-      // }
-      //
-      // auto expanded {letrec_star.as<Environment>().expand(
-      //   cons(binding_specs, non_definitions)
-      // )};
-      //
-      // // std::cerr << expanded << std::endl;
-      //
-      // return compile(expanded, lexical_environment, continuation);
+        const object formals {map(car, bindings)};
+        // std::cerr << "; letrec*\t; <formals> := " << formals << std::endl;
+
+        const object operands {make_list(length(formals), undefined)};
+        // std::cerr << "; letrec*\t; <operands> := " << operands << std::endl;
+
+        const object assignments {map(
+          [this](auto&& each)
+          {
+            return intern("set!") | each;
+          },
+          bindings
+        )};
+        // std::cerr << "; letrec*\t; <assignments> := " << assignments << std::endl;
+
+        const object result {cons(
+          cons(
+            intern("lambda"), formals, append(assignments, body)
+          ),
+          operands
+        )};
+        // std::cerr << "; letrec*\t; result := " << result << std::endl;
+
+        return compile(
+                 result,
+                 lexical_environment,
+                 continuation
+               );
+      }
     }
 
     /*
@@ -840,36 +927,6 @@ namespace meevax::kernel
                )
              );
     }
-
-    // [[deprecated]]
-    // object let(const object& expression,
-    //            const object& lexical_environment,
-    //            const object& continuation)
-    // {
-    //   const auto binding_specs {car(expression)};
-    //
-    //   const auto identifiers {
-    //     map([](auto&& e) { return car(e); }, binding_specs)
-    //   };
-    //
-    //   const auto initializations {
-    //     map([](auto&& e) { return cadr(e); }, binding_specs)
-    //   };
-    //
-    //   return operand(
-    //            initializations,
-    //            lexical_environment,
-    //            cons(
-    //              _make_closure_,
-    //              body(
-    //                cdr(expression), // <body>
-    //                cons(identifiers, lexical_environment),
-    //                list(_return_)
-    //              ),
-    //              _apply_, continuation
-    //            )
-    //          );
-    // }
 
     object abstraction(const object& expression,
                        const object& lexical_environment,

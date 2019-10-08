@@ -122,6 +122,32 @@ R"##(
 (define cdar (lambda (x) (cdr (car x))))
 (define cddr (lambda (x) (cdr (cdr x))))
 
+(define caaar (lambda (x) (car (car (car x)))))
+(define caadr (lambda (x) (car (car (cdr x)))))
+(define cadar (lambda (x) (car (cdr (car x)))))
+(define caddr (lambda (x) (car (cdr (cdr x)))))
+(define cdaar (lambda (x) (cdr (car (car x)))))
+(define cdadr (lambda (x) (cdr (car (cdr x)))))
+(define cddar (lambda (x) (cdr (cdr (car x)))))
+(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
+
+(define caaaar (lambda (x) (car (car (car (car x))))))
+(define caaadr (lambda (x) (car (car (car (cdr x))))))
+(define caadar (lambda (x) (car (car (cdr (car x))))))
+(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
+(define cadaar (lambda (x) (car (cdr (car (car x))))))
+(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
+(define caddar (lambda (x) (car (cdr (cdr (car x))))))
+(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
+(define cdaaar (lambda (x) (cdr (car (car (car x))))))
+(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
+(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
+(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
+(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
+(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
+(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
+(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
+
 (define null?
   (lambda (x)
     (eq? x '())))
@@ -158,44 +184,103 @@ R"##(
          (reverse x)))))
 
 ; --------------------------------------------------------------------------
+;  Explicit Renaming Macro Transformer
+; --------------------------------------------------------------------------
+
+(define define-syntax define)
+
+; (define explicit-renaming-macro-transformer
+;   (lambda (transform)
+;     (environment expression
+;       (transform expression #;??? eq?)
+;       )
+;     )
+;   )
+
+; (define set-1!
+;   (environment (set-1! variable)
+;     (list set! variable 1)))
+;
+; (define x 42)
+; (if (eqv? x 42) 'ok (car '()))
+;
+; (set-1! x)
+; (if (eqv? x 1) 'ok (car '()))
+;
+; (set! x 42)
+; (if (eqv? x 42) 'ok (car '()))
+;
+; (define escape-set! set!)
+; (define set! 'this-is-not-applicable)
+;
+; (set-1! x)
+; (if (eqv? x 1) 'ok (car '()))
+;
+; (define set! escape-set!)
+
+; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
+(define then begin)
+(define else begin)
+
+(define undefined
+  (lambda ()
+    (if #false #false #;undefined)))
+
+(define conditional
+  (environment (conditional . clauses)
+    (if (null? clauses)
+        (if #false #false #;unspecified)
+        ((lambda (clause)
+           (if (eq? else (car clause))
+               (if (pair? (cdr clauses))
+                   (error "")
+                   (cons begin (cdr clause)))
+               (if (if (null? (cdr clause)) #true
+                       (eq? => (cadr clause)))
+                   (list (list lambda (list result)
+                               (list if result
+                                     (if (null? (cdr clause)) result
+                                         (list (caddr clause) result))
+                                     (cons conditional (cdr clauses))))
+                         (car clause))
+                   (list if (car clause)
+                         (cons begin (cdr clause))
+                         (cons conditional (cdr clauses))))))
+         (car clauses)))))
+
+(define cond conditional)
+
 (define and
-  (environment xs
-    (if (null? xs)
-        #true
-        (if (null? (cdr xs))
-            (car xs)
-            (list (list 'lambda (list 'x 'thunk)
-                    (list 'if 'x
-                              (list 'thunk)
-                              'x))
-                  (car xs)
-                  (list 'lambda '()
-                    (append (list 'and)
-                            (cdr xs))))))))
+  (environment (and . tests)
+    (conditional
+      ((null? tests) #true)
+      ((null? (cdr tests)) (car tests))
+      (else
+        (list if (car tests)
+                 (cons and (cdr tests))
+                 #false)))))
 
 (define or
-  (environment xs
-    (if (null? xs)
-        #false
-        (if (null? (cdr xs))
-            (car xs)
-            (list (list 'lambda (list 'x 'thunk)
-                    (list 'if 'x
-                              'x
-                              (list 'thunk)))
-                  (car xs)
-                  (list 'lambda '()
-                    (append (list 'or)
-                            (cdr xs))))))))
+  (environment (or . tests)
+    (conditional
+      ((null? tests) #false)
+      ((null? (cdr tests)) (car tests))
+      (else
+        (list (list lambda (list result thunk)
+                    (list if result result (list thunk)))
+              (car tests)
+              (list lambda (list)
+                    (append (list or) (cdr tests))))))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.8 Standard Quasiquotation Library
 ; --------------------------------------------------------------------------
 
-(define unquote identity)
+(define unquote          identity)
+(define unquote-splicing identity)
 
 (define quasiquote-expand
   (lambda (e depth)
@@ -234,7 +319,7 @@ R"##(
                                               (quasiquote-expand      (cdr e) depth)))))))))
 
 (define quasiquote
-  (environment (x)
+  (environment (quasiquote x)
     (quasiquote-expand x 0)))
 
 ; ------------------------------------------------------------------------------
@@ -245,22 +330,30 @@ R"##(
   (lambda (callee x)
     (if (null? x)
        '()
-        (cons (callee (car x))
+        (cons       (callee (car x))
               (map-1 callee (cdr x))))))
 
 ; ------------------------------------------------------------------------------
 ;  4.2.2 Standard Binding Constructors Library
 ; ------------------------------------------------------------------------------
 
+; (define letrec
+;   (environment (letrec . expression)
+;     ((lambda (bindings)
+;       `((,lambda () ,@bindings ,@(cdr expression))))
+;      (map-1 (lambda (x)
+;               (cons define x))
+;             (car expression)))))
+
 (define unnamed-let
-  (environment (bindings . body)
+  (environment (unnamed-let bindings . body)
    `((lambda ,(map-1 car bindings) ,@body) ,@(map-1 cadr bindings))))
 
 (define undefined
   (if #false #false))
 
 (define letrec*
-  (environment (bindings . body)
+  (environment (letrec* bindings . body)
     (unnamed-let ((identifiers (map-1 car bindings)))
      `(unnamed-let ,(map-1 (lambda (e) `(,e ,undefined)) identifiers)
         ,@(map-1 (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
@@ -269,14 +362,27 @@ R"##(
 (define letrec letrec*) ; this is incorrect definition
 
 (define let
-  (environment (bindings . body)
+  (environment (let bindings . body)
     (if (pair? bindings)
        `(unnamed-let ,bindings ,@body)
        `(letrec ((,bindings (lambda ,(map-1 car (car body)) ,@(cdr body))))
           (,bindings ,@(map-1 cadr (car body)))))))
 
+; (define let
+;   (environment (let bindings . body)
+;     (if (null? bindings)
+;         (error "The let syntax is defined as the form (let <bindings> <body>) \
+;                 but lacks <bindings> and <body>."))
+;     (if (null? body)
+;         (error "The let syntax is defined as the form (let <bindings> <body>) \
+;                 but lacks <body>."))
+;     ((lambda ())
+;      )
+;     )
+;   )
+
 (define let*
-  (environment (bindings . body)
+  (environment (let* bindings . body)
     (if (or (null? bindings)
             (null? (cdr bindings)))
        `(let (,(car bindings)) ,@body)
@@ -289,27 +395,8 @@ R"##(
 ;  4.2.1 Standard Conditional Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-(define else #true) ; auxiliary syntax
-
-; (define else begin)
-; (define then begin)
-
-; TODO =>
-
-(define cond ; This is incorrect definition
-  (environment clauses
-    (if (null? clauses) undefined
-        (if (eq? (caar clauses) 'else)
-           `(begin ,@(cdar clauses))
-            (if (null? (cdar clauses))
-               `(let ((test ,(caar clauses)))
-                  (if test test (cond ,@(cdr clauses))))
-               `(if ,(caar clauses)
-                    (begin ,@(cdar clauses))
-                    (cond ,@(cdr clauses))))))))
-
 (define case ; This is incorrect definition
-  (environment (key . clauses)
+  (environment (case key . clauses)
     (if (null? clauses) 'undefined
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
@@ -318,19 +405,24 @@ R"##(
                 (case ,key ,@(cdr clauses)))))))
 
 (define when
-  (environment (test . xs)
+  (environment (when test . xs)
    `(if ,test (begin ,@xs))))
 
 (define unless
-  (environment (test . xs)
+  (environment (unless test . xs)
    `(if (not ,test) (begin ,@xs))))
 
 ; ------------------------------------------------------------------------------
 ;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-; TODO delay
-; TODO delay-force
+(define delay-force
+  (environment (delay-force expression)
+   `(,promise #false (,lambda () ,expression))))
+
+(define delay
+  (environment (delay expression)
+   `(,delay-force (,promise #true expression))))
 
 ; TODO promise?
 ; TODO make-promise?
@@ -669,32 +761,6 @@ R"##(
                        (rec x lag)))
                 (null? x)))
           (null? x)))))
-
-(define caaar (lambda (x) (car (car (car x)))))
-(define caadr (lambda (x) (car (car (cdr x)))))
-(define cadar (lambda (x) (car (cdr (car x)))))
-(define caddr (lambda (x) (car (cdr (cdr x)))))
-(define cdaar (lambda (x) (cdr (car (car x)))))
-(define cdadr (lambda (x) (cdr (car (cdr x)))))
-(define cddar (lambda (x) (cdr (cdr (car x)))))
-(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
-
-(define caaaar (lambda (x) (car (car (car (car x))))))
-(define caaadr (lambda (x) (car (car (car (cdr x))))))
-(define caadar (lambda (x) (car (car (cdr (car x))))))
-(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
-(define cadaar (lambda (x) (car (cdr (car (car x))))))
-(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
-(define caddar (lambda (x) (car (cdr (cdr (car x))))))
-(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
-(define cdaaar (lambda (x) (cdr (car (car (car x))))))
-(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
-(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
-(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
-(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
-(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
-(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
-(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
 
 (define make-list
   (lambda (k . x)
@@ -1402,11 +1468,20 @@ R"##(
 ; ------------------------------------------------------------------------------
 
 (define swap!
-  (environment (x y)
+  (environment (swap! x y)
     (let ((temporary (string->symbol)))
      `(let ((,temporary ,x))
         (set! ,x ,y)
         (set! ,y ,temporary)))))
+
+; (define-syntax swap!
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (let ((a (car expression))
+;             (b (cadr expression)))
+;        `(,(rename 'let) ((,(rename 'value) ,a))
+;           (,(rename 'set!) ,a ,b)
+;           (,(rename 'set!) ,b ,(rename 'value)))))))
 
 )##"
 

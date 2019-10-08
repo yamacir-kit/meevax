@@ -11,7 +11,7 @@
     <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Build Status"/>
   </a>
 
-  *HEAD Version 0.2.33*
+  *HEAD Version 0.2.45*
 </div>
 
 <br/>
@@ -42,6 +42,10 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 - C++ RTTI based dynamic typing
 - C++ standard smart pointer based **reference counting GC**
 - Simple SECD machine based execution
+
+### Supported SRFI
+
+- SRFI 62: S-expression comments
 
 <br/>
 

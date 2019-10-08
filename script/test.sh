@@ -20,7 +20,7 @@ fi
 # sudo perf report
 
 # perf stat -- $repository/build/bin/meevax --verbose-reader < $repository/test/meta-circular-evaluator.meevax
-perf stat -- $repository/build/bin/meevax --verbose-reader --verbose-environment < $repository/test/test.scm
+perf stat -- $repository/build/bin/meevax --verbose < $repository/test/test.scm
 
 # T='std::shared_ptr<meevax::kernel::pair>'
 #

@@ -26,7 +26,8 @@ namespace meevax::kernel
      * closes the global environment when it constructed (this feature is known
      * as syntactic-closure).
      */
-    : public closure
+    // : public closure
+    : public virtual pair
 
     /*
      * Reader access symbol table of this environment (by member function
@@ -78,7 +79,8 @@ namespace meevax::kernel
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
       return kernel::machine<environment>::define(
-               intern(name), make<T>(name, std::forward<decltype(operands)>(operands)...)
+               intern(name),
+               make<T>(name, std::forward<decltype(operands)>(operands)...)
              );
     }
 
@@ -107,10 +109,20 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        throw kernel_error {"Not a symbol object was passed to rename"};
+        if (verbose == true_object or verbose_environment == true_object)
+        {
+          std::cerr << "; environment\t; " << object << std::endl;
+        }
+
+        return object;
       }
       else
       {
+        if (verbose == true_object or verbose_environment == true_object)
+        {
+          std::cerr << "; environment\t; rename " << object << std::endl;
+        }
+
         return intern(object.as<symbol>());
       }
     }
@@ -138,9 +150,14 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) current_expression() noexcept
+    decltype(auto) current_expression()
     {
-      return std::get<0>(*this);
+      return car(std::get<0>(*this));
+    }
+
+    decltype(auto) lexical_environment()
+    {
+      return cdr(std::get<0>(*this));
     }
 
     decltype(auto) interaction_environment() noexcept
@@ -150,10 +167,14 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      // std::cerr << "macroexpand " << operands << std::endl;
+      std::cerr << "; macroexpand\t; " << operands << std::endl;
+
+      // std::cerr << "DEBUG! operands = " << operands << std::endl;
+      // std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
+      // std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
 
       s = unit;
-      e = list(operands);
+      e = cons(operands, lexical_environment());
       c = current_expression();
       d = cons(
             unit,         // s
@@ -162,7 +183,9 @@ namespace meevax::kernel
             unit          // d
           );
 
-      return execute();
+      const auto result {execute()};
+      // std::cerr << "; \t\t; " << result << std::endl;
+      return result;
     }
 
     template <typename... Ts>
@@ -223,7 +246,7 @@ namespace meevax::kernel
 
       if (source.bindings.empty())
       {
-        source.expand(unit);
+        source.expand(list(library));
 
         if (source.bindings.empty())
         {
@@ -519,8 +542,13 @@ namespace meevax::kernel
 
     define<native>("evaluate", [&](auto&& operands)
     {
-      return evaluate(std::forward<decltype(operands)>(operands));
+      return evaluate(car(operands));
     });
+
+    // define<native>("rename", [&](auto&& operands)
+    // {
+    //   return rename(car(operands));
+    // });
 
     std::stringstream stream {
       #include <meevax/library/r7rs.xss>

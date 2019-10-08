@@ -43,6 +43,10 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 - C++ standard smart pointer based **reference counting GC**
 - Simple SECD machine based execution
 
+### Supported SRFI
+
+- SRFI 62: S-expression comments
+
 <br/>
 
 ## Usage

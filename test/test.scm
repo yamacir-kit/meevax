@@ -565,11 +565,11 @@
 
 (expect
   (a b c d e)
-  (a . (b . (c . (d . (e . ()))))))
+ '(a . (b . (c . (d . (e . ()))))))
 
 (expect
   (a b c . d)
-  (a . (b . (c . d))))
+ '(a . (b . (c . d))))
 
 
 (expect (3 3)
