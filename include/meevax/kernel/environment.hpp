@@ -15,9 +15,15 @@
 
 namespace meevax::kernel
 {
-  // TODO Rename to default_environment
-  template <int Version>
-  static constexpr std::integral_constant<int, Version> standard_environment {};
+  /****************************************************************************
+  * Standard Environment Layers
+  *
+  *   Layer 0 - Pure Syntax
+  *   Layer 1 - Derived Expressions and Standard Procedures
+  *
+  ****************************************************************************/
+  template <int Layer>
+  static constexpr std::integral_constant<int, Layer> layer {};
 
   class environment
     /*
@@ -60,13 +66,13 @@ namespace meevax::kernel
     environment() = default;
 
     // for bootstrap scheme-report-environment
-    template <int Version>
-    environment(std::integral_constant<int, Version>);
+    template <int Layer>
+    environment(std::integral_constant<int, Layer>);
 
     // for library constructor
     template <typename... Ts>
     constexpr environment(Ts&&... operands)
-      : pair {std::forward<decltype(operands)>(operands)...} // virtual base of closure
+      : pair {std::forward<decltype(operands)>(operands)...}
     {}
 
   public: // Interfaces
@@ -544,12 +550,12 @@ namespace meevax::kernel
     {
       return evaluate(car(operands));
     });
+  } // environment class default constructor
 
-    // define<native>("rename", [&](auto&& operands)
-    // {
-    //   return rename(car(operands));
-    // });
-
+  template <>
+  environment::environment(std::integral_constant<int, 1>)
+    : environment::environment {layer<0>}
+  {
     std::stringstream stream {
       #include <meevax/library/r7rs.xss>
     };
@@ -560,7 +566,7 @@ namespace meevax::kernel
     {
       // if (verbose == true_object or verbose_environment == true_object)
       // {
-        std::cerr << "; standard\t; " << loaded << " expression loaded";
+        std::cerr << "; layer 1\t; " << loaded << " expression loaded";
       // }
 
       evaluate(e);
@@ -576,7 +582,7 @@ namespace meevax::kernel
     // {
       std::cerr << std::endl;
     // }
-  } // environment class default constructor
+  }
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
   {

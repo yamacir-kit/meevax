@@ -2,7 +2,7 @@
 
 int main(const int argc, char const* const* const argv) try
 {
-  meevax::kernel::environment program {meevax::kernel::standard_environment<0>};
+  meevax::kernel::environment program {meevax::kernel::layer<1>};
 
   program.configure(argc, argv);
 
