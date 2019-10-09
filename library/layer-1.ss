@@ -379,17 +379,25 @@
     (if (pair? bindings)
        `(unnamed-let ,bindings ,@body)
        `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
-          (,bindings ,@(map cadr (car body))))
-      )
-    )
-  )
+          (,bindings ,@(map cadr (car body)))))))
 
-(define let*
-  (environment (let* bindings . body)
+(define-syntax let*
+  (macro-transformer (let* bindings . body)
+
+    (if (null? bindings)
+        (error "The let* syntax is defined as the form (let* <bindings> <body>) \
+                but lacks <bindings> and <body>."))
+
+    (if (null? body)
+        (error "The let* syntax is defined as the form (let* <bindings> <body>) \
+                but lacks <body>."))
+
     (if (or (null? bindings)
             (null? (cdr bindings)))
-       `(let (,(car bindings)) ,@body)
-       `(let (,(car bindings)) (let* ,(cdr bindings) ,@body)))))
+       `(,let (,(car bindings)) ,@body)
+       `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body)))
+    )
+  )
 
 ; TODO let-values
 ; TODO let*-values
@@ -750,20 +758,6 @@
 ; ------------------------------------------------------------------------------
 ;  6.4 Standard Pairs and Lists Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
-
-(define list? ;                                                         (srfi 1)
-  (lambda (x)
-    (let rec ((x x)
-              (lag x))
-      (if (pair? x)
-          (let ((x (cdr x)))
-            (if (pair? x)
-                (let ((x (cdr x))
-                      (lag (cdr lag)))
-                  (and (not (eq? x lag))
-                       (rec x lag)))
-                (null? x)))
-          (null? x)))))
 
 (define make-list
   (lambda (k . x)
