@@ -570,10 +570,7 @@ namespace meevax::kernel
     };
     std::cerr << layer_1 << std::endl;
 
-    std::stringstream stream {
-      // #include <meevax/library/r7rs.xss>
-      layer_1
-    };
+    std::stringstream stream {layer_1};
 
     std::size_t loaded {0};
 
