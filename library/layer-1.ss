@@ -154,7 +154,7 @@
 (define-syntax conditional
   (macro-transformer (conditional . clauses)
     (if (null? clauses)
-        (if #false #false #;unspecified)
+        (unspecified)
         ((lambda (clause)
            (if (eq? else (car clause))
                (if (pair? (cdr clauses))
@@ -204,44 +204,45 @@
 (define-syntax unquote          identity)
 (define-syntax unquote-splicing identity)
 
-(define quasiquote-expand
-  (lambda (e depth)
-    (if (not (pair? e))
-        (list 'quote e)
-        (if (eq? (car e) 'quasiquote)
-            (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
-            (if (eq? (car e) 'unquote)
-                (if (< 0 depth)
-                    (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
-                    (if (and (not (null? (cdr e))) (null? (cddr e)))
-                        (cadr e)
-                        (error "illegal unquote")))
-                (if (eq? (car e) 'unquote-splicing)
-                    (if (< 0 depth)
-                        (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
-                        (error "illegal unquote-splicing"))
-                    (list 'append (quasiquote-expand-list (car e) depth)
-                                  (quasiquote-expand      (cdr e) depth))))))))
-
-(define quasiquote-expand-list
-  (lambda (e depth)
-    (if (not (pair? e))
-        (list 'quote (list e))
-        (if (eq? (car e) 'quasiquote)
-            (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
-            (if (eq? (car e) 'unquote)
-                (if (< 0 depth)
-                    (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
-                    (cons 'list (cdr e)))
-                (if (eq? (car e) 'unquote-splicing)
-                    (if (< 0 depth)
-                        (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
-                        (cons 'append (cdr e)))
-                    (list 'list (list 'append (quasiquote-expand-list (car e) depth)
-                                              (quasiquote-expand      (cdr e) depth)))))))))
-
 (define-syntax quasiquote
   (macro-transformer (quasiquote x)
+
+    (define quasiquote-expand
+      (lambda (e depth)
+        (if (not (pair? e))
+            (list 'quote e)
+            (if (eq? (car e) 'quasiquote)
+                (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+                (if (eq? (car e) 'unquote)
+                    (if (< 0 depth)
+                        (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+                        (if (and (not (null? (cdr e))) (null? (cddr e)))
+                            (cadr e)
+                            (error "illegal unquote")))
+                    (if (eq? (car e) 'unquote-splicing)
+                        (if (< 0 depth)
+                            (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+                            (error "illegal unquote-splicing"))
+                        (list 'append (quasiquote-expand-list (car e) depth)
+                                      (quasiquote-expand      (cdr e) depth))))))))
+
+    (define quasiquote-expand-list
+      (lambda (e depth)
+        (if (not (pair? e))
+            (list 'quote (list e))
+            (if (eq? (car e) 'quasiquote)
+                (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
+                (if (eq? (car e) 'unquote)
+                    (if (< 0 depth)
+                        (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
+                        (cons 'list (cdr e)))
+                    (if (eq? (car e) 'unquote-splicing)
+                        (if (< 0 depth)
+                            (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
+                            (cons 'append (cdr e)))
+                        (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+                                                  (quasiquote-expand      (cdr e) depth)))))))))
+
     (quasiquote-expand x 0)))
 
 ; ------------------------------------------------------------------------------
@@ -349,16 +350,14 @@
                     x xs)))))
 
 ; ------------------------------------------------------------------------------
-;  4.2.2 Standard Binding Constructors Library
+;  4.2.2 Binding constructs
 ; ------------------------------------------------------------------------------
 
-; (define letrec
-;   (environment (letrec . expression)
-;     ((lambda (bindings)
-;       `((,lambda () ,@bindings ,@(cdr expression))))
-;      (map (lambda (x)
-;               (cons define x))
-;             (car expression)))))
+(define-syntax letrec ; transform to internal-definitions
+  (macro-transformer (letrec bindings . body)
+    ((lambda (definitions)
+      `((,lambda () ,@definitions ,@body)))
+     (map (lambda (x) (cons 'define x)) bindings))))
 
 (define unnamed-let
   (environment (unnamed-let bindings . body)
@@ -374,7 +373,7 @@
         ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
         ,@body))))
 
-(define letrec letrec*) ; this is incorrect definition
+; (define letrec letrec*) ; this is incorrect definition
 
 (define let
   (environment (let bindings . body)

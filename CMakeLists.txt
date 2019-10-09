@@ -174,10 +174,10 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
 
   get_filename_component(FILENAME ${EACH} NAME)
   get_filename_component(FILEPATH ${EACH} PATH)
-  message(STATUS "  NAME := ${FILENAME}")
-  message(STATUS "  PATH := ${FILEPATH}")
+  # message(STATUS "  NAME := ${FILENAME}")
+  # message(STATUS "  PATH := ${FILEPATH}")
 
-  message(STATUS "  OUTPUT := ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o")
+  # message(STATUS "  OUTPUT := ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o")
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
     WORKING_DIRECTORY ${FILEPATH}
