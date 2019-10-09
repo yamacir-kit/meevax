@@ -13,6 +13,12 @@
 #include <meevax/kernel/file.hpp>
 #include <meevax/posix/linker.hpp>
 
+/******************************************************************************
+* Embedded Source Codes
+*
+*   library/layer-1.ss
+*
+******************************************************************************/
 extern char _binary_layer_1_ss_start;
 extern char _binary_layer_1_ss_end;
 
@@ -562,10 +568,11 @@ namespace meevax::kernel
     static const std::string layer_1 {
       &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
     };
-    std::cerr << layer << std::endl;
+    std::cerr << layer_1 << std::endl;
 
     std::stringstream stream {
-      #include <meevax/library/r7rs.xss>
+      // #include <meevax/library/r7rs.xss>
+      layer_1
     };
 
     std::size_t loaded {0};
