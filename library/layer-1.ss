@@ -52,7 +52,7 @@
   (native numerical.so "division"))
 
 ; ------------------------------------------------------------------------------
-;  6.3 Standard Boolean Library (Part 1 of 2)
+;  6.3 Booleans (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
 (define not
@@ -60,7 +60,7 @@
     (if x #false #true)))
 
 ; ------------------------------------------------------------------------------
-;  6.4 Standard Pairs and Lists Library (Part 1 of 2)
+;  6.4 Pairs and Lists (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
 (define pair.so
@@ -198,7 +198,7 @@
                     (append (list or) (cdr tests))))))))
 
 ; --------------------------------------------------------------------------
-;  4.2.8 Standard Quasiquotation Library
+;  4.2.8 Quasiquotations
 ; --------------------------------------------------------------------------
 
 (define-syntax unquote          identity)
@@ -403,17 +403,163 @@
 ; TODO let*-values
 
 ; ------------------------------------------------------------------------------
-;  4.2.1 Standard Conditional Library (Part 2 of 2)
+;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-(define case ; This is incorrect definition
-  (environment (case key . clauses)
-    (if (null? clauses) (unspecified)
-        (if (eq? (caar clauses) 'else)
-           `(begin ,@(cdar clauses))
-           `(if (memv ,key ',(caar clauses))
-                (begin ,@(cdar clauses))
-                (case ,key ,@(cdr clauses)))))))
+(define make-list
+  (lambda (k . x)
+    (let ((default (if (pair? x) (car x) #;unspecified)))
+      (let rec ((k k)
+                (result '()))
+        (if (<= k 0) result
+            (rec (- k 1)
+                 (cons default result)))))))
+
+; (define length ; This cannot detect circular-list
+;   (lambda (x)
+;     (let loop ((x x)
+;                (result 0))
+;       (if (pair? x)
+;           (loop (cdr x) (+ result 1))
+;           result))))
+
+(define length
+  (lambda (x)
+    (let rec ((x x)
+              (lag x)
+              (result 0))
+      (if (pair? x)
+          (let ((x (cdr x))
+                (result (+ result 1)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (lag (cdr lag))
+                      (result (+ result 1)))
+                  (and (not (eq? x lag))
+                       (rec x lag result)))
+                result))
+          result))))
+
+(define list-tail
+  (lambda (x k)
+    (if (zero? k) x
+        (list-tail (cdr x) (- k 1)))))
+
+(define list-ref
+  (lambda (x k)
+    (car (list-tail x k))))
+
+; TODO list-set!
+
+(define member
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let rec ((x x))
+        (and (pair? x)
+             (if (compare o (car x)) x
+                 (rec (cdr x))))))))
+
+(define memq
+  (lambda (o x)
+    (member o x eq?)))
+
+(define memv
+  (lambda (o x)
+    (member o x eqv?)))
+
+(define assoc
+  (lambda (o x . c)
+    (let ((compare (if (pair? c) (car c) equal?)))
+      (let assoc ((x x))
+        (if (null? x) #false
+            (if (compare o (caar x))
+                (car x)
+                (assoc (cdr x))))))))
+
+(define assq
+  (lambda (o x)
+    (assoc o x eq?)))
+
+(define assv
+  (lambda (o x)
+    (assoc o x eqv?)))
+
+(define list-copy
+  (lambda (x)
+    (let rec ((x x)
+              (result '()))
+      (if (pair? x)
+          (rec (cdr x)
+               (cons (car x) result))
+          (append (reverse result) x)))))
+
+; (define shallow-copy
+;   (lambda (x)
+;     (if (not (pair? x)) x
+;         (cons (car x)
+;               (cdr x)))))
+;
+; (define deep-copy
+;   (lambda (x)
+;     (if (not (pair? x)) x
+;         (cons (deep-copy (car x))
+;               (deep-copy (cdr x))))))
+
+; ------------------------------------------------------------------------------
+;  4.2.1 Conditionals (Part 2 of 2)
+; ------------------------------------------------------------------------------
+
+(define-syntax case
+  (macro-transformer (case key . clauses)
+
+    (define body
+      (lambda (expressions)
+        (conditional
+          ((null? expressions) result)
+          ((eq? => (car expressions))
+          `(,(cadr expressions) ,result))
+          (else
+           `(,begin ,@expressions)
+           )
+          )
+        )
+      )
+
+    (define each-clause
+      (lambda (clauses)
+        (conditional
+          ((null? clauses) #false)
+          ((eq? else (caar clauses))
+           (body (cdar clauses)))
+          ((and (pair? (caar clauses))
+                (null? (cdaar clauses)))
+          `(,if (,eqv? ,result (,quote ,(caaar clauses)))
+               ,(body (cdar clauses))
+               ,(each-clause (cdr clauses))))
+          (else
+           `(,if (,memv ,result (,quote ,(caar clauses)))
+                ,(body (cdar clauses))
+                ,(each-clause (cdr clauses))
+              )
+           )
+          )
+        )
+      )
+
+   `(,let ((,result ,key))
+     ,(each-clause clauses)
+      )
+    )
+  )
+
+; (define case ; This is incorrect definition
+;   (environment (case key . clauses)
+;     (if (null? clauses) (unspecified)
+;         (if (eq? (caar clauses) 'else)
+;            `(begin ,@(cdar clauses))
+;            `(if (memv ,key ',(caar clauses))
+;                 (begin ,@(cdar clauses))
+;                 (case ,key ,@(cdr clauses)))))))
 
 (define when
   (environment (when test . xs)
@@ -756,110 +902,7 @@
              #true))))
 
 ; ------------------------------------------------------------------------------
-;  6.4 Standard Pairs and Lists Library (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define make-list
-  (lambda (k . x)
-    (let ((default (if (pair? x) (car x) #;unspecified)))
-      (let rec ((k k)
-                (result '()))
-        (if (<= k 0) result
-            (rec (- k 1)
-                 (cons default result)))))))
-
-; (define length ; This cannot detect circular-list
-;   (lambda (x)
-;     (let loop ((x x)
-;                (result 0))
-;       (if (pair? x)
-;           (loop (cdr x) (+ result 1))
-;           result))))
-
-(define length
-  (lambda (x)
-    (let rec ((x x)
-              (lag x)
-              (result 0))
-      (if (pair? x)
-          (let ((x (cdr x))
-                (result (+ result 1)))
-            (if (pair? x)
-                (let ((x (cdr x))
-                      (lag (cdr lag))
-                      (result (+ result 1)))
-                  (and (not (eq? x lag))
-                       (rec x lag result)))
-                result))
-          result))))
-
-(define list-tail
-  (lambda (x k)
-    (if (zero? k) x
-        (list-tail (cdr x) (- k 1)))))
-
-(define list-ref
-  (lambda (x k)
-    (car (list-tail x k))))
-
-; TODO list-set!
-
-(define member
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let rec ((x x))
-        (and (pair? x)
-             (if (compare o (car x)) x
-                 (rec (cdr x))))))))
-
-(define memq
-  (lambda (o x)
-    (member o x eq?)))
-
-(define memv
-  (lambda (o x)
-    (member o x eqv?)))
-
-(define assoc
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let assoc ((x x))
-        (if (null? x) #false
-            (if (compare o (caar x))
-                (car x)
-                (assoc (cdr x))))))))
-
-(define assq
-  (lambda (o x)
-    (assoc o x eq?)))
-
-(define assv
-  (lambda (o x)
-    (assoc o x eqv?)))
-
-(define list-copy
-  (lambda (x)
-    (let rec ((x x)
-              (result '()))
-      (if (pair? x)
-          (rec (cdr x)
-               (cons (car x) result))
-          (append (reverse result) x)))))
-
-(define shallow-copy
-  (lambda (x)
-    (if (not (pair? x)) x
-        (cons (car x)
-              (cdr x)))))
-
-(define deep-copy
-  (lambda (x)
-    (if (not (pair? x)) x
-        (cons (deep-copy (car x))
-              (deep-copy (cdr x))))))
-
-; ------------------------------------------------------------------------------
-;  6.5 Standard Symbols Library
+;  6.5 Symbols
 ; ------------------------------------------------------------------------------
 
 (define symbol.so
