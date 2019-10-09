@@ -1,3 +1,10 @@
+(define define-syntax define)
+(define macro-transformer environment)
+
+(define unspecified
+  (lambda ()
+    (if #false #false #;unspecified)))
+
 ; ------------------------------------------------------------------------------
 ;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
@@ -138,53 +145,14 @@
          (reverse x)))))
 
 ; --------------------------------------------------------------------------
-;  Explicit Renaming Macro Transformer
-; --------------------------------------------------------------------------
-
-(define define-syntax define)
-
-; (define explicit-renaming-macro-transformer
-;   (lambda (transform)
-;     (environment expression
-;       (transform expression #;??? eq?)
-;       )
-;     )
-;   )
-
-; (define set-1!
-;   (environment (set-1! variable)
-;     (list set! variable 1)))
-;
-; (define x 42)
-; (if (eqv? x 42) 'ok (car '()))
-;
-; (set-1! x)
-; (if (eqv? x 1) 'ok (car '()))
-;
-; (set! x 42)
-; (if (eqv? x 42) 'ok (car '()))
-;
-; (define escape-set! set!)
-; (define set! 'this-is-not-applicable)
-;
-; (set-1! x)
-; (if (eqv? x 1) 'ok (car '()))
-;
-; (define set! escape-set!)
-
-; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-(define then begin)
-(define else begin)
+(define-syntax then begin)
+(define-syntax else begin)
 
-(define undefined
-  (lambda ()
-    (if #false #false #;undefined)))
-
-(define conditional
-  (environment (conditional . clauses)
+(define-syntax conditional
+  (macro-transformer (conditional . clauses)
     (if (null? clauses)
         (if #false #false #;unspecified)
         ((lambda (clause)
@@ -205,10 +173,10 @@
                          (cons conditional (cdr clauses))))))
          (car clauses)))))
 
-(define cond conditional)
+(define-syntax cond conditional)
 
-(define and
-  (environment (and . tests)
+(define-syntax and
+  (macro-transformer (and . tests)
     (conditional
       ((null? tests) #true)
       ((null? (cdr tests)) (car tests))
@@ -217,8 +185,8 @@
                  (cons and (cdr tests))
                  #false)))))
 
-(define or
-  (environment (or . tests)
+(define-syntax or
+  (macro-transformer (or . tests)
     (conditional
       ((null? tests) #false)
       ((null? (cdr tests)) (car tests))
@@ -233,8 +201,8 @@
 ;  4.2.8 Standard Quasiquotation Library
 ; --------------------------------------------------------------------------
 
-(define unquote          identity)
-(define unquote-splicing identity)
+(define-syntax unquote          identity)
+(define-syntax unquote-splicing identity)
 
 (define quasiquote-expand
   (lambda (e depth)
@@ -272,20 +240,113 @@
                     (list 'list (list 'append (quasiquote-expand-list (car e) depth)
                                               (quasiquote-expand      (cdr e) depth)))))))))
 
-(define quasiquote
-  (environment (quasiquote x)
+(define-syntax quasiquote
+  (macro-transformer (quasiquote x)
     (quasiquote-expand x 0)))
 
 ; ------------------------------------------------------------------------------
-;  6.10 Standard Control Features Library (Part 1 of 2)
+;  6.10 Control features (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define map-1
-  (lambda (callee x)
-    (if (null? x)
-       '()
-        (cons       (callee (car x))
-              (map-1 callee (cdr x))))))
+(define apply
+  (lambda (procedure x . xs)
+
+    (define apply-1
+      (lambda (procedure xs)
+        (procedure . xs)))
+
+    (if (null? xs)
+        (apply-1 procedure x)
+        ((lambda (rxs)
+           (apply-1 procedure
+                    (append-2 (reverse (cdr rxs))
+                    (car rxs))))
+         (reverse (cons x xs))))))
+
+(define map
+  (lambda (procedure x . xs)
+
+    (define map-1
+      (lambda (procedure x result)
+        (if (pair? x)
+            (map-1 procedure
+                   (cdr x)
+                   (cons (procedure (car x)) result))
+            (reverse result))))
+
+    (define map-n
+      (lambda (procedure xs result)
+        (if (every pair? xs)
+            (map-n procedure
+                   (map-1 cdr xs '())
+                   (cons (apply procedure (map-1 car xs '())) result))
+            (reverse result))))
+
+    (if (null? xs)
+        (map-1 procedure x '())
+        (map-n procedure (cons x xs) '()))))
+
+(define for-each
+  (lambda (procedure x . xs)
+
+    (define for-each-1
+      (lambda (procedure x)
+        (if (pair? x)
+            (begin (procedure (car x))
+                   (for-each-1 procedure (cdr x))))))
+
+    (if (null? xs)
+        (for-each-1 procedure x)
+        (begin (apply map procedure x xs)
+               (unspecified)))))
+
+(define any
+  (lambda (predicate x . xs)
+
+    (define any-1
+      (lambda (predicate x)
+        (if (pair? (cdr x))
+            ((lambda (result)
+               (if result
+                   result
+                   (any-1 predicate (cdr x))))
+             (predicate (car x))))))
+
+    (define any-n
+      (lambda (predicate xs)
+        (if (every pair? xs)
+            ((lambda (result)
+               (if result
+                   result
+                   (any-n predicate (map cdr xs))))
+             (apply predicate (map car xs)))
+            #false)))
+
+    (if (null? xs)
+        (if (pair? x)
+            (any-1 predicate x)
+            #false)
+        (any-n predicate (cons x xs)))))
+
+(define every
+  (lambda (predicate x . xs)
+
+    (define every-1
+      (lambda (predicate x)
+        (if (null? (cdr x))
+            (predicate (car x))
+            (if (predicate (car x))
+                (every-1 predicate (cdr x))
+                #false))))
+
+    (if (null? xs)
+        (if (pair? x)
+            (every-1 predicate x)
+            #true)
+        (not (apply any
+                    (lambda xs
+                      (not (apply predicate xs)))
+                    x xs)))))
 
 ; ------------------------------------------------------------------------------
 ;  4.2.2 Standard Binding Constructors Library
@@ -295,22 +356,22 @@
 ;   (environment (letrec . expression)
 ;     ((lambda (bindings)
 ;       `((,lambda () ,@bindings ,@(cdr expression))))
-;      (map-1 (lambda (x)
+;      (map (lambda (x)
 ;               (cons define x))
 ;             (car expression)))))
 
 (define unnamed-let
   (environment (unnamed-let bindings . body)
-   `((lambda ,(map-1 car bindings) ,@body) ,@(map-1 cadr bindings))))
+   `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
 
 (define undefined
   (if #false #false))
 
 (define letrec*
   (environment (letrec* bindings . body)
-    (unnamed-let ((identifiers (map-1 car bindings)))
-     `(unnamed-let ,(map-1 (lambda (e) `(,e ,undefined)) identifiers)
-        ,@(map-1 (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
+    (unnamed-let ((identifiers (map car bindings)))
+     `(unnamed-let ,(map (lambda (e) `(,e ,undefined)) identifiers)
+        ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
         ,@body))))
 
 (define letrec letrec*) ; this is incorrect definition
@@ -319,8 +380,8 @@
   (environment (let bindings . body)
     (if (pair? bindings)
        `(unnamed-let ,bindings ,@body)
-       `(letrec ((,bindings (lambda ,(map-1 car (car body)) ,@(cdr body))))
-          (,bindings ,@(map-1 cadr (car body)))))))
+       `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
+          (,bindings ,@(map cadr (car body)))))))
 
 ; (define let
 ;   (environment (let bindings . body)
@@ -1113,7 +1174,7 @@
 ; ------------------------------------------------------------------------------
 
 ; ------------------------------------------------------------------------------
-;  6.10 Standard Control Features Library (Part 2 of 2)
+;  6.10 Control features (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
 (define procedure?
@@ -1122,91 +1183,11 @@
         (closure? x)
         (continuation? x))))
 
-(define apply
-  (lambda (proc x . xs)
-    (define apply-1
-      (lambda (proc xs)
-        (proc . xs)))
-    (if (null? xs)
-        (apply-1 proc x)
-        (let ((reversed (reverse (cons x xs))))
-          (apply-1 proc (append-2 (reverse (cdr reversed)) (car reversed)))))))
-
-(define map
-  (lambda (proc x . xs)
-    (define map-1
-      (lambda (proc x result)
-        (if (pair? x)
-            (map-1 proc
-                   (cdr x)
-                   (cons (proc (car x)) result))
-            (reverse result))))
-    (define map-n
-      (lambda (proc xs result)
-        (if (every pair? xs)
-            (map-n proc
-                   (map-1 cdr xs '())
-                   (cons (apply proc (map-1 car xs '())) result))
-            (reverse result))))
-    (if (null? xs)
-        (map-1 proc x '())
-        (map-n proc (cons x xs) '()))))
-
 ; TODO string-map
 ; TODO vector-map
 
-(define for-each
-  (lambda (proc x . xs)
-    (define for-each-1
-      (lambda (proc x)
-        (if (pair? x)
-            (begin (proc (car x))
-                   (for-each-1 proc (cdr x))))))
-    (if (null? xs)
-        (for-each-1 proc x)
-        (begin (apply map proc x xs) undefined))))
-
 ; TODO string-for-each
 ; TODO vector-for-each
-
-(define any
-  (lambda (pred x . xs)
-    (define any-1
-      (lambda (pred x)
-        (if (pair? (cdr x))
-            (let ((result (pred (car x))))
-              (if result
-                  result
-                  (any-1 pred (cdr x))))
-            (pred (car x)))))
-    (define any-n
-      (lambda (pred xs)
-        (if (every pair? xs)
-            (let ((result (apply pred (map car xs))))
-              (if result
-                  result
-                  (any-n pred (map cdr xs))))
-            #false)))
-    (if (null? xs)
-        (if (pair? x)
-            (any-1 pred x)
-            #false)
-        (any-n pred (cons x xs)))))
-
-(define every
-  (lambda (pred x . xs)
-    (define every-1
-      (lambda (pred x)
-        (if (null? (cdr x))
-            (pred (car x))
-            (if (pred (car x))
-                (every-1 pred (cdr x))
-                #false))))
-    (if (null? xs)
-        (if (pair? x)
-            (every-1 pred x)
-            #true)
-        (not (apply any (lambda xs (not (apply pred xs))) x xs)))))
 
 (define call/cc call-with-current-continuation)
 
