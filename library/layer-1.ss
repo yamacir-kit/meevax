@@ -353,47 +353,36 @@
 ;  4.2.2 Binding constructs
 ; ------------------------------------------------------------------------------
 
-(define-syntax letrec ; transform to internal-definitions
-  (macro-transformer (letrec bindings . body)
+(define-syntax letrec* ; transform to internal-definitions
+  (macro-transformer (letrec* bindings . body)
     ((lambda (definitions)
       `((,lambda () ,@definitions ,@body)))
      (map (lambda (x) (cons 'define x)) bindings))))
 
-(define unnamed-let
-  (environment (unnamed-let bindings . body)
-   `((lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
+(define-syntax letrec letrec*)
 
-(define undefined
-  (if #false #false))
+(define-syntax unnamed-let
+  (macro-transformer (unnamed-let bindings . body)
+   `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
 
-(define letrec*
-  (environment (letrec* bindings . body)
-    (unnamed-let ((identifiers (map car bindings)))
-     `(unnamed-let ,(map (lambda (e) `(,e ,undefined)) identifiers)
-        ,@(map (lambda (e) `(set! ,(car e) ,(cadr e))) bindings)
-        ,@body))))
+(define-syntax let
+  (macro-transformer (let bindings . body)
 
-; (define letrec letrec*) ; this is incorrect definition
+    (if (null? bindings)
+        (error "The let syntax is defined as the form (let <bindings> <body>) \
+                but lacks <bindings> and <body>."))
 
-(define let
-  (environment (let bindings . body)
+    (if (null? body)
+        (error "The let syntax is defined as the form (let <bindings> <body>) \
+                but lacks <body>."))
+
     (if (pair? bindings)
        `(unnamed-let ,bindings ,@body)
-       `(letrec ((,bindings (lambda ,(map car (car body)) ,@(cdr body))))
-          (,bindings ,@(map cadr (car body)))))))
-
-; (define let
-;   (environment (let bindings . body)
-;     (if (null? bindings)
-;         (error "The let syntax is defined as the form (let <bindings> <body>) \
-;                 but lacks <bindings> and <body>."))
-;     (if (null? body)
-;         (error "The let syntax is defined as the form (let <bindings> <body>) \
-;                 but lacks <body>."))
-;     ((lambda ())
-;      )
-;     )
-;   )
+       `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
+          (,bindings ,@(map cadr (car body))))
+      )
+    )
+  )
 
 (define let*
   (environment (let* bindings . body)
@@ -411,7 +400,7 @@
 
 (define case ; This is incorrect definition
   (environment (case key . clauses)
-    (if (null? clauses) 'undefined
+    (if (null? clauses) (unspecified)
         (if (eq? (caar clauses) 'else)
            `(begin ,@(cdar clauses))
            `(if (memv ,key ',(caar clauses))
@@ -778,7 +767,7 @@
 
 (define make-list
   (lambda (k . x)
-    (let ((default (if (pair? x) (car x) #;undefined)))
+    (let ((default (if (pair? x) (car x) #;unspecified)))
       (let rec ((k k)
                 (result '()))
         (if (<= k 0) result

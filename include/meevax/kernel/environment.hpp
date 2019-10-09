@@ -182,7 +182,7 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       // std::cerr << "DEBUG! operands = " << operands << std::endl;
       // std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
@@ -568,7 +568,7 @@ namespace meevax::kernel
     static const std::string layer_1 {
       &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
     };
-    std::cerr << layer_1 << std::endl;
+    // std::cerr << layer_1 << std::endl;
 
     std::stringstream stream {layer_1};
 
