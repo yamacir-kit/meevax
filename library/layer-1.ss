@@ -6,7 +6,7 @@
     (if #false #false #;unspecified)))
 
 ; ------------------------------------------------------------------------------
-;  6.1 Standard Equivalence Predicates Library (Part 1 of 2)
+;  6.1 Equivalence predicates (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
 (define equivalence.so
@@ -19,7 +19,7 @@
   (native equivalence.so "value_equal"))
 
 ; ------------------------------------------------------------------------------
-;  6.2 Standard Numerical Library (Part 1 of 2)
+;  6.2 Numbers (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
 (define numerical.so
@@ -129,14 +129,13 @@
         (append-2 (reverse (cdr x))
                   (list (car x))))))
 
-(define append-aux
-  (lambda (x y)
-    (if (null? x) y
-        (append-aux (cdr x)
-                    (append-2 (car x) y)))))
-
 (define append
   (lambda x
+    (define append-aux
+      (lambda (x y)
+        (if (null? x) y
+            (append-aux (cdr x)
+                        (append-2 (car x) y)))))
     (if (null? x)
        '()
         ((lambda (reversed)
@@ -415,14 +414,6 @@
             (rec (- k 1)
                  (cons default result)))))))
 
-; (define length ; This cannot detect circular-list
-;   (lambda (x)
-;     (let loop ((x x)
-;                (result 0))
-;       (if (pair? x)
-;           (loop (cdr x) (+ result 1))
-;           result))))
-
 (define length
   (lambda (x)
     (let rec ((x x)
@@ -519,11 +510,7 @@
           ((eq? => (car expressions))
           `(,(cadr expressions) ,result))
           (else
-           `(,begin ,@expressions)
-           )
-          )
-        )
-      )
+           `(,begin ,@expressions)))))
 
     (define each-clause
       (lambda (clauses)
@@ -539,35 +526,49 @@
           (else
            `(,if (,memv ,result (,quote ,(caar clauses)))
                 ,(body (cdar clauses))
-                ,(each-clause (cdr clauses))
-              )
-           )
-          )
-        )
-      )
+                ,(each-clause (cdr clauses)))))))
 
    `(,let ((,result ,key))
-     ,(each-clause clauses)
-      )
-    )
-  )
+     ,(each-clause clauses))))
 
-; (define case ; This is incorrect definition
-;   (environment (case key . clauses)
-;     (if (null? clauses) (unspecified)
-;         (if (eq? (caar clauses) 'else)
-;            `(begin ,@(cdar clauses))
-;            `(if (memv ,key ',(caar clauses))
-;                 (begin ,@(cdar clauses))
-;                 (case ,key ,@(cdr clauses)))))))
+(define-syntax when
+  (macro-transformer (when test . body)
+   `(if ,test (begin ,@body))))
 
-(define when
-  (environment (when test . xs)
-   `(if ,test (begin ,@xs))))
+(define-syntax unless
+  (macro-transformer (unless test . body)
+   `(if (not ,test) (begin ,@body))))
 
-(define unless
-  (environment (unless test . xs)
-   `(if (not ,test) (begin ,@xs))))
+; (define-syntax conditional-expansion
+;   (macro-transformer (conditional-expansion . clauses)
+;     ; TODO
+;     )
+;   )
+
+
+; ------------------------------------------------------------------------------
+;  4.2.4 Iteration
+; ------------------------------------------------------------------------------
+
+(define-syntax iterate
+  (macro-transformer (iterate variables test . commands)
+    (let ((body
+           `(,begin ,@commands
+                    (,rec ,@(map (lambda (x)
+                                   (if (pair? (cddr x))
+                                       (caddr x)
+                                       (car x)))
+                                 variables)))))
+     `(,let ,rec ,(map (lambda (x)
+                         (list (car x)
+                               (cadr x)))
+                       variables)
+       ,(if (null? (cdr test))
+           `(,let ((,result ,(car test)))
+              (,if ,result ,result ,body))
+           `(,if ,(car test) (,begin ,@(cdr test)) ,body))))))
+
+(define-syntax do iterate)
 
 ; ------------------------------------------------------------------------------
 ;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)

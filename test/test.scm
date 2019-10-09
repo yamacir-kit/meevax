@@ -272,12 +272,11 @@
 ;     (vector-set! vec i i))
 ;   #(0 1 2 3 4))
 
-; (expect
-;   (let ((x '(1 3 5 7 9)))
-;     (do ((x x (cdr x))
-;          (sum 0 (+ sum (car x))))
-;         ((null? x) sum)))
-;   25)
+(expect 25
+  (let ((x '(1 3 5 7 9)))
+    (do ((x x (cdr x))
+         (sum 0 (+ sum (car x))))
+        ((null? x) sum))))
 
 ; ------------------------------------------------------------------------------
 ;   4.2.5 Delayed Evaluation
