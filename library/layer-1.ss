@@ -574,12 +574,12 @@
 ;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define delay-force
-  (environment (delay-force expression)
+(define-syntax delay-force
+  (macro-transformer (delay-force expression)
    `(,promise #false (,lambda () ,expression))))
 
-(define delay
-  (environment (delay expression)
+(define-syntax delay
+  (macro-transformer (delay expression)
    `(,delay-force (,promise #true expression))))
 
 ; TODO promise?
