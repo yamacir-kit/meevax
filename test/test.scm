@@ -480,8 +480,8 @@
 ;   (eqv? f g)); #unspecified
 
 (expect #false
-  (letrec ((f (lambda () (if (eqv? f g) ’f ’both)))
-           (g (lambda () (if (eqv? f g) ’g ’both))))
+  (letrec ((f (lambda () (if (eqv? f g) 'f 'both)))
+           (g (lambda () (if (eqv? f g) 'g 'both))))
     (eqv? f g)))
 
 ; (eqv? '(a) '(a)); #unspecified
@@ -612,7 +612,7 @@
   (reverse '(a b c)))
 
 (expect ((e (f)) d (b c) a)
-  (reverse ’(a (b c) d (e (f)))))
+  (reverse '(a (b c) d (e (f)))))
 
 
 (expect c

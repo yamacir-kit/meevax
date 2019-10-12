@@ -71,9 +71,6 @@ namespace meevax::kernel
     static inline std::unordered_map<std::string, posix::linker> linkers {};
 
   public: // Constructors
-    // for macro
-    environment() = default;
-
     // for bootstrap scheme-report-environment
     template <int Layer>
     environment(std::integral_constant<int, Layer>);
