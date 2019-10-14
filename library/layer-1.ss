@@ -1,6 +1,14 @@
 (define define-syntax define)
 (define macro-transformer environment)
 
+; (define rsc-macro-transformer
+;   (lambda (transform)
+;     (macro-transformer expression
+;       (transform expression))))
+
+(define identity
+  (lambda (x) x))
+
 (define unspecified
   (lambda ()
     (if #false #false #;unspecified)))
@@ -190,11 +198,20 @@
       ((null? tests) #false)
       ((null? (cdr tests)) (car tests))
       (else
-        (list (list lambda (list result thunk)
-                    (list if result result (list thunk)))
+        ; (list (list lambda (list result thunk)
+        ;             (list if result result (list thunk)))
+        ;       (car tests)
+        ;       (list lambda (list)
+        ;             (append (list or) (cdr tests))))
+        (list (list lambda (list result)
+                    (list if result
+                          result
+                          (cons or (cdr tests))
+                      )
+                    )
               (car tests)
-              (list lambda (list)
-                    (append (list or) (cdr tests))))))))
+          )
+        ))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.8 Quasiquotations
