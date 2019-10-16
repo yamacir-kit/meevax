@@ -18,6 +18,7 @@
 *
 *   library/layer-1.ss
 *
+* readelf -a layer-1.ss.o
 ******************************************************************************/
 extern char _binary_layer_1_ss_start;
 extern char _binary_layer_1_ss_end;
@@ -117,6 +118,8 @@ namespace meevax::kernel
       }
     }
 
+    std::size_t phase {0};
+
     const auto& rename(const object& object)
     {
       if (not object.is<symbol>())
@@ -130,12 +133,17 @@ namespace meevax::kernel
       }
       else
       {
+        const std::string name {
+          object.as<const std::string>() + "/" + std::to_string(phase)
+        };
+
         if (verbose == true_object or verbose_environment == true_object)
         {
-          std::cerr << "; environment\t; rename " << object << std::endl;
+          std::cerr << "; environment\t; rename " << object << " => " << name << std::endl;
         }
 
-        return intern(object.as<symbol>());
+        // return intern(object.as<symbol>());
+        return intern(name);
       }
     }
 
@@ -184,6 +192,7 @@ namespace meevax::kernel
       // std::cerr << "DEBUG! operands = " << operands << std::endl;
       // std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
       // std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
+      ++phase;
 
       s = unit;
       e = cons(operands, lexical_environment());
