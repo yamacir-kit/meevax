@@ -118,7 +118,7 @@ namespace meevax::kernel
       }
     }
 
-    std::size_t phase {0};
+    std::size_t time_stamp {0};
 
     const auto& rename(const object& object)
     {
@@ -134,7 +134,7 @@ namespace meevax::kernel
       else
       {
         const std::string name {
-          object.as<const std::string>() + "/" + std::to_string(phase)
+          object.as<const std::string>() + "/" + std::to_string(time_stamp)
         };
 
         if (verbose == true_object or verbose_environment == true_object)
@@ -192,7 +192,7 @@ namespace meevax::kernel
       // std::cerr << "DEBUG! operands = " << operands << std::endl;
       // std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
       // std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
-      ++phase;
+      ++time_stamp;
 
       s = unit;
       e = cons(operands, lexical_environment());
