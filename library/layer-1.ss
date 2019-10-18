@@ -448,6 +448,30 @@
                 result))
           result))))
 
+(define length*
+  (lambda (x)
+    (let ((length (length x)))
+      (conditional
+        ((positive? length) length)
+        ((= length -2) #false)
+        (else (let rec ((k 0)
+                        (x x))
+                (if (not (pair? x)) k
+                    (rec (+ 1 i) (cdr x)))))))))
+
+; (define length*
+;   (lambda (x)
+;     (if (not (pair? x)) 0
+;         (let rec ((succeed x)
+;                   (precede (cdr x))
+;                   (result 1))
+;           (conditional
+;             ((eq? succeed precede) #false)
+;             ((and (pair? precede)
+;                   (pair? (cdr precede)))
+;              (rec (cdr succeed) (cddr precede) (+ 2 result)))
+;             (else (if (pair? precede) (+ 1 result) result)))))))
+
 (define list-tail
   (lambda (x k)
     (if (zero? k) x
