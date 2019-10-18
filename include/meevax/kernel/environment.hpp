@@ -13,11 +13,27 @@
 #include <meevax/kernel/file.hpp>
 #include <meevax/posix/linker.hpp>
 
+/******************************************************************************
+* Embedded Source Codes
+*
+*   library/layer-1.ss
+*
+* readelf -a layer-1.ss.o
+******************************************************************************/
+extern char _binary_layer_1_ss_start;
+extern char _binary_layer_1_ss_end;
+
 namespace meevax::kernel
 {
-  // TODO Rename to default_environment
-  template <int Version>
-  static constexpr std::integral_constant<int, Version> standard_environment {};
+  /****************************************************************************
+  * Standard Environment Layers
+  *
+  *   Layer 0 - Pure Syntax
+  *   Layer 1 - Derived Expressions and Standard Procedures
+  *
+  ****************************************************************************/
+  template <int Layer>
+  static constexpr std::integral_constant<int, Layer> layer {};
 
   class environment
     /*
@@ -56,17 +72,14 @@ namespace meevax::kernel
     static inline std::unordered_map<std::string, posix::linker> linkers {};
 
   public: // Constructors
-    // for macro
-    environment() = default;
-
     // for bootstrap scheme-report-environment
-    template <int Version>
-    environment(std::integral_constant<int, Version>);
+    template <int Layer>
+    environment(std::integral_constant<int, Layer>);
 
     // for library constructor
     template <typename... Ts>
     constexpr environment(Ts&&... operands)
-      : pair {std::forward<decltype(operands)>(operands)...} // virtual base of closure
+      : pair {std::forward<decltype(operands)>(operands)...}
     {}
 
   public: // Interfaces
@@ -105,6 +118,8 @@ namespace meevax::kernel
       }
     }
 
+    std::size_t time_stamp {0};
+
     const auto& rename(const object& object)
     {
       if (not object.is<symbol>())
@@ -118,12 +133,17 @@ namespace meevax::kernel
       }
       else
       {
+        const std::string name {
+          object.as<const std::string>() + "/" + std::to_string(time_stamp)
+        };
+
         if (verbose == true_object or verbose_environment == true_object)
         {
-          std::cerr << "; environment\t; rename " << object << std::endl;
+          std::cerr << "; environment\t; rename " << object << " => " << name << std::endl;
         }
 
-        return intern(object.as<symbol>());
+        // return intern(object.as<symbol>());
+        return intern(name);
       }
     }
 
@@ -167,11 +187,12 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      std::cerr << "; macroexpand\t; " << operands << std::endl;
+      // std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       // std::cerr << "DEBUG! operands = " << operands << std::endl;
       // std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
       // std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
+      ++time_stamp;
 
       s = unit;
       e = cons(operands, lexical_environment());
@@ -544,15 +565,18 @@ namespace meevax::kernel
     {
       return evaluate(car(operands));
     });
+  } // environment class default constructor
 
-    // define<native>("rename", [&](auto&& operands)
-    // {
-    //   return rename(car(operands));
-    // });
-
-    std::stringstream stream {
-      #include <meevax/library/r7rs.xss>
+  template <>
+  environment::environment(std::integral_constant<int, 1>)
+    : environment::environment {layer<0>}
+  {
+    static const std::string layer_1 {
+      &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
     };
+    // std::cerr << layer_1 << std::endl;
+
+    std::stringstream stream {layer_1};
 
     std::size_t loaded {0};
 
@@ -560,7 +584,7 @@ namespace meevax::kernel
     {
       // if (verbose == true_object or verbose_environment == true_object)
       // {
-        std::cerr << "; standard\t; " << loaded << " expression loaded";
+        std::cerr << "; layer 1\t; " << loaded << " expression loaded";
       // }
 
       evaluate(e);
@@ -576,7 +600,7 @@ namespace meevax::kernel
     // {
       std::cerr << std::endl;
     // }
-  } // environment class default constructor
+  }
 
   std::ostream& operator<<(std::ostream& os, const environment& environment)
   {

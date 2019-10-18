@@ -272,12 +272,11 @@
 ;     (vector-set! vec i i))
 ;   #(0 1 2 3 4))
 
-; (expect
-;   (let ((x '(1 3 5 7 9)))
-;     (do ((x x (cdr x))
-;          (sum 0 (+ sum (car x))))
-;         ((null? x) sum)))
-;   25)
+(expect 25
+  (let ((x '(1 3 5 7 9)))
+    (do ((x x (cdr x))
+         (sum 0 (+ sum (car x))))
+        ((null? x) sum))))
 
 ; ------------------------------------------------------------------------------
 ;   4.2.5 Delayed Evaluation
@@ -481,8 +480,8 @@
 ;   (eqv? f g)); #unspecified
 
 (expect #false
-  (letrec ((f (lambda () (if (eqv? f g) ’f ’both)))
-           (g (lambda () (if (eqv? f g) ’g ’both))))
+  (letrec ((f (lambda () (if (eqv? f g) 'f 'both)))
+           (g (lambda () (if (eqv? f g) 'g 'both))))
     (eqv? f g)))
 
 ; (eqv? '(a) '(a)); #unspecified
@@ -613,7 +612,7 @@
   (reverse '(a b c)))
 
 (expect ((e (f)) d (b c) a)
-  (reverse ’(a (b c) d (e (f)))))
+  (reverse '(a (b c) d (e (f)))))
 
 
 (expect c

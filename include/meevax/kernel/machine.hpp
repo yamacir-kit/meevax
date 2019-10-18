@@ -184,11 +184,11 @@ namespace meevax::kernel
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << buffer << std::endl);
 
-          const auto expanded {assoc(
-            car(expression),
-            interaction_environment()
-          // ).template as<Environment&>().expand(cdr(expression))};
-          ).template as<Environment&>().expand(expression)};
+          // const auto expanded {assoc(
+          //   car(expression),
+          //   interaction_environment()
+          // ).template as<Environment&>().expand(expression)};
+          const auto expanded {buffer.as<Environment&>().expand(expression)};
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
@@ -936,7 +936,8 @@ namespace meevax::kernel
 
       return cons(
                _make_environment_,
-               program(
+               // program(
+               body(
                  cdr(expression),
                  cons(car(expression), lexical_environment),
                  list(_return_)

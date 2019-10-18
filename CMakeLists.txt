@@ -78,7 +78,7 @@ string(REPLACE ";" " "
   "${${PROJECT_NAME}_STANDARD_LIBRARIES}"
   )
 
-message("-- Found Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
+message(STATUS "Found Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
 
 # ==============================================================================
 #   Configure README
@@ -162,8 +162,35 @@ endforeach()
 # ==============================================================================
 #   Meevax Interactive Coding Environment (Executable)
 # ==============================================================================
+file(GLOB
+  ${PROJECT_NAME}_LAYER_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/library/layer-*.ss
+  )
+
+set(${PROJECT_NAME}_LAYERS "")
+
+foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
+  message(STATUS "Copying object ${EACH}")
+
+  get_filename_component(FILENAME ${EACH} NAME)
+  get_filename_component(FILEPATH ${EACH} PATH)
+  # message(STATUS "  NAME := ${FILENAME}")
+  # message(STATUS "  PATH := ${FILEPATH}")
+
+  # message(STATUS "  OUTPUT := ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o")
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
+    WORKING_DIRECTORY ${FILEPATH}
+    COMMAND ${CMAKE_OBJCOPY}
+    ARGS -I binary -O elf64-x86-64 -B i386 ${FILENAME} ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
+    )
+
+  list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+endforeach(EACH)
+
 add_executable(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+  ${${PROJECT_NAME}_LAYERS}
   )
 
 target_link_libraries(${PROJECT_NAME}

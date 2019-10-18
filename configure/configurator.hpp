@@ -61,9 +61,9 @@ namespace meevax::kernel
     static inline auto experimental        {false_object};
     static inline auto trace               {false_object};
     static inline auto variable            {unit};
-    static inline auto verbose             {false_object};
+    static inline auto verbose             {true_object};
     static inline auto verbose_compiler    {false_object};
-    static inline auto verbose_define      {false_object};
+    static inline auto verbose_define      {false_object}; // TODO Rename to "verbose_syntax"
     static inline auto verbose_environment {false_object};
     static inline auto verbose_loader      {false_object};
     static inline auto verbose_machine     {false_object};
