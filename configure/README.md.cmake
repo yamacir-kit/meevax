@@ -3,7 +3,7 @@
 </h1>
 
 <h3 align="center">
-  The Meta Expression EVAluator and eXtensions
+  The Meta Extensible EVAluator and eXtensions
 </h3>
 
 <div align="center">
