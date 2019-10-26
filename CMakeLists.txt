@@ -118,7 +118,7 @@ endif()
 if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
   configure_file(
     ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
-    ${${PROJECT_NAME}_INCLUDE}/meevax/kernel/configurator.hpp
+    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp
     )
 endif()
 
