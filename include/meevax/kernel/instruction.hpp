@@ -44,18 +44,20 @@ namespace meevax::kernel
     {}
   };
 
-  #define INSTRUCTION_CASE(_, AUX, EACH) \
-  case code::EACH: \
-    os << BOOST_PP_STRINGIZE(EACH); \
-    break;
-
   std::ostream& operator<<(std::ostream& os, const instruction& instruction)
   {
     os << highlight::kernel;
 
     switch (instruction.value)
     {
+    #define INSTRUCTION_CASE(_, AUX, EACH) \
+    case code::EACH: \
+      os << BOOST_PP_STRINGIZE(EACH); \
+      break;
+
       BOOST_PP_SEQ_FOR_EACH(INSTRUCTION_CASE, _, INSTRUCTIONS)
+
+    #undef INSTRUCTION_CASE
     }
 
     return os << attribute::normal;

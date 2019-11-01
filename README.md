@@ -3,7 +3,7 @@
 </h1>
 
 <h3 align="center">
-  The Meta Expression EVAluator and eXtensions
+  The Meta Extensible EVAluator and eXtensions
 </h3>
 
 <div align="center">
@@ -11,7 +11,7 @@
     <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Build Status"/>
   </a>
 
-  *HEAD Version 0.2.63*
+  *HEAD Version 0.2.67*
 </div>
 
 <br/>

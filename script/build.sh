@@ -15,5 +15,5 @@ fi
 cmake .. -DCMAKE_BUILD_TYPE=debug \
   -DCMAKE_CXX_COMPILER=g++-7
   # -DCMAKE_CXX_COMPILER=clang++-6.0
-make -j4
+make #-j4
 
