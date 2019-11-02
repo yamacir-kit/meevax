@@ -30,13 +30,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_CXX_EXTENSIONS OFF)
 # set(CMAKE_CXX_STANDARD 17) # CMake <= 3.8.2
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED)
 
 set(${PROJECT_NAME}_CONFIGURE ${CMAKE_CURRENT_SOURCE_DIR}/configure)
-set(${PROJECT_NAME}_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(${PROJECT_NAME}_INCLUDE   ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 include_directories(
   ${${PROJECT_NAME}_INCLUDE}
@@ -78,7 +78,7 @@ string(REPLACE ";" " "
   "${${PROJECT_NAME}_STANDARD_LIBRARIES}"
   )
 
-message(STATUS "Found Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
+message(STATUS "Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
 
 # ==============================================================================
 #   Configure README
@@ -90,15 +90,16 @@ if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake)
     )
 endif()
 
-# ==============================================================================
-#   Configure Uninstall Script
-# ==============================================================================
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake)
-  configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake
-    ${CMAKE_CURRENT_SOURCE_DIR}/uninstall.sh
-    )
-endif()
+# TODO REMOVE IF THERE IS NO PROBLEM
+# # ==============================================================================
+# #   Configure Uninstall Script
+# # ==============================================================================
+# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake)
+#   configure_file(
+#     ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake
+#     ${CMAKE_CURRENT_SOURCE_DIR}/uninstall.sh
+#     )
+# endif()
 
 # ==============================================================================
 #   Configure Header
@@ -200,8 +201,16 @@ target_link_libraries(${PROJECT_NAME}
 # ==============================================================================
 #   Installation
 # ==============================================================================
+# XXX DON'T FORGET TO EXECUTE "sudo ldconfig" after installation
 install(
   TARGETS ${PROJECT_NAME}
+          ${PROJECT_NAME}-kernel
+          ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  )
+
+add_custom_target(uninstall
+  COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
   )
 
