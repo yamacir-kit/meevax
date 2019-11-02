@@ -90,15 +90,16 @@ if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake)
     )
 endif()
 
-# ==============================================================================
-#   Configure Uninstall Script
-# ==============================================================================
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake)
-  configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake
-    ${CMAKE_CURRENT_SOURCE_DIR}/uninstall.sh
-    )
-endif()
+# TODO REMOVE IF THERE IS NO PROBLEM
+# # ==============================================================================
+# #   Configure Uninstall Script
+# # ==============================================================================
+# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake)
+#   configure_file(
+#     ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake
+#     ${CMAKE_CURRENT_SOURCE_DIR}/uninstall.sh
+#     )
+# endif()
 
 # ==============================================================================
 #   Configure Header
