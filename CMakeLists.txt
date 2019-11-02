@@ -30,8 +30,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_CXX_EXTENSIONS OFF)
 # set(CMAKE_CXX_STANDARD 17) # CMake <= 3.8.2
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED)
 
@@ -203,5 +203,9 @@ target_link_libraries(${PROJECT_NAME}
 install(
   TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
+  )
+
+add_custom_target(uninstall
+  COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
   )
 
