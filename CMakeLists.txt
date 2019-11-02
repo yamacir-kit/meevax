@@ -78,7 +78,7 @@ string(REPLACE ";" " "
   "${${PROJECT_NAME}_STANDARD_LIBRARIES}"
   )
 
-message(STATUS "Found Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
+message(STATUS "Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
 
 # ==============================================================================
 #   Configure README
@@ -201,9 +201,13 @@ target_link_libraries(${PROJECT_NAME}
 # ==============================================================================
 #   Installation
 # ==============================================================================
+# XXX DON'T FORGET TO EXECUTE "sudo ldconfig" after installation
 install(
   TARGETS ${PROJECT_NAME}
+          ${PROJECT_NAME}-kernel
+          ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
   )
 
 add_custom_target(uninstall
