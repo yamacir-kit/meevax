@@ -36,33 +36,33 @@ namespace meevax::kernel
   static constexpr std::integral_constant<int, Layer> layer {};
 
   class environment
-    /*
-     * The environment is a pair of "current expression" and "global environment
-     * (simple association list)". It also has the aspect of a meta-closure that
-     * closes the global environment when it constructed (this feature is known
-     * as syntactic-closure).
-     */
+    /**************************************************************************
+    * The environment is a pair of "current expression" and "global environment
+    * (simple association list)". It also has the aspect of a meta-closure that
+    * closes the global environment when it constructed (this feature is known
+    * as syntactic-closure).
+    **************************************************************************/
     // : public closure
     : public virtual pair
 
-    /*
-     * Reader access symbol table of this environment (by member function
-     * "intern") via static polymorphism. The environment indirectly inherits
-     * the non-copyable class std::istream (reader base class), so it cannot be
-     * copied.
-     */
+    /**************************************************************************
+    * Reader access symbol table of this environment (by member function
+    * "intern") via static polymorphism. The environment indirectly inherits
+    * the non-copyable class std::istream (reader base class), so it cannot be
+    * copied.
+    **************************************************************************/
     , public reader<environment>
 
-    /*
-     * Each environment has one virtual machine and compiler.
-     */
+    /**************************************************************************
+    * Each environment has one virtual machine and compiler.
+    **************************************************************************/
     , public machine<environment>
 
-    /*
-     * Global configuration is shared in all of environments running on same
-     * process. Thus, any change of configuration member influences any other
-     * environments immediately.
-     */
+    /**************************************************************************
+    * Global configuration is shared in all of environments running on same
+    * process. Thus, any change of configuration member influences any other
+    * environments immediately.
+    **************************************************************************/
     , public configurator<environment>
   {
     std::unordered_map<std::string, object> symbols;
@@ -405,10 +405,10 @@ namespace meevax::kernel
         DEBUG_COMPILE_SYNTAX("(\t; => unknown library-name" << std::endl);
         NEST_IN;
 
-        /*
-         * Macro expander for to evaluate library-name on operand compilation
-         * rule.
-         */
+        /**********************************************************************
+        * Macro expander for to evaluate library-name on operand compilation
+        * rule.
+        **********************************************************************/
         environment macro {
           unit,
           interaction_environment()
@@ -467,11 +467,11 @@ namespace meevax::kernel
         //    cons(_load_literal_, library_name, continuation)
         //  );
 
-        /*
-         * Push VM instruction for define the library exported from
-         * shared-object as given library-name (this will execute on first of VM
-         * instruction which result of this function).
-         */
+        /**********************************************************************
+        * Push VM instruction for define the library exported from
+        * shared-object as given library-name (this will execute on first of VM
+        * instruction which result of this function).
+        **********************************************************************/
         return decralations.push(_load_literal_, exported, _define_, library_name);
       }
     });
