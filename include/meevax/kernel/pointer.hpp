@@ -142,6 +142,17 @@ namespace meevax::kernel
       : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
     {}
 
+    // ~pointer()
+    // {
+    //   if (*this)
+    //   {
+    //     if (std::shared_ptr<T>::unique())
+    //     {
+    //       std::cerr << "; pointer\t; deallocating " << *this << std::endl;
+    //     }
+    //   }
+    // }
+
     /**
      * With this function, you don't have to worry about virtual destructors.
      * `std::shared_ptr<T>` remembers it has assigned binder type which knows T

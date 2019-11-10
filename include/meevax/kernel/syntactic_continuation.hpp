@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
-#define INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
 #include <algorithm> // std::equal
 #include <numeric> // std::accumulate
@@ -35,35 +35,34 @@ namespace meevax::kernel
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
-  class environment
+  class syntactic_continuation
     /**************************************************************************
-    * The environment is a pair of "current expression" and "global environment
+    * The syntactic_continuation is a pair of "the program" and "global environment
     * (simple association list)". It also has the aspect of a meta-closure that
     * closes the global environment when it constructed (this feature is known
     * as syntactic-closure).
     **************************************************************************/
-    // : public closure
     : public virtual pair
 
     /**************************************************************************
-    * Reader access symbol table of this environment (by member function
-    * "intern") via static polymorphism. The environment indirectly inherits
+    * Reader access symbol table of this syntactic_continuation (by member function
+    * "intern") via static polymorphism. The syntactic_continuation indirectly inherits
     * the non-copyable class std::istream (reader base class), so it cannot be
     * copied.
     **************************************************************************/
-    , public reader<environment>
+    , public reader<syntactic_continuation>
 
     /**************************************************************************
-    * Each environment has one virtual machine and compiler.
+    * Each syntactic_continuation has one virtual machine and compiler.
     **************************************************************************/
-    , public machine<environment>
+    , public machine<syntactic_continuation>
 
     /**************************************************************************
-    * Global configuration is shared in all of environments running on same
+    * Global configuration is shared in all of syntactic_continuations running on same
     * process. Thus, any change of configuration member influences any other
-    * environments immediately.
+    * syntactic_continuations immediately.
     **************************************************************************/
-    , public configurator<environment>
+    , public configurator<syntactic_continuation>
   {
     std::unordered_map<std::string, object> symbols;
 
@@ -74,24 +73,24 @@ namespace meevax::kernel
   public: // Constructors
     // for bootstrap scheme-report-environment
     template <int Layer>
-    environment(std::integral_constant<int, Layer>);
+    syntactic_continuation(std::integral_constant<int, Layer>);
 
     // for library constructor
     template <typename... Ts>
-    constexpr environment(Ts&&... operands)
+    constexpr syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {}
 
   public: // Interfaces
     auto ready() const noexcept
     {
-      return reader<environment>::ready();
+      return reader<syntactic_continuation>::ready();
     }
 
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
-      return kernel::machine<environment>::define(
+      return kernel::machine<syntactic_continuation>::define(
                intern(name),
                make<T>(name, std::forward<decltype(operands)>(operands)...)
              );
@@ -100,7 +99,7 @@ namespace meevax::kernel
     template <typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
-      return kernel::machine<environment>::define(
+      return kernel::machine<syntactic_continuation>::define(
                intern(name), std::forward<decltype(operands)>(operands)...
              );
     }
@@ -248,9 +247,9 @@ namespace meevax::kernel
     {
       stack executable {continuation};
 
-      assert(library.is<environment>());
+      assert(library.is<syntactic_continuation>());
 
-      for (const object& each : library.as<environment>().interaction_environment())
+      for (const object& each : library.as<syntactic_continuation>().interaction_environment())
       {
         executable.push(
           _load_literal_, cadr(each),
@@ -263,7 +262,7 @@ namespace meevax::kernel
 
     auto import_(const object& library, const object& continuation)
     {
-      auto& source {library.as<environment>()};
+      auto& source {library.as<syntactic_continuation>()};
 
       if (source.bindings.empty())
       {
@@ -334,7 +333,7 @@ namespace meevax::kernel
   };
 
   template <>
-  environment::environment(std::integral_constant<int, 0>)
+  syntactic_continuation::syntactic_continuation(std::integral_constant<int, 0>)
   {
     define<syntax>("quote", [&](auto&&... operands)
     {
@@ -409,7 +408,7 @@ namespace meevax::kernel
         * Macro expander for to evaluate library-name on operand compilation
         * rule.
         **********************************************************************/
-        environment macro {
+        syntactic_continuation macro {
           unit,
           interaction_environment()
         }; // TODO IN CONSTRUCTOR INITIALIZATION
@@ -441,7 +440,7 @@ namespace meevax::kernel
         // TODO ADD FUNCTION CALL OPERATOR TO LINKER
         // const object& linker {make<posix::linker>(library_path.c_str())};
 
-        // machine<environment>::define(
+        // machine<syntactic_continuation>::define(
         //   library_name,
         //   std::invoke(
         //     dynamic_link(library_path).link<native::signature>("library"),
@@ -565,11 +564,11 @@ namespace meevax::kernel
     {
       return evaluate(car(operands));
     });
-  } // environment class default constructor
+  } // syntactic_continuation class default constructor
 
   template <>
-  environment::environment(std::integral_constant<int, 1>)
-    : environment::environment {layer<0>}
+  syntactic_continuation::syntactic_continuation(std::integral_constant<int, 1>)
+    : syntactic_continuation::syntactic_continuation {layer<0>}
   {
     static const std::string layer_1 {
       &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
@@ -602,15 +601,15 @@ namespace meevax::kernel
     // }
   }
 
-  std::ostream& operator<<(std::ostream& os, const environment& environment)
+  std::ostream& operator<<(std::ostream& os, const syntactic_continuation& syntactic_continuation)
   {
     return os << highlight::syntax << "#("
-              << highlight::constructor << "environemnt"
-              << attribute::normal << highlight::comment << " #;" << &environment << attribute::normal
+              << highlight::constructor << "syntactic-continuation"
+              << attribute::normal << highlight::comment << " #;" << &syntactic_continuation << attribute::normal
               << highlight::syntax << ")"
               << attribute::normal;
   }
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_ENVIRONMENT_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 

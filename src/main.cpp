@@ -1,8 +1,8 @@
-#include <meevax/kernel/environment.hpp>
+#include <meevax/kernel/syntactic_continuation.hpp>
 
 int main(const int argc, char const* const* const argv) try
 {
-  meevax::kernel::environment program {meevax::kernel::layer<1>};
+  meevax::kernel::syntactic_continuation program {meevax::kernel::layer<1>};
 
   /****************************************************************************
   * The environment system includes a command line option parser. The parser is
