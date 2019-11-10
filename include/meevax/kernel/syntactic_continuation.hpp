@@ -370,6 +370,11 @@ namespace meevax::kernel
       return abstraction(std::forward<decltype(operands)>(operands)...);
     });
 
+    define<syntax>("call-with-current-syntactic-continuation", [&](auto&&... operands)
+    {
+      return call_csc(std::forward<decltype(operands)>(operands)...);
+    });
+
     define<syntax>("set!", [&](auto&&... operands)
     {
       return assignment(std::forward<decltype(operands)>(operands)...);
@@ -500,7 +505,7 @@ namespace meevax::kernel
       }
       else
       {
-        return make<meevax::posix::linker>(s.template as<string>());
+        return make<meevax::posix::linker>(s.as<string>());
       }
     });
 

@@ -19,6 +19,7 @@ namespace meevax::kernel
     (MAKE_CLOSURE) \
     (MAKE_CONTINUATION) \
     (MAKE_ENVIRONMENT) \
+    (MAKE_SYNTACTIC_CONTINUATION) \
     (POP) \
     (PUSH) \
     (RETURN) \
@@ -83,6 +84,10 @@ namespace meevax::kernel
   static const auto _set_local_           {make<instruction>(code::SET_LOCAL)};
   static const auto _set_local_variadic_  {make<instruction>(code::SET_LOCAL_VARIADIC)};
   static const auto _stop_                {make<instruction>(code::STOP)};
+
+  static const auto _make_syntactic_continuation_ {
+    make<instruction>(code::MAKE_SYNTACTIC_CONTINUATION)
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP

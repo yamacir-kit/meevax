@@ -1,6 +1,8 @@
 (define define-syntax define)
 (define macro-transformer environment)
 
+(define call/csc call-with-current-syntactic-continuation)
+
 ; (define rsc-macro-transformer
 ;   (lambda (transform)
 ;     (macro-transformer expression
@@ -1469,12 +1471,20 @@
 ;  Miscellaneous
 ; ------------------------------------------------------------------------------
 
+; (define swap!
+;   (environment (swap! x y)
+;     (let ((temporary (string->symbol)))
+;      `(let ((,temporary ,x))
+;         (set! ,x ,y)
+;         (set! ,y ,temporary)))))
+
 (define swap!
-  (environment (swap! x y)
-    (let ((temporary (string->symbol)))
-     `(let ((,temporary ,x))
-        (set! ,x ,y)
-        (set! ,y ,temporary)))))
+  (call/csc
+    (lambda (swap! x y)
+      (let ((temporary (string->symbol)))
+       `(let ((,temporary ,x))
+          (set! ,x ,y)
+          (set! ,y ,temporary))))))
 
 ; (define-syntax swap!
 ;   (explicit-renaming-macro-transformer

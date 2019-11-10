@@ -325,6 +325,13 @@ namespace meevax::kernel
         c.pop(2);
         goto dispatch;
 
+      case code::MAKE_SYNTACTIC_CONTINUATION: // (closure . S) E (MAKE_SYNTACTIC_CONTINUATION . C) => (syntactic-continuation . S) E C D
+        TRACE(2);
+        std::cerr << "car(s) = " << car(s) << std::endl;
+        s = make<Environment>(car(s), interaction_environment()) | cdr(s);
+        c.pop(1);
+        goto dispatch;
+
       case code::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         TRACE(3);
         d.push(cdddr(c));
@@ -927,6 +934,23 @@ namespace meevax::kernel
                  lexical_environment,
                  cons(_apply_, continuation)
                )
+             );
+    }
+
+    object call_csc(const object& expression,
+                    const object& lexical_environment,
+                    const object& continuation,
+                    const bool = false)
+    {
+      DEBUG_COMPILE(car(expression) << " ; => is <lambda expression>" << std::endl);
+
+      std::cerr << "expression: " << expression << std::endl
+                << "continuation: " << continuation << std::endl;
+
+      return compile(
+               car(expression),
+               lexical_environment,
+               cons(_make_syntactic_continuation_, continuation)
              );
     }
 
