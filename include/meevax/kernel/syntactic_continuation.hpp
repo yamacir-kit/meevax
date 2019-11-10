@@ -18,7 +18,7 @@
 *
 *   library/layer-1.ss
 *
-* readelf -a layer-1.ss.o
+* MEMO: readelf -a layer-1.ss.o
 ******************************************************************************/
 extern char _binary_layer_1_ss_start;
 extern char _binary_layer_1_ss_end;
@@ -66,9 +66,9 @@ namespace meevax::kernel
   {
     std::unordered_map<std::string, object> symbols;
 
-    std::unordered_map<object, object> bindings;
-
-    static inline std::unordered_map<std::string, posix::linker> linkers {};
+    // std::unordered_map<object, object> bindings;
+    //
+    // static inline std::unordered_map<std::string, posix::linker> linkers {};
 
   public: // Constructors
     // for bootstrap scheme-report-environment
@@ -146,28 +146,28 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) export_(const object& key, const object& value)
-    {
-      if (auto iter {bindings.find(key)}; iter != std::end(bindings))
-      {
-        if (verbose == true_object or verbose_environment == true_object)
-        {
-          std::cerr << "; export\t; detected redefinition (interactive mode ignore previous definition)" << std::endl;
-        }
-
-        bindings.at(key) = value;
-        return bindings.find(key);
-      }
-      else
-      {
-        if (verbose == true_object or verbose_environment == true_object)
-        {
-          std::cerr << "; export\t; exporting new binding (" << key << " . " << value << ")" << std::endl;
-        }
-
-        return bindings.emplace(key, value).first;
-      }
-    }
+    // decltype(auto) export_(const object& key, const object& value)
+    // {
+    //   if (auto iter {bindings.find(key)}; iter != std::end(bindings))
+    //   {
+    //     if (verbose == true_object or verbose_environment == true_object)
+    //     {
+    //       std::cerr << "; export\t; detected redefinition (interactive mode ignore previous definition)" << std::endl;
+    //     }
+    //
+    //     bindings.at(key) = value;
+    //     return bindings.find(key);
+    //   }
+    //   else
+    //   {
+    //     if (verbose == true_object or verbose_environment == true_object)
+    //     {
+    //       std::cerr << "; export\t; exporting new binding (" << key << " . " << value << ")" << std::endl;
+    //     }
+    //
+    //     return bindings.emplace(key, value).first;
+    //   }
+    // }
 
     decltype(auto) current_expression()
     {
@@ -214,18 +214,18 @@ namespace meevax::kernel
       return execute(compile(std::forward<decltype(operands)>(operands)...));
     }
 
-    const auto& dynamic_link(const std::string& path)
-    {
-      if (auto iter {linkers.find(path)}; iter != std::end(linkers))
-      {
-        return iter->second;
-      }
-      else
-      {
-        iter = linkers.emplace(path, path).first;
-        return iter->second;
-      }
-    }
+    // const auto& dynamic_link(const std::string& path)
+    // {
+    //   if (auto iter {linkers.find(path)}; iter != std::end(linkers))
+    //   {
+    //     return iter->second;
+    //   }
+    //   else
+    //   {
+    //     iter = linkers.emplace(path, path).first;
+    //     return iter->second;
+    //   }
+    // }
 
     auto locate_library(const object& name)
     {
@@ -260,29 +260,29 @@ namespace meevax::kernel
       return executable;
     }
 
-    auto import_(const object& library, const object& continuation)
-    {
-      auto& source {library.as<syntactic_continuation>()};
-
-      if (source.bindings.empty())
-      {
-        source.expand(list(library));
-
-        if (source.bindings.empty())
-        {
-          throw syntax_error {library, " is may not be library"};
-        }
-      }
-
-      stack executable {continuation};
-
-      for (const auto& [key, value] : source.bindings)
-      {
-        executable.push(_load_literal_, value, _define_, rename(key));
-      }
-
-      return executable;
-    }
+    // auto import_(const object& library, const object& continuation)
+    // {
+    //   auto& source {library.as<syntactic_continuation>()};
+    //
+    //   if (source.bindings.empty())
+    //   {
+    //     source.expand(list(library));
+    //
+    //     if (source.bindings.empty())
+    //     {
+    //       throw syntax_error {library, " is may not be library"};
+    //     }
+    //   }
+    //
+    //   stack executable {continuation};
+    //
+    //   for (const auto& [key, value] : source.bindings)
+    //   {
+    //     executable.push(_load_literal_, value, _define_, rename(key));
+    //   }
+    //
+    //   return executable;
+    // }
 
     template <typename... Ts>
     decltype(auto) load(Ts&&... operands)
@@ -378,102 +378,102 @@ namespace meevax::kernel
     /*
      * <importation> = (import <library name>)
      */
-    define<syntax>("import", [&](auto&& expression,
-                                 auto&& lexical_environment,
-                                 auto&& continuation, auto)
-    {
-      using meevax::kernel::path;
-
-      if (const object& library_name {car(expression)}; not library_name)
-      {
-        throw syntax_error {"empty library-name is not allowed"};
-      }
-      else if (const object& library {locate_library(library_name)}; library)
-      {
-        DEBUG_COMPILE_SYNTAX(library_name << " => found library " << library_name << " in this environment as " << library << std::endl);
-
-        /*
-         * Passing the VM instruction to load literally library-name as
-         * continuation is for return value of this syntax form "import".
-         */
-        // return import_library(library, cons(_load_literal_, library_name, continuation));
-        return import_(library, cons(_load_literal_, library_name, continuation));
-      }
-      else // XXX Don't use this library style (deprecated)
-      {
-        DEBUG_COMPILE_SYNTAX("(\t; => unknown library-name" << std::endl);
-        NEST_IN;
-
-        /**********************************************************************
-        * Macro expander for to evaluate library-name on operand compilation
-        * rule.
-        **********************************************************************/
-        syntactic_continuation macro {
-          unit,
-          interaction_environment()
-        }; // TODO IN CONSTRUCTOR INITIALIZATION
-
-        path library_path {""};
-
-        for (const object& identifier : macro.execute(operand(library_name, lexical_environment, continuation)))
-        {
-          if (identifier.is<path>())
-          {
-            library_path /= identifier.as<path>();
-          }
-          else if (identifier.is<string>())
-          {
-            library_path /= path {identifier.as<string>()};
-          }
-          else
-          {
-            throw syntax_error {
-              identifier, " is not allowed as part of library-name (must be path or string object)"
-            };
-          }
-        }
-
-        NEST_OUT_SYNTAX;
-
-        std::cerr << "; import\t; dynamic-link " << library_path << std::endl;
-
-        // TODO ADD FUNCTION CALL OPERATOR TO LINKER
-        // const object& linker {make<posix::linker>(library_path.c_str())};
-
-        // machine<syntactic_continuation>::define(
-        //   library_name,
-        //   std::invoke(
-        //     dynamic_link(library_path).link<native::signature>("library"),
-        //     unit
-        //   )
-        // );
-
-        const object exported {std::invoke(
-          dynamic_link(library_path).link<native::signature>("library"),
-          // linker.as<posix::linker>().link<native::signature>("library"),
-          unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
-        )};
-
-        /*
-         * Passing the VM instruction to load literally library-name as
-         * continuation is for return value of this syntax form "import".
-         */
-        auto decralations {import_library(
-           exported, cons(_load_literal_, library_name, continuation)
-         )};
-        // return import_library(
-        //    locate_library(library_name),
-        //    cons(_load_literal_, library_name, continuation)
-        //  );
-
-        /**********************************************************************
-        * Push VM instruction for define the library exported from
-        * shared-object as given library-name (this will execute on first of VM
-        * instruction which result of this function).
-        **********************************************************************/
-        return decralations.push(_load_literal_, exported, _define_, library_name);
-      }
-    });
+    // define<syntax>("import", [&](auto&& expression,
+    //                              auto&& lexical_environment,
+    //                              auto&& continuation, auto)
+    // {
+    //   using meevax::kernel::path;
+    //
+    //   if (const object& library_name {car(expression)}; not library_name)
+    //   {
+    //     throw syntax_error {"empty library-name is not allowed"};
+    //   }
+    //   else if (const object& library {locate_library(library_name)}; library)
+    //   {
+    //     DEBUG_COMPILE_SYNTAX(library_name << " => found library " << library_name << " in this environment as " << library << std::endl);
+    //
+    //     /*
+    //      * Passing the VM instruction to load literally library-name as
+    //      * continuation is for return value of this syntax form "import".
+    //      */
+    //     // return import_library(library, cons(_load_literal_, library_name, continuation));
+    //     return import_(library, cons(_load_literal_, library_name, continuation));
+    //   }
+    //   else // XXX Don't use this library style (deprecated)
+    //   {
+    //     DEBUG_COMPILE_SYNTAX("(\t; => unknown library-name" << std::endl);
+    //     NEST_IN;
+    //
+    //     /**********************************************************************
+    //     * Macro expander for to evaluate library-name on operand compilation
+    //     * rule.
+    //     **********************************************************************/
+    //     syntactic_continuation macro {
+    //       unit,
+    //       interaction_environment()
+    //     }; // TODO IN CONSTRUCTOR INITIALIZATION
+    //
+    //     path library_path {""};
+    //
+    //     for (const object& identifier : macro.execute(operand(library_name, lexical_environment, continuation)))
+    //     {
+    //       if (identifier.is<path>())
+    //       {
+    //         library_path /= identifier.as<path>();
+    //       }
+    //       else if (identifier.is<string>())
+    //       {
+    //         library_path /= path {identifier.as<string>()};
+    //       }
+    //       else
+    //       {
+    //         throw syntax_error {
+    //           identifier, " is not allowed as part of library-name (must be path or string object)"
+    //         };
+    //       }
+    //     }
+    //
+    //     NEST_OUT_SYNTAX;
+    //
+    //     std::cerr << "; import\t; dynamic-link " << library_path << std::endl;
+    //
+    //     // TODO ADD FUNCTION CALL OPERATOR TO LINKER
+    //     // const object& linker {make<posix::linker>(library_path.c_str())};
+    //
+    //     // machine<syntactic_continuation>::define(
+    //     //   library_name,
+    //     //   std::invoke(
+    //     //     dynamic_link(library_path).link<native::signature>("library"),
+    //     //     unit
+    //     //   )
+    //     // );
+    //
+    //     const object exported {std::invoke(
+    //       dynamic_link(library_path).link<native::signature>("library"),
+    //       // linker.as<posix::linker>().link<native::signature>("library"),
+    //       unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
+    //     )};
+    //
+    //     /*
+    //      * Passing the VM instruction to load literally library-name as
+    //      * continuation is for return value of this syntax form "import".
+    //      */
+    //     auto decralations {import_library(
+    //        exported, cons(_load_literal_, library_name, continuation)
+    //      )};
+    //     // return import_library(
+    //     //    locate_library(library_name),
+    //     //    cons(_load_literal_, library_name, continuation)
+    //     //  );
+    //
+    //     /**********************************************************************
+    //     * Push VM instruction for define the library exported from
+    //     * shared-object as given library-name (this will execute on first of VM
+    //     * instruction which result of this function).
+    //     **********************************************************************/
+    //     return decralations.push(_load_literal_, exported, _define_, library_name);
+    //   }
+    // });
 
     define<native>("load", [&](const object& operands)
     {

@@ -81,20 +81,22 @@ namespace meevax::kernel
     }
 
     // TODO Remove
-    template <typename... Ts>
-    decltype(auto) export_(Ts&&... operands)
-    {
-      return static_cast<Environment&>(*this).export_(std::forward<decltype(operands)>(operands)...);
-    }
+    // template <typename... Ts>
+    // decltype(auto) export_(Ts&&... operands)
+    // {
+    //   return static_cast<Environment&>(*this).export_(std::forward<decltype(operands)>(operands)...);
+    // }
 
   public:
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... operands)
     {
-      auto iter {export_(key, std::forward<decltype(operands)>(operands)...)};
-      // interaction_environment().push(list(key, std::forward<decltype(operands)>(operands)...));
-      interaction_environment().push(list(iter->first, iter->second));
+      // auto iter {export_(key, std::forward<decltype(operands)>(operands)...)};
+      // interaction_environment().push(list(iter->first, iter->second));
+      interaction_environment().push(
+        list(key, std::forward<decltype(operands)>(operands)...)
+      );
 
       if (   static_cast<Environment&>(*this).verbose        == true_object
           or static_cast<Environment&>(*this).verbose_define == true_object)
