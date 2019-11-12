@@ -1,5 +1,6 @@
 (define define-syntax define)
-; (define macro-transformer environment)
+
+(define unhygienic-macro-transformer lambda)
 
 (define call/csc call-with-current-syntactic-continuation)
 
@@ -162,7 +163,7 @@
 
 (define-syntax conditional
   (call/csc
-    (lambda (conditional . clauses)
+    (unhygienic-macro-transformer (conditional . clauses)
       (if (null? clauses)
           (unspecified)
           ((lambda (clause)
@@ -187,7 +188,7 @@
 
 (define-syntax and
   (call/csc
-    (lambda (and . tests)
+    (unhygienic-macro-transformer (and . tests)
       (conditional
         ((null? tests) #true)
         ((null? (cdr tests)) (car tests))
@@ -198,7 +199,7 @@
 
 (define-syntax or
   (call/csc
-    (lambda (or . tests)
+    (unhygienic-macro-transformer (or . tests)
       (conditional
         ((null? tests) #false)
         ((null? (cdr tests)) (car tests))
@@ -227,7 +228,7 @@
 
 (define-syntax quasiquote
   (call/csc
-    (lambda (quasiquote x)
+    (unhygienic-macro-transformer (quasiquote x)
 
       (define quasiquote-expand
         (lambda (e depth)
@@ -377,7 +378,7 @@
 
 (define-syntax letrec* ; transform to internal-definitions
   (call/csc
-    (lambda (letrec* bindings . body)
+    (unhygienic-macro-transformer (letrec* bindings . body)
       ((lambda (definitions)
         `((,lambda () ,@definitions ,@body)))
        (map (lambda (x) (cons 'define x)) bindings)))))
@@ -386,12 +387,12 @@
 
 (define-syntax unnamed-let
   (call/csc
-    (lambda (unnamed-let bindings . body)
+    (unhygienic-macro-transformer (unnamed-let bindings . body)
      `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings)))))
 
 (define-syntax let
   (call/csc
-    (lambda (let bindings . body)
+    (unhygienic-macro-transformer (let bindings . body)
 
       (if (null? bindings)
           (error "The let syntax is defined as the form (let <bindings> <body>) \
@@ -408,7 +409,7 @@
 
 (define-syntax let*
   (call/csc
-    (lambda (let* bindings . body)
+    (unhygienic-macro-transformer (let* bindings . body)
 
       (if (null? bindings)
           (error "The let* syntax is defined as the form (let* <bindings> <body>) \
@@ -554,7 +555,7 @@
 
 (define-syntax case
   (call/csc
-    (lambda (case key . clauses)
+    (unhygienic-macro-transformer (case key . clauses)
 
       (define body
         (lambda (expressions)
@@ -586,12 +587,12 @@
 
 (define-syntax when
   (call/csc
-    (lambda (when test . body)
+    (unhygienic-macro-transformer (when test . body)
      `(if ,test (begin ,@body)))))
 
 (define-syntax unless
   (call/csc
-    (lambda (unless test . body)
+    (unhygienic-macro-transformer (unless test . body)
      `(if (not ,test) (begin ,@body)))))
 
 ; (define-syntax conditional-expansion
@@ -607,7 +608,7 @@
 
 (define-syntax iterate
   (call/csc
-    (lambda (iterate variables test . commands)
+    (unhygienic-macro-transformer (iterate variables test . commands)
       (let ((body
              `(,begin ,@commands
                       (,rec ,@(map (lambda (x)
@@ -632,12 +633,12 @@
 
 (define-syntax delay-force
   (call/csc
-    (lambda (delay-force expression)
+    (unhygienic-macro-transformer (delay-force expression)
      `(,promise #false (,lambda () ,expression)))))
 
 (define-syntax delay
   (call/csc
-    (lambda (delay expression)
+    (unhygienic-macro-transformer (delay expression)
      `(,delay-force (,promise #true expression)))))
 
 ; TODO promise?
@@ -1495,7 +1496,7 @@
 
 (define swap!
   (call/csc
-    (lambda (swap! x y)
+    (unhygienic-macro-transformer (swap! x y)
       (let ((temporary (string->symbol)))
        `(let ((,temporary ,x))
           (set! ,x ,y)
@@ -1512,7 +1513,7 @@
 
 (define loop
   (call/csc
-    (lambda form
+    (unhygienic-macro-transformer form
      `(,call/cc
         (,lambda (exit)
           (,let ,rec ()
