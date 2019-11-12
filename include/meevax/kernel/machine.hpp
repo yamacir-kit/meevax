@@ -107,6 +107,23 @@ namespace meevax::kernel
       return interaction_environment(); // temporary
     }
 
+    const object& lookup(const object& identifier,
+                         const object& environment)
+    {
+      if (not identifier or not environment)
+      {
+        return identifier;
+      }
+      else if (caar(environment) == identifier)
+      {
+        return cadar(environment);
+      }
+      else
+      {
+        return lookup(identifier, cdr(environment));
+      }
+    }
+
     // TODO Change last boolean argument to template parameter (use if constexpr)
     /*
      * <expression> = <identifier>
@@ -159,22 +176,15 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        object applicant {assoc(
-          car(expression), interaction_environment()
-        )};
-
-        if (applicant == unbound) // maybe, car(expression) is <identifier>
-        {
-          applicant = car(expression);
-        }
-
-        if (not applicant)
+        if (object applicant {lookup(
+              car(expression), interaction_environment()
+            )};
+            not applicant)
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is application of unit => ERROR" << std::endl);
           throw syntax_error {"unit is not applicable"};
         }
-        else if (    applicant != unbound
-                 and applicant.is<syntax>()
+        else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), lexical_environment))
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is application of " << applicant << std::endl);
@@ -185,8 +195,7 @@ namespace meevax::kernel
           NEST_OUT;
           return result;
         }
-        else if (    applicant != unbound
-                 and applicant.is<SyntacticContinuation>()
+        else if (applicant.is<SyntacticContinuation>()
                  and not de_bruijn_index(car(expression), lexical_environment))
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << applicant << std::endl);
@@ -300,7 +309,7 @@ namespace meevax::kernel
           /*********************************************************************
           * When an undefined symbol is evaluated, it returns a symbol that is
           * guaranteed not to collide with any symbol from the past to the
-          * future. This behavior is defined for the macrotransformer.
+          * future. This behavior is defined for the hygienic-macro.
           *********************************************************************/
           s.push(static_cast<SyntacticContinuation&>(*this).rename(cadr(c)));
         }
@@ -328,7 +337,6 @@ namespace meevax::kernel
 
       case code::MAKE_SYNTACTIC_CONTINUATION: // (closure . S) E (MAKE_SYNTACTIC_CONTINUATION . C) => (syntactic-continuation . S) E C D
         TRACE(2);
-        std::cerr << "car(s) = " << car(s) << std::endl;
         s = make<SyntacticContinuation>(car(s), interaction_environment()) | cdr(s);
         c.pop(1);
         goto dispatch;

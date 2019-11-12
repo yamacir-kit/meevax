@@ -1520,23 +1520,23 @@
            ,(cadr form)
             (,rec)))))))
 
-; (define f
-;   (lambda ()
-;     (define x 0)
-;
-;     (define let     3.14)
-;     (define call/cc 3.141)
-;     ; (define lambda  3.1415) ; TODO internal-defintion's bug cause renaming error if enable this line
-;     (define exit    3.14159)
-;     (define rec     3.141592)
-;
-;     (loop
-;       (if (< 9 x)
-;           (begin (display "!")
-;                  (display exit)
-;                  (exit 42))
-;           (begin (display x)
-;                  (set! x (+ x 1)))))))
+(define f
+  (lambda ()
+    (define x 0)
+
+    (define let     3.14)
+    (define call/cc 3.141)
+    ; (define lambda  3.1415) ; TODO internal-defintion's bug cause renaming error if enable this line
+    (define exit    3.14159)
+    (define rec     3.141592)
+
+    (loop
+      (if (< 9 x)
+          (begin (display "!")
+                 (display exit)
+                 (exit 42))
+          (begin (display x)
+                 (set! x (+ x 1)))))))
 
 ; (define-syntax loop
 ;   (non-hygienic-macro-transformer
