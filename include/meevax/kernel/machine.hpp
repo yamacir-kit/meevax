@@ -13,7 +13,7 @@
 inline namespace dirty_hacks
 {
   #define TRACE(N)                                                             \
-  if (static_cast<Environment&>(*this).trace == true_object)                   \
+  if (static_cast<SyntacticContinuation&>(*this).trace == true_object)                   \
   {                                                                            \
     std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl; \
   }
@@ -21,22 +21,22 @@ inline namespace dirty_hacks
   static std::size_t depth {0};
 
   #define DEBUG_COMPILE(...)                                                   \
-  if (   static_cast<Environment&>(*this).verbose          == true_object      \
-      or static_cast<Environment&>(*this).verbose_compiler == true_object)     \
+  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object      \
+      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object)     \
   {                                                                            \
     std::cerr << "; compile\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (   static_cast<Environment&>(*this).verbose          == true_object      \
-      or static_cast<Environment&>(*this).verbose_compiler == true_object)     \
+  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object      \
+      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object)     \
   {                                                                            \
     std::cerr << __VA_ARGS__;                                                  \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  if (   static_cast<Environment&>(*this).verbose          == true_object      \
-      or static_cast<Environment&>(*this).verbose_compiler == true_object)     \
+  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object      \
+      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object)     \
   {                                                                            \
     std::cerr << "; macroexpand\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
   }
@@ -57,7 +57,7 @@ inline namespace dirty_hacks
 
 namespace meevax::kernel
 {
-  template <typename Environment>
+  template <typename SyntacticContinuation>
   class machine // Simple SECD machine.
   {
   protected:
@@ -69,13 +69,13 @@ namespace meevax::kernel
   private: // CRTP Interfaces
     decltype(auto) interaction_environment()
     {
-      return static_cast<Environment&>(*this).interaction_environment();
+      return static_cast<SyntacticContinuation&>(*this).interaction_environment();
     }
 
     template <typename... Ts>
     decltype(auto) intern(Ts&&... operands)
     {
-      return static_cast<Environment&>(*this).intern(
+      return static_cast<SyntacticContinuation&>(*this).intern(
                std::forward<decltype(operands)>(operands)...
              );
     }
@@ -84,7 +84,7 @@ namespace meevax::kernel
     // template <typename... Ts>
     // decltype(auto) export_(Ts&&... operands)
     // {
-    //   return static_cast<Environment&>(*this).export_(std::forward<decltype(operands)>(operands)...);
+    //   return static_cast<SyntacticContinuation&>(*this).export_(std::forward<decltype(operands)>(operands)...);
     // }
 
   public:
@@ -98,8 +98,8 @@ namespace meevax::kernel
         list(key, std::forward<decltype(operands)>(operands)...)
       );
 
-      if (   static_cast<Environment&>(*this).verbose        == true_object
-          or static_cast<Environment&>(*this).verbose_define == true_object)
+      if (   static_cast<SyntacticContinuation&>(*this).verbose        == true_object
+          or static_cast<SyntacticContinuation&>(*this).verbose_define == true_object)
       {
         std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
       }
@@ -159,38 +159,39 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        // TODO Rename to applicant?
-        object buffer {assoc(
+        object applicant {assoc(
           car(expression), interaction_environment()
         )};
 
-        if (buffer == unbound) // maybe, car(expression) is <identifier>
+        if (applicant == unbound) // maybe, car(expression) is <identifier>
         {
-          buffer = car(expression);
+          applicant = car(expression);
         }
 
-        if (not buffer)
+        if (not applicant)
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is application of unit => ERROR" << std::endl);
           throw syntax_error {"unit is not applicable"};
         }
-        else if (buffer != unbound && buffer.is<syntax>() && not de_bruijn_index(car(expression), lexical_environment))
+        else if (    applicant != unbound
+                 and applicant.is<syntax>()
+                 and not de_bruijn_index(car(expression), lexical_environment))
         {
-          DEBUG_COMPILE("(" << car(expression) << " ; => is application of " << buffer << std::endl);
+          DEBUG_COMPILE("(" << car(expression) << " ; => is application of " << applicant << std::endl);
           NEST_IN;
-          auto result {std::invoke(buffer.as<syntax>(), cdr(expression), lexical_environment, continuation, tail)};
+          auto result {std::invoke(applicant.as<syntax>(),
+            cdr(expression), lexical_environment, continuation, tail
+          )};
           NEST_OUT;
           return result;
         }
-        else if (buffer != unbound && buffer.is<Environment>() && not de_bruijn_index(car(expression), lexical_environment))
+        else if (    applicant != unbound
+                 and applicant.is<SyntacticContinuation>()
+                 and not de_bruijn_index(car(expression), lexical_environment))
         {
-          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << buffer << std::endl);
+          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << applicant << std::endl);
 
-          // const auto expanded {assoc(
-          //   car(expression),
-          //   interaction_environment()
-          // ).template as<Environment&>().expand(expression)};
-          const auto expanded {buffer.as<Environment&>().expand(expression)};
+          const auto expanded {applicant.as<SyntacticContinuation&>().expand(expression)};
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
@@ -200,7 +201,7 @@ namespace meevax::kernel
 
           return result;
         }
-        else // is (closure . arguments)
+        else // is (maybe-closure . arguments)
         {
           DEBUG_COMPILE("( ; => is any application " << std::endl);
 
@@ -224,8 +225,8 @@ namespace meevax::kernel
     {
       c = expression;
 
-      if (   static_cast<Environment&>(*this).verbose         == true_object
-          or static_cast<Environment&>(*this).verbose_machine == true_object)
+      if (   static_cast<SyntacticContinuation&>(*this).verbose         == true_object
+          or static_cast<SyntacticContinuation&>(*this).verbose_machine == true_object)
       {
         std::cerr << "; machine\t; " << c << std::endl;
       }
@@ -289,8 +290,8 @@ namespace meevax::kernel
         {
           // throw evaluation_error {cadr(c), " is unbound"};
 
-          if (   static_cast<Environment&>(*this).verbose == true_object
-              or static_cast<Environment&>(*this).verbose_machine == true_object)
+          if (   static_cast<SyntacticContinuation&>(*this).verbose == true_object
+              or static_cast<SyntacticContinuation&>(*this).verbose_machine == true_object)
           {
             std::cerr << "; machine\t; instruction " << car(c) << " received undefined variable " << cadr(c) << ".\n"
                       << ";\t\t; start implicit renaming..." << std::endl;
@@ -301,15 +302,15 @@ namespace meevax::kernel
           * guaranteed not to collide with any symbol from the past to the
           * future. This behavior is defined for the macrotransformer.
           *********************************************************************/
-          s.push(static_cast<Environment&>(*this).rename(cadr(c)));
+          s.push(static_cast<SyntacticContinuation&>(*this).rename(cadr(c)));
         }
         c.pop(2);
         goto dispatch;
 
       case code::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
         TRACE(2);
-        // s.push(make<Environment>(cadr(c), interaction_environment()));
-        s.push(make<Environment>(make<closure>(cadr(c), e), interaction_environment()));
+        // s.push(make<SyntacticContinuation>(cadr(c), interaction_environment()));
+        s.push(make<SyntacticContinuation>(make<closure>(cadr(c), e), interaction_environment()));
         c.pop(2);
         goto dispatch;
 
@@ -328,7 +329,7 @@ namespace meevax::kernel
       case code::MAKE_SYNTACTIC_CONTINUATION: // (closure . S) E (MAKE_SYNTACTIC_CONTINUATION . C) => (syntactic-continuation . S) E C D
         TRACE(2);
         std::cerr << "car(s) = " << car(s) << std::endl;
-        s = make<Environment>(car(s), interaction_environment()) | cdr(s);
+        s = make<SyntacticContinuation>(car(s), interaction_environment()) | cdr(s);
         c.pop(1);
         goto dispatch;
 
@@ -378,9 +379,9 @@ namespace meevax::kernel
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
-        // else if (callee.is<Environment>())
+        // else if (callee.is<SyntacticContinuation>())
         // {
-        //   s = callee.as<Environment>().expand(car(s) | cadr(s)) | cddr(s);
+        //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
         //   c.pop(1);
         // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
@@ -414,9 +415,9 @@ namespace meevax::kernel
           s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
-        // else if (callee.is<Environment>())
+        // else if (callee.is<SyntacticContinuation>())
         // {
-        //   s = callee.as<Environment>().expand(car(s) | cadr(s)) | cddr(s);
+        //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
         //   c.pop(1);
         // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
@@ -944,8 +945,8 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(car(expression) << " ; => is <lambda expression>" << std::endl);
 
-      std::cerr << "expression: " << expression << std::endl
-                << "continuation: " << continuation << std::endl;
+      // std::cerr << "expression: " << expression << std::endl
+      //           << "continuation: " << continuation << std::endl;
 
       return compile(
                car(expression),
