@@ -200,6 +200,10 @@ namespace meevax::kernel
         {
           DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << applicant << std::endl);
 
+          // std::cerr << "Syntactic-Continuation holds "
+          //           << applicant.as<SyntacticContinuation>().continuation()
+          //           << std::endl;
+
           const auto expanded {applicant.as<SyntacticContinuation&>().expand(expression)};
 
           DEBUG_MACROEXPAND(expanded << std::endl);

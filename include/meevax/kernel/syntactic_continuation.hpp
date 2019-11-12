@@ -82,6 +82,7 @@ namespace meevax::kernel
     {}
 
   public: // Interfaces
+    // TODO Rename to "interaction_ready"
     auto ready() const noexcept
     {
       return reader<syntactic_continuation>::ready();
@@ -169,14 +170,19 @@ namespace meevax::kernel
     //   }
     // }
 
+    decltype(auto) continuation()
+    {
+      return std::get<0>(*this);
+    }
+
     decltype(auto) current_expression()
     {
-      return car(std::get<0>(*this));
+      return car(continuation());
     }
 
     decltype(auto) lexical_environment()
     {
-      return cdr(std::get<0>(*this));
+      return cdr(continuation());
     }
 
     decltype(auto) interaction_environment() noexcept
