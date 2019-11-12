@@ -13,13 +13,13 @@
 #include <meevax/kernel/file.hpp>
 #include <meevax/posix/linker.hpp>
 
-/******************************************************************************
+/* ============================================================================
 * Embedded Source Codes
 *
 *   library/layer-1.ss
 *
 * MEMO: readelf -a layer-1.ss.o
-******************************************************************************/
+*=========================================================================== */
 extern char _binary_layer_1_ss_start;
 extern char _binary_layer_1_ss_end;
 
@@ -133,7 +133,7 @@ namespace meevax::kernel
       else
       {
         const std::string name {
-          object.as<const std::string>() + "/" + std::to_string(time_stamp)
+          object.as<const std::string>() + "." + std::to_string(time_stamp)
         };
 
         if (verbose == true_object or verbose_environment == true_object)

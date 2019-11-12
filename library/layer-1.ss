@@ -157,8 +157,8 @@
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-(define-syntax then begin)
-(define-syntax else begin)
+(define then begin)
+(define else begin)
 
 (define-syntax conditional
   (macro-transformer (conditional . clauses)
@@ -1494,4 +1494,49 @@
 ;        `(,(rename 'let) ((,(rename 'value) ,a))
 ;           (,(rename 'set!) ,a ,b)
 ;           (,(rename 'set!) ,b ,(rename 'value)))))))
+
+(define loop
+  (call/csc
+    (lambda form
+     `(,call/cc
+        (,lambda (exit)
+          (,let ,rec ()
+           ,(cadr form)
+            (,rec)))))))
+
+(define f
+  (lambda ()
+    (define x 0)
+
+    (define let     3.14)
+    (define call/cc 3.141)
+    (define lambda  3.1415)
+    (define exit    3.14159)
+    (define rec 3.141592)
+
+    (loop
+      (if (< 9 x)
+          (begin (display "!")
+                 (display exit)
+                 (exit 42))
+          (begin (display x)
+                 (set! x (+ x 1)))))))
+
+; (define-syntax loop
+;   (non-hygienic-macro-transformer
+;     (lambda (form)
+;      `(call-with-current-continuation
+;         (lambda (exit)
+;           (let loop ()
+;             ,form
+;             (loop)))))))
+
+; (define-syntax loop
+;   (sc-macro-transformer
+;     (lambda (form environment)
+;      `(call-with-current-continuation
+;         (lambda (exit)
+;           (let loop ()
+;            ,(make-syntactic-closure environment '(exit) (cadr form))
+;             (loop)))))))
 
