@@ -10,7 +10,7 @@
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
 #include <meevax/kernel/syntax.hpp>
 
-inline namespace dirty_hacks
+inline namespace ugly_macros
 {
   #define TRACE(N)                                                             \
   if (static_cast<SyntacticContinuation&>(*this).trace == true_object)         \
@@ -46,6 +46,17 @@ inline namespace dirty_hacks
   if (verbose == true_object or verbose_compiler == true_object)               \
   {                                                                            \
     std::cerr << "; compile\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
+  }
+
+  #define COMPILER_WARNING(...) \
+  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
+      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  {                                                                            \
+    std::cerr << attribute::normal  << "; "                                    \
+              << highlight::warning << "compiler"                              \
+              << attribute::normal  << "\t; "                                  \
+              << highlight::warning << __VA_ARGS__                             \
+              << attribute::normal  << std::endl;                              \
   }
 
   #define NEST_IN  ++depth
@@ -153,19 +164,18 @@ namespace meevax::kernel
             // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
             if (index.is_variadic())
             {
-              DEBUG_COMPILE_DECISION("is <variable> references lexical variadic " << index
-              );
+              DEBUG_COMPILE_DECISION("is <variable> references lexical variadic " << attribute::normal << index);
               return cons(_load_local_variadic_, index, continuation);
             }
             else
             {
-              DEBUG_COMPILE_DECISION("is <variable> references lexical " << index);
+              DEBUG_COMPILE_DECISION("is <variable> references lexical " << attribute::normal << index);
               return cons(_load_local_, index, continuation);
             }
           }
           else
           {
-            DEBUG_COMPILE_DECISION("is <variable> references the identifier dynamically");
+            DEBUG_COMPILE_DECISION("is <variable> references dynamic value bound to identifier");
             return cons(_load_global_, expression, continuation);
           }
         }
@@ -182,20 +192,21 @@ namespace meevax::kernel
             )};
             not applicant)
         {
-          std::cerr << "; "
-                    << color::yellow << "warning"
-                    << attribute::normal << "\t; "
-                    << color::yellow
-                    << "compiler detected application of variable currently "
-                       "bounds empty-list. if the variable will not reset with "
-                       "applicable object later, cause runtime error."
-                    << attribute::normal
-                    << std::endl;
+          COMPILER_WARNING(
+            "compiler detected application of variable currently bounds "
+            "empty-list. if the variable will not reset with applicable object "
+            "later, cause runtime error."
+          );
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), lexical_environment))
         {
-          DEBUG_COMPILE("(" << car(expression) << " ; => is application of " << applicant << std::endl);
+          DEBUG_COMPILE(
+            "(" << car(expression)
+                << highlight::comment << "\t; is <primitive expression> "
+                << attribute::normal << applicant << std::endl
+          );
+
           NEST_IN;
           auto result {std::invoke(applicant.as<syntax>(),
             cdr(expression), lexical_environment, continuation, tail
@@ -206,7 +217,12 @@ namespace meevax::kernel
         else if (applicant.is<SyntacticContinuation>()
                  and not de_bruijn_index(car(expression), lexical_environment))
         {
-          DEBUG_COMPILE("(" << car(expression) << " ; => is use of " << applicant << std::endl);
+          DEBUG_COMPILE(
+            "(" << car(expression)
+                << highlight::comment << "\t; is <macro use> of <derived expression> "
+                << attribute::normal << applicant
+                << attribute::normal << std::endl
+          );
 
           // std::cerr << "Syntactic-Continuation holds "
           //           << applicant.as<SyntacticContinuation>().continuation()
@@ -222,23 +238,24 @@ namespace meevax::kernel
 
           return result;
         }
-        // else // is (maybe-closure . arguments)
-        // {
-          DEBUG_COMPILE("( ; => is any application " << std::endl);
 
-          NEST_IN;
-          auto result {operand(
-            cdr(expression),
+        DEBUG_COMPILE(
+          "(" << highlight::comment << "\t; is <procedure call>"
+              << attribute::normal << std::endl
+        );
+
+        NEST_IN;
+        auto result {operand(
+          cdr(expression),
+          lexical_environment,
+          compile(
+            car(expression),
             lexical_environment,
-            compile(
-              car(expression),
-              lexical_environment,
-              cons(tail ? _apply_tail_ : _apply_, continuation)
-            )
-          )};
-          NEST_OUT;
-          return result;
-        // }
+            cons(tail ? _apply_tail_ : _apply_, continuation)
+          )
+        )};
+        NEST_OUT;
+        return result;
       }
     }
 

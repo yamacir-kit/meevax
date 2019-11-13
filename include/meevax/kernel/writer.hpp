@@ -66,8 +66,9 @@ namespace meevax::kernel
     constexpr auto* comment {attribute::faint};
     constexpr auto* constructor {color::green};
     constexpr auto* simple_datum {color::cyan};
-    constexpr auto* syntax {color::magenta};
-    constexpr auto* kernel {color::yellow};
+    constexpr auto* syntax  {color::magenta};
+    constexpr auto* kernel  {color::yellow};
+    constexpr auto* warning {color::yellow};
   }
 } // namespace meevax::kernel
 
