@@ -13,7 +13,7 @@
 inline namespace dirty_hacks
 {
   #define TRACE(N)                                                             \
-  if (static_cast<SyntacticContinuation&>(*this).trace == true_object)                   \
+  if (static_cast<SyntacticContinuation&>(*this).trace == true_object)         \
   {                                                                            \
     std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl; \
   }
@@ -21,22 +21,22 @@ inline namespace dirty_hacks
   static std::size_t depth {0};
 
   #define DEBUG_COMPILE(...)                                                   \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object      \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object)     \
+  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
+      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
   {                                                                            \
     std::cerr << "; compile\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object      \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object)     \
+  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
+      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
   {                                                                            \
-    std::cerr << __VA_ARGS__;                                                  \
+    std::cerr << __VA_ARGS__ << attribute::normal << std::endl;                \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object      \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object)     \
+  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
+      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
   {                                                                            \
     std::cerr << "; macroexpand\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
   }
@@ -144,7 +144,7 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        DEBUG_COMPILE(expression << " ; => ");
+        DEBUG_COMPILE(expression << highlight::comment << "\t; ");
 
         if (expression.is<symbol>()) // is variable
         {
@@ -153,24 +153,25 @@ namespace meevax::kernel
             // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
             if (index.is_variadic())
             {
-              DEBUG_COMPILE_DECISION("is local variadic variable => " << list(_load_local_variadic_, index) << std::endl);
+              DEBUG_COMPILE_DECISION("is <variable> references lexical variadic " << index
+              );
               return cons(_load_local_variadic_, index, continuation);
             }
             else
             {
-              DEBUG_COMPILE_DECISION("is local variable => " << list(_load_local_, index) << std::endl);
+              DEBUG_COMPILE_DECISION("is <variable> references lexical " << index);
               return cons(_load_local_, index, continuation);
             }
           }
           else
           {
-            DEBUG_COMPILE_DECISION("is global variable => " << list(_load_global_, expression) << std::endl);
+            DEBUG_COMPILE_DECISION("is <variable> references the identifier dynamically");
             return cons(_load_global_, expression, continuation);
           }
         }
         else
         {
-          DEBUG_COMPILE_DECISION("is self-evaluation => " << list(_load_literal_, expression) << std::endl);
+          DEBUG_COMPILE_DECISION("is <self-evaluating>");
           return cons(_load_literal_, expression, continuation);
         }
       }
@@ -181,8 +182,15 @@ namespace meevax::kernel
             )};
             not applicant)
         {
-          DEBUG_COMPILE("(" << car(expression) << " ; => is application of unit => ERROR" << std::endl);
-          throw syntax_error {"unit is not applicable"};
+          std::cerr << "; "
+                    << color::yellow << "warning"
+                    << attribute::normal << "\t; "
+                    << color::yellow
+                    << "compiler detected application of variable currently "
+                       "bounds empty-list. if the variable will not reset with "
+                       "applicable object later, cause runtime error."
+                    << attribute::normal
+                    << std::endl;
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), lexical_environment))
@@ -214,8 +222,8 @@ namespace meevax::kernel
 
           return result;
         }
-        else // is (maybe-closure . arguments)
-        {
+        // else // is (maybe-closure . arguments)
+        // {
           DEBUG_COMPILE("( ; => is any application " << std::endl);
 
           NEST_IN;
@@ -230,7 +238,7 @@ namespace meevax::kernel
           )};
           NEST_OUT;
           return result;
-        }
+        // }
       }
     }
 
@@ -1000,7 +1008,7 @@ namespace meevax::kernel
         // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
         if (index.is_variadic())
         {
-          DEBUG_COMPILE_DECISION(" local variadic variable => " << list(_set_local_variadic_, index) << std::endl);
+          DEBUG_COMPILE_DECISION(" local variadic variable => " << list(_set_local_variadic_, index));
 
           return compile(
                    cadr(expression),
@@ -1010,7 +1018,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION(" local variable => " << list(_set_local_, index) << std::endl);
+          DEBUG_COMPILE_DECISION(" local variable => " << list(_set_local_, index));
 
           return compile(
                    cadr(expression),
@@ -1021,7 +1029,7 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION(" global variable => " << list(_set_global_, car(expression)) << std::endl);
+        DEBUG_COMPILE_DECISION(" global variable => " << list(_set_global_, car(expression)));
 
         return compile(
                  cadr(expression),

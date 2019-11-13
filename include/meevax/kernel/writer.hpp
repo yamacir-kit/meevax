@@ -60,6 +60,7 @@ namespace meevax::kernel
     }
   }
 
+  // TODO Rename to "highlight_as"
   namespace highlight
   {
     constexpr auto* comment {attribute::faint};
