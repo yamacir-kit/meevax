@@ -599,7 +599,10 @@ namespace meevax::kernel
                      const object&,
                      const object& continuation, bool)
     {
-      DEBUG_COMPILE(car(expression) << "\t; <datum>" << std::endl);
+      DEBUG_COMPILE(
+        car(expression) << highlight::comment << "\t; is <datum>"
+                        << attribute::normal << std::endl
+      );
       return cons(_load_literal_, car(expression), continuation);
     }
 
@@ -701,7 +704,10 @@ namespace meevax::kernel
     {
       if (not lexical_environment)
       {
-        DEBUG_COMPILE(car(expression) << "\t; => <variable>" << std::endl);
+        DEBUG_COMPILE(
+          car(expression) << highlight::comment << "\t; is <variable>"
+                          << attribute::normal << std::endl
+        );
 
         return compile(
                  cdr(expression) ? cadr(expression) : undefined,
@@ -900,7 +906,10 @@ namespace meevax::kernel
                        const object& continuation,
                        const bool optimization = false)
     {
-      DEBUG_COMPILE(car(expression) << " ; => is <test>" << std::endl);
+      DEBUG_COMPILE(
+        car(expression) << highlight::comment << "\t; is <test>"
+                        << attribute::normal << std::endl
+      );
 
       if (optimization)
       {
@@ -944,7 +953,10 @@ namespace meevax::kernel
                   const object& continuation,
                   const bool = false)
     {
-      DEBUG_COMPILE(car(expression) << " ; => is <formals>" << std::endl);
+      DEBUG_COMPILE(
+        car(expression) << highlight::comment << "\t; is <formals>"
+                        << attribute::normal << std::endl
+      );
 
       return cons(
                _make_closure_,
@@ -962,7 +974,10 @@ namespace meevax::kernel
                    const object& continuation,
                    const bool = false)
     {
-      DEBUG_COMPILE(car(expression) << " ; => is <procedure>" << std::endl);
+      DEBUG_COMPILE(
+        car(expression) << highlight::comment << "\t; is <procedure>"
+                        << attribute::normal << std::endl
+      );
 
       return cons(
                _make_continuation_,
@@ -980,7 +995,10 @@ namespace meevax::kernel
                     const object& continuation,
                     const bool = false)
     {
-      DEBUG_COMPILE(car(expression) << " ; => is <lambda expression>" << std::endl);
+      DEBUG_COMPILE(
+        car(expression) << highlight::comment << "\t; is <program>"
+                        << attribute::normal << std::endl
+      );
 
       // std::cerr << "expression: " << expression << std::endl
       //           << "continuation: " << continuation << std::endl;
@@ -996,7 +1014,10 @@ namespace meevax::kernel
                        const object& lexical_environment,
                        const object& continuation, bool = false)
     {
-      DEBUG_COMPILE(car(expression) << "\t; => <formals>" << std::endl);
+      DEBUG_COMPILE(
+        car(expression) << highlight::comment << "\t; is <formals>"
+                        << attribute::normal << std::endl
+      );
 
       return cons(
                _make_environment_,
@@ -1014,7 +1035,7 @@ namespace meevax::kernel
                       const object& lexical_environment,
                       const object& continuation, bool = false)
     {
-      DEBUG_COMPILE(car(expression) << " ; => is ");
+      DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
 
       if (!expression)
       {
@@ -1025,7 +1046,7 @@ namespace meevax::kernel
         // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
         if (index.is_variadic())
         {
-          DEBUG_COMPILE_DECISION(" local variadic variable => " << list(_set_local_variadic_, index));
+          DEBUG_COMPILE_DECISION("<identifier> of lexical variadic " << attribute::normal << index);
 
           return compile(
                    cadr(expression),
@@ -1035,7 +1056,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION(" local variable => " << list(_set_local_, index));
+          DEBUG_COMPILE_DECISION("<identifier> of lexical " << attribute::normal << index);
 
           return compile(
                    cadr(expression),
@@ -1046,7 +1067,7 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION(" global variable => " << list(_set_global_, car(expression)));
+        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal);
 
         return compile(
                  cadr(expression),
