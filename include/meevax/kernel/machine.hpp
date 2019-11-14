@@ -6,9 +6,9 @@
 #include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/native.hpp>
+#include <meevax/kernel/special.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
-#include <meevax/kernel/syntax.hpp>
 
 inline namespace ugly_macros
 {
@@ -148,7 +148,7 @@ namespace meevax::kernel
     object compile(const object& expression,
                    const object& lexical_environment = unit,
                    const object& continuation = list(make<instruction>(mnemonic::STOP)),
-                   const bool tail_call_optimizable = false)
+                   const bool optimizable = false)
     {
       if (not expression)
       {
@@ -219,7 +219,7 @@ namespace meevax::kernel
             "empty-list. if the variable will not reset with applicable object "
             "later, cause runtime error.");
         }
-        else if (applicant.is<syntax>()
+        else if (applicant.is<special>()
                  and not de_bruijn_index(car(expression), lexical_environment))
         {
           DEBUG_COMPILE(
@@ -228,8 +228,8 @@ namespace meevax::kernel
                 << attribute::normal << applicant << std::endl);
 
           NEST_IN;
-          auto result {std::invoke(applicant.as<syntax>(),
-            cdr(expression), lexical_environment, continuation, tail_call_optimizable
+          auto result {std::invoke(applicant.as<special>(),
+            cdr(expression), lexical_environment, continuation, optimizable
           )};
           NEST_OUT;
 
@@ -276,7 +276,7 @@ namespace meevax::kernel
               lexical_environment,
               cons(
                 make<instruction>(
-                  tail_call_optimizable ? mnemonic::APPLY_TAIL : mnemonic::APPLY),
+                  optimizable ? mnemonic::APPLY_TAIL : mnemonic::APPLY),
                 continuation)))
         };
         NEST_OUT;

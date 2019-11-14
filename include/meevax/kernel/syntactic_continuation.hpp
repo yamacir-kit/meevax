@@ -342,47 +342,47 @@ namespace meevax::kernel
   template <>
   syntactic_continuation::syntactic_continuation(std::integral_constant<int, 0>)
   {
-    define<syntax>("quote", [&](auto&&... operands)
+    define<special>("quote", [&](auto&&... operands)
     {
       return quotation(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("if", [&](auto&&... operands)
+    define<special>("if", [&](auto&&... operands)
     {
       return conditional(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("define", [&](auto&&... operands)
+    define<special>("define", [&](auto&&... operands)
     {
       return definition(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("begin", [&](auto&&... operands)
+    define<special>("begin", [&](auto&&... operands)
     {
       return sequence(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("call-with-current-continuation", [&](auto&&... operands)
+    define<special>("call-with-current-continuation", [&](auto&&... operands)
     {
       return call_cc(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("lambda", [&](auto&&... operands)
+    define<special>("lambda", [&](auto&&... operands)
     {
       return lambda(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("environment", [&](auto&&... operands)
+    define<special>("environment", [&](auto&&... operands)
     {
       return abstraction(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("call-with-current-syntactic-continuation", [&](auto&&... operands)
+    define<special>("call-with-current-syntactic-continuation", [&](auto&&... operands)
     {
       return call_csc(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("set!", [&](auto&&... operands)
+    define<special>("set!", [&](auto&&... operands)
     {
       return assignment(std::forward<decltype(operands)>(operands)...);
     });
@@ -390,7 +390,7 @@ namespace meevax::kernel
     /*
      * <importation> = (import <library name>)
      */
-    // define<syntax>("import", [&](auto&& expression,
+    // define<special>("import", [&](auto&& expression,
     //                              auto&& lexical_environment,
     //                              auto&& continuation, auto)
     // {
