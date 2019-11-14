@@ -2,6 +2,10 @@
 
 (define unhygienic-macro-transformer lambda)
 
+(define call-with-current-continuation
+  (lambda (procedure)
+    (call-with-current-continuation procedure)))
+
 (define call/csc call-with-current-syntactic-continuation)
 
 ; (define rsc-macro-transformer

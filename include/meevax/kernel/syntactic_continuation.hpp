@@ -203,11 +203,10 @@ namespace meevax::kernel
       e = cons(operands, lexical_environment());
       c = current_expression();
       d = cons(
-            unit,         // s
-            unit,         // e
-            list(_stop_), // c
-            unit          // d
-          );
+            unit,                                    // s
+            unit,                                    // e
+            list(make<instruction>(mnemonic::STOP)), // c
+            unit);                                   // d
 
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;
@@ -258,9 +257,9 @@ namespace meevax::kernel
       for (const object& each : library.as<syntactic_continuation>().interaction_environment())
       {
         executable.push(
-          _load_literal_, cadr(each),
-          _define_, rename(car(each))
-        );
+          make<instruction>(mnemonic::LOAD_LITERAL), cadr(each),
+          make<instruction>(mnemonic::DEFINE), rename(car(each))
+          );
       }
 
       return executable;
@@ -284,7 +283,7 @@ namespace meevax::kernel
     //
     //   for (const auto& [key, value] : source.bindings)
     //   {
-    //     executable.push(_load_literal_, value, _define_, rename(key));
+    //     executable.push(_load_literal_, value, make<instruction>(mnemonic::DEFINE), rename(key));
     //   }
     //
     //   return executable;
@@ -482,7 +481,7 @@ namespace meevax::kernel
     //     * shared-object as given library-name (this will execute on first of VM
     //     * instruction which result of this function).
     //     **********************************************************************/
-    //     return decralations.push(_load_literal_, exported, _define_, library_name);
+    //     return decralations.push(_load_literal_, exported, make<instruction>(mnemonic::DEFINE), library_name);
     //   }
     // });
 
