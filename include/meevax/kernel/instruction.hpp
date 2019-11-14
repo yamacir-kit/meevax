@@ -9,7 +9,7 @@
 
 namespace meevax::kernel
 {
-  #define INSTRUCTIONS \
+  #define MNEMONICS \
     (APPLY) \
     (APPLY_TAIL) \
     (DEFINE) \
@@ -35,7 +35,7 @@ namespace meevax::kernel
   enum class mnemonic
     : std::int8_t
   {
-    BOOST_PP_SEQ_ENUM(INSTRUCTIONS)
+    BOOST_PP_SEQ_ENUM(MNEMONICS)
   };
 
   struct instruction
@@ -54,14 +54,12 @@ namespace meevax::kernel
 
     switch (instruction.code)
     {
-    #define INSTRUCTION_CASE(_, AUX, EACH) \
+    #define MNEMONIC_CASE(_, AUX, EACH) \
     case mnemonic::EACH: \
       os << BOOST_PP_STRINGIZE(EACH); \
       break;
 
-      BOOST_PP_SEQ_FOR_EACH(INSTRUCTION_CASE, _, INSTRUCTIONS)
-
-    #undef INSTRUCTION_CASE
+      BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
     }
 
     return os << attribute::normal;
