@@ -91,18 +91,21 @@ namespace meevax::kernel
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
-      return kernel::machine<syntactic_continuation>::define(
-               intern(name),
-               make<T>(name, std::forward<decltype(operands)>(operands)...)
-             );
+      return
+        kernel::machine<syntactic_continuation>::define(
+          intern(name),
+          make<T>(
+            name,
+            std::forward<decltype(operands)>(operands)...));
     }
 
     template <typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
-      return kernel::machine<syntactic_continuation>::define(
-               intern(name), std::forward<decltype(operands)>(operands)...
-             );
+      return
+        kernel::machine<syntactic_continuation>::define(
+          intern(name),
+          std::forward<decltype(operands)>(operands)...);
     }
 
     const auto& intern(const std::string& s)
@@ -258,8 +261,7 @@ namespace meevax::kernel
       {
         executable.push(
           make<instruction>(mnemonic::LOAD_LITERAL), cadr(each),
-          make<instruction>(mnemonic::DEFINE), rename(car(each))
-          );
+          make<instruction>(mnemonic::DEFINE), rename(car(each)));
       }
 
       return executable;
@@ -552,10 +554,10 @@ namespace meevax::kernel
       // {
         const std::string name {cadr(operands).as<string>()};
 
-        return make<native>(
-          name,
-          car(operands).as<posix::linker>().link<native::signature>(name)
-        );
+        return
+          make<native>(
+            name,
+            car(operands).as<posix::linker>().link<native::signature>(name));
       // }
     });
 

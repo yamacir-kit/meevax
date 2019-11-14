@@ -87,8 +87,7 @@ namespace meevax::kernel
     decltype(auto) intern(Ts&&... operands)
     {
       return static_cast<SyntacticContinuation&>(*this).intern(
-               std::forward<decltype(operands)>(operands)...
-             );
+               std::forward<decltype(operands)>(operands)...);
     }
 
     // TODO Remove
@@ -106,8 +105,7 @@ namespace meevax::kernel
       // auto iter {export_(key, std::forward<decltype(operands)>(operands)...)};
       // interaction_environment().push(list(iter->first, iter->second));
       interaction_environment().push(
-        list(key, std::forward<decltype(operands)>(operands)...)
-      );
+        list(key, std::forward<decltype(operands)>(operands)...));
 
       if (   static_cast<SyntacticContinuation&>(*this).verbose        == true_object
           or static_cast<SyntacticContinuation&>(*this).verbose_define == true_object)
@@ -135,24 +133,28 @@ namespace meevax::kernel
       }
     }
 
-    // TODO Change last boolean argument to template parameter (use if constexpr)
-    /*
-     * <expression> = <identifier>
-     *              | <literal>
-     *              | (<expression> <expression>*)
-     *              | <lambda expression>
-     *              | <conditional>
-     *              | <assignment>
-     *              | <derived expression>
-     */
+    /* ------------------------------------------------------------------------
+    *
+    * <expression> = <identifier>
+    *              | <literal>
+    *              | <procedure call>
+    *              | <lambda expression>
+    *              | <conditional>
+    *              | <assignment>
+    *              | <derived expression>
+    *
+    * TODO Change last boolean argument to template parameter (use if constexpr)
+    *----------------------------------------------------------------------- */
     object compile(const object& expression,
                    const object& lexical_environment = unit,
                    const object& continuation = list(make<instruction>(mnemonic::STOP)),
-                   bool tail = false)
+                   const bool tail_call_optimizable = false)
     {
       if (not expression)
       {
-        return cons(make<instruction>(mnemonic::LOAD_LITERAL), unit, continuation);
+        return cons(
+          make<instruction>(mnemonic::LOAD_LITERAL), unit,
+          continuation);
       }
       else if (not expression.is<pair>())
       {
@@ -165,25 +167,44 @@ namespace meevax::kernel
             // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
             if (index.is_variadic())
             {
-              DEBUG_COMPILE_DECISION("is <variable> references lexical variadic " << attribute::normal << index);
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL_VARIADIC), index, continuation);
+              DEBUG_COMPILE_DECISION(
+                "is <variable> references lexical variadic " << attribute::normal << index);
+
+              return
+                cons(
+                  make<instruction>(mnemonic::LOAD_LOCAL_VARIADIC), index,
+                  continuation);
             }
             else
             {
-              DEBUG_COMPILE_DECISION("is <variable> references lexical " << attribute::normal << index);
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), index, continuation);
+              DEBUG_COMPILE_DECISION(
+                "is <variable> references lexical " << attribute::normal << index);
+
+              return
+                cons(
+                  make<instruction>(mnemonic::LOAD_LOCAL), index,
+                  continuation);
             }
           }
           else
           {
-            DEBUG_COMPILE_DECISION("is <variable> references dynamic value bound to the identifier");
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), expression, continuation);
+            DEBUG_COMPILE_DECISION(
+              "is <variable> references dynamic value bound to the identifier");
+
+            return
+              cons(
+                make<instruction>(mnemonic::LOAD_GLOBAL), expression,
+                continuation);
           }
         }
         else
         {
           DEBUG_COMPILE_DECISION("is <self-evaluating>");
-          return cons(make<instruction>(mnemonic::LOAD_LITERAL), expression, continuation);
+
+          return
+            cons(
+              make<instruction>(mnemonic::LOAD_LITERAL), expression,
+              continuation);
         }
       }
       else // is (application . arguments)
@@ -196,8 +217,7 @@ namespace meevax::kernel
           COMPILER_WARNING(
             "compiler detected application of variable currently bounds "
             "empty-list. if the variable will not reset with applicable object "
-            "later, cause runtime error."
-          );
+            "later, cause runtime error.");
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), lexical_environment))
@@ -205,14 +225,14 @@ namespace meevax::kernel
           DEBUG_COMPILE(
             "(" << car(expression)
                 << highlight::comment << "\t; is <primitive expression> "
-                << attribute::normal << applicant << std::endl
-          );
+                << attribute::normal << applicant << std::endl);
 
           NEST_IN;
           auto result {std::invoke(applicant.as<syntax>(),
-            cdr(expression), lexical_environment, continuation, tail
+            cdr(expression), lexical_environment, continuation, tail_call_optimizable
           )};
           NEST_OUT;
+
           return result;
         }
         else if (applicant.is<SyntacticContinuation>()
@@ -222,14 +242,16 @@ namespace meevax::kernel
             "(" << car(expression)
                 << highlight::comment << "\t; is <macro use> of <derived expression> "
                 << attribute::normal << applicant
-                << attribute::normal << std::endl
-          );
+                << attribute::normal << std::endl);
 
           // std::cerr << "Syntactic-Continuation holds "
           //           << applicant.as<SyntacticContinuation>().continuation()
           //           << std::endl;
 
-          const auto expanded {applicant.as<SyntacticContinuation&>().expand(expression)};
+          const auto expanded {
+            applicant.as<SyntacticContinuation&>().expand(
+              expression)
+          };
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
@@ -242,22 +264,21 @@ namespace meevax::kernel
 
         DEBUG_COMPILE(
           "(" << highlight::comment << "\t; is <procedure call>"
-              << attribute::normal << std::endl
-        );
+              << attribute::normal << std::endl);
 
         NEST_IN;
-        auto result {operand(
-          cdr(expression),
-          lexical_environment,
-          compile(
-            car(expression),
+        auto result {
+          operand(
+            cdr(expression),
             lexical_environment,
-            cons(
-              make<instruction>(tail ? mnemonic::APPLY_TAIL : mnemonic::APPLY),
-              continuation
-            )
-          )
-        )};
+            compile(
+              car(expression),
+              lexical_environment,
+              cons(
+                make<instruction>(
+                  tail_call_optimizable ? mnemonic::APPLY_TAIL : mnemonic::APPLY),
+                continuation)))
+        };
         NEST_OUT;
         return result;
       }
@@ -324,7 +345,11 @@ namespace meevax::kernel
 
       case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
         TRACE(2);
-        if (auto value {assoc(cadr(c), interaction_environment())}; value != unbound)
+        if (auto value {
+              assoc(
+                cadr(c),
+                interaction_environment())
+            }; value != unbound)
         {
           s.push(value);
         }
@@ -352,25 +377,34 @@ namespace meevax::kernel
       case mnemonic::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
         TRACE(2);
         // s.push(make<SyntacticContinuation>(cadr(c), interaction_environment()));
-        s.push(make<SyntacticContinuation>(make<closure>(cadr(c), e), interaction_environment()));
+        s.push(
+          make<SyntacticContinuation>(
+            make<closure>(cadr(c), e),
+            interaction_environment()));
         c.pop(2);
         goto dispatch;
 
       case mnemonic::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
         TRACE(2);
-        s.push(make<closure>(cadr(c), e));
+        s.push(
+          make<closure>(cadr(c), e));
         c.pop(2);
         goto dispatch;
 
       case mnemonic::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
         TRACE(2);
-        s.push(list(make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
+        s.push(
+          list(
+            make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
         c.pop(2);
         goto dispatch;
 
       case mnemonic::MAKE_SYNTACTIC_CONTINUATION: // (closure . S) E (MAKE_SYNTACTIC_CONTINUATION . C) => (syntactic-continuation . S) E C D
         TRACE(2);
-        s = make<SyntacticContinuation>(car(s), interaction_environment()) | cdr(s);
+        s = make<SyntacticContinuation>(
+              car(s),
+              interaction_environment())
+          | cdr(s);
         c.pop(1);
         goto dispatch;
 
@@ -417,7 +451,8 @@ namespace meevax::kernel
         }
         else if (callee.is<native>()) // (native operands . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<native>(), cadr(s))
+            | cddr(s);
           c.pop(1);
         }
         // else if (callee.is<SyntacticContinuation>())
@@ -539,8 +574,8 @@ namespace meevax::kernel
         c.pop(2);
         goto dispatch;
 
-      default:
       case mnemonic::STOP: // (result . S) E (STOP . C) D
+      default:
         TRACE(1);
         c.pop(1);
         return s.pop(); // car(s);
@@ -572,12 +607,20 @@ namespace meevax::kernel
             if (position.is<pair>() && *position == variable)
             {
               variadic = false;
-              return cons(make<real>(i), make<real>(j));
+
+              return
+                cons(
+                  make<real>(i),
+                  make<real>(j));
             }
             else if (not position.is<pair>() && position == variable)
             {
               variadic = true;
-              return cons(make<real>(i), make<real>(j));
+
+              return
+                cons(
+                  make<real>(i),
+                  make<real>(j));
             }
 
             ++j;
@@ -609,8 +652,7 @@ namespace meevax::kernel
       );
       return
         cons(
-          make<instruction>(mnemonic::LOAD_LITERAL),
-          car(expression),
+          make<instruction>(mnemonic::LOAD_LITERAL), car(expression),
           continuation);
     }
 
@@ -694,20 +736,25 @@ namespace meevax::kernel
       // <car expression> = (<caar expression> <cadar expression> <caddar expression>)
       //                  = (#(syntax define) <identifier> <expression>)
 
-      auto definition {compile(
-        cddar(expression) ? caddar(expression) : undefined,
-        lexical_environment,
-        list(make<instruction>(mnemonic::DEFINE), cadar(expression))
-      )};
+      auto definition {
+        compile(
+          cddar(expression) ? caddar(expression) : undefined,
+          lexical_environment,
+          list(
+            make<instruction>(mnemonic::DEFINE), cadar(expression)))
+      };
 
       NEST_OUT;
 
-      return append(
-               definition,
-               cdr(expression)
-                 ? program(cdr(expression), lexical_environment, continuation)
-                 : continuation
-             );
+      return
+        append(
+          definition,
+          cdr(expression)
+            ? program(
+                cdr(expression),
+                lexical_environment,
+                continuation)
+            : continuation);
     }
 
     /*
@@ -722,14 +769,15 @@ namespace meevax::kernel
       {
         DEBUG_COMPILE(
           car(expression) << highlight::comment << "\t; is <variable>"
-                          << attribute::normal << std::endl
-        );
+                          << attribute::normal << std::endl);
 
-        return compile(
-                 cdr(expression) ? cadr(expression) : undefined,
-                 lexical_environment,
-                 cons(make<instruction>(mnemonic::DEFINE), car(expression), continuation)
-               );
+        return
+          compile(
+            cdr(expression) ? cadr(expression) : undefined,
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::DEFINE), car(expression),
+              continuation));
       }
       else
       {
@@ -764,12 +812,12 @@ namespace meevax::kernel
         *   <expression> ;= <car expression>
         *   )
         **********************************************************************/
-        return compile(
-                 car(expression),
-                 lexical_environment,
-                 continuation,
-                 true // tail-call optimization
-               );
+        return
+          compile(
+            car(expression),
+            lexical_environment,
+            continuation,
+            true); // tail-call optimization
       }
       else if (not car(expression))
       {
@@ -781,11 +829,11 @@ namespace meevax::kernel
         *   () ;= <car expression>
         *   <sequence> ;= <cdr expression>)
         **********************************************************************/
-        return sequence(
-                 cdr(expression),
-                 lexical_environment,
-                 continuation
-               );
+        return
+          sequence(
+            cdr(expression),
+            lexical_environment,
+            continuation);
       }
       else if (not car(expression).is<pair>()
                or caar(expression) != intern("define"))
@@ -797,15 +845,16 @@ namespace meevax::kernel
         *   <non-definition expression> ;= <car expression>
         *   <sequence> ;= <cdr expression>)
         **********************************************************************/
-        return compile(
-                 car(expression), // <non-definition expression>
-                 lexical_environment,
-                 cons(
-                   make<instruction>(mnemonic::POP), // remove result of expression
-                   sequence(
-                     cdr(expression),
-                     lexical_environment,
-                     continuation)));
+        return
+          compile(
+            car(expression), // <non-definition expression>
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::POP), // remove result of expression
+              sequence(
+                cdr(expression),
+                lexical_environment,
+                continuation)));
       }
       else // 5.3.2 Internal Definitions
       {
@@ -874,18 +923,21 @@ namespace meevax::kernel
         )};
         // std::cerr << "; letrec*\t; <assignments> := " << assignments << std::endl;
 
-        const object result {cons(
+        const object result {
           cons(
-            intern("lambda"), formals, append(assignments, body)
-          ),
-          operands
-        )};
+            cons(
+              intern("lambda"),
+              formals,
+              append(assignments, body)),
+            operands)
+        };
         // std::cerr << "; letrec*\t; result := " << result << std::endl;
 
-        return compile(
-                 result,
-                 lexical_environment,
-                 continuation);
+        return
+          compile(
+            result,
+            lexical_environment,
+            continuation);
       }
     }
 
@@ -898,18 +950,24 @@ namespace meevax::kernel
     {
       if (expression && expression.is<pair>())
       {
-        return operand(
-                 cdr(expression),
-                 lexical_environment,
-                 compile(
-                   car(expression),
-                   lexical_environment,
-                   cons(
-                     make<instruction>(mnemonic::PUSH), continuation)));
+        return
+          operand(
+            cdr(expression),
+            lexical_environment,
+            compile(
+              car(expression),
+              lexical_environment,
+              cons(
+                make<instruction>(mnemonic::PUSH),
+                continuation)));
       }
       else
       {
-        return compile(expression, lexical_environment, continuation);
+        return
+          compile(
+            expression,
+            lexical_environment,
+            continuation);
       }
     }
 
@@ -923,8 +981,7 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <test>"
-                        << attribute::normal << std::endl
-      );
+                        << attribute::normal << std::endl);
 
       if (optimization)
       {
@@ -951,33 +1008,45 @@ namespace meevax::kernel
                 make<instruction>(mnemonic::RETURN))
         };
 
-        return compile(
-                 car(expression), // <test>
-                 lexical_environment,
-                 cons(make<instruction>(mnemonic::SELECT_TAIL), consequent, alternate, cdr(continuation))
-               );
+        return
+          compile(
+            car(expression), // <test>
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::SELECT_TAIL),
+              consequent,
+              alternate,
+              cdr(continuation)));
       }
       else
       {
-        const auto consequent {compile(
-          cadr(expression), lexical_environment, list(make<instruction>(mnemonic::JOIN))
-        )};
-
-        const auto alternate {
-          cddr(expression) ? compile(
-                               caddr(expression), lexical_environment, list(make<instruction>(mnemonic::JOIN))
-                             )
-                           : list(
-                               make<instruction>(mnemonic::LOAD_LITERAL), undefined,
-                               make<instruction>(mnemonic::JOIN)
-                             )
+        const auto consequent {
+          compile(
+            cadr(expression),
+            lexical_environment,
+            list(make<instruction>(mnemonic::JOIN)))
         };
 
-        return compile(
-                 car(expression), // <test>
-                 lexical_environment,
-                 cons(make<instruction>(mnemonic::SELECT), consequent, alternate, continuation)
-               );
+        const auto alternate {
+          cddr(expression)
+            ? compile(
+                caddr(expression),
+                lexical_environment,
+                list(make<instruction>(mnemonic::JOIN)))
+            : list(
+                make<instruction>(mnemonic::LOAD_LITERAL), undefined,
+                make<instruction>(mnemonic::JOIN))
+        };
+
+        return
+          compile(
+            car(expression), // <test>
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::SELECT),
+              consequent,
+              alternate,
+              continuation));
       }
     }
 
@@ -991,18 +1060,19 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <formals>"
-                        << attribute::normal << std::endl
-      );
+                        << attribute::normal << std::endl);
 
-      return cons(
-               make<instruction>(mnemonic::MAKE_CLOSURE),
-               body(
-                 cdr(expression), // <body>
-                 cons(car(expression), lexical_environment), // extend lexical environment
-                 list(make<instruction>(mnemonic::RETURN)) // continuation of body (finally, must be return)
-               ),
-               continuation
-             );
+      return
+        cons(
+          make<instruction>(mnemonic::MAKE_CLOSURE),
+          body(
+            cdr(expression), // <body>
+            cons(
+              car(expression),
+              lexical_environment), // extend lexical environment
+            list(
+              make<instruction>(mnemonic::RETURN))), // continuation of body (finally, must be return)
+          continuation);
     }
 
     object call_cc(const object& expression,
@@ -1012,16 +1082,18 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <procedure>"
-                        << attribute::normal << std::endl
-      );
+                        << attribute::normal << std::endl);
 
-      return cons(
-               make<instruction>(mnemonic::MAKE_CONTINUATION),
-               continuation,
-               compile(
-                 car(expression),
-                 lexical_environment,
-                 cons(make<instruction>(mnemonic::APPLY), continuation)));
+      return
+        cons(
+          make<instruction>(mnemonic::MAKE_CONTINUATION),
+          continuation,
+          compile(
+            car(expression),
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::APPLY),
+              continuation)));
     }
 
     object call_csc(const object& expression,
@@ -1031,17 +1103,18 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <program>"
-                        << attribute::normal << std::endl
-        );
+                        << attribute::normal << std::endl);
 
       // std::cerr << "expression: " << expression << std::endl
       //           << "continuation: " << continuation << std::endl;
 
-      return compile(
-               car(expression),
-               lexical_environment,
-               cons(make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION), continuation)
-               );
+      return
+        compile(
+          car(expression),
+          lexical_environment,
+          cons(
+            make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
+            continuation));
     }
 
     object abstraction(const object& expression,
@@ -1050,17 +1123,17 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <formals>"
-                        << attribute::normal << std::endl
-      );
+                        << attribute::normal << std::endl);
 
-      return cons(
-               make<instruction>(mnemonic::MAKE_ENVIRONMENT),
-               // program(
-               body(
-                 cdr(expression),
-                 cons(car(expression), lexical_environment),
-                 list(make<instruction>(mnemonic::RETURN))),
-               continuation);
+      return
+        cons(
+          make<instruction>(mnemonic::MAKE_ENVIRONMENT),
+          // program(
+          body(
+            cdr(expression),
+            cons(car(expression), lexical_environment),
+            list(make<instruction>(mnemonic::RETURN))),
+          continuation);
     }
 
     object assignment(const object& expression,
@@ -1078,36 +1151,42 @@ namespace meevax::kernel
         // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
         if (index.is_variadic())
         {
-          DEBUG_COMPILE_DECISION("<identifier> of lexical variadic " << attribute::normal << index);
+          DEBUG_COMPILE_DECISION(
+            "<identifier> of lexical variadic " << attribute::normal << index);
 
-          return compile(
-                   cadr(expression),
-                   lexical_environment,
-                   cons(make<instruction>(mnemonic::SET_LOCAL_VARIADIC), index, continuation)
-                 );
+          return
+            compile(
+              cadr(expression),
+              lexical_environment,
+              cons(
+                make<instruction>(mnemonic::SET_LOCAL_VARIADIC), index,
+                continuation));
         }
         else
         {
           DEBUG_COMPILE_DECISION("<identifier> of lexical " << attribute::normal << index);
 
-          return compile(
-                   cadr(expression),
-                   lexical_environment,
-                   cons(make<instruction>(mnemonic::SET_LOCAL), index, continuation)
-                 );
+          return
+            compile(
+              cadr(expression),
+              lexical_environment,
+              cons(
+                make<instruction>(mnemonic::SET_LOCAL), index,
+                continuation));
         }
       }
       else
       {
         DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal);
 
-        return compile(
-                 cadr(expression),
-                 lexical_environment,
-                 cons(
-                   make<instruction>(mnemonic::SET_GLOBAL),
-                   car(expression),
-                   continuation));
+        return
+          compile(
+            cadr(expression),
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::SET_GLOBAL),
+              car(expression),
+              continuation));
       }
     }
   };
