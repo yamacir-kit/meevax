@@ -35,5 +35,17 @@ namespace meevax::kernel
   }
 } // namespace meevax::kernel
 
+namespace meevax::for_api
+{
+  #define MEEVAX_BOOLEAN(...) \
+  (__VA_ARGS__ ? meevax::kernel::true_object : meevax::kernel::false_object)
+
+  #define MEEVAX_FOLD_ARGUMENTS(INIT, ...) \
+  std::accumulate(std::begin(operands), std::end(operands), INIT, __VA_ARGS__)
+
+  #define MEEVAX_BINARY_OPERATION(...) \
+  std::invoke(__VA_ARGS__, meevax::kernel::car(operands), meevax::kernel::cadr(operands))
+} // namespace meevax::for_api
+
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 

@@ -14,10 +14,10 @@ extern "C" namespace meevax::pair
 
   PROCEDURE(cons)
   {
-    return kernel::cons(
-             kernel::car(operands),
-             kernel::cadr(operands)
-           );
+    return
+      kernel::cons(
+        kernel::car(operands),
+        kernel::cadr(operands));
   }
 
   PROCEDURE(pair_)
