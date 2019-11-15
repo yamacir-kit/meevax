@@ -1,15 +1,15 @@
 #include <meevax/kernel/character.hpp>
-#include <meevax/kernel/native.hpp>
 #include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/procedure.hpp>
 
 extern "C" namespace meevax::character
 {
-  NATIVE(is_character)
+  PROCEDURE(is_character)
   {
     return kernel::car(operands).is<kernel::character>() ? kernel::true_object : kernel::false_object;
   }
 
-  NATIVE(digit_value)
+  PROCEDURE(digit_value)
   {
     // XXX INCORRECT!!!
     return kernel::make<kernel::real>(
@@ -17,7 +17,7 @@ extern "C" namespace meevax::character
            );
   }
 
-  NATIVE(codepoint)
+  PROCEDURE(codepoint)
   {
     switch (const std::string& s {
               kernel::car(operands).as<const std::string&>()

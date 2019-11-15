@@ -1,13 +1,13 @@
 #include <boost/cstdlib.hpp> // boost::exit_success
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/native.hpp>
 #include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
 
 extern "C" namespace meevax::experimental
 {
-  NATIVE(emergency_exit)
+  PROCEDURE(emergency_exit)
   {
     if (not operands or not kernel::car(operands).is<kernel::real>())
     {
@@ -22,7 +22,7 @@ extern "C" namespace meevax::experimental
     return kernel::unspecified;
   }
 
-  NATIVE(display)
+  PROCEDURE(display)
   {
     for (const kernel::object& each : operands)
     {

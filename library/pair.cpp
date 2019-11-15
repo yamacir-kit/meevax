@@ -1,18 +1,18 @@
-#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/procedure.hpp>
 
 extern "C" namespace meevax::pair
 {
-  NATIVE(car)
+  PROCEDURE(car)
   {
     return kernel::caar(operands);
   }
 
-  NATIVE(cdr)
+  PROCEDURE(cdr)
   {
     return kernel::cdar(operands);
   }
 
-  NATIVE(cons)
+  PROCEDURE(cons)
   {
     return kernel::cons(
              kernel::car(operands),
@@ -20,7 +20,7 @@ extern "C" namespace meevax::pair
            );
   }
 
-  NATIVE(pair_)
+  PROCEDURE(pair_)
   {
     for (const auto& each : operands)
     {

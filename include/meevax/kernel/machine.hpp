@@ -5,7 +5,7 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/special.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
@@ -449,9 +449,9 @@ namespace meevax::kernel
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<native>()) // (native operands . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<native>(), cadr(s))
+          s = std::invoke(callee.as<procedure>(), cadr(s))
             | cddr(s);
           c.pop(1);
         }
@@ -486,9 +486,9 @@ namespace meevax::kernel
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<native>()) // (native operands . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<native>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
           c.pop(1);
         }
         // else if (callee.is<SyntacticContinuation>())

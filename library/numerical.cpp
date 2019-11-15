@@ -1,12 +1,12 @@
 #include <numeric>
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/native.hpp>
 #include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/procedure.hpp>
 
 extern "C" namespace meevax::numerical
 {
-  NATIVE(addition)
+  PROCEDURE(addition)
   {
     return std::accumulate(
              std::begin(operands), std::end(operands),
@@ -15,7 +15,7 @@ extern "C" namespace meevax::numerical
            );
   }
 
-  NATIVE(multiplication)
+  PROCEDURE(multiplication)
   {
     return std::accumulate(
              std::begin(operands), std::end(operands),
@@ -24,7 +24,7 @@ extern "C" namespace meevax::numerical
            );
   }
 
-  NATIVE(subtraction)
+  PROCEDURE(subtraction)
   {
     if (kernel::length(operands) < 2)
     {
@@ -44,7 +44,7 @@ extern "C" namespace meevax::numerical
     }
   }
 
-  NATIVE(division)
+  PROCEDURE(division)
   {
     if (kernel::length(operands) < 2)
     {
@@ -64,27 +64,27 @@ extern "C" namespace meevax::numerical
     }
   }
 
-  NATIVE(less)
+  PROCEDURE(less)
   {
     return std::invoke(std::less {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
-  NATIVE(less_equal)
+  PROCEDURE(less_equal)
   {
     return std::invoke(std::less_equal {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
-  NATIVE(greater)
+  PROCEDURE(greater)
   {
     return std::invoke(std::greater {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
-  NATIVE(greater_equal)
+  PROCEDURE(greater_equal)
   {
     return std::invoke(std::greater_equal {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
   }
 
-  NATIVE(real_)
+  PROCEDURE(real_)
   {
     return kernel::car(operands).is<kernel::real>() ? kernel::true_object : kernel::false_object;
   }

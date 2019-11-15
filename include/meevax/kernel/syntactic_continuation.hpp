@@ -455,14 +455,14 @@ namespace meevax::kernel
     //     // machine<syntactic_continuation>::define(
     //     //   library_name,
     //     //   std::invoke(
-    //     //     dynamic_link(library_path).link<native::signature>("library"),
+    //     //     dynamic_link(library_path).link<procedure::signature>("library"),
     //     //     unit
     //     //   )
     //     // );
     //
     //     const object exported {std::invoke(
-    //       dynamic_link(library_path).link<native::signature>("library"),
-    //       // linker.as<posix::linker>().link<native::signature>("library"),
+    //       dynamic_link(library_path).link<procedure::signature>("library"),
+    //       // linker.as<posix::linker>().link<procedure::signature>("library"),
     //       unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
     //     )};
     //
@@ -487,12 +487,12 @@ namespace meevax::kernel
     //   }
     // });
 
-    define<native>("load", [&](const object& operands)
+    define<procedure>("load", [&](const object& operands)
     {
       return load(car(operands).as<const string>());
     });
 
-    define<native>("linker", [&](auto&& operands)
+    define<procedure>("linker", [&](auto&& operands)
     {
       if (auto size {length(operands)}; size < 1)
       {
@@ -516,7 +516,7 @@ namespace meevax::kernel
       }
     });
 
-    define<native>("native", [&](const iterator& operands)
+    define<procedure>("native", [&](const iterator& operands)
     {
       // if (auto size {length(operands)}; size < 1)
       // {
@@ -555,24 +555,24 @@ namespace meevax::kernel
         const std::string name {cadr(operands).as<string>()};
 
         return
-          make<native>(
+          make<procedure>(
             name,
-            car(operands).as<posix::linker>().link<native::signature>(name));
+            car(operands).as<posix::linker>().link<procedure::signature>(name));
       // }
     });
 
-    define<native>("read", [&](const iterator& operands)
+    define<procedure>("read", [&](const iterator& operands)
     {
       return read(operands ? car(operands).as<input_file>() : std::cin);
     });
 
-    define<native>("write", [&](const iterator& operands)
+    define<procedure>("write", [&](const iterator& operands)
     {
       std::cout << car(operands);
       return unspecified;
     });
 
-    define<native>("evaluate", [&](auto&& operands)
+    define<procedure>("evaluate", [&](auto&& operands)
     {
       return evaluate(car(operands));
     });

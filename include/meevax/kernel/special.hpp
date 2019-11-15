@@ -6,10 +6,10 @@
 #include <meevax/kernel/object.hpp>
 
 #define SPECIAL(NAME) \
-  const object NAME(const object&, \
-                     const object&, \
-                     const object&, \
-                     const bool)
+  const meevax::kernel::object NAME(const meevax::kernel::object&, \
+                                    const meevax::kernel::object&, \
+                                    const meevax::kernel::object&, \
+                                    const bool)
 
 namespace meevax::kernel
 {

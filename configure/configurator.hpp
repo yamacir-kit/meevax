@@ -7,7 +7,7 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/reader.hpp>
 
@@ -82,13 +82,13 @@ namespace meevax::kernel
     /**
      * TODO
      * Simplify the parser by adding a default constructor that constructs a
-     * procedure that either returns a NIL for a native type or throws an
+     * procedure that either returns a NIL for a procedure type or throws an
      * exception, meaning that it is undecided.
      **/
     template <typename T>
     using dispatcher = std::unordered_map<
                          typename std::decay<T>::type,
-                         std::function<NATIVE()>
+                         std::function<PROCEDURE()>
                        >;
 
     const dispatcher<char> short_options_requires_no_operands
