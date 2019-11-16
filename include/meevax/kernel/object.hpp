@@ -24,7 +24,9 @@ namespace meevax::kernel
   template <typename T, typename... Ts>
   constexpr decltype(auto) make(Ts&&... operands)
   {
-    return object::bind<T>(std::forward<decltype(operands)>(operands)...);
+    return
+      object::bind<T>(
+        std::forward<decltype(operands)>(operands)...);
   }
 
   extern "C" const object unit, unbound, undefined, unspecified;

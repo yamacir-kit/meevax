@@ -1,9 +1,7 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_FORWARD_HPP
 #define INCLUDED_MEEVAX_UTILITY_FORWARD_HPP
 
-/**
- * https://vittorioromeo.info/index/blog/capturing_perfectly_forwarded_objects_in_lambdas.html
- **/
+// Reference: https://vittorioromeo.info/index/blog/capturing_perfectly_forwarded_objects_in_lambdas.html
 
 #include <utility>
 

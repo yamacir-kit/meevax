@@ -66,9 +66,9 @@ namespace meevax::kernel
     };
   };
 
-  /**
-   * Reference counting garbage collector built-in heteropointer.
-   */
+  /* ==========================================================================
+  * Reference counting garbage collector built-in heteropointer.
+  *========================================================================= */
   template <typename T>
   class pointer
     : public std::shared_ptr<T>
@@ -106,8 +106,7 @@ namespace meevax::kernel
         }
         else throw std::logic_error
         {
-          "This is a fatal error for Meevax library developers. "
-          "The bound type of meevax::kernel::pointer is required the concept CopyConstructible."
+          "The base type of meevax::kernel::pointer requires concept CopyConstructible."
         };
       }
 
@@ -159,17 +158,18 @@ namespace meevax::kernel
     //   }
     // }
 
-    /**
-     * With this function, you don't have to worry about virtual destructors.
-     * `std::shared_ptr<T>` remembers it has assigned binder type which knows T
-     * and the type you binding (both `T` and `Bound`'s destructor will works
-     * correctly).
-     */
+    /* ========================================================================
+    * With this function, you don't have to worry about virtual destructors.
+    * `std::shared_ptr<T>` remembers it has assigned binder type which knows T
+    * and the type you binding (both `T` and `Bound`'s destructor will works
+    * correctly).
+    *======================================================================= */
     template <typename Bound, typename... Ts>
     static constexpr pointer<T> bind(Ts&&... operands)
     {
-      using binding = binder<Bound>;
-      return std::make_shared<binding>(std::forward<decltype(operands)>(operands)...);
+      return
+        std::make_shared<binder<Bound>>(
+          std::forward<decltype(operands)>(operands)...);
     }
 
     decltype(auto) dereference() const
@@ -189,14 +189,16 @@ namespace meevax::kernel
     #endif
     }
 
-    #define SHORT_ACCESS(NAME) \
+    #define DEFINE_SHORTCUT(NAME) \
     decltype(auto) NAME() const \
     { \
       return dereference().NAME(); \
     }
 
-    SHORT_ACCESS(type);
-    SHORT_ACCESS(copy);
+    DEFINE_SHORTCUT(type);
+    DEFINE_SHORTCUT(copy);
+
+    #undef DEFINE_SHORTCUT
 
     template <typename U>
     decltype(auto) is() const
