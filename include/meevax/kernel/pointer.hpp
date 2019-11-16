@@ -31,11 +31,17 @@ namespace meevax::kernel
       {
         return std::make_shared<T>(static_cast<const T&>(*this));
       }
-      else throw std::logic_error
+      // else throw std::logic_error
+      // {
+      //   "This is a fatal error report for Meevax core language hackers. The "
+      //   "base type of meevax::kernel::pointer requires concept CopyConstructible."
+      // };
+      else
       {
-        "This is a fatal error for Meevax core language hackers. "
-        "The concept CopyConstructible is required for the base type of Meevax::kernel::pointer."
-      };
+        static_assert(
+          []() { return false; }(),
+          "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
+      }
     }
 
     // eqv?
