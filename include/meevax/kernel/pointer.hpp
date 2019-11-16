@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <cassert>
+#include <cstdint>
 #include <memory> // std::shared_ptr
 #include <stdexcept> // std::logic_error
 #include <typeinfo> // typeid
@@ -13,11 +14,12 @@
 #include <meevax/kernel/writer.hpp>
 
 #include <meevax/utility/demangle.hpp>
+#include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
 {
   template <typename T>
-  struct facade
+  struct facade // TODO rename to "objective" then move to "object.hpp"
   {
     virtual auto type() const noexcept
       -> const std::type_info&
@@ -66,15 +68,88 @@ namespace meevax::kernel
     };
   };
 
-  /* ==========================================================================
-  * Reference counting garbage collector built-in heteropointer.
+  /* ==== Linux 64 Bit Address Space ==========================================
+  *
+  * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
+  * kernel 0xFFFF 8000 0000 0000 ~
+  *
+  *========================================================================= */
+
+  static constexpr auto word_size {sizeof(std::size_t)};
+
+  template <typename T>
+  struct is_embeddable
+  {
+    static constexpr bool value {sizeof(T) < word_size};
+  };
+
+  /* ==== Tagged Pointers =====================================================
+  *
+  */ template <typename T, REQUIRES(is_embeddable<T>)>                       /*
+  */ using tag = std::integral_constant<                                     /*
+  */               std::uintptr_t,                                           /*
+  *
+  *                 ┌─ The value of meevax::kernel::pointer::get()
+  *          ┌──────┴────┐
+  * address   B..... 0000 => points object binder
+  * boolean   0....B 1101
+  * single    0..011 1010
+  * double    0..100 1010
+  *
+  * int08_t   0..001 1000
+  * int16_t   0..010 1000
+  * int32_t   0..011 1000
+  *
+  * uint08_t  0..001 1100
+  * uint16_t  0..010 1100
+  * uint32_t  0..011 1100
+  *              ──┬ ┬┬┬┬
+  *                │ │││└─*/ (std::is_same<bool,     T>::value << 0) | /*
+  *                │ ││└──*/ (std::is_floating_point<T>::value << 1) | /*
+  *                │ │└───*/ (std::is_unsigned<      T>::value << 2) | /*
+  *                │ └────*/ (std::is_arithmetic<    T>::value << 3)   /*
+  *                │
+  *                └────── size = 2^(3 + N) byte
+  *
+  */              >;                                                          /*
+  *
+  *========================================================================= */
+
+  constexpr std::uintptr_t mask {0b1111};
+  constexpr auto mask_width {4};
+
+  template <typename T>
+  constexpr auto masked(T const* const x)
+  {
+    return reinterpret_cast<std::uintptr_t>(x) bitand mask;
+  }
+
+  template <typename... Ts>
+  constexpr bool is_tagged(Ts&&... operands)
+  {
+    return masked(std::forward<decltype(operands)>(operands)...);
+  }
+
+  /* ==== Heterogenous Shared Pointer =========================================
+  *
+  * TODO documentation
+  *
   *========================================================================= */
   template <typename T>
   class pointer
     : public std::shared_ptr<T>
   {
+    /* ==== Object Binder =====================================================
+    *
+    * The object binder is the actual data pointed to by the pointer type. To
+    * handle all types uniformly, the binder inherits type T and uses dynamic
+    * polymorphism. This provides access to the bound type ID and its
+    * instances. However, the performance is inferior due to the heavy use of
+    * dynamic cast as a price for convenience.
+    *
+    *======================================================================= */
     template <typename Bound>
-    struct binder
+    struct alignas(mask + 1) binder
       : public Bound
       , public virtual T
     {
@@ -160,16 +235,30 @@ namespace meevax::kernel
 
     /* ========================================================================
     * With this function, you don't have to worry about virtual destructors.
-    * `std::shared_ptr<T>` remembers it has assigned binder type which knows T
-    * and the type you binding (both `T` and `Bound`'s destructor will works
+    * std::shared_ptr<T> remembers it has assigned binder type which knows T
+    * and the type you binding (both T and Bound's destructor will works
     * correctly).
     *======================================================================= */
-    template <typename Bound, typename... Ts>
-    static constexpr pointer<T> bind(Ts&&... operands)
+    template <typename Bound, typename... Ts,
+              REQUIRES(std::negation<std::is_scalar<Bound>>)>
+    static pointer bind(Ts&&... operands)
     {
       return
         std::make_shared<binder<Bound>>(
           std::forward<decltype(operands)>(operands)...);
+    }
+
+    template <typename U, REQUIRES(is_embeddable<U>)>
+    static pointer bind(U&& value)
+    {
+      return
+        std::shared_ptr<T>(
+          reinterpret_cast<T*>(
+            static_cast<std::uintptr_t>(value) << mask_width bitand tag<U>::value),
+          [](auto*)
+          {
+            std::cerr << "; pointer\t; deleter ignored immediate value" << std::endl;
+          });
     }
 
     decltype(auto) dereference() const
@@ -242,6 +331,26 @@ namespace meevax::kernel
   {
     return write(object, os);
   }
+
+  namespace debug
+  {
+    // static_assert(tag<void*>::value    == 0b0000);
+
+    static_assert(tag<bool>::value     == 0b1101);
+
+    static_assert(tag<float>::value    == 0b1010);
+    // static_assert(tag<double>::value   == 0b1010);
+
+    static_assert(tag<int8_t>::value   == 0b1000);
+    static_assert(tag<int16_t>::value  == 0b1000);
+    static_assert(tag<int32_t>::value  == 0b1000);
+    // static_assert(tag<int64_t>::value  == 0b1000);
+
+    static_assert(tag<uint8_t>::value  == 0b1100);
+    static_assert(tag<uint16_t>::value == 0b1100);
+    static_assert(tag<uint32_t>::value == 0b1100);
+    // static_assert(tag<uint64_t>::value == 0b1100);
+  } // namespace debug
 } // namespace meevax::kernel
 
 namespace std
