@@ -20,7 +20,7 @@
 namespace meevax::kernel
 {
   template <typename T>
-  struct alignas(16) facade // TODO rename to "objective" then move to "object.hpp"
+  struct alignas(16) /* category_mask + 1 */ facade // TODO rename to "objective" then move to "object.hpp"
   {
     virtual auto type() const noexcept
       -> const std::type_info&
@@ -118,14 +118,30 @@ namespace meevax::kernel
   *
   *========================================================================= */
 
-  constexpr auto           category_width {4};
   constexpr std::uintptr_t category_mask {0x0F};
+  constexpr auto           category_mask_width {4};
 
-  constexpr auto           precision_width {4}; // XXX calculate from word size
+  template <typename T>
+  constexpr auto category_of(T const* const value)
+  {
+    return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
+  }
+
   constexpr std::uintptr_t precision_mask {0xF0};
+  constexpr auto           precision_mask_width {4}; // XXX calculate from word size
 
-  constexpr auto           mask_width {precision_width + category_width};
-  constexpr std::uintptr_t mask       {precision_mask  & category_mask};
+  template <typename T>
+  constexpr auto precision_of(T const* const value)
+  {
+    assert(category_of(value) != 0b0000);
+
+    return
+      (reinterpret_cast<std::uintptr_t>(value) bitand precision_mask)
+        >> category_mask_width;
+  }
+
+  constexpr std::uintptr_t mask {precision_mask bitor category_mask};
+  constexpr auto mask_width {precision_mask_width + category_mask_width};
 
   template <typename T>
   constexpr T log2(const T& k) noexcept
@@ -141,18 +157,13 @@ namespace meevax::kernel
   using tag
     = std::integral_constant<
         std::uintptr_t,
-        (precision<T>::value << category_width) bitor category<T>::value>;
-
-  template <typename T>
-  constexpr auto masked(T const* const x)
-  {
-    return reinterpret_cast<std::uintptr_t>(x) bitand category_mask;
-  }
+        (precision<T>::value << category_mask_width)
+          bitor category<T>::value>;
 
   template <typename... Ts>
   constexpr bool is_tagged(Ts&&... operands)
   {
-    return masked(std::forward<decltype(operands)>(operands)...);
+    return category_of(std::forward<decltype(operands)>(operands)...);
   }
 
   template <typename T>
@@ -179,7 +190,7 @@ namespace meevax::kernel
     *
     *======================================================================= */
     template <typename Bound>
-    struct alignas(mask + 1) binder
+    struct /* alignas(mask + 1) */ binder
       : public Bound
       , public virtual T
     {
@@ -280,14 +291,18 @@ namespace meevax::kernel
     template <typename U, REQUIRES(is_embeddable<U>)>
     static pointer bind(U&& value)
     {
+      static auto ignore = [](auto* value)
+      {
+        std::cerr << "; pointer-debug\t; deleter ignored tagged-pointer (this behavior is intended)" << std::endl;
+        std::cerr << ";\t\t; category:\t" << category_of(value) << std::endl;
+        std::cerr << ";\t\t; precision:\t" << precision_of(value) << " (" << std::pow(2, precision_of(value)) << "-bits)" << std::endl;
+      };
+
       return
         std::shared_ptr<T>(
           reinterpret_cast<T*>(
-            static_cast<std::uintptr_t>(value) << mask_width & tag<U>::value),
-          [](auto*)
-          {
-            std::cerr << "; pointer\t; deleter ignored immediate value" << std::endl;
-          });
+            static_cast<std::uintptr_t>(value) << mask_width bitor tag<U>::value),
+            ignore);
     }
 
     decltype(auto) dereference() const
@@ -301,10 +316,66 @@ namespace meevax::kernel
       }
       else throw std::logic_error
       {
-        "This is a fatal error that should be reported to Meevax core language developers (this error only occurs in debug builds). "
         "meevax::kernel::pointer dererefences nullptr."
       };
     #endif
+    }
+
+    decltype(auto) type() const
+    {
+      switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
+      {
+      case 0b0000: // address
+        return dereference().type();
+
+      case 0b1101: // boolean
+        return typeid(bool);
+
+      case 0b1010: // floating point numbers
+        switch (precision_of(value))
+        {
+        case log2(32):
+          return typeid(float);
+
+        default:
+          throw std::logic_error {"floating-point types with precision greater than 32-bits are not supported."};
+        }
+
+      case 0b1000: // signed integer
+        switch (precision_of(value))
+        {
+        case log2(8):
+          return typeid(std::int8_t);
+
+        case log2(16):
+          return typeid(std::int16_t);
+
+        case log2(32):
+          return typeid(std::int32_t);
+
+        default:
+          throw std::logic_error {"signed-integer types with precision greater than 32-bits are not supported."};
+        }
+
+      case 0b1100: // unsigned integer
+        switch (precision_of(value))
+        {
+        case log2(8):
+          return typeid(std::uint8_t);
+
+        case log2(16):
+          return typeid(std::uint16_t);
+
+        case log2(32):
+          return typeid(std::uint32_t);
+
+        default:
+          throw std::logic_error {"unsigned-integer types with precision greater than 32-bits are not supported."};
+        }
+
+      default:
+        throw std::logic_error {"dispatching unimplemented tagged type"};
+      }
     }
 
     #define DEFINE_SHORTCUT(NAME) \
@@ -313,7 +384,6 @@ namespace meevax::kernel
       return dereference().NAME(); \
     }
 
-    DEFINE_SHORTCUT(type);
     DEFINE_SHORTCUT(copy);
 
     #undef DEFINE_SHORTCUT
@@ -321,7 +391,7 @@ namespace meevax::kernel
     template <typename U>
     decltype(auto) is() const
     {
-      return type() == typeid(U);
+      return type() == typeid(typename std::decay<U>::type);
     }
 
     template <typename U, REQUIRES(is_derived<U>)>
@@ -330,6 +400,9 @@ namespace meevax::kernel
       // The value of derived types are must be ordinal pointer.
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
+      // The given type U and the bound type must match.
+      // assert((*this).is<U>());
+
       return dynamic_cast<U&>(dereference());
     }
 
@@ -337,8 +410,12 @@ namespace meevax::kernel
     // auto as() const
     //   -> typename std::decay<U>::type
     // {
-    //   if (const auto* const value {get()}; masked(value) == tag<U>::value)
+    //   if (const auto* const value {std::shared_ptr<T>::get()}; is_tagged(value))
     //   {
+    //   }
+    //   else
+    //   {
+    //     throw  {__LINE__};
     //   }
     // }
 

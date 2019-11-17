@@ -11,6 +11,12 @@ int main(const int argc, char const* const* const argv) try
   ****************************************************************************/
   program.configure(argc, argv);
 
+  auto hoge {meevax::kernel::make<std::uint32_t>(42)};
+  std::cout << "TYPE-IS " << hoge.type().name() << std::endl;
+  // assert(hoge.is<std::uint32_t>());
+
+  auto fuga {meevax::kernel::make<float>(42)};
+
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
     std::cout << "\n> " << std::flush;
