@@ -78,6 +78,7 @@ namespace meevax::kernel
 
   static constexpr auto word_size {sizeof(std::size_t)};
 
+  // The Embeddable Concept is specified for safety.
   template <typename T>
   struct is_embeddable
   {
@@ -86,7 +87,7 @@ namespace meevax::kernel
 
   /* ==== Tagged Pointers =====================================================
   *
-  */ template <typename T, REQUIRES(is_embeddable<T>)>                       /*
+  */ template <typename T>                                                   /*
   */ using category                                                          /*
   */   = std::integral_constant<                                             /*
   */       std::uintptr_t,                                                   /*
@@ -127,6 +128,16 @@ namespace meevax::kernel
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
   }
 
+  template <typename T>
+  constexpr T log2(const T& k) noexcept
+  {
+    return (k < 2) ? 0 : 1 + log2(k / 2);
+  }
+
+  template <typename T>
+  using precision
+    = std::integral_constant<std::uintptr_t, log2(sizeof(T) * 8)>;
+
   constexpr std::uintptr_t precision_mask {0xF0};
   constexpr auto           precision_mask_width {4}; // XXX calculate from word size
 
@@ -142,16 +153,6 @@ namespace meevax::kernel
 
   constexpr std::uintptr_t mask {precision_mask bitor category_mask};
   constexpr auto mask_width {precision_mask_width + category_mask_width};
-
-  template <typename T>
-  constexpr T log2(const T& k) noexcept
-  {
-    return (k < 2) ? 0 : 1 + log2(k / 2);
-  }
-
-  template <typename T>
-  using precision
-    = std::integral_constant<std::uintptr_t, log2(sizeof(T) * 8)>;
 
   template <typename T>
   using tag
@@ -263,6 +264,11 @@ namespace meevax::kernel
       : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
     {}
 
+    /* ==== Destructor ========================================================
+    *
+    * TODO: Check all of allocated objects are deallocate correctly.
+    *
+    *======================================================================= */
     ~pointer()
     {
       if (*this)
@@ -274,11 +280,13 @@ namespace meevax::kernel
       }
     }
 
-    /* ========================================================================
+    /* ==== C/C++ Derived Types Bind ==========================================
+    *
     * With this function, you don't have to worry about virtual destructors.
     * std::shared_ptr<T> remembers it has assigned binder type which knows T
     * and the type you binding (both T and Bound's destructor will works
     * correctly).
+    *
     *======================================================================= */
     template <typename Bound, typename... Ts, REQUIRES(is_derived<Bound>)>
     static pointer bind(Ts&&... operands)
@@ -288,6 +296,11 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);
     }
 
+    /* ==== C/C++ Primitive Types Bind ========================================
+    *
+    * TODO: support bind for not is_embeddable types (e.g. double).
+    *
+    *======================================================================= */
     template <typename U, REQUIRES(is_embeddable<U>)>
     static pointer bind(U&& value)
     {
@@ -325,48 +338,48 @@ namespace meevax::kernel
     {
       switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
       {
-      case 0b0000: // address
+      case category<void*>::value: // address
         return dereference().type();
 
-      case 0b1101: // boolean
+      case category<bool>::value:
         return typeid(bool);
 
-      case 0b1010: // floating point numbers
+      case category<float>::value:
         switch (precision_of(value))
         {
-        case log2(32):
+        case precision<float>::value:
           return typeid(float);
 
         default:
           throw std::logic_error {"floating-point types with precision greater than 32-bits are not supported."};
         }
 
-      case 0b1000: // signed integer
+      case category<signed int>::value:
         switch (precision_of(value))
         {
-        case log2(8):
+        case precision<std::int8_t>::value:
           return typeid(std::int8_t);
 
-        case log2(16):
+        case precision<std::int16_t>::value:
           return typeid(std::int16_t);
 
-        case log2(32):
+        case precision<std::int32_t>::value:
           return typeid(std::int32_t);
 
         default:
           throw std::logic_error {"signed-integer types with precision greater than 32-bits are not supported."};
         }
 
-      case 0b1100: // unsigned integer
+      case category<unsigned int>::value:
         switch (precision_of(value))
         {
-        case log2(8):
+        case precision<uint8_t>::value:
           return typeid(std::uint8_t);
 
-        case log2(16):
+        case precision<uint16_t>::value:
           return typeid(std::uint16_t);
 
-        case log2(32):
+        case precision<uint32_t>::value:
           return typeid(std::uint32_t);
 
         default:
