@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <memory> // std::shared_ptr
 #include <stdexcept> // std::logic_error
@@ -19,7 +20,7 @@
 namespace meevax::kernel
 {
   template <typename T>
-  struct facade // TODO rename to "objective" then move to "object.hpp"
+  struct alignas(16) facade // TODO rename to "objective" then move to "object.hpp"
   {
     virtual auto type() const noexcept
       -> const std::type_info&
@@ -86,42 +87,66 @@ namespace meevax::kernel
   /* ==== Tagged Pointers =====================================================
   *
   */ template <typename T, REQUIRES(is_embeddable<T>)>                       /*
-  */ using tag = std::integral_constant<                                     /*
-  */               std::uintptr_t,                                           /*
+  */ using category                                                          /*
+  */   = std::integral_constant<                                             /*
+  */       std::uintptr_t,                                                   /*
   *
-  *                 ┌─ The value of meevax::kernel::pointer::get()
-  *          ┌──────┴────┐
-  * address   B..... 0000 => points object binder
-  * boolean   0....B 1101
-  * single    0..011 1010
-  * double    0..100 1010
+  *               ┌─ The value of meevax::kernel::pointer::get()
+  *          ┌────┴─────────┐
+  * address   0... .... 0000 => object binder (is 16 byte aligned)
   *
-  * int08_t   0..001 1000
-  * int16_t   0..010 1000
-  * int32_t   0..011 1000
+  * boolean   0... 0000 1101 NOTE: sizeof bool is implementation-defined
   *
-  * uint08_t  0..001 1100
-  * uint16_t  0..010 1100
-  * uint32_t  0..011 1100
-  *              ──┬ ┬┬┬┬
-  *                │ │││└─*/ (std::is_same<bool,     T>::value << 0) | /*
-  *                │ ││└──*/ (std::is_floating_point<T>::value << 1) | /*
-  *                │ │└───*/ (std::is_unsigned<      T>::value << 2) | /*
-  *                │ └────*/ (std::is_arithmetic<    T>::value << 3)   /*
-  *                │
-  *                └────── size = 2^(3 + N) byte
+  * single    0... 0101 1010
+  * double    0... 0110 1010
   *
-  */              >;                                                          /*
+  * int08_t   0... 0011 1000
+  * int16_t   0... 0100 1000
+  * int32_t   0... 0101 1000
+  *
+  * uint08_t  0... 0011 1100
+  * uint16_t  0... 0100 1100
+  * uint32_t  0... 0101 1100
+  *                ───┬ ┬┬┬┬
+  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) | /*
+  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) | /*
+  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) | /*
+  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)   /*
+  *                   │
+  *                   └────── precision of the type = 2^N bit
+  */     >;                                                                  /*
   *
   *========================================================================= */
 
-  constexpr std::uintptr_t mask {0b1111};
-  constexpr auto mask_width {4};
+  constexpr auto           category_width {4};
+  constexpr std::uintptr_t category_mask {0x0F};
+
+  constexpr auto           precision_width {4}; // XXX calculate from word size
+  constexpr std::uintptr_t precision_mask {0xF0};
+
+  constexpr auto           mask_width {precision_width + category_width};
+  constexpr std::uintptr_t mask       {precision_mask  & category_mask};
+
+  template <typename T>
+  constexpr T log2(const T& k) noexcept
+  {
+    return (k < 2) ? 0 : 1 + log2(k / 2);
+  }
+
+  template <typename T>
+  using precision
+    = std::integral_constant<std::uintptr_t, log2(sizeof(T) * 8)>;
+
+  template <typename T>
+  using tag
+    = std::integral_constant<
+        std::uintptr_t,
+        (precision<T>::value << category_width) bitor category<T>::value>;
 
   template <typename T>
   constexpr auto masked(T const* const x)
   {
-    return reinterpret_cast<std::uintptr_t>(x) bitand mask;
+    return reinterpret_cast<std::uintptr_t>(x) bitand category_mask;
   }
 
   template <typename... Ts>
@@ -129,6 +154,11 @@ namespace meevax::kernel
   {
     return masked(std::forward<decltype(operands)>(operands)...);
   }
+
+  template <typename T>
+  using is_derived
+    = std::negation<
+        std::is_scalar<T>>;
 
   /* ==== Heterogenous Shared Pointer =========================================
   *
@@ -222,16 +252,16 @@ namespace meevax::kernel
       : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
     {}
 
-    // ~pointer()
-    // {
-    //   if (*this)
-    //   {
-    //     if (std::shared_ptr<T>::unique())
-    //     {
-    //       std::cerr << "; pointer\t; deallocating " << *this << std::endl;
-    //     }
-    //   }
-    // }
+    ~pointer()
+    {
+      if (*this)
+      {
+        if (std::shared_ptr<T>::unique())
+        {
+          // std::cerr << "; pointer\t; deallocating " << *this << std::endl;
+        }
+      }
+    }
 
     /* ========================================================================
     * With this function, you don't have to worry about virtual destructors.
@@ -239,8 +269,7 @@ namespace meevax::kernel
     * and the type you binding (both T and Bound's destructor will works
     * correctly).
     *======================================================================= */
-    template <typename Bound, typename... Ts,
-              REQUIRES(std::negation<std::is_scalar<Bound>>)>
+    template <typename Bound, typename... Ts, REQUIRES(is_derived<Bound>)>
     static pointer bind(Ts&&... operands)
     {
       return
@@ -254,7 +283,7 @@ namespace meevax::kernel
       return
         std::shared_ptr<T>(
           reinterpret_cast<T*>(
-            static_cast<std::uintptr_t>(value) << mask_width bitand tag<U>::value),
+            static_cast<std::uintptr_t>(value) << mask_width & tag<U>::value),
           [](auto*)
           {
             std::cerr << "; pointer\t; deleter ignored immediate value" << std::endl;
@@ -295,15 +324,23 @@ namespace meevax::kernel
       return type() == typeid(U);
     }
 
-    template <typename U>
+    template <typename U, REQUIRES(is_derived<U>)>
     U& as() const
     {
-      // const void* before {&access()};
-      // const void* casted {&dynamic_cast<const T&>(access())};
-      // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
+      // The value of derived types are must be ordinal pointer.
+      assert(not is_tagged(std::shared_ptr<T>::get()));
 
       return dynamic_cast<U&>(dereference());
     }
+
+    // template <typename U, REQUIRES(is_embeddable<U>)>
+    // auto as() const
+    //   -> typename std::decay<U>::type
+    // {
+    //   if (const auto* const value {get()}; masked(value) == tag<U>::value)
+    //   {
+    //   }
+    // }
 
     bool equals(const pointer& rhs) const
     {
@@ -336,19 +373,18 @@ namespace meevax::kernel
   {
     // static_assert(tag<void*>::value    == 0b0000);
 
-    static_assert(tag<bool>::value     == 0b1101);
+    static_assert(category<bool>::value == 0b1101);
 
-    static_assert(tag<float>::value    == 0b1010);
-    // static_assert(tag<double>::value   == 0b1010);
+    static_assert(tag<float>::value    == 0b0101'1010);
 
-    static_assert(tag<int8_t>::value   == 0b1000);
-    static_assert(tag<int16_t>::value  == 0b1000);
-    static_assert(tag<int32_t>::value  == 0b1000);
+    static_assert(tag<int8_t>::value   == 0b0011'1000);
+    static_assert(tag<int16_t>::value  == 0b0100'1000);
+    static_assert(tag<int32_t>::value  == 0b0101'1000);
     // static_assert(tag<int64_t>::value  == 0b1000);
 
-    static_assert(tag<uint8_t>::value  == 0b1100);
-    static_assert(tag<uint16_t>::value == 0b1100);
-    static_assert(tag<uint32_t>::value == 0b1100);
+    static_assert(tag<uint8_t>::value  == 0b0011'1100);
+    static_assert(tag<uint16_t>::value == 0b0100'1100);
+    static_assert(tag<uint32_t>::value == 0b0101'1100);
     // static_assert(tag<uint64_t>::value == 0b1100);
   } // namespace debug
 } // namespace meevax::kernel
