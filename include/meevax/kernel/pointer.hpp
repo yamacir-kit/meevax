@@ -320,20 +320,17 @@ namespace meevax::kernel
 
     decltype(auto) dereference() const
     {
-    #ifndef NDEBUG
-      if (*this)
-      {
-    #endif
-        return std::shared_ptr<T>::operator*();
-    #ifndef NDEBUG
-      }
-      else throw std::logic_error
-      {
-        "meevax::kernel::pointer dererefences nullptr."
-      };
-    #endif
+      assert(*this);
+      assert(category_of(std::shared_ptr<T>::get()) == category<void*>::value);
+
+      return std::shared_ptr<T>::operator*();
     }
 
+    /* ==== Type Predicates ===================================================
+    *
+    * TODO: is_compatible_to (non-strict type comparison)
+    *
+    *======================================================================= */
     decltype(auto) type() const
     {
       switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
@@ -391,16 +388,6 @@ namespace meevax::kernel
       }
     }
 
-    #define DEFINE_SHORTCUT(NAME) \
-    decltype(auto) NAME() const \
-    { \
-      return dereference().NAME(); \
-    }
-
-    DEFINE_SHORTCUT(copy);
-
-    #undef DEFINE_SHORTCUT
-
     template <typename U>
     decltype(auto) is() const
     {
@@ -431,6 +418,11 @@ namespace meevax::kernel
     //     throw  {__LINE__};
     //   }
     // }
+
+    decltype(auto) copy() const
+    {
+      return dereference().copy();
+    }
 
     bool equals(const pointer& rhs) const
     {
