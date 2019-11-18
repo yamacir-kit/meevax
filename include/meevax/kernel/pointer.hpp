@@ -20,6 +20,12 @@
 namespace meevax::kernel
 {
   template <typename T>
+  constexpr T log2(const T& k) noexcept
+  {
+    return (k < 2) ? 0 : 1 + log2(k / 2);
+  }
+
+  template <typename T>
   struct alignas(16) /* category_mask + 1 */ facade // TODO rename to "objective" then move to "object.hpp"
   {
     virtual auto type() const noexcept
@@ -82,8 +88,25 @@ namespace meevax::kernel
   template <typename T>
   struct is_embeddable
   {
-    static constexpr bool value {sizeof(T) < word_size};
+    using type = typename std::decay<T>::type;
+
+    static constexpr bool value {
+      std::is_fundamental<type>::value and sizeof(T) < word_size
+    };
   };
+
+  template <typename T>
+  using is_not_embeddable
+    = std::is_compound<typename std::decay<T>::type>;
+  // template <typename T>
+  // struct is_not_embeddable
+  // {
+  //   using type = typename std::decay<T>::type;
+  //
+  //   static constexpr bool value {
+  //     std::is_compound<type>::value or sizeof(T) < word_size
+  //   };
+  // };
 
   /* ==== Tagged Pointers =====================================================
   *
@@ -126,12 +149,6 @@ namespace meevax::kernel
   constexpr auto category_of(T const* const value)
   {
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
-  }
-
-  template <typename T>
-  constexpr T log2(const T& k) noexcept
-  {
-    return (k < 2) ? 0 : 1 + log2(k / 2);
   }
 
   template <typename T>
@@ -181,12 +198,6 @@ namespace meevax::kernel
   {
     return category_of(std::forward<decltype(operands)>(operands)...);
   }
-
-  template <typename T>
-  using is_derived
-    = std::negation<
-        std::is_scalar<T>>;
-    // = std::bool_constant<not category<T>::value>;
 
   /* ==== Heterogenous Shared Pointer =========================================
   *
@@ -304,7 +315,7 @@ namespace meevax::kernel
     * correctly).
     *
     *======================================================================= */
-    template <typename Bound, typename... Ts, REQUIRES(is_derived<Bound>)>
+    template <typename Bound, typename... Ts, REQUIRES(is_not_embeddable<Bound>)>
     static pointer bind(Ts&&... operands)
     {
       return
@@ -413,7 +424,7 @@ namespace meevax::kernel
     /* ==== C/C++ Derived Type Restoration ====================================
     *
     *======================================================================= */
-    template <typename U, REQUIRES(is_derived<U>)>
+    template <typename U, REQUIRES(is_not_embeddable<U>)>
     U& as() const
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -428,57 +439,57 @@ namespace meevax::kernel
     * TODO: Support upcast and downcast of arithmetic types
     *
     *======================================================================= */
-    // template <typename U, REQUIRES(is_embeddable<U>)>
-    // auto as() const
-    //   -> typename std::decay<U>::type
-    // {
-    //   switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
-    //   {
-    //   case category<void*>::value: // address
-    //     throw std::logic_error {std::to_string(__LINE__)};
-    //
-    //   case category<bool>::value:
-    //     return
-    //       static_cast<U>(
-    //         untagged_value_as<bool>(value));
-    //
-    //   case category<float>::value:
-    //     // switch (precision_of(value))
-    //     // {
-    //     // case precision<float>::value:
-    //     //
-    //     // default:
-    //     // }
-    //
-    //   case category<signed int>::value:
-    //     // switch (precision_of(value))
-    //     // {
-    //     // case precision<std::int8_t>::value:
-    //     //
-    //     // case precision<std::int16_t>::value:
-    //     //
-    //     // case precision<std::int32_t>::value:
-    //     //
-    //     // default:
-    //     // }
-    //
-    //   case category<unsigned int>::value:
-    //     // switch (precision_of(value))
-    //     // {
-    //     // case precision<uint8_t>::value:
-    //     //
-    //     // case precision<uint16_t>::value:
-    //     //
-    //     // case precision<uint32_t>::value:
-    //     //
-    //     // default:
-    //     //   throw std::logic_error {"unsigned-integer types with precision greater than 32-bits are not supported."};
-    //     // }
-    //
-    //   default:
-    //     throw std::logic_error {"casting unimplemented tagged type"};
-    //   }
-    // }
+    template <typename U, REQUIRES(is_embeddable<U>)>
+    auto as() const
+      -> typename std::decay<U>::type
+    {
+      switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
+      {
+      case category<void*>::value: // address
+        throw std::logic_error {std::to_string(__LINE__)};
+
+      case category<bool>::value:
+        return
+          static_cast<U>(
+            untagged_value_as<bool>(value));
+
+      case category<float>::value:
+        // switch (precision_of(value))
+        // {
+        // case precision<float>::value:
+        //
+        // default:
+        // }
+
+      case category<signed int>::value:
+        // switch (precision_of(value))
+        // {
+        // case precision<std::int8_t>::value:
+        //
+        // case precision<std::int16_t>::value:
+        //
+        // case precision<std::int32_t>::value:
+        //
+        // default:
+        // }
+
+      case category<unsigned int>::value:
+        // switch (precision_of(value))
+        // {
+        // case precision<uint8_t>::value:
+        //
+        // case precision<uint16_t>::value:
+        //
+        // case precision<uint32_t>::value:
+        //
+        // default:
+        //   throw std::logic_error {"unsigned-integer types with precision greater than 32-bits are not supported."};
+        // }
+
+      default:
+        throw std::logic_error {"casting unimplemented tagged type"};
+      }
+    }
 
     decltype(auto) copy() const
     {
