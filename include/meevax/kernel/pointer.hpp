@@ -201,9 +201,10 @@ namespace meevax::kernel
 
   template <typename T, typename... Ts>
   constexpr auto untagged_value_as(Ts&&... operands) noexcept
+    -> typename std::decay<T>::type
   {
     return
-      reinterpret_cast<T>(
+      static_cast<typename std::decay<T>::type>(
         untagged_value_of(
           std::forward<decltype(operands)>(operands)...));
   }
@@ -448,7 +449,7 @@ namespace meevax::kernel
     * TODO: Support upcast and downcast of arithmetic types
     *
     *======================================================================= */
-    template <typename U, REQUIRES(is_embeddable<U>)>
+    template <typename U, REQUIRES(std::is_arithmetic<U>)>
     auto as() const
       -> typename std::decay<U>::type
     {
@@ -457,9 +458,7 @@ namespace meevax::kernel
       {
       #define CASE_OF_TYPE(TYPE)                                              \
       case tag<TYPE>::value:                                                  \
-        return                                                                \
-          static_cast<U>(                                                     \
-            untagged_value_as<TYPE>(value))
+        return untagged_value_as<U>(value)
 
       CASE_OF_TYPE(bool);
 
