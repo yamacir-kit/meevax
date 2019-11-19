@@ -15,6 +15,7 @@
 #include <meevax/kernel/writer.hpp>
 
 #include <meevax/utility/demangle.hpp>
+#include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
@@ -146,9 +147,15 @@ namespace meevax::kernel
   constexpr auto           category_mask_width {4};
 
   template <typename T>
-  constexpr auto category_of(T const* const value)
+  constexpr auto category_of(T const* const value) noexcept
   {
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
+  }
+
+  template <typename... Ts>
+  constexpr bool is_tagged(Ts&&... operands) noexcept
+  {
+    return category_of(std::forward<decltype(operands)>(operands)...);
   }
 
   template <typename T>
@@ -161,7 +168,7 @@ namespace meevax::kernel
   template <typename T>
   constexpr auto precision_of(T const* const value)
   {
-    assert(category_of(value) != 0b0000);
+    assert(is_tagged(value));
 
     return
       (reinterpret_cast<std::uintptr_t>(value) bitand precision_mask)
@@ -177,12 +184,6 @@ namespace meevax::kernel
         std::uintptr_t,
         (precision<T>::value << category_mask_width)
           bitor category<T>::value>;
-
-  template <typename... Ts>
-  constexpr bool is_tagged(Ts&&... operands)
-  {
-    return category_of(std::forward<decltype(operands)>(operands)...);
-  }
 
   // full-tag includes precision.
   template <typename Pointer>
@@ -203,10 +204,10 @@ namespace meevax::kernel
   constexpr auto untagged_value_as(Ts&&... operands) noexcept
     -> typename std::decay<T>::type
   {
-    return
-      static_cast<typename std::decay<T>::type>(
-        untagged_value_of(
-          std::forward<decltype(operands)>(operands)...));
+    auto value {untagged_value_of(
+      std::forward<decltype(operands)>(operands)...
+    )};
+    return reinterpret_cast<typename std::decay<T>::type&>(value);
   }
 
   /* ==== Heterogenous Shared Pointer =========================================
@@ -343,15 +344,17 @@ namespace meevax::kernel
     {
       static auto ignore = [](auto* value)
       {
-        std::cerr << "; pointer-debug\t; deleter ignored tagged-pointer (this behavior is intended)" << std::endl;
+        std::cerr << "; pointer\t; deleter ignored tagged-pointer (this behavior is intended)" << std::endl;
         std::cerr << ";\t\t; category:\t" << category_of(value) << std::endl;
         std::cerr << ";\t\t; precision:\t" << precision_of(value) << " (" << std::pow(2, precision_of(value)) << "-bits)" << std::endl;
       };
 
+      const auto pattern {*reinterpret_cast<std::uintptr_t*>(&value)};
+
       return
         std::shared_ptr<T>(
           reinterpret_cast<T*>(
-            static_cast<std::uintptr_t>(value) << mask_width bitor tag<U>::value),
+            pattern << mask_width bitor tag<U>::value),
             ignore);
     }
 
@@ -453,12 +456,19 @@ namespace meevax::kernel
     auto as() const
       -> typename std::decay<U>::type
     {
+      std::cerr << "; pointer\t; "
+                << utility::hexdump<std::uintptr_t>(
+                     reinterpret_cast<std::uintptr_t>(std::shared_ptr<T>::get()))
+                << std::endl;
+
       // Helper function "tag_of" includes assertion "is_tagged".
       switch (auto* value {std::shared_ptr<T>::get()}; tag_of(value))
       {
       #define CASE_OF_TYPE(TYPE)                                              \
       case tag<TYPE>::value:                                                  \
-        return untagged_value_as<U>(value)
+        return                                                                \
+          static_cast<U>(                                                     \
+            untagged_value_as<TYPE>(value))
 
       CASE_OF_TYPE(bool);
 
