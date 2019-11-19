@@ -178,6 +178,21 @@ namespace meevax::kernel
         (precision<T>::value << category_mask_width)
           bitor category<T>::value>;
 
+  template <typename... Ts>
+  constexpr bool is_tagged(Ts&&... operands)
+  {
+    return category_of(std::forward<decltype(operands)>(operands)...);
+  }
+
+  // full-tag includes precision.
+  template <typename Pointer>
+  constexpr auto tag_of(Pointer value) noexcept
+  {
+    assert(is_tagged(value));
+
+    return reinterpret_cast<std::uintptr_t>(value) bitand mask;
+  }
+
   template <typename Pointer>
   constexpr auto untagged_value_of(Pointer value) noexcept
   {
@@ -191,12 +206,6 @@ namespace meevax::kernel
       reinterpret_cast<T>(
         untagged_value_of(
           std::forward<decltype(operands)>(operands)...));
-  }
-
-  template <typename... Ts>
-  constexpr bool is_tagged(Ts&&... operands)
-  {
-    return category_of(std::forward<decltype(operands)>(operands)...);
   }
 
   /* ==== Heterogenous Shared Pointer =========================================
@@ -443,51 +452,32 @@ namespace meevax::kernel
     auto as() const
       -> typename std::decay<U>::type
     {
-      switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
+      // Helper function "tag_of" includes assertion "is_tagged".
+      switch (auto* value {std::shared_ptr<T>::get()}; tag_of(value))
       {
-      case category<void*>::value: // address
-        throw std::logic_error {std::to_string(__LINE__)};
+      #define CASE_OF_TYPE(TYPE)                                              \
+      case tag<TYPE>::value:                                                  \
+        return                                                                \
+          static_cast<U>(                                                     \
+            untagged_value_as<TYPE>(value))
 
-      case category<bool>::value:
-        return
-          static_cast<U>(
-            untagged_value_as<bool>(value));
+      CASE_OF_TYPE(bool);
 
-      case category<float>::value:
-        // switch (precision_of(value))
-        // {
-        // case precision<float>::value:
-        //
-        // default:
-        // }
+      CASE_OF_TYPE(float);
+      CASE_OF_TYPE(double);
 
-      case category<signed int>::value:
-        // switch (precision_of(value))
-        // {
-        // case precision<std::int8_t>::value:
-        //
-        // case precision<std::int16_t>::value:
-        //
-        // case precision<std::int32_t>::value:
-        //
-        // default:
-        // }
+      CASE_OF_TYPE(std::int8_t);
+      CASE_OF_TYPE(std::int16_t);
+      CASE_OF_TYPE(std::int32_t);
 
-      case category<unsigned int>::value:
-        // switch (precision_of(value))
-        // {
-        // case precision<uint8_t>::value:
-        //
-        // case precision<uint16_t>::value:
-        //
-        // case precision<uint32_t>::value:
-        //
-        // default:
-        //   throw std::logic_error {"unsigned-integer types with precision greater than 32-bits are not supported."};
-        // }
+      CASE_OF_TYPE(std::uint8_t);
+      CASE_OF_TYPE(std::uint16_t);
+      CASE_OF_TYPE(std::uint32_t);
+
+      #undef CASE_OF_TYPE
 
       default:
-        throw std::logic_error {"casting unimplemented tagged type"};
+        throw std::logic_error {"unexpected immediate value restoration"};
       }
     }
 

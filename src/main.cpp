@@ -13,7 +13,7 @@ int main(const int argc, char const* const* const argv) try
 
   auto hoge {meevax::kernel::make<std::uint32_t>(42)};
   std::cout << "TYPE-IS " << hoge.type().name() << std::endl;
-  // assert(hoge.is<std::uint32_t>());
+  assert(hoge.is<std::uint32_t>());
 
   auto fuga {meevax::kernel::make<float>(42)};
 
