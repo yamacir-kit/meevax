@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
 #include <regex>
-#include <unordered_map>
 #include <vector>
 
 #include <boost/cstdlib.hpp>

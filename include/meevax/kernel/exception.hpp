@@ -5,8 +5,6 @@
 
 #include <meevax/kernel/object.hpp>
 
-#include <meevax/utility/requires.hpp>
-
 // - exception
 //    |-- error                                                       (category)
 //    |    |-- configuration_error                                     (section)
