@@ -9,12 +9,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install Libraries
+    - name: 'Install Libraries'
       run: |
         sudo apt update
         sudo apt upgrade
         sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
-    - name: Build ICE on Bionic
+    - name: 'Build ICE on Bionic'
       run: |
         mkdir -p build
         cd build
