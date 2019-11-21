@@ -2,6 +2,8 @@
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <cassert>
+#include <cmath>
+#include <cstdint>
 #include <memory> // std::shared_ptr
 #include <stdexcept> // std::logic_error
 #include <typeinfo> // typeid
@@ -13,11 +15,19 @@
 #include <meevax/kernel/writer.hpp>
 
 #include <meevax/utility/demangle.hpp>
+#include <meevax/utility/hexdump.hpp>
+#include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
 {
   template <typename T>
-  struct facade
+  constexpr T log2(const T& k) noexcept
+  {
+    return (k < 2) ? 0 : 1 + log2(k / 2);
+  }
+
+  template <typename T>
+  struct alignas(16) /* category_mask + 1 */ facade // TODO rename to "objective" then move to "object.hpp"
   {
     virtual auto type() const noexcept
       -> const std::type_info&
@@ -31,11 +41,17 @@ namespace meevax::kernel
       {
         return std::make_shared<T>(static_cast<const T&>(*this));
       }
-      else throw std::logic_error
+      // else throw std::logic_error
+      // {
+      //   "This is a fatal error report for Meevax core language hackers. The "
+      //   "base type of meevax::kernel::pointer requires concept CopyConstructible."
+      // };
+      else
       {
-        "This is a fatal error for Meevax core language hackers. "
-        "The concept CopyConstructible is required for the base type of Meevax::kernel::pointer."
-      };
+        static_assert(
+          []() { return false; }(),
+          "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
+      }
     }
 
     // eqv?
@@ -60,15 +76,160 @@ namespace meevax::kernel
     };
   };
 
-  /**
-   * Reference counting garbage collector built-in heteropointer.
-   */
+  /* ==== Linux 64 Bit Address Space ==========================================
+  *
+  * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
+  * kernel 0xFFFF 8000 0000 0000 ~
+  *
+  *========================================================================= */
+
+  static constexpr auto word_size {sizeof(std::size_t)};
+
+  // The Embeddable Concept is specified for safety.
+  template <typename T>
+  struct is_embeddable
+  {
+    using type = typename std::decay<T>::type;
+
+    static constexpr bool value {
+      std::is_fundamental<type>::value and sizeof(T) < word_size
+    };
+  };
+
+  template <typename T>
+  using is_not_embeddable
+    = std::is_compound<typename std::decay<T>::type>;
+  // template <typename T>
+  // struct is_not_embeddable
+  // {
+  //   using type = typename std::decay<T>::type;
+  //
+  //   static constexpr bool value {
+  //     std::is_compound<type>::value or sizeof(T) < word_size
+  //   };
+  // };
+
+  /* ==== Tagged Pointers =====================================================
+  *
+  */ template <typename T>                                                   /*
+  */ using category                                                          /*
+  */   = std::integral_constant<                                             /*
+  */       std::uintptr_t,                                                   /*
+  *
+  *               ┌─ The value of meevax::kernel::pointer::get()
+  *          ┌────┴─────────┐
+  * address   0... .... 0000 => object binder (is 16 byte aligned)
+  *
+  * boolean   0... 0000 1101 NOTE: sizeof bool is implementation-defined
+  *
+  * single    0... 0101 1010
+  * double    0... 0110 1010
+  *
+  * int08_t   0... 0011 1000
+  * int16_t   0... 0100 1000
+  * int32_t   0... 0101 1000
+  *
+  * uint08_t  0... 0011 1100
+  * uint16_t  0... 0100 1100
+  * uint32_t  0... 0101 1100
+  *                ───┬ ┬┬┬┬
+  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) | /*
+  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) | /*
+  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) | /*
+  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)   /*
+  *                   │
+  *                   └────── precision of the type = 2^N bit
+  */     >;                                                                  /*
+  *
+  *========================================================================= */
+
+  constexpr std::uintptr_t category_mask {0x0F};
+  constexpr auto           category_mask_width {4};
+
+  template <typename T>
+  constexpr auto category_of(T const* const value) noexcept
+  {
+    return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
+  }
+
+  template <typename... Ts>
+  constexpr bool is_tagged(Ts&&... operands) noexcept
+  {
+    return category_of(std::forward<decltype(operands)>(operands)...);
+  }
+
+  template <typename T>
+  using precision
+    = std::integral_constant<std::uintptr_t, log2(sizeof(T) * 8)>;
+
+  constexpr std::uintptr_t precision_mask {0xF0};
+  constexpr auto           precision_mask_width {4}; // XXX calculate from word size
+
+  template <typename T>
+  constexpr auto precision_of(T const* const value)
+  {
+    assert(is_tagged(value));
+
+    return
+      (reinterpret_cast<std::uintptr_t>(value) bitand precision_mask)
+        >> category_mask_width;
+  }
+
+  constexpr std::uintptr_t mask {precision_mask bitor category_mask};
+  constexpr auto mask_width {precision_mask_width + category_mask_width};
+
+  template <typename T>
+  using tag
+    = std::integral_constant<
+        std::uintptr_t,
+        (precision<T>::value << category_mask_width)
+          bitor category<T>::value>;
+
+  // full-tag includes precision.
+  template <typename Pointer>
+  constexpr auto tag_of(Pointer value) noexcept
+  {
+    assert(is_tagged(value));
+
+    return reinterpret_cast<std::uintptr_t>(value) bitand mask;
+  }
+
+  template <typename Pointer>
+  constexpr auto untagged_value_of(Pointer value) noexcept
+  {
+    return reinterpret_cast<std::uintptr_t>(value) >> mask_width;
+  }
+
+  template <typename T, typename... Ts>
+  constexpr auto untagged_value_as(Ts&&... operands) noexcept
+    -> typename std::decay<T>::type
+  {
+    auto value {untagged_value_of(
+      std::forward<decltype(operands)>(operands)...
+    )};
+    return reinterpret_cast<typename std::decay<T>::type&>(value);
+  }
+
+  /* ==== Heterogenous Shared Pointer =========================================
+  *
+  * TODO documentation
+  *
+  *========================================================================= */
   template <typename T>
   class pointer
     : public std::shared_ptr<T>
   {
+    /* ==== Object Binder =====================================================
+    *
+    * The object binder is the actual data pointed to by the pointer type. To
+    * handle all types uniformly, the binder inherits type T and uses dynamic
+    * polymorphism. This provides access to the bound type ID and its
+    * instances. However, the performance is inferior due to the heavy use of
+    * dynamic cast as a price for convenience.
+    *
+    *======================================================================= */
     template <typename Bound>
-    struct binder
+    struct /* alignas(mask + 1) */ binder
       : public Bound
       , public virtual T
     {
@@ -100,8 +261,7 @@ namespace meevax::kernel
         }
         else throw std::logic_error
         {
-          "This is a fatal error for Meevax library developers. "
-          "The bound type of meevax::kernel::pointer is required the concept CopyConstructible."
+          "The base type of meevax::kernel::pointer requires concept CopyConstructible."
         };
       }
 
@@ -142,59 +302,197 @@ namespace meevax::kernel
       : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
     {}
 
-    /**
-     * With this function, you don't have to worry about virtual destructors.
-     * `std::shared_ptr<T>` remembers it has assigned binder type which knows T
-     * and the type you binding (both `T` and `Bound`'s destructor will works
-     * correctly).
-     */
-    template <typename Bound, typename... Ts>
-    static constexpr pointer<T> bind(Ts&&... operands)
+    /* ==== Destructor ========================================================
+    *
+    * TODO: Check all of allocated objects are deallocate correctly.
+    *
+    *======================================================================= */
+    ~pointer()
     {
-      using binding = binder<Bound>;
-      return std::make_shared<binding>(std::forward<decltype(operands)>(operands)...);
+      if (*this)
+      {
+        if (std::shared_ptr<T>::unique())
+        {
+          // std::cerr << "; pointer\t; deallocating " << *this << std::endl;
+        }
+      }
+    }
+
+    /* ==== C/C++ Derived Types Bind ==========================================
+    *
+    * With this function, you don't have to worry about virtual destructors.
+    * std::shared_ptr<T> remembers it has assigned binder type which knows T
+    * and the type you binding (both T and Bound's destructor will works
+    * correctly).
+    *
+    *======================================================================= */
+    template <typename Bound, typename... Ts, REQUIRES(is_not_embeddable<Bound>)>
+    static pointer bind(Ts&&... operands)
+    {
+      return
+        std::make_shared<binder<Bound>>(
+          std::forward<decltype(operands)>(operands)...);
+    }
+
+    /* ==== C/C++ Primitive Types Bind ========================================
+    *
+    * TODO: support bind for not is_embeddable types (e.g. double).
+    *
+    *======================================================================= */
+    template <typename U, REQUIRES(is_embeddable<U>)>
+    static pointer bind(U&& value)
+    {
+      static auto ignore = [](auto* value)
+      {
+        std::cerr << "; pointer\t; deleter ignored tagged-pointer (this behavior is intended)" << std::endl;
+        std::cerr << ";\t\t; category:\t" << category_of(value) << std::endl;
+        std::cerr << ";\t\t; precision:\t" << precision_of(value) << " (" << std::pow(2, precision_of(value)) << "-bits)" << std::endl;
+      };
+
+      const auto pattern {*reinterpret_cast<std::uintptr_t*>(&value)};
+
+      return
+        std::shared_ptr<T>(
+          reinterpret_cast<T*>(
+            pattern << mask_width bitor tag<U>::value),
+            ignore);
     }
 
     decltype(auto) dereference() const
     {
-    #ifndef NDEBUG
-      if (*this)
+      assert(*this);
+      assert(not is_tagged(std::shared_ptr<T>::get()));
+
+      return std::shared_ptr<T>::operator*();
+    }
+
+    /* ==== Type Predicates ===================================================
+    *
+    * TODO: is_compatible_to (non-strict type comparison)
+    *
+    *======================================================================= */
+    decltype(auto) type() const
+    {
+      switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
       {
-    #endif
-        return std::shared_ptr<T>::operator*();
-    #ifndef NDEBUG
+      case category<void*>::value: // address
+        return dereference().type();
+
+      case category<bool>::value:
+        return typeid(bool);
+
+      case category<float>::value:
+        switch (precision_of(value))
+        {
+        case precision<float>::value:
+          return typeid(float);
+
+        default:
+          throw std::logic_error {"floating-point types with precision greater than 32-bits are not supported."};
+        }
+
+      case category<signed int>::value:
+        switch (precision_of(value))
+        {
+        case precision<std::int8_t>::value:
+          return typeid(std::int8_t);
+
+        case precision<std::int16_t>::value:
+          return typeid(std::int16_t);
+
+        case precision<std::int32_t>::value:
+          return typeid(std::int32_t);
+
+        default:
+          throw std::logic_error {"signed-integer types with precision greater than 32-bits are not supported."};
+        }
+
+      case category<unsigned int>::value:
+        switch (precision_of(value))
+        {
+        case precision<uint8_t>::value:
+          return typeid(std::uint8_t);
+
+        case precision<uint16_t>::value:
+          return typeid(std::uint16_t);
+
+        case precision<uint32_t>::value:
+          return typeid(std::uint32_t);
+
+        default:
+          throw std::logic_error {"unsigned-integer types with precision greater than 32-bits are not supported."};
+        }
+
+      default:
+        throw std::logic_error {"dispatching unimplemented tagged type"};
       }
-      else throw std::logic_error
-      {
-        "This is a fatal error that should be reported to Meevax core language developers (this error only occurs in debug builds). "
-        "meevax::kernel::pointer dererefences nullptr."
-      };
-    #endif
     }
-
-    #define SHORT_ACCESS(NAME) \
-    decltype(auto) NAME() const \
-    { \
-      return dereference().NAME(); \
-    }
-
-    SHORT_ACCESS(type);
-    SHORT_ACCESS(copy);
 
     template <typename U>
     decltype(auto) is() const
     {
-      return type() == typeid(U);
+      return type() == typeid(typename std::decay<U>::type);
     }
 
-    template <typename U>
+    /* ==== C/C++ Derived Type Restoration ====================================
+    *
+    *======================================================================= */
+    template <typename U, REQUIRES(is_not_embeddable<U>)>
     U& as() const
     {
-      // const void* before {&access()};
-      // const void* casted {&dynamic_cast<const T&>(access())};
-      // std::cerr << "[dynamic_cast] " << before << " => " << casted << " (" << (reinterpret_cast<std::ptrdiff_t>(before) - reinterpret_cast<std::ptrdiff_t>(casted)) << ")" << std::endl;
+      assert(not is_tagged(std::shared_ptr<T>::get()));
 
       return dynamic_cast<U&>(dereference());
+    }
+
+    /* ==== C/C++ Primitive Type Restoration ==================================
+    *
+    * Currently only supports when the request and actual type match.
+    *
+    * TODO: Support upcast and downcast of arithmetic types
+    *
+    *======================================================================= */
+    template <typename U, REQUIRES(std::is_arithmetic<U>)>
+    auto as() const
+      -> typename std::decay<U>::type
+    {
+      std::cerr << "; pointer\t; "
+                << utility::hexdump<std::uintptr_t>(
+                     reinterpret_cast<std::uintptr_t>(std::shared_ptr<T>::get()))
+                << std::endl;
+
+      // Helper function "tag_of" includes assertion "is_tagged".
+      switch (auto* value {std::shared_ptr<T>::get()}; tag_of(value))
+      {
+      #define CASE_OF_TYPE(TYPE)                                              \
+      case tag<TYPE>::value:                                                  \
+        return                                                                \
+          static_cast<U>(                                                     \
+            untagged_value_as<TYPE>(value))
+
+      CASE_OF_TYPE(bool);
+
+      CASE_OF_TYPE(float);
+      CASE_OF_TYPE(double);
+
+      CASE_OF_TYPE(std::int8_t);
+      CASE_OF_TYPE(std::int16_t);
+      CASE_OF_TYPE(std::int32_t);
+
+      CASE_OF_TYPE(std::uint8_t);
+      CASE_OF_TYPE(std::uint16_t);
+      CASE_OF_TYPE(std::uint32_t);
+
+      #undef CASE_OF_TYPE
+
+      default:
+        throw std::logic_error {"unexpected immediate value restoration"};
+      }
+    }
+
+    decltype(auto) copy() const
+    {
+      return dereference().copy();
     }
 
     bool equals(const pointer& rhs) const
@@ -223,6 +521,25 @@ namespace meevax::kernel
   {
     return write(object, os);
   }
+
+  namespace debug
+  {
+    // static_assert(tag<void*>::value    == 0b0000);
+
+    static_assert(category<bool>::value == 0b1101);
+
+    static_assert(tag<float>::value    == 0b0101'1010);
+
+    static_assert(tag<int8_t>::value   == 0b0011'1000);
+    static_assert(tag<int16_t>::value  == 0b0100'1000);
+    static_assert(tag<int32_t>::value  == 0b0101'1000);
+    // static_assert(tag<int64_t>::value  == 0b1000);
+
+    static_assert(tag<uint8_t>::value  == 0b0011'1100);
+    static_assert(tag<uint16_t>::value == 0b0100'1100);
+    static_assert(tag<uint32_t>::value == 0b0101'1100);
+    // static_assert(tag<uint64_t>::value == 0b1100);
+  } // namespace debug
 } // namespace meevax::kernel
 
 namespace std

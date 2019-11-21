@@ -1,37 +1,37 @@
 #include <meevax/kernel/character.hpp>
-#include <meevax/kernel/native.hpp>
 #include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/procedure.hpp>
 
 extern "C" namespace meevax::character
 {
-  NATIVE(is_character)
+  PROCEDURE(is_character)
   {
-    return kernel::car(operands).is<kernel::character>() ? kernel::true_object : kernel::false_object;
+    return
+      MEEVAX_BOOLEAN(
+        kernel::car(operands).is<kernel::character>());
   }
 
-  NATIVE(digit_value)
+  PROCEDURE(digit_value)
   {
     // XXX INCORRECT!!!
-    return kernel::make<kernel::real>(
-             kernel::car(operands).as<const std::string>()
-           );
+    return
+      kernel::make<kernel::real>(
+        kernel::car(operands).as<const std::string>());
   }
 
-  NATIVE(codepoint)
+  PROCEDURE(codepoint)
   {
     switch (const std::string& s {
-              kernel::car(operands).as<const std::string&>()
+              kernel::car(operands).as<const std::string>()
             }; s.size())
     {
     case 1:
-      return kernel::make<kernel::real>(
-               *reinterpret_cast<const std::uint8_t*>(s.data())
-             );
+      return
+        kernel::make<kernel::real>(
+          *reinterpret_cast<const std::uint8_t*>(s.data()));
 
     default:
-      throw kernel::make<kernel::evaluation_error>(
-              "character_to_real - unsupported"
-            );
+      throw kernel::make<kernel::evaluation_error>("unicode unsupported");
     }
   }
 } // extern "C"

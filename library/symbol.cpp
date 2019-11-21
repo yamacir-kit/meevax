@@ -1,10 +1,10 @@
-#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 extern "C" namespace meevax::symbol
 {
-  NATIVE(symbol)
+  PROCEDURE(symbol)
   {
     try
     {
@@ -18,7 +18,7 @@ extern "C" namespace meevax::symbol
     }
   }
 
-  NATIVE(is_symbol)
+  PROCEDURE(is_symbol)
   {
     for (const auto& each : operands)
     {

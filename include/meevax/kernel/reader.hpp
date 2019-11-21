@@ -445,7 +445,7 @@ namespace meevax::kernel
       return characters.at("end-of-file");
     }
 
-    object discriminate(std::istream& stream)
+    const object discriminate(std::istream& stream)
     {
       switch (stream.peek())
       {

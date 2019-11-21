@@ -1,38 +1,32 @@
 #include <numeric>
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/native.hpp>
 #include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/procedure.hpp>
 
 extern "C" namespace meevax::numerical
 {
-  NATIVE(addition)
+  PROCEDURE(addition)
   {
-    return std::accumulate(
-             std::begin(operands), std::end(operands),
-             kernel::make<kernel::real>(0),
-             std::plus {}
-           );
+    return
+      MEEVAX_FOLD_ARGUMENTS(
+        kernel::make<kernel::real>(0), std::plus {});
   }
 
-  NATIVE(multiplication)
+  PROCEDURE(multiplication)
   {
-    return std::accumulate(
-             std::begin(operands), std::end(operands),
-             kernel::make<kernel::real>(1),
-             std::multiplies {}
-           );
+    return
+      MEEVAX_FOLD_ARGUMENTS(
+        kernel::make<kernel::real>(1), std::multiplies {});
   }
 
-  NATIVE(subtraction)
+  PROCEDURE(subtraction)
   {
     if (kernel::length(operands) < 2)
     {
-      return std::accumulate(
-               std::begin(operands), std::end(operands),
-               kernel::make<kernel::real>(0),
-               std::minus {}
-             );
+      return
+        MEEVAX_FOLD_ARGUMENTS(
+          kernel::make<kernel::real>(0), std::minus {});
     }
     else
     {
@@ -44,15 +38,13 @@ extern "C" namespace meevax::numerical
     }
   }
 
-  NATIVE(division)
+  PROCEDURE(division)
   {
     if (kernel::length(operands) < 2)
     {
-      return std::accumulate(
-               std::begin(operands), std::end(operands),
-               kernel::make<kernel::real>(1),
-               std::divides {}
-             );
+      return
+        MEEVAX_FOLD_ARGUMENTS(
+          kernel::make<kernel::real>(1), std::divides {});
     }
     else
     {
@@ -64,29 +56,39 @@ extern "C" namespace meevax::numerical
     }
   }
 
-  NATIVE(less)
+  PROCEDURE(less)
   {
-    return std::invoke(std::less {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
+    return
+      MEEVAX_BOOLEAN(
+        MEEVAX_BINARY_OPERATION(std::less {}));
   }
 
-  NATIVE(less_equal)
+  PROCEDURE(less_equal)
   {
-    return std::invoke(std::less_equal {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
+    return
+      MEEVAX_BOOLEAN(
+        MEEVAX_BINARY_OPERATION(std::less_equal {}));
   }
 
-  NATIVE(greater)
+  PROCEDURE(greater)
   {
-    return std::invoke(std::greater {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
+    return
+      MEEVAX_BOOLEAN(
+        MEEVAX_BINARY_OPERATION(std::greater {}));
   }
 
-  NATIVE(greater_equal)
+  PROCEDURE(greater_equal)
   {
-    return std::invoke(std::greater_equal {}, kernel::car(operands), kernel::cadr(operands)) ? kernel::true_object : kernel::false_object;
+    return
+      MEEVAX_BOOLEAN(
+        MEEVAX_BINARY_OPERATION(std::greater_equal {}));
   }
 
-  NATIVE(real_)
+  PROCEDURE(real_)
   {
-    return kernel::car(operands).is<kernel::real>() ? kernel::true_object : kernel::false_object;
+    return
+      MEEVAX_BOOLEAN(
+        kernel::car(operands).is<kernel::real>());
   }
 } // extern "C"
 

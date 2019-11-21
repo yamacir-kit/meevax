@@ -6,7 +6,14 @@
 namespace meevax::kernel
 {
   // closure is pair of expression and lexical-environment
-  DERIVE(closure, public virtual, pair)
+  struct closure
+    : public virtual pair
+  {
+    template <typename... Ts>
+    explicit closure(Ts&&... arguments)
+      : pair {std::forward<decltype(arguments)>(arguments)...}
+    {}
+  };
 
   std::ostream& operator<<(std::ostream& os, const closure& closure)
   {

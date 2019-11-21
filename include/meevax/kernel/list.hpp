@@ -84,6 +84,7 @@ namespace meevax::kernel
   auto cdddar = lambda::compose(cdr, cddar);
   auto cddddr = lambda::compose(cdr, cdddr);
 
+  // TODO Rename to homoiconic_iterator, and using list = homoiconic_iterator
   struct iterator
     : public object
   {
@@ -152,6 +153,7 @@ namespace meevax::kernel
     return (operands | ...);
   }
 
+  // TODO Rename to "list_of"
   template <typename... Ts>
   constexpr decltype(auto) list(Ts&&... operands)
   {

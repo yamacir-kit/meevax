@@ -1,5 +1,12 @@
 (define define-syntax define)
-(define macro-transformer environment)
+
+(define unhygienic-macro-transformer lambda)
+
+(define call-with-current-continuation
+  (lambda (procedure)
+    (call-with-current-continuation procedure)))
+
+(define call/csc call-with-current-syntactic-continuation)
 
 ; (define rsc-macro-transformer
 ;   (lambda (transform)
@@ -155,111 +162,115 @@
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-(define-syntax then begin)
-(define-syntax else begin)
+(define then begin)
+(define else begin)
 
 (define-syntax conditional
-  (macro-transformer (conditional . clauses)
-    (if (null? clauses)
-        (unspecified)
-        ((lambda (clause)
-           (if (eq? else (car clause))
-               (if (pair? (cdr clauses))
-                   (error "")
-                   (cons begin (cdr clause)))
-               (if (if (null? (cdr clause)) #true
-                       (eq? => (cadr clause)))
-                   (list (list lambda (list result)
-                               (list if result
-                                     (if (null? (cdr clause)) result
-                                         (list (caddr clause) result))
-                                     (cons conditional (cdr clauses))))
-                         (car clause))
-                   (list if (car clause)
-                         (cons begin (cdr clause))
-                         (cons conditional (cdr clauses))))))
-         (car clauses)))))
+  (call/csc
+    (unhygienic-macro-transformer (conditional . clauses)
+      (if (null? clauses)
+          (unspecified)
+          ((lambda (clause)
+             (if (eq? else (car clause))
+                 (if (pair? (cdr clauses))
+                     (error "")
+                     (cons begin (cdr clause)))
+                 (if (if (null? (cdr clause)) #true
+                         (eq? => (cadr clause)))
+                     (list (list lambda (list result)
+                                 (list if result
+                                       (if (null? (cdr clause)) result
+                                           (list (caddr clause) result))
+                                       (cons conditional (cdr clauses))))
+                           (car clause))
+                     (list if (car clause)
+                           (cons begin (cdr clause))
+                           (cons conditional (cdr clauses))))))
+           (car clauses))))))
 
 (define-syntax cond conditional)
 
 (define-syntax and
-  (macro-transformer (and . tests)
-    (conditional
-      ((null? tests) #true)
-      ((null? (cdr tests)) (car tests))
-      (else
-        (list if (car tests)
-                 (cons and (cdr tests))
-                 #false)))))
+  (call/csc
+    (unhygienic-macro-transformer (and . tests)
+      (conditional
+        ((null? tests) #true)
+        ((null? (cdr tests)) (car tests))
+        (else
+          (list if (car tests)
+                   (cons and (cdr tests))
+                   #false))))))
 
 (define-syntax or
-  (macro-transformer (or . tests)
-    (conditional
-      ((null? tests) #false)
-      ((null? (cdr tests)) (car tests))
-      (else
-        ; (list (list lambda (list result thunk)
-        ;             (list if result result (list thunk)))
-        ;       (car tests)
-        ;       (list lambda (list)
-        ;             (append (list or) (cdr tests))))
-        (list (list lambda (list result)
-                    (list if result
-                          result
-                          (cons or (cdr tests))
+  (call/csc
+    (unhygienic-macro-transformer (or . tests)
+      (conditional
+        ((null? tests) #false)
+        ((null? (cdr tests)) (car tests))
+        (else
+          ; (list (list lambda (list result thunk)
+          ;             (list if result result (list thunk)))
+          ;       (car tests)
+          ;       (list lambda (list)
+          ;             (append (list or) (cdr tests))))
+          (list (list lambda (list result)
+                      (list if result
+                            result
+                            (cons or (cdr tests))
+                        )
                       )
-                    )
-              (car tests)
-          )
-        ))))
+                (car tests)
+            )
+          )))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.8 Quasiquotations
 ; --------------------------------------------------------------------------
 
-(define-syntax unquote          identity)
-(define-syntax unquote-splicing identity)
+(define unquote          identity)
+(define unquote-splicing identity)
 
 (define-syntax quasiquote
-  (macro-transformer (quasiquote x)
+  (call/csc
+    (unhygienic-macro-transformer (quasiquote x)
 
-    (define quasiquote-expand
-      (lambda (e depth)
-        (if (not (pair? e))
-            (list 'quote e)
-            (if (eq? (car e) 'quasiquote)
-                (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
-                (if (eq? (car e) 'unquote)
-                    (if (< 0 depth)
-                        (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
-                        (if (and (not (null? (cdr e))) (null? (cddr e)))
-                            (cadr e)
-                            (error "illegal unquote")))
-                    (if (eq? (car e) 'unquote-splicing)
-                        (if (< 0 depth)
-                            (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
-                            (error "illegal unquote-splicing"))
-                        (list 'append (quasiquote-expand-list (car e) depth)
-                                      (quasiquote-expand      (cdr e) depth))))))))
+      (define quasiquote-expand
+        (lambda (e depth)
+          (if (not (pair? e))
+              (list 'quote e)
+              (if (eq? (car e) 'quasiquote)
+                  (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+                  (if (eq? (car e) 'unquote)
+                      (if (< 0 depth)
+                          (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+                          (if (and (not (null? (cdr e))) (null? (cddr e)))
+                              (cadr e)
+                              (error "illegal unquote")))
+                      (if (eq? (car e) 'unquote-splicing)
+                          (if (< 0 depth)
+                              (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+                              (error "illegal unquote-splicing"))
+                          (list 'append (quasiquote-expand-list (car e) depth)
+                                        (quasiquote-expand      (cdr e) depth))))))))
 
-    (define quasiquote-expand-list
-      (lambda (e depth)
-        (if (not (pair? e))
-            (list 'quote (list e))
-            (if (eq? (car e) 'quasiquote)
-                (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
-                (if (eq? (car e) 'unquote)
-                    (if (< 0 depth)
-                        (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
-                        (cons 'list (cdr e)))
-                    (if (eq? (car e) 'unquote-splicing)
-                        (if (< 0 depth)
-                            (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
-                            (cons 'append (cdr e)))
-                        (list 'list (list 'append (quasiquote-expand-list (car e) depth)
-                                                  (quasiquote-expand      (cdr e) depth)))))))))
+      (define quasiquote-expand-list
+        (lambda (e depth)
+          (if (not (pair? e))
+              (list 'quote (list e))
+              (if (eq? (car e) 'quasiquote)
+                  (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
+                  (if (eq? (car e) 'unquote)
+                      (if (< 0 depth)
+                          (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
+                          (cons 'list (cdr e)))
+                      (if (eq? (car e) 'unquote-splicing)
+                          (if (< 0 depth)
+                              (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
+                              (cons 'append (cdr e)))
+                          (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+                                                    (quasiquote-expand      (cdr e) depth)))))))))
 
-    (quasiquote-expand x 0)))
+      (quasiquote-expand x 0))))
 
 ; ------------------------------------------------------------------------------
 ;  6.10 Control features (Part 1 of 2)
@@ -370,48 +381,53 @@
 ; ------------------------------------------------------------------------------
 
 (define-syntax letrec* ; transform to internal-definitions
-  (macro-transformer (letrec* bindings . body)
-    ((lambda (definitions)
-      `((,lambda () ,@definitions ,@body)))
-     (map (lambda (x) (cons 'define x)) bindings))))
+  (call/csc
+    (unhygienic-macro-transformer (letrec* bindings . body)
+      ((lambda (definitions)
+        `((,lambda () ,@definitions ,@body)))
+       (map (lambda (x) (cons 'define x)) bindings)))))
 
-(define-syntax letrec letrec*)
+(define letrec letrec*)
 
 (define-syntax unnamed-let
-  (macro-transformer (unnamed-let bindings . body)
-   `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
+  (call/csc
+    (unhygienic-macro-transformer (unnamed-let bindings . body)
+     `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings)))))
 
 (define-syntax let
-  (macro-transformer (let bindings . body)
+  (call/csc
+    (unhygienic-macro-transformer (let bindings . body)
 
-    (if (null? bindings)
-        (error "The let syntax is defined as the form (let <bindings> <body>) \
-                but lacks <bindings> and <body>."))
+      (if (null? bindings)
+          (error "The let syntax is defined as the form (let <bindings> <body>) \
+                  but lacks <bindings> and <body>."))
 
-    (if (null? body)
-        (error "The let syntax is defined as the form (let <bindings> <body>) \
-                but lacks <body>."))
+      (if (null? body)
+          (error "The let syntax is defined as the form (let <bindings> <body>) \
+                  but lacks <body>."))
 
-    (if (pair? bindings)
-       `(unnamed-let ,bindings ,@body)
-       `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
-          (,bindings ,@(map cadr (car body)))))))
+      (if (pair? bindings)
+         `(unnamed-let ,bindings ,@body)
+         `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
+            (,bindings ,@(map cadr (car body))))))))
 
 (define-syntax let*
-  (macro-transformer (let* bindings . body)
+  (call/csc
+    (unhygienic-macro-transformer (let* bindings . body)
 
-    (if (null? bindings)
-        (error "The let* syntax is defined as the form (let* <bindings> <body>) \
-                but lacks <bindings> and <body>."))
+      (if (null? bindings)
+          (error "The let* syntax is defined as the form (let* <bindings> <body>) \
+                  but lacks <bindings> and <body>."))
 
-    (if (null? body)
-        (error "The let* syntax is defined as the form (let* <bindings> <body>) \
-                but lacks <body>."))
+      (if (null? body)
+          (error "The let* syntax is defined as the form (let* <bindings> <body>) \
+                  but lacks <body>."))
 
-    (if (or (null? bindings)
-            (null? (cdr bindings)))
-       `(,let (,(car bindings)) ,@body)
-       `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body)))
+      (if (or (null? bindings)
+              (null? (cdr bindings)))
+         `(,let (,(car bindings)) ,@body)
+         `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body)))
+      )
     )
   )
 
@@ -542,43 +558,46 @@
 ; ------------------------------------------------------------------------------
 
 (define-syntax case
-  (macro-transformer (case key . clauses)
+  (call/csc
+    (unhygienic-macro-transformer (case key . clauses)
 
-    (define body
-      (lambda (expressions)
-        (conditional
-          ((null? expressions) result)
-          ((eq? => (car expressions))
-          `(,(cadr expressions) ,result))
-          (else
-           `(,begin ,@expressions)))))
+      (define body
+        (lambda (expressions)
+          (conditional
+            ((null? expressions) result)
+            ((eq? => (car expressions))
+            `(,(cadr expressions) ,result))
+            (else
+             `(,begin ,@expressions)))))
 
-    (define each-clause
-      (lambda (clauses)
-        (conditional
-          ((null? clauses) #false)
-          ((eq? else (caar clauses))
-           (body (cdar clauses)))
-          ((and (pair? (caar clauses))
-                (null? (cdaar clauses)))
-          `(,if (,eqv? ,result (,quote ,(caaar clauses)))
-               ,(body (cdar clauses))
-               ,(each-clause (cdr clauses))))
-          (else
-           `(,if (,memv ,result (,quote ,(caar clauses)))
-                ,(body (cdar clauses))
-                ,(each-clause (cdr clauses)))))))
+      (define each-clause
+        (lambda (clauses)
+          (conditional
+            ((null? clauses) #false)
+            ((eq? else (caar clauses))
+             (body (cdar clauses)))
+            ((and (pair? (caar clauses))
+                  (null? (cdaar clauses)))
+            `(,if (,eqv? ,result (,quote ,(caaar clauses)))
+                 ,(body (cdar clauses))
+                 ,(each-clause (cdr clauses))))
+            (else
+             `(,if (,memv ,result (,quote ,(caar clauses)))
+                  ,(body (cdar clauses))
+                  ,(each-clause (cdr clauses)))))))
 
-   `(,let ((,result ,key))
-     ,(each-clause clauses))))
+     `(,let ((,result ,key))
+       ,(each-clause clauses)))))
 
 (define-syntax when
-  (macro-transformer (when test . body)
-   `(if ,test (begin ,@body))))
+  (call/csc
+    (unhygienic-macro-transformer (when test . body)
+     `(if ,test (begin ,@body)))))
 
 (define-syntax unless
-  (macro-transformer (unless test . body)
-   `(if (not ,test) (begin ,@body))))
+  (call/csc
+    (unhygienic-macro-transformer (unless test . body)
+     `(if (not ,test) (begin ,@body)))))
 
 ; (define-syntax conditional-expansion
 ;   (macro-transformer (conditional-expansion . clauses)
@@ -592,36 +611,39 @@
 ; ------------------------------------------------------------------------------
 
 (define-syntax iterate
-  (macro-transformer (iterate variables test . commands)
-    (let ((body
-           `(,begin ,@commands
-                    (,rec ,@(map (lambda (x)
-                                   (if (pair? (cddr x))
-                                       (caddr x)
-                                       (car x)))
-                                 variables)))))
-     `(,let ,rec ,(map (lambda (x)
-                         (list (car x)
-                               (cadr x)))
-                       variables)
-       ,(if (null? (cdr test))
-           `(,let ((,result ,(car test)))
-              (,if ,result ,result ,body))
-           `(,if ,(car test) (,begin ,@(cdr test)) ,body))))))
+  (call/csc
+    (unhygienic-macro-transformer (iterate variables test . commands)
+      (let ((body
+             `(,begin ,@commands
+                      (,rec ,@(map (lambda (x)
+                                     (if (pair? (cddr x))
+                                         (caddr x)
+                                         (car x)))
+                                   variables)))))
+       `(,let ,rec ,(map (lambda (x)
+                           (list (car x)
+                                 (cadr x)))
+                         variables)
+         ,(if (null? (cdr test))
+             `(,let ((,result ,(car test)))
+                (,if ,result ,result ,body))
+             `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))))
 
-(define-syntax do iterate)
+(define do iterate)
 
 ; ------------------------------------------------------------------------------
 ;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
 (define-syntax delay-force
-  (macro-transformer (delay-force expression)
-   `(,promise #false (,lambda () ,expression))))
+  (call/csc
+    (unhygienic-macro-transformer (delay-force expression)
+     `(,promise #false (,lambda () ,expression)))))
 
 (define-syntax delay
-  (macro-transformer (delay expression)
-   `(,delay-force (,promise #true expression))))
+  (call/csc
+    (unhygienic-macro-transformer (delay expression)
+     `(,delay-force (,promise #true expression)))))
 
 ; TODO promise?
 ; TODO make-promise?
@@ -1044,24 +1066,24 @@
 
 (define char->integer codepoint)
 
-(define alphabetical-character?
-  (lambda (x)
-    (<= #(char->integer #\A)
-         (char->integer (char-upcase x))
-        #(char->integer #\Z))))
-
-(define char-alphabetic? alphabetical-character?) ;                (scheme char)
+; (define alphabetical-character?
+;   (lambda (x)
+;     (<= #(char->integer #\A)
+;          (char->integer (char-upcase x))
+;         #(char->integer #\Z))))
+;
+; (define char-alphabetic? alphabetical-character?) ;                (scheme char)
 
 (define digit-value ;                                              (scheme char)
   (native character.so "digit_value"))
 
-(define numerical-character?
-  (lambda (x)
-    (<= #(char->integer #\0)
-         (char->integer x)
-        #(char->integer #\9))))
-
-(define char-numeric? numerical-character?) ;                      (scheme char)
+; (define numerical-character?
+;   (lambda (x)
+;     (<= #(char->integer #\0)
+;          (char->integer x)
+;         #(char->integer #\9))))
+;
+; (define char-numeric? numerical-character?) ;                      (scheme char)
 
 (define whitespace-character?
   (lambda (x)
@@ -1072,21 +1094,21 @@
 
 (define char-whitespace? whitespace-character?) ;                  (scheme char)
 
-(define uppercase-character?
-  (lambda (x)
-    (<= #(char->integer #\A)
-         (char->integer x)
-        #(char->integer #\Z))))
+; (define uppercase-character?
+;   (lambda (x)
+;     (<= #(char->integer #\A)
+;          (char->integer x)
+;         #(char->integer #\Z))))
+;
+; (define char-upper-case? uppercase-character?) ;                   (scheme char)
 
-(define char-upper-case? uppercase-character?) ;                   (scheme char)
-
-(define lowercase-character?
-  (lambda (x)
-    (<= #(char->integer #\a)
-         (char->integer x)
-        #(char->integer #\z))))
-
-(define char-lower-case? lowercase-character?) ;                   (scheme char)
+; (define lowercase-character?
+;   (lambda (x)
+;     (<= #(char->integer #\a)
+;          (char->integer x)
+;         #(char->integer #\z))))
+;
+; (define char-lower-case? lowercase-character?) ;                   (scheme char)
 
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
@@ -1469,12 +1491,20 @@
 ;  Miscellaneous
 ; ------------------------------------------------------------------------------
 
+; (define swap!
+;   (environment (swap! x y)
+;     (let ((temporary (string->symbol)))
+;      `(let ((,temporary ,x))
+;         (set! ,x ,y)
+;         (set! ,y ,temporary)))))
+
 (define swap!
-  (environment (swap! x y)
-    (let ((temporary (string->symbol)))
-     `(let ((,temporary ,x))
-        (set! ,x ,y)
-        (set! ,y ,temporary)))))
+  (call/csc
+    (unhygienic-macro-transformer (swap! x y)
+      (let ((temporary (string->symbol)))
+       `(let ((,temporary ,x))
+          (set! ,x ,y)
+          (set! ,y ,temporary))))))
 
 ; (define-syntax swap!
 ;   (explicit-renaming-macro-transformer
@@ -1484,4 +1514,49 @@
 ;        `(,(rename 'let) ((,(rename 'value) ,a))
 ;           (,(rename 'set!) ,a ,b)
 ;           (,(rename 'set!) ,b ,(rename 'value)))))))
+
+(define loop
+  (call/csc
+    (unhygienic-macro-transformer form
+     `(,call/cc
+        (,lambda (exit)
+          (,let ,rec ()
+           ,(cadr form)
+            (,rec)))))))
+
+(define f
+  (lambda ()
+    (define x 0)
+
+    (define let     3.14)
+    (define call/cc 3.141)
+    ; (define lambda  3.1415) ; TODO internal-defintion's bug cause renaming error if enable this line
+    (define exit    3.14159)
+    (define rec     3.141592)
+
+    (loop
+      (if (< 9 x)
+          (begin (display "!")
+                 (display exit)
+                 (exit 42))
+          (begin (display x)
+                 (set! x (+ x 1)))))))
+
+; (define-syntax loop
+;   (non-hygienic-macro-transformer
+;     (lambda (form)
+;      `(call-with-current-continuation
+;         (lambda (exit)
+;           (let loop ()
+;             ,form
+;             (loop)))))))
+
+; (define-syntax loop
+;   (sc-macro-transformer
+;     (lambda (form environment)
+;      `(call-with-current-continuation
+;         (lambda (exit)
+;           (let loop ()
+;            ,(make-syntactic-closure environment '(exit) (cadr form))
+;             (loop)))))))
 
