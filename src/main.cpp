@@ -42,13 +42,13 @@ int main(const int argc, char const* const* const argv) try
     // return boost::exit_exception_failure;
   }
 
-  auto value {meevax::kernel::make<float>(3.14)};
-
-  auto x {value.as<double>()};
-  std::cout << "; pointer\t; " << x << std::endl;;
-
-  auto y {value.as<int>()};
-  std::cout << "; pointer\t; " << y << std::endl;;
+  // auto value {meevax::kernel::make<float>(3.14)};
+  //
+  // auto x {value.as<double>()};
+  // std::cout << "; pointer\t; " << x << std::endl;;
+  //
+  // auto y {value.as<int>()};
+  // std::cout << "; pointer\t; " << y << std::endl;;
 
   return boost::exit_success;
 }
