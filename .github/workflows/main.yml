@@ -12,7 +12,6 @@ jobs:
     - name: 'Install Libraries'
       run: |
         sudo apt update
-        sudo apt upgrade
         sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
     - name: 'Build ICE on Bionic'
       run: |
