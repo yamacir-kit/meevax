@@ -2,6 +2,10 @@
 
 (define unhygienic-macro-transformer lambda)
 
+(define call-with-current-continuation
+  (lambda (procedure)
+    (call-with-current-continuation procedure)))
+
 (define call/csc call-with-current-syntactic-continuation)
 
 ; (define rsc-macro-transformer
@@ -1062,24 +1066,24 @@
 
 (define char->integer codepoint)
 
-(define alphabetical-character?
-  (lambda (x)
-    (<= #(char->integer #\A)
-         (char->integer (char-upcase x))
-        #(char->integer #\Z))))
-
-(define char-alphabetic? alphabetical-character?) ;                (scheme char)
+; (define alphabetical-character?
+;   (lambda (x)
+;     (<= #(char->integer #\A)
+;          (char->integer (char-upcase x))
+;         #(char->integer #\Z))))
+;
+; (define char-alphabetic? alphabetical-character?) ;                (scheme char)
 
 (define digit-value ;                                              (scheme char)
   (native character.so "digit_value"))
 
-(define numerical-character?
-  (lambda (x)
-    (<= #(char->integer #\0)
-         (char->integer x)
-        #(char->integer #\9))))
-
-(define char-numeric? numerical-character?) ;                      (scheme char)
+; (define numerical-character?
+;   (lambda (x)
+;     (<= #(char->integer #\0)
+;          (char->integer x)
+;         #(char->integer #\9))))
+;
+; (define char-numeric? numerical-character?) ;                      (scheme char)
 
 (define whitespace-character?
   (lambda (x)
@@ -1090,21 +1094,21 @@
 
 (define char-whitespace? whitespace-character?) ;                  (scheme char)
 
-(define uppercase-character?
-  (lambda (x)
-    (<= #(char->integer #\A)
-         (char->integer x)
-        #(char->integer #\Z))))
+; (define uppercase-character?
+;   (lambda (x)
+;     (<= #(char->integer #\A)
+;          (char->integer x)
+;         #(char->integer #\Z))))
+;
+; (define char-upper-case? uppercase-character?) ;                   (scheme char)
 
-(define char-upper-case? uppercase-character?) ;                   (scheme char)
-
-(define lowercase-character?
-  (lambda (x)
-    (<= #(char->integer #\a)
-         (char->integer x)
-        #(char->integer #\z))))
-
-(define char-lower-case? lowercase-character?) ;                   (scheme char)
+; (define lowercase-character?
+;   (lambda (x)
+;     (<= #(char->integer #\a)
+;          (char->integer x)
+;         #(char->integer #\z))))
+;
+; (define char-lower-case? lowercase-character?) ;                   (scheme char)
 
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library

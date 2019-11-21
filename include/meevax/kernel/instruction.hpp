@@ -1,15 +1,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
-#include <cstdint>
-
 #include <boost/preprocessor.hpp>
 
 #include <meevax/kernel/object.hpp>
 
 namespace meevax::kernel
 {
-  #define INSTRUCTIONS \
+  #define MNEMONICS \
     (APPLY) \
     (APPLY_TAIL) \
     (DEFINE) \
@@ -32,19 +30,19 @@ namespace meevax::kernel
     (SET_LOCAL_VARIADIC) \
     (STOP)
 
-  enum class code
+  enum class mnemonic
     : std::int8_t
   {
-    BOOST_PP_SEQ_ENUM(INSTRUCTIONS)
+    BOOST_PP_SEQ_ENUM(MNEMONICS)
   };
 
   struct instruction
   {
-    const code value;
+    const mnemonic code;
 
     template <typename... Ts>
-    instruction(Ts&&... operands)
-      : value {std::forward<decltype(operands)>(operands)...}
+    explicit instruction(Ts&&... operands)
+      : code {std::forward<decltype(operands)>(operands)...}
     {}
   };
 
@@ -52,45 +50,18 @@ namespace meevax::kernel
   {
     os << highlight::kernel;
 
-    switch (instruction.value)
+    switch (instruction.code)
     {
-    #define INSTRUCTION_CASE(_, AUX, EACH) \
-    case code::EACH: \
+    #define MNEMONIC_CASE(_, AUX, EACH) \
+    case mnemonic::EACH: \
       os << BOOST_PP_STRINGIZE(EACH); \
       break;
 
-      BOOST_PP_SEQ_FOR_EACH(INSTRUCTION_CASE, _, INSTRUCTIONS)
-
-    #undef INSTRUCTION_CASE
+      BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
     }
 
     return os << attribute::normal;
   }
-
-  static const auto _apply_               {make<instruction>(code::APPLY)};
-  static const auto _apply_tail_          {make<instruction>(code::APPLY_TAIL)};
-  static const auto _define_              {make<instruction>(code::DEFINE)};
-  static const auto _join_                {make<instruction>(code::JOIN)};
-  static const auto _load_global_         {make<instruction>(code::LOAD_GLOBAL)};
-  static const auto _load_literal_        {make<instruction>(code::LOAD_LITERAL)};
-  static const auto _load_local_          {make<instruction>(code::LOAD_LOCAL)};
-  static const auto _load_local_variadic_ {make<instruction>(code::LOAD_LOCAL_VARIADIC)};
-  static const auto _make_closure_        {make<instruction>(code::MAKE_CLOSURE)};
-  static const auto _make_continuation_   {make<instruction>(code::MAKE_CONTINUATION)};
-  static const auto _make_environment_    {make<instruction>(code::MAKE_ENVIRONMENT)};
-  static const auto _pop_                 {make<instruction>(code::POP)};
-  static const auto _push_                {make<instruction>(code::PUSH)};
-  static const auto _return_              {make<instruction>(code::RETURN)};
-  static const auto _select_              {make<instruction>(code::SELECT)};
-  static const auto _select_tail_         {make<instruction>(code::SELECT_TAIL)};
-  static const auto _set_global_          {make<instruction>(code::SET_GLOBAL)};
-  static const auto _set_local_           {make<instruction>(code::SET_LOCAL)};
-  static const auto _set_local_variadic_  {make<instruction>(code::SET_LOCAL_VARIADIC)};
-  static const auto _stop_                {make<instruction>(code::STOP)};
-
-  static const auto _make_syntactic_continuation_ {
-    make<instruction>(code::MAKE_SYNTACTIC_CONTINUATION)
-  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP

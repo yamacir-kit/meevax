@@ -1,3 +1,5 @@
+// #define THE_ONLY_SUBSET_OF_THE_EMPTY_SET_IS_ITSELF true
+
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 int main(const int argc, char const* const* const argv) try
@@ -39,6 +41,14 @@ int main(const int argc, char const* const* const argv) try
     continue; // TODO EXIT IF NOT IN INTERACTIVE MODE
     // return boost::exit_exception_failure;
   }
+
+  // auto value {meevax::kernel::make<float>(3.14)};
+  //
+  // auto x {value.as<double>()};
+  // std::cout << "; pointer\t; " << x << std::endl;;
+  //
+  // auto y {value.as<int>()};
+  // std::cout << "; pointer\t; " << y << std::endl;;
 
   return boost::exit_success;
 }

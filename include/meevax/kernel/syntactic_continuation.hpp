@@ -25,43 +25,43 @@ extern char _binary_layer_1_ss_end;
 
 namespace meevax::kernel
 {
-  /****************************************************************************
+  /* ==========================================================================
   * Standard Environment Layers
   *
   *   Layer 0 - Pure Syntax
   *   Layer 1 - Derived Expressions and Standard Procedures
   *
-  ****************************************************************************/
+  *========================================================================= */
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
   class syntactic_continuation
-    /**************************************************************************
+    /* ========================================================================
     * The syntactic_continuation is a pair of "the program" and "global environment
     * (simple association list)". It also has the aspect of a meta-closure that
     * closes the global environment when it constructed (this feature is known
     * as syntactic-closure).
-    **************************************************************************/
+    *======================================================================= */
     : public virtual pair
 
-    /**************************************************************************
+    /* ========================================================================
     * Reader access symbol table of this syntactic_continuation (by member function
     * "intern") via static polymorphism. The syntactic_continuation indirectly inherits
     * the non-copyable class std::istream (reader base class), so it cannot be
     * copied.
-    **************************************************************************/
+    *======================================================================= */
     , public reader<syntactic_continuation>
 
-    /**************************************************************************
+    /* ========================================================================
     * Each syntactic_continuation has one virtual machine and compiler.
-    **************************************************************************/
+    *======================================================================= */
     , public machine<syntactic_continuation>
 
-    /**************************************************************************
+    /* ========================================================================
     * Global configuration is shared in all of syntactic_continuations running on same
     * process. Thus, any change of configuration member influences any other
     * syntactic_continuations immediately.
-    **************************************************************************/
+    *======================================================================= */
     , public configurator<syntactic_continuation>
   {
     std::unordered_map<std::string, object> symbols;
@@ -91,18 +91,21 @@ namespace meevax::kernel
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
-      return kernel::machine<syntactic_continuation>::define(
-               intern(name),
-               make<T>(name, std::forward<decltype(operands)>(operands)...)
-             );
+      return
+        kernel::machine<syntactic_continuation>::define(
+          intern(name),
+          make<T>(
+            name,
+            std::forward<decltype(operands)>(operands)...));
     }
 
     template <typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
-      return kernel::machine<syntactic_continuation>::define(
-               intern(name), std::forward<decltype(operands)>(operands)...
-             );
+      return
+        kernel::machine<syntactic_continuation>::define(
+          intern(name),
+          std::forward<decltype(operands)>(operands)...);
     }
 
     const auto& intern(const std::string& s)
@@ -203,11 +206,10 @@ namespace meevax::kernel
       e = cons(operands, lexical_environment());
       c = current_expression();
       d = cons(
-            unit,         // s
-            unit,         // e
-            list(_stop_), // c
-            unit          // d
-          );
+            unit,                                    // s
+            unit,                                    // e
+            list(make<instruction>(mnemonic::STOP)), // c
+            unit);                                   // d
 
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;
@@ -258,9 +260,8 @@ namespace meevax::kernel
       for (const object& each : library.as<syntactic_continuation>().interaction_environment())
       {
         executable.push(
-          _load_literal_, cadr(each),
-          _define_, rename(car(each))
-        );
+          make<instruction>(mnemonic::LOAD_LITERAL), cadr(each),
+          make<instruction>(mnemonic::DEFINE), rename(car(each)));
       }
 
       return executable;
@@ -284,7 +285,7 @@ namespace meevax::kernel
     //
     //   for (const auto& [key, value] : source.bindings)
     //   {
-    //     executable.push(_load_literal_, value, _define_, rename(key));
+    //     executable.push(_load_literal_, value, make<instruction>(mnemonic::DEFINE), rename(key));
     //   }
     //
     //   return executable;
@@ -341,47 +342,47 @@ namespace meevax::kernel
   template <>
   syntactic_continuation::syntactic_continuation(std::integral_constant<int, 0>)
   {
-    define<syntax>("quote", [&](auto&&... operands)
+    define<special>("quote", [&](auto&&... operands)
     {
       return quotation(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("if", [&](auto&&... operands)
+    define<special>("if", [&](auto&&... operands)
     {
       return conditional(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("define", [&](auto&&... operands)
+    define<special>("define", [&](auto&&... operands)
     {
       return definition(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("begin", [&](auto&&... operands)
+    define<special>("begin", [&](auto&&... operands)
     {
       return sequence(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("call-with-current-continuation", [&](auto&&... operands)
+    define<special>("call-with-current-continuation", [&](auto&&... operands)
     {
       return call_cc(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("lambda", [&](auto&&... operands)
+    define<special>("lambda", [&](auto&&... operands)
     {
       return lambda(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("environment", [&](auto&&... operands)
+    define<special>("environment", [&](auto&&... operands)
     {
       return abstraction(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("call-with-current-syntactic-continuation", [&](auto&&... operands)
+    define<special>("call-with-current-syntactic-continuation", [&](auto&&... operands)
     {
       return call_csc(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<syntax>("set!", [&](auto&&... operands)
+    define<special>("set!", [&](auto&&... operands)
     {
       return assignment(std::forward<decltype(operands)>(operands)...);
     });
@@ -389,7 +390,7 @@ namespace meevax::kernel
     /*
      * <importation> = (import <library name>)
      */
-    // define<syntax>("import", [&](auto&& expression,
+    // define<special>("import", [&](auto&& expression,
     //                              auto&& lexical_environment,
     //                              auto&& continuation, auto)
     // {
@@ -454,14 +455,14 @@ namespace meevax::kernel
     //     // machine<syntactic_continuation>::define(
     //     //   library_name,
     //     //   std::invoke(
-    //     //     dynamic_link(library_path).link<native::signature>("library"),
+    //     //     dynamic_link(library_path).link<procedure::signature>("library"),
     //     //     unit
     //     //   )
     //     // );
     //
     //     const object exported {std::invoke(
-    //       dynamic_link(library_path).link<native::signature>("library"),
-    //       // linker.as<posix::linker>().link<native::signature>("library"),
+    //       dynamic_link(library_path).link<procedure::signature>("library"),
+    //       // linker.as<posix::linker>().link<procedure::signature>("library"),
     //       unit // TODO PASS SOMETHING USEFUL TO LIBRARY INITIALIZER
     //     )};
     //
@@ -482,16 +483,16 @@ namespace meevax::kernel
     //     * shared-object as given library-name (this will execute on first of VM
     //     * instruction which result of this function).
     //     **********************************************************************/
-    //     return decralations.push(_load_literal_, exported, _define_, library_name);
+    //     return decralations.push(_load_literal_, exported, make<instruction>(mnemonic::DEFINE), library_name);
     //   }
     // });
 
-    define<native>("load", [&](const object& operands)
+    define<procedure>("load", [&](const object& operands)
     {
       return load(car(operands).as<const string>());
     });
 
-    define<native>("linker", [&](auto&& operands)
+    define<procedure>("linker", [&](auto&& operands)
     {
       if (auto size {length(operands)}; size < 1)
       {
@@ -515,7 +516,7 @@ namespace meevax::kernel
       }
     });
 
-    define<native>("native", [&](const iterator& operands)
+    define<procedure>("native", [&](const iterator& operands)
     {
       // if (auto size {length(operands)}; size < 1)
       // {
@@ -553,25 +554,25 @@ namespace meevax::kernel
       // {
         const std::string name {cadr(operands).as<string>()};
 
-        return make<native>(
-          name,
-          car(operands).as<posix::linker>().link<native::signature>(name)
-        );
+        return
+          make<procedure>(
+            name,
+            car(operands).as<posix::linker>().link<procedure::signature>(name));
       // }
     });
 
-    define<native>("read", [&](const iterator& operands)
+    define<procedure>("read", [&](const iterator& operands)
     {
       return read(operands ? car(operands).as<input_file>() : std::cin);
     });
 
-    define<native>("write", [&](const iterator& operands)
+    define<procedure>("write", [&](const iterator& operands)
     {
       std::cout << car(operands);
       return unspecified;
     });
 
-    define<native>("evaluate", [&](auto&& operands)
+    define<procedure>("evaluate", [&](auto&& operands)
     {
       return evaluate(car(operands));
     });

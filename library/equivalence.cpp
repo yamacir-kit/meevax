@@ -1,13 +1,13 @@
-#include <meevax/kernel/native.hpp>
+#include <meevax/kernel/procedure.hpp>
 
 extern "C" namespace meevax::equivalence
 {
-  NATIVE(address_equal)
+  PROCEDURE(address_equal)
   {
     return kernel::car(operands) == kernel::cadr(operands) ? kernel::true_object : kernel::false_object;
   }
 
-  NATIVE(value_equal)
+  PROCEDURE(value_equal)
   {
     if (const kernel::object& object1 {kernel::car(operands)},
                               object2 {kernel::cadr(operands)}; object1 == object2)
