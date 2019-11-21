@@ -27,11 +27,15 @@
 (define equivalence.so
   (linker "libmeevax-equivalence.so"))
 
-(define eq? ; address-equal?
-  (native equivalence.so "address_equal"))
+(define equals?
+  (native equivalence.so "equals"))
 
-(define eqv? ; value-equal?
-  (native equivalence.so "value_equal"))
+(define eq? equals?)
+
+(define equivalent? ; value-equal?
+  (native equivalence.so "equivalent"))
+
+(define eqv? equivalent?)
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Numbers (Part 1 of 2)

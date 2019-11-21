@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
 #include <functional> // std::funstion
+#include <numeric> // std::accumulate
 
 #include <meevax/kernel/list.hpp>
 
@@ -40,6 +41,7 @@ namespace meevax::for_api
   #define MEEVAX_BOOLEAN(...) \
   (__VA_ARGS__ ? meevax::kernel::true_object : meevax::kernel::false_object)
 
+  // TODO Rename simply "MEEVAX_FOLD"
   #define MEEVAX_FOLD_ARGUMENTS(INIT, ...) \
   std::accumulate(std::begin(operands), std::end(operands), INIT, __VA_ARGS__)
 

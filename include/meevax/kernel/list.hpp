@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_KERNEL_SRFI_1_HPP
-#define INCLUDED_MEEVAX_KERNEL_SRFI_1_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_LIST_HPP
+#define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <iterator> // std::begin, std::end, std::distance
 
@@ -317,5 +317,5 @@ namespace meevax::kernel
   }
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_SRFI_1_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP
 

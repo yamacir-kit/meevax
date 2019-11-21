@@ -2,15 +2,18 @@
 
 extern "C" namespace meevax::equivalence
 {
-  PROCEDURE(address_equal)
+  PROCEDURE(equals)
   {
-    return kernel::car(operands) == kernel::cadr(operands) ? kernel::true_object : kernel::false_object;
+    return
+      MEEVAX_BOOLEAN(
+        kernel::car(operands) == kernel::cadr(operands));
   }
 
-  PROCEDURE(value_equal)
+  PROCEDURE(equivalent)
   {
     if (const kernel::object& object1 {kernel::car(operands)},
-                              object2 {kernel::cadr(operands)}; object1 == object2)
+                              object2 {kernel::cadr(operands)};
+        object1 == object2)
     {
       return kernel::true_object;
     }
