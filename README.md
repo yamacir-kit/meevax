@@ -1,15 +1,15 @@
 ![Meevax Lisp System](https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v5.png)
 
-<h3 align="center">
-  The Meta Extensible EVAluator and eXtensions
-</h3>
-
 <div align="center">
   <a href="https://travis-ci.org/yamacir-kit/meevax">
-    <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Build Status"/>
+    <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Travis Status"/>
   </a>
 
-  *HEAD Version 0.2.119*
+  <a href="https://github.com/yamacir-kit/meevax/actions">
+    <img src="https://github.com/yamacir-kit/meevax/workflows/CI/badge.svg" alt="GitHub Actions Status"/>
+  </a>
+
+  *HEAD Version 0.2.120*
 </div>
 
 <br/>
