@@ -1,6 +1,4 @@
-<h1 align="center">
-  Meevax Lisp System 0
-</h1>
+![Meevax Lisp System](https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v5.png)
 
 <h3 align="center">
   The Meta Extensible EVAluator and eXtensions
@@ -11,7 +9,7 @@
     <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Build Status"/>
   </a>
 
-  *HEAD Version 0.2.108*
+  *HEAD Version 0.2.119*
 </div>
 
 <br/>

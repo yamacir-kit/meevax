@@ -1,6 +1,4 @@
-<h1 align="center">
-  Meevax Lisp System ${PROJECT_VERSION_MAJOR}
-</h1>
+![Meevax Lisp System](https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v5.png)
 
 <h3 align="center">
   The Meta Extensible EVAluator and eXtensions
