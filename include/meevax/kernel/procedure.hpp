@@ -7,7 +7,7 @@
 #include <meevax/kernel/list.hpp>
 
 #define PROCEDURE(NAME) \
-  const meevax::kernel::object NAME([[maybe_unused]] const meevax::kernel::iterator& operands)
+  const meevax::kernel::object NAME([[maybe_unused]] const meevax::kernel::homoiconic_iterator& operands)
 
 namespace meevax::kernel
 {

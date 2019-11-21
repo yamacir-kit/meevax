@@ -9,11 +9,11 @@ namespace meevax::kernel
    * Stack structure provides Scheme-like stack operation to linear list.
    */
   struct stack
-    : public iterator
+    : public homoiconic_iterator
   {
     template <typename... Ts>
     constexpr stack(Ts&&... operands)
-      : iterator {std::forward<decltype(operands)>(operands)...}
+      : homoiconic_iterator {std::forward<decltype(operands)>(operands)...}
     {}
 
     decltype(auto) top() const

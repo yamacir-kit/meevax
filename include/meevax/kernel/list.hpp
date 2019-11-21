@@ -53,6 +53,11 @@
 
 namespace meevax::kernel
 {
+  /* ==== Cxr Library Procedures ==============================================
+  *
+  * Arbitrary compositions up to four deep are provided.
+  *
+  *========================================================================= */
   auto caar = lambda::compose(car, car);
   auto cadr = lambda::compose(car, cdr);
   auto cdar = lambda::compose(cdr, car);
@@ -84,25 +89,32 @@ namespace meevax::kernel
   auto cdddar = lambda::compose(cdr, cddar);
   auto cddddr = lambda::compose(cdr, cdddr);
 
-  // TODO Rename to homoiconic_iterator, and using list = homoiconic_iterator
-  struct iterator
+  /* ==== The Homoiconic Iterator =============================================
+  *
+  * TODO using list = homoiconic_iterator
+  *
+  *========================================================================= */
+  struct homoiconic_iterator
     : public object
   {
     using iterator_category = std::forward_iterator_tag;
 
     using value_type = object;
 
-    using reference = value_type&;
-    using const_reference = const reference;
+    using reference
+      = std::add_lvalue_reference<value_type>::type;
 
-    using pointer = value_type; // represents homoiconicity
+    using const_reference
+      = std::add_const<reference>::type;
+
+    using pointer = value_type; // homoiconicity
 
     using difference_type = std::ptrdiff_t;
 
     using size_type = std::size_t;
 
     template <typename... Ts>
-    constexpr iterator(Ts&&... operands)
+    constexpr homoiconic_iterator(Ts&&... operands)
       : object {std::forward<decltype(operands)>(operands)...}
     {}
 
@@ -126,18 +138,23 @@ namespace meevax::kernel
       return *this;
     }
 
-    const iterator end() const noexcept
+    const homoiconic_iterator end() const noexcept
     {
       return unit;
     }
   };
 
-  iterator begin(const object& object) noexcept
+  /* ==== The List Type =======================================================
+  *
+  *========================================================================= */
+  // using list = homoiconic_iterator;
+
+  homoiconic_iterator begin(const object& object) noexcept
   {
     return object;
   }
 
-  iterator end(const object&) noexcept
+  homoiconic_iterator end(const object&) noexcept
   {
     return unit;
   }
@@ -206,7 +223,7 @@ namespace meevax::kernel
     }
   }
 
-  decltype(auto) length(const iterator& e)
+  decltype(auto) length(const homoiconic_iterator& e)
   {
     return std::distance(std::begin(e), std::end(e));
   }

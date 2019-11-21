@@ -516,7 +516,7 @@ namespace meevax::kernel
       }
     });
 
-    define<procedure>("native", [&](const iterator& operands)
+    define<procedure>("native", [&](const homoiconic_iterator& operands)
     {
       // if (auto size {length(operands)}; size < 1)
       // {
@@ -561,12 +561,12 @@ namespace meevax::kernel
       // }
     });
 
-    define<procedure>("read", [&](const iterator& operands)
+    define<procedure>("read", [&](const homoiconic_iterator& operands)
     {
       return read(operands ? car(operands).as<input_file>() : std::cin);
     });
 
-    define<procedure>("write", [&](const iterator& operands)
+    define<procedure>("write", [&](const homoiconic_iterator& operands)
     {
       std::cout << car(operands);
       return unspecified;
