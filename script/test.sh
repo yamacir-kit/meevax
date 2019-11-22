@@ -22,7 +22,7 @@ fi
 # perf stat -- $repository/build/bin/meevax --verbose-reader < $repository/test/meta-circular-evaluator.meevax
 # perf stat -- $repository/build/bin/meevax --verbose < $repository/test/test.scm
 
-$repository/build/bin/meevax --verbose < "$repository/test/test.scm"
+"$repository/build/bin/meevax" --verbose < "$repository/test/test.scm"
 
 # T='std::shared_ptr<meevax::kernel::pair>'
 #
