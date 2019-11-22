@@ -307,16 +307,16 @@ namespace meevax::kernel
       // std::cerr << "; machine\t; " << c << std::endl;
 
     dispatch:
-      switch (c.top().as<instruction>().code)
+      switch (c.top().template as<instruction>().code)
       {
       case mnemonic::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         TRACE(2);
         {
           homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          std::advance(region, int {caadr(c).template as<real>()});
 
           homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()});
+          std::advance(position, int {cdadr(c).template as<real>()});
 
           s.push(*position);
         }
@@ -327,10 +327,10 @@ namespace meevax::kernel
         TRACE(2);
         {
           homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          std::advance(region, int {caadr(c).template as<real>()});
 
           homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()});
+          std::advance(position, int {cdadr(c).template as<real>()});
 
           s.push(position);
         }
@@ -437,7 +437,7 @@ namespace meevax::kernel
       case mnemonic::APPLY:
         TRACE(1);
 
-        if (auto callee {car(s)}; not callee)
+        if (object callee {car(s)}; not callee)
         {
           static const error e {"unit is not appliciable"};
           throw e;
@@ -476,7 +476,7 @@ namespace meevax::kernel
       case mnemonic::APPLY_TAIL:
         TRACE(1);
 
-        if (auto callee {car(s)}; not callee)
+        if (object callee {car(s)}; not callee)
         {
           throw evaluation_error {"unit is not appliciable"};
         }
@@ -550,10 +550,10 @@ namespace meevax::kernel
         TRACE(2);
         {
           homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          std::advance(region, int {caadr(c).template as<real>()});
 
           homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()});
+          std::advance(position, int {cdadr(c).template as<real>()});
 
           std::atomic_store(&car(position), car(s));
         }
@@ -564,10 +564,10 @@ namespace meevax::kernel
         TRACE(2);
         {
           homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          std::advance(region, int {caadr(c).template as<real>()});
 
           homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()} - 1);
+          std::advance(position, int {cdadr(c).template as<real>()} - 1);
 
           std::atomic_store(&cdr(position), car(s));
         }

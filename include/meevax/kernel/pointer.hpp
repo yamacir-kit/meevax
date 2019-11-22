@@ -241,8 +241,10 @@ namespace meevax::kernel
       {}
 
       explicit constexpr binder(Bound&& bound)
-        : Bound {std::forward<Bound>(bound)}
+        : Bound {std::forward<decltype(bound)>(bound)}
       {}
+
+      virtual ~binder() = default;
 
       auto type() const noexcept
         -> const std::type_info& override

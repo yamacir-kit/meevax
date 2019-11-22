@@ -20,7 +20,7 @@ namespace meevax::kernel
     {}
 
     template <typename... Ts>
-    explicit constexpr file(Ts&&... operands)
+    explicit file(Ts&&... operands)
       : std::fstream {std::forward<decltype(operands)>(operands)...}
     {}
   };
@@ -49,7 +49,7 @@ namespace meevax::kernel
     {}
 
     template <typename... Ts>
-    explicit constexpr input_file(Ts&&... operands)
+    explicit input_file(Ts&&... operands)
       : std::ifstream {std::forward<decltype(operands)>(operands)...}
     {}
   };
@@ -78,7 +78,7 @@ namespace meevax::kernel
     {}
 
     template <typename... Ts>
-    explicit constexpr output_file(Ts&&... operands)
+    explicit output_file(Ts&&... operands)
       : std::ofstream {std::forward<decltype(operands)>(operands)...}
     {}
   };

@@ -11,7 +11,10 @@
 namespace meevax::kernel
 {
   template <typename OutputStream, typename... Objects>
-  decltype(auto) write(OutputStream&& os, Objects&&... objects)
+  constexpr auto write(OutputStream&& os, Objects&&... objects)
+    -> typename std::add_lvalue_reference<
+         typename std::decay<OutputStream>::type
+       >::type
   {
     (os << ... << objects);
     return os;

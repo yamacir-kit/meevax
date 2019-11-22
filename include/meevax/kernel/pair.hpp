@@ -18,6 +18,8 @@ namespace meevax::kernel
     pair()
       : std::pair<object, object> {unit, unit}
     {}
+
+    virtual ~pair() = default;
   };
 
   #ifndef NDEBUG

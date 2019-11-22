@@ -144,11 +144,6 @@ namespace meevax::kernel
     }
   };
 
-  /* ==== The List Type =======================================================
-  *
-  *========================================================================= */
-  // using list = homoiconic_iterator;
-
   homoiconic_iterator begin(const object& object) noexcept
   {
     return object;
@@ -159,7 +154,7 @@ namespace meevax::kernel
     return unit;
   }
 
-  object operator bitor(const object& lhs, const object& rhs)
+  object operator |(const object& lhs, const object& rhs)
   {
     return std::make_shared<pair>(lhs, rhs);
   }
@@ -170,7 +165,19 @@ namespace meevax::kernel
     return (operands | ...);
   }
 
-  // TODO Rename to "list_of"
+  /* ==== The List Type =======================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================= */
+  // struct list
+  //   : public homoiconic_iterator
+  // {
+  //   template <typename... Ts>
+  //   explicit list(Ts&&... operands)
+  //     : homoiconic_iterator {(operands | ... | unit)}
+  //   {}
+  // };
   template <typename... Ts>
   constexpr decltype(auto) list(Ts&&... operands)
   {

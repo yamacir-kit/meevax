@@ -20,7 +20,13 @@ namespace meevax::kernel
      */
     static constexpr auto intraline_whitespace(std::istream::char_type c)
     {
-      return std::isspace(c);
+      // return std::isspace(c);
+      return c == 0x09
+          or c == 0x0a
+          or c == 0x0b
+          or c == 0x0c
+          or c == 0x0d
+          or c == 0x20;
     }
 
     static constexpr auto line_ending(std::istream::char_type c)
@@ -153,12 +159,12 @@ namespace meevax::kernel
 
   public:
     template <typename... Ts>
-    constexpr reader(Ts&&... operands)
+    reader(Ts&&... operands)
       : input_file {std::forward<decltype(operands)>(operands)...}
     {}
 
     template <typename... Ts>
-    constexpr decltype(auto) intern(Ts&&... operands)
+    decltype(auto) intern(Ts&&... operands)
     {
       return static_cast<Environment&>(*this).intern(
                std::forward<decltype(operands)>(operands)...
