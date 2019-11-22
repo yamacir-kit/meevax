@@ -32,16 +32,6 @@ namespace meevax::kernel
   }
 
   extern "C" const object unit, unbound, undefined, unspecified;
-
-  #define DERIVE(DERIVED, ACCESS, BASE)                                        \
-  struct DERIVED                                                               \
-    : ACCESS BASE                                                              \
-  {                                                                            \
-    template <typename... Ts>                                                  \
-    explicit constexpr DERIVED(Ts&&... operands)                               \
-      : BASE {std::forward<decltype(operands)>(operands)...}                   \
-    {}                                                                         \
-  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

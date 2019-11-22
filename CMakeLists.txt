@@ -27,7 +27,7 @@ project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
-set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -mtune=native -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-s -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # set(CMAKE_CXX_STANDARD 17) # CMake <= 3.8.2
 

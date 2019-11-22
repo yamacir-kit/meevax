@@ -1262,6 +1262,20 @@
 ;  6.8 Standard Vectors Library
 ; ------------------------------------------------------------------------------
 
+(define vector.so
+  (linker "libmeevax-vector.so"))
+
+(define vector-of
+  (native vector.so "vector_of"))
+
+(define vector vector-of)
+
+(define vector-reference
+  (native vector.so "vector_reference"))
+
+(define vector-ref
+        vector-reference)
+
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
 ; ------------------------------------------------------------------------------
@@ -1284,17 +1298,30 @@
 
 (define call/cc call-with-current-continuation)
 
+; (define values
+;   (lambda xs
+;     (call-with-current-continuation
+;       (lambda (continuation)
+;         (apply continuation xs)))))
+(define *values* (list 'values))
+
 (define values
-  (lambda xs
-    (call-with-current-continuation
-      (lambda (continuation)
-        (apply continuation xs)))))
+  (lambda x
+
+    (define values-aux
+      (lambda (x)
+        (if (and (pair? x)
+                 (null? (cdr x)))
+            (car x)
+            (cons *values* x))))
+
+    (values-aux x)))
 
 (define call-with-values
   (lambda (producer consumer)
     (let ((result (producer)))
       (if (and (pair? result)
-               (eq? (car result) 'values))
+               (eq? (car result) *values*))
           (apply consumer (cdr result))
           (consumer result)))))
 
