@@ -1303,25 +1303,26 @@
 ;     (call-with-current-continuation
 ;       (lambda (continuation)
 ;         (apply continuation xs)))))
-(define *values* (list 'values))
+
+; Magic Token Trick
+(define values-magic-token (list 'values))
+
+(define values-magic-token?
+  (lambda (x)
+    (and (pair? x)
+         (eq? (car x) values-magic-token))))
 
 (define values
-  (lambda x
-
-    (define values-aux
-      (lambda (x)
-        (if (and (pair? x)
-                 (null? (cdr x)))
-            (car x)
-            (cons *values* x))))
-
-    (values-aux x)))
+  (lambda xs
+    (if (and (not (null? xs))
+             (null? (cdr xs)))
+        (car xs)
+        (cons values-magic-token xs))))
 
 (define call-with-values
   (lambda (producer consumer)
     (let ((result (producer)))
-      (if (and (pair? result)
-               (eq? (car result) *values*))
+      (if (values-magic-token? result)
           (apply consumer (cdr result))
           (consumer result)))))
 
