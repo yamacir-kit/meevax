@@ -73,7 +73,7 @@ namespace meevax::kernel
   public: // Constructors
     // for bootstrap scheme-report-environment
     template <int Layer>
-    syntactic_continuation(std::integral_constant<int, Layer>);
+    explicit syntactic_continuation(std::integral_constant<int, Layer>);
 
     // for library constructor
     template <typename... Ts>

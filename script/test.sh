@@ -6,14 +6,14 @@ for each in "$@"
 do
   case "$@" in
     "-b" | "--build" )
-      sh $repository/script/build.sh
+      sh "$repository/script/build.sh"
       break;;
   esac
 done
 
-if test ! -e $repository/build
+if test ! -e "$repository/build"
 then
-  sh $repository/script/build.sh
+  sh "$repository/script/build.sh"
 fi
 
 # sudo time perf record -- $repository/build/bin/meevax < $repository/test/test.scm
@@ -22,7 +22,7 @@ fi
 # perf stat -- $repository/build/bin/meevax --verbose-reader < $repository/test/meta-circular-evaluator.meevax
 # perf stat -- $repository/build/bin/meevax --verbose < $repository/test/test.scm
 
-$repository/build/bin/meevax --verbose < $repository/test/test.scm
+$repository/build/bin/meevax --verbose < "$repository/test/test.scm"
 
 # T='std::shared_ptr<meevax::kernel::pair>'
 #
