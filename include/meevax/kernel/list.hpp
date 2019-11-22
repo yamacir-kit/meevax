@@ -170,14 +170,6 @@ namespace meevax::kernel
   * TODO Documentations
   *
   *========================================================================= */
-  // struct list
-  //   : public homoiconic_iterator
-  // {
-  //   template <typename... Ts>
-  //   explicit list(Ts&&... operands)
-  //     : homoiconic_iterator {(operands | ... | unit)}
-  //   {}
-  // };
   template <typename... Ts>
   constexpr decltype(auto) list(Ts&&... operands)
   {
