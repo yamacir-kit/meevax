@@ -9,7 +9,7 @@
     <img src="https://github.com/yamacir-kit/meevax/workflows/CI/badge.svg" alt="GitHub Actions Status"/>
   </a>
 
-  *HEAD Version 0.2.126*
+  *HEAD Version 0.2.127*
 </div>
 
 <br/>
