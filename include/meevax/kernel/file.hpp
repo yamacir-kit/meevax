@@ -5,96 +5,55 @@
 
 #include <meevax/kernel/object.hpp>
 
-// TODO ファイルパスを std::string からランタイムストリングかパス型へ変更
-
 namespace meevax::kernel
 {
-  struct file
-    : public std::fstream
-  {
-    const std::string path;
-
-    file(const std::string& path)
-      : std::fstream {path}
-      , path {path}
-    {}
-
-    template <typename... Ts>
-    explicit file(Ts&&... operands)
-      : std::fstream {std::forward<decltype(operands)>(operands)...}
-    {}
-  };
-
-  auto operator<<(std::ostream& os, const file& file)
-    -> decltype(os)
-  {
-    os << "#(file";
-
-    if (file.is_open())
-    {
-      os << " \"" << file.path << "\"";
-    }
-
-    return os << ")";
+  /* ==== I/O Port ============================================================
+  *
+  * TODO std::string => std::filesystem::path
+  *
+  *========================================================================= */
+  #define DEFINE_PORT(TYPENAME, STREAM)                                        \
+  struct TYPENAME                                                              \
+    : public STREAM                                                            \
+  {                                                                            \
+    const std::string name;                                                    \
+                                                                               \
+    explicit TYPENAME(const std::string& name)                                 \
+      : STREAM {name}                                                          \
+      , name   {name}                                                          \
+    {}                                                                         \
+                                                                               \
+    template <typename... Ts>                                                  \
+    explicit TYPENAME(Ts&&... operands)                                        \
+      : STREAM {std::forward<decltype(operands)>(operands)...}                 \
+    {}                                                                         \
   }
 
-  struct input_file
-    : public std::ifstream
-  {
-    const std::string path;
-
-    input_file(const std::string& path)
-      : std::ifstream {path}
-      , path {path}
-    {}
-
-    template <typename... Ts>
-    explicit input_file(Ts&&... operands)
-      : std::ifstream {std::forward<decltype(operands)>(operands)...}
-    {}
-  };
-
-  auto operator<<(std::ostream& os, const input_file& file)
-    -> decltype(os)
-  {
-    os << "#(input-file";
-
-    if (file.is_open())
-    {
-      os << " \"" << file.path << "\"";
-    }
-
-    return os << ")";
+  /* ==== I/O Port External Representation ====================================
+  *
+  *
+  *========================================================================= */
+  #define DEFINE_PORT_EXTERNAL_REPRESENTATION(TYPENAME, DISPLAY_NAME)          \
+  auto operator<<(std::ostream& os, const TYPENAME& port)                      \
+    -> decltype(os)                                                            \
+  {                                                                            \
+    os << "#(" << DISPLAY_NAME;                                                \
+                                                                               \
+    if (port.is_open())                                                        \
+    {                                                                          \
+      os << " \"" << port.name << "\"";                                        \
+    }                                                                          \
+                                                                               \
+    return os << ")";                                                          \
   }
 
-  struct output_file
-    : public std::ofstream
-  {
-    const std::string path;
+  DEFINE_PORT(       file, std::fstream);
+  DEFINE_PORT( input_file, std::ifstream);
+  DEFINE_PORT(output_file, std::ofstream);
 
-    output_file(const std::string& path)
-      : std::ofstream {path}
-      , path {path}
-    {}
-
-    template <typename... Ts>
-    explicit output_file(Ts&&... operands)
-      : std::ofstream {std::forward<decltype(operands)>(operands)...}
-    {}
-  };
-
-  auto operator<<(std::ostream& os, const output_file& file)
-    -> decltype(os)
-  {
-    os << "#(output-file";
-
-    if (file.is_open())
-    {
-      os << " \"" << file.path << "\"";
-    }
-
-    return os << ")";
-  }
+  DEFINE_PORT_EXTERNAL_REPRESENTATION(       file,        "file")
+  DEFINE_PORT_EXTERNAL_REPRESENTATION( input_file,  "input-file")
+  DEFINE_PORT_EXTERNAL_REPRESENTATION(output_file, "output-file")
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_FILE_HPP
