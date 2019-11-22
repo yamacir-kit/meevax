@@ -307,16 +307,16 @@ namespace meevax::kernel
       // std::cerr << "; machine\t; " << c << std::endl;
 
     dispatch:
-      switch (c.top().as<instruction>().code)
+      switch (c.top().template as<instruction>().code)
       {
       case mnemonic::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         TRACE(2);
         {
-          iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          homoiconic_iterator region {e};
+          std::advance(region, int {caadr(c).template as<real>()});
 
-          iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()});
+          homoiconic_iterator position {*region};
+          std::advance(position, int {cdadr(c).template as<real>()});
 
           s.push(*position);
         }
@@ -326,11 +326,11 @@ namespace meevax::kernel
       case mnemonic::LOAD_LOCAL_VARIADIC:
         TRACE(2);
         {
-          iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          homoiconic_iterator region {e};
+          std::advance(region, int {caadr(c).template as<real>()});
 
-          iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()});
+          homoiconic_iterator position {*region};
+          std::advance(position, int {cdadr(c).template as<real>()});
 
           s.push(position);
         }
@@ -437,7 +437,7 @@ namespace meevax::kernel
       case mnemonic::APPLY:
         TRACE(1);
 
-        if (auto callee {car(s)}; not callee)
+        if (object callee {car(s)}; not callee)
         {
           static const error e {"unit is not appliciable"};
           throw e;
@@ -476,7 +476,7 @@ namespace meevax::kernel
       case mnemonic::APPLY_TAIL:
         TRACE(1);
 
-        if (auto callee {car(s)}; not callee)
+        if (object callee {car(s)}; not callee)
         {
           throw evaluation_error {"unit is not appliciable"};
         }
@@ -549,11 +549,11 @@ namespace meevax::kernel
       case mnemonic::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
         TRACE(2);
         {
-          iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          homoiconic_iterator region {e};
+          std::advance(region, int {caadr(c).template as<real>()});
 
-          iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()});
+          homoiconic_iterator position {*region};
+          std::advance(position, int {cdadr(c).template as<real>()});
 
           std::atomic_store(&car(position), car(s));
         }
@@ -563,11 +563,11 @@ namespace meevax::kernel
       case mnemonic::SET_LOCAL_VARIADIC:
         TRACE(2);
         {
-          iterator region {e};
-          std::advance(region, int {caadr(c).as<real>()});
+          homoiconic_iterator region {e};
+          std::advance(region, int {caadr(c).template as<real>()});
 
-          iterator position {*region};
-          std::advance(position, int {cdadr(c).as<real>()} - 1);
+          homoiconic_iterator position {*region};
+          std::advance(position, int {cdadr(c).template as<real>()} - 1);
 
           std::atomic_store(&cdr(position), car(s));
         }
@@ -602,7 +602,7 @@ namespace meevax::kernel
         {
           auto j {0};
 
-          for (iterator position {region}; position; ++position)
+          for (homoiconic_iterator position {region}; position; ++position)
           {
             if (position.is<pair>() && *position == variable)
             {
@@ -890,7 +890,7 @@ namespace meevax::kernel
         *   <expression N> )
         *
         **********************************************************************/
-        for (iterator each {cdr(expression)}; each; ++each)
+        for (homoiconic_iterator each {cdr(expression)}; each; ++each)
         {
           if (not car(each) or // unit (TODO? syntax-error)
               not car(each).is<pair>() or // <identifier or literal>

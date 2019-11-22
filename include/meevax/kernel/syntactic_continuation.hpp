@@ -77,7 +77,7 @@ namespace meevax::kernel
 
     // for library constructor
     template <typename... Ts>
-    constexpr syntactic_continuation(Ts&&... operands)
+    explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {}
 
@@ -86,6 +86,19 @@ namespace meevax::kernel
     auto ready() const noexcept
     {
       return reader<syntactic_continuation>::ready();
+    }
+
+    const auto& intern(const std::string& s)
+    {
+      if (auto iter {symbols.find(s)}; iter != std::end(symbols))
+      {
+        return iter->second;
+      }
+      else
+      {
+        iter = symbols.emplace(s, make<symbol>(s)).first;
+        return iter->second;
+      }
     }
 
     template <typename T, typename... Ts>
@@ -106,19 +119,6 @@ namespace meevax::kernel
         kernel::machine<syntactic_continuation>::define(
           intern(name),
           std::forward<decltype(operands)>(operands)...);
-    }
-
-    const auto& intern(const std::string& s)
-    {
-      if (auto iter {symbols.find(s)}; iter != std::end(symbols))
-      {
-        return iter->second;
-      }
-      else
-      {
-        iter = symbols.emplace(s, make<symbol>(s)).first;
-        return iter->second;
-      }
     }
 
     std::size_t time_stamp {0};
@@ -217,7 +217,7 @@ namespace meevax::kernel
     }
 
     template <typename... Ts>
-    constexpr decltype(auto) evaluate(Ts&&... operands)
+    decltype(auto) evaluate(Ts&&... operands)
     {
       return execute(compile(std::forward<decltype(operands)>(operands)...));
     }
@@ -516,7 +516,7 @@ namespace meevax::kernel
       }
     });
 
-    define<procedure>("native", [&](const iterator& operands)
+    define<procedure>("native", [&](const homoiconic_iterator& operands)
     {
       // if (auto size {length(operands)}; size < 1)
       // {
@@ -561,12 +561,12 @@ namespace meevax::kernel
       // }
     });
 
-    define<procedure>("read", [&](const iterator& operands)
+    define<procedure>("read", [&](const homoiconic_iterator& operands)
     {
       return read(operands ? car(operands).as<input_file>() : std::cin);
     });
 
-    define<procedure>("write", [&](const iterator& operands)
+    define<procedure>("write", [&](const homoiconic_iterator& operands)
     {
       std::cout << car(operands);
       return unspecified;

@@ -5,7 +5,14 @@
 
 namespace meevax::kernel
 {
-  DERIVE(continuation, public virtual, pair)
+  struct continuation
+    : public virtual pair
+  {
+    template <typename... Ts>
+    explicit continuation(Ts&&... operands)
+      : pair {std::forward<decltype(operands)>(operands)...}
+    {}
+  };
 
   std::ostream& operator<<(std::ostream& os, const continuation& continuation)
   {

@@ -2,10 +2,6 @@
 
 (define unhygienic-macro-transformer lambda)
 
-(define call-with-current-continuation
-  (lambda (procedure)
-    (call-with-current-continuation procedure)))
-
 (define call/csc call-with-current-syntactic-continuation)
 
 ; (define rsc-macro-transformer
@@ -27,11 +23,15 @@
 (define equivalence.so
   (linker "libmeevax-equivalence.so"))
 
-(define eq? ; address-equal?
-  (native equivalence.so "address_equal"))
+(define equals?
+  (native equivalence.so "equals"))
 
-(define eqv? ; value-equal?
-  (native equivalence.so "value_equal"))
+(define eq? equals?)
+
+(define equivalent? ; value-equal?
+  (native equivalence.so "equivalent"))
+
+(define eqv? equivalent?)
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Numbers (Part 1 of 2)
@@ -1258,6 +1258,20 @@
 ;  6.8 Standard Vectors Library
 ; ------------------------------------------------------------------------------
 
+(define vector.so
+  (linker "libmeevax-vector.so"))
+
+(define vector-of
+  (native vector.so "vector_of"))
+
+(define vector vector-of)
+
+(define vector-reference
+  (native vector.so "vector_reference"))
+
+(define vector-ref
+        vector-reference)
+
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
 ; ------------------------------------------------------------------------------
@@ -1278,19 +1292,37 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
+(define call-with-current-continuation
+  (lambda (procedure)
+    (call-with-current-continuation procedure)))
+
 (define call/cc call-with-current-continuation)
+
+; (define values
+;   (lambda xs
+;     (call-with-current-continuation
+;       (lambda (continuation)
+;         (apply continuation xs)))))
+
+; Magic Token Trick
+(define values-magic-token (list 'values))
+
+(define values-magic-token?
+  (lambda (x)
+    (and (pair? x)
+         (eq? (car x) values-magic-token))))
 
 (define values
   (lambda xs
-    (call-with-current-continuation
-      (lambda (continuation)
-        (apply continuation xs)))))
+    (if (and (not (null? xs))
+             (null? (cdr xs)))
+        (car xs)
+        (cons values-magic-token xs))))
 
 (define call-with-values
   (lambda (producer consumer)
     (let ((result (producer)))
-      (if (and (pair? result)
-               (eq? (car result) 'values))
+      (if (values-magic-token? result)
           (apply consumer (cdr result))
           (consumer result)))))
 

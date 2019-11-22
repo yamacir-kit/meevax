@@ -12,11 +12,6 @@ namespace meevax::kernel
     explicit constexpr symbol(Ts&&... operands)
       : std::string {std::forward<decltype(operands)>(operands)...}
     {}
-
-    operator std::string() const
-    {
-      return *this;
-    }
   };
 
   auto operator<<(std::ostream& os, const symbol& symbol)

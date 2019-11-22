@@ -18,11 +18,13 @@ namespace meevax::kernel
   template <typename Environment>
   struct configurator
   {
-    /**
-     * This structure is a precaution against the possibility of providing part
-     * of the configuration as an object to the runtime in the future.
-     **/
-    static inline const struct version
+    /* ==== Version Informations ==============================================
+    *
+    * This structure is a precaution against the possibility of providing part
+    * of the configuration as an object to the runtime in the future.
+    *
+    *======================================================================= */
+    static inline const struct semantic_version
       : public object
     {
       static inline const auto major {make<real>(${PROJECT_VERSION_MAJOR})};
@@ -32,20 +34,22 @@ namespace meevax::kernel
       static inline const auto semantic {"datum<string>(${PROJECT_VERSION})"};
 
       template <typename... Ts>
-      explicit constexpr version(Ts&&... operands)
+      explicit constexpr semantic_version(Ts&&... operands)
         : object {list(std::forward<decltype(operands)>(operands)...)}
       {}
     } version {
-      version::major,
-      version::minor,
-      version::patch,
+      semantic_version::major,
+      semantic_version::minor,
+      semantic_version::patch,
     };
 
-    /**
-     * This structure is a precaution against the possibility of providing part
-     * of the configuration as an object to the runtime in the future.
-     **/
-    static inline const struct build // TODO Rename
+    /* ==== Build Informations ================================================
+    *
+    * This structure is a precaution against the possibility of providing part
+    * of the configuration as an object to the runtime in the future.
+    *
+    *======================================================================= */
+    static inline const struct build_status // TODO Rename
     {
       static inline const auto date {datum<string>("${${PROJECT_NAME}_BUILD_DATE}")};
       static inline const auto hash {datum<string>("${${PROJECT_NAME}_BUILD_HASH}")};
