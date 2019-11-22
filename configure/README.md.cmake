@@ -47,10 +47,10 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 
 ## Usage
 
-| Option | Description |
-|:--|:--|
+| Option            | Description                           |
+|:------------------|:--------------------------------------|
 | `-v`, `--version` | Display version information and exit. |
-| `-h`, `--help`    | Display this help text and exit. |
+| `-h`, `--help`    | Display this help text and exit.      |
 
 <br/>
 
@@ -118,4 +118,3 @@ make
 
 *   TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
 *   SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))
-
