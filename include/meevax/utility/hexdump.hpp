@@ -13,7 +13,7 @@ namespace meevax::utility
   {
     const std::vector<std::uint8_t> data;
 
-    hexdump(const T& value)
+    explicit hexdump(const T& value)
       : data {
           reinterpret_cast<typename decltype(data)::const_pointer>(&value),
           reinterpret_cast<typename decltype(data)::const_pointer>(&value) + sizeof(T)

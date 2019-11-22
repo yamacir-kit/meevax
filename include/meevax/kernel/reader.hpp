@@ -159,7 +159,7 @@ namespace meevax::kernel
 
   public:
     template <typename... Ts>
-    reader(Ts&&... operands)
+    explicit reader(Ts&&... operands)
       : input_file {std::forward<decltype(operands)>(operands)...}
     {}
 

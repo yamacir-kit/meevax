@@ -5,9 +5,11 @@
 
 namespace meevax::kernel
 {
-  /**
-   * Stack structure provides Scheme-like stack operation to linear list.
-   */
+  /* ==== Stack ===============================================================
+  *
+  * Stack structure provides Scheme-like stack operation to linear list.
+  *
+  *========================================================================= */
   struct stack
     : public homoiconic_iterator
   {

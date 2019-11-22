@@ -9,50 +9,52 @@
     <img src="https://github.com/yamacir-kit/meevax/workflows/CI/badge.svg" alt="GitHub Actions Status"/>
   </a>
 
+  <a href="https://www.codacy.com/manual/yamacir-kit/meevax?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=yamacir-kit/meevax&amp;utm_campaign=Badge_Grade">
+    <img src="https://api.codacy.com/project/badge/Grade/ebd3aba61f1141049229031b7f068de9"/>
+  </a>
+
   *HEAD Version ${PROJECT_VERSION}*
 </div>
 
-<br/>
-
 ## Contents
 
-- [Introduction](#Introduction)
-- [Usage](#Usage)
-- [Dependency](#Dependency)
-- [Installation](#Installation)
+*   [Introduction](#Introduction)
+*   [Usage](#Usage)
+*   [Dependency](#Dependency)
+*   [Installation](#Installation)
 
 <br/>
 
 ## Introduction
 
-Meevax Lisp is a lisp-1 programming language written in C++17.
-This language aiming highly binary level compatibility for modern C++ program.
+Meevax Lisp is a Lisp-1 programming language written in C++17.
+<!-- This language aiming highly binary level compatibility for modern C++ program. -->
 
 Meevax gives
-- NOT "ad-hoc informally-specified",
-- NOT "bug-ridden",
-- ~~NOT "slow"~~
+*   NOT "ad-hoc informally-specified",
+*   NOT "bug-ridden",
+*   ~~NOT "slow"~~
 
 implementation of ~~FULL of~~ **Scheme** to C++.
 
 ### Characteristic Features
 
-- C++ RTTI based dynamic typing
-- C++ standard smart pointer based **reference counting GC**
-- Simple SECD machine based execution
+*   C++ RTTI based dynamic typing
+*   C++ standard smart pointer based **reference counting GC**
+*   Simple SECD machine based execution
 
 ### Supported SRFI
 
-- SRFI 62: S-expression comments
+*   SRFI 62: S-expression comments
 
 <br/>
 
 ## Usage
 
-| Option | Example&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Effects |
-|:-:|:--|:--|
-| None | `$ meevax` | Start interactive mode ~~with the standard library already imported.~~ |
-| None | `$ meevax < example.scm` | Execute the code in the file as if manually input in interactive mode, and then exit the program in the same way as if you input EOF. |
+| Option            | Description                           |
+|:------------------|:--------------------------------------|
+| `-v`, `--version` | Display version information and exit. |
+| `-h`, `--help`    | Display this help text and exit.      |
 
 <br/>
 
@@ -60,32 +62,57 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 
 ### Build Requirements
 
-- C++17
-- CMake
+*   C++17
+*   CMake
 
 ### Library Dependencies
 
-- Boost C++ Libraries
-- The GNU Multiple Precision Arithmetic Library (a.k.a GMP)
-- The GNU Multiple Precision Floating-Point Reliably Library (a.k.a GNU MPFR)
+*   Boost C++ Libraries
+*   The GNU Multiple Precision Arithmetic Library (a.k.a GMP)
+*   The GNU Multiple Precision Floating-Point Reliably Library (a.k.a GNU MPFR)
 
 <br/>
 
 ## Installation
 
-Installation has been tested on Ubuntu 16.04 only.
+Installation has been tested on Ubuntu 16.04, 18.04.
+See `.github/workflows/main.yml` for the latest procedure.
 
 ### Ubuntu 16.04
 
 ``` bash
-sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # for g++-7
+sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test # for g++-7
 sudo apt update
-sudo apt install g++-7 libboost-all-dev
+sudo apt install g++-7 \
+                 libboost-all-dev \
+                 libgmp-dev \
+                 libmpfr-dev
 
-git clone -b master http://github.com/yamacir-kit/meevax.git
-mkdir -p meevax/build
-cd meevax/build
+git clone https://github.com/yamacir-kit/meevax.git
+cd meevax
+
+mkdir -p build
+cd build
+
 cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-7
+make
+```
+
+### Ubuntu 18.04
+
+``` bash
+sudo apt update
+sudo apt install libboost-all-dev \
+                 libgmp-dev \
+                 libmpfr-dev
+
+git clone https://github.com/yamacir-kit/meevax.git
+cd meevax
+
+mkdir -p build
+cd build
+
+cmake ..
 make
 ```
 
@@ -93,5 +120,5 @@ make
 
 ## References
 
-- TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
-- SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))
+*   TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
+*   SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))
