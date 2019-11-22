@@ -12,11 +12,11 @@ namespace meevax::kernel
   {
     const std::string external_repsesentaion;
 
-    character(const char ascii)
+    explicit character(const char ascii)
       : std::string {ascii}
     {}
 
-    character(const std::string& unicode)
+    explicit character(const std::string& unicode)
       : std::string {unicode}
       // , external_repsesentaion {unicode} // XXX Waste of memory
     {}
