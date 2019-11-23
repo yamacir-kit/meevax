@@ -197,19 +197,23 @@ namespace meevax::kernel
     {
       // std::cerr << "; macroexpand\t; " << operands << std::endl;
 
-      // std::cerr << "DEBUG! operands = " << operands << std::endl;
-      // std::cerr << "DEBUG! lexical = " << lexical_environment() << std::endl;
-      // std::cerr << "DEBUG! " << cons(operands, lexical_environment()) << std::endl;
       ++time_stamp;
 
       s = unit;
+      // std::cerr << ";\t\t; s = " << s << std::endl;
+
       e = cons(operands, lexical_environment());
+      // std::cerr << ";\t\t; e = " << e << std::endl;
+
       c = current_expression();
+      // std::cerr << ";\t\t; c = " << c << std::endl;
+
       d = cons(
             unit,                                    // s
             unit,                                    // e
             list(make<instruction>(mnemonic::STOP)), // c
             unit);                                   // d
+      // std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;

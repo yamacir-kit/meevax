@@ -12,14 +12,9 @@ then
   make clean
 fi
 
-# type="Debug"
-type="Release"
+# cmake .. -DCMAKE_CXX_COMPILER=clang++-6.0 -DCMAKE_BUILD_TYPE=Release
+# make -j #-j4
 
-cmake .. -DCMAKE_BUILD_TYPE="$type" -DCMAKE_CXX_COMPILER=clang++-6.0
-make -j #-j4
-
-make clean
-
-cmake .. -DCMAKE_BUILD_TYPE="$type" -DCMAKE_CXX_COMPILER=g++-7
+cmake .. -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_BUILD_TYPE=Debug
 make -j #-j4
 

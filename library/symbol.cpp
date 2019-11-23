@@ -6,15 +6,17 @@ extern "C" namespace meevax::symbol
 {
   PROCEDURE(symbol)
   {
-    try
-    {
-      return kernel::make<kernel::symbol>(
-               car(operands).as<kernel::string>()
-             );
-    }
-    catch (...) // XXX DIRTY HACK
+    if (not operands or
+        not car(operands) or
+        not car(operands).is<kernel::string>())
     {
       return kernel::make<kernel::symbol>();
+    }
+    else
+    {
+      return
+        kernel::make<kernel::symbol>(
+          car(operands).as<kernel::string>());
     }
   }
 
@@ -31,5 +33,4 @@ extern "C" namespace meevax::symbol
     return kernel::true_object;
   }
 } // extern "C"
-
 

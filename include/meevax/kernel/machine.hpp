@@ -12,19 +12,30 @@
 
 inline namespace ugly_macros
 {
+  static std::size_t depth {0};
+
   #define TRACE(N)                                                             \
   if (static_cast<SyntacticContinuation&>(*this).trace == true_object)         \
   {                                                                            \
-    std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl; \
+    std::cerr << "; machine\t; \x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl; \
   }
-
-  static std::size_t depth {0};
 
   #define DEBUG_COMPILE(...)                                                   \
   if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
       or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
   {                                                                            \
-    std::cerr << "; compile\t; " << std::string(depth * 2, ' ') << std::flush << __VA_ARGS__; \
+    std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
+              << std::string(depth * 2, ' ')                                   \
+              << __VA_ARGS__;                                                  \
+  }
+
+  // TODO REMOVE THIS!!!
+  #define DEBUG_COMPILE_SYNTAX(...)                                            \
+  if (verbose == true_object or verbose_compiler == true_object)               \
+  {                                                                            \
+    std::cerr << (depth ? "; compile\t; " : ";\t\t; ")                         \
+              << std::string(depth * 2, ' ')                                   \
+              << __VA_ARGS__;                                                  \
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
@@ -38,14 +49,9 @@ inline namespace ugly_macros
   if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
       or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
   {                                                                            \
-    std::cerr << "; macroexpand\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
-  }
-
-  // TODO REMOVE THIS!!!
-  #define DEBUG_COMPILE_SYNTAX(...)                                            \
-  if (verbose == true_object or verbose_compiler == true_object)               \
-  {                                                                            \
-    std::cerr << "; compile\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
+    std::cerr << "; macroexpand\t; "                                           \
+              << std::string(depth * 2, ' ')                                   \
+              << __VA_ARGS__;                                                  \
   }
 
   #define COMPILER_WARNING(...) \
@@ -250,7 +256,7 @@ namespace meevax::kernel
           //           << std::endl;
 
           const auto expanded {
-            applicant.as<SyntacticContinuation&>().expand(
+            applicant.as<SyntacticContinuation>().expand(
               expression)
           };
 
