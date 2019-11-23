@@ -9,47 +9,147 @@
 
 #include <meevax/lambda/compose.hpp>
 
-// Constructors
-//   - cons
-//   - list
-//   - xcons
-//   - cons* ... variadic version of cons
-//
-// Predicators
-//   - pair? ... object::is<pair>
-//   - null? ... object::operator bool
-//   - euqal? ... is_same
-//
-// Selectors
-//   - car ... in meevax/kernel/pair.hpp
-//   - cdr ... in meevax/kernel/pair.hpp
-//   - cxr ... by preprocessor macro
-//   - take
-//
-// Miscellaneous
-//   - length
-//   - append
-//   - reverse
-//   - zip
-//
-// Fold, unfold, and map
-//
-// Filtering & partitioning
-//
-// Searching
-//
-// Deletion
-//
-// Association lists
-//   - assq
-//
-// Set operations on lists
-//   unimplemented
-//
-// Primitive side-effects
-//   - set-car! ... object::operator=
-//   - set-cdr! ... object::operator=
-//
+/* ==== SRFI-1 ================================================================
+*
+*   - euqal?                           => is_same(const object&, const object&)
+*
+* Constructors
+*   - circular-list
+*   - cons                             => cons(Ts&&...)
+*   - cons*                            => cons(Ts&&...)
+*   - iota
+*   - list                             => list(Ts&&...)
+*   - list-copy
+*   - list-tabulate
+*   - make-list
+*   - xcons                            => xcons(Ts&&...)
+*
+* Predicates
+*   - circular-list?
+*   - dotted-list?
+*   - list=
+*   - not-pair?
+*   - null-list?
+*   - null?                            => object::operator bool()
+*   - pair?                            => object::is<pair>()
+*   - proper-list?
+*
+* Selectors
+*   - car                              => car(const object&)
+*   - car+cdr
+*   - cdr                              => cdr(const object&)
+*   - cxr
+*   - drop
+*   - drop-right
+*   - drop-right!
+*   - first ~ tenth
+*   - last
+*   - last-pair
+*   - list-ref
+*   - split-at
+*   - split-at!
+*   - take
+*   - take
+*   - take!
+*   - take-right
+*
+* Miscellaneous
+*   - append
+*   - append!
+*   - append-reverse
+*   - append-reverse!
+*   - concatenate
+*   - concatenate!
+*   - count
+*   - length
+*   - length+
+*   - reverse
+*   - reverse!
+*   - unzip1
+*   - unzip2
+*   - unzip3
+*   - unzip4
+*   - unzip5
+*   - zip
+*
+* Fold, unfold, and map
+*   - append-map
+*   - append-map!
+*   - filter-map
+*   - fold
+*   - fold-right
+*   - for-each
+*   - map
+*   - map!
+*   - map-in-order
+*   - pair-fold
+*   - pair-fold-right
+*   - pair-for-each
+*   - reduce
+*   - reduce-right
+*   - unfold
+*   - unfold-right
+*
+* Filtering & partitioning
+*   - filter
+*   - filter!
+*   - partition
+*   - partition!
+*   - remove
+*   - remove!
+*
+* Searching
+*   - any
+*   - break
+*   - break!
+*   - drop-while
+*   - every
+*   - find
+*   - find-tail
+*   - list-index
+*   - member
+*   - memq
+*   - memv
+*   - span
+*   - span!
+*   - take-while
+*   - take-while!
+*
+* Deletion
+*   - delete
+*   - delete!
+*   - delete-duplicates
+*   - delete-duplicates!
+*
+* Association lists
+*   - alist-cons
+*   - alist-copy
+*   - alist-delete
+*   - alist-delete!
+*   - assoc
+*   - assq
+*   - assv
+*
+* Set operations on lists
+*   - lset-adjoin
+*   - lset-diff+intersection
+*   - lset-diff+intersection!
+*   - lset-difference
+*   - lset-difference!
+*   - lset-intersection
+*   - lset-intersection!
+*   - lset-union
+*   - lset-union!
+*   - lset-xor
+*   - lset-xor!
+*   - lset<=
+*   - lset=
+*
+* Primitive side-effects
+*   - set-car!                         ... TODO
+*   - set-cdr!                         ... TODO
+*
+*============================================================================ */
 
 namespace meevax::kernel
 {
@@ -57,7 +157,7 @@ namespace meevax::kernel
   *
   * Arbitrary compositions up to four deep are provided.
   *
-  *========================================================================= */
+  *========================================================================== */
   auto caar = lambda::compose(car, car);
   auto cadr = lambda::compose(car, cdr);
   auto cdar = lambda::compose(cdr, car);
@@ -93,7 +193,7 @@ namespace meevax::kernel
   *
   * TODO using list = homoiconic_iterator
   *
-  *========================================================================= */
+  *========================================================================== */
   struct homoiconic_iterator
     : public object
   {
@@ -169,7 +269,7 @@ namespace meevax::kernel
   *
   * TODO Documentations
   *
-  *========================================================================= */
+  *========================================================================== */
   template <typename... Ts>
   constexpr decltype(auto) list(Ts&&... operands)
   {
@@ -194,7 +294,7 @@ namespace meevax::kernel
     return (... | operands);
   }
 
-  bool is_same(const object& x, const object& y) // equal?
+  bool is_same(const object& x, const object& y) // Scheme "equal?"
   {
     if (not x and not y)
     {
@@ -206,7 +306,7 @@ namespace meevax::kernel
     }
     else
     {
-      return x.equals(y); // eqv?
+      return x.equivalent_to(y);
     }
   }
 

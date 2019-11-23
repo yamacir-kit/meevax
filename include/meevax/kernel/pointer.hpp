@@ -26,63 +26,12 @@ namespace meevax::kernel
     return (k < 2) ? 0 : 1 + log2(k / 2);
   }
 
-  template <typename T>
-  struct alignas(16) /* category_mask + 1 */ facade // TODO rename to "objective" then move to "object.hpp"
-  {
-    virtual auto type() const noexcept
-      -> const std::type_info&
-    {
-      return typeid(T);
-    }
-
-    virtual std::shared_ptr<T> copy() const
-    {
-      if constexpr (std::is_copy_constructible<T>::value)
-      {
-        return std::make_shared<T>(static_cast<const T&>(*this));
-      }
-      // else throw std::logic_error
-      // {
-      //   "This is a fatal error report for Meevax core language hackers. The "
-      //   "base type of meevax::kernel::pointer requires concept CopyConstructible."
-      // };
-      else
-      {
-        static_assert(
-          []() { return false; }(),
-          "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
-      }
-    }
-
-    // eqv?
-    virtual bool equals(const std::shared_ptr<T>& rhs) const
-    {
-      if constexpr (concepts::is_equality_comparable<T>::value)
-      {
-        const auto rhs_ {std::dynamic_pointer_cast<const T>(rhs)};
-        assert(rhs_);
-        return static_cast<const T&>(*this) == *rhs_;
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-    virtual auto dispatch(std::ostream& os) const
-      -> decltype(os)
-    {
-      return os << static_cast<const T&>(*this);
-    };
-  };
-
   /* ==== Linux 64 Bit Address Space ==========================================
   *
   * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
   * kernel 0xFFFF 8000 0000 0000 ~
   *
   *========================================================================= */
-
   static constexpr auto word_size {sizeof(std::size_t)};
 
   // The Embeddable Concept is specified for safety.
@@ -133,15 +82,15 @@ namespace meevax::kernel
   * uint16_t  0... 0100 1100
   * uint32_t  0... 0101 1100
   *                ───┬ ┬┬┬┬
-  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) | /*
-  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) | /*
-  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) | /*
-  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)   /*
+  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) |    /*
+  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) |    /*
+  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) |    /*
+  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)      /*
   *                   │
   *                   └────── precision of the type = 2^N bit
   */     >;                                                                  /*
   *
-  *========================================================================= */
+  *========================================================================== */
 
   constexpr std::uintptr_t category_mask {0x0F};
   constexpr auto           category_mask_width {4};
@@ -214,6 +163,8 @@ namespace meevax::kernel
   *
   * TODO documentation
   *
+  * This type requires to the template parameter T inherits objective facade.
+  *
   *========================================================================= */
   template <typename T>
   class pointer
@@ -229,7 +180,7 @@ namespace meevax::kernel
     *
     *======================================================================= */
     template <typename Bound>
-    struct /* alignas(mask + 1) */ binder
+    struct binder
       : public Bound
       , public virtual T
     {
@@ -267,7 +218,7 @@ namespace meevax::kernel
         };
       }
 
-      bool equals(const std::shared_ptr<T>& rhs) const override
+      bool equivalent_to(const std::shared_ptr<T>& rhs) const override
       {
         if constexpr (concepts::is_equality_comparable<Bound>::value)
         {
@@ -497,7 +448,7 @@ namespace meevax::kernel
       return dereference().copy();
     }
 
-    bool equals(const pointer& rhs) const
+    bool equivalent_to(const pointer& rhs) const
     {
       if (type() != rhs.type()) // TODO REMOVE IF OTHER NUMERICAL TYPE IMPLEMENTED
       {
@@ -505,7 +456,7 @@ namespace meevax::kernel
       }
       else
       {
-        return dereference().equals(rhs);
+        return dereference().equivalent_to(rhs);
       }
     }
   };

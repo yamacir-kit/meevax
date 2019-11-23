@@ -23,7 +23,7 @@ extern "C" namespace meevax::equivalence
     }
     else
     {
-      return object1.equals(object2) ? kernel::true_object : kernel::false_object;
+      return MEEVAX_BOOLEAN(object1.equivalent_to(object2));
     }
   }
 } // extern "C"

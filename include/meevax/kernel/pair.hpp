@@ -6,9 +6,23 @@
 
 namespace meevax::kernel
 {
+  /* ==== The Pair Type =======================================================
+  *
+  * The pair type is always underlies any object type (is performance hack).
+  *
+  * We implemented heterogenous pointer by type-erasure, this is very flexible
+  * but, requires dynamic-cast to restore erased type in any case. So, we
+  * decided to remove typecheck for pair type, by always waste memory space
+  * for two heterogenous pointer slot (yes, is cons-cell). If pair selector
+  * (car/cdr) always requires typecheck, our kernel will be unbearlably slowly.
+  * Built-in types are designed to make the best possible use of the fact that
+  * these are pair as well (e.g. closure is pair of expression and lexical
+  * environment, string is linear-list of character, complex, rational).
+  *
+  *========================================================================== */
   struct pair
     : public std::pair<object, object>
-    , public facade<pair>
+    , public objective<pair>
   {
     template <typename... Ts>
     explicit constexpr pair(Ts&&... operands)
@@ -23,7 +37,7 @@ namespace meevax::kernel
   };
 
   #ifndef NDEBUG
-  #define SELECTOR(NAME, INDEX)                                                \
+  #define DEFINE_SELECTOR(NAME, INDEX)                                         \
   decltype(auto) NAME(const object& object)                                    \
   {                                                                            \
     if (object)                                                                \
@@ -38,15 +52,15 @@ namespace meevax::kernel
     }                                                                          \
   }
   #else
-  #define SELECTOR(NAME, INDEX)                                                \
+  #define DEFINE_SELECTOR(NAME, INDEX)                                         \
   decltype(auto) NAME(const object& object)                                    \
   {                                                                            \
     return std::get<INDEX>(object.dereference());                              \
   }
   #endif // NDEBUG
 
-  SELECTOR(car, 0)
-  SELECTOR(cdr, 1)
+  DEFINE_SELECTOR(car, 0)
+  DEFINE_SELECTOR(cdr, 1)
 
   auto operator<<(std::ostream& os, const pair& pare)
     -> decltype(os)

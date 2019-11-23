@@ -152,9 +152,10 @@ namespace meevax::kernel
     {
       if (not expression)
       {
-        return cons(
-          make<instruction>(mnemonic::LOAD_LITERAL), unit,
-          continuation);
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_LITERAL), unit,
+            continuation);
       }
       else if (not expression.is<pair>())
       {
@@ -801,7 +802,7 @@ namespace meevax::kernel
       *   <definition or command> ;= <car expression>
       *   <definition or sequence> ;= <cdr expression>
       *   )
-      ************************************************************************/
+      *************************************************************************/
       if (not cdr(expression)) // is tail sequence
       {
         /**********************************************************************
@@ -811,7 +812,7 @@ namespace meevax::kernel
         * (lambda (...)
         *   <expression> ;= <car expression>
         *   )
-        **********************************************************************/
+        ***********************************************************************/
         return
           compile(
             car(expression),
@@ -828,7 +829,7 @@ namespace meevax::kernel
         * (lambda (...)
         *   () ;= <car expression>
         *   <sequence> ;= <cdr expression>)
-        **********************************************************************/
+        ***********************************************************************/
         return
           sequence(
             cdr(expression),
@@ -844,7 +845,7 @@ namespace meevax::kernel
         * (lambda (...)
         *   <non-definition expression> ;= <car expression>
         *   <sequence> ;= <cdr expression>)
-        **********************************************************************/
+        ***********************************************************************/
         return
           compile(
             car(expression), // <non-definition expression>
@@ -866,7 +867,7 @@ namespace meevax::kernel
          * (lambda (...)
          *   (define <variable> <initialization>) ;= <car expression>
          *   <sequence> ;= <cdr expression>)
-         *********************************************************************/
+         **********************************************************************/
         // std::cerr << "; letrec*\t; <expression> := " << expression << std::endl;
 
         // <bindings> := ( (<variable> <initialization>) ...)
@@ -889,7 +890,7 @@ namespace meevax::kernel
         *   ...
         *   <expression N> )
         *
-        **********************************************************************/
+        ***********************************************************************/
         for (homoiconic_iterator each {cdr(expression)}; each; ++each)
         {
           if (not car(each) or // unit (TODO? syntax-error)
