@@ -272,20 +272,32 @@ namespace meevax::kernel
         return datum<string>(stream);
 
       case '\'':
-        return list(intern("quote"), read(stream));
+        return
+          list(
+            intern("quote"),
+            read(stream));
 
       case '`':
-        return list(intern("quasiquote"), read(stream));
+        return
+          list(
+            intern("quasiquote"),
+            read(stream));
 
       case ',':
         switch (stream.peek())
         {
         case '@':
           stream.ignore(1);
-          return list(intern("unquote-splicing"), read(stream));
+          return
+            list(
+              intern("unquote-splicing"),
+              read(stream));
 
         default:
-          return list(intern("unquote"), read(stream));
+          return
+            list(
+              intern("unquote"),
+              read(stream));
         }
 
       case '#':
