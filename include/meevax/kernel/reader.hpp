@@ -310,7 +310,9 @@ namespace meevax::kernel
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("set!"), x, y);
+            return
+              list(
+                intern("set!"), x, y);
           }
 
         case 'B': // Composition
@@ -318,7 +320,9 @@ namespace meevax::kernel
             const auto x {read(stream)};
             const auto y {read(stream)};
             const auto z {read(stream)};
-            return list(intern("composition"), x, y, z);
+            return
+              list(
+                intern("composition"), x, y, z);
           }
 
         case 'C': // Swap
@@ -326,63 +330,85 @@ namespace meevax::kernel
             const auto x {read(stream)};
             const auto y {read(stream)};
             const auto z {read(stream)};
-            return list(intern("swap"), x, y, z);
+            return
+              list(
+                intern("swap"), x, y, z);
           }
 
         case 'D':
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("define"), x, y);
+            return
+              list(
+                intern("define"), x, y);
           }
 
         case 'E':
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("eq?"), x, y);
+            return
+              list(
+                intern("eq?"), x, y);
           }
 
         case 'F':
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("false"), x, y);
+            return
+              list(
+                intern("false"), x, y);
           }
 
         // case 'G':
 
         case 'H': // Head
-          return list(intern("car"), read(stream));
+          return
+            list(
+              intern("car"), read(stream));
 
         case 'I': // Identity
-          return list(intern("identity"), read(stream));
+          return
+            list(
+              intern("identity"), read(stream));
 
         case 'J':
-          return list(intern("call-with-current-continuation"), read(stream));
+          return
+            list(
+              intern("call-with-current-continuation"), read(stream));
 
         case 'K': // Konstant
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("konstant"), x, y);
+            return
+              list(
+                intern("konstant"), x, y);
           }
 
         case 'L':
           {
             const auto formals {read(stream)};
-            return list(intern("lambda"), formals, read(stream));
+            return
+              list(
+                intern("lambda"), formals, read(stream));
           }
 
         case 'M':
           {
             const auto test {read(stream)};
             const auto consequent {read(stream)};
-            return list(intern("if"), test, consequent, read(stream));
+            return
+              list(
+                intern("if"), test, consequent, read(stream));
           }
 
         case 'N':
-          return list(intern("not"), read(stream));
+          return
+            list(
+              intern("not"), read(stream));
 
         // case 'O':
 
@@ -390,25 +416,35 @@ namespace meevax::kernel
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("cons"), x, y);
+            return
+              list(
+                intern("cons"), x, y);
           }
 
         case 'Q': // Quote
-          return list(intern("quote"), read(stream));
+          return
+            list(
+              intern("quote"), read(stream));
 
         case 'R':
-          return list(intern("pair?"), read(stream));
+          return
+            list(
+              intern("pair?"), read(stream));
 
         case 'S': // Substitution
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
             const auto z {read(stream)};
-            return list(intern("substitution"), x, y, z);
+            return
+              list(
+                intern("substitution"), x, y, z);
           }
 
         case 'T': // Tail
-          return list(intern("cdr"), read(stream));
+          return
+            list(
+              intern("cdr"), read(stream));
 
         case 'U':
           return unit;
@@ -417,21 +453,29 @@ namespace meevax::kernel
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("eqv?"), x, y);
+            return
+              list(
+                intern("eqv?"), x, y);
           }
 
         case 'W':
           {
             const auto x {read(stream)};
             const auto y {read(stream)};
-            return list(intern("duplicate"), x, y);
+            return
+              list(
+                intern("duplicate"), x, y);
           }
 
         case 'X':
-          return list(intern("one-point-basis"), read(stream));
+          return
+            list(
+              intern("one-point-basis"), read(stream));
 
         case 'Y':
-          return list(intern("recursion"), read(stream));
+          return
+            list(
+              intern("recursion"), read(stream));
 
         // case 'Z':
 

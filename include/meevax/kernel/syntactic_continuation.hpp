@@ -190,7 +190,7 @@ namespace meevax::kernel
 
     decltype(auto) interaction_environment() noexcept
     {
-      return static_cast<stack&>(std::get<1>(*this));
+      return static_cast<stack&>(second);
     }
 
     decltype(auto) expand(const object& operands)

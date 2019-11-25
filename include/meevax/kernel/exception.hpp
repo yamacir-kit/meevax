@@ -62,7 +62,7 @@ namespace meevax::kernel
     }
   };
 
-  #define DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(TYPENAME, ...)                               \
+  #define DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(TYPENAME, ...)              \
   auto operator<<(std::ostream& os, const TYPENAME& exception)                 \
     -> decltype(auto)                                                          \
   {                                                                            \

@@ -393,9 +393,11 @@ namespace meevax::kernel
 
       case mnemonic::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
         TRACE(2);
-        s.push(
-          make<closure>(cadr(c), e));
-        c.pop(2);
+        {
+          s.push(
+            make<closure>(cadr(c), e));
+          c.pop(2);
+        }
         goto dispatch;
 
       case mnemonic::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
@@ -444,7 +446,7 @@ namespace meevax::kernel
       case mnemonic::APPLY:
         TRACE(1);
 
-        if (object callee {car(s)}; not callee)
+        if (const object callee {car(s)}; not callee)
         {
           static const error e {"unit is not appliciable"};
           throw e;
@@ -525,7 +527,16 @@ namespace meevax::kernel
 
       case mnemonic::PUSH:
         TRACE(1);
-        s = car(s) | cadr(s) | cddr(s);
+        {
+          const auto head {car(s)};
+          const auto next {cadr(s)};
+          const auto tail {cddr(s)};
+          s = unit;
+          s = cons(
+                cons(head, next),
+                tail);
+        }
+        // s = car(s) | cadr(s) | cddr(s);
         c.pop(1);
         goto dispatch;
 
