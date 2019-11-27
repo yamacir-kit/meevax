@@ -2,13 +2,18 @@
 
 root="$(git rev-parse --show-toplevel)"
 
-cxx='g++-7'
+compile='g++-7'
+execute=0
+memory_check=''
 purpose='Debug'
+rebuild=0
 
-echo '
+echo "
 ; ==== Meevax Develop Script ==================================================
 ;
-; Command Line Options'
+; repository root = $root
+;
+; Command Line Options"
 
 for each in "$@"
 do
@@ -20,8 +25,8 @@ do
       ;;
 
     -c | --clang )
-      cxx='clang++-6.0'
-      printf ';   cxx\t= %s\n' "$cxx"
+      compile='clang++-6.0'
+      printf ';   compile\t= %s\n' "$compile"
       shift
       ;;
 
@@ -37,30 +42,21 @@ do
       shift
       ;;
 
-    -g | --gcc )
-      cxx="g++-7"
-      printf ';   cxx\t= %s\n' "$cxx"
-      shift
-      ;;
-
-    -j=* )
-      process="${each#*=}"
-      printf ';   process\t= %s' "$process"
-
-      if test "$process" = "auto"
-      then
-        process="$(nproc --all)"
-        printf ' = %s' "$process"
-      fi
-
-      echo
-
-      shift
-      ;;
-
     -f=* | --file=* )
       file="${each#*=}"
       printf ';   file\t= %s\n' "$file"
+      shift
+      ;;
+
+    -g | --gcc )
+      compile="g++-7"
+      printf ';   compile\t= %s\n' "$compile"
+      shift
+      ;;
+
+    -m | --memory-check )
+      memory_check="valgrind --leak-check=full --log-file=$root/build/memory_check.cpp"
+      printf ';   memcheck\t= %s\n' "$memory_check"
       shift
       ;;
 
@@ -70,9 +66,17 @@ do
       shift
       ;;
 
-    -v | --valgrind )
-      valgrind="--valgrind --leak-check=full --log-file=$root/build/leak-check.cpp"
-      printf ';   valgrind\t= %s\n' "$valgrind"
+    --core=* )
+      core="${each#*=}"
+      printf ';   core\t= %s' "$core"
+
+      if test "$core" = "auto"
+      then
+        core="$(nproc --all)"
+        printf ' = %s' "$core"
+      fi
+
+      echo
       shift
       ;;
 
@@ -97,13 +101,21 @@ then
 
   cmake .. \
     -DCMAKE_BUILD_TYPE="$purpose" \
-    -DCMAKE_CXX_COMPILER="$cxx"
+    -DCMAKE_CXX_COMPILER="$compile"
 
-  make -j"$process"
+  make -j"$core"
 fi
 
 if test "$execute" -ne 0
 then
-  "$valgrind" "$root/build/bin/meevax" --verbose < "$root/test/test.scm"
+  command="$memory_check $root/build/bin/meevax --verbose"
+  echo "
+; ==== Execution ==============================================================
+;
+; command = $command < "$root/test/test.scm"
+;
+; =============================================================================
+"
+  $command < "$root/test/test.scm"
 fi
 

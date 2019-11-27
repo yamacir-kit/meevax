@@ -73,7 +73,7 @@ namespace meevax::kernel
     static inline auto verbose_reader      {false_object};
 
     #define ENABLE(VARIABLE)                                                   \
-    [&](const auto&) mutable                                                   \
+    [&](const auto&, const auto&) mutable                                                   \
     {                                                                          \
       std::cerr << ";\t\t; " << VARIABLE << " => ";                            \
       VARIABLE = true_object;                                                  \
@@ -89,21 +89,22 @@ namespace meevax::kernel
      * exception, meaning that it is undecided.
      **/
     template <typename T>
-    using dispatcher = std::unordered_map<
-                         typename std::decay<T>::type,
-                         std::function<PROCEDURE()>
-                       >;
+    using dispatcher
+      = std::unordered_map<
+          typename std::decay<T>::type,
+          std::function<PROCEDURE()>
+        >;
 
     const dispatcher<char> short_options_requires_no_operands
     {
-      std::make_pair('h', [&](const auto&)
+      std::make_pair('h', [&](const auto&, const auto&)
       {
         std::cout << "; rather, help me." << std::endl;
         std::exit(boost::exit_success);
         return undefined; // dummy for return type deduction
       }),
 
-      std::make_pair('v', [&](const auto&)
+      std::make_pair('v', [&](const auto&, const auto&)
       {
         std::cout << version << std::endl;
         std::exit(boost::exit_success);
@@ -121,7 +122,7 @@ namespace meevax::kernel
 
       std::make_pair("experimental", ENABLE(experimental)),
 
-      std::make_pair("help", [&](const auto&)
+      std::make_pair("help", [&](const auto&, const auto&)
       {
         std::cout << "; rather, help me." << std::endl;
         std::exit(boost::exit_success);
@@ -141,7 +142,7 @@ namespace meevax::kernel
       std::make_pair("verbose-machine",     ENABLE(verbose_machine)),
       std::make_pair("verbose-reader",      ENABLE(verbose_reader)),
 
-      std::make_pair("version", [&](const auto&)
+      std::make_pair("version", [&](const auto&, const auto&)
       {
         std::cout << "; Meevax Lisp System " << version.major << " - Revision " << version.minor << " Patch " << version.patch << std::endl;
         std::cout << ";" << std::endl;
@@ -159,13 +160,13 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options_requires_operands
     {
-      std::make_pair("echo", [](const auto& operands)
+      std::make_pair("echo", [](const auto&, const auto& operands)
       {
         std::cout << operands << std::endl;
         return undefined;
       }),
 
-      std::make_pair("debug-variable", [&](const auto& operands) mutable
+      std::make_pair("debug-variable", [&](const auto&, const auto& operands) mutable
       {
         std::cerr << "; configure\t; " << verbose << " => ";
         variable = operands;
@@ -177,7 +178,7 @@ namespace meevax::kernel
     template <typename... Ts>
     constexpr decltype(auto) configure(Ts&&... operands)
     {
-      return (*this)(std::forward<decltype(operands)>(operands)...);
+      return std::invoke(*this, std::forward<decltype(operands)>(operands)...);
     }
 
     decltype(auto) operator()(const int argc, char const* const* const argv)
@@ -222,14 +223,22 @@ namespace meevax::kernel
               {
                 const auto operands {static_cast<Environment&>(*this).read(subsequent)};
                 std::cerr << ";\t\t; operand(s) " << operands << std::endl;
-                return std::invoke(std::get<1>(*callee_requires_operands), operands);
+                return
+                  std::invoke(
+                    std::get<1>(*callee_requires_operands),
+                    resource {},
+                    operands);
               }
               else if (std::smatch next_group {};
                        std::next(global) != std::end(args)
                        and not std::regex_match(*std::next(global), next_group, pattern))
               {
                 std::cerr << ";\t\t; operand(s) " << *std::next(global) << std::endl;
-                return std::invoke(std::get<1>(*callee_requires_operands), static_cast<Environment&>(*this).read(*++global));
+                return
+                  std::invoke(
+                    std::get<1>(*callee_requires_operands),
+                    resource {},
+                    static_cast<Environment&>(*this).read(*++global));
               }
               else
               {
@@ -239,7 +248,11 @@ namespace meevax::kernel
             else if (auto callee_requires_no_operands {short_options_requires_no_operands.find(*local)};
                      callee_requires_no_operands != std::end(short_options_requires_no_operands))
             {
-              return std::invoke(std::get<1>(*callee_requires_no_operands), unit);
+              return
+                std::invoke(
+                  std::get<1>(*callee_requires_no_operands),
+                  resource {},
+                  unit);
             }
             else
             {
@@ -262,7 +275,11 @@ namespace meevax::kernel
               std::cerr << ";\t\t; operand(s) \"" << group.str(3) << "\" => ";
               const auto operands {static_cast<Environment&>(*this).read(group.str(3))};
               std::cerr << operands << std::endl;
-              return std::invoke(std::get<1>(*callee_requires_operands), operands);
+              return
+                std::invoke(
+                  std::get<1>(*callee_requires_operands),
+                  resource {},
+                  operands);
             }
             else if (std::smatch next_group {};
                      std::next(global) != std::end(args)
@@ -271,7 +288,11 @@ namespace meevax::kernel
               std::cerr << ";\t\t; operand(s) \"" << *std::next(global) << "\" => ";
               const auto operands {static_cast<Environment&>(*this).read(*++global)};
               std::cerr << operands << std::endl;
-              return std::invoke(std::get<1>(*callee_requires_operands), operands);
+              return
+                std::invoke(
+                  std::get<1>(*callee_requires_operands),
+                  resource {},
+                  operands);
             }
             else
             {
@@ -282,7 +303,11 @@ namespace meevax::kernel
                    callee_requires_no_operands != std::end(long_options_requires_no_operands))
           {
             std::cerr << ";\t\t; found long-option " << buffer << " (requires no operands)" << std::endl;
-            return std::invoke(std::get<1>(*callee_requires_no_operands), unit);
+            return
+              std::invoke(
+                std::get<1>(*callee_requires_no_operands),
+                resource {},
+                unit);
           }
           else
           {

@@ -6,8 +6,10 @@
 
 #include <meevax/kernel/list.hpp>
 
-#define PROCEDURE(NAME) \
-  const meevax::kernel::object NAME([[maybe_unused]] const meevax::kernel::homoiconic_iterator& operands)
+#define PROCEDURE(NAME)                                                        \
+  const meevax::kernel::object NAME(                                           \
+    [[maybe_unused]] const meevax::kernel::resource& resource,                 \
+    [[maybe_unused]] const meevax::kernel::homoiconic_iterator& operands)
 
 namespace meevax::kernel
 {
@@ -20,7 +22,9 @@ namespace meevax::kernel
 
     template <typename... Ts>
     procedure(const std::string& name, Ts&&... operands)
-      : std::function<PROCEDURE()> {std::forward<decltype(operands)>(operands)...}
+      : std::function<PROCEDURE()> {
+          std::forward<decltype(operands)>(operands)...
+        }
       , name {name}
     {}
   };

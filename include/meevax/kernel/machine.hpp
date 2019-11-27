@@ -460,7 +460,7 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s))
+          s = std::invoke(callee.as<procedure>(), resource {}, cadr(s))
             | cddr(s);
           c.pop(1);
         }
@@ -497,7 +497,8 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
+          s = std::invoke(callee.as<procedure>(), resource {}, cadr(s))
+            | cddr(s);
           c.pop(1);
         }
         // else if (callee.is<SyntacticContinuation>())

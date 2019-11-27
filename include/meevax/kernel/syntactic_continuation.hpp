@@ -498,12 +498,12 @@ namespace meevax::kernel
     //   }
     // });
 
-    define<procedure>("load", [&](const object& operands)
+    define<procedure>("load", [&](auto&&, auto&& operands)
     {
-      return load(car(operands).as<const string>());
+      return load(car(operands).template as<const string>());
     });
 
-    define<procedure>("linker", [&](auto&& operands)
+    define<procedure>("linker", [&](auto&&, auto&& operands)
     {
       if (auto size {length(operands)}; size < 1)
       {
@@ -527,7 +527,7 @@ namespace meevax::kernel
       }
     });
 
-    define<procedure>("native", [&](const homoiconic_iterator& operands)
+    define<procedure>("native", [&](auto&&, auto&& operands)
     {
       // if (auto size {length(operands)}; size < 1)
       // {
@@ -563,27 +563,27 @@ namespace meevax::kernel
       // }
       // else
       // {
-        const std::string name {cadr(operands).as<string>()};
+        const std::string name {cadr(operands).template as<string>()};
 
         return
           make<procedure>(
             name,
-            car(operands).as<posix::linker>().link<procedure::signature>(name));
+            car(operands).template as<posix::linker>().template link<procedure::signature>(name));
       // }
     });
 
-    define<procedure>("read", [&](const homoiconic_iterator& operands)
+    define<procedure>("read", [&](auto&&, auto&& operands)
     {
-      return read(operands ? car(operands).as<input_file>() : std::cin);
+      return read(operands ? car(operands).template as<input_file>() : std::cin);
     });
 
-    define<procedure>("write", [&](const homoiconic_iterator& operands)
+    define<procedure>("write", [&](auto&&, auto&& operands)
     {
       std::cout << car(operands);
       return unspecified;
     });
 
-    define<procedure>("evaluate", [&](auto&& operands)
+    define<procedure>("evaluate", [&](auto&&, auto&& operands)
     {
       return evaluate(car(operands));
     });

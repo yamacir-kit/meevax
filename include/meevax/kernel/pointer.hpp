@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <memory> // std::shared_ptr
 #include <stdexcept> // std::logic_error
@@ -279,12 +280,43 @@ namespace meevax::kernel
     * correctly).
     *
     *======================================================================== */
-    template <typename Bound, typename... Ts, REQUIRES(is_not_embeddable<Bound>)>
-    static pointer bind(Ts&&... operands)
+    template <typename Bound,
+              typename... Ts,
+              REQUIRES(is_not_embeddable<Bound>)>
+    static pointer make_binding(Ts&&... operands)
     {
+      using binding = binder<Bound>;
+
       return
-        std::make_shared<binder<Bound>>(
+        std::make_shared<binding>(
           std::forward<decltype(operands)>(operands)...);
+    }
+
+    template <typename Bound,
+              typename MemoryResource, // XXX (GCC-9 <=)
+              typename... Ts,
+              REQUIRES(is_not_embeddable<Bound>)>
+    static pointer allocate_binding(
+      MemoryResource&& resource,
+      Ts&&... operands)
+    {
+      using binding = binder<Bound>;
+
+      // using binding_allocator
+      //   = typename std::allocator_traits<
+      //       typename std::decay<
+      //         decltype(resource)
+      //       >::type
+      //     >::template rebind_alloc<binding>::other;
+
+      return
+        std::make_shared<binding>(
+          std::forward<decltype(operands)>(operands)...);
+
+      // return
+      //   std::allocate_shared<binding>(
+      //     binding_allocator {std::forward<decltype(resource)>(resource)},
+      //     std::forward<decltype(operands)>(operands)...);
     }
 
     /* ==== C/C++ Primitive Types Bind ========================================
@@ -293,7 +325,7 @@ namespace meevax::kernel
     *
     *======================================================================== */
     template <typename U, REQUIRES(is_embeddable<U>)>
-    static pointer bind(U&& value)
+    static pointer make_binding(U&& value)
     {
       static auto ignore = [](auto* value)
       {
@@ -428,11 +460,11 @@ namespace meevax::kernel
       CASE_OF_TYPE(float);
       CASE_OF_TYPE(double);
 
-      CASE_OF_TYPE(std::int8_t);
+      CASE_OF_TYPE(std::byte);
       CASE_OF_TYPE(std::int16_t);
       CASE_OF_TYPE(std::int32_t);
 
-      CASE_OF_TYPE(std::uint8_t);
+      CASE_OF_TYPE(std::byte);
       CASE_OF_TYPE(std::uint16_t);
       CASE_OF_TYPE(std::uint32_t);
 
