@@ -13,12 +13,12 @@
 #include <meevax/kernel/file.hpp>
 #include <meevax/posix/linker.hpp>
 
-/* ============================================================================
-* Embedded Source Codes
+/* ==== Embedded Source Codes =================================================
 *
-*   library/layer-1.ss
+* library/layer-1.ss
 *
 * MEMO: readelf -a layer-1.ss.o
+*
 *============================================================================ */
 extern char _binary_layer_1_ss_start;
 extern char _binary_layer_1_ss_end;
@@ -527,49 +527,14 @@ namespace meevax::kernel
       }
     });
 
-    define<procedure>("native", [&](auto&&, auto&& operands)
+    define<procedure>("procedure-from", [&](auto&&, auto&& operands)
     {
-      // if (auto size {length(operands)}; size < 1)
-      // {
-      //   throw evaluation_error {
-      //     "procedure link expects two arguments (linker and string), but received nothing."
-      //   };
-      // }
-      // else if (size < 2)
-      // {
-      //   throw evaluation_error {
-      //     "procedure link expects two arguments (linker and string), but received only one argument."
-      //   };
-      // }
-      // else if (const auto& linker {car(operands)}; not linker.template is<meevax::posix::linker>())
-      // {
-      //   throw evaluation_error {
-      //     "procedure dynamic-link-open expects a linker for first argument, but received ",
-      //     meevax::utility::demangle(linker.type()),
-      //     " rest ", size - 1, " argument",
-      //     (size < 2 ? " " : "s "),
-      //     "were ignored."
-      //   };
-      // }
-      // else if (const auto& name {cadr(operands)}; not name.template is<string>())
-      // {
-      //   throw evaluation_error {
-      //     "procedure dynamic-link-open expects a string for second argument, but received ",
-      //     meevax::utility::demangle(name.type()),
-      //     " rest ", size - 2, " argument",
-      //     (size < 3 ? " " : "s "),
-      //     "were ignored."
-      //   };
-      // }
-      // else
-      // {
-        const std::string name {cadr(operands).template as<string>()};
+      const std::string name {cadr(operands).template as<string>()};
 
-        return
-          make<procedure>(
-            name,
-            car(operands).template as<posix::linker>().template link<procedure::signature>(name));
-      // }
+      return
+        make<procedure>(
+          name,
+          car(operands).template as<posix::linker>().template link<procedure::signature>(name));
     });
 
     define<procedure>("read", [&](auto&&, auto&& operands)

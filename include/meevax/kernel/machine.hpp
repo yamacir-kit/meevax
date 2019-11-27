@@ -526,18 +526,16 @@ namespace meevax::kernel
         c = d.pop();
         goto dispatch;
 
-      case mnemonic::PUSH:
-        TRACE(1);
-        {
-          const auto head {car(s)};
-          const auto next {cadr(s)};
-          const auto tail {cddr(s)};
-          s = unit;
-          s = cons(
-                cons(head, next),
-                tail);
-        }
-        // s = car(s) | cadr(s) | cddr(s);
+      /* =====*/ case mnemonic::PUSH: /*=======================================
+      *
+      */ TRACE(1);                                                           /*
+      *
+      *     ( X   Y  . S) E (PUSH . C) D
+      *
+      *  => ((X . Y) . S) E         C  D
+      *
+      *====================================================================== */
+        s = cons(cons(car(s), cadr(s)), cddr(s));
         c.pop(1);
         goto dispatch;
 

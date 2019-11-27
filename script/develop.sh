@@ -5,6 +5,7 @@ root="$(git rev-parse --show-toplevel)"
 compile='g++-7'
 execute=0
 memory_check=''
+process=1
 purpose='Debug'
 rebuild=0
 
@@ -66,14 +67,14 @@ do
       shift
       ;;
 
-    --core=* )
-      core="${each#*=}"
-      printf ';   core\t= %s' "$core"
+    --process=* )
+      process="${each#*=}"
+      printf ';   process\t= %s' "$process"
 
-      if test "$core" = "auto"
+      if test "$process" = "auto"
       then
-        core="$(nproc --all)"
-        printf ' = %s' "$core"
+        process="$(nproc --all)"
+        printf ' = %s' "$process"
       fi
 
       echo
@@ -103,7 +104,7 @@ then
     -DCMAKE_BUILD_TYPE="$purpose" \
     -DCMAKE_CXX_COMPILER="$compile"
 
-  make -j"$core"
+  make -j"$process"
 fi
 
 if test "$execute" -ne 0
