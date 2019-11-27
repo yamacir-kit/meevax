@@ -302,21 +302,19 @@ namespace meevax::kernel
     {
       using binding = binder<Bound>;
 
-      // using binding_allocator
-      //   = typename std::allocator_traits<
-      //       typename std::decay<
-      //         decltype(resource)
-      //       >::type
-      //     >::template rebind_alloc<binding>::other;
-
-      return
-        std::make_shared<binding>(
-          std::forward<decltype(operands)>(operands)...);
+      using binding_allocator
+        = typename std::decay<
+            decltype(resource)
+          >::type::template rebind<binding>::other;
 
       // return
-      //   std::allocate_shared<binding>(
-      //     binding_allocator {std::forward<decltype(resource)>(resource)},
+      //   std::make_shared<binding>(
       //     std::forward<decltype(operands)>(operands)...);
+
+      return
+        std::allocate_shared<binding>(
+          binding_allocator {std::forward<decltype(resource)>(resource)},
+          std::forward<decltype(operands)>(operands)...);
     }
 
     /* ==== C/C++ Primitive Types Bind ========================================
@@ -427,7 +425,8 @@ namespace meevax::kernel
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
-      return dynamic_cast<U&>(dereference());
+      // return dynamic_cast<U&>(dereference());
+      return *std::dynamic_pointer_cast<U>(*this);
     }
 
     /* ==== C/C++ Primitive Type Restoration ==================================
