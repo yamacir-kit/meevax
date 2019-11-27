@@ -19,49 +19,56 @@
 *   library/layer-1.ss
 *
 * MEMO: readelf -a layer-1.ss.o
-*=========================================================================== */
+*============================================================================ */
 extern char _binary_layer_1_ss_start;
 extern char _binary_layer_1_ss_end;
 
 namespace meevax::kernel
 {
-  /* ==========================================================================
-  * Standard Environment Layers
+  /* ==== Standard Environment Layers =========================================
   *
-  *   Layer 0 - Pure Syntax
-  *   Layer 1 - Derived Expressions and Standard Procedures
+  * Layer 0 - Pure Syntax
+  * Layer 1 - Derived Expressions and Standard Procedures
   *
-  *========================================================================= */
+  *========================================================================== */
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
   class syntactic_continuation
     /* ========================================================================
+    *
     * The syntactic_continuation is a pair of "the program" and "global environment
     * (simple association list)". It also has the aspect of a meta-closure that
     * closes the global environment when it constructed (this feature is known
     * as syntactic-closure).
-    *======================================================================= */
+    *
+    *======================================================================== */
     : public virtual pair
 
     /* ========================================================================
+    *
     * Reader access symbol table of this syntactic_continuation (by member function
     * "intern") via static polymorphism. The syntactic_continuation indirectly inherits
     * the non-copyable class std::istream (reader base class), so it cannot be
     * copied.
-    *======================================================================= */
+    *
+    *======================================================================== */
     , public reader<syntactic_continuation>
 
     /* ========================================================================
+    *
     * Each syntactic_continuation has one virtual machine and compiler.
-    *======================================================================= */
+    *
+    *======================================================================== */
     , public machine<syntactic_continuation>
 
     /* ========================================================================
+    *
     * Global configuration is shared in all of syntactic_continuations running on same
     * process. Thus, any change of configuration member influences any other
     * syntactic_continuations immediately.
-    *======================================================================= */
+    *
+    *======================================================================== */
     , public configurator<syntactic_continuation>
   {
     std::unordered_map<std::string, object> symbols;

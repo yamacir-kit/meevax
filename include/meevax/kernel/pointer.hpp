@@ -278,7 +278,7 @@ namespace meevax::kernel
     * and the type you binding (both T and Bound's destructor will works
     * correctly).
     *
-    *======================================================================= */
+    *======================================================================== */
     template <typename Bound, typename... Ts, REQUIRES(is_not_embeddable<Bound>)>
     static pointer bind(Ts&&... operands)
     {
@@ -291,7 +291,7 @@ namespace meevax::kernel
     *
     * TODO: support bind for not is_embeddable types (e.g. double).
     *
-    *======================================================================= */
+    *======================================================================== */
     template <typename U, REQUIRES(is_embeddable<U>)>
     static pointer bind(U&& value)
     {
