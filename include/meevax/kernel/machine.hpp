@@ -122,8 +122,9 @@ namespace meevax::kernel
       return interaction_environment(); // temporary
     }
 
-    const object& lookup(const object& identifier,
-                         const object& environment)
+    const object& lookup(
+      const object& identifier,
+      const object& environment)
     {
       if (not identifier or not environment)
       {
@@ -151,10 +152,11 @@ namespace meevax::kernel
     *
     * TODO Change last boolean argument to template parameter (use if constexpr)
     *----------------------------------------------------------------------- */
-    object compile(const object& expression,
-                   const object& lexical_environment = unit,
-                   const object& continuation = list(make<instruction>(mnemonic::STOP)),
-                   const bool optimizable = false)
+    object compile(
+      const object& expression,
+      const object& lexical_environment = unit,
+      const object& continuation = list(make<instruction>(mnemonic::STOP)),
+      const bool optimizable = false)
     {
       if (not expression)
       {
@@ -306,13 +308,6 @@ namespace meevax::kernel
 
     object execute()
     {
-      // TODO
-      // 上の引数付き版ではない、execute の直接呼び出しはおそらくマクロ展開にしか使われていないはずで、
-      // --debug-macroexpand で下のプリントを有効にするべきだと思うが、
-      // ここまでそれを意識して実装していないため保留する
-      //
-      // std::cerr << "; machine\t; " << c << std::endl;
-
     dispatch:
       switch (c.top().template as<instruction>().code)
       {
@@ -526,7 +521,7 @@ namespace meevax::kernel
         c = d.pop();
         goto dispatch;
 
-      /* =====*/ case mnemonic::PUSH: /*=======================================
+      /* ====*/ case mnemonic::PUSH: /*========================================
       *
       */ TRACE(1);                                                           /*
       *
@@ -655,33 +650,49 @@ namespace meevax::kernel
       }
     };
 
-  protected: // syntax
-    /*
-     * <quotation> = (quote <datum>)
-     */
-    object quotation(const object& expression,
-                     const object&,
-                     const object& continuation, bool)
+  protected:
+    /* ====*/ auto quotation /*================================================
+    *
+    * Formal syntax:
+    *
+    *   <quotation> = (quote <datum>)
+    *
+    * Parameters:                                                        */ ( /*
+    */  const object& expression,                                             /*
+    */  const object&,                                                        /*
+    */  const object& continuation,                                           /*
+    */  const bool = false                                                    /*
+    *                                                                    */ ) /*
+    * Qualifiers:
+    *   None
+    *
+    * Returns:                                                          */ -> /*
+    */  const object                                                          /*
+    *
+    *======================================================================== */
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <datum>"
-                        << attribute::normal << std::endl
-      );
+                        << attribute::normal << std::endl);
       return
         cons(
           make<instruction>(mnemonic::LOAD_LITERAL), car(expression),
           continuation);
     }
 
-    /*
-     * <sequence> = <command>* <expression>
-     *
-     * <command> = <expression (the return value will be ignored)>
-     */
-    object sequence(const object& expression,
-                    const object& lexical_environment,
-                    const object& continuation,
-                    const bool optimization = false)
+    /* ==== Sequence ==========================================================
+    *
+    * <sequence> = <command>* <expression>
+    *
+    * <command> = <expression>
+    *
+    *======================================================================== */
+    const object
+      sequence(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool optimization = false)
     {
       if (not cdr(expression)) // is tail sequence
       {
@@ -707,18 +718,25 @@ namespace meevax::kernel
       }
     }
 
-    /*
-     * <program> = <command or definition>+
-     *
-     * <command or definition> = <command>
-     *                         | <definition>
-     *                         | (begin <command or definition>+)
-     *
-     * <command> = <expression (the return value will be ignored)>
-     */
-    object program(const object& expression,
-                   const object& lexical_environment,
-                   const object& continuation, const bool = false) try
+    /* ==== Program ===========================================================
+    *
+    * <program> = <command or definition>+
+    *
+    * <command or definition> = <command>
+    *                         | <definition>
+    *                         | (begin <command or definition>+)
+    *
+    * <command> = <expression (the return value will be ignored)>
+    *
+    *======================================================================== */
+    [[deprecated]]
+    const object
+      program(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
+    try
     {
       if (not cdr(expression)) // is tail sequence
       {
@@ -774,13 +792,17 @@ namespace meevax::kernel
             : continuation);
     }
 
-    /*
-     * <definition> = (define <identifier> <expression>)
-     */
-    object definition(const object& expression,
-                      const object& lexical_environment,
-                      const object& continuation,
-                      const bool = false)
+    /* ==== Definition ========================================================
+    *
+    * <definition> = (define <identifier> <expression>)
+    *
+    *======================================================================== */
+    const object
+      definition(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
     {
       if (not lexical_environment)
       {
@@ -804,31 +826,40 @@ namespace meevax::kernel
       }
     }
 
-    /*
-     * <body> := <definition>* <sequence>
-     */
-    object body(const object& expression,
-                const object& lexical_environment,
-                const object& continuation, bool = false) // try
+    /* ==== Lambda Body =======================================================
+    *
+    * <body> = <definition>* <sequence>
+    *
+    *======================================================================== */
+    const object
+      body(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false) // try
     {
-      /************************************************************************
+      /* ----------------------------------------------------------------------
+      *
       * The expression may have following form.
       *
       * (lambda (...)
-      *   <definition or command> ;= <car expression>
+      *   <definition or command>  ;= <car expression>
       *   <definition or sequence> ;= <cdr expression>
       *   )
-      *************************************************************************/
+      *
+      *---------------------------------------------------------------------- */
       if (not cdr(expression)) // is tail sequence
       {
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * The expression may have following form.
         * If definition appears in <car expression>, it is an syntax error.
         *
         * (lambda (...)
         *   <expression> ;= <car expression>
         *   )
-        ***********************************************************************/
+        *
+        *-------------------------------------------------------------------- */
         return
           compile(
             car(expression),
@@ -838,14 +869,16 @@ namespace meevax::kernel
       }
       else if (not car(expression))
       {
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * The expression may have following form.
         * If definition appears in <cdr expression>, it is an syntax error.
         *
         * (lambda (...)
         *   () ;= <car expression>
         *   <sequence> ;= <cdr expression>)
-        ***********************************************************************/
+        *
+        *-------------------------------------------------------------------- */
         return
           sequence(
             cdr(expression),
@@ -855,13 +888,15 @@ namespace meevax::kernel
       else if (not car(expression).is<pair>()
                or caar(expression) != intern("define"))
       {
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * The expression may have following form.
         *
         * (lambda (...)
         *   <non-definition expression> ;= <car expression>
         *   <sequence> ;= <cdr expression>)
-        ***********************************************************************/
+        *
+        *-------------------------------------------------------------------- */
         return
           compile(
             car(expression), // <non-definition expression>
@@ -875,15 +910,17 @@ namespace meevax::kernel
       }
       else // 5.3.2 Internal Definitions
       {
-        /**********************************************************************
-         * The expression may have following form.
-         * If definition appears in <car expression> or <cdr expression>, it is
-         * an syntax error.
-         *
-         * (lambda (...)
-         *   (define <variable> <initialization>) ;= <car expression>
-         *   <sequence> ;= <cdr expression>)
-         **********************************************************************/
+        /* --------------------------------------------------------------------
+        *
+        * The expression may have following form.
+        * If definition appears in <car expression> or <cdr expression>, it is
+        * an syntax error.
+        *
+        * (lambda (...)
+        *   (define <variable> <initialization>) ;= <car expression>
+        *   <sequence> ;= <cdr expression>)
+        *
+        *-------------------------------------------------------------------- */
         // std::cerr << "; letrec*\t; <expression> := " << expression << std::endl;
 
         // <bindings> := ( (<variable> <initialization>) ...)
@@ -894,7 +931,8 @@ namespace meevax::kernel
         // <body> of letrec* := <sequence>+
         object body {};
 
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * Collect <definition>s from <cdr expression>.
         * It is guaranteed that <cdr expression> is not unit from first
         * conditional of this member function.
@@ -906,7 +944,7 @@ namespace meevax::kernel
         *   ...
         *   <expression N> )
         *
-        ***********************************************************************/
+        *-------------------------------------------------------------------- */
         for (homoiconic_iterator each {cdr(expression)}; each; ++each)
         {
           if (not car(each) or // unit (TODO? syntax-error)
@@ -958,12 +996,17 @@ namespace meevax::kernel
       }
     }
 
-    /*
-     * <operand> = <expression>
-     */
-    object operand(const object& expression,
-                   const object& lexical_environment,
-                   const object& continuation, bool = false)
+    /* ==== Operand ===========================================================
+    *
+    * <operand> = <expression>
+    *
+    *======================================================================== */
+    const object
+      operand(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
     {
       if (expression && expression.is<pair>())
       {
@@ -988,13 +1031,17 @@ namespace meevax::kernel
       }
     }
 
-    /**
-     * <conditional> = (if <test> <consequent> <alternate>)
-     **/
-    object conditional(const object& expression,
-                       const object& lexical_environment,
-                       const object& continuation,
-                       const bool optimization = false)
+    /* ==== Conditional =======================================================
+    *
+    * <conditional> = (if <test> <consequent> <alternate>)
+    *
+    *======================================================================== */
+    const object
+      conditional(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool optimization = false)
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <test>"
@@ -1067,13 +1114,17 @@ namespace meevax::kernel
       }
     }
 
-    /**
-     * <lambda expression> = (lambda <formals> <body>)
-     **/
-    object lambda(const object& expression,
-                  const object& lexical_environment,
-                  const object& continuation,
-                  const bool = false)
+    /* ==== Lambda Expression =================================================
+    *
+    * <lambda expression> = (lambda <formals> <body>)
+    *
+    *======================================================================== */
+    const object
+      lambda(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <formals>"
@@ -1092,10 +1143,12 @@ namespace meevax::kernel
           continuation);
     }
 
-    object call_cc(const object& expression,
-                   const object& lexical_environment,
-                   const object& continuation,
-                   const bool = false)
+    const object
+      call_cc(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <procedure>"
@@ -1113,10 +1166,12 @@ namespace meevax::kernel
               continuation)));
     }
 
-    object call_csc(const object& expression,
-                    const object& lexical_environment,
-                    const object& continuation,
-                    const bool = false)
+    const object
+      call_csc(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <program>"
@@ -1134,9 +1189,12 @@ namespace meevax::kernel
             continuation));
     }
 
-    object abstraction(const object& expression,
-                       const object& lexical_environment,
-                       const object& continuation, bool = false)
+    const object
+      abstraction(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <formals>"
@@ -1153,9 +1211,12 @@ namespace meevax::kernel
           continuation);
     }
 
-    object assignment(const object& expression,
-                      const object& lexical_environment,
-                      const object& continuation, bool = false)
+    const object
+      assignment(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
     {
       DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
 
@@ -1165,7 +1226,6 @@ namespace meevax::kernel
       }
       else if (de_bruijn_index index {car(expression), lexical_environment}; index)
       {
-        // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
         if (index.is_variadic())
         {
           DEBUG_COMPILE_DECISION(

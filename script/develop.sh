@@ -1,6 +1,7 @@
 #!/bin/sh -eu
 
-root="$(git rev-parse --show-toplevel)"
+working_directory=$(pwd)
+repository="$(git rev-parse --show-toplevel)"
 
 compile='g++-7'
 execute=0
@@ -12,9 +13,11 @@ rebuild=0
 echo "
 ; ==== Meevax Develop Script ==================================================
 ;
-; repository root = $root
+; Informations
+;   repository        = $repository
+;   working-directory = $working_directory
 ;
-; Command Line Options"
+; Configurations"
 
 for each in "$@"
 do
@@ -56,7 +59,7 @@ do
       ;;
 
     -m | --memory-check )
-      memory_check="valgrind --leak-check=full --log-file=$root/build/memory_check.cpp"
+      memory_check="valgrind --leak-check=full --log-file=$repository/build/memory_check.cpp"
       printf ';   memcheck\t= %s\n' "$memory_check"
       shift
       ;;
@@ -106,10 +109,10 @@ echo ';
 
 if test "$rebuild" -ne 0
 then
-  mkdir -vp "$root/build"
-  cd "$root/build"
+  mkdir -vp "$repository/build"
+  cd "$repository/build"
 
-  if test -e "$root/build/Makefile"
+  if test -e "$repository/build/Makefile"
   then
     make clean
   fi
@@ -123,14 +126,15 @@ fi
 
 if test "$execute" -ne 0
 then
-  command="$memory_check $root/build/bin/meevax --verbose"
+  command="$memory_check $repository/build/bin/meevax --verbose"
+
   echo "
 ; ==== Execution ==============================================================
 ;
-; command = $command < "$root/test/test.scm"
+; command = $command < $repository/test/test.scm
 ;
 ; =============================================================================
 "
-  $command < "$root/test/test.scm"
+  $command < "$repository/test/test.scm"
 fi
 

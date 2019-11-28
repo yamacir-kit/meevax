@@ -1592,3 +1592,24 @@
 ;            ,(make-syntactic-closure environment '(exit) (cadr form))
 ;             (loop)))))))
 
+; ------------------------------------------------------------------------------
+;  Library
+; ------------------------------------------------------------------------------
+
+(define-syntax define-library
+  (call/csc
+    (lambda (_ name . declarations)
+     `(,define ,name
+        (,call/csc ; the library object
+          (,lambda () ,declarations))))))
+
+; (define-library (example hello)
+;   (export hello)
+;
+;   (begin
+;     (define hello
+;       (lambda ()
+;         (display "hello, world!\n")))
+;     )
+;   )
+
