@@ -61,9 +61,17 @@ do
       shift
       ;;
 
-    -r | --release )
-      purpose='Release'
-      printf ';   purpose\t= %s\n' "$purpose"
+    -j* )
+      process="${each#*j}"
+      printf ';   process\t= %s' "$process"
+
+      if test "$process" = "0"
+      then
+        process="$(nproc --all)"
+        printf ' => %s' "$process"
+      fi
+
+      echo
       shift
       ;;
 
@@ -74,10 +82,16 @@ do
       if test "$process" = "auto"
       then
         process="$(nproc --all)"
-        printf ' = %s' "$process"
+        printf ' => %s' "$process"
       fi
 
       echo
+      shift
+      ;;
+
+    -r | --release )
+      purpose='Release'
+      printf ';   purpose\t= %s\n' "$purpose"
       shift
       ;;
 
