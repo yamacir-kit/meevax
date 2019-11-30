@@ -407,9 +407,9 @@ namespace meevax::kernel
       *
       */ TRACE(2);                                                           /*
       *
-      *                   S  E (FORK program . C) D
+      *                S  E (FORK code . C) D
       *
-      *  => (subprogram . S) E                 C  D
+      *  => (program . S) E              C  D
       *
       *====================================================================== */
         // s = cons(
@@ -1137,13 +1137,13 @@ namespace meevax::kernel
           compile(
             car(expression),
             lexical_environment,
-            continuation); // tail-call optimization
+            continuation); // TODO tail-call-optimizable?
       }
       else
       {
         return
           compile(
-            car(expression), // <non-definition expression>
+            car(expression),
             lexical_environment,
             cons(
               make<instruction>(mnemonic::POP), // remove result of expression
@@ -1173,7 +1173,7 @@ namespace meevax::kernel
       //   cons(
       //     make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
       //     program(
-      //       car(expression),
+      //       expression,
       //       lexical_environment,
       //       list(
       //         make<instruction>(mnemonic::RETURN))),
@@ -1188,9 +1188,13 @@ namespace meevax::kernel
             continuation));
     }
 
-    [[deprecated]]
+    /* ==== Fork ==============================================================
+    *
+    * TODO documentation
+    *
+    *======================================================================== */
     const object
-      abstraction(
+      fork(
         const object& expression,
         const object& lexical_environment,
         const object& continuation,

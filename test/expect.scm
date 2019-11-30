@@ -1,7 +1,7 @@
 (define passed 0)
 
 (define expect
-  (environment (expect expects expression)
+  (fork (expect expects expression)
    `(let ((result ,expression))
       (if (equal? result ',expects)
           (begin (set! passed (+ passed 1))

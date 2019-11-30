@@ -220,28 +220,28 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      std::cerr << "; macroexpand\t; " << operands << std::endl;
+      // std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       ++time_stamp;
 
       s = unit;
-      std::cerr << ";\t\t; s = " << s << std::endl;
+      // std::cerr << ";\t\t; s = " << s << std::endl;
 
       e = cons(operands, lexical_environment());
-      std::cerr << ";\t\t; e = " << e << std::endl;
+      // std::cerr << ";\t\t; e = " << e << std::endl;
 
       c = current_expression();
-      std::cerr << ";\t\t; c = " << c << std::endl;
+      // std::cerr << ";\t\t; c = " << c << std::endl;
 
       d = cons(
             unit,                                    // s
             unit,                                    // e
             list(make<instruction>(mnemonic::STOP)), // c
             unit);                                   // d
-      std::cerr << ";\t\t; d = " << d << std::endl;
+      // std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
-      std::cerr << "; \t\t; " << result << std::endl;
+      // std::cerr << "; \t\t; " << result << std::endl;
       return result;
     }
 
@@ -401,9 +401,9 @@ namespace meevax::kernel
       return lambda(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<special>("environment", [&](auto&&... operands)
+    define<special>("fork", [&](auto&&... operands)
     {
-      return abstraction(std::forward<decltype(operands)>(operands)...);
+      return fork(std::forward<decltype(operands)>(operands)...);
     });
 
     define<special>("call-with-current-syntactic-continuation", [&](auto&&... operands)

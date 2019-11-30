@@ -1350,12 +1350,12 @@
 ; TODO null-environment
 
 (define current-lexical-environment
-  (environment ()
+  (fork ()
    `(cdr (lambda () ()))))
 
 (define interaction-environment
-  (environment ()
-   `(cdr (environment () ()))))
+  (fork ()
+   `(cdr (fork () ()))))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
@@ -1524,7 +1524,7 @@
 ; ------------------------------------------------------------------------------
 
 ; (define swap!
-;   (environment (swap! x y)
+;   (fork (swap! x y)
 ;     (let ((temporary (string->symbol)))
 ;      `(let ((,temporary ,x))
 ;         (set! ,x ,y)
