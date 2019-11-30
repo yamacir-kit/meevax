@@ -187,12 +187,30 @@ namespace meevax::kernel
 
     decltype(auto) current_expression()
     {
-      return car(continuation());
+      // return car(continuation());
+
+      if (auto& k {continuation()}; not k)
+      {
+        return k;
+      }
+      else
+      {
+        return car(k);
+      }
     }
 
     decltype(auto) lexical_environment()
     {
-      return cdr(continuation());
+      // return cdr(continuation());
+
+      if (auto& k {continuation()}; not k)
+      {
+        return k;
+      }
+      else
+      {
+        return cdr(k);
+      }
     }
 
     decltype(auto) interaction_environment() noexcept
@@ -202,28 +220,28 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       ++time_stamp;
 
       s = unit;
-      // std::cerr << ";\t\t; s = " << s << std::endl;
+      std::cerr << ";\t\t; s = " << s << std::endl;
 
       e = cons(operands, lexical_environment());
-      // std::cerr << ";\t\t; e = " << e << std::endl;
+      std::cerr << ";\t\t; e = " << e << std::endl;
 
       c = current_expression();
-      // std::cerr << ";\t\t; c = " << c << std::endl;
+      std::cerr << ";\t\t; c = " << c << std::endl;
 
       d = cons(
             unit,                                    // s
             unit,                                    // e
             list(make<instruction>(mnemonic::STOP)), // c
             unit);                                   // d
-      // std::cerr << ";\t\t; d = " << d << std::endl;
+      std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
-      // std::cerr << "; \t\t; " << result << std::endl;
+      std::cerr << "; \t\t; " << result << std::endl;
       return result;
     }
 
@@ -551,6 +569,11 @@ namespace meevax::kernel
     define<procedure>("evaluate", [&](auto&&, auto&& operands)
     {
       return evaluate(car(operands));
+    });
+
+    define<procedure>("compile", [&](auto&&, auto&& operands)
+    {
+      return compile(car(operands));
     });
   } // syntactic_continuation class default constructor
 

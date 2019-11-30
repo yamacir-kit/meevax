@@ -403,8 +403,21 @@ namespace meevax::kernel
         c.pop(2);
         goto dispatch;
 
-      case mnemonic::MAKE_SYNTACTIC_CONTINUATION: // (closure . S) E (MAKE_SYNTACTIC_CONTINUATION . C) => (syntactic-continuation . S) E C D
-        TRACE(2);
+      /* ====*/ case mnemonic::MAKE_SYNTACTIC_CONTINUATION: /*=================
+      *
+      */ TRACE(2);                                                           /*
+      *
+      *                   S  E (FORK program . C) D
+      *
+      *  => (subprogram . S) E                 C  D
+      *
+      *====================================================================== */
+        // s = cons(
+        //       make<SyntacticContinuation>(
+        //         cadr(c),
+        //         interaction_environment()),
+        //       s);
+        // c = cddr(c);
         s = make<SyntacticContinuation>(
               car(s),
               interaction_environment())
@@ -651,25 +664,17 @@ namespace meevax::kernel
     };
 
   protected:
-    /* ====*/ auto quotation /*================================================
+    /* ==== Quotation =========================================================
     *
-    * Formal syntax:
-    *
-    *   <quotation> = (quote <datum>)
-    *
-    * Parameters:                                                        */ ( /*
-    */  const object& expression,                                             /*
-    */  const object&,                                                        /*
-    */  const object& continuation,                                           /*
-    */  const bool = false                                                    /*
-    *                                                                    */ ) /*
-    * Qualifiers:
-    *   None
-    *
-    * Returns:                                                          */ -> /*
-    */  const object                                                          /*
+    * <quotation> = (quote <datum>)
     *
     *======================================================================== */
+    const object
+      quotation(
+        const object& expression,
+        const object&,
+        const object& continuation,
+        const bool = false)
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <datum>"
@@ -716,80 +721,6 @@ namespace meevax::kernel
                 lexical_environment,
                 continuation)));
       }
-    }
-
-    /* ==== Program ===========================================================
-    *
-    * <program> = <command or definition>+
-    *
-    * <command or definition> = <command>
-    *                         | <definition>
-    *                         | (begin <command or definition>+)
-    *
-    * <command> = <expression (the return value will be ignored)>
-    *
-    *======================================================================== */
-    [[deprecated]]
-    const object
-      program(
-        const object& expression,
-        const object& lexical_environment,
-        const object& continuation,
-        const bool = false)
-    try
-    {
-      if (not cdr(expression)) // is tail sequence
-      {
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            continuation,
-            true);
-      }
-      else
-      {
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            cons(
-              make<instruction>(mnemonic::POP),
-              sequence(
-                cdr(expression),
-                lexical_environment,
-                continuation)));
-      }
-    }
-    catch (const error&) // XXX <definition> backtrack
-    {
-      // (environment (<unknown>)
-      //   <car expression>
-      //   <cdr expression>
-      //   )
-      //
-      // <car expression> = (<caar expression> <cadar expression> <caddar expression>)
-      //                  = (#(syntax define) <identifier> <expression>)
-
-      auto definition {
-        compile(
-          cddar(expression) ? caddar(expression) : undefined,
-          lexical_environment,
-          list(
-            make<instruction>(mnemonic::DEFINE), cadar(expression)))
-      };
-
-      NEST_OUT;
-
-      return
-        append(
-          definition,
-          cdr(expression)
-            ? program(
-                cdr(expression),
-                lexical_environment,
-                continuation)
-            : continuation);
     }
 
     /* ==== Definition ========================================================
@@ -875,7 +806,7 @@ namespace meevax::kernel
         * If definition appears in <cdr expression>, it is an syntax error.
         *
         * (lambda (...)
-        *   () ;= <car expression>
+        *   ()         ;= <car expression>
         *   <sequence> ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
@@ -894,7 +825,7 @@ namespace meevax::kernel
         *
         * (lambda (...)
         *   <non-definition expression> ;= <car expression>
-        *   <sequence> ;= <cdr expression>)
+        *   <sequence>                  ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
         return
@@ -1008,7 +939,7 @@ namespace meevax::kernel
         const object& continuation,
         const bool = false)
     {
-      if (expression && expression.is<pair>())
+      if (expression and expression.is<pair>())
       {
         return
           operand(
@@ -1143,6 +1074,11 @@ namespace meevax::kernel
           continuation);
     }
 
+    /* ==== Call-With-Current-Continuation ====================================
+    *
+    * TODO documentation
+    *
+    *======================================================================== */
     const object
       call_cc(
         const object& expression,
@@ -1153,7 +1089,6 @@ namespace meevax::kernel
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <procedure>"
                         << attribute::normal << std::endl);
-
       return
         cons(
           make<instruction>(mnemonic::MAKE_CONTINUATION),
@@ -1166,6 +1101,64 @@ namespace meevax::kernel
               continuation)));
     }
 
+    /* ==== Program ===========================================================
+    *
+    * <program> = <import declaration>+
+    *             <definition or command>+
+    *             <definition or expression>+
+    *
+    * <definition or command> = <definition>
+    *                         | <command>
+    *                         | (begin <command or definition>+)
+    *
+    * <command> = <an expression whose return value will be ignored>
+    *
+    *
+    * <library> = (define-library <library name> <library declaration>+)
+    *
+    * <library name> = (<library name part>+)
+    *
+    * <library name part> = <identifier>
+    *                     | <unsigned integer 10>
+    *
+    * <library declaration>
+    *
+    *======================================================================== */
+    const object
+      program(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
+    {
+      if (not cdr(expression)) // is tail sequence
+      {
+        return
+          compile(
+            car(expression),
+            lexical_environment,
+            continuation); // tail-call optimization
+      }
+      else
+      {
+        return
+          compile(
+            car(expression), // <non-definition expression>
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::POP), // remove result of expression
+              program(
+                cdr(expression),
+                lexical_environment,
+                continuation)));
+      }
+    }
+
+    /* ==== Call-With-Current-Syntactic-Continuation ==========================
+    *
+    * TODO documentation
+    *
+    *======================================================================== */
     const object
       call_csc(
         const object& expression,
@@ -1174,11 +1167,17 @@ namespace meevax::kernel
         const bool = false)
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <program>"
+        car(expression) << highlight::comment << "\t; is <subprogram>"
                         << attribute::normal << std::endl);
-
-      // std::cerr << "expression: " << expression << std::endl
-      //           << "continuation: " << continuation << std::endl;
+      // return
+      //   cons(
+      //     make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
+      //     program(
+      //       car(expression),
+      //       lexical_environment,
+      //       list(
+      //         make<instruction>(mnemonic::RETURN))),
+      //     continuation);
 
       return
         compile(
@@ -1189,6 +1188,7 @@ namespace meevax::kernel
             continuation));
     }
 
+    [[deprecated]]
     const object
       abstraction(
         const object& expression,
@@ -1211,6 +1211,11 @@ namespace meevax::kernel
           continuation);
     }
 
+    /* ==== Assignment ========================================================
+    *
+    * TODO documentation
+    *
+    *======================================================================== */
     const object
       assignment(
         const object& expression,
@@ -1224,7 +1229,9 @@ namespace meevax::kernel
       {
         throw syntax_error {"set!"};
       }
-      else if (de_bruijn_index index {car(expression), lexical_environment}; index)
+      else if (de_bruijn_index index {
+                 car(expression), lexical_environment
+               }; index)
       {
         if (index.is_variadic())
         {

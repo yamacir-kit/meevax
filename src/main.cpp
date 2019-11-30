@@ -13,6 +13,8 @@ int main(const int argc, char const* const* const argv) try
   ****************************************************************************/
   program.configure(argc, argv);
 
+  std::cerr << "; system\t; syntactic continuations are go" << std::endl;
+
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
     std::cout << "\n> " << std::flush;

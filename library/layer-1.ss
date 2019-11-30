@@ -1596,20 +1596,37 @@
 ;  Library
 ; ------------------------------------------------------------------------------
 
+(define define-something
+  (call/csc
+    (lambda (_ name value)
+     `(,define ,name ,value))))
+
 (define-syntax define-library
   (call/csc
     (lambda (_ name . declarations)
      `(,define ,name
-        (,call/csc ; the library object
-          (,lambda () ,declarations))))))
+        (,call/csc ,@declarations)))))
 
-; (define-library (example hello)
-;   (export hello)
-;
-;   (begin
-;     (define hello
-;       (lambda ()
-;         (display "hello, world!\n")))
-;     )
-;   )
+(define-syntax export ; dummy
+  (call/csc
+    (lambda (_ . export-specs)
+     `(,display "DUMMY!"))))
+
+(define-library (example empty) '())
+
+(define-library hello ;(example hello)
+  ; (export hello)
+
+  (begin
+    (display "LIBRARY!")
+    (display #\newline))
+
+  (begin
+    (define hello
+      (lambda ()
+        (begin (display "hello, world!")
+               (display #\newline)))
+      )
+    )
+  )
 
