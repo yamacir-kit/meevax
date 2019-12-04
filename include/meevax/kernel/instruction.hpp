@@ -11,6 +11,7 @@ namespace meevax::kernel
     (APPLY)                                                                    \
     (APPLY_TAIL)                                                               \
     (DEFINE)                                                                   \
+    (FORK)                                                                     \
     (JOIN)                                                                     \
     (LOAD_GLOBAL)                                                              \
     (LOAD_LITERAL)                                                             \
@@ -18,7 +19,6 @@ namespace meevax::kernel
     (LOAD_LOCAL_VARIADIC)                                                      \
     (MAKE_CLOSURE)                                                             \
     (MAKE_CONTINUATION)                                                        \
-    (MAKE_ENVIRONMENT)                                                         \
     (MAKE_SYNTACTIC_CONTINUATION)                                              \
     (POP)                                                                      \
     (PUSH)                                                                     \

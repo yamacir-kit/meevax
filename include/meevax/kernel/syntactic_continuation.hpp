@@ -401,7 +401,7 @@ namespace meevax::kernel
       return lambda(std::forward<decltype(operands)>(operands)...);
     });
 
-    define<special>("fork", [&](auto&&... operands)
+    define<special>("fork-with-current-syntactic-continuation", [&](auto&&... operands)
     {
       return fork(std::forward<decltype(operands)>(operands)...);
     });

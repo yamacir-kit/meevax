@@ -376,9 +376,8 @@ namespace meevax::kernel
         c.pop(2);
         goto dispatch;
 
-      case mnemonic::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
+      case mnemonic::FORK: // S E (FORK code . C) => (subprogram . S) E C D
         TRACE(2);
-        // s.push(make<SyntacticContinuation>(cadr(c), interaction_environment()));
         s.push(
           make<SyntacticContinuation>(
             make<closure>(cadr(c), e),
@@ -407,9 +406,9 @@ namespace meevax::kernel
       *
       */ TRACE(2);                                                           /*
       *
-      *                S  E (FORK code . C) D
+      *                S  E (MAKE_SC code . C) D
       *
-      *  => (program . S) E              C  D
+      *  => (program . S) E                 C  D
       *
       *====================================================================== */
         // s = cons(
@@ -1273,12 +1272,11 @@ namespace meevax::kernel
         const bool = false)
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <formals>"
+        car(expression) << highlight::comment << "\t; is <subprogram parameters>"
                         << attribute::normal << std::endl);
-
       return
         cons(
-          make<instruction>(mnemonic::MAKE_ENVIRONMENT),
+          make<instruction>(mnemonic::FORK),
           // program(
           body(
             cdr(expression),

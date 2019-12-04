@@ -3,6 +3,7 @@
 (define unhygienic-macro-transformer lambda)
 
 (define call/csc call-with-current-syntactic-continuation)
+(define fork/csc fork-with-current-syntactic-continuation)
 
 ; (define rsc-macro-transformer
 ;   (lambda (transform)
@@ -1350,12 +1351,12 @@
 ; TODO null-environment
 
 (define current-lexical-environment
-  (fork ()
-   `(cdr (lambda () ()))))
+  (fork/csc (this)
+   `(cdar this)))
 
 (define interaction-environment
-  (fork ()
-   `(cdr (fork () ()))))
+  (fork/csc (this)
+   `(cdr this)))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
@@ -1605,7 +1606,7 @@
   (call/csc
     (lambda (_ name . declarations)
      `(,define ,name
-        (,fork (this) ,@declarations)))))
+        (,fork/csc (this) ,@declarations)))))
 
 (define-syntax export ; dummy
   (call/csc
