@@ -412,7 +412,9 @@ namespace meevax::kernel
     {
       return unbound;
     }
-    else if (caar(association_list) == value)
+    else if (recursively_equivalent(
+               caar(association_list),
+               value))
     {
       return cadar(association_list);
     }

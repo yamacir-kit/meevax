@@ -1389,11 +1389,46 @@ namespace meevax::kernel
 
       if (not expression)
       {
+        DEBUG_COMPILE_DECISION(
+          "<identifier> of itself" << attribute::normal);
+
         return unit;
+      }
+      else if (de_bruijn_index variable {
+                 car(expression),
+                 lexical_environment
+               }; variable)
+      {
+        if (variable.is_variadic())
+        {
+          DEBUG_COMPILE_DECISION(
+            "<identifier> of local variadic " << attribute::normal << variable);
+
+          return
+            cons(
+              make<instruction>(mnemonic::LOAD_LOCAL_VARIADIC), variable,
+              continuation);
+        }
+        else
+        {
+          DEBUG_COMPILE_DECISION(
+            "<identifier> of local " << attribute::normal << variable);
+
+          return
+            cons(
+              make<instruction>(mnemonic::LOAD_LOCAL), variable,
+              continuation);
+        }
       }
       else
       {
-        return unit;
+        DEBUG_COMPILE_DECISION(
+          "<identifier> of global variable" << attribute::normal);
+
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
+            continuation);
       }
     }
   };
