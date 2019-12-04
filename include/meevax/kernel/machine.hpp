@@ -1203,24 +1203,46 @@ namespace meevax::kernel
     {
       if (not cdr(expression)) // is tail sequence
       {
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            continuation); // TODO tail-call-optimizable?
+        try
+        {
+          return
+            compile(
+              car(expression),
+              lexical_environment,
+              continuation); // TODO tail-call-optimizable?
+        }
+        catch (const object& definition)
+        {
+          return definition;
+        }
       }
       else
       {
-        return
-          compile(
-            car(expression),
+        const auto declarations {
+          program(
+            cdr(expression),
             lexical_environment,
+            continuation)
+        };
+
+        try
+        {
+          return
+            compile(
+              car(expression),
+              lexical_environment,
+              cons(
+                make<instruction>(mnemonic::POP), // remove result of expression
+                declarations));
+        }
+        catch (const object& definition)
+        {
+          return
             cons(
-              make<instruction>(mnemonic::POP), // remove result of expression
-              program(
-                cdr(expression),
-                lexical_environment,
-                continuation)));
+              definition,
+              make<instruction>(mnemonic::POP),
+              declarations);
+        }
       }
     }
 
@@ -1277,8 +1299,7 @@ namespace meevax::kernel
       return
         cons(
           make<instruction>(mnemonic::FORK),
-          // program(
-          body(
+          program(
             cdr(expression),
             cons(car(expression), lexical_environment),
             list(make<instruction>(mnemonic::RETURN))),

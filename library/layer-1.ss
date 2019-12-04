@@ -1350,13 +1350,17 @@
 ; TODO scheme-report-environment
 ; TODO null-environment
 
+(define environment-frames-of cdar)
+
 (define current-lexical-environment
   (fork/csc (this)
-   `(cdar this)))
+   `(environment-frames-of this)))
+
+(define interaction-environment-of cdr)
 
 (define interaction-environment
   (fork/csc (this)
-   `(cdr this)))
+   `(interaction-environment-of this)))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
@@ -1613,21 +1617,20 @@
     (lambda (_ . export-specs)
      `(,display "DUMMY!"))))
 
-; (define-library (example empty) '())
-;
-; (define-library hello ;(example hello)
-;   ; (export hello)
-;
-;   (begin
-;     (display "LIBRARY!")
-;     (display #\newline))
-;
-;   (begin
-;     (define hello
-;       (lambda ()
-;         (begin (display "hello, world!")
-;                (display #\newline)))
-;       )
-;     )
-;   )
+(define-library (example empty) '())
+
+(define-library hello ;(example hello)
+  ; (export hello)
+
+  (begin
+    (display "LIBRARY!")
+    (display #\newline))
+
+  (begin
+    (define hello
+      (lambda ()
+        (begin (display "hello, world!")
+               (display #\newline))))
+    )
+  )
 
