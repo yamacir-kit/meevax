@@ -609,50 +609,52 @@ namespace meevax::kernel
     }
 
     class de_bruijn_index
-      : public object // for runtime
+      : public object
     {
       bool variadic;
 
     public:
       template <typename... Ts>
       de_bruijn_index(Ts&&... operands)
-        : object {locate(std::forward<decltype(operands)>(operands)...)}
+        : object {lookup(std::forward<decltype(operands)>(operands)...)}
       {}
 
-      object locate(const object& variable,
-                    const object& lexical_environment)
+      const object
+        lookup(
+          const object& value,
+          const object& frames)
       {
-        auto i {0};
+        auto layer {0};
 
-        for (const auto& region : lexical_environment)
+        for (const auto& frame : frames)
         {
-          auto j {0};
+          auto index {0};
 
-          for (homoiconic_iterator position {region}; position; ++position)
+          for (homoiconic_iterator node {frame}; node; ++node)
           {
-            if (position.is<pair>() && *position == variable)
+            if (node.is<pair>() && recursively_equivalent(*node, value))
             {
               variadic = false;
 
               return
                 cons(
-                  make<real>(i),
-                  make<real>(j));
+                  make<real>(layer),
+                  make<real>(index));
             }
-            else if (not position.is<pair>() && position == variable)
+            else if (node.is<symbol>() && node == value)
             {
               variadic = true;
 
               return
                 cons(
-                  make<real>(i),
-                  make<real>(j));
+                  make<real>(layer),
+                  make<real>(index));
             }
 
-            ++j;
+            ++index;
           }
 
-          ++i;
+          ++layer;
         }
 
         return unit;
@@ -1322,7 +1324,7 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
 
-      if (!expression)
+      if (not expression)
       {
         throw syntax_error {"set!"};
       }
@@ -1368,6 +1370,30 @@ namespace meevax::kernel
               make<instruction>(mnemonic::SET_GLOBAL),
               car(expression),
               continuation));
+      }
+    }
+
+    /* ==== Explicit Variable Reference =======================================
+    *
+    * TODO
+    *
+    *======================================================================== */
+    const object
+      reference(
+        const object& expression,
+        const object& lexical_environment,
+        const object& continuation,
+        const bool = false)
+    {
+      DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
+
+      if (not expression)
+      {
+        return unit;
+      }
+      else
+      {
+        return unit;
       }
     }
   };

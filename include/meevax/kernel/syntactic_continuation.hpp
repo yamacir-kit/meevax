@@ -372,18 +372,20 @@ namespace meevax::kernel
 
   public: // experimental
     // TODO Rename
-    auto reference(const object& identifier)
-    {
-      for (const object& commit : interaction_environment())
-      {
-        if (recursively_equivalent(car(commit), identifier))
-        {
-          return cadr(commit);
-        }
-      }
-
-      return identifier;
-    }
+    // auto reference(const object& identifier)
+    // {
+    //   std::cerr << "; reference\t; " << identifier << std::endl;
+    //   for (const object& commit : interaction_environment())
+    //   {
+    //     if (recursively_equivalent(car(commit), identifier))
+    //     {
+    //       std::cerr << ";\t\t; found: " << commit << std::endl;
+    //       return cadr(commit);
+    //     }
+    //   }
+    //
+    //   return identifier;
+    // }
   };
 
   template <>
@@ -433,6 +435,11 @@ namespace meevax::kernel
     define<special>("set!", [&](auto&&... operands)
     {
       return assignment(std::forward<decltype(operands)>(operands)...);
+    });
+
+    define<special>("reference", [&](auto&&... operands)
+    {
+      return reference(std::forward<decltype(operands)>(operands)...);
     });
 
     /*
