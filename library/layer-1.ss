@@ -1619,7 +1619,12 @@
 
 (define-library (example empty) '())
 
-(define-library hello ;(example hello)
+(define hello
+  (lambda ()
+    (begin (display "HELLO!")
+           (newline))))
+
+(define-library (example hello)
   ; (export hello)
 
   (begin

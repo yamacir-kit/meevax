@@ -92,8 +92,9 @@ namespace meevax::kernel
     template <typename... Ts>
     decltype(auto) intern(Ts&&... operands)
     {
-      return static_cast<SyntacticContinuation&>(*this).intern(
-               std::forward<decltype(operands)>(operands)...);
+      return
+        static_cast<SyntacticContinuation&>(*this).intern(
+          std::forward<decltype(operands)>(operands)...);
     }
 
     // TODO Remove
@@ -122,9 +123,10 @@ namespace meevax::kernel
       return interaction_environment(); // temporary
     }
 
-    const object& lookup(
-      const object& identifier,
-      const object& environment)
+    const object&
+      lookup(
+        const object& identifier,
+        const object& environment)
     {
       if (not identifier or not environment)
       {

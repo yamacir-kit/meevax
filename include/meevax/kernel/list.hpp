@@ -294,7 +294,9 @@ namespace meevax::kernel
     return (... | operands);
   }
 
-  bool is_same(const object& x, const object& y) // Scheme "equal?"
+  bool recursively_equivalent(
+    const object& x,
+    const object& y)
   {
     if (not x and not y)
     {
@@ -302,7 +304,9 @@ namespace meevax::kernel
     }
     else if (x.is<pair>() and y.is<pair>())
     {
-      return is_same(car(x), car(y)) and is_same(cdr(x), cdr(y));
+      return
+            recursively_equivalent(car(x), car(y))
+        and recursively_equivalent(cdr(x), cdr(y));
     }
     else
     {
@@ -395,40 +399,51 @@ namespace meevax::kernel
   //   // TODO
   // }
 
-  const object& assoc(const object& var, const object& env)
+  const object&
+    assoc(
+      const object& value,
+      const object& association_list)
   {
-    if (!var)
+    if (not value)
     {
       return unit;
     }
-    if (!env)
+    if (not association_list)
     {
       return unbound;
     }
-    else if (caar(env) == var)
+    else if (caar(association_list) == value)
     {
-      return cadar(env);
+      return cadar(association_list);
     }
     else
     {
-      return assoc(var, cdr(env));
+      return
+        assoc(
+          value,
+          cdr(association_list));
     }
   }
 
-  const object& assq(const object& key,
-                     const object& alist)
+  const object&
+    assq(
+      const object& value,
+      const object& association_list)
   {
-    if (!key or !alist)
+    if (not value or not association_list)
     {
       return false_object;
     }
-    else if (caar(alist) == key)
+    else if (caar(association_list) == value)
     {
-      return car(alist);
+      return car(association_list);
     }
     else
     {
-      return assq(key, cdr(alist));
+      return
+        assq(
+          value,
+          cdr(association_list));
     }
   }
 } // namespace meevax::kernel

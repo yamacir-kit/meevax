@@ -112,7 +112,7 @@ namespace meevax::kernel
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
       return
-        kernel::machine<syntactic_continuation>::define(
+        machine<syntactic_continuation>::define(
           intern(name),
           make<T>(
             name,
@@ -123,7 +123,7 @@ namespace meevax::kernel
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
       return
-        kernel::machine<syntactic_continuation>::define(
+        machine<syntactic_continuation>::define(
           intern(name),
           std::forward<decltype(operands)>(operands)...);
     }
@@ -187,30 +187,30 @@ namespace meevax::kernel
 
     decltype(auto) current_expression()
     {
-      // return car(continuation());
+      return car(continuation());
 
-      if (auto& k {continuation()}; not k)
-      {
-        return k;
-      }
-      else
-      {
-        return car(k);
-      }
+      // if (auto& k {continuation()}; not k)
+      // {
+      //   return k;
+      // }
+      // else
+      // {
+      //   return car(k);
+      // }
     }
 
     decltype(auto) lexical_environment()
     {
-      // return cdr(continuation());
+      return cdr(continuation());
 
-      if (auto& k {continuation()}; not k)
-      {
-        return k;
-      }
-      else
-      {
-        return cdr(k);
-      }
+      // if (auto& k {continuation()}; not k)
+      // {
+      //   return k;
+      // }
+      // else
+      // {
+      //   return cdr(k);
+      // }
     }
 
     decltype(auto) interaction_environment() noexcept
@@ -220,28 +220,30 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      // TODO execute following if the staged changes is not empty
+
+      std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       ++time_stamp;
 
       s = unit;
-      // std::cerr << ";\t\t; s = " << s << std::endl;
+      std::cerr << ";\t\t; s = " << s << std::endl;
 
       e = cons(operands, lexical_environment());
-      // std::cerr << ";\t\t; e = " << e << std::endl;
+      std::cerr << ";\t\t; e = " << e << std::endl;
 
       c = current_expression();
-      // std::cerr << ";\t\t; c = " << c << std::endl;
+      std::cerr << ";\t\t; c = " << c << std::endl;
 
       d = cons(
             unit,                                    // s
             unit,                                    // e
             list(make<instruction>(mnemonic::STOP)), // c
             unit);                                   // d
-      // std::cerr << ";\t\t; d = " << d << std::endl;
+      std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
-      // std::cerr << "; \t\t; " << result << std::endl;
+      std::cerr << "; \t\t; " << result << std::endl;
       return result;
     }
 
@@ -264,13 +266,14 @@ namespace meevax::kernel
     //   }
     // }
 
+    [[deprecated]]
     auto locate_library(const object& name)
     {
       for (const object& each : interaction_environment())
       {
         if (const object& key {car(each)}; not key.is<symbol>())
         {
-          if (is_same(key, name))
+          if (recursively_equivalent(key, name))
           {
             return cadr(each);
           }
@@ -366,6 +369,21 @@ namespace meevax::kernel
         throw evaluation_error {"failed to open file ", std::quoted(path)};
       }
     }
+
+  public: // experimental
+    // TODO Rename
+    auto reference(const object& identifier)
+    {
+      for (const object& commit : interaction_environment())
+      {
+        if (recursively_equivalent(car(commit), identifier))
+        {
+          return cadr(commit);
+        }
+      }
+
+      return identifier;
+    }
   };
 
   template <>
@@ -386,6 +404,7 @@ namespace meevax::kernel
       return definition(std::forward<decltype(operands)>(operands)...);
     });
 
+    // TODO Rename to "sequential"
     define<special>("begin", [&](auto&&... operands)
     {
       return sequence(std::forward<decltype(operands)>(operands)...);
