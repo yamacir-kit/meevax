@@ -740,7 +740,6 @@ namespace meevax::kernel
         DEBUG_COMPILE(
           car(expression) << highlight::comment << "\t; is <variable>"
                           << attribute::normal << std::endl);
-
         return
           compile(
             cdr(expression) ? cadr(expression) : undefined,
@@ -751,9 +750,16 @@ namespace meevax::kernel
       }
       else
       {
-        throw syntax_error_about_internal_define {
-          "definition cannot appear in this context"
-        };
+        // throw syntax_error_about_internal_define {
+        //   "definition cannot appear in this context"
+        // };
+        throw
+          compile(
+            cdr(expression) ? cadr(expression) : undefined,
+            lexical_environment,
+            cons(
+              make<instruction>(mnemonic::DEFINE), car(expression),
+              continuation));
       }
     }
 
@@ -767,7 +773,7 @@ namespace meevax::kernel
         const object& expression,
         const object& lexical_environment,
         const object& continuation,
-        const bool = false) // try
+        const bool subprogram_declaration = false)
     {
       /* ----------------------------------------------------------------------
       *
@@ -791,12 +797,28 @@ namespace meevax::kernel
         *   )
         *
         *-------------------------------------------------------------------- */
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            continuation,
-            true); // tail-call optimization
+        try
+        {
+          return
+            compile(
+              car(expression),
+              lexical_environment,
+              continuation,
+              true); // tail-call optimization
+        }
+        catch (const object& definition)
+        {
+          // if (subprogram_declaration)
+          // {
+          //   return definition;
+          // }
+          // else
+          // {
+            throw syntax_error_about_internal_define {
+              "definition cannot appear in this context"
+            };
+          // }
+        }
       }
       else if (not car(expression))
       {
@@ -810,14 +832,35 @@ namespace meevax::kernel
         *   <sequence> ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
-        return
-          sequence(
-            cdr(expression),
-            lexical_environment,
-            continuation);
+        // if (subprogram_declaration)
+        // {
+        //   return
+        //     body(
+        //       cdr(expression),
+        //       lexical_environment,
+        //       continuation,
+        //       true);
+        // }
+        // else
+        // {
+        try
+        {
+          return
+            sequence(
+              cdr(expression),
+              lexical_environment,
+              continuation);
+        }
+        catch (const object& definition)
+        {
+          throw syntax_error_about_internal_define {
+            "definition cannot appear in this context"
+          };
+        }
+        // }
       }
       else if (not car(expression).is<pair>()
-               or caar(expression) != intern("define"))
+               or caar(expression) != intern("define")) // XXX THIS IS NOT HYGIENIC
       {
         /* --------------------------------------------------------------------
         *
@@ -828,6 +871,36 @@ namespace meevax::kernel
         *   <sequence>                  ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
+        // if (subprogram_declaration)
+        // {
+        //   const auto subprogram_continuation {
+        //     cons(
+        //       make<instruction>(mnemonic::POP),
+        //       body(
+        //         cdr(expression),
+        //         lexical_environment,
+        //         continuation,
+        //         true))
+        //   };
+        //
+        //   try
+        //   {
+        //     return
+        //       compile(
+        //         car(expression),
+        //         lexical_environment,
+        //         subprogram_continuation);
+        //   }
+        //   catch (const object& definition)
+        //   {
+        //     return
+        //       cons(
+        //         definition,
+        //         subprogram_continuation);
+        //   }
+        // }
+        // else
+        // {
         return
           compile(
             car(expression), // <non-definition expression>
@@ -838,6 +911,7 @@ namespace meevax::kernel
                 cdr(expression),
                 lexical_environment,
                 continuation)));
+        // }
       }
       else // 5.3.2 Internal Definitions
       {
@@ -880,7 +954,7 @@ namespace meevax::kernel
         {
           if (not car(each) or // unit (TODO? syntax-error)
               not car(each).is<pair>() or // <identifier or literal>
-              caar(each) != intern("define"))
+              caar(each) != intern("define")) // XXX THIS IS NOT HYGIENIC
           {
             body = each;
 
@@ -998,8 +1072,7 @@ namespace meevax::kernel
                   make<instruction>(mnemonic::RETURN)),
                 true)
             : list(
-                make<instruction>(mnemonic::LOAD_LITERAL),
-                undefined,
+                make<instruction>(mnemonic::LOAD_LITERAL), undefined,
                 make<instruction>(mnemonic::RETURN))
         };
 
@@ -1038,9 +1111,7 @@ namespace meevax::kernel
             car(expression), // <test>
             lexical_environment,
             cons(
-              make<instruction>(mnemonic::SELECT),
-              consequent,
-              alternate,
+              make<instruction>(mnemonic::SELECT), consequent, alternate,
               continuation));
       }
     }
@@ -1185,7 +1256,8 @@ namespace meevax::kernel
           lexical_environment,
           cons(
             make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
-            continuation));
+            continuation),
+          true); // for subprogram_declaration
     }
 
     /* ==== Fork ==============================================================

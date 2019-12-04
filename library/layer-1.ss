@@ -1605,28 +1605,28 @@
   (call/csc
     (lambda (_ name . declarations)
      `(,define ,name
-        (,call/csc ,@declarations)))))
+        (,fork (this) ,@declarations)))))
 
 (define-syntax export ; dummy
   (call/csc
     (lambda (_ . export-specs)
      `(,display "DUMMY!"))))
 
-(define-library (example empty) '())
-
-(define-library hello ;(example hello)
-  ; (export hello)
-
-  (begin
-    (display "LIBRARY!")
-    (display #\newline))
-
-  (begin
-    (define hello
-      (lambda ()
-        (begin (display "hello, world!")
-               (display #\newline)))
-      )
-    )
-  )
+; (define-library (example empty) '())
+;
+; (define-library hello ;(example hello)
+;   ; (export hello)
+;
+;   (begin
+;     (display "LIBRARY!")
+;     (display #\newline))
+;
+;   (begin
+;     (define hello
+;       (lambda ()
+;         (begin (display "hello, world!")
+;                (display #\newline)))
+;       )
+;     )
+;   )
 
