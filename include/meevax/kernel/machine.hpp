@@ -15,9 +15,13 @@ inline namespace ugly_macros
   static std::size_t depth {0};
 
   #define TRACE(N)                                                             \
-  if (static_cast<SyntacticContinuation&>(*this).trace == true_object)         \
+  if (const auto& configuration {static_cast<SyntacticContinuation&>(*this)};  \
+      configuration.trace == true_object)                                      \
   {                                                                            \
-    std::cerr << "; machine\t; \x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl; \
+    std::cerr << "; machine\t; \x1B[?7l"                                       \
+              << take(c, N)                                                    \
+              <<              "\x1B[?7h"                                       \
+              << std::endl;                                                    \
   }
 
   #define DEBUG_COMPILE(...)                                                   \
@@ -84,24 +88,35 @@ namespace meevax::kernel
           d; // dump stack (current-continuation)
 
   private: // CRTP Interfaces
-    decltype(auto) interaction_environment()
-    {
-      return static_cast<SyntacticContinuation&>(*this).interaction_environment();
+    #define CRTP(IDENTIFIER)                                                   \
+    template <typename... Ts>                                                  \
+    decltype(auto) IDENTIFIER(Ts&&... operands)                                \
+    {                                                                          \
+      return                                                                   \
+        static_cast<SyntacticContinuation&>(*this).IDENTIFIER(                 \
+          std::forward<decltype(operands)>(operands)...);                      \
     }
 
-    template <typename... Ts>
-    decltype(auto) intern(Ts&&... operands)
-    {
-      return
-        static_cast<SyntacticContinuation&>(*this).intern(
-          std::forward<decltype(operands)>(operands)...);
-    }
+    CRTP(intern)
+    CRTP(interaction_environment)
+    CRTP(rename)
 
-    // TODO Remove
+    #undef CRTP
+
     // template <typename... Ts>
-    // decltype(auto) export_(Ts&&... operands)
+    // decltype(auto) intern(Ts&&... operands)
     // {
-    //   return static_cast<SyntacticContinuation&>(*this).export_(std::forward<decltype(operands)>(operands)...);
+    //   return
+    //     static_cast<SyntacticContinuation&>(*this).intern(
+    //       std::forward<decltype(operands)>(operands)...);
+    // }
+    //
+    // template <typename... Ts>
+    // decltype(auto) rename(Ts&&... operands)
+    // {
+    //   return
+    //     static_cast<SyntacticContinuation&>(*this).rename(
+    //       std::forward<decltype(operands)>(operands)...);
     // }
 
   public:
@@ -109,15 +124,20 @@ namespace meevax::kernel
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... operands)
     {
-      // auto iter {export_(key, std::forward<decltype(operands)>(operands)...)};
-      // interaction_environment().push(list(iter->first, iter->second));
       interaction_environment().push(
-        list(key, std::forward<decltype(operands)>(operands)...));
+        list(
+          rename(key),
+          std::forward<decltype(operands)>(operands)...));
 
-      if (   static_cast<SyntacticContinuation&>(*this).verbose        == true_object
-          or static_cast<SyntacticContinuation&>(*this).verbose_define == true_object)
+      if (const auto& config {static_cast<SyntacticContinuation&>(*this)};
+             config.verbose        == true_object
+          or config.verbose_define == true_object)
       {
-        std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
+        std::cerr << "; define\t; "
+                  << caar(interaction_environment())
+                  << "\r\x1b[40C\x1b[K "
+                  << cadar(interaction_environment())
+                  << std::endl;
       }
 
       return interaction_environment(); // temporary
@@ -138,7 +158,10 @@ namespace meevax::kernel
       }
       else
       {
-        return lookup(identifier, cdr(environment));
+        return
+          lookup(
+            identifier,
+            cdr(environment));
       }
     }
 
@@ -350,7 +373,7 @@ namespace meevax::kernel
       case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
         TRACE(2);
         if (auto value {
-              assoc(
+              assoc( // XXX assq?
                 cadr(c),
                 interaction_environment())
             }; value != unbound)
@@ -1103,7 +1126,8 @@ namespace meevax::kernel
             ? compile(
                 caddr(expression),
                 lexical_environment,
-                list(make<instruction>(mnemonic::JOIN)))
+                list(
+                  make<instruction>(mnemonic::JOIN)))
             : list(
                 make<instruction>(mnemonic::LOAD_LITERAL), undefined,
                 make<instruction>(mnemonic::JOIN))

@@ -1628,14 +1628,24 @@
   ; (export hello)
 
   (begin
-    (display "LIBRARY!")
-    (display #\newline))
+    (display "EVALUATING LIBRARY!")
+    (newline))
 
   (begin
     (define hello
       (lambda ()
         (begin (display "hello, world!")
-               (display #\newline))))
+               (newline))))
+
+    (define goodbye
+      (lambda ()
+        (begin (display "goodbye, world!")
+               (newline))))
     )
+
+  (begin
+    (define one   1)
+    (define two   2)
+    (define three 3))
   )
 
