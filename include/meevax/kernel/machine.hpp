@@ -1157,8 +1157,8 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <formals>"
-                        << attribute::normal << std::endl);
-
+                        << attribute::normal
+                        << std::endl);
       return
         cons(
           make<instruction>(mnemonic::MAKE_CLOSURE),
@@ -1241,6 +1241,7 @@ namespace meevax::kernel
         }
         catch (const object& definition)
         {
+          NEST_OUT;
           return definition;
         }
       }
@@ -1252,6 +1253,7 @@ namespace meevax::kernel
             lexical_environment,
             continuation)
         };
+        NEST_OUT;
 
         try
         {
@@ -1265,6 +1267,7 @@ namespace meevax::kernel
         }
         catch (const object& definition)
         {
+          NEST_OUT;
           return
             cons(
               definition,
@@ -1322,8 +1325,10 @@ namespace meevax::kernel
         const bool = false)
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <subprogram parameters>"
-                        << attribute::normal << std::endl);
+        car(expression) << highlight::comment
+                        << "\t; is <subprogram parameters>"
+                        << attribute::normal
+                        << std::endl);
       return
         cons(
           make<instruction>(mnemonic::FORK),
