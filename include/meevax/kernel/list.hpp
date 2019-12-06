@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIST_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
+#include <functional>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/boolean.hpp>
@@ -11,7 +12,7 @@
 
 /* ==== SRFI-1 ================================================================
 *
-*   - euqal?                           => is_same(const object&, const object&)
+*   - euqal?                           => recursively_equivalent(const object&, const object&)
 *
 * Constructors
 *   - circular-list
@@ -294,6 +295,12 @@ namespace meevax::kernel
     return (... | operands);
   }
 
+  template <typename T, typename U>
+  decltype(auto) equivalent(T&& x, U&& y)
+  {
+    return x.equivalent_to(y);
+  }
+
   bool recursively_equivalent(
     const object& x,
     const object& y)
@@ -448,6 +455,31 @@ namespace meevax::kernel
           cdr(association_list));
     }
   }
+
+  template <auto Coarseness = 0>
+  struct equivalence_comparator;
+
+  #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)               \
+  template <>                                                                  \
+  struct equivalence_comparator<COARSENESS>                                    \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    decltype(auto) operator ()(Ts&&... operands)                               \
+    {                                                                          \
+      return                                                                   \
+        std::invoke(                                                           \
+          COMPARE,                                                             \
+          std::forward<decltype(operands)>(operands)...);                      \
+    }                                                                          \
+  }
+
+  SPECIALIZE_EQUIVALENCE_COMPARATOR(0, std::equal_to {});
+  SPECIALIZE_EQUIVALENCE_COMPARATOR(1,             equivalent);
+  SPECIALIZE_EQUIVALENCE_COMPARATOR(2, recursively_equivalent);
+
+  #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
+
+  using default_equivalence_comparator = equivalence_comparator<>;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP

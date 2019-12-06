@@ -3,6 +3,7 @@
 
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
+#include <meevax/kernel/de_brujin_index.hpp>
 #include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
@@ -631,64 +632,6 @@ namespace meevax::kernel
       }
     }
 
-    class de_bruijn_index
-      : public object
-    {
-      bool variadic;
-
-    public:
-      template <typename... Ts>
-      de_bruijn_index(Ts&&... operands)
-        : object {lookup(std::forward<decltype(operands)>(operands)...)}
-      {}
-
-      const object
-        lookup(
-          const object& value,
-          const object& frames)
-      {
-        auto layer {0};
-
-        for (const auto& frame : frames)
-        {
-          auto index {0};
-
-          for (homoiconic_iterator node {frame}; node; ++node)
-          {
-            if (node.is<pair>() && recursively_equivalent(*node, value))
-            {
-              variadic = false;
-
-              return
-                cons(
-                  make<real>(layer),
-                  make<real>(index));
-            }
-            else if (node.is<symbol>() && node == value)
-            {
-              variadic = true;
-
-              return
-                cons(
-                  make<real>(layer),
-                  make<real>(index));
-            }
-
-            ++index;
-          }
-
-          ++layer;
-        }
-
-        return unit;
-      }
-
-      bool is_variadic() const noexcept
-      {
-        return variadic;
-      }
-    };
-
   protected:
     /* ==== Quotation =========================================================
     *
@@ -723,7 +666,7 @@ namespace meevax::kernel
         const object& expression,
         const object& lexical_environment,
         const object& continuation,
-        const bool optimization = false)
+        const bool in_subprogram_declaration = false)
     {
       if (not cdr(expression)) // is tail sequence
       {
@@ -732,7 +675,7 @@ namespace meevax::kernel
             car(expression),
             lexical_environment,
             continuation,
-            optimization);
+            true);
       }
       else
       {
@@ -1423,7 +1366,9 @@ namespace meevax::kernel
 
         return unit;
       }
-      else if (de_bruijn_index variable {
+      else if (de_bruijn_index<
+                 equivalence_comparator<2>
+               > variable {
                  car(expression),
                  lexical_environment
                }; variable)
