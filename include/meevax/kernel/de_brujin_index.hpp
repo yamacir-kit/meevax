@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_DE_BRUJIN_INDEX_HPP
 
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/object.hpp>
 
 namespace meevax::kernel
 {

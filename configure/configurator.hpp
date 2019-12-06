@@ -61,7 +61,7 @@ namespace meevax::kernel
     static inline object preloads {unit};
 
     static inline auto debug               {false_object};
-    static inline auto experimental        {false_object};
+    static inline auto rune_magic          {false_object};
     static inline auto trace               {false_object};
     static inline auto variable            {unit};
     static inline auto verbose             {true_object};
@@ -120,7 +120,7 @@ namespace meevax::kernel
     {
       std::make_pair("debug", ENABLE(debug)),
 
-      std::make_pair("experimental", ENABLE(experimental)),
+      std::make_pair("rune-magic", ENABLE(rune_magic)),
 
       std::make_pair("help", [&](const auto&, const auto&)
       {
