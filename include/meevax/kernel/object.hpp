@@ -62,7 +62,7 @@ namespace meevax::kernel
   using resource = std::allocator<object>;
 
   template <typename T, typename... Ts>
-  constexpr decltype(auto) make(Ts&&... operands)
+  inline constexpr decltype(auto) make(Ts&&... operands)
   {
     return
       object::make_binding<T>(
@@ -72,7 +72,7 @@ namespace meevax::kernel
   template <typename T,
             typename MemoryResource, // XXX (GCC-9 <=)
             typename... Ts>
-  constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... operands)
+  inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... operands)
   {
     return
       object::allocate_binding<T>(

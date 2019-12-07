@@ -84,10 +84,10 @@ namespace meevax::kernel
   class machine // Simple SECD machine.
   {
   protected:
-    stack s, // main stack
-          e, // lexical environment
-          c, // control stack
-          d; // dump stack (current-continuation)
+    object s, // main stack
+           e, // lexical environment
+           c, // control stack
+           d; // dump stack (current-continuation)
 
   private: // CRTP Interfaces
     #define CRTP(IDENTIFIER)                                                   \
@@ -321,7 +321,7 @@ namespace meevax::kernel
     object execute()
     {
     dispatch:
-      switch (c.top().template as<instruction>().code)
+      switch (car(c).template as<instruction>().code)
       {
       case mnemonic::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         TRACE(2);

@@ -9,9 +9,10 @@ namespace meevax::kernel
   *
   * Stack structure provides Scheme-like stack operation to linear list.
   *
+  * TODO REMOVE THIS
+  *
   *========================================================================== */
-  [[deprecated]]
-  struct stack
+  struct [[deprecated]] stack
     : public homoiconic_iterator
   {
     template <typename... Ts>
@@ -19,39 +20,33 @@ namespace meevax::kernel
       : homoiconic_iterator {std::forward<decltype(operands)>(operands)...}
     {}
 
-    [[deprecated]]
     decltype(auto) top() const
     {
       return operator*();
     }
 
-    [[deprecated]]
     decltype(auto) empty() const noexcept
     {
       return not *this;
     }
 
-    [[deprecated]]
     decltype(auto) size() const
     {
       return length(*this);
     }
 
     template <typename... Objects>
-    [[deprecated]]
     decltype(auto) push(Objects&&... objects)
     {
       return *this = cons(std::forward<Objects>(objects)..., *this);
     }
 
     template <typename T, typename... Ts>
-    [[deprecated]]
     decltype(auto) emplace(Ts&&... operands)
     {
       return push(make<T>(std::forward<decltype(operands)>(operands)...));
     }
 
-    [[deprecated]]
     void pop(std::size_t size)
     {
       switch (size)
@@ -77,7 +72,6 @@ namespace meevax::kernel
       }
     }
 
-    [[deprecated]]
     decltype(auto) pop()
     {
       const auto buffer {top()};
@@ -87,25 +81,25 @@ namespace meevax::kernel
   };
 
   template <typename T, typename... Ts>
-  decltype(auto) push(T&& place, Ts&&... operands)
+  inline decltype(auto) push(T&& variable, Ts&&... operands)
   {
     const auto buffer {
       cons(
         std::forward<decltype(operands)>(operands)...,
-        place)
+        variable)
     };
 
-    return place = buffer;
+    return variable = buffer;
   }
 
   template <auto N, typename T>
-  decltype(auto) pop(T&& variable)
+  inline decltype(auto) pop(T&& variable)
   {
-    return variable = std::next(std::begin(variable), N);
+    return variable = std::next(begin(variable), N);
   }
 
   template <typename T>
-  decltype(auto) pop(T&& variable)
+  inline decltype(auto) pop(T&& variable)
   {
     const auto buffer {car(variable)};
     pop<1>(variable);

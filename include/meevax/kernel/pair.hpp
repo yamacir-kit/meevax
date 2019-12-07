@@ -38,7 +38,7 @@ namespace meevax::kernel
 
   #ifndef NDEBUG
   #define DEFINE_SELECTOR(NAME, INDEX)                                         \
-  decltype(auto) NAME(const object& object)                                    \
+  inline decltype(auto) NAME(const object& object)                             \
   {                                                                            \
     if (object)                                                                \
     {                                                                          \
@@ -53,7 +53,7 @@ namespace meevax::kernel
   }
   #else
   #define DEFINE_SELECTOR(NAME, INDEX)                                         \
-  decltype(auto) NAME(const object& object)                                    \
+  inline decltype(auto) NAME(const object& object)                             \
   {                                                                            \
     return std::get<INDEX>(object.dereference());                              \
   }
