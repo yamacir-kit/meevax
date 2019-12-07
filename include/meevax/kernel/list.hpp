@@ -192,7 +192,7 @@ namespace meevax::kernel
 
   /* ==== The Homoiconic Iterator =============================================
   *
-  * TODO using list = homoiconic_iterator
+  * TODO std::empty
   *
   *========================================================================== */
   struct homoiconic_iterator
