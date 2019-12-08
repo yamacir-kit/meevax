@@ -1606,18 +1606,18 @@
     (lambda (_ name value)
      `(,define ,name ,value))))
 
-(define-syntax define-library
-  (call/csc
-    (lambda (_ name . declarations)
-     `(,define ,name
-        (,fork/csc (this) ,@declarations)))))
-
 ; (define-syntax define-library
 ;   (call/csc
-;     (lambda (this name . declarations)
+;     (lambda (_ name . declarations)
 ;      `(,define ,name
-;         (,call/csc
-;           (lambda (this) ,@declarations))))))
+;         (,fork/csc (this) ,@declarations)))))
+
+(define-syntax define-library
+  (call/csc
+    (lambda (this name . declarations)
+     `(,define ,name
+        (,call/csc
+          (lambda (this) ,@declarations))))))
 
 (define-syntax export ; dummy
   (call/csc

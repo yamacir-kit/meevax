@@ -656,29 +656,62 @@ namespace meevax::kernel
         const object& expression,
         const object& frames,
         const object& continuation,
-        const compilation_context = as_is)
+        const compilation_context in_a = as_is)
     {
-      if (not cdr(expression)) // is tail sequence
+      if (in_a.program_declaration)
       {
-        return
-          compile(
-            car(expression),
-            frames,
-            continuation,
-            as_tail_expression);
+        std::cerr << "COMPILING SEQUENCE IN A PROGRAM DECLARATION"
+                  << std::endl;
+
+        if (not cdr(expression))
+        {
+          return
+            compile(
+              car(expression),
+              frames,
+              continuation,
+              as_tail_expression_of_program_declaration);
+        }
+        else
+        {
+          return
+            compile(
+              car(expression),
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP),
+                sequence(
+                  cdr(expression),
+                  frames,
+                  continuation,
+                  as_program_declaration)),
+              as_program_declaration);
+        }
       }
       else
       {
-        return
-          compile(
-            car(expression), // head expression
-            frames,
-            cons(
-              make<instruction>(mnemonic::POP), // pop result of head expression
-              sequence(
-                cdr(expression), // rest expressions
-                frames,
-                continuation)));
+        if (not cdr(expression)) // is tail sequence
+        {
+          return
+            compile(
+              car(expression),
+              frames,
+              continuation,
+              as_tail_expression);
+        }
+        else
+        {
+          return
+            compile(
+              car(expression), // head expression
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP), // pop result of head expression
+                sequence(
+                  cdr(expression), // rest expressions
+                  frames,
+                  continuation)));
+        }
       }
     }
 
@@ -692,9 +725,15 @@ namespace meevax::kernel
         const object& expression,
         const object& frames,
         const object& continuation,
-        const compilation_context = as_is)
+        const compilation_context in_a = as_is)
     {
-      if (not frames)
+      if (in_a.program_declaration)
+      {
+        std::cerr << "COMPILING DEFINITION IN A PROGRAM DECLARATION"
+                  << std::endl;
+      }
+
+      if (not frames or in_a.program_declaration)
       {
         DEBUG_COMPILE(
           car(expression) << highlight::comment << "\t; is <variable>"
@@ -709,16 +748,16 @@ namespace meevax::kernel
       }
       else
       {
-        // throw syntax_error_about_internal_define {
-        //   "definition cannot appear in this context"
-        // };
-        throw
-          compile(
-            cdr(expression) ? cadr(expression) : undefined,
-            frames,
-            cons(
-              make<instruction>(mnemonic::DEFINE), car(expression),
-              continuation));
+        throw syntax_error_about_internal_define {
+          "definition cannot appear in this context"
+        };
+        // throw
+        //   compile(
+        //     cdr(expression) ? cadr(expression) : undefined,
+        //     frames,
+        //     cons(
+        //       make<instruction>(mnemonic::DEFINE), car(expression),
+        //       continuation));
       }
     }
 
@@ -732,7 +771,7 @@ namespace meevax::kernel
         const object& expression,
         const object& frames,
         const object& continuation,
-        const compilation_context = as_is)
+        const compilation_context in_a = as_is)
     {
       /* ----------------------------------------------------------------------
       *
@@ -756,7 +795,16 @@ namespace meevax::kernel
         *   )
         *
         *-------------------------------------------------------------------- */
-        try
+        if (in_a.program_declaration)
+        {
+          return
+            compile(
+              car(expression),
+              frames,
+              continuation,
+              as_tail_expression_of_program_declaration);
+        }
+        else
         {
           return
             compile(
@@ -764,12 +812,6 @@ namespace meevax::kernel
               frames,
               continuation,
               as_tail_expression);
-        }
-        catch (const object& definition)
-        {
-          throw syntax_error_about_internal_define {
-            "definition cannot appear in this context"
-          };
         }
       }
       else if (not car(expression))
@@ -784,19 +826,22 @@ namespace meevax::kernel
         *   <sequence> ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
-        try
+        if (in_a.program_declaration)
+        {
+          return
+            sequence(
+              cdr(expression),
+              frames,
+              continuation,
+              as_program_declaration);
+        }
+        else
         {
           return
             sequence(
               cdr(expression),
               frames,
               continuation);
-        }
-        catch (const object& definition)
-        {
-          throw syntax_error_about_internal_define {
-            "definition cannot appear in this context"
-          };
         }
       }
       else if (not car(expression).is<pair>()
@@ -811,16 +856,34 @@ namespace meevax::kernel
         *   <sequence>                  ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
-        return
-          compile(
-            car(expression), // <non-definition expression>
-            frames,
-            cons(
-              make<instruction>(mnemonic::POP), // remove result of expression
-              sequence(
-                cdr(expression),
-                frames,
-                continuation)));
+        if (in_a.program_declaration)
+        {
+          return
+            compile(
+              car(expression),
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP),
+                sequence(
+                  cdr(expression),
+                  frames,
+                  continuation,
+                  as_program_declaration)),
+              as_program_declaration);
+        }
+        else
+        {
+          return
+            compile(
+              car(expression), // <non-definition expression>
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP), // remove result of expression
+                sequence(
+                  cdr(expression),
+                  frames,
+                  continuation)));
+        }
       }
       else // 5.3.2 Internal Definitions
       {
@@ -1036,7 +1099,7 @@ namespace meevax::kernel
         const object& expression,
         const object& frames,
         const object& continuation,
-        const compilation_context = as_is)
+        const compilation_context in_a = as_is)
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <formals>"
@@ -1050,8 +1113,9 @@ namespace meevax::kernel
             cons(
               car(expression),
               frames), // extend lexical environment
-            list(
-              make<instruction>(mnemonic::RETURN))), // continuation of body (finally, must be return)
+            list( // continuation of body (finally, must be return)
+              make<instruction>(mnemonic::RETURN)),
+            in_a.program_declaration ? as_program_declaration : as_is),
           continuation);
     }
 
