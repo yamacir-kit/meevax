@@ -6,31 +6,30 @@
 namespace meevax::kernel
 {
   template <typename T, typename... Ts>
-  inline decltype(auto) push(T&& variable, Ts&&... operands)
+  inline decltype(auto) push(T&& stack, Ts&&... operands)
   {
     const auto buffer {
       cons(
         std::forward<decltype(operands)>(operands)...,
-        variable)
+        stack)
     };
 
-    return variable = buffer;
+    return stack = buffer;
   }
 
   template <auto N, typename T>
-  inline decltype(auto) pop(T&& variable)
+  inline decltype(auto) pop(T&& stack)
   {
-    return variable = std::next(begin(variable), N);
+    return stack = std::next(begin(stack), N);
   }
 
   template <typename T>
-  inline decltype(auto) pop(T&& variable)
+  inline decltype(auto) pop(T&& stack)
   {
-    const auto buffer {car(variable)};
-    pop<1>(variable);
+    const auto buffer {car(stack)};
+    pop<1>(stack);
     return buffer;
   }
-
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STACK_HPP
