@@ -18,7 +18,7 @@ namespace meevax::kernel
     bool tail_expression;
   };
 
-  static constexpr compilation_context defaultly_in_a {
+  static constexpr compilation_context as_is {
     false
   };
 
