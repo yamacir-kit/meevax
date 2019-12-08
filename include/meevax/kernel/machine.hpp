@@ -665,7 +665,7 @@ namespace meevax::kernel
             car(expression),
             frames,
             continuation,
-            {true});
+            as_tail_expression);
       }
       else
       {
