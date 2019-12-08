@@ -9,10 +9,27 @@
   const meevax::kernel::object NAME(const meevax::kernel::object&, \
                                     const meevax::kernel::object&, \
                                     const meevax::kernel::object&, \
-                                    const bool)
+                                    const compilation_context)
 
 namespace meevax::kernel
 {
+  struct compilation_context
+  {
+    bool tail_expression;
+  };
+
+  static constexpr compilation_context defaultly_in_a {
+    false
+  };
+
+  static constexpr compilation_context as_tail_expression {
+    true
+  };
+
+  static constexpr compilation_context as_program_declaration {
+    false
+  };
+
   struct special
     : public std::function<SPECIAL()>
   {
