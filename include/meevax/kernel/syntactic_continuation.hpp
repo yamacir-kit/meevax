@@ -215,7 +215,7 @@ namespace meevax::kernel
 
     decltype(auto) interaction_environment() noexcept
     {
-      return static_cast<stack&>(second);
+      return std::get<1>(*this);
     }
 
     decltype(auto) expand(const object& operands)
@@ -285,13 +285,14 @@ namespace meevax::kernel
 
     [[deprecated]] auto import_library(const object& library, const object& continuation)
     {
-      stack executable {continuation};
+      auto executable {continuation};
 
       assert(library.is<syntactic_continuation>());
 
       for (const object& each : library.as<syntactic_continuation>().interaction_environment())
       {
-        executable.push(
+        push(
+          executable,
           make<instruction>(mnemonic::LOAD_LITERAL), cadr(each),
           make<instruction>(mnemonic::DEFINE), rename(car(each)));
       }
@@ -317,7 +318,7 @@ namespace meevax::kernel
     //
     //   for (const auto& [key, value] : source.bindings)
     //   {
-    //     executable.push(_load_literal_, value, make<instruction>(mnemonic::DEFINE), rename(key));
+    //     push(executable, _load_literal_, value, make<instruction>(mnemonic::DEFINE), rename(key));
     //   }
     //
     //   return executable;
@@ -340,7 +341,7 @@ namespace meevax::kernel
           std::cerr << "succeeded" << std::endl;
         }
 
-        d.push(s, e, c);
+        push(d, s, e, c);
         s = e = c = unit;
 
         for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
@@ -353,9 +354,9 @@ namespace meevax::kernel
           evaluate(e);
         }
 
-        s = d.pop();
-        e = d.pop();
-        c = d.pop();
+        s = pop(d);
+        e = pop(d);
+        c = pop(d);
 
         return unspecified;
       }
@@ -538,7 +539,7 @@ namespace meevax::kernel
     //     * shared-object as given library-name (this will execute on first of VM
     //     * instruction which result of this function).
     //     **********************************************************************/
-    //     return decralations.push(_load_literal_, exported, make<instruction>(mnemonic::DEFINE), library_name);
+    //     return push(decralations, _load_literal_, exported, make<instruction>(mnemonic::DEFINE), library_name);
     //   }
     // });
 

@@ -5,78 +5,31 @@
 
 namespace meevax::kernel
 {
-  /* ==== Stack ===============================================================
-  *
-  * Stack structure provides Scheme-like stack operation to linear list.
-  *
-  *========================================================================== */
-  struct stack
-    : public homoiconic_iterator
+  template <typename T, typename... Ts>
+  inline decltype(auto) push(T&& stack, Ts&&... operands)
   {
-    template <typename... Ts>
-    constexpr stack(Ts&&... operands)
-      : homoiconic_iterator {std::forward<decltype(operands)>(operands)...}
-    {}
+    const auto buffer {
+      cons(
+        std::forward<decltype(operands)>(operands)...,
+        stack)
+    };
 
-    decltype(auto) top() const
-    {
-      return operator*();
-    }
+    return stack = buffer;
+  }
 
-    decltype(auto) empty() const noexcept
-    {
-      return not *this;
-    }
+  template <auto N, typename T>
+  inline decltype(auto) pop(T&& stack)
+  {
+    return stack = std::next(begin(stack), N);
+  }
 
-    decltype(auto) size() const
-    {
-      return length(*this);
-    }
-
-    template <typename... Objects>
-    decltype(auto) push(Objects&&... objects)
-    {
-      return *this = cons(std::forward<Objects>(objects)..., *this);
-    }
-
-    template <typename T, typename... Ts>
-    decltype(auto) emplace(Ts&&... operands)
-    {
-      return push(make<T>(std::forward<decltype(operands)>(operands)...));
-    }
-
-    void pop(std::size_t size)
-    {
-      switch (size)
-      {
-      case 1:
-        *this = cdr(*this);
-        break;
-
-      case 2:
-        *this = cddr(*this);
-        break;
-
-      case 3:
-        *this = cdddr(*this);
-        break;
-
-      case 4:
-        *this = cddddr(*this);
-        break;
-
-      default:
-        std::advance(*this, size);
-      }
-    }
-
-    decltype(auto) pop()
-    {
-      const auto buffer {top()};
-      pop(1);
-      return buffer;
-    }
-  };
+  template <typename T>
+  inline decltype(auto) pop(T&& stack)
+  {
+    const auto buffer {car(stack)};
+    pop<1>(stack);
+    return buffer;
+  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STACK_HPP

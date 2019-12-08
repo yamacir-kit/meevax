@@ -192,7 +192,7 @@ namespace meevax::kernel
 
   /* ==== The Homoiconic Iterator =============================================
   *
-  * TODO using list = homoiconic_iterator
+  * TODO std::empty
   *
   *========================================================================== */
   struct homoiconic_iterator
@@ -245,23 +245,25 @@ namespace meevax::kernel
     }
   };
 
+  // TODO move into namespace std?
   homoiconic_iterator begin(const object& object) noexcept
   {
     return object;
   }
 
+  // TODO move into namespace std?
   homoiconic_iterator end(const object&) noexcept
   {
     return unit;
   }
 
-  object operator |(const object& lhs, const object& rhs)
+  inline decltype(auto) operator |(const object& lhs, const object& rhs)
   {
     return std::make_shared<pair>(lhs, rhs);
   }
 
   template <typename... Ts>
-  constexpr decltype(auto) cons(Ts&&... operands) // is also cons*
+  inline constexpr decltype(auto) cons(Ts&&... operands) // is also cons*
   {
     return (operands | ...);
   }
@@ -272,7 +274,7 @@ namespace meevax::kernel
   *
   *========================================================================== */
   template <typename... Ts>
-  constexpr decltype(auto) list(Ts&&... operands)
+  inline constexpr decltype(auto) list(Ts&&... operands)
   {
     return (operands | ... | unit);
   }
@@ -290,13 +292,13 @@ namespace meevax::kernel
   };
 
   template <typename... Ts>
-  constexpr decltype(auto) xcons(Ts&&... operands)
+  inline constexpr decltype(auto) xcons(Ts&&... operands)
   {
     return (... | operands);
   }
 
   template <typename T, typename U>
-  decltype(auto) equivalent(T&& x, U&& y)
+  inline decltype(auto) equivalent(T&& x, U&& y)
   {
     return x.equivalent_to(y);
   }
@@ -333,13 +335,13 @@ namespace meevax::kernel
     }
   }
 
-  decltype(auto) length(const homoiconic_iterator& e)
+  inline decltype(auto) length(const homoiconic_iterator& e)
   {
     return std::distance(std::begin(e), std::end(e));
   }
 
   template <typename List1, typename List2>
-  object append(List1&& list1, List2&& list2 = unit)
+  inline object append(List1&& list1, List2&& list2 = unit)
   {
     if (not list1)
     {
@@ -352,7 +354,7 @@ namespace meevax::kernel
   }
 
   template <typename List>
-  decltype(auto) reverse(List&& list)
+  inline decltype(auto) reverse(List&& list)
   {
     if (not list)
     {

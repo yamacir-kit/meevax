@@ -22,7 +22,7 @@
 namespace meevax::kernel
 {
   template <typename T>
-  constexpr T log2(const T& k) noexcept
+  inline constexpr T log2(const T& k) noexcept
   {
     return (k < 2) ? 0 : 1 + log2(k / 2);
   }
@@ -97,13 +97,13 @@ namespace meevax::kernel
   constexpr auto           category_mask_width {4};
 
   template <typename T>
-  constexpr auto category_of(T const* const value) noexcept
+  inline constexpr auto category_of(T const* const value) noexcept
   {
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
   }
 
   template <typename... Ts>
-  constexpr bool is_tagged(Ts&&... operands) noexcept
+  inline constexpr bool is_tagged(Ts&&... operands) noexcept
   {
     return category_of(std::forward<decltype(operands)>(operands)...);
   }
@@ -116,7 +116,7 @@ namespace meevax::kernel
   constexpr auto           precision_mask_width {4}; // XXX calculate from word size
 
   template <typename T>
-  constexpr auto precision_of(T const* const value)
+  inline constexpr auto precision_of(T const* const value)
   {
     assert(is_tagged(value));
 
@@ -137,7 +137,7 @@ namespace meevax::kernel
 
   // full-tag includes precision.
   template <typename Pointer>
-  constexpr auto tag_of(Pointer value) noexcept
+  inline constexpr auto tag_of(Pointer value) noexcept
   {
     assert(is_tagged(value));
 
@@ -145,13 +145,13 @@ namespace meevax::kernel
   }
 
   template <typename Pointer>
-  constexpr auto untagged_value_of(Pointer value) noexcept
+  inline constexpr auto untagged_value_of(Pointer value) noexcept
   {
     return reinterpret_cast<std::uintptr_t>(value) >> mask_width;
   }
 
   template <typename T, typename... Ts>
-  constexpr auto untagged_value_as(Ts&&... operands) noexcept
+  inline constexpr auto untagged_value_as(Ts&&... operands) noexcept
     -> typename std::decay<T>::type
   {
     auto value {untagged_value_of(

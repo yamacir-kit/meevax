@@ -16,8 +16,8 @@ inline namespace ugly_macros
   static std::size_t depth {0};
 
   #define TRACE(N)                                                             \
-  if (const auto& configuration {static_cast<SyntacticContinuation&>(*this)};  \
-      configuration.trace == true_object)                                      \
+  if (const auto& config {static_cast<SyntacticContinuation&>(*this)};         \
+      config.trace == true_object)                                             \
   {                                                                            \
     std::cerr << "; machine\t; \x1B[?7l"                                       \
               << take(c, N)                                                    \
@@ -25,9 +25,13 @@ inline namespace ugly_macros
               << std::endl;                                                    \
   }
 
+  #define IF_VERBOSE_COMPILER()                                                \
+  if (const auto& config {static_cast<SyntacticContinuation&>(*this)};         \
+         config.verbose          == true_object                                \
+      or config.verbose_compiler == true_object)
+
   #define DEBUG_COMPILE(...)                                                   \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  IF_VERBOSE_COMPILER()                                                        \
   {                                                                            \
     std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
               << std::string(depth * 2, ' ')                                   \
@@ -44,15 +48,13 @@ inline namespace ugly_macros
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  IF_VERBOSE_COMPILER()                                                        \
   {                                                                            \
     std::cerr << __VA_ARGS__ << attribute::normal << std::endl;                \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  IF_VERBOSE_COMPILER()                                                        \
   {                                                                            \
     std::cerr << "; macroexpand\t; "                                           \
               << std::string(depth * 2, ' ')                                   \
@@ -60,8 +62,7 @@ inline namespace ugly_macros
   }
 
   #define COMPILER_WARNING(...) \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  IF_VERBOSE_COMPILER()                                                        \
   {                                                                            \
     std::cerr << attribute::normal  << "; "                                    \
               << highlight::warning << "compiler"                              \
@@ -83,10 +84,10 @@ namespace meevax::kernel
   class machine // Simple SECD machine.
   {
   protected:
-    stack s, // main stack
-          e, // lexical environment
-          c, // control stack
-          d; // dump stack (current-continuation)
+    object s, // main stack
+           e, // lexical environment
+           c, // control stack
+           d; // dump stack (current-continuation)
 
   private: // CRTP Interfaces
     #define CRTP(IDENTIFIER)                                                   \
@@ -104,28 +105,13 @@ namespace meevax::kernel
 
     #undef CRTP
 
-    // template <typename... Ts>
-    // decltype(auto) intern(Ts&&... operands)
-    // {
-    //   return
-    //     static_cast<SyntacticContinuation&>(*this).intern(
-    //       std::forward<decltype(operands)>(operands)...);
-    // }
-    //
-    // template <typename... Ts>
-    // decltype(auto) rename(Ts&&... operands)
-    // {
-    //   return
-    //     static_cast<SyntacticContinuation&>(*this).rename(
-    //       std::forward<decltype(operands)>(operands)...);
-    // }
-
   public:
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& key, Ts&&... operands)
     {
-      interaction_environment().push(
+      push(
+        interaction_environment(),
         list(
           rename(key),
           std::forward<decltype(operands)>(operands)...));
@@ -335,7 +321,7 @@ namespace meevax::kernel
     object execute()
     {
     dispatch:
-      switch (c.top().template as<instruction>().code)
+      switch (car(c).template as<instruction>().code)
       {
       case mnemonic::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
         TRACE(2);
@@ -346,9 +332,9 @@ namespace meevax::kernel
           homoiconic_iterator position {*region};
           std::advance(position, int {cdadr(c).template as<real>()});
 
-          s.push(*position);
+          push(s, *position);
         }
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::LOAD_LOCAL_VARIADIC:
@@ -360,15 +346,15 @@ namespace meevax::kernel
           homoiconic_iterator position {*region};
           std::advance(position, int {cdadr(c).template as<real>()});
 
-          s.push(position);
+          push(s, position);
         }
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
         TRACE(2);
-        s.push(cadr(c));
-        c.pop(2);
+        push(s, cadr(c));
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
@@ -379,7 +365,7 @@ namespace meevax::kernel
                 interaction_environment())
             }; value != unbound)
         {
-          s.push(value);
+          push(s, value);
         }
         else
         {
@@ -397,35 +383,38 @@ namespace meevax::kernel
           * guaranteed not to collide with any symbol from the past to the
           * future. This behavior is defined for the hygienic-macro.
           *----------------------------------------------------------------- */
-          s.push(static_cast<SyntacticContinuation&>(*this).rename(cadr(c)));
+          push(s, rename(cadr(c)));
         }
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::FORK: // S E (FORK code . C) => (subprogram . S) E C D
         TRACE(2);
-        s.push(
+        push(
+          s,
           make<SyntacticContinuation>(
             make<closure>(cadr(c), e),
             interaction_environment()));
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
         TRACE(2);
         {
-          s.push(
-            make<closure>(cadr(c), e));
-          c.pop(2);
+          push(s, make<closure>(cadr(c), e));
+          pop<2>(c);
         }
         goto dispatch;
 
       case mnemonic::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
         TRACE(2);
-        s.push(
+        push(
+          s,
           list(
-            make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
-        c.pop(2);
+            make<continuation>(
+              s,
+              cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
+        pop<2>(c);
         goto dispatch;
 
       /* ====*/ case mnemonic::MAKE_SYNTACTIC_CONTINUATION: /*=================
@@ -447,33 +436,33 @@ namespace meevax::kernel
               car(s),
               interaction_environment())
           | cdr(s);
-        c.pop(1);
+        pop<1>(c);
         goto dispatch;
 
       case mnemonic::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         TRACE(3);
-        d.push(cdddr(c));
+        push(d, cdddr(c));
         c = car(s) != false_object ? cadr(c) : caddr(c);
-        s.pop(1);
+        pop<1>(s);
         goto dispatch;
 
       case mnemonic::SELECT_TAIL:
         TRACE(3);
         c = car(s) != false_object ? cadr(c) : caddr(c);
-        s.pop(1);
+        pop<1>(s);
         goto dispatch;
 
       case mnemonic::JOIN: // S E (JOIN . x) (C . D) => S E C D
         TRACE(1);
         c = car(d);
-        d.pop(1);
+        pop<1>(d);
         goto dispatch;
 
       case mnemonic::DEFINE:
         TRACE(2);
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::APPLY:
@@ -486,21 +475,22 @@ namespace meevax::kernel
         }
         else if (callee.is<closure>()) // (closure operands . S) E (APPLY . C) D
         {
-          d.push(cddr(s), e, cdr(c));
+          push(d, cddr(s), e, cdr(c));
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), resource {}, cadr(s))
-            | cddr(s);
-          c.pop(1);
+          s = cons(
+                std::invoke(callee.as<procedure>(), resource {}, cadr(s)),
+                cddr(s));
+          pop<1>(c);
         }
         // else if (callee.is<SyntacticContinuation>())
         // {
         //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
-        //   c.pop(1);
+        //   pop<1>(c);
         // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
@@ -532,12 +522,12 @@ namespace meevax::kernel
         {
           s = std::invoke(callee.as<procedure>(), resource {}, cadr(s))
             | cddr(s);
-          c.pop(1);
+          pop<1>(c);
         }
         // else if (callee.is<SyntacticContinuation>())
         // {
         //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
-        //   c.pop(1);
+        //   pop<1>(c);
         // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
@@ -554,9 +544,9 @@ namespace meevax::kernel
 
       case mnemonic::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
         TRACE(1);
-        s = cons(car(s), d.pop());
-        e = d.pop();
-        c = d.pop();
+        s = cons(car(s), pop(d));
+        e = pop(d);
+        c = pop(d);
         goto dispatch;
 
       /* ====*/ case mnemonic::PUSH: /*========================================
@@ -569,13 +559,13 @@ namespace meevax::kernel
       *
       *====================================================================== */
         s = cons(cons(car(s), cadr(s)), cddr(s));
-        c.pop(1);
+        pop<1>(c);
         goto dispatch;
 
       case mnemonic::POP: // (var . S) E (POP . C) D => S E C D
         TRACE(1);
-        s.pop(1);
-        c.pop(1);
+        pop<1>(s);
+        pop<1>(c);
         goto dispatch;
 
       case mnemonic::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
@@ -593,7 +583,7 @@ namespace meevax::kernel
         {
           throw make<error>(cadr(c), " is unbound");
         }
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
@@ -607,7 +597,7 @@ namespace meevax::kernel
 
           std::atomic_store(&car(position), car(s));
         }
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::SET_LOCAL_VARIADIC:
@@ -621,14 +611,14 @@ namespace meevax::kernel
 
           std::atomic_store(&cdr(position), car(s));
         }
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::STOP: // (result . S) E (STOP . C) D
       default:
         TRACE(1);
-        c.pop(1);
-        return s.pop(); // car(s);
+        pop<1>(c);
+        return pop(s); // car(s);
       }
     }
 
@@ -666,7 +656,7 @@ namespace meevax::kernel
         const object& expression,
         const object& lexical_environment,
         const object& continuation,
-        const bool in_subprogram_declaration = false)
+        const bool = false)
     {
       if (not cdr(expression)) // is tail sequence
       {
@@ -742,7 +732,7 @@ namespace meevax::kernel
         const object& expression,
         const object& lexical_environment,
         const object& continuation,
-        const bool subprogram_declaration = false)
+        const bool = false)
     {
       /* ----------------------------------------------------------------------
       *
@@ -777,16 +767,9 @@ namespace meevax::kernel
         }
         catch (const object& definition)
         {
-          // if (subprogram_declaration)
-          // {
-          //   return definition;
-          // }
-          // else
-          // {
-            throw syntax_error_about_internal_define {
-              "definition cannot appear in this context"
-            };
-          // }
+          throw syntax_error_about_internal_define {
+            "definition cannot appear in this context"
+          };
         }
       }
       else if (not car(expression))
@@ -801,17 +784,6 @@ namespace meevax::kernel
         *   <sequence> ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
-        // if (subprogram_declaration)
-        // {
-        //   return
-        //     body(
-        //       cdr(expression),
-        //       lexical_environment,
-        //       continuation,
-        //       true);
-        // }
-        // else
-        // {
         try
         {
           return
@@ -826,7 +798,6 @@ namespace meevax::kernel
             "definition cannot appear in this context"
           };
         }
-        // }
       }
       else if (not car(expression).is<pair>()
                or caar(expression) != intern("define")) // XXX THIS IS NOT HYGIENIC
@@ -840,36 +811,6 @@ namespace meevax::kernel
         *   <sequence>                  ;= <cdr expression>)
         *
         *-------------------------------------------------------------------- */
-        // if (subprogram_declaration)
-        // {
-        //   const auto subprogram_continuation {
-        //     cons(
-        //       make<instruction>(mnemonic::POP),
-        //       body(
-        //         cdr(expression),
-        //         lexical_environment,
-        //         continuation,
-        //         true))
-        //   };
-        //
-        //   try
-        //   {
-        //     return
-        //       compile(
-        //         car(expression),
-        //         lexical_environment,
-        //         subprogram_continuation);
-        //   }
-        //   catch (const object& definition)
-        //   {
-        //     return
-        //       cons(
-        //         definition,
-        //         subprogram_continuation);
-        //   }
-        // }
-        // else
-        // {
         return
           compile(
             car(expression), // <non-definition expression>
@@ -880,7 +821,6 @@ namespace meevax::kernel
                 cdr(expression),
                 lexical_environment,
                 continuation)));
-        // }
       }
       else // 5.3.2 Internal Definitions
       {
