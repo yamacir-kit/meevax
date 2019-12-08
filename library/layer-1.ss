@@ -3,7 +3,6 @@
 (define unhygienic-macro-transformer lambda)
 
 (define call/csc call-with-current-syntactic-continuation)
-(define fork/csc fork-with-current-syntactic-continuation)
 
 ; (define rsc-macro-transformer
 ;   (lambda (transform)
@@ -1350,17 +1349,15 @@
 ; TODO scheme-report-environment
 ; TODO null-environment
 
-(define environment-frames-of cdar)
-
 (define current-lexical-environment
-  (fork/csc (this)
-   `(environment-frames-of this)))
-
-(define interaction-environment-of cdr)
+  (call/csc
+    (lambda (this)
+     `(,cdar ,this))))
 
 (define interaction-environment
-  (fork/csc (this)
-   `(interaction-environment-of this)))
+  (call/csc
+    (lambda (this)
+     `(,cdr ,this))))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
@@ -1528,20 +1525,13 @@
 ;  Miscellaneous
 ; ------------------------------------------------------------------------------
 
-; (define swap!
-;   (fork (swap! x y)
-;     (let ((temporary (string->symbol)))
-;      `(let ((,temporary ,x))
-;         (set! ,x ,y)
-;         (set! ,y ,temporary)))))
-
 (define swap!
   (call/csc
     (unhygienic-macro-transformer (swap! x y)
       (let ((temporary (string->symbol)))
-       `(let ((,temporary ,x))
-          (set! ,x ,y)
-          (set! ,y ,temporary))))))
+       `(,let ((,temporary ,x))
+          (,set! ,x ,y)
+          (,set! ,y ,temporary))))))
 
 ; (define-syntax swap!
 ;   (explicit-renaming-macro-transformer
@@ -1606,18 +1596,12 @@
     (lambda (_ name value)
      `(,define ,name ,value))))
 
-; (define-syntax define-library
-;   (call/csc
-;     (lambda (_ name . declarations)
-;      `(,define ,name
-;         (,fork/csc (this) ,@declarations)))))
-
 (define-syntax define-library
   (call/csc
     (lambda (this name . declarations)
      `(,define ,name
         (,call/csc
-          (lambda (this) ,@declarations))))))
+          (,lambda (this) ,@declarations))))))
 
 (define-syntax export ; dummy
   (call/csc

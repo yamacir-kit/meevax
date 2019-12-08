@@ -1169,60 +1169,60 @@ namespace meevax::kernel
     * <library declaration>
     *
     *======================================================================== */
-    const object
-      program(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context = as_is)
-    {
-      if (not cdr(expression)) // is tail sequence
-      {
-        try
-        {
-          return
-            compile(
-              car(expression),
-              frames,
-              continuation); // TODO tail-call-optimizable?
-        }
-        catch (const object& definition)
-        {
-          NEST_OUT;
-          return definition;
-        }
-      }
-      else
-      {
-        const auto declarations {
-          program(
-            cdr(expression),
-            frames,
-            continuation)
-        };
-        NEST_OUT;
-
-        try
-        {
-          return
-            compile(
-              car(expression),
-              frames,
-              cons(
-                make<instruction>(mnemonic::POP), // remove result of expression
-                declarations));
-        }
-        catch (const object& definition)
-        {
-          NEST_OUT;
-          return
-            cons(
-              definition,
-              make<instruction>(mnemonic::POP),
-              declarations);
-        }
-      }
-    }
+    // const object
+    //   program(
+    //     const object& expression,
+    //     const object& frames,
+    //     const object& continuation,
+    //     const compilation_context = as_is)
+    // {
+    //   if (not cdr(expression)) // is tail sequence
+    //   {
+    //     try
+    //     {
+    //       return
+    //         compile(
+    //           car(expression),
+    //           frames,
+    //           continuation); // TODO tail-call-optimizable?
+    //     }
+    //     catch (const object& definition)
+    //     {
+    //       NEST_OUT;
+    //       return definition;
+    //     }
+    //   }
+    //   else
+    //   {
+    //     const auto declarations {
+    //       program(
+    //         cdr(expression),
+    //         frames,
+    //         continuation)
+    //     };
+    //     NEST_OUT;
+    //
+    //     try
+    //     {
+    //       return
+    //         compile(
+    //           car(expression),
+    //           frames,
+    //           cons(
+    //             make<instruction>(mnemonic::POP), // remove result of expression
+    //             declarations));
+    //     }
+    //     catch (const object& definition)
+    //     {
+    //       NEST_OUT;
+    //       return
+    //         cons(
+    //           definition,
+    //           make<instruction>(mnemonic::POP),
+    //           declarations);
+    //     }
+    //   }
+    // }
 
     /* ==== Call-With-Current-Syntactic-Continuation ==========================
     *
@@ -1239,16 +1239,6 @@ namespace meevax::kernel
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <subprogram>"
                         << attribute::normal << std::endl);
-      // return
-      //   cons(
-      //     make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
-      //     program(
-      //       expression,
-      //       frames,
-      //       list(
-      //         make<instruction>(mnemonic::RETURN))),
-      //     continuation);
-
       return
         compile(
           car(expression),
@@ -1264,27 +1254,27 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    const object
-      fork(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context = as_is)
-    {
-      DEBUG_COMPILE(
-        car(expression) << highlight::comment
-                        << "\t; is <subprogram parameters>"
-                        << attribute::normal
-                        << std::endl);
-      return
-        cons(
-          make<instruction>(mnemonic::FORK),
-          program(
-            cdr(expression),
-            cons(car(expression), frames),
-            list(make<instruction>(mnemonic::RETURN))),
-          continuation);
-    }
+    // const object
+    //   fork(
+    //     const object& expression,
+    //     const object& frames,
+    //     const object& continuation,
+    //     const compilation_context = as_is)
+    // {
+    //   DEBUG_COMPILE(
+    //     car(expression) << highlight::comment
+    //                     << "\t; is <subprogram parameters>"
+    //                     << attribute::normal
+    //                     << std::endl);
+    //   return
+    //     cons(
+    //       make<instruction>(mnemonic::FORK),
+    //       program(
+    //         cdr(expression),
+    //         cons(car(expression), frames),
+    //         list(make<instruction>(mnemonic::RETURN))),
+    //       continuation);
+    // }
 
     /* ==== Assignment ========================================================
     *
