@@ -1,9 +1,6 @@
 (define define-syntax define)
 
-(define unhygienic-macro-transformer lambda)
-
 (define call/csc call-with-current-syntactic-continuation)
-(define fork/csc fork-with-current-syntactic-continuation)
 
 ; (define rsc-macro-transformer
 ;   (lambda (transform)
@@ -168,7 +165,7 @@
 
 (define-syntax conditional
   (call/csc
-    (unhygienic-macro-transformer (conditional . clauses)
+    (lambda (conditional . clauses)
       (if (null? clauses)
           (unspecified)
           ((lambda (clause)
@@ -193,7 +190,7 @@
 
 (define-syntax and
   (call/csc
-    (unhygienic-macro-transformer (and . tests)
+    (lambda (and . tests)
       (conditional
         ((null? tests) #true)
         ((null? (cdr tests)) (car tests))
@@ -204,7 +201,7 @@
 
 (define-syntax or
   (call/csc
-    (unhygienic-macro-transformer (or . tests)
+    (lambda (or . tests)
       (conditional
         ((null? tests) #false)
         ((null? (cdr tests)) (car tests))
@@ -233,7 +230,7 @@
 
 (define-syntax quasiquote
   (call/csc
-    (unhygienic-macro-transformer (quasiquote x)
+    (lambda (quasiquote x)
 
       (define quasiquote-expand
         (lambda (e depth)
@@ -383,7 +380,7 @@
 
 (define-syntax letrec* ; transform to internal-definitions
   (call/csc
-    (unhygienic-macro-transformer (letrec* bindings . body)
+    (lambda (letrec* bindings . body)
       ((lambda (definitions)
         `((,lambda () ,@definitions ,@body)))
        (map (lambda (x) (cons 'define x)) bindings)))))
@@ -392,12 +389,12 @@
 
 (define-syntax unnamed-let
   (call/csc
-    (unhygienic-macro-transformer (unnamed-let bindings . body)
+    (lambda (unnamed-let bindings . body)
      `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings)))))
 
 (define-syntax let
   (call/csc
-    (unhygienic-macro-transformer (let bindings . body)
+    (lambda (let bindings . body)
 
       (if (null? bindings)
           (error "The let syntax is defined as the form (let <bindings> <body>) \
@@ -414,7 +411,7 @@
 
 (define-syntax let*
   (call/csc
-    (unhygienic-macro-transformer (let* bindings . body)
+    (lambda (let* bindings . body)
 
       (if (null? bindings)
           (error "The let* syntax is defined as the form (let* <bindings> <body>) \
@@ -560,7 +557,7 @@
 
 (define-syntax case
   (call/csc
-    (unhygienic-macro-transformer (case key . clauses)
+    (lambda (case key . clauses)
 
       (define body
         (lambda (expressions)
@@ -592,12 +589,12 @@
 
 (define-syntax when
   (call/csc
-    (unhygienic-macro-transformer (when test . body)
+    (lambda (when test . body)
      `(if ,test (begin ,@body)))))
 
 (define-syntax unless
   (call/csc
-    (unhygienic-macro-transformer (unless test . body)
+    (lambda (unless test . body)
      `(if (not ,test) (begin ,@body)))))
 
 ; (define-syntax conditional-expansion
@@ -613,7 +610,7 @@
 
 (define-syntax iterate
   (call/csc
-    (unhygienic-macro-transformer (iterate variables test . commands)
+    (lambda (iterate variables test . commands)
       (let ((body
              `(,begin ,@commands
                       (,rec ,@(map (lambda (x)
@@ -638,12 +635,12 @@
 
 (define-syntax delay-force
   (call/csc
-    (unhygienic-macro-transformer (delay-force expression)
+    (lambda (delay-force expression)
      `(,promise #false (,lambda () ,expression)))))
 
 (define-syntax delay
   (call/csc
-    (unhygienic-macro-transformer (delay expression)
+    (lambda (delay expression)
      `(,delay-force (,promise #true expression)))))
 
 ; TODO promise?
@@ -1350,17 +1347,15 @@
 ; TODO scheme-report-environment
 ; TODO null-environment
 
-(define environment-frames-of cdar)
-
 (define current-lexical-environment
-  (fork/csc (this)
-   `(environment-frames-of this)))
-
-(define interaction-environment-of cdr)
+  (call/csc
+    (lambda (this)
+     `(,cdar ,this))))
 
 (define interaction-environment
-  (fork/csc (this)
-   `(interaction-environment-of this)))
+  (call/csc
+    (lambda (this)
+     `(,cdr ,this))))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
@@ -1528,20 +1523,13 @@
 ;  Miscellaneous
 ; ------------------------------------------------------------------------------
 
-; (define swap!
-;   (fork (swap! x y)
-;     (let ((temporary (string->symbol)))
-;      `(let ((,temporary ,x))
-;         (set! ,x ,y)
-;         (set! ,y ,temporary)))))
-
 (define swap!
   (call/csc
-    (unhygienic-macro-transformer (swap! x y)
+    (lambda (swap! x y)
       (let ((temporary (string->symbol)))
-       `(let ((,temporary ,x))
-          (set! ,x ,y)
-          (set! ,y ,temporary))))))
+       `(,let ((,temporary ,x))
+          (,set! ,x ,y)
+          (,set! ,y ,temporary))))))
 
 ; (define-syntax swap!
 ;   (explicit-renaming-macro-transformer
@@ -1554,7 +1542,7 @@
 
 (define loop
   (call/csc
-    (unhygienic-macro-transformer form
+    (lambda form
      `(,call/cc
         (,lambda (exit)
           (,let ,rec ()
@@ -1608,9 +1596,10 @@
 
 (define-syntax define-library
   (call/csc
-    (lambda (_ name . declarations)
+    (lambda (this name . declarations)
      `(,define ,name
-        (,fork/csc (this) ,@declarations)))))
+        (,call/csc
+          (,lambda (this) ,@declarations))))))
 
 (define-syntax export ; dummy
   (call/csc

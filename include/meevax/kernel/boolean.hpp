@@ -26,7 +26,11 @@ namespace meevax::kernel
   auto operator<<(std::ostream& os, const boolean& boolean)
     -> decltype(os)
   {
-    return os << highlight::simple_datum << "#" << std::boolalpha << static_cast<bool>(boolean) << attribute::normal;
+    return os << highlight::simple_datum
+              << "#"
+              << std::boolalpha
+              << static_cast<bool>(boolean)
+              << attribute::normal;
   }
 } // namespace meevax::kernel
 
