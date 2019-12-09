@@ -15,7 +15,7 @@ namespace meevax::kernel
     Comparator compare {};
 
     template <typename... Ts>
-    de_bruijn_index(Ts&&... operands)
+    explicit de_bruijn_index(Ts&&... operands)
       : object {lookup(std::forward<decltype(operands)>(operands)...)}
     {}
 
@@ -32,7 +32,7 @@ namespace meevax::kernel
 
         for (homoiconic_iterator node {frame}; node; ++node)
         {
-          if (node.is<pair>() && compare(*node, value))
+          if (node.is<pair>() and compare(*node, value))
           {
             variadic = false;
 
@@ -41,7 +41,7 @@ namespace meevax::kernel
                 make<real>(layer),
                 make<real>(index));
           }
-          else if (node.is<symbol>() && node == value)
+          else if (node.is<symbol>() and compare(node, value))
           {
             variadic = true;
 
