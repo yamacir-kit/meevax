@@ -413,7 +413,10 @@ namespace meevax::kernel
           list(
             make<continuation>(
               s,
-              cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
+              cons(
+                e,
+                cadr(c),
+                d))));
         pop<2>(c);
         goto dispatch;
 
@@ -483,15 +486,23 @@ namespace meevax::kernel
         else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
         {
           s = cons(
-                std::invoke(callee.as<procedure>(), resource {}, cadr(s)),
+                std::invoke(
+                  callee.as<procedure>(),
+                  resource {},
+                  cadr(s)),
                 cddr(s));
           pop<1>(c);
         }
-        // else if (callee.is<SyntacticContinuation>())
-        // {
-        //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
-        //   pop<1>(c);
-        // }
+        else if (callee.is<SyntacticContinuation>())
+        {
+          s = cons(
+                callee.as<SyntacticContinuation>().expand(
+                  cons(
+                    car(s),
+                    cadr(s))),
+                cddr(s));
+          pop<1>(c);
+        }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
@@ -524,11 +535,16 @@ namespace meevax::kernel
             | cddr(s);
           pop<1>(c);
         }
-        // else if (callee.is<SyntacticContinuation>())
-        // {
-        //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
-        //   pop<1>(c);
-        // }
+        else if (callee.is<SyntacticContinuation>())
+        {
+          s = cons(
+                callee.as<SyntacticContinuation>().expand(
+                  cons(
+                    car(s),
+                    cadr(s))),
+                cddr(s));
+          pop<1>(c);
+        }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
@@ -542,9 +558,18 @@ namespace meevax::kernel
         }
         goto dispatch;
 
-      case mnemonic::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
-        TRACE(1);
-        s = cons(car(s), pop(d));
+      /* ====*/ case mnemonic::RETURN: /*======================================
+      *
+      */ TRACE(1); /*
+      *
+      *    (result . S) E (RETURN . C) (s e c . D)
+      *
+      * => (result . s) e           c           D
+      *
+      *====================================================================== */
+        s = cons(
+              car(s), // The result of procedure
+              pop(d));
         e = pop(d);
         c = pop(d);
         goto dispatch;
@@ -660,8 +685,8 @@ namespace meevax::kernel
     {
       if (in_a.program_declaration)
       {
-        std::cerr << "COMPILING SEQUENCE IN A PROGRAM DECLARATION"
-                  << std::endl;
+        // std::cerr << "COMPILING SEQUENCE IN A PROGRAM DECLARATION"
+        //           << std::endl;
 
         if (not cdr(expression))
         {
@@ -727,11 +752,11 @@ namespace meevax::kernel
         const object& continuation,
         const compilation_context in_a = as_is)
     {
-      if (in_a.program_declaration)
-      {
-        std::cerr << "COMPILING DEFINITION IN A PROGRAM DECLARATION"
-                  << std::endl;
-      }
+      // if (in_a.program_declaration)
+      // {
+      //   std::cerr << "COMPILING DEFINITION IN A PROGRAM DECLARATION"
+      //             << std::endl;
+      // }
 
       if (not frames or in_a.program_declaration)
       {

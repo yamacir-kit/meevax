@@ -126,7 +126,7 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);
     }
 
-    std::size_t time_stamp {0};
+    std::size_t generation {0};
 
     const auto& rename(const object& object)
     {
@@ -134,7 +134,7 @@ namespace meevax::kernel
       {
         if (verbose == true_object or verbose_environment == true_object)
         {
-          std::cerr << "; auto-rename\t; ignored " << object << std::endl;
+          std::cerr << "; package\t; ignored " << object << std::endl;
         }
 
         return object;
@@ -143,13 +143,13 @@ namespace meevax::kernel
       {
         // XXX TIME STAMP REQUIRED???
         // const std::string name {
-        //   object.as<const std::string>() + "." + std::to_string(time_stamp)
+        //   object.as<const std::string>() + "." + std::to_string(generation)
         // };
 
         if (verbose == true_object or verbose_environment == true_object)
         {
           // std::cerr << "; auto-rename\t; renaming " << object << " => " << name << std::endl;
-          std::cerr << "; auto-rename\t; renaming " << object << std::endl;
+          std::cerr << "; package\t; renaming " << object << std::endl;
         }
 
         return intern(object.as<symbol>());
@@ -224,7 +224,7 @@ namespace meevax::kernel
 
       // std::cerr << "; macroexpand\t; " << operands << std::endl;
 
-      ++time_stamp;
+      ++generation;
 
       s = unit;
       // std::cerr << ";\t\t; s = " << s << std::endl;
@@ -235,11 +235,12 @@ namespace meevax::kernel
       c = current_expression();
       // std::cerr << ";\t\t; c = " << c << std::endl;
 
-      d = cons(
-            unit,                                    // s
-            unit,                                    // e
-            list(make<instruction>(mnemonic::STOP)), // c
-            unit);                                   // d
+      push(
+        d,
+        unit, // s
+        unit, // e
+        list( // c
+          make<instruction>(mnemonic::STOP)));
       // std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
@@ -283,7 +284,11 @@ namespace meevax::kernel
       return unit;
     }
 
-    [[deprecated]] auto import_library(const object& library, const object& continuation)
+    [[deprecated]]
+    auto
+      import_library(
+        const object& library,
+        const object& continuation)
     {
       auto executable {continuation};
 
