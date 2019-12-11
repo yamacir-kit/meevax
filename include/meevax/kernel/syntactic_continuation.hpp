@@ -226,22 +226,24 @@ namespace meevax::kernel
 
       ++generation;
 
-      s = unit;
-      // std::cerr << ";\t\t; s = " << s << std::endl;
-
-      e = cons(operands, lexical_environment());
-      // std::cerr << ";\t\t; e = " << e << std::endl;
-
-      c = current_expression();
-      // std::cerr << ";\t\t; c = " << c << std::endl;
-
       push(
         d,
-        unit, // s
-        unit, // e
-        list( // c
-          make<instruction>(mnemonic::STOP)));
-      // std::cerr << ";\t\t; d = " << d << std::endl;
+        s, // s
+        e, // e
+        cons( // c
+          make<instruction>(mnemonic::STOP),
+          c));
+
+      s = unit;
+
+      e = cons(operands, lexical_environment());
+
+      c = current_expression();
+
+      std::cerr << ";\t\t; s = " << s << std::endl;
+      std::cerr << ";\t\t; e = " << e << std::endl;
+      std::cerr << ";\t\t; c = " << c << std::endl;
+      std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;
