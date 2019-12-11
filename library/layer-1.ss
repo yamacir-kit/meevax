@@ -1614,10 +1614,11 @@
         (,call/csc
           (,lambda (this) ,@declarations))))))
 
-(define-syntax export ; dummy
-  (call/csc
-    (lambda (_ . export-specs)
-     `(,display "DUMMY!"))))
+; (define-syntax export ; dummy
+;   (call/csc
+;     (lambda (_ . export-specs)
+;      `(,display "DUMMY!")
+;      )))
 
 (define-library (example empty) '())
 

@@ -99,8 +99,9 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);                      \
     }
 
-    CRTP(intern)
+    CRTP(change)
     CRTP(interaction_environment)
+    CRTP(intern)
     CRTP(rename)
 
     #undef CRTP
@@ -108,13 +109,18 @@ namespace meevax::kernel
   public:
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const object& key, Ts&&... operands)
+    decltype(auto) define(const object& identifier, Ts&&... operands)
     {
+      const auto renamed_identifier {rename(identifier)};
+
       push(
         interaction_environment(),
         list(
-          rename(key),
-          std::forward<decltype(operands)>(operands)...));
+          renamed_identifier,
+          change(
+            renamed_identifier,
+            std::forward<decltype(operands)>(operands)...))
+        );
 
       if (const auto& config {static_cast<SyntacticContinuation&>(*this)};
              config.verbose        == true_object

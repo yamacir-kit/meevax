@@ -69,11 +69,12 @@ namespace meevax::kernel
     *======================================================================== */
     , public configurator<syntactic_continuation>
   {
-    // TODO Rename to internal_symbols
     std::unordered_map<std::string, object> symbols;
 
-    // TODO expand if external_symbols empty
-    std::unordered_map<object, object> external_symbols;
+    std::unordered_map<
+      object, // identifier
+      object  // value
+    > changes;
 
   public: // Constructors
     // for bootstrap scheme-report-environment
@@ -97,13 +98,44 @@ namespace meevax::kernel
     {
       if (auto iter {symbols.find(s)}; iter != std::end(symbols))
       {
-        return iter->second;
+        return (*iter).second;
       }
       else
       {
-        iter = symbols.emplace(s, make<symbol>(s)).first;
-        return iter->second;
+        const auto [position, success] {
+          symbols.emplace(
+            s,
+            make<symbol>(s))
+        };
+
+        assert(success);
+        return (*position).second;
       }
+    }
+
+    template <typename... Ts>
+    const auto&
+      change(
+        const object& identifier,
+        Ts&&... operands)
+    {
+      changes.erase(identifier);
+
+      const auto [position, success] {
+        changes.emplace(
+          identifier,
+          std::forward<decltype(operands)>(operands)...)
+      };
+
+      assert(success);
+      return (*position).second;
+    }
+
+    const auto&
+      stage(
+        const object& identifier)
+    {
+      return identifier;
     }
 
     template <typename T, typename... Ts>
@@ -215,6 +247,7 @@ namespace meevax::kernel
       // }
     }
 
+    // history
     decltype(auto) interaction_environment() noexcept
     {
       return std::get<1>(*this);
