@@ -134,7 +134,9 @@ namespace meevax::kernel
       {
         if (verbose == true_object or verbose_environment == true_object)
         {
-          std::cerr << "; package\t; ignored " << object << std::endl;
+          std::cerr << "; package\t; renamer ignored non-symbol object "
+                    << object
+                    << std::endl;
         }
 
         return object;
@@ -240,10 +242,10 @@ namespace meevax::kernel
 
       c = current_expression();
 
-      std::cerr << ";\t\t; s = " << s << std::endl;
-      std::cerr << ";\t\t; e = " << e << std::endl;
-      std::cerr << ";\t\t; c = " << c << std::endl;
-      std::cerr << ";\t\t; d = " << d << std::endl;
+      // std::cerr << ";\t\t; s = " << s << std::endl;
+      // std::cerr << ";\t\t; e = " << e << std::endl;
+      // std::cerr << ";\t\t; c = " << c << std::endl;
+      // std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;
