@@ -100,7 +100,16 @@ namespace meevax::kernel
         switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
         {
         case 'n':
-          return make<string>(make<character>('\n'), datum<string>(stream));
+          return
+            make<string>(
+              characters.at("line-feed"),
+              datum<string>(stream));
+
+        case 't':
+          return
+            make<string>(
+              characters.at("horizontal-tabulation"),
+              datum<string>(stream));
 
         case '\n':
           while (whitespace(stream.peek()))

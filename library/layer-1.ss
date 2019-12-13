@@ -1612,13 +1612,19 @@
     (lambda (this name . declarations)
      `(,define ,name
         (,call/csc
-          (,lambda (this) ,@declarations))))))
+          (,lambda (this)
+            (,display "; library\t; instantiating library " ',name "\n")
+            ,@declarations))))))
 
-; (define-syntax export ; dummy
-;   (call/csc
-;     (lambda (_ . export-specs)
-;      `(,display "DUMMY!")
-;      )))
+(define-syntax export
+  (call/csc
+    (lambda (_ . export-specs)
+     `(,display "; dummy-export\t; " ,export-specs "\n"))))
+
+(define-syntax import
+  (call/csc
+    (lambda (import . import-set)
+     `(,display "; dummy-import\t; " ,import-set "\n"))))
 
 (define-library (example empty) '())
 
@@ -1628,11 +1634,8 @@
            (newline))))
 
 (define-library (example hello)
-  ; (export hello)
-
-  (begin
-    (display "EVALUATING LIBRARY!")
-    (newline))
+  (export hello
+          goodbye)
 
   (begin
     (define hello
@@ -1643,19 +1646,117 @@
     (define goodbye
       (lambda ()
         (begin (display "goodbye, world!")
-               (newline))))
-    )
+               (newline)))))
 
   (begin
     (define one   1)
     (define two   2)
-    (define three 3))
-  )
+    (define three 3)))
 
+; XXX this cause compile error (bug)
 ; (lambda ()
 ;   (begin
 ;     (define x 1)
 ;     (define y 2))
 ;   (+ x y)
 ;   )
+
+(define-library (example grid)
+  (export make
+          rows
+          columns
+          reference
+          each
+          (rename put! set!))
+
+  (import (scheme base))
+
+  (begin
+
+    (define make
+      (lambda (n m)
+        (let ((grid (make-vector n)))
+          (do ((i 0 (+ i 1)))
+              ((= i n) grid)
+            (let ((v (make-vector m #false)))
+              (vector-set! grid i v))))))
+
+    (define rows
+      (lambda (grid)
+        (vector-length grid)))
+
+    (define columns
+      (lambda (grid)
+        (vector-length (vector-ref grid 0))))
+
+    (define reference
+      (lambda (grid n m)
+        (and (< -1 n (rows grid))
+             (< -1 m (columns grid))
+             (vector-ref (vector-ref grid n) m))))
+
+    (define put!
+      (lambda (grid n m v)
+        (vector-set!  (vector-ref grid n) m v)))
+
+    (define each
+      (lambda (grid procedure)
+        (do ((j 0 (+ j 1)))
+            ((= j (rows grid)))
+          (do ((k 0 (+ k 0)))
+              ((= k (columns grid)))
+            (procedure j k (reference grid j k))))))))
+
+(define-library (example life)
+  (export life)
+  (import (except (scheme base) set!)
+          (scheme write)
+          (example grid))
+
+  (begin
+
+    (define life-count
+      (lambda (grid i j)
+
+        (define (count i j)
+          (if (reference grid i j) 1 0))
+
+        (+ (count (- i 1) (- j 1))
+           (count (- i 1)    j   )
+           (count (- i 1) (+ j 1))
+           (count    i    (- j 1))
+           (count    i    (+ j 1))
+           (count (+ i 1) (- j 1))
+           (count (+ i 1)    j   )
+           (count (+ i 1) (+ j 1)))))
+
+    (define life-alive?
+      (lambda (grid i j)
+        (case (life-count grid i j)
+          ((3) #true)
+          ((2) (reference grid i j))
+          (else #false))))
+
+    (define life-print
+      (lambda (grid)
+        (display "\x1B;[1H\x1B;[J"); clear vt100
+        (each grid
+          (lambda (i j v)
+            (display (if v "*" " "))
+            (when (= j (- (columns grid) 1))
+              (newline))))))
+
+    (define life
+      (lambda (grid iterations)
+        (do ((i 0 (+ i 1))
+             (grid0 grid grid1)
+             (grid1 (make (rows grid)
+                          (columns grid))
+                    grid0))
+            ((= i iterations))
+          (each grid0
+            (lambda (j k v)
+              (let ((a (life-alive? grid0 j k)))
+                (set! grid1 j k a))))
+          (life-print grid1))))))
 

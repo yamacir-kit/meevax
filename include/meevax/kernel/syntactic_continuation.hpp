@@ -263,11 +263,9 @@ namespace meevax::kernel
 
       push(
         d,
-        s, // s
-        e, // e
-        cons( // c
-          make<instruction>(mnemonic::STOP),
-          c));
+        s,
+        e,
+        cons(make<instruction>(mnemonic::STOP), c));
 
       s = unit;
 
