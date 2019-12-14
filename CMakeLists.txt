@@ -91,17 +91,6 @@ if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake)
     )
 endif()
 
-# TODO REMOVE IF THERE IS NO PROBLEM
-# # ==============================================================================
-# #   Configure Uninstall Script
-# # ==============================================================================
-# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake)
-#   configure_file(
-#     ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake
-#     ${CMAKE_CURRENT_SOURCE_DIR}/uninstall.sh
-#     )
-# endif()
-
 # ==============================================================================
 #   Configure Header
 # ==============================================================================
@@ -162,7 +151,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 endforeach()
 
 # ==============================================================================
-#   Meevax Interactive Coding Environment (Executable)
+#   Meevax ICE
 # ==============================================================================
 file(GLOB
   ${PROJECT_NAME}_LAYER_SOURCES
@@ -190,12 +179,12 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach(EACH)
 
-add_executable(${PROJECT_NAME}
+add_executable(ice
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
   ${${PROJECT_NAME}_LAYERS}
   )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(ice
   ${${PROJECT_NAME}_DEPENDENCIES}
   )
 
@@ -204,7 +193,7 @@ target_link_libraries(${PROJECT_NAME}
 # ==============================================================================
 # XXX DON'T FORGET TO EXECUTE "sudo ldconfig" after installation
 install(
-  TARGETS ${PROJECT_NAME}
+  TARGETS ice
           ${PROJECT_NAME}-kernel
           ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin
