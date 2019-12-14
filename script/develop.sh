@@ -126,7 +126,7 @@ fi
 
 if test "$execute" -ne 0
 then
-  command="$memory_check $repository/build/bin/meevax --verbose"
+  command="$memory_check $repository/build/bin/ice --verbose"
 
   echo "
 ; ==== Execution ==============================================================

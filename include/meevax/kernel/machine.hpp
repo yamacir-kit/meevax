@@ -119,8 +119,7 @@ namespace meevax::kernel
           renamed_identifier,
           change(
             renamed_identifier,
-            std::forward<decltype(operands)>(operands)...))
-        );
+            std::forward<decltype(operands)>(operands)...)));
 
       if (const auto& config {static_cast<SyntacticContinuation&>(*this)};
              config.verbose        == true_object
