@@ -1538,20 +1538,30 @@
         (,set! ,x ,y)
         (,set! ,y ,temporary)))))
 
-; (define explicit-renaming-macro-transformer
-;   (lambda (transform)
-;     (call/csc
-;       (lambda expression
-;         (transform expression ??? eq?)))))
-;
-; (define-syntax swap!
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (let ((a (cadr expression))
-;             (b (caddr expression)))
-;        `(,(rename 'let) ((,(rename 'value) ,a))
-;           (,(rename 'set!) ,a ,b)
-;           (,(rename 'set!) ,b ,(rename 'value)))))))
+(define current-evaluator
+  (lambda ()
+    (let ((evaluator
+            (call/csc
+              (lambda (this)
+                (begin ; hacking
+                  (define evaluate this))))))
+      (evaluator) ; instantiation
+      evaluator)))
+
+(define explicit-renaming-macro-transformer
+  (lambda (transform)
+    (call/csc
+      (lambda expression
+        (transform expression (current-evaluator) eq?)))))
+
+(define-syntax swap!
+  (explicit-renaming-macro-transformer
+    (lambda (expression rename compare)
+      (let ((a (cadr expression))
+            (b (caddr expression)))
+       `(,(rename 'let) ((,(rename 'value) ,a))
+          (,(rename 'set!) ,a ,b)
+          (,(rename 'set!) ,b ,(rename 'value)))))))
 
 (define loop
   (call/csc
@@ -1636,18 +1646,6 @@
   (call/csc
     (lambda (this namespace identifier)
      `((,reference ,namespace) ',identifier))))
-
-; TODO INVOKE THIS IMMEDIATELY
-; TODO UPDATE DEFINE TO RETURN CURRENT-SYNTACTIC-CONTINUATION
-(define current-evaluator
-  (lambda ()
-    ; (
-    (call/csc
-      (lambda (this)
-        (begin ; hacking
-          (define evaluate this))))
-      ; )
-      ))
 
 (define-library (example empty) '())
 
