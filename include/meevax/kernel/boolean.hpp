@@ -25,11 +25,21 @@ namespace meevax::kernel
               << attribute::normal;
   }
 
+  #define MAKE_MEEVAX_KERNEL_BOOLEAN_T make<boolean>(true)
+  #define MAKE_MEEVAX_KERNEL_BOOLEAN_F make<boolean>(false)
+
+  #define DECLARE_MEEVAX_KERNEL_BOOLEAN_T(...) const object true_object __VA_ARGS__
+  #define DECLARE_MEEVAX_KERNEL_BOOLEAN_F(...) const object false_object __VA_ARGS__
+
+  #define DEFINE_MEEVAX_KERNEL_BOOLEAN_T(...) DECLARE_MEEVAX_KERNEL_BOOLEAN_T({__VA_ARGS__})
+  #define DEFINE_MEEVAX_KERNEL_BOOLEAN_F(...) DECLARE_MEEVAX_KERNEL_BOOLEAN_F({__VA_ARGS__})
+
   #ifndef MEEVAX_KERNEL_HEADER_ONLY
-  extern "C" const object true_object, false_object;
+  extern "C" DECLARE_MEEVAX_KERNEL_BOOLEAN_T();
+  extern "C" DECLARE_MEEVAX_KERNEL_BOOLEAN_F();
   #else
-  static const object true_object {make<boolean>(true)},
-                     false_object {make<boolean>(false)};
+  static DEFINE_MEEVAX_KERNEL_BOOLEAN_T(MAKE_MEEVAX_KERNEL_BOOLEAN_T);
+  static DEFINE_MEEVAX_KERNEL_BOOLEAN_F(MAKE_MEEVAX_KERNEL_BOOLEAN_F);
   #endif // MEEVAX_KERNEL_HEADER_ONLY
 } // namespace meevax::kernel
 
