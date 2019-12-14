@@ -255,9 +255,7 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      // TODO execute following if the staged changes is not empty
-
-      // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       ++generation;
 
@@ -271,7 +269,8 @@ namespace meevax::kernel
 
       e = cons(operands, lexical_environment());
 
-      c = current_expression();
+      c = std::empty(changes) ? current_expression()
+                              : compile(cadr(operands)); // evaluate
 
       // std::cerr << ";\t\t; s = " << s << std::endl;
       // std::cerr << ";\t\t; e = " << e << std::endl;

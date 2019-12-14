@@ -1619,12 +1619,35 @@
 (define-syntax export
   (call/csc
     (lambda (_ . export-specs)
-     `(,display "; dummy-export\t; " ,export-specs "\n"))))
+     `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
 (define-syntax import
   (call/csc
     (lambda (import . import-set)
-     `(,display "; dummy-import\t; " ,import-set "\n"))))
+     `(,display "; dummy-import\t; " ',import-set "\n"))))
+
+(define-syntax instantiate-library
+  (call/csc
+    (lambda (this library-name)
+     `(,let ((,the-library (,reference ,library-name)))
+        (,the-library)))))
+
+(define-syntax evaluate-in
+  (call/csc
+    (lambda (this namespace identifier)
+     `((,reference ,namespace) ',identifier))))
+
+; TODO INVOKE THIS IMMEDIATELY
+; TODO UPDATE DEFINE TO RETURN CURRENT-SYNTACTIC-CONTINUATION
+(define current-evaluator
+  (lambda ()
+    ; (
+    (call/csc
+      (lambda (this)
+        (begin ; hacking
+          (define evaluate this))))
+      ; )
+      ))
 
 (define-library (example empty) '())
 
@@ -1646,6 +1669,11 @@
     (define goodbye
       (lambda ()
         (begin (display "goodbye, world!")
+               (newline))))
+
+    (define greet-to
+      (lambda (name)
+        (begin (display "hello, " name)
                (newline)))))
 
   (begin

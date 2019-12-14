@@ -111,14 +111,12 @@ namespace meevax::kernel
     template <typename... Ts>
     decltype(auto) define(const object& identifier, Ts&&... operands)
     {
-      const auto renamed_identifier {rename(identifier)};
-
       push(
         interaction_environment(),
         list(
-          renamed_identifier,
+          identifier,
           change(
-            renamed_identifier,
+            identifier,
             std::forward<decltype(operands)>(operands)...)));
 
       if (const auto& config {static_cast<SyntacticContinuation&>(*this)};
@@ -379,8 +377,11 @@ namespace meevax::kernel
           if (   static_cast<SyntacticContinuation&>(*this).verbose == true_object
               or static_cast<SyntacticContinuation&>(*this).verbose_machine == true_object)
           {
-            std::cerr << "; machine\t; instruction " << car(c) << " received undefined variable " << cadr(c) << ".\n"
-                      << ";\t\t; start implicit renaming..." << std::endl;
+            std::cerr << "; machine\t; instruction "
+                      << car(c)
+                      << " received undefined variable "
+                      << cadr(c)
+                      << std::endl;
           }
 
           /* ------------------------------------------------------------------
