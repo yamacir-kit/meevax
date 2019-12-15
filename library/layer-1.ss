@@ -2,11 +2,6 @@
 
 (define call/csc call-with-current-syntactic-continuation)
 
-; (define rsc-macro-transformer
-;   (lambda (transform)
-;     (macro-transformer expression
-;       (transform expression))))
-
 (define identity
   (lambda (x) x))
 
@@ -1622,14 +1617,12 @@
     (lambda (this name . declarations)
      `(,define ,name
         (,call/csc
-          (,lambda (this)
-            (,display "; library\t; instantiating library " ',name "\n")
-            ,@declarations))))))
+          (,lambda (this) ,@declarations))))))
 
-(define-syntax export
-  (call/csc
-    (lambda (_ . export-specs)
-     `(,display "; dummy-export\t; " ',export-specs "\n"))))
+; (define-syntax export
+;   (call/csc
+;     (lambda (_ . export-specs)
+;      `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
 (define-syntax import
   (call/csc
@@ -1639,8 +1632,8 @@
 (define-syntax instantiate-library
   (call/csc
     (lambda (this library-name)
-     `(,let ((,the-library (,reference ,library-name)))
-        (,the-library)))))
+     `(,let ((,object (,reference ,library-name)))
+        (,object)))))
 
 (define-syntax evaluate-in
   (call/csc
@@ -1786,3 +1779,29 @@
                 (set! grid1 j k a))))
           (life-print grid1))))))
 
+(define-library (example value)
+  (import (scheme base))
+  (export increment
+          reference-value)
+  (begin
+    (define value 0)
+    (define increment
+      (lambda ()
+        (set! value (+ value 1))))
+    (define reference
+      (lambda () value))))
+
+; result of importation
+; (instantiate-library (example value))
+;
+; (define increment
+;   (call/csc
+;     (lambda (this . operands)
+;      `((,reference (example value))
+;       `(increment ,@operands)))))
+;
+; (define reference
+;   (call/csc
+;     (lambda (operator . operands)
+;      `((,reference (example value))
+;       `(reference ,@operands)))))

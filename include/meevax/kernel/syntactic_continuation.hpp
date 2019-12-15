@@ -70,6 +70,7 @@ namespace meevax::kernel
     , public configurator<syntactic_continuation>
   {
     std::unordered_map<std::string, object> symbols;
+    std::unordered_map<std::string, object> external_symbols;
 
     std::unordered_map<
       object, // identifier
@@ -480,6 +481,38 @@ namespace meevax::kernel
     define<special>("reference", [&](auto&&... operands)
     {
       return reference(std::forward<decltype(operands)>(operands)...);
+    });
+
+    define<special>("export", [&](
+      auto&& expression,
+      auto&&,
+      auto&& continuation,
+      auto&&)
+    {
+      std::cerr << "; export\t; export-set = " << expression << std::endl;
+
+      for (const auto& each : expression)
+      {
+        std::cerr << ";\t\t; staging " << each << std::endl;
+        external_symbols.emplace(
+          write(std::stringstream {}, each).str(),
+          each);
+      }
+
+      const auto identifiers {
+        std::accumulate(
+          std::begin(external_symbols), std::end(external_symbols),
+          unit,
+          [](auto&& value, auto&& pare)
+          {
+            return cons(pare.second, value);
+          })
+      };
+
+      return
+        cons(
+          make<instruction>(mnemonic::LOAD_LITERAL), identifiers, // TODO Change to current-syntactic-continuation (with std::make_shared_from_this)
+          continuation);
     });
 
     /*
