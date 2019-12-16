@@ -1,5 +1,3 @@
-(define define-syntax define)
-
 (define call/csc call-with-current-syntactic-continuation)
 
 (define identity
@@ -158,7 +156,7 @@
 ; (define then begin)
 ; (define else begin)
 
-(define-syntax conditional
+(define conditional
   (call/csc
     (lambda (conditional . clauses)
       (if (null? clauses)
@@ -181,9 +179,9 @@
                            (cons conditional (cdr clauses))))))
            (car clauses))))))
 
-(define-syntax cond conditional)
+(define cond conditional)
 
-(define-syntax and
+(define and
   (call/csc
     (lambda (and . tests)
       (conditional
@@ -194,7 +192,7 @@
                    (cons and (cdr tests))
                    #false))))))
 
-(define-syntax or
+(define or
   (call/csc
     (lambda (or . tests)
       (conditional
@@ -223,7 +221,7 @@
 ; (define unquote          identity)
 ; (define unquote-splicing identity)
 
-(define-syntax quasiquote
+(define quasiquote
   (call/csc
     (lambda (quasiquote x)
 
@@ -375,7 +373,7 @@
 ;  4.2.2 Binding constructs
 ; ------------------------------------------------------------------------------
 
-(define-syntax letrec* ; transform to internal-definitions
+(define letrec* ; transform to internal-definitions
   (call/csc
     (lambda (letrec* bindings . body)
       ((lambda (definitions)
@@ -384,12 +382,12 @@
 
 (define letrec letrec*)
 
-(define-syntax unnamed-let
+(define unnamed-let
   (call/csc
     (lambda (unnamed-let bindings . body)
      `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings)))))
 
-(define-syntax let
+(define let
   (call/csc
     (lambda (let bindings . body)
 
@@ -406,7 +404,7 @@
          `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
             (,bindings ,@(map cadr (car body))))))))
 
-(define-syntax let*
+(define let*
   (call/csc
     (lambda (let* bindings . body)
 
@@ -602,7 +600,7 @@
 ;  4.2.1 Conditionals (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-(define-syntax case
+(define case
   (call/csc
     (lambda (case key . clauses)
 
@@ -634,17 +632,17 @@
      `(,let ((,result ,key))
        ,(each-clause clauses)))))
 
-(define-syntax when
+(define when
   (call/csc
     (lambda (when test . body)
      `(if ,test (begin ,@body)))))
 
-(define-syntax unless
+(define unless
   (call/csc
     (lambda (unless test . body)
      `(if (not ,test) (begin ,@body)))))
 
-; (define-syntax conditional-expansion
+; (define conditional-expansion
 ;   (macro-transformer (conditional-expansion . clauses)
 ;     ; TODO
 ;     )
@@ -655,7 +653,7 @@
 ;  4.2.4 Iteration
 ; ------------------------------------------------------------------------------
 
-(define-syntax iterate
+(define iterate
   (call/csc
     (lambda (iterate variables test . commands)
       (let ((body
@@ -680,12 +678,12 @@
 ;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define-syntax delay-force
+(define delay-force
   (call/csc
     (lambda (delay-force expression)
      `(,promise #false (,lambda () ,expression)))))
 
-(define-syntax delay
+(define delay
   (call/csc
     (lambda (delay expression)
      `(,delay-force (,promise #true expression)))))
@@ -1705,30 +1703,30 @@
     (lambda (_ name value)
      `(,define ,name ,value))))
 
-(define-syntax define-library
+(define define-library
   (call/csc
     (lambda (this name . declarations)
      `(,define ,name
         (,call/csc
           (,lambda (this) ,@declarations))))))
 
-; (define-syntax export
+; (define export
 ;   (call/csc
 ;     (lambda (_ . export-specs)
 ;      `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
-(define-syntax import
+(define import
   (call/csc
     (lambda (import . import-set)
      `(,display "; dummy-import\t; " ',import-set "\n"))))
 
-(define-syntax instantiate-library
+(define instantiate-library
   (call/csc
     (lambda (this library-name)
      `(,let ((,object (,reference ,library-name)))
         (,object)))))
 
-(define-syntax evaluate-in
+(define evaluate-in
   (call/csc
     (lambda (this namespace identifier)
      `((,reference ,namespace) ',identifier))))
