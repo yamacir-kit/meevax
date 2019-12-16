@@ -281,7 +281,7 @@
         ((lambda (rxs)
            (apply-1 procedure
                     (append-2 (reverse (cdr rxs))
-                    (car rxs))))
+                              (car rxs))))
          (reverse (cons x xs))))))
 
 (define map
@@ -1142,6 +1142,11 @@
             (character-cons (car x)
                             (list->string (cdr x)))
             (character-cons x '())))))
+
+(define string-from-number
+  (procedure-from string.so "string_from_number"))
+
+(define number->string string-from-number)
 
 (define string->list
   (lambda (x)
