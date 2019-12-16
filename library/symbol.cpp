@@ -24,7 +24,7 @@ extern "C" namespace meevax::symbol
   {
     for (const auto& each : operands)
     {
-      if (not each or not each.is<kernel::pair>())
+      if (not each or not each.is<kernel::symbol>())
       {
         return kernel::false_object;
       }
