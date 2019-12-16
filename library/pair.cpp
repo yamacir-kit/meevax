@@ -22,15 +22,24 @@ extern "C" namespace meevax::pair
 
   PROCEDURE(pair_)
   {
-    for (const auto& each : operands)
-    {
-      if (not each or not each.is<kernel::pair>())
-      {
-        return kernel::false_object;
-      }
-    }
+    // for (const auto& each : operands)
+    // {
+    //   if (not each or not each.is<kernel::pair>())
+    //   {
+    //     return kernel::false_object;
+    //   }
+    // }
+    //
+    // return kernel::true_object;
 
-    return kernel::true_object;
+    if (const auto& value {car(operands)}; value && value.is<kernel::pair>())
+    {
+      return kernel::true_object;
+    }
+    else
+    {
+      return kernel::false_object;
+    }
   }
 } // extern "C"
 

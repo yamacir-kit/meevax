@@ -41,7 +41,15 @@ namespace meevax::kernel
     {
       if (each) // guard for malformed string
       {
-        os << each.as<std::string>();
+        switch (const auto& s {each.as<std::string>()}; s[0])
+        {
+        case '\n': os << "\\n"; break;
+        case '\t': os << "\\t"; break;
+
+        default:
+          os << s;
+          break;
+        }
       }
       else break;
     }

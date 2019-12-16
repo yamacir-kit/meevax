@@ -321,7 +321,7 @@ namespace meevax::kernel
       return execute();
     }
 
-    object execute()
+    object execute() // try
     {
     dispatch:
       switch (car(c).template as<instruction>().code)
@@ -652,6 +652,48 @@ namespace meevax::kernel
         return pop(s); // car(s);
       }
     }
+    // catch (const kernel_error_about_pair& error)
+    // {
+    //   std::cerr << "; machine\t; internal-error occured" << std::endl;
+    //
+    //   std::cerr << ";\t\t; main stack" << std::endl;
+    //
+    //   for (const auto& formal : s)
+    //   {
+    //     std::cerr << ";\t\t;   (";
+    //
+    //     for (const auto& value : formal)
+    //     {
+    //       std::cerr << value << std::endl << ";\t\t;    ";
+    //     }
+    //
+    //     std::cerr << ")" << std::endl;
+    //   }
+    //
+    //   std::cerr << ";\t\t; environment stack " << std::endl;
+    //
+    //   for (const auto& each : e)
+    //   {
+    //     std::cerr << ";\t\t;   " << each << std::endl;
+    //   }
+    //
+    //   std::cerr << ";\t\t; control stack" << std::endl;
+    //
+    //   for (const auto& each : c)
+    //   {
+    //     std::cerr << ";\t\t;   " << each << std::endl;
+    //   }
+    //
+    //   std::cerr << ";\t\t; dump stack" << std::endl;
+    //
+    //   for (const auto& each : d)
+    //   {
+    //     std::cerr << ";\t\t;   " << each << std::endl;
+    //   }
+    //
+    //   std::cerr << "; system\t; exit" << std::endl;
+    //   std::exit(boost::exit_exception_failure);
+    // }
 
   protected:
     /* ==== Quotation =========================================================

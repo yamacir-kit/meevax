@@ -155,8 +155,8 @@
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-(define then begin)
-(define else begin)
+; (define then begin)
+; (define else begin)
 
 (define-syntax conditional
   (call/csc
@@ -220,8 +220,8 @@
 ;  4.2.8 Quasiquotations
 ; --------------------------------------------------------------------------
 
-(define unquote          identity)
-(define unquote-splicing identity)
+; (define unquote          identity)
+; (define unquote-splicing identity)
 
 (define-syntax quasiquote
   (call/csc
@@ -281,7 +281,7 @@
         ((lambda (rxs)
            (apply-1 procedure
                     (append-2 (reverse (cdr rxs))
-                    (car rxs))))
+                              (car rxs))))
          (reverse (cons x xs))))))
 
 (define map
@@ -331,7 +331,9 @@
                (if result
                    result
                    (any-1 predicate (cdr x))))
-             (predicate (car x))))))
+             (predicate (car x)))
+            (predicate (car x))
+            )))
 
     (define any-n
       (lambda (predicate xs)
@@ -431,6 +433,56 @@
 ;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
+(define proper-list?
+  (lambda (x)
+    (let rec ((x x)
+              (y x))
+      (if (pair? x)
+          (let ((x (cdr x)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (y (cdr y)))
+                  (and (not (eq? x y))
+                       (rec x y)))
+                (null? x)))
+          (null? x)))))
+
+(define list? proper-list?)
+
+(define dotted-list?
+  (lambda (x)
+    (let rec ((x x)
+              (y x))
+      (if (pair? x)
+          (let ((x (cdr x)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (y (cdr y)))
+                  (and (not (eq? x y))
+                       (rec x y)))
+                (not (null? x))))
+          (not (null? x))))))
+
+(define circular-list?
+  (lambda (x)
+    (let rec ((x x)
+              (y x))
+      (and (pair? x)
+           (let ((x (cdr x)))
+             (and (pair? x)
+                  (let ((x (cdr x))
+                        (y (cdr y)))
+                    (or (eq? x y)
+                        (rec x y)))))))))
+
+(define null-list?
+  (lambda (x)
+    (cond
+      ((pair? x) #false)
+      ((null? x) #true)
+      (else
+       (error "from null-list?, argument out of domain" x)))))
+
 (define make-list
   (lambda (k . x)
     (let ((default (if (pair? x) (car x) #;unspecified)))
@@ -457,29 +509,29 @@
                 result))
           result))))
 
-(define length*
-  (lambda (x)
-    (let ((length (length x)))
-      (conditional
-        ((positive? length) length)
-        ((= length -2) #false)
-        (else (let rec ((k 0)
-                        (x x))
-                (if (not (pair? x)) k
-                    (rec (+ 1 i) (cdr x)))))))))
-
 ; (define length*
 ;   (lambda (x)
-;     (if (not (pair? x)) 0
-;         (let rec ((succeed x)
-;                   (precede (cdr x))
-;                   (result 1))
-;           (conditional
-;             ((eq? succeed precede) #false)
-;             ((and (pair? precede)
-;                   (pair? (cdr precede)))
-;              (rec (cdr succeed) (cddr precede) (+ 2 result)))
-;             (else (if (pair? precede) (+ 1 result) result)))))))
+;     (let ((length (length x)))
+;       (conditional
+;         ((positive? length) length)
+;         ((= length -2) #false)
+;         (else (let rec ((k 0)
+;                         (x x))
+;                 (if (not (pair? x)) k
+;                     (rec (+ 1 i) (cdr x)))))))))
+
+(define length*
+  (lambda (x)
+    (if (not (pair? x)) 0
+        (let rec ((succeed x)
+                  (precede (cdr x))
+                  (result 1))
+          (conditional
+            ((eq? succeed precede) #false)
+            ((and (pair? precede)
+                  (pair? (cdr precede)))
+             (rec (cdr succeed) (cddr precede) (+ 2 result)))
+            (else (if (pair? precede) (+ 1 result) result)))))))
 
 (define list-tail
   (lambda (x k)
@@ -1143,6 +1195,11 @@
                             (list->string (cdr x)))
             (character-cons x '())))))
 
+(define string-from-number
+  (procedure-from string.so "string_from_number"))
+
+(define number->string string-from-number)
+
 (define string->list
   (lambda (x)
     (if (null? x)
@@ -1254,6 +1311,9 @@
 (define vector.so
   (linker "libmeevax-vector.so"))
 
+(define vector?
+  (lambda (object) #false))
+
 (define vector-of
   (procedure-from vector.so "vector_of"))
 
@@ -1268,6 +1328,9 @@
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
 ; ------------------------------------------------------------------------------
+
+(define bytevector?
+  (lambda (x) #false))
 
 ; ------------------------------------------------------------------------------
 ;  6.10 Control features (Part 2 of 2)
@@ -1328,7 +1391,12 @@
 ; TODO with-exception-handler
 ; TODO raise
 ; TODO raise-continuable
-; TODO error
+
+(define error display)
+
+(define error-object?
+  (lambda (x) #false))
+
 ; TODO error-object?
 ; TODO error-object-message
 ; TODO error-object-irritants
@@ -1514,6 +1582,28 @@
   (lambda (x y)
     (cons y x)))
 
+(define find
+  (lambda (predicate list)
+    (cond
+      ((find-tail predicate list)
+       => car)
+      (else #false))))
+
+(define find-tail
+  (lambda (predicate list)
+    (let rec ((list list))
+      (and (not (null-list? list))
+           (if (predicate (car list)) list
+               (rec (cdr list)))))))
+
+(define null-list?
+  (lambda (list)
+    (cond
+      ((pair? list) #false)
+      ((null? list) #true)
+      (else
+       (error "null-list?: argument out of domain" list)))))
+
 ; ------------------------------------------------------------------------------
 ;  Miscellaneous
 ; ------------------------------------------------------------------------------
@@ -1533,30 +1623,33 @@
         (,set! ,x ,y)
         (,set! ,y ,temporary)))))
 
-(define current-evaluator
-  (lambda ()
-    (let ((evaluator
-            (call/csc
-              (lambda (this)
-                (begin ; hacking
-                  (define evaluate this))))))
-      (evaluator) ; instantiation
-      evaluator)))
-
-(define explicit-renaming-macro-transformer
-  (lambda (transform)
-    (call/csc
-      (lambda expression
-        (transform expression (current-evaluator) eq?)))))
-
-(define-syntax swap!
-  (explicit-renaming-macro-transformer
-    (lambda (expression rename compare)
-      (let ((a (cadr expression))
-            (b (caddr expression)))
-       `(,(rename 'let) ((,(rename 'value) ,a))
-          (,(rename 'set!) ,a ,b)
-          (,(rename 'set!) ,b ,(rename 'value)))))))
+; (define current-evaluator
+;   (lambda ()
+;     (let ((evaluator
+;             (call/csc
+;               (lambda (this)
+;                 (begin ; hacking
+;                   (define evaluate this))))))
+;       (evaluator) ; instantiation
+;       (values evaluator))))
+;
+; (define explicit-renaming-macro-transformer
+;   (lambda (transform)
+;     (call/csc
+;       (lambda expression
+;         (transform expression (current-evaluator) eq?)))))
+;
+; (define          er-macro-transformer
+;   explicit-renaming-macro-transformer)
+;
+; (define-syntax swap!
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (let ((a (cadr expression))
+;             (b (caddr expression)))
+;        `(,(rename 'let) ((,(rename 'value) ,a))
+;           (,(rename 'set!) ,a ,b)
+;           (,(rename 'set!) ,b ,(rename 'value)))))))
 
 (define loop
   (call/csc

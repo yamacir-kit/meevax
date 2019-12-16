@@ -26,7 +26,7 @@ extern "C" namespace meevax::experimental
   {
     for (const kernel::object& each : operands)
     {
-      if (each.is<kernel::string>()) // XXX DIRTY HACK
+      if (each and each.is<kernel::string>()) // XXX DIRTY HACK
       {
         std::cout << static_cast<std::string>(each.as<kernel::string>());
       }
