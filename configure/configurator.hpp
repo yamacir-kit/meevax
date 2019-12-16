@@ -175,6 +175,8 @@ namespace meevax::kernel
       }),
     };
 
+    #undef ENABLE
+
     template <typename... Ts>
     constexpr decltype(auto) configure(Ts&&... operands)
     {

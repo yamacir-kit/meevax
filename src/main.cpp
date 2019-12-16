@@ -6,25 +6,29 @@ int main(const int argc, char const* const* const argv) try
 {
   meevax::kernel::syntactic_continuation program {meevax::kernel::layer<1>};
 
-  /****************************************************************************
+  /*============================================================================
+  *
   * The environment system includes a command line option parser. The parser is
   * internally called the "configurator" and is primarily responsible for
   * changing the behavior of the environment.
-  ****************************************************************************/
+  *
+  *========================================================================== */
   program.configure(argc, argv);
 
   std::cerr << "; system\t; syntactic continuations are go" << std::endl;
 
+  const auto prompt {"\n> "};
+
   for (program.open("/dev/stdin"); program.ready(); ) try
   {
-    std::cout << "\n> " << std::flush;
+    std::cout << prompt << std::flush;
     const auto expression {program.read()};
     std::cout << "\n";
 
     if (   program.verbose        == meevax::kernel::true_object
         or program.verbose_reader == meevax::kernel::true_object)
     {
-      std::cerr << "; read    \t; " << expression << std::endl;
+      std::cerr << "; read\t\t; " << expression << std::endl;
     }
 
     const auto executable {program.compile(expression)};
