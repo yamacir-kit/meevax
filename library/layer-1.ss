@@ -155,8 +155,8 @@
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-(define then begin)
-(define else begin)
+; (define then begin)
+; (define else begin)
 
 (define-syntax conditional
   (call/csc
@@ -220,8 +220,8 @@
 ;  4.2.8 Quasiquotations
 ; --------------------------------------------------------------------------
 
-(define unquote          identity)
-(define unquote-splicing identity)
+; (define unquote          identity)
+; (define unquote-splicing identity)
 
 (define-syntax quasiquote
   (call/csc
@@ -1391,7 +1391,12 @@
 ; TODO with-exception-handler
 ; TODO raise
 ; TODO raise-continuable
-; TODO error
+
+(define error display)
+
+(define error-object?
+  (lambda (x) #false))
+
 ; TODO error-object?
 ; TODO error-object-message
 ; TODO error-object-irritants
@@ -1618,33 +1623,33 @@
         (,set! ,x ,y)
         (,set! ,y ,temporary)))))
 
-(define current-evaluator
-  (lambda ()
-    (let ((evaluator
-            (call/csc
-              (lambda (this)
-                (begin ; hacking
-                  (define evaluate this))))))
-      (evaluator) ; instantiation
-      (values evaluator))))
-
-(define explicit-renaming-macro-transformer
-  (lambda (transform)
-    (call/csc
-      (lambda expression
-        (transform expression (current-evaluator) eq?)))))
-
-(define          er-macro-transformer
-  explicit-renaming-macro-transformer)
-
-(define-syntax swap!
-  (explicit-renaming-macro-transformer
-    (lambda (expression rename compare)
-      (let ((a (cadr expression))
-            (b (caddr expression)))
-       `(,(rename 'let) ((,(rename 'value) ,a))
-          (,(rename 'set!) ,a ,b)
-          (,(rename 'set!) ,b ,(rename 'value)))))))
+; (define current-evaluator
+;   (lambda ()
+;     (let ((evaluator
+;             (call/csc
+;               (lambda (this)
+;                 (begin ; hacking
+;                   (define evaluate this))))))
+;       (evaluator) ; instantiation
+;       (values evaluator))))
+;
+; (define explicit-renaming-macro-transformer
+;   (lambda (transform)
+;     (call/csc
+;       (lambda expression
+;         (transform expression (current-evaluator) eq?)))))
+;
+; (define          er-macro-transformer
+;   explicit-renaming-macro-transformer)
+;
+; (define-syntax swap!
+;   (explicit-renaming-macro-transformer
+;     (lambda (expression rename compare)
+;       (let ((a (cadr expression))
+;             (b (caddr expression)))
+;        `(,(rename 'let) ((,(rename 'value) ,a))
+;           (,(rename 'set!) ,a ,b)
+;           (,(rename 'set!) ,b ,(rename 'value)))))))
 
 (define loop
   (call/csc
