@@ -13,7 +13,7 @@
     <img src="https://api.codacy.com/project/badge/Grade/ebd3aba61f1141049229031b7f068de9"/>
   </a>
 
-  *HEAD Version 0.2.185*
+  *HEAD Version 0.2.186*
 </div>
 
 ## Contents
