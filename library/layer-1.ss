@@ -331,7 +331,9 @@
                (if result
                    result
                    (any-1 predicate (cdr x))))
-             (predicate (car x))))))
+             (predicate (car x)))
+            (predicate (car x))
+            )))
 
     (define any-n
       (lambda (predicate xs)
