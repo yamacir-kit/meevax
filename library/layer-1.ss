@@ -433,6 +433,56 @@
 ;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
+(define proper-list?
+  (lambda (x)
+    (let rec ((x x)
+              (y x))
+      (if (pair? x)
+          (let ((x (cdr x)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (y (cdr y)))
+                  (and (not (eq? x y))
+                       (rec x y)))
+                (null? x)))
+          (null? x)))))
+
+(define list? proper-list?)
+
+(define dotted-list?
+  (lambda (x)
+    (let rec ((x x)
+              (y x))
+      (if (pair? x)
+          (let ((x (cdr x)))
+            (if (pair? x)
+                (let ((x (cdr x))
+                      (y (cdr y)))
+                  (and (not (eq? x y))
+                       (rec x y)))
+                (not (null? x))))
+          (not (null? x))))))
+
+(define circular-list?
+  (lambda (x)
+    (let rec ((x x)
+              (y x))
+      (and (pair? x)
+           (let ((x (cdr x)))
+             (and (pair? x)
+                  (let ((x (cdr x))
+                        (y (cdr y)))
+                    (or (eq? x y)
+                        (rec x y)))))))))
+
+(define null-list?
+  (lambda (x)
+    (cond
+      ((pair? x) #false)
+      ((null? x) #true)
+      (else
+       (error "from null-list?, argument out of domain" x)))))
+
 (define make-list
   (lambda (k . x)
     (let ((default (if (pair? x) (car x) #;unspecified)))
@@ -459,29 +509,29 @@
                 result))
           result))))
 
-(define length*
-  (lambda (x)
-    (let ((length (length x)))
-      (conditional
-        ((positive? length) length)
-        ((= length -2) #false)
-        (else (let rec ((k 0)
-                        (x x))
-                (if (not (pair? x)) k
-                    (rec (+ 1 i) (cdr x)))))))))
-
 ; (define length*
 ;   (lambda (x)
-;     (if (not (pair? x)) 0
-;         (let rec ((succeed x)
-;                   (precede (cdr x))
-;                   (result 1))
-;           (conditional
-;             ((eq? succeed precede) #false)
-;             ((and (pair? precede)
-;                   (pair? (cdr precede)))
-;              (rec (cdr succeed) (cddr precede) (+ 2 result)))
-;             (else (if (pair? precede) (+ 1 result) result)))))))
+;     (let ((length (length x)))
+;       (conditional
+;         ((positive? length) length)
+;         ((= length -2) #false)
+;         (else (let rec ((k 0)
+;                         (x x))
+;                 (if (not (pair? x)) k
+;                     (rec (+ 1 i) (cdr x)))))))))
+
+(define length*
+  (lambda (x)
+    (if (not (pair? x)) 0
+        (let rec ((succeed x)
+                  (precede (cdr x))
+                  (result 1))
+          (conditional
+            ((eq? succeed precede) #false)
+            ((and (pair? precede)
+                  (pair? (cdr precede)))
+             (rec (cdr succeed) (cddr precede) (+ 2 result)))
+            (else (if (pair? precede) (+ 1 result) result)))))))
 
 (define list-tail
   (lambda (x k)
@@ -1520,6 +1570,28 @@
 (define xcons
   (lambda (x y)
     (cons y x)))
+
+(define find
+  (lambda (predicate list)
+    (cond
+      ((find-tail predicate list)
+       => car)
+      (else #false))))
+
+(define find-tail
+  (lambda (predicate list)
+    (let rec ((list list))
+      (and (not (null-list? list))
+           (if (predicate (car list)) list
+               (rec (cdr list)))))))
+
+(define null-list?
+  (lambda (list)
+    (cond
+      ((pair? list) #false)
+      ((null? list) #true)
+      (else
+       (error "null-list?: argument out of domain" list)))))
 
 ; ------------------------------------------------------------------------------
 ;  Miscellaneous
