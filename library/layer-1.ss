@@ -1311,6 +1311,9 @@
 (define vector.so
   (linker "libmeevax-vector.so"))
 
+(define vector?
+  (lambda (object) #false))
+
 (define vector-of
   (procedure-from vector.so "vector_of"))
 
@@ -1325,6 +1328,9 @@
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
 ; ------------------------------------------------------------------------------
+
+(define bytevector?
+  (lambda (x) #false))
 
 ; ------------------------------------------------------------------------------
 ;  6.10 Control features (Part 2 of 2)
@@ -1620,13 +1626,16 @@
                 (begin ; hacking
                   (define evaluate this))))))
       (evaluator) ; instantiation
-      evaluator)))
+      (values evaluator))))
 
 (define explicit-renaming-macro-transformer
   (lambda (transform)
     (call/csc
       (lambda expression
         (transform expression (current-evaluator) eq?)))))
+
+(define          er-macro-transformer
+  explicit-renaming-macro-transformer)
 
 (define-syntax swap!
   (explicit-renaming-macro-transformer
