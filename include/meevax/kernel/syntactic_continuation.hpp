@@ -25,8 +25,9 @@ namespace meevax::kernel
 {
   /* ==== Standard Environment Layers ==========================================
   *
-  * Layer 0 - Pure Syntax
-  * Layer 1 - Derived Expressions and Standard Procedures
+  * Layer 0 - Program Structure Controllers
+  * Layer 1 - Primitive Expression Types
+  * Layer 2 - Derived Expression Types and Standard Procedures
   *
   *========================================================================== */
   template <int Layer>
@@ -81,7 +82,9 @@ namespace meevax::kernel
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
-    {}
+    {
+      define_expressions(layer<0>);
+    }
 
     template <auto N>
     explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
@@ -319,6 +322,12 @@ namespace meevax::kernel
   auto
     syntactic_continuation::define_expressions(
       std::integral_constant<decltype(0), 0>)
+  {}
+
+  template <>
+  auto
+    syntactic_continuation::define_expressions(
+      std::integral_constant<decltype(1), 1>)
   {
     #define DEFINE_SPECIAL(NAME, RULE)                                         \
     define<special>(NAME, [this](auto&&... operands)                           \
@@ -429,7 +438,7 @@ namespace meevax::kernel
   template <>
   auto
     syntactic_continuation::define_expressions(
-      std::integral_constant<decltype(1), 1>)
+      std::integral_constant<decltype(2), 2>)
   {
     static const std::string layer_1 {
       &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
@@ -458,18 +467,18 @@ namespace meevax::kernel
 
   template <>
   syntactic_continuation::syntactic_continuation(
-    std::integral_constant<decltype(0), 0>)
+    std::integral_constant<decltype(1), 1>)
     : syntactic_continuation::syntactic_continuation {}
   {
-    define_expressions(layer<0>);
+    define_expressions(layer<1>);
   }
 
-  template <>
+  template <auto N>
   syntactic_continuation::syntactic_continuation(
-    std::integral_constant<decltype(1), 1>)
-    : syntactic_continuation::syntactic_continuation {layer<0>}
+    std::integral_constant<decltype(N), N>)
+    : syntactic_continuation::syntactic_continuation {layer<N - 1>}
   {
-    define_expressions(layer<1>);
+    define_expressions(layer<N>);
   }
 
   std::ostream& operator<<(std::ostream& os, const syntactic_continuation& syntactic_continuation)

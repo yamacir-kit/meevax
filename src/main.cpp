@@ -4,7 +4,7 @@
 
 int main(const int argc, char const* const* const argv) try
 {
-  meevax::kernel::syntactic_continuation program {meevax::kernel::layer<1>};
+  meevax::kernel::syntactic_continuation program {meevax::kernel::layer<2>};
 
   /*============================================================================
   *
