@@ -78,15 +78,17 @@ namespace meevax::kernel
     > changes;
 
   public: // Constructors
-    // for bootstrap scheme-report-environment
-    template <int Layer>
-    explicit syntactic_continuation(std::integral_constant<int, Layer>);
-
-    // for library constructor
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {}
+
+    template <auto N>
+    explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
+
+  private: // Layers
+    template <auto N>
+    auto define_expressions(std::integral_constant<decltype(N), N>);
 
   public: // Interfaces
     // TODO Rename to "interaction_ready"
@@ -315,58 +317,29 @@ namespace meevax::kernel
   };
 
   template <>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<int, 0>)
+  auto
+    syntactic_continuation::define_expressions(
+      std::integral_constant<decltype(0), 0>)
   {
-    define<special>("quote", [&](auto&&... operands)
-    {
-      return quotation(std::forward<decltype(operands)>(operands)...);
-    });
+    #define DEFINE_SPECIAL(NAME, RULE)                                         \
+    define<special>(NAME, [this](auto&&... operands)                           \
+    {                                                                          \
+      return                                                                   \
+        RULE(                                                                  \
+          std::forward<decltype(operands)>(operands)...);                      \
+    })
 
-    define<special>("if", [&](auto&&... operands)
-    {
-      return conditional(std::forward<decltype(operands)>(operands)...);
-    });
+    DEFINE_SPECIAL("begin",     sequence);
+    DEFINE_SPECIAL("define",    definition);
+    DEFINE_SPECIAL("if",        conditional);
+    DEFINE_SPECIAL("lambda",    lambda);
+    DEFINE_SPECIAL("quote",     quotation);
+    DEFINE_SPECIAL("reference", reference);
+    DEFINE_SPECIAL("set!",      assignment);
 
-    define<special>("define", [&](auto&&... operands)
-    {
-      return definition(std::forward<decltype(operands)>(operands)...);
-    });
-
-    // TODO Rename to "sequential"
-    define<special>("begin", [&](auto&&... operands)
-    {
-      return sequence(std::forward<decltype(operands)>(operands)...);
-    });
-
-    define<special>("call-with-current-continuation", [&](auto&&... operands)
-    {
-      return call_cc(std::forward<decltype(operands)>(operands)...);
-    });
-
-    define<special>("lambda", [&](auto&&... operands)
-    {
-      return lambda(std::forward<decltype(operands)>(operands)...);
-    });
-
-    // define<special>("fork-with-current-syntactic-continuation", [&](auto&&... operands)
-    // {
-    //   return fork(std::forward<decltype(operands)>(operands)...);
-    // });
-
-    define<special>("call-with-current-syntactic-continuation", [&](auto&&... operands)
-    {
-      return call_csc(std::forward<decltype(operands)>(operands)...);
-    });
-
-    define<special>("set!", [&](auto&&... operands)
-    {
-      return assignment(std::forward<decltype(operands)>(operands)...);
-    });
-
-    define<special>("reference", [&](auto&&... operands)
-    {
-      return reference(std::forward<decltype(operands)>(operands)...);
-    });
+    // DEFINE_SPECIAL("fork-with-current-sytanctic-continuation", fork);
+    DEFINE_SPECIAL("call-with-current-continuation",           call_cc);
+    DEFINE_SPECIAL("call-with-current-syntactic-continuation", call_csc);
 
     define<special>("export", [&](
       auto&& expression,
@@ -400,19 +373,33 @@ namespace meevax::kernel
           continuation);
     });
 
-    define<procedure>("load", [&](auto&&, auto&& operands)
-    {
-      return
-        load(
-          car(operands).template as<const string>());
-    });
+    #undef DEFINE_SPECIAL
 
-    define<procedure>("linker", [&](auto&&, auto&& operands)
-    {
-      return
-        make<meevax::posix::linker>(
-          car(operands).template as<const string>());
-    });
+    #define DEFINE_PROCEDURE_X(NAME, CALLEE)                                   \
+    define<procedure>(NAME, [this](auto&&, auto&& operands)                    \
+    {                                                                          \
+      return                                                                   \
+        CALLEE(                                                                \
+          car(operands));                                                      \
+    })
+
+    DEFINE_PROCEDURE_X("evaluate", evaluate);
+    DEFINE_PROCEDURE_X("compile",  compile);
+
+    #undef DEFINE_PROCEDURE_X
+
+    #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                   \
+    define<procedure>(NAME, [this](auto&&, auto&& operands)                    \
+    {                                                                          \
+      return                                                                   \
+        CALLEE(                                                                \
+          car(operands).template as<const string>());                          \
+    })
+
+    DEFINE_PROCEDURE_S("load",   load);
+    DEFINE_PROCEDURE_S("linker", make<meevax::posix::linker>);
+
+    #undef DEFINE_PROCEDURE_S
 
     define<procedure>("procedure-from", [&](auto&&, auto&& operands)
     {
@@ -438,17 +425,14 @@ namespace meevax::kernel
       std::cout << car(operands);
       return unspecified;
     });
+  }
 
-    define<procedure>("evaluate", [&](auto&&, auto&& operands)
-    {
-      return evaluate(car(operands));
-    });
-
-    define<procedure>("compile", [&](auto&&, auto&& operands)
-    {
-      return compile(car(operands));
-    });
-  } // syntactic_continuation class default constructor
+  template <>
+  syntactic_continuation::syntactic_continuation(
+    std::integral_constant<decltype(0), 0>)
+  {
+    define_expressions(layer<0>);
+  }
 
   template <>
   syntactic_continuation::syntactic_continuation(std::integral_constant<int, 1>)
