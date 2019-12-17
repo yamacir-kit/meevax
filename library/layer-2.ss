@@ -1736,11 +1736,6 @@
 
 (define-library (example empty) '())
 
-(define hello
-  (lambda ()
-    (begin (display "HELLO!")
-           (newline))))
-
 (define-library (example hello)
   (export hello
           goodbye)
@@ -1882,20 +1877,16 @@
     (define increment
       (lambda ()
         (set! value (+ value 1))))
-    (define reference
+    (define reference-value
       (lambda () value))))
 
-; result of importation
-; (instantiate-library (example value))
-;
-; (define increment
-;   (call/csc
-;     (lambda (this . operands)
-;      `((,reference (example value))
-;       `(increment ,@operands)))))
-;
-; (define reference
-;   (call/csc
-;     (lambda (operator . operands)
-;      `((,reference (example value))
-;       `(reference ,@operands)))))
+(define reference-value
+  (lambda operands
+    (let ((evaluate (reference (example value))))
+      (evaluate `(reference-value ,@operands)))))
+
+(define increment
+  (lambda operands
+    (let ((evaluate (reference (example value))))
+      (evaluate `(increment ,@operands)))))
+

@@ -510,16 +510,16 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        // else if (callee.is<SyntacticContinuation>())
-        // {
-        //   s = cons(
-        //         callee.as<SyntacticContinuation>().expand(
-        //           cons(
-        //             car(s),
-        //             cadr(s))),
-        //         cddr(s));
-        //   pop<1>(c);
-        // }
+        else if (callee.is<SyntacticContinuation>())
+        {
+          s = cons(
+                callee.as<SyntacticContinuation>().expand(
+                  cons(
+                    car(s),
+                    cadr(s))),
+                cddr(s));
+          pop<1>(c);
+        }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
@@ -552,16 +552,16 @@ namespace meevax::kernel
             | cddr(s);
           pop<1>(c);
         }
-        // else if (callee.is<SyntacticContinuation>())
-        // {
-        //   s = cons(
-        //         callee.as<SyntacticContinuation>().expand(
-        //           cons(
-        //             car(s),
-        //             cadr(s))),
-        //         cddr(s));
-        //   pop<1>(c);
-        // }
+        else if (callee.is<SyntacticContinuation>())
+        {
+          s = cons(
+                callee.as<SyntacticContinuation>().expand(
+                  cons(
+                    car(s),
+                    cadr(s))),
+                cddr(s));
+          pop<1>(c);
+        }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
