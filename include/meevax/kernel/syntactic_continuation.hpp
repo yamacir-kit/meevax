@@ -86,11 +86,10 @@ namespace meevax::kernel
     template <auto N>
     explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
 
-  private: // Layers
+  public: // Interfaces
     template <auto N>
     auto define_expressions(std::integral_constant<decltype(N), N>);
 
-  public: // Interfaces
     // TODO Rename to "interaction_ready"
     auto ready() const noexcept
     {
@@ -428,15 +427,9 @@ namespace meevax::kernel
   }
 
   template <>
-  syntactic_continuation::syntactic_continuation(
-    std::integral_constant<decltype(0), 0>)
-  {
-    define_expressions(layer<0>);
-  }
-
-  template <>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<int, 1>)
-    : syntactic_continuation::syntactic_continuation {layer<0>}
+  auto
+    syntactic_continuation::define_expressions(
+      std::integral_constant<decltype(1), 1>)
   {
     static const std::string layer_1 {
       &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
@@ -461,6 +454,22 @@ namespace meevax::kernel
     }
 
     std::cerr << std::endl;
+  }
+
+  template <>
+  syntactic_continuation::syntactic_continuation(
+    std::integral_constant<decltype(0), 0>)
+    : syntactic_continuation::syntactic_continuation {}
+  {
+    define_expressions(layer<0>);
+  }
+
+  template <>
+  syntactic_continuation::syntactic_continuation(
+    std::integral_constant<decltype(1), 1>)
+    : syntactic_continuation::syntactic_continuation {layer<0>}
+  {
+    define_expressions(layer<1>);
   }
 
   std::ostream& operator<<(std::ostream& os, const syntactic_continuation& syntactic_continuation)
