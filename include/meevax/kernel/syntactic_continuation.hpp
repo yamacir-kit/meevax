@@ -18,8 +18,8 @@
 * MEMO: readelf -a layer-1.ss.o
 *
 *============================================================================ */
-extern char _binary_layer_1_ss_start;
-extern char _binary_layer_1_ss_end;
+extern char _binary_layer_2_ss_start;
+extern char _binary_layer_2_ss_end;
 
 namespace meevax::kernel
 {
@@ -441,7 +441,8 @@ namespace meevax::kernel
       std::integral_constant<decltype(2), 2>)
   {
     static const std::string layer_1 {
-      &_binary_layer_1_ss_start, &_binary_layer_1_ss_end
+      &_binary_layer_2_ss_start,
+      &_binary_layer_2_ss_end
     };
 
     std::stringstream stream {layer_1};
