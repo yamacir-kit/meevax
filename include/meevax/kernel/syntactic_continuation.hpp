@@ -86,7 +86,7 @@ namespace meevax::kernel
     explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {
-      // boot(layer<0>);
+      boot(layer<0>);
     }
 
     template <auto N>
@@ -254,8 +254,7 @@ namespace meevax::kernel
 
       e = cons(operands, lexical_environment());
 
-      c = std::empty(changes) ? current_expression()
-                              : compile(cadr(operands)); // evaluate
+      c = current_expression();
 
       // std::cerr << ";\t\t; s = " << s << std::endl;
       // std::cerr << ";\t\t; e = " << e << std::endl;
@@ -334,8 +333,8 @@ namespace meevax::kernel
           car(operands));                                                      \
     })
 
-    DEFINE_PROCEDURE_X("evaluate", evaluate);
     DEFINE_PROCEDURE_X("compile",  compile);
+    DEFINE_PROCEDURE_X("evaluate", evaluate);
 
     #undef DEFINE_PROCEDURE_X
   }
@@ -473,7 +472,6 @@ namespace meevax::kernel
     std::integral_constant<decltype(1), 1>)
     : syntactic_continuation::syntactic_continuation {}
   {
-    boot(layer<0>);
     boot(layer<1>);
   }
 
