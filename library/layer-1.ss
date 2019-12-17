@@ -1623,33 +1623,23 @@
         (,set! ,x ,y)
         (,set! ,y ,temporary)))))
 
-; (define current-evaluator
-;   (lambda ()
-;     (let ((evaluator
-;             (call/csc
-;               (lambda (this)
-;                 (begin ; hacking
-;                   (define evaluate this))))))
-;       (evaluator) ; instantiation
-;       (values evaluator))))
-;
-; (define explicit-renaming-macro-transformer
-;   (lambda (transform)
-;     (call/csc
-;       (lambda expression
-;         (transform expression (current-evaluator) eq?)))))
-;
-; (define          er-macro-transformer
-;   explicit-renaming-macro-transformer)
-;
-; (define-syntax swap!
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (let ((a (cadr expression))
-;             (b (caddr expression)))
-;        `(,(rename 'let) ((,(rename 'value) ,a))
-;           (,(rename 'set!) ,a ,b)
-;           (,(rename 'set!) ,b ,(rename 'value)))))))
+(define explicit-renaming-macro-transformer
+  (lambda (transform)
+    (call/csc
+      (lambda expression
+        (transform expression evaluate eq?)))))
+
+(define          er-macro-transformer
+  explicit-renaming-macro-transformer)
+
+(define swap!
+  (er-macro-transformer
+    (lambda (expression rename compare)
+      (let ((a (cadr expression))
+            (b (caddr expression)))
+       `(,(rename 'let) ((,(rename 'value) ,a))
+          (,(rename 'set!) ,a ,b)
+          (,(rename 'set!) ,b ,(rename 'value)))))))
 
 (define loop
   (call/csc

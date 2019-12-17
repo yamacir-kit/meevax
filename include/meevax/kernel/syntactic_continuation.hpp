@@ -353,7 +353,7 @@ namespace meevax::kernel
     syntactic_continuation::boot(
       std::integral_constant<decltype(0), 0>)
   {
-    DEFINE_PROCEDURE_X("compile",  compile);
+    // DEFINE_PROCEDURE_X("compile",  compile);
     DEFINE_PROCEDURE_X("evaluate", evaluate);
 
     define<special>("export", [this](
@@ -435,11 +435,6 @@ namespace meevax::kernel
     });
   }
 
-
-  #undef DEFINE_SPECIAL
-  #undef DEFINE_PROCEDURE_X
-  #undef DEFINE_PROCEDURE_S
-
   template <>
   auto
     syntactic_continuation::boot(
@@ -469,6 +464,10 @@ namespace meevax::kernel
 
     std::cerr << std::endl;
   }
+
+  #undef DEFINE_SPECIAL
+  #undef DEFINE_PROCEDURE_X
+  #undef DEFINE_PROCEDURE_S
 
   template <>
   syntactic_continuation::syntactic_continuation(
