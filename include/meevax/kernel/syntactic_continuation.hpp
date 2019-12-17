@@ -33,6 +33,9 @@ namespace meevax::kernel
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
+  static constexpr auto only_program_structure_controllers {layer<0>};
+  static constexpr auto only_primitive_expression_types    {layer<1>};
+
   class syntactic_continuation
     /* =========================================================================
     *
@@ -83,7 +86,7 @@ namespace meevax::kernel
     explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {
-      define_expressions(layer<0>);
+      // boot(layer<0>);
     }
 
     template <auto N>
@@ -91,7 +94,7 @@ namespace meevax::kernel
 
   public: // Interfaces
     template <auto N>
-    auto define_expressions(std::integral_constant<decltype(N), N>);
+    auto boot(std::integral_constant<decltype(N), N>);
 
     // TODO Rename to "interaction_ready"
     auto ready() const noexcept
@@ -320,13 +323,26 @@ namespace meevax::kernel
 
   template <>
   auto
-    syntactic_continuation::define_expressions(
+    syntactic_continuation::boot(
       std::integral_constant<decltype(0), 0>)
-  {}
+  {
+    #define DEFINE_PROCEDURE_X(NAME, CALLEE)                                   \
+    define<procedure>(NAME, [this](auto&&, auto&& operands)                    \
+    {                                                                          \
+      return                                                                   \
+        CALLEE(                                                                \
+          car(operands));                                                      \
+    })
+
+    DEFINE_PROCEDURE_X("evaluate", evaluate);
+    DEFINE_PROCEDURE_X("compile",  compile);
+
+    #undef DEFINE_PROCEDURE_X
+  }
 
   template <>
   auto
-    syntactic_continuation::define_expressions(
+    syntactic_continuation::boot(
       std::integral_constant<decltype(1), 1>)
   {
     #define DEFINE_SPECIAL(NAME, RULE)                                         \
@@ -383,19 +399,6 @@ namespace meevax::kernel
 
     #undef DEFINE_SPECIAL
 
-    #define DEFINE_PROCEDURE_X(NAME, CALLEE)                                   \
-    define<procedure>(NAME, [this](auto&&, auto&& operands)                    \
-    {                                                                          \
-      return                                                                   \
-        CALLEE(                                                                \
-          car(operands));                                                      \
-    })
-
-    DEFINE_PROCEDURE_X("evaluate", evaluate);
-    DEFINE_PROCEDURE_X("compile",  compile);
-
-    #undef DEFINE_PROCEDURE_X
-
     #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                   \
     define<procedure>(NAME, [this](auto&&, auto&& operands)                    \
     {                                                                          \
@@ -437,7 +440,7 @@ namespace meevax::kernel
 
   template <>
   auto
-    syntactic_continuation::define_expressions(
+    syntactic_continuation::boot(
       std::integral_constant<decltype(2), 2>)
   {
     static const std::string layer_1 {
@@ -470,7 +473,8 @@ namespace meevax::kernel
     std::integral_constant<decltype(1), 1>)
     : syntactic_continuation::syntactic_continuation {}
   {
-    define_expressions(layer<1>);
+    boot(layer<0>);
+    boot(layer<1>);
   }
 
   template <auto N>
@@ -478,7 +482,7 @@ namespace meevax::kernel
     std::integral_constant<decltype(N), N>)
     : syntactic_continuation::syntactic_continuation {layer<N - 1>}
   {
-    define_expressions(layer<N>);
+    boot(layer<N>);
   }
 
   std::ostream& operator<<(std::ostream& os, const syntactic_continuation& syntactic_continuation)
