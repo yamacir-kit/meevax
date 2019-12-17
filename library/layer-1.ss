@@ -1408,15 +1408,17 @@
 ; TODO scheme-report-environment
 ; TODO null-environment
 
-(define current-lexical-environment
-  (call/csc
-    (lambda (this)
-     `(,cdar ,this))))
+(define current-lexical-environment ; deprecated
+  (lambda ()
+    (cdar (call/csc
+            (lambda ()
+             '())))))
 
-(define interaction-environment
-  (call/csc
-    (lambda (this)
-     `(,cdr ,this))))
+(define interaction-environment ; deprecated
+  (lambda ()
+    (cdr (call/csc
+           (lambda ()
+            '())))))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
@@ -1621,33 +1623,23 @@
         (,set! ,x ,y)
         (,set! ,y ,temporary)))))
 
-; (define current-evaluator
-;   (lambda ()
-;     (let ((evaluator
-;             (call/csc
-;               (lambda (this)
-;                 (begin ; hacking
-;                   (define evaluate this))))))
-;       (evaluator) ; instantiation
-;       (values evaluator))))
-;
-; (define explicit-renaming-macro-transformer
-;   (lambda (transform)
-;     (call/csc
-;       (lambda expression
-;         (transform expression (current-evaluator) eq?)))))
-;
-; (define          er-macro-transformer
-;   explicit-renaming-macro-transformer)
-;
-; (define-syntax swap!
-;   (explicit-renaming-macro-transformer
-;     (lambda (expression rename compare)
-;       (let ((a (cadr expression))
-;             (b (caddr expression)))
-;        `(,(rename 'let) ((,(rename 'value) ,a))
-;           (,(rename 'set!) ,a ,b)
-;           (,(rename 'set!) ,b ,(rename 'value)))))))
+(define explicit-renaming-macro-transformer
+  (lambda (transform)
+    (call/csc
+      (lambda expression
+        (transform expression evaluate eq?)))))
+
+(define          er-macro-transformer
+  explicit-renaming-macro-transformer)
+
+(define swap!
+  (er-macro-transformer
+    (lambda (expression rename compare)
+      (let ((a (cadr expression))
+            (b (caddr expression)))
+       `(,(rename 'let) ((,(rename 'value) ,a))
+          (,(rename 'set!) ,a ,b)
+          (,(rename 'set!) ,b ,(rename 'value)))))))
 
 (define loop
   (call/csc
@@ -1708,7 +1700,18 @@
     (lambda (this name . declarations)
      `(,define ,name
         (,call/csc
-          (,lambda (this) ,@declarations))))))
+          (,lambda (this . expression)
+            (,begin (,define ,name ,this))
+            ,@declarations
+            (,if (,null? expression) ,this
+                 (,begin
+                   (,display "; library\t; received expression " expression "\n")
+                   (,display ";\t\t; evaluate " (car expression) " (a.k.a rename)\n")
+                   (evaluate (,car expression))
+                   )
+              )
+            )))
+     )))
 
 ; (define export
 ;   (call/csc

@@ -165,7 +165,6 @@ namespace meevax::kernel
     *              | <assignment>
     *              | <derived expression>
     *
-    * TODO Change last boolean argument to template parameter (use if constexpr)
     *----------------------------------------------------------------------- */
     object compile(
       const object& expression,
@@ -308,8 +307,19 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) execute(const object& expression)
+    // XXX DO NOT USE THIS EXCEPT FOR THE EVALUATE PROCEDURE.
+    decltype(auto) execute_interrupt(const object& expression)
     {
+      push(
+        d,
+        s,
+        e,
+        cons(
+          make<instruction>(mnemonic::STOP),
+          c ? cdr(c) : c));
+
+      s = unit;
+      e = unit;
       c = expression;
 
       if (   static_cast<SyntacticContinuation&>(*this).verbose         == true_object
@@ -318,7 +328,13 @@ namespace meevax::kernel
         std::cerr << "; machine\t; " << c << std::endl;
       }
 
-      return execute();
+      const auto result {execute()};
+
+      s = pop(d);
+      e = pop(d);
+      c = pop(d);
+
+      return result;
     }
 
     object execute() // try
@@ -430,21 +446,16 @@ namespace meevax::kernel
       *
       */ TRACE(2);                                                            /*
       *
-      *                S  E (MAKE_SC code . C) D
+      *     (closure . S) E (MAKE_SC . C) D
       *
-      *  => (program . S) E                 C  D
+      *  => (program . S) E            C  D
       *
       *====================================================================== */
-        // s = cons(
-        //       make<SyntacticContinuation>(
-        //         cadr(c),
-        //         interaction_environment()),
-        //       s);
-        // c = cddr(c);
-        s = make<SyntacticContinuation>(
-              car(s),
-              interaction_environment())
-          | cdr(s);
+        push(
+          s,
+          make<SyntacticContinuation>(
+            pop(s), // XXX car(s)?
+            interaction_environment()));
         pop<1>(c);
         goto dispatch;
 
@@ -499,16 +510,16 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>())
-        {
-          s = cons(
-                callee.as<SyntacticContinuation>().expand(
-                  cons(
-                    car(s),
-                    cadr(s))),
-                cddr(s));
-          pop<1>(c);
-        }
+        // else if (callee.is<SyntacticContinuation>())
+        // {
+        //   s = cons(
+        //         callee.as<SyntacticContinuation>().expand(
+        //           cons(
+        //             car(s),
+        //             cadr(s))),
+        //         cddr(s));
+        //   pop<1>(c);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
@@ -541,16 +552,16 @@ namespace meevax::kernel
             | cddr(s);
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>())
-        {
-          s = cons(
-                callee.as<SyntacticContinuation>().expand(
-                  cons(
-                    car(s),
-                    cadr(s))),
-                cddr(s));
-          pop<1>(c);
-        }
+        // else if (callee.is<SyntacticContinuation>())
+        // {
+        //   s = cons(
+        //         callee.as<SyntacticContinuation>().expand(
+        //           cons(
+        //             car(s),
+        //             cadr(s))),
+        //         cddr(s));
+        //   pop<1>(c);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
         {
           s = cons(caadr(s), car(callee));
