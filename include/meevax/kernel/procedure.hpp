@@ -29,12 +29,12 @@ namespace meevax::kernel
     {}
   };
 
-  // XXX Symmetry breaking
   std::ostream& operator<<(std::ostream& os, const procedure& procedure)
   {
     return os << highlight::syntax << "#("
               << highlight::constructor << "procedure"
               << attribute::normal << " " << procedure.name
+              << highlight::comment << " #;" << &procedure << attribute::normal
               << highlight::syntax << ")"
               << attribute::normal;
   }

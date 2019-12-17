@@ -1408,15 +1408,17 @@
 ; TODO scheme-report-environment
 ; TODO null-environment
 
-(define current-lexical-environment
-  (call/csc
-    (lambda (this)
-     `(,cdar ,this))))
+(define current-lexical-environment ; deprecated
+  (lambda ()
+    (cdar (call/csc
+            (lambda ()
+             '())))))
 
-(define interaction-environment
-  (call/csc
-    (lambda (this)
-     `(,cdr ,this))))
+(define interaction-environment ; deprecated
+  (lambda ()
+    (cdr (call/csc
+           (lambda ()
+            '())))))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
@@ -1708,7 +1710,18 @@
     (lambda (this name . declarations)
      `(,define ,name
         (,call/csc
-          (,lambda (this) ,@declarations))))))
+          (,lambda (this . expression)
+            (,begin (,define ,name ,this))
+            ,@declarations
+            (,if (,null? expression) ,this
+                 (,begin
+                   (,display "; library\t; received expression " expression "\n")
+                   (,display ";\t\t; evaluate " (car expression) " (a.k.a rename)\n")
+                   (evaluate (,car expression))
+                   )
+              )
+            )))
+     )))
 
 ; (define export
 ;   (call/csc

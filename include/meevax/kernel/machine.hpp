@@ -165,7 +165,6 @@ namespace meevax::kernel
     *              | <assignment>
     *              | <derived expression>
     *
-    * TODO Change last boolean argument to template parameter (use if constexpr)
     *----------------------------------------------------------------------- */
     object compile(
       const object& expression,
@@ -308,8 +307,19 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) execute(const object& expression)
+    // XXX DO NOT USE THIS EXCEPT FOR THE EVALUATE PROCEDURE.
+    decltype(auto) execute_interrupt(const object& expression)
     {
+      push(
+        d,
+        s,
+        e,
+        cons(
+          make<instruction>(mnemonic::STOP),
+          c ? cdr(c) : c));
+
+      s = unit;
+      e = unit;
       c = expression;
 
       if (   static_cast<SyntacticContinuation&>(*this).verbose         == true_object
@@ -318,7 +328,13 @@ namespace meevax::kernel
         std::cerr << "; machine\t; " << c << std::endl;
       }
 
-      return execute();
+      const auto result {execute()};
+
+      s = pop(d);
+      e = pop(d);
+      c = pop(d);
+
+      return result;
     }
 
     object execute() // try

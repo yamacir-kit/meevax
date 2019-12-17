@@ -266,10 +266,14 @@ namespace meevax::kernel
       return result;
     }
 
+    // TODO CONVERT TO VM INSTRUCTION
     template <typename... Ts>
     decltype(auto) evaluate(Ts&&... operands)
     {
-      return execute(compile(std::forward<decltype(operands)>(operands)...));
+      return
+        execute_interrupt(
+          compile(
+            std::forward<decltype(operands)>(operands)...));
     }
 
     template <typename... Ts>
@@ -320,51 +324,39 @@ namespace meevax::kernel
     }
   };
 
+  #define DEFINE_SPECIAL(NAME, RULE)                                           \
+  define<special>(NAME, [this](auto&&... operands)                             \
+  {                                                                            \
+    return                                                                     \
+      RULE(                                                                    \
+        std::forward<decltype(operands)>(operands)...);                        \
+  })
+
+  #define DEFINE_PROCEDURE_X(NAME, CALLEE)                                     \
+  define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
+  {                                                                            \
+    return                                                                     \
+      CALLEE(                                                                  \
+        car(operands));                                                        \
+  })
+
+  #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                     \
+  define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
+  {                                                                            \
+    return                                                                     \
+      CALLEE(                                                                  \
+        car(operands).template as<const string>());                            \
+  })
+
   template <>
   auto
     syntactic_continuation::boot(
       std::integral_constant<decltype(0), 0>)
   {
-    #define DEFINE_PROCEDURE_X(NAME, CALLEE)                                   \
-    define<procedure>(NAME, [this](auto&&, auto&& operands)                    \
-    {                                                                          \
-      return                                                                   \
-        CALLEE(                                                                \
-          car(operands));                                                      \
-    })
-
     DEFINE_PROCEDURE_X("compile",  compile);
     DEFINE_PROCEDURE_X("evaluate", evaluate);
 
-    #undef DEFINE_PROCEDURE_X
-  }
-
-  template <>
-  auto
-    syntactic_continuation::boot(
-      std::integral_constant<decltype(1), 1>)
-  {
-    #define DEFINE_SPECIAL(NAME, RULE)                                         \
-    define<special>(NAME, [this](auto&&... operands)                           \
-    {                                                                          \
-      return                                                                   \
-        RULE(                                                                  \
-          std::forward<decltype(operands)>(operands)...);                      \
-    })
-
-    DEFINE_SPECIAL("begin",     sequence);
-    DEFINE_SPECIAL("define",    definition);
-    DEFINE_SPECIAL("if",        conditional);
-    DEFINE_SPECIAL("lambda",    lambda);
-    DEFINE_SPECIAL("quote",     quotation);
-    DEFINE_SPECIAL("reference", reference);
-    DEFINE_SPECIAL("set!",      assignment);
-
-    // DEFINE_SPECIAL("fork-with-current-sytanctic-continuation", fork);
-    DEFINE_SPECIAL("call-with-current-continuation",           call_cc);
-    DEFINE_SPECIAL("call-with-current-syntactic-continuation", call_csc);
-
-    define<special>("export", [&](
+    define<special>("export", [this](
       auto&& expression,
       auto&&,
       auto&& continuation,
@@ -395,23 +387,29 @@ namespace meevax::kernel
           make<instruction>(mnemonic::LOAD_LITERAL), identifiers, // TODO Change to current-syntactic-continuation (with std::make_shared_from_this)
           continuation);
     });
+  }
 
-    #undef DEFINE_SPECIAL
+  template <>
+  auto
+    syntactic_continuation::boot(
+      std::integral_constant<decltype(1), 1>)
+  {
+    DEFINE_SPECIAL("begin",     sequence);
+    DEFINE_SPECIAL("define",    definition);
+    DEFINE_SPECIAL("if",        conditional);
+    DEFINE_SPECIAL("lambda",    lambda);
+    DEFINE_SPECIAL("quote",     quotation);
+    DEFINE_SPECIAL("reference", reference);
+    DEFINE_SPECIAL("set!",      assignment);
 
-    #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                   \
-    define<procedure>(NAME, [this](auto&&, auto&& operands)                    \
-    {                                                                          \
-      return                                                                   \
-        CALLEE(                                                                \
-          car(operands).template as<const string>());                          \
-    })
+    // DEFINE_SPECIAL("fork-with-current-sytanctic-continuation", fork);
+    DEFINE_SPECIAL("call-with-current-continuation",           call_cc);
+    DEFINE_SPECIAL("call-with-current-syntactic-continuation", call_csc);
 
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<meevax::posix::linker>);
 
-    #undef DEFINE_PROCEDURE_S
-
-    define<procedure>("procedure-from", [&](auto&&, auto&& operands)
+    define<procedure>("procedure-from", [this](auto&&, auto&& operands)
     {
       const std::string name {cadr(operands).template as<string>()};
 
@@ -423,19 +421,24 @@ namespace meevax::kernel
               .template link<procedure::signature>(name));
     });
 
-    define<procedure>("read", [&](auto&&, auto&& operands)
+    define<procedure>("read", [this](auto&&, auto&& operands)
     {
       return
         read(
           operands ? car(operands).template as<input_file>() : std::cin);
     });
 
-    define<procedure>("write", [&](auto&&, auto&& operands)
+    define<procedure>("write", [this](auto&&, auto&& operands)
     {
       std::cout << car(operands);
       return unspecified;
     });
   }
+
+
+  #undef DEFINE_SPECIAL
+  #undef DEFINE_PROCEDURE_X
+  #undef DEFINE_PROCEDURE_S
 
   template <>
   auto
@@ -461,7 +464,7 @@ namespace meevax::kernel
 
       static constexpr auto cursor_up {"\x1b[1A"};
 
-      std::cerr << cursor_up << "\r" << std::flush;
+      std::cerr << cursor_up << "\r\x1b[K" << std::flush;
     }
 
     std::cerr << std::endl;
