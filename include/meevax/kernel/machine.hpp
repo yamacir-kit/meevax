@@ -342,6 +342,12 @@ namespace meevax::kernel
     object execute() // try
     {
     dispatch:
+      // std::cerr << "; s\t; " <<  s << std::endl;
+      // std::cerr << "; e\t; " <<  e << std::endl;
+      // std::cerr << "; c\t; " <<  c << std::endl;
+      // std::cerr << "; d\t; " <<  d << std::endl;
+      // std::cerr << std::endl;
+
       switch (car(c).template as<instruction>().code)
       {
       case mnemonic::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
@@ -753,7 +759,6 @@ namespace meevax::kernel
               car(expression),
               frames,
               continuation,
-              // as_tail_expression_of_program_declaration
               as_program_declaration);
         }
         else
@@ -780,8 +785,7 @@ namespace meevax::kernel
             compile(
               car(expression),
               frames,
-              continuation,
-              as_tail_expression);
+              continuation);
         }
         else
         {

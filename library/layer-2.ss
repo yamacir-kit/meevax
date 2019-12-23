@@ -184,12 +184,12 @@
   (fork/csc
     (lambda (and . tests)
       (conditional
-        ((null? tests) #true) ; TODO
+        ((null? tests))
         ((null? (cdr tests)) (car tests))
-        (#true ; else
-          (list if (car tests)
-                   (cons and (cdr tests))
-                   #false))))))
+        (else
+         (list if (car tests)
+                  (cons and (cdr tests))
+                  #false))))))
 
 (define or
   (call/csc
