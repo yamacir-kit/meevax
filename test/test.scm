@@ -143,10 +143,9 @@
         ((< 3 3) 'less)
         (else 'equal)))
 
-; (expect
-;   (cond ((assv 'b '((a 1) (b 2))) => cadr)
-;         (else #f))
-;   2)
+(expect 2
+  (cond ((assv 'b '((a 1) (b 2))) => cadr)
+        (else #f)))
 
 (expect composite
   (case (* 2 3)

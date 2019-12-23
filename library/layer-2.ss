@@ -1,4 +1,6 @@
 (define call/csc call-with-current-syntactic-continuation)
+(define fork-with-current-syntactic-continuation call/csc)
+(define fork/csc fork-with-current-syntactic-continuation)
 
 (define identity
   (lambda (x) x))
@@ -153,21 +155,18 @@
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-; (define then begin)
-; (define else begin)
-
 (define conditional
-  (call/csc
+  (fork/csc
     (lambda (conditional . clauses)
       (if (null? clauses)
-          (unspecified)
+          (if #false #false)
           ((lambda (clause)
-             (if (eq? else (car clause))
+             (if (eqv? else (car clause))
                  (if (pair? (cdr clauses))
-                     (error "")
+                     (error "else clause must be at the end of conditional clause")
                      (cons begin (cdr clause)))
                  (if (if (null? (cdr clause)) #true
-                         (eq? => (cadr clause)))
+                         (eqv? => (cadr clause)))
                      (list (list lambda (list result)
                                  (list if result
                                        (if (null? (cdr clause)) result
@@ -175,19 +174,19 @@
                                        (cons conditional (cdr clauses))))
                            (car clause))
                      (list if (car clause)
-                           (cons begin (cdr clause))
-                           (cons conditional (cdr clauses))))))
+                              (cons begin (cdr clause))
+                              (cons conditional (cdr clauses))))))
            (car clauses))))))
 
 (define cond conditional)
 
 (define and
-  (call/csc
+  (fork/csc
     (lambda (and . tests)
       (conditional
-        ((null? tests) #true)
+        ((null? tests) #true) ; TODO
         ((null? (cdr tests)) (car tests))
-        (else
+        (#true ; else
           (list if (car tests)
                    (cons and (cdr tests))
                    #false))))))
@@ -198,7 +197,7 @@
       (conditional
         ((null? tests) #false)
         ((null? (cdr tests)) (car tests))
-        (else
+        (#true ; else
           ; (list (list lambda (list result thunk)
           ;             (list if result result (list thunk)))
           ;       (car tests)
@@ -1700,16 +1699,16 @@
     (lambda (this name . declarations)
      `(,define ,name
         (,call/csc
-          (,lambda (this . expression)
+          (,lambda (,this . ,expression)
             (,begin (,define ,name ,this))
             ,@declarations
-            (,if (,null? expression) ,this
+            (,if (,null? ,expression) ,this
                  (,begin
-                   (,display "; library\t; received expression " expression "\n")
-                   (,display ";\t\t; evaluate " (car expression) " (a.k.a rename)\n")
-                   (evaluate (,car expression))
+                   (,display "; library\t; received expression " ,expression "\n")
+                   (,display ";\t\t; evaluate " (,car ,expression) " (a.k.a rename)\n")
+                   (evaluate (,car ,expression))
                    )
-              )
+                 )
             )))
      )))
 

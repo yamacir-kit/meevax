@@ -33,9 +33,6 @@ namespace meevax::kernel
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
-  static constexpr auto only_program_structure_controllers {layer<0>};
-  static constexpr auto only_primitive_expression_types    {layer<1>};
-
   class syntactic_continuation
     /* =========================================================================
     *
@@ -92,10 +89,10 @@ namespace meevax::kernel
     template <auto N>
     explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
 
-  public: // Interfaces
     template <auto N>
     auto boot(std::integral_constant<decltype(N), N>);
 
+  public: // Interfaces
     // TODO Rename to "interaction_ready"
     auto ready() const noexcept
     {
@@ -110,22 +107,14 @@ namespace meevax::kernel
       }
       else
       {
-        const auto [position, success] {
-          symbols.emplace(
-            s,
-            make<symbol>(s))
-        };
-
+        const auto [position, success] {symbols.emplace(s, make<symbol>(s))};
         assert(success);
         return (*position).second;
       }
     }
 
     template <typename... Ts>
-    const auto&
-      change(
-        const object& identifier,
-        Ts&&... operands)
+    const auto& change(const object& identifier, Ts&&... operands)
     {
       changes.erase(identifier);
 
@@ -137,13 +126,6 @@ namespace meevax::kernel
 
       assert(success);
       return (*position).second;
-    }
-
-    const auto&
-      stage(
-        const object& identifier)
-    {
-      return identifier;
     }
 
     template <typename T, typename... Ts>
@@ -362,29 +344,44 @@ namespace meevax::kernel
       auto&& continuation,
       auto&&)
     {
-      std::cerr << "; export\t; export-set = " << expression << std::endl;
-
-      for (const auto& each : expression)
+      // XXX DIRTY HACK
+      if (verbose == true_object or verbose_compiler == true_object)
       {
-        std::cerr << ";\t\t; staging " << each << std::endl;
-        external_symbols.emplace(
-          write(std::stringstream {}, each).str(),
-          each);
+        std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")
+                  << std::string(depth * 2, ' ')
+                  << expression
+                  << highlight::comment << " is <export specs>"
+                  << attribute::normal << std::endl;
       }
 
-      const auto identifiers {
-        std::accumulate(
-          std::begin(external_symbols), std::end(external_symbols),
-          unit,
-          [](auto&& value, auto&& pare)
-          {
-            return cons(pare.second, value);
-          })
+      static auto exportation = [this](auto&&, auto&& operands) mutable
+      {
+        std::cerr << "; export\t; exporting " << operands << std::endl;
+
+        for (const auto& each : operands)
+        {
+          std::cerr << ";\t\t; staging " << each << std::endl;
+
+          external_symbols.emplace(
+            write(std::stringstream {}, each).str(),
+            each);
+        }
+
+        std::cerr << "; export\t; exported identifiers are" << std::endl;
+
+        for (const auto& [key, value] : external_symbols)
+        {
+          std::cerr << ";\t\t;   " << value << std::endl;
+        }
+
+        return unspecified;
       };
 
       return
         cons(
-          make<instruction>(mnemonic::LOAD_LITERAL), identifiers, // TODO Change to current-syntactic-continuation (with std::make_shared_from_this)
+          make<instruction>(mnemonic::LOAD_LITERAL), expression,
+          make<instruction>(mnemonic::LOAD_LITERAL), make<procedure>("export", exportation),
+          make<instruction>(mnemonic::APPLY),
           continuation);
     });
   }

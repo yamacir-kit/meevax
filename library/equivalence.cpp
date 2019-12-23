@@ -11,8 +11,8 @@ extern "C" namespace meevax::equivalence
 
   PROCEDURE(equivalent)
   {
-    if (const kernel::object& object1 {kernel::car(operands)},
-                              object2 {kernel::cadr(operands)};
+    if (const kernel::object object1 {kernel::car(operands)},
+                             object2 {kernel::cadr(operands)};
         object1 == object2)
     {
       return kernel::true_object;

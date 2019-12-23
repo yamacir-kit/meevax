@@ -272,7 +272,9 @@ namespace meevax::kernel
 
           const auto expanded {
             applicant.as<SyntacticContinuation>().expand(
-              expression)
+              cons(
+                applicant,
+                cdr(expression)))
           };
 
           DEBUG_MACROEXPAND(expanded << std::endl);
@@ -744,9 +746,6 @@ namespace meevax::kernel
     {
       if (in_a.program_declaration)
       {
-        // std::cerr << "COMPILING SEQUENCE IN A PROGRAM DECLARATION"
-        //           << std::endl;
-
         if (not cdr(expression))
         {
           return
@@ -1129,7 +1128,7 @@ namespace meevax::kernel
                   make<instruction>(mnemonic::RETURN)),
                 as_tail_expression)
             : list(
-                make<instruction>(mnemonic::LOAD_LITERAL), undefined,
+                make<instruction>(mnemonic::LOAD_LITERAL), unspecified,
                 make<instruction>(mnemonic::RETURN))
         };
 
@@ -1160,7 +1159,7 @@ namespace meevax::kernel
                 list(
                   make<instruction>(mnemonic::JOIN)))
             : list(
-                make<instruction>(mnemonic::LOAD_LITERAL), undefined,
+                make<instruction>(mnemonic::LOAD_LITERAL), unspecified,
                 make<instruction>(mnemonic::JOIN))
         };
 
