@@ -11,6 +11,7 @@ namespace meevax::kernel
   const object undefined {make<exception>("undefined")};
   const object unspecified {make<exception>("unspecified")};
 
+  // TODO REMOVE THIS
   const object true_object {make<boolean>(true)};
   const object false_object {make<boolean>(false)};
 
