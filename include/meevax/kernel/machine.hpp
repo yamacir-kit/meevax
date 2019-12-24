@@ -17,7 +17,7 @@ inline namespace ugly_macros
 
   #define TRACE(N)                                                             \
   if (const auto& config {static_cast<SyntacticContinuation&>(*this)};         \
-      config.trace == true_object)                                             \
+      config.trace.equivalent_to(true_object))                                 \
   {                                                                            \
     std::cerr << "; machine\t; \x1B[?7l"                                       \
               << take(c, N)                                                    \
@@ -27,8 +27,8 @@ inline namespace ugly_macros
 
   #define IF_VERBOSE_COMPILER()                                                \
   if (const auto& config {static_cast<SyntacticContinuation&>(*this)};         \
-         config.verbose          == true_object                                \
-      or config.verbose_compiler == true_object)
+         config.verbose         .equivalent_to(true_object)                    \
+      or config.verbose_compiler.equivalent_to(true_object))
 
   #define DEBUG_COMPILE(...)                                                   \
   IF_VERBOSE_COMPILER()                                                        \
@@ -40,7 +40,8 @@ inline namespace ugly_macros
 
   // TODO REMOVE THIS!!!
   #define DEBUG_COMPILE_SYNTAX(...)                                            \
-  if (verbose == true_object or verbose_compiler == true_object)               \
+  if (   verbose         .equivalent_to(true_object)                           \
+      or verbose_compiler.equivalent_to(true_object))                          \
   {                                                                            \
     std::cerr << (depth ? "; compile\t; " : ";\t\t; ")                         \
               << std::string(depth * 2, ' ')                                   \
@@ -120,8 +121,8 @@ namespace meevax::kernel
             std::forward<decltype(operands)>(operands)...)));
 
       if (const auto& config {static_cast<SyntacticContinuation&>(*this)};
-             config.verbose        == true_object
-          or config.verbose_define == true_object)
+             config.verbose       .equivalent_to(true_object)
+          or config.verbose_define.equivalent_to(true_object))
       {
         std::cerr << "; define\t; "
                   << caar(interaction_environment())
@@ -324,8 +325,8 @@ namespace meevax::kernel
       e = unit;
       c = expression;
 
-      if (   static_cast<SyntacticContinuation&>(*this).verbose         == true_object
-          or static_cast<SyntacticContinuation&>(*this).verbose_machine == true_object)
+      if (   static_cast<SyntacticContinuation&>(*this).verbose        .equivalent_to(true_object)
+          or static_cast<SyntacticContinuation&>(*this).verbose_machine.equivalent_to(true_object))
       {
         std::cerr << "; machine\t; " << c << std::endl;
       }
@@ -398,8 +399,8 @@ namespace meevax::kernel
         {
           // throw evaluation_error {cadr(c), " is unbound"};
 
-          if (   static_cast<SyntacticContinuation&>(*this).verbose == true_object
-              or static_cast<SyntacticContinuation&>(*this).verbose_machine == true_object)
+          if (   static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)
+              or static_cast<SyntacticContinuation&>(*this).verbose_machine.equivalent_to(true_object))
           {
             std::cerr << "; machine\t; instruction "
                       << car(c)
@@ -471,12 +472,14 @@ namespace meevax::kernel
         TRACE(3);
         push(d, cdddr(c));
         c = car(s) != false_object ? cadr(c) : caddr(c);
+        // c = car(s).equivalent_to(true_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
       case mnemonic::SELECT_TAIL:
         TRACE(3);
         c = car(s) != false_object ? cadr(c) : caddr(c);
+        // c = car(s).equivalent_to(true_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 

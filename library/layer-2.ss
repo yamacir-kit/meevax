@@ -119,7 +119,7 @@
 
 (define null?
   (lambda (x)
-    (eq? x '())))
+    (eqv? x '())))
 
 (define list
   (lambda x x))
@@ -1002,7 +1002,7 @@
 
 (define boolean=?
   (lambda (x y . xs)
-    (and (eq? x y)
+    (and (eqv? x y)
          (if (pair? xs)
              (apply boolean=? y xs)
              #true))))

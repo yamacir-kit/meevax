@@ -227,6 +227,10 @@ namespace meevax::kernel
         }
         else
         {
+          std::cerr << "; warning\t; equivalence comparison for type "
+                    << utility::demangle(type())
+                    << " is undefined (always return #false)"
+                    << std::endl;
           return false;
         }
       }

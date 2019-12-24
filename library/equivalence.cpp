@@ -17,7 +17,11 @@ extern "C" namespace meevax::equivalence
     {
       return kernel::true_object;
     }
-    else if (!object1 or !object2)
+    else if (not object1 and not object2)
+    {
+      return kernel::true_object;
+    }
+    else if (not object1 or not object2)
     {
       return kernel::false_object;
     }

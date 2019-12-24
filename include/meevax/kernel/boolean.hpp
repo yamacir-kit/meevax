@@ -7,6 +7,8 @@ namespace meevax::kernel
 {
   struct boolean
   {
+    using identity = boolean;
+
     const bool data;
 
     explicit constexpr operator bool() const noexcept
@@ -14,7 +16,12 @@ namespace meevax::kernel
       return data;
     }
 
-    friend auto operator<<(std::ostream& os, const boolean& boolean)
+    friend auto operator==(const identity& lhs, const identity& rhs)
+    {
+      return lhs.data == rhs.data;
+    }
+
+    friend auto operator<<(std::ostream& os, const identity& boolean)
       -> decltype(os)
     {
       return os << highlight::simple_datum

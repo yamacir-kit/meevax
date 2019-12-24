@@ -313,7 +313,7 @@ namespace meevax::kernel
         return discriminate(stream);
 
       default:
-        if (static_cast<const Environment&>(*this).rune_magic == true_object) switch (*head)
+        if (static_cast<const Environment&>(*this).rune_magic.equivalent_to(true_object)) switch (*head)
         {
         case 'A': // Assignment
           {
