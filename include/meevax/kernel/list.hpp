@@ -5,7 +5,6 @@
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/pair.hpp>
 
 #include <meevax/lambda/compose.hpp>

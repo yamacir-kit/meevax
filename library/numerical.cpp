@@ -59,35 +59,35 @@ extern "C" namespace meevax::numerical
   PROCEDURE(less)
   {
     return
-      MEEVAX_BOOLEAN(
+      MEEVAX_API_BOOLEAN(
         MEEVAX_BINARY_OPERATION(std::less {}));
   }
 
   PROCEDURE(less_equal)
   {
     return
-      MEEVAX_BOOLEAN(
+      MEEVAX_API_BOOLEAN(
         MEEVAX_BINARY_OPERATION(std::less_equal {}));
   }
 
   PROCEDURE(greater)
   {
     return
-      MEEVAX_BOOLEAN(
+      MEEVAX_API_BOOLEAN(
         MEEVAX_BINARY_OPERATION(std::greater {}));
   }
 
   PROCEDURE(greater_equal)
   {
     return
-      MEEVAX_BOOLEAN(
+      MEEVAX_API_BOOLEAN(
         MEEVAX_BINARY_OPERATION(std::greater_equal {}));
   }
 
   PROCEDURE(real_)
   {
     return
-      MEEVAX_BOOLEAN(
+      MEEVAX_API_BOOLEAN(
         kernel::car(operands).is<kernel::real>());
   }
 } // extern "C"

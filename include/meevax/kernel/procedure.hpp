@@ -21,7 +21,7 @@ namespace meevax::kernel
     const std::string name;
 
     template <typename... Ts>
-    procedure(const std::string& name, Ts&&... operands)
+    explicit procedure(const std::string& name, Ts&&... operands)
       : std::function<PROCEDURE()> {
           std::forward<decltype(operands)>(operands)...
         }
@@ -40,18 +40,19 @@ namespace meevax::kernel
   }
 } // namespace meevax::kernel
 
-namespace meevax::for_api
-{
-  #define MEEVAX_BOOLEAN(...) \
+#define MEEVAX_API_BOOLEAN(...)                                                \
   (__VA_ARGS__ ? meevax::kernel::true_object : meevax::kernel::false_object)
 
-  // TODO Rename simply "MEEVAX_FOLD"
-  #define MEEVAX_FOLD_ARGUMENTS(INIT, ...) \
-  std::accumulate(std::begin(operands), std::end(operands), INIT, __VA_ARGS__)
+#define MEEVAX_TYPE_PREDICATE(...)                                             \
+  MEEVAX_API_BOOLEAN(                                                          \
+    meevax::kernel::car(operands).is<__VA_ARGS__>())
 
-  #define MEEVAX_BINARY_OPERATION(...) \
-  std::invoke(__VA_ARGS__, meevax::kernel::car(operands), meevax::kernel::cadr(operands))
-} // namespace meevax::for_api
+// TODO Rename simply "MEEVAX_FOLD"
+#define MEEVAX_FOLD_ARGUMENTS(INIT, ...) \
+std::accumulate(std::begin(operands), std::end(operands), INIT, __VA_ARGS__)
+
+#define MEEVAX_BINARY_OPERATION(...) \
+std::invoke(__VA_ARGS__, meevax::kernel::car(operands), meevax::kernel::cadr(operands))
 
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
