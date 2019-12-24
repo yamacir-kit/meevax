@@ -32,10 +32,8 @@ namespace meevax::kernel
     }
   };
 
-  // static const object true_object {make<boolean>(true)};
-  // static const object false_object {make<boolean>(false)};
-  extern "C" const object true_object;
-  extern "C" const object false_object;
+  static const object true_object {make<boolean>(true)};
+  static const object false_object {make<boolean>(false)};
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP

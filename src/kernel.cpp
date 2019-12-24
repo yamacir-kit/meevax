@@ -11,10 +11,6 @@ namespace meevax::kernel
   const object undefined {make<exception>("undefined")};
   const object unspecified {make<exception>("unspecified")};
 
-  // TODO REMOVE THIS
-  const object true_object {make<boolean>(true)};
-  const object false_object {make<boolean>(false)};
-
   const std::unordered_map<std::string, object> characters
   {
     {"end-of-file", make<character>(std::to_string(EOF), "end-of-file")},
