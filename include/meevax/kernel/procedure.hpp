@@ -43,13 +43,12 @@ namespace meevax::kernel
 #define MEEVAX_API_BOOLEAN(...)                                                \
   (__VA_ARGS__ ? meevax::kernel::true_object : meevax::kernel::false_object)
 
-#define MEEVAX_TYPE_PREDICATE(...)                                             \
+#define MEEVAX_API_TYPE_PREDICATE(...)                                         \
   MEEVAX_API_BOOLEAN(                                                          \
     meevax::kernel::car(operands).is<__VA_ARGS__>())
 
-// TODO Rename simply "MEEVAX_FOLD"
-#define MEEVAX_FOLD_ARGUMENTS(INIT, ...) \
-std::accumulate(std::begin(operands), std::end(operands), INIT, __VA_ARGS__)
+#define MEEVAX_API_FOLD(X, ...)                                                \
+  std::accumulate(std::begin(X), std::end(X), __VA_ARGS__)
 
 #define MEEVAX_BINARY_OPERATION(...) \
 std::invoke(__VA_ARGS__, meevax::kernel::car(operands), meevax::kernel::cadr(operands))

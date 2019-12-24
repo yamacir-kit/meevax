@@ -9,15 +9,15 @@ extern "C" namespace meevax::numerical
   PROCEDURE(addition)
   {
     return
-      MEEVAX_FOLD_ARGUMENTS(
-        kernel::make<kernel::real>(0), std::plus {});
+      MEEVAX_API_FOLD(
+        operands, kernel::make<kernel::real>(0), std::plus {});
   }
 
   PROCEDURE(multiplication)
   {
     return
-      MEEVAX_FOLD_ARGUMENTS(
-        kernel::make<kernel::real>(1), std::multiplies {});
+      MEEVAX_API_FOLD(
+        operands, kernel::make<kernel::real>(1), std::multiplies {});
   }
 
   PROCEDURE(subtraction)
@@ -25,8 +25,8 @@ extern "C" namespace meevax::numerical
     if (kernel::length(operands) < 2)
     {
       return
-        MEEVAX_FOLD_ARGUMENTS(
-          kernel::make<kernel::real>(0), std::minus {});
+        MEEVAX_API_FOLD(
+          operands, kernel::make<kernel::real>(0), std::minus {});
     }
     else
     {
@@ -43,8 +43,8 @@ extern "C" namespace meevax::numerical
     if (kernel::length(operands) < 2)
     {
       return
-        MEEVAX_FOLD_ARGUMENTS(
-          kernel::make<kernel::real>(1), std::divides {});
+        MEEVAX_API_FOLD(
+          operands, kernel::make<kernel::real>(1), std::divides {});
     }
     else
     {

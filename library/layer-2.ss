@@ -1162,11 +1162,8 @@
 (define string?
   (procedure-from string.so "is_string"))
 
-(define character-pair
-  (procedure-from string.so "character_pair"))
-
-(define character-cons character-pair)
-(define char-cons character-cons)
+(define ccons
+  (procedure-from string.so "ccons"))
 
 (define make-string
   (lambda (k . x)
@@ -1175,7 +1172,7 @@
                 (result '()))
         (if (<= k 0) result
             (rec (- k 1)
-                 (character-cons default result)))))))
+                 (ccons default result)))))))
 
 (define string
   (lambda xs
@@ -1188,9 +1185,9 @@
     (if (null? x)
        '()
         (if (pair? x)
-            (character-cons (car x)
-                            (list->string (cdr x)))
-            (character-cons x '())))))
+            (ccons (car x)
+                   (list->string (cdr x)))
+            (ccons x '())))))
 
 (define string-from-number
   (procedure-from string.so "string_from_number"))
@@ -1272,8 +1269,8 @@
 (define string-append-2
   (lambda (x y)
     (if (null? x) y
-        (character-cons (car x)
-                        (string-append-2 (cdr x) y)))))
+        (ccons (car x)
+               (string-append-2 (cdr x) y)))))
 
 (define string-reverse
   (lambda (x)
