@@ -471,15 +471,15 @@ namespace meevax::kernel
       case mnemonic::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         TRACE(3);
         push(d, cdddr(c));
-        c = car(s) != false_object ? cadr(c) : caddr(c);
-        // TODO c = car(s).equivalent_to(true_object) ? cadr(c) : caddr(c);
+        // c = car(s) != false_object ? cadr(c) : caddr(c);
+        c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
       case mnemonic::SELECT_TAIL:
         TRACE(3);
-        c = car(s) != false_object ? cadr(c) : caddr(c);
-        // TODO c = car(s).equivalent_to(true_object) ? cadr(c) : caddr(c);
+        // c = car(s) != false_object ? cadr(c) : caddr(c);
+        c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
