@@ -153,7 +153,7 @@
 
 namespace meevax::kernel
 {
-  /* ==== Cxr Library Procedures ==============================================
+  /* ==== Cxr Library Procedures ===============================================
   *
   * Arbitrary compositions up to four deep are provided.
   *

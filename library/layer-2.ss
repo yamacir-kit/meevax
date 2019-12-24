@@ -228,15 +228,15 @@
         (lambda (e depth)
           (if (not (pair? e))
               (list 'quote e)
-              (if (eq? (car e) 'quasiquote)
+              (if (eqv? (car e) 'quasiquote)
                   (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
-                  (if (eq? (car e) 'unquote)
+                  (if (eqv? (car e) 'unquote)
                       (if (< 0 depth)
                           (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
                           (if (and (not (null? (cdr e))) (null? (cddr e)))
                               (cadr e)
                               (error "illegal unquote")))
-                      (if (eq? (car e) 'unquote-splicing)
+                      (if (eqv? (car e) 'unquote-splicing)
                           (if (< 0 depth)
                               (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
                               (error "illegal unquote-splicing"))
@@ -247,13 +247,13 @@
         (lambda (e depth)
           (if (not (pair? e))
               (list 'quote (list e))
-              (if (eq? (car e) 'quasiquote)
+              (if (eqv? (car e) 'quasiquote)
                   (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
-                  (if (eq? (car e) 'unquote)
+                  (if (eqv? (car e) 'unquote)
                       (if (< 0 depth)
                           (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
                           (cons 'list (cdr e)))
-                      (if (eq? (car e) 'unquote-splicing)
+                      (if (eqv? (car e) 'unquote-splicing)
                           (if (< 0 depth)
                               (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
                               (cons 'append (cdr e)))
@@ -997,8 +997,8 @@
 
 (define boolean?
   (lambda (x)
-    (or (eq? x #true)
-        (eq? x #false))))
+    (or (eqv? x #true)
+        (eqv? x #false))))
 
 (define boolean=?
   (lambda (x y . xs)
@@ -1129,10 +1129,10 @@
 
 (define whitespace-character?
   (lambda (x)
-    (or (eq? x #\space)
-        (eq? x #\tab)
-        (eq? x #\newline)
-        (eq? x #\return))))
+    (or (eqv? x #\space)
+        (eqv? x #\tab)
+        (eqv? x #\newline)
+        (eqv? x #\return))))
 
 (define char-whitespace? whitespace-character?) ;                  (scheme char)
 
@@ -1505,7 +1505,7 @@
 
 (define eof-object?
   (lambda (x)
-    (eq? x #\end-of-file)))
+    (eqv? x #\end-of-file)))
 
 ; TODO eof-object
 
