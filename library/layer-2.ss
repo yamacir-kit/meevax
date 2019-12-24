@@ -1626,7 +1626,7 @@
   (lambda (transform)
     (call/csc
       (lambda expression
-        (transform expression evaluate eq?)))))
+        (transform expression evaluate eqv?)))))
 
 (define          er-macro-transformer
   explicit-renaming-macro-transformer)

@@ -339,7 +339,7 @@ namespace meevax::kernel
       return result;
     }
 
-    object execute() // try
+    object execute()
     {
     dispatch:
       // std::cerr << "; s\t; " <<  s << std::endl;
@@ -671,61 +671,22 @@ namespace meevax::kernel
         return pop(s); // car(s);
       }
     }
-    // catch (const kernel_error_about_pair& error)
-    // {
-    //   std::cerr << "; machine\t; internal-error occured" << std::endl;
-    //
-    //   std::cerr << ";\t\t; main stack" << std::endl;
-    //
-    //   for (const auto& formal : s)
-    //   {
-    //     std::cerr << ";\t\t;   (";
-    //
-    //     for (const auto& value : formal)
-    //     {
-    //       std::cerr << value << std::endl << ";\t\t;    ";
-    //     }
-    //
-    //     std::cerr << ")" << std::endl;
-    //   }
-    //
-    //   std::cerr << ";\t\t; environment stack " << std::endl;
-    //
-    //   for (const auto& each : e)
-    //   {
-    //     std::cerr << ";\t\t;   " << each << std::endl;
-    //   }
-    //
-    //   std::cerr << ";\t\t; control stack" << std::endl;
-    //
-    //   for (const auto& each : c)
-    //   {
-    //     std::cerr << ";\t\t;   " << each << std::endl;
-    //   }
-    //
-    //   std::cerr << ";\t\t; dump stack" << std::endl;
-    //
-    //   for (const auto& each : d)
-    //   {
-    //     std::cerr << ";\t\t;   " << each << std::endl;
-    //   }
-    //
-    //   std::cerr << "; system\t; exit" << std::endl;
-    //   std::exit(boost::exit_exception_failure);
-    // }
 
-  protected:
+  protected: // Primitive Expression Types
+    #define DEFINE_PREMITIVE_EXPRESSION(NAME, ...)                             \
+    const object NAME(                                                         \
+      [[maybe_unused]] const object& expression,                               \
+      [[maybe_unused]] const object& frames,                                   \
+      [[maybe_unused]] const object& continuation,                             \
+      [[maybe_unused]] const compilation_context in_a = as_is)                 \
+    __VA_ARGS__
+
     /* ==== Quotation =========================================================
     *
     * <quotation> = (quote <datum>)
     *
     *======================================================================== */
-    const object
-      quotation(
-        const object& expression,
-        const object&,
-        const object& continuation,
-        const compilation_context = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(quotation,
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <datum>"
@@ -734,7 +695,7 @@ namespace meevax::kernel
         cons(
           make<instruction>(mnemonic::LOAD_LITERAL), car(expression),
           continuation);
-    }
+    })
 
     /* ==== Sequence ==========================================================
     *
@@ -743,12 +704,7 @@ namespace meevax::kernel
     * <command> = <expression>
     *
     *======================================================================== */
-    const object
-      sequence(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context in_a = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(sequence,
     {
       if (in_a.program_declaration)
       {
@@ -801,26 +757,15 @@ namespace meevax::kernel
                   continuation)));
         }
       }
-    }
+    })
 
     /* ==== Definition ========================================================
     *
     * <definition> = (define <identifier> <expression>)
     *
     *======================================================================== */
-    const object
-      definition(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context in_a = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(definition,
     {
-      // if (in_a.program_declaration)
-      // {
-      //   std::cerr << "COMPILING DEFINITION IN A PROGRAM DECLARATION"
-      //             << std::endl;
-      // }
-
       if (not frames or in_a.program_declaration)
       {
         DEBUG_COMPILE(
@@ -847,19 +792,14 @@ namespace meevax::kernel
         //       make<instruction>(mnemonic::DEFINE), car(expression),
         //       continuation));
       }
-    }
+    })
 
     /* ==== Lambda Body =======================================================
     *
     * <body> = <definition>* <sequence>
     *
     *======================================================================== */
-    const object
-      body(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context in_a = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(body,
     {
       /* ----------------------------------------------------------------------
       *
@@ -1059,19 +999,14 @@ namespace meevax::kernel
             frames,
             continuation);
       }
-    }
+    })
 
     /* ==== Operand ===========================================================
     *
     * <operand> = <expression>
     *
     *======================================================================== */
-    const object
-      operand(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(operand,
     {
       if (expression and expression.is<pair>())
       {
@@ -1094,19 +1029,14 @@ namespace meevax::kernel
             frames,
             continuation);
       }
-    }
+    })
 
     /* ==== Conditional =======================================================
     *
     * <conditional> = (if <test> <consequent> <alternate>)
     *
     *======================================================================== */
-    const object
-      conditional(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context in_a = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(conditional,
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <test>"
@@ -1175,19 +1105,14 @@ namespace meevax::kernel
               make<instruction>(mnemonic::SELECT), consequent, alternate,
               continuation));
       }
-    }
+    })
 
     /* ==== Lambda Expression =================================================
     *
     * <lambda expression> = (lambda <formals> <body>)
     *
     *======================================================================== */
-    const object
-      lambda(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context in_a = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(lambda,
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <formals>"
@@ -1205,19 +1130,14 @@ namespace meevax::kernel
               make<instruction>(mnemonic::RETURN)),
             in_a.program_declaration ? as_program_declaration : as_is),
           continuation);
-    }
+    })
 
     /* ==== Call-With-Current-Continuation ====================================
     *
     * TODO documentation
     *
     *======================================================================== */
-    const object
-      call_cc(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(call_cc,
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <procedure>"
@@ -1232,7 +1152,7 @@ namespace meevax::kernel
             cons(
               make<instruction>(mnemonic::APPLY),
               continuation)));
-    }
+    })
 
     /* ==== Program ===========================================================
     *
@@ -1317,12 +1237,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    const object
-      call_csc(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(call_csc,
     {
       DEBUG_COMPILE(
         car(expression) << highlight::comment << "\t; is <subprogram>"
@@ -1335,7 +1250,7 @@ namespace meevax::kernel
             make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
             continuation),
           as_program_declaration);
-    }
+    })
 
     /* ==== Fork ==============================================================
     *
@@ -1369,12 +1284,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    const object
-      assignment(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(assignment,
     {
       DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
 
@@ -1425,19 +1335,14 @@ namespace meevax::kernel
               car(expression),
               continuation));
       }
-    }
+    })
 
     /* ==== Explicit Variable Reference =======================================
     *
     * TODO
     *
     *======================================================================== */
-    const object
-      reference(
-        const object& expression,
-        const object& frames,
-        const object& continuation,
-        const compilation_context = as_is)
+    DEFINE_PREMITIVE_EXPRESSION(reference,
     {
       DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
 
@@ -1486,7 +1391,7 @@ namespace meevax::kernel
             make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
             continuation);
       }
-    }
+    })
   };
 } // namespace meevax::kernel
 

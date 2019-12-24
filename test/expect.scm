@@ -8,7 +8,7 @@
         (,if (,equal? ,result ',expects)
              (,begin (,set! passed (,+ passed 1))
                      ,result)
-             (,begin (,display "; test          ; expected ")
+             (,begin (,display "; test\t\t; expected ")
                      (,display ',expects)
                      (,display " as result of ")
                      (,display ',expression)
