@@ -8,7 +8,7 @@
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
-#include <meevax/kernel/file.hpp>
+#include <meevax/kernel/port.hpp>
 #include <meevax/posix/linker.hpp>
 
 /* ==== Embedded Source Codes ==================================================
@@ -424,7 +424,7 @@ namespace meevax::kernel
     {
       return
         read(
-          operands ? car(operands).template as<input_file>() : std::cin);
+          operands ? car(operands).template as<input_port>() : std::cin);
     });
 
     define<procedure>("write", [this](auto&&, auto&& operands)

@@ -1,15 +1,14 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
-/*
- * This header is responsible for including <ostream> and <string>.
- */
 #include <iomanip>
-#include <ostream>
-#include <string>
+#include <ostream>                                                // responsible
+#include <string>                                                 // responsible
 
 namespace meevax::kernel
 {
+  static constexpr auto external_form {"#,"};
+
   template <typename OutputStream, typename... Objects>
   constexpr auto write(OutputStream&& os, Objects&&... objects)
     -> typename std::add_lvalue_reference<
@@ -69,6 +68,7 @@ namespace meevax::kernel
     constexpr auto* comment {attribute::faint};
     constexpr auto* constructor {color::green};
     constexpr auto* simple_datum {color::cyan};
+    constexpr auto* literal {color::cyan};
     constexpr auto* syntax  {color::magenta};
     constexpr auto* kernel  {color::yellow};
     constexpr auto* warning {color::yellow};

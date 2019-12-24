@@ -6,8 +6,8 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/exception.hpp>
-#include <meevax/kernel/file.hpp>
 #include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
@@ -154,9 +154,9 @@ namespace meevax::kernel
    */
   template <typename Environment>
   class reader
-    : public input_file
+    : public input_port
   {
-    using seeker = std::istream_iterator<input_file::char_type>;
+    using seeker = std::istream_iterator<input_port::char_type>;
 
     // static inline const auto error_pair {make<read_error<category::pair>>(
     //   "ill-formed dot-notation"
@@ -169,7 +169,7 @@ namespace meevax::kernel
   public:
     template <typename... Ts>
     explicit reader(Ts&&... operands)
-      : input_file {std::forward<decltype(operands)>(operands)...}
+      : input_port {std::forward<decltype(operands)>(operands)...}
     {}
 
     template <typename... Ts>

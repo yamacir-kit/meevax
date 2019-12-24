@@ -1443,10 +1443,10 @@
       result)))
 
 (define input-port?
-  (procedure-from io.so "is_input_file"))
+  (procedure-from io.so "is_input_port"))
 
 (define output-port?
-  (procedure-from io.so "is_output_file"))
+  (procedure-from io.so "is_output_port"))
 
 (define port?
   (lambda (x)
@@ -1478,10 +1478,10 @@
 ; TODO open-binary-output-file
 
 (define close-input-port
-  (procedure-from io.so "close_input_file"))
+  (procedure-from io.so "close_input_port"))
 
 (define close-output-port
-  (procedure-from io.so "close_output_file"))
+  (procedure-from io.so "close_output_port"))
 
 (define close-port
   (lambda (x)
