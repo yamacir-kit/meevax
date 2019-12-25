@@ -5,8 +5,6 @@
 
 namespace meevax::kernel
 {
-  const object unit {nullptr};
-
   const object unbound {make<exception>("unbound")};
   const object undefined {make<exception>("undefined")};
   const object unspecified {make<exception>("unspecified")};
