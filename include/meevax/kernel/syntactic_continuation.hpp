@@ -373,7 +373,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : external_symbols)
         {
-          std::cerr << ";\t\t;   " << value << std::endl;
+          std::cerr << ";\t\t;   " << value << " as " << key << std::endl;
         }
 
         return unspecified;

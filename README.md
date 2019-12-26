@@ -2,18 +2,20 @@
 
 <div align="center">
   <a href="https://travis-ci.org/yamacir-kit/meevax">
-    <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master" alt="Travis Status"/>
+    <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master"
+         alt="Travis Status"/>
   </a>
 
   <a href="https://github.com/yamacir-kit/meevax/actions">
-    <img src="https://github.com/yamacir-kit/meevax/workflows/CI/badge.svg" alt="GitHub Actions Status"/>
+    <img src="https://github.com/yamacir-kit/meevax/workflows/CI/badge.svg"
+         alt="GitHub Actions Status"/>
   </a>
 
   <a href="https://www.codacy.com/manual/yamacir-kit/meevax?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=yamacir-kit/meevax&amp;utm_campaign=Badge_Grade">
     <img src="https://api.codacy.com/project/badge/Grade/ebd3aba61f1141049229031b7f068de9"/>
   </a>
 
-  *HEAD Version 0.2.220*
+  *HEAD Version 0.2.221*
 </div>
 
 ## Contents
@@ -45,7 +47,9 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 
 ### Supported SRFI
 
-*   SRFI 62: S-expression comments
+| Number | Name                  | Implemented as |
+|-------:|:----------------------|:---------------|
+|     62 | S-expression comments | Built-in       |
 
 <br/>
 
@@ -68,8 +72,8 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 ### Library Dependencies
 
 *   Boost C++ Libraries
-*   The GNU Multiple Precision Arithmetic Library (a.k.a GMP)
-*   The GNU Multiple Precision Floating-Point Reliably Library (a.k.a GNU MPFR)
+*   GNU MP (Multiple Precision Arithmetic Library)
+*   GNU MPFR (Multiple Precision Floating-Point Reliably Library)
 
 <br/>
 
