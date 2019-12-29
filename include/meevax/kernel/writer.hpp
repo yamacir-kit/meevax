@@ -66,10 +66,10 @@ namespace meevax::kernel
   namespace highlight
   {
     constexpr auto* comment {attribute::faint};
-    constexpr auto* constructor {color::green};
-    constexpr auto* datum {color::cyan};
-    constexpr auto* syntax {color::magenta};
-    constexpr auto* kernel {color::yellow};
+    constexpr auto* datum   {color::cyan};
+    constexpr auto* syntax  {color::magenta};
+    constexpr auto* system  {color::yellow};
+    constexpr auto* type    {color::green};
     constexpr auto* warning {color::yellow};
   }
 } // namespace meevax::kernel

@@ -16,7 +16,7 @@ namespace meevax::kernel
       -> decltype(os)
     {
       return os << highlight::syntax << "#("
-                << highlight::constructor << "continuation"
+                << highlight::type << "continuation"
                 << attribute::normal << highlight::comment << " ;#" << &i << attribute::normal
                 << highlight::syntax << ")"
                 << attribute::normal;

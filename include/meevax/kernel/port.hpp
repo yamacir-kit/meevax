@@ -29,7 +29,7 @@ namespace meevax::kernel
       -> decltype(os)                                                          \
     {                                                                          \
       os << highlight::syntax << external_form << "("                          \
-         << highlight::constructor << NAME;                                    \
+         << highlight::type << NAME;                                           \
                                                                                \
       if (port.is_open())                                                      \
       {                                                                        \

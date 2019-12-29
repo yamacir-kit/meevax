@@ -52,7 +52,7 @@ namespace meevax::kernel
       -> decltype(auto)
     {
       return os << highlight::syntax << "#("
-                << highlight::constructor << "special"
+                << highlight::type << "special"
                 << attribute::normal << " " << special.name
                 << highlight::syntax << ")"
                 << attribute::normal;

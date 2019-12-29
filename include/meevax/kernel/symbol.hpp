@@ -19,7 +19,7 @@ namespace meevax::kernel
       if (symbol.empty())
       {
         return os << highlight::syntax << "#("
-                  << highlight::constructor << "symbol"
+                  << highlight::type << "symbol"
                   << attribute::normal << highlight::comment << " #;" << &symbol
                   << highlight::syntax << ")"
                   << attribute::normal;

@@ -58,7 +58,7 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const identity& i)
       -> decltype(auto)
     {
-      os << highlight::kernel;
+      os << highlight::system;
 
       switch (i.code)
       {

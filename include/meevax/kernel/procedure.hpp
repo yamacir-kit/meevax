@@ -32,7 +32,7 @@ namespace meevax::kernel
       -> decltype(auto)
     {
       return os << highlight::syntax << "#("
-                << highlight::constructor << "procedure "
+                << highlight::type << "procedure "
                 << attribute::normal << procedure.name
                 << highlight::comment << " #;" << &procedure << attribute::normal
                 << highlight::syntax << ")"

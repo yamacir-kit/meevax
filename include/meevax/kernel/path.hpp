@@ -18,7 +18,7 @@ namespace meevax::kernel
       -> decltype(os)
     {
       return os << highlight::syntax << "#("
-                << highlight::constructor << "path"
+                << highlight::type << "path"
                 << highlight::datum << " \"" << i.c_str() << "\""
                 << highlight::syntax << ")"
                 << attribute::normal;
