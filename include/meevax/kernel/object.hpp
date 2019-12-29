@@ -80,7 +80,9 @@ namespace meevax::kernel
         std::forward<decltype(operands)>(operands)...);
   }
 
-  extern "C" const object unit, unbound, undefined, unspecified;
+  static const object unit {nullptr};
+
+  extern "C" const object unbound, undefined, unspecified;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

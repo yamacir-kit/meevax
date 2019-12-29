@@ -10,21 +10,20 @@ namespace meevax::kernel
   struct path
     : public std::experimental::filesystem::path
   {
-    template <typename... Ts>
-    explicit constexpr path(Ts&&... operands)
-      : std::experimental::filesystem::path {std::forward<decltype(operands)>(operands)...}
-    {}
-  };
+    using identity = path;
 
-  auto operator<<(std::ostream& os, const path& path)
-    -> decltype(os)
-  {
-    return os << highlight::syntax << "#("
-              << highlight::constructor << "path"
-              << highlight::simple_datum << " \"" << path.c_str() << "\""
-              << highlight::syntax << ")"
-              << attribute::normal;
-  }
+    using std::experimental::filesystem::path::path;
+
+    friend auto operator<<(std::ostream& os, const identity& i)
+      -> decltype(os)
+    {
+      return os << highlight::syntax << "#("
+                << highlight::type << "path"
+                << highlight::datum << " \"" << i.c_str() << "\""
+                << highlight::syntax << ")"
+                << attribute::normal;
+    }
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PATH_HPP

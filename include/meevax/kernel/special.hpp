@@ -47,16 +47,17 @@ namespace meevax::kernel
       : std::function<SPECIAL()> {std::forward<decltype(operands)>(operands)...}
       , name {name}
     {}
-  };
 
-  std::ostream& operator<<(std::ostream& os, const special& special)
-  {
-    return os << highlight::syntax << "#("
-              << highlight::constructor << "special"
-              << attribute::normal << " " << special.name
-              << highlight::syntax << ")"
-              << attribute::normal;
-  }
+    friend auto operator<<(std::ostream& os, const special& special)
+      -> decltype(auto)
+    {
+      return os << highlight::syntax << "#("
+                << highlight::type << "special"
+                << attribute::normal << " " << special.name
+                << highlight::syntax << ")"
+                << attribute::normal;
+    }
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP

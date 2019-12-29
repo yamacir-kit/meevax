@@ -12,24 +12,24 @@ namespace meevax::kernel
     explicit constexpr symbol(Ts&&... operands)
       : std::string {std::forward<decltype(operands)>(operands)...}
     {}
-  };
 
-  auto operator<<(std::ostream& os, const symbol& symbol)
-    -> decltype(os)
-  {
-    if (symbol.empty())
+    friend auto operator<<(std::ostream& os, const symbol& symbol)
+      -> decltype(os)
     {
-      return os << highlight::syntax << "#("
-                << highlight::constructor << "symbol"
-                << attribute::normal << highlight::comment << " #;" << &symbol << attribute::normal
-                << highlight::syntax << ")"
-                << attribute::normal;
+      if (symbol.empty())
+      {
+        return os << highlight::syntax << "#("
+                  << highlight::type << "symbol"
+                  << attribute::normal << highlight::comment << " #;" << &symbol
+                  << highlight::syntax << ")"
+                  << attribute::normal;
+      }
+      else
+      {
+        return os << attribute::normal << static_cast<const std::string&>(symbol);
+      }
     }
-    else
-    {
-      return os << attribute::normal << static_cast<const std::string&>(symbol);
-    }
-  }
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP

@@ -8,20 +8,20 @@ namespace meevax::kernel
   struct continuation
     : public virtual pair
   {
-    template <typename... Ts>
-    explicit continuation(Ts&&... operands)
-      : pair {std::forward<decltype(operands)>(operands)...}
-    {}
-  };
+    using identity = continuation;
 
-  std::ostream& operator<<(std::ostream& os, const continuation& continuation)
-  {
-    return os << highlight::syntax << "#("
-              << highlight::constructor << "continuation"
-              << attribute::normal << highlight::comment << " ;#" << &continuation << attribute::normal
-              << highlight::syntax << ")"
-              << attribute::normal;
-  }
+    using pair::pair;
+
+    friend auto operator<<(std::ostream& os, const identity& i)
+      -> decltype(os)
+    {
+      return os << highlight::syntax << "#("
+                << highlight::type << "continuation"
+                << attribute::normal << highlight::comment << " ;#" << &i << attribute::normal
+                << highlight::syntax << ")"
+                << attribute::normal;
+    }
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP

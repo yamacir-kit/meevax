@@ -38,30 +38,43 @@ namespace meevax::kernel
 
   struct instruction
   {
+    using identity = instruction;
+
     const mnemonic code;
 
     template <typename... Ts>
     explicit instruction(Ts&&... operands)
       : code {std::forward<decltype(operands)>(operands)...}
     {}
-  };
 
-  std::ostream& operator<<(std::ostream& os, const instruction& instruction)
-  {
-    os << highlight::kernel;
-
-    switch (instruction.code)
+    int value() const noexcept
     {
-    #define MNEMONIC_CASE(_, AUX, EACH)                                        \
-    case mnemonic::EACH:                                                       \
-      os << BOOST_PP_STRINGIZE(EACH);                                          \
-      break;
-
-      BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
+      return
+        static_cast<
+          typename std::underlying_type<mnemonic>::type
+        >(code);
     }
 
-    return os << attribute::normal;
-  }
+    friend auto operator<<(std::ostream& os, const identity& i)
+      -> decltype(auto)
+    {
+      os << highlight::system;
+
+      switch (i.code)
+      {
+      #define MNEMONIC_CASE(_, AUX, EACH)                                      \
+      case mnemonic::EACH:                                                     \
+        os << BOOST_PP_STRINGIZE(EACH);                                        \
+        break;
+
+        BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
+      }
+
+      // os << "#" << std::hex << i.value();
+
+      return os << attribute::normal;
+    }
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP

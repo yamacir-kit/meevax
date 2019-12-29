@@ -5,7 +5,7 @@ extern "C" namespace meevax::equivalence
   PROCEDURE(equals)
   {
     return
-      MEEVAX_BOOLEAN(
+      MEEVAX_API_BOOLEAN(
         kernel::car(operands) == kernel::cadr(operands));
   }
 
@@ -17,13 +17,17 @@ extern "C" namespace meevax::equivalence
     {
       return kernel::true_object;
     }
-    else if (!object1 or !object2)
+    else if (not object1 and not object2)
+    {
+      return kernel::true_object;
+    }
+    else if (not object1 or not object2)
     {
       return kernel::false_object;
     }
     else
     {
-      return MEEVAX_BOOLEAN(object1.equivalent_to(object2));
+      return MEEVAX_API_BOOLEAN(object1.equivalent_to(object2));
     }
   }
 } // extern "C"

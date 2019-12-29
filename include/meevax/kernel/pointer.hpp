@@ -227,6 +227,10 @@ namespace meevax::kernel
         }
         else
         {
+          std::cerr << "; warning\t; equivalence comparison for type "
+                    << utility::demangle(type())
+                    << " is undefined (always return #false)"
+                    << std::endl;
           return false;
         }
       }
@@ -242,7 +246,7 @@ namespace meevax::kernel
         else
         {
           return os << highlight::syntax << "#("
-                    << highlight::constructor << utility::demangle(typeid(Bound))
+                    << highlight::type << utility::demangle(typeid(Bound))
                     << attribute::normal << highlight::comment << " #;" << static_cast<const Bound*>(this) << attribute::normal
                     << highlight::syntax << ")"
                     << attribute::normal;

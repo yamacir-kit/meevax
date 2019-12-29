@@ -8,7 +8,6 @@
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
-#include <meevax/kernel/file.hpp>
 #include <meevax/posix/linker.hpp>
 
 /* ==== Embedded Source Codes ==================================================
@@ -154,7 +153,8 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        if (verbose == true_object or verbose_environment == true_object)
+        if (   verbose            .equivalent_to(true_object)
+            or verbose_environment.equivalent_to(true_object))
         {
           std::cerr << "; package\t; renamer ignored non-symbol object "
                     << object
@@ -170,7 +170,7 @@ namespace meevax::kernel
         //   object.as<const std::string>() + "." + std::to_string(generation)
         // };
 
-        if (verbose == true_object or verbose_environment == true_object)
+        if (verbose.equivalent_to(true_object) or verbose_environment.equivalent_to(true_object))
         {
           // std::cerr << "; auto-rename\t; renaming " << object << " => " << name << std::endl;
           std::cerr << "; package\t; renaming " << object << std::endl;
@@ -222,7 +222,7 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       ++generation;
 
@@ -265,14 +265,14 @@ namespace meevax::kernel
     {
       const std::string path {std::forward<decltype(operands)>(operands)...};
 
-      if (verbose == true_object or verbose_loader == true_object)
+      if (verbose.equivalent_to(true_object) or verbose_loader.equivalent_to(true_object))
       {
         std::cerr << "; loader\t; open \"" << path << "\" => ";
       }
 
       if (std::fstream stream {path}; stream)
       {
-        if (verbose == true_object or verbose_loader == true_object)
+        if (verbose.equivalent_to(true_object) or verbose_loader.equivalent_to(true_object))
         {
           std::cerr << "succeeded" << std::endl;
         }
@@ -282,7 +282,7 @@ namespace meevax::kernel
 
         for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
         {
-          if (verbose == true_object or verbose_reader == true_object)
+          if (verbose.equivalent_to(true_object) or verbose_reader.equivalent_to(true_object))
           {
             std::cerr << "; read\t\t; " << e << std::endl;
           }
@@ -298,13 +298,24 @@ namespace meevax::kernel
       }
       else
       {
-        if (verbose == true_object or verbose_loader == true_object)
+        if (verbose.equivalent_to(true_object) or verbose_loader.equivalent_to(true_object))
         {
           std::cerr << "failed" << std::endl;
         }
 
         throw evaluation_error {"failed to open file ", std::quoted(path)};
       }
+    }
+
+  public:
+    friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)
+      -> decltype(os)
+    {
+      return os << highlight::syntax << "#("
+                << highlight::type << "syntactic-continuation"
+                << attribute::normal << highlight::comment << " #;" << &sc << attribute::normal
+                << highlight::syntax << ")"
+                << attribute::normal;
     }
   };
 
@@ -347,7 +358,7 @@ namespace meevax::kernel
       auto&&)
     {
       // XXX DIRTY HACK
-      if (verbose == true_object or verbose_compiler == true_object)
+      if (verbose.equivalent_to(true_object) or verbose_compiler.equivalent_to(true_object))
       {
         std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")
                   << std::string(depth * 2, ' ')
@@ -373,7 +384,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : external_symbols)
         {
-          std::cerr << ";\t\t;   " << value << std::endl;
+          std::cerr << ";\t\t;   " << value << " as " << key << std::endl;
         }
 
         return unspecified;
@@ -424,7 +435,7 @@ namespace meevax::kernel
     {
       return
         read(
-          operands ? car(operands).template as<input_file>() : std::cin);
+          operands ? car(operands).template as<input_port>() : std::cin);
     });
 
     define<procedure>("write", [this](auto&&, auto&& operands)
@@ -483,15 +494,6 @@ namespace meevax::kernel
     : syntactic_continuation::syntactic_continuation {layer<N - 1>}
   {
     boot(layer<N>);
-  }
-
-  std::ostream& operator<<(std::ostream& os, const syntactic_continuation& syntactic_continuation)
-  {
-    return os << highlight::syntax << "#("
-              << highlight::constructor << "syntactic-continuation"
-              << attribute::normal << highlight::comment << " #;" << &syntactic_continuation << attribute::normal
-              << highlight::syntax << ")"
-              << attribute::normal;
   }
 } // namespace meevax::kernel
 

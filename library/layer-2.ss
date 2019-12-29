@@ -119,7 +119,7 @@
 
 (define null?
   (lambda (x)
-    (eq? x '())))
+    (eqv? x '())))
 
 (define list
   (lambda x x))
@@ -228,15 +228,15 @@
         (lambda (e depth)
           (if (not (pair? e))
               (list 'quote e)
-              (if (eq? (car e) 'quasiquote)
+              (if (eqv? (car e) 'quasiquote)
                   (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
-                  (if (eq? (car e) 'unquote)
+                  (if (eqv? (car e) 'unquote)
                       (if (< 0 depth)
                           (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
                           (if (and (not (null? (cdr e))) (null? (cddr e)))
                               (cadr e)
                               (error "illegal unquote")))
-                      (if (eq? (car e) 'unquote-splicing)
+                      (if (eqv? (car e) 'unquote-splicing)
                           (if (< 0 depth)
                               (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
                               (error "illegal unquote-splicing"))
@@ -247,13 +247,13 @@
         (lambda (e depth)
           (if (not (pair? e))
               (list 'quote (list e))
-              (if (eq? (car e) 'quasiquote)
+              (if (eqv? (car e) 'quasiquote)
                   (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1))))
-                  (if (eq? (car e) 'unquote)
+                  (if (eqv? (car e) 'unquote)
                       (if (< 0 depth)
                           (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1))))
                           (cons 'list (cdr e)))
-                      (if (eq? (car e) 'unquote-splicing)
+                      (if (eqv? (car e) 'unquote-splicing)
                           (if (< 0 depth)
                               (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1))))
                               (cons 'append (cdr e)))
@@ -997,12 +997,12 @@
 
 (define boolean?
   (lambda (x)
-    (or (eq? x #true)
-        (eq? x #false))))
+    (or (eqv? x #true)
+        (eqv? x #false))))
 
 (define boolean=?
   (lambda (x y . xs)
-    (and (eq? x y)
+    (and (eqv? x y)
          (if (pair? xs)
              (apply boolean=? y xs)
              #true))))
@@ -1129,10 +1129,10 @@
 
 (define whitespace-character?
   (lambda (x)
-    (or (eq? x #\space)
-        (eq? x #\tab)
-        (eq? x #\newline)
-        (eq? x #\return))))
+    (or (eqv? x #\space)
+        (eqv? x #\tab)
+        (eqv? x #\newline)
+        (eqv? x #\return))))
 
 (define char-whitespace? whitespace-character?) ;                  (scheme char)
 
@@ -1162,11 +1162,8 @@
 (define string?
   (procedure-from string.so "is_string"))
 
-(define character-pair
-  (procedure-from string.so "character_pair"))
-
-(define character-cons character-pair)
-(define char-cons character-cons)
+(define ccons
+  (procedure-from string.so "ccons"))
 
 (define make-string
   (lambda (k . x)
@@ -1175,7 +1172,7 @@
                 (result '()))
         (if (<= k 0) result
             (rec (- k 1)
-                 (character-cons default result)))))))
+                 (ccons default result)))))))
 
 (define string
   (lambda xs
@@ -1188,9 +1185,9 @@
     (if (null? x)
        '()
         (if (pair? x)
-            (character-cons (car x)
-                            (list->string (cdr x)))
-            (character-cons x '())))))
+            (ccons (car x)
+                   (list->string (cdr x)))
+            (ccons x '())))))
 
 (define string-from-number
   (procedure-from string.so "string_from_number"))
@@ -1272,8 +1269,8 @@
 (define string-append-2
   (lambda (x y)
     (if (null? x) y
-        (character-cons (car x)
-                        (string-append-2 (cdr x) y)))))
+        (ccons (car x)
+               (string-append-2 (cdr x) y)))))
 
 (define string-reverse
   (lambda (x)
@@ -1443,10 +1440,10 @@
       result)))
 
 (define input-port?
-  (procedure-from io.so "is_input_file"))
+  (procedure-from io.so "is_input_port"))
 
 (define output-port?
-  (procedure-from io.so "is_output_file"))
+  (procedure-from io.so "is_output_port"))
 
 (define port?
   (lambda (x)
@@ -1478,10 +1475,10 @@
 ; TODO open-binary-output-file
 
 (define close-input-port
-  (procedure-from io.so "close_input_file"))
+  (procedure-from io.so "close_input_port"))
 
 (define close-output-port
-  (procedure-from io.so "close_output_file"))
+  (procedure-from io.so "close_output_port"))
 
 (define close-port
   (lambda (x)
@@ -1508,7 +1505,7 @@
 
 (define eof-object?
   (lambda (x)
-    (eq? x #\end-of-file)))
+    (eqv? x #\end-of-file)))
 
 ; TODO eof-object
 
@@ -1626,7 +1623,7 @@
   (lambda (transform)
     (call/csc
       (lambda expression
-        (transform expression evaluate eq?)))))
+        (transform expression evaluate eqv?)))))
 
 (define          er-macro-transformer
   explicit-renaming-macro-transformer)

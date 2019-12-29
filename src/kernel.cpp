@@ -5,14 +5,9 @@
 
 namespace meevax::kernel
 {
-  const object unit {nullptr};
-
   const object unbound {make<exception>("unbound")};
   const object undefined {make<exception>("undefined")};
   const object unspecified {make<exception>("unspecified")};
-
-  DEFINE_MEEVAX_KERNEL_BOOLEAN_T(MAKE_MEEVAX_KERNEL_BOOLEAN_T);
-  DEFINE_MEEVAX_KERNEL_BOOLEAN_F(MAKE_MEEVAX_KERNEL_BOOLEAN_F);
 
   const std::unordered_map<std::string, object> characters
   {

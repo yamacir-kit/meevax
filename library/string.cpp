@@ -7,12 +7,10 @@ extern "C" namespace meevax::string
 {
   PROCEDURE(is_string)
   {
-    return
-      MEEVAX_BOOLEAN(
-        kernel::car(operands).is<kernel::string>());
+    return MEEVAX_API_TYPE_PREDICATE(kernel::string);
   }
 
-  PROCEDURE(character_pair)
+  PROCEDURE(ccons)
   {
     return
       kernel::make<kernel::string>(
