@@ -306,6 +306,17 @@ namespace meevax::kernel
         throw evaluation_error {"failed to open file ", std::quoted(path)};
       }
     }
+
+  public:
+    friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)
+      -> decltype(os)
+    {
+      return os << highlight::syntax << "#("
+                << highlight::constructor << "syntactic-continuation"
+                << attribute::normal << highlight::comment << " #;" << &sc << attribute::normal
+                << highlight::syntax << ")"
+                << attribute::normal;
+    }
   };
 
   #define DEFINE_SPECIAL(NAME, RULE)                                           \
@@ -483,15 +494,6 @@ namespace meevax::kernel
     : syntactic_continuation::syntactic_continuation {layer<N - 1>}
   {
     boot(layer<N>);
-  }
-
-  std::ostream& operator<<(std::ostream& os, const syntactic_continuation& syntactic_continuation)
-  {
-    return os << highlight::syntax << "#("
-              << highlight::constructor << "syntactic-continuation"
-              << attribute::normal << highlight::comment << " #;" << &syntactic_continuation << attribute::normal
-              << highlight::syntax << ")"
-              << attribute::normal;
   }
 } // namespace meevax::kernel
 

@@ -8,37 +8,33 @@
 namespace meevax::kernel
 {
   struct character
-    : public std::string
+    : public std::string // TODO convert std::u8string in future.
   {
-    const std::string external_repsesentaion;
+    using identity = character;
+
+    const std::string external_representation;
 
     explicit character(const char ascii)
       : std::string {ascii}
     {}
 
-    explicit character(const std::string& unicode)
+    explicit character(
+      const std::string& unicode,
+      const std::string& external_representation = {})
       : std::string {unicode}
-      // , external_repsesentaion {unicode} // XXX Waste of memory
+      , external_representation {external_representation}
     {}
 
-    character(const std::string& unicode,
-              const std::string& external_repsesentaion)
-      : std::string {unicode}
-      , external_repsesentaion {external_repsesentaion}
-    {}
+    friend auto operator<<(std::ostream& os, const identity& c)
+      -> decltype(os)
+    {
+      return os << highlight::simple_datum << "#\\"
+                << (std::empty(c.external_representation)
+                      ? static_cast<std::string>(c)
+                      : c.external_representation)
+                << attribute::normal;
+    }
   };
-
-  std::ostream& operator<<(std::ostream& os, const character& c)
-  {
-    return os << highlight::simple_datum << "#\\"
-              << (c.external_repsesentaion.empty() ? static_cast<const std::string&>(c) : c.external_repsesentaion)
-              << attribute::normal;
-  }
-
-  // NATIVE(write_character)
-  // {
-  //   port << car(operands).as<std::string>();
-  // }
 
   extern "C" const std::unordered_map<std::string, object> characters;
 } // namespace meevax::kernel

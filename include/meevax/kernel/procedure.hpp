@@ -27,17 +27,18 @@ namespace meevax::kernel
         }
       , name {name}
     {}
-  };
 
-  std::ostream& operator<<(std::ostream& os, const procedure& procedure)
-  {
-    return os << highlight::syntax << "#("
-              << highlight::constructor << "procedure"
-              << attribute::normal << " " << procedure.name
-              << highlight::comment << " #;" << &procedure << attribute::normal
-              << highlight::syntax << ")"
-              << attribute::normal;
-  }
+    friend auto operator<<(std::ostream& os, const procedure& procedure)
+      -> decltype(auto)
+    {
+      return os << highlight::syntax << "#("
+                << highlight::constructor << "procedure "
+                << attribute::normal << procedure.name
+                << highlight::comment << " #;" << &procedure << attribute::normal
+                << highlight::syntax << ")"
+                << attribute::normal;
+    }
+  };
 } // namespace meevax::kernel
 
 #define MEEVAX_API_BOOLEAN(...)                                                \
