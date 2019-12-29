@@ -19,7 +19,7 @@ namespace meevax::kernel
     {
       return os << highlight::syntax << "#("
                 << highlight::constructor << "path"
-                << highlight::simple_datum << " \"" << i.c_str() << "\""
+                << highlight::datum << " \"" << i.c_str() << "\""
                 << highlight::syntax << ")"
                 << attribute::normal;
     }

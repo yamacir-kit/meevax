@@ -37,7 +37,7 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const string& s)
       -> decltype(auto)
     {
-      os << highlight::simple_datum << "\"" << std::get<0>(s).as<std::string>();
+      os << highlight::datum << "\"" << std::get<0>(s).as<std::string>();
 
       for (const auto& each : std::get<1>(s))
       {

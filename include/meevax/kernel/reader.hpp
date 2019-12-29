@@ -75,7 +75,7 @@ namespace meevax::kernel
   namespace
   {
     template <typename T>
-    const object datum(std::istream& stream); // TODO Rename to simple_datum
+    const object datum(std::istream& stream);
 
     /*
      * <string> = " <string element> * "

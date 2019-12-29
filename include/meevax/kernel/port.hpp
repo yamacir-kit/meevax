@@ -33,7 +33,7 @@ namespace meevax::kernel
                                                                                \
       if (port.is_open())                                                      \
       {                                                                        \
-        os << highlight::literal << " \"" << port.name << "\"";                \
+        os << highlight::datum << " \"" << port.name << "\"";                  \
       }                                                                        \
                                                                                \
       return os << highlight::syntax << ")" << attribute::normal;              \

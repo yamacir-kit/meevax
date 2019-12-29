@@ -68,7 +68,7 @@ namespace meevax::kernel
   {                                                                            \
     return os << highlight::syntax << "#("                                     \
               << highlight::constructor << __VA_ARGS__                         \
-              << highlight::simple_datum << " " <<  std::quoted(exception.what()) \
+              << highlight::datum << " " <<  std::quoted(exception.what())     \
               << highlight::syntax << ")"                                      \
               << attribute::normal;                                            \
   }

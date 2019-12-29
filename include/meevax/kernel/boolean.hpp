@@ -24,7 +24,7 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const identity& boolean)
       -> decltype(os)
     {
-      return os << highlight::simple_datum
+      return os << highlight::datum
                 << "#"
                 << std::boolalpha
                 << static_cast<bool>(boolean)
