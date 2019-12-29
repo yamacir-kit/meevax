@@ -10,10 +10,7 @@ namespace meevax::kernel
   {
     using identity = continuation;
 
-    template <typename... Ts>
-    explicit continuation(Ts&&... operands)
-      : pair {std::forward<decltype(operands)>(operands)...}
-    {}
+    using pair::pair;
 
     friend auto operator<<(std::ostream& os, const identity& i)
       -> decltype(os)

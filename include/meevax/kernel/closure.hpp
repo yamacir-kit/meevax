@@ -11,10 +11,7 @@ namespace meevax::kernel
   {
     using identity = closure;
 
-    template <typename... Ts>
-    explicit closure(Ts&&... arguments)
-      : pair {std::forward<decltype(arguments)>(arguments)...}
-    {}
+    using pair::pair;
 
     friend auto operator <<(std::ostream& os, const identity& i)
       -> decltype(os)

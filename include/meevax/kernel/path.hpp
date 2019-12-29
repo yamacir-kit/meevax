@@ -12,10 +12,7 @@ namespace meevax::kernel
   {
     using identity = path;
 
-    template <typename... Ts>
-    explicit constexpr path(Ts&&... operands)
-      : std::experimental::filesystem::path {std::forward<decltype(operands)>(operands)...}
-    {}
+    using std::experimental::filesystem::path::path;
 
     friend auto operator<<(std::ostream& os, const identity& i)
       -> decltype(os)
