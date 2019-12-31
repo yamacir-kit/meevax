@@ -736,31 +736,31 @@ namespace meevax::kernel
 
       case mnemonic::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
         TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
-
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()});
-
-          // std::atomic_store(&car(position), car(s));
-          set_car(position, car(s));
-        }
+        std::atomic_store(
+          &car(
+            list_tail(
+              list_reference(
+                e,
+                static_cast<int>(
+                  caadr(c).template as<real>())),
+              static_cast<int>(
+                cdadr(c).template as<real>()))),
+          car(s));
         pop<2>(c);
         goto dispatch;
 
       case mnemonic::SET_LOCAL_VARIADIC:
         TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
-
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()} - 1);
-
-          // std::atomic_store(&cdr(position), car(s));
-          set_cdr(position, car(s));
-        }
+        std::atomic_store(
+          &cdr(
+            list_tail(
+              list_reference(
+                e,
+                static_cast<int>(
+                  caadr(c).template as<real>())),
+              static_cast<int>(
+                cdadr(c).template as<real>() - 1))),
+          car(s));
         pop<2>(c);
         goto dispatch;
 

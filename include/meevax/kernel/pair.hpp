@@ -52,24 +52,6 @@ namespace meevax::kernel
   DEFINE_PAIR_ACCESSOR(car, 0)
   DEFINE_PAIR_ACCESSOR(cdr, 1)
 
-  /* ==== Pair Mutator =========================================================
-  *
-  * TODO documentation
-  *
-  *========================================================================== */
-  #define DEFINE_PAIR_MUTATOR(IDENTIFIER, ACCESSOR)                            \
-  template <typename... Ts>                                                    \
-  inline decltype(auto) IDENTIFIER(const object& x, Ts&&... xs)                \
-  {                                                                            \
-    return                                                                     \
-      std::atomic_store(                                                       \
-        &ACCESSOR(x),                                                          \
-        std::forward<decltype(xs)>(xs)...);                                    \
-  }
-
-  DEFINE_PAIR_MUTATOR(set_car, car)
-  DEFINE_PAIR_MUTATOR(set_cdr, cdr)
-
   /* ==== Pairs and Lists External Representation ==============================
   *
   * TODO documentation
