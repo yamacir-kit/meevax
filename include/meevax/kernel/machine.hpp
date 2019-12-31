@@ -73,10 +73,13 @@ inline namespace ugly_macros
   }
 
   #define NEST_IN  ++depth
-  #define NEST_OUT --depth; DEBUG_COMPILE(")" << std::endl)
+  #define NEST_OUT                                                             \
+    --depth;                                                                   \
+    DEBUG_COMPILE(                                                             \
+      highlight::syntax << ")" << attribute::normal << std::endl)
 
   // TODO REMOVE THIS!!!
-  #define NEST_OUT_SYNTAX --depth; DEBUG_COMPILE_SYNTAX(")" << std::endl)
+  // #define NEST_OUT_SYNTAX --depth; DEBUG_COMPILE_SYNTAX(")" << std::endl)
 }
 
 namespace meevax::kernel
@@ -246,9 +249,10 @@ namespace meevax::kernel
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-            "(" << car(expression)
-                << highlight::comment << "\t; is <primitive expression> "
-                << attribute::normal << applicant << std::endl);
+               highlight::syntax << "(" << attribute::normal
+            << car(expression)
+            << highlight::comment << "\t; is <primitive expression> "
+            << attribute::normal << applicant << std::endl);
 
           NEST_IN;
           auto result {std::invoke(applicant.as<special>(),
@@ -262,10 +266,11 @@ namespace meevax::kernel
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-            "(" << car(expression)
-                << highlight::comment << "\t; is <macro use> of <derived expression> "
-                << attribute::normal << applicant
-                << attribute::normal << std::endl);
+               highlight::syntax << "(" << attribute::normal
+            << car(expression)
+            << highlight::comment << "\t; is <macro use> of <derived expression> "
+            << attribute::normal << applicant
+            << attribute::normal << std::endl);
 
           // std::cerr << "Syntactic-Continuation holds "
           //           << applicant.as<SyntacticContinuation>().continuation()
@@ -288,8 +293,9 @@ namespace meevax::kernel
         }
 
         DEBUG_COMPILE(
-          "(" << highlight::comment << "\t; is <procedure call>"
-              << attribute::normal << std::endl);
+             highlight::syntax << "(" << attribute::normal
+          << highlight::comment << "\t; is <procedure call>"
+          << attribute::normal << std::endl);
 
         NEST_IN;
         auto result {
@@ -310,7 +316,7 @@ namespace meevax::kernel
       }
     }
 
-    void disassemble(const object& c, std::size_t depth)
+    void disassemble(const object& c, std::size_t depth = 1)
     {
       assert(0 < depth);
 
@@ -403,7 +409,7 @@ namespace meevax::kernel
       {
         // std::cerr << "; disassemble\t; for " << &c << std::endl;
         std::cerr << "; " << std::string(78, '*') << std::endl;
-        disassemble(c, 1);
+        disassemble(c);
         std::cerr << "; " << std::string(78, '*') << std::endl;
       }
 
