@@ -310,6 +310,79 @@ namespace meevax::kernel
       }
     }
 
+    void disassemble(const object& c, std::size_t depth)
+    {
+      assert(0 < depth);
+
+      for (homoiconic_iterator iter {c}; iter; ++iter)
+      {
+        std::cerr << "; ";
+
+        if (iter == c)
+        {
+          std::cerr << std::string(4 * (depth - 1), ' ')
+                    << highlight::syntax
+                    << "("
+                    << attribute::normal
+                    << std::string(3, ' ');
+        }
+        else
+        {
+          std::cerr << std::string(4 * depth, ' ');
+        }
+
+        switch ((*iter).as<instruction>().code)
+        {
+        case mnemonic::APPLY:
+        case mnemonic::APPLY_TAIL:
+        case mnemonic::JOIN:
+        case mnemonic::MAKE_SYNTACTIC_CONTINUATION:
+        case mnemonic::POP:
+        case mnemonic::PUSH:
+          std::cerr << *iter << std::endl;
+          break;
+
+        case mnemonic::RETURN:
+        case mnemonic::STOP:
+          std::cerr << *iter
+                    << highlight::syntax
+                    << "\t)"
+                    << attribute::normal
+                    << std::endl;
+          break;
+
+        case mnemonic::DEFINE:
+        case mnemonic::LOAD_GLOBAL:
+        case mnemonic::LOAD_LITERAL:
+        case mnemonic::LOAD_LOCAL:
+        case mnemonic::LOAD_LOCAL_VARIADIC:
+        case mnemonic::SET_GLOBAL:
+        case mnemonic::SET_LOCAL:
+        case mnemonic::SET_LOCAL_VARIADIC:
+          std::cerr << *iter << " " << *++iter << std::endl;
+          break;
+
+        case mnemonic::MAKE_CLOSURE:
+        case mnemonic::MAKE_CONTINUATION:
+          std::cerr << *iter << std::endl;
+          disassemble(*++iter, depth + 1);
+          break;
+
+
+        case mnemonic::SELECT:
+        case mnemonic::SELECT_TAIL:
+          std::cerr << *iter << std::endl;
+          disassemble(*++iter, depth + 1);
+          disassemble(*++iter, depth + 1);
+          break;
+
+        case mnemonic::FORK:
+        default:
+          assert(false);
+        }
+      }
+    }
+
     // XXX DO NOT USE THIS EXCEPT FOR THE EVALUATE PROCEDURE.
     decltype(auto) execute_interrupt(const object& expression)
     {
@@ -328,7 +401,10 @@ namespace meevax::kernel
       if (   static_cast<SyntacticContinuation&>(*this).verbose        .equivalent_to(true_object)
           or static_cast<SyntacticContinuation&>(*this).verbose_machine.equivalent_to(true_object))
       {
-        std::cerr << "; machine\t; " << c << std::endl;
+        // std::cerr << "; disassemble\t; for " << &c << std::endl;
+        std::cerr << "; " << std::string(78, '*') << std::endl;
+        disassemble(c, 1);
+        std::cerr << "; " << std::string(78, '*') << std::endl;
       }
 
       const auto result {execute()};
