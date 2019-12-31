@@ -433,31 +433,40 @@ namespace meevax::kernel
 
       switch (car(c).template as<instruction>().code)
       {
-      case mnemonic::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
-        TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
-
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()});
-
-          push(s, *position);
-        }
+      /* ====*/ case mnemonic::LOAD_LOCAL: /*===================================
+      *
+      */ TRACE(2);                                                            /*
+      *
+      *               S  E (LOAD_LOCAL (i . j) . C) D
+      *
+      *  => (result . S) E                       C  D
+      *
+      *  where result = (list-ref (list-ref E i) j)
+      *
+      *====================================================================== */
+        push(
+          s,
+          list_reference(
+            list_reference(
+              e,
+              static_cast<int>(
+                caadr(c).template as<real>())),
+            static_cast<int>(
+              cdadr(c).template as<real>())));
         pop<2>(c);
         goto dispatch;
 
       case mnemonic::LOAD_LOCAL_VARIADIC:
         TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
-
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()});
-
-          push(s, position);
-        }
+        push(
+          s,
+          list_tail(
+            list_reference(
+              e,
+              static_cast<int>(
+                caadr(c).template as<real>())),
+            static_cast<int>(
+              cdadr(c).template as<real>())));
         pop<2>(c);
         goto dispatch;
 
@@ -501,22 +510,24 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::FORK: // S E (FORK code . C) => (subprogram . S) E C D
-        TRACE(2);
-        push(
-          s,
-          make<SyntacticContinuation>(
-            make<closure>(cadr(c), e),
-            interaction_environment()));
-        pop<2>(c);
-        goto dispatch;
+      // case mnemonic::FORK: // S E (FORK code . C) => (subprogram . S) E C D
+      //   TRACE(2);
+      //   push(
+      //     s,
+      //     make<SyntacticContinuation>(
+      //       make<closure>(cadr(c), e),
+      //       interaction_environment()));
+      //   pop<2>(c);
+      //   goto dispatch;
 
       case mnemonic::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
         TRACE(2);
-        {
-          push(s, make<closure>(cadr(c), e));
-          pop<2>(c);
-        }
+        push(
+          s,
+          make<closure>(
+            cadr(c),
+            e));
+        pop<2>(c);
         goto dispatch;
 
       case mnemonic::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
@@ -533,7 +544,7 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::MAKE_SYNTACTIC_CONTINUATION: /*=================
+      /* ====*/ case mnemonic::MAKE_SYNTACTIC_CONTINUATION: /*==================
       *
       */ TRACE(2);                                                            /*
       *
@@ -553,14 +564,12 @@ namespace meevax::kernel
       case mnemonic::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
         TRACE(3);
         push(d, cdddr(c));
-        // c = car(s) != false_object ? cadr(c) : caddr(c);
         c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
       case mnemonic::SELECT_TAIL:
         TRACE(3);
-        // c = car(s) != false_object ? cadr(c) : caddr(c);
         c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
@@ -603,7 +612,7 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>())
+        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
         {
           s = cons(
                 callee.as<SyntacticContinuation>().expand(
@@ -709,7 +718,11 @@ namespace meevax::kernel
         // (1) There is no need to make copy if right hand side is unique.
         // (2) There is no matter overwrite if left hand side is unique.
         // (3) Should set with weak reference if right hand side is newer.
-        if (const auto& key_value {assq(cadr(c), interaction_environment())}; key_value != false_object)
+        if (const auto& key_value {
+              assq(
+                cadr(c),
+                interaction_environment())
+            }; key_value != false_object)
         {
           // std::cerr << key_value << std::endl;
           std::atomic_store(&cadr(key_value), car(s).copy());

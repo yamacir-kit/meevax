@@ -11,17 +11,6 @@
 
 /* ==== SRFI-1 ================================================================
 *
-* Constructors
-*   - circular-list
-*   - cons                             => cons
-*   - cons*                            => cons
-*   - iota
-*   - list                             => list
-*   - list-copy
-*   - list-tabulate
-*   - make-list
-*   - xcons                            => xcons
-*
 * Predicates
 *   - circular-list?
 *   - dotted-list?
@@ -260,7 +249,18 @@ namespace meevax::kernel
 
   /* ==== Constructors =========================================================
   *
-  * TODO Documentations
+  * From R7RS
+  *   - cons                            => cons
+  *   - list                            => list
+  *
+  * From SRFI-1
+  *   - circular-list
+  *   - cons*                           => cons
+  *   - iota
+  *   - list-copy
+  *   - list-tabulate
+  *   - make-list
+  *   - xcons                           => xcons
   *
   *========================================================================== */
   inline namespace constructor
@@ -270,35 +270,32 @@ namespace meevax::kernel
       return std::make_shared<pair>(lhs, rhs);
     }
 
-    template <typename... Ts>
-    inline constexpr decltype(auto) cons(Ts&&... operands) // is also cons*
+    auto cons = [](auto&&... xs) constexpr
     {
-      return (operands | ...);
-    }
+      return (xs | ...);
+    };
 
-    template <typename... Ts>
-    inline constexpr decltype(auto) list(Ts&&... operands)
+    auto list = [](auto&& ... xs) constexpr
     {
-      return (operands | ... | unit);
-    }
+      return (xs | ... | unit);
+    };
 
-    auto make_list = [](std::size_t size, const object& fill = unit)
+    auto make_list = [](std::size_t size, const object& x = unit)
     {
       object result;
 
-      for (std::size_t k {0}; k < size; ++k)
+      for (std::size_t i {0}; i < size; ++i)
       {
-        result = cons(fill, result);
+        result = cons(x, result);
       }
 
       return result;
     };
 
-    template <typename... Ts>
-    inline constexpr decltype(auto) xcons(Ts&&... operands)
+    auto xcons = [](auto&&... xs) constexpr
     {
-      return (... | operands);
-    }
+      return (... | xs);
+    };
   }
 
   /* ==== Predicates ===========================================================
@@ -364,6 +361,18 @@ namespace meevax::kernel
   *========================================================================== */
   inline namespace selector
   {
+    auto list_tail
+      = [](homoiconic_iterator iter, auto n)
+    {
+      return std::next(iter, n);
+    };
+
+    auto list_reference
+      = [](const object& x, auto n)
+    {
+      return car(list_tail(x, n));
+    };
+
     object take(const object& exp, std::size_t size)
     {
       if (0 < size)
