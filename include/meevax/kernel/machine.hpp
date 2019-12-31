@@ -743,7 +743,8 @@ namespace meevax::kernel
           homoiconic_iterator position {*region};
           std::advance(position, int {cdadr(c).template as<real>()});
 
-          std::atomic_store(&car(position), car(s));
+          // std::atomic_store(&car(position), car(s));
+          set_car(position, car(s));
         }
         pop<2>(c);
         goto dispatch;
@@ -757,7 +758,8 @@ namespace meevax::kernel
           homoiconic_iterator position {*region};
           std::advance(position, int {cdadr(c).template as<real>()} - 1);
 
-          std::atomic_store(&cdr(position), car(s));
+          // std::atomic_store(&cdr(position), car(s));
+          set_cdr(position, car(s));
         }
         pop<2>(c);
         goto dispatch;
