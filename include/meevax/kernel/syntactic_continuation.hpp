@@ -222,7 +222,7 @@ namespace meevax::kernel
 
     decltype(auto) expand(const object& operands)
     {
-      std::cerr << "; macroexpand\t; " << operands << std::endl;
+      // std::cerr << "; macroexpand\t; " << operands << std::endl;
 
       ++generation;
 

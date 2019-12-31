@@ -481,15 +481,15 @@ namespace meevax::kernel
         {
           // throw evaluation_error {cadr(c), " is unbound"};
 
-          if (   static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)
-              or static_cast<SyntacticContinuation&>(*this).verbose_machine.equivalent_to(true_object))
-          {
-            std::cerr << "; machine\t; instruction "
-                      << car(c)
-                      << " received undefined variable "
-                      << cadr(c)
-                      << std::endl;
-          }
+          // if (   static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)
+          //     or static_cast<SyntacticContinuation&>(*this).verbose_machine.equivalent_to(true_object))
+          // {
+          //   std::cerr << "; machine\t; instruction "
+          //             << car(c)
+          //             << " received undefined variable "
+          //             << cadr(c)
+          //             << std::endl;
+          // }
 
           /* ------------------------------------------------------------------
           * When an undefined symbol is evaluated, it returns a symbol that is
