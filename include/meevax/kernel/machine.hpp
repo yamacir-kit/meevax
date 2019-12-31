@@ -352,7 +352,7 @@ namespace meevax::kernel
         case mnemonic::STOP:
           std::cerr << *iter
                     << highlight::syntax
-                    << "\t)"
+                    << ")"
                     << attribute::normal
                     << std::endl;
           break;
