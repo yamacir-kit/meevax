@@ -392,8 +392,8 @@ namespace meevax::kernel
 
       return
         cons(
-          make<instruction>(mnemonic::LOAD_LITERAL), expression,
-          make<instruction>(mnemonic::LOAD_LITERAL), make<procedure>("export", exportation),
+          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("export", exportation),
           make<instruction>(mnemonic::APPLY),
           continuation);
     });

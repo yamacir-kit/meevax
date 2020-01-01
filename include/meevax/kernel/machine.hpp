@@ -180,7 +180,7 @@ namespace meevax::kernel
       {
         return
           cons(
-            make<instruction>(mnemonic::LOAD_LITERAL), unit,
+            make<instruction>(mnemonic::LOAD_CONSTANT), unit,
             continuation);
       }
       else if (not expression.is<pair>())
@@ -198,7 +198,7 @@ namespace meevax::kernel
 
               return
                 cons(
-                  make<instruction>(mnemonic::LOAD_LOCAL_VARIADIC), index,
+                  make<instruction>(mnemonic::LOAD_VARIADIC), index,
                   continuation);
             }
             else
@@ -229,7 +229,7 @@ namespace meevax::kernel
 
           return
             cons(
-              make<instruction>(mnemonic::LOAD_LITERAL), expression,
+              make<instruction>(mnemonic::LOAD_CONSTANT), expression,
               continuation);
         }
       }
@@ -342,7 +342,7 @@ namespace meevax::kernel
         case mnemonic::APPLY:
         case mnemonic::APPLY_TAIL:
         case mnemonic::JOIN:
-        case mnemonic::MAKE_SYNTACTIC_CONTINUATION:
+        case mnemonic::LOAD_SYNTACTIC_CONTINUATION:
         case mnemonic::POP:
         case mnemonic::PUSH:
           std::cerr << *iter << std::endl;
@@ -359,17 +359,17 @@ namespace meevax::kernel
 
         case mnemonic::DEFINE:
         case mnemonic::LOAD_GLOBAL:
-        case mnemonic::LOAD_LITERAL:
+        case mnemonic::LOAD_CONSTANT:
         case mnemonic::LOAD_LOCAL:
-        case mnemonic::LOAD_LOCAL_VARIADIC:
-        case mnemonic::SET_GLOBAL:
-        case mnemonic::SET_LOCAL:
-        case mnemonic::SET_LOCAL_VARIADIC:
+        case mnemonic::LOAD_VARIADIC:
+        case mnemonic::STORE_GLOBAL:
+        case mnemonic::STORE_LOCAL:
+        case mnemonic::STORE_VARIADIC:
           std::cerr << *iter << " " << *++iter << std::endl;
           break;
 
-        case mnemonic::MAKE_CLOSURE:
-        case mnemonic::MAKE_CONTINUATION:
+        case mnemonic::LOAD_CLOSURE:
+        case mnemonic::LOAD_CONTINUATION:
           std::cerr << *iter << std::endl;
           disassemble(*++iter, depth + 1);
           break;
@@ -456,7 +456,7 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_LOCAL_VARIADIC:
+      case mnemonic::LOAD_VARIADIC:
         TRACE(2);
         push(
           s,
@@ -470,7 +470,7 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
+      case mnemonic::LOAD_CONSTANT: // S E (LOAD_CONSTANT constant . C) D => (constant . S) E C D
         TRACE(2);
         push(s, cadr(c));
         pop<2>(c);
@@ -520,7 +520,7 @@ namespace meevax::kernel
       //   pop<2>(c);
       //   goto dispatch;
 
-      case mnemonic::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
+      case mnemonic::LOAD_CLOSURE: // S E (LOAD_CLOSURE code . C) => (closure . S) E C D
         TRACE(2);
         push(
           s,
@@ -530,7 +530,7 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
+      case mnemonic::LOAD_CONTINUATION: // S E (LOAD_CONTINUATION code . C) D => ((continuation) . S) E C D
         TRACE(2);
         push(
           s,
@@ -544,11 +544,11 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::MAKE_SYNTACTIC_CONTINUATION: /*==================
+      /* ====*/ case mnemonic::LOAD_SYNTACTIC_CONTINUATION: /*==================
       *
       */ TRACE(2);                                                            /*
       *
-      *     (closure . S) E (MAKE_SC . C) D
+      *     (closure . S) E (LOAD_SC . C) D
       *
       *  => (program . S) E            C  D
       *
@@ -712,7 +712,7 @@ namespace meevax::kernel
         pop<1>(c);
         goto dispatch;
 
-      case mnemonic::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
+      case mnemonic::STORE_GLOBAL: // (value . S) E (STORE_GLOBAL symbol . C) D => (value . S) E C D
         TRACE(2);
         // TODO
         // (1) There is no need to make copy if right hand side is unique.
@@ -734,7 +734,7 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
+      case mnemonic::STORE_LOCAL: // (value . S) E (STORE_LOCAL (i . j) . C) D => (value . S) E C D
         TRACE(2);
         std::atomic_store(
           &car(
@@ -749,7 +749,7 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::SET_LOCAL_VARIADIC:
+      case mnemonic::STORE_VARIADIC:
         TRACE(2);
         std::atomic_store(
           &cdr(
@@ -793,7 +793,7 @@ namespace meevax::kernel
                         << attribute::normal << std::endl);
       return
         cons(
-          make<instruction>(mnemonic::LOAD_LITERAL), car(expression),
+          make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
           continuation);
     })
 
@@ -1162,7 +1162,7 @@ namespace meevax::kernel
                   make<instruction>(mnemonic::RETURN)),
                 as_tail_expression)
             : list(
-                make<instruction>(mnemonic::LOAD_LITERAL), unspecified,
+                make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                 make<instruction>(mnemonic::RETURN))
         };
 
@@ -1193,7 +1193,7 @@ namespace meevax::kernel
                 list(
                   make<instruction>(mnemonic::JOIN)))
             : list(
-                make<instruction>(mnemonic::LOAD_LITERAL), unspecified,
+                make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                 make<instruction>(mnemonic::JOIN))
         };
 
@@ -1220,7 +1220,7 @@ namespace meevax::kernel
                         << std::endl);
       return
         cons(
-          make<instruction>(mnemonic::MAKE_CLOSURE),
+          make<instruction>(mnemonic::LOAD_CLOSURE),
           body(
             cdr(expression), // <body>
             cons(
@@ -1244,7 +1244,7 @@ namespace meevax::kernel
                         << attribute::normal << std::endl);
       return
         cons(
-          make<instruction>(mnemonic::MAKE_CONTINUATION),
+          make<instruction>(mnemonic::LOAD_CONTINUATION),
           continuation,
           compile(
             car(expression),
@@ -1347,7 +1347,7 @@ namespace meevax::kernel
           car(expression),
           frames,
           cons(
-            make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
+            make<instruction>(mnemonic::LOAD_SYNTACTIC_CONTINUATION),
             continuation),
           as_program_declaration);
     })
@@ -1406,7 +1406,7 @@ namespace meevax::kernel
               cadr(expression),
               frames,
               cons(
-                make<instruction>(mnemonic::SET_LOCAL_VARIADIC), index,
+                make<instruction>(mnemonic::STORE_VARIADIC), index,
                 continuation));
         }
         else
@@ -1418,7 +1418,7 @@ namespace meevax::kernel
               cadr(expression),
               frames,
               cons(
-                make<instruction>(mnemonic::SET_LOCAL), index,
+                make<instruction>(mnemonic::STORE_LOCAL), index,
                 continuation));
         }
       }
@@ -1431,7 +1431,7 @@ namespace meevax::kernel
             cadr(expression),
             frames,
             cons(
-              make<instruction>(mnemonic::SET_GLOBAL),
+              make<instruction>(mnemonic::STORE_GLOBAL),
               car(expression),
               continuation));
       }
@@ -1467,7 +1467,7 @@ namespace meevax::kernel
 
           return
             cons(
-              make<instruction>(mnemonic::LOAD_LOCAL_VARIADIC), variable,
+              make<instruction>(mnemonic::LOAD_VARIADIC), variable,
               continuation);
         }
         else
