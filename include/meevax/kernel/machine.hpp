@@ -15,16 +15,6 @@ inline namespace ugly_macros
 {
   static std::size_t depth {0};
 
-  #define TRACE(N)                                                             \
-  if (const auto& config {static_cast<SyntacticContinuation&>(*this)};         \
-      config.trace.equivalent_to(true_object))                                 \
-  {                                                                            \
-    std::cerr << "; machine\t; \x1B[?7l"                                       \
-              << take(c, N)                                                    \
-              <<              "\x1B[?7h"                                       \
-              << std::endl;                                                    \
-  }
-
   #define IF_VERBOSE_COMPILER()                                                \
   if (const auto& config {static_cast<SyntacticContinuation&>(*this)};         \
          config.verbose         .equivalent_to(true_object)                    \
@@ -35,17 +25,7 @@ inline namespace ugly_macros
   {                                                                            \
     std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
               << std::string(depth * 2, ' ')                                   \
-              << __VA_ARGS__;                                                  \
-  }
-
-  // TODO REMOVE THIS!!!
-  #define DEBUG_COMPILE_SYNTAX(...)                                            \
-  if (   verbose         .equivalent_to(true_object)                           \
-      or verbose_compiler.equivalent_to(true_object))                          \
-  {                                                                            \
-    std::cerr << (depth ? "; compile\t; " : ";\t\t; ")                         \
-              << std::string(depth * 2, ' ')                                   \
-              << __VA_ARGS__;                                                  \
+              __VA_ARGS__;                                                     \
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
@@ -76,10 +56,7 @@ inline namespace ugly_macros
   #define NEST_OUT                                                             \
     --depth;                                                                   \
     DEBUG_COMPILE(                                                             \
-      highlight::syntax << ")" << attribute::normal << std::endl)
-
-  // TODO REMOVE THIS!!!
-  // #define NEST_OUT_SYNTAX --depth; DEBUG_COMPILE_SYNTAX(")" << std::endl)
+      << highlight::syntax << ")" << attribute::normal << std::endl)
 }
 
 namespace meevax::kernel
@@ -185,7 +162,8 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        DEBUG_COMPILE(expression << highlight::comment << "\t; ");
+        DEBUG_COMPILE(
+          << expression << highlight::comment << "\t; ");
 
         if (expression.is<symbol>()) // is variable
         {
@@ -249,7 +227,7 @@ namespace meevax::kernel
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-               highlight::syntax << "(" << attribute::normal
+            << highlight::syntax << "(" << attribute::normal
             << car(expression)
             << highlight::comment << "\t; is <primitive expression> "
             << attribute::normal << applicant << std::endl);
@@ -266,7 +244,7 @@ namespace meevax::kernel
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-               highlight::syntax << "(" << attribute::normal
+            << highlight::syntax << "(" << attribute::normal
             << car(expression)
             << highlight::comment << "\t; is <macro use> of <derived expression> "
             << attribute::normal << applicant
@@ -293,7 +271,7 @@ namespace meevax::kernel
         }
 
         DEBUG_COMPILE(
-             highlight::syntax << "(" << attribute::normal
+          << highlight::syntax << "(" << attribute::normal
           << highlight::comment << "\t; is <procedure call>"
           << attribute::normal << std::endl);
 
@@ -425,17 +403,19 @@ namespace meevax::kernel
     object execute()
     {
     dispatch:
-      // std::cerr << "; s\t; " <<  s << std::endl;
-      // std::cerr << "; e\t; " <<  e << std::endl;
-      // std::cerr << "; c\t; " <<  c << std::endl;
-      // std::cerr << "; d\t; " <<  d << std::endl;
-      // std::cerr << std::endl;
+      if (static_cast<SyntacticContinuation&>(*this)
+            .trace.equivalent_to(true_object))
+      {
+        std::cerr << "; s\t; " <<  s << std::endl;
+        std::cerr << "; e\t; " <<  e << std::endl;
+        std::cerr << "; c\t; " <<  c << std::endl;
+        std::cerr << "; d\t; " <<  d << std::endl;
+        std::cerr << std::endl;
+      }
 
       switch (car(c).template as<instruction>().code)
       {
       /* ====*/ case mnemonic::LOAD_LOCAL: /*===================================
-      *
-      */ TRACE(2);                                                            /*
       *
       *               S  E (LOAD_LOCAL (i . j) . C) D
       *
@@ -457,7 +437,6 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::LOAD_VARIADIC:
-        TRACE(2);
         push(
           s,
           list_tail(
@@ -471,13 +450,11 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::LOAD_CONSTANT: // S E (LOAD_CONSTANT constant . C) D => (constant . S) E C D
-        TRACE(2);
         push(s, cadr(c));
         pop<2>(c);
         goto dispatch;
 
       case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
-        TRACE(2);
         if (auto value {
               assoc( // XXX assq?
                 cadr(c),
@@ -511,7 +488,6 @@ namespace meevax::kernel
         goto dispatch;
 
       // case mnemonic::FORK: // S E (FORK code . C) => (subprogram . S) E C D
-      //   TRACE(2);
       //   push(
       //     s,
       //     make<SyntacticContinuation>(
@@ -521,7 +497,6 @@ namespace meevax::kernel
       //   goto dispatch;
 
       case mnemonic::LOAD_CLOSURE: // S E (LOAD_CLOSURE code . C) => (closure . S) E C D
-        TRACE(2);
         push(
           s,
           make<closure>(
@@ -531,7 +506,6 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::LOAD_CONTINUATION: // S E (LOAD_CONTINUATION code . C) D => ((continuation) . S) E C D
-        TRACE(2);
         push(
           s,
           list(
@@ -545,8 +519,6 @@ namespace meevax::kernel
         goto dispatch;
 
       /* ====*/ case mnemonic::LOAD_SYNTACTIC_CONTINUATION: /*==================
-      *
-      */ TRACE(2);                                                            /*
       *
       *     (closure . S) E (LOAD_SC . C) D
       *
@@ -562,34 +534,25 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
-        TRACE(3);
         push(d, cdddr(c));
-        c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
-        pop<1>(s);
-        goto dispatch;
 
       case mnemonic::SELECT_TAIL:
-        TRACE(3);
         c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
       case mnemonic::JOIN: // S E (JOIN . x) (C . D) => S E C D
-        TRACE(1);
         c = car(d);
         pop<1>(d);
         goto dispatch;
 
       case mnemonic::DEFINE:
-        TRACE(2);
         define(cadr(c), car(s));
         car(s) = cadr(c); // return value of define
         pop<2>(c);
         goto dispatch;
 
       case mnemonic::APPLY:
-        TRACE(1);
-
         if (const object callee {car(s)}; not callee)
         {
           static const error e {"unit is not appliciable"};
@@ -636,8 +599,6 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::APPLY_TAIL:
-        TRACE(1);
-
         if (object callee {car(s)}; not callee)
         {
           throw evaluation_error {"unit is not appliciable"};
@@ -650,8 +611,12 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), resource {}, cadr(s))
-            | cddr(s);
+          s = cons(
+                std::invoke(
+                  callee.as<procedure>(),
+                  resource {},
+                  cadr(s)),
+                cddr(s));
           pop<1>(c);
         }
         else if (callee.is<SyntacticContinuation>())
@@ -679,8 +644,6 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::RETURN: /*======================================
       *
-      */ TRACE(1); /*
-      *
       *    (result . S) E (RETURN . C) (s e c . D)
       *
       * => (result . s) e           c           D
@@ -695,8 +658,6 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::PUSH: /*========================================
       *
-      */ TRACE(1);                                                           /*
-      *
       *     ( X   Y  . S) E (PUSH . C) D
       *
       *  => ((X . Y) . S) E         C  D
@@ -707,13 +668,11 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::POP: // (var . S) E (POP . C) D => S E C D
-        TRACE(1);
         pop<1>(s);
         pop<1>(c);
         goto dispatch;
 
       case mnemonic::STORE_GLOBAL: // (value . S) E (STORE_GLOBAL symbol . C) D => (value . S) E C D
-        TRACE(2);
         // TODO
         // (1) There is no need to make copy if right hand side is unique.
         // (2) There is no matter overwrite if left hand side is unique.
@@ -735,7 +694,6 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::STORE_LOCAL: // (value . S) E (STORE_LOCAL (i . j) . C) D => (value . S) E C D
-        TRACE(2);
         std::atomic_store(
           &car(
             list_tail(
@@ -750,7 +708,6 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::STORE_VARIADIC:
-        TRACE(2);
         std::atomic_store(
           &cdr(
             list_tail(
@@ -766,7 +723,6 @@ namespace meevax::kernel
 
       case mnemonic::STOP: // (result . S) E (STOP . C) D
       default:
-        TRACE(1);
         pop<1>(c);
         return pop(s); // car(s);
       }
@@ -789,8 +745,10 @@ namespace meevax::kernel
     DEFINE_PREMITIVE_EXPRESSION(quotation,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <datum>"
-                        << attribute::normal << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <datum>"
+        << attribute::normal << std::endl);
+
       return
         cons(
           make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
@@ -869,8 +827,10 @@ namespace meevax::kernel
       if (not frames or in_a.program_declaration)
       {
         DEBUG_COMPILE(
-          car(expression) << highlight::comment << "\t; is <variable>"
-                          << attribute::normal << std::endl);
+          << car(expression)
+          << highlight::comment << "\t; is <variable>"
+          << attribute::normal << std::endl);
+
         return
           compile(
             cdr(expression) ? cadr(expression) : undefined,
@@ -1139,8 +1099,9 @@ namespace meevax::kernel
     DEFINE_PREMITIVE_EXPRESSION(conditional,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <test>"
-                        << attribute::normal << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <test>"
+        << attribute::normal << std::endl);
 
       if (in_a.tail_expression)
       {
@@ -1215,9 +1176,10 @@ namespace meevax::kernel
     DEFINE_PREMITIVE_EXPRESSION(lambda,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <formals>"
-                        << attribute::normal
-                        << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <formals>"
+        << attribute::normal << std::endl);
+
       return
         cons(
           make<instruction>(mnemonic::LOAD_CLOSURE),
@@ -1240,8 +1202,10 @@ namespace meevax::kernel
     DEFINE_PREMITIVE_EXPRESSION(call_cc,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <procedure>"
-                        << attribute::normal << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <procedure>"
+        << attribute::normal << std::endl);
+
       return
         cons(
           make<instruction>(mnemonic::LOAD_CONTINUATION),
@@ -1340,8 +1304,10 @@ namespace meevax::kernel
     DEFINE_PREMITIVE_EXPRESSION(call_csc,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <subprogram>"
-                        << attribute::normal << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <subprogram>"
+        << attribute::normal << std::endl);
+
       return
         compile(
           car(expression),
@@ -1386,7 +1352,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PREMITIVE_EXPRESSION(assignment,
     {
-      DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
+      DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
 
       if (not expression)
       {
@@ -1444,7 +1410,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PREMITIVE_EXPRESSION(reference,
     {
-      DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
+      DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
 
       if (not expression)
       {
