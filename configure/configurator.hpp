@@ -27,11 +27,11 @@ namespace meevax::kernel
     static inline const struct semantic_version
       : public object
     {
-      static inline const auto major {make<real>(${PROJECT_VERSION_MAJOR})};
-      static inline const auto minor {make<real>(${PROJECT_VERSION_MINOR})};
-      static inline const auto patch {make<real>(${PROJECT_VERSION_PATCH})};
+      static inline const auto major {make<real>("${PROJECT_VERSION_MAJOR}")};
+      static inline const auto minor {make<real>("${PROJECT_VERSION_MINOR}")};
+      static inline const auto patch {make<real>("${PROJECT_VERSION_PATCH}")};
 
-      static inline const auto semantic {"datum<string>(${PROJECT_VERSION})"};
+      static inline const auto semantic {datum<string>("${PROJECT_VERSION}")};
 
       template <typename... Ts>
       explicit constexpr semantic_version(Ts&&... operands)
