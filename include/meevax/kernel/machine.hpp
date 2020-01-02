@@ -330,7 +330,7 @@ namespace meevax::kernel
         case mnemonic::STOP:
           std::cerr << *iter
                     << highlight::syntax
-                    << ")"
+                    << "\t)"
                     << attribute::normal
                     << std::endl;
           break;
@@ -417,11 +417,11 @@ namespace meevax::kernel
       {
       /* ====*/ case mnemonic::LOAD_LOCAL: /*===================================
       *
-      *               S  E (LOAD_LOCAL (i . j) . C) D
+      *              S  E (LOAD_LOCAL (i . j) . C) D
       *
-      *  => (result . S) E                       C  D
+      * => (result . S) E                       C  D
       *
-      *  where result = (list-ref (list-ref E i) j)
+      * where result = (list-ref (list-ref E i) j)
       *
       *====================================================================== */
         push(
@@ -505,7 +505,13 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_CONTINUATION: // S E (LOAD_CONTINUATION code . C) D => ((continuation) . S) E C D
+      /* ====*/ case mnemonic::LOAD_CONTINUATION: /*============================
+      *
+      *                      S  E (LOADK cc . C) D
+      *
+      * => ((continuation) . S) E             C  D
+      *
+      *====================================================================== */
         push(
           s,
           list(
@@ -520,9 +526,9 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::LOAD_SYNTACTIC_CONTINUATION: /*==================
       *
-      *     (closure . S) E (LOAD_SC . C) D
+      *    (closure . S) E (FORK . C) D
       *
-      *  => (program . S) E            C  D
+      * => (program . S) E         C  D
       *
       *====================================================================== */
         push(
@@ -533,15 +539,38 @@ namespace meevax::kernel
         pop<1>(c);
         goto dispatch;
 
-      case mnemonic::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
+      /* ====*/ case mnemonic::SELECT: /*=======================================
+      *
+      *    (test . S) E (SELECT consequent alternate . C)  D
+      *
+      * =>         S  E         selection             (C . D)
+      *
+      * where selection = (if test consequent alternate)
+      *
+      *====================================================================== */
         push(d, cdddr(c));
+        [[fallthrough]];
 
-      case mnemonic::SELECT_TAIL:
+      /* ====*/ case mnemonic::SELECT_TAIL: /*==================================
+      *
+      *    (test . S) E (SELECT consequent alternate . C)  D
+      *
+      * =>         S  E         selection                  D
+      *
+      * where selection = (if test consequent alternate)
+      *
+      *====================================================================== */
         c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
-      case mnemonic::JOIN: // S E (JOIN . x) (C . D) => S E C D
+      /* ====*/ case mnemonic::JOIN: /*=========================================
+      *
+      *    S E (JOIN . C) (C' . D)
+      *
+      * => S E             C'   D
+      *
+      *====================================================================== */
         c = car(d);
         pop<1>(d);
         goto dispatch;
@@ -619,7 +648,7 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>())
+        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
         {
           s = cons(
                 callee.as<SyntacticContinuation>().expand(
@@ -642,11 +671,11 @@ namespace meevax::kernel
         }
         goto dispatch;
 
-      /* ====*/ case mnemonic::RETURN: /*======================================
+      /* ====*/ case mnemonic::RETURN: /*=======================================
       *
-      *    (result . S) E (RETURN . C) (s e c . D)
+      *    (result . S)  E (RETURN . C) (S' E' C' . D)
       *
-      * => (result . s) e           c           D
+      * => (result . S') E'          C'             D
       *
       *====================================================================== */
         s = cons(
@@ -656,18 +685,24 @@ namespace meevax::kernel
         c = pop(d);
         goto dispatch;
 
-      /* ====*/ case mnemonic::PUSH: /*========================================
+      /* ====*/ case mnemonic::PUSH: /*=========================================
       *
-      *     ( X   Y  . S) E (PUSH . C) D
+      *    ( X   Y  . S) E (PUSH . C) D
       *
-      *  => ((X . Y) . S) E         C  D
+      * => ((X . Y) . S) E         C  D
       *
       *====================================================================== */
         s = cons(cons(car(s), cadr(s)), cddr(s));
         pop<1>(c);
         goto dispatch;
 
-      case mnemonic::POP: // (var . S) E (POP . C) D => S E C D
+      /* ====*/ case mnemonic::POP: /*==========================================
+      *
+      *    (result . S) E (POP . C) D
+      *
+      * =>           S  E        C  D
+      *
+      *====================================================================== */
         pop<1>(s);
         pop<1>(c);
         goto dispatch;
@@ -721,7 +756,11 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::STOP: // (result . S) E (STOP . C) D
+      /* ====*/ case mnemonic::STOP: /*=========================================
+      *
+      * (result . S) E (STOP . C) D
+      *
+      *====================================================================== */
       default:
         pop<1>(c);
         return pop(s); // car(s);
