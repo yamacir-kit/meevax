@@ -18,7 +18,6 @@ namespace meevax::kernel
     (LOAD_CONTINUATION)                                                        \
     (LOAD_GLOBAL)                                                              \
     (LOAD_LOCAL)                                                               \
-    (LOAD_SYNTACTIC_CONTINUATION)                                              \
     (LOAD_VARIADIC)                                                            \
     (POP)                                                                      \
     (PUSH)                                                                     \

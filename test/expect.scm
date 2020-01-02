@@ -1,7 +1,7 @@
 (define passed 0)
 
 (define expect
-  (call/csc
+  (fork
     (lambda (this expects expression)
      `(,let ((,result ,expression)
              )

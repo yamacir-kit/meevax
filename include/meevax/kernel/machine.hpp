@@ -54,9 +54,9 @@ inline namespace ugly_macros
 
   #define NEST_IN  ++depth
   #define NEST_OUT                                                             \
-    --depth;                                                                   \
     DEBUG_COMPILE(                                                             \
-      << highlight::syntax << ")" << attribute::normal << std::endl)
+      << highlight::syntax << ")" << attribute::normal << std::endl)           \
+    --depth;
 }
 
 namespace meevax::kernel
@@ -65,10 +65,10 @@ namespace meevax::kernel
   class machine // Simple SECD machine.
   {
   protected:
-    object s, // main stack
-           e, // lexical environment
-           c, // control stack
-           d; // dump stack (current-continuation)
+    object s, // Stack (holding intermediate results and return address)
+           e, // Environment (giving values to symbols)
+           c, // Code (instructions yet to be executed)
+           d; // Dump (S.E.C)
 
   private: // CRTP
     #define CRTP(IDENTIFIER)                                                   \
@@ -319,8 +319,8 @@ namespace meevax::kernel
         {
         case mnemonic::APPLY:
         case mnemonic::APPLY_TAIL:
+        case mnemonic::FORK:
         case mnemonic::JOIN:
-        case mnemonic::LOAD_SYNTACTIC_CONTINUATION:
         case mnemonic::POP:
         case mnemonic::PUSH:
           std::cerr << *iter << std::endl;
@@ -336,8 +336,8 @@ namespace meevax::kernel
           break;
 
         case mnemonic::DEFINE:
-        case mnemonic::LOAD_GLOBAL:
         case mnemonic::LOAD_CONSTANT:
+        case mnemonic::LOAD_GLOBAL:
         case mnemonic::LOAD_LOCAL:
         case mnemonic::LOAD_VARIADIC:
         case mnemonic::STORE_GLOBAL:
@@ -360,7 +360,6 @@ namespace meevax::kernel
           disassemble(*++iter, depth + 1);
           break;
 
-        case mnemonic::FORK:
         default:
           assert(false);
         }
@@ -487,16 +486,13 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      // case mnemonic::FORK: // S E (FORK code . C) => (subprogram . S) E C D
-      //   push(
-      //     s,
-      //     make<SyntacticContinuation>(
-      //       make<closure>(cadr(c), e),
-      //       interaction_environment()));
-      //   pop<2>(c);
-      //   goto dispatch;
-
-      case mnemonic::LOAD_CLOSURE: // S E (LOAD_CLOSURE code . C) => (closure . S) E C D
+      /* ====*/ case mnemonic::LOAD_CLOSURE: /*=================================
+      *
+      *               S  E (LOAD_CLOSURE body . C) D
+      *
+      * => (closure . S) E                      C  D
+      *
+      *====================================================================== */
         push(
           s,
           make<closure>(
@@ -524,7 +520,7 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::LOAD_SYNTACTIC_CONTINUATION: /*==================
+      /* ====*/ case mnemonic::FORK: /*=========================================
       *
       *    (closure . S) E (FORK . C) D
       *
@@ -1257,90 +1253,12 @@ namespace meevax::kernel
               continuation)));
     })
 
-    /* ==== Program ===========================================================
-    *
-    * <program> = <import declaration>+
-    *             <definition or command>+
-    *             <definition or expression>+
-    *
-    * <definition or command> = <definition>
-    *                         | <command>
-    *                         | (begin <command or definition>+)
-    *
-    * <command> = <an expression whose return value will be ignored>
-    *
-    *
-    * <library> = (define-library <library name> <library declaration>+)
-    *
-    * <library name> = (<library name part>+)
-    *
-    * <library name part> = <identifier>
-    *                     | <unsigned integer 10>
-    *
-    * <library declaration>
-    *
-    *======================================================================== */
-    // const object
-    //   program(
-    //     const object& expression,
-    //     const object& frames,
-    //     const object& continuation,
-    //     const compilation_context = as_is)
-    // {
-    //   if (not cdr(expression)) // is tail sequence
-    //   {
-    //     try
-    //     {
-    //       return
-    //         compile(
-    //           car(expression),
-    //           frames,
-    //           continuation); // TODO tail-call-optimizable?
-    //     }
-    //     catch (const object& definition)
-    //     {
-    //       NEST_OUT;
-    //       return definition;
-    //     }
-    //   }
-    //   else
-    //   {
-    //     const auto declarations {
-    //       program(
-    //         cdr(expression),
-    //         frames,
-    //         continuation)
-    //     };
-    //     NEST_OUT;
-    //
-    //     try
-    //     {
-    //       return
-    //         compile(
-    //           car(expression),
-    //           frames,
-    //           cons(
-    //             make<instruction>(mnemonic::POP), // remove result of expression
-    //             declarations));
-    //     }
-    //     catch (const object& definition)
-    //     {
-    //       NEST_OUT;
-    //       return
-    //         cons(
-    //           definition,
-    //           make<instruction>(mnemonic::POP),
-    //           declarations);
-    //     }
-    //   }
-    // }
-
-    /* ==== Call-With-Current-Syntactic-Continuation ==========================
+    /* ==== Fork ===============================================================
     *
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(call_csc,
+    DEFINE_PREMITIVE_EXPRESSION(fork,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1352,37 +1270,10 @@ namespace meevax::kernel
           car(expression),
           frames,
           cons(
-            make<instruction>(mnemonic::LOAD_SYNTACTIC_CONTINUATION),
+            make<instruction>(mnemonic::FORK),
             continuation),
           as_program_declaration);
     })
-
-    /* ==== Fork ==============================================================
-    *
-    * TODO documentation
-    *
-    *======================================================================== */
-    // const object
-    //   fork(
-    //     const object& expression,
-    //     const object& frames,
-    //     const object& continuation,
-    //     const compilation_context = as_is)
-    // {
-    //   DEBUG_COMPILE(
-    //     car(expression) << highlight::comment
-    //                     << "\t; is <subprogram parameters>"
-    //                     << attribute::normal
-    //                     << std::endl);
-    //   return
-    //     cons(
-    //       make<instruction>(mnemonic::FORK),
-    //       program(
-    //         cdr(expression),
-    //         cons(car(expression), frames),
-    //         list(make<instruction>(mnemonic::RETURN))),
-    //       continuation);
-    // }
 
     /* ==== Assignment ========================================================
     *
