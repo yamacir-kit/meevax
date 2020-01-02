@@ -105,11 +105,11 @@ else()
   set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
-  configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
-    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp)
-endif()
+# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
+#   configure_file(
+#     ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
+#     ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp)
+# endif()
 
 if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake)
   configure_file(
