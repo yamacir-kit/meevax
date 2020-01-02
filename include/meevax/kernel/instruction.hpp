@@ -13,22 +13,21 @@ namespace meevax::kernel
     (DEFINE)                                                                   \
     (FORK)                                                                     \
     (JOIN)                                                                     \
+    (LOAD_CLOSURE)                                                             \
+    (LOAD_CONSTANT)                                                            \
+    (LOAD_CONTINUATION)                                                        \
     (LOAD_GLOBAL)                                                              \
-    (LOAD_LITERAL)                                                             \
     (LOAD_LOCAL)                                                               \
-    (LOAD_LOCAL_VARIADIC)                                                      \
-    (MAKE_CLOSURE)                                                             \
-    (MAKE_CONTINUATION)                                                        \
-    (MAKE_SYNTACTIC_CONTINUATION)                                              \
+    (LOAD_VARIADIC)                                                            \
     (POP)                                                                      \
     (PUSH)                                                                     \
     (RETURN)                                                                   \
     (SELECT)                                                                   \
     (SELECT_TAIL)                                                              \
-    (SET_GLOBAL)                                                               \
-    (SET_LOCAL)                                                                \
-    (SET_LOCAL_VARIADIC)                                                       \
-    (STOP)
+    (STOP)                                                                     \
+    (STORE_GLOBAL)                                                             \
+    (STORE_LOCAL)                                                              \
+    (STORE_VARIADIC)
 
   enum class mnemonic
     : std::int8_t

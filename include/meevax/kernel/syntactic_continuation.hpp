@@ -392,8 +392,8 @@ namespace meevax::kernel
 
       return
         cons(
-          make<instruction>(mnemonic::LOAD_LITERAL), expression,
-          make<instruction>(mnemonic::LOAD_LITERAL), make<procedure>("export", exportation),
+          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("export", exportation),
           make<instruction>(mnemonic::APPLY),
           continuation);
     });
@@ -404,17 +404,15 @@ namespace meevax::kernel
     syntactic_continuation::boot(
       std::integral_constant<decltype(1), 1>)
   {
-    DEFINE_SPECIAL("begin",     sequence);
-    DEFINE_SPECIAL("define",    definition);
-    DEFINE_SPECIAL("if",        conditional);
-    DEFINE_SPECIAL("lambda",    lambda);
-    DEFINE_SPECIAL("quote",     quotation);
-    DEFINE_SPECIAL("reference", reference);
-    DEFINE_SPECIAL("set!",      assignment);
-
-    // DEFINE_SPECIAL("fork-with-current-sytanctic-continuation", fork);
-    DEFINE_SPECIAL("call-with-current-continuation",           call_cc);
-    DEFINE_SPECIAL("call-with-current-syntactic-continuation", call_csc);
+    DEFINE_SPECIAL("begin",                          sequence);
+    DEFINE_SPECIAL("call-with-current-continuation", call_cc);
+    DEFINE_SPECIAL("define",                         definition);
+    DEFINE_SPECIAL("fork",                           fork);
+    DEFINE_SPECIAL("if",                             conditional);
+    DEFINE_SPECIAL("lambda",                         lambda);
+    DEFINE_SPECIAL("quote",                          quotation);
+    DEFINE_SPECIAL("reference",                      reference);
+    DEFINE_SPECIAL("set!",                           assignment);
 
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<meevax::posix::linker>);

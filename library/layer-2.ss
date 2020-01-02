@@ -1,7 +1,3 @@
-(define call/csc call-with-current-syntactic-continuation)
-(define fork-with-current-syntactic-continuation call/csc)
-(define fork/csc fork-with-current-syntactic-continuation)
-
 (define identity
   (lambda (x) x))
 
@@ -156,7 +152,7 @@
 ; --------------------------------------------------------------------------
 
 (define conditional
-  (fork/csc
+  (fork
     (lambda (conditional . clauses)
       (if (null? clauses)
           (if #false #false)
@@ -181,7 +177,7 @@
 (define cond conditional)
 
 (define and
-  (fork/csc
+  (fork
     (lambda (and . tests)
       (conditional
         ((null? tests))
@@ -192,7 +188,7 @@
                   #false))))))
 
 (define or
-  (call/csc
+  (fork
     (lambda (or . tests)
       (conditional
         ((null? tests) #false)
@@ -221,7 +217,7 @@
 ; (define unquote-splicing identity)
 
 (define quasiquote
-  (call/csc
+  (fork
     (lambda (quasiquote x)
 
       (define quasiquote-expand
@@ -373,7 +369,7 @@
 ; ------------------------------------------------------------------------------
 
 (define letrec* ; transform to internal-definitions
-  (call/csc
+  (fork
     (lambda (letrec* bindings . body)
       ((lambda (definitions)
         `((,lambda () ,@definitions ,@body)))
@@ -382,12 +378,12 @@
 (define letrec letrec*)
 
 (define unnamed-let
-  (call/csc
+  (fork
     (lambda (unnamed-let bindings . body)
      `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings)))))
 
 (define let
-  (call/csc
+  (fork
     (lambda (let bindings . body)
 
       (if (null? bindings)
@@ -404,7 +400,7 @@
             (,bindings ,@(map cadr (car body))))))))
 
 (define let*
-  (call/csc
+  (fork
     (lambda (let* bindings . body)
 
       (if (null? bindings)
@@ -600,7 +596,7 @@
 ; ------------------------------------------------------------------------------
 
 (define case
-  (call/csc
+  (fork
     (lambda (case key . clauses)
 
       (define body
@@ -632,12 +628,12 @@
        ,(each-clause clauses)))))
 
 (define when
-  (call/csc
+  (fork
     (lambda (when test . body)
      `(if ,test (begin ,@body)))))
 
 (define unless
-  (call/csc
+  (fork
     (lambda (unless test . body)
      `(if (not ,test) (begin ,@body)))))
 
@@ -653,7 +649,7 @@
 ; ------------------------------------------------------------------------------
 
 (define iterate
-  (call/csc
+  (fork
     (lambda (iterate variables test . commands)
       (let ((body
              `(,begin ,@commands
@@ -678,12 +674,12 @@
 ; ------------------------------------------------------------------------------
 
 (define delay-force
-  (call/csc
+  (fork
     (lambda (delay-force expression)
      `(,promise #false (,lambda () ,expression)))))
 
 (define delay
-  (call/csc
+  (fork
     (lambda (delay expression)
      `(,delay-force (,promise #true expression)))))
 
@@ -1406,13 +1402,13 @@
 
 (define current-lexical-environment ; deprecated
   (lambda ()
-    (cdar (call/csc
+    (cdar (fork
             (lambda ()
              '())))))
 
 (define interaction-environment ; deprecated
   (lambda ()
-    (cdr (call/csc
+    (cdr (fork
            (lambda ()
             '())))))
 
@@ -1605,7 +1601,7 @@
 ; ------------------------------------------------------------------------------
 
 (define swap!
-  (call/csc
+  (fork
     (lambda (swap! x y)
       (let ((temporary (string->symbol)))
        `(,let ((,temporary ,x))
@@ -1613,7 +1609,7 @@
           (,set! ,y ,temporary))))))
 
 (define swap!
-  (call/csc
+  (fork
     (lambda (swap! x y)
      `(,let ((,temporary ,x))
         (,set! ,x ,y)
@@ -1621,7 +1617,7 @@
 
 (define explicit-renaming-macro-transformer
   (lambda (transform)
-    (call/csc
+    (fork
       (lambda expression
         (transform expression evaluate eqv?)))))
 
@@ -1638,7 +1634,7 @@
           (,(rename 'set!) ,b ,(rename 'value)))))))
 
 (define loop
-  (call/csc
+  (fork
     (lambda form
      `(,call/cc
         (,lambda (exit)
@@ -1687,15 +1683,15 @@
 ; ------------------------------------------------------------------------------
 
 (define define-something
-  (call/csc
+  (fork
     (lambda (_ name value)
      `(,define ,name ,value))))
 
 (define define-library
-  (call/csc
+  (fork
     (lambda (this name . declarations)
      `(,define ,name
-        (,call/csc
+        (,fork
           (,lambda (,this . ,expression)
             (,begin (,define ,name ,this))
             ,@declarations
@@ -1710,23 +1706,23 @@
      )))
 
 ; (define export
-;   (call/csc
+;   (fork
 ;     (lambda (_ . export-specs)
 ;      `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
 (define import
-  (call/csc
+  (fork
     (lambda (import . import-set)
      `(,display "; dummy-import\t; " ',import-set "\n"))))
 
 (define instantiate-library
-  (call/csc
+  (fork
     (lambda (this library-name)
      `(,let ((,object (,reference ,library-name)))
         (,object)))))
 
 (define evaluate-in
-  (call/csc
+  (fork
     (lambda (this namespace identifier)
      `((,reference ,namespace) ',identifier))))
 

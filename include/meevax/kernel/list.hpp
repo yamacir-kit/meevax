@@ -11,33 +11,23 @@
 
 /* ==== SRFI-1 ================================================================
 *
-*   - euqal?                           => recursively_equivalent(const object&, const object&)
-*
-* Constructors
-*   - circular-list
-*   - cons                             => cons(Ts&&...)
-*   - cons*                            => cons(Ts&&...)
-*   - iota
-*   - list                             => list(Ts&&...)
-*   - list-copy
-*   - list-tabulate
-*   - make-list
-*   - xcons                            => xcons(Ts&&...)
-*
 * Predicates
 *   - circular-list?
 *   - dotted-list?
+*   - eq?                              => object::operator ==
+*   - eqv?                             => object::equivalent_to
+*   - euqal?                           => recursively_equivalent
 *   - list=
 *   - not-pair?
 *   - null-list?
-*   - null?                            => object::operator bool()
-*   - pair?                            => object::is<pair>()
+*   - null?                            => object::operator bool
+*   - pair?                            => object::is<pair>
 *   - proper-list?
 *
 * Selectors
-*   - car                              => car(const object&)
+*   - car                              => car
 *   - car+cdr
-*   - cdr                              => cdr(const object&)
+*   - cdr                              => cdr
 *   - cxr
 *   - drop
 *   - drop-right
@@ -46,6 +36,7 @@
 *   - last
 *   - last-pair
 *   - list-ref
+*   - list-tail
 *   - split-at
 *   - split-at!
 *   - take
@@ -72,7 +63,7 @@
 *   - unzip5
 *   - zip
 *
-* Fold, unfold, and map
+* Fold, unfold & map
 *   - append-map
 *   - append-map!
 *   - filter-map
@@ -189,7 +180,7 @@ namespace meevax::kernel
   auto cdddar = lambda::compose(cdr, cddar);
   auto cddddr = lambda::compose(cdr, cdddr);
 
-  /* ==== The Homoiconic Iterator =============================================
+  /* ==== The Homoiconic Iterator ==============================================
   *
   * TODO std::empty
   *
@@ -256,231 +247,311 @@ namespace meevax::kernel
     return unit;
   }
 
-  inline decltype(auto) operator |(const object& lhs, const object& rhs)
+  /* ==== Constructors =========================================================
+  *
+  * From R7RS
+  *   - cons                            => cons
+  *   - list                            => list
+  *
+  * From SRFI-1
+  *   - circular-list
+  *   - cons*                           => cons
+  *   - iota
+  *   - list-copy
+  *   - list-tabulate
+  *   - make-list
+  *   - xcons                           => xcons
+  *
+  *========================================================================== */
+  inline namespace constructor
   {
-    return std::make_shared<pair>(lhs, rhs);
+    inline decltype(auto) operator |(const object& lhs, const object& rhs)
+    {
+      return std::make_shared<pair>(lhs, rhs);
+    }
+
+    auto cons = [](auto&&... xs) constexpr
+    {
+      return (xs | ...);
+    };
+
+    auto list = [](auto&& ... xs) constexpr
+    {
+      return (xs | ... | unit);
+    };
+
+    auto make_list = [](std::size_t size, const object& x = unit)
+    {
+      object result;
+
+      for (std::size_t i {0}; i < size; ++i)
+      {
+        result = cons(x, result);
+      }
+
+      return result;
+    };
+
+    auto xcons = [](auto&&... xs) constexpr
+    {
+      return (... | xs);
+    };
   }
 
-  template <typename... Ts>
-  inline constexpr decltype(auto) cons(Ts&&... operands) // is also cons*
-  {
-    return (operands | ...);
-  }
-
-  /* ==== The List Type =======================================================
+  /* ==== Predicates ===========================================================
   *
   * TODO Documentations
   *
   *========================================================================== */
-  template <typename... Ts>
-  inline constexpr decltype(auto) list(Ts&&... operands)
+  inline namespace predicate
   {
-    return (operands | ... | unit);
-  }
-
-  auto make_list = [](std::size_t size, const object& fill)
-  {
-    object result;
-
-    for (std::size_t k {0}; k < size; ++k)
-    {
-      result = cons(fill, result);
-    }
-
-    return result;
-  };
-
-  template <typename... Ts>
-  inline constexpr decltype(auto) xcons(Ts&&... operands)
-  {
-    return (... | operands);
-  }
-
-  template <typename T, typename U>
-  inline decltype(auto) equivalent(T&& x, U&& y)
-  {
-    return x.equivalent_to(y);
-  }
-
-  bool recursively_equivalent(
-    const object& x,
-    const object& y)
-  {
-    if (not x and not y)
-    {
-      return true;
-    }
-    else if (x.is<pair>() and y.is<pair>())
-    {
-      return
-            recursively_equivalent(car(x), car(y))
-        and recursively_equivalent(cdr(x), cdr(y));
-    }
-    else
+    auto equivalent = [](auto&& x, auto&& y)
     {
       return x.equivalent_to(y);
-    }
-  }
+    };
 
-  object take(const object& exp, std::size_t size)
-  {
-    if (0 < size)
+    bool recursively_equivalent(const object& x, const object& y)
     {
-      return car(exp) | take(cdr(exp), --size);
-    }
-    else
-    {
-      return unit;
-    }
-  }
-
-  inline decltype(auto) length(const homoiconic_iterator& e)
-  {
-    return std::distance(std::begin(e), std::end(e));
-  }
-
-  template <typename List1, typename List2>
-  inline object append(List1&& list1, List2&& list2 = unit)
-  {
-    if (not list1)
-    {
-      return list2;
-    }
-    else
-    {
-      return car(list1) | append(cdr(list1), list2);
-    }
-  }
-
-  template <typename List>
-  inline decltype(auto) reverse(List&& list)
-  {
-    if (not list)
-    {
-      return list;
-    }
-    else
-    {
-      auto buffer {car(list)};
-
-      for (auto& head {cdr(list)}; head; head = cdr(head))
+      if (not x and not y)
       {
-        buffer = cons(head, buffer);
+        return true;
       }
+      else if (x.is<pair>() and y.is<pair>())
+      {
+        return
+              recursively_equivalent(car(x), car(y))
+          and recursively_equivalent(cdr(x), cdr(y));
+      }
+      else
+      {
+        return x.equivalent_to(y);
+      }
+    }
 
-      return buffer;
-    }
-  }
+    template <auto Coarseness = 0>
+    struct equivalence_comparator;
 
-  object zip(const object& x, const object& y)
-  {
-    if (!x && !y)
-    {
-      return unit;
-    }
-    else if (x.is<pair>() && y.is<pair>())
-    {
-      return list(car(x), car(y)) | zip(cdr(x), cdr(y));
-    }
-    else
-    {
-      return unit;
-    }
-  }
-
-  template <typename Procedure, typename List>
-  object map(Procedure procedure, List&& list)
-  {
-    if (not list)
-    {
-      return unit;
-    }
-    else
-    {
-      return procedure(car(list)) | map(procedure, cdr(list));
-    }
-  }
-
-  // template <typename Procedure, typename List1, typename List2, typename... Lists>
-  // object map(Procedure procedure, List1&& list1, List2&& list2, Lists&&... lists)
-  // {
-  //   // TODO
-  // }
-
-  const object&
-    assoc(
-      const object& value,
-      const object& association_list)
-  {
-    if (not value)
-    {
-      return unit;
-    }
-    if (not association_list)
-    {
-      return unbound;
-    }
-    else if (recursively_equivalent(
-               caar(association_list),
-               value))
-    {
-      return cadar(association_list);
-    }
-    else
-    {
-      return
-        assoc(
-          value,
-          cdr(association_list));
-    }
-  }
-
-  const object&
-    assq(
-      const object& value,
-      const object& association_list)
-  {
-    if (not value or not association_list)
-    {
-      return false_object;
-    }
-    else if (caar(association_list) == value)
-    {
-      return car(association_list);
-    }
-    else
-    {
-      return
-        assq(
-          value,
-          cdr(association_list));
-    }
-  }
-
-  template <auto Coarseness = 0>
-  struct equivalence_comparator;
-
-  #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)               \
-  template <>                                                                  \
-  struct equivalence_comparator<COARSENESS>                                    \
-  {                                                                            \
-    template <typename... Ts>                                                  \
-    decltype(auto) operator ()(Ts&&... operands)                               \
+    #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)             \
+    template <>                                                                \
+    struct equivalence_comparator<COARSENESS>                                  \
     {                                                                          \
-      return                                                                   \
-        std::invoke(                                                           \
-          COMPARE,                                                             \
-          std::forward<decltype(operands)>(operands)...);                      \
-    }                                                                          \
+      template <typename... Ts>                                                \
+      decltype(auto) operator ()(Ts&&... operands)                             \
+      {                                                                        \
+        return                                                                 \
+          std::invoke(                                                         \
+            COMPARE,                                                           \
+            std::forward<decltype(operands)>(operands)...);                    \
+      }                                                                        \
+    }
+
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(0, std::equal_to {});
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(1,             equivalent);
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(2, recursively_equivalent);
+
+    #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
+
+    using default_equivalence_comparator = equivalence_comparator<>;
   }
 
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(0, std::equal_to {});
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(1,             equivalent);
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(2, recursively_equivalent);
+  /* ==== Selectors ============================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace selector
+  {
+    auto list_tail
+      = [](homoiconic_iterator iter, auto n)
+    {
+      return std::next(iter, n);
+    };
 
-  #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
+    auto list_reference
+      = [](const object& x, auto n)
+    {
+      return car(list_tail(x, n));
+    };
 
-  using default_equivalence_comparator = equivalence_comparator<>;
+    object take(const object& exp, std::size_t size)
+    {
+      if (0 < size)
+      {
+        return car(exp) | take(cdr(exp), --size);
+      }
+      else
+      {
+        return unit;
+      }
+    }
+  }
+
+  /* ==== Miscellaneous ========================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace miscellaneous
+  {
+    inline decltype(auto) length(const homoiconic_iterator& e)
+    {
+      return std::distance(std::begin(e), std::end(e));
+    }
+
+    const object append(const object& x, const object& y)
+    {
+      if (not x)
+      {
+        return y;
+      }
+      else
+      {
+        return
+          cons(
+            car(x),
+            append(cdr(x), y));
+      }
+    }
+
+    template <typename List>
+    inline decltype(auto) reverse(List&& list)
+    {
+      if (not list)
+      {
+        return list;
+      }
+      else
+      {
+        auto buffer {car(list)};
+
+        for (auto& head {cdr(list)}; head; head = cdr(head))
+        {
+          buffer = cons(head, buffer);
+        }
+
+        return buffer;
+      }
+    }
+
+    object zip(const object& x, const object& y)
+    {
+      if (!x && !y)
+      {
+        return unit;
+      }
+      else if (x.is<pair>() && y.is<pair>())
+      {
+        return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+      }
+      else
+      {
+        return unit;
+      }
+    }
+  }
+
+  /* ==== Folding ==============================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace folding
+  {
+  }
+
+  /* ==== Unfolding ============================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace unfolding
+  {
+  }
+
+  /* ==== Mapping ==============================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace mapping
+  {
+    template <typename Procedure>
+    object map(Procedure procedure, const object& x)
+    {
+      if (not x)
+      {
+        return unit;
+      }
+      else
+      {
+        return
+          cons(
+            procedure(
+              car(x)),
+            map(
+              procedure,
+              cdr(x)));
+      }
+    }
+  }
+
+  /* ==== Association List =====================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace association_list
+  {
+    const object&
+      assoc(
+        const object& value,
+        const object& association_list)
+    {
+      if (not value)
+      {
+        return unit;
+      }
+      if (not association_list)
+      {
+        return unbound;
+      }
+      else if (recursively_equivalent(
+                 caar(association_list),
+                 value))
+      {
+        return cadar(association_list);
+      }
+      else
+      {
+        return
+          assoc(
+            value,
+            cdr(association_list));
+      }
+    }
+
+    const object&
+      assq(
+        const object& value,
+        const object& association_list)
+    {
+      if (not value or not association_list)
+      {
+        return false_object;
+      }
+      else if (caar(association_list) == value)
+      {
+        return car(association_list);
+      }
+      else
+      {
+        return
+          assq(
+            value,
+            cdr(association_list));
+      }
+    }
+  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP
