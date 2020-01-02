@@ -14,12 +14,12 @@ namespace meevax::kernel
     };
 
     static inline const auto date {
-      make<symbol>("${${PROJECT_NAME}_BUILD_DATE}"
-    )};
+      make<symbol>("${${PROJECT_NAME}_BUILD_DATE}")
+    };
 
     static inline const auto type {
-      make<symbol>("${CMAKE_BUILD_TYPE}"
-    )};
+      make<symbol>("${CMAKE_BUILD_TYPE}")
+    };
 
     explicit feature()
       : object {list(date, commit, type)}
