@@ -17,7 +17,6 @@
 
 namespace meevax::kernel
 {
-
   template <typename SyntacticContinuation>
   struct configurator
   {
@@ -42,11 +41,7 @@ namespace meevax::kernel
 
   public:
     template <typename T>
-    using dispatcher
-      = std::unordered_map<
-          typename std::decay<T>::type,
-          std::function<PROCEDURE()>
-        >;
+    using dispatcher = std::unordered_map<T, std::function<PROCEDURE()>>;
 
     #define ENABLE(VARIABLE)                                                   \
     [&](const auto&, const auto&) mutable                                      \
@@ -57,38 +52,33 @@ namespace meevax::kernel
       return VARIABLE;                                                         \
     }
 
-    const dispatcher<char> short_options_requires_no_operands
+    const dispatcher<char> short_options
     {
       std::make_pair('h', [&](const auto&, const auto&)
       {
         std::cout << "; HELP!" << std::endl;
-        std::exit(boost::exit_success);
-        return undefined; // dummy for return type deduction
+        return std::exit(boost::exit_success), unspecified;
       }),
 
       std::make_pair('v', [&](const auto&, const auto&)
       {
         std::cout << version_object << std::endl;
-        std::exit(boost::exit_success);
-        return unspecified;
+        return std::exit(boost::exit_success), unspecified;
       }),
     };
 
-    const dispatcher<char> short_options_requires_operands
+    const dispatcher<char> short_options_
     {
     };
 
-    const dispatcher<std::string> long_options_requires_no_operands
+    const dispatcher<std::string> long_options
     {
       std::make_pair("debug", ENABLE(debug)),
 
-      std::make_pair("rune-magic", ENABLE(rune_magic)),
-
       std::make_pair("help", [&](const auto&, const auto&)
       {
-        std::cout << "; rather, help me." << std::endl;
-        std::exit(boost::exit_success);
-        return undefined; // dummy for return type deduction
+        std::cout << "; help!" << std::endl;
+        return std::exit(boost::exit_success), unspecified;
       }),
 
       // TODO quite
@@ -118,12 +108,11 @@ namespace meevax::kernel
         std::cout << "; version\t\t; " << version_object << std::endl;
         std::cout << "; feature\t\t; " << feature_object << std::endl;
 
-        std::exit(boost::exit_success);
-        return unspecified;
+        return std::exit(boost::exit_success), unspecified;
       }),
     };
 
-    const dispatcher<std::string> long_options_requires_operands
+    const dispatcher<std::string> long_options_
     {
       std::make_pair("echo", [](const auto&, const auto& operands)
       {
@@ -133,9 +122,11 @@ namespace meevax::kernel
 
       std::make_pair("variable", [&](const auto&, const auto& operands) mutable
       {
-        std::cerr << "; configure\t; " << verbose << " => ";
-        variable = operands;
-        std::cerr << variable << std::endl;
+        std::cerr << "; configure\t; "
+                  << variable
+                  << " => "
+                  << (variable = operands)
+                  << std::endl;
         return variable;
       }),
     };
@@ -174,26 +165,24 @@ namespace meevax::kernel
         {
           for (auto so {std::begin(sos)}; so != std::end(sos); ++so) // each short-option
           {
-            if (auto callee_requires_operands {short_options_requires_operands.find(*so)};
-                callee_requires_operands != std::end(short_options_requires_operands))
+            if (auto callee {short_options_.find(*so)}; callee != std::end(short_options_))
             {
               if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
               {
                 const auto operands {static_cast<SyntacticContinuation&>(*this).read(rest)};
-                return std::invoke(std::get<1>(*callee_requires_operands), resource {}, operands);
+                return std::invoke(std::get<1>(*callee), resource {}, operands);
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
                 const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
-                return std::invoke(std::get<1>(*callee_requires_operands), resource {}, operands);
+                return std::invoke(std::get<1>(*callee), resource {}, operands);
               }
               else
               {
                 throw configuration_error {*so, " requires operands"};
               }
             }
-            else if (auto callee {short_options_requires_no_operands.find(*so)};
-                     callee != std::end(short_options_requires_no_operands))
+            else if (auto callee {short_options.find(*so)}; callee != std::end(short_options))
             {
               return std::invoke( std::get<1>(*callee), resource {}, unit);
             }
@@ -205,16 +194,14 @@ namespace meevax::kernel
         }
         else if (const auto lo {analysis.str(1)}; lo.length())
         {
-          if (auto callee {long_options_requires_operands.find(lo)};
-              callee != std::end(long_options_requires_operands))
+          if (auto callee {long_options_.find(lo)}; callee != std::end(long_options_))
           {
             if (analysis.length(2)) // argument part
             {
               const auto operands {static_cast<SyntacticContinuation&>(*this).read(analysis.str(3))};
               return std::invoke(std::get<1>(*callee), resource {}, operands);
             }
-            else if (++option != std::end(args)
-                     and not std::regex_match(*option, analysis, pattern))
+            else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
               const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
               return std::invoke(std::get<1>(*callee), resource {}, operands);
@@ -224,8 +211,7 @@ namespace meevax::kernel
               throw configuration_error {lo, " requires operands"};
             }
           }
-          else if (auto callee {long_options_requires_no_operands.find(lo)};
-                   callee != std::end(long_options_requires_no_operands))
+          else if (auto callee {long_options.find(lo)}; callee != std::end(long_options))
           {
             return std::invoke(std::get<1>(*callee), resource {}, unit);
           }
@@ -237,9 +223,7 @@ namespace meevax::kernel
         else
         {
           const auto filename {make<path>(*option)};
-          // std::cerr << ";\t\t; append " << filename << " to preloads" << std::endl;
-          preloads = append(preloads, filename);
-          // std::cerr << ";\t\t; preloads " << preloads << std::endl;
+          std::cerr << "; configure\t; file " << filename << std::endl;
         }
 
         return unspecified;
