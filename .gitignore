@@ -1,3 +1,5 @@
 build
 include/meevax/kernel/configurator.hpp
+include/meevax/kernel/feature.hpp
+include/meevax/kernel/version.hpp
 
