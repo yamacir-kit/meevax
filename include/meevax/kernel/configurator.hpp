@@ -131,7 +131,7 @@ namespace meevax::kernel
         return undefined;
       }),
 
-      std::make_pair("debug-variable", [&](const auto&, const auto& operands) mutable
+      std::make_pair("variable", [&](const auto&, const auto& operands) mutable
       {
         std::cerr << "; configure\t; " << verbose << " => ";
         variable = operands;
@@ -159,12 +159,10 @@ namespace meevax::kernel
     {
       static const std::regex pattern {"--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)"};
 
-      for (auto global {std::begin(args)}; global != std::end(args); ++global) [&]()
+      for (auto option {std::begin(args)}; option != std::end(args); ++option) [&]()
       {
-        // std::cerr << "; configure\t; " << *global << std::endl;
-
         std::smatch analysis {};
-        std::regex_match(*global, analysis, pattern);
+        std::regex_match(*option, analysis, pattern);
 
         // std::cerr << ";\t\t; analysis[0] " << analysis[0] << std::endl;
         // std::cerr << ";\t\t; analysis[1] " << analysis[1] << std::endl;
@@ -172,95 +170,73 @@ namespace meevax::kernel
         // std::cerr << ";\t\t; analysis[3] " << analysis[3] << std::endl;
         // std::cerr << ";\t\t; analysis[4] " << analysis[4] << std::endl;
 
-        if (analysis[4].length()) // short-option
+        if (const auto sos {analysis.str(4)}; sos.length()) // short-options
         {
-          const auto buffer {analysis.str(4)};
-          // std::cerr << ";\t\t; search short-options " << buffer << std::endl;
-
-          for (auto local {std::begin(buffer)}; local != std::end(buffer); ++local)
+          for (auto so {std::begin(sos)}; so != std::end(sos); ++so) // each short-option
           {
-            // std::cerr << ";\t\t; search short-option " << *local << std::endl;
-
-            if (auto callee_requires_operands {short_options_requires_operands.find(*local)};
+            if (auto callee_requires_operands {short_options_requires_operands.find(*so)};
                 callee_requires_operands != std::end(short_options_requires_operands))
             {
-              // std::cerr << ";\t\t; found short-option " << *local << " (requires operands)" << std::endl;
-
-              if (const std::string subsequent {std::next(local), std::end(buffer)}; not subsequent.empty())
+              if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
               {
-                const auto operands {static_cast<SyntacticContinuation&>(*this).read(subsequent)};
-                // std::cerr << ";\t\t; operand(s) " << operands << std::endl;
+                const auto operands {static_cast<SyntacticContinuation&>(*this).read(rest)};
                 return std::invoke(std::get<1>(*callee_requires_operands), resource {}, operands);
               }
-              else if (std::smatch next_analysis {};
-                       std::next(global) != std::end(args)
-                       and not std::regex_match(*std::next(global), next_analysis, pattern))
+              else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
-                const auto operands {static_cast<SyntacticContinuation&>(*this).read(*++global)};
-                // std::cerr << ";\t\t; operand(s) " << *std::next(global) << std::endl;
+                const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
                 return std::invoke(std::get<1>(*callee_requires_operands), resource {}, operands);
               }
               else
               {
-                throw configuration_error {*local, " requires operands"};
+                throw configuration_error {*so, " requires operands"};
               }
             }
-            else if (auto callee_requires_no_operands {short_options_requires_no_operands.find(*local)};
-                     callee_requires_no_operands != std::end(short_options_requires_no_operands))
+            else if (auto callee {short_options_requires_no_operands.find(*so)};
+                     callee != std::end(short_options_requires_no_operands))
             {
-              return std::invoke( std::get<1>(*callee_requires_no_operands), resource {}, unit);
+              return std::invoke( std::get<1>(*callee), resource {}, unit);
             }
             else
             {
-              throw configuration_error {*local, " is unknown short-option (in ", *global, ")"};
+              throw configuration_error {*so, " is unknown short-option (in ", *option, ")"};
             }
           }
         }
-        else if (analysis[1].length()) // long option
+        else if (const auto lo {analysis.str(1)}; lo.length())
         {
-          const auto buffer {analysis.str(1)};
-          // std::cerr << ";\t\t; search long-option " << buffer << std::endl;
-
-          if (auto callee_requires_operands {long_options_requires_operands.find(buffer)};
-              callee_requires_operands != std::end(long_options_requires_operands))
+          if (auto callee {long_options_requires_operands.find(lo)};
+              callee != std::end(long_options_requires_operands))
           {
-            // std::cerr << ";\t\t; found long-option " << buffer << " (requires operands)" << std::endl;
-
-            if (analysis.length(2))
+            if (analysis.length(2)) // argument part
             {
-              // std::cerr << ";\t\t; operand(s) \"" << analysis.str(3) << "\" => ";
               const auto operands {static_cast<SyntacticContinuation&>(*this).read(analysis.str(3))};
-              // std::cerr << operands << std::endl;
-              return std::invoke(std::get<1>(*callee_requires_operands), resource {}, operands);
+              return std::invoke(std::get<1>(*callee), resource {}, operands);
             }
-            else if (std::smatch next_analysis {};
-                     std::next(global) != std::end(args)
-                     and not std::regex_match(*std::next(global), next_analysis, pattern))
+            else if (++option != std::end(args)
+                     and not std::regex_match(*option, analysis, pattern))
             {
-              // std::cerr << ";\t\t; operand(s) \"" << *std::next(global) << "\" => ";
-              const auto operands {static_cast<SyntacticContinuation&>(*this).read(*++global)};
-              // std::cerr << operands << std::endl;
-              return std::invoke(std::get<1>(*callee_requires_operands), resource {}, operands);
+              const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
+              return std::invoke(std::get<1>(*callee), resource {}, operands);
             }
             else
             {
-              throw configuration_error {buffer, " requires operands"};
+              throw configuration_error {lo, " requires operands"};
             }
           }
-          else if (auto callee_requires_no_operands {long_options_requires_no_operands.find(buffer)};
-                   callee_requires_no_operands != std::end(long_options_requires_no_operands))
+          else if (auto callee {long_options_requires_no_operands.find(lo)};
+                   callee != std::end(long_options_requires_no_operands))
           {
-            // std::cerr << ";\t\t; found long-option " << buffer << " (requires no operands)" << std::endl;
-            return std::invoke(std::get<1>(*callee_requires_no_operands), resource {}, unit);
+            return std::invoke(std::get<1>(*callee), resource {}, unit);
           }
           else
           {
-            throw configuration_error {*global, " is unknown long-option"};
+            throw configuration_error {*option, " is unknown long-option"};
           }
         }
         else
         {
-          const auto filename {make<path>(*global)};
+          const auto filename {make<path>(*option)};
           // std::cerr << ";\t\t; append " << filename << " to preloads" << std::endl;
           preloads = append(preloads, filename);
           // std::cerr << ";\t\t; preloads " << preloads << std::endl;
