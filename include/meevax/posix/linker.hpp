@@ -7,122 +7,110 @@
 
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
+#include <meevax/kernel/exception.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax::posix
 {
-  inline namespace dirty_hacks
-  {
-    kernel::object verbose_linker {kernel::false_object};
-  }
-
-  #define VERBOSE_LINKER(...)                                                  \
-  if (verbose_linker == kernel::true_object)                                   \
-  {                                                                            \
-    std::cerr << __VA_ARGS__;                                                  \
-  }
-
-  /**
-   * A toy dynamic-linker provides interface for "dlopen" and "dlsym".
-   **/
+  /* ===========================================================================
+  *
+  * A toy dynamic-linker provides interface for "dlopen" and "dlsym".
+  *
+  *========================================================================== */
   class linker
   {
-    /**
-     * The "dlclose" as custom deleter.
-     */
+    /* ==== Close ==============================================================
+    *
+    * The "dlclose" as custom deleter.
+    *
+    *======================================================================== */
     struct close
     {
-      const std::string path;
+      const std::string name;
 
       void operator()(void* handle) noexcept
       {
-        VERBOSE_LINKER("; linker\t; closing shared library \"" << path << "\" => ");
-
         if (handle && dlclose(handle))
         {
-          VERBOSE_LINKER("failed to close shared library " << dlerror() << std::endl);
+          // throw kernel::kernel_error {
+          //   "failed to close shared library ", name, ": ", dlerror()
+          // };
+          std::cerr << "failed to close shared library " << name
+                    << ": " << dlerror()
+                    << std::endl;
+          std::exit(boost::exit_failure);
         }
-        else
-        {
-          VERBOSE_LINKER("succeeded" << std::endl);
-        }
-      };
+      }
     };
 
-    std::string path_;
+    std::string name;
 
-    std::unique_ptr<void, close> handle_;
+    std::unique_ptr<void, close> handle;
 
   public:
-    auto open(const std::string& path = "")
+    auto open(const std::string& name = "")
     {
-      VERBOSE_LINKER("; linker\t; opening shared library \"" << path << "\" => ");
-
       dlerror(); // clear
 
-      std::unique_ptr<void, close> buffer {
-        dlopen(path.empty() ? nullptr : path.c_str(), RTLD_LAZY),
-        close {path}
+      std::unique_ptr<void, close> result {
+        dlopen(name.empty() ? nullptr : name.c_str(), RTLD_LAZY),
+        close {name}
       };
 
       if (auto* message {dlerror()}; message)
       {
-        VERBOSE_LINKER("failed to open shared library " << message << std::endl);
-        std::exit(EXIT_FAILURE);
+        throw kernel::kernel_error {
+          "failed to open shared library ", name, ": ", message
+        };
       }
       else
       {
-        VERBOSE_LINKER("succeeded." << std::endl);
-        path_ = path;
+        (*this).name = name;
       }
 
-      return buffer;
+      return result;
     }
 
-    linker(const std::string& path = "")
-      : path_ {path}
-      , handle_ {open(path)}
+    linker(const std::string& name = "")
+      : name {name}
+      , handle {open(name)}
     {}
 
     operator bool() const noexcept
     {
-      return static_cast<bool>(handle_);
+      return static_cast<bool>(handle);
     }
 
     template <typename Signature>
-    Signature link(const std::string& name) const
+    Signature link(const std::string& symbol) const
     {
-      // std::cerr << "; linker\t; linking symbol \"" << name << "\" in shared library \"" << path_ << "\" as signature " << utility::demangle(typeid(Signature)) << " => ";
-      VERBOSE_LINKER("; linker\t; linking symbol \"" << name << "\" in shared library \"" << path_ << " => ");
-
-      if (handle_)
+      if (handle)
       {
         dlerror(); // clear
 
-        if (void* function {dlsym(handle_.get(), name.c_str())}; function)
+        if (void* function {dlsym(handle.get(), symbol.c_str())}; function)
         {
-          VERBOSE_LINKER("succeeded." << std::endl);
-
-          // XXX Result of this cast is undefined (maybe works fine).
           return reinterpret_cast<Signature>(function);
         }
         else if (auto* message {dlerror()}; message)
         {
-          VERBOSE_LINKER("failed to link symbol, " << message << std::endl);
-          std::exit(EXIT_FAILURE);
+          throw kernel::kernel_error {
+            "failed to link symbol ", symbol, " of shared library ", name, ": ", message
+          };
         }
         else
         {
-          VERBOSE_LINKER("failed to link symbol in unexpected situation." << std::endl);
-          std::exit(EXIT_FAILURE);
+          throw kernel::kernel_error {
+            "failed to link symbol in unexpected situation"
+          };
         }
       }
       else
       {
-        VERBOSE_LINKER(" shared library is not opened." << std::endl);
+        throw kernel::kernel_error {
+          "shared library is not opened"
+        };
       }
-
-      return nullptr;
     }
   };
 } // namespace meevax::posix
