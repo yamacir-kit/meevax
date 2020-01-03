@@ -92,25 +92,35 @@ if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake)
 endif()
 
 # ==============================================================================
-#   Configure Header
+#   Configure Header (XXX DEPRECATED)
 # ==============================================================================
-string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d %H:%M:%S")
+string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   execute_process(
     COMMAND git rev-parse HEAD
     COMMAND tr -d "\n"
-    OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH
-    )
+    OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH)
 else()
-  set(${PROJECT_NAME}_BUILD_HASH "")
+  set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
+# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
+#   configure_file(
+#     ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
+#     ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp)
+# endif()
+
+if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake)
   configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
-    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp
-    )
+    ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake
+    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/feature.hpp)
+endif()
+
+if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/version.hpp.cmake)
+  configure_file(
+    ${${PROJECT_NAME}_CONFIGURE}/version.hpp.cmake
+    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
 # ==============================================================================

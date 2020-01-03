@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
-#include <functional> // std::funstion
 #include <numeric> // std::accumulate
 
 #include <meevax/kernel/list.hpp>

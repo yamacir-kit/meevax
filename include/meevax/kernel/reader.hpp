@@ -5,7 +5,6 @@
 #include <limits> // std::numeric_limits<std::streamsize>
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
@@ -15,9 +14,6 @@ namespace meevax::kernel
 {
   inline namespace lexical_structure
   {
-    /*
-     * <intraline whitespace> = <space or tab>
-     */
     static constexpr auto intraline_whitespace(std::istream::char_type c)
     {
       // return std::isspace(c);
@@ -34,19 +30,22 @@ namespace meevax::kernel
       return c == u8'\r' or c == u8'\n';
     }
 
-    /*
-     * <whitespace> = <intraline whitespace> | <line ending>
-     */
     static constexpr auto whitespace(std::istream::char_type c)
     {
       return intraline_whitespace(c) or line_ending(c);
+    }
+
+    template <typename Char>
+    static constexpr auto is_eof(Char c)
+    {
+      return c == std::char_traits<Char>::eof();
     }
 
     static constexpr bool is_delimiter(std::istream::char_type c)
     {
       // return whitespace(c) or ;
 
-      if (whitespace(c))
+      if (whitespace(c) or is_eof(c))
       {
         return true;
       }
@@ -313,194 +312,13 @@ namespace meevax::kernel
         return discriminate(stream);
 
       default:
-        if (static_cast<const Environment&>(*this).rune_magic.equivalent_to(true_object)) switch (*head)
-        {
-        case 'A': // Assignment
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("set!"), x, y);
-          }
-
-        case 'B': // Composition
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            const auto z {read(stream)};
-            return
-              list(
-                intern("composition"), x, y, z);
-          }
-
-        case 'C': // Swap
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            const auto z {read(stream)};
-            return
-              list(
-                intern("swap"), x, y, z);
-          }
-
-        case 'D':
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("define"), x, y);
-          }
-
-        case 'E':
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("eq?"), x, y);
-          }
-
-        case 'F':
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("false"), x, y);
-          }
-
-        // case 'G':
-
-        case 'H': // Head
-          return
-            list(
-              intern("car"), read(stream));
-
-        case 'I': // Identity
-          return
-            list(
-              intern("identity"), read(stream));
-
-        case 'J':
-          return
-            list(
-              intern("call-with-current-continuation"), read(stream));
-
-        case 'K': // Konstant
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("konstant"), x, y);
-          }
-
-        case 'L':
-          {
-            const auto formals {read(stream)};
-            return
-              list(
-                intern("lambda"), formals, read(stream));
-          }
-
-        case 'M':
-          {
-            const auto test {read(stream)};
-            const auto consequent {read(stream)};
-            return
-              list(
-                intern("if"), test, consequent, read(stream));
-          }
-
-        case 'N':
-          return
-            list(
-              intern("not"), read(stream));
-
-        // case 'O':
-
-        case 'P': // Pair
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("cons"), x, y);
-          }
-
-        case 'Q': // Quote
-          return
-            list(
-              intern("quote"), read(stream));
-
-        case 'R':
-          return
-            list(
-              intern("pair?"), read(stream));
-
-        case 'S': // Substitution
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            const auto z {read(stream)};
-            return
-              list(
-                intern("substitution"), x, y, z);
-          }
-
-        case 'T': // Tail
-          return
-            list(
-              intern("cdr"), read(stream));
-
-        case 'U':
-          return unit;
-
-        case 'V':
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("eqv?"), x, y);
-          }
-
-        case 'W':
-          {
-            const auto x {read(stream)};
-            const auto y {read(stream)};
-            return
-              list(
-                intern("duplicate"), x, y);
-          }
-
-        case 'X':
-          return
-            list(
-              intern("one-point-basis"), read(stream));
-
-        case 'Y':
-          return
-            list(
-              intern("recursion"), read(stream));
-
-        // case 'Z':
-
-        default:
-          break;
-        }
-
         token.push_back(*head);
 
         if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
         {
           if (token == ".")
           {
-            throw reader_error_about_pair {
-              "dot-notation"
-            };
+            throw reader_error_about_pair {"dot-notation"};
           }
           else try // is symbol or real
           {
@@ -531,7 +349,7 @@ namespace meevax::kernel
       /*
        * Read-time-evaluation #( ... )
        */
-      case '(':
+      case '(': // TODO CHANGE TO ',' (SRFI-10)
         return static_cast<Environment&>(*this).evaluate(read(stream));
 
       case '\\':

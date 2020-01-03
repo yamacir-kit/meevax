@@ -1,9 +1,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
-#include <iomanip>
 #include <ostream>                                                // responsible
-#include <string>                                                 // responsible
+
+#include <meevax/utility/demangle.hpp>
+#include <meevax/utility/hexdump.hpp>
 
 namespace meevax::kernel
 {

@@ -56,6 +56,11 @@ int main(const int argc, char const* const* const argv) try
 
   return boost::exit_success;
 }
+catch (const meevax::kernel::exception& error)
+{
+  std::cerr << error << std::endl;
+  return boost::exit_exception_failure;
+}
 catch (const std::exception& error)
 {
   std::cout << "\x1b[1;31m" << "unexpected standard exception: \"" << error.what() << "\"" << "\x1b[0m" << std::endl;
