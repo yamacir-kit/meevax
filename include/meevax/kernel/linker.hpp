@@ -1,16 +1,11 @@
-#ifndef INCLUDED_MEEVAX_POSIX_LINKER_HPP
-#define INCLUDED_MEEVAX_POSIX_LINKER_HPP
-
-#include <iostream>
-#include <memory> // std::unique_ptr
-#include <string>
+#ifndef INCLUDED_MEEVAX_KERNEL_LINKER_HPP
+#define INCLUDED_MEEVAX_KERNEL_LINKER_HPP
 
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
 #include <meevax/kernel/exception.hpp>
-#include <meevax/utility/demangle.hpp>
 
-namespace meevax::posix
+namespace meevax::kernel
 {
   /* ===========================================================================
   *
@@ -32,7 +27,7 @@ namespace meevax::posix
       {
         if (handle && dlclose(handle))
         {
-          // throw kernel::kernel_error {
+          // throw kernel_error {
           //   "failed to close shared library ", name, ": ", dlerror()
           // };
           std::cerr << "failed to close shared library " << name
@@ -59,7 +54,7 @@ namespace meevax::posix
 
       if (auto* message {dlerror()}; message)
       {
-        throw kernel::kernel_error {
+        throw kernel_error {
           "failed to open shared library ", name, ": ", message
         };
       }
@@ -94,26 +89,26 @@ namespace meevax::posix
         }
         else if (auto* message {dlerror()}; message)
         {
-          throw kernel::kernel_error {
+          throw kernel_error {
             "failed to link symbol ", symbol, " of shared library ", name, ": ", message
           };
         }
         else
         {
-          throw kernel::kernel_error {
+          throw kernel_error {
             "failed to link symbol in unexpected situation"
           };
         }
       }
       else
       {
-        throw kernel::kernel_error {
+        throw kernel_error {
           "shared library is not opened"
         };
       }
     }
   };
-} // namespace meevax::posix
+} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_POSIX_LINKER_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_LINKER_HPP
 
