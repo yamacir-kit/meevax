@@ -25,8 +25,7 @@ int main(const int argc, char const* const* const argv) try
     const auto expression {program.read()};
     std::cout << "\n";
 
-    if (   program.verbose        == meevax::kernel::true_object
-        or program.verbose_reader == meevax::kernel::true_object)
+    if (program.verbose.equivalent_to(meevax::kernel::true_object))
     {
       std::cerr << "; read\t\t; " << expression << std::endl;
     }

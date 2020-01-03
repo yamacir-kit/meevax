@@ -22,30 +22,13 @@ namespace meevax::kernel
     static inline const version version_object;
     static inline const feature feature_object;
 
-    static inline auto debug               {false_object};
-    static inline auto rune_magic          {false_object};
-    static inline auto trace               {false_object};
-    static inline auto variable            {unit};
-    static inline auto verbose             {false_object};
-    static inline auto verbose_compiler    {false_object};
-    static inline auto verbose_define      {false_object}; // TODO Rename to "verbose_syntax"
-    static inline auto verbose_environment {false_object};
-    static inline auto verbose_loader      {false_object};
-    static inline auto verbose_machine     {false_object};
-    static inline auto verbose_reader      {false_object};
+    static inline auto trace    {false_object};
+    static inline auto variable {unit};
+    static inline auto verbose  {false_object};
 
   public:
     template <typename T>
     using dispatcher = std::unordered_map<T, std::function<PROCEDURE()>>;
-
-    #define ENABLE(VARIABLE)                                                   \
-    [&](const auto&, const auto&) mutable                                      \
-    {                                                                          \
-      std::cerr << ";\t\t; " << VARIABLE << " => ";                            \
-      VARIABLE = true_object;                                                  \
-      std::cerr << VARIABLE << std::endl;                                      \
-      return VARIABLE;                                                         \
-    }
 
     const dispatcher<char> short_options
     {
@@ -68,34 +51,27 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options
     {
-      std::make_pair("debug", ENABLE(debug)),
-
       std::make_pair("help", [&](const auto&, const auto&)
       {
         std::cout << "; help!" << std::endl;
         return std::exit(boost::exit_success), unspecified;
       }),
 
-      // TODO quite
+      std::make_pair("trace", [&](auto&&...) mutable
+      {
+        return trace = true_object;
+      }),
 
-      std::make_pair("trace", ENABLE(trace)),
-
-      std::make_pair("verbose",             ENABLE(verbose)),
-      std::make_pair("verbose-compiler",    ENABLE(verbose_compiler)),
-      std::make_pair("verbose-define",      ENABLE(verbose_define)),
-      std::make_pair("verbose-environment", ENABLE(verbose_environment)),
-      std::make_pair("verbose-loader",      ENABLE(verbose_loader)),
-      std::make_pair("verbose-machine",     ENABLE(verbose_machine)),
-      std::make_pair("verbose-reader",      ENABLE(verbose_reader)),
+      std::make_pair("verbose", [&](auto&&...) mutable
+      {
+        return verbose = true_object;
+      }),
 
       std::make_pair("version", [&](const auto&, const auto&)
       {
-        std::cout << "; Meevax Lisp System "
-                  << version_object.major
-                  << " - Revision "
-                  << version_object.minor
-                  << " Patch "
-                  << version_object.patch
+        std::cout << "; Meevax Lisp System " << version_object.major
+                  << " - Revision " << version_object.minor
+                  << " Patch " << version_object.patch
                   << std::endl;
 
         std::cout << ";" << std::endl;
@@ -111,21 +87,17 @@ namespace meevax::kernel
       std::make_pair("echo", [](const auto&, const auto& operands)
       {
         std::cout << operands << std::endl;
-        return undefined;
+        return unspecified;
       }),
 
       std::make_pair("variable", [&](const auto&, const auto& operands) mutable
       {
         std::cerr << "; configure\t; "
-                  << variable
-                  << " => "
-                  << (variable = operands)
+                  << variable << " => " << (variable = operands)
                   << std::endl;
         return variable;
       }),
     };
-
-    #undef ENABLE
 
   public: // Command Line Parser
     template <typename... Ts>

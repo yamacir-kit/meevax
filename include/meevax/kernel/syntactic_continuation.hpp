@@ -152,8 +152,7 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        if (   verbose            .equivalent_to(true_object)
-            or verbose_environment.equivalent_to(true_object))
+        if (verbose.equivalent_to(true_object))
         {
           std::cerr << "; package\t; renamer ignored non-symbol object "
                     << object
@@ -169,7 +168,7 @@ namespace meevax::kernel
         //   object.as<const std::string>() + "." + std::to_string(generation)
         // };
 
-        if (verbose.equivalent_to(true_object) or verbose_environment.equivalent_to(true_object))
+        if (verbose.equivalent_to(true_object))
         {
           // std::cerr << "; auto-rename\t; renaming " << object << " => " << name << std::endl;
           std::cerr << "; package\t; renaming " << object << std::endl;
@@ -264,14 +263,14 @@ namespace meevax::kernel
     {
       const std::string path {std::forward<decltype(operands)>(operands)...};
 
-      if (verbose.equivalent_to(true_object) or verbose_loader.equivalent_to(true_object))
+      if (verbose.equivalent_to(true_object))
       {
         std::cerr << "; loader\t; open \"" << path << "\" => ";
       }
 
       if (std::fstream stream {path}; stream)
       {
-        if (verbose.equivalent_to(true_object) or verbose_loader.equivalent_to(true_object))
+        if (verbose.equivalent_to(true_object))
         {
           std::cerr << "succeeded" << std::endl;
         }
@@ -281,7 +280,7 @@ namespace meevax::kernel
 
         for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
         {
-          if (verbose.equivalent_to(true_object) or verbose_reader.equivalent_to(true_object))
+          if (verbose.equivalent_to(true_object))
           {
             std::cerr << "; read\t\t; " << e << std::endl;
           }
@@ -297,7 +296,7 @@ namespace meevax::kernel
       }
       else
       {
-        if (verbose.equivalent_to(true_object) or verbose_loader.equivalent_to(true_object))
+        if (verbose.equivalent_to(true_object))
         {
           std::cerr << "failed" << std::endl;
         }
@@ -357,7 +356,7 @@ namespace meevax::kernel
       auto&&)
     {
       // XXX DIRTY HACK
-      if (verbose.equivalent_to(true_object) or verbose_compiler.equivalent_to(true_object))
+      if (verbose.equivalent_to(true_object))
       {
         std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")
                   << std::string(depth * 2, ' ')

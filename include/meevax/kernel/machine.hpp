@@ -14,13 +14,8 @@ inline namespace ugly_macros
 {
   static std::size_t depth {0};
 
-  #define IF_VERBOSE_COMPILER()                                                \
-  if (const auto& config {static_cast<SyntacticContinuation&>(*this)};         \
-         config.verbose         .equivalent_to(true_object)                    \
-      or config.verbose_compiler.equivalent_to(true_object))
-
   #define DEBUG_COMPILE(...)                                                   \
-  IF_VERBOSE_COMPILER()                                                        \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
     std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
               << std::string(depth * 2, ' ')                                   \
@@ -28,13 +23,13 @@ inline namespace ugly_macros
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  IF_VERBOSE_COMPILER()                                                        \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))        \
   {                                                                            \
     std::cerr << __VA_ARGS__ << attribute::normal << std::endl;                \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  IF_VERBOSE_COMPILER()                                                        \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))        \
   {                                                                            \
     std::cerr << "; macroexpand\t; "                                           \
               << std::string(depth * 2, ' ')                                   \
@@ -42,7 +37,7 @@ inline namespace ugly_macros
   }
 
   #define COMPILER_WARNING(...) \
-  IF_VERBOSE_COMPILER()                                                        \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))        \
   {                                                                            \
     std::cerr << attribute::normal  << "; "                                    \
               << highlight::warning << "compiler"                              \
@@ -99,9 +94,7 @@ namespace meevax::kernel
             identifier,
             std::forward<decltype(operands)>(operands)...)));
 
-      if (const auto& config {static_cast<SyntacticContinuation&>(*this)};
-             config.verbose       .equivalent_to(true_object)
-          or config.verbose_define.equivalent_to(true_object))
+      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
       {
         std::cerr << "; define\t; "
                   << caar(interaction_environment())
@@ -380,8 +373,7 @@ namespace meevax::kernel
       e = unit;
       c = expression;
 
-      if (   static_cast<SyntacticContinuation&>(*this).verbose        .equivalent_to(true_object)
-          or static_cast<SyntacticContinuation&>(*this).verbose_machine.equivalent_to(true_object))
+      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
       {
         // std::cerr << "; disassemble\t; for " << &c << std::endl;
         std::cerr << "; " << std::string(78, '*') << std::endl;
@@ -465,8 +457,7 @@ namespace meevax::kernel
         {
           // throw evaluation_error {cadr(c), " is unbound"};
 
-          // if (   static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)
-          //     or static_cast<SyntacticContinuation&>(*this).verbose_machine.equivalent_to(true_object))
+          // if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
           // {
           //   std::cerr << "; machine\t; instruction "
           //             << car(c)

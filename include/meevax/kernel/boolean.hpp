@@ -9,16 +9,16 @@ namespace meevax::kernel
   {
     using identity = boolean;
 
-    const bool data;
+    const bool value;
 
-    explicit constexpr operator bool() const noexcept
+    constexpr operator bool() const noexcept
     {
-      return data;
+      return value;
     }
 
     friend auto operator==(const identity& lhs, const identity& rhs)
     {
-      return lhs.data == rhs.data;
+      return lhs.value == rhs.value;
     }
 
     friend auto operator<<(std::ostream& os, const identity& boolean)
@@ -27,7 +27,7 @@ namespace meevax::kernel
       return os << highlight::datum
                 << "#"
                 << std::boolalpha
-                << static_cast<bool>(boolean)
+                << boolean.value
                 << attribute::normal;
     }
   };
