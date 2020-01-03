@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP
 
-#include <functional> // std::function
-
 #include <meevax/kernel/object.hpp>
 
 #define SPECIAL(NAME) \

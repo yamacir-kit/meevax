@@ -5,18 +5,12 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <memory> // std::shared_ptr
 #include <stdexcept> // std::logic_error
-#include <typeinfo> // typeid
 #include <utility> // std::forward
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-
 #include <meevax/kernel/writer.hpp>
-
-#include <meevax/utility/demangle.hpp>
-#include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel

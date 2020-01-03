@@ -5,7 +5,6 @@
 #include <limits> // std::numeric_limits<std::streamsize>
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>

@@ -4,7 +4,6 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_brujin_index.hpp>
-#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/special.hpp>

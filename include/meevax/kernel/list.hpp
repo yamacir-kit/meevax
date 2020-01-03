@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIST_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
-#include <functional>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/boolean.hpp>
