@@ -3,34 +3,27 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/numerical.hpp>
 
-namespace meevax::vector
+namespace meevax::standard
 {
   // using vector = std::vector<kernel::object>;
 
   struct vector
     : public std::vector<kernel::object>
   {
-    template <typename... Ts>
-    explicit constexpr vector(Ts&&... operands)
-      : std::vector<kernel::object> {std::forward<decltype(operands)>(operands)...}
-    {}
+    using std::vector<kernel::object>::vector;
   };
 
   extern "C" PROCEDURE(vector_of)
   {
-    vector v {};
+    auto result {kernel::make<vector>()};
 
     for (const auto& each : operands)
     {
       std::cerr << ";\t\t; " << each << std::endl;
-      v.push_back(each);
+      result.as<vector>().push_back(each);
     }
 
-    return
-      kernel::true_object;
-      // kernel::make<vector>(v
-      //   // std::begin(operands), std::end(operands)
-      //   );
+    return result;
   }
 
   extern "C" PROCEDURE(vector_reference)
@@ -45,5 +38,5 @@ namespace meevax::vector
 
     return kernel::car(operands).as<vector>().at(index);
   }
-} // extern "C"
+} // namespace meevax::standard
 
