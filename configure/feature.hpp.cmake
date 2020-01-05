@@ -10,7 +10,7 @@ namespace meevax::kernel
     : public object
   {
     static inline const auto commit {
-      make<symbol>("commit-" "${${PROJECT_NAME}_BUILD_HASH}")
+      make<symbol>("${${PROJECT_NAME}_BUILD_HASH}")
     };
 
     static inline const auto date {
@@ -22,7 +22,9 @@ namespace meevax::kernel
     };
 
     explicit feature()
-      : object {list(date, commit, type)}
+      : object {list(
+          make<symbol>("meevax")
+        )}
     {}
   };
 } // namespace meevax::kernel

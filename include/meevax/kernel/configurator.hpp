@@ -33,22 +33,29 @@ namespace meevax::kernel
   public:
     static void display_title(const version& v)
     {           // "        10        20        30        40        50        60        70        80"
-      std::cout << "Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n";
-      std::cout << "\n";
+      std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n";
+      std::cout << ";\n";
     }
 
     static void display_abstract()
     {           // "        10        20        30        40        50        60        70        80"
-      std::cout << "Abstract:\n";
-      std::cout << "  ICE is incremental compiler of Lisp-1 programming language Meevax.\n";
-      std::cout << "\n";
+      std::cout << "; Abstract:\n";
+      std::cout << ";   ICE is incremental compiler of Lisp-1 programming language Meevax.\n";
+      std::cout << ";\n";
     }
 
     static PROCEDURE(display_version)
     {
       display_title(version_object);
-      std::cout << "; version\t\t; " << version_object << std::endl;
-      std::cout << "; feature\t\t; " << feature_object << std::endl;
+
+      std::cout << "; version\t; " << version_object.semantic << "\n";
+      std::cout << "; license\t; unspecified (All rights reserved)\n";
+      std::cout << ";\n";
+      std::cout << "; compiled\t; " << feature_object.date << "\n";
+      std::cout << "; configuration ; " << feature_object.type << "\n";
+      std::cout << "; commit\t; " << feature_object.commit << "\n";
+      std::cout << ";\n";
+      std::cout << "; feature\t; " << feature_object << "\n";
       return std::exit(boost::exit_success), unspecified;
     }
 
@@ -57,23 +64,21 @@ namespace meevax::kernel
       display_title(version_object);
       display_abstract();
 
-      std::cout << "Usage: " << program_name << " [option]... [file]...\n";
-      std::cout << "\n";
-
-      std::cout << "Operation mode:\n";
-      std::cout << "  -i, --interactive  Take over the control of root syntactic-continuation\n"
-                   "                     interactively after processing <file>s.\n";
-      std::cout << "\n";
-
-      std::cout << "Debug:\n";
-      std::cout << "      --verbose      Report the details of lexical parsing, compilation, virtual\n"
-                   "                     machine execution to standard-error-output.\n";
-      std::cout << "\n";
-
-      std::cout << "Miscellaneous:\n";
-      std::cout << "  -h, --help         Display version information and exit.\n";
-      std::cout << "  -v, --version      Display this help message and exit.\n";
-      std::cout << "\n";
+      std::cout << "; Usage: " << program_name << " [option]... [file]...\n";
+      std::cout << ";\n";
+      std::cout << "; Operation mode:\n";
+      std::cout << ";   -i, --interactive  Take over the control of root syntactic-continuation\n"
+                   ";                      interactively after processing <file>s.\n";
+      std::cout << ";\n";
+      std::cout << "; Debug:\n";
+      std::cout << ";       --trace        Display stacks of virtual machine on each execution step.\n";
+      std::cout << ";       --verbose      Report the details of lexical parsing, compilation,\n"
+                   ";                      virtual machine execution to standard-error.\n";
+      std::cout << ";\n";
+      std::cout << "; Miscellaneous:\n";
+      std::cout << ";   -h, --help         Display version information and exit.\n";
+      std::cout << ";   -v, --version      Display this help message and exit.\n";
+      std::cout << ";\n";
 
       return std::exit(boost::exit_success), unspecified;
     }
@@ -94,11 +99,7 @@ namespace meevax::kernel
         return unspecified;
       }),
 
-      std::make_pair('v', [&](const auto&, const auto&)
-      {
-        std::cout << version_object << std::endl;
-        return std::exit(boost::exit_success), unspecified;
-      }),
+      std::make_pair('v', display_version),
     };
 
     const dispatcher<char> short_options_
