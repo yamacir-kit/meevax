@@ -17,7 +17,7 @@ namespace meevax::kernel
   {
     // static inline const auto install_prefix {make<path>("/usr/local")};
 
-    static inline object preloads {unit};
+    // static inline object preloads {unit};
 
     static inline const version version_object;
     static inline const feature feature_object;
@@ -25,10 +25,10 @@ namespace meevax::kernel
     // TODO Generate from CMakeLists.txt
     static inline const std::string program_name {"ice"};
 
-    static inline auto interactive {false_object};
-    static inline auto trace       {false_object};
-    static inline auto variable    {unit};
-    static inline auto verbose     {false_object};
+    static inline object interactive {false_object};
+    static inline object trace       {false_object};
+    static inline object variable    {unit};
+    static inline object verbose     {false_object};
 
   public:
     static void display_title(const version& v)
@@ -62,6 +62,7 @@ namespace meevax::kernel
     static PROCEDURE(display_help)
     {           // "        10        20        30        40        50        60        70        80"
       display_title(version_object);
+
       display_abstract();
 
       std::cout << "; Usage: " << program_name << " [option]... [file]...\n";
@@ -70,6 +71,12 @@ namespace meevax::kernel
       std::cout << ";   -i, --interactive  Take over the control of root syntactic-continuation\n"
                    ";                      interactively after processing <file>s.\n";
       std::cout << ";\n";
+      std::cout << "; Tools:\n";
+      std::cout << ";       --echo=CODE    Read an expression, construct an object from it, and\n"
+                   ";                      display its external representation. Note that the\n"
+                   ";                      expression is parsed once by the shell before it is read.\n"
+                   ";                      This output is useful to see what objects the --evaluate\n"
+                   ";                      option accepts.\n";
       std::cout << "; Debug:\n";
       std::cout << ";       --trace        Display stacks of virtual machine on each execution step.\n";
       std::cout << ";       --verbose      Report the details of lexical parsing, compilation,\n"
@@ -91,7 +98,7 @@ namespace meevax::kernel
     {
       std::make_pair('h', display_help),
 
-      std::make_pair('i', [&](auto&&...) mutable
+      std::make_pair('i', [this](auto&&...) mutable
       {
         std::cout << "; configure\t; interactive mode "
                   << interactive << " => " << (interactive = true_object)
@@ -110,7 +117,7 @@ namespace meevax::kernel
     {
       std::make_pair("help", display_help),
 
-      std::make_pair("interactive", [&](auto&&...) mutable
+      std::make_pair("interactive", [this](auto&&...) mutable
       {
         std::cout << "; configure\t; interactive mode "
                   << interactive << " => " << (interactive = true_object)
@@ -118,12 +125,12 @@ namespace meevax::kernel
         return unspecified;
       }),
 
-      std::make_pair("trace", [&](auto&&...) mutable
+      std::make_pair("trace", [this](auto&&...) mutable
       {
         return trace = true_object;
       }),
 
-      std::make_pair("verbose", [&](auto&&...) mutable
+      std::make_pair("verbose", [this](auto&&...) mutable
       {
         return verbose = true_object;
       }),
@@ -139,7 +146,14 @@ namespace meevax::kernel
         return unspecified;
       }),
 
-      std::make_pair("variable", [&](const auto&, const auto& operands) mutable
+      // std::make_pair("evaluate", [this](auto&&, const auto& operands)
+      // {
+      //   std::cout << "; evaluate\t; " << operands << std::endl;
+      //   std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(operands) << std::endl;
+      //   return unspecified;
+      // }),
+
+      std::make_pair("variable", [this](const auto&, const auto& operands) mutable
       {
         std::cerr << "; configure\t; "
                   << variable << " => " << (variable = operands)

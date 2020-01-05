@@ -67,7 +67,7 @@ namespace meevax::kernel
   private: // CRTP
     #define CRTP(IDENTIFIER)                                                   \
     template <typename... Ts>                                                  \
-    decltype(auto) IDENTIFIER(Ts&&... operands)                                \
+    inline decltype(auto) IDENTIFIER(Ts&&... operands)                         \
     {                                                                          \
       return                                                                   \
         static_cast<SyntacticContinuation&>(*this).IDENTIFIER(                 \
@@ -94,7 +94,7 @@ namespace meevax::kernel
             identifier,
             std::forward<decltype(operands)>(operands)...)));
 
-      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
+      if (static_cast<const SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
       {
         std::cerr << "; define\t; "
                   << caar(interaction_environment())

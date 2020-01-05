@@ -90,7 +90,7 @@ namespace meevax::kernel
     explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
 
     template <auto N>
-    auto boot(std::integral_constant<decltype(N), N>);
+    void boot(std::integral_constant<decltype(N), N>);
 
     // template <auto N>
     // void boot_up_to(std::integral_constant<decltype(N), N>)
@@ -220,7 +220,7 @@ namespace meevax::kernel
     }
 
     // history
-    decltype(auto) interaction_environment() noexcept
+    decltype(auto) interaction_environment()
     {
       return std::get<1>(*this);
     }
@@ -349,7 +349,7 @@ namespace meevax::kernel
   })
 
   template <>
-  auto
+  void
     syntactic_continuation::boot(
       std::integral_constant<decltype(0), 0>)
   {
@@ -405,7 +405,7 @@ namespace meevax::kernel
   }
 
   template <>
-  auto
+  void
     syntactic_continuation::boot(
       std::integral_constant<decltype(1), 1>)
   {
@@ -449,7 +449,7 @@ namespace meevax::kernel
   }
 
   template <>
-  auto
+  void
     syntactic_continuation::boot(
       std::integral_constant<decltype(2), 2>)
   {

@@ -24,10 +24,7 @@ namespace meevax::kernel
     : public std::pair<object, object>
     , public objective<pair>
   {
-    template <typename... Ts>
-    explicit constexpr pair(Ts&&... operands)
-      : std::pair<object, object> {std::forward<decltype(operands)>(operands)...}
-    {}
+    using std::pair<object, object>::pair;
 
     explicit pair()
       : std::pair<object, object> {unit, unit}

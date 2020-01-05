@@ -15,8 +15,7 @@ int main(const int argc, char const* const* const argv) try
   *========================================================================== */
   program.configure(argc, argv);
 
-  std::cerr << "; ice\t\t; All systems are go.\n";
-  std::cerr << ";\t\t; You have control of root syntactic-continuation.\n";
+  std::cerr << "; ice\t\t; You have control of root syntactic-continuation.\n";
 
   const auto prompt {"\n> "};
 
