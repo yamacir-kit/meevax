@@ -15,16 +15,68 @@ namespace meevax::kernel
   template <typename SyntacticContinuation>
   struct configurator
   {
-    static inline const auto install_prefix {make<path>("/usr/local")};
+    // static inline const auto install_prefix {make<path>("/usr/local")};
 
     static inline object preloads {unit};
 
     static inline const version version_object;
     static inline const feature feature_object;
 
-    static inline auto trace    {false_object};
-    static inline auto variable {unit};
-    static inline auto verbose  {false_object};
+    // TODO Generate from CMakeLists.txt
+    static inline const std::string program_name {"ice"};
+
+    static inline auto interactive {false_object};
+    static inline auto trace       {false_object};
+    static inline auto variable    {unit};
+    static inline auto verbose     {false_object};
+
+  public:
+    static void display_title(const version& v)
+    {           // "        10        20        30        40        50        60        70        80"
+      std::cout << "Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n";
+      std::cout << "\n";
+    }
+
+    static void display_abstract()
+    {           // "        10        20        30        40        50        60        70        80"
+      std::cout << "Abstract:\n";
+      std::cout << "  ICE is incremental compiler of Lisp-1 programming language Meevax.\n";
+      std::cout << "\n";
+    }
+
+    static PROCEDURE(display_version)
+    {
+      display_title(version_object);
+      std::cout << "; version\t\t; " << version_object << std::endl;
+      std::cout << "; feature\t\t; " << feature_object << std::endl;
+      return std::exit(boost::exit_success), unspecified;
+    }
+
+    static PROCEDURE(display_help)
+    {           // "        10        20        30        40        50        60        70        80"
+      display_title(version_object);
+      display_abstract();
+
+      std::cout << "Usage: " << program_name << " [option]... [file]...\n";
+      std::cout << "\n";
+
+      std::cout << "Operation mode:\n";
+      std::cout << "  -i, --interactive  Take over the control of root syntactic-continuation\n"
+                   "                     interactively after processing <file>s.\n";
+      std::cout << "\n";
+
+      std::cout << "Debug:\n";
+      std::cout << "      --verbose      Report the details of lexical parsing, compilation, virtual\n"
+                   "                     machine execution to standard-error-output.\n";
+      std::cout << "\n";
+
+      std::cout << "Miscellaneous:\n";
+      std::cout << "  -h, --help         Display version information and exit.\n";
+      std::cout << "  -v, --version      Display this help message and exit.\n";
+      std::cout << "\n";
+
+      return std::exit(boost::exit_success), unspecified;
+    }
 
   public:
     template <typename T>
@@ -32,10 +84,14 @@ namespace meevax::kernel
 
     const dispatcher<char> short_options
     {
-      std::make_pair('h', [&](const auto&, const auto&)
+      std::make_pair('h', display_help),
+
+      std::make_pair('i', [&](auto&&...) mutable
       {
-        std::cout << "; help!" << std::endl;
-        return std::exit(boost::exit_success), unspecified;
+        std::cout << "; configure\t; interactive mode "
+                  << interactive << " => " << (interactive = true_object)
+                  << std::endl;
+        return unspecified;
       }),
 
       std::make_pair('v', [&](const auto&, const auto&)
@@ -51,10 +107,14 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options
     {
-      std::make_pair("help", [&](const auto&, const auto&)
+      std::make_pair("help", display_help),
+
+      std::make_pair("interactive", [&](auto&&...) mutable
       {
-        std::cout << "; help!" << std::endl;
-        return std::exit(boost::exit_success), unspecified;
+        std::cout << "; configure\t; interactive mode "
+                  << interactive << " => " << (interactive = true_object)
+                  << std::endl;
+        return unspecified;
       }),
 
       std::make_pair("trace", [&](auto&&...) mutable
@@ -67,19 +127,7 @@ namespace meevax::kernel
         return verbose = true_object;
       }),
 
-      std::make_pair("version", [&](const auto&, const auto&)
-      {
-        std::cout << "; Meevax Lisp System " << version_object.major
-                  << " - Revision " << version_object.minor
-                  << " Patch " << version_object.patch
-                  << std::endl;
-
-        std::cout << ";" << std::endl;
-        std::cout << "; version\t\t; " << version_object << std::endl;
-        std::cout << "; feature\t\t; " << feature_object << std::endl;
-
-        return std::exit(boost::exit_success), unspecified;
-      }),
+      std::make_pair("version", display_version),
     };
 
     const dispatcher<std::string> long_options_

@@ -76,6 +76,8 @@ namespace meevax::kernel
       object  // value
     > changes;
 
+    std::size_t current_layer {0};
+
   public: // Constructors
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... operands)
@@ -89,6 +91,11 @@ namespace meevax::kernel
 
     template <auto N>
     auto boot(std::integral_constant<decltype(N), N>);
+
+    // template <auto N>
+    // void boot_up_to(std::integral_constant<decltype(N), N>)
+    // {
+    // }
 
   public: // Interfaces
     // TODO Rename to "interaction_ready"
