@@ -8,8 +8,7 @@
 namespace meevax::kernel
 {
   #define MNEMONICS                                                            \
-    (APPLY)                                                                    \
-    (APPLY_TAIL)                                                               \
+    (CALL)                                                                     \
     (DEFINE)                                                                   \
     (FORK)                                                                     \
     (JOIN)                                                                     \
@@ -23,11 +22,12 @@ namespace meevax::kernel
     (PUSH)                                                                     \
     (RETURN)                                                                   \
     (SELECT)                                                                   \
-    (SELECT_TAIL)                                                              \
     (STOP)                                                                     \
     (STORE_GLOBAL)                                                             \
     (STORE_LOCAL)                                                              \
-    (STORE_VARIADIC)
+    (STORE_VARIADIC)                                                           \
+    (TAIL_CALL)                                                                \
+    (TAIL_SELECT)                                                              \
 
   enum class mnemonic
     : std::int8_t
@@ -57,19 +57,40 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const identity& i)
       -> decltype(auto)
     {
-      os << highlight::system;
+      os << highlight::warning;
+
+      auto kebab = [](std::string s) // XXX DIRTY HACK
+      {
+        std::transform(
+          std::begin(s), std::end(s),
+          std::begin(s),
+          [](char c) -> char
+          {
+            switch (c)
+            {
+            case '_':
+              return '-';
+
+            default:
+              // return std::tolower(c);
+              return c;
+            }
+          });
+
+        return s;
+      };
 
       switch (i.code)
       {
       #define MNEMONIC_CASE(_, AUX, EACH)                                      \
       case mnemonic::EACH:                                                     \
-        os << BOOST_PP_STRINGIZE(EACH);                                        \
+        os << kebab(BOOST_PP_STRINGIZE(EACH));                                 \
         break;
 
         BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
       }
 
-      // os << "#" << std::hex << i.value();
+      // os << "#" << std::hex << std::setw(2) << std::setfill('0') << i.value();
 
       return os << attribute::normal;
     }

@@ -277,8 +277,8 @@ namespace meevax::kernel
               frames,
               cons(
                 make<instruction>(
-                  in_a.tail_expression ? mnemonic::APPLY_TAIL
-                                       : mnemonic::APPLY),
+                  in_a.tail_expression ? mnemonic::TAIL_CALL
+                                       : mnemonic::CALL),
                 continuation)))
         };
         NEST_OUT;
@@ -309,8 +309,8 @@ namespace meevax::kernel
 
         switch ((*iter).as<instruction>().code)
         {
-        case mnemonic::APPLY:
-        case mnemonic::APPLY_TAIL:
+        case mnemonic::CALL:
+        case mnemonic::TAIL_CALL:
         case mnemonic::FORK:
         case mnemonic::JOIN:
         case mnemonic::POP:
@@ -346,7 +346,7 @@ namespace meevax::kernel
 
 
         case mnemonic::SELECT:
-        case mnemonic::SELECT_TAIL:
+        case mnemonic::TAIL_SELECT:
           std::cerr << *iter << std::endl;
           disassemble(*++iter, depth + 1);
           disassemble(*++iter, depth + 1);
@@ -537,7 +537,7 @@ namespace meevax::kernel
         push(d, cdddr(c));
         [[fallthrough]];
 
-      /* ====*/ case mnemonic::SELECT_TAIL: /*==================================
+      /* ====*/ case mnemonic::TAIL_SELECT: /*==================================
       *
       *    (test . S) E (SELECT consequent alternate . C)  D
       *
@@ -567,20 +567,20 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::APPLY:
+      case mnemonic::CALL:
         if (const object callee {car(s)}; not callee)
         {
           static const error e {"unit is not appliciable"};
           throw e;
         }
-        else if (callee.is<closure>()) // (closure operands . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           push(d, cddr(s), e, cdr(c));
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
           s = cons(
                 std::invoke(
@@ -600,7 +600,7 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
+        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(caadr(s), car(callee));
           e = cadr(callee);
@@ -613,18 +613,18 @@ namespace meevax::kernel
         }
         goto dispatch;
 
-      case mnemonic::APPLY_TAIL:
+      case mnemonic::TAIL_CALL:
         if (object callee {car(s)}; not callee)
         {
           throw evaluation_error {"unit is not appliciable"};
         }
-        else if (callee.is<closure>()) // (closure operands . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
           s = cons(
                 std::invoke(
@@ -644,7 +644,7 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
+        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(caadr(s), car(callee));
           e = cadr(callee);
@@ -1157,7 +1157,7 @@ namespace meevax::kernel
             car(expression), // <test>
             frames,
             cons(
-              make<instruction>(mnemonic::SELECT_TAIL),
+              make<instruction>(mnemonic::TAIL_SELECT),
               consequent,
               alternate,
               cdr(continuation)));
@@ -1239,7 +1239,7 @@ namespace meevax::kernel
             car(expression),
             frames,
             cons(
-              make<instruction>(mnemonic::APPLY),
+              make<instruction>(mnemonic::CALL),
               continuation)));
     })
 

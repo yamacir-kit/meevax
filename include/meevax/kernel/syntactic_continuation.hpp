@@ -392,7 +392,7 @@ namespace meevax::kernel
         cons(
           make<instruction>(mnemonic::LOAD_CONSTANT), expression,
           make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("export", exportation),
-          make<instruction>(mnemonic::APPLY),
+          make<instruction>(mnemonic::CALL),
           continuation);
     });
   }
