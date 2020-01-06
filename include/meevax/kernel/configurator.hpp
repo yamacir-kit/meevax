@@ -19,16 +19,19 @@ namespace meevax::kernel
 
     // static inline object preloads {unit};
 
-    static inline const version version_object;
-    static inline const feature feature_object;
+    static inline const version version_object {};
+    static inline const feature feature_object {};
 
     // TODO Generate from CMakeLists.txt
-    static inline const std::string program_name {"ice"};
+    // static inline const std::string program_name {"ice"};
 
-    static inline object interactive {false_object};
-    static inline object trace       {false_object};
-    static inline object variable    {unit};
-    static inline object verbose     {false_object};
+    object interactive {false_object};
+    object trace       {false_object};
+    object variable    {unit};
+    object verbose     {false_object};
+
+    explicit configurator()
+    {}
 
   public:
     static void display_title(const version& v)
@@ -65,7 +68,7 @@ namespace meevax::kernel
 
       display_abstract();
 
-      std::cout << "; Usage: " << program_name << " [option]... [file]...\n";
+      std::cout << "; Usage: ice [option]... [file]...\n";
       std::cout << ";\n";
       std::cout << "; Operation mode:\n";
       std::cout << ";   -i, --interactive  Take over the control of root syntactic-continuation\n"
@@ -146,12 +149,13 @@ namespace meevax::kernel
         return unspecified;
       }),
 
-      // std::make_pair("evaluate", [this](auto&&, const auto& operands)
-      // {
-      //   std::cout << "; evaluate\t; " << operands << std::endl;
-      //   std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(operands) << std::endl;
-      //   return unspecified;
-      // }),
+      std::make_pair("evaluate", [this](auto&&, auto&& operands)
+      {
+        std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(
+                       std::forward<decltype(operands)>(operands))
+                  << std::endl;
+        return unspecified;
+      }),
 
       std::make_pair("variable", [this](const auto&, const auto& operands) mutable
       {

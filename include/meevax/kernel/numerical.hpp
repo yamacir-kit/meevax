@@ -44,7 +44,7 @@ namespace meevax::kernel
 
   std::ostream& operator<<(std::ostream& os, const real& real)
   {
-    return os << "\x1B[36m" << real.str() << "\x1B[0m";
+    return os << highlight::datum << real.str() << attribute::normal;
   }
 
   #define DEFINE_NUMERICAL_BINARY_ARITHMETIC(OPERATOR)                         \
