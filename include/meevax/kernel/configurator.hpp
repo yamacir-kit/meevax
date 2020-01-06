@@ -71,23 +71,29 @@ namespace meevax::kernel
       std::cout << "; Usage: ice [option]... [file]...\n";
       std::cout << ";\n";
       std::cout << "; Operation mode:\n";
-      std::cout << ";   -i, --interactive  Take over the control of root syntactic-continuation\n"
-                   ";                      interactively after processing <file>s.\n";
+      std::cout << ";   -i, --interactive         Take over the control of root syntactic           \n"
+                   ";                             continuation interactively after processing given \n"
+                   ";                             <file>s.                                          \n";
       std::cout << ";\n";
       std::cout << "; Tools:\n";
-      std::cout << ";       --echo=CODE    Read an expression, construct an object from it, and\n"
-                   ";                      display its external representation. Note that the\n"
-                   ";                      expression is parsed once by the shell before it is read.\n"
-                   ";                      This output is useful to see what objects the --evaluate\n"
-                   ";                      option accepts.\n";
+      std::cout << ";       --echo=<expr>         Read an expression, construct an object from it,  \n"
+                   ";                             and display its external representation. Note that\n"
+                   ";                             the expression is parsed once by the shell before \n"
+                   ";                             it is read. This output is useful to see what     \n"
+                   ";                             objects the --evaluate option accepts.            \n";
+      std::cout << ";   -e, --evaluate=<expr>     Read an expression, construct an object from it,  \n"
+                   ";                             compile and execute it, and then display external \n"
+                   ";                             representation of the result.                     \n";
       std::cout << "; Debug:\n";
-      std::cout << ";       --trace        Display stacks of virtual machine on each execution step.\n";
-      std::cout << ";       --verbose      Report the details of lexical parsing, compilation,\n"
-                   ";                      virtual machine execution to standard-error.\n";
+      std::cout << ";       --trace               Display stacks of virtual machine on each         \n"
+                   ";                             execution step.\n";
+      std::cout << ";       --verbose             Report the details of lexical parsing,            \n"
+                   ";                             compilation, virtual machine execution to         \n"
+                   ";                             standard-error.\n";
       std::cout << ";\n";
       std::cout << "; Miscellaneous:\n";
-      std::cout << ";   -h, --help         Display version information and exit.\n";
-      std::cout << ";   -v, --version      Display this help message and exit.\n";
+      std::cout << ";   -h, --help                Display version information and exit.             \n";
+      std::cout << ";   -v, --version             Display this help message and exit.               \n";
       std::cout << ";\n";
 
       return std::exit(boost::exit_success), unspecified;
@@ -114,6 +120,13 @@ namespace meevax::kernel
 
     const dispatcher<char> short_options_
     {
+      std::make_pair('e', [this](auto&&, auto&& operands)
+      {
+        std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(
+                       std::forward<decltype(operands)>(operands))
+                  << std::endl;
+        return unspecified;
+      }),
     };
 
     const dispatcher<std::string> long_options
