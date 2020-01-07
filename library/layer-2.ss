@@ -73,8 +73,12 @@
 (define pair?
   (procedure-from pair.so "pair_"))
 
-(define cons ; pair
-  (procedure-from pair.so "cons"))
+; (define cons ; pair
+;   (procedure-from pair.so "cons"))
+
+(define cons
+  (lambda (x y)
+    (cons x y)))
 
 (define car (procedure-from pair.so "car"))
 (define cdr (procedure-from pair.so "cdr"))

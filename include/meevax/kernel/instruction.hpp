@@ -29,6 +29,9 @@ namespace meevax::kernel
     (TAIL_CALL)                                                                \
     (TAIL_SELECT)                                                              \
 
+  // TODO PUSH => CONS
+  // TODO POP => DROP
+
   enum class mnemonic
     : std::int8_t
   {

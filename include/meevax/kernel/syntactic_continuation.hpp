@@ -349,9 +349,7 @@ namespace meevax::kernel
   })
 
   template <>
-  void
-    syntactic_continuation::boot(
-      std::integral_constant<decltype(0), 0>)
+  void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
     // DEFINE_PROCEDURE_X("compile",  compile);
     DEFINE_PROCEDURE_X("evaluate", evaluate);
@@ -405,9 +403,7 @@ namespace meevax::kernel
   }
 
   template <>
-  void
-    syntactic_continuation::boot(
-      std::integral_constant<decltype(1), 1>)
+  void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
     DEFINE_SPECIAL("begin",                          sequence);
     DEFINE_SPECIAL("call-with-current-continuation", call_cc);
@@ -421,6 +417,23 @@ namespace meevax::kernel
 
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<linker>);
+
+    define<special>("cons", [this](auto&& expression,
+                                   auto&& frames,
+                                   auto&& continuation,
+                                   auto&&)
+    {
+      return
+        compile(
+          cadr(expression),
+          frames,
+          compile(
+            car(expression),
+            frames,
+            cons(
+              make<instruction>(mnemonic::PUSH),
+              continuation)));
+    });
 
     define<procedure>("procedure-from", [this](auto&&, auto&& operands)
     {
@@ -449,9 +462,7 @@ namespace meevax::kernel
   }
 
   template <>
-  void
-    syntactic_continuation::boot(
-      std::integral_constant<decltype(2), 2>)
+  void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
     static const std::string layer_1 {
       &_binary_layer_2_ss_start,

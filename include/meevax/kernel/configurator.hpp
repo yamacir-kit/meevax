@@ -28,8 +28,14 @@ namespace meevax::kernel
     object interactive {false_object};
     object trace       {false_object};
     object variable    {unit};
-    object verbose     {false_object};
+    object verbose     {true_object};
 
+    /* =========================================================================
+    *
+    * XXX explicit configurator() = default;
+    *     causes segmentation fault on access above variables.
+    *
+    *======================================================================== */
     explicit configurator()
     {}
 
@@ -84,6 +90,7 @@ namespace meevax::kernel
       std::cout << ";   -e, --evaluate=<expr>     Read an expression, construct an object from it,  \n"
                    ";                             compile and execute it, and then display external \n"
                    ";                             representation of the result.                     \n";
+      std::cout << ";\n";
       std::cout << "; Debug:\n";
       std::cout << ";       --trace               Display stacks of virtual machine on each         \n"
                    ";                             execution step.\n";
