@@ -593,7 +593,7 @@ namespace meevax::kernel
         else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
         {
           s = cons(
-                callee.as<SyntacticContinuation>().expand(
+                callee.as<SyntacticContinuation>().expand( // TODO expand => evaluate ?
                   cons(
                     car(s),
                     cadr(s))),

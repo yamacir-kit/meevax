@@ -332,7 +332,7 @@ namespace meevax::kernel
         std::forward<decltype(operands)>(operands)...);                        \
   })
 
-  #define DEFINE_PROCEDURE_X(NAME, CALLEE)                                     \
+  #define DEFINE_PROCEDURE_1(NAME, CALLEE)                                     \
   define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
   {                                                                            \
     return                                                                     \
@@ -351,8 +351,8 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
-    // DEFINE_PROCEDURE_X("compile",  compile);
-    DEFINE_PROCEDURE_X("evaluate", evaluate);
+    // DEFINE_PROCEDURE_1("compile",  compile);
+    DEFINE_PROCEDURE_1("evaluate", evaluate);
 
     define<special>("export", [this](
       auto&& expression,
@@ -435,6 +435,11 @@ namespace meevax::kernel
               continuation)));
     });
 
+    define<procedure>("features", [this](auto&&...)
+    {
+      return feature_object;
+    });
+
     define<procedure>("procedure-from", [this](auto&&, auto&& operands)
     {
       const std::string name {cadr(operands).template as<string>()};
@@ -491,7 +496,7 @@ namespace meevax::kernel
   }
 
   #undef DEFINE_SPECIAL
-  #undef DEFINE_PROCEDURE_X
+  #undef DEFINE_PROCEDURE_1
   #undef DEFINE_PROCEDURE_S
 
   template <>

@@ -11,7 +11,7 @@
 
 namespace meevax::kernel
 {
-  struct compilation_context
+  struct compilation_context // TODO rename
   {
     bool tail_expression;
     bool program_declaration;

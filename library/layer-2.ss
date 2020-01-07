@@ -76,7 +76,7 @@
 ; (define cons ; pair
 ;   (procedure-from pair.so "cons"))
 
-(define cons
+(define cons ; hack
   (lambda (x y)
     (cons x y)))
 
@@ -1342,7 +1342,7 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
-(define call-with-current-continuation
+(define call-with-current-continuation ; hack
   (lambda (procedure)
     (call-with-current-continuation procedure)))
 
