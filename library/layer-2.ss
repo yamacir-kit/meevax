@@ -1714,10 +1714,17 @@
 ;     (lambda (_ . export-specs)
 ;      `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
-(define import
+(define export
   (fork
-    (lambda (import . import-set)
-     `(,display "; dummy-import\t; " ',import-set "\n"))))
+    (lambda (this . export-specs)
+     `(stage ,@(map (lambda (each)
+                      (list quote each))
+                    export-specs)))))
+
+; (define import
+;   (fork
+;     (lambda (import . import-set)
+;      `(,display "; dummy-import\t; " ',import-set "\n"))))
 
 (define instantiate-library
   (fork
@@ -1732,6 +1739,12 @@
 ;      `((,reference ,namespace) ',identifier))))
 
 (define-library (example empty) '())
+
+(define-library (scheme base)
+  (export x)
+  (begin
+    (define x 42)
+    (display "instantiating dummy-library (scheme base)!\n")))
 
 (define-library (example hello)
   (export hello
@@ -1887,13 +1900,18 @@
 ;     (let ((evaluate (reference (example value))))
 ;       (evaluate `(increment ,@operands)))))
 
+(define from
+  (fork
+    (lambda (this library-name expression)
+     `(,apply (,reference ,library-name) ,expression))))
+
 (define reference-value
   (lambda xs
-    (apply (reference (example value))
-           (cons 'reference-value xs))))
+    (from (example value)
+         `(reference-value ,xs))))
 
 (define increment
   (lambda xs
-    (apply (reference (example value))
-           (cons 'increment xs))))
+    (from (example value)
+         `(increment ,xs))))
 

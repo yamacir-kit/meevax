@@ -1386,6 +1386,87 @@ namespace meevax::kernel
             continuation);
       }
     })
+
+    DEFINE_PREMITIVE_EXPRESSION(exportation,
+    {
+      std::cerr << "; export\t; this = " << this << std::endl;
+
+      DEBUG_COMPILE(
+        // << (not depth ? "; compile\t; " : ";\t\t; ")
+        // << std::string(depth * 2, ' ')
+        << expression
+        << highlight::comment << " is <export specs>"
+        << attribute::normal << std::endl);
+
+      auto exportation = [this](auto&&, auto&& operands)
+      {
+        std::cerr << "; export\t; " << operands << std::endl;
+
+        for (const auto& each : operands)
+        {
+          std::cerr << ";\t\t; staging " << each << std::endl;
+
+          static_cast<SyntacticContinuation&>(*this).external_symbols.emplace(
+            write(std::stringstream {}, each).str(),
+            each);
+        }
+
+        std::cerr << "; export\t; exported identifiers are" << std::endl;
+
+        for (const auto& [key, value] : static_cast<SyntacticContinuation&>(*this).external_symbols)
+        {
+          std::cerr << ";\t\t;   " << value << std::endl;
+        }
+
+        return unspecified;
+      };
+
+      return
+        cons(
+          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("export", exportation),
+          make<instruction>(mnemonic::CALL),
+          continuation);
+    })
+
+    DEFINE_PREMITIVE_EXPRESSION(importation,
+    {
+      std::cerr << "; import\t; this = " << this << std::endl;
+
+      auto importation = [this](auto&&, const object& operands)
+      {
+        std::cerr << "; importation\t; this = " << this << std::endl;
+
+        assert(
+          operands.is<SyntacticContinuation>());
+
+        if (operands.as<SyntacticContinuation>().external_symbols.empty())
+        {
+          std::cerr << "; import\t; " << operands << " is virgin => expand" << std::endl;
+          operands.as<SyntacticContinuation>().expand(
+            cons(
+              car(operands), unit));
+        }
+
+        std::cerr << "; import\t; importing identifiers..." << std::endl;
+
+        for (const auto& [key, value] : operands.as<SyntacticContinuation>().external_symbols)
+        {
+          std::cerr << ";\t\t; " << value << std::endl;
+        }
+
+        return unspecified;
+      };
+
+      return
+        reference( // XXX DIRTY HACK
+          expression,
+          frames,
+          cons(
+            make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
+            make<instruction>(mnemonic::CALL),
+            continuation));
+    })
   };
 } // namespace meevax::kernel
 

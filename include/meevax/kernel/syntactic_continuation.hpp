@@ -68,6 +68,7 @@ namespace meevax::kernel
     *======================================================================== */
     , public configurator<syntactic_continuation>
   {
+  public:
     std::unordered_map<std::string, object> symbols;
     std::unordered_map<std::string, object> external_symbols;
 
@@ -83,6 +84,7 @@ namespace meevax::kernel
     explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {
+      std::cerr << "BOOTING NEW SYNTACTIC-CONTINUATION" << std::endl;
       boot(layer<0>);
     }
 
@@ -355,52 +357,31 @@ namespace meevax::kernel
     // DEFINE_PROCEDURE_1("compile",  compile);
     DEFINE_PROCEDURE_1("evaluate", evaluate);
 
-    define<special>("export", [this](
-      auto&& expression,
-      auto&&,
-      auto&& continuation,
-      auto&&)
+    define<procedure>("stage", [this](auto&&, const object& operands)
     {
-      // XXX DIRTY HACK
-      if (verbose.equivalent_to(true_object))
+      std::cerr << "; export\t; " << operands << std::endl;
+
+      for (const auto& each : operands)
       {
-        std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")
-                  << std::string(depth * 2, ' ')
-                  << expression
-                  << highlight::comment << " is <export specs>"
-                  << attribute::normal << std::endl;
+        std::cerr << ";\t\t; staging " << each << std::endl;
+
+        external_symbols.emplace(
+          write(std::stringstream {}, each).str(),
+          each);
       }
 
-      static auto exportation = [this](auto&&, auto&& operands) mutable
+      std::cerr << "; export\t; exported identifiers are" << std::endl;
+
+      for (const auto& [key, value] : external_symbols)
       {
-        std::cerr << "; export\t; " << operands << std::endl;
+        std::cerr << ";\t\t;   " << value << std::endl;
+      }
 
-        for (const auto& each : operands)
-        {
-          std::cerr << ";\t\t; staging " << each << std::endl;
-
-          external_symbols.emplace(
-            write(std::stringstream {}, each).str(),
-            each);
-        }
-
-        std::cerr << "; export\t; exported identifiers are" << std::endl;
-
-        for (const auto& [key, value] : external_symbols)
-        {
-          std::cerr << ";\t\t;   " << value << " as " << key << std::endl;
-        }
-
-        return unspecified;
-      };
-
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("export", exportation),
-          make<instruction>(mnemonic::CALL),
-          continuation);
+      return unspecified;
     });
+
+    // DEFINE_SPECIAL("export", exportation);
+    DEFINE_SPECIAL("import", importation);
   }
 
   template <>
