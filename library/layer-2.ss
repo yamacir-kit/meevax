@@ -1699,13 +1699,13 @@
           (,lambda (,this . ,expression)
             (,begin (,define ,name ,this))
             ,@declarations
-            (,if (,null? ,expression) ,this
-                 (,begin
-                   (,display "; library\t; received expression " ,expression "\n")
-                   (,display ";\t\t; evaluate " (,car ,expression) " (a.k.a rename)\n")
-                   (evaluate (,car ,expression))
-                   )
-                 )
+            ; (,if (,null? ,expression) ,this
+            ;      (,begin
+            ;        (,display "; library\t; received expression " ,expression "\n")
+            ;        (,display ";\t\t; evaluate " (,car ,expression) " (a.k.a rename)\n")
+            ;        (evaluate (,car ,expression))
+            ;        )
+            ;      )
             )))
      )))
 
@@ -1725,10 +1725,11 @@
      `(,let ((,object (,reference ,library-name)))
         (,object)))))
 
-(define evaluate-in
-  (fork
-    (lambda (this namespace identifier)
-     `((,reference ,namespace) ',identifier))))
+; TODO REMOVE
+; (define evaluate-in
+;   (fork
+;     (lambda (this namespace identifier)
+;      `((,reference ,namespace) ',identifier))))
 
 (define-library (example empty) '())
 
@@ -1876,13 +1877,23 @@
     (define reference-value
       (lambda () value))))
 
+; (define reference-value
+;   (lambda operands
+;     (let ((evaluate (reference (example value))))
+;       (evaluate `(reference-value ,@operands)))))
+;
+; (define increment
+;   (lambda operands
+;     (let ((evaluate (reference (example value))))
+;       (evaluate `(increment ,@operands)))))
+
 (define reference-value
-  (lambda operands
-    (let ((evaluate (reference (example value))))
-      (evaluate `(reference-value ,@operands)))))
+  (lambda xs
+    (apply (reference (example value))
+           (cons 'reference-value xs))))
 
 (define increment
-  (lambda operands
-    (let ((evaluate (reference (example value))))
-      (evaluate `(increment ,@operands)))))
+  (lambda xs
+    (apply (reference (example value))
+           (cons 'increment xs))))
 

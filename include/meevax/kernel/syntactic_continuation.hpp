@@ -119,6 +119,7 @@ namespace meevax::kernel
     }
 
     template <typename... Ts>
+    [[deprecated]]
     const auto& change(const object& identifier, Ts&&... operands)
     {
       changes.erase(identifier);
@@ -372,7 +373,7 @@ namespace meevax::kernel
 
       static auto exportation = [this](auto&&, auto&& operands) mutable
       {
-        std::cerr << "; export\t; exporting " << operands << std::endl;
+        std::cerr << "; export\t; " << operands << std::endl;
 
         for (const auto& each : operands)
         {

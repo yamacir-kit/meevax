@@ -592,11 +592,15 @@ namespace meevax::kernel
         }
         else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
         {
+          // s = cons(
+          //       callee.as<SyntacticContinuation>().expand(
+          //         cons(
+          //           car(s),
+          //           cadr(s))),
+          //       cddr(s));
           s = cons(
-                callee.as<SyntacticContinuation>().expand( // TODO expand => evaluate ?
-                  cons(
-                    car(s),
-                    cadr(s))),
+                callee.as<SyntacticContinuation>().evaluate( // TODO expand => evaluate ?
+                  cadr(s)),
                 cddr(s));
           pop<1>(c);
         }
@@ -636,11 +640,15 @@ namespace meevax::kernel
         }
         else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
         {
+          // s = cons(
+          //       callee.as<SyntacticContinuation>().expand(
+          //         cons(
+          //           car(s),
+          //           cadr(s))),
+          //       cddr(s));
           s = cons(
-                callee.as<SyntacticContinuation>().expand(
-                  cons(
-                    car(s),
-                    cadr(s))),
+                callee.as<SyntacticContinuation>().evaluate(
+                  cadr(s)),
                 cddr(s));
           pop<1>(c);
         }
