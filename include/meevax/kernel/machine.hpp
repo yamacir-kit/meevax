@@ -314,7 +314,7 @@ namespace meevax::kernel
         case mnemonic::FORK:
         case mnemonic::JOIN:
         case mnemonic::POP:
-        case mnemonic::PUSH:
+        case mnemonic::CONS:
           std::cerr << *iter << std::endl;
           break;
 
@@ -671,9 +671,9 @@ namespace meevax::kernel
         c = pop(d);
         goto dispatch;
 
-      /* ====*/ case mnemonic::PUSH: /*=========================================
+      /* ====*/ case mnemonic::CONS: /*=========================================
       *
-      *    ( X   Y  . S) E (PUSH . C) D
+      *    ( X   Y  . S) E (CONS . C) D
       *
       * => ((X . Y) . S) E         C  D
       *
@@ -1103,7 +1103,7 @@ namespace meevax::kernel
               car(expression),
               frames,
               cons(
-                make<instruction>(mnemonic::PUSH),
+                make<instruction>(mnemonic::CONS),
                 continuation)));
       }
       else

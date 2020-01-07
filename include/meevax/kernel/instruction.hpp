@@ -9,6 +9,7 @@ namespace meevax::kernel
 {
   #define MNEMONICS                                                            \
     (CALL)                                                                     \
+    (CONS)                                                                     \
     (DEFINE)                                                                   \
     (FORK)                                                                     \
     (JOIN)                                                                     \
@@ -19,7 +20,6 @@ namespace meevax::kernel
     (LOAD_LOCAL)                                                               \
     (LOAD_VARIADIC)                                                            \
     (POP)                                                                      \
-    (PUSH)                                                                     \
     (RETURN)                                                                   \
     (SELECT)                                                                   \
     (STOP)                                                                     \
@@ -29,7 +29,6 @@ namespace meevax::kernel
     (TAIL_CALL)                                                                \
     (TAIL_SELECT)                                                              \
 
-  // TODO PUSH => CONS
   // TODO POP => DROP
 
   enum class mnemonic

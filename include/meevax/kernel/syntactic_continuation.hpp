@@ -431,7 +431,7 @@ namespace meevax::kernel
             car(expression),
             frames,
             cons(
-              make<instruction>(mnemonic::PUSH),
+              make<instruction>(mnemonic::CONS),
               continuation)));
     });
 
