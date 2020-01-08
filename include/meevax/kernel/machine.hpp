@@ -141,6 +141,7 @@ namespace meevax::kernel
     *----------------------------------------------------------------------- */
     object compile(
       const object& expression,
+      const object& syntactic_environment,
       const object& frames = unit,
       const object& continuation = list(make<instruction>(mnemonic::STOP)),
       const compilation_context in_a = as_is)
@@ -206,7 +207,7 @@ namespace meevax::kernel
       else // is (application . arguments)
       {
         if (object applicant {lookup(
-              car(expression), interaction_environment()
+              car(expression), syntactic_environment
             )};
             not applicant)
         {
@@ -226,7 +227,7 @@ namespace meevax::kernel
 
           NEST_IN;
           auto result {std::invoke(applicant.as<special>(),
-            cdr(expression), frames, continuation, in_a
+            cdr(expression), syntactic_environment, frames, continuation, in_a
           )};
           NEST_OUT;
 
@@ -256,7 +257,8 @@ namespace meevax::kernel
           DEBUG_MACROEXPAND(expanded << std::endl);
 
           NEST_IN;
-          auto result {compile(expanded, frames, continuation)};
+          auto result {compile(
+            expanded, syntactic_environment, frames, continuation)};
           NEST_OUT;
 
           return result;
@@ -271,9 +273,11 @@ namespace meevax::kernel
         auto result {
           operand(
             cdr(expression),
+            syntactic_environment,
             frames,
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(
@@ -789,6 +793,7 @@ namespace meevax::kernel
     #define DEFINE_PRIMITIVE_EXPRESSION(NAME, ...)                             \
     const object NAME(                                                         \
       [[maybe_unused]] const object& expression,                               \
+      [[maybe_unused]] const object& syntactic_environment,                    \
       [[maybe_unused]] const object& frames,                                   \
       [[maybe_unused]] const object& continuation,                             \
       [[maybe_unused]] const compilation_context in_a = as_is)                 \
@@ -828,6 +833,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_program_declaration);
@@ -837,11 +843,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP),
                 sequence(
                   cdr(expression),
+                  syntactic_environment,
                   frames,
                   continuation,
                   as_program_declaration)),
@@ -855,6 +863,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation);
         }
@@ -863,11 +872,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression), // head expression
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP), // pop result of head expression
                 sequence(
                   cdr(expression), // rest expressions
+                  syntactic_environment,
                   frames,
                   continuation)));
         }
@@ -891,6 +902,7 @@ namespace meevax::kernel
         return
           compile(
             cdr(expression) ? cadr(expression) : undefined,
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::DEFINE), car(expression),
@@ -904,6 +916,7 @@ namespace meevax::kernel
         // throw
         //   compile(
         //     cdr(expression) ? cadr(expression) : undefined,
+        //     syntactic_environment,
         //     frames,
         //     cons(
         //       make<instruction>(mnemonic::DEFINE), car(expression),
@@ -945,6 +958,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_tail_expression_of_program_declaration);
@@ -954,6 +968,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_tail_expression);
@@ -976,6 +991,7 @@ namespace meevax::kernel
           return
             sequence(
               cdr(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_program_declaration);
@@ -985,6 +1001,7 @@ namespace meevax::kernel
           return
             sequence(
               cdr(expression),
+              syntactic_environment,
               frames,
               continuation);
         }
@@ -1006,11 +1023,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP),
                 sequence(
                   cdr(expression),
+                  syntactic_environment,
                   frames,
                   continuation,
                   as_program_declaration)),
@@ -1021,11 +1040,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression), // <non-definition expression>
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP), // remove result of expression
                 sequence(
                   cdr(expression),
+                  syntactic_environment,
                   frames,
                   continuation)));
         }
@@ -1113,6 +1134,7 @@ namespace meevax::kernel
         return
           compile(
             result,
+            syntactic_environment,
             frames,
             continuation);
       }
@@ -1130,9 +1152,11 @@ namespace meevax::kernel
         return
           operand(
             cdr(expression),
+            syntactic_environment,
             frames,
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::CONS),
@@ -1143,6 +1167,7 @@ namespace meevax::kernel
         return
           compile(
             expression,
+            syntactic_environment,
             frames,
             continuation);
       }
@@ -1165,6 +1190,7 @@ namespace meevax::kernel
         const auto consequent {
           compile(
             cadr(expression),
+            syntactic_environment,
             frames,
             list(
               make<instruction>(mnemonic::RETURN)),
@@ -1175,6 +1201,7 @@ namespace meevax::kernel
           cddr(expression)
             ? compile(
                 caddr(expression),
+                syntactic_environment,
                 frames,
                 list(
                   make<instruction>(mnemonic::RETURN)),
@@ -1187,6 +1214,7 @@ namespace meevax::kernel
         return
           compile(
             car(expression), // <test>
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::TAIL_SELECT),
@@ -1199,6 +1227,7 @@ namespace meevax::kernel
         const auto consequent {
           compile(
             cadr(expression),
+            syntactic_environment,
             frames,
             list(make<instruction>(mnemonic::JOIN)))
         };
@@ -1207,6 +1236,7 @@ namespace meevax::kernel
           cddr(expression)
             ? compile(
                 caddr(expression),
+                syntactic_environment,
                 frames,
                 list(
                   make<instruction>(mnemonic::JOIN)))
@@ -1218,6 +1248,7 @@ namespace meevax::kernel
         return
           compile(
             car(expression), // <test>
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::SELECT), consequent, alternate,
@@ -1242,6 +1273,7 @@ namespace meevax::kernel
           make<instruction>(mnemonic::LOAD_CLOSURE),
           body(
             cdr(expression), // <body>
+            syntactic_environment,
             cons(
               car(expression),
               frames), // extend lexical environment
@@ -1269,6 +1301,7 @@ namespace meevax::kernel
           continuation,
           compile(
             car(expression),
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::CALL),
@@ -1295,6 +1328,7 @@ namespace meevax::kernel
       // return
       //   compile(
       //     car(expression),
+      //     syntactic_environment,
       //     frames,
       //     cons(
       //       make<instruction>(mnemonic::FORK),
@@ -1327,6 +1361,7 @@ namespace meevax::kernel
           return
             compile(
               cadr(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::STORE_VARIADIC), index,
@@ -1339,6 +1374,7 @@ namespace meevax::kernel
           return
             compile(
               cadr(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::STORE_LOCAL), index,
@@ -1352,6 +1388,7 @@ namespace meevax::kernel
         return
           compile(
             cadr(expression),
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::STORE_GLOBAL),

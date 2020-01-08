@@ -530,6 +530,28 @@ namespace meevax::kernel
     }
 
     const object&
+      assv(
+        const object& value,
+        const object& association_list)
+    {
+      if (not value or not association_list)
+      {
+        return false_object;
+      }
+      else if (caar(association_list).equivalent_to(value))
+      {
+        return car(association_list);
+      }
+      else
+      {
+        return
+          assv(
+            value,
+            cdr(association_list));
+      }
+    }
+
+    const object&
       assq(
         const object& value,
         const object& association_list)

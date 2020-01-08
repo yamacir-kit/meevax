@@ -4,10 +4,12 @@
 #include <meevax/kernel/object.hpp>
 
 #define SPECIAL(NAME) \
-  const meevax::kernel::object NAME(const meevax::kernel::object&, \
-                                    const meevax::kernel::object&, \
-                                    const meevax::kernel::object&, \
-                                    const compilation_context)
+  const meevax::kernel::object NAME(                                           \
+    const meevax::kernel::object&,                                             \
+    const meevax::kernel::object&,                                             \
+    const meevax::kernel::object&,                                             \
+    const meevax::kernel::object&,                                             \
+    const compilation_context)
 
 namespace meevax::kernel
 {
