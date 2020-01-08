@@ -1714,12 +1714,12 @@
 ;     (lambda (_ . export-specs)
 ;      `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
-(define export
-  (fork
-    (lambda (this . export-specs)
-     `(stage ,@(map (lambda (each)
-                      (list quote each))
-                    export-specs)))))
+; (define export
+;   (fork
+;     (lambda (this . export-specs)
+;      `(stage ,@(map (lambda (each)
+;                       (list quote each))
+;                     export-specs)))))
 
 ; (define import
 ;   (fork

@@ -84,8 +84,27 @@ namespace meevax::kernel
     explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {
-      std::cerr << "BOOTING NEW SYNTACTIC-CONTINUATION" << std::endl;
       boot(layer<0>);
+
+      if (first)
+      {
+        std::cerr << "; subprogram\t; " << std::endl;
+
+        s = car(first);
+        e = cadr(first);
+        c = compile(
+              car(caddr(first)),
+              cdr(caddr(first)),
+              list(
+                make<instruction>(mnemonic::STOP)),
+              as_program_declaration);
+        d = cdddr(first);
+
+        first = execute();
+        assert(first.is<closure>());
+
+        std::cerr << "; subprogram\t; cdr(closure) = " << cdr(first) << std::endl;
+      }
     }
 
     template <auto N>
@@ -156,7 +175,7 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);
     }
 
-    std::size_t generation {0};
+    [[deprecated]] std::size_t generation {0};
 
     const auto& rename(const object& object)
     {
@@ -197,29 +216,11 @@ namespace meevax::kernel
     decltype(auto) current_expression()
     {
       return car(continuation());
-
-      // if (auto& k {continuation()}; not k)
-      // {
-      //   return k;
-      // }
-      // else
-      // {
-      //   return car(k);
-      // }
     }
 
     decltype(auto) lexical_environment()
     {
       return cdr(continuation());
-
-      // if (auto& k {continuation()}; not k)
-      // {
-      //   return k;
-      // }
-      // else
-      // {
-      //   return cdr(k);
-      // }
     }
 
     // history
@@ -357,30 +358,30 @@ namespace meevax::kernel
     // DEFINE_PROCEDURE_1("compile",  compile);
     DEFINE_PROCEDURE_1("evaluate", evaluate);
 
-    define<procedure>("stage", [this](auto&&, const object& operands)
-    {
-      std::cerr << "; export\t; " << operands << std::endl;
+    // define<procedure>("stage", [this](auto&&, const object& operands)
+    // {
+    //   std::cerr << "; export\t; " << operands << std::endl;
+    //
+    //   for (const auto& each : operands)
+    //   {
+    //     std::cerr << ";\t\t; staging " << each << std::endl;
+    //
+    //     external_symbols.emplace(
+    //       write(std::stringstream {}, each).str(),
+    //       each);
+    //   }
+    //
+    //   std::cerr << "; export\t; exported identifiers are" << std::endl;
+    //
+    //   for (const auto& [key, value] : external_symbols)
+    //   {
+    //     std::cerr << ";\t\t;   " << value << std::endl;
+    //   }
+    //
+    //   return unspecified;
+    // });
 
-      for (const auto& each : operands)
-      {
-        std::cerr << ";\t\t; staging " << each << std::endl;
-
-        external_symbols.emplace(
-          write(std::stringstream {}, each).str(),
-          each);
-      }
-
-      std::cerr << "; export\t; exported identifiers are" << std::endl;
-
-      for (const auto& [key, value] : external_symbols)
-      {
-        std::cerr << ";\t\t;   " << value << std::endl;
-      }
-
-      return unspecified;
-    });
-
-    // DEFINE_SPECIAL("export", exportation);
+    DEFINE_SPECIAL("export", exportation);
     DEFINE_SPECIAL("import", importation);
   }
 

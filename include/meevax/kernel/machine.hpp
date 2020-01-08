@@ -311,7 +311,6 @@ namespace meevax::kernel
         {
         case mnemonic::CALL:
         case mnemonic::TAIL_CALL:
-        case mnemonic::FORK:
         case mnemonic::JOIN:
         case mnemonic::POP:
         case mnemonic::CONS:
@@ -328,6 +327,7 @@ namespace meevax::kernel
           break;
 
         case mnemonic::DEFINE:
+        case mnemonic::FORK:
         case mnemonic::LOAD_CONSTANT:
         case mnemonic::LOAD_GLOBAL:
         case mnemonic::LOAD_LOCAL:
@@ -512,18 +512,42 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::FORK: /*=========================================
       *
-      *    (closure . S) E (FORK . C) D
+      *                  S  E (FORK sc . C) D
       *
-      * => (program . S) E         C  D
+      * => (subprogram . S) E            C  D
       *
       *====================================================================== */
+        // std::cerr << "; FORK\t; making syntactic-continuation" << std::endl;
+        // std::cerr << "\t\t; s = " << s << std::endl;
+        // std::cerr << "\t\t; e = " << e << std::endl;
+        // std::cerr << "\t\t; c = " << c << std::endl;
+        // std::cerr << "\t\t; d = " << d << std::endl;
         push(
           s,
           make<SyntacticContinuation>(
-            pop(s), // XXX car(s)?
+            cons(
+              s,
+              e,
+              cadr(c), // compile continuation
+              d),
             interaction_environment()));
-        pop<1>(c);
+        pop<2>(c);
         goto dispatch;
+
+      // /* ====*/ case mnemonic::FORK: /*=========================================
+      // *
+      // *    (closure . S) E (FORK . C) D
+      // *
+      // * => (program . S) E         C  D
+      // *
+      // *====================================================================== */
+      //   push(
+      //     s,
+      //     make<SyntacticContinuation>(
+      //       pop(s), // XXX car(s)?
+      //       interaction_environment()));
+      //   pop<1>(c);
+      //   goto dispatch;
 
       /* ====*/ case mnemonic::SELECT: /*=======================================
       *
@@ -1264,13 +1288,18 @@ namespace meevax::kernel
         << attribute::normal << std::endl);
 
       return
-        compile(
-          car(expression),
-          frames,
-          cons(
-            make<instruction>(mnemonic::FORK),
-            continuation),
-          as_program_declaration);
+        cons(
+          make<instruction>(mnemonic::FORK), cons(car(expression), frames),
+          continuation);
+
+      // return
+      //   compile(
+      //     car(expression),
+      //     frames,
+      //     cons(
+      //       make<instruction>(mnemonic::FORK),
+      //       continuation),
+      //     as_program_declaration);
     })
 
     /* ==== Assignment ========================================================
