@@ -141,6 +141,7 @@ namespace meevax::kernel
     *----------------------------------------------------------------------- */
     object compile(
       const object& expression,
+      const object& syntactic_environment,
       const object& frames = unit,
       const object& continuation = list(make<instruction>(mnemonic::STOP)),
       const compilation_context in_a = as_is)
@@ -206,7 +207,7 @@ namespace meevax::kernel
       else // is (application . arguments)
       {
         if (object applicant {lookup(
-              car(expression), interaction_environment()
+              car(expression), syntactic_environment
             )};
             not applicant)
         {
@@ -226,7 +227,7 @@ namespace meevax::kernel
 
           NEST_IN;
           auto result {std::invoke(applicant.as<special>(),
-            cdr(expression), frames, continuation, in_a
+            cdr(expression), syntactic_environment, frames, continuation, in_a
           )};
           NEST_OUT;
 
@@ -256,7 +257,8 @@ namespace meevax::kernel
           DEBUG_MACROEXPAND(expanded << std::endl);
 
           NEST_IN;
-          auto result {compile(expanded, frames, continuation)};
+          auto result {compile(
+            expanded, syntactic_environment, frames, continuation)};
           NEST_OUT;
 
           return result;
@@ -271,9 +273,11 @@ namespace meevax::kernel
         auto result {
           operand(
             cdr(expression),
+            syntactic_environment,
             frames,
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(
@@ -311,7 +315,6 @@ namespace meevax::kernel
         {
         case mnemonic::CALL:
         case mnemonic::TAIL_CALL:
-        case mnemonic::FORK:
         case mnemonic::JOIN:
         case mnemonic::POP:
         case mnemonic::CONS:
@@ -328,6 +331,7 @@ namespace meevax::kernel
           break;
 
         case mnemonic::DEFINE:
+        case mnemonic::FORK:
         case mnemonic::LOAD_CONSTANT:
         case mnemonic::LOAD_GLOBAL:
         case mnemonic::LOAD_LOCAL:
@@ -512,18 +516,42 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::FORK: /*=========================================
       *
-      *    (closure . S) E (FORK . C) D
+      *                  S  E (FORK sc . C) D
       *
-      * => (program . S) E         C  D
+      * => (subprogram . S) E            C  D
       *
       *====================================================================== */
+        // std::cerr << "; FORK\t; making syntactic-continuation" << std::endl;
+        // std::cerr << "\t\t; s = " << s << std::endl;
+        // std::cerr << "\t\t; e = " << e << std::endl;
+        // std::cerr << "\t\t; c = " << c << std::endl;
+        // std::cerr << "\t\t; d = " << d << std::endl;
         push(
           s,
           make<SyntacticContinuation>(
-            pop(s), // XXX car(s)?
+            cons(
+              s,
+              e,
+              cadr(c), // compile continuation
+              d),
             interaction_environment()));
-        pop<1>(c);
+        pop<2>(c);
         goto dispatch;
+
+      // /* ====*/ case mnemonic::FORK: /*=========================================
+      // *
+      // *    (closure . S) E (FORK . C) D
+      // *
+      // * => (program . S) E         C  D
+      // *
+      // *====================================================================== */
+      //   push(
+      //     s,
+      //     make<SyntacticContinuation>(
+      //       pop(s), // XXX car(s)?
+      //       interaction_environment()));
+      //   pop<1>(c);
+      //   goto dispatch;
 
       /* ====*/ case mnemonic::SELECT: /*=======================================
       *
@@ -762,9 +790,10 @@ namespace meevax::kernel
     }
 
   protected: // Primitive Expression Types
-    #define DEFINE_PREMITIVE_EXPRESSION(NAME, ...)                             \
+    #define DEFINE_PRIMITIVE_EXPRESSION(NAME, ...)                             \
     const object NAME(                                                         \
       [[maybe_unused]] const object& expression,                               \
+      [[maybe_unused]] const object& syntactic_environment,                    \
       [[maybe_unused]] const object& frames,                                   \
       [[maybe_unused]] const object& continuation,                             \
       [[maybe_unused]] const compilation_context in_a = as_is)                 \
@@ -775,7 +804,7 @@ namespace meevax::kernel
     * <quotation> = (quote <datum>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(quotation,
+    DEFINE_PRIMITIVE_EXPRESSION(quotation,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -795,7 +824,7 @@ namespace meevax::kernel
     * <command> = <expression>
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(sequence,
+    DEFINE_PRIMITIVE_EXPRESSION(sequence,
     {
       if (in_a.program_declaration)
       {
@@ -804,6 +833,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_program_declaration);
@@ -813,11 +843,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP),
                 sequence(
                   cdr(expression),
+                  syntactic_environment,
                   frames,
                   continuation,
                   as_program_declaration)),
@@ -831,6 +863,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation);
         }
@@ -839,11 +872,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression), // head expression
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP), // pop result of head expression
                 sequence(
                   cdr(expression), // rest expressions
+                  syntactic_environment,
                   frames,
                   continuation)));
         }
@@ -855,7 +890,7 @@ namespace meevax::kernel
     * <definition> = (define <identifier> <expression>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(definition,
+    DEFINE_PRIMITIVE_EXPRESSION(definition,
     {
       if (not frames or in_a.program_declaration)
       {
@@ -867,6 +902,7 @@ namespace meevax::kernel
         return
           compile(
             cdr(expression) ? cadr(expression) : undefined,
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::DEFINE), car(expression),
@@ -880,6 +916,7 @@ namespace meevax::kernel
         // throw
         //   compile(
         //     cdr(expression) ? cadr(expression) : undefined,
+        //     syntactic_environment,
         //     frames,
         //     cons(
         //       make<instruction>(mnemonic::DEFINE), car(expression),
@@ -892,7 +929,7 @@ namespace meevax::kernel
     * <body> = <definition>* <sequence>
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(body,
+    DEFINE_PRIMITIVE_EXPRESSION(body,
     {
       /* ----------------------------------------------------------------------
       *
@@ -921,6 +958,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_tail_expression_of_program_declaration);
@@ -930,6 +968,7 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_tail_expression);
@@ -952,6 +991,7 @@ namespace meevax::kernel
           return
             sequence(
               cdr(expression),
+              syntactic_environment,
               frames,
               continuation,
               as_program_declaration);
@@ -961,6 +1001,7 @@ namespace meevax::kernel
           return
             sequence(
               cdr(expression),
+              syntactic_environment,
               frames,
               continuation);
         }
@@ -982,11 +1023,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP),
                 sequence(
                   cdr(expression),
+                  syntactic_environment,
                   frames,
                   continuation,
                   as_program_declaration)),
@@ -997,11 +1040,13 @@ namespace meevax::kernel
           return
             compile(
               car(expression), // <non-definition expression>
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::POP), // remove result of expression
                 sequence(
                   cdr(expression),
+                  syntactic_environment,
                   frames,
                   continuation)));
         }
@@ -1089,6 +1134,7 @@ namespace meevax::kernel
         return
           compile(
             result,
+            syntactic_environment,
             frames,
             continuation);
       }
@@ -1099,16 +1145,18 @@ namespace meevax::kernel
     * <operand> = <expression>
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(operand,
+    DEFINE_PRIMITIVE_EXPRESSION(operand,
     {
       if (expression and expression.is<pair>())
       {
         return
           operand(
             cdr(expression),
+            syntactic_environment,
             frames,
             compile(
               car(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::CONS),
@@ -1119,6 +1167,7 @@ namespace meevax::kernel
         return
           compile(
             expression,
+            syntactic_environment,
             frames,
             continuation);
       }
@@ -1129,7 +1178,7 @@ namespace meevax::kernel
     * <conditional> = (if <test> <consequent> <alternate>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(conditional,
+    DEFINE_PRIMITIVE_EXPRESSION(conditional,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1141,6 +1190,7 @@ namespace meevax::kernel
         const auto consequent {
           compile(
             cadr(expression),
+            syntactic_environment,
             frames,
             list(
               make<instruction>(mnemonic::RETURN)),
@@ -1151,6 +1201,7 @@ namespace meevax::kernel
           cddr(expression)
             ? compile(
                 caddr(expression),
+                syntactic_environment,
                 frames,
                 list(
                   make<instruction>(mnemonic::RETURN)),
@@ -1163,6 +1214,7 @@ namespace meevax::kernel
         return
           compile(
             car(expression), // <test>
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::TAIL_SELECT),
@@ -1175,6 +1227,7 @@ namespace meevax::kernel
         const auto consequent {
           compile(
             cadr(expression),
+            syntactic_environment,
             frames,
             list(make<instruction>(mnemonic::JOIN)))
         };
@@ -1183,6 +1236,7 @@ namespace meevax::kernel
           cddr(expression)
             ? compile(
                 caddr(expression),
+                syntactic_environment,
                 frames,
                 list(
                   make<instruction>(mnemonic::JOIN)))
@@ -1194,6 +1248,7 @@ namespace meevax::kernel
         return
           compile(
             car(expression), // <test>
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::SELECT), consequent, alternate,
@@ -1206,7 +1261,7 @@ namespace meevax::kernel
     * <lambda expression> = (lambda <formals> <body>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(lambda,
+    DEFINE_PRIMITIVE_EXPRESSION(lambda,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1218,6 +1273,7 @@ namespace meevax::kernel
           make<instruction>(mnemonic::LOAD_CLOSURE),
           body(
             cdr(expression), // <body>
+            syntactic_environment,
             cons(
               car(expression),
               frames), // extend lexical environment
@@ -1232,7 +1288,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(call_cc,
+    DEFINE_PRIMITIVE_EXPRESSION(call_cc,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1245,6 +1301,7 @@ namespace meevax::kernel
           continuation,
           compile(
             car(expression),
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::CALL),
@@ -1256,7 +1313,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(fork,
+    DEFINE_PRIMITIVE_EXPRESSION(fork,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1264,13 +1321,19 @@ namespace meevax::kernel
         << attribute::normal << std::endl);
 
       return
-        compile(
-          car(expression),
-          frames,
-          cons(
-            make<instruction>(mnemonic::FORK),
-            continuation),
-          as_program_declaration);
+        cons(
+          make<instruction>(mnemonic::FORK), cons(car(expression), frames),
+          continuation);
+
+      // return
+      //   compile(
+      //     car(expression),
+      //     syntactic_environment,
+      //     frames,
+      //     cons(
+      //       make<instruction>(mnemonic::FORK),
+      //       continuation),
+      //     as_program_declaration);
     })
 
     /* ==== Assignment ========================================================
@@ -1278,7 +1341,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(assignment,
+    DEFINE_PRIMITIVE_EXPRESSION(assignment,
     {
       DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
 
@@ -1298,6 +1361,7 @@ namespace meevax::kernel
           return
             compile(
               cadr(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::STORE_VARIADIC), index,
@@ -1310,6 +1374,7 @@ namespace meevax::kernel
           return
             compile(
               cadr(expression),
+              syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::STORE_LOCAL), index,
@@ -1323,6 +1388,7 @@ namespace meevax::kernel
         return
           compile(
             cadr(expression),
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::STORE_GLOBAL),
@@ -1336,7 +1402,7 @@ namespace meevax::kernel
     * TODO
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(reference,
+    DEFINE_PRIMITIVE_EXPRESSION(reference,
     {
       DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
 
@@ -1385,87 +1451,6 @@ namespace meevax::kernel
             make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
             continuation);
       }
-    })
-
-    DEFINE_PREMITIVE_EXPRESSION(exportation,
-    {
-      std::cerr << "; export\t; this = " << this << std::endl;
-
-      DEBUG_COMPILE(
-        // << (not depth ? "; compile\t; " : ";\t\t; ")
-        // << std::string(depth * 2, ' ')
-        << expression
-        << highlight::comment << " is <export specs>"
-        << attribute::normal << std::endl);
-
-      auto exportation = [this](auto&&, auto&& operands)
-      {
-        std::cerr << "; export\t; " << operands << std::endl;
-
-        for (const auto& each : operands)
-        {
-          std::cerr << ";\t\t; staging " << each << std::endl;
-
-          static_cast<SyntacticContinuation&>(*this).external_symbols.emplace(
-            write(std::stringstream {}, each).str(),
-            each);
-        }
-
-        std::cerr << "; export\t; exported identifiers are" << std::endl;
-
-        for (const auto& [key, value] : static_cast<SyntacticContinuation&>(*this).external_symbols)
-        {
-          std::cerr << ";\t\t;   " << value << std::endl;
-        }
-
-        return unspecified;
-      };
-
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("export", exportation),
-          make<instruction>(mnemonic::CALL),
-          continuation);
-    })
-
-    DEFINE_PREMITIVE_EXPRESSION(importation,
-    {
-      std::cerr << "; import\t; this = " << this << std::endl;
-
-      auto importation = [this](auto&&, const object& operands)
-      {
-        std::cerr << "; importation\t; this = " << this << std::endl;
-
-        assert(
-          operands.is<SyntacticContinuation>());
-
-        if (operands.as<SyntacticContinuation>().external_symbols.empty())
-        {
-          std::cerr << "; import\t; " << operands << " is virgin => expand" << std::endl;
-          operands.as<SyntacticContinuation>().expand(
-            cons(
-              car(operands), unit));
-        }
-
-        std::cerr << "; import\t; importing identifiers..." << std::endl;
-
-        for (const auto& [key, value] : operands.as<SyntacticContinuation>().external_symbols)
-        {
-          std::cerr << ";\t\t; " << value << std::endl;
-        }
-
-        return unspecified;
-      };
-
-      return
-        reference( // XXX DIRTY HACK
-          expression,
-          frames,
-          cons(
-            make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-            make<instruction>(mnemonic::CALL),
-            continuation));
     })
   };
 } // namespace meevax::kernel

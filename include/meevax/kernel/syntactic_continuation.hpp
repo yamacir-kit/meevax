@@ -84,8 +84,29 @@ namespace meevax::kernel
     explicit syntactic_continuation(Ts&&... operands)
       : pair {std::forward<decltype(operands)>(operands)...}
     {
-      std::cerr << "BOOTING NEW SYNTACTIC-CONTINUATION" << std::endl;
       boot(layer<0>);
+
+      if (first)
+      {
+        s = car(first);
+        e = cadr(first);
+        c = compile(
+              car(caddr(first)),
+              interaction_environment(),
+              cdr(caddr(first)),
+              list(
+                make<instruction>(mnemonic::STOP)),
+              as_program_declaration);
+        d = cdddr(first);
+
+        // std::cerr << ";\t\t; s = " << s << std::endl;
+        // std::cerr << ";\t\t; e = " << e << std::endl;
+        // std::cerr << ";\t\t; c = " << c << std::endl;
+        // std::cerr << ";\t\t; d = " << d << std::endl;
+
+        first = execute();
+        assert(first.is<closure>());
+      }
     }
 
     template <auto N>
@@ -147,6 +168,17 @@ namespace meevax::kernel
             std::forward<decltype(operands)>(operands)...));
     }
 
+    template <typename T, typename... Ts>
+    decltype(auto) redefine(const std::string& name, Ts&&... operands)
+    {
+      return
+        machine<syntactic_continuation>::define(
+          car(assv(make<symbol>(name), interaction_environment())),
+          make<T>(
+            name,
+            std::forward<decltype(operands)>(operands)...));
+    }
+
     template <typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... operands)
     {
@@ -156,7 +188,7 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);
     }
 
-    std::size_t generation {0};
+    [[deprecated]] std::size_t generation {0};
 
     const auto& rename(const object& object)
     {
@@ -197,35 +229,17 @@ namespace meevax::kernel
     decltype(auto) current_expression()
     {
       return car(continuation());
-
-      // if (auto& k {continuation()}; not k)
-      // {
-      //   return k;
-      // }
-      // else
-      // {
-      //   return car(k);
-      // }
     }
 
     decltype(auto) lexical_environment()
     {
       return cdr(continuation());
-
-      // if (auto& k {continuation()}; not k)
-      // {
-      //   return k;
-      // }
-      // else
-      // {
-      //   return cdr(k);
-      // }
     }
 
     // history
-    decltype(auto) interaction_environment()
+    auto& interaction_environment()
     {
-      return std::get<1>(*this);
+      return second;
     }
 
     decltype(auto) expand(const object& operands)
@@ -259,13 +273,13 @@ namespace meevax::kernel
     }
 
     // TODO CONVERT TO VM INSTRUCTION
-    template <typename... Ts>
-    decltype(auto) evaluate(Ts&&... operands)
+    decltype(auto) evaluate(const object& expression)
     {
       return
         execute_interrupt(
           compile(
-            std::forward<decltype(operands)>(operands)...));
+            expression,
+            interaction_environment()));
     }
 
     template <typename... Ts>
@@ -315,6 +329,84 @@ namespace meevax::kernel
       }
     }
 
+  public: // Primitive Expression Types
+    DEFINE_PRIMITIVE_EXPRESSION(exportation,
+    {
+      if (verbose.equivalent_to(true_object))
+      {
+        std::cerr
+        << (not depth ? "; compile\t; " : ";\t\t; ")
+        << std::string(depth * 2, ' ')
+        << expression
+        << highlight::comment << " is <export specs>"
+        << attribute::normal << std::endl;
+      }
+
+      auto exportation = [this](auto&&, const object& operands)
+      {
+        for (const auto& each : operands)
+        {
+          std::cerr << ";\t\t; staging " << each << std::endl;
+
+          external_symbols.emplace(
+            write(std::stringstream {}, each).str(),
+            each);
+        }
+
+        std::cerr << ";\t\t; exported identifiers are" << std::endl;
+
+        for (const auto& [key, value] : external_symbols)
+        {
+          std::cerr << ";\t\t;   " << value << std::endl;
+        }
+
+        return unspecified;
+      };
+
+      return
+        cons(
+          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("exportation", exportation),
+          make<instruction>(mnemonic::CALL),
+          continuation);
+    })
+
+    DEFINE_PRIMITIVE_EXPRESSION(importation,
+    {
+      auto importation = [&](auto&&, const object& operands)
+      {
+        assert(
+          operands.is<syntactic_continuation>());
+
+        if (operands.as<syntactic_continuation>().external_symbols.empty())
+        {
+          std::cerr << "; import\t; " << operands << " is virgin => expand" << std::endl;
+          operands.as<syntactic_continuation>().expand(
+            cons(
+              operands, unit));
+        }
+
+        std::cerr << "; import\t; imported identifiers are" << std::endl;
+
+        for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
+        {
+          std::cerr << ";\t\t; " << value << std::endl;
+        }
+
+        return unspecified;
+      };
+
+      return
+        reference( // XXX DIRTY HACK
+          expression,
+          syntactic_environment,
+          frames,
+          cons(
+            make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
+            make<instruction>(mnemonic::CALL),
+            continuation));
+    })
+
   public:
     friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)
       -> decltype(os)
@@ -335,8 +427,24 @@ namespace meevax::kernel
         std::forward<decltype(operands)>(operands)...);                        \
   })
 
+  #define REDEFINE_SPECIAL(NAME, RULE)                                         \
+  redefine<special>(NAME, [this](auto&&... operands)                           \
+  {                                                                            \
+    return                                                                     \
+      RULE(                                                                    \
+        std::forward<decltype(operands)>(operands)...);                        \
+  })
+
   #define DEFINE_PROCEDURE_1(NAME, CALLEE)                                     \
   define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
+  {                                                                            \
+    return                                                                     \
+      CALLEE(                                                                  \
+        car(operands));                                                        \
+  })
+
+  #define REDEFINE_PROCEDURE_1(NAME, CALLEE)                                   \
+  redefine<procedure>(NAME, [this](auto&&, auto&& operands)                    \
   {                                                                            \
     return                                                                     \
       CALLEE(                                                                  \
@@ -355,33 +463,21 @@ namespace meevax::kernel
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
     // DEFINE_PROCEDURE_1("compile",  compile);
-    DEFINE_PROCEDURE_1("evaluate", evaluate);
 
-    define<procedure>("stage", [this](auto&&, const object& operands)
+    if (interaction_environment())
     {
-      std::cerr << "; export\t; " << operands << std::endl;
+      REDEFINE_PROCEDURE_1("evaluate", evaluate);
 
-      for (const auto& each : operands)
-      {
-        std::cerr << ";\t\t; staging " << each << std::endl;
+      REDEFINE_SPECIAL("export", exportation);
+      REDEFINE_SPECIAL("import", importation);
+    }
+    else
+    {
+      DEFINE_PROCEDURE_1("evaluate", evaluate);
 
-        external_symbols.emplace(
-          write(std::stringstream {}, each).str(),
-          each);
-      }
-
-      std::cerr << "; export\t; exported identifiers are" << std::endl;
-
-      for (const auto& [key, value] : external_symbols)
-      {
-        std::cerr << ";\t\t;   " << value << std::endl;
-      }
-
-      return unspecified;
-    });
-
-    // DEFINE_SPECIAL("export", exportation);
-    DEFINE_SPECIAL("import", importation);
+      DEFINE_SPECIAL("export", exportation);
+      DEFINE_SPECIAL("import", importation);
+    }
   }
 
   template <>
@@ -400,17 +496,21 @@ namespace meevax::kernel
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<linker>);
 
-    define<special>("cons", [this](auto&& expression,
-                                   auto&& frames,
-                                   auto&& continuation,
-                                   auto&&)
+    define<special>("cons", [this](
+      auto&& expression,
+      auto&& syntactic_environment,
+      auto&& frames,
+      auto&& continuation,
+      auto&&)
     {
       return
         compile(
           cadr(expression),
+          syntactic_environment,
           frames,
           compile(
             car(expression),
+            syntactic_environment,
             frames,
             cons(
               make<instruction>(mnemonic::CONS),
