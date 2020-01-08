@@ -786,7 +786,7 @@ namespace meevax::kernel
     }
 
   protected: // Primitive Expression Types
-    #define DEFINE_PREMITIVE_EXPRESSION(NAME, ...)                             \
+    #define DEFINE_PRIMITIVE_EXPRESSION(NAME, ...)                             \
     const object NAME(                                                         \
       [[maybe_unused]] const object& expression,                               \
       [[maybe_unused]] const object& frames,                                   \
@@ -799,7 +799,7 @@ namespace meevax::kernel
     * <quotation> = (quote <datum>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(quotation,
+    DEFINE_PRIMITIVE_EXPRESSION(quotation,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -819,7 +819,7 @@ namespace meevax::kernel
     * <command> = <expression>
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(sequence,
+    DEFINE_PRIMITIVE_EXPRESSION(sequence,
     {
       if (in_a.program_declaration)
       {
@@ -879,7 +879,7 @@ namespace meevax::kernel
     * <definition> = (define <identifier> <expression>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(definition,
+    DEFINE_PRIMITIVE_EXPRESSION(definition,
     {
       if (not frames or in_a.program_declaration)
       {
@@ -916,7 +916,7 @@ namespace meevax::kernel
     * <body> = <definition>* <sequence>
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(body,
+    DEFINE_PRIMITIVE_EXPRESSION(body,
     {
       /* ----------------------------------------------------------------------
       *
@@ -1123,7 +1123,7 @@ namespace meevax::kernel
     * <operand> = <expression>
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(operand,
+    DEFINE_PRIMITIVE_EXPRESSION(operand,
     {
       if (expression and expression.is<pair>())
       {
@@ -1153,7 +1153,7 @@ namespace meevax::kernel
     * <conditional> = (if <test> <consequent> <alternate>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(conditional,
+    DEFINE_PRIMITIVE_EXPRESSION(conditional,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1230,7 +1230,7 @@ namespace meevax::kernel
     * <lambda expression> = (lambda <formals> <body>)
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(lambda,
+    DEFINE_PRIMITIVE_EXPRESSION(lambda,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1256,7 +1256,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(call_cc,
+    DEFINE_PRIMITIVE_EXPRESSION(call_cc,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1280,7 +1280,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(fork,
+    DEFINE_PRIMITIVE_EXPRESSION(fork,
     {
       DEBUG_COMPILE(
         << car(expression)
@@ -1307,7 +1307,7 @@ namespace meevax::kernel
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(assignment,
+    DEFINE_PRIMITIVE_EXPRESSION(assignment,
     {
       DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
 
@@ -1365,7 +1365,7 @@ namespace meevax::kernel
     * TODO
     *
     *======================================================================== */
-    DEFINE_PREMITIVE_EXPRESSION(reference,
+    DEFINE_PRIMITIVE_EXPRESSION(reference,
     {
       DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
 
@@ -1414,87 +1414,6 @@ namespace meevax::kernel
             make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
             continuation);
       }
-    })
-
-    DEFINE_PREMITIVE_EXPRESSION(exportation,
-    {
-      std::cerr << "; export\t; this = " << this << std::endl;
-
-      DEBUG_COMPILE(
-        // << (not depth ? "; compile\t; " : ";\t\t; ")
-        // << std::string(depth * 2, ' ')
-        << expression
-        << highlight::comment << " is <export specs>"
-        << attribute::normal << std::endl);
-
-      auto exportation = [this](auto&&, auto&& operands)
-      {
-        std::cerr << "; export\t; " << operands << std::endl;
-
-        for (const auto& each : operands)
-        {
-          std::cerr << ";\t\t; staging " << each << std::endl;
-
-          static_cast<SyntacticContinuation&>(*this).external_symbols.emplace(
-            write(std::stringstream {}, each).str(),
-            each);
-        }
-
-        std::cerr << "; export\t; exported identifiers are" << std::endl;
-
-        for (const auto& [key, value] : static_cast<SyntacticContinuation&>(*this).external_symbols)
-        {
-          std::cerr << ";\t\t;   " << value << std::endl;
-        }
-
-        return unspecified;
-      };
-
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("export", exportation),
-          make<instruction>(mnemonic::CALL),
-          continuation);
-    })
-
-    DEFINE_PREMITIVE_EXPRESSION(importation,
-    {
-      std::cerr << "; import\t; this = " << this << std::endl;
-
-      auto importation = [this](auto&&, const object& operands)
-      {
-        std::cerr << "; importation\t; this = " << this << std::endl;
-
-        assert(
-          operands.is<SyntacticContinuation>());
-
-        if (operands.as<SyntacticContinuation>().external_symbols.empty())
-        {
-          std::cerr << "; import\t; " << operands << " is virgin => expand" << std::endl;
-          operands.as<SyntacticContinuation>().expand(
-            cons(
-              car(operands), unit));
-        }
-
-        std::cerr << "; import\t; importing identifiers..." << std::endl;
-
-        for (const auto& [key, value] : operands.as<SyntacticContinuation>().external_symbols)
-        {
-          std::cerr << ";\t\t; " << value << std::endl;
-        }
-
-        return unspecified;
-      };
-
-      return
-        reference( // XXX DIRTY HACK
-          expression,
-          frames,
-          cons(
-            make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-            make<instruction>(mnemonic::CALL),
-            continuation));
     })
   };
 } // namespace meevax::kernel

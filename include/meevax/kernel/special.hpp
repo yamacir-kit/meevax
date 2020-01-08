@@ -52,6 +52,7 @@ namespace meevax::kernel
       return os << highlight::syntax << "#("
                 << highlight::type << "special"
                 << attribute::normal << " " << special.name
+                << highlight::comment << " #;" << &special << attribute::normal
                 << highlight::syntax << ")"
                 << attribute::normal;
     }

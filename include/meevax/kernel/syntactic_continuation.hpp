@@ -88,8 +88,6 @@ namespace meevax::kernel
 
       if (first)
       {
-        std::cerr << "; subprogram\t; " << std::endl;
-
         s = car(first);
         e = cadr(first);
         c = compile(
@@ -100,10 +98,13 @@ namespace meevax::kernel
               as_program_declaration);
         d = cdddr(first);
 
+        // std::cerr << ";\t\t; s = " << s << std::endl;
+        // std::cerr << ";\t\t; e = " << e << std::endl;
+        // std::cerr << ";\t\t; c = " << c << std::endl;
+        // std::cerr << ";\t\t; d = " << d << std::endl;
+
         first = execute();
         assert(first.is<closure>());
-
-        std::cerr << "; subprogram\t; cdr(closure) = " << cdr(first) << std::endl;
       }
     }
 
@@ -224,9 +225,9 @@ namespace meevax::kernel
     }
 
     // history
-    decltype(auto) interaction_environment()
+    auto& interaction_environment()
     {
-      return std::get<1>(*this);
+      return second;
     }
 
     decltype(auto) expand(const object& operands)
@@ -316,6 +317,80 @@ namespace meevax::kernel
       }
     }
 
+  public: // Primitive Expression Types
+    DEFINE_PRIMITIVE_EXPRESSION(exportation,
+    {
+      if (verbose.equivalent_to(true_object))
+      {
+        std::cerr
+        << (not depth ? "; compile\t; " : ";\t\t; ")
+        << std::string(depth * 2, ' ')
+        << expression
+        << highlight::comment << " is <export specs>"
+        << attribute::normal << std::endl;
+      }
+
+      std::cerr << "; export\t; on " << this << std::endl;
+
+      for (const auto& each : expression)
+      {
+        std::cerr << ";\t\t; staging " << each << std::endl;
+
+        external_symbols.emplace(
+          write(std::stringstream {}, each).str(),
+          each);
+      }
+
+      std::cerr << ";\t\t; exported identifiers are" << std::endl;
+
+      for (const auto& [key, value] : external_symbols)
+      {
+        std::cerr << ";\t\t;   " << value << std::endl;
+      }
+
+      return
+        cons(
+          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+          continuation);
+    })
+
+    DEFINE_PRIMITIVE_EXPRESSION(importation,
+    {
+      auto importation = [&](auto&&, const object& operands)
+      {
+        std::cerr << "; importation\t; in " << this << std::endl;
+
+        assert(
+          operands.is<syntactic_continuation>());
+
+        if (operands.as<syntactic_continuation>().external_symbols.empty())
+        {
+          std::cerr << "; import\t; " << operands << " is virgin => expand" << std::endl;
+          operands.as<syntactic_continuation>().expand(
+            cons(
+              operands, unit));
+        }
+
+        std::cerr << "; import\t; importing identifiers..." << std::endl;
+
+        for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
+        {
+          std::cerr << ";\t\t; " << value << std::endl;
+        }
+
+        return unspecified;
+      };
+
+      return
+        reference( // XXX DIRTY HACK
+          expression,
+          frames,
+          cons(
+            make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
+            make<instruction>(mnemonic::CALL),
+            continuation));
+    })
+
   public:
     friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)
       -> decltype(os)
@@ -357,29 +432,6 @@ namespace meevax::kernel
   {
     // DEFINE_PROCEDURE_1("compile",  compile);
     DEFINE_PROCEDURE_1("evaluate", evaluate);
-
-    // define<procedure>("stage", [this](auto&&, const object& operands)
-    // {
-    //   std::cerr << "; export\t; " << operands << std::endl;
-    //
-    //   for (const auto& each : operands)
-    //   {
-    //     std::cerr << ";\t\t; staging " << each << std::endl;
-    //
-    //     external_symbols.emplace(
-    //       write(std::stringstream {}, each).str(),
-    //       each);
-    //   }
-    //
-    //   std::cerr << "; export\t; exported identifiers are" << std::endl;
-    //
-    //   for (const auto& [key, value] : external_symbols)
-    //   {
-    //     std::cerr << ";\t\t;   " << value << std::endl;
-    //   }
-    //
-    //   return unspecified;
-    // });
 
     DEFINE_SPECIAL("export", exportation);
     DEFINE_SPECIAL("import", importation);
