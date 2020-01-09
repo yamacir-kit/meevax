@@ -128,6 +128,23 @@ namespace meevax::kernel
       }
     }
 
+    const object& lookup_key(const object& identifier,
+                             const object& environment)
+    {
+      if (not identifier or not environment)
+      {
+        return rename(identifier);
+      }
+      else if (caar(environment) == identifier)
+      {
+        return caar(environment);
+      }
+      else
+      {
+        return lookup_key(identifier, cdr(environment));
+      }
+    }
+
     /* ------------------------------------------------------------------------
     *
     * <expression> = <identifier>
@@ -190,7 +207,7 @@ namespace meevax::kernel
 
             return
               cons(
-                make<instruction>(mnemonic::LOAD_GLOBAL), expression,
+                make<instruction>(mnemonic::LOAD_GLOBAL), lookup_key(expression, syntactic_environment),
                 continuation);
           }
         }
@@ -256,10 +273,10 @@ namespace meevax::kernel
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
-          NEST_IN;
+          // NEST_IN;
           auto result {compile(
             expanded, syntactic_environment, frames, continuation)};
-          NEST_OUT;
+          // NEST_OUT;
 
           return result;
         }
@@ -889,6 +906,8 @@ namespace meevax::kernel
     *
     * <definition> = (define <identifier> <expression>)
     *
+    * TODO MOVE INTO SYNTACTIC_CONTINUATION
+    *
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(definition,
     {
@@ -905,7 +924,7 @@ namespace meevax::kernel
             syntactic_environment,
             frames,
             cons(
-              make<instruction>(mnemonic::DEFINE), car(expression),
+              make<instruction>(mnemonic::DEFINE), rename(car(expression)),
               continuation));
       }
       else
@@ -1006,52 +1025,22 @@ namespace meevax::kernel
               continuation);
         }
       }
-      else if (not car(expression).is<pair>()
-               or caar(expression) != intern("define")) // XXX THIS IS NOT HYGIENIC
-      {
-        /* --------------------------------------------------------------------
-        *
-        * The expression may have following form.
-        *
-        * (lambda (...)
-        *   <non-definition expression> ;= <car expression>
-        *   <sequence>                  ;= <cdr expression>)
-        *
-        *-------------------------------------------------------------------- */
-        if (in_a.program_declaration)
-        {
-          return
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::POP),
-                sequence(
-                  cdr(expression),
-                  syntactic_environment,
-                  frames,
-                  continuation,
-                  as_program_declaration)),
-              as_program_declaration);
-        }
-        else
-        {
-          return
-            compile(
-              car(expression), // <non-definition expression>
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::POP), // remove result of expression
-                sequence(
-                  cdr(expression),
-                  syntactic_environment,
-                  frames,
-                  continuation)));
-        }
-      }
-      else // 5.3.2 Internal Definitions
+      // XXX DIRTY HACK
+      else if (car(expression).is<pair>() // is application
+               and caar(expression) // the operator is not illegal
+               and caar(expression).template is<symbol>() // the operator is variable reference
+               and not de_bruijn_index( // the operator is not local variable
+                         caar(expression),
+                         frames)
+               and lookup( // the variable references special form
+                     caar(expression),
+                     syntactic_environment)
+                   .template is<special>()
+               and lookup( // the special form is "define"
+                     caar(expression),
+                     syntactic_environment)
+                   .template as<special>()
+                   .name == "define")
       {
         /* --------------------------------------------------------------------
         *
@@ -1137,6 +1126,50 @@ namespace meevax::kernel
             syntactic_environment,
             frames,
             continuation);
+      }
+      else
+      {
+        /* --------------------------------------------------------------------
+        *
+        * The expression may have following form.
+        *
+        * (lambda (...)
+        *   <non-definition expression> ;= <car expression>
+        *   <sequence>                  ;= <cdr expression>)
+        *
+        *-------------------------------------------------------------------- */
+        if (in_a.program_declaration)
+        {
+          return
+            compile(
+              car(expression),
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP),
+                sequence(
+                  cdr(expression),
+                  syntactic_environment,
+                  frames,
+                  continuation,
+                  as_program_declaration)),
+              as_program_declaration);
+        }
+        else
+        {
+          return
+            compile(
+              car(expression), // <non-definition expression>
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP), // remove result of expression
+                sequence(
+                  cdr(expression),
+                  syntactic_environment,
+                  frames,
+                  continuation)));
+        }
       }
     })
 

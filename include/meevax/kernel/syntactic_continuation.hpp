@@ -394,11 +394,9 @@ namespace meevax::kernel
               operands, unit));
         }
 
-        std::cerr << "; import\t; imported identifiers are" << std::endl;
-
         for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
         {
-          std::cerr << ";\t\t; " << value << std::endl;
+          std::cerr << ";\t\t; importing " << value << std::endl;
         }
 
         return unspecified;

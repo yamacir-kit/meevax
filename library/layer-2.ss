@@ -1652,7 +1652,7 @@
 
     (define let     3.14)
     (define call/cc 3.141)
-    ; (define lambda  3.1415) ; TODO internal-defintion's bug cause renaming error if enable this line
+    (define lambda  3.1415)
     (define exit    3.14159)
     (define rec     3.141592)
 
