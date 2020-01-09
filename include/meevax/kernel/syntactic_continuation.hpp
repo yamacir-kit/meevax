@@ -181,6 +181,7 @@ namespace meevax::kernel
           override(
             intern(name),
             interaction_environment()),
+          // intern(name),
           make<T>(
             name,
             std::forward<decltype(operands)>(operands)...));
@@ -194,6 +195,7 @@ namespace meevax::kernel
           override(
             intern(name),
             interaction_environment()),
+          // intern(name),
           std::forward<decltype(operands)>(operands)...);
     }
 
@@ -476,26 +478,26 @@ namespace meevax::kernel
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<linker>);
 
-    define<special>("cons", [this](
-      auto&& expression,
-      auto&& syntactic_environment,
-      auto&& frames,
-      auto&& continuation,
-      auto&&)
-    {
-      return
-        compile(
-          cadr(expression),
-          syntactic_environment,
-          frames,
-          compile(
-            car(expression),
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::CONS),
-              continuation)));
-    });
+    // define<special>("cons", [this](
+    //   auto&& expression,
+    //   auto&& syntactic_environment,
+    //   auto&& frames,
+    //   auto&& continuation,
+    //   auto&&)
+    // {
+    //   return
+    //     compile(
+    //       cadr(expression),
+    //       syntactic_environment,
+    //       frames,
+    //       compile(
+    //         car(expression),
+    //         syntactic_environment,
+    //         frames,
+    //         cons(
+    //           make<instruction>(mnemonic::CONS),
+    //           continuation)));
+    // });
 
     define<procedure>("features", [this](auto&&...)
     {

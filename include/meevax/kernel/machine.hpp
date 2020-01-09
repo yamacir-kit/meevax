@@ -208,6 +208,10 @@ namespace meevax::kernel
             return
               cons(
                 make<instruction>(mnemonic::LOAD_GLOBAL), lookup_key(expression, syntactic_environment),
+                // make<instruction>(mnemonic::LOAD_GLOBAL),
+                // in_a.program_declaration
+                //   ? lookup_key(expression, syntactic_environment)
+                //   : expression,
                 continuation);
           }
         }
@@ -467,12 +471,13 @@ namespace meevax::kernel
 
       case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
         if (auto value {
-              assoc( // XXX must be assq, but library-name reference depends this behavior
+              std::invoke(
+                cadr(c).is<symbol>() ? assq : assoc,
                 cadr(c),
                 interaction_environment())
-            }; value != unbound)
+            }; value != cadr(c))
         {
-          push(s, value);
+          push(s, cadr(value));
         }
         else
         {
@@ -755,7 +760,7 @@ namespace meevax::kernel
               assq(
                 cadr(c),
                 interaction_environment())
-            }; key_value != false_object)
+            }; key_value != cadr(c))
         {
           // std::cerr << key_value << std::endl;
           std::atomic_store(&cadr(key_value), car(s).copy());
@@ -924,7 +929,8 @@ namespace meevax::kernel
             syntactic_environment,
             frames,
             cons(
-              make<instruction>(mnemonic::DEFINE), rename(car(expression)),
+              make<instruction>(mnemonic::DEFINE), car(expression),
+              // make<instruction>(mnemonic::DEFINE), rename(car(expression)),
               continuation));
       }
       else
@@ -1426,6 +1432,9 @@ namespace meevax::kernel
             cons(
               make<instruction>(mnemonic::STORE_GLOBAL),
               car(expression),
+              // in_a.program_declaration
+              //   ? lookup_key(car(expression), syntactic_environment)
+              //   :            car(expression),
               continuation));
       }
     })

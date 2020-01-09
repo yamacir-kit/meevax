@@ -506,19 +506,15 @@ namespace meevax::kernel
         const object& value,
         const object& association_list)
     {
-      if (not value)
+      if (not value or not association_list)
       {
-        return unit;
-      }
-      if (not association_list)
-      {
-        return unbound;
+        return value;
       }
       else if (recursively_equivalent(
                  caar(association_list),
                  value))
       {
-        return cadar(association_list);
+        return car(association_list);
       }
       else
       {
@@ -558,7 +554,7 @@ namespace meevax::kernel
     {
       if (not value or not association_list)
       {
-        return false_object;
+        return value;
       }
       else if (caar(association_list) == value)
       {

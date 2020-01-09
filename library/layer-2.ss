@@ -73,12 +73,12 @@
 (define pair?
   (procedure-from pair.so "pair_"))
 
-; (define cons ; pair
-;   (procedure-from pair.so "cons"))
+(define cons ; pair
+  (procedure-from pair.so "cons"))
 
-(define cons ; hack
-  (lambda (x y)
-    (cons x y)))
+; (define cons ; hack
+;   (lambda (x y)
+;     (cons x y)))
 
 (define car (procedure-from pair.so "car"))
 (define cdr (procedure-from pair.so "cdr"))
@@ -1652,7 +1652,7 @@
 
     (define let     3.14)
     (define call/cc 3.141)
-    (define lambda  3.1415)
+    ; (define lambda  3.1415) ; IMPLEMENTATION MISS
     (define exit    3.14159)
     (define rec     3.141592)
 
