@@ -205,14 +205,22 @@ namespace meevax::kernel
             DEBUG_COMPILE_DECISION(
               "is <variable> references dynamic value bound to the identifier");
 
-            return
-              cons(
-                make<instruction>(mnemonic::LOAD_GLOBAL), lookup_key(expression, syntactic_environment),
-                // make<instruction>(mnemonic::LOAD_GLOBAL),
-                // in_a.program_declaration
-                //   ? lookup_key(expression, syntactic_environment)
-                //   : expression,
-                continuation);
+            if (const auto binding {
+                  assv(expression, syntactic_environment)
+                }; binding != expression) // FOUND THE IDENTIFIER IN SYNTACTIC ENVIRONMENT
+            {
+              return
+                cons(
+                  make<instruction>(mnemonic::LOAD_GLOBAL), car(binding),
+                  continuation);
+            }
+            else
+            {
+              return
+                cons(
+                  make<instruction>(mnemonic::LOAD_GLOBAL), rename(expression),
+                  continuation);
+            }
           }
         }
         else
@@ -929,8 +937,7 @@ namespace meevax::kernel
             syntactic_environment,
             frames,
             cons(
-              make<instruction>(mnemonic::DEFINE), car(expression),
-              // make<instruction>(mnemonic::DEFINE), rename(car(expression)),
+              make<instruction>(mnemonic::DEFINE), rename(car(expression)),
               continuation));
       }
       else
@@ -1424,24 +1431,37 @@ namespace meevax::kernel
       {
         DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal);
 
-        return
-          compile(
-            cadr(expression),
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::STORE_GLOBAL),
-              car(expression),
-              // in_a.program_declaration
-              //   ? lookup_key(car(expression), syntactic_environment)
-              //   :            car(expression),
-              continuation));
+        if (const auto binding {
+              assv(car(expression), syntactic_environment)
+            }; binding != car(expression)) // FOUND THE IDENTIFIER IN SYNTACTIC ENVIRONMENT
+        {
+          return
+            compile(
+              cadr(expression),
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::STORE_GLOBAL), car(binding),
+                continuation));
+        }
+        else
+        {
+          return
+            compile(
+              cadr(expression),
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::STORE_GLOBAL), rename(car(expression)),
+                continuation));
+        }
       }
     })
 
     /* ==== Explicit Variable Reference =======================================
     *
-    * TODO
+    * TODO DEPRECATED
+    * TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
     *
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(reference,
