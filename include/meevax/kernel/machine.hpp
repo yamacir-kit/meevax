@@ -619,9 +619,16 @@ namespace meevax::kernel
         pop<1>(d);
         goto dispatch;
 
-      case mnemonic::DEFINE:
+      /* ====*/ case mnemonic::DEFINE: /*=======================================
+      *
+      *        (object . S) E (DEFINE identifier . C) D
+      *
+      * => (identifier . S) E                      C  D
+      *
+      *====================================================================== */
         define(cadr(c), car(s));
-        car(s) = cadr(c); // return value of define
+        // car(s) = cadr(c); // return value of define
+        car(s) = unspecified;
         pop<2>(c);
         goto dispatch;
 
@@ -932,13 +939,15 @@ namespace meevax::kernel
           << attribute::normal << std::endl);
 
         return
-          compile(
-            cdr(expression) ? cadr(expression) : undefined,
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::DEFINE), rename(car(expression)),
-              continuation));
+          cons(
+            make<instruction>(mnemonic::LOAD_CONSTANT), cdr(expression) ? cadr(expression) : undefined,
+            compile(
+              cdr(expression) ? cadr(expression) : undefined,
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::DEFINE), rename(car(expression)),
+                continuation)));
       }
       else
       {

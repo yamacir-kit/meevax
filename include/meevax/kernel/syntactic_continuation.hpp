@@ -104,6 +104,12 @@ namespace meevax::kernel
         // std::cerr << ";\t\t; d = " << d << std::endl;
 
         first = execute();
+
+        // std::cerr << ";\t\t; s = " << s << std::endl;
+        // std::cerr << ";\t\t; e = " << e << std::endl;
+        // std::cerr << ";\t\t; c = " << c << std::endl;
+        // std::cerr << ";\t\t; d = " << d << std::endl;
+
         assert(first.is<closure>());
       }
     }
@@ -258,7 +264,7 @@ namespace meevax::kernel
 
       ++generation;
 
-      push(
+      push( // XXX ???
         d,
         s,
         e,
@@ -278,6 +284,7 @@ namespace meevax::kernel
       // std::cerr << ";\t\t; d = " << d << std::endl;
 
       const auto result {execute()};
+      std::cerr << "EXPANDED STACK = " << s << std::endl;
       // std::cerr << "; \t\t; " << result << std::endl;
       return result;
     }

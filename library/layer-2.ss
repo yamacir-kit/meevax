@@ -1915,3 +1915,17 @@
     (from (example value)
          `(increment ,xs))))
 
+(define Module
+  (fork
+    (lambda (this)
+      (begin
+        (define x 1)
+        (define y 2)
+        (define div
+          (lambda ()
+            (/ x y)))
+        (define sum
+          (lambda ()
+            (+ x y)))
+        ))))
+
