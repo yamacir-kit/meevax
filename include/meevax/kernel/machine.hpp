@@ -450,7 +450,7 @@ namespace meevax::kernel
 
       case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
         if (auto value {
-              assoc( // XXX assq?
+              assoc( // XXX must be assq, but library-name reference depends this behavior
                 cadr(c),
                 interaction_environment())
             }; value != unbound)

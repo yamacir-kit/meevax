@@ -23,26 +23,6 @@
 *   - pair?                            => object::is<pair>
 *   - proper-list?
 *
-* Selectors
-*   - car                              => car
-*   - car+cdr
-*   - cdr                              => cdr
-*   - cxr
-*   - drop
-*   - drop-right
-*   - drop-right!
-*   - first ~ tenth
-*   - last
-*   - last-pair
-*   - list-ref
-*   - list-tail
-*   - split-at
-*   - split-at!
-*   - take
-*   - take
-*   - take!
-*   - take-right
-*
 * Miscellaneous
 *   - append
 *   - append!
@@ -110,15 +90,6 @@
 *   - delete!
 *   - delete-duplicates
 *   - delete-duplicates!
-*
-* Association lists
-*   - alist-cons
-*   - alist-copy
-*   - alist-delete
-*   - alist-delete!
-*   - assoc
-*   - assq
-*   - assv
 *
 * Set operations on lists
 *   - lset-adjoin
@@ -355,7 +326,27 @@ namespace meevax::kernel
 
   /* ==== Selectors ============================================================
   *
-  * TODO Documentations
+  * From R7RS
+  *   - car                              => car
+  *   - cdr                              => cdr
+  *   - cxr
+  *   - list-ref                         => list_reference
+  *   - list-tail                        => list_tail
+  *
+  * Selectors
+  *   - car+cdr
+  *   - drop
+  *   - drop-right
+  *   - drop-right!
+  *   - first ~ tenth
+  *   - last
+  *   - last-pair
+  *   - split-at
+  *   - split-at!
+  *   - take                            => take
+  *   - take
+  *   - take!
+  *   - take-right
   *
   *========================================================================== */
   inline namespace selector
@@ -496,7 +487,16 @@ namespace meevax::kernel
 
   /* ==== Association List =====================================================
   *
-  * TODO Documentations
+  * From R7RS
+  *   - assoc                           => assoc
+  *   - assq                            => assq
+  *   - assv                            => assv
+  *
+  * From SRFI-1
+  *   - alist-cons
+  *   - alist-copy
+  *   - alist-delete
+  *   - alist-delete!
   *
   *========================================================================== */
   inline namespace association_list
