@@ -1929,3 +1929,44 @@
             (+ x y)))
         ))))
 
+(define factory ; letrec
+  (fork
+    (lambda (this)
+      (letrec ((value 0)
+               (increment
+                 (lambda ()
+                   (set! value (+ value 1))))
+               (get
+                 (lambda () value)))
+       `(begin (define increment ,increment)
+               (define get ,get))
+        ))
+    ))
+
+(define factory ; internal-define
+  (fork
+    (lambda (this)
+      (define value 0)
+      (define increment
+        (lambda ()
+          (set! value (+ value 1))))
+      (define get
+        (lambda () value))
+
+     `(begin (define increment ,increment)
+             (define get ,get)))))
+
+(define factory
+  (fork
+    (lambda (this value increment get)
+      (set! value 0)
+      (set! increment
+        (lambda ()
+          (set! value (+ value 1))))
+      (set! get
+        (lambda () value))
+
+     `(,begin (,define increment ,increment)
+              (,define get ,get))
+     )))
+

@@ -627,8 +627,21 @@ namespace meevax::kernel
       *
       *====================================================================== */
         define(cadr(c), car(s));
+
+        // CASE 1
         // car(s) = cadr(c); // return value of define
-        car(s) = unspecified;
+
+        // CASE 2
+        car(s) = unspecified; // TODO unspecified は環境で置き換える
+
+        // CASE 3
+        // std::cerr << "STACK = " << s << std::endl;
+        // std::cerr << "  car(s) = " << car(s) << std::endl;
+        // std::cerr << "  cadr(s) = " << cadr(s) << std::endl;
+        // std::cerr << "  cddr(s) = " << cddr(s) << std::endl;
+        // s = append(list(cadr(s)), cddr(s));
+        // std::cerr << "STACK' = " << s << std::endl;
+
         pop<2>(c);
         goto dispatch;
 
@@ -737,6 +750,11 @@ namespace meevax::kernel
       * => (result . S') E'          C'             D
       *
       *====================================================================== */
+        // if (car(s) == unspecified and cdr(s))
+        // {
+        //   std::cerr << "IMPORT VALUES = " << cdr(s) << std::endl;
+        // }
+
         s = cons(
               car(s), // The result of procedure
               pop(d));
@@ -822,7 +840,8 @@ namespace meevax::kernel
       *====================================================================== */
       default:
         pop<1>(c);
-        return pop(s); // car(s);
+        return pop(s);
+        // return car(s);
       }
     }
 
@@ -938,16 +957,21 @@ namespace meevax::kernel
           << highlight::comment << "\t; is <variable>"
           << attribute::normal << std::endl);
 
+        std::cerr << "FRAME = " << frames << std::endl;
+
         return
           cons(
-            make<instruction>(mnemonic::LOAD_CONSTANT), cdr(expression) ? cadr(expression) : undefined,
+            make<instruction>(mnemonic::LOAD_CONSTANT), // cdr(expression) ? cadr(expression) : undefined,
+            expression,
             compile(
               cdr(expression) ? cadr(expression) : undefined,
               syntactic_environment,
               frames,
               cons(
                 make<instruction>(mnemonic::DEFINE), rename(car(expression)),
-                continuation)));
+                continuation)
+              )
+            );
       }
       else
       {
