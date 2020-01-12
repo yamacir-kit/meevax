@@ -202,25 +202,32 @@ namespace meevax::kernel
           }
           else
           {
-            DEBUG_COMPILE_DECISION(
-              "is <variable> references dynamic value bound to the identifier");
+            auto innermost_service_frame = [&]()
+            {
+              auto level {0};
 
-            if (const auto binding {
-                  assv(expression, syntactic_environment)
-                }; binding != expression) // FOUND THE IDENTIFIER IN SYNTACTIC ENVIRONMENT
-            {
-              return
-                cons(
-                  make<instruction>(mnemonic::LOAD_GLOBAL), car(binding),
-                  continuation);
-            }
-            else
-            {
-              return
-                cons(
-                  make<instruction>(mnemonic::LOAD_GLOBAL), rename(expression),
-                  continuation);
-            }
+              for (const auto& frame : frames)
+              {
+                if (frame == syntactic_environment)
+                {
+                  return make<real>(level);
+                }
+
+                ++level;
+              }
+
+              return unit;
+            };
+
+            const object frame_index {cons(expression, innermost_service_frame())};
+
+            DEBUG_COMPILE_DECISION(
+              "is <variable> references dynamic value bound to the identifier " << attribute::normal << frame_index);
+
+            return
+              cons(
+                make<instruction>(mnemonic::LOAD_GLOBAL), frame_index,
+                continuation);
           }
         }
         else
@@ -477,35 +484,33 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
-        if (auto value {
+      /* ====*/ case mnemonic::LOAD_GLOBAL: /*==================================
+      *
+      * XXX ORIGINAL = S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
+      *
+      *              S  E (LOAD_GLOBAL (identifier . i) . C) D
+      *
+      * => (object . S) E                                 C  D
+      *
+      *====================================================================== */
+        // std::cerr << "; LOAD-GLOBAL\t; " << cadr(c) << std::endl;
+        if (const object value {
               std::invoke(
-                cadr(c).is<symbol>() ? assq : assoc,
-                cadr(c),
-                interaction_environment())
-            }; value != cadr(c))
+                caadr(c).template is<symbol>() ? assq : assoc,
+                caadr(c),
+                cdadr(c) ? list_reference(
+                             e,
+                             static_cast<int>(cdadr(c).template as<real>()))
+                         : interaction_environment())
+            }; value != caadr(c))
         {
+          // std::cerr << ";\t\t; FOUND " << value << std::endl;
           push(s, cadr(value));
         }
-        else
+        else // UNBOUND
         {
-          // throw evaluation_error {cadr(c), " is unbound"};
-
-          // if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
-          // {
-          //   std::cerr << "; machine\t; instruction "
-          //             << car(c)
-          //             << " received undefined variable "
-          //             << cadr(c)
-          //             << std::endl;
-          // }
-
-          /* ------------------------------------------------------------------
-          * When an undefined symbol is evaluated, it returns a symbol that is
-          * guaranteed not to collide with any symbol from the past to the
-          * future. This behavior is defined for the hygienic-macro.
-          *----------------------------------------------------------------- */
-          push(s, rename(cadr(c)));
+          // std::cerr << ";\t\t; NOT FOUND " << caadr(c) << std::endl;
+          push(s, rename(caadr(c)));
         }
         pop<2>(c);
         goto dispatch;
@@ -784,26 +789,54 @@ namespace meevax::kernel
         pop<1>(c);
         goto dispatch;
 
-      case mnemonic::STORE_GLOBAL: // (value . S) E (STORE_GLOBAL symbol . C) D => (value . S) E C D
-        // TODO
-        // (1) There is no need to make copy if right hand side is unique.
-        // (2) There is no matter overwrite if left hand side is unique.
-        // (3) Should set with weak reference if right hand side is newer.
-        if (const auto& key_value {
+      /* ====*/ case mnemonic::STORE_GLOBAL: /*=================================
+      *
+      *          (value . S) E (STORE-GLOBAL (identifier . i) . C) D
+      *
+      * => (unspecified . S) E                                  C  D
+      *
+      * TODO
+      * (1) There is no need to make copy if right hand side is unique.
+      * (2) There is no matter overwrite if left hand side is unique.
+      * (3) Should set with weak reference if right hand side is newer.
+      *
+      *====================================================================== */
+        if (const object value {
               assq(
-                cadr(c),
-                interaction_environment())
-            }; key_value != cadr(c))
+                caadr(c),
+                cdadr(c) ? list_reference(
+                             e,
+                             static_cast<int>(cdadr(c).template as<real>()))
+                         : interaction_environment())
+            }; value != caadr(c))
         {
-          // std::cerr << key_value << std::endl;
-          std::atomic_store(&cadr(key_value), car(s).copy());
+          // std::cerr << ";\t\t; FOUND " << value << std::endl;
+          std::atomic_store(&cadr(value), car(s).copy());
         }
-        else
+        else // UNBOUND
         {
-          throw make<error>(cadr(c), " is unbound");
+          // std::cerr << ";\t\t; NOT FOUND " << caadr(c) << std::endl;
+          define(caadr(c), car(s));
         }
+        car(s) = unspecified;
         pop<2>(c);
         goto dispatch;
+
+        // if (const auto& key_value {
+        //       assq(
+        //         cadr(c),
+        //         interaction_environment())
+        //     }; key_value != cadr(c))
+        // {
+        //   // std::cerr << key_value << std::endl;
+        //   std::atomic_store(&cadr(key_value), car(s).copy());
+        // }
+        // else
+        // {
+        //   throw make<error>(cadr(c), " is unbound");
+        // }
+        // pop<2>(c);
+        // goto dispatch;
 
       case mnemonic::STORE_LOCAL: // (value . S) E (STORE_LOCAL (i . j) . C) D => (value . S) E C D
         std::atomic_store(
@@ -957,21 +990,14 @@ namespace meevax::kernel
           << highlight::comment << "\t; is <variable>"
           << attribute::normal << std::endl);
 
-        std::cerr << "FRAME = " << frames << std::endl;
-
         return
-          cons(
-            make<instruction>(mnemonic::LOAD_CONSTANT), // cdr(expression) ? cadr(expression) : undefined,
-            expression,
-            compile(
-              cdr(expression) ? cadr(expression) : undefined,
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::DEFINE), rename(car(expression)),
-                continuation)
-              )
-            );
+          compile(
+            cdr(expression) ? cadr(expression) : undefined,
+            syntactic_environment,
+            frames,
+            cons(
+              make<instruction>(mnemonic::DEFINE), rename(car(expression)),
+              continuation));
       }
       else
       {
@@ -1347,19 +1373,38 @@ namespace meevax::kernel
         << highlight::comment << "\t; is <formals>"
         << attribute::normal << std::endl);
 
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_CLOSURE),
-          body(
-            cdr(expression), // <body>
-            syntactic_environment,
-            cons(
-              car(expression),
-              frames), // extend lexical environment
-            list( // continuation of body (finally, must be return)
-              make<instruction>(mnemonic::RETURN)),
-            in_a.program_declaration ? as_program_declaration : as_is),
-          continuation);
+      if (in_a.program_declaration)
+      {
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_CLOSURE),
+            body(
+              cdr(expression),
+              syntactic_environment,
+              cons(
+                syntactic_environment, // placeholder for shared-definition (for guarantee equality in the sense of eq?)
+                car(expression), // <formals>
+                frames),
+              list(
+                make<instruction>(mnemonic::RETURN)),
+              as_program_declaration),
+            continuation);
+      }
+      else
+      {
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_CLOSURE),
+            body(
+              cdr(expression),
+              syntactic_environment,
+              cons(
+                car(expression), // <formals>
+                frames),
+              list(
+                make<instruction>(mnemonic::RETURN))),
+            continuation);
+      }
     })
 
     /* ==== Call-With-Current-Continuation ====================================
@@ -1462,32 +1507,35 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal);
+        auto innermost_service_frame = [&]()
+        {
+          auto level {0};
 
-        if (const auto binding {
-              assv(car(expression), syntactic_environment)
-            }; binding != car(expression)) // FOUND THE IDENTIFIER IN SYNTACTIC ENVIRONMENT
-        {
-          return
-            compile(
-              cadr(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::STORE_GLOBAL), car(binding),
-                continuation));
-        }
-        else
-        {
-          return
-            compile(
-              cadr(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::STORE_GLOBAL), rename(car(expression)),
-                continuation));
-        }
+          for (const auto& frame : frames)
+          {
+            if (frame == syntactic_environment)
+            {
+              return make<real>(level);
+            }
+
+            ++level;
+          }
+
+          return unit;
+        };
+
+        const object frame_index {cons(car(expression), innermost_service_frame())};
+
+        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal << frame_index);
+
+        return
+          compile(
+            cadr(expression),
+            syntactic_environment,
+            frames,
+            cons(
+              make<instruction>(mnemonic::STORE_GLOBAL), frame_index,
+              continuation));
       }
     })
 
@@ -1541,9 +1589,26 @@ namespace meevax::kernel
         DEBUG_COMPILE_DECISION(
           "<identifier> of global variable" << attribute::normal);
 
+        auto search = [&]()
+        {
+          auto level {0};
+
+          for (const auto& frame : frames)
+          {
+            if (frame == syntactic_environment)
+            {
+              return make<real>(level);
+            }
+
+            ++level;
+          }
+
+          return unit;
+        };
+
         return
           cons(
-            make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
+            make<instruction>(mnemonic::LOAD_GLOBAL), cons(car(expression), search()),
             continuation);
       }
     })

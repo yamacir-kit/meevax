@@ -184,10 +184,10 @@ namespace meevax::kernel
     {
       return
         machine<syntactic_continuation>::define(
-          // override(
-          //   intern(name),
-          //   interaction_environment()),
-          intern(name),
+          override(
+            intern(name),
+            interaction_environment()),
+          // intern(name),
           make<T>(
             name,
             std::forward<decltype(operands)>(operands)...));
@@ -198,10 +198,10 @@ namespace meevax::kernel
     {
       return
         machine<syntactic_continuation>::define(
-          // override(
-          //   intern(name),
-          //   interaction_environment()),
-          intern(name),
+          override(
+            intern(name),
+            interaction_environment()),
+          // intern(name),
           std::forward<decltype(operands)>(operands)...);
     }
 
@@ -274,7 +274,10 @@ namespace meevax::kernel
 
       s = unit;
 
-      e = cons(operands, lexical_environment());
+      e = cons(
+            interaction_environment(), // for shared-definition
+            operands, // <lambda> parameters
+            lexical_environment()); // static environment
 
       c = current_expression();
 
@@ -466,20 +469,19 @@ namespace meevax::kernel
 
     DEFINE_SPECIAL("export", exportation);
     DEFINE_SPECIAL("import", importation);
-
-    DEFINE_SPECIAL("define",    definition);
-    DEFINE_SPECIAL("set!",      assignment);
   }
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
     DEFINE_SPECIAL("begin",     sequence);
+    DEFINE_SPECIAL("define",    definition);
     DEFINE_SPECIAL("fork",      fork);
     DEFINE_SPECIAL("if",        conditional);
     DEFINE_SPECIAL("lambda",    lambda);
     DEFINE_SPECIAL("quote",     quotation);
     DEFINE_SPECIAL("reference", reference);
+    DEFINE_SPECIAL("set!",      assignment);
 
     DEFINE_SPECIAL("call-with-current-continuation", call_cc);
 

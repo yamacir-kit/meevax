@@ -1958,15 +1958,30 @@
 
 (define factory
   (fork
-    (lambda (this value increment get)
-      (set! value 0)
-      (set! increment
-        (lambda ()
-          (set! value (+ value 1))))
-      (set! get
-        (lambda () value))
+    (lambda (this)
+
+      (begin (define value 0)
+
+             (define increment
+               (lambda ()
+                 (set! value (+ value 1))))
+
+             (define get
+               (lambda () value))
+
+             (define even?
+               (lambda ()
+                 (if (zero? value) #true
+                     (odd? (- value 1)))))
+
+             (define odd?
+               (lambda ()
+                 (if (zero? value) #false
+                     (even? (- value 1)))))
+             )
 
      `(,begin (,define increment ,increment)
-              (,define get ,get))
+              (,define get ,get)
+              (,define even? ,even?))
      )))
 
