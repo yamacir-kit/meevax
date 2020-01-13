@@ -106,6 +106,19 @@ namespace meevax::kernel
       return interaction_environment(); // temporary
     }
 
+    const object& innermost_dynamic_environment(const object& e)
+    {
+      for (const auto& frame : e)
+      {
+        if (frame and car(frame) and car(frame).is<SyntacticContinuation>())
+        {
+          return car(frame).as<SyntacticContinuation>().interaction_environment();
+        }
+      }
+
+      return interaction_environment();
+    }
+
     const object&
       lookup(
         const object& identifier,
@@ -497,11 +510,13 @@ namespace meevax::kernel
               std::invoke(
                 cdadr(c).template is<symbol>() ? assq : assoc,
                 cdadr(c),
-                caadr(c)
-                  ? list_reference(
-                      e,
-                      static_cast<int>(caadr(c).template as<real>()))
-                  : interaction_environment())
+                // caadr(c)
+                //   ? list_reference(
+                //       e,
+                //       static_cast<int>(caadr(c).template as<real>()))
+                //   : interaction_environment()
+                innermost_dynamic_environment(e)
+                )
             }; value != cdadr(c))
         {
           // std::cerr << ";\t\t; FOUND " << value << std::endl;
@@ -631,22 +646,15 @@ namespace meevax::kernel
       * => (identifier . S) E                      C  D
       *
       *====================================================================== */
-        define(cadr(c), car(s));
-
-        // CASE 1
-        // car(s) = cadr(c); // return value of define
-
-        // CASE 2
-        car(s) = unspecified; // TODO unspecified は環境で置き換える
-
-        // CASE 3
-        // std::cerr << "STACK = " << s << std::endl;
-        // std::cerr << "  car(s) = " << car(s) << std::endl;
-        // std::cerr << "  cadr(s) = " << cadr(s) << std::endl;
-        // std::cerr << "  cddr(s) = " << cddr(s) << std::endl;
-        // s = append(list(cadr(s)), cddr(s));
-        // std::cerr << "STACK' = " << s << std::endl;
-
+        if (static_cast<SyntacticContinuation&>(*this).virgin)
+        {
+          define(cadr(c), car(s));
+          car(s) = unspecified; // TODO unspecified は環境で置き換える
+        }
+        else
+        {
+          std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
+        }
         pop<2>(c);
         goto dispatch;
 
@@ -804,11 +812,12 @@ namespace meevax::kernel
         if (const object value {
               assq(
                 cdadr(c),
-                caadr(c)
-                  ? list_reference(
-                      e,
-                      static_cast<int>(caadr(c).template as<real>()))
-                  : interaction_environment())
+                // caadr(c)
+                //   ? list_reference(
+                //       e,
+                //       static_cast<int>(caadr(c).template as<real>()))
+                //   : interaction_environment())
+                innermost_dynamic_environment(e))
             }; value != cdadr(c))
         {
           // std::cerr << ";\t\t; FOUND " << value << std::endl;
@@ -991,40 +1000,46 @@ namespace meevax::kernel
           << highlight::comment << "\t; is <variable>"
           << attribute::normal << std::endl);
 
-        const auto definition {compile(
-          cdr(expression) ? cadr(expression) : unspecified,
-          syntactic_environment,
-          frames,
-          list(
-            make<instruction>(mnemonic::DEFINE), car(expression),
-            make<instruction>(mnemonic::STOP))
-        )};
-
-        object result {unit};
-
-        if (in_a.program_declaration)
-        {
-          s = car(static_cast<SyntacticContinuation&>(*this).first);
-          e = cadr(static_cast<SyntacticContinuation&>(*this).first);
-          c = definition;
-          d = cdddr(static_cast<SyntacticContinuation&>(*this).first);
-
-          // std::cerr << ";\t\t; s = " << s << std::endl;
-          // std::cerr << ";\t\t; e = " << e << std::endl;
-          // std::cerr << ";\t\t; c = " << c << std::endl;
-          // std::cerr << ";\t\t; d = " << d << std::endl;
-
-          result = execute();
-        }
-        else
-        {
-          result = execute_interrupt(definition);
-        }
+        // const auto definition {compile(
+        //   cdr(expression) ? cadr(expression) : unspecified,
+        //   syntactic_environment,
+        //   frames,
+        //   list(
+        //     make<instruction>(mnemonic::DEFINE), car(expression),
+        //     make<instruction>(mnemonic::STOP))
+        // )};
+        //
+        // object result {unit};
+        //
+        // if (in_a.program_declaration)
+        // {
+        //   c = definition;
+        //
+        //   // std::cerr << ";\t\t; s = " << s << std::endl;
+        //   // std::cerr << ";\t\t; e = " << e << std::endl;
+        //   // std::cerr << ";\t\t; c = " << c << std::endl;
+        //   // std::cerr << ";\t\t; d = " << d << std::endl;
+        //
+        //   result = execute();
+        // }
+        // else
+        // {
+        //   result = execute_interrupt(definition);
+        // }
+        //
+        // return
+        //   cons(
+        //     make<instruction>(mnemonic::LOAD_CONSTANT), result,
+        //     continuation);
 
         return
-          cons(
-            make<instruction>(mnemonic::LOAD_CONSTANT), result,
-            continuation);
+          compile(
+            cdr(expression) ? cadr(expression) : unspecified,
+            syntactic_environment,
+            frames,
+            cons(
+              make<instruction>(mnemonic::DEFINE), car(expression),
+              continuation));
       }
       else
       {
@@ -1616,13 +1631,13 @@ namespace meevax::kernel
         DEBUG_COMPILE_DECISION(
           "<identifier> of global variable" << attribute::normal);
 
-        auto search = [&]()
+        auto innermost_service_frame = [&]()
         {
           auto level {0};
 
           for (const auto& frame : frames)
           {
-            if (frame == syntactic_environment)
+            if (frame == unspecified)
             {
               return make<real>(level);
             }
@@ -1635,7 +1650,7 @@ namespace meevax::kernel
 
         return
           cons(
-            make<instruction>(mnemonic::LOAD_GLOBAL), cons(car(expression), search()),
+            make<instruction>(mnemonic::LOAD_GLOBAL), cons(innermost_service_frame(), car(expression)),
             continuation);
       }
     })

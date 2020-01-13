@@ -78,6 +78,8 @@ namespace meevax::kernel
 
     std::size_t current_layer {0};
 
+    bool virgin {true};
+
   public: // Constructors
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... operands)
@@ -87,6 +89,11 @@ namespace meevax::kernel
 
       if (first)
       {
+        s = car(first);
+        e = cadr(first);
+        c = unit;
+        d = cdddr(first);
+
         const auto subprogram {compile(
           car(caddr(first)),
           interaction_environment(), // syntactic-environment
@@ -96,10 +103,7 @@ namespace meevax::kernel
           as_program_declaration
         )};
 
-        s = car(first);
-        e = cadr(first);
         c = subprogram;
-        d = cdddr(first);
 
         // std::cerr << ";\t\t; s = " << s << std::endl;
         // std::cerr << ";\t\t; e = " << e << std::endl;
@@ -292,6 +296,9 @@ namespace meevax::kernel
 
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;
+
+      virgin = false;
+
       return result;
     }
 
