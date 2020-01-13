@@ -215,31 +215,12 @@ namespace meevax::kernel
           }
           else
           {
-            auto innermost_service_frame = [&]()
-            {
-              auto level {0};
-
-              for (const auto& frame : frames)
-              {
-                if (frame == unspecified)
-                {
-                  return make<real>(level);
-                }
-
-                ++level;
-              }
-
-              return unit;
-            };
-
-            const object frame_index {cons(innermost_service_frame(), expression)};
-
             DEBUG_COMPILE_DECISION(
-              "is <variable> references dynamic value bound to the identifier " << attribute::normal << frame_index);
+              "is <variable> references dynamic value bound to the identifier");
 
             return
               cons(
-                make<instruction>(mnemonic::LOAD_GLOBAL), frame_index,
+                make<instruction>(mnemonic::LOAD_GLOBAL), expression,
                 continuation);
           }
         }
@@ -499,33 +480,23 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::LOAD_GLOBAL: /*==================================
       *
-      * XXX ORIGINAL = S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
+      *              S  E (LOAD_GLOBAL identifier . C) D
       *
-      *              S  E (LOAD_GLOBAL (i . identifier) . C) D
-      *
-      * => (object . S) E                                 C  D
+      * => (object . S) E                           C  D
       *
       *====================================================================== */
         if (const object value {
               std::invoke(
-                cdadr(c).template is<symbol>() ? assq : assoc,
-                cdadr(c),
-                // caadr(c)
-                //   ? list_reference(
-                //       e,
-                //       static_cast<int>(caadr(c).template as<real>()))
-                //   : interaction_environment()
-                innermost_dynamic_environment(e)
-                )
-            }; value != cdadr(c))
+                cadr(c).template is<symbol>() ? assq : assoc,
+                cadr(c),
+                innermost_dynamic_environment(e))
+            }; value != cadr(c))
         {
-          // std::cerr << ";\t\t; FOUND " << value << std::endl;
           push(s, cadr(value));
         }
         else // UNBOUND
         {
-          // std::cerr << ";\t\t; NOT FOUND " << caadr(c) << std::endl;
-          push(s, rename(cdadr(c)));
+          push(s, rename(cadr(c)));
         }
         pop<2>(c);
         goto dispatch;
@@ -799,9 +770,9 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::STORE_GLOBAL: /*=================================
       *
-      *          (value . S) E (STORE-GLOBAL (i . identifier) . C) D
+      *          (value . S) E (STORE-GLOBAL identifier . C) D
       *
-      * => (unspecified . S) E                                  C  D
+      * => (unspecified . S) E                            C  D
       *
       * TODO
       * (1) There is no need to make copy if right hand side is unique.
@@ -811,42 +782,19 @@ namespace meevax::kernel
       *====================================================================== */
         if (const object value {
               assq(
-                cdadr(c),
-                // caadr(c)
-                //   ? list_reference(
-                //       e,
-                //       static_cast<int>(caadr(c).template as<real>()))
-                //   : interaction_environment())
+                cadr(c),
                 innermost_dynamic_environment(e))
             }; value != cdadr(c))
         {
-          // std::cerr << ";\t\t; FOUND " << value << std::endl;
           std::atomic_store(&cadr(value), car(s).copy());
         }
         else // UNBOUND
         {
-          // std::cerr << ";\t\t; NOT FOUND " << caadr(c) << std::endl;
-          define(cdadr(c), car(s));
+          define(cadr(c), car(s));
         }
-        car(s) = unspecified;
+        // car(s) = unspecified;
         pop<2>(c);
         goto dispatch;
-
-        // if (const auto& key_value {
-        //       assq(
-        //         cadr(c),
-        //         interaction_environment())
-        //     }; key_value != cadr(c))
-        // {
-        //   // std::cerr << key_value << std::endl;
-        //   std::atomic_store(&cadr(key_value), car(s).copy());
-        // }
-        // else
-        // {
-        //   throw make<error>(cadr(c), " is unbound");
-        // }
-        // pop<2>(c);
-        // goto dispatch;
 
       case mnemonic::STORE_LOCAL: // (value . S) E (STORE_LOCAL (i . j) . C) D => (value . S) E C D
         std::atomic_store(
@@ -1549,26 +1497,7 @@ namespace meevax::kernel
       }
       else
       {
-        auto innermost_service_frame = [&]()
-        {
-          auto level {0};
-
-          for (const auto& frame : frames)
-          {
-            if (frame == unspecified)
-            {
-              return make<real>(level);
-            }
-
-            ++level;
-          }
-
-          return unit;
-        };
-
-        const object frame_index {cons(innermost_service_frame(), car(expression))};
-
-        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << attribute::normal << frame_index);
+        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << attribute::normal);
 
         return
           compile(
@@ -1576,7 +1505,7 @@ namespace meevax::kernel
             syntactic_environment,
             frames,
             cons(
-              make<instruction>(mnemonic::STORE_GLOBAL), frame_index,
+              make<instruction>(mnemonic::STORE_GLOBAL), car(expression),
               continuation));
       }
     })
@@ -1631,26 +1560,9 @@ namespace meevax::kernel
         DEBUG_COMPILE_DECISION(
           "<identifier> of global variable" << attribute::normal);
 
-        auto innermost_service_frame = [&]()
-        {
-          auto level {0};
-
-          for (const auto& frame : frames)
-          {
-            if (frame == unspecified)
-            {
-              return make<real>(level);
-            }
-
-            ++level;
-          }
-
-          return unit;
-        };
-
         return
           cons(
-            make<instruction>(mnemonic::LOAD_GLOBAL), cons(innermost_service_frame(), car(expression)),
+            make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
             continuation);
       }
     })
