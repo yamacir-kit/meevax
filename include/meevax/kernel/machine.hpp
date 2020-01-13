@@ -208,7 +208,7 @@ namespace meevax::kernel
 
               for (const auto& frame : frames)
               {
-                if (frame == syntactic_environment)
+                if (frame == unspecified)
                 {
                   return make<real>(level);
                 }
@@ -436,10 +436,10 @@ namespace meevax::kernel
       if (static_cast<SyntacticContinuation&>(*this)
             .trace.equivalent_to(true_object))
       {
-        std::cerr << "; s\t; " <<  s << std::endl;
-        std::cerr << "; e\t; " <<  e << std::endl;
-        std::cerr << "; c\t; " <<  c << std::endl;
-        std::cerr << "; d\t; " <<  d << std::endl;
+        std::cerr << "; trace s\t; " <<  s << std::endl;
+        std::cerr << ";       e\t; " <<  e << std::endl;
+        std::cerr << ";       c\t; " <<  c << std::endl;
+        std::cerr << ";       d\t; " <<  d << std::endl;
         std::cerr << std::endl;
       }
 
@@ -991,14 +991,40 @@ namespace meevax::kernel
           << highlight::comment << "\t; is <variable>"
           << attribute::normal << std::endl);
 
+        const auto definition {compile(
+          cdr(expression) ? cadr(expression) : unspecified,
+          syntactic_environment,
+          frames,
+          list(
+            make<instruction>(mnemonic::DEFINE), car(expression),
+            make<instruction>(mnemonic::STOP))
+        )};
+
+        object result {unit};
+
+        if (in_a.program_declaration)
+        {
+          s = car(static_cast<SyntacticContinuation&>(*this).first);
+          e = cadr(static_cast<SyntacticContinuation&>(*this).first);
+          c = definition;
+          d = cdddr(static_cast<SyntacticContinuation&>(*this).first);
+
+          // std::cerr << ";\t\t; s = " << s << std::endl;
+          // std::cerr << ";\t\t; e = " << e << std::endl;
+          // std::cerr << ";\t\t; c = " << c << std::endl;
+          // std::cerr << ";\t\t; d = " << d << std::endl;
+
+          result = execute();
+        }
+        else
+        {
+          result = execute_interrupt(definition);
+        }
+
         return
-          compile(
-            cdr(expression) ? cadr(expression) : undefined,
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::DEFINE), car(expression),
-              continuation));
+          cons(
+            make<instruction>(mnemonic::LOAD_CONSTANT), result,
+            continuation);
       }
       else
       {
@@ -1383,7 +1409,7 @@ namespace meevax::kernel
               cdr(expression),
               syntactic_environment,
               cons(
-                syntactic_environment, // placeholder for shared-definition (for guarantee equality in the sense of eq?)
+                unspecified, // placeholder for shared-definition (for guarantee equality in the sense of eq?)
                 car(expression), // <formals>
                 frames),
               list(
@@ -1514,7 +1540,7 @@ namespace meevax::kernel
 
           for (const auto& frame : frames)
           {
-            if (frame == syntactic_environment)
+            if (frame == unspecified)
             {
               return make<real>(level);
             }
@@ -1527,7 +1553,7 @@ namespace meevax::kernel
 
         const object frame_index {cons(innermost_service_frame(), car(expression))};
 
-        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal << frame_index);
+        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << attribute::normal << frame_index);
 
         return
           compile(

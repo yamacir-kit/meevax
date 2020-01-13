@@ -1697,7 +1697,7 @@
      `(,define ,name
         (,fork
           (,lambda (,this . ,expression)
-            (,begin (,define ,name ,this))
+            ; (,begin (,define ,name ,this))
             ,@declarations
             ; (,if (,null? ,expression) ,this
             ;      (,begin
@@ -1980,8 +1980,8 @@
                      (even? (- value 1)))))
              )
 
-     `(,begin (,define increment ,increment)
-              (,define get ,get)
-              (,define even? ,even?))
+     `(,begin (define increment ,increment)
+              (define get ,get)
+              (define even? ,even?))
      )))
 

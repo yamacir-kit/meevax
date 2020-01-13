@@ -87,15 +87,18 @@ namespace meevax::kernel
 
       if (first)
       {
+        const auto subprogram {compile(
+          car(caddr(first)),
+          interaction_environment(), // syntactic-environment
+          cdr(caddr(first)),
+          list(
+            make<instruction>(mnemonic::STOP)),
+          as_program_declaration
+        )};
+
         s = car(first);
         e = cadr(first);
-        c = compile(
-              car(caddr(first)),
-              interaction_environment(),
-              cdr(caddr(first)),
-              list(
-                make<instruction>(mnemonic::STOP)),
-              as_program_declaration);
+        c = subprogram;
         d = cdddr(first);
 
         // std::cerr << ";\t\t; s = " << s << std::endl;
@@ -261,6 +264,7 @@ namespace meevax::kernel
     decltype(auto) expand(const object& operands)
     {
       // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      // std::cerr << ";\t\t; interaction-environment = " << interaction_environment() << std::endl;
 
       ++generation;
 
