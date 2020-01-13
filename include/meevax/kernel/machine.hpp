@@ -133,7 +133,7 @@ namespace meevax::kernel
     {
       if (not identifier or not environment)
       {
-        return rename(identifier);
+        return identifier;
       }
       else if (caar(environment) == identifier)
       {
@@ -219,7 +219,7 @@ namespace meevax::kernel
               return unit;
             };
 
-            const object frame_index {cons(expression, innermost_service_frame())};
+            const object frame_index {cons(innermost_service_frame(), expression)};
 
             DEBUG_COMPILE_DECISION(
               "is <variable> references dynamic value bound to the identifier " << attribute::normal << frame_index);
@@ -488,21 +488,21 @@ namespace meevax::kernel
       *
       * XXX ORIGINAL = S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
       *
-      *              S  E (LOAD_GLOBAL (identifier . i) . C) D
+      *              S  E (LOAD_GLOBAL (i . identifier) . C) D
       *
       * => (object . S) E                                 C  D
       *
       *====================================================================== */
-        // std::cerr << "; LOAD-GLOBAL\t; " << cadr(c) << std::endl;
         if (const object value {
               std::invoke(
-                caadr(c).template is<symbol>() ? assq : assoc,
-                caadr(c),
-                cdadr(c) ? list_reference(
-                             e,
-                             static_cast<int>(cdadr(c).template as<real>()))
-                         : interaction_environment())
-            }; value != caadr(c))
+                cdadr(c).template is<symbol>() ? assq : assoc,
+                cdadr(c),
+                caadr(c)
+                  ? list_reference(
+                      e,
+                      static_cast<int>(caadr(c).template as<real>()))
+                  : interaction_environment())
+            }; value != cdadr(c))
         {
           // std::cerr << ";\t\t; FOUND " << value << std::endl;
           push(s, cadr(value));
@@ -510,7 +510,7 @@ namespace meevax::kernel
         else // UNBOUND
         {
           // std::cerr << ";\t\t; NOT FOUND " << caadr(c) << std::endl;
-          push(s, rename(caadr(c)));
+          push(s, rename(cdadr(c)));
         }
         pop<2>(c);
         goto dispatch;
@@ -791,7 +791,7 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::STORE_GLOBAL: /*=================================
       *
-      *          (value . S) E (STORE-GLOBAL (identifier . i) . C) D
+      *          (value . S) E (STORE-GLOBAL (i . identifier) . C) D
       *
       * => (unspecified . S) E                                  C  D
       *
@@ -803,12 +803,13 @@ namespace meevax::kernel
       *====================================================================== */
         if (const object value {
               assq(
-                caadr(c),
-                cdadr(c) ? list_reference(
-                             e,
-                             static_cast<int>(cdadr(c).template as<real>()))
-                         : interaction_environment())
-            }; value != caadr(c))
+                cdadr(c),
+                caadr(c)
+                  ? list_reference(
+                      e,
+                      static_cast<int>(caadr(c).template as<real>()))
+                  : interaction_environment())
+            }; value != cdadr(c))
         {
           // std::cerr << ";\t\t; FOUND " << value << std::endl;
           std::atomic_store(&cadr(value), car(s).copy());
@@ -816,7 +817,7 @@ namespace meevax::kernel
         else // UNBOUND
         {
           // std::cerr << ";\t\t; NOT FOUND " << caadr(c) << std::endl;
-          define(caadr(c), car(s));
+          define(cdadr(c), car(s));
         }
         car(s) = unspecified;
         pop<2>(c);
@@ -996,7 +997,7 @@ namespace meevax::kernel
             syntactic_environment,
             frames,
             cons(
-              make<instruction>(mnemonic::DEFINE), rename(car(expression)),
+              make<instruction>(mnemonic::DEFINE), car(expression),
               continuation));
       }
       else
@@ -1524,7 +1525,7 @@ namespace meevax::kernel
           return unit;
         };
 
-        const object frame_index {cons(car(expression), innermost_service_frame())};
+        const object frame_index {cons(innermost_service_frame(), car(expression))};
 
         DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal << frame_index);
 
