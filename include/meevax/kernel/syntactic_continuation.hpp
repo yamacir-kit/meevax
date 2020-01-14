@@ -67,7 +67,7 @@ namespace meevax::kernel
     *======================================================================== */
     , public configurator<syntactic_continuation>
   {
-  public:
+  public: // TODO PRIVATE
     std::unordered_map<std::string, object> symbols;
     std::unordered_map<std::string, object> external_symbols;
 
@@ -79,6 +79,27 @@ namespace meevax::kernel
     std::size_t current_layer {0};
 
     bool virgin {true};
+
+  public: // accessors
+    const auto& program() const
+    {
+      return first;
+    }
+
+    auto& interaction_environment()
+    {
+      return second;
+    }
+
+    decltype(auto) current_expression()
+    {
+      return car(program());
+    }
+
+    decltype(auto) lexical_environment()
+    {
+      return cdr(program());
+    }
 
   public: // Constructors
     template <typename... Ts>
@@ -245,30 +266,9 @@ namespace meevax::kernel
       }
     }
 
-    auto& continuation()
-    {
-      return first;
-    }
-
-    auto& interaction_environment()
-    {
-      return second;
-    }
-
-    decltype(auto) current_expression()
-    {
-      return car(continuation());
-    }
-
-    decltype(auto) lexical_environment()
-    {
-      return cdr(continuation());
-    }
-
     decltype(auto) expand(const object& operands)
     {
       // std::cerr << "; macroexpand\t; " << operands << std::endl;
-      // std::cerr << ";\t\t; interaction-environment = " << interaction_environment() << std::endl;
 
       ++generation;
 
@@ -283,7 +283,6 @@ namespace meevax::kernel
       s = unit;
 
       e = cons(
-            interaction_environment(), // for shared-definition
             operands, // <lambda> parameters
             lexical_environment()); // static environment
 

@@ -620,7 +620,7 @@ namespace meevax::kernel
         if (static_cast<SyntacticContinuation&>(*this).virgin)
         {
           define(cadr(c), car(s));
-          car(s) = unspecified; // TODO unspecified は環境で置き換える
+          car(s) = unspecified;
         }
         else
         {
@@ -734,11 +734,6 @@ namespace meevax::kernel
       * => (result . S') E'          C'             D
       *
       *====================================================================== */
-        // if (car(s) == unspecified and cdr(s))
-        // {
-        //   std::cerr << "IMPORT VALUES = " << cdr(s) << std::endl;
-        // }
-
         s = cons(
               car(s), // The result of procedure
               pop(d));
@@ -781,9 +776,7 @@ namespace meevax::kernel
       *
       *====================================================================== */
         if (const object value {
-              assq(
-                cadr(c),
-                innermost_dynamic_environment(e))
+              assq(cadr(c), innermost_dynamic_environment(e))
             }; value != cdadr(c))
         {
           std::atomic_store(&cadr(value), car(s).copy());
@@ -1372,7 +1365,6 @@ namespace meevax::kernel
               cdr(expression),
               syntactic_environment,
               cons(
-                unspecified, // placeholder for shared-definition (for guarantee equality in the sense of eq?)
                 car(expression), // <formals>
                 frames),
               list(
@@ -1463,9 +1455,7 @@ namespace meevax::kernel
       {
         throw syntax_error {"set!"};
       }
-      else if (de_bruijn_index index {
-                 car(expression), frames
-               }; index)
+      else if (de_bruijn_index index {car(expression), frames}; index)
       {
         if (index.is_variadic())
         {

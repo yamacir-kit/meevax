@@ -1985,3 +1985,16 @@
               (define even? ,even?))
      )))
 
+(define let-syntax
+  (fork
+    (lambda (let-syntax bindings . body)
+     `((fork
+         (,lambda ,(map car bindings) ,@body))
+       ,@(map cadr bindings)))))
+
+(let ((x 'outer))
+  (let-syntax ((m (fork
+                    (lambda (m) x))))
+    (let ((x 'inner))
+      (m))))
+
