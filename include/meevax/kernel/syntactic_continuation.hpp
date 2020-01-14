@@ -78,6 +78,8 @@ namespace meevax::kernel
 
     std::size_t current_layer {0};
 
+    bool virgin {true};
+
   public: // Constructors
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... operands)
@@ -89,14 +91,19 @@ namespace meevax::kernel
       {
         s = car(first);
         e = cadr(first);
-        c = compile(
-              car(caddr(first)),
-              interaction_environment(),
-              cdr(caddr(first)),
-              list(
-                make<instruction>(mnemonic::STOP)),
-              as_program_declaration);
+        c = unit;
         d = cdddr(first);
+
+        const auto subprogram {compile(
+          car(caddr(first)),
+          interaction_environment(), // syntactic-environment
+          cdr(caddr(first)),
+          list(
+            make<instruction>(mnemonic::STOP)),
+          as_program_declaration
+        )};
+
+        c = subprogram;
 
         // std::cerr << ";\t\t; s = " << s << std::endl;
         // std::cerr << ";\t\t; e = " << e << std::endl;
@@ -104,6 +111,12 @@ namespace meevax::kernel
         // std::cerr << ";\t\t; d = " << d << std::endl;
 
         first = execute();
+
+        // std::cerr << ";\t\t; s = " << s << std::endl;
+        // std::cerr << ";\t\t; e = " << e << std::endl;
+        // std::cerr << ";\t\t; c = " << c << std::endl;
+        // std::cerr << ";\t\t; d = " << d << std::endl;
+
         assert(first.is<closure>());
       }
     }
@@ -181,6 +194,7 @@ namespace meevax::kernel
           override(
             intern(name),
             interaction_environment()),
+          // intern(name),
           make<T>(
             name,
             std::forward<decltype(operands)>(operands)...));
@@ -194,6 +208,7 @@ namespace meevax::kernel
           override(
             intern(name),
             interaction_environment()),
+          // intern(name),
           std::forward<decltype(operands)>(operands)...);
     }
 
@@ -253,10 +268,11 @@ namespace meevax::kernel
     decltype(auto) expand(const object& operands)
     {
       // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      // std::cerr << ";\t\t; interaction-environment = " << interaction_environment() << std::endl;
 
       ++generation;
 
-      push(
+      push( // XXX ???
         d,
         s,
         e,
@@ -266,7 +282,10 @@ namespace meevax::kernel
 
       s = unit;
 
-      e = cons(operands, lexical_environment());
+      e = cons(
+            interaction_environment(), // for shared-definition
+            operands, // <lambda> parameters
+            lexical_environment()); // static environment
 
       c = current_expression();
 
@@ -277,6 +296,9 @@ namespace meevax::kernel
 
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;
+
+      virgin = false;
+
       return result;
     }
 
@@ -394,11 +416,9 @@ namespace meevax::kernel
               operands, unit));
         }
 
-        std::cerr << "; import\t; imported identifiers are" << std::endl;
-
         for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
         {
-          std::cerr << ";\t\t; " << value << std::endl;
+          std::cerr << ";\t\t; importing " << value << std::endl;
         }
 
         return unspecified;
@@ -460,44 +480,46 @@ namespace meevax::kernel
 
     DEFINE_SPECIAL("export", exportation);
     DEFINE_SPECIAL("import", importation);
+
+    DEFINE_SPECIAL("define",    definition);
+    DEFINE_SPECIAL("set!",      assignment);
   }
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
-    DEFINE_SPECIAL("begin",                          sequence);
+    DEFINE_SPECIAL("begin",     sequence);
+    DEFINE_SPECIAL("fork",      fork);
+    DEFINE_SPECIAL("if",        conditional);
+    DEFINE_SPECIAL("lambda",    lambda);
+    DEFINE_SPECIAL("quote",     quotation);
+    DEFINE_SPECIAL("reference", reference);
+
     DEFINE_SPECIAL("call-with-current-continuation", call_cc);
-    DEFINE_SPECIAL("define",                         definition);
-    DEFINE_SPECIAL("fork",                           fork);
-    DEFINE_SPECIAL("if",                             conditional);
-    DEFINE_SPECIAL("lambda",                         lambda);
-    DEFINE_SPECIAL("quote",                          quotation);
-    DEFINE_SPECIAL("reference",                      reference);
-    DEFINE_SPECIAL("set!",                           assignment);
 
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<linker>);
 
-    define<special>("cons", [this](
-      auto&& expression,
-      auto&& syntactic_environment,
-      auto&& frames,
-      auto&& continuation,
-      auto&&)
-    {
-      return
-        compile(
-          cadr(expression),
-          syntactic_environment,
-          frames,
-          compile(
-            car(expression),
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::CONS),
-              continuation)));
-    });
+    // define<special>("cons", [this](
+    //   auto&& expression,
+    //   auto&& syntactic_environment,
+    //   auto&& frames,
+    //   auto&& continuation,
+    //   auto&&)
+    // {
+    //   return
+    //     compile(
+    //       cadr(expression),
+    //       syntactic_environment,
+    //       frames,
+    //       compile(
+    //         car(expression),
+    //         syntactic_environment,
+    //         frames,
+    //         cons(
+    //           make<instruction>(mnemonic::CONS),
+    //           continuation)));
+    // });
 
     define<procedure>("features", [this](auto&&...)
     {

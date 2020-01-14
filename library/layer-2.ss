@@ -73,12 +73,12 @@
 (define pair?
   (procedure-from pair.so "pair_"))
 
-; (define cons ; pair
-;   (procedure-from pair.so "cons"))
+(define cons ; pair
+  (procedure-from pair.so "cons"))
 
-(define cons ; hack
-  (lambda (x y)
-    (cons x y)))
+; (define cons ; hack
+;   (lambda (x y)
+;     (cons x y)))
 
 (define car (procedure-from pair.so "car"))
 (define cdr (procedure-from pair.so "cdr"))
@@ -1652,7 +1652,7 @@
 
     (define let     3.14)
     (define call/cc 3.141)
-    ; (define lambda  3.1415) ; TODO internal-defintion's bug cause renaming error if enable this line
+    ; (define lambda  3.1415) ; IMPLEMENTATION MISS
     (define exit    3.14159)
     (define rec     3.141592)
 
@@ -1697,7 +1697,7 @@
      `(,define ,name
         (,fork
           (,lambda (,this . ,expression)
-            (,begin (,define ,name ,this))
+            ; (,begin (,define ,name ,this))
             ,@declarations
             ; (,if (,null? ,expression) ,this
             ;      (,begin
@@ -1914,4 +1914,74 @@
   (lambda xs
     (from (example value)
          `(increment ,xs))))
+
+(define Module
+  (fork
+    (lambda (this)
+      (begin
+        (define x 1)
+        (define y 2)
+        (define div
+          (lambda ()
+            (/ x y)))
+        (define sum
+          (lambda ()
+            (+ x y)))
+        ))))
+
+(define factory ; letrec
+  (fork
+    (lambda (this)
+      (letrec ((value 0)
+               (increment
+                 (lambda ()
+                   (set! value (+ value 1))))
+               (get
+                 (lambda () value)))
+       `(begin (define increment ,increment)
+               (define get ,get))
+        ))
+    ))
+
+(define factory ; internal-define
+  (fork
+    (lambda (this)
+      (define value 0)
+      (define increment
+        (lambda ()
+          (set! value (+ value 1))))
+      (define get
+        (lambda () value))
+
+     `(begin (define increment ,increment)
+             (define get ,get)))))
+
+(define factory
+  (fork
+    (lambda (this)
+
+      (begin (define value 0)
+
+             (define increment
+               (lambda ()
+                 (set! value (+ value 1))))
+
+             (define get
+               (lambda () value))
+
+             (define even?
+               (lambda ()
+                 (if (zero? value) #true
+                     (odd? (- value 1)))))
+
+             (define odd?
+               (lambda ()
+                 (if (zero? value) #false
+                     (even? (- value 1)))))
+             )
+
+     `(,begin (define increment ,increment)
+              (define get ,get)
+              (define even? ,even?))
+     )))
 

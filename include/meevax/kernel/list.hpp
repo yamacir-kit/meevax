@@ -493,7 +493,7 @@ namespace meevax::kernel
   *   - assv                            => assv
   *
   * From SRFI-1
-  *   - alist-cons
+  *   - alist-cons                      => alist_cons
   *   - alist-copy
   *   - alist-delete
   *   - alist-delete!
@@ -506,19 +506,15 @@ namespace meevax::kernel
         const object& value,
         const object& association_list)
     {
-      if (not value)
+      if (not value or not association_list)
       {
-        return unit;
-      }
-      if (not association_list)
-      {
-        return unbound;
+        return value;
       }
       else if (recursively_equivalent(
                  caar(association_list),
                  value))
       {
-        return cadar(association_list);
+        return car(association_list);
       }
       else
       {
@@ -536,7 +532,7 @@ namespace meevax::kernel
     {
       if (not value or not association_list)
       {
-        return false_object;
+        return value;
       }
       else if (caar(association_list).equivalent_to(value))
       {
@@ -558,7 +554,7 @@ namespace meevax::kernel
     {
       if (not value or not association_list)
       {
-        return false_object;
+        return value;
       }
       else if (caar(association_list) == value)
       {
@@ -571,6 +567,18 @@ namespace meevax::kernel
             value,
             cdr(association_list));
       }
+    }
+
+    const object
+      alist_cons(
+        const object& key,
+        const object& value,
+        const object& alist)
+    {
+      return
+        cons(
+          cons(key, value),
+          alist);
     }
   }
 } // namespace meevax::kernel
