@@ -71,16 +71,11 @@ namespace meevax::kernel
     std::unordered_map<std::string, object> symbols;
     std::unordered_map<std::string, object> external_symbols;
 
-    std::unordered_map<
-      object, // identifier
-      object  // value
-    > changes;
-
     std::size_t current_layer {0};
 
     bool virgin {true};
 
-  public: // accessors
+  public: // Accessors
     const auto& program() const
     {
       return first;
@@ -174,24 +169,7 @@ namespace meevax::kernel
       }
     }
 
-    template <typename... Ts>
-    [[deprecated]]
-    const auto& change(const object& identifier, Ts&&... operands)
-    {
-      changes.erase(identifier);
-
-      const auto [position, success] {
-        changes.emplace(
-          identifier,
-          std::forward<decltype(operands)>(operands)...)
-      };
-
-      assert(success);
-      return (*position).second;
-    }
-
-    const auto& override(const object& identifier,
-                         const object& environment)
+    const auto& override(const object& identifier, const object& environment)
     {
       if (not identifier or not environment)
       {
@@ -525,7 +503,7 @@ namespace meevax::kernel
       return feature_object;
     });
 
-    define<procedure>("procedure-from", [this](auto&&, auto&& operands)
+    define<procedure>("procedure-from", [](auto&&, auto&& operands)
     {
       const std::string name {cadr(operands).template as<string>()};
 
@@ -544,7 +522,7 @@ namespace meevax::kernel
           operands ? car(operands).template as<input_port>() : std::cin);
     });
 
-    define<procedure>("write", [this](auto&&, auto&& operands)
+    define<procedure>("write", [](auto&&, auto&& operands)
     {
       std::cout << car(operands);
       return unspecified;

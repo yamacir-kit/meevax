@@ -27,7 +27,7 @@ namespace meevax::kernel
 
     object interactive {false_object};
     object trace       {false_object};
-    object verbose     {true_object};
+    object verbose     {false_object};
 
     object variable    {unit};
 

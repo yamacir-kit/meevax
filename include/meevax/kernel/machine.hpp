@@ -74,7 +74,6 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);                      \
     }
 
-    CRTP(change)
     CRTP(interaction_environment)
     CRTP(intern)
     CRTP(rename)
@@ -88,11 +87,7 @@ namespace meevax::kernel
     {
       push(
         interaction_environment(),
-        list(
-          identifier,
-          change(
-            identifier,
-            std::forward<decltype(operands)>(operands)...)));
+        list(identifier, std::forward<decltype(operands)>(operands)...));
 
       if (static_cast<const SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
       {
