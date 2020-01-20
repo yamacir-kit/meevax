@@ -107,7 +107,8 @@ namespace meevax::kernel
       {
         if (frame and car(frame) and car(frame).is<SyntacticContinuation>())
         {
-          return car(frame).as<SyntacticContinuation>().interaction_environment();
+          // return car(frame).as<SyntacticContinuation>().interaction_environment();
+          return cdar(frame);
         }
       }
 

@@ -1,3 +1,11 @@
+(define null-environment
+  (fork
+    (lambda (this) this) ))
+
+(define eval
+  (lambda (this expr-or-def environment-specifier)
+    (apply environment-specifier expr-or-def) ))
+
 (define identity
   (lambda (x) x))
 
@@ -132,8 +140,7 @@
 
 (define reverse ; simple but slow
   (lambda (x)
-    (if (null? x)
-       '()
+    (if (null? x) '()
         (append-2 (reverse (cdr x))
                   (list (car x)) ))))
 
@@ -144,8 +151,7 @@
         (if (null? x) y
             (append-aux (cdr x)
                         (append-2 (car x) y) ))))
-    (if (null? x)
-       '()
+    (if (null? x) '()
         ((lambda (reversed)
            (append-aux (cdr reversed)
                        (car reversed) ))
@@ -163,16 +169,16 @@
           ((lambda (clause)
              (if (eqv? else (car clause))
                  (if (pair? (cdr clauses))
-                     (error "else clause must be at the end of conditional clause")
-                     (cons begin (cdr clause)))
+                     (error "else clause must be at the end of cond clause")
+                     (cons begin (cdr clause)) )
                  (if (if (null? (cdr clause)) #true
-                         (eqv? => (cadr clause)))
+                         (eqv? => (cadr clause)) )
                      (list (list lambda (list result)
                                  (list if result
                                        (if (null? (cdr clause)) result
                                            (list (caddr clause) result))
                                        (cons conditional (cdr clauses)) ))
-                           (car clause))
+                           (car clause) )
                      (list if (car clause)
                               (cons begin (cdr clause))
                               (cons conditional (cdr clauses)) ))))
@@ -186,10 +192,9 @@
       (conditional
         ((null? tests))
         ((null? (cdr tests)) (car tests))
-        (else
-         (list if (car tests)
-                  (cons and (cdr tests))
-                  #false) )))))
+        (else (list if (car tests)
+                       (cons and (cdr tests))
+                       #false) )))))
 
 (define or
   (fork
@@ -197,17 +202,11 @@
       (conditional
         ((null? tests) #false)
         ((null? (cdr tests)) (car tests))
-        (#true ; else
-          ; (list (list lambda (list result thunk)
-          ;             (list if result result (list thunk)))
-          ;       (car tests)
-          ;       (list lambda (list)
-          ;             (append (list or) (cdr tests))))
-          (list (list lambda (list result)
+        (else (list (list lambda (list result)
                       (list if result
-                            result
-                            (cons or (cdr tests)) ))
-                (car tests) ))))))
+                               result
+                               (cons or (cdr tests)) ))
+                    (car tests) ))))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.8 Quasiquotations
@@ -267,7 +266,7 @@
 
     (define apply-1
       (lambda (procedure xs)
-        (procedure . xs)))
+        (procedure . xs) ))
 
     (if (null? xs)
         (apply-1 procedure x)
@@ -293,7 +292,7 @@
         (if (every pair? xs)
             (map-n procedure
                    (map-1 cdr xs '())
-                   (cons (apply procedure (map-1 car xs '())) result))
+                   (cons (apply procedure (map-1 car xs '())) result) )
             (reverse result) )))
 
     (if (null? xs)
@@ -324,7 +323,7 @@
                (if result
                    result
                    (any-1 predicate (cdr x)) ))
-             (predicate (car x)))
+             (predicate (car x)) )
             (predicate (car x)) )))
 
     (define any-n
@@ -335,12 +334,12 @@
                    result
                    (any-n predicate (map cdr xs)) ))
              (apply predicate (map car xs)) )
-            #false)))
+            #false )))
 
     (if (null? xs)
         (if (pair? x)
             (any-1 predicate x)
-            #false)
+            #false )
         (any-n predicate (cons x xs)) )))
 
 (define every
@@ -352,12 +351,12 @@
             (predicate (car x))
             (if (predicate (car x))
                 (every-1 predicate (cdr x))
-                #false) )))
+                #false ))))
 
     (if (null? xs)
         (if (pair? x)
             (every-1 predicate x)
-            #true)
+            #true )
         (not (apply any
                     (lambda xs
                       (not (apply predicate xs)) )
@@ -371,7 +370,7 @@
   (fork
     (lambda (letrec* bindings . body)
       ((lambda (definitions)
-        `((,lambda () ,@definitions ,@body)))
+        `((,lambda () ,@definitions ,@body)) )
        (map (lambda (x) (cons 'define x)) bindings) ))))
 
 (define letrec letrec*)
@@ -387,11 +386,11 @@
 
       (if (null? bindings)
           (error "The let syntax is defined as the form (let <bindings> <body>) \
-                  but lacks <bindings> and <body>."))
+                  but lacks <bindings> and <body>.") )
 
       (if (null? body)
           (error "The let syntax is defined as the form (let <bindings> <body>) \
-                  but lacks <body>."))
+                  but lacks <body>.") )
 
       (if (pair? bindings)
          `(unnamed-let ,bindings ,@body)
@@ -404,14 +403,14 @@
 
       (if (null? bindings)
           (error "The let* syntax is defined as the form (let* <bindings> <body>) \
-                  but lacks <bindings> and <body>."))
+                  but lacks <bindings> and <body>.") )
 
       (if (null? body)
           (error "The let* syntax is defined as the form (let* <bindings> <body>) \
-                  but lacks <body>."))
+                  but lacks <body>.") )
 
       (if (or (null? bindings)
-              (null? (cdr bindings)))
+              (null? (cdr bindings)) )
          `(,let (,(car bindings)) ,@body)
          `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body)) ))))
 
@@ -469,8 +468,7 @@
     (cond
       ((pair? x) #false)
       ((null? x) #true)
-      (else
-       (error "from null-list?, argument out of domain" x) ))))
+      (else (error "from null-list?, argument out of domain" x) ))))
 
 (define make-list
   (lambda (k . x)
@@ -518,18 +516,20 @@
           (conditional
             ((eq? succeed precede) #false)
             ((and (pair? precede)
-                  (pair? (cdr precede)))
-             (rec (cdr succeed) (cddr precede) (+ 2 result)))
+                  (pair? (cdr precede)) )
+             (rec (cdr succeed)
+                  (cddr precede)
+                  (+ 2 result) ))
             (else (if (pair? precede) (+ 1 result) result)) )))))
 
 (define list-tail
   (lambda (x k)
     (if (zero? k) x
-        (list-tail (cdr x) (- k 1)))))
+        (list-tail (cdr x) (- k 1)) )))
 
 (define list-ref
   (lambda (x k)
-    (car (list-tail x k))))
+    (car (list-tail x k)) ))
 
 ; TODO list-set!
 
@@ -543,11 +543,11 @@
 
 (define memq
   (lambda (o x)
-    (member o x eq?)))
+    (member o x eq?) ))
 
 (define memv
   (lambda (o x)
-    (member o x eqv?)))
+    (member o x eqv?) ))
 
 (define assoc
   (lambda (o x . c)
@@ -560,11 +560,11 @@
 
 (define assq
   (lambda (o x)
-    (assoc o x eq?)))
+    (assoc o x eq?) ))
 
 (define assv
   (lambda (o x)
-    (assoc o x eqv?)))
+    (assoc o x eqv?) ))
 
 (define list-copy
   (lambda (x)
@@ -2054,4 +2054,45 @@
 ;         (let temp)
 ;         (if y)
 ;         y)))
+
+(define scheme
+  (fork
+    (lambda (this submodule)
+
+      (begin (define equivalence.so (linker "libmeevax-equivalence.so"))
+             (define numerical.so   (linker "libmeevax-numerical.so"))
+
+             (define identity
+               (lambda (x) x) )
+
+             (define unspecified
+               (lambda ()
+                 (if #false #false) ))
+             )
+
+      (begin (define base
+               (fork
+                 (lambda (this)
+
+                   (begin (define null-environment
+                            (lambda () this) )
+
+                          (define eq?
+                            (procedure-from equivalence.so "equals") )
+
+                          (define eqv?
+                            (procedure-from equivalence.so "equivalent") )
+
+                          (define hello
+                            (lambda ()
+                              (display "hello, world!\n") ))
+                          )
+
+                  `(,begin (,define hello, hello))
+
+                   ))) ; base
+
+             )
+
+     `(,base) )))
 
