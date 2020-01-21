@@ -2057,7 +2057,7 @@
 
 (define scheme
   (fork
-    (lambda (this submodule)
+    (lambda (this . submodule)
 
       (begin (define equivalence.so (linker "libmeevax-equivalence.so"))
              (define numerical.so   (linker "libmeevax-numerical.so"))
@@ -2068,7 +2068,13 @@
              (define unspecified
                (lambda ()
                  (if #false #false) ))
-             )
+             ) ; begin
+
+      (begin (define println
+               (fork
+                 (lambda (this . xs)
+                  `(,display ,@xs "\n"))))
+        )
 
       (begin (define base
                (fork
@@ -2083,16 +2089,51 @@
                           (define eqv?
                             (procedure-from equivalence.so "equivalent") )
 
+                          ; (define hello
+                          ;   (lambda ()
+                          ;     (display "hello, world!\n") ))
                           (define hello
                             (lambda ()
-                              (display "hello, world!\n") ))
+                              (println "hello, world!")))
                           )
 
                   `(,begin (,define hello, hello))
 
                    ))) ; base
+             ) ; begin
 
-             )
+      (cond
+        ((null? submodule) this)
+        ((null? (car submodule)) this)
+        ((eq? (car submodule) 'base) `(,base))
+        (else (error))
+        )
+     ))) ; scheme
 
-     `(,base) )))
+; (define let-syntax
+;   (fork
+;     (lambda (let-syntax bindings . body)
+;
+;       (let ((definitions (map (lambda (x) (cons define x)) bindings)))
+;        `(,fork
+;           (,lambda (this)
+;             (,begin ,definitions)
+;             ,@body
+;             ))
+;         )
+;       )))
+;
+; (let-syntax ((given-that (fork
+;                            (lambda (this test . statements)
+;                             `(,if test
+;                                  (,begin ,statements))))))
+;   (let ((if #true))
+;     (given-that if (set! if 'now))
+;     if))
+;
+; (let ((x 'outer))
+;   (let-syntax ((m (fork
+;                     (lambda (m) x))))
+;     (let ((x 'inner))
+;       (m))))
 
