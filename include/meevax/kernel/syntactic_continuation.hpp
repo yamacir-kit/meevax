@@ -75,6 +75,8 @@ namespace meevax::kernel
 
     bool virgin {true};
 
+    [[deprecated]] std::size_t experience {0};
+
   public: // Accessors
     const auto& program() const
     {
@@ -211,8 +213,6 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);
     }
 
-    [[deprecated]] std::size_t generation {0};
-
     const auto& rename(const object& object)
     {
       if (not object.is<symbol>())
@@ -228,27 +228,24 @@ namespace meevax::kernel
       }
       else
       {
-        // XXX TIME STAMP REQUIRED???
-        // const std::string name {
-        //   object.as<const std::string>() + "." + std::to_string(generation)
-        // };
+        const std::string name {
+          object.as<const std::string>() + "." + std::to_string(experience)
+        };
 
         if (verbose.equivalent_to(true_object))
         {
-          // std::cerr << "; auto-rename\t; renaming " << object << " => " << name << std::endl;
-          std::cerr << "; package\t; renaming " << object << std::endl;
+          std::cerr << "; package\t; renaming \"" << object << "\" to \"" << name << "\"" << std::endl;
+          // std::cerr << "; package\t; renaming " << object << std::endl;
         }
 
-        return intern(object.as<symbol>());
-        // return intern(name);
+        // return intern(object.as<symbol>());
+        return intern(name);
       }
     }
 
     decltype(auto) expand(const object& operands)
     {
       // std::cerr << "; macroexpand\t; " << operands << std::endl;
-
-      ++generation;
 
       push( // XXX ???
         d,
@@ -275,6 +272,7 @@ namespace meevax::kernel
       // std::cerr << "; \t\t; " << result << std::endl;
 
       virgin = false;
+      ++experience;
 
       return result;
     }
@@ -454,6 +452,13 @@ namespace meevax::kernel
     // DEFINE_PROCEDURE_1("compile",  compile);
 
     DEFINE_PROCEDURE_1("evaluate", evaluate);
+
+    define<procedure>("identifier=?", [this](auto&&, auto&& arguments)
+    {
+      // std::cerr << "; identifier=?\t; car\t; " << car(arguments) << std::endl;
+      // std::cerr << ";\t\t; cadr\t; " << cadr(arguments) << std::endl;
+      return car(arguments) == rename(cadr(arguments)) ? true_object : false_object;
+    });
 
     DEFINE_SPECIAL("export", exportation);
     DEFINE_SPECIAL("import", importation);

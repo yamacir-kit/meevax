@@ -167,12 +167,12 @@
       (if (null? clauses)
           (if #false #false)
           ((lambda (clause)
-             (if (eqv? else (car clause))
+             (if (identifier=? else (car clause))
                  (if (pair? (cdr clauses))
                      (error "else clause must be at the end of cond clause")
                      (cons begin (cdr clause)) )
                  (if (if (null? (cdr clause)) #true
-                         (eqv? => (cadr clause)) )
+                         (identifier=? => (cadr clause)) )
                      (list (list lambda (list result)
                                  (list if result
                                        (if (null? (cdr clause)) result
@@ -1616,19 +1616,19 @@
   (lambda (transform)
     (fork
       (lambda expression
-        (transform expression evaluate eqv?) ))))
+        (transform expression evaluate identifier=?) ))))
 
 (define          er-macro-transformer
   explicit-renaming-macro-transformer)
 
-(define swap!
-  (er-macro-transformer
-    (lambda (expression rename compare)
-      (let ((a (cadr expression))
-            (b (caddr expression)))
-       `(,(rename 'let) ((,(rename 'value) ,a))
-          (,(rename 'set!) ,a ,b)
-          (,(rename 'set!) ,b ,(rename 'value))) ))))
+; (define swap!
+;   (er-macro-transformer
+;     (lambda (expression rename compare)
+;       (let ((a (cadr expression))
+;             (b (caddr expression)))
+;        `(,(rename 'let) ((,(rename 'value) ,a))
+;           (,(rename 'set!) ,a ,b)
+;           (,(rename 'set!) ,b ,(rename 'value))) ))))
 
 (define loop
   (fork
