@@ -1608,9 +1608,34 @@
 (define swap!
   (fork
     (lambda (swap! x y)
-     `(,let ((,temporary ,x))
+     `(,let ((,value ,x))
         (,set! ,x ,y)
-        (,set! ,y ,temporary)) )))
+        (,set! ,y ,value)) )))
+
+; (define define-syntax
+;   (fork
+;     (lambda (define-syntax identifier . expression)
+;       (if (null? identifier)
+;           (error "")
+;           (if (pair? identifier)
+;              `(,define ,(car identifier)
+;                 (,fork
+;                   (,lambda ,identifier ,@expression)))
+;              `(,define ,identifier ,@expression))))))
+
+(define define-syntax
+  (fork
+    (lambda (define-syntax identifier . expression)
+      (if (pair? identifier)
+         `(,define ,(car identifier)
+            (,fork
+              (,lambda ,identifier ,@expression)))
+         `(,define ,identifier ,@expression)))))
+
+(define-syntax (swap! x y)
+ `(,let ((,value ,x))
+    (,set! ,x ,y)
+    (,set! ,y ,value)))
 
 (define explicit-renaming-macro-transformer
   (lambda (transform)
