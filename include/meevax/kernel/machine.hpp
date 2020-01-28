@@ -771,15 +771,34 @@ namespace meevax::kernel
       * (3) Should set with weak reference if right hand side is newer.
       *
       *====================================================================== */
-        if (const object value {
+        if (const object pare {
               assq(cadr(c), innermost_dynamic_environment(e))
-            }; value != cdadr(c))
+            }; pare != cdadr(c))
         {
-          std::atomic_store(&cadr(value), car(s).copy());
+          // std::atomic_store(&cadr(value), car(s).copy());
+
+          std::cerr << "; store-global\t; pare = " << pare << std::endl;
+
+          if (const auto value {cadr(pare)}; value)
+          {
+            cadr(pare) = car(s);
+          }
+          else if (value.is<SyntacticContinuation>())
+          {
+            define(cadr(c), car(s));
+          }
+          else
+          {
+            std::atomic_store(&cadr(pare), car(s).copy());
+          }
         }
         else // UNBOUND
         {
-          define(cadr(c), car(s));
+          // TODO IF TOPLELVEL, SET ON UNBOUND VARIABLE => DEFINE
+
+          throw evaluation_error {
+            "it would be an error to perform a set! on an unbound variable (from R7RS 5.3.1. Top level definitions)"
+          };
         }
         // car(s) = unspecified;
         pop<2>(c);

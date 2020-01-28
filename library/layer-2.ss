@@ -1623,14 +1623,31 @@
 ;                   (,lambda ,identifier ,@expression)))
 ;              `(,define ,identifier ,@expression))))))
 
+; (define define-syntax
+;   (fork
+;     (lambda (define-syntax identifier . expression)
+;       (if (pair? identifier)
+;          `(,define ,(car identifier)
+;             (,fork
+;               (,lambda ,identifier ,@expression)))
+;          `(,define ,identifier ,@expression)))))
+
 (define define-syntax
   (fork
-    (lambda (define-syntax identifier . expression)
+    (lambda (define-syntax identifier . transformer)
       (if (pair? identifier)
-         `(,define ,(car identifier)
-            (,fork
-              (,lambda ,identifier ,@expression)))
-         `(,define ,identifier ,@expression)))))
+          (list define (car identifier)
+            (list fork
+              (list lambda identifier . transformer)))
+          (list define identifier . transformer)))))
+
+; (define define
+;   (fork
+;     (lambda (this identifier . expression)
+;       (if (pair? identifier)
+;           (list define (car identifier)
+;             (lambda (cdr identifier) . expression))
+;           (list define identifier . expression)))))
 
 (define-syntax (swap! x y)
  `(,let ((,value ,x))
