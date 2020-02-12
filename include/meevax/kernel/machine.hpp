@@ -23,13 +23,13 @@ inline namespace ugly_macros
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))        \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
     std::cerr << __VA_ARGS__ << attribute::normal << std::endl;                \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))        \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
     std::cerr << "; macroexpand\t; "                                           \
               << std::string(depth * 2, ' ')                                   \
@@ -37,7 +37,7 @@ inline namespace ugly_macros
   }
 
   #define COMPILER_WARNING(...) \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))        \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
     std::cerr << attribute::normal  << "; "                                    \
               << highlight::warning << "compiler"                              \
@@ -101,7 +101,7 @@ namespace meevax::kernel
       return interaction_environment(); // temporary
     }
 
-    const object& innermost_dynamic_environment(const object& e)
+    const object& glocal_environment(const object& e)
     {
       for (const auto& frame : e)
       {
@@ -485,7 +485,7 @@ namespace meevax::kernel
               std::invoke(
                 cadr(c).template is<symbol>() ? assq : assoc,
                 cadr(c),
-                innermost_dynamic_environment(e))
+                glocal_environment(e))
             }; value != cadr(c))
         {
           push(s, cadr(value));
@@ -597,9 +597,9 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::JOIN: /*=========================================
       *
-      *    S E (JOIN . C) (C' . D)
+      *    S E (JOIN) (C . D)
       *
-      * => S E             C'   D
+      * => S E         C   D
       *
       *====================================================================== */
         c = car(d);
@@ -761,9 +761,9 @@ namespace meevax::kernel
 
       /* ====*/ case mnemonic::STORE_GLOBAL: /*=================================
       *
-      *          (value . S) E (STORE-GLOBAL identifier . C) D
+      *    (value . S) E (STORE-GLOBAL identifier . C) D
       *
-      * => (unspecified . S) E                            C  D
+      * => (value . S) E                            C  D
       *
       * TODO
       * (1) There is no need to make copy if right hand side is unique.
@@ -772,19 +772,23 @@ namespace meevax::kernel
       *
       *====================================================================== */
         if (const object pare {
-              assq(cadr(c), innermost_dynamic_environment(e))
+              assq(cadr(c), glocal_environment(e))
             }; pare != cdadr(c))
         {
-          // std::atomic_store(&cadr(value), car(s).copy());
-
-          std::cerr << "; store-global\t; pare = " << pare << std::endl;
-
-          if (const auto value {cadr(pare)}; value)
+          if (const auto value {cadr(pare)}; not value)
           {
             cadr(pare) = car(s);
           }
-          else if (value.is<SyntacticContinuation>())
+          else if (value.is<SyntacticContinuation>() or value.is<special>())
           {
+            /* ---- From R7RS 5.3.1. Top level definitions ---------------------
+            *
+            * However, if <variable> is not bound, or is a syntactic keyword,
+            * then the definition will bind <variable> to a new location before
+            * performing the assignment, whereas it would be an error to perform
+            * a set! on an unbound variable.
+            *
+            *---------------------------------------------------------------- */
             define(cadr(c), car(s));
           }
           else

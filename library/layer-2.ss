@@ -2001,26 +2001,31 @@
              (define get
                (lambda () value))
 
-             (define even?
-               (lambda ()
-                 (if (zero? value) #true
-                     (odd? (- value 1)) )))
-
-             (define odd?
-               (lambda ()
-                 (if (zero? value) #false
-                     (even? (- value 1)) )))
+             ; (define even?
+             ;   (lambda ()
+             ;     (if (zero? value) #true
+             ;         (odd? (- value 1)) )))
+             ;
+             ; (define odd?
+             ;   (lambda ()
+             ;     (if (zero? value) #false
+             ;         (even? (- value 1)) )))
              )
 
      `(,begin (define increment ,increment)
               (define get ,get)
-              (define even? ,even?)) )))
+              ; (define even? ,even?)
+              )
+     )))
 
 (define let-syntax
   (fork
     (lambda (let-syntax bindings . body)
      `((fork
-         (,lambda (,this ,@(map car bindings)) ,@body))
+         (,lambda (,this ,@(map car bindings))
+            ,@body
+            )
+         )
        ,@(map cadr bindings)) )))
 
 ; (let-syntax ((given-that (fork
