@@ -457,6 +457,8 @@ namespace meevax::kernel
     {
       // std::cerr << "; identifier=?\t; car\t; " << car(arguments) << std::endl;
       // std::cerr << ";\t\t; cadr\t; " << cadr(arguments) << std::endl;
+      // XXX 二度リネームが発生すると hoge.0.0 見たいな名前になってしまって壊れる
+      // return rename(car(arguments)) == rename(cadr(arguments)) ? true_object : false_object;
       return car(arguments) == rename(cadr(arguments)) ? true_object : false_object;
     });
 
