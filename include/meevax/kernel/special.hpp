@@ -1,18 +1,40 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP
 
-#include <functional> // std::function
-
 #include <meevax/kernel/object.hpp>
 
 #define SPECIAL(NAME) \
-  const meevax::kernel::object NAME(const meevax::kernel::object&, \
-                                    const meevax::kernel::object&, \
-                                    const meevax::kernel::object&, \
-                                    const bool)
+  const meevax::kernel::object NAME(                                           \
+    const meevax::kernel::object&,                                             \
+    const meevax::kernel::object&,                                             \
+    const meevax::kernel::object&,                                             \
+    const meevax::kernel::object&,                                             \
+    const compilation_context)
 
 namespace meevax::kernel
 {
+  struct compilation_context // TODO rename
+  {
+    bool tail_expression;
+    bool program_declaration;
+  };
+
+  static constexpr compilation_context as_is {
+    false, false
+  };
+
+  static constexpr compilation_context as_tail_expression {
+    true, false
+  };
+
+  static constexpr compilation_context as_program_declaration {
+    false, true
+  };
+
+  static constexpr compilation_context as_tail_expression_of_program_declaration {
+    true, true
+  };
+
   struct special
     : public std::function<SPECIAL()>
   {
@@ -25,16 +47,18 @@ namespace meevax::kernel
       : std::function<SPECIAL()> {std::forward<decltype(operands)>(operands)...}
       , name {name}
     {}
-  };
 
-  std::ostream& operator<<(std::ostream& os, const special& special)
-  {
-    return os << highlight::syntax << "#("
-              << highlight::constructor << "special"
-              << attribute::normal << " " << special.name
-              << highlight::syntax << ")"
-              << attribute::normal;
-  }
+    friend auto operator<<(std::ostream& os, const special& special)
+      -> decltype(auto)
+    {
+      return os << highlight::syntax << "#("
+                << highlight::type << "special"
+                << attribute::normal << " " << special.name
+                << highlight::comment << " #;" << &special << attribute::normal
+                << highlight::syntax << ")"
+                << attribute::normal;
+    }
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP

@@ -143,10 +143,9 @@
         ((< 3 3) 'less)
         (else 'equal)))
 
-; (expect
-;   (cond ((assv 'b '((a 1) (b 2))) => cadr)
-;         (else #f))
-;   2)
+(expect 2
+  (cond ((assv 'b '((a 1) (b 2))) => cadr)
+        (else #f)))
 
 (expect composite
   (case (* 2 3)
@@ -776,6 +775,9 @@
 (define a 1)
 (define b 2)
 
+(define escaped-let let)
+(define let "CAN'T APPLY THIS!")
+
 (expect (2 . 1)
   (begin (swap! a b)
          (cons a b)))
@@ -785,6 +787,8 @@
 (expect (42 . 2) ; this test knows swap! uses 'x' as temporary variable.
   (begin (swap! a x)
          (cons a x)))
+
+(define let escaped-let)
 
 ; (define fib
 ;   (lambda (n)

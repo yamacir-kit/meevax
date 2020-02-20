@@ -7,7 +7,7 @@ extern "C" namespace meevax::character
   PROCEDURE(is_character)
   {
     return
-      MEEVAX_BOOLEAN(
+      MEEVAX_API_BOOLEAN(
         kernel::car(operands).is<kernel::character>());
   }
 
@@ -27,7 +27,8 @@ extern "C" namespace meevax::character
     {
     case 1:
       return
-        kernel::make<kernel::real>(
+        kernel::allocate<kernel::real>(
+          resource,
           *reinterpret_cast<const std::uint8_t*>(s.data()));
 
     default:

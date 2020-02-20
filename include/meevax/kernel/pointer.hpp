@@ -3,78 +3,23 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
-#include <memory> // std::shared_ptr
 #include <stdexcept> // std::logic_error
-#include <typeinfo> // typeid
 #include <utility> // std::forward
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-
 #include <meevax/kernel/writer.hpp>
-
-#include <meevax/utility/demangle.hpp>
-#include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
 {
   template <typename T>
-  constexpr T log2(const T& k) noexcept
+  inline constexpr T log2(const T& k) noexcept
   {
     return (k < 2) ? 0 : 1 + log2(k / 2);
   }
-
-  template <typename T>
-  struct alignas(16) /* category_mask + 1 */ facade // TODO rename to "objective" then move to "object.hpp"
-  {
-    virtual auto type() const noexcept
-      -> const std::type_info&
-    {
-      return typeid(T);
-    }
-
-    virtual std::shared_ptr<T> copy() const
-    {
-      if constexpr (std::is_copy_constructible<T>::value)
-      {
-        return std::make_shared<T>(static_cast<const T&>(*this));
-      }
-      // else throw std::logic_error
-      // {
-      //   "This is a fatal error report for Meevax core language hackers. The "
-      //   "base type of meevax::kernel::pointer requires concept CopyConstructible."
-      // };
-      else
-      {
-        static_assert(
-          []() { return false; }(),
-          "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
-      }
-    }
-
-    // eqv?
-    virtual bool equals(const std::shared_ptr<T>& rhs) const
-    {
-      if constexpr (concepts::is_equality_comparable<T>::value)
-      {
-        const auto rhs_ {std::dynamic_pointer_cast<const T>(rhs)};
-        assert(rhs_);
-        return static_cast<const T&>(*this) == *rhs_;
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-    virtual auto dispatch(std::ostream& os) const
-      -> decltype(os)
-    {
-      return os << static_cast<const T&>(*this);
-    };
-  };
 
   /* ==== Linux 64 Bit Address Space ==========================================
   *
@@ -82,7 +27,6 @@ namespace meevax::kernel
   * kernel 0xFFFF 8000 0000 0000 ~
   *
   *========================================================================= */
-
   static constexpr auto word_size {sizeof(std::size_t)};
 
   // The Embeddable Concept is specified for safety.
@@ -133,27 +77,27 @@ namespace meevax::kernel
   * uint16_t  0... 0100 1100
   * uint32_t  0... 0101 1100
   *                ───┬ ┬┬┬┬
-  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) | /*
-  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) | /*
-  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) | /*
-  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)   /*
+  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) |    /*
+  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) |    /*
+  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) |    /*
+  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)      /*
   *                   │
   *                   └────── precision of the type = 2^N bit
   */     >;                                                                  /*
   *
-  *========================================================================= */
+  *========================================================================== */
 
   constexpr std::uintptr_t category_mask {0x0F};
   constexpr auto           category_mask_width {4};
 
   template <typename T>
-  constexpr auto category_of(T const* const value) noexcept
+  inline constexpr auto category_of(T const* const value) noexcept
   {
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
   }
 
   template <typename... Ts>
-  constexpr bool is_tagged(Ts&&... operands) noexcept
+  inline constexpr bool is_tagged(Ts&&... operands) noexcept
   {
     return category_of(std::forward<decltype(operands)>(operands)...);
   }
@@ -166,7 +110,7 @@ namespace meevax::kernel
   constexpr auto           precision_mask_width {4}; // XXX calculate from word size
 
   template <typename T>
-  constexpr auto precision_of(T const* const value)
+  inline constexpr auto precision_of(T const* const value)
   {
     assert(is_tagged(value));
 
@@ -187,7 +131,7 @@ namespace meevax::kernel
 
   // full-tag includes precision.
   template <typename Pointer>
-  constexpr auto tag_of(Pointer value) noexcept
+  inline constexpr auto tag_of(Pointer value) noexcept
   {
     assert(is_tagged(value));
 
@@ -195,13 +139,13 @@ namespace meevax::kernel
   }
 
   template <typename Pointer>
-  constexpr auto untagged_value_of(Pointer value) noexcept
+  inline constexpr auto untagged_value_of(Pointer value) noexcept
   {
     return reinterpret_cast<std::uintptr_t>(value) >> mask_width;
   }
 
   template <typename T, typename... Ts>
-  constexpr auto untagged_value_as(Ts&&... operands) noexcept
+  inline constexpr auto untagged_value_as(Ts&&... operands) noexcept
     -> typename std::decay<T>::type
   {
     auto value {untagged_value_of(
@@ -213,6 +157,8 @@ namespace meevax::kernel
   /* ==== Heterogenous Shared Pointer =========================================
   *
   * TODO documentation
+  *
+  * This type requires to the template parameter T inherits objective facade.
   *
   *========================================================================= */
   template <typename T>
@@ -229,7 +175,7 @@ namespace meevax::kernel
     *
     *======================================================================= */
     template <typename Bound>
-    struct /* alignas(mask + 1) */ binder
+    struct binder
       : public Bound
       , public virtual T
     {
@@ -267,7 +213,7 @@ namespace meevax::kernel
         };
       }
 
-      bool equals(const std::shared_ptr<T>& rhs) const override
+      bool equivalent_to(const std::shared_ptr<T>& rhs) const override
       {
         if constexpr (concepts::is_equality_comparable<Bound>::value)
         {
@@ -275,6 +221,10 @@ namespace meevax::kernel
         }
         else
         {
+          std::cerr << "; warning\t; equivalence comparison for type "
+                    << utility::demangle(type())
+                    << " is undefined (always return #false)"
+                    << std::endl;
           return false;
         }
       }
@@ -290,7 +240,7 @@ namespace meevax::kernel
         else
         {
           return os << highlight::syntax << "#("
-                    << highlight::constructor << utility::demangle(typeid(Bound))
+                    << highlight::type << utility::demangle(typeid(Bound))
                     << attribute::normal << highlight::comment << " #;" << static_cast<const Bound*>(this) << attribute::normal
                     << highlight::syntax << ")"
                     << attribute::normal;
@@ -327,12 +277,41 @@ namespace meevax::kernel
     * and the type you binding (both T and Bound's destructor will works
     * correctly).
     *
-    *======================================================================= */
-    template <typename Bound, typename... Ts, REQUIRES(is_not_embeddable<Bound>)>
-    static pointer bind(Ts&&... operands)
+    *======================================================================== */
+    template <typename Bound,
+              typename... Ts,
+              REQUIRES(is_not_embeddable<Bound>)>
+    static pointer make_binding(Ts&&... operands)
     {
+      using binding = binder<Bound>;
+
       return
-        std::make_shared<binder<Bound>>(
+        std::make_shared<binding>(
+          std::forward<decltype(operands)>(operands)...);
+    }
+
+    template <typename Bound,
+              typename MemoryResource, // XXX (GCC-9 <=)
+              typename... Ts,
+              REQUIRES(is_not_embeddable<Bound>)>
+    static pointer allocate_binding(
+      MemoryResource&& resource,
+      Ts&&... operands)
+    {
+      using binding = binder<Bound>;
+
+      using binding_allocator
+        = typename std::decay<
+            decltype(resource)
+          >::type::template rebind<binding>::other;
+
+      // return
+      //   std::make_shared<binding>(
+      //     std::forward<decltype(operands)>(operands)...);
+
+      return
+        std::allocate_shared<binding>(
+          binding_allocator {std::forward<decltype(resource)>(resource)},
           std::forward<decltype(operands)>(operands)...);
     }
 
@@ -340,9 +319,9 @@ namespace meevax::kernel
     *
     * TODO: support bind for not is_embeddable types (e.g. double).
     *
-    *======================================================================= */
+    *======================================================================== */
     template <typename U, REQUIRES(is_embeddable<U>)>
-    static pointer bind(U&& value)
+    static pointer make_binding(U&& value)
     {
       static auto ignore = [](auto* value)
       {
@@ -444,7 +423,8 @@ namespace meevax::kernel
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
-      return dynamic_cast<U&>(dereference());
+      // return dynamic_cast<U&>(dereference());
+      return *std::dynamic_pointer_cast<U>(*this);
     }
 
     /* ==== C/C++ Primitive Type Restoration ==================================
@@ -477,11 +457,11 @@ namespace meevax::kernel
       CASE_OF_TYPE(float);
       CASE_OF_TYPE(double);
 
-      CASE_OF_TYPE(std::int8_t);
+      CASE_OF_TYPE(std::byte);
       CASE_OF_TYPE(std::int16_t);
       CASE_OF_TYPE(std::int32_t);
 
-      CASE_OF_TYPE(std::uint8_t);
+      CASE_OF_TYPE(std::byte);
       CASE_OF_TYPE(std::uint16_t);
       CASE_OF_TYPE(std::uint32_t);
 
@@ -497,7 +477,7 @@ namespace meevax::kernel
       return dereference().copy();
     }
 
-    bool equals(const pointer& rhs) const
+    bool equivalent_to(const pointer& rhs) const
     {
       if (type() != rhs.type()) // TODO REMOVE IF OTHER NUMERICAL TYPE IMPLEMENTED
       {
@@ -505,7 +485,7 @@ namespace meevax::kernel
       }
       else
       {
-        return dereference().equals(rhs);
+        return dereference().equivalent_to(rhs);
       }
     }
   };

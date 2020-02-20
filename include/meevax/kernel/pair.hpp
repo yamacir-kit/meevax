@@ -6,48 +6,54 @@
 
 namespace meevax::kernel
 {
+  /* ==== The Pair Type ========================================================
+  *
+  * The pair type is always underlies any object type (is performance hack).
+  *
+  * We implemented heterogenous pointer by type-erasure, this is very flexible
+  * but, requires dynamic-cast to restore erased type in any case. So, we
+  * decided to remove typecheck for pair type, by always waste memory space
+  * for two heterogenous pointer slot (yes, is cons-cell). If pair selector
+  * (car/cdr) always requires typecheck, our kernel will be unbearlably slowly.
+  * Built-in types are designed to make the best possible use of the fact that
+  * these are pair as well (e.g. closure is pair of expression and lexical
+  * environment, string is linear-list of character, complex, rational).
+  *
+  *========================================================================== */
   struct pair
     : public std::pair<object, object>
-    , public facade<pair>
+    , public objective<pair>
   {
-    template <typename... Ts>
-    explicit constexpr pair(Ts&&... operands)
-      : std::pair<object, object> {std::forward<decltype(operands)>(operands)...}
-    {}
+    using std::pair<object, object>::pair;
 
-    pair()
+    explicit pair()
       : std::pair<object, object> {unit, unit}
     {}
 
     virtual ~pair() = default;
   };
 
-  #ifndef NDEBUG
-  #define SELECTOR(NAME, INDEX)                                                \
-  decltype(auto) NAME(const object& object)                                    \
+  /* ==== Pair Accessor ========================================================
+  *
+  * Pair accessors are not only for pair type. Accessing car and cdr is a valid
+  * operation for everyone except the empty list.
+  *
+  *========================================================================== */
+  #define DEFINE_PAIR_ACCESSOR(IDENTIFIER, INDEX)                              \
+  inline decltype(auto) IDENTIFIER(const object& o)                            \
   {                                                                            \
-    if (object)                                                                \
-    {                                                                          \
-      return std::get<INDEX>(object.dereference());                            \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      throw kernel_error_about_pair {                                          \
-        "internal illegal selection rejected"                                  \
-      };                                                                       \
-    }                                                                          \
+    assert(o);                                                                 \
+    return std::get<INDEX>(o.dereference());                                   \
   }
-  #else
-  #define SELECTOR(NAME, INDEX)                                                \
-  decltype(auto) NAME(const object& object)                                    \
-  {                                                                            \
-    return std::get<INDEX>(object.dereference());                              \
-  }
-  #endif // NDEBUG
 
-  SELECTOR(car, 0)
-  SELECTOR(cdr, 1)
+  DEFINE_PAIR_ACCESSOR(car, 0)
+  DEFINE_PAIR_ACCESSOR(cdr, 1)
 
+  /* ==== Pairs and Lists External Representation ==============================
+  *
+  * TODO documentation
+  *
+  *========================================================================== */
   auto operator<<(std::ostream& os, const pair& pare)
     -> decltype(os)
   {

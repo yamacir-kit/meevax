@@ -7,28 +7,29 @@
 
 namespace meevax::kernel
 {
-  #define MNEMONICS \
-    (APPLY) \
-    (APPLY_TAIL) \
-    (DEFINE) \
-    (JOIN) \
-    (LOAD_GLOBAL) \
-    (LOAD_LITERAL) \
-    (LOAD_LOCAL) \
-    (LOAD_LOCAL_VARIADIC) \
-    (MAKE_CLOSURE) \
-    (MAKE_CONTINUATION) \
-    (MAKE_ENVIRONMENT) \
-    (MAKE_SYNTACTIC_CONTINUATION) \
-    (POP) \
-    (PUSH) \
-    (RETURN) \
-    (SELECT) \
-    (SELECT_TAIL) \
-    (SET_GLOBAL) \
-    (SET_LOCAL) \
-    (SET_LOCAL_VARIADIC) \
-    (STOP)
+  #define MNEMONICS                                                            \
+    (CALL)                                                                     \
+    (CONS)                                                                     \
+    (DEFINE)                                                                   \
+    (FORK)                                                                     \
+    (JOIN)                                                                     \
+    (LOAD_CLOSURE)                                                             \
+    (LOAD_CONSTANT)                                                            \
+    (LOAD_CONTINUATION)                                                        \
+    (LOAD_GLOBAL)                                                              \
+    (LOAD_LOCAL)                                                               \
+    (LOAD_VARIADIC)                                                            \
+    (POP)                                                                      \
+    (RETURN)                                                                   \
+    (SELECT)                                                                   \
+    (STOP)                                                                     \
+    (STORE_GLOBAL)                                                             \
+    (STORE_LOCAL)                                                              \
+    (STORE_VARIADIC)                                                           \
+    (TAIL_CALL)                                                                \
+    (TAIL_SELECT)                                                              \
+
+  // TODO POP => DROP
 
   enum class mnemonic
     : std::int8_t
@@ -38,30 +39,64 @@ namespace meevax::kernel
 
   struct instruction
   {
+    using identity = instruction;
+
     const mnemonic code;
 
     template <typename... Ts>
     explicit instruction(Ts&&... operands)
       : code {std::forward<decltype(operands)>(operands)...}
     {}
-  };
 
-  std::ostream& operator<<(std::ostream& os, const instruction& instruction)
-  {
-    os << highlight::kernel;
-
-    switch (instruction.code)
+    int value() const noexcept
     {
-    #define MNEMONIC_CASE(_, AUX, EACH) \
-    case mnemonic::EACH: \
-      os << BOOST_PP_STRINGIZE(EACH); \
-      break;
-
-      BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
+      return
+        static_cast<
+          typename std::underlying_type<mnemonic>::type
+        >(code);
     }
 
-    return os << attribute::normal;
-  }
+    friend auto operator<<(std::ostream& os, const identity& i)
+      -> decltype(auto)
+    {
+      os << highlight::warning;
+
+      auto kebab = [](std::string s) // XXX DIRTY HACK
+      {
+        std::transform(
+          std::begin(s), std::end(s),
+          std::begin(s),
+          [](char c) -> char
+          {
+            switch (c)
+            {
+            case '_':
+              return '-';
+
+            default:
+              // return std::tolower(c);
+              return c;
+            }
+          });
+
+        return s;
+      };
+
+      switch (i.code)
+      {
+      #define MNEMONIC_CASE(_, AUX, EACH)                                      \
+      case mnemonic::EACH:                                                     \
+        os << kebab(BOOST_PP_STRINGIZE(EACH));                                 \
+        break;
+
+        BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
+      }
+
+      // os << "#" << std::hex << std::setw(2) << std::setfill('0') << i.value();
+
+      return os << attribute::normal;
+    }
+  };
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP

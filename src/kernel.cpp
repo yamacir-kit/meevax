@@ -5,14 +5,9 @@
 
 namespace meevax::kernel
 {
-  const object unit {nullptr};
-
   const object unbound {make<exception>("unbound")};
   const object undefined {make<exception>("undefined")};
   const object unspecified {make<exception>("unspecified")};
-
-  const object true_object {make<boolean>(true)};
-  const object false_object {make<boolean>(false)};
 
   const std::unordered_map<std::string, object> characters
   {

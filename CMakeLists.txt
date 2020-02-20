@@ -25,7 +25,7 @@ endif()
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 set(CMAKE_CXX_FLAGS_RELEASE "-s -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -91,37 +91,36 @@ if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake)
     )
 endif()
 
-# TODO REMOVE IF THERE IS NO PROBLEM
-# # ==============================================================================
-# #   Configure Uninstall Script
-# # ==============================================================================
-# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake)
-#   configure_file(
-#     ${${PROJECT_NAME}_CONFIGURE}/uninstall.sh.cmake
-#     ${CMAKE_CURRENT_SOURCE_DIR}/uninstall.sh
-#     )
-# endif()
-
 # ==============================================================================
-#   Configure Header
+#   Configure Header (XXX DEPRECATED)
 # ==============================================================================
-string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d %H:%M:%S")
+string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   execute_process(
     COMMAND git rev-parse HEAD
     COMMAND tr -d "\n"
-    OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH
-    )
+    OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH)
 else()
-  set(${PROJECT_NAME}_BUILD_HASH "")
+  set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
+# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
+#   configure_file(
+#     ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
+#     ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp)
+# endif()
+
+if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake)
   configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
-    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp
-    )
+    ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake
+    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/feature.hpp)
+endif()
+
+if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/version.hpp.cmake)
+  configure_file(
+    ${${PROJECT_NAME}_CONFIGURE}/version.hpp.cmake
+    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
 # ==============================================================================
@@ -162,7 +161,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 endforeach()
 
 # ==============================================================================
-#   Meevax Interactive Coding Environment (Executable)
+#   Meevax ICE
 # ==============================================================================
 file(GLOB
   ${PROJECT_NAME}_LAYER_SOURCES
@@ -190,12 +189,12 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach(EACH)
 
-add_executable(${PROJECT_NAME}
+add_executable(ice
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
   ${${PROJECT_NAME}_LAYERS}
   )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(ice
   ${${PROJECT_NAME}_DEPENDENCIES}
   )
 
@@ -204,7 +203,7 @@ target_link_libraries(${PROJECT_NAME}
 # ==============================================================================
 # XXX DON'T FORGET TO EXECUTE "sudo ldconfig" after installation
 install(
-  TARGETS ${PROJECT_NAME}
+  TARGETS ice
           ${PROJECT_NAME}-kernel
           ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin

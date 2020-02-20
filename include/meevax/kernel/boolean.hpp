@@ -5,29 +5,35 @@
 
 namespace meevax::kernel
 {
-  extern "C" const object true_object, false_object;
-
-  // template <auto Value>
-  // std::ostream& operator<<(std::ostream& os, std::bool_constant<Value>)
-  // {
-  //   return os << highlight::simple_datum << "#" << std::boolalpha << Value << attribute::normal;
-  // }
-
   struct boolean
   {
-    const bool data;
+    using identity = boolean;
 
-    explicit constexpr operator bool() const noexcept
+    const bool value;
+
+    constexpr operator bool() const noexcept
     {
-      return data;
+      return value;
+    }
+
+    friend auto operator==(const identity& lhs, const identity& rhs)
+    {
+      return lhs.value == rhs.value;
+    }
+
+    friend auto operator<<(std::ostream& os, const identity& boolean)
+      -> decltype(os)
+    {
+      return os << highlight::datum
+                << "#"
+                << std::boolalpha
+                << boolean.value
+                << attribute::normal;
     }
   };
 
-  auto operator<<(std::ostream& os, const boolean& boolean)
-    -> decltype(os)
-  {
-    return os << highlight::simple_datum << "#" << std::boolalpha << static_cast<bool>(boolean) << attribute::normal;
-  }
+  static const object true_object {make<boolean>(true)};
+  static const object false_object {make<boolean>(false)};
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP

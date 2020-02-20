@@ -4,60 +4,121 @@
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/pair.hpp>
 
 #include <meevax/lambda/compose.hpp>
 
-// Constructors
-//   - cons
-//   - list
-//   - xcons
-//   - cons* ... variadic version of cons
-//
-// Predicators
-//   - pair? ... object::is<pair>
-//   - null? ... object::operator bool
-//   - euqal? ... is_same
-//
-// Selectors
-//   - car ... in meevax/kernel/pair.hpp
-//   - cdr ... in meevax/kernel/pair.hpp
-//   - cxr ... by preprocessor macro
-//   - take
-//
-// Miscellaneous
-//   - length
-//   - append
-//   - reverse
-//   - zip
-//
-// Fold, unfold, and map
-//
-// Filtering & partitioning
-//
-// Searching
-//
-// Deletion
-//
-// Association lists
-//   - assq
-//
-// Set operations on lists
-//   unimplemented
-//
-// Primitive side-effects
-//   - set-car! ... object::operator=
-//   - set-cdr! ... object::operator=
-//
+/* ==== SRFI-1 ================================================================
+*
+* Predicates
+*   - circular-list?
+*   - dotted-list?
+*   - eq?                              => object::operator ==
+*   - eqv?                             => object::equivalent_to
+*   - euqal?                           => recursively_equivalent
+*   - list=
+*   - not-pair?
+*   - null-list?
+*   - null?                            => object::operator bool
+*   - pair?                            => object::is<pair>
+*   - proper-list?
+*
+* Miscellaneous
+*   - append
+*   - append!
+*   - append-reverse
+*   - append-reverse!
+*   - concatenate
+*   - concatenate!
+*   - count
+*   - length
+*   - length+
+*   - reverse
+*   - reverse!
+*   - unzip1
+*   - unzip2
+*   - unzip3
+*   - unzip4
+*   - unzip5
+*   - zip
+*
+* Fold, unfold & map
+*   - append-map
+*   - append-map!
+*   - filter-map
+*   - fold
+*   - fold-right
+*   - for-each
+*   - map
+*   - map!
+*   - map-in-order
+*   - pair-fold
+*   - pair-fold-right
+*   - pair-for-each
+*   - reduce
+*   - reduce-right
+*   - unfold
+*   - unfold-right
+*
+* Filtering & partitioning
+*   - filter
+*   - filter!
+*   - partition
+*   - partition!
+*   - remove
+*   - remove!
+*
+* Searching
+*   - any
+*   - break
+*   - break!
+*   - drop-while
+*   - every
+*   - find
+*   - find-tail
+*   - list-index
+*   - member
+*   - memq
+*   - memv
+*   - span
+*   - span!
+*   - take-while
+*   - take-while!
+*
+* Deletion
+*   - delete
+*   - delete!
+*   - delete-duplicates
+*   - delete-duplicates!
+*
+* Set operations on lists
+*   - lset-adjoin
+*   - lset-diff+intersection
+*   - lset-diff+intersection!
+*   - lset-difference
+*   - lset-difference!
+*   - lset-intersection
+*   - lset-intersection!
+*   - lset-union
+*   - lset-union!
+*   - lset-xor
+*   - lset-xor!
+*   - lset<=
+*   - lset=
+*
+* Primitive side-effects
+*   - set-car!                         ... TODO
+*   - set-cdr!                         ... TODO
+*
+*============================================================================ */
 
 namespace meevax::kernel
 {
-  /* ==== Cxr Library Procedures ==============================================
+  /* ==== Cxr Library Procedures ===============================================
   *
   * Arbitrary compositions up to four deep are provided.
   *
-  *========================================================================= */
+  *========================================================================== */
   auto caar = lambda::compose(car, car);
   auto cadr = lambda::compose(car, cdr);
   auto cdar = lambda::compose(cdr, car);
@@ -89,11 +150,11 @@ namespace meevax::kernel
   auto cdddar = lambda::compose(cdr, cddar);
   auto cddddr = lambda::compose(cdr, cdddr);
 
-  /* ==== The Homoiconic Iterator =============================================
+  /* ==== The Homoiconic Iterator ==============================================
   *
-  * TODO using list = homoiconic_iterator
+  * TODO std::empty
   *
-  *========================================================================= */
+  *========================================================================== */
   struct homoiconic_iterator
     : public object
   {
@@ -144,191 +205,380 @@ namespace meevax::kernel
     }
   };
 
+  // TODO move into namespace std?
   homoiconic_iterator begin(const object& object) noexcept
   {
     return object;
   }
 
+  // TODO move into namespace std?
   homoiconic_iterator end(const object&) noexcept
   {
     return unit;
   }
 
-  object operator |(const object& lhs, const object& rhs)
+  /* ==== Constructors =========================================================
+  *
+  * From R7RS
+  *   - cons                            => cons
+  *   - list                            => list
+  *
+  * From SRFI-1
+  *   - circular-list
+  *   - cons*                           => cons
+  *   - iota
+  *   - list-copy
+  *   - list-tabulate
+  *   - make-list
+  *   - xcons                           => xcons
+  *
+  *========================================================================== */
+  inline namespace constructor
   {
-    return std::make_shared<pair>(lhs, rhs);
+    inline decltype(auto) operator |(const object& lhs, const object& rhs)
+    {
+      return std::make_shared<pair>(lhs, rhs);
+    }
+
+    auto cons = [](auto&&... xs) constexpr
+    {
+      return (xs | ...);
+    };
+
+    auto list = [](auto&& ... xs) constexpr
+    {
+      return (xs | ... | unit);
+    };
+
+    auto make_list = [](std::size_t size, const object& x = unit)
+    {
+      object result;
+
+      for (std::size_t i {0}; i < size; ++i)
+      {
+        result = cons(x, result);
+      }
+
+      return result;
+    };
+
+    auto xcons = [](auto&&... xs) constexpr
+    {
+      return (... | xs);
+    };
   }
 
-  template <typename... Ts>
-  constexpr decltype(auto) cons(Ts&&... operands) // is also cons*
-  {
-    return (operands | ...);
-  }
-
-  /* ==== The List Type =======================================================
+  /* ==== Predicates ===========================================================
   *
   * TODO Documentations
   *
-  *========================================================================= */
-  template <typename... Ts>
-  constexpr decltype(auto) list(Ts&&... operands)
+  *========================================================================== */
+  inline namespace predicate
   {
-    return (operands | ... | unit);
-  }
-
-  auto make_list = [](std::size_t size, const object& fill)
-  {
-    object result;
-
-    for (std::size_t k {0}; k < size; ++k)
+    auto equivalent = [](auto&& x, auto&& y)
     {
-      result = cons(fill, result);
-    }
+      return x.equivalent_to(y);
+    };
 
-    return result;
-  };
-
-  template <typename... Ts>
-  constexpr decltype(auto) xcons(Ts&&... operands)
-  {
-    return (... | operands);
-  }
-
-  bool is_same(const object& x, const object& y) // equal?
-  {
-    if (not x and not y)
+    bool recursively_equivalent(const object& x, const object& y)
     {
-      return true;
-    }
-    else if (x.is<pair>() and y.is<pair>())
-    {
-      return is_same(car(x), car(y)) and is_same(cdr(x), cdr(y));
-    }
-    else
-    {
-      return x.equals(y); // eqv?
-    }
-  }
-
-  object take(const object& exp, std::size_t size)
-  {
-    if (0 < size)
-    {
-      return car(exp) | take(cdr(exp), --size);
-    }
-    else
-    {
-      return unit;
-    }
-  }
-
-  decltype(auto) length(const homoiconic_iterator& e)
-  {
-    return std::distance(std::begin(e), std::end(e));
-  }
-
-  template <typename List1, typename List2>
-  object append(List1&& list1, List2&& list2 = unit)
-  {
-    if (not list1)
-    {
-      return list2;
-    }
-    else
-    {
-      return car(list1) | append(cdr(list1), list2);
-    }
-  }
-
-  template <typename List>
-  decltype(auto) reverse(List&& list)
-  {
-    if (not list)
-    {
-      return list;
-    }
-    else
-    {
-      auto buffer {car(list)};
-
-      for (auto& head {cdr(list)}; head; head = cdr(head))
+      if (not x and not y)
       {
-        buffer = cons(head, buffer);
+        return true;
       }
+      else if (x.is<pair>() and y.is<pair>())
+      {
+        return
+              recursively_equivalent(car(x), car(y))
+          and recursively_equivalent(cdr(x), cdr(y));
+      }
+      else
+      {
+        return x.equivalent_to(y);
+      }
+    }
 
-      return buffer;
+    template <auto Coarseness = 0>
+    struct equivalence_comparator;
+
+    #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)             \
+    template <>                                                                \
+    struct equivalence_comparator<COARSENESS>                                  \
+    {                                                                          \
+      template <typename... Ts>                                                \
+      decltype(auto) operator ()(Ts&&... operands)                             \
+      {                                                                        \
+        return                                                                 \
+          std::invoke(                                                         \
+            COMPARE,                                                           \
+            std::forward<decltype(operands)>(operands)...);                    \
+      }                                                                        \
+    }
+
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(0, std::equal_to {});
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(1,             equivalent);
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(2, recursively_equivalent);
+
+    #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
+
+    using default_equivalence_comparator = equivalence_comparator<>;
+  }
+
+  /* ==== Selectors ============================================================
+  *
+  * From R7RS
+  *   - car                              => car
+  *   - cdr                              => cdr
+  *   - cxr
+  *   - list-ref                         => list_reference
+  *   - list-tail                        => list_tail
+  *
+  * Selectors
+  *   - car+cdr
+  *   - drop
+  *   - drop-right
+  *   - drop-right!
+  *   - first ~ tenth
+  *   - last
+  *   - last-pair
+  *   - split-at
+  *   - split-at!
+  *   - take                            => take
+  *   - take
+  *   - take!
+  *   - take-right
+  *
+  *========================================================================== */
+  inline namespace selector
+  {
+    auto list_tail
+      = [](homoiconic_iterator iter, auto n)
+    {
+      return std::next(iter, n);
+    };
+
+    auto list_reference
+      = [](const object& x, auto n)
+    {
+      return car(list_tail(x, n));
+    };
+
+    object take(const object& exp, std::size_t size)
+    {
+      if (0 < size)
+      {
+        return car(exp) | take(cdr(exp), --size);
+      }
+      else
+      {
+        return unit;
+      }
     }
   }
 
-  object zip(const object& x, const object& y)
+  /* ==== Miscellaneous ========================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace miscellaneous
   {
-    if (!x && !y)
+    inline decltype(auto) length(const homoiconic_iterator& e)
     {
-      return unit;
+      return std::distance(std::begin(e), std::end(e));
     }
-    else if (x.is<pair>() && y.is<pair>())
+
+    const object append(const object& x, const object& y)
     {
-      return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+      if (not x)
+      {
+        return y;
+      }
+      else
+      {
+        return
+          cons(
+            car(x),
+            append(cdr(x), y));
+      }
     }
-    else
+
+    template <typename List>
+    inline decltype(auto) reverse(List&& list)
     {
-      return unit;
+      if (not list)
+      {
+        return list;
+      }
+      else
+      {
+        auto buffer {car(list)};
+
+        for (auto& head {cdr(list)}; head; head = cdr(head))
+        {
+          buffer = cons(head, buffer);
+        }
+
+        return buffer;
+      }
+    }
+
+    object zip(const object& x, const object& y)
+    {
+      if (!x && !y)
+      {
+        return unit;
+      }
+      else if (x.is<pair>() && y.is<pair>())
+      {
+        return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+      }
+      else
+      {
+        return unit;
+      }
     }
   }
 
-  template <typename Procedure, typename List>
-  object map(Procedure procedure, List&& list)
+  /* ==== Folding ==============================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace folding
   {
-    if (not list)
+  }
+
+  /* ==== Unfolding ============================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace unfolding
+  {
+  }
+
+  /* ==== Mapping ==============================================================
+  *
+  * TODO Documentations
+  *
+  *========================================================================== */
+  inline namespace mapping
+  {
+    template <typename Procedure>
+    object map(Procedure procedure, const object& x)
     {
-      return unit;
-    }
-    else
-    {
-      return procedure(car(list)) | map(procedure, cdr(list));
+      if (not x)
+      {
+        return unit;
+      }
+      else
+      {
+        return
+          cons(
+            procedure(
+              car(x)),
+            map(
+              procedure,
+              cdr(x)));
+      }
     }
   }
 
-  // template <typename Procedure, typename List1, typename List2, typename... Lists>
-  // object map(Procedure procedure, List1&& list1, List2&& list2, Lists&&... lists)
-  // {
-  //   // TODO
-  // }
-
-  const object& assoc(const object& var, const object& env)
+  /* ==== Association List =====================================================
+  *
+  * From R7RS
+  *   - assoc                           => assoc
+  *   - assq                            => assq
+  *   - assv                            => assv
+  *
+  * From SRFI-1
+  *   - alist-cons                      => alist_cons
+  *   - alist-copy
+  *   - alist-delete
+  *   - alist-delete!
+  *
+  *========================================================================== */
+  inline namespace association_list
   {
-    if (!var)
+    const object&
+      assoc(
+        const object& value,
+        const object& association_list)
     {
-      return unit;
+      if (not value or not association_list)
+      {
+        return value;
+      }
+      else if (recursively_equivalent(
+                 caar(association_list),
+                 value))
+      {
+        return car(association_list);
+      }
+      else
+      {
+        return
+          assoc(
+            value,
+            cdr(association_list));
+      }
     }
-    if (!env)
-    {
-      return unbound;
-    }
-    else if (caar(env) == var)
-    {
-      return cadar(env);
-    }
-    else
-    {
-      return assoc(var, cdr(env));
-    }
-  }
 
-  const object& assq(const object& key,
-                     const object& alist)
-  {
-    if (!key or !alist)
+    const object&
+      assv(
+        const object& value,
+        const object& association_list)
     {
-      return false_object;
+      if (not value or not association_list)
+      {
+        return value;
+      }
+      else if (caar(association_list).equivalent_to(value))
+      {
+        return car(association_list);
+      }
+      else
+      {
+        return
+          assv(
+            value,
+            cdr(association_list));
+      }
     }
-    else if (caar(alist) == key)
+
+    const object&
+      assq(
+        const object& value,
+        const object& association_list)
     {
-      return car(alist);
+      if (not value or not association_list)
+      {
+        return value;
+      }
+      else if (caar(association_list) == value)
+      {
+        return car(association_list);
+      }
+      else
+      {
+        return
+          assq(
+            value,
+            cdr(association_list));
+      }
     }
-    else
+
+    const object
+      alist_cons(
+        const object& key,
+        const object& value,
+        const object& alist)
     {
-      return assq(key, cdr(alist));
+      return
+        cons(
+          cons(key, value),
+          alist);
     }
   }
 } // namespace meevax::kernel

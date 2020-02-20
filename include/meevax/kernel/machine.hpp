@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
-#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/de_brujin_index.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/special.hpp>
@@ -12,45 +12,32 @@
 
 inline namespace ugly_macros
 {
-  #define TRACE(N)                                                             \
-  if (static_cast<SyntacticContinuation&>(*this).trace == true_object)         \
-  {                                                                            \
-    std::cerr << "; machine\t; " << "\x1B[?7l" << take(c, N) << "\x1B[?7h" << std::endl; \
-  }
-
   static std::size_t depth {0};
 
   #define DEBUG_COMPILE(...)                                                   \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
-    std::cerr << "; compile\t; " << std::string(depth * 2, ' ') << std::flush << __VA_ARGS__; \
+    std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
+              << std::string(depth * 2, ' ')                                   \
+              __VA_ARGS__;                                                     \
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
     std::cerr << __VA_ARGS__ << attribute::normal << std::endl;                \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
-    std::cerr << "; macroexpand\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
-  }
-
-  // TODO REMOVE THIS!!!
-  #define DEBUG_COMPILE_SYNTAX(...)                                            \
-  if (verbose == true_object or verbose_compiler == true_object)               \
-  {                                                                            \
-    std::cerr << "; compile\t; " << std::string(depth * 4, ' ') << std::flush << __VA_ARGS__; \
+    std::cerr << "; macroexpand\t; "                                           \
+              << std::string(depth * 2, ' ')                                   \
+              << __VA_ARGS__;                                                  \
   }
 
   #define COMPILER_WARNING(...) \
-  if (   static_cast<SyntacticContinuation&>(*this).verbose          == true_object  \
-      or static_cast<SyntacticContinuation&>(*this).verbose_compiler == true_object) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
   {                                                                            \
     std::cerr << attribute::normal  << "; "                                    \
               << highlight::warning << "compiler"                              \
@@ -60,10 +47,10 @@ inline namespace ugly_macros
   }
 
   #define NEST_IN  ++depth
-  #define NEST_OUT --depth; DEBUG_COMPILE(")" << std::endl)
-
-  // TODO REMOVE THIS!!!
-  #define NEST_OUT_SYNTAX --depth; DEBUG_COMPILE_SYNTAX(")" << std::endl)
+  #define NEST_OUT                                                             \
+    DEBUG_COMPILE(                                                             \
+      << highlight::syntax << ")" << attribute::normal << std::endl)           \
+    --depth;
 }
 
 namespace meevax::kernel
@@ -72,52 +59,66 @@ namespace meevax::kernel
   class machine // Simple SECD machine.
   {
   protected:
-    stack s, // main stack
-          e, // lexical environment
-          c, // control stack
-          d; // dump stack (current-continuation)
+    object s, // Stack (holding intermediate results and return address)
+           e, // Environment (giving values to symbols)
+           c, // Code (instructions yet to be executed)
+           d; // Dump (S.E.C)
 
-  private: // CRTP Interfaces
-    decltype(auto) interaction_environment()
-    {
-      return static_cast<SyntacticContinuation&>(*this).interaction_environment();
+  private: // CRTP
+    #define CRTP(IDENTIFIER)                                                   \
+    template <typename... Ts>                                                  \
+    inline decltype(auto) IDENTIFIER(Ts&&... operands)                         \
+    {                                                                          \
+      return                                                                   \
+        static_cast<SyntacticContinuation&>(*this).IDENTIFIER(                 \
+          std::forward<decltype(operands)>(operands)...);                      \
     }
 
-    template <typename... Ts>
-    decltype(auto) intern(Ts&&... operands)
-    {
-      return static_cast<SyntacticContinuation&>(*this).intern(
-               std::forward<decltype(operands)>(operands)...);
-    }
+    CRTP(interaction_environment)
+    CRTP(intern)
+    CRTP(rename)
 
-    // TODO Remove
-    // template <typename... Ts>
-    // decltype(auto) export_(Ts&&... operands)
-    // {
-    //   return static_cast<SyntacticContinuation&>(*this).export_(std::forward<decltype(operands)>(operands)...);
-    // }
+    #undef CRTP
 
   public:
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const object& key, Ts&&... operands)
+    decltype(auto) define(const object& identifier, Ts&&... operands)
     {
-      // auto iter {export_(key, std::forward<decltype(operands)>(operands)...)};
-      // interaction_environment().push(list(iter->first, iter->second));
-      interaction_environment().push(
-        list(key, std::forward<decltype(operands)>(operands)...));
+      push(
+        interaction_environment(),
+        list(identifier, std::forward<decltype(operands)>(operands)...));
 
-      if (   static_cast<SyntacticContinuation&>(*this).verbose        == true_object
-          or static_cast<SyntacticContinuation&>(*this).verbose_define == true_object)
+      if (static_cast<const SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
       {
-        std::cerr << "; define\t; " << caar(interaction_environment()) << "\r\x1b[40C\x1b[K " << cadar(interaction_environment()) << std::endl;
+        std::cerr << "; define\t; "
+                  << caar(interaction_environment())
+                  << "\r\x1b[40C\x1b[K "
+                  << cadar(interaction_environment())
+                  << std::endl;
       }
 
       return interaction_environment(); // temporary
     }
 
-    const object& lookup(const object& identifier,
-                         const object& environment)
+    const object& glocal_environment(const object& e)
+    {
+      for (const auto& frame : e)
+      {
+        if (frame and car(frame) and car(frame).is<SyntacticContinuation>())
+        {
+          // return car(frame).as<SyntacticContinuation>().interaction_environment();
+          return cdar(frame);
+        }
+      }
+
+      return interaction_environment();
+    }
+
+    const object&
+      lookup(
+        const object& identifier,
+        const object& environment)
     {
       if (not identifier or not environment)
       {
@@ -129,7 +130,27 @@ namespace meevax::kernel
       }
       else
       {
-        return lookup(identifier, cdr(environment));
+        return
+          lookup(
+            identifier,
+            cdr(environment));
+      }
+    }
+
+    const object& lookup_key(const object& identifier,
+                             const object& environment)
+    {
+      if (not identifier or not environment)
+      {
+        return identifier;
+      }
+      else if (caar(environment) == identifier)
+      {
+        return caar(environment);
+      }
+      else
+      {
+        return lookup_key(identifier, cdr(environment));
       }
     }
 
@@ -143,28 +164,30 @@ namespace meevax::kernel
     *              | <assignment>
     *              | <derived expression>
     *
-    * TODO Change last boolean argument to template parameter (use if constexpr)
     *----------------------------------------------------------------------- */
-    object compile(const object& expression,
-                   const object& lexical_environment = unit,
-                   const object& continuation = list(make<instruction>(mnemonic::STOP)),
-                   const bool optimizable = false)
+    object compile(
+      const object& expression,
+      const object& syntactic_environment,
+      const object& frames = unit,
+      const object& continuation = list(make<instruction>(mnemonic::STOP)),
+      const compilation_context in_a = as_is)
     {
       if (not expression)
       {
-        return cons(
-          make<instruction>(mnemonic::LOAD_LITERAL), unit,
-          continuation);
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_CONSTANT), unit,
+            continuation);
       }
       else if (not expression.is<pair>())
       {
-        DEBUG_COMPILE(expression << highlight::comment << "\t; ");
+        DEBUG_COMPILE(
+          << expression << highlight::comment << "\t; ");
 
         if (expression.is<symbol>()) // is variable
         {
-          if (de_bruijn_index index {expression, lexical_environment}; index)
+          if (de_bruijn_index index {expression, frames}; index)
           {
-            // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
             if (index.is_variadic())
             {
               DEBUG_COMPILE_DECISION(
@@ -172,7 +195,7 @@ namespace meevax::kernel
 
               return
                 cons(
-                  make<instruction>(mnemonic::LOAD_LOCAL_VARIADIC), index,
+                  make<instruction>(mnemonic::LOAD_VARIADIC), index,
                   continuation);
             }
             else
@@ -203,14 +226,14 @@ namespace meevax::kernel
 
           return
             cons(
-              make<instruction>(mnemonic::LOAD_LITERAL), expression,
+              make<instruction>(mnemonic::LOAD_CONSTANT), expression,
               continuation);
         }
       }
       else // is (application . arguments)
       {
         if (object applicant {lookup(
-              car(expression), interaction_environment()
+              car(expression), syntactic_environment
             )};
             not applicant)
         {
@@ -220,63 +243,72 @@ namespace meevax::kernel
             "later, cause runtime error.");
         }
         else if (applicant.is<special>()
-                 and not de_bruijn_index(car(expression), lexical_environment))
+                 and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-            "(" << car(expression)
-                << highlight::comment << "\t; is <primitive expression> "
-                << attribute::normal << applicant << std::endl);
+            << highlight::syntax << "(" << attribute::normal
+            << car(expression)
+            << highlight::comment << "\t; is <primitive expression> "
+            << attribute::normal << applicant << std::endl);
 
           NEST_IN;
           auto result {std::invoke(applicant.as<special>(),
-            cdr(expression), lexical_environment, continuation, optimizable
+            cdr(expression), syntactic_environment, frames, continuation, in_a
           )};
           NEST_OUT;
 
           return result;
         }
         else if (applicant.is<SyntacticContinuation>()
-                 and not de_bruijn_index(car(expression), lexical_environment))
+                 and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-            "(" << car(expression)
-                << highlight::comment << "\t; is <macro use> of <derived expression> "
-                << attribute::normal << applicant
-                << attribute::normal << std::endl);
+            << highlight::syntax << "(" << attribute::normal
+            << car(expression)
+            << highlight::comment << "\t; is <macro use> of <derived expression> "
+            << attribute::normal << applicant
+            << attribute::normal << std::endl);
 
           // std::cerr << "Syntactic-Continuation holds "
           //           << applicant.as<SyntacticContinuation>().continuation()
           //           << std::endl;
 
           const auto expanded {
-            applicant.as<SyntacticContinuation&>().expand(
-              expression)
+            applicant.as<SyntacticContinuation>().expand(
+              cons(
+                applicant,
+                cdr(expression)))
           };
 
           DEBUG_MACROEXPAND(expanded << std::endl);
 
-          NEST_IN;
-          auto result {compile(expanded, lexical_environment, continuation)};
-          NEST_OUT;
+          // NEST_IN;
+          auto result {compile(
+            expanded, syntactic_environment, frames, continuation)};
+          // NEST_OUT;
 
           return result;
         }
 
         DEBUG_COMPILE(
-          "(" << highlight::comment << "\t; is <procedure call>"
-              << attribute::normal << std::endl);
+          << highlight::syntax << "(" << attribute::normal
+          << highlight::comment << "\t; is <procedure call>"
+          << attribute::normal << std::endl);
 
         NEST_IN;
         auto result {
           operand(
             cdr(expression),
-            lexical_environment,
+            syntactic_environment,
+            frames,
             compile(
               car(expression),
-              lexical_environment,
+              syntactic_environment,
+              frames,
               cons(
                 make<instruction>(
-                  optimizable ? mnemonic::APPLY_TAIL : mnemonic::APPLY),
+                  in_a.tail_expression ? mnemonic::TAIL_CALL
+                                       : mnemonic::CALL),
                 continuation)))
         };
         NEST_OUT;
@@ -284,183 +316,353 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) execute(const object& expression)
+    void disassemble(const object& c, std::size_t depth = 1)
     {
+      assert(0 < depth);
+
+      for (homoiconic_iterator iter {c}; iter; ++iter)
+      {
+        std::cerr << "; ";
+
+        if (iter == c)
+        {
+          std::cerr << std::string(4 * (depth - 1), ' ')
+                    << highlight::syntax
+                    << "("
+                    << attribute::normal
+                    << std::string(3, ' ');
+        }
+        else
+        {
+          std::cerr << std::string(4 * depth, ' ');
+        }
+
+        switch ((*iter).as<instruction>().code)
+        {
+        case mnemonic::CALL:
+        case mnemonic::TAIL_CALL:
+        case mnemonic::JOIN:
+        case mnemonic::POP:
+        case mnemonic::CONS:
+          std::cerr << *iter << std::endl;
+          break;
+
+        case mnemonic::RETURN:
+        case mnemonic::STOP:
+          std::cerr << *iter
+                    << highlight::syntax
+                    << "\t)"
+                    << attribute::normal
+                    << std::endl;
+          break;
+
+        case mnemonic::DEFINE:
+        case mnemonic::FORK:
+        case mnemonic::LOAD_CONSTANT:
+        case mnemonic::LOAD_GLOBAL:
+        case mnemonic::LOAD_LOCAL:
+        case mnemonic::LOAD_VARIADIC:
+        case mnemonic::STORE_GLOBAL:
+        case mnemonic::STORE_LOCAL:
+        case mnemonic::STORE_VARIADIC:
+          std::cerr << *iter << " " << *++iter << std::endl;
+          break;
+
+        case mnemonic::LOAD_CLOSURE:
+        case mnemonic::LOAD_CONTINUATION:
+          std::cerr << *iter << std::endl;
+          disassemble(*++iter, depth + 1);
+          break;
+
+
+        case mnemonic::SELECT:
+        case mnemonic::TAIL_SELECT:
+          std::cerr << *iter << std::endl;
+          disassemble(*++iter, depth + 1);
+          disassemble(*++iter, depth + 1);
+          break;
+
+        default:
+          assert(false);
+        }
+      }
+    }
+
+    // XXX DO NOT USE THIS EXCEPT FOR THE EVALUATE PROCEDURE.
+    decltype(auto) execute_interrupt(const object& expression)
+    {
+      push(
+        d,
+        s,
+        e,
+        cons(
+          make<instruction>(mnemonic::STOP),
+          c ? cdr(c) : c));
+
+      s = unit;
+      e = unit;
       c = expression;
 
-      if (   static_cast<SyntacticContinuation&>(*this).verbose         == true_object
-          or static_cast<SyntacticContinuation&>(*this).verbose_machine == true_object)
+      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
       {
-        std::cerr << "; machine\t; " << c << std::endl;
+        // std::cerr << "; disassemble\t; for " << &c << std::endl;
+        std::cerr << "; " << std::string(78, '*') << std::endl;
+        disassemble(c);
+        std::cerr << "; " << std::string(78, '*') << std::endl;
       }
 
-      return execute();
+      const auto result {execute()};
+
+      s = pop(d);
+      e = pop(d);
+      c = pop(d);
+
+      return result;
     }
 
     object execute()
     {
-      // TODO
-      // 上の引数付き版ではない、execute の直接呼び出しはおそらくマクロ展開にしか使われていないはずで、
-      // --debug-macroexpand で下のプリントを有効にするべきだと思うが、
-      // ここまでそれを意識して実装していないため保留する
-      //
-      // std::cerr << "; machine\t; " << c << std::endl;
-
     dispatch:
-      switch (c.top().template as<instruction>().code)
+      if (static_cast<SyntacticContinuation&>(*this)
+            .trace.equivalent_to(true_object))
       {
-      case mnemonic::LOAD_LOCAL: // S E (LOAD_LOCAL (i . j) . C) D => (value . S) E C D
-        TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
+        std::cerr << "; trace s\t; " <<  s << std::endl;
+        std::cerr << ";       e\t; " <<  e << std::endl;
+        std::cerr << ";       c\t; " <<  c << std::endl;
+        std::cerr << ";       d\t; " <<  d << std::endl;
+        std::cerr << std::endl;
+      }
 
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()});
-
-          s.push(*position);
-        }
-        c.pop(2);
+      switch (car(c).template as<instruction>().code)
+      {
+      /* ====*/ case mnemonic::LOAD_LOCAL: /*===================================
+      *
+      *              S  E (LOAD_LOCAL (i . j) . C) D
+      *
+      * => (result . S) E                       C  D
+      *
+      * where result = (list-ref (list-ref E i) j)
+      *
+      *====================================================================== */
+        push(
+          s,
+          list_reference(
+            list_reference(
+              e,
+              static_cast<int>(
+                caadr(c).template as<real>())),
+            static_cast<int>(
+              cdadr(c).template as<real>())));
+        pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_LOCAL_VARIADIC:
-        TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
-
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()});
-
-          s.push(position);
-        }
-        c.pop(2);
+      case mnemonic::LOAD_VARIADIC:
+        push(
+          s,
+          list_tail(
+            list_reference(
+              e,
+              static_cast<int>(
+                caadr(c).template as<real>())),
+            static_cast<int>(
+              cdadr(c).template as<real>())));
+        pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_LITERAL: // S E (LOAD_LITERAL constant . C) D => (constant . S) E C D
-        TRACE(2);
-        s.push(cadr(c));
-        c.pop(2);
+      case mnemonic::LOAD_CONSTANT: // S E (LOAD_CONSTANT constant . C) D => (constant . S) E C D
+        push(s, cadr(c));
+        pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_GLOBAL: // S E (LOAD_GLOBAL symbol . C) D => (value . S) E C D
-        TRACE(2);
-        if (auto value {
-              assoc(
+      /* ====*/ case mnemonic::LOAD_GLOBAL: /*==================================
+      *
+      *              S  E (LOAD_GLOBAL identifier . C) D
+      *
+      * => (object . S) E                           C  D
+      *
+      *====================================================================== */
+        if (const object value {
+              std::invoke(
+                cadr(c).template is<symbol>() ? assq : assoc,
                 cadr(c),
-                interaction_environment())
-            }; value != unbound)
+                glocal_environment(e))
+            }; value != cadr(c))
         {
-          s.push(value);
+          push(s, cadr(value));
+        }
+        else // UNBOUND
+        {
+          push(s, rename(cadr(c)));
+        }
+        pop<2>(c);
+        goto dispatch;
+
+      /* ====*/ case mnemonic::LOAD_CLOSURE: /*=================================
+      *
+      *               S  E (LOAD_CLOSURE body . C) D
+      *
+      * => (closure . S) E                      C  D
+      *
+      *====================================================================== */
+        push(
+          s,
+          make<closure>(
+            cadr(c),
+            e));
+        pop<2>(c);
+        goto dispatch;
+
+      /* ====*/ case mnemonic::LOAD_CONTINUATION: /*============================
+      *
+      *                      S  E (LOADK cc . C) D
+      *
+      * => ((continuation) . S) E             C  D
+      *
+      *====================================================================== */
+        push(
+          s,
+          list(
+            make<continuation>(
+              s,
+              cons(
+                e,
+                cadr(c),
+                d))));
+        pop<2>(c);
+        goto dispatch;
+
+      /* ====*/ case mnemonic::FORK: /*=========================================
+      *
+      *                  S  E (FORK sc . C) D
+      *
+      * => (subprogram . S) E            C  D
+      *
+      *====================================================================== */
+        // std::cerr << "; FORK\t; making syntactic-continuation" << std::endl;
+        // std::cerr << "\t\t; s = " << s << std::endl;
+        // std::cerr << "\t\t; e = " << e << std::endl;
+        // std::cerr << "\t\t; c = " << c << std::endl;
+        // std::cerr << "\t\t; d = " << d << std::endl;
+        push(
+          s,
+          make<SyntacticContinuation>(
+            cons(
+              s,
+              e,
+              cadr(c), // compile continuation
+              d),
+            interaction_environment()));
+        pop<2>(c);
+        goto dispatch;
+
+      // /* ====*/ case mnemonic::FORK: /*=========================================
+      // *
+      // *    (closure . S) E (FORK . C) D
+      // *
+      // * => (program . S) E         C  D
+      // *
+      // *====================================================================== */
+      //   push(
+      //     s,
+      //     make<SyntacticContinuation>(
+      //       pop(s), // XXX car(s)?
+      //       interaction_environment()));
+      //   pop<1>(c);
+      //   goto dispatch;
+
+      /* ====*/ case mnemonic::SELECT: /*=======================================
+      *
+      *    (test . S) E (SELECT consequent alternate . C)  D
+      *
+      * =>         S  E         selection             (C . D)
+      *
+      * where selection = (if test consequent alternate)
+      *
+      *====================================================================== */
+        push(d, cdddr(c));
+        [[fallthrough]];
+
+      /* ====*/ case mnemonic::TAIL_SELECT: /*==================================
+      *
+      *    (test . S) E (SELECT consequent alternate . C)  D
+      *
+      * =>         S  E         selection                  D
+      *
+      * where selection = (if test consequent alternate)
+      *
+      *====================================================================== */
+        c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
+        pop<1>(s);
+        goto dispatch;
+
+      /* ====*/ case mnemonic::JOIN: /*=========================================
+      *
+      *    S E (JOIN) (C . D)
+      *
+      * => S E         C   D
+      *
+      *====================================================================== */
+        c = car(d);
+        pop<1>(d);
+        goto dispatch;
+
+      /* ====*/ case mnemonic::DEFINE: /*=======================================
+      *
+      *        (object . S) E (DEFINE identifier . C) D
+      *
+      * => (identifier . S) E                      C  D
+      *
+      *====================================================================== */
+        if (static_cast<SyntacticContinuation&>(*this).virgin)
+        {
+          define(cadr(c), car(s));
+          car(s) = unspecified;
         }
         else
         {
-          // throw evaluation_error {cadr(c), " is unbound"};
-
-          if (   static_cast<SyntacticContinuation&>(*this).verbose == true_object
-              or static_cast<SyntacticContinuation&>(*this).verbose_machine == true_object)
-          {
-            std::cerr << "; machine\t; instruction " << car(c) << " received undefined variable " << cadr(c) << ".\n"
-                      << ";\t\t; start implicit renaming..." << std::endl;
-          }
-
-          /* ------------------------------------------------------------------
-          * When an undefined symbol is evaluated, it returns a symbol that is
-          * guaranteed not to collide with any symbol from the past to the
-          * future. This behavior is defined for the hygienic-macro.
-          *----------------------------------------------------------------- */
-          s.push(static_cast<SyntacticContinuation&>(*this).rename(cadr(c)));
+          std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
         }
-        c.pop(2);
+        pop<2>(c);
         goto dispatch;
 
-      case mnemonic::MAKE_ENVIRONMENT: // S E (MAKE_ENVIRONMENT code . C) => (enclosure . S) E C D
-        TRACE(2);
-        // s.push(make<SyntacticContinuation>(cadr(c), interaction_environment()));
-        s.push(
-          make<SyntacticContinuation>(
-            make<closure>(cadr(c), e),
-            interaction_environment()));
-        c.pop(2);
-        goto dispatch;
-
-      case mnemonic::MAKE_CLOSURE: // S E (MAKE_CLOSURE code . C) => (closure . S) E C D
-        TRACE(2);
-        s.push(
-          make<closure>(cadr(c), e));
-        c.pop(2);
-        goto dispatch;
-
-      case mnemonic::MAKE_CONTINUATION: // S E (MAKE_CONTINUATION code . C) D => ((continuation) . S) E C D
-        TRACE(2);
-        s.push(
-          list(
-            make<continuation>(s, cons(e, cadr(c), d)))); // XXX 本当は cons(s, e, cadr(c), d) としたいけど、make<continuation> の引数はペア型の引数である必要があるため歪な形になってる。
-        c.pop(2);
-        goto dispatch;
-
-      case mnemonic::MAKE_SYNTACTIC_CONTINUATION: // (closure . S) E (MAKE_SYNTACTIC_CONTINUATION . C) => (syntactic-continuation . S) E C D
-        TRACE(2);
-        s = make<SyntacticContinuation>(
-              car(s),
-              interaction_environment())
-          | cdr(s);
-        c.pop(1);
-        goto dispatch;
-
-      case mnemonic::SELECT: // (boolean . S) E (SELECT then else . C) D => S E then/else (C . D)
-        TRACE(3);
-        d.push(cdddr(c));
-        c = car(s) != false_object ? cadr(c) : caddr(c);
-        s.pop(1);
-        goto dispatch;
-
-      case mnemonic::SELECT_TAIL:
-        TRACE(3);
-        c = car(s) != false_object ? cadr(c) : caddr(c);
-        s.pop(1);
-        goto dispatch;
-
-      case mnemonic::JOIN: // S E (JOIN . x) (C . D) => S E C D
-        TRACE(1);
-        c = car(d);
-        d.pop(1);
-        goto dispatch;
-
-      case mnemonic::DEFINE:
-        TRACE(2);
-        define(cadr(c), car(s));
-        car(s) = cadr(c); // return value of define
-        c.pop(2);
-        goto dispatch;
-
-      case mnemonic::APPLY:
-        TRACE(1);
-
-        if (object callee {car(s)}; not callee)
+      case mnemonic::CALL:
+        if (const object callee {car(s)}; not callee)
         {
           static const error e {"unit is not appliciable"};
           throw e;
         }
-        else if (callee.is<closure>()) // (closure operands . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
-          d.push(cddr(s), e, cdr(c));
+          push(d, cddr(s), e, cdr(c));
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s))
-            | cddr(s);
-          c.pop(1);
+          s = cons(
+                std::invoke(
+                  callee.as<procedure>(),
+                  resource {},
+                  cadr(s)),
+                cddr(s));
+          pop<1>(c);
         }
-        // else if (callee.is<SyntacticContinuation>())
-        // {
-        //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
-        //   c.pop(1);
-        // }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
+        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
+        {
+          // s = cons(
+          //       callee.as<SyntacticContinuation>().expand(
+          //         cons(
+          //           car(s),
+          //           cadr(s))),
+          //       cddr(s));
+          s = cons(
+                callee.as<SyntacticContinuation>().evaluate( // TODO expand => evaluate ?
+                  cadr(s)),
+                cddr(s));
+          pop<1>(c);
+        }
+        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(caadr(s), car(callee));
           e = cadr(callee);
@@ -473,30 +675,42 @@ namespace meevax::kernel
         }
         goto dispatch;
 
-      case mnemonic::APPLY_TAIL:
-        TRACE(1);
-
+      case mnemonic::TAIL_CALL:
         if (object callee {car(s)}; not callee)
         {
           throw evaluation_error {"unit is not appliciable"};
         }
-        else if (callee.is<closure>()) // (closure operands . S) E (APPLY . C) D
+        else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (APPLY . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          s = std::invoke(callee.as<procedure>(), cadr(s)) | cddr(s);
-          c.pop(1);
+          s = cons(
+                std::invoke(
+                  callee.as<procedure>(),
+                  resource {},
+                  cadr(s)),
+                cddr(s));
+          pop<1>(c);
         }
-        // else if (callee.is<SyntacticContinuation>())
-        // {
-        //   s = callee.as<SyntacticContinuation>().expand(car(s) | cadr(s)) | cddr(s);
-        //   c.pop(1);
-        // }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (APPLY . C) D
+        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
+        {
+          // s = cons(
+          //       callee.as<SyntacticContinuation>().expand(
+          //         cons(
+          //           car(s),
+          //           cadr(s))),
+          //       cddr(s));
+          s = cons(
+                callee.as<SyntacticContinuation>().evaluate(
+                  cadr(s)),
+                cddr(s));
+          pop<1>(c);
+        }
+        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(caadr(s), car(callee));
           e = cadr(callee);
@@ -509,272 +723,280 @@ namespace meevax::kernel
         }
         goto dispatch;
 
-      case mnemonic::RETURN: // (value . S) E (RETURN . C) (S' E' C' . D) => (value . S') E' C' D
-        TRACE(1);
-        s = cons(car(s), d.pop());
-        e = d.pop();
-        c = d.pop();
+      /* ====*/ case mnemonic::RETURN: /*=======================================
+      *
+      *    (result . S)  E (RETURN . C) (S' E' C' . D)
+      *
+      * => (result . S') E'          C'             D
+      *
+      *====================================================================== */
+        s = cons(
+              car(s), // The result of procedure
+              pop(d));
+        e = pop(d);
+        c = pop(d);
         goto dispatch;
 
-      case mnemonic::PUSH:
-        TRACE(1);
-        s = car(s) | cadr(s) | cddr(s);
-        c.pop(1);
+      /* ====*/ case mnemonic::CONS: /*=========================================
+      *
+      *    ( X   Y  . S) E (CONS . C) D
+      *
+      * => ((X . Y) . S) E         C  D
+      *
+      *====================================================================== */
+        s = cons(cons(car(s), cadr(s)), cddr(s));
+        pop<1>(c);
         goto dispatch;
 
-      case mnemonic::POP: // (var . S) E (POP . C) D => S E C D
-        TRACE(1);
-        s.pop(1);
-        c.pop(1);
+      /* ====*/ case mnemonic::POP: /*==========================================
+      *
+      *    (result . S) E (POP . C) D
+      *
+      * =>           S  E        C  D
+      *
+      *====================================================================== */
+        pop<1>(s);
+        pop<1>(c);
         goto dispatch;
 
-      case mnemonic::SET_GLOBAL: // (value . S) E (SET_GLOBAL symbol . C) D => (value . S) E C D
-        TRACE(2);
-        // TODO
-        // (1) There is no need to make copy if right hand side is unique.
-        // (2) There is no matter overwrite if left hand side is unique.
-        // (3) Should set with weak reference if right hand side is newer.
-        if (const auto& key_value {assq(cadr(c), interaction_environment())}; key_value != false_object)
+      /* ====*/ case mnemonic::STORE_GLOBAL: /*=================================
+      *
+      *    (value . S) E (STORE-GLOBAL identifier . C) D
+      *
+      * => (value . S) E                            C  D
+      *
+      * TODO
+      * (1) There is no need to make copy if right hand side is unique.
+      * (2) There is no matter overwrite if left hand side is unique.
+      * (3) Should set with weak reference if right hand side is newer.
+      *
+      *====================================================================== */
+        if (const object pare {
+              assq(cadr(c), glocal_environment(e))
+            }; pare != cdadr(c))
         {
-          // std::cerr << key_value << std::endl;
-          std::atomic_store(&cadr(key_value), car(s).copy());
+          if (const auto value {cadr(pare)}; not value)
+          {
+            cadr(pare) = car(s);
+          }
+          else if (value.is<SyntacticContinuation>() or value.is<special>())
+          {
+            /* ---- From R7RS 5.3.1. Top level definitions ---------------------
+            *
+            * However, if <variable> is not bound, or is a syntactic keyword,
+            * then the definition will bind <variable> to a new location before
+            * performing the assignment, whereas it would be an error to perform
+            * a set! on an unbound variable.
+            *
+            *---------------------------------------------------------------- */
+            define(cadr(c), car(s));
+          }
+          else
+          {
+            std::atomic_store(&cadr(pare), car(s).copy());
+          }
+        }
+        else // UNBOUND
+        {
+          // TODO IF TOPLELVEL, SET ON UNBOUND VARIABLE => DEFINE
+
+          throw evaluation_error {
+            "it would be an error to perform a set! on an unbound variable (from R7RS 5.3.1. Top level definitions)"
+          };
+        }
+        // car(s) = unspecified;
+        pop<2>(c);
+        goto dispatch;
+
+      case mnemonic::STORE_LOCAL: // (value . S) E (STORE_LOCAL (i . j) . C) D => (value . S) E C D
+        std::atomic_store(
+          &car(
+            list_tail(
+              list_reference(
+                e,
+                static_cast<int>(
+                  caadr(c).template as<real>())),
+              static_cast<int>(
+                cdadr(c).template as<real>()))),
+          car(s));
+        pop<2>(c);
+        goto dispatch;
+
+      case mnemonic::STORE_VARIADIC:
+        std::atomic_store(
+          &cdr(
+            list_tail(
+              list_reference(
+                e,
+                static_cast<int>(
+                  caadr(c).template as<real>())),
+              static_cast<int>(
+                cdadr(c).template as<real>() - 1))),
+          car(s));
+        pop<2>(c);
+        goto dispatch;
+
+      /* ====*/ case mnemonic::STOP: /*=========================================
+      *
+      * (result . S) E (STOP . C) D
+      *
+      *====================================================================== */
+      default:
+        pop<1>(c);
+        return pop(s);
+        // return car(s);
+      }
+    }
+
+  protected: // Primitive Expression Types
+    #define DEFINE_PRIMITIVE_EXPRESSION(NAME, ...)                             \
+    const object NAME(                                                         \
+      [[maybe_unused]] const object& expression,                               \
+      [[maybe_unused]] const object& syntactic_environment,                    \
+      [[maybe_unused]] const object& frames,                                   \
+      [[maybe_unused]] const object& continuation,                             \
+      [[maybe_unused]] const compilation_context in_a = as_is)                 \
+    __VA_ARGS__
+
+    /* ==== Quotation =========================================================
+    *
+    * <quotation> = (quote <datum>)
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(quotation,
+    {
+      DEBUG_COMPILE(
+        << car(expression)
+        << highlight::comment << "\t; is <datum>"
+        << attribute::normal << std::endl);
+
+      return
+        cons(
+          make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
+          continuation);
+    })
+
+    /* ==== Sequence ==========================================================
+    *
+    * <sequence> = <command>* <expression>
+    *
+    * <command> = <expression>
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(sequence,
+    {
+      if (in_a.program_declaration)
+      {
+        if (not cdr(expression))
+        {
+          return
+            compile(
+              car(expression),
+              syntactic_environment,
+              frames,
+              continuation,
+              as_program_declaration);
         }
         else
         {
-          throw make<error>(cadr(c), " is unbound");
+          return
+            compile(
+              car(expression),
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP),
+                sequence(
+                  cdr(expression),
+                  syntactic_environment,
+                  frames,
+                  continuation,
+                  as_program_declaration)),
+              as_program_declaration);
         }
-        c.pop(2);
-        goto dispatch;
-
-      case mnemonic::SET_LOCAL: // (value . S) E (SET_LOCAL (i . j) . C) D => (value . S) E C D
-        TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
-
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()});
-
-          std::atomic_store(&car(position), car(s));
-        }
-        c.pop(2);
-        goto dispatch;
-
-      case mnemonic::SET_LOCAL_VARIADIC:
-        TRACE(2);
-        {
-          homoiconic_iterator region {e};
-          std::advance(region, int {caadr(c).template as<real>()});
-
-          homoiconic_iterator position {*region};
-          std::advance(position, int {cdadr(c).template as<real>()} - 1);
-
-          std::atomic_store(&cdr(position), car(s));
-        }
-        c.pop(2);
-        goto dispatch;
-
-      case mnemonic::STOP: // (result . S) E (STOP . C) D
-      default:
-        TRACE(1);
-        c.pop(1);
-        return s.pop(); // car(s);
-      }
-    }
-
-    class de_bruijn_index
-      : public object // for runtime
-    {
-      bool variadic;
-
-    public:
-      template <typename... Ts>
-      de_bruijn_index(Ts&&... operands)
-        : object {locate(std::forward<decltype(operands)>(operands)...)}
-      {}
-
-      object locate(const object& variable,
-                    const object& lexical_environment)
-      {
-        auto i {0};
-
-        for (const auto& region : lexical_environment)
-        {
-          auto j {0};
-
-          for (homoiconic_iterator position {region}; position; ++position)
-          {
-            if (position.is<pair>() && *position == variable)
-            {
-              variadic = false;
-
-              return
-                cons(
-                  make<real>(i),
-                  make<real>(j));
-            }
-            else if (not position.is<pair>() && position == variable)
-            {
-              variadic = true;
-
-              return
-                cons(
-                  make<real>(i),
-                  make<real>(j));
-            }
-
-            ++j;
-          }
-
-          ++i;
-        }
-
-        return unit;
-      }
-
-      bool is_variadic() const noexcept
-      {
-        return variadic;
-      }
-    };
-
-  protected: // syntax
-    /*
-     * <quotation> = (quote <datum>)
-     */
-    object quotation(const object& expression,
-                     const object&,
-                     const object& continuation, bool)
-    {
-      DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <datum>"
-                        << attribute::normal << std::endl
-      );
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_LITERAL), car(expression),
-          continuation);
-    }
-
-    /*
-     * <sequence> = <command>* <expression>
-     *
-     * <command> = <expression (the return value will be ignored)>
-     */
-    object sequence(const object& expression,
-                    const object& lexical_environment,
-                    const object& continuation,
-                    const bool optimization = false)
-    {
-      if (not cdr(expression)) // is tail sequence
-      {
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            continuation,
-            optimization);
       }
       else
       {
-        return
-          compile(
-            car(expression), // head expression
-            lexical_environment,
-            cons(
-              make<instruction>(mnemonic::POP), // pop result of head expression
-              sequence(
-                cdr(expression), // rest expressions
-                lexical_environment,
-                continuation)));
+        if (not cdr(expression)) // is tail sequence
+        {
+          return
+            compile(
+              car(expression),
+              syntactic_environment,
+              frames,
+              continuation);
+        }
+        else
+        {
+          return
+            compile(
+              car(expression), // head expression
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP), // pop result of head expression
+                sequence(
+                  cdr(expression), // rest expressions
+                  syntactic_environment,
+                  frames,
+                  continuation)));
+        }
       }
-    }
+    })
 
-    /*
-     * <program> = <command or definition>+
-     *
-     * <command or definition> = <command>
-     *                         | <definition>
-     *                         | (begin <command or definition>+)
-     *
-     * <command> = <expression (the return value will be ignored)>
-     */
-    object program(const object& expression,
-                   const object& lexical_environment,
-                   const object& continuation, const bool = false) try
+    /* ==== Definition ========================================================
+    *
+    * <definition> = (define <identifier> <expression>)
+    *
+    * TODO MOVE INTO SYNTACTIC_CONTINUATION
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(definition,
     {
-      if (not cdr(expression)) // is tail sequence
-      {
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            continuation,
-            true);
-      }
-      else
-      {
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            cons(
-              make<instruction>(mnemonic::POP),
-              sequence(
-                cdr(expression),
-                lexical_environment,
-                continuation)));
-      }
-    }
-    catch (const error&) // XXX <definition> backtrack
-    {
-      // (environment (<unknown>)
-      //   <car expression>
-      //   <cdr expression>
-      //   )
-      //
-      // <car expression> = (<caar expression> <cadar expression> <caddar expression>)
-      //                  = (#(syntax define) <identifier> <expression>)
-
-      auto definition {
-        compile(
-          cddar(expression) ? caddar(expression) : undefined,
-          lexical_environment,
-          list(
-            make<instruction>(mnemonic::DEFINE), cadar(expression)))
-      };
-
-      NEST_OUT;
-
-      return
-        append(
-          definition,
-          cdr(expression)
-            ? program(
-                cdr(expression),
-                lexical_environment,
-                continuation)
-            : continuation);
-    }
-
-    /*
-     * <definition> = (define <identifier> <expression>)
-     */
-    object definition(const object& expression,
-                      const object& lexical_environment,
-                      const object& continuation,
-                      const bool = false)
-    {
-      if (not lexical_environment)
+      if (not frames or in_a.program_declaration)
       {
         DEBUG_COMPILE(
-          car(expression) << highlight::comment << "\t; is <variable>"
-                          << attribute::normal << std::endl);
+          << car(expression)
+          << highlight::comment << "\t; is <variable>"
+          << attribute::normal << std::endl);
+
+        // const auto definition {compile(
+        //   cdr(expression) ? cadr(expression) : unspecified,
+        //   syntactic_environment,
+        //   frames,
+        //   list(
+        //     make<instruction>(mnemonic::DEFINE), car(expression),
+        //     make<instruction>(mnemonic::STOP))
+        // )};
+        //
+        // object result {unit};
+        //
+        // if (in_a.program_declaration)
+        // {
+        //   c = definition;
+        //
+        //   // std::cerr << ";\t\t; s = " << s << std::endl;
+        //   // std::cerr << ";\t\t; e = " << e << std::endl;
+        //   // std::cerr << ";\t\t; c = " << c << std::endl;
+        //   // std::cerr << ";\t\t; d = " << d << std::endl;
+        //
+        //   result = execute();
+        // }
+        // else
+        // {
+        //   result = execute_interrupt(definition);
+        // }
+        //
+        // return
+        //   cons(
+        //     make<instruction>(mnemonic::LOAD_CONSTANT), result,
+        //     continuation);
 
         return
           compile(
-            cdr(expression) ? cadr(expression) : undefined,
-            lexical_environment,
+            cdr(expression) ? cadr(expression) : unspecified,
+            syntactic_environment,
+            frames,
             cons(
               make<instruction>(mnemonic::DEFINE), car(expression),
               continuation));
@@ -784,89 +1006,127 @@ namespace meevax::kernel
         throw syntax_error_about_internal_define {
           "definition cannot appear in this context"
         };
+        // throw
+        //   compile(
+        //     cdr(expression) ? cadr(expression) : undefined,
+        //     syntactic_environment,
+        //     frames,
+        //     cons(
+        //       make<instruction>(mnemonic::DEFINE), car(expression),
+        //       continuation));
       }
-    }
+    })
 
-    /*
-     * <body> := <definition>* <sequence>
-     */
-    object body(const object& expression,
-                const object& lexical_environment,
-                const object& continuation, bool = false) // try
+    /* ==== Lambda Body =======================================================
+    *
+    * <body> = <definition>* <sequence>
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(body,
     {
-      /************************************************************************
+      /* ----------------------------------------------------------------------
+      *
       * The expression may have following form.
       *
       * (lambda (...)
-      *   <definition or command> ;= <car expression>
+      *   <definition or command>  ;= <car expression>
       *   <definition or sequence> ;= <cdr expression>
       *   )
-      ************************************************************************/
+      *
+      *---------------------------------------------------------------------- */
       if (not cdr(expression)) // is tail sequence
       {
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * The expression may have following form.
         * If definition appears in <car expression>, it is an syntax error.
         *
         * (lambda (...)
         *   <expression> ;= <car expression>
         *   )
-        **********************************************************************/
-        return
-          compile(
-            car(expression),
-            lexical_environment,
-            continuation,
-            true); // tail-call optimization
+        *
+        *-------------------------------------------------------------------- */
+        if (in_a.program_declaration)
+        {
+          return
+            compile(
+              car(expression),
+              syntactic_environment,
+              frames,
+              continuation,
+              as_tail_expression_of_program_declaration);
+        }
+        else
+        {
+          return
+            compile(
+              car(expression),
+              syntactic_environment,
+              frames,
+              continuation,
+              as_tail_expression);
+        }
       }
       else if (not car(expression))
       {
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * The expression may have following form.
         * If definition appears in <cdr expression>, it is an syntax error.
         *
         * (lambda (...)
-        *   () ;= <car expression>
+        *   ()         ;= <car expression>
         *   <sequence> ;= <cdr expression>)
-        **********************************************************************/
-        return
-          sequence(
-            cdr(expression),
-            lexical_environment,
-            continuation);
+        *
+        *-------------------------------------------------------------------- */
+        if (in_a.program_declaration)
+        {
+          return
+            sequence(
+              cdr(expression),
+              syntactic_environment,
+              frames,
+              continuation,
+              as_program_declaration);
+        }
+        else
+        {
+          return
+            sequence(
+              cdr(expression),
+              syntactic_environment,
+              frames,
+              continuation);
+        }
       }
-      else if (not car(expression).is<pair>()
-               or caar(expression) != intern("define"))
+      // XXX DIRTY HACK
+      else if (car(expression).is<pair>() // is application
+               and caar(expression) // the operator is not illegal
+               and caar(expression).template is<symbol>() // the operator is variable reference
+               and not de_bruijn_index( // the operator is not local variable
+                         caar(expression),
+                         frames)
+               and lookup( // the variable references special form
+                     caar(expression),
+                     syntactic_environment)
+                   .template is<special>()
+               and lookup( // the special form is "define"
+                     caar(expression),
+                     syntactic_environment)
+                   .template as<special>()
+                   .name == "define")
       {
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * The expression may have following form.
+        * If definition appears in <car expression> or <cdr expression>, it is
+        * an syntax error.
         *
         * (lambda (...)
-        *   <non-definition expression> ;= <car expression>
+        *   (define <variable> <initialization>) ;= <car expression>
         *   <sequence> ;= <cdr expression>)
-        **********************************************************************/
-        return
-          compile(
-            car(expression), // <non-definition expression>
-            lexical_environment,
-            cons(
-              make<instruction>(mnemonic::POP), // remove result of expression
-              sequence(
-                cdr(expression),
-                lexical_environment,
-                continuation)));
-      }
-      else // 5.3.2 Internal Definitions
-      {
-        /**********************************************************************
-         * The expression may have following form.
-         * If definition appears in <car expression> or <cdr expression>, it is
-         * an syntax error.
-         *
-         * (lambda (...)
-         *   (define <variable> <initialization>) ;= <car expression>
-         *   <sequence> ;= <cdr expression>)
-         *********************************************************************/
+        *
+        *-------------------------------------------------------------------- */
         // std::cerr << "; letrec*\t; <expression> := " << expression << std::endl;
 
         // <bindings> := ( (<variable> <initialization>) ...)
@@ -877,7 +1137,8 @@ namespace meevax::kernel
         // <body> of letrec* := <sequence>+
         object body {};
 
-        /**********************************************************************
+        /* --------------------------------------------------------------------
+        *
         * Collect <definition>s from <cdr expression>.
         * It is guaranteed that <cdr expression> is not unit from first
         * conditional of this member function.
@@ -889,12 +1150,12 @@ namespace meevax::kernel
         *   ...
         *   <expression N> )
         *
-        **********************************************************************/
+        *-------------------------------------------------------------------- */
         for (homoiconic_iterator each {cdr(expression)}; each; ++each)
         {
           if (not car(each) or // unit (TODO? syntax-error)
               not car(each).is<pair>() or // <identifier or literal>
-              caar(each) != intern("define"))
+              caar(each) != intern("define")) // XXX THIS IS NOT HYGIENIC
           {
             body = each;
 
@@ -936,29 +1197,76 @@ namespace meevax::kernel
         return
           compile(
             result,
-            lexical_environment,
+            syntactic_environment,
+            frames,
             continuation);
       }
-    }
+      else
+      {
+        /* --------------------------------------------------------------------
+        *
+        * The expression may have following form.
+        *
+        * (lambda (...)
+        *   <non-definition expression> ;= <car expression>
+        *   <sequence>                  ;= <cdr expression>)
+        *
+        *-------------------------------------------------------------------- */
+        if (in_a.program_declaration)
+        {
+          return
+            compile(
+              car(expression),
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP),
+                sequence(
+                  cdr(expression),
+                  syntactic_environment,
+                  frames,
+                  continuation,
+                  as_program_declaration)),
+              as_program_declaration);
+        }
+        else
+        {
+          return
+            compile(
+              car(expression), // <non-definition expression>
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::POP), // remove result of expression
+                sequence(
+                  cdr(expression),
+                  syntactic_environment,
+                  frames,
+                  continuation)));
+        }
+      }
+    })
 
-    /*
-     * <operand> = <expression>
-     */
-    object operand(const object& expression,
-                   const object& lexical_environment,
-                   const object& continuation, bool = false)
+    /* ==== Operand ===========================================================
+    *
+    * <operand> = <expression>
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(operand,
     {
-      if (expression && expression.is<pair>())
+      if (expression and expression.is<pair>())
       {
         return
           operand(
             cdr(expression),
-            lexical_environment,
+            syntactic_environment,
+            frames,
             compile(
               car(expression),
-              lexical_environment,
+              syntactic_environment,
+              frames,
               cons(
-                make<instruction>(mnemonic::PUSH),
+                make<instruction>(mnemonic::CONS),
                 continuation)));
       }
       else
@@ -966,54 +1274,57 @@ namespace meevax::kernel
         return
           compile(
             expression,
-            lexical_environment,
+            syntactic_environment,
+            frames,
             continuation);
       }
-    }
+    })
 
-    /**
-     * <conditional> = (if <test> <consequent> <alternate>)
-     **/
-    object conditional(const object& expression,
-                       const object& lexical_environment,
-                       const object& continuation,
-                       const bool optimization = false)
+    /* ==== Conditional =======================================================
+    *
+    * <conditional> = (if <test> <consequent> <alternate>)
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(conditional,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <test>"
-                        << attribute::normal << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <test>"
+        << attribute::normal << std::endl);
 
-      if (optimization)
+      if (in_a.tail_expression)
       {
         const auto consequent {
           compile(
             cadr(expression),
-            lexical_environment,
+            syntactic_environment,
+            frames,
             list(
               make<instruction>(mnemonic::RETURN)),
-            true)
+            as_tail_expression)
         };
 
         const auto alternate {
           cddr(expression)
             ? compile(
                 caddr(expression),
-                lexical_environment,
+                syntactic_environment,
+                frames,
                 list(
                   make<instruction>(mnemonic::RETURN)),
-                true)
+                as_tail_expression)
             : list(
-                make<instruction>(mnemonic::LOAD_LITERAL),
-                undefined,
+                make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                 make<instruction>(mnemonic::RETURN))
         };
 
         return
           compile(
             car(expression), // <test>
-            lexical_environment,
+            syntactic_environment,
+            frames,
             cons(
-              make<instruction>(mnemonic::SELECT_TAIL),
+              make<instruction>(mnemonic::TAIL_SELECT),
               consequent,
               alternate,
               cdr(continuation)));
@@ -1023,7 +1334,8 @@ namespace meevax::kernel
         const auto consequent {
           compile(
             cadr(expression),
-            lexical_environment,
+            syntactic_environment,
+            frames,
             list(make<instruction>(mnemonic::JOIN)))
         };
 
@@ -1031,124 +1343,139 @@ namespace meevax::kernel
           cddr(expression)
             ? compile(
                 caddr(expression),
-                lexical_environment,
-                list(make<instruction>(mnemonic::JOIN)))
+                syntactic_environment,
+                frames,
+                list(
+                  make<instruction>(mnemonic::JOIN)))
             : list(
-                make<instruction>(mnemonic::LOAD_LITERAL), undefined,
+                make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                 make<instruction>(mnemonic::JOIN))
         };
 
         return
           compile(
             car(expression), // <test>
-            lexical_environment,
+            syntactic_environment,
+            frames,
             cons(
-              make<instruction>(mnemonic::SELECT),
-              consequent,
-              alternate,
+              make<instruction>(mnemonic::SELECT), consequent, alternate,
               continuation));
       }
-    }
+    })
 
-    /**
-     * <lambda expression> = (lambda <formals> <body>)
-     **/
-    object lambda(const object& expression,
-                  const object& lexical_environment,
-                  const object& continuation,
-                  const bool = false)
+    /* ==== Lambda Expression =================================================
+    *
+    * <lambda expression> = (lambda <formals> <body>)
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(lambda,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <formals>"
-                        << attribute::normal << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <formals>"
+        << attribute::normal << std::endl);
+
+      if (in_a.program_declaration)
+      {
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_CLOSURE),
+            body(
+              cdr(expression),
+              syntactic_environment,
+              cons(
+                car(expression), // <formals>
+                frames),
+              list(
+                make<instruction>(mnemonic::RETURN)),
+              as_program_declaration),
+            continuation);
+      }
+      else
+      {
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_CLOSURE),
+            body(
+              cdr(expression),
+              syntactic_environment,
+              cons(
+                car(expression), // <formals>
+                frames),
+              list(
+                make<instruction>(mnemonic::RETURN))),
+            continuation);
+      }
+    })
+
+    /* ==== Call-With-Current-Continuation ====================================
+    *
+    * TODO documentation
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(call_cc,
+    {
+      DEBUG_COMPILE(
+        << car(expression)
+        << highlight::comment << "\t; is <procedure>"
+        << attribute::normal << std::endl);
 
       return
         cons(
-          make<instruction>(mnemonic::MAKE_CLOSURE),
-          body(
-            cdr(expression), // <body>
-            cons(
-              car(expression),
-              lexical_environment), // extend lexical environment
-            list(
-              make<instruction>(mnemonic::RETURN))), // continuation of body (finally, must be return)
-          continuation);
-    }
-
-    object call_cc(const object& expression,
-                   const object& lexical_environment,
-                   const object& continuation,
-                   const bool = false)
-    {
-      DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <procedure>"
-                        << attribute::normal << std::endl);
-
-      return
-        cons(
-          make<instruction>(mnemonic::MAKE_CONTINUATION),
+          make<instruction>(mnemonic::LOAD_CONTINUATION),
           continuation,
           compile(
             car(expression),
-            lexical_environment,
+            syntactic_environment,
+            frames,
             cons(
-              make<instruction>(mnemonic::APPLY),
+              make<instruction>(mnemonic::CALL),
               continuation)));
-    }
+    })
 
-    object call_csc(const object& expression,
-                    const object& lexical_environment,
-                    const object& continuation,
-                    const bool = false)
+    /* ==== Fork ===============================================================
+    *
+    * TODO documentation
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(fork,
     {
       DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <program>"
-                        << attribute::normal << std::endl);
-
-      // std::cerr << "expression: " << expression << std::endl
-      //           << "continuation: " << continuation << std::endl;
-
-      return
-        compile(
-          car(expression),
-          lexical_environment,
-          cons(
-            make<instruction>(mnemonic::MAKE_SYNTACTIC_CONTINUATION),
-            continuation));
-    }
-
-    object abstraction(const object& expression,
-                       const object& lexical_environment,
-                       const object& continuation, bool = false)
-    {
-      DEBUG_COMPILE(
-        car(expression) << highlight::comment << "\t; is <formals>"
-                        << attribute::normal << std::endl);
+        << car(expression)
+        << highlight::comment << "\t; is <subprogram>"
+        << attribute::normal << std::endl);
 
       return
         cons(
-          make<instruction>(mnemonic::MAKE_ENVIRONMENT),
-          // program(
-          body(
-            cdr(expression),
-            cons(car(expression), lexical_environment),
-            list(make<instruction>(mnemonic::RETURN))),
+          make<instruction>(mnemonic::FORK), cons(car(expression), frames),
           continuation);
-    }
 
-    object assignment(const object& expression,
-                      const object& lexical_environment,
-                      const object& continuation, bool = false)
+      // return
+      //   compile(
+      //     car(expression),
+      //     syntactic_environment,
+      //     frames,
+      //     cons(
+      //       make<instruction>(mnemonic::FORK),
+      //       continuation),
+      //     as_program_declaration);
+    })
+
+    /* ==== Assignment ========================================================
+    *
+    * TODO documentation
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(assignment,
     {
-      DEBUG_COMPILE(car(expression) << highlight::comment << "\t; is ");
+      DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
 
-      if (!expression)
+      if (not expression)
       {
         throw syntax_error {"set!"};
       }
-      else if (de_bruijn_index index {car(expression), lexical_environment}; index)
+      else if (de_bruijn_index index {car(expression), frames}; index)
       {
-        // XXX デバッグ用のトレースがないなら条件演算子でコンパクトにまとめたほうが良い
         if (index.is_variadic())
         {
           DEBUG_COMPILE_DECISION(
@@ -1157,9 +1484,10 @@ namespace meevax::kernel
           return
             compile(
               cadr(expression),
-              lexical_environment,
+              syntactic_environment,
+              frames,
               cons(
-                make<instruction>(mnemonic::SET_LOCAL_VARIADIC), index,
+                make<instruction>(mnemonic::STORE_VARIADIC), index,
                 continuation));
         }
         else
@@ -1169,26 +1497,84 @@ namespace meevax::kernel
           return
             compile(
               cadr(expression),
-              lexical_environment,
+              syntactic_environment,
+              frames,
               cons(
-                make<instruction>(mnemonic::SET_LOCAL), index,
+                make<instruction>(mnemonic::STORE_LOCAL), index,
                 continuation));
         }
       }
       else
       {
-        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable" << attribute::normal);
+        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << attribute::normal);
 
         return
           compile(
             cadr(expression),
-            lexical_environment,
+            syntactic_environment,
+            frames,
             cons(
-              make<instruction>(mnemonic::SET_GLOBAL),
-              car(expression),
+              make<instruction>(mnemonic::STORE_GLOBAL), car(expression),
               continuation));
       }
-    }
+    })
+
+    /* ==== Explicit Variable Reference =======================================
+    *
+    * TODO DEPRECATED
+    * TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
+    *
+    *======================================================================== */
+    DEFINE_PRIMITIVE_EXPRESSION(reference,
+    {
+      DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
+
+      if (not expression)
+      {
+        DEBUG_COMPILE_DECISION(
+          "<identifier> of itself" << attribute::normal);
+
+        return unit;
+      }
+      else if (de_bruijn_index<
+                 equivalence_comparator<2>
+               > variable {
+                 car(expression),
+                 frames
+               }; variable)
+      {
+        if (variable.is_variadic())
+        {
+          DEBUG_COMPILE_DECISION(
+            "<identifier> of local variadic " << attribute::normal << variable);
+
+          return
+            cons(
+              make<instruction>(mnemonic::LOAD_VARIADIC), variable,
+              continuation);
+        }
+        else
+        {
+          DEBUG_COMPILE_DECISION(
+            "<identifier> of local " << attribute::normal << variable);
+
+          return
+            cons(
+              make<instruction>(mnemonic::LOAD_LOCAL), variable,
+              continuation);
+        }
+      }
+      else
+      {
+        DEBUG_COMPILE_DECISION(
+          "<identifier> of global variable" << attribute::normal);
+
+        return
+          cons(
+            make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
+            continuation);
+      }
+    })
   };
 } // namespace meevax::kernel
 

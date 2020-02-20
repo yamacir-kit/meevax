@@ -5,18 +5,31 @@
 
 #include <meevax/kernel/object.hpp>
 
-// - exception
-//    |-- error                                                       (category)
-//    |    |-- configuration_error                                     (section)
-//    |    |-- evaluation_error                                        (section)
-//    |    |-- reader_error                                            (section)
-//    |    |    |-- reader_error_about_pair                              (about)
-//    |    |    `-- reader_error_about_parentheses                       (about)
-//    |    |-- syntax_error                                            (section)
-//    |    |    |-- syntax_error_about_assignment                        (about)
-//    |    |    `-- syntax_error_about_internal_define                   (about)
-//    |    `-- kernel_error                                            (section)
-//    `-- warning                                                     (category)
+/* ==== The Exception Tower ===================================================
+*
+* TODO: Reduce the hierarchy. warning category is unused.
+*
+* - exception
+*    │
+*    ├── error                                                       (category)
+*    │    │
+*    │    ├── configuration_error                                     (section)
+*    │    │
+*    │    ├── evaluation_error                                        (section)
+*    │    │
+*    │    ├── reader_error                                            (section)
+*    │    │    ├── reader_error_about_pair                              (about)
+*    │    │    └── reader_error_about_parentheses                       (about)
+*    │    │
+*    │    ├── syntax_error                                            (section)
+*    │    │    ├── syntax_error_about_assignment                        (about)
+*    │    │    └── syntax_error_about_internal_define                   (about)
+*    │    │
+*    │    └── kernel_error                                            (section)
+*    │
+*    └── warning                                                     (category)
+*
+*=========================================================================== */
 
 namespace meevax::kernel
 {
@@ -49,18 +62,18 @@ namespace meevax::kernel
     }
   };
 
-  #define DEFINE_EXCEPTION_WRITER(TYPENAME, ...)                               \
+  #define DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(TYPENAME, ...)              \
   auto operator<<(std::ostream& os, const TYPENAME& exception)                 \
     -> decltype(auto)                                                          \
   {                                                                            \
     return os << highlight::syntax << "#("                                     \
-              << highlight::constructor << __VA_ARGS__                         \
-              << highlight::simple_datum << " " <<  std::quoted(exception.what()) \
+              << highlight::type << __VA_ARGS__                                \
+              << highlight::datum << " " <<  std::quoted(exception.what())     \
               << highlight::syntax << ")"                                      \
               << attribute::normal;                                            \
   }
 
-  DEFINE_EXCEPTION_WRITER(exception, "exception")
+  DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(exception, "exception")
 
   #define DEFINE_EXCEPTION_CATEGORY(CATEGORY)                                  \
   struct [[maybe_unused]] CATEGORY                                             \
@@ -77,7 +90,7 @@ namespace meevax::kernel
     }                                                                          \
   };                                                                           \
                                                                                \
-  DEFINE_EXCEPTION_WRITER(CATEGORY, #CATEGORY)
+  DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(CATEGORY, #CATEGORY)
 
   DEFINE_EXCEPTION_CATEGORY(error)
   DEFINE_EXCEPTION_CATEGORY(warning)
@@ -97,7 +110,7 @@ namespace meevax::kernel
     }                                                                          \
   };                                                                           \
                                                                                \
-  DEFINE_EXCEPTION_WRITER(PREFIX##_##CATEGORY, #PREFIX "-" #CATEGORY)
+  DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(PREFIX##_##CATEGORY, #PREFIX "-" #CATEGORY)
 
   DEFINE_EXCEPTION_SECTION(configuration, error)
   DEFINE_EXCEPTION_SECTION(evaluation, error)
@@ -126,7 +139,9 @@ namespace meevax::kernel
     }                                                                          \
   };                                                                           \
                                                                                \
-  DEFINE_EXCEPTION_WRITER(SECTION##_##CATEGORY##_about_##ABOUT, #SECTION "-" #CATEGORY "-about-" #ABOUT)
+  DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(                                    \
+    SECTION##_##CATEGORY##_about_##ABOUT,                                      \
+    #SECTION "-" #CATEGORY "-about-" #ABOUT)
 
   DEFINE_EXCEPTION_ABOUT(character, reader, error)
   DEFINE_EXCEPTION_ABOUT(pair, reader, error)
