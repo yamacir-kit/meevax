@@ -7,8 +7,6 @@ namespace meevax::kernel
 {
   struct boolean
   {
-    using identity = boolean;
-
     const bool value;
 
     constexpr operator bool() const noexcept
@@ -16,18 +14,18 @@ namespace meevax::kernel
       return value;
     }
 
-    friend auto operator==(const identity& lhs, const identity& rhs)
+    friend auto operator==(const boolean& lhs, const boolean& rhs)
     {
       return lhs.value == rhs.value;
     }
 
-    friend auto operator<<(std::ostream& os, const identity& boolean)
+    friend auto operator<<(std::ostream& os, const boolean& datum)
       -> decltype(os)
     {
       return os << highlight::datum
                 << "#"
                 << std::boolalpha
-                << boolean.value
+                << datum.value
                 << attribute::normal;
     }
   };

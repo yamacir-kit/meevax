@@ -40,11 +40,8 @@ namespace meevax::kernel
   };
 } // namespace meevax::kernel
 
-#define MEEVAX_API_BOOLEAN(...)                                                \
-  (__VA_ARGS__ ? meevax::kernel::t : meevax::kernel::f)
-
 #define MEEVAX_API_TYPE_PREDICATE(...)                                         \
-  MEEVAX_API_BOOLEAN(                                                          \
+  kernel::convert(                                                          \
     meevax::kernel::car(operands).is<__VA_ARGS__>())
 
 #define MEEVAX_API_FOLD(X, ...)                                                \
