@@ -10,13 +10,13 @@
 
 /* ==== Embedded Source Codes ==================================================
 *
-* library/layer-1.ss
+* library/hoge.ss
 *
-* MEMO: readelf -a layer-1.ss.o
+* MEMO: readelf -a hoge.ss.o
 *
 *============================================================================ */
-extern char _binary_layer_2_ss_start;
-extern char _binary_layer_2_ss_end;
+extern char _binary_overture_ss_start;
+extern char _binary_overture_ss_end;
 
 namespace meevax::kernel
 {
@@ -540,12 +540,12 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    static const std::string layer_2 {
-      &_binary_layer_2_ss_start,
-      &_binary_layer_2_ss_end
+    static const std::string overture {
+      &_binary_overture_ss_start,
+      &_binary_overture_ss_end
     };
 
-    std::stringstream stream {layer_2};
+    std::stringstream stream {overture};
 
     std::size_t counts {0};
 
