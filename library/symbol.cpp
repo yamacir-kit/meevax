@@ -26,11 +26,11 @@ extern "C" namespace meevax::symbol
     {
       if (not each or not each.is<kernel::symbol>())
       {
-        return kernel::false_object;
+        return kernel::f;
       }
     }
 
-    return kernel::true_object;
+    return kernel::t;
   }
 } // extern "C"
 

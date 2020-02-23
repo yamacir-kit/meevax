@@ -32,8 +32,13 @@ namespace meevax::kernel
     }
   };
 
-  static const object true_object {make<boolean>(true)};
-  static const object false_object {make<boolean>(false)};
+  static const object t {make<boolean>(true)};
+  static const object f {make<boolean>(false)};
+
+  inline const object& convert(bool datum)
+  {
+    return datum ? t : f;
+  }
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP

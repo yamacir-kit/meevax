@@ -26,20 +26,15 @@ extern "C" namespace meevax::pair
     // {
     //   if (not each or not each.is<kernel::pair>())
     //   {
-    //     return kernel::false_object;
+    //     return kernel::f;
     //   }
     // }
     //
-    // return kernel::true_object;
+    // return t;
 
-    if (const auto& value {car(operands)}; value && value.is<kernel::pair>())
-    {
-      return kernel::true_object;
-    }
-    else
-    {
-      return kernel::false_object;
-    }
+    const auto& value {kernel::car(operands)};
+
+    return kernel::convert(value && value.is<kernel::pair>());
   }
 } // extern "C"
 

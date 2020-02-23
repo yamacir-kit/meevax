@@ -25,9 +25,9 @@ namespace meevax::kernel
     // TODO Generate from CMakeLists.txt
     // static inline const std::string program_name {"ice"};
 
-    object interactive {false_object};
-    object trace       {false_object};
-    object verbose     {false_object};
+    object interactive {f};
+    object trace       {f};
+    object verbose     {f};
 
     object variable    {unit};
 
@@ -118,7 +118,7 @@ namespace meevax::kernel
       std::make_pair('i', [this](auto&&...) mutable
       {
         std::cout << "; configure\t; interactive mode "
-                  << interactive << " => " << (interactive = true_object)
+                  << interactive << " => " << (interactive = t)
                   << std::endl;
         return unspecified;
       }),
@@ -144,19 +144,19 @@ namespace meevax::kernel
       std::make_pair("interactive", [this](auto&&...) mutable
       {
         std::cout << "; configure\t; interactive mode "
-                  << interactive << " => " << (interactive = true_object)
+                  << interactive << " => " << (interactive = t)
                   << std::endl;
         return unspecified;
       }),
 
       std::make_pair("trace", [this](auto&&...) mutable
       {
-        return trace = true_object;
+        return trace = t;
       }),
 
       std::make_pair("verbose", [this](auto&&...) mutable
       {
-        return verbose = true_object;
+        return verbose = t;
       }),
 
       std::make_pair("version", display_version),

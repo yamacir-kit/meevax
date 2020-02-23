@@ -41,7 +41,7 @@ namespace meevax::kernel
 } // namespace meevax::kernel
 
 #define MEEVAX_API_BOOLEAN(...)                                                \
-  (__VA_ARGS__ ? meevax::kernel::true_object : meevax::kernel::false_object)
+  (__VA_ARGS__ ? meevax::kernel::t : meevax::kernel::f)
 
 #define MEEVAX_API_TYPE_PREDICATE(...)                                         \
   MEEVAX_API_BOOLEAN(                                                          \

@@ -340,11 +340,11 @@ namespace meevax::kernel
       {
       case 'f':
         read(stream);
-        return false_object;
+        return f;
 
       case 't':
         read(stream);
-        return true_object;
+        return t;
 
       /*
        * Read-time-evaluation #( ... )

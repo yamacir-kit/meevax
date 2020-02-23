@@ -75,7 +75,7 @@ namespace meevax::kernel
 
     bool virgin {true};
 
-    [[deprecated]] std::size_t experience {0};
+    std::size_t experience {0};
 
   public: // Accessors
     const auto& program() const
@@ -217,7 +217,7 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        if (verbose.equivalent_to(true_object))
+        if (verbose.equivalent_to(t))
         {
           std::cerr << "; package\t; renamer ignored non-symbol object "
                     << object
@@ -232,7 +232,7 @@ namespace meevax::kernel
           object.as<const std::string>() + "." + std::to_string(experience)
         };
 
-        if (verbose.equivalent_to(true_object))
+        if (verbose.equivalent_to(t))
         {
           std::cerr << "; package\t; renaming \"" << object << "\" to \"" << name << "\"" << std::endl;
           // std::cerr << "; package\t; renaming " << object << std::endl;
@@ -292,14 +292,14 @@ namespace meevax::kernel
     {
       const std::string path {std::forward<decltype(operands)>(operands)...};
 
-      if (verbose.equivalent_to(true_object))
+      if (verbose.equivalent_to(t))
       {
         std::cerr << "; loader\t; open \"" << path << "\" => ";
       }
 
       if (std::fstream stream {path}; stream)
       {
-        if (verbose.equivalent_to(true_object))
+        if (verbose.equivalent_to(t))
         {
           std::cerr << "succeeded" << std::endl;
         }
@@ -309,7 +309,7 @@ namespace meevax::kernel
 
         for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
         {
-          if (verbose.equivalent_to(true_object))
+          if (verbose.equivalent_to(t))
           {
             std::cerr << "; read\t\t; " << e << std::endl;
           }
@@ -325,7 +325,7 @@ namespace meevax::kernel
       }
       else
       {
-        if (verbose.equivalent_to(true_object))
+        if (verbose.equivalent_to(t))
         {
           std::cerr << "failed" << std::endl;
         }
@@ -337,7 +337,7 @@ namespace meevax::kernel
   public: // Primitive Expression Types
     DEFINE_PRIMITIVE_EXPRESSION(exportation,
     {
-      if (verbose.equivalent_to(true_object))
+      if (verbose.equivalent_to(t))
       {
         std::cerr
         << (not depth ? "; compile\t; " : ";\t\t; ")
@@ -362,6 +362,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : external_symbols)
         {
+          assert(not std::empty(key));
           std::cerr << ";\t\t;   " << value << std::endl;
         }
 
@@ -393,6 +394,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
         {
+          assert(not std::empty(key));
           std::cerr << ";\t\t; importing " << value << std::endl;
         }
 
@@ -458,8 +460,8 @@ namespace meevax::kernel
       // std::cerr << "; identifier=?\t; car\t; " << car(arguments) << std::endl;
       // std::cerr << ";\t\t; cadr\t; " << cadr(arguments) << std::endl;
       // XXX 二度リネームが発生すると hoge.0.0 見たいな名前になってしまって壊れる
-      // return rename(car(arguments)) == rename(cadr(arguments)) ? true_object : false_object;
-      return car(arguments) == rename(cadr(arguments)) ? true_object : false_object;
+      // return rename(car(arguments)) == rename(cadr(arguments)) ? t : f;
+      return car(arguments) == rename(cadr(arguments)) ? t : f;
     });
 
     DEFINE_SPECIAL("export", exportation);

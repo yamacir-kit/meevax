@@ -15,7 +15,7 @@ inline namespace ugly_macros
   static std::size_t depth {0};
 
   #define DEBUG_COMPILE(...)                                                   \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
   {                                                                            \
     std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
               << std::string(depth * 2, ' ')                                   \
@@ -23,13 +23,13 @@ inline namespace ugly_macros
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
   {                                                                            \
     std::cerr << __VA_ARGS__ << attribute::normal << std::endl;                \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
   {                                                                            \
     std::cerr << "; macroexpand\t; "                                           \
               << std::string(depth * 2, ' ')                                   \
@@ -37,7 +37,7 @@ inline namespace ugly_macros
   }
 
   #define COMPILER_WARNING(...) \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object)) \
+  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
   {                                                                            \
     std::cerr << attribute::normal  << "; "                                    \
               << highlight::warning << "compiler"                              \
@@ -89,7 +89,7 @@ namespace meevax::kernel
         interaction_environment(),
         list(identifier, std::forward<decltype(operands)>(operands)...));
 
-      if (static_cast<const SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
+      if (static_cast<const SyntacticContinuation&>(*this).verbose.equivalent_to(t))
       {
         std::cerr << "; define\t; "
                   << caar(interaction_environment())
@@ -130,10 +130,7 @@ namespace meevax::kernel
       }
       else
       {
-        return
-          lookup(
-            identifier,
-            cdr(environment));
+        return lookup(identifier, cdr(environment));
       }
     }
 
@@ -403,7 +400,7 @@ namespace meevax::kernel
       e = unit;
       c = expression;
 
-      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(true_object))
+      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))
       {
         // std::cerr << "; disassemble\t; for " << &c << std::endl;
         std::cerr << "; " << std::string(78, '*') << std::endl;
@@ -424,7 +421,7 @@ namespace meevax::kernel
     {
     dispatch:
       if (static_cast<SyntacticContinuation&>(*this)
-            .trace.equivalent_to(true_object))
+            .trace.equivalent_to(t))
       {
         std::cerr << "; trace s\t; " <<  s << std::endl;
         std::cerr << ";       e\t; " <<  e << std::endl;
@@ -591,7 +588,7 @@ namespace meevax::kernel
       * where selection = (if test consequent alternate)
       *
       *====================================================================== */
-        c = not car(s).equivalent_to(false_object) ? cadr(c) : caddr(c);
+        c = not car(s).equivalent_to(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
