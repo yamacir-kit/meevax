@@ -511,7 +511,7 @@ namespace meevax::kernel
       return feature_object;
     });
 
-    define<procedure>("procedure-from", [](auto&&, auto&& operands)
+    define<procedure>("procedure", [](auto&&, auto&& operands)
     {
       const std::string name {cadr(operands).template as<string>()};
 
