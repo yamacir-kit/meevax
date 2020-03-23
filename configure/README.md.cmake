@@ -1,29 +1,44 @@
-![Meevax Lisp System](https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v5.png)
-
-<div align="center">
-  <a href="https://travis-ci.org/yamacir-kit/meevax">
-    <img src="https://travis-ci.org/yamacir-kit/meevax.svg?branch=master"
-         alt="Travis Status"/>
+<br/>
+<h1 align="center">
+  <a href="https://github.com/yamacir-kit/meevax/">
+    <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v8.png"
+         alt="Meevax Lisp System"/>
   </a>
+</h1>
 
+<h3 align="center">
+  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/description.png"
+       alt="A programmable programming lanugage."/>
+</h3>
+
+<p align="center">
   <a href="https://github.com/yamacir-kit/meevax/actions">
     <img src="https://github.com/yamacir-kit/meevax/workflows/CI/badge.svg"
          alt="GitHub Actions Status"/>
   </a>
-
   <a href="https://www.codacy.com/manual/yamacir-kit/meevax?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=yamacir-kit/meevax&amp;utm_campaign=Badge_Grade">
     <img src="https://api.codacy.com/project/badge/Grade/ebd3aba61f1141049229031b7f068de9"/>
   </a>
+</p>
 
-  *HEAD Version ${PROJECT_VERSION}*
-</div>
+Meevax is a programming language classified as Lisp-1.
+This language inherits the minimalism of Scheme, which is summarized in the following sentence:
+
+> Programming languages should be designed not by piling feature on top of feature, but by removing the weaknesses and restrictions that make additional features appear necessary.
+> <p align="right"> --
+>   <a href="https://bitbucket.org/cowan/r7rs/raw/tip/rnrs/r7rs.pdf">
+>     Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]
+>   </a>
+> </p>
+
+HEAD version: ${PROJECT_VERSION}.
 
 ## Contents
 
-*   [Introduction](#Introduction)
-*   [Usage](#Usage)
-*   [Dependency](#Dependency)
-*   [Installation](#Installation)
+[Introduction](#Introduction)    <br/>
+[1. Usage](#Usage)               <br/>
+[2. Dependency](#Dependency)     <br/>
+[3. Installation](#Installation) <br/>
 
 <br/>
 
@@ -124,5 +139,9 @@ make
 
 ## References
 
+- [1] A.shinn, J.Cowan, A. A. Greckler, editors, "<cite><a href="https://bitbucket.org/cowan/r7rs/raw/tip/rnrs/r7rs.pdf">Revised<sup>7</sup> Report on the Algorithmic Language Scheme</a></cite>", Technical report, 2013.
+
+<!--
 *   TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
 *   SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))
+-->

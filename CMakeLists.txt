@@ -165,7 +165,7 @@ endforeach()
 # ==============================================================================
 file(GLOB
   ${PROJECT_NAME}_LAYER_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/library/layer-*.ss
+  ${CMAKE_CURRENT_SOURCE_DIR}/library/*.ss
   )
 
 set(${PROJECT_NAME}_LAYERS "")

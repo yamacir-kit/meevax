@@ -7,7 +7,7 @@ extern "C" namespace meevax::character
   PROCEDURE(is_character)
   {
     return
-      MEEVAX_API_BOOLEAN(
+      kernel::convert(
         kernel::car(operands).is<kernel::character>());
   }
 

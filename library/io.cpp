@@ -2,42 +2,46 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
 
-extern "C" namespace meevax::io
+extern "C" namespace meevax::kernel
 {
   PROCEDURE(is_input_port)
   {
-    return kernel::car(operands).is<kernel::input_port>() ? kernel::true_object : kernel::false_object;
+    return
+      convert(
+        car(operands).is<input_port>());
   }
 
   PROCEDURE(is_output_port)
   {
-    return kernel::car(operands).is<kernel::output_port>() ? kernel::true_object : kernel::false_object;
+    return
+      convert(
+        car(operands).is<output_port>());
   }
 
   PROCEDURE(open_input_file)
   {
-    return kernel::make<kernel::input_port>(
-             kernel::car(operands).as<kernel::string>()
-           );
+    return
+      make<input_port>(
+        car(operands).as<string>());
   }
 
   PROCEDURE(open_output_file)
   {
     return
-      kernel::make<kernel::output_port>(
-        kernel::car(operands).as<kernel::string>());
+      make<output_port>(
+        car(operands).as<string>());
   }
 
   PROCEDURE(close_input_port)
   {
-    kernel::car(operands).as<kernel::input_port>().close();
-    return kernel::unspecified;
+    car(operands).as<input_port>().close();
+    return unspecified;
   }
 
   PROCEDURE(close_output_port)
   {
-    kernel::car(operands).as<kernel::output_port>().close();
-    return kernel::unspecified;
+    car(operands).as<output_port>().close();
+    return unspecified;
   }
 } // extern "C"
 
