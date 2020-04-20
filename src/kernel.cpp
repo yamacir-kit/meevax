@@ -5,10 +5,6 @@
 
 namespace meevax::kernel
 {
-  const object unbound {make<exception>("unbound")};
-  const object undefined {make<exception>("undefined")};
-  const object unspecified {make<exception>("unspecified")};
-
   const std::unordered_map<std::string, object> characters
   {
     {"end-of-file", make<character>(std::to_string(EOF), "end-of-file")},

@@ -1323,7 +1323,7 @@
 (define values
   (lambda xs
     (if (and (not (null? xs))
-             (null? (cdr xs)))
+             (null? (cdr xs)) )
         (car xs)
         (cons values-magic-token xs) )))
 
@@ -1347,8 +1347,7 @@
 (define error display)
 
 (define error-object?
-  (lambda (x) #false)
-  )
+  (lambda (x) #false) )
 
 ; TODO error-object?
 ; TODO error-object-message
