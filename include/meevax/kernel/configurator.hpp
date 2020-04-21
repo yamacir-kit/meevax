@@ -26,6 +26,7 @@ namespace meevax::kernel
     // static inline const std::string program_name {"ice"};
 
     object interactive {f};
+    object quiet       {f};
     object trace       {f};
     object verbose     {f};
 
@@ -93,6 +94,8 @@ namespace meevax::kernel
                    ";                             representation of the result.                     \n"
                    ";"                                                                             "\n"
                    "; Debug:"                                                                      "\n"
+                   ";   -q, --quiet               Suppress any output except side-effect of user's  \n"
+                   ";                             explicit use of primitive procedure 'write'.      \n"
                    ";       --trace               Display stacks of virtual machine on each         \n"
                    ";                             execution step."                                 "\n"
                    ";       --verbose             Report the details of lexical parsing,            \n"
@@ -123,6 +126,11 @@ namespace meevax::kernel
         return unspecified;
       }),
 
+      std::make_pair('q', [this](auto&&...) mutable
+      {
+        return quiet = t;
+      }),
+
       std::make_pair('v', display_version),
     };
 
@@ -139,6 +147,8 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options
     {
+      // TODO --color
+
       std::make_pair("help", display_help),
 
       std::make_pair("interactive", [this](auto&&...) mutable
@@ -147,6 +157,13 @@ namespace meevax::kernel
                   << interactive << " => " << (interactive = t)
                   << std::endl;
         return unspecified;
+      }),
+
+      // TODO DEFINE_LONG_ENABLER
+
+      std::make_pair("quiet", [this](auto&&...) mutable
+      {
+        return quiet = t;
       }),
 
       std::make_pair("trace", [this](auto&&...) mutable
