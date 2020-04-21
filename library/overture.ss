@@ -21,12 +21,12 @@
   (linker "libmeevax-equivalence.so"))
 
 (define equals?
-  (procedure-from equivalence.so "equals"))
+  (procedure equivalence.so "equals"))
 
 (define eq? equals?)
 
 (define equivalent? ; value-equal?
-  (procedure-from equivalence.so "equivalent"))
+  (procedure equivalence.so "equivalent"))
 
 (define eqv? equivalent?)
 
@@ -40,28 +40,28 @@
 (define = eqv?)
 
 (define <
-  (procedure-from numerical.so "less"))
+  (procedure numerical.so "less"))
 
 (define <=
-  (procedure-from numerical.so "less_equal"))
+  (procedure numerical.so "less_equal"))
 
 (define >
-  (procedure-from numerical.so "greater"))
+  (procedure numerical.so "greater"))
 
 (define >=
-  (procedure-from numerical.so "greater_equal"))
+  (procedure numerical.so "greater_equal"))
 
 (define *
-  (procedure-from numerical.so "multiplication"))
+  (procedure numerical.so "multiplication"))
 
 (define +
-  (procedure-from numerical.so "addition"))
+  (procedure numerical.so "addition"))
 
 (define -
-  (procedure-from numerical.so "subtraction"))
+  (procedure numerical.so "subtraction"))
 
 (define /
-  (procedure-from numerical.so "division"))
+  (procedure numerical.so "division"))
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Booleans (Part 1 of 2)
@@ -79,17 +79,17 @@
   (linker "libmeevax-pair.so"))
 
 (define pair?
-  (procedure-from pair.so "pair_"))
+  (procedure pair.so "pair_"))
 
 (define cons ; pair
-  (procedure-from pair.so "cons"))
+  (procedure pair.so "cons"))
 
 ; (define cons ; hack
 ;   (lambda (x y)
 ;     (cons x y)))
 
-(define car (procedure-from pair.so "car"))
-(define cdr (procedure-from pair.so "cdr"))
+(define car (procedure pair.so "car"))
+(define cdr (procedure pair.so "cdr"))
 
 ; TODO set-car!
 ; TODO set-cdr!
@@ -670,22 +670,22 @@
 
 (define complex?
   (lambda (x)
-    ; (procedure-from numerical.so "is_complex") ; unimplemented
+    ; (procedure numerical.so "is_complex") ; unimplemented
     #false
     ))
 
 (define real?
-  (procedure-from numerical.so "real_"))
+  (procedure numerical.so "real_"))
 
 (define rational?
   (lambda (x)
-    ; (procedure-from numerical.so "is_rational") ; unimplemented
+    ; (procedure numerical.so "is_rational") ; unimplemented
     #false
     ))
 
 (define exact-integer?
   (lambda (x)
-    ; (procedure-from numerical.so "is_exact_integer") ; unimplemented
+    ; (procedure numerical.so "is_exact_integer") ; unimplemented
     #false
     ))
 
@@ -972,10 +972,10 @@
   (linker "libmeevax-symbol.so"))
 
 (define symbol ; Constructor
-  (procedure-from symbol.so "symbol"))
+  (procedure symbol.so "symbol"))
 
 (define symbol?
-  (procedure-from symbol.so "is_symbol"))
+  (procedure symbol.so "is_symbol"))
 
 (define symbol=?
   (lambda (x y . xs)
@@ -996,7 +996,7 @@
   (linker "libmeevax-character.so"))
 
 (define character?
-  (procedure-from character.so "is_character"))
+  (procedure character.so "is_character"))
 
 (define char? character?)
 
@@ -1061,7 +1061,7 @@
     (case-insensitive-character-compare x xs >=)))
 
 (define codepoint
-  (procedure-from character.so "codepoint"))
+  (procedure character.so "codepoint"))
 
 (define char->integer codepoint)
 
@@ -1074,7 +1074,7 @@
 ; (define char-alphabetic? alphabetical-character?) ;                (scheme char)
 
 (define digit-value ;                                              (scheme char)
-  (procedure-from character.so "digit_value"))
+  (procedure character.so "digit_value"))
 
 ; (define numerical-character?
 ;   (lambda (x)
@@ -1117,10 +1117,10 @@
   (linker "libmeevax-string.so"))
 
 (define string?
-  (procedure-from string.so "is_string"))
+  (procedure string.so "is_string"))
 
 (define ccons
-  (procedure-from string.so "ccons"))
+  (procedure string.so "ccons"))
 
 (define make-string
   (lambda (k . x)
@@ -1147,7 +1147,7 @@
             (ccons x '())))))
 
 (define string-from-number
-  (procedure-from string.so "string_from_number"))
+  (procedure string.so "string_from_number"))
 
 (define number->string string-from-number)
 
@@ -1266,12 +1266,12 @@
   (lambda (object) #false))
 
 (define vector-of
-  (procedure-from vector.so "vector_of"))
+  (procedure vector.so "vector_of"))
 
 (define vector vector-of)
 
 (define vector-reference
-  (procedure-from vector.so "vector_reference"))
+  (procedure vector.so "vector_reference"))
 
 (define vector-ref
         vector-reference)
@@ -1289,7 +1289,7 @@
 
 (define procedure?
   (lambda (x)
-    (or (procedure-from? x)
+    (or (procedure? x)
         (closure? x)
         (continuation? x) )))
 
@@ -1323,7 +1323,7 @@
 (define values
   (lambda xs
     (if (and (not (null? xs))
-             (null? (cdr xs)))
+             (null? (cdr xs)) )
         (car xs)
         (cons values-magic-token xs) )))
 
@@ -1347,8 +1347,7 @@
 (define error display)
 
 (define error-object?
-  (lambda (x) #false)
-  )
+  (lambda (x) #false) )
 
 ; TODO error-object?
 ; TODO error-object-message
@@ -1399,10 +1398,10 @@
       result)))
 
 (define input-port?
-  (procedure-from io.so "is_input_port"))
+  (procedure io.so "is_input_port"))
 
 (define output-port?
-  (procedure-from io.so "is_output_port"))
+  (procedure io.so "is_output_port"))
 
 (define port?
   (lambda (x)
@@ -1424,20 +1423,20 @@
 ; TODO with-output-to-file
 
 (define open-input-file
-  (procedure-from io.so "open_input_file"))
+  (procedure io.so "open_input_file"))
 
 ; TODO open-binary-input-file
 
 (define open-output-file
-  (procedure-from io.so "open_output_file"))
+  (procedure io.so "open_output_file"))
 
 ; TODO open-binary-output-file
 
 (define close-input-port
-  (procedure-from io.so "close_input_port"))
+  (procedure io.so "close_input_port"))
 
 (define close-output-port
-  (procedure-from io.so "close_output_port"))
+  (procedure io.so "close_output_port"))
 
 (define close-port
   (lambda (x)
@@ -1484,7 +1483,7 @@
   (linker "libmeevax-experimental.so"))
 
 (define display
-  (procedure-from experimental.so "display")
+  (procedure experimental.so "display")
   ; (lambda (x . option)
   ;   (let ((output-port (if (pair? option)
   ;                          (car option)
@@ -1518,7 +1517,7 @@
 ; TODO command-line
 
 (define emergency-exit ;                                (scheme process-context)
-  (procedure-from experimental.so "emergency_exit"))
+  (procedure experimental.so "emergency_exit"))
 
 (define exit emergency-exit) ;                          (scheme process-context)
 
@@ -2051,10 +2050,10 @@
                             (lambda () this) )
 
                           (define eq?
-                            (procedure-from equivalence.so "equals") )
+                            (procedure equivalence.so "equals") )
 
                           (define eqv?
-                            (procedure-from equivalence.so "equivalent") )
+                            (procedure equivalence.so "equivalent") )
 
                           ; (define hello
                           ;   (lambda ()

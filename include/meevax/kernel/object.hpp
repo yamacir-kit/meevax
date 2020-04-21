@@ -82,7 +82,20 @@ namespace meevax::kernel
 
   static const object unit {nullptr};
 
-  extern "C" const object unbound, undefined, unspecified;
+  #define DEFINE_MISCELLANEOUS(TYPENAME)                                       \
+  struct TYPENAME##_behavior                                                   \
+  {                                                                            \
+    friend auto operator<<(std::ostream& os, const TYPENAME##_behavior&)       \
+      -> decltype(os)                                                          \
+    {                                                                          \
+      return os << highlight::comment << "#;" #TYPENAME << attribute::normal;  \
+    }                                                                          \
+  };                                                                           \
+                                                                               \
+  static const auto TYPENAME {make<TYPENAME##_behavior>()}
+
+  DEFINE_MISCELLANEOUS(undefined);
+  DEFINE_MISCELLANEOUS(unspecified);
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

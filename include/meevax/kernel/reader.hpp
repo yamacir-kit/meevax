@@ -399,7 +399,7 @@ namespace meevax::kernel
         return read(stream), read(stream);
 
       default:
-        return undefined;
+        return undefined; // XXX
       }
     }
   };

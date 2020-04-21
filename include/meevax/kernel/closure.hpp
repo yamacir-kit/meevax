@@ -11,7 +11,7 @@ namespace meevax::kernel
   {
     using identity = closure;
 
-    using pair::pair;
+    using pair::pair; // inheriting constructors
 
     friend auto operator <<(std::ostream& os, const identity& i)
       -> decltype(os)
