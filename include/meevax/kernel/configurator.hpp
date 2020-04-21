@@ -42,67 +42,67 @@ namespace meevax::kernel
 
   public:
     static void display_title(const version& v)
-    {           // "        10        20        30        40        50        60        70        80"
-      std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n";
-      std::cout << ";\n";
+    {           // ";       10        20        30        40        50        60        70        80\n"
+      std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
+                   ";\n";
     }
 
     static void display_abstract()
-    {           // "        10        20        30        40        50        60        70        80"
-      std::cout << "; Abstract:\n";
-      std::cout << ";   ICE is incremental compiler of Lisp-1 programming language Meevax.\n";
-      std::cout << ";\n";
+    {           // ";       10        20        30        40        50        60        70        80\n"
+      std::cout << "; Abstract:\n"
+                   ";   ICE is incremental compiler of Lisp-1 programming language Meevax.\n"
+                   ";\n";
     }
 
     static PROCEDURE(display_version)
-    {
+    {           // "        10        20        30        40        50        60        70        80\n"
       display_title(version_object);
 
-      std::cout << "; version\t; " << version_object.semantic << "\n";
-      std::cout << "; license\t; unspecified (All rights reserved)\n";
-      std::cout << ";\n";
-      std::cout << "; compiled\t; " << feature_object.date << "\n";
-      std::cout << "; configuration ; " << feature_object.type << "\n";
-      std::cout << "; commit\t; " << feature_object.commit << "\n";
-      std::cout << ";\n";
-      std::cout << "; feature\t; " << feature_object << "\n";
+      std::cout << "; version"   "\t; " << version_object.semantic                              << "\n"
+                   "; license"   "\t; unspecified (All rights reserved)"                           "\n"
+                   ";"                                                                             "\n"
+                   "; compiled"  "\t; " << feature_object.date                                  << "\n"
+                   "; configuration ; " << feature_object.type                                  << "\n"
+                   "; commit"    "\t; " << feature_object.commit                                << "\n"
+                   ";"                                                                             "\n"
+                   "; feature"   "\t; " << feature_object                                       << "\n";
       return std::exit(boost::exit_success), unspecified;
     }
 
     static PROCEDURE(display_help)
-    {           // "        10        20        30        40        50        60        70        80"
+    {           // "        10        20        30        40        50        60        70        80\n"
       display_title(version_object);
 
       display_abstract();
 
-      std::cout << "; Usage: ice [option]... [file]...\n";
-      std::cout << ";\n";
-      std::cout << "; Operation mode:\n";
-      std::cout << ";   -i, --interactive         Take over the control of root syntactic           \n"
+      std::cout << "; Usage: ice [option]... [file]..."                                            "\n"
+                   ";"                                                                             "\n"
+                   "; Operation mode:"                                                             "\n"
+                   ";   -i, --interactive         Take over the control of root syntactic           \n"
                    ";                             continuation interactively after processing given \n"
-                   ";                             <file>s.                                          \n";
-      std::cout << ";\n";
-      std::cout << "; Tools:\n";
-      std::cout << ";       --echo=<expr>         Read an expression, construct an object from it,  \n"
+                   ";                             <file>s.                                          \n"
+                   ";"                                                                             "\n"
+                   "; Tools:"                                                                      "\n"
+                   ";       --echo=<expr>         Read an expression, construct an object from it,  \n"
                    ";                             and display its external representation. Note that\n"
                    ";                             the expression is parsed once by the shell before \n"
                    ";                             it is read. This output is useful to see what     \n"
-                   ";                             objects the --evaluate option accepts.            \n";
-      std::cout << ";   -e, --evaluate=<expr>     Read an expression, construct an object from it,  \n"
+                   ";                             objects the --evaluate option accepts.            \n"
+                   ";   -e, --evaluate=<expr>     Read an expression, construct an object from it,  \n"
                    ";                             compile and execute it, and then display external \n"
-                   ";                             representation of the result.                     \n";
-      std::cout << ";\n";
-      std::cout << "; Debug:\n";
-      std::cout << ";       --trace               Display stacks of virtual machine on each         \n"
-                   ";                             execution step.\n";
-      std::cout << ";       --verbose             Report the details of lexical parsing,            \n"
+                   ";                             representation of the result.                     \n"
+                   ";"                                                                             "\n"
+                   "; Debug:"                                                                      "\n"
+                   ";       --trace               Display stacks of virtual machine on each         \n"
+                   ";                             execution step."                                 "\n"
+                   ";       --verbose             Report the details of lexical parsing,            \n"
                    ";                             compilation, virtual machine execution to         \n"
-                   ";                             standard-error.\n";
-      std::cout << ";\n";
-      std::cout << "; Miscellaneous:\n";
-      std::cout << ";   -h, --help                Display version information and exit.             \n";
-      std::cout << ";   -v, --version             Display this help message and exit.               \n";
-      std::cout << ";\n";
+                   ";                             standard-error."                                 "\n"
+                   ";"                                                                             "\n"
+                   "; Miscellaneous:"                                                              "\n"
+                   ";   -h, --help                Display version information and exit."           "\n"
+                   ";   -v, --version             Display this help message and exit."             "\n"
+                   ";"                                                                             "\n";
 
       return std::exit(boost::exit_success), unspecified;
     }
