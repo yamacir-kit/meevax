@@ -5,9 +5,9 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/feature.hpp>
+#include <meevax/kernel/port.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax::kernel
@@ -16,8 +16,6 @@ namespace meevax::kernel
   struct configurator
   {
     // static inline const auto install_prefix {make<path>("/usr/local")};
-
-    // static inline object preloads {unit};
 
     static inline const version version_object {};
     static inline const feature feature_object {};
@@ -30,6 +28,7 @@ namespace meevax::kernel
     object trace       {f};
     object verbose     {f};
 
+    object ports       {unit};
     object variable    {unit};
 
     /* =========================================================================
@@ -143,6 +142,18 @@ namespace meevax::kernel
                   << std::endl;
         return unspecified;
       }),
+
+      std::make_pair('f', [this](auto&&, const object& s) mutable
+      {
+        if (s.is<symbol>())
+        {
+          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+        }
+        else
+        {
+          return unspecified;
+        }
+      }),
     };
 
     const dispatcher<std::string> long_options
@@ -193,6 +204,18 @@ namespace meevax::kernel
                        std::forward<decltype(operands)>(operands))
                   << std::endl;
         return unspecified;
+      }),
+
+      std::make_pair("file", [this](auto&&, const object& s) mutable
+      {
+        if (s.is<symbol>())
+        {
+          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+        }
+        else
+        {
+          return unspecified;
+        }
       }),
 
       std::make_pair("variable", [this](const auto&, const auto& operands) mutable
@@ -293,12 +316,14 @@ namespace meevax::kernel
         }
         else
         {
-          const auto filename {make<path>(*option)};
-          std::cerr << "; configure\t; file " << filename << std::endl;
+          ports = cons(make<input_port>(*option), ports);
         }
 
         return unspecified;
       }();
+
+      ports = reverse(ports);
+      // std::cerr << "; configure\t; ports are " << ports << std::endl;
     }
   };
 } // namespace meevax::kernel

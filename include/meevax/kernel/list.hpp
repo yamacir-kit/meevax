@@ -404,23 +404,10 @@ namespace meevax::kernel
     }
 
     template <typename List>
-    inline decltype(auto) reverse(List&& list)
+    auto reverse(const List& x)
+      -> List
     {
-      if (not list)
-      {
-        return list;
-      }
-      else
-      {
-        auto buffer {car(list)};
-
-        for (auto& head {cdr(list)}; head; head = cdr(head))
-        {
-          buffer = cons(head, buffer);
-        }
-
-        return buffer;
-      }
+      return x ? append(reverse(cdr(x)), list(car(x))) : unit;
     }
 
     object zip(const object& x, const object& y)
