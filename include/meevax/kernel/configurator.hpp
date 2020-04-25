@@ -12,6 +12,19 @@
 
 namespace meevax::kernel
 {
+  void display_title(const version& v)
+  {           // ";       10        20        30        40        50        60        70        80\n"
+    std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
+                 ";\n";
+  }
+
+  void display_abstract()
+  {           // ";       10        20        30        40        50        60        70        80\n"
+    std::cout << "; Abstract:                                                                     \n"
+                 ";   ICE is incremental compiler of Lisp-1 programming language Meevax.          \n"
+                 ";                                                                               \n";
+  }
+
   template <typename SyntacticContinuation>
   struct configurator
   {
@@ -41,19 +54,6 @@ namespace meevax::kernel
     {}
 
   public:
-    static void display_title(const version& v)
-    {           // ";       10        20        30        40        50        60        70        80\n"
-      std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
-                   ";\n";
-    }
-
-    static void display_abstract()
-    {           // ";       10        20        30        40        50        60        70        80\n"
-      std::cout << "; Abstract:\n"
-                   ";   ICE is incremental compiler of Lisp-1 programming language Meevax.\n"
-                   ";\n";
-    }
-
     static PROCEDURE(display_version)
     {           // "        10        20        30        40        50        60        70        80\n"
       display_title(version_object);
@@ -78,7 +78,7 @@ namespace meevax::kernel
       std::cout << "; Usage: ice [option]... [file]...                                              \n"
                    ";                                                                               \n"
                    "; Operation mode:                                                               \n"
-                   ";   -f, --file                Specify the file to be executed. If this option is\n"
+                   ";   -f, --file=FILE           Specify the file to be executed. If this option is\n"
                    ";                             used multiple times, the specified files will be  \n"
                    ";                             executed sequentially from left to right. Anything\n"
                    ";                             that is not an option name or option argument is  \n"
@@ -90,12 +90,12 @@ namespace meevax::kernel
                    ";                             explicit use of primitive procedure 'write'.      \n"
                    ";                                                                               \n"
                    "; Tools:                                                                        \n"
-                   ";       --echo=<expr>         Read an expression, construct an object from it,  \n"
+                   ";       --echo=EXPRESSION     Read an expression, construct an object from it,  \n"
                    ";                             and display its external representation. Note that\n"
                    ";                             the expression is parsed once by the shell before \n"
                    ";                             it is read. This output is useful to see what     \n"
                    ";                             objects the --evaluate option accepts.            \n"
-                   ";   -e, --evaluate=<expr>     Read an expression, construct an object from it,  \n"
+                   ";   -e, --evaluate=EXPRESSION Read an expression, construct an object from it,  \n"
                    ";                             compile and execute it, and then display external \n"
                    ";                             representation of the result.                     \n"
                    ";                                                                               \n"
