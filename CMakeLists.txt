@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.5.1) # Ubuntu 16.04 LTS Default
 
 # ==============================================================================
 #   Calculate Project Version
@@ -170,7 +170,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 endforeach()
 
 # ==============================================================================
-#   Meevax ICE
+#   Convert Scripts to ELF Binary
 # ==============================================================================
 file(GLOB
   ${PROJECT_NAME}_LAYER_SOURCES
@@ -198,9 +198,17 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach(EACH)
 
+# ==============================================================================
+#   Meevax ICE (Incremental Compiler/Evaluator)
+# ==============================================================================
 add_executable(ice
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
   ${${PROJECT_NAME}_LAYERS}
+  )
+
+target_include_directories(ice PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> # implicitly appends to ${CMAKE_INSTALL_PREFIX}
   )
 
 target_link_libraries(ice
@@ -216,9 +224,44 @@ install(
           ${PROJECT_NAME}-kernel
           ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   )
 
+# Install Headers
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DESTINATION include
+  )
+
+# ==============================================================================
+#   Package Config
+# ==============================================================================
+# TODO
+# install(
+#   EXPORT ${PROJECT_NAME}-config
+#   NAMESPACE ${PROJECT_NAME}::
+#   DESTINATION lib/cmake/${PROJECT_NAME}
+#   )
+
+# ==============================================================================
+#   Package Version
+# ==============================================================================
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  COMPATIBILITY SameMajorVersion
+  )
+
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  DESTINATION lib/cmake/${PROJECT_NAME}
+  )
+
+# ==============================================================================
+#   Uninstallation
+# ==============================================================================
 add_custom_target(uninstall
   COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
   )
