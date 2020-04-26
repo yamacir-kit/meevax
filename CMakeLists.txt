@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.5.1) # Ubuntu 16.04 LTS Default
 
 # ==============================================================================
 #   Calculate Project Version
@@ -24,12 +24,27 @@ endif()
 # ==============================================================================
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
+set(${PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS "                                   \
+  -fdevirtualize-at-ltrans                                                     \
+  -fdevirtualize-speculatively                                                 \
+  -ffloat-store                                                                \
+  -flto                                                                        \
+  -frename-registers                                                           \
+  -march=native                                                                \
+  -mfpmath=sse                                                                 \
+  -mtune=native                                                                \
+  -pipe                                                                        \
+  ")
+
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
-set(CMAKE_CXX_FLAGS_RELEASE "-s -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # set(CMAKE_CXX_STANDARD 17) # CMake <= 3.8.2
+
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -s -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -s -DNDEBUG ${${PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -92,7 +107,7 @@ if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake)
 endif()
 
 # ==============================================================================
-#   Configure Header (XXX DEPRECATED)
+#   Configure Headers
 # ==============================================================================
 string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
@@ -104,12 +119,6 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 else()
   set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
-
-# if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp)
-#   configure_file(
-#     ${${PROJECT_NAME}_CONFIGURE}/configurator.hpp
-#     ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/configurator.hpp)
-# endif()
 
 if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake)
   configure_file(
@@ -161,7 +170,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 endforeach()
 
 # ==============================================================================
-#   Meevax ICE
+#   Convert Scripts to ELF Binary
 # ==============================================================================
 file(GLOB
   ${PROJECT_NAME}_LAYER_SOURCES
@@ -189,9 +198,17 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach(EACH)
 
+# ==============================================================================
+#   Meevax ICE (Incremental Compiler/Evaluator)
+# ==============================================================================
 add_executable(ice
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
   ${${PROJECT_NAME}_LAYERS}
+  )
+
+target_include_directories(ice PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> # implicitly appends to ${CMAKE_INSTALL_PREFIX}
   )
 
 target_link_libraries(ice
@@ -207,9 +224,44 @@ install(
           ${PROJECT_NAME}-kernel
           ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   )
 
+# Install Headers
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DESTINATION include
+  )
+
+# ==============================================================================
+#   Package Config
+# ==============================================================================
+# TODO
+# install(
+#   EXPORT ${PROJECT_NAME}-config
+#   NAMESPACE ${PROJECT_NAME}::
+#   DESTINATION lib/cmake/${PROJECT_NAME}
+#   )
+
+# ==============================================================================
+#   Package Version
+# ==============================================================================
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  COMPATIBILITY SameMajorVersion
+  )
+
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  DESTINATION lib/cmake/${PROJECT_NAME}
+  )
+
+# ==============================================================================
+#   Uninstallation
+# ==============================================================================
 add_custom_target(uninstall
   COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
   )
