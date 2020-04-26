@@ -27,7 +27,7 @@ namespace meevax::kernel
       else
       {
         static_assert(
-          []() { return false; }(),
+          []() constexpr { return false; }(),
           "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
       }
     }

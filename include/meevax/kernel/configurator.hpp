@@ -36,6 +36,7 @@ namespace meevax::kernel
     // TODO Generate from CMakeLists.txt
     // static inline const std::string program_name {"ice"};
 
+    object color       {f};
     object interactive {f};
     object quiet       {f};
     object trace       {f};
@@ -122,6 +123,11 @@ namespace meevax::kernel
 
     const dispatcher<char> short_options
     {
+      std::make_pair('c', [this](auto&&...) mutable
+      {
+        return color = t;
+      }),
+
       std::make_pair('h', display_help),
 
       std::make_pair('i', [this](auto&&...) mutable
@@ -165,7 +171,10 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options
     {
-      // TODO --color
+      std::make_pair("color", [this](auto&&...) mutable
+      {
+        return color = t;
+      }),
 
       std::make_pair("help", display_help),
 

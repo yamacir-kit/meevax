@@ -39,8 +39,8 @@ namespace meevax::kernel
   * operation for everyone except the empty list.
   *
   *========================================================================== */
-  #define DEFINE_PAIR_ACCESSOR(IDENTIFIER, INDEX)                              \
-  inline decltype(auto) IDENTIFIER(const object& o)                            \
+  #define DEFINE_PAIR_ACCESSOR(SYMBOL, INDEX)                                  \
+  inline decltype(auto) SYMBOL(const object& o)                                \
   {                                                                            \
     assert(o);                                                                 \
     return std::get<INDEX>(o.dereference());                                   \
