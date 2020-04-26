@@ -3,6 +3,9 @@
 
 #include <ostream>                                                // responsible
 
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/device/null.hpp>
+
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 
@@ -19,6 +22,23 @@ namespace meevax::kernel
     (os << ... << objects);
     return os;
   }
+
+  class writer
+    : public boost::iostreams::stream_buffer<boost::iostreams::null_sink>
+    , public std::ostream
+  {
+    template <typename SK>
+    friend class configurator;
+
+    static inline constexpr auto quiet {true};
+
+  public:
+    explicit writer(std::ostream& os)
+      : std::ostream {quiet ? this : os.rdbuf()}
+    {
+      // rdbuf();
+    }
+  };
 
   namespace attribute
   {
