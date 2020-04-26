@@ -21,7 +21,7 @@ namespace meevax::kernel
   void display_abstract()
   {           // ";       10        20        30        40        50        60        70        80\n"
     std::cout << "; Abstract:                                                                     \n"
-                 ";   ICE is incremental compiler of Lisp-1 programming language Meevax.          \n"
+                 ";   ICE is incremental compiler/evaluator of Lisp-1 programming language Meevax.\n"
                  ";                                                                               \n";
   }
 
@@ -46,8 +46,9 @@ namespace meevax::kernel
 
     /* =========================================================================
     *
-    * XXX explicit configurator() = default;
-    *     causes segmentation fault on access above variables.
+    * NOTE
+    *   explicit configurator() = default;
+    *   causes segmentation fault on access above variables.
     *
     *======================================================================== */
     explicit configurator()
@@ -66,6 +67,7 @@ namespace meevax::kernel
                    "; commit"    "\t; " << feature_object.commit                                << "\n"
                    ";"                                                                             "\n"
                    "; feature"   "\t; " << feature_object                                       << "\n";
+
       return std::exit(boost::exit_success), unspecified;
     }
 

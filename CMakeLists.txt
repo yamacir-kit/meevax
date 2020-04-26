@@ -24,12 +24,27 @@ endif()
 # ==============================================================================
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
+set(${PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS "                                   \
+  -fdevirtualize-at-ltrans                                                     \
+  -fdevirtualize-speculatively                                                 \
+  -ffloat-store                                                                \
+  -flto                                                                        \
+  -frename-registers                                                           \
+  -march=native                                                                \
+  -mfpmath=sse                                                                 \
+  -mtune=native                                                                \
+  -pipe                                                                        \
+  ")
+
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
-set(CMAKE_CXX_FLAGS_RELEASE "-s -O3 -mtune=native -march=native -DNDEBUG")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # set(CMAKE_CXX_STANDARD 17) # CMake <= 3.8.2
+
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -s -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -s -DNDEBUG ${${PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
