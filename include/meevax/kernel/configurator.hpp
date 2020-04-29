@@ -56,6 +56,12 @@ namespace meevax::kernel
     {}
 
   public:
+    decltype(auto) quiet_is_specified() const
+    {
+      return quiet.equivalent_to(t);
+    }
+
+  public:
     static PROCEDURE(display_version)
     {           // "        10        20        30        40        50        60        70        80\n"
       display_title(version_object);

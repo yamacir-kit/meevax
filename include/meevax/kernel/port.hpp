@@ -10,6 +10,7 @@ namespace meevax::kernel
   /* ==== Ports ================================================================
   *
   * TODO std::string => std::filesystem::path
+  * TODO null-port
   *
   *========================================================================== */
   #define DEFINE_PORT(IDENTIFIER, NAME, BASE)                                  \
@@ -40,7 +41,7 @@ namespace meevax::kernel
     }                                                                          \
   }
 
-  DEFINE_PORT(       port,        "port", fstream);
+  DEFINE_PORT(       port,        "port",  fstream);
   DEFINE_PORT( input_port,  "input-port", ifstream);
   DEFINE_PORT(output_port, "output-port", ofstream);
 } // namespace meevax::kernel

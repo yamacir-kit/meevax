@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
 #include <ostream>                                                // responsible
+#include <utility>
 
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/device/null.hpp>
@@ -23,20 +24,33 @@ namespace meevax::kernel
     return os;
   }
 
-  class writer
+  template <typename SK>
+  struct writer
     : public boost::iostreams::stream_buffer<boost::iostreams::null_sink>
     , public std::ostream
   {
-    template <typename SK>
-    friend class configurator;
-
-    static inline constexpr auto quiet {true};
-
-  public:
-    explicit writer(std::ostream& os)
-      : std::ostream {quiet ? this : os.rdbuf()}
+    template <typename... Ts>
+    constexpr decltype(auto) quiet_is_specified(Ts&&... xs) const noexcept
     {
-      // rdbuf();
+      return
+        static_cast<SK>(*this).quiet_is_specified(
+          std::forward<decltype(xs)>(xs)...);
+    }
+
+    using port = std::streambuf*;
+
+    static inline const port standard_output {std::cout.rdbuf()};
+    static inline const port standard_error  {std::cerr.rdbuf()};
+
+    explicit writer(std::ostream& os)
+      : std::ostream {quiet_is_specified() ? this : standard_output}
+    {}
+
+    template <typename... Ts>
+    auto write(Ts&&... xs)
+      -> std::ostream&
+    {
+      return (*this << ... << xs);
     }
   };
 
