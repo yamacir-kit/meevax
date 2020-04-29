@@ -9,6 +9,7 @@
 #include <meevax/kernel/special.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
+#include <meevax/utility/import.hpp>
 
 inline namespace ugly_macros
 {
@@ -65,20 +66,9 @@ namespace meevax::kernel
            d; // Dump (S.E.C)
 
   private: // CRTP
-    #define CRTP(IDENTIFIER)                                                   \
-    template <typename... Ts>                                                  \
-    inline decltype(auto) IDENTIFIER(Ts&&... operands)                         \
-    {                                                                          \
-      return                                                                   \
-        static_cast<SyntacticContinuation&>(*this).IDENTIFIER(                 \
-          std::forward<decltype(operands)>(operands)...);                      \
-    }
-
-    CRTP(interaction_environment)
-    CRTP(intern)
-    CRTP(rename)
-
-    #undef CRTP
+    IMPORT(SyntacticContinuation, interaction_environment)
+    IMPORT(SyntacticContinuation, intern)
+    IMPORT(SyntacticContinuation, rename)
 
   public:
     // Direct virtual machine instruction invocation.

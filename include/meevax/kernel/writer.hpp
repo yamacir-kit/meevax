@@ -9,6 +9,7 @@
 
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
+#include <meevax/utility/import.hpp>
 
 namespace meevax::kernel
 {
@@ -25,18 +26,13 @@ namespace meevax::kernel
   }
 
   template <typename SK>
-  struct writer
+  class writer
     : public boost::iostreams::stream_buffer<boost::iostreams::null_sink>
     , public std::ostream
   {
-    template <typename... Ts>
-    constexpr decltype(auto) quiet_is_specified(Ts&&... xs) const noexcept
-    {
-      return
-        static_cast<SK>(*this).quiet_is_specified(
-          std::forward<decltype(xs)>(xs)...);
-    }
+    IMPORT(SK, quiet_is_specified)
 
+  public:
     using port = std::streambuf*;
 
     static inline const port standard_output {std::cout.rdbuf()};

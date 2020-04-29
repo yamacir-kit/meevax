@@ -9,6 +9,7 @@
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
+#include <meevax/utility/import.hpp>
 
 namespace meevax::kernel
 {
@@ -165,19 +166,11 @@ namespace meevax::kernel
     //   "unexpected close parentheses inserted"
     // )};
 
-  public:
-    template <typename... Ts>
-    explicit reader(Ts&&... operands)
-      : input_port {std::forward<decltype(operands)>(operands)...}
-    {}
+    IMPORT(Environment, intern)
 
-    template <typename... Ts>
-    decltype(auto) intern(Ts&&... operands)
-    {
-      return static_cast<Environment&>(*this).intern(
-               std::forward<decltype(operands)>(operands)...
-             );
-    }
+  public:
+    // Inheriting Constructors
+    using input_port::input_port;
 
     decltype(auto) ready() const noexcept
     {
