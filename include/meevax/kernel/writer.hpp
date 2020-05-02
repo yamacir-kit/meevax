@@ -4,8 +4,9 @@
 #include <ostream>                                                // responsible
 #include <utility>
 
-#include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/device/null.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
@@ -15,22 +16,29 @@ namespace meevax::kernel
 {
   static constexpr auto external_form {"#,"};
 
-  template <typename OutputStream, typename... Objects>
-  constexpr auto write(OutputStream&& os, Objects&&... objects)
-    -> typename std::add_lvalue_reference<
-         typename std::decay<OutputStream>::type
-       >::type
-  {
-    (os << ... << objects);
-    return os;
-  }
+  // template <typename OutputStream, typename... Objects>
+  // [[deprecated]]
+  // constexpr auto write(OutputStream&& os, Objects&&... objects)
+  //   -> typename std::add_lvalue_reference<
+  //        typename std::decay<OutputStream>::type
+  //      >::type
+  // {
+  //   (os << ... << objects);
+  //   return os;
+  // }
 
   template <typename SK>
   class writer
     : public boost::iostreams::stream_buffer<boost::iostreams::null_sink>
     , public std::ostream
   {
+    friend SK;
+
     IMPORT(SK, quiet_is_specified)
+
+    writer()
+      : std::ostream {this}
+    {}
 
   public:
     using port = std::streambuf*;
@@ -38,15 +46,34 @@ namespace meevax::kernel
     static inline const port standard_output {std::cout.rdbuf()};
     static inline const port standard_error  {std::cerr.rdbuf()};
 
-    explicit writer(std::ostream& os)
-      : std::ostream {quiet_is_specified() ? this : standard_output}
-    {}
+    operator std::ostream()
+    {
+      if (quiet_is_specified())
+      {
+        rdbuf(this);
+      }
+      else
+      {
+        rdbuf(standard_output);
+      }
+
+      return *this;
+    }
 
     template <typename... Ts>
     auto write(Ts&&... xs)
       -> std::ostream&
     {
       return (*this << ... << xs);
+    }
+
+    template <typename... Ts>
+    auto write(std::ostream& os, Ts&&... xs)
+      -> std::ostream&
+    {
+      rdbuf(os.rdbuf());
+
+      return write(std::forward<decltype(xs)>(xs)...);
     }
   };
 

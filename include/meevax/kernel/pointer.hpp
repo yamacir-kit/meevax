@@ -495,7 +495,7 @@ namespace meevax::kernel
     -> decltype(os)
   {
     // write(os) will be dispatched to each type's stream output operator.
-    return !object ? (os << highlight::syntax << "()" << attribute::normal) : object.dereference().dispatch(os);
+    return not object ? (os << highlight::syntax << "()" << attribute::normal) : object.dereference().dispatch(os);
   }
 
   template <typename T>

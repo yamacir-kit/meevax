@@ -7,6 +7,7 @@
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <meevax/kernel/writer.hpp>
 
 /* ==== Embedded Source Codes ==================================================
 *
@@ -354,7 +355,7 @@ namespace meevax::kernel
           std::cerr << ";\t\t; staging " << each << std::endl;
 
           external_symbols.emplace(
-            write(std::stringstream {}, each).str(),
+            boost::lexical_cast<std::string>(each),
             each);
         }
 

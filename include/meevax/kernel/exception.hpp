@@ -33,25 +33,20 @@
 
 namespace meevax::kernel
 {
-  template <typename Exception, typename... Ts>
+  template <typename Ex, typename... Ts>
   void raise(Ts&&... operands)
   {
-    Exception {std::forward<decltype(operands)>(operands)...}.raise();
+    Ex {std::forward<decltype(operands)>(operands)...}.raise();
   }
 
   struct exception
     : public std::runtime_error
   {
-    template <typename S, REQUIRES(std::is_constructible<std::string, S>)>
-    explicit constexpr exception(S&& s)
-      : std::runtime_error {std::forward<S>(s)}
-    {}
+    using std::runtime_error::runtime_error;
 
-    template <typename... Objects>
-    explicit exception(Objects&&... objects)
-      : std::runtime_error {write(
-          std::ostringstream {}, std::forward<Objects>(objects)...
-        ).str()}
+    template <typename... Ts>
+    explicit exception(Ts&&... xs)
+      : std::runtime_error {to_string(std::forward<decltype(xs)>(xs)...)}
     {}
 
     virtual ~exception() = default;
@@ -59,6 +54,15 @@ namespace meevax::kernel
     virtual void raise() const
     {
       throw *this;
+    }
+
+  protected:
+    template <typename... Ts>
+    auto to_string(Ts&&... xs)
+    {
+      std::stringstream port {};
+      (port << ... << xs);
+      return port.str();
     }
   };
 
