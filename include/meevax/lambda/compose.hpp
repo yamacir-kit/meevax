@@ -8,7 +8,8 @@ namespace meevax::lambda
   auto compose = [](auto&& f, auto&& g)
   {
     return [f = FORWARD_CAPTURE(f),
-            g = FORWARD_CAPTURE(g)](auto&&... operands) mutable
+            g = FORWARD_CAPTURE(g)]
+           (auto&&... operands) mutable
               -> decltype(auto)
            {
              return captured(f)(captured(g)(FORWARD(operands)...));

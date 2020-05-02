@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
 #include <ostream>                                                // responsible
-#include <utility>
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>

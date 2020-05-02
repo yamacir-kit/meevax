@@ -9,6 +9,7 @@
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
+#include <meevax/utility/import.hpp>
 
 namespace meevax::kernel
 {
