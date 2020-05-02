@@ -6,7 +6,6 @@
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
@@ -15,17 +14,6 @@
 namespace meevax::kernel
 {
   static constexpr auto external_form {"#,"};
-
-  // template <typename OutputStream, typename... Objects>
-  // [[deprecated]]
-  // constexpr auto write(OutputStream&& os, Objects&&... objects)
-  //   -> typename std::add_lvalue_reference<
-  //        typename std::decay<OutputStream>::type
-  //      >::type
-  // {
-  //   (os << ... << objects);
-  //   return os;
-  // }
 
   template <typename SK>
   class writer

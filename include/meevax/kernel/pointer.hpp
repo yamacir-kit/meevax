@@ -339,6 +339,7 @@ namespace meevax::kernel
             ignore);
     }
 
+    // XXX Need?
     decltype(auto) dereference() const
     {
       assert(*this);
@@ -491,17 +492,10 @@ namespace meevax::kernel
   };
 
   template <typename T>
-  auto write(const pointer<T>& object, std::ostream& os = std::cout)
-    -> decltype(os)
-  {
-    // write(os) will be dispatched to each type's stream output operator.
-    return not object ? (os << highlight::syntax << "()" << attribute::normal) : object.dereference().dispatch(os);
-  }
-
-  template <typename T>
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
   {
-    return write(object, os);
+    return not object ? (os << highlight::syntax << "()" << attribute::normal)
+                      : object.dereference().dispatch(os);
   }
 
   namespace debug
