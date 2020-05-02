@@ -70,11 +70,11 @@ namespace meevax::kernel
   auto operator<<(std::ostream& os, const TYPENAME& exception)                 \
     -> decltype(auto)                                                          \
   {                                                                            \
-    return os << highlight::syntax << "#("                                     \
-              << highlight::type << __VA_ARGS__                                \
-              << highlight::datum << " " <<  std::quoted(exception.what())     \
-              << highlight::syntax << ")"                                      \
-              << attribute::normal;                                            \
+    return os << posix::highlight::syntax << "#("                                     \
+              << posix::highlight::type << __VA_ARGS__                                \
+              << posix::highlight::datum << " " <<  std::quoted(exception.what())     \
+              << posix::highlight::syntax << ")"                                      \
+              << posix::attribute::normal;                                            \
   }
 
   DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(exception, "exception")

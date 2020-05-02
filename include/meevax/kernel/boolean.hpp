@@ -22,11 +22,8 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const boolean& datum)
       -> decltype(os)
     {
-      return os << highlight::datum
-                << "#"
-                << std::boolalpha
-                << datum.value
-                << attribute::normal;
+      return os << posix::highlight::datum << "#" << std::boolalpha << datum.value
+                << posix::attribute::normal;
     }
   };
 

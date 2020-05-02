@@ -28,11 +28,11 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const identity& c)
       -> decltype(os)
     {
-      return os << highlight::datum << "#\\"
+      return os << posix::highlight::datum << "#\\"
                 << (std::empty(c.external_representation)
                       ? static_cast<std::string>(c)
                       : c.external_representation)
-                << attribute::normal;
+                << posix::attribute::normal;
     }
   };
 

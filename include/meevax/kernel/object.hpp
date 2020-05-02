@@ -88,7 +88,8 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const TYPENAME##_behavior&)       \
       -> decltype(os)                                                          \
     {                                                                          \
-      return os << highlight::comment << "#;" #TYPENAME << attribute::normal;  \
+      return os << posix::highlight::comment << "#;" #TYPENAME                 \
+                << posix::attribute::normal;                                   \
     }                                                                          \
   };                                                                           \
                                                                                \

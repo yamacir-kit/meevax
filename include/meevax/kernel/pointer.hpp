@@ -10,7 +10,9 @@
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-#include <meevax/kernel/writer.hpp>
+#include <meevax/posix/escape_sequence.hpp>
+#include <meevax/utility/demangle.hpp>
+#include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
@@ -165,7 +167,7 @@ namespace meevax::kernel
   class pointer
     : public std::shared_ptr<T>
   {
-    /* ==== Object Binder =====================================================
+    /* ==== Binder =============================================================
     *
     * The object binder is the actual data pointed to by the pointer type. To
     * handle all types uniformly, the binder inherits type T and uses dynamic
@@ -173,7 +175,7 @@ namespace meevax::kernel
     * instances. However, the performance is inferior due to the heavy use of
     * dynamic cast as a price for convenience.
     *
-    *======================================================================= */
+    *======================================================================== */
     template <typename Bound>
     struct binder
       : public Bound
@@ -239,11 +241,13 @@ namespace meevax::kernel
         }
         else
         {
-          return os << highlight::syntax << "#("
-                    << highlight::type << utility::demangle(typeid(Bound))
-                    << attribute::normal << highlight::comment << " #;" << static_cast<const Bound*>(this) << attribute::normal
-                    << highlight::syntax << ")"
-                    << attribute::normal;
+          return os << posix::highlight::syntax  << "#("
+                    << posix::highlight::type    << utility::demangle(typeid(Bound))
+                    << posix::attribute::normal
+                    << posix::highlight::comment << " #;" << static_cast<const Bound*>(this)
+                    << posix::attribute::normal
+                    << posix::highlight::syntax  << ")"
+                    << posix::attribute::normal;
         }
       }
     };
@@ -494,7 +498,8 @@ namespace meevax::kernel
   template <typename T>
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
   {
-    return not object ? (os << highlight::syntax << "()" << attribute::normal)
+    return not object ? (os << posix::highlight::syntax << "()"
+                            << posix::attribute::normal)
                       : object.dereference().dispatch(os);
   }
 

@@ -29,15 +29,16 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const IDENTIFIER& port)           \
       -> decltype(os)                                                          \
     {                                                                          \
-      os << highlight::syntax << external_form << "("                          \
-         << highlight::type << NAME;                                           \
+      os << posix::highlight::syntax << "#,("                   \
+         << posix::highlight::type   << NAME;                                  \
                                                                                \
       if (port.is_open())                                                      \
       {                                                                        \
-        os << highlight::datum << " \"" << port.name << "\"";                  \
+        os << posix::highlight::datum << " " << std::quoted(port.name);        \
       }                                                                        \
                                                                                \
-      return os << highlight::syntax << ")" << attribute::normal;              \
+      return os << posix::highlight::syntax << ")"                             \
+                << posix::attribute::normal;                                   \
     }                                                                          \
   }
 

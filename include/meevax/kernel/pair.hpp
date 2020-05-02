@@ -57,7 +57,8 @@ namespace meevax::kernel
   auto operator<<(std::ostream& os, const pair& pare)
     -> decltype(os)
   {
-    os << highlight::syntax << "(" << attribute::normal << std::get<0>(pare);
+    os << posix::highlight::syntax << "("
+       << posix::attribute::normal << std::get<0>(pare);
 
     for (auto object {std::get<1>(pare)}; object; object = cdr(object))
     {
@@ -67,11 +68,13 @@ namespace meevax::kernel
       }
       else // iter is the last element of dotted-list.
       {
-        os << highlight::syntax << " . " << attribute::normal << object;
+        os << posix::highlight::syntax << " . "
+           << posix::attribute::normal << object;
       }
     }
 
-    return os << highlight::syntax << ")" << attribute::normal;
+    return os << posix::highlight::syntax << ")"
+              << posix::attribute::normal;
   }
 } // namespace meevax::kernel
 
