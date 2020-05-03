@@ -6,9 +6,9 @@
 #include <meevax/kernel/de_brujin_index.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/special.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
+#include <meevax/kernel/syntax.hpp>
 
 inline namespace ugly_macros
 {
@@ -230,7 +230,7 @@ namespace meevax::kernel
             "empty-list. if the variable will not reset with applicable object "
             "later, cause runtime error.");
         }
-        else if (applicant.is<special>()
+        else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
@@ -241,7 +241,7 @@ namespace meevax::kernel
             << std::endl);
 
           NEST_IN;
-          auto result {std::invoke(applicant.as<special>(),
+          auto result {std::invoke(applicant.as<syntax>(),
             cdr(expression), syntactic_environment, frames, continuation, in_a
           )};
           NEST_OUT;
@@ -768,7 +768,7 @@ namespace meevax::kernel
           {
             cadr(pare) = car(s);
           }
-          else if (value.is<SyntacticContinuation>() or value.is<special>())
+          else if (value.is<SyntacticContinuation>() or value.is<syntax>())
           {
             /* ---- From R7RS 5.3.1. Top level definitions ---------------------
             *
@@ -1097,14 +1097,14 @@ namespace meevax::kernel
                and not de_bruijn_index( // the operator is not local variable
                          caar(expression),
                          frames)
-               and lookup( // the variable references special form
+               and lookup( // the variable references syntax form
                      caar(expression),
                      syntactic_environment)
-                   .template is<special>()
-               and lookup( // the special form is "define"
+                   .template is<syntax>()
+               and lookup( // the syntax form is "define"
                      caar(expression),
                      syntactic_environment)
-                   .template as<special>()
+                   .template as<syntax>()
                    .name == "define")
       {
         /* --------------------------------------------------------------------

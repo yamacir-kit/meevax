@@ -427,12 +427,12 @@ namespace meevax::kernel
     }
   };
 
-  #define DEFINE_SPECIAL(NAME, RULE)                                           \
-  define<special>(NAME, [this](auto&&... operands)                             \
+  #define DEFINE_SYNTAX(NAME, RULE)                                            \
+  define<syntax>(NAME, [this](auto&&... xs)                                    \
   {                                                                            \
     return                                                                     \
       RULE(                                                                    \
-        std::forward<decltype(operands)>(operands)...);                        \
+        std::forward<decltype(xs)>(xs)...);                                    \
   })
 
   #define DEFINE_PROCEDURE_1(NAME, CALLEE)                                     \
@@ -467,28 +467,28 @@ namespace meevax::kernel
       return car(arguments) == rename(cadr(arguments)) ? t : f;
     });
 
-    DEFINE_SPECIAL("export", exportation);
-    DEFINE_SPECIAL("import", importation);
+    DEFINE_SYNTAX("export", exportation);
+    DEFINE_SYNTAX("import", importation);
   }
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
-    DEFINE_SPECIAL("begin",     sequence);
-    DEFINE_SPECIAL("define",    definition);
-    DEFINE_SPECIAL("fork",      fork);
-    DEFINE_SPECIAL("if",        conditional);
-    DEFINE_SPECIAL("lambda",    lambda);
-    DEFINE_SPECIAL("quote",     quotation);
-    DEFINE_SPECIAL("reference", reference);
-    DEFINE_SPECIAL("set!",      assignment);
+    DEFINE_SYNTAX("begin",     sequence);
+    DEFINE_SYNTAX("define",    definition);
+    DEFINE_SYNTAX("fork",      fork);
+    DEFINE_SYNTAX("if",        conditional);
+    DEFINE_SYNTAX("lambda",    lambda);
+    DEFINE_SYNTAX("quote",     quotation);
+    DEFINE_SYNTAX("reference", reference);
+    DEFINE_SYNTAX("set!",      assignment);
 
-    DEFINE_SPECIAL("call-with-current-continuation", call_cc);
+    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
 
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<linker>);
 
-    // define<special>("cons", [this](
+    // define<syntax>("cons", [this](
     //   auto&& expression,
     //   auto&& syntactic_environment,
     //   auto&& frames,
@@ -569,7 +569,7 @@ namespace meevax::kernel
     std::cerr << std::endl;
   }
 
-  #undef DEFINE_SPECIAL
+  #undef DEFINE_SYNTAX
   #undef DEFINE_PROCEDURE_1
   #undef DEFINE_PROCEDURE_S
 

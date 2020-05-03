@@ -1,9 +1,9 @@
-#ifndef INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP
-#define INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
 #include <meevax/kernel/object.hpp>
 
-#define SPECIAL(NAME) \
+#define SYNTAX(NAME)                                                           \
   const meevax::kernel::object NAME(                                           \
     const meevax::kernel::object&,                                             \
     const meevax::kernel::object&,                                             \
@@ -35,26 +35,28 @@ namespace meevax::kernel
     true, true
   };
 
-  struct special
-    : public std::function<SPECIAL()>
+  struct syntax
+    : public std::function<SYNTAX()>
   {
-    using signature = SPECIAL((*));
+    using signature = SYNTAX((*));
 
     const std::string name;
 
     template <typename... Ts>
-    special(const std::string& name, Ts&&... operands)
-      : std::function<SPECIAL()> {std::forward<decltype(operands)>(operands)...}
+    syntax(const std::string& name, Ts&&... operands)
+      : std::function<SYNTAX()> {
+          std::forward<decltype(operands)>(operands)...
+        }
       , name {name}
     {}
 
-    friend auto operator<<(std::ostream& os, const special& special)
+    friend auto operator<<(std::ostream& os, const syntax& syntax)
       -> decltype(auto)
     {
       return os << posix::highlight::syntax  << "#,("
-                << posix::highlight::type    << "special"
-                << posix::attribute::normal  << " " << special.name
-                << posix::highlight::comment << " #;" << &special
+                << posix::highlight::type    << "syntax"
+                << posix::attribute::normal  << " " << syntax.name
+                << posix::highlight::comment << " #;" << &syntax
                 << posix::attribute::normal
                 << posix::highlight::syntax  << ")"
                 << posix::attribute::normal;
@@ -62,5 +64,5 @@ namespace meevax::kernel
   };
 } // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_SPECIAL_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
