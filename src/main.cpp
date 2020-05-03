@@ -19,7 +19,7 @@ int main(const int argc, char const* const* const argv) try
 
   const auto prompt {"\n> "};
 
-  for (program.open("/dev/stdin"); program.ready(); ) try
+  for (program.std::ifstream::open("/dev/stdin"); program.ready(); ) try
   {
     std::cout << prompt << std::flush;
     const auto expression {program.read()};

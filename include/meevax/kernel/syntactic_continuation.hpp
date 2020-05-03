@@ -29,6 +29,10 @@ namespace meevax::kernel
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
+  /* ==== Syntactic Continuation (SK) ==========================================
+  *
+  *
+  * ========================================================================= */
   class syntactic_continuation
     /* =========================================================================
     *
@@ -49,6 +53,12 @@ namespace meevax::kernel
     *
     *======================================================================== */
     , public reader<syntactic_continuation>
+
+    /* ==== Writer =============================================================
+    *
+    *
+    * ======================================================================= */
+    , public writer<syntactic_continuation>
 
     /* =========================================================================
     *
@@ -541,7 +551,8 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    static const std::string overture {
+    static const std::string overture
+    {
       &_binary_overture_ss_start,
       &_binary_overture_ss_end
     };
