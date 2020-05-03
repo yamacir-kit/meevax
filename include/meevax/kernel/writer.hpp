@@ -1,12 +1,14 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
-#include <fstream>
 #include <ostream>                                                // responsible
 #include <sstream>
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
+
+#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/port.hpp>
 
 namespace meevax::kernel
 {
@@ -16,29 +18,34 @@ namespace meevax::kernel
   {
     friend SK;
 
-    IMPORT(SK, quiet_is_specified)
-
     writer()
     {}
 
+    IMPORT(SK, quiet_is_specified)
+
+  protected:
+    bool debug {false};
     bool quiet {false};
 
   public:
     template <typename... Ts>
-    auto write(Ts&&... xs)
-      -> std::ostream&
-    {
-      return (open_output_file() << ... << xs);
-    }
-
-    template <typename... Ts>
     auto write(std::ostream& os, Ts&&... xs)
       -> std::ostream&
     {
-      return write(std::forward<decltype(xs)>(xs)...);
+      return (os << ... << xs);
     }
 
-    // from (scheme base)
+    template <typename... Ts>
+    auto write(Ts&&... xs)
+      -> std::ostream&
+    {
+      return
+        write(
+          current_output_port(),
+          std::forward<decltype(xs)>(xs)...);
+    }
+
+  public:
     auto current_output_port() const
     {
       return
@@ -53,6 +60,14 @@ namespace meevax::kernel
           quiet ? this : std::cerr.rdbuf());
     }
 
+    auto current_debug_port() const
+    {
+      return
+        std::ostream(
+          quiet or not debug ? this : std::cerr.rdbuf());
+    }
+
+  public:
     template <typename S>
     auto open_output_file(S&& s) const
     {

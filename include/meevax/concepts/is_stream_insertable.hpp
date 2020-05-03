@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 
-// TODO Rename to OutputStreamable
+// TODO Rename to OutputStreamable (from Boost.IOStreams)
 
 namespace meevax::concepts
 {

@@ -3,6 +3,7 @@
 
 #include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
+#include <sstream>
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/numerical.hpp>
@@ -166,6 +167,9 @@ namespace meevax::kernel
     // )};
 
     IMPORT(Environment, intern)
+
+  protected:
+    std::size_t line {0};
 
   public:
     // Inheriting Constructors

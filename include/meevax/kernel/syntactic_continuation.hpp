@@ -11,7 +11,8 @@
 *
 * library/hoge.ss
 *
-* MEMO: readelf -a hoge.ss.o
+* NOTE:
+*   readelf -a hoge.ss.o
 *
 *============================================================================ */
 extern char _binary_overture_ss_start;
@@ -25,7 +26,7 @@ namespace meevax::kernel
   * Layer 1 - Primitive Expression Types
   * Layer 2 - Derived Expression Types and Standard Procedures
   *
-  *========================================================================== */
+  * ========================================================================= */
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
@@ -41,7 +42,7 @@ namespace meevax::kernel
     * meta-closure that closes the global environment when it constructed (this
     * feature is known as syntactic-closure).
     *
-    *======================================================================== */
+    * ======================================================================= */
     : public virtual pair
 
     /* =========================================================================
@@ -51,7 +52,7 @@ namespace meevax::kernel
     * indirectly inherits the non-copyable class std::istream (reader base
     * class), so it cannot be copied.
     *
-    *======================================================================== */
+    * ======================================================================= */
     , public reader<syntactic_continuation>
 
     /* ==== Writer =============================================================
@@ -64,7 +65,7 @@ namespace meevax::kernel
     *
     * Each syntactic-continuation has a virtual machine and a compiler.
     *
-    *======================================================================== */
+    * ======================================================================= */
     , public machine<syntactic_continuation>
 
     /* =========================================================================
@@ -73,10 +74,10 @@ namespace meevax::kernel
     * on same process. Thus, any change of configuration member influences any
     * other syntactic_continuations immediately.
     *
-    *======================================================================== */
+    * ======================================================================= */
     , public configurator<syntactic_continuation>
   {
-  public: // TODO PRIVATE
+  public:
     std::unordered_map<std::string, object> symbols;
     std::unordered_map<std::string, object> external_symbols;
 
@@ -160,12 +161,6 @@ namespace meevax::kernel
     // }
 
   public: // Interfaces
-    // TODO Rename to "interaction_ready"
-    auto ready() const noexcept
-    {
-      return reader<syntactic_continuation>::ready();
-    }
-
     const auto& intern(const std::string& s)
     {
       if (auto iter {symbols.find(s)}; iter != std::end(symbols))
@@ -517,9 +512,9 @@ namespace meevax::kernel
     //           continuation)));
     // });
 
-    define<procedure>("features", [this](auto&&...)
+    define<procedure>("features", [this](auto&&...)             // (scheme base)
     {
-      return feature_object;
+      return current_feature;
     });
 
     define<procedure>("procedure", [](auto&&, auto&& operands)
