@@ -7,11 +7,11 @@
 
 namespace meevax::kernel
 {
+  extern const std::unordered_map<std::string, object> characters;
+
   struct character
     : public std::string // TODO convert std::u8string in future.
   {
-    using identity = character;
-
     const std::string external_representation;
 
     explicit character(const char ascii)
@@ -25,7 +25,7 @@ namespace meevax::kernel
       , external_representation {external_representation}
     {}
 
-    friend auto operator<<(std::ostream& os, const identity& c)
+    friend auto operator<<(std::ostream& os, const character& c)
       -> decltype(os)
     {
       return os << posix::highlight::datum << "#\\"
@@ -36,7 +36,6 @@ namespace meevax::kernel
     }
   };
 
-  extern "C" const std::unordered_map<std::string, object> characters;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP

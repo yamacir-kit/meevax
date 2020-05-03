@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
@@ -17,18 +18,18 @@ namespace meevax::kernel
   {
     static constexpr auto intraline_whitespace(std::istream::char_type c)
     {
-      // return std::isspace(c);
-      return c == 0x09
-          or c == 0x0a
-          or c == 0x0b
-          or c == 0x0c
-          or c == 0x0d
-          or c == 0x20;
+      return c == u8' '
+          or c == u8'\n'
+          or c == u8'\r'
+          or c == u8'\t'
+          or c == u8'\v'
+          or c == u8'\f';
     }
 
     static constexpr auto line_ending(std::istream::char_type c)
     {
-      return c == u8'\r' or c == u8'\n';
+      return c == u8'\n'
+          or c == u8'\r';
     }
 
     static constexpr auto whitespace(std::istream::char_type c)
@@ -148,10 +149,12 @@ namespace meevax::kernel
     }
   }
 
-  /*
-   * Reader is character oriented state machine provides "read" primitive. This
-   * type requires the type manages symbol table as template parameter.
-   */
+  /* ==== Reader ===============================================================
+  *
+  * Reader is character oriented state machine provides "read" primitive. This
+  * type requires the type manages symbol table as template parameter.
+  *
+  * ========================================================================= */
   template <typename SK>
   class reader
     : public input_port
@@ -192,36 +195,38 @@ namespace meevax::kernel
       return read(stream);
     }
 
-    /*
-     * The external representation.
-     *
-     * <Datum> is what the read procedure successfully parses. Note that any
-     * string that parses as an <expression> will also parse as a <datum>.
-     *
-     * <datum> = <simple datum>
-     *         | <compund datum>
-     *
-     * <simple datum> = <boolean>
-     *                | <number>
-     *                | <character>
-     *                | <string>
-     *                | <symbol>
-     *
-     * <compound datum> = <list>
-     *                  | <abbreviation>
-     *                  | <read time evaluation>
-     *
-     * <list> = (<datum>*)
-     *        | (<datum>+ . <datum>)
-     *
-     * <abbreviation> = <abbrev prefix> <datum>
-     *
-     * <abbrev prefix> = ' | ` | , | ,@
-     *
-     * <read time evaluation> = #(<datum>*)
-     *
-     * <label> = # <unsigned integer 10>                           unimplemented
-     */
+    /* ==== Read ===============================================================
+    *
+    * The external representation.
+    *
+    * <Datum> is what the read procedure successfully parses. Note that any
+    * string that parses as an <expression> will also parse as a <datum>.
+    *
+    * <datum> = <simple datum>
+    *         | <compund datum>
+    *
+    * <simple datum> = <boolean>
+    *                | <number>
+    *                | <character>
+    *                | <string>
+    *                | <symbol>
+    *
+    * <compound datum> = <list>
+    *                  | <abbreviation>
+    *                  | <read time evaluation>
+    *
+    * <list> = (<datum>*)
+    *        | (<datum>+ . <datum>)
+    *
+    * <abbreviation> = <abbrev prefix> <datum>
+    *
+    * <abbrev prefix> = ' | ` | , | ,@
+    *
+    * <read time evaluation> = #(<datum>*)
+    *
+    * <label> = # <unsigned integer 10>                           unimplemented
+    *
+    * ======================================================================= */
     const object read(std::istream& stream)
     {
       std::string token {};
