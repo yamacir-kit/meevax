@@ -9,7 +9,6 @@
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
-#include <meevax/utility/import.hpp>
 
 namespace meevax::kernel
 {

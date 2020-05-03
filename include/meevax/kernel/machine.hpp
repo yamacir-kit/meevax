@@ -9,7 +9,6 @@
 #include <meevax/kernel/special.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
-#include <meevax/utility/import.hpp>
 
 inline namespace ugly_macros
 {

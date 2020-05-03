@@ -6,13 +6,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept> // std::logic_error
-#include <utility> // std::forward
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/posix/escape_sequence.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
+#include <meevax/utility/import.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
