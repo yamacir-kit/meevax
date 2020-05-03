@@ -152,7 +152,7 @@ namespace meevax::kernel
    * Reader is character oriented state machine provides "read" primitive. This
    * type requires the type manages symbol table as template parameter.
    */
-  template <typename Environment>
+  template <typename SK>
   class reader
     : public input_port
   {
@@ -166,7 +166,8 @@ namespace meevax::kernel
     //   "unexpected close parentheses inserted"
     // )};
 
-    IMPORT(Environment, intern)
+    IMPORT(SK, evaluate)
+    IMPORT(SK, intern)
 
   protected:
     std::size_t line {0};
@@ -346,7 +347,7 @@ namespace meevax::kernel
        * Read-time-evaluation #( ... )
        */
       case '(': // TODO CHANGE TO ',' (SRFI-10)
-        return static_cast<Environment&>(*this).evaluate(read(stream));
+        return evaluate(read(stream));
 
       case '\\':
         {
