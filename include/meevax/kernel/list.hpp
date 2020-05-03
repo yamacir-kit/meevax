@@ -3,10 +3,9 @@
 
 #include <iterator> // std::begin, std::end, std::distance
 
+#include <meevax/functional/compose.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
-
-#include <meevax/lambda/compose.hpp>
 
 /* ==== SRFI-1 ================================================================
 *
@@ -119,36 +118,36 @@ namespace meevax::kernel
   * Arbitrary compositions up to four deep are provided.
   *
   *========================================================================== */
-  auto caar = lambda::compose(car, car);
-  auto cadr = lambda::compose(car, cdr);
-  auto cdar = lambda::compose(cdr, car);
-  auto cddr = lambda::compose(cdr, cdr);
+  auto caar = functional::compose(car, car);
+  auto cadr = functional::compose(car, cdr);
+  auto cdar = functional::compose(cdr, car);
+  auto cddr = functional::compose(cdr, cdr);
 
-  auto caaar = lambda::compose(car, caar);
-  auto caadr = lambda::compose(car, cadr);
-  auto cadar = lambda::compose(car, cdar);
-  auto caddr = lambda::compose(car, cddr);
-  auto cdaar = lambda::compose(cdr, caar);
-  auto cdadr = lambda::compose(cdr, cadr);
-  auto cddar = lambda::compose(cdr, cdar);
-  auto cdddr = lambda::compose(cdr, cddr);
+  auto caaar = functional::compose(car, caar);
+  auto caadr = functional::compose(car, cadr);
+  auto cadar = functional::compose(car, cdar);
+  auto caddr = functional::compose(car, cddr);
+  auto cdaar = functional::compose(cdr, caar);
+  auto cdadr = functional::compose(cdr, cadr);
+  auto cddar = functional::compose(cdr, cdar);
+  auto cdddr = functional::compose(cdr, cddr);
 
-  auto caaaar = lambda::compose(car, caaar);
-  auto caaadr = lambda::compose(car, caadr);
-  auto caadar = lambda::compose(car, cadar);
-  auto caaddr = lambda::compose(car, caddr);
-  auto cadaar = lambda::compose(car, cdaar);
-  auto cadadr = lambda::compose(car, cdadr);
-  auto caddar = lambda::compose(car, cddar);
-  auto cadddr = lambda::compose(car, cdddr);
-  auto cdaaar = lambda::compose(cdr, caaar);
-  auto cdaadr = lambda::compose(cdr, caadr);
-  auto cdadar = lambda::compose(cdr, cadar);
-  auto cdaddr = lambda::compose(cdr, caddr);
-  auto cddaar = lambda::compose(cdr, cdaar);
-  auto cddadr = lambda::compose(cdr, cdadr);
-  auto cdddar = lambda::compose(cdr, cddar);
-  auto cddddr = lambda::compose(cdr, cdddr);
+  auto caaaar = functional::compose(car, caaar);
+  auto caaadr = functional::compose(car, caadr);
+  auto caadar = functional::compose(car, cadar);
+  auto caaddr = functional::compose(car, caddr);
+  auto cadaar = functional::compose(car, cdaar);
+  auto cadadr = functional::compose(car, cdadr);
+  auto caddar = functional::compose(car, cddar);
+  auto cadddr = functional::compose(car, cdddr);
+  auto cdaaar = functional::compose(cdr, caaar);
+  auto cdaadr = functional::compose(cdr, caadr);
+  auto cdadar = functional::compose(cdr, cadar);
+  auto cdaddr = functional::compose(cdr, caddr);
+  auto cddaar = functional::compose(cdr, cdaar);
+  auto cddadr = functional::compose(cdr, cdadr);
+  auto cdddar = functional::compose(cdr, cddar);
+  auto cddddr = functional::compose(cdr, cdddr);
 
   /* ==== The Homoiconic Iterator ==============================================
   *
