@@ -38,7 +38,7 @@ namespace meevax::kernel
   * Pair accessors are not only for pair type. Accessing car and cdr is a valid
   * operation for everyone except the empty list.
   *
-  *========================================================================== */
+  * ========================================================================= */
   #define DEFINE_PAIR_ACCESSOR(SYMBOL, INDEX)                                  \
   inline decltype(auto) SYMBOL(const object& o)                                \
   {                                                                            \

@@ -3,12 +3,10 @@
 
 #include <unordered_map>
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax::kernel
 {
-  extern const std::unordered_map<std::string, object> characters;
-
   struct character
     : public std::string // TODO convert std::u8string in future.
   {
@@ -36,6 +34,7 @@ namespace meevax::kernel
     }
   };
 
+  extern const std::unordered_map<std::string, object> characters;
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
