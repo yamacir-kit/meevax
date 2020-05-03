@@ -2,10 +2,12 @@
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
 #include <istream>
-#include <limits> // std::numeric_limits<std::streamsize>
 #include <sstream>
 
+#include <limits> // std::numeric_limits<std::streamsize>
+
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/character.hpp>
 #include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/port.hpp>
@@ -14,65 +16,6 @@
 
 namespace meevax::kernel
 {
-  inline namespace lexical_structure
-  {
-    static constexpr auto intraline_whitespace(std::istream::char_type c)
-    {
-      return c == u8' '
-          or c == u8'\n'
-          or c == u8'\r'
-          or c == u8'\t'
-          or c == u8'\v'
-          or c == u8'\f';
-    }
-
-    static constexpr auto line_ending(std::istream::char_type c)
-    {
-      return c == u8'\n'
-          or c == u8'\r';
-    }
-
-    static constexpr auto whitespace(std::istream::char_type c)
-    {
-      return intraline_whitespace(c) or line_ending(c);
-    }
-
-    template <typename Char>
-    static constexpr auto is_eof(Char c)
-    {
-      return c == std::char_traits<Char>::eof();
-    }
-
-    static constexpr bool is_delimiter(std::istream::char_type c)
-    {
-      // return whitespace(c) or ;
-
-      if (whitespace(c) or is_eof(c))
-      {
-        return true;
-      }
-      else switch (c)
-      {
-      case u8'(': case u8')':
-
-      case u8'#':
-
-      // quotation
-      case u8'\'':
-      case u8',':
-      case u8'`':
-
-      case u8'"':
-      case u8';':
-      case u8'|':
-        return true;
-
-      default:
-        return false;
-      }
-    }
-  } // inline namespace lexical_structure
-
   namespace
   {
     template <typename T>
@@ -113,7 +56,7 @@ namespace meevax::kernel
               datum<string>(stream));
 
         case '\n':
-          while (whitespace(stream.peek()))
+          while (is_whitespace(stream.peek()))
           {
             stream.ignore(1);
           }
@@ -160,14 +103,6 @@ namespace meevax::kernel
     : public input_port
   {
     using seeker = std::istream_iterator<input_port::char_type>;
-
-    // static inline const auto error_pair {make<read_error<category::pair>>(
-    //   "ill-formed dot-notation"
-    // )};
-    //
-    // static inline const auto error_parentheses {make<read_error<category::parentheses>>(
-    //   "unexpected close parentheses inserted"
-    // )};
 
     IMPORT(SK, evaluate)
     IMPORT(SK, intern)

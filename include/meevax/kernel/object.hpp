@@ -85,9 +85,9 @@ namespace meevax::kernel
   static const object unit {nullptr};
 
   #define DEFINE_MISCELLANEOUS(TYPENAME)                                       \
-  struct TYPENAME##_behavior                                                   \
+  struct TYPENAME##_t                                                          \
   {                                                                            \
-    friend auto operator<<(std::ostream& os, const TYPENAME##_behavior&)       \
+    friend auto operator<<(std::ostream& os, const TYPENAME##_t&)              \
       -> decltype(os)                                                          \
     {                                                                          \
       return os << posix::highlight::comment << "#;" #TYPENAME                 \
@@ -95,10 +95,12 @@ namespace meevax::kernel
     }                                                                          \
   };                                                                           \
                                                                                \
-  static const auto TYPENAME {make<TYPENAME##_behavior>()}
+  static const auto TYPENAME {make<TYPENAME##_t>()}
 
   DEFINE_MISCELLANEOUS(undefined);
   DEFINE_MISCELLANEOUS(unspecified);
+
+  // TODO EOF as miscellaneous
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
