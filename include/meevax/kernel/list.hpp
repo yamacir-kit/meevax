@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIST_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
+#include <algorithm> // std::equal
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/functional/compose.hpp>
