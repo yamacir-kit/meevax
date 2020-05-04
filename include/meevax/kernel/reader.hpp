@@ -280,38 +280,41 @@ namespace meevax::kernel
       return eof_object;
     }
 
-    const object discriminate(std::istream& stream)
+    const object discriminate(std::istream& is)
     {
-      switch (stream.peek())
+      switch (is.peek())
       {
       case 'f':
-        read(stream);
+        read(is); // Ignore an expression.
         return f;
 
       case 't':
-        read(stream);
+        read(is); // Ignore an expression.
         return t;
 
-      /*
-       * Read-time-evaluation #( ... )
-       */
-      case '(': // TODO CHANGE TO ',' (SRFI-10)
-        return evaluate(read(stream));
+      /* ==== Read-Time Evaluation =============================================
+      *
+      * From SRFI-10
+      *
+      * ===================================================================== */
+      case ',':
+        is.ignore(1);
+        return evaluate(read(is));
 
       case '\\':
         {
-          stream.get();
+          is.ignore(1);
 
           std::string name {};
 
-          for (auto c {stream.peek()}; not is_delimiter(c); c = stream.peek())
+          for (auto c {is.peek()}; not is_delimiter(c); c = is.peek())
           {
-            name.push_back(stream.get());
+            name.push_back(is.get());
           }
 
           if (name.empty())
           {
-            name.push_back(stream.get());
+            name.push_back(is.get());
           }
 
           // TODO Provide user-defined character-name?
@@ -324,6 +327,7 @@ namespace meevax::kernel
             {"tab", "horizontal-tabulation"}, // for R7RS
           };
 
+          // NOTE DIRTY HACK!
           if (auto iter {alias.find(name)}; iter != std::end(alias))
           {
             name = std::get<1>(*iter);
@@ -341,8 +345,8 @@ namespace meevax::kernel
         }
 
       case ';':
-        stream.ignore(1);
-        return read(stream), read(stream);
+        is.ignore(1);
+        return read(is), read(is);
 
       default:
         return undefined; // XXX
