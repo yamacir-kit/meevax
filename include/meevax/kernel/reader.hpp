@@ -13,6 +13,7 @@
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
+#include <string>
 
 namespace meevax::kernel
 {
@@ -32,45 +33,53 @@ namespace meevax::kernel
      *                  | <inline hex escape>
      */
     template <>
-    const object datum<string>(std::istream& stream)
+    const object datum<string>(std::istream& is)
     {
-      switch (auto c {stream.narrow(stream.get(), '\0')}; c)
+      switch (auto c {is.narrow(is.get(), '\0')}; c)
       {
       case '"': // termination
-        // return make<string>(make<character>(""), unit);
         return unit;
 
       case '\\': // escape sequences
-        switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
+        switch (auto escaped {is.narrow(is.get(), '\0')}; escaped)
         {
         case 'n':
           return
             make<string>(
               characters.at("line-feed"),
-              datum<string>(stream));
+              datum<string>(is));
 
         case 't':
           return
             make<string>(
               characters.at("horizontal-tabulation"),
-              datum<string>(stream));
+              datum<string>(is));
 
         case '\n':
-          while (is_whitespace(stream.peek()))
+          while (is_whitespace(is.peek()))
           {
-            stream.ignore(1);
+            is.ignore(1);
           }
-          return datum<string>(stream);
+          return datum<string>(is);
 
         case '"':
-          return make<string>(make<character>("\""), datum<string>(stream));
+          return
+            make<string>(
+              make<character>("\""),
+              datum<string>(is));
 
         default:
-          return make<string>(make<character>("#\\unsupported;"), datum<string>(stream));
+          return
+            make<string>(
+              make<character>("#\\unsupported;"),
+              datum<string>(is));
         }
 
       default:
-        return make<string>(make<character>(c), datum<string>(stream));
+        return
+          make<string>(
+            make<character>(std::string(1, c)),
+            datum<string>(is));
       }
     }
 

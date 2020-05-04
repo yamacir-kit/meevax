@@ -7,34 +7,27 @@
 
 namespace meevax::kernel
 {
+  extern const std::unordered_map<std::string, object> characters;
+
   struct character
     : public std::string // TODO convert std::u8string in future.
   {
-    const std::string external_representation;
+    const std::string name;
 
-    explicit character(const char ascii)
-      : std::string {ascii}
-    {}
-
-    explicit character(
-      const std::string& unicode,
-      const std::string& external_representation = {})
+    explicit character(const std::string& unicode,
+                       const std::string& name = {})
       : std::string {unicode}
-      , external_representation {external_representation}
+      , name {name}
     {}
 
     friend auto operator<<(std::ostream& os, const character& c)
       -> decltype(os)
     {
       return os << posix::highlight::datum << "#\\"
-                << (std::empty(c.external_representation)
-                      ? static_cast<std::string>(c)
-                      : c.external_representation)
+                << (std::empty(c.name) ? static_cast<std::string>(c) : c.name)
                 << posix::attribute::normal;
     }
   };
-
-  extern const std::unordered_map<std::string, object> characters;
 
   auto is_intraline_whitespace = [](auto c) constexpr
   {
