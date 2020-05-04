@@ -7,8 +7,6 @@
 
 namespace meevax::kernel
 {
-  extern const std::unordered_map<std::string, object> characters;
-
   struct character
     : public std::string // TODO convert std::u8string in future.
   {
@@ -28,6 +26,22 @@ namespace meevax::kernel
                 << posix::attribute::normal;
     }
   };
+
+  extern const std::unordered_map<std::string, object> characters;
+
+  struct eof
+  {
+    friend auto operator<<(std::ostream& os, const eof&)
+      -> decltype(auto)
+    {
+      return os << posix::highlight::syntax << "#,("
+                << posix::highlight::type   << "eof-object"
+                << posix::highlight::syntax << ")"
+                << posix::attribute::normal;
+    }
+  };
+
+  static const auto eof_object {make<eof>()};
 
   auto is_intraline_whitespace = [](auto c) constexpr
   {

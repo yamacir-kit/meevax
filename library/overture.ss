@@ -1458,12 +1458,12 @@
 ; TODO peek-char
 ; TODO read-line
 
-(define eof-object
-  (lambda () #\end-of-file))
-
-(define eof-object?
-  (lambda (x)
-    (eqv? x #\end-of-file)))
+; (define eof-object
+;   (lambda () #\end-of-file))
+;
+; (define eof-object?
+;   (lambda (x)
+;     (eqv? x #\end-of-file)))
 
 ; TODO eof-object
 

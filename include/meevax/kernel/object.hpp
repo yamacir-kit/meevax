@@ -99,8 +99,6 @@ namespace meevax::kernel
 
   DEFINE_MISCELLANEOUS(undefined);
   DEFINE_MISCELLANEOUS(unspecified);
-
-  // TODO EOF as miscellaneous
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

@@ -277,7 +277,7 @@ namespace meevax::kernel
         }
       }
 
-      return characters.at("end-of-file");
+      return eof_object;
     }
 
     const object discriminate(std::istream& stream)
