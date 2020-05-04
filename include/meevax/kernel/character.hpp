@@ -7,6 +7,11 @@
 
 namespace meevax::kernel
 {
+  /* ==== Character ============================================================
+  *
+  * TODO
+  *
+  * ========================================================================= */
   struct character
     : public std::string // TODO convert std::u8string in future.
   {
@@ -27,8 +32,19 @@ namespace meevax::kernel
     }
   };
 
+  /* ==== Character Table ======================================================
+  *
+  * Abstract
+  *   For character literal #\<character> or #\<character name>.
+  *
+  * ========================================================================= */
   extern const std::unordered_map<std::string, object> characters;
 
+  /* ==== EOF ==================================================================
+  *
+  * TODO
+  *
+  * ========================================================================= */
   struct eof
   {
     friend auto operator<<(std::ostream& os, const eof&)
