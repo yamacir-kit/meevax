@@ -5,15 +5,18 @@
 #include <sstream>
 
 #include <limits> // std::numeric_limits<std::streamsize>
+#include <stack>
+#include <string>
+
+#include <boost/iostreams/device/null.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/numerical.hpp>
-#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
-#include <string>
 
 namespace meevax::kernel
 {
@@ -103,102 +106,66 @@ namespace meevax::kernel
 
   /* ==== Reader ===============================================================
   *
-  * Reader is character oriented state machine provides "read" primitive. This
-  * type requires the type manages symbol table as template parameter.
   *
   * ========================================================================= */
   template <typename SK>
   class reader
-    : public input_port
+    : private boost::iostreams::stream_buffer<boost::iostreams::null_sink>
   {
-    using seeker = std::istream_iterator<input_port::char_type>;
+    friend SK;
+
+    reader()
+      : sources {}
+    {
+      sources.emplace(
+        std::cin.rdbuf());
+    }
 
     IMPORT(SK, evaluate)
     IMPORT(SK, intern)
 
+    using seeker
+      = std::istream_iterator<std::istream::char_type>;
+
   protected:
-    std::size_t line {0};
+    [[maybe_unused]] std::size_t line {0};
+
+    std::stack<std::istream> sources;
 
   public:
-    // Inheriting Constructors
-    using input_port::input_port;
-
-    decltype(auto) ready() const noexcept
-    {
-      return operator bool();
-    }
-
-    decltype(auto) read() noexcept(false)
-    {
-      return read(*this);
-    }
-
-    decltype(auto) read(const std::string& expression) noexcept(false)
-    {
-      std::stringstream stream {expression};
-      return read(stream);
-    }
-
     /* ==== Read ===============================================================
     *
-    * The external representation.
-    *
-    * <Datum> is what the read procedure successfully parses. Note that any
-    * string that parses as an <expression> will also parse as a <datum>.
-    *
-    * <datum> = <simple datum>
-    *         | <compund datum>
-    *
-    * <simple datum> = <boolean>
-    *                | <number>
-    *                | <character>
-    *                | <string>
-    *                | <symbol>
-    *
-    * <compound datum> = <list>
-    *                  | <abbreviation>
-    *                  | <read time evaluation>
-    *
-    * <list> = (<datum>*)
-    *        | (<datum>+ . <datum>)
-    *
-    * <abbreviation> = <abbrev prefix> <datum>
-    *
-    * <abbrev prefix> = ' | ` | , | ,@
-    *
-    * <read time evaluation> = #(<datum>*)
-    *
-    * <label> = # <unsigned integer 10>                           unimplemented
     *
     * ======================================================================= */
-    const object read(std::istream& stream)
+    auto read(std::istream& port)
+      -> const object
     {
       std::string token {};
 
-      for (seeker head {stream}; head != seeker {}; ++head) switch (*head)
+      for (seeker head {port}; head != seeker {}; ++head) switch (*head)
       {
       case ';':
-        stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         break;
 
-      case ' ': case '\t': case '\v': case '\n':
+      case ' ': case '\f': case '\n': case '\r': case '\t': case '\v':
         break;
 
       case '(':
         try
         {
-          auto expression {read(stream)};
-          stream.putback('(');
-          return cons(expression, read(stream));
+          auto expression {read(port)};
+          port.putback('(');
+          return cons(expression, read(port));
         }
-        catch (const reader_error_about_parentheses& error)
+        catch (const reader_error_about_parentheses&)
         {
           return unit;
         }
-        catch (const reader_error_about_pair& error)
+        catch (const reader_error_about_pair&)
         {
-          auto expression {read(stream)};
-          stream.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+          auto expression {read(port)};
+          port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
           return expression;
         }
 
@@ -210,8 +177,8 @@ namespace meevax::kernel
         //   }
         //   else if (object == error_pair)
         //   {
-        //     auto expression {read(stream)};
-        //     stream.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+        //     auto expression {read(port)};
+        //     port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
         //     return expression;
         //   }
         //   else throw;
@@ -223,44 +190,44 @@ namespace meevax::kernel
         };
 
       case '"':
-        return datum<string>(stream);
+        return datum<string>(port);
 
       case '\'':
         return
           list(
             intern("quote"),
-            read(stream));
+            read(port));
 
       case '`':
         return
           list(
             intern("quasiquote"),
-            read(stream));
+            read(port));
 
       case ',':
-        switch (stream.peek())
+        switch (port.peek())
         {
         case '@':
-          stream.ignore(1);
+          port.ignore(1);
           return
             list(
               intern("unquote-splicing"),
-              read(stream));
+              read(port));
 
         default:
           return
             list(
               intern("unquote"),
-              read(stream));
+              read(port));
         }
 
       case '#':
-        return discriminate(stream);
+        return discriminate(port);
 
       default:
         token.push_back(*head);
 
-        if (auto c {stream.peek()}; is_delimiter(c)) // delimiter
+        if (auto c {port.peek()}; is_delimiter(c)) // delimiter
         {
           if (token == ".")
           {
@@ -280,6 +247,72 @@ namespace meevax::kernel
       return eof_object;
     }
 
+    auto read(std::istream&& port)
+      -> decltype(auto)
+    {
+      return read(port);
+    }
+
+    auto read()
+      -> decltype(auto)
+    {
+      return
+        read(
+          current_input_port());
+    }
+
+    auto read(const std::string& s)
+      -> decltype(auto)
+    {
+      return
+        read(
+          open_input_string(s));
+    }
+
+  public:
+    auto ready()
+    {
+      return
+        static_cast<bool>(
+          current_input_port());
+    }
+
+    auto standard_input_port()
+      -> decltype(auto)
+    {
+      return std::cin;
+    }
+
+    auto current_input_port()
+      -> decltype(auto)
+    {
+      return sources.top();
+    }
+
+    auto current_input_port(std::istream&& port)
+    {
+      sources.push(port);
+      return current_input_port();
+    }
+
+  public:
+    template <typename... Ts>
+    auto open_input_file(Ts&&... xs) const
+    {
+      return
+        std::ifstream(
+          std::forward<decltype(xs)>(xs)...);
+    }
+
+    template <typename... Ts>
+    auto open_input_string(Ts&&... xs) const
+    {
+      return
+        std::stringstream( // NOTE: putback(c)
+          std::forward<decltype(xs)>(xs)...);
+    }
+
+  private:
     const object discriminate(std::istream& is)
     {
       switch (is.peek())

@@ -9,6 +9,7 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/port.hpp>
+#include <streambuf>
 
 namespace meevax::kernel
 {
@@ -46,40 +47,57 @@ namespace meevax::kernel
     }
 
   public:
-    auto current_output_port() const
+    auto standard_output_port() const
     {
       return
         std::ostream(
           quiet ? this : std::cout.rdbuf());
     }
 
-    auto current_error_port() const
+    auto standard_error_port() const
     {
       return
         std::ostream(
           quiet ? this : std::cerr.rdbuf());
     }
 
-    auto current_debug_port() const
+    auto standard_debug_port() const
     {
       return
         std::ostream(
           quiet or not debug ? this : std::cerr.rdbuf());
     }
 
+    auto current_output_port() const
+    {
+      return standard_output_port(); // XXX R7RS INCOMPATIBLE!
+    }
+
+    auto current_error_port() const
+    {
+      return standard_error_port(); // XXX R7RS INCOMPATIBLE!
+    }
+
+    auto current_debug_port() const
+    {
+      return standard_debug_port(); // XXX R7RS INCOMPATIBLE!
+    }
+
   public:
-    template <typename S>
-    auto open_output_file(S&& s) const
+    template <typename... Ts>
+    auto open_output_file(Ts&&... xs) const
     {
       return
         std::ofstream(
-          std::forward<decltype(s)>(s));
+          std::forward<decltype(xs)>(xs)...);
     }
 
-    auto open_output_string() const
+    template <typename... Ts>
+    auto open_output_string(Ts&&... xs) const
     {
       return
-        std::ostringstream();
+        std::ostringstream(
+          std::forward<decltype(xs)>(xs)...);
     }
   };
 } // namespace meevax::kernel
