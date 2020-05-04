@@ -24,8 +24,6 @@ namespace meevax::kernel
 {
   /* ==== EOF ==================================================================
   *
-  * NOTE
-  *   End-of-File
   *
   * ========================================================================= */
   struct eof
@@ -44,8 +42,6 @@ namespace meevax::kernel
 
   /* ==== EOS ==================================================================
   *
-  * NOTE
-  *   End-of-String
   *
   * ========================================================================= */
   struct eos
@@ -331,11 +327,17 @@ namespace meevax::kernel
       switch (is.peek())
       {
       case 'f':
-        read(is); // Ignore an expression.
+        while (not is_delimiter(is.peek()))
+        {
+          is.ignore(1);
+        }
         return f;
 
       case 't':
-        read(is); // Ignore an expression.
+        while (not is_delimiter(is.peek()))
+        {
+          is.ignore(1);
+        }
         return t;
 
       /* ==== Read-Time Evaluation =============================================
@@ -363,7 +365,7 @@ namespace meevax::kernel
             name.push_back(is.get());
           }
 
-          // TODO Provide user-defined character-name?
+          // NOTE Provide user-defined character-name?
           static const std::unordered_map<std::string, std::string> alias
           {
             {" ", "space"}, // for R7RS
@@ -395,7 +397,8 @@ namespace meevax::kernel
         return read(is), read(is);
 
       default:
-        return undefined; // XXX
+        is.ignore(1);
+        return unspecified; // XXX
       }
     }
   };
