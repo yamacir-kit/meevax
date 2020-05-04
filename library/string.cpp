@@ -20,10 +20,11 @@ extern "C" namespace meevax::string
 
   PROCEDURE(string_from_number)
   {
-    const auto number {kernel::car(operands).as<kernel::real>().str()};
+    using namespace kernel;
 
     return
-      kernel::datum<kernel::string>(number);
+      make_string(
+        car(operands).as<real>().str());
   }
 } // extern "C"
 

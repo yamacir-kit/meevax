@@ -6,7 +6,6 @@
 
 #include <limits> // std::numeric_limits<std::streamsize>
 #include <stack>
-#include <string>
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -14,94 +13,123 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
+#include <stdexcept>
+#include <string>
 
 namespace meevax::kernel
 {
-  namespace
+  /* ==== EOF ==================================================================
+  *
+  * NOTE
+  *   End-of-File
+  *
+  * ========================================================================= */
+  struct eof
   {
-    template <typename T>
-    const object datum(std::istream& stream);
-
-    /*
-     * <string> = " <string element> * "
-     *
-     * <string element> = <any character other than " or \>
-     *                  | <mnemonic escape>
-     *                  | \"
-     *                  | \\
-     *                  | \ <intraline whitespace>* <line ending> <intraline whitespace>
-     *                  | <inline hex escape>
-     */
-    template <>
-    const object datum<string>(std::istream& is)
+    friend auto operator<<(std::ostream& os, const eof&)
+      -> decltype(auto)
     {
-      switch (auto c {is.narrow(is.get(), '\0')}; c)
+      return os << posix::highlight::syntax << "#,("
+                << posix::highlight::type   << "eof-object"
+                << posix::highlight::syntax << ")"
+                << posix::attribute::normal;
+    }
+  };
+
+  static const auto eof_object {make<eof>()};
+
+  /* ==== EOS ==================================================================
+  *
+  * NOTE
+  *   End-of-String
+  *
+  * ========================================================================= */
+  struct eos
+  {
+    friend auto operator<<(std::ostream& os, const eos&)
+      -> decltype(auto)
+    {
+      return os << posix::highlight::syntax << "#,("
+                << posix::highlight::type   << "eos-object"
+                << posix::highlight::syntax << ")"
+                << posix::attribute::normal;
+    }
+  };
+
+  static const auto eos_object {make<eos>()};
+
+  /* ==== String Constructor ===================================================
+  *
+  *
+  * ========================================================================= */
+  auto make_string(std::istream& port)
+    -> const object
+  {
+    switch (auto c {port.narrow(port.get(), '\0')}; c)
+    {
+    case '"': // Right Double Quotation
+      return unit;
+
+    case '\\': // Escape Sequences
+      switch (auto c {port.narrow(port.get(), '\0')}; c)
       {
-      case '"': // termination
-        return unit;
+      case 'a':
+        return make<string>(characters.at("bell"), make_string(port));
 
-      case '\\': // escape sequences
-        switch (auto escaped {is.narrow(is.get(), '\0')}; escaped)
+      case 'b':
+        return make<string>(characters.at("backspace"), make_string(port));
+
+      case 'n':
+        return make<string>(characters.at("line-feed"), make_string(port));
+
+      case 'r':
+        return make<string>(characters.at("carriage-return"), make_string(port));
+
+      case 't':
+        return make<string>(characters.at("horizontal-tabulation"), make_string(port));
+
+      case '|':
+        return make<string>(make<character>("|"), make_string(port));
+
+      case '"':
+        return make<string>(make<character>("\""), make_string(port));
+
+      case '\\':
+        return make<string>(make<character>("\\"), make_string(port));
+
+      case '\r':
+      case '\n':
+        while (is_intraline_whitespace(port.peek()))
         {
-        case 'n':
-          return
-            make<string>(
-              characters.at("line-feed"),
-              datum<string>(is));
-
-        case 't':
-          return
-            make<string>(
-              characters.at("horizontal-tabulation"),
-              datum<string>(is));
-
-        case '\n':
-          while (is_whitespace(is.peek()))
-          {
-            is.ignore(1);
-          }
-          return datum<string>(is);
-
-        case '"':
-          return
-            make<string>(
-              make<character>("\""),
-              datum<string>(is));
-
-        default:
-          return
-            make<string>(
-              make<character>("#\\unsupported;"),
-              datum<string>(is));
+          port.ignore(1);
         }
+        return make_string(port);
 
       default:
         return
           make<string>(
-            make<character>(std::string(1, c)),
-            datum<string>(is));
+            make<character>(std::string(1, '\0')),
+            make_string(port));
       }
-    }
 
-    /*
-     * Helper function to construct a datum from std::string. Note that it will
-     * not work properly for ill-formed input.
-     */
-    template <typename T>
-    decltype(auto) datum(const std::string& expression)
-    {
-      return datum<T>(std::istringstream {expression});
+    default:
+      return
+        make<string>(
+          make<character>(std::string(1, c)),
+          make_string(port));
     }
+  }
 
-    template <>
-    decltype(auto) datum<string>(const std::string& expression)
-    {
-      std::istringstream stream {expression + "\""};
-      return datum<string>(stream);
-    }
+  auto make_string(const std::string& s)
+    -> decltype(auto)
+  {
+    std::stringstream port {s};
+    port << "\"";
+    return make_string(port);
   }
 
   /* ==== Reader ===============================================================
@@ -169,28 +197,16 @@ namespace meevax::kernel
           return expression;
         }
 
-        // catch (const object& object)
-        // {
-        //   if (object == error_parentheses)
-        //   {
-        //     return unit;
-        //   }
-        //   else if (object == error_pair)
-        //   {
-        //     auto expression {read(port)};
-        //     port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-        //     return expression;
-        //   }
-        //   else throw;
-        // }
-
       case ')':
         throw reader_error_about_parentheses {
           "unexpected close parentheses inserted"
         };
 
+      case '#':
+        return discriminate(port);
+
       case '"':
-        return datum<string>(port);
+        return make_string(port);
 
       case '\'':
         return
@@ -220,9 +236,6 @@ namespace meevax::kernel
               intern("unquote"),
               read(port));
         }
-
-      case '#':
-        return discriminate(port);
 
       default:
         token.push_back(*head);

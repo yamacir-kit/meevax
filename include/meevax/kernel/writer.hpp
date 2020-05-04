@@ -7,10 +7,6 @@
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 
-#include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/port.hpp>
-#include <streambuf>
-
 namespace meevax::kernel
 {
   template <typename SK>

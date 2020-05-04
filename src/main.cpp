@@ -15,7 +15,7 @@ int main(const int argc, char const* const* const argv) try
   *========================================================================== */
   program.configure(argc, argv);
 
-  std::cerr << "; system\t\t; You have control of root syntactic-continuation.\n";
+  std::cerr << "; system\t; You have control of root syntactic-continuation.\n";
 
   for (const auto prompt {"\n> "}; program.ready(); ) try
   {
