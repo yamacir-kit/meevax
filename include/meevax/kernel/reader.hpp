@@ -2,76 +2,21 @@
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
 #include <istream>
-#include <limits> // std::numeric_limits<std::streamsize>
 #include <sstream>
 
+#include <limits> // std::numeric_limits<std::streamsize>
+
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/character.hpp>
+#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
+#include <string>
 
 namespace meevax::kernel
 {
-  inline namespace lexical_structure
-  {
-    static constexpr auto intraline_whitespace(std::istream::char_type c)
-    {
-      // return std::isspace(c);
-      return c == 0x09
-          or c == 0x0a
-          or c == 0x0b
-          or c == 0x0c
-          or c == 0x0d
-          or c == 0x20;
-    }
-
-    static constexpr auto line_ending(std::istream::char_type c)
-    {
-      return c == u8'\r' or c == u8'\n';
-    }
-
-    static constexpr auto whitespace(std::istream::char_type c)
-    {
-      return intraline_whitespace(c) or line_ending(c);
-    }
-
-    template <typename Char>
-    static constexpr auto is_eof(Char c)
-    {
-      return c == std::char_traits<Char>::eof();
-    }
-
-    static constexpr bool is_delimiter(std::istream::char_type c)
-    {
-      // return whitespace(c) or ;
-
-      if (whitespace(c) or is_eof(c))
-      {
-        return true;
-      }
-      else switch (c)
-      {
-      case u8'(': case u8')':
-
-      case u8'#':
-
-      // quotation
-      case u8'\'':
-      case u8',':
-      case u8'`':
-
-      case u8'"':
-      case u8';':
-      case u8'|':
-        return true;
-
-      default:
-        return false;
-      }
-    }
-  } // inline namespace lexical_structure
-
   namespace
   {
     template <typename T>
@@ -88,45 +33,53 @@ namespace meevax::kernel
      *                  | <inline hex escape>
      */
     template <>
-    const object datum<string>(std::istream& stream)
+    const object datum<string>(std::istream& is)
     {
-      switch (auto c {stream.narrow(stream.get(), '\0')}; c)
+      switch (auto c {is.narrow(is.get(), '\0')}; c)
       {
       case '"': // termination
-        // return make<string>(make<character>(""), unit);
         return unit;
 
       case '\\': // escape sequences
-        switch (auto escaped {stream.narrow(stream.get(), '\0')}; escaped)
+        switch (auto escaped {is.narrow(is.get(), '\0')}; escaped)
         {
         case 'n':
           return
             make<string>(
               characters.at("line-feed"),
-              datum<string>(stream));
+              datum<string>(is));
 
         case 't':
           return
             make<string>(
               characters.at("horizontal-tabulation"),
-              datum<string>(stream));
+              datum<string>(is));
 
         case '\n':
-          while (whitespace(stream.peek()))
+          while (is_whitespace(is.peek()))
           {
-            stream.ignore(1);
+            is.ignore(1);
           }
-          return datum<string>(stream);
+          return datum<string>(is);
 
         case '"':
-          return make<string>(make<character>("\""), datum<string>(stream));
+          return
+            make<string>(
+              make<character>("\""),
+              datum<string>(is));
 
         default:
-          return make<string>(make<character>("#\\unsupported;"), datum<string>(stream));
+          return
+            make<string>(
+              make<character>("#\\unsupported;"),
+              datum<string>(is));
         }
 
       default:
-        return make<string>(make<character>(c), datum<string>(stream));
+        return
+          make<string>(
+            make<character>(std::string(1, c)),
+            datum<string>(is));
       }
     }
 
@@ -148,23 +101,17 @@ namespace meevax::kernel
     }
   }
 
-  /*
-   * Reader is character oriented state machine provides "read" primitive. This
-   * type requires the type manages symbol table as template parameter.
-   */
+  /* ==== Reader ===============================================================
+  *
+  * Reader is character oriented state machine provides "read" primitive. This
+  * type requires the type manages symbol table as template parameter.
+  *
+  * ========================================================================= */
   template <typename SK>
   class reader
     : public input_port
   {
     using seeker = std::istream_iterator<input_port::char_type>;
-
-    // static inline const auto error_pair {make<read_error<category::pair>>(
-    //   "ill-formed dot-notation"
-    // )};
-    //
-    // static inline const auto error_parentheses {make<read_error<category::parentheses>>(
-    //   "unexpected close parentheses inserted"
-    // )};
 
     IMPORT(SK, evaluate)
     IMPORT(SK, intern)
@@ -192,36 +139,38 @@ namespace meevax::kernel
       return read(stream);
     }
 
-    /*
-     * The external representation.
-     *
-     * <Datum> is what the read procedure successfully parses. Note that any
-     * string that parses as an <expression> will also parse as a <datum>.
-     *
-     * <datum> = <simple datum>
-     *         | <compund datum>
-     *
-     * <simple datum> = <boolean>
-     *                | <number>
-     *                | <character>
-     *                | <string>
-     *                | <symbol>
-     *
-     * <compound datum> = <list>
-     *                  | <abbreviation>
-     *                  | <read time evaluation>
-     *
-     * <list> = (<datum>*)
-     *        | (<datum>+ . <datum>)
-     *
-     * <abbreviation> = <abbrev prefix> <datum>
-     *
-     * <abbrev prefix> = ' | ` | , | ,@
-     *
-     * <read time evaluation> = #(<datum>*)
-     *
-     * <label> = # <unsigned integer 10>                           unimplemented
-     */
+    /* ==== Read ===============================================================
+    *
+    * The external representation.
+    *
+    * <Datum> is what the read procedure successfully parses. Note that any
+    * string that parses as an <expression> will also parse as a <datum>.
+    *
+    * <datum> = <simple datum>
+    *         | <compund datum>
+    *
+    * <simple datum> = <boolean>
+    *                | <number>
+    *                | <character>
+    *                | <string>
+    *                | <symbol>
+    *
+    * <compound datum> = <list>
+    *                  | <abbreviation>
+    *                  | <read time evaluation>
+    *
+    * <list> = (<datum>*)
+    *        | (<datum>+ . <datum>)
+    *
+    * <abbreviation> = <abbrev prefix> <datum>
+    *
+    * <abbrev prefix> = ' | ` | , | ,@
+    *
+    * <read time evaluation> = #(<datum>*)
+    *
+    * <label> = # <unsigned integer 10>                           unimplemented
+    *
+    * ======================================================================= */
     const object read(std::istream& stream)
     {
       std::string token {};
@@ -328,7 +277,7 @@ namespace meevax::kernel
         }
       }
 
-      return characters.at("end-of-file");
+      return eof_object;
     }
 
     const object discriminate(std::istream& stream)

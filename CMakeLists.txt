@@ -136,7 +136,7 @@ endif()
 #   Build Meevax Kernel (Shared Object)
 # ==============================================================================
 add_library(${PROJECT_NAME}-kernel SHARED
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
   )
 
 set_target_properties(${PROJECT_NAME}-kernel PROPERTIES
@@ -208,7 +208,7 @@ add_executable(ice
 
 target_include_directories(ice PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include> # implicitly appends to ${CMAKE_INSTALL_PREFIX}
+  $<INSTALL_INTERFACE:include> # implicitly ${CMAKE_INSTALL_PREFIX}/include (= /usr/local/include)
   )
 
 target_link_libraries(ice

@@ -5,10 +5,10 @@
 
 namespace meevax::kernel
 {
-  /* ==== Object Facade =======================================================
+  /* ==== Object Facade ========================================================
   *
   *
-  *========================================================================== */
+  * ========================================================================= */
   template <typename T>
   struct alignas(category_mask + 1) objective
   {
@@ -18,7 +18,8 @@ namespace meevax::kernel
       return typeid(T);
     }
 
-    virtual std::shared_ptr<T> copy() const
+    virtual auto copy() const
+      -> std::shared_ptr<T>
     {
       if constexpr (std::is_copy_constructible<T>::value)
       {
@@ -54,11 +55,12 @@ namespace meevax::kernel
     };
   };
 
-  // forward declaration
-  struct pair;
+  struct pair; // forward declaration
 
+  // TODO Rename => identifier
   using object = pointer<pair>;
 
+  // TODO Rename => cons
   using resource = std::allocator<object>;
 
   template <typename T, typename... Ts>
@@ -83,9 +85,9 @@ namespace meevax::kernel
   static const object unit {nullptr};
 
   #define DEFINE_MISCELLANEOUS(TYPENAME)                                       \
-  struct TYPENAME##_behavior                                                   \
+  struct TYPENAME##_t                                                          \
   {                                                                            \
-    friend auto operator<<(std::ostream& os, const TYPENAME##_behavior&)       \
+    friend auto operator<<(std::ostream& os, const TYPENAME##_t&)              \
       -> decltype(os)                                                          \
     {                                                                          \
       return os << posix::highlight::comment << "#;" #TYPENAME                 \
@@ -93,7 +95,7 @@ namespace meevax::kernel
     }                                                                          \
   };                                                                           \
                                                                                \
-  static const auto TYPENAME {make<TYPENAME##_behavior>()}
+  static const auto TYPENAME {make<TYPENAME##_t>()}
 
   DEFINE_MISCELLANEOUS(undefined);
   DEFINE_MISCELLANEOUS(unspecified);

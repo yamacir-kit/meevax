@@ -311,7 +311,7 @@ namespace meevax::kernel
         push(d, s, e, c);
         s = e = c = unit;
 
-        for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
+        for (auto e {read(stream)}; e != eof_object; e = read(stream))
         {
           if (verbose.equivalent_to(t))
           {
@@ -556,7 +556,7 @@ namespace meevax::kernel
 
     std::size_t counts {0};
 
-    for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
+    for (auto e {read(stream)}; e != eof_object; e = read(stream))
     {
       std::cerr << "; layer-1\t; "
                 << counts++
