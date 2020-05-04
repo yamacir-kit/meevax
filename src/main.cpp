@@ -15,11 +15,9 @@ int main(const int argc, char const* const* const argv) try
   *========================================================================== */
   program.configure(argc, argv);
 
-  std::cerr << "; ice\t\t; You have control of root syntactic-continuation.\n";
+  std::cerr << "; system\t; You have control of root syntactic-continuation.\n";
 
-  const auto prompt {"\n> "};
-
-  for (program.std::ifstream::open("/dev/stdin"); program.ready(); ) try
+  for (const auto prompt {"\n> "}; program.ready(); ) try
   {
     std::cout << prompt << std::flush;
     const auto expression {program.read()};

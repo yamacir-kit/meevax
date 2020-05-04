@@ -62,9 +62,10 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 
 ### Supported SRFI
 
-| Number | Name                  | Implemented as |
-|-------:|:----------------------|:---------------|
-|     62 | S-expression comments | Built-in       |
+|                                                Number | Name                       | Implemented as |
+|------------------------------------------------------:|:---------------------------|:---------------|
+|  [10](https://srfi.schemers.org/srfi-10/srfi-10.html) | #, external form           | Built-in
+|  [62](https://srfi.schemers.org/srfi-62/srfi-62.html) | S-expression comments      | Built-in
 
 <br/>
 

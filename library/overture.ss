@@ -1067,9 +1067,9 @@
 
 ; (define alphabetical-character?
 ;   (lambda (x)
-;     (<= #(char->integer #\A)
-;          (char->integer (char-upcase x))
-;         #(char->integer #\Z))))
+;     (<= #,(char->integer #\A)
+;           (char->integer (char-upcase x))
+;         #,(char->integer #\Z))))
 ;
 ; (define char-alphabetic? alphabetical-character?) ;                (scheme char)
 
@@ -1078,9 +1078,9 @@
 
 ; (define numerical-character?
 ;   (lambda (x)
-;     (<= #(char->integer #\0)
-;          (char->integer x)
-;         #(char->integer #\9))))
+;     (<= #,(char->integer #\0)
+;           (char->integer x)
+;         #,(char->integer #\9))))
 ;
 ; (define char-numeric? numerical-character?) ;                      (scheme char)
 
@@ -1095,17 +1095,17 @@
 
 ; (define uppercase-character?
 ;   (lambda (x)
-;     (<= #(char->integer #\A)
-;          (char->integer x)
-;         #(char->integer #\Z))))
+;     (<= #,(char->integer #\A)
+;           (char->integer x)
+;         #,(char->integer #\Z))))
 ;
 ; (define char-upper-case? uppercase-character?) ;                   (scheme char)
 
 ; (define lowercase-character?
 ;   (lambda (x)
-;     (<= #(char->integer #\a)
-;          (char->integer x)
-;         #(char->integer #\z))))
+;     (<= #,(char->integer #\a)
+;           (char->integer x)
+;         #,(char->integer #\z))))
 ;
 ; (define char-lower-case? lowercase-character?) ;                   (scheme char)
 
