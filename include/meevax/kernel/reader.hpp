@@ -62,7 +62,7 @@ namespace meevax::kernel
   *
   *
   * ========================================================================= */
-  auto make_string(std::istream& port)
+  auto read_string(std::istream& port)
     -> const object
   {
     switch (auto c {port.narrow(port.get(), '\0')}; c)
@@ -74,28 +74,28 @@ namespace meevax::kernel
       switch (auto c {port.narrow(port.get(), '\0')}; c)
       {
       case 'a':
-        return make<string>(characters.at("bell"), make_string(port));
+        return make<string>(characters.at("bell"), read_string(port));
 
       case 'b':
-        return make<string>(characters.at("backspace"), make_string(port));
+        return make<string>(characters.at("backspace"), read_string(port));
 
       case 'n':
-        return make<string>(characters.at("line-feed"), make_string(port));
+        return make<string>(characters.at("line-feed"), read_string(port));
 
       case 'r':
-        return make<string>(characters.at("carriage-return"), make_string(port));
+        return make<string>(characters.at("carriage-return"), read_string(port));
 
       case 't':
-        return make<string>(characters.at("horizontal-tabulation"), make_string(port));
+        return make<string>(characters.at("horizontal-tabulation"), read_string(port));
 
       case '|':
-        return make<string>(make<character>("|"), make_string(port));
+        return make<string>(make<character>("|"), read_string(port));
 
       case '"':
-        return make<string>(make<character>("\""), make_string(port));
+        return make<string>(make<character>("\""), read_string(port));
 
       case '\\':
-        return make<string>(make<character>("\\"), make_string(port));
+        return make<string>(make<character>("\\"), read_string(port));
 
       case '\r':
       case '\n':
@@ -103,29 +103,29 @@ namespace meevax::kernel
         {
           port.ignore(1);
         }
-        return make_string(port);
+        return read_string(port);
 
       default:
         return
           make<string>(
             make<character>(std::string(1, '\0')),
-            make_string(port));
+            read_string(port));
       }
 
     default:
       return
         make<string>(
           make<character>(std::string(1, c)),
-          make_string(port));
+          read_string(port));
     }
   }
 
-  auto make_string(const std::string& s)
+  auto read_string(const std::string& s)
     -> decltype(auto)
   {
-    std::stringstream port {s};
-    port << "\"";
-    return make_string(port);
+    std::stringstream port {};
+    port << s << "\"";
+    return read_string(port);
   }
 
   /* ==== Reader ===============================================================
@@ -152,6 +152,13 @@ namespace meevax::kernel
       = std::istream_iterator<std::istream::char_type>;
 
   protected:
+    // NOTE
+    // std::stack<object> sources {};
+    // auto path {read_string("/path/to/file")};
+    // auto something {make<input_port>(path.as<std::string>())};
+    // car(something) = path;
+    // cdr(something) = make<integer>(1); // current line
+
     [[maybe_unused]] std::size_t line {0};
 
     std::stack<std::istream> sources;
@@ -202,7 +209,7 @@ namespace meevax::kernel
         return discriminate(port);
 
       case '"':
-        return make_string(port);
+        return read_string(port);
 
       case '\'':
         return
