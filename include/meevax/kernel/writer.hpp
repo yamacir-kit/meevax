@@ -7,6 +7,8 @@
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 
+#include <meevax/kernel/boolean.hpp>
+
 namespace meevax::kernel
 {
   template <typename SK>
@@ -21,8 +23,11 @@ namespace meevax::kernel
     IMPORT(SK, quiet_is_specified)
 
   protected:
-    bool debug {false};
-    bool quiet {false};
+    // bool debug {false};
+    // bool quiet {false};
+
+    object debug {f};
+    object quiet {f};
 
   public:
     template <typename... Ts>
@@ -47,21 +52,21 @@ namespace meevax::kernel
     {
       return
         std::ostream(
-          quiet ? this : std::cout.rdbuf());
+          quiet.eqv(t) ? this : std::cout.rdbuf());
     }
 
     auto standard_error_port() const
     {
       return
         std::ostream(
-          quiet ? this : std::cerr.rdbuf());
+          quiet.eqv(t) ? this : std::cerr.rdbuf());
     }
 
     auto standard_debug_port() const
     {
       return
         std::ostream(
-          quiet or not debug ? this : std::cerr.rdbuf());
+          quiet.eqv(t) or not debug.eqv(t) ? this : std::cerr.rdbuf());
     }
 
     auto current_output_port() const

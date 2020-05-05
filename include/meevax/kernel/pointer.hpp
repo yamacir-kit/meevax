@@ -493,6 +493,15 @@ namespace meevax::kernel
         return dereference().equivalent_to(rhs);
       }
     }
+
+    template <typename... Ts>
+    auto eqv(Ts&&... xs) const
+      -> decltype(auto)
+    {
+      return
+        equivalent_to(
+          std::forward<decltype(xs)>(xs)...);
+    }
   };
 
   template <typename T>
