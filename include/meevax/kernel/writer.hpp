@@ -18,28 +18,26 @@ namespace meevax::kernel
     friend SK;
 
     writer()
+      : null {this}
     {}
 
-    IMPORT(SK, quiet_is_specified)
-
-  protected:
-    // bool debug {false};
-    // bool quiet {false};
-
+  public:
     object debug {f};
     object quiet {f};
+
+    std::ostream null;
 
   public:
     template <typename... Ts>
     auto write(std::ostream& os, Ts&&... xs)
-      -> std::ostream&
+      -> decltype(os)
     {
       return (os << ... << xs);
     }
 
     template <typename... Ts>
     auto write(Ts&&... xs)
-      -> std::ostream&
+      -> decltype(auto)
     {
       return
         write(
@@ -48,38 +46,38 @@ namespace meevax::kernel
     }
 
   public:
-    auto standard_output_port() const
+    auto standard_output_port()
+      -> auto&
     {
-      return
-        std::ostream(
-          quiet.eqv(t) ? this : std::cout.rdbuf());
+      return quiet.eqv(t) ? null : std::cout;
     }
 
-    auto standard_error_port() const
+    auto standard_error_port()
+      -> auto&
     {
-      return
-        std::ostream(
-          quiet.eqv(t) ? this : std::cerr.rdbuf());
+      return quiet.eqv(t) ? null : std::cerr;
     }
 
-    auto standard_debug_port() const
+    auto standard_debug_port()
+      -> auto&
     {
-      return
-        std::ostream(
-          quiet.eqv(t) or not debug.eqv(t) ? this : std::cerr.rdbuf());
+      return quiet.eqv(t) or not debug.eqv(t) ? null : std::cerr;
     }
 
-    auto current_output_port() const
+    auto current_output_port()
+      -> decltype(auto)
     {
       return standard_output_port(); // XXX R7RS INCOMPATIBLE!
     }
 
-    auto current_error_port() const
+    auto current_error_port()
+      -> decltype(auto)
     {
       return standard_error_port(); // XXX R7RS INCOMPATIBLE!
     }
 
-    auto current_debug_port() const
+    auto current_debug_port()
+      -> decltype(auto)
     {
       return standard_debug_port(); // XXX R7RS INCOMPATIBLE!
     }

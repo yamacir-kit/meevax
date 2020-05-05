@@ -39,7 +39,6 @@ namespace meevax::kernel
 
     object color       {f};
     object interactive {f};
-    object quiet       {f};
     object trace       {f};
     object verbose     {f};
 
@@ -55,12 +54,6 @@ namespace meevax::kernel
     *======================================================================== */
     explicit configurator()
     {}
-
-  public:
-    decltype(auto) quiet_is_specified() const
-    {
-      return quiet.equivalent_to(t);
-    }
 
   public:
     static PROCEDURE(display_version)
@@ -151,7 +144,7 @@ namespace meevax::kernel
 
       std::make_pair('q', [this](auto&&...) mutable
       {
-        return quiet = t;
+        return static_cast<SK&>(*this).quiet = t;
       }),
 
       std::make_pair('v', display_version),
@@ -201,7 +194,7 @@ namespace meevax::kernel
 
       std::make_pair("quiet", [this](auto&&...) mutable
       {
-        return quiet = t;
+        return static_cast<SK&>(*this).quiet = t;
       }),
 
       std::make_pair("trace", [this](auto&&...) mutable
