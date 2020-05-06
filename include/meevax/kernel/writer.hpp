@@ -18,14 +18,14 @@ namespace meevax::kernel
     friend SK;
 
     writer()
-      : null {this}
+      : bucket {this}
     {}
 
   public:
     object debug {f};
     object quiet {f};
 
-    std::ostream null;
+    std::ostream bucket;
 
   public:
     template <typename... Ts>
@@ -49,21 +49,22 @@ namespace meevax::kernel
     auto standard_output_port()
       -> auto&
     {
-      return quiet.eqv(t) ? null : std::cout;
+      return quiet.eqv(t) ? bucket : std::cout;
     }
 
     auto standard_error_port()
       -> auto&
     {
-      return quiet.eqv(t) ? null : std::cerr;
+      return quiet.eqv(t) ? bucket : std::cerr;
     }
 
     auto standard_debug_port()
       -> auto&
     {
-      return quiet.eqv(t) or not debug.eqv(t) ? null : std::cerr;
+      return quiet.eqv(t) or not debug.eqv(t) ? bucket : std::cerr;
     }
 
+  public:
     auto current_output_port()
       -> decltype(auto)
     {

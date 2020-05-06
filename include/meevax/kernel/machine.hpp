@@ -15,7 +15,7 @@ inline namespace ugly_macros
   static std::size_t depth {0};
 
   #define DEBUG_COMPILE(...)                                                   \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
+  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
     std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
               << std::string(depth * 2, ' ')                                   \
@@ -23,21 +23,21 @@ inline namespace ugly_macros
   }
 
   #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
+  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
     std::cerr << __VA_ARGS__ << posix::attribute::normal << std::endl;         \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
+  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
     std::cerr << "; macroexpand\t; "                                           \
               << std::string(depth * 2, ' ')                                   \
               << __VA_ARGS__;                                                  \
   }
 
-  #define COMPILER_WARNING(...) \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
+  #define COMPILER_WARNING(...)                                                \
+  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
     std::cerr << posix::attribute::normal  << "; "                             \
               << posix::highlight::warning << "compiler"                       \
@@ -57,19 +57,19 @@ inline namespace ugly_macros
 
 namespace meevax::kernel
 {
-  template <typename SyntacticContinuation>
+  template <typename SK>
   class machine // Simple SECD machine.
   {
   protected:
     object s, // Stack (holding intermediate results and return address)
            e, // Environment (giving values to symbols)
-           c, // Code (instructions yet to be executed)
+           c, // Control (instructions yet to be executed)
            d; // Dump (S.E.C)
 
-  private: // CRTP
-    IMPORT(SyntacticContinuation, interaction_environment)
-    IMPORT(SyntacticContinuation, intern)
-    IMPORT(SyntacticContinuation, rename)
+  public:
+    IMPORT(SK, interaction_environment)
+    IMPORT(SK, intern)
+    IMPORT(SK, rename)
 
   public:
     // Direct virtual machine instruction invocation.
@@ -80,7 +80,7 @@ namespace meevax::kernel
         interaction_environment(),
         list(identifier, std::forward<decltype(operands)>(operands)...));
 
-      if (static_cast<const SyntacticContinuation&>(*this).verbose.equivalent_to(t))
+      if (static_cast<const SK&>(*this).verbose.equivalent_to(t))
       {
         std::cerr << "; define\t; "
                   << caar(interaction_environment())
@@ -96,9 +96,9 @@ namespace meevax::kernel
     {
       for (const auto& frame : e)
       {
-        if (frame and car(frame) and car(frame).is<SyntacticContinuation>())
+        if (frame and car(frame) and car(frame).is<SK>())
         {
-          // return car(frame).as<SyntacticContinuation>().interaction_environment();
+          // return car(frame).as<SK>().interaction_environment();
           return cdar(frame);
         }
       }
@@ -248,7 +248,7 @@ namespace meevax::kernel
 
           return result;
         }
-        else if (applicant.is<SyntacticContinuation>()
+        else if (applicant.is<SK>()
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
@@ -260,11 +260,11 @@ namespace meevax::kernel
             << std::endl);
 
           // std::cerr << "Syntactic-Continuation holds "
-          //           << applicant.as<SyntacticContinuation>().continuation()
+          //           << applicant.as<SK>().continuation()
           //           << std::endl;
 
           const auto expanded {
-            applicant.as<SyntacticContinuation>().expand(
+            applicant.as<SK>().expand(
               cons(
                 applicant,
                 cdr(expression)))
@@ -392,7 +392,7 @@ namespace meevax::kernel
       e = unit;
       c = expression;
 
-      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))
+      if (static_cast<SK&>(*this).verbose.equivalent_to(t))
       {
         // std::cerr << "; disassemble\t; for " << &c << std::endl;
         std::cerr << "; " << std::string(78, '*') << std::endl;
@@ -412,7 +412,7 @@ namespace meevax::kernel
     object execute()
     {
     dispatch:
-      if (static_cast<SyntacticContinuation&>(*this)
+      if (static_cast<SK&>(*this)
             .trace.equivalent_to(t))
       {
         std::cerr << "; trace s\t; " <<  s << std::endl;
@@ -534,7 +534,7 @@ namespace meevax::kernel
         // std::cerr << "\t\t; d = " << d << std::endl;
         push(
           s,
-          make<SyntacticContinuation>(
+          make<SK>(
             cons(
               s,
               e,
@@ -553,7 +553,7 @@ namespace meevax::kernel
       // *====================================================================== */
       //   push(
       //     s,
-      //     make<SyntacticContinuation>(
+      //     make<SK>(
       //       pop(s), // XXX car(s)?
       //       interaction_environment()));
       //   pop<1>(c);
@@ -602,7 +602,7 @@ namespace meevax::kernel
       * => (identifier . S) E                      C  D
       *
       *====================================================================== */
-        if (static_cast<SyntacticContinuation&>(*this).virgin)
+        if (static_cast<SK&>(*this).virgin)
         {
           define(cadr(c), car(s));
           car(s) = unspecified;
@@ -637,16 +637,16 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
+        else if (callee.is<SK>()) // TODO REMOVE
         {
           // s = cons(
-          //       callee.as<SyntacticContinuation>().expand(
+          //       callee.as<SK>().expand(
           //         cons(
           //           car(s),
           //           cadr(s))),
           //       cddr(s));
           s = cons(
-                callee.as<SyntacticContinuation>().evaluate( // TODO expand => evaluate ?
+                callee.as<SK>().evaluate( // TODO expand => evaluate ?
                   cadr(s)),
                 cddr(s));
           pop<1>(c);
@@ -685,16 +685,16 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
+        else if (callee.is<SK>()) // TODO REMOVE
         {
           // s = cons(
-          //       callee.as<SyntacticContinuation>().expand(
+          //       callee.as<SK>().expand(
           //         cons(
           //           car(s),
           //           cadr(s))),
           //       cddr(s));
           s = cons(
-                callee.as<SyntacticContinuation>().evaluate(
+                callee.as<SK>().evaluate(
                   cadr(s)),
                 cddr(s));
           pop<1>(c);
@@ -768,7 +768,7 @@ namespace meevax::kernel
           {
             cadr(pare) = car(s);
           }
-          else if (value.is<SyntacticContinuation>() or value.is<syntax>())
+          else if (value.is<SK>() or value.is<syntax>())
           {
             /* ---- From R7RS 5.3.1. Top level definitions ---------------------
             *

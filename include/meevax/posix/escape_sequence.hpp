@@ -1,11 +1,28 @@
 #ifndef INCLUDED_MEEVAX_POSIX_ESCAPE_SEQUENCE_HPP
 #define INCLUDED_MEEVAX_POSIX_ESCAPE_SEQUENCE_HPP
 
+#include <iostream>
+
+#include <meevax/unix/teletype.hpp>
+
 namespace meevax::posix
 {
+  template <typename... Ts>
+  auto escape_sequence(std::ostream& os, Ts&&... xs)
+    -> auto&
+  {
+    return unix::is_tty(os) ? (os << "\x1b[" << ... << xs) : os;
+  }
+
   namespace attribute
   {
-    static constexpr auto* normal      {"\x1b[0m"};
+    // static constexpr auto* normal      {"\x1b[0m"};
+
+    auto normal = [](std::ostream& os) -> auto&
+    {
+      return escape_sequence(os, "0m");
+    };
+
     static constexpr auto* bold        {"\x1b[1m"};
     static constexpr auto* faint       {"\x1b[2m"};
     static constexpr auto* italic      {"\x1b[3m"}; // Not widely supported. Sometimes treated as inverse.
