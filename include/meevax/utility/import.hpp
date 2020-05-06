@@ -10,7 +10,7 @@ template <typename... Ts>                                                      \
 constexpr decltype(auto) SYMBOL(Ts&&... xs)                                    \
 {                                                                              \
   return                                                                       \
-    static_cast<FROM&>(*this).SYMBOL(                                          \
+    static_cast<FROM&>(*this).FROM::SYMBOL(                                    \
       std::forward<decltype(xs)>(xs)...);                                      \
 }
 

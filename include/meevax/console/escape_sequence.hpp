@@ -11,7 +11,7 @@ namespace meevax::console
   auto escape_sequence(std::ostream& os, Ts&&... xs)
     -> auto&
   {
-    return is_console(os) ? (os << "\x1b" << ... << xs) : os;
+    return is_console(os) ? os << "\x1b", (os << ... << xs) : os;
   }
 
   #define DEFINE_ESCAPE_SEQUENCE(CODE, NAME)                                   \

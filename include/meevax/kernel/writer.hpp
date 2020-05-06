@@ -9,6 +9,7 @@
 
 #include <meevax/console/escape_sequence.hpp>
 #include <meevax/kernel/boolean.hpp>
+#include <type_traits>
 
 namespace meevax::kernel
 {
@@ -30,7 +31,7 @@ namespace meevax::kernel
 
   public:
     template <typename... Ts>
-    auto write(std::ostream& os, Ts&&... xs)
+    auto write_to(std::ostream& os, Ts&&... xs)
       -> decltype(os)
     {
       return (os << ... << xs) << console::reset;
@@ -41,8 +42,7 @@ namespace meevax::kernel
       -> decltype(auto)
     {
       return
-        write(
-          current_output_port(),
+        write_to(current_output_port(),
           std::forward<decltype(xs)>(xs)...);
     }
 

@@ -87,6 +87,9 @@ namespace meevax::kernel
 
     std::size_t experience {0};
 
+    using writer<syntactic_continuation>::write_to;
+    using writer<syntactic_continuation>::current_debug_port;
+
   public: // Accessors
     const auto& program() const
     {
@@ -366,7 +369,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : external_symbols)
         {
-          assert(not std::empty(key));
+          not std::empty(key);
           std::cerr << ";\t\t;   " << value << std::endl;
         }
 
@@ -398,7 +401,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
         {
-          assert(not std::empty(key));
+          not std::empty(key);
           std::cerr << ";\t\t; importing " << value << std::endl;
         }
 

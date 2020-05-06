@@ -11,12 +11,12 @@ namespace meevax::console
   {
     if (os.rdbuf() == std::cout.rdbuf())
     {
-      static const bool result {::isatty(STDOUT_FILENO)};
+      static const auto result {static_cast<bool>(::isatty(STDOUT_FILENO))};
       return result;
     }
     else if (os.rdbuf() == std::cerr.rdbuf())
     {
-      static const bool result {::isatty(STDERR_FILENO)};
+      static const auto result {static_cast<bool>(::isatty(STDERR_FILENO))};
       return result;
     }
     else

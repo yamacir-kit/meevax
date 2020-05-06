@@ -10,7 +10,7 @@
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
 #include <meevax/kernel/syntax.hpp>
 
-inline namespace ugly_macros
+inline namespace debug
 {
   static std::size_t depth {0};
 
@@ -26,14 +26,6 @@ inline namespace ugly_macros
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
     std::cerr << __VA_ARGS__ << console::reset << std::endl;                   \
-  }
-
-  #define DEBUG_MACROEXPAND(...)                                               \
-  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
-  {                                                                            \
-    std::cerr << "; macroexpand\t; "                                           \
-              << std::string(depth * 2, ' ')                                   \
-              << __VA_ARGS__;                                                  \
   }
 
   #define COMPILER_WARNING(...)                                                \
@@ -66,10 +58,13 @@ namespace meevax::kernel
            c, // Control (instructions yet to be executed)
            d; // Dump (S.E.C)
 
-  public:
+  private:
     IMPORT(SK, interaction_environment)
     IMPORT(SK, intern)
     IMPORT(SK, rename)
+
+    IMPORT(SK, write_to)
+    IMPORT(SK, current_debug_port)
 
   public:
     // Direct virtual machine instruction invocation.
@@ -270,7 +265,8 @@ namespace meevax::kernel
                 cdr(expression)))
           };
 
-          DEBUG_MACROEXPAND(expanded << std::endl);
+          write_to(current_debug_port(),
+            "; macroexpand\t; ", std::string(depth * 2, ' '), expanded, "\n");
 
           // NEST_IN;
           auto result {compile(

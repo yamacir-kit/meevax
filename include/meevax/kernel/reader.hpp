@@ -159,8 +159,6 @@ namespace meevax::kernel
     // car(something) = path;
     // cdr(something) = make<integer>(1); // current line
 
-    [[maybe_unused]] std::size_t line {0};
-
     std::stack<std::istream> sources;
 
   public:
