@@ -12,8 +12,6 @@
 
 inline namespace debug
 {
-  static std::size_t depth {0};
-
   #define DEBUG_COMPILE(...)                                                   \
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
@@ -26,16 +24,6 @@ inline namespace debug
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
     std::cerr << __VA_ARGS__ << console::reset << std::endl;                   \
-  }
-
-  #define COMPILER_WARNING(...)                                                \
-  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
-  {                                                                            \
-    std::cerr << console::reset  << "; "                                       \
-              << console::yellow << "compiler"                                 \
-              << console::reset  << "\t; "                                     \
-              << console::yellow << __VA_ARGS__                                \
-              << console::reset  << std::endl;                                 \
   }
 
   #define NEST_IN  ++depth
@@ -63,8 +51,12 @@ namespace meevax::kernel
     IMPORT(SK, intern)
     IMPORT(SK, rename)
 
-    IMPORT(SK, write_to)
     IMPORT(SK, current_debug_port)
+    IMPORT(SK, current_error_port)
+    IMPORT(SK, write_to)
+
+  public:
+    static inline std::size_t depth {0};
 
   public:
     // Direct virtual machine instruction invocation.
@@ -220,10 +212,10 @@ namespace meevax::kernel
             )};
             not applicant)
         {
-          COMPILER_WARNING(
-            "compiler detected application of variable currently bounds "
-            "empty-list. if the variable will not reset with applicable object "
-            "later, cause runtime error.");
+          write_to(current_error_port(),
+            "; compiler\t; ", console::bold, console::yellow,
+            "Compiler detected application of variable currently bounds empty-list."
+            "If the variable will not reset with applicable object later, cause runtime error.\n");
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), frames))

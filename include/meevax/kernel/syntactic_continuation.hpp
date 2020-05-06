@@ -87,8 +87,9 @@ namespace meevax::kernel
 
     std::size_t experience {0};
 
-    using writer<syntactic_continuation>::write_to;
     using writer<syntactic_continuation>::current_debug_port;
+    using writer<syntactic_continuation>::current_error_port;
+    using writer<syntactic_continuation>::write_to;
 
   public: // Accessors
     const auto& program() const
