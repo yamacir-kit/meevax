@@ -24,8 +24,9 @@ namespace meevax::kernel
     {}
 
   public:
-    object debug {f};
+    object debugging {f};
     object quiet {f};
+    // verbosely
 
     std::ostream bucket;
 
@@ -62,7 +63,7 @@ namespace meevax::kernel
     auto standard_debug_port()
       -> auto&
     {
-      return quiet.eqv(t) or not debug.eqv(t) ? bucket : std::cerr;
+      return quiet.eqv(t) or not debugging.eqv(t) ? bucket : std::cerr;
     }
 
   public:

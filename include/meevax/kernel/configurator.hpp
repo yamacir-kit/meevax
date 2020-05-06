@@ -128,7 +128,7 @@ namespace meevax::kernel
     {
       std::make_pair('d', [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debug = t;
+        return static_cast<SK&>(*this).debugging = t;
       }),
 
       std::make_pair('h', display_help),
@@ -176,7 +176,7 @@ namespace meevax::kernel
     {
       std::make_pair("debug", [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debug = t;
+        return static_cast<SK&>(*this).debugging = t;
       }),
 
       std::make_pair("help", display_help),

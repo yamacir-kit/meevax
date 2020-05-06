@@ -348,8 +348,8 @@ namespace meevax::kernel
       if (verbose.equivalent_to(t))
       {
         std::cerr
-        << (not depth ? "; compile\t; " : ";\t\t; ")
-        << std::string(depth * 2, ' ')
+        << (not debug.depth ? "; compile\t; " : ";\t\t; ")
+        << std::string(debug.depth * 2, ' ')
         << expression
         << console::faint << " is <export specs>"
         << console::reset << std::endl;
