@@ -5,24 +5,26 @@
 
 namespace meevax::kernel
 {
-  // closure is pair of expression and lexical-environment
+  /* ==== Closure ==============================================================
+  *
+  * Closure is pair of expression and lexical-environment
+  *
+  * ========================================================================= */
   struct closure
     : public virtual pair
   {
-    using identity = closure;
-
     using pair::pair; // inheriting constructors
 
-    friend auto operator <<(std::ostream& os, const identity& i)
+    friend auto operator <<(std::ostream& os, const closure& c)
       -> decltype(os)
     {
-      return os << posix::highlight::syntax  << "#,("
-                << posix::highlight::type    << "closure"
-                << posix::attribute::normal
-                << posix::highlight::comment << " #;" << &i
-                << posix::attribute::normal
-                << posix::highlight::syntax  << ")"
-                << posix::attribute::normal;
+      return os << console::magenta  << "#,("
+                << console::green    << "closure"
+                << console::reset
+                << console::faint << " #;" << &c
+                << console::reset
+                << console::magenta  << ")"
+                << console::reset;
     }
   };
 } // namespace meevax::kernel

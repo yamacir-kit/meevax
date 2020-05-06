@@ -25,7 +25,7 @@ inline namespace ugly_macros
   #define DEBUG_COMPILE_DECISION(...)                                          \
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
-    std::cerr << __VA_ARGS__ << posix::attribute::normal << std::endl;         \
+    std::cerr << __VA_ARGS__ << console::reset << std::endl;                   \
   }
 
   #define DEBUG_MACROEXPAND(...)                                               \
@@ -39,18 +39,18 @@ inline namespace ugly_macros
   #define COMPILER_WARNING(...)                                                \
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
-    std::cerr << posix::attribute::normal  << "; "                             \
-              << posix::highlight::warning << "compiler"                       \
-              << posix::attribute::normal  << "\t; "                           \
-              << posix::highlight::warning << __VA_ARGS__                      \
-              << posix::attribute::normal  << std::endl;                       \
+    std::cerr << console::reset  << "; "                                       \
+              << console::yellow << "compiler"                                 \
+              << console::reset  << "\t; "                                     \
+              << console::yellow << __VA_ARGS__                                \
+              << console::reset  << std::endl;                                 \
   }
 
   #define NEST_IN  ++depth
   #define NEST_OUT                                                             \
     DEBUG_COMPILE(                                                             \
-      << posix::highlight::syntax << ")"                                       \
-      << posix::attribute::normal                                              \
+      << console::magenta << ")"                                               \
+      << console::reset                                                        \
       << std::endl)                                                            \
     --depth;
 }
@@ -170,7 +170,7 @@ namespace meevax::kernel
       else if (not expression.is<pair>())
       {
         DEBUG_COMPILE(
-          << expression << posix::highlight::comment << "\t; ");
+          << expression << console::faint << "\t; ");
 
         if (expression.is<symbol>()) // is variable
         {
@@ -179,7 +179,7 @@ namespace meevax::kernel
             if (index.is_variadic())
             {
               DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical variadic " << posix::attribute::normal << index);
+                "is <variable> references lexical variadic " << console::reset << index);
 
               return
                 cons(
@@ -189,7 +189,7 @@ namespace meevax::kernel
             else
             {
               DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical " << posix::attribute::normal << index);
+                "is <variable> references lexical " << console::reset << index);
 
               return
                 cons(
@@ -234,10 +234,10 @@ namespace meevax::kernel
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-            << posix::highlight::syntax  << "("
-            << posix::attribute::normal  << car(expression)
-            << posix::highlight::comment << "\t; is <primitive expression> "
-            << posix::attribute::normal  << applicant
+            << console::magenta  << "("
+            << console::reset  << car(expression)
+            << console::faint << "\t; is <primitive expression> "
+            << console::reset  << applicant
             << std::endl);
 
           NEST_IN;
@@ -252,11 +252,11 @@ namespace meevax::kernel
                  and not de_bruijn_index(car(expression), frames))
         {
           DEBUG_COMPILE(
-            << posix::highlight::syntax  << "("
-            << posix::attribute::normal  << car(expression)
-            << posix::highlight::comment << "\t; is <macro use> of <derived expression> "
-            << posix::attribute::normal  << applicant
-            << posix::attribute::normal
+            << console::magenta  << "("
+            << console::reset  << car(expression)
+            << console::faint << "\t; is <macro use> of <derived expression> "
+            << console::reset  << applicant
+            << console::reset
             << std::endl);
 
           // std::cerr << "Syntactic-Continuation holds "
@@ -281,10 +281,10 @@ namespace meevax::kernel
         }
 
         DEBUG_COMPILE(
-          << posix::highlight::syntax  << "("
-          << posix::attribute::normal
-          << posix::highlight::comment << "\t; is <procedure call>"
-          << posix::attribute::normal
+          << console::magenta  << "("
+          << console::reset
+          << console::faint << "\t; is <procedure call>"
+          << console::reset
           << std::endl);
 
         NEST_IN;
@@ -319,8 +319,8 @@ namespace meevax::kernel
         if (iter == c)
         {
           std::cerr << std::string(4 * (depth - 1), ' ')
-                    << posix::highlight::syntax << "("
-                    << posix::attribute::normal << std::string(3, ' ');
+                    << console::magenta << "("
+                    << console::reset << std::string(3, ' ');
         }
         else
         {
@@ -340,8 +340,8 @@ namespace meevax::kernel
         case mnemonic::RETURN:
         case mnemonic::STOP:
           std::cerr << *iter
-                    << posix::highlight::syntax << "\t)"
-                    << posix::attribute::normal
+                    << console::magenta << "\t)"
+                    << console::reset
                     << std::endl;
           break;
 
@@ -856,8 +856,8 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         << car(expression)
-        << posix::highlight::comment << "\t; is <datum>"
-        << posix::attribute::normal
+        << console::faint << "\t; is <datum>"
+        << console::reset
         << std::endl);
 
       return
@@ -947,8 +947,8 @@ namespace meevax::kernel
       {
         DEBUG_COMPILE(
           << car(expression)
-          << posix::highlight::comment << "\t; is <variable>"
-          << posix::attribute::normal
+          << console::faint << "\t; is <variable>"
+          << console::reset
           << std::endl);
 
         // const auto definition {compile(
@@ -1280,8 +1280,8 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         << car(expression)
-        << posix::highlight::comment << "\t; is <test>"
-        << posix::attribute::normal
+        << console::faint << "\t; is <test>"
+        << console::reset
         << std::endl);
 
       if (in_a.tail_expression)
@@ -1364,8 +1364,8 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         << car(expression)
-        << posix::highlight::comment << "\t; is <formals>"
-        << posix::attribute::normal
+        << console::faint << "\t; is <formals>"
+        << console::reset
         << std::endl);
 
       if (in_a.program_declaration)
@@ -1410,8 +1410,8 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         << car(expression)
-        << posix::highlight::comment << "\t; is <procedure>"
-        << posix::attribute::normal
+        << console::faint << "\t; is <procedure>"
+        << console::reset
         << std::endl);
 
       return
@@ -1436,8 +1436,8 @@ namespace meevax::kernel
     {
       DEBUG_COMPILE(
         << car(expression)
-        << posix::highlight::comment << "\t; is <subprogram>"
-        << posix::attribute::normal
+        << console::faint << "\t; is <subprogram>"
+        << console::reset
         << std::endl);
 
       return
@@ -1463,7 +1463,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(assignment,
     {
-      DEBUG_COMPILE(<< car(expression) << posix::highlight::comment << "\t; is ");
+      DEBUG_COMPILE(<< car(expression) << console::faint << "\t; is ");
 
       if (not expression)
       {
@@ -1474,7 +1474,7 @@ namespace meevax::kernel
         if (index.is_variadic())
         {
           DEBUG_COMPILE_DECISION(
-            "<identifier> of lexical variadic " << posix::attribute::normal << index);
+            "<identifier> of lexical variadic " << console::reset << index);
 
           return
             compile(
@@ -1487,7 +1487,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION("<identifier> of lexical " << posix::attribute::normal << index);
+          DEBUG_COMPILE_DECISION("<identifier> of lexical " << console::reset << index);
 
           return
             compile(
@@ -1501,7 +1501,7 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << posix::attribute::normal);
+        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << console::reset);
 
         return
           compile(
@@ -1522,12 +1522,12 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(reference,
     {
-      DEBUG_COMPILE(<< car(expression) << posix::highlight::comment << "\t; is ");
+      DEBUG_COMPILE(<< car(expression) << console::faint << "\t; is ");
 
       if (not expression)
       {
         DEBUG_COMPILE_DECISION(
-          "<identifier> of itself" << posix::attribute::normal);
+          "<identifier> of itself" << console::reset);
 
         return unit;
       }
@@ -1541,7 +1541,7 @@ namespace meevax::kernel
         if (variable.is_variadic())
         {
           DEBUG_COMPILE_DECISION(
-            "<identifier> of local variadic " << posix::attribute::normal << variable);
+            "<identifier> of local variadic " << console::reset << variable);
 
           return
             cons(
@@ -1551,7 +1551,7 @@ namespace meevax::kernel
         else
         {
           DEBUG_COMPILE_DECISION(
-            "<identifier> of local " << posix::attribute::normal << variable);
+            "<identifier> of local " << console::reset << variable);
 
           return
             cons(
@@ -1562,7 +1562,7 @@ namespace meevax::kernel
       else
       {
         DEBUG_COMPILE_DECISION(
-          "<identifier> of global variable" << posix::attribute::normal);
+          "<identifier> of global variable" << console::reset);
 
         return
           cons(

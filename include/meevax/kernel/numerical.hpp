@@ -15,8 +15,8 @@ namespace meevax::kernel
 
   std::ostream& operator<<(std::ostream& os, const integral& integral)
   {
-    return os << posix::highlight::datum << integral.str()
-              << posix::attribute::normal;
+    return os << console::cyan << integral.str()
+              << console::reset;
   }
 
   // using real_base
@@ -43,8 +43,8 @@ namespace meevax::kernel
 
   std::ostream& operator<<(std::ostream& os, const real& real)
   {
-    return os << posix::highlight::datum << real.str()
-              << posix::attribute::normal;
+    return os << console::cyan << real.str()
+              << console::reset;
   }
 
   #define DEFINE_NUMERICAL_BINARY_ARITHMETIC(OPERATOR)                         \

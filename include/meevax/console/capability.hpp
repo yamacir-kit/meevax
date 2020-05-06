@@ -1,13 +1,13 @@
-#ifndef INCLUDED_MEEVAX_UNIX_TELETYPE_HPP
-#define INCLUDED_MEEVAX_UNIX_TELETYPE_HPP
+#ifndef INCLUDED_MEEVAX_CONSOLE_TELETYPE_HPP
+#define INCLUDED_MEEVAX_CONSOLE_TELETYPE_HPP
 
 #include <iostream>
 
 #include <unistd.h>
 
-namespace meevax::unix
+namespace meevax::console
 {
-  auto is_tty(std::ostream& os)
+  auto is_console = [](std::ostream& os)
   {
     if (os.rdbuf() == std::cout.rdbuf())
     {
@@ -23,8 +23,8 @@ namespace meevax::unix
     {
       return false;
     }
-  }
-} // namespace meevax::unix
+  };
+} // namespace meevax::console
 
-#endif // INCLUDED_MEEVAX_UNIX_TELETYPE_HPP
+#endif // INCLUDED_MEEVAX_CONSOLE_TELETYPE_HPP
 

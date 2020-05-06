@@ -37,7 +37,7 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const string& s)
       -> decltype(auto)
     {
-      os << posix::highlight::datum << "\"" << std::get<0>(s).as<std::string>();
+      os << console::cyan << "\"" << std::get<0>(s).as<std::string>();
 
       for (const auto& each : std::get<1>(s))
       {
@@ -56,7 +56,7 @@ namespace meevax::kernel
         else break;
       }
 
-      return os << "\"" << posix::attribute::normal;
+      return os << "\"" << console::reset;
     }
   };
 } // namespace meevax::kernel

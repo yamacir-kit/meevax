@@ -18,16 +18,16 @@ namespace meevax::kernel
     {
       if (symbol.empty())
       {
-        return os << posix::highlight::syntax << "#("
-                  << posix::highlight::type << "symbol"
-                  << posix::attribute::normal
-                  << posix::highlight::comment << " #;" << &symbol
-                  << posix::highlight::syntax << ")"
-                  << posix::attribute::normal;
+        return os << console::magenta << "#("
+                  << console::green << "symbol"
+                  << console::reset
+                  << console::faint << " #;" << &symbol
+                  << console::magenta << ")"
+                  << console::reset;
       }
       else
       {
-        return os << posix::attribute::normal << static_cast<const std::string&>(symbol);
+        return os << console::reset << static_cast<const std::string&>(symbol);
       }
     }
   };

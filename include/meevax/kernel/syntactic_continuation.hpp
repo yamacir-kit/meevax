@@ -347,8 +347,8 @@ namespace meevax::kernel
         << (not depth ? "; compile\t; " : ";\t\t; ")
         << std::string(depth * 2, ' ')
         << expression
-        << posix::highlight::comment << " is <export specs>"
-        << posix::attribute::normal << std::endl;
+        << console::faint << " is <export specs>"
+        << console::reset << std::endl;
       }
 
       auto exportation = [this](auto&&, const object& operands)
@@ -420,13 +420,13 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)
       -> decltype(os)
     {
-      return os << posix::highlight::syntax << "#,("
-                << posix::highlight::type   << "syntactic-continuation"
-                << posix::attribute::normal
-                << posix::highlight::comment << " #;" << &sc
-                << posix::attribute::normal
-                << posix::highlight::syntax << ")"
-                << posix::attribute::normal;
+      return os << console::magenta << "#,("
+                << console::green   << "syntactic-continuation"
+                << console::reset
+                << console::faint << " #;" << &sc
+                << console::reset
+                << console::magenta << ")"
+                << console::reset;
     }
   };
 

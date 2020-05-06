@@ -31,10 +31,10 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const eof&)
       -> decltype(auto)
     {
-      return os << posix::highlight::syntax << "#,("
-                << posix::highlight::type   << "eof-object"
-                << posix::highlight::syntax << ")"
-                << posix::attribute::normal;
+      return os << console::magenta << "#,("
+                << console::green   << "eof-object"
+                << console::magenta << ")"
+                << console::reset;
     }
   };
 
@@ -49,10 +49,10 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const eos&)
       -> decltype(auto)
     {
-      return os << posix::highlight::syntax << "#,("
-                << posix::highlight::type   << "eos-object"
-                << posix::highlight::syntax << ")"
-                << posix::attribute::normal;
+      return os << console::magenta << "#,("
+                << console::green   << "eos-object"
+                << console::magenta << ")"
+                << console::reset;
     }
   };
 

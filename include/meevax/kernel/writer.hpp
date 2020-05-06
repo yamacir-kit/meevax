@@ -7,6 +7,7 @@
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 
+#include <meevax/console/escape_sequence.hpp>
 #include <meevax/kernel/boolean.hpp>
 
 namespace meevax::kernel
@@ -32,7 +33,7 @@ namespace meevax::kernel
     auto write(std::ostream& os, Ts&&... xs)
       -> decltype(os)
     {
-      return (os << ... << xs);
+      return (os << ... << xs) << console::reset;
     }
 
     template <typename... Ts>

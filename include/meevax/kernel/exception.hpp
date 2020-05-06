@@ -57,6 +57,7 @@ namespace meevax::kernel
     }
 
   protected:
+    // TODO DEPRECATE
     template <typename... Ts>
     auto to_string(Ts&&... xs)
     {
@@ -70,11 +71,11 @@ namespace meevax::kernel
   auto operator<<(std::ostream& os, const TYPENAME& exception)                 \
     -> decltype(auto)                                                          \
   {                                                                            \
-    return os << posix::highlight::syntax << "#("                                     \
-              << posix::highlight::type << __VA_ARGS__                                \
-              << posix::highlight::datum << " " <<  std::quoted(exception.what())     \
-              << posix::highlight::syntax << ")"                                      \
-              << posix::attribute::normal;                                            \
+    return os << console::magenta << "#("                                      \
+              << console::green << __VA_ARGS__  " "                            \
+              << console::cyan << std::quoted(exception.what())                \
+              << console::magenta << ")"                                       \
+              << console::reset;                                               \
   }
 
   DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(exception, "exception")

@@ -9,7 +9,7 @@
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-#include <meevax/posix/escape_sequence.hpp>
+#include <meevax/console/escape_sequence.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/import.hpp>
@@ -241,13 +241,13 @@ namespace meevax::kernel
         }
         else
         {
-          return os << posix::highlight::syntax  << "#("
-                    << posix::highlight::type    << utility::demangle(typeid(Bound))
-                    << posix::attribute::normal
-                    << posix::highlight::comment << " #;" << static_cast<const Bound*>(this)
-                    << posix::attribute::normal
-                    << posix::highlight::syntax  << ")"
-                    << posix::attribute::normal;
+          return os << console::magenta << "#("
+                    << console::green << utility::demangle(typeid(Bound))
+                    << console::reset
+                    << console::faint << " #;" << static_cast<const Bound*>(this)
+                    << console::reset
+                    << console::magenta << ")"
+                    << console::reset;
         }
       }
     };
@@ -507,8 +507,7 @@ namespace meevax::kernel
   template <typename T>
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
   {
-    return not object ? (os << posix::highlight::syntax << "()"
-                            << posix::attribute::normal)
+    return not object ? (os << console::magenta << "()" << console::reset)
                       : object.dereference().dispatch(os);
   }
 

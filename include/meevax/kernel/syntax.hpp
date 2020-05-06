@@ -53,13 +53,13 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const syntax& syntax)
       -> decltype(auto)
     {
-      return os << posix::highlight::syntax  << "#,("
-                << posix::highlight::type    << "syntax"
-                << posix::attribute::normal  << " " << syntax.name
-                << posix::highlight::comment << " #;" << &syntax
-                << posix::attribute::normal
-                << posix::highlight::syntax  << ")"
-                << posix::attribute::normal;
+      return os << console::magenta  << "#,("
+                << console::green    << "syntax"
+                << console::reset  << " " << syntax.name
+                << console::faint << " #;" << &syntax
+                << console::reset
+                << console::magenta  << ")"
+                << console::reset;
     }
   };
 } // namespace meevax::kernel
