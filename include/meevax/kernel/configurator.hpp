@@ -16,7 +16,7 @@ namespace meevax::kernel
   void display_title(const version& v)
   {           // ";       10        20        30        40        50        60        70        80\n"
     std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
-                 ";\n";
+                 ";                                                                               \n";
   }
 
   void display_abstract()
@@ -37,7 +37,6 @@ namespace meevax::kernel
     // TODO Generate from CMakeLists.txt
     // static inline const std::string program_name {"ice"};
 
-    object color       {f};
     object interactive {f};
     object trace       {f};
     object verbose     {f};
@@ -127,9 +126,9 @@ namespace meevax::kernel
 
     const dispatcher<char> short_options
     {
-      std::make_pair('c', [this](auto&&...) mutable
+      std::make_pair('d', [this](auto&&...) mutable
       {
-        return color = t;
+        return static_cast<SK&>(*this).debug = t;
       }),
 
       std::make_pair('h', display_help),
@@ -175,9 +174,9 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options
     {
-      std::make_pair("color", [this](auto&&...) mutable
+      std::make_pair("debug", [this](auto&&...) mutable
       {
-        return color = t;
+        return static_cast<SK&>(*this).debug = t;
       }),
 
       std::make_pair("help", display_help),
