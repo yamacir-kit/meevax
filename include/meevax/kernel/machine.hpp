@@ -16,7 +16,7 @@ inline namespace debug
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
     std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
-              << std::string(depth * 2, ' ')                                   \
+              << indent()                                                      \
               __VA_ARGS__;                                                     \
   }
 
@@ -57,6 +57,11 @@ namespace meevax::kernel
 
   public:
     static inline std::size_t depth {0};
+
+    auto indent() const
+    {
+      return std::string(2 * depth, ' ');
+    }
 
   public:
     // Direct virtual machine instruction invocation.
@@ -213,9 +218,12 @@ namespace meevax::kernel
             not applicant)
         {
           write_to(current_error_port(),
-            "; compiler\t; ", console::bold, console::yellow,
-            "Compiler detected application of variable currently bounds empty-list."
-            "If the variable will not reset with applicable object later, cause runtime error.\n");
+            "; compiler\t; ", console::bold, console::yellow, "WARNING\n",
+            std::string(80, '~'), "\n",
+            "Compiler detected application of variable currently bounds "
+            "empty-list. If the variable will not reset with applicable object "
+            "later, cause runtime error.\n",
+            std::string(2 * depth + 18, '~'), "v", std::string(80 - 2 * depth - 17, '~'), "\n");
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), frames))
@@ -258,12 +266,10 @@ namespace meevax::kernel
           };
 
           write_to(current_debug_port(),
-            "; macroexpand\t; ", std::string(depth * 2, ' '), expanded, "\n");
+            "; macroexpand\t; ", indent(), expanded, "\n");
 
-          // NEST_IN;
           auto result {compile(
             expanded, syntactic_environment, frames, continuation)};
-          // NEST_OUT;
 
           return result;
         }
