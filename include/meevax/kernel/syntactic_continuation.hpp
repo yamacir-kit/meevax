@@ -87,6 +87,7 @@ namespace meevax::kernel
 
     std::size_t experience {0};
 
+    // CRTP Exports
     using writer<syntactic_continuation>::current_debug_port;
     using writer<syntactic_continuation>::current_error_port;
     using writer<syntactic_continuation>::write_to;
@@ -348,8 +349,8 @@ namespace meevax::kernel
       if (verbose.equivalent_to(t))
       {
         std::cerr
-        << (not debug.depth ? "; compile\t; " : ";\t\t; ")
-        << std::string(debug.depth * 2, ' ')
+        << (not depth ? "; compile\t; " : ";\t\t; ")
+        << std::string(depth * 2, ' ')
         << expression
         << console::faint << " is <export specs>"
         << console::reset << std::endl;

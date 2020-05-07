@@ -4,6 +4,7 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_brujin_index.hpp>
+#include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
@@ -15,8 +16,8 @@ inline namespace debug
   #define DEBUG_COMPILE(...)                                                   \
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
-    std::cerr << (not debug.depth ? "; compile\t; " : ";\t\t; ")                     \
-              << debug.indent()                                                      \
+    std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
+              << indent()                                                      \
               __VA_ARGS__;                                                     \
   }
 
@@ -39,11 +40,11 @@ namespace meevax::kernel
 {
   template <typename SK>
   class machine // Simple SECD machine.
+    : public debugger<SK> // TODO Change to debugger<machine<SK>> ?
   {
     friend SK;
 
     machine()
-      : debug {*this}
     {}
 
   protected:
@@ -52,7 +53,14 @@ namespace meevax::kernel
            c, // Control (instructions yet to be executed)
            d; // Dump (S.E.C)
 
+    // CRTP Import from Below
+    using debugger<SK>::debug;
+    using debugger<SK>::default_shift;
+    using debugger<SK>::depth;
+    using debugger<SK>::indent;
+
   private:
+    // CRTP Import from Above
     IMPORT(SK, interaction_environment)
     IMPORT(SK, intern)
     IMPORT(SK, rename)
@@ -60,59 +68,6 @@ namespace meevax::kernel
     IMPORT(SK, current_debug_port)
     IMPORT(SK, current_error_port)
     IMPORT(SK, write_to)
-
-  public:
-    class debugger
-    {
-      machine& vm;
-
-    public:
-      debugger(machine& vm)
-        : vm {vm}
-      {}
-
-      static inline std::size_t depth {0};
-
-      auto header(const std::string& title = "compile") const
-      {
-        std::string s {"; "};
-
-        s.append(title);
-        s.resize(18, ' ');
-        s.replace(s.size() - 3, 3, " ; ");
-
-        return s;
-      }
-
-      auto indent(std::size_t d = depth) const
-      {
-        return std::string(d, ' ');
-      }
-
-      template <typename... Ts>
-      auto operator ()(Ts&&... xs) const
-        -> decltype(auto)
-      {
-        return
-          vm.write_to(vm.current_debug_port(),
-            header(),
-            indent(),
-            std::forward<decltype(xs)>(xs)...);
-      }
-
-      friend auto& operator >>(debugger& d, std::size_t width)
-      {
-        d.depth += width;
-        return d;
-      }
-
-      friend auto& operator <<(debugger& d, std::size_t width)
-      {
-        d(console::magenta, ")\n");
-        d.depth -= std::min(d.depth, width);
-        return d;
-      }
-    } debug;
 
   public:
     // Direct virtual machine instruction invocation.
@@ -273,7 +228,7 @@ namespace meevax::kernel
             "Compiler detected application of variable currently bounds "
             "empty-list. If the variable will not reset with applicable object "
             "later, cause runtime error.\n",
-            std::string(2 * debug.depth + 18, '~'), "v", std::string(80 - 2 * debug.depth - 17, '~'), "\n");
+            std::string(2 * depth + 18, '~'), "v", std::string(80 - 2 * depth - 17, '~'), "\n");
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), frames))
@@ -285,11 +240,14 @@ namespace meevax::kernel
             << console::reset  << applicant
             << std::endl);
 
-          debug >> 2;
-          auto result {std::invoke(applicant.as<syntax>(),
-            cdr(expression), syntactic_environment, frames, continuation, in_a
-          )};
-          debug << 2;
+          indent() >> default_shift;
+          auto result {
+            std::invoke(applicant.as<syntax>(),
+              cdr(expression), syntactic_environment, frames, continuation, in_a)
+          };
+
+          debug(console::magenta, ")\n");
+          indent() << default_shift;
 
           return result;
         }
@@ -316,7 +274,7 @@ namespace meevax::kernel
           };
 
           write_to(current_debug_port(),
-            "; macroexpand\t; ", debug.indent(), expanded, "\n");
+            "; macroexpand\t; ", indent(), expanded, "\n");
 
           auto result {compile(
             expanded, syntactic_environment, frames, continuation)};
@@ -331,7 +289,7 @@ namespace meevax::kernel
           << console::reset
           << std::endl);
 
-        debug >> 2;
+        indent() >> default_shift;
         auto result {
           operand(
             cdr(expression),
@@ -347,7 +305,9 @@ namespace meevax::kernel
                                        : mnemonic::CALL),
                 continuation)))
         };
-        debug << 2;
+        debug(console::magenta, ")\n");
+        indent() << default_shift;
+
         return result;
       }
     }
