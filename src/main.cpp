@@ -15,9 +15,8 @@ int main(const int argc, char const* const* const argv) try
   *========================================================================== */
   program.configure(argc, argv);
 
-  program.write("Hello, world!\n");
-
-  std::cerr << "; system\t; You have control of root syntactic-continuation.\n";
+  program.write(
+    "; console\t; You have control of root syntactic-continuation.\n");
 
   for (const auto prompt {"\n> "}; program.ready(); ) try
   {
@@ -45,13 +44,38 @@ int main(const int argc, char const* const* const argv) try
     // return boost::exit_exception_failure;
   }
 
-  // auto value {meevax::kernel::make<float>(3.14)};
-  //
-  // auto x {value.as<double>()};
-  // std::cout << "; pointer\t; " << x << std::endl;;
-  //
-  // auto y {value.as<int>()};
-  // std::cout << "; pointer\t; " << y << std::endl;;
+  std::cerr << "\n"
+            << "; console\t; I have control of root syntactic-continuation.\n"
+            << std::endl;
+
+  if (true)
+  {
+    std::cerr << "Test/1 - Write/Read Invariance" << std::endl;
+
+    std::stringstream text_port {"'(+ 1 2 3)"};
+
+    text_port >> program;
+    text_port << program;
+    text_port >> program;
+    std::cout << program;
+
+    std::cerr << std::endl;
+  }
+
+  if (true)
+  {
+    std::cerr << "Test/2 - Tagged Pointers" << std::endl;
+
+    auto value {meevax::kernel::make<float>(3.14)};
+
+    auto x {value.as<float>()};
+    std::cout << "; pointer\t; " << x << std::endl;;
+
+    auto y {value.as<int>()};
+    std::cout << "; pointer\t; " << y << std::endl;;
+
+    std::cerr << std::endl;
+  }
 
   return boost::exit_success;
 }

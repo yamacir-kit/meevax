@@ -31,7 +31,7 @@ This language inherits the minimalism of Scheme, which is summarized in the foll
 >   </a>
 > </p>
 
-HEAD version: 0.2.346.
+HEAD version: 0.2.347.
 
 ## Contents
 

@@ -432,6 +432,37 @@ namespace meevax::kernel
                 << console::magenta << ")"
                 << console::reset;
     }
+
+    friend auto operator >>(std::istream& is, syntactic_continuation& sk)
+      -> decltype(is)
+    {
+      sk.write_to(sk.standard_output_port(),
+        "syntactic_continuation::operator >>(std::istream&, syntactic_continuation&)\n");
+
+      sk.write_to(sk.standard_output_port(),
+        "read new expression => ", sk.read(is), "\n");
+
+      // sk.write_to(sk.standard_output_port(),
+      //   "program == ", sk.program(),
+      //   "current_expression is ", sk.current_expression());
+      //
+      // NOTE
+      // Store the expression new read to 'current_expression'.
+      // But, currently above comments cause SEGV.
+
+      return is;
+    }
+
+    friend auto operator <<(std::ostream& os, syntactic_continuation& sk)
+      -> decltype(os)
+    {
+      // TODO
+      // Evaluate current_expression, and write the evaluation to ostream.
+
+      return
+        sk.write_to(os,
+          "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
+    }
   };
 
   #define DEFINE_SYNTAX(NAME, RULE)                                            \
@@ -458,6 +489,7 @@ namespace meevax::kernel
         car(operands).template as<const string>());                            \
   })
 
+  // TODO Move to external .cpp file?
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
