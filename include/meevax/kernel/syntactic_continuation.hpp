@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
 #include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
@@ -35,7 +36,8 @@ namespace meevax::kernel
   *
   * ========================================================================= */
   class syntactic_continuation
-    /* =========================================================================
+    //
+    /* ==== Pair ===============================================================
     *
     * The syntactic-continuation is a pair of "the program" and "global
     * environment (simple association list)". It also has the aspect of a
@@ -45,7 +47,7 @@ namespace meevax::kernel
     * ======================================================================= */
     : public virtual pair
 
-    /* =========================================================================
+    /* ==== Reader =============================================================
     *
     * Reader access symbol table of this syntactic_continuation (by member
     * function "intern") via static polymorphism. The syntactic_continuation
@@ -68,7 +70,13 @@ namespace meevax::kernel
     * ======================================================================= */
     , public machine<syntactic_continuation>
 
-    /* =========================================================================
+    /* ==== Debugger ===========================================================
+    *
+    *
+    * ======================================================================= */
+    , public debugger<syntactic_continuation>
+
+    /* ==== Configurator =======================================================
     *
     * Global configuration is shared in all of syntactic_continuations running
     * on same process. Thus, any change of configuration member influences any
@@ -87,10 +95,13 @@ namespace meevax::kernel
 
     std::size_t experience {0};
 
-    // CRTP Exports
+    // CRTP Import from Below
     using writer<syntactic_continuation>::current_debug_port;
     using writer<syntactic_continuation>::current_error_port;
     using writer<syntactic_continuation>::write_to;
+
+    using debugger::debug;
+    using debugger::indent;
 
   public: // Accessors
     const auto& program() const

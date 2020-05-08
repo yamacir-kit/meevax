@@ -4,7 +4,6 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_brujin_index.hpp>
-#include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
@@ -16,7 +15,7 @@ inline namespace debug
   #define DEBUG_COMPILE(...)                                                   \
   if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
   {                                                                            \
-    std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
+    std::cerr << (not static_cast<SK&>(*this).depth ? "; compile\t; " : ";\t\t; ")                     \
               << indent()                                                      \
               __VA_ARGS__;                                                     \
   }
@@ -40,26 +39,12 @@ namespace meevax::kernel
 {
   template <typename SK>
   class machine // Simple SECD machine.
-    : public debugger<SK> // TODO Change to debugger<machine<SK>> ?
   {
     friend SK;
 
     machine()
     {}
 
-  protected:
-    object s, // Stack (holding intermediate results and return address)
-           e, // Environment (giving values to symbols)
-           c, // Control (instructions yet to be executed)
-           d; // Dump (S.E.C)
-
-    // CRTP Import from Below
-    using debugger<SK>::debug;
-    using debugger<SK>::default_shift;
-    using debugger<SK>::depth;
-    using debugger<SK>::indent;
-
-  private:
     // CRTP Import from Above
     IMPORT(SK, interaction_environment)
     IMPORT(SK, intern)
@@ -68,6 +53,15 @@ namespace meevax::kernel
     IMPORT(SK, current_debug_port)
     IMPORT(SK, current_error_port)
     IMPORT(SK, write_to)
+
+    IMPORT(SK, debug)
+    IMPORT(SK, indent)
+
+  protected:
+    object s, // Stack (holding intermediate results and return address)
+           e, // Environment (giving values to symbols)
+           c, // Control (instructions yet to be executed)
+           d; // Dump (S.E.C)
 
   public:
     // Direct virtual machine instruction invocation.
@@ -228,7 +222,7 @@ namespace meevax::kernel
             "Compiler detected application of variable currently bounds "
             "empty-list. If the variable will not reset with applicable object "
             "later, cause runtime error.\n",
-            std::string(2 * depth + 18, '~'), "v", std::string(80 - 2 * depth - 17, '~'), "\n");
+            std::string(2 * static_cast<SK&>(*this).depth + 18, '~'), "v", std::string(80 - 2 * static_cast<SK&>(*this).depth - 17, '~'), "\n");
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), frames))
@@ -240,14 +234,14 @@ namespace meevax::kernel
             << console::reset  << applicant
             << std::endl);
 
-          indent() >> default_shift;
+          indent() >> static_cast<SK&>(*this).default_shift;
           auto result {
             std::invoke(applicant.as<syntax>(),
               cdr(expression), syntactic_environment, frames, continuation, in_a)
           };
 
           debug(console::magenta, ")\n");
-          indent() << default_shift;
+          indent() << static_cast<SK&>(*this).default_shift;
 
           return result;
         }
@@ -289,7 +283,7 @@ namespace meevax::kernel
           << console::reset
           << std::endl);
 
-        indent() >> default_shift;
+        indent() >> static_cast<SK&>(*this).default_shift;
         auto result {
           operand(
             cdr(expression),
@@ -306,7 +300,7 @@ namespace meevax::kernel
                 continuation)))
         };
         debug(console::magenta, ")\n");
-        indent() << default_shift;
+        indent() << static_cast<SK&>(*this).default_shift;
 
         return result;
       }

@@ -1,19 +1,23 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_DEBUGGER_HPP
 #define INCLUDED_MEEVAX_KERNEL_DEBUGGER_HPP
 
+#include <ostream>
 #include <string>
 
 namespace meevax::kernel
 {
-  template <typename VM>
-  struct debugger
+  template <typename SK>
+  class debugger
   {
+    friend SK;
+
     debugger()
     {}
 
-    IMPORT(VM, write_to)
-    IMPORT(VM, current_debug_port)
+    IMPORT(SK, write_to)
+    IMPORT(SK, current_debug_port)
 
+  public:
     static inline           std::size_t depth {0};
     static inline constexpr std::size_t default_shift {2};
 
