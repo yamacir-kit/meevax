@@ -48,9 +48,7 @@ namespace meevax::kernel
     {
       return
         write_to(current_debug_port(),
-          header(),
-          indent(),
-          std::forward<decltype(xs)>(xs)...);
+          header(), indent(), std::forward<decltype(xs)>(xs)..., "\n");
     }
 
     struct indentation
