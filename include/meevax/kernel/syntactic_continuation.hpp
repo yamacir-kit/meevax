@@ -91,14 +91,14 @@ namespace meevax::kernel
 
     std::size_t current_layer {0};
 
-    bool virgin {true};
+    [[deprecated]] bool virgin {true};
 
     std::size_t experience {0};
 
     // CRTP Import from Below
-    using writer<syntactic_continuation>::current_debug_port;
-    using writer<syntactic_continuation>::current_error_port;
-    using writer<syntactic_continuation>::write_to;
+    using writer::current_debug_port;
+    using writer::current_error_port;
+    using writer::write_to;
 
     using debugger::debug;
     using debugger::indent;
