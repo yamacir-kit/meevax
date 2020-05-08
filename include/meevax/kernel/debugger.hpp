@@ -26,10 +26,11 @@ namespace meevax::kernel
     {
       std::string s {"; "};
 
-      // TODO
-      // If depth is not zero, don't print title
+      if (not depth)
+      {
+        s.append(title);
+      }
 
-      s.append(title);
       s.resize(18, ' ');
       s.replace(s.size() - 3, 3, " ; ");
 

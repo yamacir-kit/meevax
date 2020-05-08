@@ -25,14 +25,6 @@ inline namespace debug
   {                                                                            \
     std::cerr << __VA_ARGS__ << console::reset << std::endl;                   \
   }
-
-  #define NEST_IN ++depth
-  #define NEST_OUT                                                             \
-    DEBUG_COMPILE(                                                             \
-      << console::magenta << ")"                                               \
-      << console::reset                                                        \
-      << std::endl)                                                            \
-    --depth;
 }
 
 namespace meevax::kernel
@@ -160,17 +152,13 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        DEBUG_COMPILE(
-          << expression << console::faint << "\t; ");
-
         if (expression.is<symbol>()) // is variable
         {
           if (de_bruijn_index index {expression, frames}; index)
           {
             if (index.is_variadic())
             {
-              DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical variadic " << console::reset << index);
+              debug(expression, console::faint, "\t; is a <variadic bound variable> references ", console::reset, index, "\n");
 
               return
                 cons(
@@ -179,8 +167,7 @@ namespace meevax::kernel
             }
             else
             {
-              DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical " << console::reset << index);
+              debug(expression, console::faint, "\t; is a <bound variable> references ", console::reset, index, "\n");
 
               return
                 cons(
@@ -190,8 +177,7 @@ namespace meevax::kernel
           }
           else
           {
-            DEBUG_COMPILE_DECISION(
-              "is <variable> references dynamic value bound to the identifier");
+            debug(expression, console::faint, "\t; is a <glocal variable>\n");
 
             return
               cons(
