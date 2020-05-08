@@ -282,17 +282,16 @@ namespace meevax::kernel
 
       for (homoiconic_iterator iter {c}; iter; ++iter)
       {
-        std::cerr << "; ";
+        write_to(current_debug_port(), "; ");
 
         if (iter == c)
         {
-          std::cerr << std::string(4 * (depth - 1), ' ')
-                    << console::magenta << "("
-                    << console::reset << std::string(3, ' ');
+          write_to(current_debug_port(),
+            std::string(4 * (depth - 1), ' '), console::magenta, "(   ");
         }
         else
         {
-          std::cerr << std::string(4 * depth, ' ');
+          write_to(current_debug_port(), std::string(4 * depth, ' '));
         }
 
         switch ((*iter).as<instruction>().code)
@@ -302,15 +301,12 @@ namespace meevax::kernel
         case mnemonic::JOIN:
         case mnemonic::POP:
         case mnemonic::CONS:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           break;
 
         case mnemonic::RETURN:
         case mnemonic::STOP:
-          std::cerr << *iter
-                    << console::magenta << "\t)"
-                    << console::reset
-                    << std::endl;
+          write_to(current_debug_port(), *iter, console::magenta, "\t)\n");
           break;
 
         case mnemonic::DEFINE:
@@ -322,19 +318,23 @@ namespace meevax::kernel
         case mnemonic::STORE_GLOBAL:
         case mnemonic::STORE_LOCAL:
         case mnemonic::STORE_VARIADIC:
-          std::cerr << *iter << " " << *++iter << std::endl;
+          {
+            const auto opcode {*iter};
+            const auto operand {*++iter};
+            write_to(current_debug_port(), opcode, " ", operand, "\n");
+          }
           break;
 
         case mnemonic::LOAD_CLOSURE:
         case mnemonic::LOAD_CONTINUATION:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           break;
 
 
         case mnemonic::SELECT:
         case mnemonic::TAIL_SELECT:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           disassemble(*++iter, depth + 1);
           break;
@@ -360,13 +360,9 @@ namespace meevax::kernel
       e = unit;
       c = expression;
 
-      if (static_cast<SK&>(*this).verbose.equivalent_to(t))
-      {
-        // std::cerr << "; disassemble\t; for " << &c << std::endl;
-        std::cerr << "; " << std::string(78, '*') << std::endl;
-        disassemble(c);
-        std::cerr << "; " << std::string(78, '*') << std::endl;
-      }
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+      disassemble(c);
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
 
       const auto result {execute()};
 
