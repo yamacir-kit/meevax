@@ -502,7 +502,6 @@ namespace meevax::kernel
         car(operands).template as<const string>());                            \
   })
 
-  // TODO Move to external .cpp file?
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
