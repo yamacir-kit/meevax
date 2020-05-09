@@ -4,7 +4,7 @@
 
 int main(const int argc, char const* const* const argv) try
 {
-  meevax::kernel::syntactic_continuation program {meevax::kernel::layer<2>};
+  meevax::kernel::syntactic_continuation ice { meevax::kernel::layer<2> };
 
   /*============================================================================
   *
@@ -13,26 +13,23 @@ int main(const int argc, char const* const* const argv) try
   * changing the behavior of the environment.
   *
   *========================================================================== */
-  program.configure(argc, argv);
+  ice.configure(argc, argv);
 
-  program.write(
+  ice.write(
     "; console\t; You have control of root syntactic-continuation.\n");
 
-  for (const auto prompt {"\n> "}; program.ready(); ) try
+  for (const auto prompt { "\n> " }; ice.ready(); ) try
   {
-    std::cout << prompt << std::flush;
+    ice.write(prompt);
 
-    const auto expression {
-      program.read(
-        program.current_input_port())
-    };
+    const auto expression { ice.read() };
 
     std::cout << "\n";
 
-    program.write_to(program.current_debug_port(),
-      program.header("read"), expression, "\n");
+    ice.write_to(ice.current_debug_port(),
+      ice.header("read"), expression, "\n");
 
-    const auto evaluation { program.evaluate(expression) };
+    const auto evaluation { ice.evaluate(expression) };
 
     std::cout << evaluation << std::endl;
   }
@@ -58,10 +55,10 @@ int main(const int argc, char const* const* const argv) try
 
     std::stringstream text_port {"'(+ 1 2 3)"};
 
-    text_port >> program;
-    text_port << program;
-    text_port >> program;
-    std::cout << program;
+    text_port >> ice;
+    text_port << ice;
+    text_port >> ice;
+    std::cout << ice;
 
     std::cerr << std::endl;
   }
