@@ -462,11 +462,11 @@ namespace meevax::kernel
       CASE_OF_TYPE(float);
       CASE_OF_TYPE(double);
 
-      CASE_OF_TYPE(std::byte);
+      CASE_OF_TYPE(std::int8_t);
       CASE_OF_TYPE(std::int16_t);
       CASE_OF_TYPE(std::int32_t);
 
-      CASE_OF_TYPE(std::byte);
+      CASE_OF_TYPE(std::uint8_t);
       CASE_OF_TYPE(std::uint16_t);
       CASE_OF_TYPE(std::uint32_t);
 

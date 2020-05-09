@@ -164,6 +164,8 @@ namespace meevax::kernel
   public:
     /* ==== Read ===============================================================
     *
+    * TODO
+    *   Rename read(std::istream&) => read_from
     *
     * ======================================================================= */
     auto read(std::istream& port)

@@ -10,43 +10,17 @@
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
 #include <meevax/kernel/syntax.hpp>
 
-inline namespace debug
-{
-  #define DEBUG_COMPILE(...)                                                   \
-  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
-  {                                                                            \
-    std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
-              << indent()                                                      \
-              __VA_ARGS__;                                                     \
-  }
-
-  #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (static_cast<SK&>(*this).verbose.equivalent_to(t))                        \
-  {                                                                            \
-    std::cerr << __VA_ARGS__ << console::reset << std::endl;                   \
-  }
-
-  #define NEST_IN  ++depth
-  #define NEST_OUT                                                             \
-    DEBUG_COMPILE(                                                             \
-      << console::magenta << ")"                                               \
-      << console::reset                                                        \
-      << std::endl)                                                            \
-    --depth;
-}
-
 namespace meevax::kernel
 {
   template <typename SK>
   class machine // Simple SECD machine.
   {
-  protected:
-    object s, // Stack (holding intermediate results and return address)
-           e, // Environment (giving values to symbols)
-           c, // Control (instructions yet to be executed)
-           d; // Dump (S.E.C)
+    friend SK;
 
-  private:
+    machine()
+    {}
+
+    // CRTP Import from Above
     IMPORT(SK, interaction_environment)
     IMPORT(SK, intern)
     IMPORT(SK, rename)
@@ -55,13 +29,15 @@ namespace meevax::kernel
     IMPORT(SK, current_error_port)
     IMPORT(SK, write_to)
 
-  public:
-    static inline std::size_t depth {0};
+    IMPORT(SK, debug)
+    IMPORT(SK, header)
+    IMPORT(SK, indent)
 
-    auto indent() const
-    {
-      return std::string(2 * depth, ' ');
-    }
+  protected:
+    object s, // Stack (holding intermediate results and return address)
+           e, // Environment (giving values to symbols)
+           c, // Control (instructions yet to be executed)
+           d; // Dump (S.E.C)
 
   public:
     // Direct virtual machine instruction invocation.
@@ -72,14 +48,12 @@ namespace meevax::kernel
         interaction_environment(),
         list(identifier, std::forward<decltype(operands)>(operands)...));
 
-      if (static_cast<const SK&>(*this).verbose.equivalent_to(t))
-      {
-        std::cerr << "; define\t; "
-                  << caar(interaction_environment())
-                  << "\r\x1b[40C\x1b[K "
-                  << cadar(interaction_environment())
-                  << std::endl;
-      }
+      write_to(current_debug_port(),
+        header("define"),
+        caar(interaction_environment()),
+        console::faint, " binds ", console::reset,
+        cadar(interaction_environment()),
+        "\n");
 
       return interaction_environment(); // temporary
     }
@@ -98,10 +72,9 @@ namespace meevax::kernel
       return interaction_environment();
     }
 
-    const object&
-      lookup(
-        const object& identifier,
-        const object& environment)
+    auto lookup(const object& identifier,
+                const object& environment)
+      -> const object&
     {
       if (not identifier or not environment)
       {
@@ -161,17 +134,13 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        DEBUG_COMPILE(
-          << expression << console::faint << "\t; ");
-
         if (expression.is<symbol>()) // is variable
         {
           if (de_bruijn_index index {expression, frames}; index)
           {
             if (index.is_variadic())
             {
-              DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical variadic " << console::reset << index);
+              debug(expression, console::faint, " ; is a <variadic bound variable> references ", console::reset, index);
 
               return
                 cons(
@@ -180,8 +149,7 @@ namespace meevax::kernel
             }
             else
             {
-              DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical " << console::reset << index);
+              debug(expression, console::faint, " ; is a <bound variable> references ", console::reset, index);
 
               return
                 cons(
@@ -191,8 +159,7 @@ namespace meevax::kernel
           }
           else
           {
-            DEBUG_COMPILE_DECISION(
-              "is <variable> references dynamic value bound to the identifier");
+            debug(expression, console::faint, " ; is a <glocal variable>");
 
             return
               cons(
@@ -202,7 +169,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION("is <self-evaluating>");
+          debug(expression, console::faint, " ; is <self-evaluating>");
 
           return
             cons(
@@ -217,42 +184,44 @@ namespace meevax::kernel
             )};
             not applicant)
         {
+          // TODO write_to_current_error_port => warning
           write_to(current_error_port(),
             "; compiler\t; ", console::bold, console::yellow, "WARNING\n",
             std::string(80, '~'), "\n",
             "Compiler detected application of variable currently bounds "
             "empty-list. If the variable will not reset with applicable object "
             "later, cause runtime error.\n",
-            std::string(2 * depth + 18, '~'), "v", std::string(80 - 2 * depth - 17, '~'), "\n");
+            std::string(2 * static_cast<SK&>(*this).depth + 18, '~'), "v", std::string(80 - 2 * static_cast<SK&>(*this).depth - 17, '~'), "\n");
         }
         else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), frames))
         {
-          DEBUG_COMPILE(
-            << console::magenta  << "("
-            << console::reset  << car(expression)
-            << console::faint << "\t; is <primitive expression> "
-            << console::reset  << applicant
-            << std::endl);
+          debug(
+            console::magenta, "(",
+            console::reset, car(expression),
+            console::faint, " ; is <primitive expression>");
 
-          NEST_IN;
-          auto result {std::invoke(applicant.as<syntax>(),
-            cdr(expression), syntactic_environment, frames, continuation, in_a
-          )};
-          NEST_OUT;
+          indent() >> static_cast<SK&>(*this).default_shift;
+
+          auto result {
+            std::invoke(applicant.as<syntax>(),
+              cdr(expression), syntactic_environment, frames, continuation, in_a)
+          };
+
+          debug(console::magenta, ")");
+
+          indent() << static_cast<SK&>(*this).default_shift;
 
           return result;
         }
         else if (applicant.is<SK>()
                  and not de_bruijn_index(car(expression), frames))
         {
-          DEBUG_COMPILE(
-            << console::magenta  << "("
-            << console::reset  << car(expression)
-            << console::faint << "\t; is <macro use> of <derived expression> "
-            << console::reset  << applicant
-            << console::reset
-            << std::endl);
+          debug(
+            console::magenta, "(",
+            console::reset, car(expression),
+            console::faint, " ; is <macro use> of ",
+            console::reset, applicant);
 
           // std::cerr << "Syntactic-Continuation holds "
           //           << applicant.as<SK>().continuation()
@@ -274,14 +243,13 @@ namespace meevax::kernel
           return result;
         }
 
-        DEBUG_COMPILE(
-          << console::magenta  << "("
-          << console::reset
-          << console::faint << "\t; is <procedure call>"
-          << console::reset
-          << std::endl);
+        debug(
+          console::magenta, "(",
+          console::reset,
+          console::faint, " ; is <procedure call>");
 
-        NEST_IN;
+        indent() >> static_cast<SK&>(*this).default_shift;
+
         auto result {
           operand(
             cdr(expression),
@@ -297,7 +265,11 @@ namespace meevax::kernel
                                        : mnemonic::CALL),
                 continuation)))
         };
-        NEST_OUT;
+
+        debug(console::magenta, ")");
+
+        indent() << static_cast<SK&>(*this).default_shift;
+
         return result;
       }
     }
@@ -308,17 +280,16 @@ namespace meevax::kernel
 
       for (homoiconic_iterator iter {c}; iter; ++iter)
       {
-        std::cerr << "; ";
+        write_to(current_debug_port(), "; ");
 
         if (iter == c)
         {
-          std::cerr << std::string(4 * (depth - 1), ' ')
-                    << console::magenta << "("
-                    << console::reset << std::string(3, ' ');
+          write_to(current_debug_port(),
+            std::string(4 * (depth - 1), ' '), console::magenta, "(   ");
         }
         else
         {
-          std::cerr << std::string(4 * depth, ' ');
+          write_to(current_debug_port(), std::string(4 * depth, ' '));
         }
 
         switch ((*iter).as<instruction>().code)
@@ -328,15 +299,12 @@ namespace meevax::kernel
         case mnemonic::JOIN:
         case mnemonic::POP:
         case mnemonic::CONS:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           break;
 
         case mnemonic::RETURN:
         case mnemonic::STOP:
-          std::cerr << *iter
-                    << console::magenta << "\t)"
-                    << console::reset
-                    << std::endl;
+          write_to(current_debug_port(), *iter, console::magenta, "\t)\n");
           break;
 
         case mnemonic::DEFINE:
@@ -348,19 +316,23 @@ namespace meevax::kernel
         case mnemonic::STORE_GLOBAL:
         case mnemonic::STORE_LOCAL:
         case mnemonic::STORE_VARIADIC:
-          std::cerr << *iter << " " << *++iter << std::endl;
+          {
+            const auto opcode {*iter};
+            const auto operand {*++iter};
+            write_to(current_debug_port(), opcode, " ", operand, "\n");
+          }
           break;
 
         case mnemonic::LOAD_CLOSURE:
         case mnemonic::LOAD_CONTINUATION:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           break;
 
 
         case mnemonic::SELECT:
         case mnemonic::TAIL_SELECT:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           disassemble(*++iter, depth + 1);
           break;
@@ -386,13 +358,9 @@ namespace meevax::kernel
       e = unit;
       c = expression;
 
-      if (static_cast<SK&>(*this).verbose.equivalent_to(t))
-      {
-        // std::cerr << "; disassemble\t; for " << &c << std::endl;
-        std::cerr << "; " << std::string(78, '*') << std::endl;
-        disassemble(c);
-        std::cerr << "; " << std::string(78, '*') << std::endl;
-      }
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+      disassemble(c);
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
 
       const auto result {execute()};
 
@@ -848,11 +816,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(quotation,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << console::faint << "\t; is <datum>"
-        << console::reset
-        << std::endl);
+      debug(car(expression), console::faint, " ; is <datum>");
 
       return
         cons(
@@ -939,11 +903,7 @@ namespace meevax::kernel
     {
       if (not frames or in_a.program_declaration)
       {
-        DEBUG_COMPILE(
-          << car(expression)
-          << console::faint << "\t; is <variable>"
-          << console::reset
-          << std::endl);
+        debug(car(expression), console::faint, " ; is <variable>");
 
         // const auto definition {compile(
         //   cdr(expression) ? cadr(expression) : unspecified,
@@ -1272,11 +1232,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(conditional,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << console::faint << "\t; is <test>"
-        << console::reset
-        << std::endl);
+      debug(car(expression), console::faint, " ; is <test>");
 
       if (in_a.tail_expression)
       {
@@ -1356,11 +1312,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(lambda,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << console::faint << "\t; is <formals>"
-        << console::reset
-        << std::endl);
+      debug(car(expression), console::faint, " ; is <formals>");
 
       if (in_a.program_declaration)
       {
@@ -1402,11 +1354,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(call_cc,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << console::faint << "\t; is <procedure>"
-        << console::reset
-        << std::endl);
+      debug(car(expression), console::faint, " ; is <procedure>");
 
       return
         cons(
@@ -1428,11 +1376,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(fork,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << console::faint << "\t; is <subprogram>"
-        << console::reset
-        << std::endl);
+      debug(car(expression), console::faint, " ; is <subprogram>");
 
       return
         cons(
@@ -1457,8 +1401,6 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(assignment,
     {
-      DEBUG_COMPILE(<< car(expression) << console::faint << "\t; is ");
-
       if (not expression)
       {
         throw syntax_error {"set!"};
@@ -1467,8 +1409,7 @@ namespace meevax::kernel
       {
         if (index.is_variadic())
         {
-          DEBUG_COMPILE_DECISION(
-            "<identifier> of lexical variadic " << console::reset << index);
+          debug(car(expression), console::faint, " ; is <variadic bound variable> references ", console::reset, index);
 
           return
             compile(
@@ -1481,7 +1422,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION("<identifier> of lexical " << console::reset << index);
+          debug(car(expression), console::faint, "; is a <bound variable> references ", console::reset, index);
 
           return
             compile(
@@ -1495,7 +1436,7 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << console::reset);
+        debug(car(expression), console::faint, "; is a <glocal variable>");
 
         return
           compile(
@@ -1516,12 +1457,9 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(reference,
     {
-      DEBUG_COMPILE(<< car(expression) << console::faint << "\t; is ");
-
       if (not expression)
       {
-        DEBUG_COMPILE_DECISION(
-          "<identifier> of itself" << console::reset);
+        debug(car(expression), console::faint, " ; is <identifier> of itself");
 
         return unit;
       }
@@ -1534,8 +1472,7 @@ namespace meevax::kernel
       {
         if (variable.is_variadic())
         {
-          DEBUG_COMPILE_DECISION(
-            "<identifier> of local variadic " << console::reset << variable);
+          debug(car(expression), console::faint, " ; is <identifier> of local variadic ", console::reset, variable);
 
           return
             cons(
@@ -1544,8 +1481,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION(
-            "<identifier> of local " << console::reset << variable);
+          debug(car(expression), console::faint, " ; is <identifier> of local ", console::reset, variable);
 
           return
             cons(
@@ -1555,8 +1491,7 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION(
-          "<identifier> of global variable" << console::reset);
+        debug(car(expression), console::faint, " ; is <identifier> of glocal variable");
 
         return
           cons(

@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
 #include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
@@ -35,7 +36,8 @@ namespace meevax::kernel
   *
   * ========================================================================= */
   class syntactic_continuation
-    /* =========================================================================
+    //
+    /* ==== Pair ===============================================================
     *
     * The syntactic-continuation is a pair of "the program" and "global
     * environment (simple association list)". It also has the aspect of a
@@ -45,7 +47,7 @@ namespace meevax::kernel
     * ======================================================================= */
     : public virtual pair
 
-    /* =========================================================================
+    /* ==== Reader =============================================================
     *
     * Reader access symbol table of this syntactic_continuation (by member
     * function "intern") via static polymorphism. The syntactic_continuation
@@ -68,7 +70,13 @@ namespace meevax::kernel
     * ======================================================================= */
     , public machine<syntactic_continuation>
 
-    /* =========================================================================
+    /* ==== Debugger ===========================================================
+    *
+    *
+    * ======================================================================= */
+    , public debugger<syntactic_continuation>
+
+    /* ==== Configurator =======================================================
     *
     * Global configuration is shared in all of syntactic_continuations running
     * on same process. Thus, any change of configuration member influences any
@@ -83,13 +91,18 @@ namespace meevax::kernel
 
     std::size_t current_layer {0};
 
-    bool virgin {true};
+    [[deprecated]] bool virgin {true};
 
     std::size_t experience {0};
 
-    using writer<syntactic_continuation>::current_debug_port;
-    using writer<syntactic_continuation>::current_error_port;
-    using writer<syntactic_continuation>::write_to;
+    // CRTP Import from Below
+    using writer::current_debug_port;
+    using writer::current_error_port;
+    using writer::write_to;
+
+    using debugger::debug;
+    using debugger::header;
+    using debugger::indent;
 
   public: // Accessors
     const auto& program() const
@@ -107,7 +120,7 @@ namespace meevax::kernel
       return car(program());
     }
 
-    decltype(auto) lexical_environment()
+    decltype(auto) lexical_environment() // TODO Rename to scope
     {
       return cdr(program());
     }
@@ -432,6 +445,37 @@ namespace meevax::kernel
                 << console::magenta << ")"
                 << console::reset;
     }
+
+    friend auto operator >>(std::istream& is, syntactic_continuation& sk)
+      -> decltype(is)
+    {
+      sk.write_to(sk.standard_output_port(),
+        "syntactic_continuation::operator >>(std::istream&, syntactic_continuation&)\n");
+
+      sk.write_to(sk.standard_output_port(),
+        "read new expression => ", sk.read(is), "\n");
+
+      // sk.write_to(sk.standard_output_port(),
+      //   "program == ", sk.program(),
+      //   "current_expression is ", sk.current_expression());
+      //
+      // NOTE
+      // Store the expression new read to 'current_expression'.
+      // But, currently above comments cause SEGV.
+
+      return is;
+    }
+
+    friend auto operator <<(std::ostream& os, syntactic_continuation& sk)
+      -> decltype(os)
+    {
+      // TODO
+      // Evaluate current_expression, and write the evaluation to ostream.
+
+      return
+        sk.write_to(os,
+          "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
+    }
   };
 
   #define DEFINE_SYNTAX(NAME, RULE)                                            \
@@ -458,6 +502,7 @@ namespace meevax::kernel
         car(operands).template as<const string>());                            \
   })
 
+  // TODO Move to external .cpp file?
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {

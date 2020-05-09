@@ -127,7 +127,7 @@ fi
 
 if test "$execute" -ne 0
 then
-  command="$memory_check $repository/build/bin/ice --verbose"
+  command="$memory_check $repository/build/bin/ice --verbose --debug"
 
   echo "
 ; ==== Execution ===============================================================
