@@ -30,6 +30,7 @@ namespace meevax::kernel
     IMPORT(SK, write_to)
 
     IMPORT(SK, debug)
+    IMPORT(SK, header)
     IMPORT(SK, indent)
 
   protected:
@@ -47,14 +48,12 @@ namespace meevax::kernel
         interaction_environment(),
         list(identifier, std::forward<decltype(operands)>(operands)...));
 
-      if (static_cast<const SK&>(*this).verbose.equivalent_to(t))
-      {
-        std::cerr << "; define\t; "
-                  << caar(interaction_environment())
-                  << "\r\x1b[40C\x1b[K "
-                  << cadar(interaction_environment())
-                  << std::endl;
-      }
+      write_to(current_debug_port(),
+        header("define"),
+        caar(interaction_environment()),
+        console::faint, " binds ", console::reset,
+        cadar(interaction_environment()),
+        "\n");
 
       return interaction_environment(); // temporary
     }
@@ -200,8 +199,7 @@ namespace meevax::kernel
           debug(
             console::magenta, "(",
             console::reset, car(expression),
-            console::faint, " ; is <primitive expression> ",
-            console::reset, applicant);
+            console::faint, " ; is <primitive expression>");
 
           indent() >> static_cast<SK&>(*this).default_shift;
 

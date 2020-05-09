@@ -101,6 +101,7 @@ namespace meevax::kernel
     using writer::write_to;
 
     using debugger::debug;
+    using debugger::header;
     using debugger::indent;
 
   public: // Accessors
@@ -119,7 +120,7 @@ namespace meevax::kernel
       return car(program());
     }
 
-    decltype(auto) lexical_environment()
+    decltype(auto) lexical_environment() // TODO Rename to scope
     {
       return cdr(program());
     }
