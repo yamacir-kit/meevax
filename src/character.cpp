@@ -1,14 +1,9 @@
-#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/character.hpp>
-#include <meevax/kernel/exception.hpp>
-#include <meevax/kernel/pair.hpp>
 
 namespace meevax::kernel
 {
   const std::unordered_map<std::string, object> characters
   {
-    {"end-of-file", make<character>(std::to_string(EOF), "end-of-file")},
-
     {"null",                      make<character>(u8"\u0000", "null"                     )},
     {"start-of-header",           make<character>(u8"\u0001", "start-of-header"          )},
     {"start-of-text",             make<character>(u8"\u0002", "start-of-text"            )},

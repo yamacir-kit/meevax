@@ -4,6 +4,8 @@
 #include <iostream>
 #include <type_traits>
 
+// TODO Rename to OutputStreamable (from Boost.IOStreams)
+
 namespace meevax::concepts
 {
   template <typename T, typename = void>

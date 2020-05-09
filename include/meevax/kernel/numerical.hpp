@@ -11,20 +11,19 @@ namespace meevax::kernel
   using integral
     = boost::multiprecision::number<
         boost::multiprecision::gmp_int,
-        boost::multiprecision::et_off
-      >;
+        boost::multiprecision::et_off>;
 
   std::ostream& operator<<(std::ostream& os, const integral& integral)
   {
-    return os << highlight::datum << integral.str() << attribute::normal;
+    return os << console::cyan << integral.str()
+              << console::reset;
   }
 
   // using real_base
   using real
     = boost::multiprecision::number<
         boost::multiprecision::mpfr_float_backend<0>,
-        boost::multiprecision::et_off
-      >;
+        boost::multiprecision::et_off>;
 
   // struct real
   //   : public real_base
@@ -44,7 +43,8 @@ namespace meevax::kernel
 
   std::ostream& operator<<(std::ostream& os, const real& real)
   {
-    return os << highlight::datum << real.str() << attribute::normal;
+    return os << console::cyan << real.str()
+              << console::reset;
   }
 
   #define DEFINE_NUMERICAL_BINARY_ARITHMETIC(OPERATOR)                         \

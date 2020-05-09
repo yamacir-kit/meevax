@@ -30,12 +30,13 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const procedure& procedure)
       -> decltype(auto)
     {
-      return os << highlight::syntax << "#("
-                << highlight::type << "procedure "
-                << attribute::normal << procedure.name
-                << highlight::comment << " #;" << &procedure << attribute::normal
-                << highlight::syntax << ")"
-                << attribute::normal;
+      return os << console::magenta  << "#("
+                << console::green    << "procedure "
+                << console::reset  << procedure.name
+                << console::faint << " #;" << &procedure
+                << console::reset
+                << console::magenta  << ")"
+                << console::reset;
     }
   };
 } // namespace meevax::kernel

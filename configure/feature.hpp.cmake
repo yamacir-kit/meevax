@@ -22,9 +22,12 @@ namespace meevax::kernel
     };
 
     explicit feature()
-      : object {list(
-          make<symbol>("meevax")
-        )}
+      : object
+        {
+          list(
+            make<symbol>("${PROJECT_NAME}"),
+            make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}"))
+        }
     {}
   };
 } // namespace meevax::kernel

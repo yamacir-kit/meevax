@@ -6,16 +6,17 @@
 #include <boost/cstdlib.hpp>
 
 #include <meevax/kernel/feature.hpp>
-#include <meevax/kernel/port.hpp>
+#include <meevax/kernel/port.hpp> // TODO REMOVE!!!
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax::kernel
 {
+  // TODO Move to miscellaneous.hpp
   void display_title(const version& v)
   {           // ";       10        20        30        40        50        60        70        80\n"
     std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
-                 ";\n";
+                 ";                                                                               \n";
   }
 
   void display_abstract()
@@ -25,20 +26,18 @@ namespace meevax::kernel
                  ";                                                                               \n";
   }
 
-  template <typename SyntacticContinuation>
+  template <typename SK>
   struct configurator
   {
     // static inline const auto install_prefix {make<path>("/usr/local")};
 
-    static inline const version version_object {};
-    static inline const feature feature_object {};
+    static inline const version current_version {};
+    static inline const feature current_feature {};
 
     // TODO Generate from CMakeLists.txt
     // static inline const std::string program_name {"ice"};
 
-    object color       {f};
     object interactive {f};
-    object quiet       {f};
     object trace       {f};
     object verbose     {f};
 
@@ -58,23 +57,23 @@ namespace meevax::kernel
   public:
     static PROCEDURE(display_version)
     {           // "        10        20        30        40        50        60        70        80\n"
-      display_title(version_object);
+      display_title(current_version);
 
-      std::cout << "; version"   "\t; " << version_object.semantic                              << "\n"
+      std::cout << "; version"   "\t; " << current_version.semantic                              << "\n"
                    "; license"   "\t; unspecified (All rights reserved)"                           "\n"
                    ";"                                                                             "\n"
-                   "; compiled"  "\t; " << feature_object.date                                  << "\n"
-                   "; configuration ; " << feature_object.type                                  << "\n"
-                   "; commit"    "\t; " << feature_object.commit                                << "\n"
+                   "; compiled"  "\t; " << current_feature.date                                  << "\n"
+                   "; configuration ; " << current_feature.type                                  << "\n"
+                   "; commit"    "\t; " << current_feature.commit                                << "\n"
                    ";"                                                                             "\n"
-                   "; feature"   "\t; " << feature_object                                       << "\n";
+                   "; feature"   "\t; " << current_feature                                       << "\n";
 
       return std::exit(boost::exit_success), unspecified;
     }
 
     static PROCEDURE(display_help)
     {           // "        10        20        30        40        50        60        70        80\n"
-      display_title(version_object);
+      display_title(current_version);
 
       display_abstract();
 
@@ -121,11 +120,15 @@ namespace meevax::kernel
     template <typename T>
     using dispatcher = std::unordered_map<T, std::function<PROCEDURE()>>;
 
+    // NOTE
+    //   --from=FILE --to=FILE
+    //   --input=FILE --output=FILE
+
     const dispatcher<char> short_options
     {
-      std::make_pair('c', [this](auto&&...) mutable
+      std::make_pair('d', [this](auto&&...) mutable
       {
-        return color = t;
+        return static_cast<SK&>(*this).debugging = t;
       }),
 
       std::make_pair('h', display_help),
@@ -140,7 +143,7 @@ namespace meevax::kernel
 
       std::make_pair('q', [this](auto&&...) mutable
       {
-        return quiet = t;
+        return static_cast<SK&>(*this).quiet = t;
       }),
 
       std::make_pair('v', display_version),
@@ -150,7 +153,7 @@ namespace meevax::kernel
     {
       std::make_pair('e', [this](auto&&, auto&& operands)
       {
-        std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(
+        std::cout << static_cast<SK&>(*this).evaluate(
                        std::forward<decltype(operands)>(operands))
                   << std::endl;
         return unspecified;
@@ -171,9 +174,9 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options
     {
-      std::make_pair("color", [this](auto&&...) mutable
+      std::make_pair("debug", [this](auto&&...) mutable
       {
-        return color = t;
+        return static_cast<SK&>(*this).debugging = t;
       }),
 
       std::make_pair("help", display_help),
@@ -190,7 +193,7 @@ namespace meevax::kernel
 
       std::make_pair("quiet", [this](auto&&...) mutable
       {
-        return quiet = t;
+        return static_cast<SK&>(*this).quiet = t;
       }),
 
       std::make_pair("trace", [this](auto&&...) mutable
@@ -216,7 +219,7 @@ namespace meevax::kernel
 
       std::make_pair("evaluate", [this](auto&&, auto&& operands)
       {
-        std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(
+        std::cout << static_cast<SK&>(*this).evaluate(
                        std::forward<decltype(operands)>(operands))
                   << std::endl;
         return unspecified;
@@ -279,12 +282,12 @@ namespace meevax::kernel
             {
               if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
               {
-                const auto operands {static_cast<SyntacticContinuation&>(*this).read(rest)};
+                const auto operands {static_cast<SK&>(*this).read(rest)};
                 return std::invoke(std::get<1>(*callee), resource {}, operands);
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
-                const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
+                const auto operands {static_cast<SK&>(*this).read(*option)};
                 return std::invoke(std::get<1>(*callee), resource {}, operands);
               }
               else
@@ -308,12 +311,12 @@ namespace meevax::kernel
           {
             if (analysis.length(2)) // argument part
             {
-              const auto operands {static_cast<SyntacticContinuation&>(*this).read(analysis.str(3))};
+              const auto operands {static_cast<SK&>(*this).read(analysis.str(3))};
               return std::invoke(std::get<1>(*callee), resource {}, operands);
             }
             else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
-              const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
+              const auto operands {static_cast<SK&>(*this).read(*option)};
               return std::invoke(std::get<1>(*callee), resource {}, operands);
             }
             else

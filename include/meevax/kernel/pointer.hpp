@@ -6,11 +6,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept> // std::logic_error
-#include <utility> // std::forward
 
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
-#include <meevax/kernel/writer.hpp>
+#include <meevax/console/escape_sequence.hpp>
+#include <meevax/utility/demangle.hpp>
+#include <meevax/utility/hexdump.hpp>
+#include <meevax/utility/import.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
@@ -165,7 +167,7 @@ namespace meevax::kernel
   class pointer
     : public std::shared_ptr<T>
   {
-    /* ==== Object Binder =====================================================
+    /* ==== Binder =============================================================
     *
     * The object binder is the actual data pointed to by the pointer type. To
     * handle all types uniformly, the binder inherits type T and uses dynamic
@@ -173,7 +175,7 @@ namespace meevax::kernel
     * instances. However, the performance is inferior due to the heavy use of
     * dynamic cast as a price for convenience.
     *
-    *======================================================================= */
+    *======================================================================== */
     template <typename Bound>
     struct binder
       : public Bound
@@ -239,11 +241,13 @@ namespace meevax::kernel
         }
         else
         {
-          return os << highlight::syntax << "#("
-                    << highlight::type << utility::demangle(typeid(Bound))
-                    << attribute::normal << highlight::comment << " #;" << static_cast<const Bound*>(this) << attribute::normal
-                    << highlight::syntax << ")"
-                    << attribute::normal;
+          return os << console::magenta << "#("
+                    << console::green << utility::demangle(typeid(Bound))
+                    << console::reset
+                    << console::faint << " #;" << static_cast<const Bound*>(this)
+                    << console::reset
+                    << console::magenta << ")"
+                    << console::reset;
         }
       }
     };
@@ -339,6 +343,7 @@ namespace meevax::kernel
             ignore);
     }
 
+    // XXX Need?
     decltype(auto) dereference() const
     {
       assert(*this);
@@ -457,11 +462,11 @@ namespace meevax::kernel
       CASE_OF_TYPE(float);
       CASE_OF_TYPE(double);
 
-      CASE_OF_TYPE(std::byte);
+      CASE_OF_TYPE(std::int8_t);
       CASE_OF_TYPE(std::int16_t);
       CASE_OF_TYPE(std::int32_t);
 
-      CASE_OF_TYPE(std::byte);
+      CASE_OF_TYPE(std::uint8_t);
       CASE_OF_TYPE(std::uint16_t);
       CASE_OF_TYPE(std::uint32_t);
 
@@ -488,20 +493,22 @@ namespace meevax::kernel
         return dereference().equivalent_to(rhs);
       }
     }
-  };
 
-  template <typename T>
-  auto write(const pointer<T>& object, std::ostream& os = std::cout)
-    -> decltype(os)
-  {
-    // write(os) will be dispatched to each type's stream output operator.
-    return !object ? (os << highlight::syntax << "()" << attribute::normal) : object.dereference().dispatch(os);
-  }
+    template <typename... Ts>
+    auto eqv(Ts&&... xs) const
+      -> decltype(auto)
+    {
+      return
+        equivalent_to(
+          std::forward<decltype(xs)>(xs)...);
+    }
+  };
 
   template <typename T>
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
   {
-    return write(object, os);
+    return not object ? (os << console::magenta << "()" << console::reset)
+                      : object.dereference().dispatch(os);
   }
 
   namespace debug

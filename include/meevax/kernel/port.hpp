@@ -10,6 +10,7 @@ namespace meevax::kernel
   /* ==== Ports ================================================================
   *
   * TODO std::string => std::filesystem::path
+  * TODO null-port
   *
   *========================================================================== */
   #define DEFINE_PORT(IDENTIFIER, NAME, BASE)                                  \
@@ -28,19 +29,20 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const IDENTIFIER& port)           \
       -> decltype(os)                                                          \
     {                                                                          \
-      os << highlight::syntax << external_form << "("                          \
-         << highlight::type << NAME;                                           \
+      os << console::magenta << "#,("                                          \
+         << console::green   << NAME;                                          \
                                                                                \
       if (port.is_open())                                                      \
       {                                                                        \
-        os << highlight::datum << " \"" << port.name << "\"";                  \
+        os << console::cyan << " " << std::quoted(port.name);        \
       }                                                                        \
                                                                                \
-      return os << highlight::syntax << ")" << attribute::normal;              \
+      return os << console::magenta << ")"                                     \
+                << console::reset;                                             \
     }                                                                          \
   }
 
-  DEFINE_PORT(       port,        "port", fstream);
+  DEFINE_PORT(       port,        "port",  fstream);
   DEFINE_PORT( input_port,  "input-port", ifstream);
   DEFINE_PORT(output_port, "output-port", ofstream);
 } // namespace meevax::kernel

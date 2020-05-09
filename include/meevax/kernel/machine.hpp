@@ -6,79 +6,38 @@
 #include <meevax/kernel/de_brujin_index.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/special.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
-
-inline namespace ugly_macros
-{
-  static std::size_t depth {0};
-
-  #define DEBUG_COMPILE(...)                                                   \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
-  {                                                                            \
-    std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")                     \
-              << std::string(depth * 2, ' ')                                   \
-              __VA_ARGS__;                                                     \
-  }
-
-  #define DEBUG_COMPILE_DECISION(...)                                          \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
-  {                                                                            \
-    std::cerr << __VA_ARGS__ << attribute::normal << std::endl;                \
-  }
-
-  #define DEBUG_MACROEXPAND(...)                                               \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
-  {                                                                            \
-    std::cerr << "; macroexpand\t; "                                           \
-              << std::string(depth * 2, ' ')                                   \
-              << __VA_ARGS__;                                                  \
-  }
-
-  #define COMPILER_WARNING(...) \
-  if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))     \
-  {                                                                            \
-    std::cerr << attribute::normal  << "; "                                    \
-              << highlight::warning << "compiler"                              \
-              << attribute::normal  << "\t; "                                  \
-              << highlight::warning << __VA_ARGS__                             \
-              << attribute::normal  << std::endl;                              \
-  }
-
-  #define NEST_IN  ++depth
-  #define NEST_OUT                                                             \
-    DEBUG_COMPILE(                                                             \
-      << highlight::syntax << ")" << attribute::normal << std::endl)           \
-    --depth;
-}
+#include <meevax/kernel/syntax.hpp>
 
 namespace meevax::kernel
 {
-  template <typename SyntacticContinuation>
+  template <typename SK>
   class machine // Simple SECD machine.
   {
+    friend SK;
+
+    machine()
+    {}
+
+    // CRTP Import from Above
+    IMPORT(SK, interaction_environment)
+    IMPORT(SK, intern)
+    IMPORT(SK, rename)
+
+    IMPORT(SK, current_debug_port)
+    IMPORT(SK, current_error_port)
+    IMPORT(SK, write_to)
+
+    IMPORT(SK, debug)
+    IMPORT(SK, header)
+    IMPORT(SK, indent)
+
   protected:
     object s, // Stack (holding intermediate results and return address)
            e, // Environment (giving values to symbols)
-           c, // Code (instructions yet to be executed)
+           c, // Control (instructions yet to be executed)
            d; // Dump (S.E.C)
-
-  private: // CRTP
-    #define CRTP(IDENTIFIER)                                                   \
-    template <typename... Ts>                                                  \
-    inline decltype(auto) IDENTIFIER(Ts&&... operands)                         \
-    {                                                                          \
-      return                                                                   \
-        static_cast<SyntacticContinuation&>(*this).IDENTIFIER(                 \
-          std::forward<decltype(operands)>(operands)...);                      \
-    }
-
-    CRTP(interaction_environment)
-    CRTP(intern)
-    CRTP(rename)
-
-    #undef CRTP
 
   public:
     // Direct virtual machine instruction invocation.
@@ -89,14 +48,12 @@ namespace meevax::kernel
         interaction_environment(),
         list(identifier, std::forward<decltype(operands)>(operands)...));
 
-      if (static_cast<const SyntacticContinuation&>(*this).verbose.equivalent_to(t))
-      {
-        std::cerr << "; define\t; "
-                  << caar(interaction_environment())
-                  << "\r\x1b[40C\x1b[K "
-                  << cadar(interaction_environment())
-                  << std::endl;
-      }
+      write_to(current_debug_port(),
+        header("define"),
+        caar(interaction_environment()),
+        console::faint, " binds ", console::reset,
+        cadar(interaction_environment()),
+        "\n");
 
       return interaction_environment(); // temporary
     }
@@ -105,9 +62,9 @@ namespace meevax::kernel
     {
       for (const auto& frame : e)
       {
-        if (frame and car(frame) and car(frame).is<SyntacticContinuation>())
+        if (frame and car(frame) and car(frame).is<SK>())
         {
-          // return car(frame).as<SyntacticContinuation>().interaction_environment();
+          // return car(frame).as<SK>().interaction_environment();
           return cdar(frame);
         }
       }
@@ -115,10 +72,9 @@ namespace meevax::kernel
       return interaction_environment();
     }
 
-    const object&
-      lookup(
-        const object& identifier,
-        const object& environment)
+    auto lookup(const object& identifier,
+                const object& environment)
+      -> const object&
     {
       if (not identifier or not environment)
       {
@@ -178,17 +134,13 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        DEBUG_COMPILE(
-          << expression << highlight::comment << "\t; ");
-
         if (expression.is<symbol>()) // is variable
         {
           if (de_bruijn_index index {expression, frames}; index)
           {
             if (index.is_variadic())
             {
-              DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical variadic " << attribute::normal << index);
+              debug(expression, console::faint, " ; is a <variadic bound variable> references ", console::reset, index);
 
               return
                 cons(
@@ -197,8 +149,7 @@ namespace meevax::kernel
             }
             else
             {
-              DEBUG_COMPILE_DECISION(
-                "is <variable> references lexical " << attribute::normal << index);
+              debug(expression, console::faint, " ; is a <bound variable> references ", console::reset, index);
 
               return
                 cons(
@@ -208,8 +159,7 @@ namespace meevax::kernel
           }
           else
           {
-            DEBUG_COMPILE_DECISION(
-              "is <variable> references dynamic value bound to the identifier");
+            debug(expression, console::faint, " ; is a <glocal variable>");
 
             return
               cons(
@@ -219,7 +169,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION("is <self-evaluating>");
+          debug(expression, console::faint, " ; is <self-evaluating>");
 
           return
             cons(
@@ -234,65 +184,72 @@ namespace meevax::kernel
             )};
             not applicant)
         {
-          COMPILER_WARNING(
-            "compiler detected application of variable currently bounds "
-            "empty-list. if the variable will not reset with applicable object "
-            "later, cause runtime error.");
+          // TODO write_to_current_error_port => warning
+          write_to(current_error_port(),
+            "; compiler\t; ", console::bold, console::yellow, "WARNING\n",
+            std::string(80, '~'), "\n",
+            "Compiler detected application of variable currently bounds "
+            "empty-list. If the variable will not reset with applicable object "
+            "later, cause runtime error.\n",
+            std::string(2 * static_cast<SK&>(*this).depth + 18, '~'), "v", std::string(80 - 2 * static_cast<SK&>(*this).depth - 17, '~'), "\n");
         }
-        else if (applicant.is<special>()
+        else if (applicant.is<syntax>()
                  and not de_bruijn_index(car(expression), frames))
         {
-          DEBUG_COMPILE(
-            << highlight::syntax << "(" << attribute::normal
-            << car(expression)
-            << highlight::comment << "\t; is <primitive expression> "
-            << attribute::normal << applicant << std::endl);
+          debug(
+            console::magenta, "(",
+            console::reset, car(expression),
+            console::faint, " ; is <primitive expression>");
 
-          NEST_IN;
-          auto result {std::invoke(applicant.as<special>(),
-            cdr(expression), syntactic_environment, frames, continuation, in_a
-          )};
-          NEST_OUT;
+          indent() >> static_cast<SK&>(*this).default_shift;
+
+          auto result {
+            std::invoke(applicant.as<syntax>(),
+              cdr(expression), syntactic_environment, frames, continuation, in_a)
+          };
+
+          debug(console::magenta, ")");
+
+          indent() << static_cast<SK&>(*this).default_shift;
 
           return result;
         }
-        else if (applicant.is<SyntacticContinuation>()
+        else if (applicant.is<SK>()
                  and not de_bruijn_index(car(expression), frames))
         {
-          DEBUG_COMPILE(
-            << highlight::syntax << "(" << attribute::normal
-            << car(expression)
-            << highlight::comment << "\t; is <macro use> of <derived expression> "
-            << attribute::normal << applicant
-            << attribute::normal << std::endl);
+          debug(
+            console::magenta, "(",
+            console::reset, car(expression),
+            console::faint, " ; is <macro use> of ",
+            console::reset, applicant);
 
           // std::cerr << "Syntactic-Continuation holds "
-          //           << applicant.as<SyntacticContinuation>().continuation()
+          //           << applicant.as<SK>().continuation()
           //           << std::endl;
 
           const auto expanded {
-            applicant.as<SyntacticContinuation>().expand(
+            applicant.as<SK>().expand(
               cons(
                 applicant,
                 cdr(expression)))
           };
 
-          DEBUG_MACROEXPAND(expanded << std::endl);
+          write_to(current_debug_port(),
+            "; macroexpand\t; ", indent(), expanded, "\n");
 
-          // NEST_IN;
           auto result {compile(
             expanded, syntactic_environment, frames, continuation)};
-          // NEST_OUT;
 
           return result;
         }
 
-        DEBUG_COMPILE(
-          << highlight::syntax << "(" << attribute::normal
-          << highlight::comment << "\t; is <procedure call>"
-          << attribute::normal << std::endl);
+        debug(
+          console::magenta, "(",
+          console::reset,
+          console::faint, " ; is <procedure call>");
 
-        NEST_IN;
+        indent() >> static_cast<SK&>(*this).default_shift;
+
         auto result {
           operand(
             cdr(expression),
@@ -308,7 +265,11 @@ namespace meevax::kernel
                                        : mnemonic::CALL),
                 continuation)))
         };
-        NEST_OUT;
+
+        debug(console::magenta, ")");
+
+        indent() << static_cast<SK&>(*this).default_shift;
+
         return result;
       }
     }
@@ -319,19 +280,16 @@ namespace meevax::kernel
 
       for (homoiconic_iterator iter {c}; iter; ++iter)
       {
-        std::cerr << "; ";
+        write_to(current_debug_port(), "; ");
 
         if (iter == c)
         {
-          std::cerr << std::string(4 * (depth - 1), ' ')
-                    << highlight::syntax
-                    << "("
-                    << attribute::normal
-                    << std::string(3, ' ');
+          write_to(current_debug_port(),
+            std::string(4 * (depth - 1), ' '), console::magenta, "(   ");
         }
         else
         {
-          std::cerr << std::string(4 * depth, ' ');
+          write_to(current_debug_port(), std::string(4 * depth, ' '));
         }
 
         switch ((*iter).as<instruction>().code)
@@ -341,16 +299,12 @@ namespace meevax::kernel
         case mnemonic::JOIN:
         case mnemonic::POP:
         case mnemonic::CONS:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           break;
 
         case mnemonic::RETURN:
         case mnemonic::STOP:
-          std::cerr << *iter
-                    << highlight::syntax
-                    << "\t)"
-                    << attribute::normal
-                    << std::endl;
+          write_to(current_debug_port(), *iter, console::magenta, "\t)\n");
           break;
 
         case mnemonic::DEFINE:
@@ -362,19 +316,23 @@ namespace meevax::kernel
         case mnemonic::STORE_GLOBAL:
         case mnemonic::STORE_LOCAL:
         case mnemonic::STORE_VARIADIC:
-          std::cerr << *iter << " " << *++iter << std::endl;
+          {
+            const auto opcode {*iter};
+            const auto operand {*++iter};
+            write_to(current_debug_port(), opcode, " ", operand, "\n");
+          }
           break;
 
         case mnemonic::LOAD_CLOSURE:
         case mnemonic::LOAD_CONTINUATION:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           break;
 
 
         case mnemonic::SELECT:
         case mnemonic::TAIL_SELECT:
-          std::cerr << *iter << std::endl;
+          write_to(current_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           disassemble(*++iter, depth + 1);
           break;
@@ -400,13 +358,9 @@ namespace meevax::kernel
       e = unit;
       c = expression;
 
-      if (static_cast<SyntacticContinuation&>(*this).verbose.equivalent_to(t))
-      {
-        // std::cerr << "; disassemble\t; for " << &c << std::endl;
-        std::cerr << "; " << std::string(78, '*') << std::endl;
-        disassemble(c);
-        std::cerr << "; " << std::string(78, '*') << std::endl;
-      }
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+      disassemble(c);
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
 
       const auto result {execute()};
 
@@ -420,7 +374,7 @@ namespace meevax::kernel
     object execute()
     {
     dispatch:
-      if (static_cast<SyntacticContinuation&>(*this)
+      if (static_cast<SK&>(*this)
             .trace.equivalent_to(t))
       {
         std::cerr << "; trace s\t; " <<  s << std::endl;
@@ -542,7 +496,7 @@ namespace meevax::kernel
         // std::cerr << "\t\t; d = " << d << std::endl;
         push(
           s,
-          make<SyntacticContinuation>(
+          make<SK>(
             cons(
               s,
               e,
@@ -561,7 +515,7 @@ namespace meevax::kernel
       // *====================================================================== */
       //   push(
       //     s,
-      //     make<SyntacticContinuation>(
+      //     make<SK>(
       //       pop(s), // XXX car(s)?
       //       interaction_environment()));
       //   pop<1>(c);
@@ -610,7 +564,7 @@ namespace meevax::kernel
       * => (identifier . S) E                      C  D
       *
       *====================================================================== */
-        if (static_cast<SyntacticContinuation&>(*this).virgin)
+        if (static_cast<SK&>(*this).virgin)
         {
           define(cadr(c), car(s));
           car(s) = unspecified;
@@ -645,16 +599,16 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
+        else if (callee.is<SK>()) // TODO REMOVE
         {
           // s = cons(
-          //       callee.as<SyntacticContinuation>().expand(
+          //       callee.as<SK>().expand(
           //         cons(
           //           car(s),
           //           cadr(s))),
           //       cddr(s));
           s = cons(
-                callee.as<SyntacticContinuation>().evaluate( // TODO expand => evaluate ?
+                callee.as<SK>().evaluate( // TODO expand => evaluate ?
                   cadr(s)),
                 cddr(s));
           pop<1>(c);
@@ -693,16 +647,16 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SyntacticContinuation>()) // TODO REMOVE
+        else if (callee.is<SK>()) // TODO REMOVE
         {
           // s = cons(
-          //       callee.as<SyntacticContinuation>().expand(
+          //       callee.as<SK>().expand(
           //         cons(
           //           car(s),
           //           cadr(s))),
           //       cddr(s));
           s = cons(
-                callee.as<SyntacticContinuation>().evaluate(
+                callee.as<SK>().evaluate(
                   cadr(s)),
                 cddr(s));
           pop<1>(c);
@@ -776,7 +730,7 @@ namespace meevax::kernel
           {
             cadr(pare) = car(s);
           }
-          else if (value.is<SyntacticContinuation>() or value.is<special>())
+          else if (value.is<SK>() or value.is<syntax>())
           {
             /* ---- From R7RS 5.3.1. Top level definitions ---------------------
             *
@@ -862,10 +816,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(quotation,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << highlight::comment << "\t; is <datum>"
-        << attribute::normal << std::endl);
+      debug(car(expression), console::faint, " ; is <datum>");
 
       return
         cons(
@@ -952,10 +903,7 @@ namespace meevax::kernel
     {
       if (not frames or in_a.program_declaration)
       {
-        DEBUG_COMPILE(
-          << car(expression)
-          << highlight::comment << "\t; is <variable>"
-          << attribute::normal << std::endl);
+        debug(car(expression), console::faint, " ; is <variable>");
 
         // const auto definition {compile(
         //   cdr(expression) ? cadr(expression) : unspecified,
@@ -1103,14 +1051,14 @@ namespace meevax::kernel
                and not de_bruijn_index( // the operator is not local variable
                          caar(expression),
                          frames)
-               and lookup( // the variable references special form
+               and lookup( // the variable references syntax form
                      caar(expression),
                      syntactic_environment)
-                   .template is<special>()
-               and lookup( // the special form is "define"
+                   .template is<syntax>()
+               and lookup( // the syntax form is "define"
                      caar(expression),
                      syntactic_environment)
-                   .template as<special>()
+                   .template as<syntax>()
                    .name == "define")
       {
         /* --------------------------------------------------------------------
@@ -1284,10 +1232,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(conditional,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << highlight::comment << "\t; is <test>"
-        << attribute::normal << std::endl);
+      debug(car(expression), console::faint, " ; is <test>");
 
       if (in_a.tail_expression)
       {
@@ -1367,10 +1312,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(lambda,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << highlight::comment << "\t; is <formals>"
-        << attribute::normal << std::endl);
+      debug(car(expression), console::faint, " ; is <formals>");
 
       if (in_a.program_declaration)
       {
@@ -1412,10 +1354,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(call_cc,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << highlight::comment << "\t; is <procedure>"
-        << attribute::normal << std::endl);
+      debug(car(expression), console::faint, " ; is <procedure>");
 
       return
         cons(
@@ -1437,10 +1376,7 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(fork,
     {
-      DEBUG_COMPILE(
-        << car(expression)
-        << highlight::comment << "\t; is <subprogram>"
-        << attribute::normal << std::endl);
+      debug(car(expression), console::faint, " ; is <subprogram>");
 
       return
         cons(
@@ -1465,8 +1401,6 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(assignment,
     {
-      DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
-
       if (not expression)
       {
         throw syntax_error {"set!"};
@@ -1475,8 +1409,7 @@ namespace meevax::kernel
       {
         if (index.is_variadic())
         {
-          DEBUG_COMPILE_DECISION(
-            "<identifier> of lexical variadic " << attribute::normal << index);
+          debug(car(expression), console::faint, " ; is <variadic bound variable> references ", console::reset, index);
 
           return
             compile(
@@ -1489,7 +1422,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION("<identifier> of lexical " << attribute::normal << index);
+          debug(car(expression), console::faint, "; is a <bound variable> references ", console::reset, index);
 
           return
             compile(
@@ -1503,7 +1436,7 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION("<identifier> of dynamic variable " << attribute::normal);
+        debug(car(expression), console::faint, "; is a <glocal variable>");
 
         return
           compile(
@@ -1524,12 +1457,9 @@ namespace meevax::kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(reference,
     {
-      DEBUG_COMPILE(<< car(expression) << highlight::comment << "\t; is ");
-
       if (not expression)
       {
-        DEBUG_COMPILE_DECISION(
-          "<identifier> of itself" << attribute::normal);
+        debug(car(expression), console::faint, " ; is <identifier> of itself");
 
         return unit;
       }
@@ -1542,8 +1472,7 @@ namespace meevax::kernel
       {
         if (variable.is_variadic())
         {
-          DEBUG_COMPILE_DECISION(
-            "<identifier> of local variadic " << attribute::normal << variable);
+          debug(car(expression), console::faint, " ; is <identifier> of local variadic ", console::reset, variable);
 
           return
             cons(
@@ -1552,8 +1481,7 @@ namespace meevax::kernel
         }
         else
         {
-          DEBUG_COMPILE_DECISION(
-            "<identifier> of local " << attribute::normal << variable);
+          debug(car(expression), console::faint, " ; is <identifier> of local ", console::reset, variable);
 
           return
             cons(
@@ -1563,8 +1491,7 @@ namespace meevax::kernel
       }
       else
       {
-        DEBUG_COMPILE_DECISION(
-          "<identifier> of global variable" << attribute::normal);
+        debug(car(expression), console::faint, " ; is <identifier> of glocal variable");
 
         return
           cons(
