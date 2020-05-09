@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 
-working_directory=$(pwd)
+working_directory=$(pwd -P)
 repository="$(git rev-parse --show-toplevel)"
 
 compile='g++-7'
@@ -11,13 +11,13 @@ purpose='Debug'
 rebuild=0
 
 echo "
-; ==== Meevax Develop Script ===================================================
+; ==== Overview ================================================================
 ;
-; Informations
+; Situation
 ;   repository        = $repository
 ;   working-directory = $working_directory
 ;
-; Configurations"
+; Configuration"
 
 for each in "$@"
 do
@@ -104,19 +104,37 @@ do
   esac
 done
 
-echo ';
+echo ";
 ; ==============================================================================
-'
+"
+
 
 if test "$rebuild" -ne 0
 then
-  mkdir -vp "$repository/build"
+  echo "
+; ==== Build ===================================================================
+;
+; Cleanup"
+
+  if test -n "$(ls "$repository/build")"
+  then
+    echo ";   Remove-directory    $repository/build"
+    rm -r "$repository/build"
+  fi
+
+  echo ";   Make-directory      $repository/build"
+  mkdir -p "$repository/build"
+
+  echo ";   Change-directory to $repository/build"
   cd "$repository/build"
 
-  if test -e "$repository/build/Makefile"
-  then
-    make clean
-  fi
+  echo ";
+; Next
+;   => Generate Makefile by CMake
+;   => Make
+;
+; ==============================================================================
+"
 
   cmake .. \
     -DCMAKE_BUILD_TYPE="$purpose" \
@@ -130,7 +148,7 @@ then
   command="$memory_check $repository/build/bin/ice --verbose --debug"
 
   echo "
-; ==== Execution ===============================================================
+; ==== Test ====================================================================
 ;
 ; command = $command < $repository/test/test.scm
 ;
