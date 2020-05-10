@@ -5,6 +5,10 @@
 
 #include <meevax/kernel/object.hpp>
 
+// TODO
+//   convert to lower-case
+//   use #! as external representation
+
 namespace meevax::kernel
 {
   #define MNEMONICS                                                            \

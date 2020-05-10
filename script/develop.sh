@@ -5,26 +5,32 @@ repository="$(git rev-parse --show-toplevel)"
 
 compile='g++-7'
 execute=0
-memory_check=''
+valgrind=''
 process=1
 purpose='Debug'
-rebuild=0
+clean_build=0
 
 echo "
-; ==== Overview ================================================================
+; ==== Develop =================================================================
 ;
-; Situation
-;   repository        = $repository
-;   working-directory = $working_directory
+; Drectory
+;   repository      = $repository
+;   current-working = $working_directory
 ;
 ; Configuration"
 
 for each in "$@"
 do
   case $each in
+    -a | --all )
+      all=1
+      printf ';   all\t\t= %s\n' "$all"
+      shift
+      ;;
+
     -b | --build )
-      rebuild=1
-      printf ';   rebuild\t= %s\n' "$rebuild"
+      clean_build=1
+      printf ';   clean-build\t= %s\n' "$clean_build"
       shift
       ;;
 
@@ -46,7 +52,7 @@ do
       shift
       ;;
 
-    -f=* | --file=* )
+    --file=* )
       file="${each#*=}"
       printf ';   file\t= %s\n' "$file"
       shift
@@ -58,9 +64,9 @@ do
       shift
       ;;
 
-    -m | --memory-check )
-      memory_check="valgrind --leak-check=full --log-file=$repository/build/memory_check.cpp"
-      printf ';   memcheck\t= %s\n' "$memory_check"
+    -v | --valgrind )
+      valgrind="valgrind --leak-check=full --log-file=$repository/build/valgrind.cpp"
+      printf ';   valgrind\t= %s\n' "$valgrind"
       shift
       ;;
 
@@ -108,50 +114,69 @@ echo ";
 ; ==============================================================================
 "
 
-
-if test "$rebuild" -ne 0
-then
+clean()
+{
   echo "
-; ==== Build ===================================================================
+; ==== Clean ===================================================================
 ;
-; Cleanup"
+; Content:"
 
   if test -n "$(ls "$repository/build")"
   then
-    echo ";   Remove-directory    $repository/build"
-    rm -r "$repository/build"
+    echo ";   rm -r     $repository/build"
+              rm -r    "$repository/build"
   fi
 
-  echo ";   Make-directory      $repository/build"
-  mkdir -p "$repository/build"
+  echo ";   mkdir -p  $repository/build"
+            mkdir -p "$repository/build"
 
-  echo ";   Change-directory to $repository/build"
-  cd "$repository/build"
+  echo ";   cd        $repository/build"
+            cd       "$repository/build"
 
   echo ";
-; Next
-;   => Generate Makefile by CMake
-;   => Make
-;
 ; ==============================================================================
 "
+}
 
-  cmake .. \
-    -DCMAKE_BUILD_TYPE="$purpose" \
-    -DCMAKE_CXX_COMPILER="$compile"
-
+build()
+{
+  cmake .. -DCMAKE_BUILD_TYPE="$purpose" -DCMAKE_CXX_COMPILER="$compile"
   make -j"$process"
+}
+
+if test "$clean_build" -ne 0
+then
+  clean
+  build
 fi
+
+count()
+{
+  n="$1"
+
+  while test "$n" -ge 0
+  do
+    printf "\r\e[K;  It starts after %d seconds" "$n"
+    n=$(( n - 1 ))
+    sleep 1
+  done
+
+  printf "\n"
+}
 
 if test "$execute" -ne 0
 then
-  command="$memory_check $repository/build/bin/ice --verbose --debug"
+  command="$valgrind $repository/build/bin/ice --verbose --debug"
 
   echo "
 ; ==== Test ====================================================================
 ;
 ; command = $command < $repository/test/test.scm
-;
+;"
+
+  count 5
+
+  echo ";
 ; ==============================================================================
 "
   $command < "$repository/test/test.scm"

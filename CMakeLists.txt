@@ -155,18 +155,18 @@ endif()
 # ==============================================================================
 #   Build Meevax Kernel (Shared Object)
 # ==============================================================================
-add_library(${PROJECT_NAME}-kernel SHARED
+add_library(${PROJECT_NAME} SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
   )
 
-set_target_properties(${PROJECT_NAME}-kernel PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
   VERSION   ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
   )
 
 set(${PROJECT_NAME}_DEPENDENCIES
   ${Boost_LIBRARIES}
-  ${PROJECT_NAME}-kernel
+  ${PROJECT_NAME}
   dl
   gmp
   m
@@ -241,7 +241,7 @@ target_link_libraries(ice
 # XXX DON'T FORGET TO EXECUTE "sudo ldconfig" after installation
 install(
   TARGETS ice
-          ${PROJECT_NAME}-kernel
+          ${PROJECT_NAME}
           ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
