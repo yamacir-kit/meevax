@@ -123,8 +123,8 @@ clean()
 
   if test -n "$(ls "$repository/build")"
   then
-    echo ";   rm -r     $repository/build"
-              rm -r    "$repository/build"
+    echo ";   rm -rf    $repository/build"
+              rm -rf   "$repository/build"
   fi
 
   echo ";   mkdir -p  $repository/build"

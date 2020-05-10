@@ -72,9 +72,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED)
 
-option(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY
-  "Build lib${PROJECT_NAME} as a static library."
-  OFF)
+option(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY "Build lib${PROJECT_NAME} as a static library." OFF)
 
 link_directories(
   ${Boost_LIBRARY_DIRS}
@@ -149,6 +147,8 @@ else()
   add_library(${PROJECT_NAME} SHARED)
 endif()
 
+add_library(${PROJECT_NAME}::kernel ALIAS ${PROJECT_NAME})
+
 target_sources(${PROJECT_NAME}
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
@@ -157,8 +157,8 @@ target_sources(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     ${Boost_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-  )
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
@@ -173,7 +173,25 @@ target_link_libraries(${PROJECT_NAME}
 set_target_properties(${PROJECT_NAME}
   PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR})
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+
+install( # Install Kernel
+  TARGETS ${PROJECT_NAME}
+  EXPORT  ${PROJECT_NAME}-config # Generate Configuration
+  ARCHIVE DESTINATION lib # Will be installed automatically
+  LIBRARY DESTINATION lib # Will be installed automatically
+  )
+
+install( # Install config.cmake
+  EXPORT ${PROJECT_NAME}-config
+  EXPORT_LINK_INTERFACE_LIBRARIES
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION lib/cmake/${PROJECT_NAME})
+
+install( # Install Headers
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DESTINATION include)
 
 # ==============================================================================
 #   Build Meevax Standard Libraries (Shared Objects)
@@ -202,6 +220,12 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
     PUBLIC
       ${PROJECT_NAME})
 endforeach()
+
+install(
+  TARGETS ${${PROJECT_NAME}_STANDARD_LIBRARIES}
+  ARCHIVE DESTINATION lib # Will be installed automatically
+  LIBRARY DESTINATION lib # Will be installed automatically
+  )
 
 # ==============================================================================
 #   Convert Scripts to ELF Binary
@@ -242,41 +266,17 @@ add_executable(ice
 
 target_include_directories(ice
   PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 
 target_link_libraries(ice
   PRIVATE
     ${PROJECT_NAME}
   )
 
-# ==============================================================================
-#   Installation
-# ==============================================================================
-# XXX DON'T FORGET TO EXECUTE "sudo ldconfig" after installation
 install(
-  TARGETS
-    ice
-    ${PROJECT_NAME}
-    ${${PROJECT_NAME}_STANDARD_LIBRARIES}
-  RUNTIME DESTINATION bin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
-
-# Install Headers
-install(
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-  DESTINATION include)
-
-# ==============================================================================
-#   Package Config
-# ==============================================================================
-# TODO
-# install(
-#   EXPORT ${PROJECT_NAME}-config
-#   NAMESPACE ${PROJECT_NAME}::
-#   DESTINATION lib/cmake/${PROJECT_NAME}
-#   )
+  TARGETS ice
+  RUNTIME DESTINATION bin)
 
 # ==============================================================================
 #   Package Version
@@ -287,7 +287,7 @@ write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   COMPATIBILITY SameMajorVersion)
 
-install(
+install( # Install Package Version File
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   DESTINATION lib/cmake/${PROJECT_NAME})
 
