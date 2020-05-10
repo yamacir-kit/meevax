@@ -11,7 +11,7 @@ purpose='Debug'
 clean_build=0
 
 echo "
-; ==== Develop =================================================================
+; ==== Overview ================================================================
 ;
 ; Drectory
 ;   repository      = $repository
@@ -119,7 +119,7 @@ clean()
   echo "
 ; ==== Clean ===================================================================
 ;
-; Content:"
+; Command"
 
   if test -n "$(ls "$repository/build")"
   then
@@ -140,7 +140,26 @@ clean()
 
 build()
 {
+  echo "
+; ==== CMake ===================================================================
+;
+; Command
+;   cmake .. -DCMAKE_BUILD_TYPE=$purpose -DCMAKE_CXX_COMPILER=$compile
+;
+; ==============================================================================
+"
+
   cmake .. -DCMAKE_BUILD_TYPE="$purpose" -DCMAKE_CXX_COMPILER="$compile"
+
+  echo "
+; ==== Make ====================================================================
+;
+; Command
+;   make -j$process
+;
+; ==============================================================================
+"
+
   make -j"$process"
 }
 

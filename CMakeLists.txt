@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2) # Ubuntu 16.04 LTS Default
+cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 
 # ==============================================================================
 #   Calculate Project Version
@@ -11,7 +11,7 @@ set(MINOR_OFFSET 1000)
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   execute_process(
-    COMMAND git rev-list --all --count
+    COMMAND git rev-list --count --all
     OUTPUT_VARIABLE REVISION)
   math(EXPR PATCH "${REVISION} - ${MAJOR_OFFSET} - ${MINOR_OFFSET}")
 else()
@@ -57,6 +57,7 @@ endif()
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
@@ -71,13 +72,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED)
 
-set(${PROJECT_NAME}_CONFIGURE ${CMAKE_CURRENT_SOURCE_DIR}/configure)
-set(${PROJECT_NAME}_INCLUDE   ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-include_directories(
-  ${${PROJECT_NAME}_INCLUDE}
-  ${Boost_INCLUDE_DIRS}
-  )
+option(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY
+  "Build lib${PROJECT_NAME} as a static library."
+  OFF)
 
 link_directories(
   ${Boost_LIBRARY_DIRS}
@@ -101,14 +98,6 @@ endforeach()
 
 list(SORT ${PROJECT_NAME}_STANDARD_LIBRARIES)
 
-# TODO
-# Provide an association list of standard library names and shared object names
-# to the runtime via the configurator as follows.
-#
-# (((meevax hoge) . libmeevax-hoge.so)
-#  ((meevax fuga) . libmeevax-fuga.so)
-#  ((meevax piyo) . libmeevax-piyo.so))
-#
 string(REPLACE ";" " "
   ${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST
   "${${PROJECT_NAME}_STANDARD_LIBRARIES}"
@@ -119,11 +108,10 @@ message(STATUS "Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_
 # ==============================================================================
 #   Configure README
 # ==============================================================================
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md.cmake)
   configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/README.md.cmake
-    ${CMAKE_CURRENT_SOURCE_DIR}/README.md
-    )
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
 
 # ==============================================================================
@@ -140,53 +128,79 @@ else()
   set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp.cmake)
   configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/feature.hpp.cmake
-    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/feature.hpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/feature.hpp)
 endif()
 
-if(EXISTS ${${PROJECT_NAME}_CONFIGURE}/version.hpp.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp.cmake)
   configure_file(
-    ${${PROJECT_NAME}_CONFIGURE}/version.hpp.cmake
-    ${${PROJECT_NAME}_INCLUDE}/${PROJECT_NAME}/kernel/version.hpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
 # ==============================================================================
 #   Build Meevax Kernel (Shared Object)
 # ==============================================================================
-add_library(${PROJECT_NAME} SHARED
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
+if(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY)
+  add_library(${PROJECT_NAME} STATIC)
+else()
+  add_library(${PROJECT_NAME} SHARED)
+endif()
+
+target_sources(${PROJECT_NAME}
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
   )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  VERSION   ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    ${Boost_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
   )
 
-set(${PROJECT_NAME}_DEPENDENCIES
-  ${Boost_LIBRARIES}
-  ${PROJECT_NAME}
-  dl
-  gmp
-  m
-  mpfr
-  stdc++fs
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    ${Boost_LIBRARIES}
+    dl
+    gmp
+    m
+    mpfr
+    stdc++fs
   )
+
+set_target_properties(${PROJECT_NAME}
+  PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
 
 # ==============================================================================
 #   Build Meevax Standard Libraries (Shared Objects)
 # ==============================================================================
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
+
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
-  set_target_properties(${TARGET_NAME} PROPERTIES
-    VERSION   ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
-    )
+
+  # if(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY)
+  #   add_library(${TARGET_NAME} STATIC)
+  # else()
+  #   add_library(${TARGET_NAME} SHARED)
+  # endif()
+
+  target_sources(${TARGET_NAME}
+    PRIVATE
+      ${EACH_SOURCE})
+
+  set_target_properties(${TARGET_NAME}
+    PROPERTIES
+      VERSION ${PROJECT_VERSION}
+      SOVERSION ${PROJECT_VERSION_MAJOR})
+
   target_link_libraries(${TARGET_NAME}
-    ${${PROJECT_NAME}_DEPENDENCIES}
-    )
+    PUBLIC
+      ${PROJECT_NAME})
 endforeach()
 
 # ==============================================================================
@@ -226,13 +240,14 @@ add_executable(ice
   ${${PROJECT_NAME}_LAYERS}
   )
 
-target_include_directories(ice PRIVATE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include> # implicitly ${CMAKE_INSTALL_PREFIX}/include (= /usr/local/include)
-  )
+target_include_directories(ice
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
 
 target_link_libraries(ice
-  ${${PROJECT_NAME}_DEPENDENCIES}
+  PRIVATE
+    ${PROJECT_NAME}
   )
 
 # ==============================================================================
@@ -240,19 +255,18 @@ target_link_libraries(ice
 # ==============================================================================
 # XXX DON'T FORGET TO EXECUTE "sudo ldconfig" after installation
 install(
-  TARGETS ice
-          ${PROJECT_NAME}
-          ${${PROJECT_NAME}_STANDARD_LIBRARIES}
+  TARGETS
+    ice
+    ${PROJECT_NAME}
+    ${${PROJECT_NAME}_STANDARD_LIBRARIES}
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  )
+  LIBRARY DESTINATION lib)
 
 # Install Headers
 install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-  DESTINATION include
-  )
+  DESTINATION include)
 
 # ==============================================================================
 #   Package Config
@@ -271,18 +285,15 @@ include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-  COMPATIBILITY SameMajorVersion
-  )
+  COMPATIBILITY SameMajorVersion)
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-  DESTINATION lib/cmake/${PROJECT_NAME}
-  )
+  DESTINATION lib/cmake/${PROJECT_NAME})
 
 # ==============================================================================
 #   Uninstallation
 # ==============================================================================
 add_custom_target(uninstall
-  COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
-  )
+  COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt)
 
