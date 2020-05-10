@@ -1,4 +1,4 @@
-(load "../test/expect.scm")
+(load "../test.obsoleted/expect.scm")
 
 ; ------------------------------------------------------------------------------
 ;   4.1.1 Variable References
