@@ -5,22 +5,34 @@
 
 #include <boost/cstdlib.hpp>
 
-#include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/feature.hpp>
+#include <meevax/kernel/port.hpp> // TODO REMOVE!!!
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax::kernel
 {
-  template <typename SyntacticContinuation>
+  // TODO Move to miscellaneous.hpp
+  void display_title(const version& v)
+  {           // ";       10        20        30        40        50        60        70        80\n"
+    std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
+                 ";                                                                               \n";
+  }
+
+  void display_abstract()
+  {           // ";       10        20        30        40        50        60        70        80\n"
+    std::cout << "; Abstract:                                                                     \n"
+                 ";   ICE is incremental compiler/evaluator of Lisp-1 programming language Meevax.\n"
+                 ";                                                                               \n";
+  }
+
+  template <typename SK>
   struct configurator
   {
     // static inline const auto install_prefix {make<path>("/usr/local")};
 
-    // static inline object preloads {unit};
-
-    static inline const version version_object {};
-    static inline const feature feature_object {};
+    static inline const version current_version {};
+    static inline const feature current_feature {};
 
     // TODO Generate from CMakeLists.txt
     // static inline const std::string program_name {"ice"};
@@ -29,80 +41,77 @@ namespace meevax::kernel
     object trace       {f};
     object verbose     {f};
 
+    object ports       {unit};
     object variable    {unit};
 
     /* =========================================================================
     *
-    * XXX explicit configurator() = default;
-    *     causes segmentation fault on access above variables.
+    * NOTE
+    *   explicit configurator() = default;
+    *   causes segmentation fault on access above variables.
     *
     *======================================================================== */
     explicit configurator()
     {}
 
   public:
-    static void display_title(const version& v)
-    {           // "        10        20        30        40        50        60        70        80"
-      std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n";
-      std::cout << ";\n";
-    }
-
-    static void display_abstract()
-    {           // "        10        20        30        40        50        60        70        80"
-      std::cout << "; Abstract:\n";
-      std::cout << ";   ICE is incremental compiler of Lisp-1 programming language Meevax.\n";
-      std::cout << ";\n";
-    }
-
     static PROCEDURE(display_version)
-    {
-      display_title(version_object);
+    {           // "        10        20        30        40        50        60        70        80\n"
+      display_title(current_version);
 
-      std::cout << "; version\t; " << version_object.semantic << "\n";
-      std::cout << "; license\t; unspecified (All rights reserved)\n";
-      std::cout << ";\n";
-      std::cout << "; compiled\t; " << feature_object.date << "\n";
-      std::cout << "; configuration ; " << feature_object.type << "\n";
-      std::cout << "; commit\t; " << feature_object.commit << "\n";
-      std::cout << ";\n";
-      std::cout << "; feature\t; " << feature_object << "\n";
+      std::cout << "; version"   "\t; " << current_version.semantic                              << "\n"
+                   "; license"   "\t; unspecified (All rights reserved)"                           "\n"
+                   ";"                                                                             "\n"
+                   "; compiled"  "\t; " << current_feature.date                                  << "\n"
+                   "; configuration ; " << current_feature.type                                  << "\n"
+                   "; commit"    "\t; " << current_feature.commit                                << "\n"
+                   ";"                                                                             "\n"
+                   "; feature"   "\t; " << current_feature                                       << "\n";
+
       return std::exit(boost::exit_success), unspecified;
     }
 
     static PROCEDURE(display_help)
-    {           // "        10        20        30        40        50        60        70        80"
-      display_title(version_object);
+    {           // "        10        20        30        40        50        60        70        80\n"
+      display_title(current_version);
 
       display_abstract();
 
-      std::cout << "; Usage: ice [option]... [file]...\n";
-      std::cout << ";\n";
-      std::cout << "; Operation mode:\n";
-      std::cout << ";   -i, --interactive         Take over the control of root syntactic           \n"
+      std::cout << "; Usage: ice [option]... [file]...                                              \n"
+                   ";                                                                               \n"
+                   "; Operation mode:                                                               \n"
+                   ";   -f, --file=FILE           Specify the file to be executed. If this option is\n"
+                   ";                             used multiple times, the specified files will be  \n"
+                   ";                             executed sequentially from left to right. Anything\n"
+                   ";                             that is not an option name or option argument is  \n"
+                   ";                             implicitly treated as an argument for this option.\n"
+                   ";   -i, --interactive         Take over the control of root syntactic           \n"
                    ";                             continuation interactively after processing given \n"
-                   ";                             <file>s.                                          \n";
-      std::cout << ";\n";
-      std::cout << "; Tools:\n";
-      std::cout << ";       --echo=<expr>         Read an expression, construct an object from it,  \n"
+                   ";                             <file>s.                                          \n"
+                   ";   -q, --quiet               Suppress any output except side-effect of user's  \n"
+                   ";                             explicit use of primitive procedure 'write'.      \n"
+                   ";                                                                               \n"
+                   "; Tools:                                                                        \n"
+                   ";       --echo=EXPRESSION     Read an expression, construct an object from it,  \n"
                    ";                             and display its external representation. Note that\n"
                    ";                             the expression is parsed once by the shell before \n"
                    ";                             it is read. This output is useful to see what     \n"
-                   ";                             objects the --evaluate option accepts.            \n";
-      std::cout << ";   -e, --evaluate=<expr>     Read an expression, construct an object from it,  \n"
+                   ";                             objects the --evaluate option accepts.            \n"
+                   ";   -e, --evaluate=EXPRESSION Read an expression, construct an object from it,  \n"
                    ";                             compile and execute it, and then display external \n"
-                   ";                             representation of the result.                     \n";
-      std::cout << ";\n";
-      std::cout << "; Debug:\n";
-      std::cout << ";       --trace               Display stacks of virtual machine on each         \n"
-                   ";                             execution step.\n";
-      std::cout << ";       --verbose             Report the details of lexical parsing,            \n"
+                   ";                             representation of the result.                     \n"
+                   ";                                                                               \n"
+                   "; Debug:                                                                        \n"
+                   ";       --trace               Display stacks of virtual machine on each         \n"
+                   ";                             execution step.                                   \n"
+                   ";       --verbose             Report the details of lexical parsing,            \n"
                    ";                             compilation, virtual machine execution to         \n"
-                   ";                             standard-error.\n";
-      std::cout << ";\n";
-      std::cout << "; Miscellaneous:\n";
-      std::cout << ";   -h, --help                Display version information and exit.             \n";
-      std::cout << ";   -v, --version             Display this help message and exit.               \n";
-      std::cout << ";\n";
+                   ";                             standard-error.                                   \n"
+                   ";                                                                               \n"
+                   "; Miscellaneous:                                                                \n"
+                   ";   -h, --help                Display version information and exit.             \n"
+                   ";   -v, --version             Display this help message and exit.               \n"
+                   ";                                                                               \n";
 
       return std::exit(boost::exit_success), unspecified;
     }
@@ -111,8 +120,17 @@ namespace meevax::kernel
     template <typename T>
     using dispatcher = std::unordered_map<T, std::function<PROCEDURE()>>;
 
+    // NOTE
+    //   --from=FILE --to=FILE
+    //   --input=FILE --output=FILE
+
     const dispatcher<char> short_options
     {
+      std::make_pair('d', [this](auto&&...) mutable
+      {
+        return static_cast<SK&>(*this).debugging = t;
+      }),
+
       std::make_pair('h', display_help),
 
       std::make_pair('i', [this](auto&&...) mutable
@@ -123,6 +141,11 @@ namespace meevax::kernel
         return unspecified;
       }),
 
+      std::make_pair('q', [this](auto&&...) mutable
+      {
+        return static_cast<SK&>(*this).quiet = t;
+      }),
+
       std::make_pair('v', display_version),
     };
 
@@ -130,15 +153,32 @@ namespace meevax::kernel
     {
       std::make_pair('e', [this](auto&&, auto&& operands)
       {
-        std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(
+        std::cout << static_cast<SK&>(*this).evaluate(
                        std::forward<decltype(operands)>(operands))
                   << std::endl;
         return unspecified;
+      }),
+
+      std::make_pair('f', [this](auto&&, const object& s) mutable
+      {
+        if (s.is<symbol>())
+        {
+          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+        }
+        else
+        {
+          return unspecified;
+        }
       }),
     };
 
     const dispatcher<std::string> long_options
     {
+      std::make_pair("debug", [this](auto&&...) mutable
+      {
+        return static_cast<SK&>(*this).debugging = t;
+      }),
+
       std::make_pair("help", display_help),
 
       std::make_pair("interactive", [this](auto&&...) mutable
@@ -147,6 +187,13 @@ namespace meevax::kernel
                   << interactive << " => " << (interactive = t)
                   << std::endl;
         return unspecified;
+      }),
+
+      // TODO DEFINE_LONG_ENABLER
+
+      std::make_pair("quiet", [this](auto&&...) mutable
+      {
+        return static_cast<SK&>(*this).quiet = t;
       }),
 
       std::make_pair("trace", [this](auto&&...) mutable
@@ -172,10 +219,22 @@ namespace meevax::kernel
 
       std::make_pair("evaluate", [this](auto&&, auto&& operands)
       {
-        std::cout << static_cast<SyntacticContinuation&>(*this).evaluate(
+        std::cout << static_cast<SK&>(*this).evaluate(
                        std::forward<decltype(operands)>(operands))
                   << std::endl;
         return unspecified;
+      }),
+
+      std::make_pair("file", [this](auto&&, const object& s) mutable
+      {
+        if (s.is<symbol>())
+        {
+          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+        }
+        else
+        {
+          return unspecified;
+        }
       }),
 
       std::make_pair("variable", [this](const auto&, const auto& operands) mutable
@@ -223,12 +282,12 @@ namespace meevax::kernel
             {
               if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
               {
-                const auto operands {static_cast<SyntacticContinuation&>(*this).read(rest)};
+                const auto operands {static_cast<SK&>(*this).read(rest)};
                 return std::invoke(std::get<1>(*callee), resource {}, operands);
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
-                const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
+                const auto operands {static_cast<SK&>(*this).read(*option)};
                 return std::invoke(std::get<1>(*callee), resource {}, operands);
               }
               else
@@ -252,12 +311,12 @@ namespace meevax::kernel
           {
             if (analysis.length(2)) // argument part
             {
-              const auto operands {static_cast<SyntacticContinuation&>(*this).read(analysis.str(3))};
+              const auto operands {static_cast<SK&>(*this).read(analysis.str(3))};
               return std::invoke(std::get<1>(*callee), resource {}, operands);
             }
             else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
-              const auto operands {static_cast<SyntacticContinuation&>(*this).read(*option)};
+              const auto operands {static_cast<SK&>(*this).read(*option)};
               return std::invoke(std::get<1>(*callee), resource {}, operands);
             }
             else
@@ -276,12 +335,14 @@ namespace meevax::kernel
         }
         else
         {
-          const auto filename {make<path>(*option)};
-          std::cerr << "; configure\t; file " << filename << std::endl;
+          ports = cons(make<input_port>(*option), ports);
         }
 
         return unspecified;
       }();
+
+      ports = reverse(ports);
+      // std::cerr << "; configure\t; ports are " << ports << std::endl;
     }
   };
 } // namespace meevax::kernel

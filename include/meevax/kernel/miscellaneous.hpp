@@ -1,0 +1,9 @@
+#ifndef INCLUDED_MEEVAX_KERNEL_MISCELLANEOUS_HPP
+#define INCLUDED_MEEVAX_KERNEL_MISCELLANEOUS_HPP
+
+namespace meevax::kernel
+{
+} // namespace meevax::kernel
+
+#endif // INCLUDED_MEEVAX_KERNEL_MISCELLANEOUS_HPP
+

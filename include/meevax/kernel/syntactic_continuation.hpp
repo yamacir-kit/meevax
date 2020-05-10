@@ -1,18 +1,19 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
-#include <algorithm> // std::equal
-
 #include <meevax/kernel/configurator.hpp>
+#include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <meevax/kernel/writer.hpp>
 
 /* ==== Embedded Source Codes ==================================================
 *
 * library/hoge.ss
 *
-* MEMO: readelf -a hoge.ss.o
+* NOTE:
+*   readelf -a hoge.ss.o
 *
 *============================================================================ */
 extern char _binary_overture_ss_start;
@@ -26,56 +27,82 @@ namespace meevax::kernel
   * Layer 1 - Primitive Expression Types
   * Layer 2 - Derived Expression Types and Standard Procedures
   *
-  *========================================================================== */
+  * ========================================================================= */
   template <int Layer>
   static constexpr std::integral_constant<int, Layer> layer {};
 
+  /* ==== Syntactic Continuation (SK) ==========================================
+  *
+  *
+  * ========================================================================= */
   class syntactic_continuation
-    /* =========================================================================
+    //
+    /* ==== Pair ===============================================================
     *
     * The syntactic-continuation is a pair of "the program" and "global
     * environment (simple association list)". It also has the aspect of a
     * meta-closure that closes the global environment when it constructed (this
     * feature is known as syntactic-closure).
     *
-    *======================================================================== */
+    * ======================================================================= */
     : public virtual pair
 
-    /* =========================================================================
+    /* ==== Reader =============================================================
     *
     * Reader access symbol table of this syntactic_continuation (by member
     * function "intern") via static polymorphism. The syntactic_continuation
     * indirectly inherits the non-copyable class std::istream (reader base
     * class), so it cannot be copied.
     *
-    *======================================================================== */
+    * ======================================================================= */
     , public reader<syntactic_continuation>
+
+    /* ==== Writer =============================================================
+    *
+    *
+    * ======================================================================= */
+    , public writer<syntactic_continuation>
 
     /* =========================================================================
     *
     * Each syntactic-continuation has a virtual machine and a compiler.
     *
-    *======================================================================== */
+    * ======================================================================= */
     , public machine<syntactic_continuation>
 
-    /* =========================================================================
+    /* ==== Debugger ===========================================================
+    *
+    *
+    * ======================================================================= */
+    , public debugger<syntactic_continuation>
+
+    /* ==== Configurator =======================================================
     *
     * Global configuration is shared in all of syntactic_continuations running
     * on same process. Thus, any change of configuration member influences any
     * other syntactic_continuations immediately.
     *
-    *======================================================================== */
+    * ======================================================================= */
     , public configurator<syntactic_continuation>
   {
-  public: // TODO PRIVATE
+  public:
     std::unordered_map<std::string, object> symbols;
     std::unordered_map<std::string, object> external_symbols;
 
     std::size_t current_layer {0};
 
-    bool virgin {true};
+    [[deprecated]] bool virgin {true};
 
     std::size_t experience {0};
+
+    // CRTP Import from Below
+    using writer::current_debug_port;
+    using writer::current_error_port;
+    using writer::write_to;
+
+    using debugger::debug;
+    using debugger::header;
+    using debugger::indent;
 
   public: // Accessors
     const auto& program() const
@@ -93,7 +120,7 @@ namespace meevax::kernel
       return car(program());
     }
 
-    decltype(auto) lexical_environment()
+    decltype(auto) lexical_environment() // TODO Rename to scope
     {
       return cdr(program());
     }
@@ -151,12 +178,6 @@ namespace meevax::kernel
     // }
 
   public: // Interfaces
-    // TODO Rename to "interaction_ready"
-    auto ready() const noexcept
-    {
-      return reader<syntactic_continuation>::ready();
-    }
-
     const auto& intern(const std::string& s)
     {
       if (auto iter {symbols.find(s)}; iter != std::end(symbols))
@@ -307,7 +328,7 @@ namespace meevax::kernel
         push(d, s, e, c);
         s = e = c = unit;
 
-        for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
+        for (auto e {read(stream)}; e != eof_object; e = read(stream))
         {
           if (verbose.equivalent_to(t))
           {
@@ -343,8 +364,8 @@ namespace meevax::kernel
         << (not depth ? "; compile\t; " : ";\t\t; ")
         << std::string(depth * 2, ' ')
         << expression
-        << highlight::comment << " is <export specs>"
-        << attribute::normal << std::endl;
+        << console::faint << " is <export specs>"
+        << console::reset << std::endl;
       }
 
       auto exportation = [this](auto&&, const object& operands)
@@ -354,7 +375,7 @@ namespace meevax::kernel
           std::cerr << ";\t\t; staging " << each << std::endl;
 
           external_symbols.emplace(
-            write(std::stringstream {}, each).str(),
+            boost::lexical_cast<std::string>(each),
             each);
         }
 
@@ -362,7 +383,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : external_symbols)
         {
-          assert(not std::empty(key));
+          not std::empty(key);
           std::cerr << ";\t\t;   " << value << std::endl;
         }
 
@@ -394,7 +415,7 @@ namespace meevax::kernel
 
         for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
         {
-          assert(not std::empty(key));
+          not std::empty(key);
           std::cerr << ";\t\t; importing " << value << std::endl;
         }
 
@@ -416,20 +437,53 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)
       -> decltype(os)
     {
-      return os << highlight::syntax << "#("
-                << highlight::type << "syntactic-continuation"
-                << attribute::normal << highlight::comment << " #;" << &sc << attribute::normal
-                << highlight::syntax << ")"
-                << attribute::normal;
+      return os << console::magenta << "#,("
+                << console::green   << "syntactic-continuation"
+                << console::reset
+                << console::faint << " #;" << &sc
+                << console::reset
+                << console::magenta << ")"
+                << console::reset;
+    }
+
+    friend auto operator >>(std::istream& is, syntactic_continuation& sk)
+      -> decltype(is)
+    {
+      sk.write_to(sk.standard_output_port(),
+        "syntactic_continuation::operator >>(std::istream&, syntactic_continuation&)\n");
+
+      sk.write_to(sk.standard_output_port(),
+        "read new expression => ", sk.read(is), "\n");
+
+      // sk.write_to(sk.standard_output_port(),
+      //   "program == ", sk.program(),
+      //   "current_expression is ", sk.current_expression());
+      //
+      // NOTE
+      // Store the expression new read to 'current_expression'.
+      // But, currently above comments cause SEGV.
+
+      return is;
+    }
+
+    friend auto operator <<(std::ostream& os, syntactic_continuation& sk)
+      -> decltype(os)
+    {
+      // TODO
+      // Evaluate current_expression, and write the evaluation to ostream.
+
+      return
+        sk.write_to(os,
+          "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
     }
   };
 
-  #define DEFINE_SPECIAL(NAME, RULE)                                           \
-  define<special>(NAME, [this](auto&&... operands)                             \
+  #define DEFINE_SYNTAX(NAME, RULE)                                            \
+  define<syntax>(NAME, [this](auto&&... xs)                                    \
   {                                                                            \
     return                                                                     \
       RULE(                                                                    \
-        std::forward<decltype(operands)>(operands)...);                        \
+        std::forward<decltype(xs)>(xs)...);                                    \
   })
 
   #define DEFINE_PROCEDURE_1(NAME, CALLEE)                                     \
@@ -464,28 +518,28 @@ namespace meevax::kernel
       return car(arguments) == rename(cadr(arguments)) ? t : f;
     });
 
-    DEFINE_SPECIAL("export", exportation);
-    DEFINE_SPECIAL("import", importation);
+    DEFINE_SYNTAX("export", exportation);
+    DEFINE_SYNTAX("import", importation);
   }
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
-    DEFINE_SPECIAL("begin",     sequence);
-    DEFINE_SPECIAL("define",    definition);
-    DEFINE_SPECIAL("fork",      fork);
-    DEFINE_SPECIAL("if",        conditional);
-    DEFINE_SPECIAL("lambda",    lambda);
-    DEFINE_SPECIAL("quote",     quotation);
-    DEFINE_SPECIAL("reference", reference);
-    DEFINE_SPECIAL("set!",      assignment);
+    DEFINE_SYNTAX("begin",     sequence);
+    DEFINE_SYNTAX("define",    definition);
+    DEFINE_SYNTAX("fork",      fork);
+    DEFINE_SYNTAX("if",        conditional);
+    DEFINE_SYNTAX("lambda",    lambda);
+    DEFINE_SYNTAX("quote",     quotation);
+    DEFINE_SYNTAX("reference", reference);
+    DEFINE_SYNTAX("set!",      assignment);
 
-    DEFINE_SPECIAL("call-with-current-continuation", call_cc);
+    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
 
     DEFINE_PROCEDURE_S("load",   load);
     DEFINE_PROCEDURE_S("linker", make<linker>);
 
-    // define<special>("cons", [this](
+    // define<syntax>("cons", [this](
     //   auto&& expression,
     //   auto&& syntactic_environment,
     //   auto&& frames,
@@ -506,9 +560,9 @@ namespace meevax::kernel
     //           continuation)));
     // });
 
-    define<procedure>("features", [this](auto&&...)
+    define<procedure>("features", [this](auto&&...)             // (scheme base)
     {
-      return feature_object;
+      return current_feature;
     });
 
     define<procedure>("procedure", [](auto&&, auto&& operands)
@@ -540,7 +594,8 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    static const std::string overture {
+    static const std::string overture
+    {
       &_binary_overture_ss_start,
       &_binary_overture_ss_end
     };
@@ -549,7 +604,7 @@ namespace meevax::kernel
 
     std::size_t counts {0};
 
-    for (auto e {read(stream)}; e != characters.at("end-of-file"); e = read(stream))
+    for (auto e {read(stream)}; e != eof_object; e = read(stream))
     {
       std::cerr << "; layer-1\t; "
                 << counts++
@@ -566,7 +621,7 @@ namespace meevax::kernel
     std::cerr << std::endl;
   }
 
-  #undef DEFINE_SPECIAL
+  #undef DEFINE_SYNTAX
   #undef DEFINE_PROCEDURE_1
   #undef DEFINE_PROCEDURE_S
 

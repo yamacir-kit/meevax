@@ -15,11 +15,13 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const identity& i)
       -> decltype(os)
     {
-      return os << highlight::syntax << "#("
-                << highlight::type << "continuation"
-                << attribute::normal << highlight::comment << " ;#" << &i << attribute::normal
-                << highlight::syntax << ")"
-                << attribute::normal;
+      return os << console::magenta << "#,("
+                << console::green << "continuation"
+                << console::reset
+                << console::faint << " ;#" << &i
+                << console::reset
+                << console::magenta << ")"
+                << console::reset;
     }
   };
 } // namespace meevax::kernel

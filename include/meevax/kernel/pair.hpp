@@ -38,9 +38,9 @@ namespace meevax::kernel
   * Pair accessors are not only for pair type. Accessing car and cdr is a valid
   * operation for everyone except the empty list.
   *
-  *========================================================================== */
-  #define DEFINE_PAIR_ACCESSOR(IDENTIFIER, INDEX)                              \
-  inline decltype(auto) IDENTIFIER(const object& o)                            \
+  * ========================================================================= */
+  #define DEFINE_PAIR_ACCESSOR(SYMBOL, INDEX)                                  \
+  inline decltype(auto) SYMBOL(const object& o)                                \
   {                                                                            \
     assert(o);                                                                 \
     return std::get<INDEX>(o.dereference());                                   \
@@ -57,7 +57,8 @@ namespace meevax::kernel
   auto operator<<(std::ostream& os, const pair& pare)
     -> decltype(os)
   {
-    os << highlight::syntax << "(" << attribute::normal << std::get<0>(pare);
+    os << console::magenta << "("
+       << console::reset << std::get<0>(pare);
 
     for (auto object {std::get<1>(pare)}; object; object = cdr(object))
     {
@@ -67,11 +68,13 @@ namespace meevax::kernel
       }
       else // iter is the last element of dotted-list.
       {
-        os << highlight::syntax << " . " << attribute::normal << object;
+        os << console::magenta << " . "
+           << console::reset << object;
       }
     }
 
-    return os << highlight::syntax << ")" << attribute::normal;
+    return os << console::magenta << ")"
+              << console::reset;
   }
 } // namespace meevax::kernel
 
