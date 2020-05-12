@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 
 # ==============================================================================
-#   Calculate Project Version
+#   Project Version
 # ==============================================================================
 set(MAJOR 0)
 set(MAJOR_OFFSET   0)
@@ -24,9 +24,10 @@ endif()
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
 set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON " \
+  -fdata-sections \
+  -ffunction-sections \
   -flto \
-  -fmerge-all-constants \
-  -fsigned-zeros \
+  -fno-math-errno \
   -fsized-deallocation \
   -march=native \
   -mtune=native \
@@ -48,7 +49,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     -faligned-allocation \
     -fdouble-square-bracket-attributes \
     -fno-gnu-inline-asm \
+    -fno-gnu-keywords \
     -frelaxed-template-template-args \
+    -fstrict-vtable-pointers \
     -funit-at-a-time \
     ")
 else()
@@ -62,7 +65,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -s -DNDEBUG")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS} \
                                                     ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON}")
@@ -71,12 +74,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED)
-
-option(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY "Build lib${PROJECT_NAME} as a static library." OFF)
-
-link_directories(
-  ${Boost_LIBRARY_DIRS}
-  )
 
 # ==============================================================================
 #   Generate List of Meevax Standard Libraries
@@ -98,8 +95,7 @@ list(SORT ${PROJECT_NAME}_STANDARD_LIBRARIES)
 
 string(REPLACE ";" " "
   ${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST
-  "${${PROJECT_NAME}_STANDARD_LIBRARIES}"
-  )
+  "${${PROJECT_NAME}_STANDARD_LIBRARIES}")
 
 message(STATUS "Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
 
@@ -141,6 +137,8 @@ endif()
 # ==============================================================================
 #   Build Meevax Kernel (Shared Object)
 # ==============================================================================
+option(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY "Build lib${PROJECT_NAME} as a static library." OFF)
+
 if(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY)
   add_library(${PROJECT_NAME} STATIC)
 else()
@@ -156,13 +154,12 @@ target_sources(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
-    ${Boost_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    ${Boost_LIBRARIES}
+    Boost::boost
     dl
     gmp
     m
@@ -172,7 +169,7 @@ target_link_libraries(${PROJECT_NAME}
 
 set_target_properties(${PROJECT_NAME}
   PROPERTIES
-    VERSION ${PROJECT_VERSION}
+      VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
   )
 
@@ -201,16 +198,6 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
 
-  # if(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY)
-  #   add_library(${TARGET_NAME} STATIC)
-  # else()
-  #   add_library(${TARGET_NAME} SHARED)
-  # endif()
-
-  target_sources(${TARGET_NAME}
-    PRIVATE
-      ${EACH_SOURCE})
-
   set_target_properties(${TARGET_NAME}
     PROPERTIES
       VERSION ${PROJECT_VERSION}
@@ -238,14 +225,9 @@ file(GLOB
 set(${PROJECT_NAME}_LAYERS "")
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
-  # message(STATUS "Copying object ${EACH}")
-
   get_filename_component(FILENAME ${EACH} NAME)
   get_filename_component(FILEPATH ${EACH} PATH)
-  # message(STATUS "  NAME := ${FILENAME}")
-  # message(STATUS "  PATH := ${FILEPATH}")
 
-  # message(STATUS "  OUTPUT := ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o")
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
     WORKING_DIRECTORY ${FILEPATH}
@@ -262,11 +244,6 @@ endforeach(EACH)
 add_executable(ice
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
   ${${PROJECT_NAME}_LAYERS}
-  )
-
-target_include_directories(ice
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
 target_link_libraries(ice
