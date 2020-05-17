@@ -5,7 +5,8 @@
 #include <sstream>
 
 #include <boost/iostreams/device/null.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
+// #include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
 
 #include <meevax/console/escape_sequence.hpp>
 #include <meevax/kernel/boolean.hpp>
@@ -13,22 +14,22 @@
 
 namespace meevax::kernel
 {
+  static boost::iostreams::stream<boost::iostreams::null_sink> bucket {
+    boost::iostreams::null_sink()
+  };
+
   template <typename SK>
   class writer
-    : private boost::iostreams::stream_buffer<boost::iostreams::null_sink>
   {
     friend SK;
 
-    writer()
-      : bucket {this}
+    explicit writer()
     {}
 
   public:
     object debugging {f};
     object quiet {f};
     // verbosely
-
-    std::ostream bucket;
 
   public:
     template <typename... Ts>

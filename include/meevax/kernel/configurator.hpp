@@ -59,14 +59,14 @@ namespace meevax::kernel
     {           // "        10        20        30        40        50        60        70        80\n"
       display_title(current_version);
 
-      std::cout << "; version"   "\t; " << current_version.semantic                              << "\n"
+      std::cout << "; version"   "\t; " << current_version.semantic                             << "\n"
                    "; license"   "\t; unspecified (All rights reserved)"                           "\n"
                    ";"                                                                             "\n"
-                   "; compiled"  "\t; " << current_feature.date                                  << "\n"
-                   "; configuration ; " << current_feature.type                                  << "\n"
-                   "; commit"    "\t; " << current_feature.commit                                << "\n"
+                   "; compiled"  "\t; " << current_feature.date                                 << "\n"
+                   "; configuration ; " << current_feature.type                                 << "\n"
+                   "; commit"    "\t; " << current_feature.commit                               << "\n"
                    ";"                                                                             "\n"
-                   "; feature"   "\t; " << current_feature                                       << "\n";
+                   "; feature"   "\t; " << current_feature                                      << "\n";
 
       return std::exit(boost::exit_success), unspecified;
     }

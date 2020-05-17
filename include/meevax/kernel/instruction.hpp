@@ -63,7 +63,7 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const identity& i)
       -> decltype(auto)
     {
-      os << console::bold;
+      os << console::underline;
 
       auto kebab = [](std::string s) // XXX DIRTY HACK
       {
