@@ -98,6 +98,7 @@ namespace meevax::kernel
     // CRTP Import from Below
     using writer::current_debug_port;
     using writer::current_error_port;
+    using writer::write;
     using writer::write_to;
 
     using debugger::debug;
@@ -626,16 +627,14 @@ namespace meevax::kernel
   #undef DEFINE_PROCEDURE_S
 
   template <>
-  syntactic_continuation::syntactic_continuation(
-    std::integral_constant<decltype(1), 1>)
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(1), 1>)
     : syntactic_continuation::syntactic_continuation {}
   {
     boot(layer<1>);
   }
 
   template <auto N>
-  syntactic_continuation::syntactic_continuation(
-    std::integral_constant<decltype(N), N>)
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
     : syntactic_continuation::syntactic_continuation {layer<N - 1>}
   {
     boot(layer<N>);

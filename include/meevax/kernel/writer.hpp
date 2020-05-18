@@ -33,15 +33,13 @@ namespace meevax::kernel
 
   public:
     template <typename... Ts>
-    auto write_to(std::ostream& os, Ts&&... xs)
-      -> decltype(os)
+    auto write_to(std::ostream& os, Ts&&... xs) const -> decltype(os)
     {
       return (os << ... << xs) << console::reset;
     }
 
     template <typename... Ts>
-    auto write(Ts&&... xs)
-      -> decltype(auto)
+    auto write(Ts&&... xs) const -> decltype(auto)
     {
       return
         write_to(current_output_port(),
@@ -49,39 +47,33 @@ namespace meevax::kernel
     }
 
   public:
-    auto standard_output_port()
-      -> auto&
+    auto standard_output_port() const -> auto&
     {
       return quiet.eqv(t) ? bucket : std::cout;
     }
 
-    auto standard_error_port()
-      -> auto&
+    auto standard_error_port() const -> auto&
     {
       return quiet.eqv(t) ? bucket : std::cerr;
     }
 
-    auto standard_debug_port()
-      -> auto&
+    auto standard_debug_port() const -> auto&
     {
       return quiet.eqv(t) or not debugging.eqv(t) ? bucket : std::cerr;
     }
 
   public:
-    auto current_output_port()
-      -> decltype(auto)
+    auto current_output_port() const -> decltype(auto)
     {
       return standard_output_port(); // XXX R7RS INCOMPATIBLE!
     }
 
-    auto current_error_port()
-      -> decltype(auto)
+    auto current_error_port() const -> decltype(auto)
     {
       return standard_error_port(); // XXX R7RS INCOMPATIBLE!
     }
 
-    auto current_debug_port()
-      -> decltype(auto)
+    auto current_debug_port() const -> decltype(auto)
     {
       return standard_debug_port(); // XXX R7RS INCOMPATIBLE!
     }

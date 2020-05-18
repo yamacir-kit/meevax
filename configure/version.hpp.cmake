@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 #define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 
+#include <boost/version.hpp>
+
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/symbol.hpp>
@@ -17,7 +19,7 @@ namespace meevax::kernel
     static inline const auto semantic {make<symbol>("${PROJECT_VERSION}")};
 
     explicit version()
-      : object {list(major, minor, patch)}
+      : object { list(major, minor, patch) }
     {}
   };
 } // namespace meevax::kernal

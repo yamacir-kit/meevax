@@ -27,8 +27,16 @@ namespace meevax::kernel
   }
 
   template <typename SK>
-  struct configurator
+  class configurator
   {
+    friend SK;
+
+    explicit configurator()
+    {}
+
+    IMPORT_CONST(SK, write)
+
+  public:
     // static inline const auto install_prefix {make<path>("/usr/local")};
 
     static inline const version current_version {};
@@ -37,38 +45,29 @@ namespace meevax::kernel
     // TODO Generate from CMakeLists.txt
     // static inline const std::string program_name {"ice"};
 
-    object interactive {f};
-    object trace       {f};
-    object verbose     {f};
+    object interactive { f };
+    object trace       { f };
+    object verbose     { f };
 
-    object ports       {unit};
-    object variable    {unit};
-
-    /* =========================================================================
-    *
-    * NOTE
-    *   explicit configurator() = default;
-    *   causes segmentation fault on access above variables.
-    *
-    *======================================================================== */
-    explicit configurator()
-    {}
+    object ports       { unit };
+    object variable    { unit };
 
   public:
-    static PROCEDURE(display_version)
-    {           // "        10        20        30        40        50        60        70        80\n"
+    auto display_version() const -> const auto&
+    {
       display_title(current_version);
 
-      std::cout << "; version"   "\t; " << current_version.semantic                             << "\n"
-                   "; license"   "\t; unspecified (All rights reserved)"                           "\n"
-                   ";"                                                                             "\n"
-                   "; compiled"  "\t; " << current_feature.date                                 << "\n"
-                   "; configuration ; " << current_feature.type                                 << "\n"
-                   "; commit"    "\t; " << current_feature.commit                               << "\n"
-                   ";"                                                                             "\n"
-                   "; feature"   "\t; " << current_feature                                      << "\n";
+      write(
+        "; version       ; ", current_version.semantic, "\n"
+        "; license       ; unspecified (All rights reserved)\n"
+        ";\n"
+        "; configuration ; ", current_feature.type, "\n"
+        "; commit-hash   ; ", current_feature.commit, "\n"
+        "; time-stamp    ; ", current_feature.date, "\n"
+        ";\n"
+        "; feature       ; ", current_feature, "\n");
 
-      return std::exit(boost::exit_success), unspecified;
+      return unspecified;
     }
 
     static PROCEDURE(display_help)
@@ -146,7 +145,11 @@ namespace meevax::kernel
         return static_cast<SK&>(*this).quiet = t;
       }),
 
-      std::make_pair('v', display_version),
+      std::make_pair('v', [this](auto&&...)
+      {
+        display_version();
+        return std::exit(boost::exit_success), unspecified;
+      }),
     };
 
     const dispatcher<char> short_options_
@@ -189,8 +192,6 @@ namespace meevax::kernel
         return unspecified;
       }),
 
-      // TODO DEFINE_LONG_ENABLER
-
       std::make_pair("quiet", [this](auto&&...) mutable
       {
         return static_cast<SK&>(*this).quiet = t;
@@ -206,7 +207,11 @@ namespace meevax::kernel
         return verbose = t;
       }),
 
-      std::make_pair("version", display_version),
+      std::make_pair("version", [this](auto&&...)
+      {
+        display_version();
+        return std::exit(boost::exit_success), unspecified;
+      }),
     };
 
     const dispatcher<std::string> long_options_

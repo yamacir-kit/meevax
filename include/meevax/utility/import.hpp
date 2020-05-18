@@ -14,5 +14,14 @@ constexpr decltype(auto) SYMBOL(Ts&&... xs)                                    \
       std::forward<decltype(xs)>(xs)...);                                      \
 }
 
+#define IMPORT_CONST(FROM, SYMBOL)                                             \
+template <typename... Ts>                                                      \
+constexpr decltype(auto) SYMBOL(Ts&&... xs) const                              \
+{                                                                              \
+  return                                                                       \
+    static_cast<const FROM&>(*this).FROM::SYMBOL(                              \
+      std::forward<decltype(xs)>(xs)...);                                      \
+}
+
 #endif // INCLUDED_MEEVAX_UTILITY_IMPORT_HPP
 
