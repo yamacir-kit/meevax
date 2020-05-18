@@ -12,20 +12,6 @@
 
 namespace meevax::kernel
 {
-  // TODO Move to miscellaneous.hpp
-  void display_title(const version& v)
-  {           // ";       10        20        30        40        50        60        70        80\n"
-    std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
-                 ";                                                                               \n";
-  }
-
-  void display_abstract()
-  {           // ";       10        20        30        40        50        60        70        80\n"
-    std::cout << "; Abstract:                                                                     \n"
-                 ";   ICE is incremental compiler/evaluator of Lisp-1 programming language Meevax.\n"
-                 ";                                                                               \n";
-  }
-
   template <typename SK>
   class configurator
   {
@@ -53,6 +39,21 @@ namespace meevax::kernel
     object variable    { unit };
 
   public:
+    void display_title(const version& v) const
+    {
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; Meevax Lisp System ", v.major, " - Revision ", v.minor, " Patch ", v.patch,  "\n"
+        ";                                                                               \n");
+    }
+
+    void display_abstract() const
+    {
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; Abstract:                                                                     \n"
+        ";   ICE is Incremental Compiler/Evaluator of Lisp-1 programming language Meevax.\n"
+        ";                                                                               \n");
+    }
+
     auto display_version() const -> const auto&
     {
       display_title(current_version);
