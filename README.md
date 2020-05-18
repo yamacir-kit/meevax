@@ -39,6 +39,8 @@ Meevax provides
 
 implementation **R7RS Scheme** subset to C++.
 
+<br/>
+
 ## Contents
 
 0. [Overview](#Overview)
@@ -52,7 +54,7 @@ implementation **R7RS Scheme** subset to C++.
 
 ### Latest Version
 
-HEAD: 0.2.370.
+HEAD: 0.2.371.
 
 ### Characteristic Features
 
