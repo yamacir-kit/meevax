@@ -561,7 +561,7 @@ namespace meevax::kernel
     //           continuation)));
     // });
 
-    define<procedure>("features", [this](auto&&...)             // (scheme base)
+    define<procedure>("features", [](auto&&...)                 // (scheme base)
     {
       return current_feature;
     });
