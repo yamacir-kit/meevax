@@ -70,49 +70,50 @@ namespace meevax::kernel
       return unspecified;
     }
 
-    static PROCEDURE(display_help)
-    {           // "        10        20        30        40        50        60        70        80\n"
+    auto display_help() const -> const auto&
+    {
       display_title(current_version);
 
       display_abstract();
 
-      std::cout << "; Usage: ice [option]... [file]...                                              \n"
-                   ";                                                                               \n"
-                   "; Operation mode:                                                               \n"
-                   ";   -f, --file=FILE           Specify the file to be executed. If this option is\n"
-                   ";                             used multiple times, the specified files will be  \n"
-                   ";                             executed sequentially from left to right. Anything\n"
-                   ";                             that is not an option name or option argument is  \n"
-                   ";                             implicitly treated as an argument for this option.\n"
-                   ";   -i, --interactive         Take over the control of root syntactic           \n"
-                   ";                             continuation interactively after processing given \n"
-                   ";                             <file>s.                                          \n"
-                   ";   -q, --quiet               Suppress any output except side-effect of user's  \n"
-                   ";                             explicit use of primitive procedure 'write'.      \n"
-                   ";                                                                               \n"
-                   "; Tools:                                                                        \n"
-                   ";       --echo=EXPRESSION     Read an expression, construct an object from it,  \n"
-                   ";                             and display its external representation. Note that\n"
-                   ";                             the expression is parsed once by the shell before \n"
-                   ";                             it is read. This output is useful to see what     \n"
-                   ";                             objects the --evaluate option accepts.            \n"
-                   ";   -e, --evaluate=EXPRESSION Read an expression, construct an object from it,  \n"
-                   ";                             compile and execute it, and then display external \n"
-                   ";                             representation of the result.                     \n"
-                   ";                                                                               \n"
-                   "; Debug:                                                                        \n"
-                   ";       --trace               Display stacks of virtual machine on each         \n"
-                   ";                             execution step.                                   \n"
-                   ";       --verbose             Report the details of lexical parsing,            \n"
-                   ";                             compilation, virtual machine execution to         \n"
-                   ";                             standard-error.                                   \n"
-                   ";                                                                               \n"
-                   "; Miscellaneous:                                                                \n"
-                   ";   -h, --help                Display version information and exit.             \n"
-                   ";   -v, --version             Display this help message and exit.               \n"
-                   ";                                                                               \n";
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; Usage: ice [option]... [file]...                                              \n"
+        ";                                                                               \n"
+        "; Operation mode:                                                               \n"
+        ";   -f, --file=FILE           Specify the file to be executed. If this option is\n"
+        ";                             used multiple times, the specified files will be  \n"
+        ";                             executed sequentially from left to right. Anything\n"
+        ";                             that is not an option name or option argument is  \n"
+        ";                             implicitly treated as an argument for this option.\n"
+        ";   -i, --interactive         Take over the control of root syntactic           \n"
+        ";                             continuation interactively after processing given \n"
+        ";                             <file>s.                                          \n"
+        ";   -q, --quiet               Suppress any output except side-effect of user's  \n"
+        ";                             explicit use of primitive procedure 'write'.      \n"
+        ";                                                                               \n"
+        "; Tools:                                                                        \n"
+        ";       --echo=EXPRESSION     Read an expression, construct an object from it,  \n"
+        ";                             and display its external representation. Note that\n"
+        ";                             the expression is parsed once by the shell before \n"
+        ";                             it is read. This output is useful to see what     \n"
+        ";                             objects the --evaluate option accepts.            \n"
+        ";   -e, --evaluate=EXPRESSION Read an expression, construct an object from it,  \n"
+        ";                             compile and execute it, and then display external \n"
+        ";                             representation of the result.                     \n"
+        ";                                                                               \n"
+        "; Debug:                                                                        \n"
+        ";       --trace               Display stacks of virtual machine on each         \n"
+        ";                             execution step.                                   \n"
+        ";       --verbose             Report the details of lexical parsing,            \n"
+        ";                             compilation, virtual machine execution to         \n"
+        ";                             standard-error.                                   \n"
+        ";                                                                               \n"
+        "; Miscellaneous:                                                                \n"
+        ";   -h, --help                Display version information and exit.             \n"
+        ";   -v, --version             Display this help message and exit.               \n"
+        ";                                                                               \n");
 
-      return std::exit(boost::exit_success), unspecified;
+      return unspecified;
     }
 
   public:
@@ -130,7 +131,11 @@ namespace meevax::kernel
         return static_cast<SK&>(*this).debugging = t;
       }),
 
-      std::make_pair('h', display_help),
+      std::make_pair('h', [this](auto&&...)
+      {
+        display_help();
+        return std::exit(boost::exit_success), unspecified;
+      }),
 
       std::make_pair('i', [this](auto&&...) mutable
       {
@@ -182,7 +187,11 @@ namespace meevax::kernel
         return static_cast<SK&>(*this).debugging = t;
       }),
 
-      std::make_pair("help", display_help),
+      std::make_pair("help", [this](auto&&...)
+      {
+        display_help();
+        return std::exit(boost::exit_success), unspecified;
+      }),
 
       std::make_pair("interactive", [this](auto&&...) mutable
       {
