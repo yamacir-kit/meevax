@@ -49,7 +49,7 @@ int main(const int argc, char const* const* const argv) try
             << "; console\t; I have control of root syntactic-continuation.\n"
             << std::endl;
 
-  if (true)
+  if (false)
   {
     std::cerr << "Test/1 - Write/Read Invariance" << std::endl;
 
@@ -63,7 +63,7 @@ int main(const int argc, char const* const* const argv) try
     std::cerr << std::endl;
   }
 
-  if (true)
+  if (false)
   {
     std::cerr << "Test/2 - Tagged Pointers" << std::endl;
 

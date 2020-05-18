@@ -31,36 +31,42 @@ This language inherits the minimalism of Scheme, which is summarized in the foll
 >   </a>
 > </p>
 
-HEAD version: 0.2.363.
+Meevax provides
 
-## Contents
+*   not "**ad-hoc informally-specified**",
+*   not "**bug-ridden**",
+*   ~~not "**slow**"~~
 
-[Introduction](#Introduction)    <br/>
-[1. Usage](#Usage)               <br/>
-[2. Dependency](#Dependency)     <br/>
-[3. Installation](#Installation) <br/>
+implementation **R7RS Scheme** subset to C++.
 
 <br/>
 
-## Introduction
+## Contents
 
-Meevax Lisp is a Lisp-1 programming language written in C++17.
-<!-- This language aiming highly binary level compatibility for modern C++ program. -->
+0. [Overview](#Overview)
+1. [Usage](#Usage)
+2. [Dependency](#Dependency)
+3. [Installation](#Installation)
 
-Meevax gives
-*   NOT "ad-hoc informally-specified",
-*   NOT "bug-ridden",
-*   ~~NOT "slow"~~
+<br/>
 
-implementation of ~~FULL of~~ **Scheme** to C++.
+## Overview
+
+### Latest Version
+
+HEAD: 0.2.371.
 
 ### Characteristic Features
 
-*   C++ RTTI based dynamic typing
-*   C++ standard smart pointer based **reference counting GC**
+*   C++ RTTI based **dynamic typing**
+*   C++ RAII based **lexical garbage collection**
 *   Simple SECD machine based execution
 
-### Supported SRFI
+### R7RS Support
+
+R7RS-small subset.
+
+### SRFI Support
 
 |                                                Number | Name                       | Implemented as |
 |------------------------------------------------------:|:---------------------------|:---------------|
@@ -87,44 +93,34 @@ implementation of ~~FULL of~~ **Scheme** to C++.
 
 ### Library Dependencies
 
-*   Boost C++ Libraries
-*   GNU MP (Multiple Precision Arithmetic Library)
-*   GNU MPFR (Multiple Precision Floating-Point Reliably Library)
+*   [**Boost C++ Libraries**](https://www.boost.org/)
+    * [Boost.Multiprecision](https://www.boost.org/doc/libs/release/libs/multiprecision/)
+    * [Boost.IOStreams](https://www.boost.org/doc/libs/release/libs/iostreams/)
+*   [**GNU Multiple Precision Arithmetic Library** (MP)](https://gmplib.org/)
+*   [**GNU Multiple Precision Floating-Point Reliably Library** (MPFR)](https://www.mpfr.org/)
+
+### License
+
+| Name                | License                                  |
+|:--------------------|:-----------------------------------------|
+| Boost C++ Libraries | Boost Software License                   |
+| GNU MP              | GNU Lesser General Public License (LGPL) |
+| GNU MPFR            | GNU Lesser General Public License (LGPL) |
 
 <br/>
 
 ## Installation
 
-Installation has been tested on Ubuntu 16.04, 18.04.
+Installation has been tested on Ubuntu 18.04.
 See `.github/workflows/main.yml` for the latest procedure.
 
-### Ubuntu 16.04
-
-``` bash
-sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test # for g++-7
-sudo apt update
-sudo apt install g++-7 \
-                 libboost-all-dev \
-                 libgmp-dev \
-                 libmpfr-dev
-
-git clone https://github.com/yamacir-kit/meevax.git
-cd meevax
-
-mkdir -p build
-cd build
-
-cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-7
-make
-```
+**Installation on Ubuntu 16.04 is sufficient, but has been removed from maintenance**.
 
 ### Ubuntu 18.04
 
-``` bash
+``` shell
 sudo apt update
-sudo apt install libboost-all-dev \
-                 libgmp-dev \
-                 libmpfr-dev
+sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
 
 git clone https://github.com/yamacir-kit/meevax.git
 cd meevax
@@ -146,3 +142,4 @@ make
 *   TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
 *   SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))
 -->
+
