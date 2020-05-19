@@ -59,12 +59,17 @@ namespace meevax::kernel
       display_title(current_version);
 
       write(
-        "; version       ; ", current_version.semantic, "\n"
+        "; version       ; ", current_version.semantic,                     "\n"
         "; license       ; unspecified (All rights reserved)\n"
         ";\n"
-        "; configuration ; ", current_feature.type, "\n"
-        "; commit-hash   ; ", current_feature.commit, "\n"
-        "; time-stamp    ; ", current_feature.date, "\n"
+        "; build-date    ; ", current_feature.build_date,                   "\n"
+        "; build-hash    ; ", current_feature.build_hash,                   "\n"
+        "; build-type    ; ", current_feature.build_type,                   "\n"
+        ";\n"
+        "; compiler      ; ", current_feature.compiler,                     "\n"
+        "; flags         ; ", current_feature.flags,                        "\n"
+        ";\n"
+        "; system-name   ; ", current_feature.system_name,                  "\n"
         ";\n"
         "; feature       ; ", current_feature, "\n");
 

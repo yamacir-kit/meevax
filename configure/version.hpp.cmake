@@ -12,11 +12,11 @@ namespace meevax::kernel
   struct version
     : public object
   {
-    static inline const auto major {make<real>("${PROJECT_VERSION_MAJOR}")};
-    static inline const auto minor {make<real>("${PROJECT_VERSION_MINOR}")};
-    static inline const auto patch {make<real>("${PROJECT_VERSION_PATCH}")};
+    static inline const auto major { make<real>("${PROJECT_VERSION_MAJOR}") };
+    static inline const auto minor { make<real>("${PROJECT_VERSION_MINOR}") };
+    static inline const auto patch { make<real>("${PROJECT_VERSION_PATCH}") };
 
-    static inline const auto semantic {make<symbol>("${PROJECT_VERSION}")};
+    static inline const auto semantic { make<symbol>("${PROJECT_VERSION}") };
 
     explicit version()
       : object { list(major, minor, patch) }
