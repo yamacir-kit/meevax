@@ -23,8 +23,6 @@ namespace meevax::kernel
     IMPORT_CONST(SK, write)
 
   public:
-    // static inline const auto install_prefix {make<path>("/usr/local")};
-
     static inline const version current_version {};
     static inline const feature current_feature {};
 
@@ -58,21 +56,25 @@ namespace meevax::kernel
     {
       display_title(current_version);
 
-      write(
-        "; version       ; ", current_version.semantic,                     "\n"
-        "; license       ; unspecified (All rights reserved)\n"
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; version               ; ", current_version.semantic,                         "\n"
+        "; license               ; ", unspecified,                                      "\n"
         ";\n"
-        "; build-date    ; ", current_feature.build_date,                   "\n"
-        "; build-hash    ; ", current_feature.build_hash,                   "\n"
-        "; build-type    ; ", current_feature.build_type,                   "\n"
+        "; build-date            ; ", current_feature.build_date,                       "\n"
+        "; build-hash            ; ", current_feature.build_hash,                       "\n"
+        "; build-type            ; ", current_feature.build_type,                       "\n"
         ";\n"
-        "; cxx-compiler  ; ", current_feature.cxx_compiler,                 "\n"
-        "; cxx-flags     ; ", current_feature.cxx_flags,                    "\n"
-        "; cxx-standard  ; ", current_feature.cxx_standard,                 "\n"
+        "; cxx-compiler          ; ", current_feature.cxx_compiler,                     "\n"
+        "; cxx-flags             ; ", current_feature.cxx_flags,                        "\n"
+        "; cxx-standard          ; ", current_feature.cxx_standard,                     "\n"
         ";\n"
-        "; system-name   ; ", current_feature.system_name,                  "\n"
+        "; system-processor      ; ", current_feature.system_processor,                 "\n"
+        "; system-name           ; ", current_feature.system_name,                      "\n"
         ";\n"
-        "; feature       ; ", current_feature, "\n");
+        "; install-prefix        ; ", current_feature.install_prefix,                   "\n"
+        ";\n"
+        "; feature               ; ", current_feature, "\n"
+        );
 
       return unspecified;
     }

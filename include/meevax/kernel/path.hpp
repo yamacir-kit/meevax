@@ -10,18 +10,13 @@ namespace meevax::kernel
   struct path
     : public std::experimental::filesystem::path
   {
-    using identity = path;
-
     using std::experimental::filesystem::path::path;
 
-    friend auto operator<<(std::ostream& os, const identity& i)
+    friend auto operator<<(std::ostream& os, const path& p)
       -> decltype(os)
     {
-      return os << highlight::syntax << "#("
-                << highlight::type << "path"
-                << highlight::datum << " \"" << i.c_str() << "\""
-                << highlight::syntax << ")"
-                << attribute::normal;
+      return os << console::cyan << "#p\"" << p.c_str() << "\""
+                << console::reset;
     }
   };
 } // namespace meevax::kernel
