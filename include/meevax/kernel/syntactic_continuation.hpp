@@ -93,11 +93,12 @@ namespace meevax::kernel
 
     [[deprecated]] bool virgin {true};
 
-    std::size_t experience {0};
+    std::size_t experience {0}; // Rename to "generation"
 
     // CRTP Import from Below
     using writer::current_debug_port;
     using writer::current_error_port;
+    using writer::current_verbose_port;
     using writer::write;
     using writer::write_to;
 
@@ -239,7 +240,7 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        if (verbose.equivalent_to(t))
+        if (verbose_mode.equivalent_to(t))
         {
           std::cerr << "; package\t; renamer ignored non-symbol object "
                     << object
@@ -254,7 +255,7 @@ namespace meevax::kernel
           object.as<const std::string>() + "." + std::to_string(experience)
         };
 
-        if (verbose.equivalent_to(t))
+        if (verbose_mode.equivalent_to(t))
         {
           std::cerr << "; package\t; renaming \"" << object << "\" to \"" << name << "\"" << std::endl;
           // std::cerr << "; package\t; renaming " << object << std::endl;
@@ -314,14 +315,14 @@ namespace meevax::kernel
     {
       const std::string path {std::forward<decltype(operands)>(operands)...};
 
-      if (verbose.equivalent_to(t))
+      if (verbose_mode.equivalent_to(t))
       {
         std::cerr << "; loader\t; open \"" << path << "\" => ";
       }
 
       if (std::fstream stream {path}; stream)
       {
-        if (verbose.equivalent_to(t))
+        if (verbose_mode.equivalent_to(t))
         {
           std::cerr << "succeeded" << std::endl;
         }
@@ -331,7 +332,7 @@ namespace meevax::kernel
 
         for (auto e {read(stream)}; e != eof_object; e = read(stream))
         {
-          if (verbose.equivalent_to(t))
+          if (verbose_mode.equivalent_to(t))
           {
             std::cerr << "; read\t\t; " << e << std::endl;
           }
@@ -347,7 +348,7 @@ namespace meevax::kernel
       }
       else
       {
-        if (verbose.equivalent_to(t))
+        if (verbose_mode.equivalent_to(t))
         {
           std::cerr << "failed" << std::endl;
         }
@@ -359,7 +360,7 @@ namespace meevax::kernel
   public: // Primitive Expression Types
     DEFINE_PRIMITIVE_EXPRESSION(exportation,
     {
-      if (verbose.equivalent_to(t))
+      if (verbose_mode.equivalent_to(t))
       {
         std::cerr
         << (not depth ? "; compile\t; " : ";\t\t; ")

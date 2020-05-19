@@ -20,7 +20,9 @@ namespace meevax::kernel
     explicit configurator()
     {}
 
+    IMPORT_CONST(SK, current_verbose_port)
     IMPORT_CONST(SK, write)
+    IMPORT_CONST(SK, write_to)
 
   public:
     static inline const version current_version {};
@@ -31,7 +33,6 @@ namespace meevax::kernel
 
     object interactive { f };
     object trace       { f };
-    object verbose     { f };
 
     object ports       { unit };
     object variable    { unit };
@@ -58,6 +59,9 @@ namespace meevax::kernel
 
       write( //  10        20        30        40        50        60        70        80\n"
         "; version               ; ", current_version.semantic,                         "\n"
+        );
+
+      write_to(current_verbose_port(),
         "; license               ; ", unspecified,                                      "\n"
         ";\n"
         "; build-date            ; ", current_feature.build_date,                       "\n"
@@ -75,6 +79,9 @@ namespace meevax::kernel
         ";\n"
         "; libraries             ; ", current_version.libraries,                        "\n"
         ";\n"
+        );
+
+      write(
         "; feature               ; ", current_feature, "\n"
         );
 
@@ -139,7 +146,7 @@ namespace meevax::kernel
     {
       std::make_pair('d', [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debugging = t;
+        return static_cast<SK&>(*this).debug_mode = t;
       }),
 
       std::make_pair('h', [this](auto&&...)
@@ -158,7 +165,7 @@ namespace meevax::kernel
 
       std::make_pair('q', [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).quiet = t;
+        return static_cast<SK&>(*this).quiet_mode = t;
       }),
 
       std::make_pair('v', [this](auto&&...)
@@ -195,7 +202,7 @@ namespace meevax::kernel
     {
       std::make_pair("debug", [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debugging = t;
+        return static_cast<SK&>(*this).debug_mode = t;
       }),
 
       std::make_pair("help", [this](auto&&...)
@@ -214,7 +221,7 @@ namespace meevax::kernel
 
       std::make_pair("quiet", [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).quiet = t;
+        return static_cast<SK&>(*this).quiet_mode = t;
       }),
 
       std::make_pair("trace", [this](auto&&...) mutable
@@ -224,7 +231,7 @@ namespace meevax::kernel
 
       std::make_pair("verbose", [this](auto&&...) mutable
       {
-        return verbose = t;
+        return static_cast<SK&>(*this).verbose_mode = t;
       }),
 
       std::make_pair("version", [this](auto&&...)

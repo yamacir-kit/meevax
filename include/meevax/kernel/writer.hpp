@@ -27,9 +27,9 @@ namespace meevax::kernel
     {}
 
   public:
-    object debugging {f};
-    object quiet {f};
-    // verbosely
+    object debug_mode   { f };
+    object quiet_mode   { f };
+    object verbose_mode { f };
 
   public:
     template <typename... Ts>
@@ -49,17 +49,22 @@ namespace meevax::kernel
   public:
     auto standard_output_port() const -> auto&
     {
-      return quiet.eqv(t) ? bucket : std::cout;
+      return quiet_mode.eqv(t) ? bucket : std::cout;
     }
 
     auto standard_error_port() const -> auto&
     {
-      return quiet.eqv(t) ? bucket : std::cerr;
+      return quiet_mode.eqv(t) ? bucket : std::cerr;
+    }
+
+    auto standard_verbose_port() const -> auto&
+    {
+      return quiet_mode.eqv(t) or not verbose_mode.eqv(t) ? bucket : std::cout;
     }
 
     auto standard_debug_port() const -> auto&
     {
-      return quiet.eqv(t) or not debugging.eqv(t) ? bucket : std::cerr;
+      return quiet_mode.eqv(t) or not debug_mode.eqv(t) ? bucket : std::cerr;
     }
 
   public:
@@ -71,6 +76,11 @@ namespace meevax::kernel
     auto current_error_port() const -> decltype(auto)
     {
       return standard_error_port(); // XXX R7RS INCOMPATIBLE!
+    }
+
+    auto current_verbose_port() const -> decltype(auto)
+    {
+      return standard_verbose_port();
     }
 
     auto current_debug_port() const -> decltype(auto)
