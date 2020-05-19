@@ -27,7 +27,6 @@ set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON " \
   -fdata-sections \
   -ffunction-sections \
   -flto \
-  -fno-math-errno \
   -fsized-deallocation \
   -march=native \
   -mtune=native \
@@ -51,8 +50,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     -fno-gnu-inline-asm \
     -fno-gnu-keywords \
     -frelaxed-template-template-args \
-    -fstrict-vtable-pointers \
-    -funit-at-a-time \
     ")
 else()
   set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS "")

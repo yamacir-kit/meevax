@@ -32,13 +32,20 @@ namespace meevax::kernel
     static inline const auto implementation_name              { make<symbol>("${PROJECT_NAME}") };
     static inline const auto implementation_name_with_version { make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}") };
 
+    static inline const auto srfi_10 { make<symbol>("srfi-10") };
+    static inline const auto srfi_62 { make<symbol>("srfi-62") };
+
     explicit feature()
       : object
         {
           list(
             implementation_name,
             implementation_name_with_version,
-            system_name)
+            system_name,
+            system_processor,
+            srfi_10,
+            srfi_62
+            )
         }
     {}
   };
