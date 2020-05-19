@@ -73,6 +73,8 @@ namespace meevax::kernel
         ";\n"
         "; install-prefix        ; ", current_feature.install_prefix,                   "\n"
         ";\n"
+        "; libraries             ; ", current_version.libraries,                        "\n"
+        ";\n"
         "; feature               ; ", current_feature, "\n"
         );
 

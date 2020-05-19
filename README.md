@@ -54,7 +54,7 @@ implementation **R7RS Scheme** subset to C++.
 
 ### Latest Version
 
-HEAD: 0.2.379.
+HEAD: 0.2.380.
 
 ### Characteristic Features
 
