@@ -13,6 +13,7 @@
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/import.hpp>
+#include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
@@ -98,11 +99,7 @@ namespace meevax::kernel
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
   }
 
-  template <typename... Ts>
-  inline constexpr bool is_tagged(Ts&&... operands) noexcept
-  {
-    return category_of(std::forward<decltype(operands)>(operands)...);
-  }
+  Static_Perfect_Forward(is_tagged, category_of);
 
   template <typename T>
   using precision
@@ -494,14 +491,7 @@ namespace meevax::kernel
       }
     }
 
-    template <typename... Ts>
-    auto eqv(Ts&&... xs) const
-      -> decltype(auto)
-    {
-      return
-        equivalent_to(
-          std::forward<decltype(xs)>(xs)...);
-    }
+    Immutable_Perfect_Forward(eqv, equivalent_to);
   };
 
   template <typename T>
