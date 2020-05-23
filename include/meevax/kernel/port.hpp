@@ -34,7 +34,7 @@ namespace meevax::kernel
                                                                                \
       if (port.is_open())                                                      \
       {                                                                        \
-        os << console::cyan << " " << std::quoted(port.name);        \
+        os << console::cyan << " #p" << std::quoted(port.name);                \
       }                                                                        \
                                                                                \
       return os << console::magenta << ")"                                     \

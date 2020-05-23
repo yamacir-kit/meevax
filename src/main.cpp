@@ -4,13 +4,27 @@
 
 int main(const int argc, char const* const* const argv) try
 {
+  using namespace meevax::kernel;
+
   meevax::kernel::syntactic_continuation ice { meevax::kernel::layer<2> };
 
   ice.configure(argc, argv);
 
-  ice.write_to(
-    ice.current_debug_port(),
-    ice.header("configure"), ice.paths, "\n");
+  for (const auto& pathname : ice.paths)
+  {
+    ice.write_to(
+      ice.current_debug_port(),
+      ice.header("pathname"), pathname, "\n");
+
+    const auto port {
+      make<input_port>(
+        pathname.as<meevax::kernel::path>())
+    };
+
+    ice.write_to(
+      ice.current_debug_port(),
+      ice.header("input-port"), port, "\n");
+  }
 
   if (ice.interactive_mode.eqv(meevax::kernel::t))
   {
