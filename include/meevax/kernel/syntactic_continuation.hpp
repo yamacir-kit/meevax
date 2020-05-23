@@ -98,6 +98,7 @@ namespace meevax::kernel
     // CRTP Import from Below
     using writer::current_debug_port;
     using writer::current_error_port;
+    using writer::current_interaction_port;
     using writer::current_verbose_port;
     using writer::write;
     using writer::write_to;
@@ -105,6 +106,8 @@ namespace meevax::kernel
     using debugger::debug;
     using debugger::header;
     using debugger::indent;
+
+    using configurator::interactive_mode;
 
   public: // Accessors
     const auto& program() const

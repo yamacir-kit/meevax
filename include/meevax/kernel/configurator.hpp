@@ -31,8 +31,9 @@ namespace meevax::kernel
     // TODO Generate from CMakeLists.txt
     // static inline const std::string program_name {"ice"};
 
-    object interactive { f };
-    object trace       { f };
+    object interactive_mode { f };
+
+    object trace { f };
 
     object ports       { unit };
     object variable    { unit };
@@ -157,10 +158,7 @@ namespace meevax::kernel
 
       std::make_pair('i', [this](auto&&...) mutable
       {
-        std::cout << "; configure\t; interactive mode "
-                  << interactive << " => " << (interactive = t)
-                  << std::endl;
-        return unspecified;
+        return interactive_mode = t;
       }),
 
       std::make_pair('q', [this](auto&&...) mutable
@@ -213,10 +211,7 @@ namespace meevax::kernel
 
       std::make_pair("interactive", [this](auto&&...) mutable
       {
-        std::cout << "; configure\t; interactive mode "
-                  << interactive << " => " << (interactive = t)
-                  << std::endl;
-        return unspecified;
+        return interactive_mode = t;
       }),
 
       std::make_pair("quiet", [this](auto&&...) mutable

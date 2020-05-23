@@ -15,7 +15,7 @@ int main(const int argc, char const* const* const argv) try
   *========================================================================== */
   ice.configure(argc, argv);
 
-  ice.write(
+  ice.write_to(ice.current_interaction_port(),
     "; console\t; You have control of root syntactic-continuation.\n");
 
   for (const auto prompt { "\n> " }; ice.ready(); ) try
