@@ -41,7 +41,7 @@ namespace meevax::kernel
     void display_title(const version& v) const
     {
       write( //  10        20        30        40        50        60        70        80\n"
-        "; Meevax Lisp System ", v.major, " - Revision ", v.minor, " Patch ", v.patch,  "\n"
+        "; Meevax Lisp System ", v.major(), " - Revision ", v.minor(), " Patch ", v.patch(), "\n"
         ";                                                                               \n");
     }
 
@@ -58,7 +58,7 @@ namespace meevax::kernel
       display_title(current_version);
 
       write( //  10        20        30        40        50        60        70        80\n"
-        "; version               ; ", current_version.semantic,                         "\n"
+        "; version               ; ", current_version.semantic(),                       "\n"
         );
 
       write_to(current_verbose_port(),
@@ -77,7 +77,7 @@ namespace meevax::kernel
         ";\n"
         "; install-prefix        ; ", current_feature.install_prefix(),                 "\n"
         ";\n"
-        "; libraries             ; ", current_version.libraries,                        "\n"
+        "; libraries             ; ", current_version.libraries(),                      "\n"
         ";\n"
         );
 
