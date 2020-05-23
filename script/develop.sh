@@ -185,7 +185,7 @@ count()
 
 if test "$execute" -ne 0
 then
-  command="$valgrind $repository/build/bin/ice --verbose --debug"
+  command="$valgrind $repository/build/bin/ice --verbose --debug --interactive"
 
   echo "
 ; ==== Test ====================================================================

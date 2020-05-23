@@ -28,15 +28,12 @@ namespace meevax::kernel
     static inline const version current_version {};
     static inline const feature current_feature {};
 
-    // TODO Generate from CMakeLists.txt
-    // static inline const std::string program_name {"ice"};
-
     object interactive_mode { f };
 
     object trace { f };
 
-    object paths       { unit };
-    object variable    { unit };
+    object paths    { unit };
+    object variable { unit };
 
   public:
     void display_title(const version& v) const
@@ -371,7 +368,6 @@ namespace meevax::kernel
       }();
 
       paths = reverse(paths);
-      // std::cerr << "; configure\t; paths are " << paths << std::endl;
     }
   };
 } // namespace meevax::kernel
