@@ -1,15 +1,16 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
+#include <fstream>
 #include <ostream>                                                // responsible
 #include <sstream>
 
 #include <boost/iostreams/device/null.hpp>
-// #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 
 #include <meevax/console/escape_sequence.hpp>
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/utility/perfect_forward.hpp>
 
 namespace meevax::kernel
 {
@@ -105,21 +106,8 @@ namespace meevax::kernel
     }
 
   public:
-    template <typename... Ts>
-    auto open_output_file(Ts&&... xs) const
-    {
-      return
-        std::ofstream(
-          std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
-    auto open_output_string(Ts&&... xs) const
-    {
-      return
-        std::ostringstream(
-          std::forward<decltype(xs)>(xs)...);
-    }
+    Static_Perfect_Forward(open_output_file, std::ofstream);
+    Static_Perfect_Forward(open_output_string, std::stringstream);
   };
 } // namespace meevax::kernel
 
