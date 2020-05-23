@@ -10,14 +10,9 @@
 
 #include <meevax/console/escape_sequence.hpp>
 #include <meevax/kernel/boolean.hpp>
-#include <type_traits>
 
 namespace meevax::kernel
 {
-  static boost::iostreams::stream<boost::iostreams::null_sink> bucket {
-    boost::iostreams::null_sink()
-  };
-
   template <typename SK>
   class writer
   {
@@ -47,24 +42,33 @@ namespace meevax::kernel
     }
 
   public:
+    auto standard_null_port() const -> auto&
+    {
+      static boost::iostreams::stream<boost::iostreams::null_sink> dev_null {
+        boost::iostreams::null_sink()
+      };
+
+      return dev_null;
+    }
+
     auto standard_output_port() const -> auto&
     {
-      return quiet_mode.eqv(t) ? bucket : std::cout;
+      return quiet_mode.eqv(t) ? standard_null_port() : std::cout;
     }
 
     auto standard_error_port() const -> auto&
     {
-      return quiet_mode.eqv(t) ? bucket : std::cerr;
+      return quiet_mode.eqv(t) ? standard_null_port() : std::cerr;
     }
 
     auto standard_verbose_port() const -> auto&
     {
-      return quiet_mode.eqv(t) or not verbose_mode.eqv(t) ? bucket : std::cout;
+      return quiet_mode.eqv(t) or not verbose_mode.eqv(t) ? standard_null_port() : std::cout;
     }
 
     auto standard_debug_port() const -> auto&
     {
-      return quiet_mode.eqv(t) or not debug_mode.eqv(t) ? bucket : std::cerr;
+      return quiet_mode.eqv(t) or not debug_mode.eqv(t) ? standard_null_port() : std::cerr;
     }
 
   public:
