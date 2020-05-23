@@ -99,9 +99,9 @@ message(STATUS "Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_
 # ==============================================================================
 #   Configure README
 # ==============================================================================
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
 
@@ -119,15 +119,15 @@ else()
   set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/feature.hpp)
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
