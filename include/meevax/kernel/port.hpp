@@ -30,11 +30,13 @@ namespace meevax::kernel
       -> decltype(os)                                                          \
     {                                                                          \
       os << console::magenta << "#,("                                          \
-         << console::green   << NAME;                                          \
+         << console::green << NAME                                             \
+         << console::cyan << " #p" << std::quoted(port.name)                   \
+         << console::reset;                                                    \
                                                                                \
-      if (port.is_open())                                                      \
+      if (not port.is_open())                                                  \
       {                                                                        \
-        os << console::cyan << " #p" << std::quoted(port.name);                \
+        os << console::faint << " #;" << std::quoted("failed to open file");   \
       }                                                                        \
                                                                                \
       return os << console::magenta << ")"                                     \

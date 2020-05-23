@@ -35,6 +35,11 @@ namespace meevax::kernel
     object paths    { unit };
     object variable { unit };
 
+    auto interactive() const
+    {
+      return interactive_mode.as<boolean>().value;
+    }
+
   public:
     void display_title(const version& v) const
     {
@@ -368,6 +373,14 @@ namespace meevax::kernel
       }();
 
       paths = reverse(paths);
+
+      if (interactive())
+      {
+        paths
+          = cons(
+              make<path>(std::string(::getenv("HOME")) + "/.mvxrc"),
+              paths);
+      }
     }
   };
 } // namespace meevax::kernel
