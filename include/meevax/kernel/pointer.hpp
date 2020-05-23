@@ -491,7 +491,17 @@ namespace meevax::kernel
       }
     }
 
-    Immutable_Perfect_Forward(eqv, equivalent_to);
+    // NOTE: Can't compile with less than GCC-9 due to a bug in the compiler.
+    // Immutable_Perfect_Forward(eqv, equivalent_to);
+
+    template <typename... Ts>
+    constexpr auto eqv(Ts&&... xs) const
+      -> decltype(auto)
+    {
+      return
+        equivalent_to(
+          std::forward<decltype(xs)>(xs)...);
+    }
   };
 
   template <typename T>
