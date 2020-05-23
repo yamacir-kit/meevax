@@ -8,6 +8,8 @@
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
 
+#include <meevax/kernel/port.hpp>
+
 /* ==== Embedded Source Codes ==================================================
 *
 * library/hoge.ss

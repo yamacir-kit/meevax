@@ -6,7 +6,7 @@
 #include <boost/cstdlib.hpp>
 
 #include <meevax/kernel/feature.hpp>
-#include <meevax/kernel/port.hpp> // TODO REMOVE!!!
+#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -35,7 +35,7 @@ namespace meevax::kernel
 
     object trace { f };
 
-    object ports       { unit };
+    object paths       { unit };
     object variable    { unit };
 
   public:
@@ -187,7 +187,7 @@ namespace meevax::kernel
       {
         if (s.is<symbol>())
         {
-          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+          return paths = cons(make<path>(s.as<const std::string>()), paths);
         }
         else
         {
@@ -258,7 +258,7 @@ namespace meevax::kernel
       {
         if (s.is<symbol>())
         {
-          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+          return paths = cons(make<path>(s.as<const std::string>()), paths);
         }
         else
         {
@@ -364,14 +364,14 @@ namespace meevax::kernel
         }
         else
         {
-          ports = cons(make<input_port>(*option), ports);
+          paths = cons(make<path>(*option), paths);
         }
 
         return unspecified;
       }();
 
-      ports = reverse(ports);
-      // std::cerr << "; configure\t; ports are " << ports << std::endl;
+      paths = reverse(paths);
+      // std::cerr << "; configure\t; paths are " << paths << std::endl;
     }
   };
 } // namespace meevax::kernel
