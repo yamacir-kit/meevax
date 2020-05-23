@@ -29,7 +29,12 @@ namespace meevax::kernel
 
     static inline const auto install_prefix { make<path>("${CMAKE_INSTALL_PREFIX}") };
 
-    static inline const auto implementation_name              { make<symbol>("${PROJECT_NAME}") };
+    auto implementation_name() const -> const auto&
+    {
+      static const auto s { make<symbol>("${PROJECT_NAME}") };
+      return s;
+    }
+
     static inline const auto implementation_name_with_version { make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}") };
 
     static inline const auto srfi_10 { make<symbol>("srfi-10") };
@@ -39,7 +44,7 @@ namespace meevax::kernel
       : object
         {
           list(
-            implementation_name,
+            implementation_name(),
             implementation_name_with_version,
             system_name,
             system_processor,

@@ -224,6 +224,8 @@ namespace meevax::kernel
         return static_cast<SK&>(*this).quiet_mode = t;
       }),
 
+      // TODO --srfi=0,1,2
+
       std::make_pair("trace", [this](auto&&...) mutable
       {
         return trace = t;
