@@ -1,21 +1,37 @@
-name: CI
+name: "Matrix Build"
 
-on: [push]
+on: push
+# on:
+#   push:
+#     branches:
+#       - "!*"
+#     tags:
+#       - "v*"
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  Linux:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04]
+        compiler: [g++-7, clang++-6.0]
+        configuration: [Debug, Release]
     steps:
     - uses: actions/checkout@v1
-    - name: 'Install Libraries'
+    - name: Setup
       run: |
         sudo apt update
         sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
-    - name: 'Build ICE on Bionic'
+    - name: Configure
+      env:
+        CXX: ${{ matrix.compiler }}
       run: |
         mkdir -p build
         cd build
-        cmake ..
-        make
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+    - name: Make
+      run: |
+        cd build
+        make -j1
+
