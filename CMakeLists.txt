@@ -47,8 +47,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     -Wno-return-type-c-linkage \
     -faligned-allocation \
     -fdouble-square-bracket-attributes \
-    -fno-gnu-inline-asm \
-    -fno-gnu-keywords \
     -frelaxed-template-template-args \
     ")
 else()
@@ -161,6 +159,7 @@ target_link_libraries(${PROJECT_NAME}
     gmp
     m
     mpfr
+    pthread
     stdc++fs
   )
 
