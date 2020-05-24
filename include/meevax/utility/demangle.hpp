@@ -6,22 +6,27 @@
 #include <string>
 #include <typeinfo>
 
+#if __has_include(<cxxabi.h>)
 #include <cxxabi.h>
+#endif
 
 namespace meevax::utility
 {
-  auto demangle(const char* name)
-    -> std::string
+  auto demangle(const char* name) -> std::string
   {
+  #if __has_include(<cxxabi.h>)
     int failed {};
 
     std::unique_ptr<char, decltype(&std::free)> demangled
     {
       abi::__cxa_demangle(name, nullptr, nullptr, &failed),
-      [](auto* x) noexcept { std::free(x); }
+      [](void* x) noexcept -> void { std::free(x); }
     };
 
     return {failed ? name : demangled.get()};
+  #else
+    return {name};
+  #endif
   }
 
   decltype(auto) demangle(const std::type_info& info)
