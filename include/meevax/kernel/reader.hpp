@@ -313,8 +313,8 @@ namespace meevax::kernel
     }
 
   public:
-    Immutable_Perfect_Forward(open_input_file, std::ifstream);
-    Immutable_Perfect_Forward(open_input_string, std::stringstream);
+    Static_Perfect_Forward(open_input_file, std::ifstream);
+    Static_Perfect_Forward(open_input_string, std::stringstream);
 
   private:
     const object discriminate(std::istream& is)

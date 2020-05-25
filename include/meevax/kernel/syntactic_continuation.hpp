@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
+#include <string_view>
+
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/linker.hpp>
@@ -20,6 +22,12 @@
 *============================================================================ */
 extern char _binary_overture_ss_start;
 extern char _binary_overture_ss_end;
+
+static const std::string_view overture
+{
+  &_binary_overture_ss_start,
+  static_cast<std::size_t>(&_binary_overture_ss_end - &_binary_overture_ss_start)
+};
 
 namespace meevax::kernel
 {
@@ -318,30 +326,21 @@ namespace meevax::kernel
     template <typename... Ts>
     decltype(auto) load(Ts&&... operands)
     {
-      const std::string path {std::forward<decltype(operands)>(operands)...};
+      const std::string pathname {std::forward<decltype(operands)>(operands)...};
 
-      if (verbose_mode.equivalent_to(t))
-      {
-        std::cerr << "; loader\t; open \"" << path << "\" => ";
-      }
+      write_to(current_debug_port(),
+        header("loader"), "open \"", pathname, "\" => ");
 
-      if (std::fstream stream {path}; stream)
+      if (std::fstream stream {pathname}; stream)
       {
-        if (verbose_mode.equivalent_to(t))
-        {
-          std::cerr << "succeeded" << std::endl;
-        }
+        write_to(current_debug_port(), "succeeded\n");
 
         push(d, s, e, c);
         s = e = c = unit;
 
         for (auto e {read(stream)}; e != eof_object; e = read(stream))
         {
-          if (verbose_mode.equivalent_to(t))
-          {
-            std::cerr << "; read\t\t; " << e << std::endl;
-          }
-
+          write_to(current_debug_port(), header("read"), e, "\n");
           evaluate(e);
         }
 
@@ -353,12 +352,8 @@ namespace meevax::kernel
       }
       else
       {
-        if (verbose_mode.equivalent_to(t))
-        {
-          std::cerr << "failed" << std::endl;
-        }
-
-        throw evaluation_error {"failed to open file ", std::quoted(path)};
+        write_to(current_debug_port(), "failed\n");
+        throw evaluation_error {"failed to open file ", std::quoted(pathname)};
       }
     }
 
@@ -601,31 +596,22 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    static const std::string overture
-    {
-      &_binary_overture_ss_start,
-      &_binary_overture_ss_end
-    };
-
-    std::stringstream stream {overture};
+    auto port { open_input_string(overture.data()) };
 
     std::size_t counts {0};
 
-    for (auto e {read(stream)}; e != eof_object; e = read(stream))
+    for (auto e {read(port)}; e != eof_object; e = read(port))
     {
-      std::cerr << "; layer-1\t; "
-                << counts++
-                << " expression loaded"
-                << std::endl;
+      // NOTE: THIS PRINTS WILL NEVER WORK
+      write_to(current_interaction_port(),
+        "\r\x1B[K", header("overture"), counts++, ": ", car(interaction_environment()));
+
+      current_interaction_port() << std::flush;
 
       evaluate(e);
-
-      static constexpr auto cursor_up {"\x1b[1A"};
-
-      std::cerr << cursor_up << "\r\x1b[K" << std::flush;
     }
 
-    std::cerr << std::endl;
+    write_to(current_interaction_port(), "\n\n");
   }
 
   #undef DEFINE_SYNTAX

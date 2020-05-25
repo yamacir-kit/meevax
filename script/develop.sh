@@ -65,7 +65,7 @@ do
       ;;
 
     -v | --valgrind )
-      valgrind="valgrind --leak-check=full --log-file=$repository/build/valgrind.cpp"
+      valgrind="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/valgrind.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
       shift
       ;;
