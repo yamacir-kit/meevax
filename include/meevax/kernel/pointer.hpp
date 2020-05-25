@@ -10,6 +10,7 @@
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/console/escape_sequence.hpp>
+#include <meevax/numerical/exact.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/import.hpp>
@@ -18,12 +19,6 @@
 
 namespace meevax::kernel
 {
-  template <typename T>
-  inline constexpr T log2(const T& k) noexcept
-  {
-    return (k < 2) ? 0 : 1 + log2(k / 2);
-  }
-
   /* ==== Linux 64 Bit Address Space ==========================================
   *
   * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
@@ -103,7 +98,7 @@ namespace meevax::kernel
 
   template <typename T>
   using precision
-    = std::integral_constant<std::uintptr_t, log2(sizeof(T) * 8)>;
+    = std::integral_constant<std::uintptr_t, numerical::exact::log2(sizeof(T) * 8)>;
 
   constexpr std::uintptr_t precision_mask {0xF0};
   constexpr auto           precision_mask_width {4}; // XXX calculate from word size
