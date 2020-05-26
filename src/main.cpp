@@ -19,7 +19,7 @@ int main(const int argc, char const* const* const argv) try
     ice.load(each.as<path>());
   }
 
-  if (ice.interactive_mode.eqv(meevax::kernel::t))
+  if (ice.interactive())
   {
     ice.write_to(
       ice.current_interaction_port(),

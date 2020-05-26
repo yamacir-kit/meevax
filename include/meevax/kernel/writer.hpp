@@ -22,7 +22,7 @@ namespace meevax::kernel
     explicit writer()
     {}
 
-    IMPORT(SK, interactive_mode);
+    IMPORT_CONST(SK, interactive);
 
   public:
     object debug_mode   { f };
@@ -76,7 +76,7 @@ namespace meevax::kernel
 
     auto standard_interaction_port() const -> auto&
     {
-      return quiet_mode.eqv(t) or not static_cast<const SK&>(*this).interactive_mode.eqv(t) ? standard_null_port() : std::cout;
+      return quiet_mode.eqv(t) or not interactive() ? standard_null_port() : std::cout;
     }
 
   public:

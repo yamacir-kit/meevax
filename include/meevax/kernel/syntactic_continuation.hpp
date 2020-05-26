@@ -117,7 +117,7 @@ namespace meevax::kernel
     using debugger::header;
     using debugger::indent;
 
-    using configurator::interactive_mode;
+    using configurator::interactive;
 
   public: // Accessors
     const auto& program() const
@@ -612,8 +612,7 @@ namespace meevax::kernel
 
     for (auto e {read(port)}; e != eof_object; e = read(port))
     {
-      // NOTE: THIS PRINTS WILL NEVER WORK
-      write_to(current_interaction_port(),
+      write_to(current_debug_port(),
         "\r\x1B[K", header("overture"), counts++, ": ", car(interaction_environment()));
 
       current_interaction_port() << std::flush;

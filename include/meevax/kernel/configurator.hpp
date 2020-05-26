@@ -37,7 +37,7 @@ namespace meevax::kernel
 
     auto interactive() const
     {
-      return interactive_mode.as<boolean>().value;
+      return interactive_mode.as<boolean>().value or not paths;
     }
 
   public:
