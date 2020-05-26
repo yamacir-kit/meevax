@@ -22,12 +22,10 @@ namespace meevax::kernel
     explicit writer()
     {}
 
+    IMPORT_CONST(SK, debugging);
     IMPORT_CONST(SK, interactive);
-
-  public:
-    object debug_mode   { f };
-    object quiet_mode   { f };
-    object verbose_mode { f };
+    IMPORT_CONST(SK, quiet);
+    IMPORT_CONST(SK, verbose);
 
   public:
     template <typename... Ts>
@@ -56,27 +54,27 @@ namespace meevax::kernel
 
     auto standard_output_port() const -> auto&
     {
-      return quiet_mode.eqv(t) ? standard_null_port() : std::cout;
+      return quiet() ? standard_null_port() : std::cout;
     }
 
     auto standard_error_port() const -> auto&
     {
-      return quiet_mode.eqv(t) ? standard_null_port() : std::cerr;
+      return quiet() ? standard_null_port() : std::cerr;
     }
 
     auto standard_verbose_port() const -> auto&
     {
-      return quiet_mode.eqv(t) or not verbose_mode.eqv(t) ? standard_null_port() : std::cout;
+      return quiet() or not verbose() ? standard_null_port() : std::cout;
     }
 
     auto standard_debug_port() const -> auto&
     {
-      return quiet_mode.eqv(t) or not debug_mode.eqv(t) ? standard_null_port() : std::cerr;
+      return quiet() or not debugging() ? standard_null_port() : std::cerr;
     }
 
     auto standard_interaction_port() const -> auto&
     {
-      return quiet_mode.eqv(t) or not interactive() ? standard_null_port() : std::cout;
+      return quiet() or not interactive() ? standard_null_port() : std::cout;
     }
 
   public:

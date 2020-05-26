@@ -117,7 +117,10 @@ namespace meevax::kernel
     using debugger::header;
     using debugger::indent;
 
+    using configurator::debugging;
     using configurator::interactive;
+    using configurator::quiet;
+    using configurator::verbose;
 
   public: // Accessors
     const auto& program() const
@@ -612,6 +615,7 @@ namespace meevax::kernel
 
     for (auto e {read(port)}; e != eof_object; e = read(port))
     {
+      // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
       write_to(current_debug_port(),
         "\r\x1B[K", header("overture"), counts++, ": ", car(interaction_environment()));
 
@@ -620,7 +624,8 @@ namespace meevax::kernel
       evaluate(e);
     }
 
-    write_to(current_interaction_port(), "\n\n");
+    // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
+    write_to(current_debug_port(), "\n\n");
   }
 
   #undef DEFINE_SYNTAX

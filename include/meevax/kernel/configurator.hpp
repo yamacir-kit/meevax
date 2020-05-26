@@ -28,16 +28,34 @@ namespace meevax::kernel
     static inline const version current_version {};
     static inline const feature current_feature {};
 
+    object debug_mode       { f };
     object interactive_mode { f };
+    object quiet_mode       { f };
+    object verbose_mode     { f };
 
     object trace { f };
 
     object paths    { unit };
     object variable { unit };
 
+    auto debugging() const
+    {
+      return debug_mode.as<boolean>().value;
+    }
+
     auto interactive() const
     {
       return interactive_mode.as<boolean>().value or not paths;
+    }
+
+    auto quiet() const
+    {
+      return quiet_mode.as<boolean>().value;
+    }
+
+    auto verbose() const
+    {
+      return verbose_mode.as<boolean>().value;
     }
 
   public:

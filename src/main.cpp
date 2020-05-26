@@ -8,6 +8,8 @@ int main(const int argc, char const* const* const argv) try
 
   meevax::kernel::syntactic_continuation ice { meevax::kernel::layer<2> };
 
+  // TODO pass argc and argv to syntactic-continuation's constructor directly.
+  // NOTE currently, interactive() returns true before configuration.
   ice.configure(argc, argv);
 
   for (const auto& each : ice.paths)
