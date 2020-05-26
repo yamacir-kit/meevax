@@ -20,18 +20,15 @@ namespace meevax::kernel
     machine()
     {}
 
-    // CRTP Import from Above
-    IMPORT(SK, interaction_environment)
-    IMPORT(SK, intern)
-    IMPORT(SK, rename)
-
-    IMPORT(SK, current_debug_port)
-    IMPORT(SK, current_error_port)
-    IMPORT(SK, write_to)
-
-    IMPORT(SK, debug)
-    IMPORT(SK, header)
-    IMPORT(SK, indent)
+    Import(SK, current_debug_port);
+    Import(SK, current_error_port);
+    Import(SK, debug);
+    Import(SK, header);
+    Import(SK, indent);
+    Import(SK, interaction_environment);
+    Import(SK, intern);
+    Import(SK, rename);
+    Import(SK, write_to);
 
   protected:
     object s, // Stack (holding intermediate results and return address)

@@ -20,18 +20,18 @@ namespace meevax::kernel
     explicit configurator()
     {}
 
-    IMPORT_CONST(SK, current_verbose_port)
-    IMPORT_CONST(SK, write)
-    IMPORT_CONST(SK, write_to)
-
-  public:
-    static inline const version current_version {};
-    static inline const feature current_feature {};
+    Import_Const(SK, current_verbose_port);
+    Import_Const(SK, write);
+    Import_Const(SK, write_to);
 
     object debug_mode       { f };
     object interactive_mode { f };
     object quiet_mode       { f };
     object verbose_mode     { f };
+
+  public:
+    static inline const version current_version {};
+    static inline const feature current_feature {};
 
     object trace { f };
 

@@ -56,7 +56,7 @@ int main(const int argc, char const* const* const argv) try
     {
       std::cerr << exception << std::endl; // NOTE: Use std::cerr directly because the ICE may be broken.
 
-      if (ice.interactive_mode.eqv(meevax::kernel::t))
+      if (ice.interactive())
       {
         continue;
       }

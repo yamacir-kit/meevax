@@ -22,10 +22,10 @@ namespace meevax::kernel
     explicit writer()
     {}
 
-    IMPORT_CONST(SK, debugging);
-    IMPORT_CONST(SK, interactive);
-    IMPORT_CONST(SK, quiet);
-    IMPORT_CONST(SK, verbose);
+    Import_Const(SK, debugging);
+    Import_Const(SK, interactive);
+    Import_Const(SK, quiet);
+    Import_Const(SK, verbose);
 
   public:
     template <typename... Ts>

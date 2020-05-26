@@ -146,8 +146,8 @@ namespace meevax::kernel
         std::cin.rdbuf());
     }
 
-    IMPORT(SK, evaluate)
-    IMPORT(SK, intern)
+    Import(SK, evaluate);
+    Import(SK, intern);
 
     using seeker
       = std::istream_iterator<std::istream::char_type>;

@@ -13,7 +13,7 @@
 #include <meevax/numerical/exact.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
-#include <meevax/utility/import.hpp>
+#include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
 
