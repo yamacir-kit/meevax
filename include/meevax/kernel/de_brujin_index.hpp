@@ -16,7 +16,7 @@ namespace meevax::kernel
 
     template <typename... Ts>
     explicit de_bruijn_index(Ts&&... operands)
-      : object {lookup(std::forward<decltype(operands)>(operands)...)}
+      : object { lookup(std::forward<decltype(operands)>(operands)...) }
     {}
 
     const object

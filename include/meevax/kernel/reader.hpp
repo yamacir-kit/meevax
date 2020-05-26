@@ -17,6 +17,7 @@
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
+#include <meevax/utility/perfect_forward.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -138,15 +139,15 @@ namespace meevax::kernel
   {
     friend SK;
 
-    reader()
+    explicit reader()
       : sources {}
     {
       sources.emplace(
         std::cin.rdbuf());
     }
 
-    IMPORT(SK, evaluate)
-    IMPORT(SK, intern)
+    Import(SK, evaluate);
+    Import(SK, intern);
 
     using seeker
       = std::istream_iterator<std::istream::char_type>;
@@ -312,21 +313,8 @@ namespace meevax::kernel
     }
 
   public:
-    template <typename... Ts>
-    auto open_input_file(Ts&&... xs) const
-    {
-      return
-        std::ifstream(
-          std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
-    auto open_input_string(Ts&&... xs) const
-    {
-      return
-        std::stringstream( // NOTE: putback(c)
-          std::forward<decltype(xs)>(xs)...);
-    }
+    Static_Perfect_Forward(open_input_file, std::ifstream);
+    Static_Perfect_Forward(open_input_string, std::stringstream);
 
   private:
     const object discriminate(std::istream& is)

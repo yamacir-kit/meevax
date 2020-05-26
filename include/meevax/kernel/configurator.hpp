@@ -6,114 +6,153 @@
 #include <boost/cstdlib.hpp>
 
 #include <meevax/kernel/feature.hpp>
-#include <meevax/kernel/port.hpp> // TODO REMOVE!!!
+#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax::kernel
 {
-  // TODO Move to miscellaneous.hpp
-  void display_title(const version& v)
-  {           // ";       10        20        30        40        50        60        70        80\n"
-    std::cout << "; Meevax Lisp System " << v.major << " - Revision " << v.minor << " Patch " << v.patch << "\n"
-                 ";                                                                               \n";
-  }
-
-  void display_abstract()
-  {           // ";       10        20        30        40        50        60        70        80\n"
-    std::cout << "; Abstract:                                                                     \n"
-                 ";   ICE is incremental compiler/evaluator of Lisp-1 programming language Meevax.\n"
-                 ";                                                                               \n";
-  }
-
   template <typename SK>
-  struct configurator
+  class configurator
   {
-    // static inline const auto install_prefix {make<path>("/usr/local")};
+    friend SK;
 
-    static inline const version current_version {};
-    static inline const feature current_feature {};
-
-    // TODO Generate from CMakeLists.txt
-    // static inline const std::string program_name {"ice"};
-
-    object interactive {f};
-    object trace       {f};
-    object verbose     {f};
-
-    object ports       {unit};
-    object variable    {unit};
-
-    /* =========================================================================
-    *
-    * NOTE
-    *   explicit configurator() = default;
-    *   causes segmentation fault on access above variables.
-    *
-    *======================================================================== */
     explicit configurator()
     {}
 
+    Import_Const(SK, current_verbose_port);
+    Import_Const(SK, write);
+    Import_Const(SK, write_to);
+
+    object debug_mode       { f };
+    object interactive_mode { f };
+    object quiet_mode       { f };
+    object verbose_mode     { f };
+
   public:
-    static PROCEDURE(display_version)
-    {           // "        10        20        30        40        50        60        70        80\n"
-      display_title(current_version);
+    static inline const version current_version {};
+    static inline const feature current_feature {};
 
-      std::cout << "; version"   "\t; " << current_version.semantic                             << "\n"
-                   "; license"   "\t; unspecified (All rights reserved)"                           "\n"
-                   ";"                                                                             "\n"
-                   "; compiled"  "\t; " << current_feature.date                                 << "\n"
-                   "; configuration ; " << current_feature.type                                 << "\n"
-                   "; commit"    "\t; " << current_feature.commit                               << "\n"
-                   ";"                                                                             "\n"
-                   "; feature"   "\t; " << current_feature                                      << "\n";
+    object trace { f };
 
-      return std::exit(boost::exit_success), unspecified;
+    object paths    { unit };
+    object variable { unit };
+
+    auto debugging() const
+    {
+      return debug_mode.as<boolean>().value;
     }
 
-    static PROCEDURE(display_help)
-    {           // "        10        20        30        40        50        60        70        80\n"
+    auto interactive() const
+    {
+      return interactive_mode.as<boolean>().value;
+    }
+
+    auto quiet() const
+    {
+      return quiet_mode.as<boolean>().value;
+    }
+
+    auto verbose() const
+    {
+      return verbose_mode.as<boolean>().value;
+    }
+
+  public:
+    void display_title(const version& v) const
+    {
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; Meevax Lisp System ", v.major(), " - Revision ", v.minor(), " Patch ", v.patch(), "\n"
+        ";                                                                               \n");
+    }
+
+    void display_abstract() const
+    {
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; Abstract:                                                                     \n"
+        ";   ICE is Incremental Compiler/Evaluator of Lisp-1 programming language Meevax.\n"
+        ";                                                                               \n");
+    }
+
+    auto display_version() const -> const auto&
+    {
+      display_title(current_version);
+
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; version               ; ", current_version.semantic(),                       "\n"
+        );
+
+      write_to(current_verbose_port(),
+        "; license               ; ", unspecified,                                      "\n"
+        ";\n"
+        "; build-date            ; ", current_feature.build_date(),                     "\n"
+        "; build-hash            ; ", current_feature.build_hash(),                     "\n"
+        "; build-type            ; ", current_feature.build_type(),                     "\n"
+        ";\n"
+        "; cxx-compiler          ; ", current_feature.cxx_compiler(),                   "\n"
+        "; cxx-flags             ; ", current_feature.cxx_flags(),                      "\n"
+        "; cxx-standard          ; ", current_feature.cxx_standard(),                   "\n"
+        ";\n"
+        "; system-processor      ; ", current_feature.system_processor(),               "\n"
+        "; system-name           ; ", current_feature.system_name(),                    "\n"
+        ";\n"
+        "; install-prefix        ; ", current_feature.install_prefix(),                 "\n"
+        ";\n"
+        "; libraries             ; ", current_version.libraries(),                      "\n"
+        ";\n"
+        );
+
+      write(
+        "; feature               ; ", current_feature, "\n"
+        );
+
+      return unspecified;
+    }
+
+    auto display_help() const -> const auto&
+    {
       display_title(current_version);
 
       display_abstract();
 
-      std::cout << "; Usage: ice [option]... [file]...                                              \n"
-                   ";                                                                               \n"
-                   "; Operation mode:                                                               \n"
-                   ";   -f, --file=FILE           Specify the file to be executed. If this option is\n"
-                   ";                             used multiple times, the specified files will be  \n"
-                   ";                             executed sequentially from left to right. Anything\n"
-                   ";                             that is not an option name or option argument is  \n"
-                   ";                             implicitly treated as an argument for this option.\n"
-                   ";   -i, --interactive         Take over the control of root syntactic           \n"
-                   ";                             continuation interactively after processing given \n"
-                   ";                             <file>s.                                          \n"
-                   ";   -q, --quiet               Suppress any output except side-effect of user's  \n"
-                   ";                             explicit use of primitive procedure 'write'.      \n"
-                   ";                                                                               \n"
-                   "; Tools:                                                                        \n"
-                   ";       --echo=EXPRESSION     Read an expression, construct an object from it,  \n"
-                   ";                             and display its external representation. Note that\n"
-                   ";                             the expression is parsed once by the shell before \n"
-                   ";                             it is read. This output is useful to see what     \n"
-                   ";                             objects the --evaluate option accepts.            \n"
-                   ";   -e, --evaluate=EXPRESSION Read an expression, construct an object from it,  \n"
-                   ";                             compile and execute it, and then display external \n"
-                   ";                             representation of the result.                     \n"
-                   ";                                                                               \n"
-                   "; Debug:                                                                        \n"
-                   ";       --trace               Display stacks of virtual machine on each         \n"
-                   ";                             execution step.                                   \n"
-                   ";       --verbose             Report the details of lexical parsing,            \n"
-                   ";                             compilation, virtual machine execution to         \n"
-                   ";                             standard-error.                                   \n"
-                   ";                                                                               \n"
-                   "; Miscellaneous:                                                                \n"
-                   ";   -h, --help                Display version information and exit.             \n"
-                   ";   -v, --version             Display this help message and exit.               \n"
-                   ";                                                                               \n";
+      write( //  10        20        30        40        50        60        70        80\n"
+        "; Usage: ice [option]... [file]...                                              \n"
+        ";                                                                               \n"
+        "; Operation mode:                                                               \n"
+        ";   -f, --file=FILE           Specify the file to be executed. If this option is\n"
+        ";                             used multiple times, the specified files will be  \n"
+        ";                             executed sequentially from left to right. Anything\n"
+        ";                             that is not an option name or option argument is  \n"
+        ";                             implicitly treated as an argument for this option.\n"
+        ";   -i, --interactive         Take over the control of root syntactic           \n"
+        ";                             continuation interactively after processing given \n"
+        ";                             <file>s.                                          \n"
+        ";   -q, --quiet               Suppress any output except side-effect of user's  \n"
+        ";                             explicit use of primitive procedure 'write'.      \n"
+        ";                                                                               \n"
+        "; Tools:                                                                        \n"
+        ";       --echo=EXPRESSION     Read an expression, construct an object from it,  \n"
+        ";                             and display its external representation. Note that\n"
+        ";                             the expression is parsed once by the shell before \n"
+        ";                             it is read. This output is useful to see what     \n"
+        ";                             objects the --evaluate option accepts.            \n"
+        ";   -e, --evaluate=EXPRESSION Read an expression, construct an object from it,  \n"
+        ";                             compile and execute it, and then display external \n"
+        ";                             representation of the result.                     \n"
+        ";                                                                               \n"
+        "; Debug:                                                                        \n"
+        ";       --trace               Display stacks of virtual machine on each         \n"
+        ";                             execution step.                                   \n"
+        ";       --verbose             Report the details of lexical parsing,            \n"
+        ";                             compilation, virtual machine execution to         \n"
+        ";                             standard-error.                                   \n"
+        ";                                                                               \n"
+        "; Miscellaneous:                                                                \n"
+        ";   -h, --help                Display version information and exit.             \n"
+        ";   -v, --version             Display this help message and exit.               \n"
+        ";                                                                               \n");
 
-      return std::exit(boost::exit_success), unspecified;
+      return unspecified;
     }
 
   public:
@@ -128,25 +167,30 @@ namespace meevax::kernel
     {
       std::make_pair('d', [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debugging = t;
+        return static_cast<SK&>(*this).debug_mode = t;
       }),
 
-      std::make_pair('h', display_help),
+      std::make_pair('h', [this](auto&&...)
+      {
+        display_help();
+        return std::exit(boost::exit_success), unspecified;
+      }),
 
       std::make_pair('i', [this](auto&&...) mutable
       {
-        std::cout << "; configure\t; interactive mode "
-                  << interactive << " => " << (interactive = t)
-                  << std::endl;
-        return unspecified;
+        return interactive_mode = t;
       }),
 
       std::make_pair('q', [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).quiet = t;
+        return static_cast<SK&>(*this).quiet_mode = t;
       }),
 
-      std::make_pair('v', display_version),
+      std::make_pair('v', [this](auto&&...)
+      {
+        display_version();
+        return std::exit(boost::exit_success), unspecified;
+      }),
     };
 
     const dispatcher<char> short_options_
@@ -163,7 +207,7 @@ namespace meevax::kernel
       {
         if (s.is<symbol>())
         {
-          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+          return paths = cons(make<path>(s.as<const std::string>()), paths);
         }
         else
         {
@@ -176,25 +220,26 @@ namespace meevax::kernel
     {
       std::make_pair("debug", [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debugging = t;
+        return static_cast<SK&>(*this).debug_mode = t;
       }),
 
-      std::make_pair("help", display_help),
+      std::make_pair("help", [this](auto&&...)
+      {
+        display_help();
+        return std::exit(boost::exit_success), unspecified;
+      }),
 
       std::make_pair("interactive", [this](auto&&...) mutable
       {
-        std::cout << "; configure\t; interactive mode "
-                  << interactive << " => " << (interactive = t)
-                  << std::endl;
-        return unspecified;
+        return interactive_mode = t;
       }),
-
-      // TODO DEFINE_LONG_ENABLER
 
       std::make_pair("quiet", [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).quiet = t;
+        return static_cast<SK&>(*this).quiet_mode = t;
       }),
+
+      // TODO --srfi=0,1,2
 
       std::make_pair("trace", [this](auto&&...) mutable
       {
@@ -203,10 +248,14 @@ namespace meevax::kernel
 
       std::make_pair("verbose", [this](auto&&...) mutable
       {
-        return verbose = t;
+        return static_cast<SK&>(*this).verbose_mode = t;
       }),
 
-      std::make_pair("version", display_version),
+      std::make_pair("version", [this](auto&&...)
+      {
+        display_version();
+        return std::exit(boost::exit_success), unspecified;
+      }),
     };
 
     const dispatcher<std::string> long_options_
@@ -229,7 +278,7 @@ namespace meevax::kernel
       {
         if (s.is<symbol>())
         {
-          return ports = cons(make<input_port>(s.as<const std::string>()), ports);
+          return paths = cons(make<path>(s.as<const std::string>()), paths);
         }
         else
         {
@@ -262,6 +311,11 @@ namespace meevax::kernel
     void operator()(const std::vector<std::string>& args)
     {
       static const std::regex pattern {"--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)"};
+
+      if (std::empty(args))
+      {
+        interactive_mode = t;
+      }
 
       for (auto option {std::begin(args)}; option != std::end(args); ++option) [&]()
       {
@@ -335,14 +389,20 @@ namespace meevax::kernel
         }
         else
         {
-          ports = cons(make<input_port>(*option), ports);
+          paths = cons(make<path>(*option), paths);
         }
 
         return unspecified;
       }();
 
-      ports = reverse(ports);
-      // std::cerr << "; configure\t; ports are " << ports << std::endl;
+      paths = reverse(paths);
+
+      static const auto rc { path(::getenv("HOME")) / ".meevaxrc" };
+
+      if (interactive() and std::experimental::filesystem::exists(rc))
+      {
+        paths = cons(make<path>(rc), paths);
+      }
     }
   };
 } // namespace meevax::kernel

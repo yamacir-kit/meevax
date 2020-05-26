@@ -65,7 +65,7 @@ do
       ;;
 
     -v | --valgrind )
-      valgrind="valgrind --leak-check=full --log-file=$repository/build/valgrind.cpp"
+      valgrind="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/valgrind.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
       shift
       ;;
@@ -190,7 +190,7 @@ then
   echo "
 ; ==== Test ====================================================================
 ;
-; command = $command < $repository/test.obsoleted/test.scm
+; command = $command $repository/test.obsoleted/test.scm
 ;"
 
   count 5
@@ -198,6 +198,6 @@ then
   echo ";
 ; ==============================================================================
 "
-  $command < "$repository/test.obsoleted/test.scm"
+  $command "$repository/test.obsoleted/test.scm"
 fi
 

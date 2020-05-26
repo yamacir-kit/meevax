@@ -27,7 +27,6 @@ set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON " \
   -fdata-sections \
   -ffunction-sections \
   -flto \
-  -fno-math-errno \
   -fsized-deallocation \
   -march=native \
   -mtune=native \
@@ -48,11 +47,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     -Wno-return-type-c-linkage \
     -faligned-allocation \
     -fdouble-square-bracket-attributes \
-    -fno-gnu-inline-asm \
-    -fno-gnu-keywords \
     -frelaxed-template-template-args \
-    -fstrict-vtable-pointers \
-    -funit-at-a-time \
     ")
 else()
   set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS "")
@@ -64,7 +59,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
+set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS} \
@@ -102,9 +97,9 @@ message(STATUS "Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_
 # ==============================================================================
 #   Configure README
 # ==============================================================================
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
 
@@ -122,15 +117,15 @@ else()
   set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/feature.hpp)
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp.cmake)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
@@ -164,6 +159,7 @@ target_link_libraries(${PROJECT_NAME}
     gmp
     m
     mpfr
+    pthread
     stdc++fs
   )
 

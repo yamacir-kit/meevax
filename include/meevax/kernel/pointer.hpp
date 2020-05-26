@@ -10,19 +10,15 @@
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/console/escape_sequence.hpp>
+#include <meevax/numerical/exact.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
-#include <meevax/utility/import.hpp>
+#include <meevax/utility/module.hpp>
+#include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
 
 namespace meevax::kernel
 {
-  template <typename T>
-  inline constexpr T log2(const T& k) noexcept
-  {
-    return (k < 2) ? 0 : 1 + log2(k / 2);
-  }
-
   /* ==== Linux 64 Bit Address Space ==========================================
   *
   * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
@@ -98,15 +94,11 @@ namespace meevax::kernel
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
   }
 
-  template <typename... Ts>
-  inline constexpr bool is_tagged(Ts&&... operands) noexcept
-  {
-    return category_of(std::forward<decltype(operands)>(operands)...);
-  }
+  Static_Perfect_Forward(is_tagged, category_of);
 
   template <typename T>
   using precision
-    = std::integral_constant<std::uintptr_t, log2(sizeof(T) * 8)>;
+    = std::integral_constant<std::uintptr_t, numerical::exact::log2(sizeof(T) * 8)>;
 
   constexpr std::uintptr_t precision_mask {0xF0};
   constexpr auto           precision_mask_width {4}; // XXX calculate from word size
@@ -494,8 +486,11 @@ namespace meevax::kernel
       }
     }
 
+    // NOTE: Can't compile with less than GCC-9 due to a bug in the compiler.
+    // Immutable_Perfect_Forward(eqv, equivalent_to);
+
     template <typename... Ts>
-    auto eqv(Ts&&... xs) const
+    constexpr auto eqv(Ts&&... xs) const
       -> decltype(auto)
     {
       return

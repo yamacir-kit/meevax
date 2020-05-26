@@ -1,12 +1,16 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
+#include <string_view>
+
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
+
+#include <meevax/kernel/port.hpp>
 
 /* ==== Embedded Source Codes ==================================================
 *
@@ -18,6 +22,12 @@
 *============================================================================ */
 extern char _binary_overture_ss_start;
 extern char _binary_overture_ss_end;
+
+static const std::string_view overture
+{
+  &_binary_overture_ss_start,
+  static_cast<std::size_t>(&_binary_overture_ss_end - &_binary_overture_ss_start)
+};
 
 namespace meevax::kernel
 {
@@ -93,16 +103,24 @@ namespace meevax::kernel
 
     [[deprecated]] bool virgin {true};
 
-    std::size_t experience {0};
+    std::size_t experience {0}; // Rename to "generation"
 
     // CRTP Import from Below
     using writer::current_debug_port;
     using writer::current_error_port;
+    using writer::current_interaction_port;
+    using writer::current_verbose_port;
+    using writer::write;
     using writer::write_to;
 
     using debugger::debug;
     using debugger::header;
     using debugger::indent;
+
+    using configurator::debugging;
+    using configurator::interactive;
+    using configurator::quiet;
+    using configurator::verbose;
 
   public: // Accessors
     const auto& program() const
@@ -238,7 +256,7 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        if (verbose.equivalent_to(t))
+        if (verbose_mode.equivalent_to(t))
         {
           std::cerr << "; package\t; renamer ignored non-symbol object "
                     << object
@@ -253,7 +271,7 @@ namespace meevax::kernel
           object.as<const std::string>() + "." + std::to_string(experience)
         };
 
-        if (verbose.equivalent_to(t))
+        if (verbose_mode.equivalent_to(t))
         {
           std::cerr << "; package\t; renaming \"" << object << "\" to \"" << name << "\"" << std::endl;
           // std::cerr << "; package\t; renaming " << object << std::endl;
@@ -308,34 +326,29 @@ namespace meevax::kernel
             interaction_environment()));
     }
 
-    template <typename... Ts>
-    decltype(auto) load(Ts&&... operands)
+    auto load(const path& path_to_source) -> const auto&
     {
-      const std::string path {std::forward<decltype(operands)>(operands)...};
+      write_to(current_debug_port(),
+        header("loader"), "open ", path_to_source, " => ");
 
-      if (verbose.equivalent_to(t))
+      if (auto port {open_input_file(path_to_source.c_str())}; port)
       {
-        std::cerr << "; loader\t; open \"" << path << "\" => ";
-      }
+        write_to(current_debug_port(), t, "\n");
 
-      if (std::fstream stream {path}; stream)
-      {
-        if (verbose.equivalent_to(t))
+        // push(d, s, e, c);
+        // s = e = c = unit;
+
+        push(d,
+          std::atomic_exchange(&s, unit),
+          std::atomic_exchange(&e, unit),
+          std::atomic_exchange(&c, unit));
+
+        for (auto expression {read(port)}; expression != eof_object; expression = read(port))
         {
-          std::cerr << "succeeded" << std::endl;
-        }
+          write_to(current_debug_port(),
+            header("loader"), expression, "\n");
 
-        push(d, s, e, c);
-        s = e = c = unit;
-
-        for (auto e {read(stream)}; e != eof_object; e = read(stream))
-        {
-          if (verbose.equivalent_to(t))
-          {
-            std::cerr << "; read\t\t; " << e << std::endl;
-          }
-
-          evaluate(e);
+          evaluate(expression);
         }
 
         s = pop(d);
@@ -346,19 +359,21 @@ namespace meevax::kernel
       }
       else
       {
-        if (verbose.equivalent_to(t))
-        {
-          std::cerr << "failed" << std::endl;
-        }
-
-        throw evaluation_error {"failed to open file ", std::quoted(path)};
+        write_to(current_debug_port(), f, "\n");
+        throw evaluation_error { "failed to open file ", path_to_source.c_str() };
       }
+    }
+
+    // XXX DIRTY HACK
+    decltype(auto) load(const std::string& path_to_source)
+    {
+      return load(path(path_to_source));
     }
 
   public: // Primitive Expression Types
     DEFINE_PRIMITIVE_EXPRESSION(exportation,
     {
-      if (verbose.equivalent_to(t))
+      if (verbose_mode.equivalent_to(t))
       {
         std::cerr
         << (not depth ? "; compile\t; " : ";\t\t; ")
@@ -560,7 +575,7 @@ namespace meevax::kernel
     //           continuation)));
     // });
 
-    define<procedure>("features", [this](auto&&...)             // (scheme base)
+    define<procedure>("features", [](auto&&...)                 // (scheme base)
     {
       return current_feature;
     });
@@ -594,31 +609,23 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    static const std::string overture
-    {
-      &_binary_overture_ss_start,
-      &_binary_overture_ss_end
-    };
-
-    std::stringstream stream {overture};
+    auto port { open_input_string(overture.data()) };
 
     std::size_t counts {0};
 
-    for (auto e {read(stream)}; e != eof_object; e = read(stream))
+    for (auto e {read(port)}; e != eof_object; e = read(port))
     {
-      std::cerr << "; layer-1\t; "
-                << counts++
-                << " expression loaded"
-                << std::endl;
+      // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
+      write_to(current_debug_port(),
+        "\r\x1B[K", header("overture"), counts++, ": ", car(interaction_environment()));
+
+      current_interaction_port() << std::flush;
 
       evaluate(e);
-
-      static constexpr auto cursor_up {"\x1b[1A"};
-
-      std::cerr << cursor_up << "\r\x1b[K" << std::flush;
     }
 
-    std::cerr << std::endl;
+    // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
+    write_to(current_debug_port(), "\n\n");
   }
 
   #undef DEFINE_SYNTAX
@@ -626,16 +633,14 @@ namespace meevax::kernel
   #undef DEFINE_PROCEDURE_S
 
   template <>
-  syntactic_continuation::syntactic_continuation(
-    std::integral_constant<decltype(1), 1>)
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(1), 1>)
     : syntactic_continuation::syntactic_continuation {}
   {
     boot(layer<1>);
   }
 
   template <auto N>
-  syntactic_continuation::syntactic_continuation(
-    std::integral_constant<decltype(N), N>)
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
     : syntactic_continuation::syntactic_continuation {layer<N - 1>}
   {
     boot(layer<N>);
