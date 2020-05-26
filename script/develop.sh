@@ -185,12 +185,12 @@ count()
 
 if test "$execute" -ne 0
 then
-  command="$valgrind $repository/build/bin/ice --verbose --debug --interactive"
+  command="$valgrind $repository/build/bin/ice --verbose --debug"
 
   echo "
 ; ==== Test ====================================================================
 ;
-; command = $command < $repository/test.obsoleted/test.scm
+; command = $command $repository/test.obsoleted/test.scm
 ;"
 
   count 5
@@ -198,6 +198,6 @@ then
   echo ";
 ; ==============================================================================
 "
-  $command < "$repository/test.obsoleted/test.scm"
+  $command "$repository/test.obsoleted/test.scm"
 fi
 

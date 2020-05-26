@@ -10,20 +10,13 @@ int main(const int argc, char const* const* const argv) try
 
   ice.configure(argc, argv);
 
-  for (const auto& pathname : ice.paths)
+  for (const auto& each : ice.paths)
   {
     ice.write_to(
       ice.current_debug_port(),
-      ice.header("pathname"), pathname, "\n");
+      ice.header("overture"), "load ", each, "\n");
 
-    const auto port {
-      make<input_port>(
-        pathname.as<meevax::kernel::path>())
-    };
-
-    ice.write_to(
-      ice.current_debug_port(),
-      ice.header("input-port"), port, "\n");
+    ice.load(each.as<path>());
   }
 
   if (ice.interactive_mode.eqv(meevax::kernel::t))

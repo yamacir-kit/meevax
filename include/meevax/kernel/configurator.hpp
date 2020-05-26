@@ -378,7 +378,7 @@ namespace meevax::kernel
       {
         paths
           = cons(
-              make<path>(std::string(::getenv("HOME")) + "/.mvxrc"),
+              make<path>(std::string(::getenv("HOME")) + "/.meevaxrc"),
               paths);
       }
     }

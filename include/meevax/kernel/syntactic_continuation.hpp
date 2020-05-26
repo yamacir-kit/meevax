@@ -323,25 +323,29 @@ namespace meevax::kernel
             interaction_environment()));
     }
 
-    template <typename... Ts>
-    decltype(auto) load(Ts&&... operands)
+    auto load(const path& path_to_source) -> const auto&
     {
-      const std::string pathname {std::forward<decltype(operands)>(operands)...};
-
       write_to(current_debug_port(),
-        header("loader"), "open \"", pathname, "\" => ");
+        header("loader"), "open ", path_to_source, " => ");
 
-      if (std::fstream stream {pathname}; stream)
+      if (auto port {open_input_file(path_to_source.c_str())}; port)
       {
-        write_to(current_debug_port(), "succeeded\n");
+        write_to(current_debug_port(), t, "\n");
 
-        push(d, s, e, c);
-        s = e = c = unit;
+        // push(d, s, e, c);
+        // s = e = c = unit;
 
-        for (auto e {read(stream)}; e != eof_object; e = read(stream))
+        push(d,
+          std::atomic_exchange(&s, unit),
+          std::atomic_exchange(&e, unit),
+          std::atomic_exchange(&c, unit));
+
+        for (auto expression {read(port)}; expression != eof_object; expression = read(port))
         {
-          write_to(current_debug_port(), header("read"), e, "\n");
-          evaluate(e);
+          write_to(current_debug_port(),
+            header("loader"), expression, "\n");
+
+          evaluate(expression);
         }
 
         s = pop(d);
@@ -352,9 +356,15 @@ namespace meevax::kernel
       }
       else
       {
-        write_to(current_debug_port(), "failed\n");
-        throw evaluation_error {"failed to open file ", std::quoted(pathname)};
+        write_to(current_debug_port(), f, "\n");
+        throw evaluation_error {"failed to open file ", std::quoted(path_to_source.c_str())};
       }
+    }
+
+    // XXX DIRTY HACK
+    decltype(auto) load(const std::string& path_to_source)
+    {
+      return load(path(path_to_source));
     }
 
   public: // Primitive Expression Types
