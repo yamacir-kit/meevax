@@ -374,12 +374,11 @@ namespace meevax::kernel
 
       paths = reverse(paths);
 
-      if (interactive())
+      static const auto rc { path(::getenv("HOME")) / ".meevaxrc" };
+
+      if (interactive() and std::experimental::filesystem::exists(rc))
       {
-        paths
-          = cons(
-              make<path>(std::string(::getenv("HOME")) + "/.meevaxrc"),
-              paths);
+        paths = cons(make<path>(rc), paths);
       }
     }
   };
