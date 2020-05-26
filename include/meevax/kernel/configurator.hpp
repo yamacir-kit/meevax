@@ -45,7 +45,7 @@ namespace meevax::kernel
 
     auto interactive() const
     {
-      return interactive_mode.as<boolean>().value or not paths;
+      return interactive_mode.as<boolean>().value;
     }
 
     auto quiet() const
@@ -311,6 +311,11 @@ namespace meevax::kernel
     void operator()(const std::vector<std::string>& args)
     {
       static const std::regex pattern {"--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)"};
+
+      if (std::empty(args))
+      {
+        interactive_mode = t;
+      }
 
       for (auto option {std::begin(args)}; option != std::end(args); ++option) [&]()
       {

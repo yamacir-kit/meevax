@@ -360,7 +360,7 @@ namespace meevax::kernel
       else
       {
         write_to(current_debug_port(), f, "\n");
-        throw evaluation_error {"failed to open file ", std::quoted(path_to_source.c_str())};
+        throw evaluation_error { "failed to open file ", path_to_source.c_str() };
       }
     }
 
