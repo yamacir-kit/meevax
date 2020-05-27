@@ -27,13 +27,12 @@ namespace meevax::kernel
     object debug_mode       { f };
     object interactive_mode { f };
     object quiet_mode       { f };
+    object trace_mode       { f };
     object verbose_mode     { f };
 
   public:
     static inline const version current_version {};
     static inline const feature current_feature {};
-
-    object trace { f };
 
     object paths    { unit };
     object variable { unit };
@@ -51,6 +50,11 @@ namespace meevax::kernel
     auto quiet() const
     {
       return quiet_mode.as<boolean>().value;
+    }
+
+    auto tracing() const
+    {
+      return trace_mode.as<boolean>().value;
     }
 
     auto verbose() const
@@ -240,10 +244,11 @@ namespace meevax::kernel
       }),
 
       // TODO --srfi=0,1,2
+      // TODO --reviced=4,5,7
 
       std::make_pair("trace", [this](auto&&...) mutable
       {
-        return trace = t;
+        return trace_mode = t;
       }),
 
       std::make_pair("verbose", [this](auto&&...) mutable

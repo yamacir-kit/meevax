@@ -6,11 +6,11 @@
 namespace meevax::kernel
 {
   template <typename T, typename... Ts>
-  inline decltype(auto) push(T&& stack, Ts&&... operands)
+  inline decltype(auto) push(T&& stack, Ts&&... xs)
   {
     const auto buffer {
       cons(
-        std::forward<decltype(operands)>(operands)...,
+        std::forward<decltype(xs)>(xs)...,
         stack)
     };
 

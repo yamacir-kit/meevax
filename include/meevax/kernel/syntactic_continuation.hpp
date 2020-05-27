@@ -120,6 +120,7 @@ namespace meevax::kernel
     using configurator::debugging;
     using configurator::interactive;
     using configurator::quiet;
+    using configurator::tracing;
     using configurator::verbose;
 
   public: // Accessors
@@ -371,7 +372,7 @@ namespace meevax::kernel
     }
 
   public: // Primitive Expression Types
-    DEFINE_PRIMITIVE_EXPRESSION(exportation,
+    DEFINE_PRIMITIVE_EXPRESSION(exportation)
     {
       if (verbose_mode.equivalent_to(t))
       {
@@ -411,9 +412,9 @@ namespace meevax::kernel
           make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("exportation", exportation),
           make<instruction>(mnemonic::CALL),
           continuation);
-    })
+    }
 
-    DEFINE_PRIMITIVE_EXPRESSION(importation,
+    DEFINE_PRIMITIVE_EXPRESSION(importation)
     {
       auto importation = [&](auto&&, const object& operands)
       {
@@ -446,7 +447,7 @@ namespace meevax::kernel
             make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
             make<instruction>(mnemonic::CALL),
             continuation));
-    })
+    }
 
   public:
     friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)

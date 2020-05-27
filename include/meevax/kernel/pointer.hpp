@@ -261,7 +261,7 @@ namespace meevax::kernel
       {
         if (std::shared_ptr<T>::unique())
         {
-          // std::cerr << "; pointer\t; deallocating " << *this << std::endl;
+          // std::cerr << "; pointer\t; deallocating " << *this << "\n";
         }
       }
     }
