@@ -20,15 +20,15 @@ namespace meevax::kernel
     machine()
     {}
 
-    Import(SK, current_debug_port);
-    Import(SK, current_error_port);
     Import(SK, debug);
-    Import(SK, header);
     Import(SK, indent);
     Import(SK, interaction_environment);
     Import(SK, intern);
     Import(SK, rename);
-    Import(SK, write_to);
+    Import_Const(SK, current_debug_port);
+    Import_Const(SK, current_error_port);
+    Import_Const(SK, header);
+    Import_Const(SK, write_to);
 
   protected:
     object s, // Stack (holding intermediate results and return address)
