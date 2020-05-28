@@ -16,7 +16,7 @@
 *   - eq?                              => object::operator ==
 *   - eqv?                             => object::equivalent_to
 *   - euqal?                           => recursively_equivalent
-*   - list=
+*   - list?
 *   - not-pair?
 *   - null-list?
 *   - null?                            => object::operator bool

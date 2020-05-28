@@ -38,8 +38,8 @@ namespace meevax::kernel
   * Layer 2 - Derived Expression Types and Standard Procedures
   *
   * ========================================================================= */
-  template <int Layer>
-  static constexpr std::integral_constant<int, Layer> layer {};
+  template <auto N>
+  static constexpr std::integral_constant<decltype(N), N> layer {};
 
   /* ==== Syntactic Continuation (SK) ==========================================
   *
@@ -189,12 +189,8 @@ namespace meevax::kernel
     explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
 
     template <auto N>
-    void boot(std::integral_constant<decltype(N), N>);
-
-    // template <auto N>
-    // void boot_up_to(std::integral_constant<decltype(N), N>)
-    // {
-    // }
+    void boot(std::integral_constant<decltype(N), N>)
+    {}
 
   public: // Interfaces
     const auto& intern(const std::string& s)
@@ -634,15 +630,13 @@ namespace meevax::kernel
   #undef DEFINE_PROCEDURE_S
 
   template <>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(1), 1>)
-    : syntactic_continuation::syntactic_continuation {}
-  {
-    boot(layer<1>);
-  }
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(0), 0>)
+    : syntactic_continuation::syntactic_continuation {} // boots layer<0>
+  {}
 
   template <auto N>
   syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
-    : syntactic_continuation::syntactic_continuation {layer<N - 1>}
+    : syntactic_continuation::syntactic_continuation { layer<N - 1> }
   {
     boot(layer<N>);
   }
