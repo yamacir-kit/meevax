@@ -3,12 +3,12 @@
 working_directory=$(pwd -P)
 repository="$(git rev-parse --show-toplevel)"
 
-compile='g++-7'
-execute=0
-valgrind=''
-process=1
-purpose='Debug'
 clean_build=0
+compile='g++-7'
+job=1
+purpose='Debug'
+autotest=0
+valgrind=''
 
 echo "
 ; ==== Overview ================================================================
@@ -46,12 +46,6 @@ do
       shift
       ;;
 
-    -e | --execute )
-      execute=1
-      printf ';   execute\t= %s\n' "$execute"
-      shift
-      ;;
-
     --file=* )
       file="${each#*=}"
       printf ';   file\t= %s\n' "$file"
@@ -64,37 +58,43 @@ do
       shift
       ;;
 
+    -j* )
+      job="${each#*j}"
+      printf ';   job\t= %s' "$job"
+
+      if test "$job" = "0"
+      then
+        job="$(nproc --all)"
+        printf ' => %s' "$job"
+      fi
+
+      echo
+      shift
+      ;;
+
+    --job=* )
+      job="${each#*=}"
+      printf ';   job\t= %s' "$job"
+
+      if test "$job" = "auto" -o "$job" = "0"
+      then
+        job="$(nproc --all)"
+        printf ' => %s' "$job"
+      fi
+
+      echo
+      shift
+      ;;
+
+    -t | --test )
+      autotest=1
+      printf ';   auto-test\t= %s\n' "$autotest"
+      shift
+      ;;
+
     -v | --valgrind )
       valgrind="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/full-test.leak-check.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
-      shift
-      ;;
-
-    -j* )
-      process="${each#*j}"
-      printf ';   process\t= %s' "$process"
-
-      if test "$process" = "0"
-      then
-        process="$(nproc --all)"
-        printf ' => %s' "$process"
-      fi
-
-      echo
-      shift
-      ;;
-
-    --process=* )
-      process="${each#*=}"
-      printf ';   process\t= %s' "$process"
-
-      if test "$process" = "auto"
-      then
-        process="$(nproc --all)"
-        printf ' => %s' "$process"
-      fi
-
-      echo
       shift
       ;;
 
@@ -155,12 +155,12 @@ build()
 ; ==== Make ====================================================================
 ;
 ; Command
-;   make -j$process
+;   make -j$job
 ;
 ; ==============================================================================
 "
 
-  make -j"$process"
+  make -j"$job"
 }
 
 if test "$clean_build" -ne 0
@@ -183,9 +183,9 @@ count()
   printf "\n"
 }
 
-if test "$execute" -ne 0
+if test "$autotest" -ne 0
 then
-  unit_test="valgrind -v --leak-check=full --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
+  unit_test="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
 
   full_test="$valgrind $repository/build/bin/ice --verbose --debug $repository/test.obsoleted/test.scm"
 
