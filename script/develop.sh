@@ -65,7 +65,7 @@ do
       ;;
 
     -v | --valgrind )
-      valgrind="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/valgrind.cpp"
+      valgrind="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/full-test.leak-check.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
       shift
       ;;
@@ -185,12 +185,18 @@ count()
 
 if test "$execute" -ne 0
 then
-  command="$valgrind $repository/build/bin/ice --verbose --debug"
+  unit_test="valgrind -v --leak-check=full --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
+
+  full_test="$valgrind $repository/build/bin/ice --verbose --debug $repository/test.obsoleted/test.scm"
 
   echo "
 ; ==== Test ====================================================================
 ;
-; command = $command $repository/test.obsoleted/test.scm
+; Unit Test
+;   $unit_test
+;
+; Full Test
+;   $full_test
 ;"
 
   count 5
@@ -198,6 +204,7 @@ then
   echo ";
 ; ==============================================================================
 "
-  $command "$repository/test.obsoleted/test.scm"
+  $unit_test
+  $full_test
 fi
 
