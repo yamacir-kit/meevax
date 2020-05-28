@@ -8,7 +8,9 @@ compile='g++-7'
 job=1
 purpose='Debug'
 autotest=0
+
 valgrind=''
+valgrind_options='--verbose --leak-check=full --show-leak-kinds=all --error-exitcode=1'
 
 echo "
 ; ==== Overview ================================================================
@@ -93,7 +95,7 @@ do
       ;;
 
     -v | --valgrind )
-      valgrind="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/full-test.leak-check.cpp"
+      valgrind="valgrind $valgrind_options --log-file=$repository/build/full-test.leak-check.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
       shift
       ;;
@@ -185,7 +187,7 @@ count()
 
 if test "$autotest" -ne 0
 then
-  unit_test="valgrind -v --leak-check=full --show-leak-kinds=all --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
+  unit_test="valgrind $valgrind_options --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
 
   full_test="$valgrind $repository/build/bin/ice --verbose --debug $repository/test.obsoleted/test.scm"
 

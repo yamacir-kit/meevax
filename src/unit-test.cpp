@@ -96,6 +96,9 @@ int main(int argc, char** argv)
   //   result = true;
   // });
 
-  return cases == passed;
+  std::cout << "\n"
+            << passed << " of " << cases << " cases passed the unit-test.\n";
+
+  return cases != passed ? boost::exit_failure : boost::exit_success;
 }
 
