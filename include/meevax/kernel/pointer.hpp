@@ -255,16 +255,16 @@ namespace meevax::kernel
     * TODO: Check all of allocated objects are deallocate correctly.
     *
     *======================================================================= */
-    ~pointer()
-    {
-      if (*this)
-      {
-        if (std::shared_ptr<T>::unique())
-        {
-          // std::cerr << "; pointer\t; deallocating " << *this << "\n";
-        }
-      }
-    }
+    // ~pointer()
+    // {
+    //   if (*this)
+    //   {
+    //     if (std::shared_ptr<T>::unique())
+    //     {
+    //       // std::cerr << "; pointer\t; deallocating " << *this << "\n";
+    //     }
+    //   }
+    // }
 
     /* ==== C/C++ Derived Types Bind ==========================================
     *
@@ -277,13 +277,13 @@ namespace meevax::kernel
     template <typename Bound,
               typename... Ts,
               REQUIRES(is_not_embeddable<Bound>)>
-    static pointer make_binding(Ts&&... operands)
+    static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
 
       return
         std::make_shared<binding>(
-          std::forward<decltype(operands)>(operands)...);
+          std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename Bound,
@@ -292,7 +292,7 @@ namespace meevax::kernel
               REQUIRES(is_not_embeddable<Bound>)>
     static pointer allocate_binding(
       MemoryResource&& resource,
-      Ts&&... operands)
+      Ts&&... xs)
     {
       using binding = binder<Bound>;
 
@@ -301,14 +301,10 @@ namespace meevax::kernel
             decltype(resource)
           >::type::template rebind<binding>::other;
 
-      // return
-      //   std::make_shared<binding>(
-      //     std::forward<decltype(operands)>(operands)...);
-
       return
         std::allocate_shared<binding>(
-          binding_allocator {std::forward<decltype(resource)>(resource)},
-          std::forward<decltype(operands)>(operands)...);
+          binding_allocator { std::forward<decltype(resource)>(resource) },
+          std::forward<decltype(xs)>(xs)...);
     }
 
     /* ==== C/C++ Primitive Types Bind ========================================
