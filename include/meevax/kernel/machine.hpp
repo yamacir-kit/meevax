@@ -559,13 +559,13 @@ namespace meevax::kernel
       * => (identifier . S) E                      C  D
       *
       *====================================================================== */
-        if (static_cast<SK&>(*this).virgin)
+        if (0 < static_cast<SK&>(*this).generation)
         {
-          car(s) = define(cadr(c), car(s));
+          std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
         }
         else
         {
-          std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
+          car(s) = define(cadr(c), car(s));
         }
         pop<2>(c);
         goto dispatch;

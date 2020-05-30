@@ -174,7 +174,7 @@ namespace meevax::kernel
     {
       std::string token {};
 
-      for (seeker head {port}; head != seeker {}; ++head) switch (*head)
+      for (seeker head { port }; head != seeker {}; ++head) switch (*head)
       {
       case ';':
         port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');

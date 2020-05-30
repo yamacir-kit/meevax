@@ -101,9 +101,7 @@ namespace meevax::kernel
 
     std::size_t current_layer {0};
 
-    [[deprecated]] bool virgin {true};
-
-    std::size_t experience {0}; // Rename to "generation"
+    std::size_t generation {0};
 
     // CRTP Import from Below
     using writer::current_debug_port;
@@ -265,7 +263,7 @@ namespace meevax::kernel
       else
       {
         const std::string name {
-          object.as<const std::string>() + "." + std::to_string(experience)
+          object.as<const std::string>() + "." + std::to_string(generation)
         };
 
         if (verbose_mode.equivalent_to(t))
@@ -307,8 +305,7 @@ namespace meevax::kernel
       const auto result {execute()};
       // std::cerr << "; \t\t; " << result << std::endl;
 
-      virgin = false;
-      ++experience;
+      ++generation;
 
       return result;
     }
