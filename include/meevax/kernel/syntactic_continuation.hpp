@@ -390,9 +390,8 @@ namespace meevax::kernel
 
         std::cerr << ";\t\t; exported identifiers are" << std::endl;
 
-        for (const auto& [key, value] : external_symbols)
+        for ([[maybe_unused]] const auto& [key, value] : external_symbols)
         {
-          not std::empty(key);
           std::cerr << ";\t\t;   " << value << std::endl;
         }
 
@@ -422,9 +421,8 @@ namespace meevax::kernel
               operands, unit));
         }
 
-        for (const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
+        for ([[maybe_unused]] const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
         {
-          not std::empty(key);
           std::cerr << ";\t\t; importing " << value << std::endl;
         }
 
@@ -490,9 +488,7 @@ namespace meevax::kernel
   #define DEFINE_SYNTAX(NAME, RULE)                                            \
   define<syntax>(NAME, [this](auto&&... xs)                                    \
   {                                                                            \
-    return                                                                     \
-      RULE(                                                                    \
-        std::forward<decltype(xs)>(xs)...);                                    \
+    return RULE(std::forward<decltype(xs)>(xs)...);                            \
   })
 
   #define DEFINE_PROCEDURE_1(NAME, CALLEE)                                     \
@@ -534,19 +530,26 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
-    DEFINE_SYNTAX("begin",     sequence);
-    DEFINE_SYNTAX("define",    definition);
-    DEFINE_SYNTAX("fork",      fork);
-    DEFINE_SYNTAX("if",        conditional);
-    DEFINE_SYNTAX("lambda",    lambda);
-    DEFINE_SYNTAX("quote",     quotation);
+    DEFINE_SYNTAX("begin", sequence);
+    DEFINE_SYNTAX("define", definition);
+    DEFINE_SYNTAX("fork", fork);
+    DEFINE_SYNTAX("if", conditional);
+    DEFINE_SYNTAX("lambda", lambda);
+    DEFINE_SYNTAX("quote", quotation);
     DEFINE_SYNTAX("reference", reference);
-    DEFINE_SYNTAX("set!",      assignment);
+    DEFINE_SYNTAX("set!", assignment);
 
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
 
     DEFINE_PROCEDURE_S("load",   load);
-    DEFINE_PROCEDURE_S("linker", make<linker>);
+    // DEFINE_PROCEDURE_S("linker", make<linker>);
+
+    define<procedure>("linker", [](auto&&, auto&& xs)
+    {
+      return
+        make<linker>(
+          car(xs).template as<const string>());
+    });
 
     // define<syntax>("cons", [this](
     //   auto&& expression,
@@ -576,7 +579,7 @@ namespace meevax::kernel
 
     define<procedure>("procedure", [](auto&&, auto&& operands)
     {
-      const std::string name {cadr(operands).template as<string>()};
+      const std::string name { cadr(operands).template as<string>() };
 
       return
         make<procedure>(
@@ -590,7 +593,8 @@ namespace meevax::kernel
     {
       return
         read(
-          operands ? car(operands).template as<input_port>() : std::cin);
+          operands ? car(operands).template as<input_port>()
+                   : current_input_port());
     });
 
     define<procedure>("write", [](auto&&, auto&& operands)
