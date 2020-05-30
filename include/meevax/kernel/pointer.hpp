@@ -177,11 +177,11 @@ namespace meevax::kernel
       explicit constexpr binder(Ts&&... operands)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<T, Bound>::value, T, Bound
-          >::type {std::forward<decltype(operands)>(operands)...}
+          >::type { std::forward<decltype(operands)>(operands)... }
       {}
 
       explicit constexpr binder(Bound&& bound)
-        : Bound {std::forward<decltype(bound)>(bound)}
+        : Bound { std::forward<decltype(bound)>(bound) }
       {}
 
       virtual ~binder() = default;

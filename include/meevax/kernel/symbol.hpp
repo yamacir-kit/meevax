@@ -9,8 +9,8 @@ namespace meevax::kernel
     : public std::string
   {
     template <typename... Ts>
-    explicit constexpr symbol(Ts&&... operands)
-      : std::string {std::forward<decltype(operands)>(operands)...}
+    explicit constexpr symbol(Ts&&... xs)
+      : std::string { std::forward<decltype(xs)>(xs)... }
     {}
 
     friend auto operator<<(std::ostream& os, const symbol& symbol)
