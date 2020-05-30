@@ -712,7 +712,7 @@ namespace meevax::kernel
       *====================================================================== */
         if (const object pare { assq(cadr(c), glocal_environment(e)) }; pare != cdadr(c))
         {
-          if (const auto value {cadr(pare)}; not value)
+          if (const auto value {cadr(pare)}; not value or not car(s))
           {
             cadr(pare) = car(s);
           }
