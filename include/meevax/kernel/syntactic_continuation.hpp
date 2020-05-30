@@ -199,8 +199,7 @@ namespace meevax::kernel
       }
       else
       {
-        const auto [position, success] {symbols.emplace(s, make<symbol>(s))};
-        assert(success);
+        [[maybe_unused]] const auto [position, success] {symbols.emplace(s, make<symbol>(s))};
         return (*position).second;
       }
     }
@@ -606,6 +605,18 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
+    define<procedure>("syntactic-continuation?", [](auto&&, auto&& xs)
+    {
+      if (xs and car(xs))
+      {
+        return car(xs).template is<syntactic_continuation>() ? t : f;
+      }
+      else
+      {
+        return f;
+      }
+    });
+
     auto port { open_input_string(overture.data()) };
 
     std::size_t counts {0};

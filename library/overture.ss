@@ -166,6 +166,20 @@
               (list lambda identifier . transformer)))
           (list define identifier . transformer)))))
 
+(define-syntax (syntax-quote <datum>)
+  (fork
+    (lambda ()
+      <datum>)
+    ))
+
+(define identifier?
+  (lambda (syntax-object)
+    (and (syntactic-continuation? syntax-object)
+         (symbol? (car syntax-object))
+      )
+    )
+  )
+
 (define er-macro-transformer
   (lambda (transform)
     (fork
