@@ -3,33 +3,35 @@
 
 #include <utility>
 
-#define Perfect_Forward(FROM, TO)                                              \
+#define Perfect_Forward(X) std::forward<decltype(X)>(X)
+
+#define Define_Perfect_Forwarding(FROM, TO)                                    \
 template <typename... Ts>                                                      \
 constexpr auto FROM(Ts&&... xs)                                                \
-  noexcept(noexcept(TO(std::forward<decltype(xs)>(xs)...)))                    \
+  noexcept(noexcept(TO(Perfect_Forward(xs)...)))                               \
   -> decltype(auto)                                                            \
 {                                                                              \
-  return TO(std::forward<decltype(xs)>(xs)...);                                \
+  return TO(Perfect_Forward(xs)...);                                           \
 }                                                                              \
 static_assert(true, "semicolon required after this macro")
 
-#define Immutable_Perfect_Forward(FROM, TO)                                    \
+#define Define_Const_Perfect_Forwarding(FROM, TO)                              \
 template <typename... Ts>                                                      \
 constexpr auto FROM(Ts&&... xs)                                                \
-  const noexcept(noexcept(TO(std::forward<decltype(xs)>(xs)...)))              \
+  const noexcept(noexcept(TO(Perfect_Forward(xs)...)))                         \
   -> decltype(auto)                                                            \
 {                                                                              \
-  return TO(std::forward<decltype(xs)>(xs)...);                                \
+  return TO(Perfect_Forward(xs)...);                                           \
 }                                                                              \
 static_assert(true, "semicolon required after this macro")
 
-#define Static_Perfect_Forward(FROM, TO)                                       \
+#define Define_Static_Perfect_Forwarding(FROM, TO)                             \
 template <typename... Ts>                                                      \
 static constexpr auto FROM(Ts&&... xs)                                         \
-  noexcept(noexcept(TO(std::forward<decltype(xs)>(xs)...)))                    \
+  noexcept(noexcept(TO(Perfect_Forward(xs)...)))                               \
   -> decltype(auto)                                                            \
 {                                                                              \
-  return TO(std::forward<decltype(xs)>(xs)...);                                \
+  return TO(Perfect_Forward(xs)...);                                           \
 }                                                                              \
 static_assert(true, "semicolon required after this macro")
 

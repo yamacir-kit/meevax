@@ -94,7 +94,7 @@ namespace meevax::kernel
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
   }
 
-  Static_Perfect_Forward(is_tagged, category_of);
+  Define_Static_Perfect_Forwarding(is_tagged, category_of);
 
   template <typename T>
   using precision
@@ -483,7 +483,7 @@ namespace meevax::kernel
     }
 
     // NOTE: Can't compile with less than GCC-9 due to a bug in the compiler.
-    // Immutable_Perfect_Forward(eqv, equivalent_to);
+    // Define_Const_Perfect_Forwarding(eqv, equivalent_to);
 
     template <typename... Ts>
     constexpr auto eqv(Ts&&... xs) const

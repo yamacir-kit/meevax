@@ -40,11 +40,13 @@ namespace meevax::kernel
   public:
     // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const object& identifier, Ts&&... operands)
+    decltype(auto) define(const object& variable, Ts&&... expression)
     {
       push(
         interaction_environment(),
-        list(identifier, std::forward<decltype(operands)>(operands)...));
+        list( // TODO => cons
+          variable,
+          Perfect_Forward(expression)...));
 
       write_to(current_debug_port(),
         header("define"),
