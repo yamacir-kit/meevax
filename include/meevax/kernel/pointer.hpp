@@ -501,25 +501,6 @@ namespace meevax::kernel
     return not object ? (os << console::magenta << "()" << console::reset)
                       : object.dereference().dispatch(os);
   }
-
-  namespace debug
-  {
-    // static_assert(tag<void*>::value    == 0b0000);
-
-    static_assert(category<bool>::value == 0b1101);
-
-    static_assert(tag<float>::value    == 0b0101'1010);
-
-    static_assert(tag<int8_t>::value   == 0b0011'1000);
-    static_assert(tag<int16_t>::value  == 0b0100'1000);
-    static_assert(tag<int32_t>::value  == 0b0101'1000);
-    // static_assert(tag<int64_t>::value  == 0b1000);
-
-    static_assert(tag<uint8_t>::value  == 0b0011'1100);
-    static_assert(tag<uint16_t>::value == 0b0100'1100);
-    static_assert(tag<uint32_t>::value == 0b0101'1100);
-    // static_assert(tag<uint64_t>::value == 0b1100);
-  } // namespace debug
 } // namespace meevax::kernel
 
 namespace std

@@ -96,9 +96,30 @@ int main(int argc, char** argv)
   //   result = true;
   // });
 
+  {
+    using namespace meevax::kernel;
+
+    // static_assert(tag<void*>::value    == 0b0000);
+
+    static_assert(category<bool>::value == 0b1101);
+
+    static_assert(tag<float>::value    == 0b0101'1010);
+
+    static_assert(tag<int8_t>::value   == 0b0011'1000);
+    static_assert(tag<int16_t>::value  == 0b0100'1000);
+    static_assert(tag<int32_t>::value  == 0b0101'1000);
+    // static_assert(tag<int64_t>::value  == 0b1000);
+
+    static_assert(tag<uint8_t>::value  == 0b0011'1100);
+    static_assert(tag<uint16_t>::value == 0b0100'1100);
+    static_assert(tag<uint32_t>::value == 0b0101'1100);
+    // static_assert(tag<uint64_t>::value == 0b1100);
+  }
+
   std::cout << "\n"
             << passed << " of " << cases << " cases passed the unit-test.\n";
 
   return cases != passed ? boost::exit_failure : boost::exit_success;
 }
+
 
