@@ -249,12 +249,8 @@ namespace meevax::kernel
     {
       if (not object.is<symbol>())
       {
-        if (verbose_mode.equivalent_to(t))
-        {
-          std::cerr << "; package\t; renamer ignored non-symbol object "
-                    << object
-                    << std::endl;
-        }
+        write_to(current_verbose_port(),
+          header("syntax"), "renamer ignored non-symbol object ", object, "\n");
 
         return object;
       }
@@ -264,11 +260,16 @@ namespace meevax::kernel
           object.as<const std::string>() + "." + std::to_string(generation)
         };
 
-        if (verbose_mode.equivalent_to(t))
-        {
-          std::cerr << "; package\t; renaming \"" << object << "\" to \"" << name << "\"" << std::endl;
-          // std::cerr << "; package\t; renaming " << object << std::endl;
-        }
+        write_to(current_verbose_port(),
+          header("syntax"),
+          "renaming ", console::underline, object, console::reset,
+          " to ", console::underline, name, console::reset, "\n");
+
+        // if (verbose_mode.equivalent_to(t))
+        // {
+        //   std::cerr << "; package\t; renaming \"" << object << "\" to \"" << name << "\"" << std::endl;
+        //   // std::cerr << "; package\t; renaming " << object << std::endl;
+        // }
 
         // return intern(object.as<symbol>());
         return intern(name);

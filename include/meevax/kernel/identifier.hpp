@@ -17,11 +17,7 @@ namespace meevax::kernel
 
     friend auto operator <<(std::ostream& os, const identifier& i) -> decltype(os)
     {
-      return os << console::magenta << "#,("
-                << console::green << "syntax " // See R4RS p.44
-                << console::reset << i.first
-                << console::magenta << ")"
-                << console::reset;
+      return os << console::underline << i.first << console::reset;
     }
   };
 } // namespace meevax::kernel
