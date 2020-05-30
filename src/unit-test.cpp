@@ -20,7 +20,7 @@
   }                                                                            \
   while (false)
 
-int main(int argc, char** argv)
+int main()
 {
   std::size_t cases { 0 }, passed { 0 };
 
