@@ -205,19 +205,19 @@ namespace meevax::kernel
       }
     }
 
-    const auto& override(const object& identifier, const object& environment)
+    const auto& override(const object& variable, const object& environment)
     {
-      if (not identifier or not environment)
+      if (not variable or not environment)
       {
-        return identifier;
+        return variable;
       }
-      else if (caar(environment).equivalent_to(identifier))
+      else if (caar(environment).equivalent_to(variable))
       {
         return caar(environment);
       }
       else
       {
-        return override(identifier, cdr(environment));
+        return override(variable, cdr(environment));
       }
     }
 
@@ -229,7 +229,6 @@ namespace meevax::kernel
           override(
             intern(name),
             interaction_environment()),
-          // intern(name),
           make<T>(
             name,
             std::forward<decltype(operands)>(operands)...));
@@ -243,7 +242,6 @@ namespace meevax::kernel
           override(
             intern(name),
             interaction_environment()),
-          // intern(name),
           std::forward<decltype(operands)>(operands)...);
     }
 

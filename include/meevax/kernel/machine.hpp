@@ -72,38 +72,38 @@ namespace meevax::kernel
       return interaction_environment();
     }
 
-    auto lookup(const object& identity,
+    auto lookup(const object& key,
                 const object& environment)
       -> const object&
     {
-      if (not identity or not environment)
+      if (not key or not environment)
       {
-        return identity;
+        return key;
       }
-      else if (caar(environment) == identity)
+      else if (caar(environment) == key)
       {
         return cadar(environment);
       }
       else
       {
-        return lookup(identity, cdr(environment));
+        return lookup(key, cdr(environment));
       }
     }
 
-    const object& lookup_key(const object& identifier,
-                             const object& environment)
+    [[deprecated]]
+    const object& lookup_key(const object& key, const object& environment)
     {
-      if (not identifier or not environment)
+      if (not key or not environment)
       {
-        return identifier;
+        return key;
       }
-      else if (caar(environment) == identifier)
+      else if (caar(environment) == key)
       {
         return caar(environment);
       }
       else
       {
-        return lookup_key(identifier, cdr(environment));
+        return lookup_key(key, cdr(environment));
       }
     }
 
