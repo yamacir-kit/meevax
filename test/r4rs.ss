@@ -327,14 +327,14 @@
   => 45)
 
 
-; ==== 6. Standard procedures ==================================================
-
-; ---- 6.1. Booleans -----------------------------------------------------------
+; ==== 6.1. Booleans ===========================================================
 
 (check  #t => #t)
 (check '#t => #t)
 (check  #f => #f)
 (check '#f => #f)
+
+; ---- Procedure (not obj) -----------------------------------------------------
 
 (check (not #t) => #f)
 (check (not 3) => #f)
@@ -344,11 +344,16 @@
 ; (check (not (list)) => #f) ; SEGV
 (check (not 'nil) => #f)
 
+; ---- Procedure (boolean? obj) ------------------------------------------------
+
 (check (boolean? #f) => #t)
 (check (boolean? 0) => #f)
 (check (boolean? '()) => #f)
 
-; ---- 6.2. Equivalence predicates ---------------------------------------------
+
+; ==== 6.2. Equivalence predicates =============================================
+
+; ---- Procedure (eqv? obj-1 obj-2) --------------------------------------------
 
 (check (eqv? 'a 'a) => #t)
 (check (eqv? 'a 'b) => #f)
@@ -450,6 +455,8 @@
     (eqv? x x))
   => #t)
 
+; ---- Procedure (eq? obj-1 obj-2) ---------------------------------------------
+
 (check (eq? 'a 'a) => #t)
 (check (eq? '(a) '(a)) => #f) ; unspecified
 
@@ -488,6 +495,8 @@
     (eq? p p))
   => #t)
 
+; ---- Procedure (equal? obj-1 obj-2) ------------------------------------------
+
 (check (equal? 'a 'a) => #t)
 (check (equal? '(a) '(a)) => #t)
 
@@ -512,6 +521,174 @@
   (equal? (lambda (x) x)
           (lambda (y) y)) ; unspecified
   => #f)
+
+
+; ==== 6.3. Pairs and lists ====================================================
+
+(check
+  (equal? '(a b c d e)
+          '(a . (b . (c . (d . (e . ()))))))
+  => #t)
+
+(check
+  (equal? '(a b c . d)
+          '(a . (b . (c . d))))
+  => #t)
+
+(define x (list 'a 'b 'c))
+(define y x)
+
+(check x => (a b c))
+(check y => (a b c))
+
+(check (list? x) => #t)
+(check (list? y) => #t)
+
+; (set-cdr! x 4) ; => unspecified
+
+; (check x => (a . 4))
+; (check y => (a . 4))
+
+(check (eqv? x y) => #t)
+
+; (check (list? x) => #f)
+; (check (list? y) => #f)
+
+; (set-cdr! x x) ; => unspecified
+
+; (check (list? x) => #f)
+
+; ---- Procedure (pair? obj) ---------------------------------------------------
+
+(check (pair? '(a . b)) => #t)
+(check (pair? '(a b c)) => #t)
+(check (pair? '()) => #f)
+; (check (pair? '#(a b)) => #f)
+
+; ---- Procedure (cons obj-1 obj-2) --------------------------------------------
+
+(check (cons 'a '()) => (a))
+(check (cons '(a) '(b c d)) => ((a) b c d))
+(check (cons "a" '(b c)) => ("a" b c))
+(check (cons 'a 3) => (a . 3))
+(check (cons '(a b) 'c) => ((a b) . c))
+
+; ---- Procedure (car pair) ----------------------------------------------------
+
+(check (car '(a b c)) => a)
+(check (car '((a) b c d)) => (a))
+(check (car '(1 . 2)) => 1)
+; (check (car '()) => error)
+
+; ---- Procedure (cdr pair) ----------------------------------------------------
+
+(check (cdr '((a) b c d)) => (b c d))
+(check (cdr '(1 . 2)) => 2)
+; (check (cdr '()) => error)
+
+; ---- Procedure (set-car! pair obj) -------------------------------------------
+
+(define (f)
+  (list 'not-a-constant-list))
+
+(define (g)
+  '(constant-list))
+
+; (set-car! (f) 3) ; => unspecified
+; (cdt-car! (g) 3) ; => error
+
+; ---- Procedure (set-cdr! pair obj) -------------------------------------------
+
+; No example.
+
+; ---- Procedure (null? obj) ---------------------------------------------------
+
+(check (null? '()) => #t)
+(check (null? '(a)) => #f)
+(check (null? '(a b c)) => #f)
+
+(check (null? (list)) => #t)
+(check (null? (list 'a)) => #f)
+(check (null? (list 'a 'b 'c)) => #f)
+
+(check (null? 42) => #f)
+
+; ---- Procedure (list? obj) ---------------------------------------------------
+
+(check (list? '()) => #t)
+(check (list? '(a)) => #t)
+(check (list? '(a b c)) => #t)
+
+(check (list? '(a . b)) => #f)
+
+; (check
+;   (let ((x (list 'a)))
+;     (set-cdr! x x)
+;     (list? x))
+;   => #f)
+
+; ---- Procedure (list obj ...) ------------------------------------------------
+
+(check (list 'a (+ 3 4) 'c) => (a 7 c))
+(check (list) => ())
+
+; ---- Procedure (length list) -------------------------------------------------
+
+(check (length '(a b c)) => 3)
+(check (length '(a (b) (c d e))) => 3)
+(check (length '()) => 0)
+
+; ---- Procedure (append list ...) ---------------------------------------------
+
+(check (append '(x) '(y)) => (x y))
+(check (append '(a) '(b c d)) => (a b c d))
+(check (append '(a (b)) '((c))) => (a (b) (c)))
+(check (append '(a b) '(c . d)) => (a b c . d))
+(check (append '() 'a) => a)
+
+; ---- Procedure (reverse list) ------------------------------------------------
+
+(check (reverse '(a b c)) => (c b a))
+(check (reverse '(a (b c) d (e (f)))) =>  ((e (f)) d (b c) a))
+
+; ---- Procedure (list-tail list k) --------------------------------------------
+
+; No example.
+
+; ---- Procedure (list-ref list k) ---------------------------------------------
+
+(check (list-ref '(a b c d) 2) => c)
+
+; (check
+;   (list-ref '(a b c d)
+;              (exact (round 1.8)))
+;   => c)
+
+; ---- Procedure (member obj list) ---------------------------------------------
+
+(check (memq 'a '(a b c)) => (a b c))
+(check (memq 'b '(a b c)) => (b c))
+(check (memq 'a '(b c d)) => #f)
+(check (memq (list 'a) '(b (a) c)) => #f)
+(check (member (list 'a) '(b (a) c)) => ((a) c))
+(check (memq 101 '(100 101 102)) => #f) ; unspecified
+(check (memv 101 '(100 101 102)) => (101 102))
+
+; ---- Procedure (assoc obj alist) ---------------------------------------------
+
+(define e '((a 1) (b 2) (c 3)))
+
+(check (assq 'a e) => (a 1))
+(check (assq 'b e) => (b 2))
+(check (assq 'c e) => (c 3))
+(check (assq 'd e) => #f)
+
+(check (assq (list 'a) '(((a)) ((b)) ((c)))) => #f)
+(check (assoc (list 'a) '(((a)) ((b)) ((c)))) => ((a)))
+
+(check (assq 5 '((2 3) (5 7) (11 13))) => #f) ; unspecified
+(check (assv 5 '((2 3) (5 7) (11 13))) => (5 7))
+
 
 
 ; ==== REPORT ==================================================================
