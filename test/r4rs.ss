@@ -292,6 +292,40 @@
 
 ; ---- 5.2.1. Top level definitions --------------------------------------------
 
+(define add3
+  (lambda (x)
+    (+ x 3))) ; => unspecified
+
+(check (add3 3) => 6)
+
+(define first car) ; => unspecified
+
+(check (first '(1 2)) => 1)
+
+; ---- 5.2.2. Internal definitions ---------------------------------------------
+
+(check
+  (let ((x 5))
+    (define foo
+      (lambda (y)
+        (bar x y)))
+    (define bar
+      (lambda (a b)
+        (+ (* a b) a)))
+    (foo (+ x 3)))
+  => 45)
+
+(check
+  (let ((x 5))
+    (letrec* ((foo
+                (lambda (y)
+                  (bar x y)))
+              (bar
+                (lambda (a b)
+                  (+ (* a b) a))))
+      (foo (+ x 3))))
+  => 45)
+
 
 ; ==== REPORT ==================================================================
 
