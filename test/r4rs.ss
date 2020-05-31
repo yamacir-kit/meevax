@@ -327,6 +327,193 @@
   => 45)
 
 
+; ==== 6. Standard procedures ==================================================
+
+; ---- 6.1. Booleans -----------------------------------------------------------
+
+(check  #t => #t)
+(check '#t => #t)
+(check  #f => #f)
+(check '#f => #f)
+
+(check (not #t) => #f)
+(check (not 3) => #f)
+(check (not (list 3)) => #f)
+(check (not #f) => #t)
+; (check (not '()) => #f) ; SEGV
+; (check (not (list)) => #f) ; SEGV
+(check (not 'nil) => #f)
+
+(check (boolean? #f) => #t)
+(check (boolean? 0) => #f)
+(check (boolean? '()) => #f)
+
+; ---- 6.2. Equivalence predicates ---------------------------------------------
+
+(check (eqv? 'a 'a) => #t)
+(check (eqv? 'a 'b) => #f)
+
+(check (eqv? 2 2) => #t)
+
+(check (eqv? '() '()) => #t)
+
+(check
+  (eqv? 100000000
+        100000000)
+  => #t)
+
+(check
+  (eqv? (cons 1 2)
+        (cons 1 2))
+  => #f)
+
+(check
+  (eqv? (lambda () 1)
+        (lambda () 2))
+  => #f)
+
+(check (eqv? #f 'nil) => #f)
+
+(check
+  (let ((p (lambda (x) x)))
+    (eqv? p p))
+  => #t)
+
+(check
+  (eqv? "" "") ; => unspecified
+  => #t)
+
+(check
+  (eqv? "abc" "abc") ; => unspecified
+  => #t)
+
+; (check (eqv? '#() '#() => (unspecified))
+
+(check
+  (eqv? (lambda (x) x)
+        (lambda (x) x)) ; => unspecified
+  => #f)
+
+(check
+  (eqv? (lambda (x) x)
+        (lambda (x) y)) ; => unspecified
+  => #f)
+
+(define generate-counter
+  (lambda ()
+    (let ((n 0))
+      (lambda () (set! n (+ n 1)) n)))) ; => unspecified
+
+(check
+  (let ((g (generate-counter)))
+    (eqv? g g))
+  => #t)
+
+(check
+  (eqv? (generate-counter)
+        (generate-counter))
+  => #f)
+
+(define generate-loser
+  (lambda ()
+    (let ((n 0))
+      (lambda () (set! n (+ n 1)) 27)))) ; => unspecified
+
+(check
+  (let ((g (generate-loser)))
+    (eqv? g g))
+  => #t)
+
+(check
+  (eqv? (generate-loser)
+        (generate-loser)) ; => unspecified
+  => #f)
+
+(check
+  (letrec ((f (lambda () (if (eqv? f g) 'both 'f)))
+           (g (lambda () (if (eqv? f g) 'both 'g))))
+    (eqv? f g)) ; => unspecified
+  => #f)
+
+(check
+  (letrec ((f (lambda () (if (eqv? f g) 'f 'both)))
+           (g (lambda () (if (eqv? f g) 'g 'both))))
+    (eqv? f g)) ; => unspecified
+  => #f)
+
+(check (eqv? '(a) '(a)) => #t) ; unspecified
+(check (eqv? "a" "a") => #t) ; unspecified
+(check (eqv? '(b) (cdr '(a b))) => #t) ; unspecified
+
+(check
+  (let ((x '(a)))
+    (eqv? x x))
+  => #t)
+
+(check (eq? 'a 'a) => #t)
+(check (eq? '(a) '(a)) => #f) ; unspecified
+
+(check
+  (eq? (list 'a)
+       (list 'a))
+  => #f)
+
+(check (eq? "a" "a") => #f) ; unspecified
+(check (eq? "" "") => #t) ; unspecified
+
+(check (eq? '() '()) => #t)
+
+(check (eq? 2 2) => #f) ; unspecified
+(check (eq? #\A #\A) => #t) ; unspecified
+
+(check (eq? car car) => #t)
+
+(check
+  (let ((n (+ 2 3)))
+    (eq? n n)) ; unspecified
+  => #t)
+
+(check
+  (let ((x '(a)))
+    (eq? x x))
+  => #t)
+
+; (check
+;   (let ((x '#()))
+;     (eq? x x))
+;   => #t)
+
+(check
+  (let ((p (lambda (x) x)))
+    (eq? p p))
+  => #t)
+
+(check (equal? 'a 'a) => #t)
+(check (equal? '(a) '(a)) => #t)
+
+(check
+  (equal? '(a (b) c)
+          '(a (b) c))
+  => #t)
+
+(check
+  (equal? "abc"
+          "abc")
+  => #t)
+
+(check (equal? 2 2) => #t)
+
+; (check
+;   (equal? (make-vector 5 'a)
+;           (make-vector 5 'a))
+;   => #t)
+
+(check
+  (equal? (lambda (x) x)
+          (lambda (y) y)) ; unspecified
+  => #f)
+
+
 ; ==== REPORT ==================================================================
 
 (check-report)
