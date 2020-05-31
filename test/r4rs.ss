@@ -317,12 +317,12 @@
 
 (check
   (let ((x 5))
-    (letrec* ((foo
-                (lambda (y)
-                  (bar x y)))
-              (bar
-                (lambda (a b)
-                  (+ (* a b) a))))
+    (letrec ((foo
+               (lambda (y)
+                 (bar x y)))
+             (bar
+               (lambda (a b)
+                 (+ (* a b) a))))
       (foo (+ x 3))))
   => 45)
 
@@ -690,6 +690,46 @@
 (check (assv 5 '((2 3) (5 7) (11 13))) => (5 7))
 
 
+; ==== 6.4. Symbols ============================================================
+
+; ---- Procedure (symbol? obj) -------------------------------------------------
+
+(check (symbol? 'foo) => #t)
+(check (symbol? (car '(a b))) => #t)
+(check (symbol? "bar") => #f)
+(check (symbol? 'nil) => #t)
+(check (symbol? '()) => #f)
+(check (symbol? #f) => #f)
+
+; ---- Procedure (symbol->string symbol) ---------------------------------------
+
+; (check (symbol->string 'flying-fish) => "flying-fish")
+; (check (symbol->string 'Martin) => "martin")
+;
+; (check
+;   (symbol->string
+;     (string->symbol "Malvina"))
+;   => "Malvina")
+
+; ---- Procedure (string->symbol string) ---------------------------------------
+
+; (check (eq? 'mISSISSIppi 'mississippi) => #t)
+;
+; (check (string->symbol "mISSISSIppi") => 'mISSISSIppi)
+;
+; (check (eq? 'bitBlt (string->symbol "bitBlt")) => #f)
+;
+; (check
+;   (eq? 'JollyWog
+;        (string->symbol
+;          (symbol->string 'JollyWog)))
+;   => #t)
+;
+; (check
+;   (string=? "K. Harper, M.D."
+;             (symbol->string
+;               (string->symbol "K. Harper, M.D.")))
+;   => #t)
 
 ; ==== REPORT ==================================================================
 
