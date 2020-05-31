@@ -925,6 +925,196 @@
 
 ; ==== 6.6. Characters =========================================================
 
+(check (char? #\a) => #t)
+(check (char? #\A) => #t)
+(check (char? #\() => #t)
+(check (char? #\ ) => #t)
+(check (char? #\space) => #t)
+(check (char? #\newline) => #t)
+
+; (check (char<? #\A #\B) => #t)
+; (check (char<? #\a #\b) => #t)
+; (check (char<? #\0 #\9) => #t)
+
+; (check (char-ci=? #\A #\a) => #t)
+
+
+; ==== 6.7. Strings ============================================================
+
+"The word \"recursion\" has many meanings."
+
+(define (f) (make-string 3 #\*))
+(define (g) "***")
+
+; (string-set! (f) 0 #\?) ; => unspecified
+; (string-set! (g) 0 #\?) ; => error
+
+; (string-set! (symbol->string 'immutable) 0 #\?) ; => error
+
+
+; ==== 6.8. Vectors ============================================================
+
+; TODO
+
+
+; ==== 6.9. Control features ===================================================
+
+; ---- Procedure (procedure? obj) ----------------------------------------------
+
+; (check (procedure?  car) => #t)
+; (check (procedure? 'car) => #f)
+
+; (check
+;   (procedure?
+;     (lambda (x) (* x x)))
+;   => #t)
+
+; (check
+;   '(procedure?
+;      (lambda (x) (* x x)))
+;   => #t)
+
+; ---- Procedure (apply proc args) ---------------------------------------------
+; ---- Procedure (apply proc arg1 ... args) ------------------------------------
+
+(check (apply + (list 3 4)) => 7)
+
+(define compose
+  (lambda (f g)
+    (lambda args
+      (f (apply g args)))))
+
+; (check
+;   ((compose sqrt *) 12 75)
+;   => 30)
+
+; ---- Procedure (map proc list1 list2 ...) ------------------------------------
+
+(check
+  (map cadr '((a b) (d e) (g h)))
+  => (b e h))
+
+; (check
+;   (map (lambda (n)
+;          (expt n n))
+;        '(1 2 3 4 5))
+;   => (1 4 27 256 3125))
+
+(check
+  (map + '(1 2 3)
+         '(4 5 6 7))
+  => (5 7 9))
+
+(check
+  (let ((count 0))
+    (map (lambda (ignored)
+           (set! count (+ count 1))
+           count)
+         '(a b c)))
+  => (1 2 3))
+
+; ---- Procedure (for-each proc list1 list2 ...) -------------------------------
+
+; (check
+;   (let ((v (make-vector 5)))
+;     (for-each (lambda (i)
+;                 (vector-set! v i (* i i)))
+;               '(0 1 2 3 4))
+;     v)
+;   => #(0 1 4 9 16))
+
+; ---- Procedure (force promise) -----------------------------------------------
+
+; (check (force (delay (+ 1 2))) => 3)
+
+; (check
+;   (let ((p (delay (+ 1 2))))
+;     (list (force p)
+;           (force p)))
+;   => (3 3))
+
+; (define a-stream
+;   (letrec ((next
+;              (lambda (n)
+;                (cons n (delay (next (+ n 1)))))))
+;     (next 0)))
+
+; (define head car)
+; (define tail
+;   (lambda (stream)
+;     (force (cdr stream))))
+
+; (check (head (tail (tail a-stream))) => 2)
+
+(define count)
+
+; (define p
+;   (delay (begin (set! count (+ count 1))
+;                 (if (< x count)
+;                     count
+;                     (force p)))))
+
+(define x 5)
+
+; (check (promise? p) => #t)
+; (check (force p) => 6)
+; (check (promise? p) => #t)
+; (check
+;   (begin (set! x 10)
+;          (force p))
+;   => 6)
+
+(define force
+  (lambda (object)
+    (object)))
+
+(define make-promise
+  (lambda (proc)
+    (let ((result-ready? #f)
+          (result #f))
+      (lambda ()
+        (if result-ready?
+            result
+            (let ((x (proc)))
+              (if result-ready?
+                  result
+                  (begin (set! result-ready? #t)
+                         (set! result x)
+                         result))))))))
+
+; ---- Procedure (call-with-current-continuation proc) -------------------------
+
+(check
+  (call-with-current-continuation
+    (lambda (exit)
+      (for-each (lambda (x)
+                  (if (negative? x)
+                      (exit x)))
+                '(54 0 37 -3 245 19))
+    #t))
+  => -3)
+
+(define list-length
+  (lambda (object)
+    (call-with-current-continuation
+      (lambda (return)
+        (letrec ((r
+                   (lambda (object)
+                     (cond ((null? object) 0)
+                           ((pair? object)
+                            (+ (r (cdr object)) 1))
+                           (else (return #f))))))
+          (r object))))))
+
+(check (list-length '(1 2 3 4)) => 4)
+(check (list-length '(a b . c)) => #f)
+
+
+; ==== 6.10. Input and output ==================================================
+
+; No example.
+
+
 
 ; ==== REPORT ==================================================================
 
