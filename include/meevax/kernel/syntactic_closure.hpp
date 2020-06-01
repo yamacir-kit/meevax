@@ -1,0 +1,27 @@
+#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
+
+#include <meevax/kernel/pair.hpp>
+
+namespace meevax::kernel
+{
+  struct syntactic_closure
+    : public virtual pair
+  {
+    using pair::pair; // Inheriting Constructors
+
+    friend auto operator <<(std::ostream& os, const syntactic_closure& sc)
+      -> decltype(os)
+    {
+      return os << console::magenta << "#,("
+                << console::green << "make-syntactic-closure "
+                << console::reset
+                << console::faint << "#;" << &sc
+                << console::reset
+                << console::magenta << ")"
+                << console::reset;
+    }
+  };
+} // namespace meevax::kernel
+
+#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
