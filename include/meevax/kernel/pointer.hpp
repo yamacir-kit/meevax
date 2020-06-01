@@ -41,15 +41,6 @@ namespace meevax::kernel
   template <typename T>
   using is_not_embeddable
     = std::is_compound<typename std::decay<T>::type>;
-  // template <typename T>
-  // struct is_not_embeddable
-  // {
-  //   using type = typename std::decay<T>::type;
-  //
-  //   static constexpr bool value {
-  //     std::is_compound<type>::value or sizeof(T) < word_size
-  //   };
-  // };
 
   /* ==== Tagged Pointers =====================================================
   *
@@ -250,22 +241,6 @@ namespace meevax::kernel
       : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
     {}
 
-    /* ==== Destructor ========================================================
-    *
-    * TODO: Check all of allocated objects are deallocate correctly.
-    *
-    *======================================================================= */
-    // ~pointer()
-    // {
-    //   if (*this)
-    //   {
-    //     if (std::shared_ptr<T>::unique())
-    //     {
-    //       // std::cerr << "; pointer\t; deallocating " << *this << "\n";
-    //     }
-    //   }
-    // }
-
     /* ==== C/C++ Derived Types Bind ==========================================
     *
     * With this function, you don't have to worry about virtual destructors.
@@ -276,7 +251,7 @@ namespace meevax::kernel
     *======================================================================== */
     template <typename Bound,
               typename... Ts,
-              REQUIRES(is_not_embeddable<Bound>)>
+              Requires(is_not_embeddable<Bound>)>
     static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -289,7 +264,7 @@ namespace meevax::kernel
     template <typename Bound,
               typename MemoryResource, // XXX (GCC-9 <=)
               typename... Ts,
-              REQUIRES(is_not_embeddable<Bound>)>
+              Requires(is_not_embeddable<Bound>)>
     static pointer allocate_binding(
       MemoryResource&& resource,
       Ts&&... xs)
@@ -312,7 +287,7 @@ namespace meevax::kernel
     * TODO: support bind for not is_embeddable types (e.g. double).
     *
     *======================================================================== */
-    template <typename U, REQUIRES(is_embeddable<U>)>
+    template <typename U, Requires(is_embeddable<U>)>
     static pointer make_binding(U&& value)
     {
       static auto ignore = [](auto* value)
@@ -411,7 +386,7 @@ namespace meevax::kernel
     /* ==== C/C++ Derived Type Restoration ====================================
     *
     *======================================================================= */
-    template <typename U, REQUIRES(is_not_embeddable<U>)>
+    template <typename U, Requires(is_not_embeddable<U>)>
     U& as() const
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -427,7 +402,7 @@ namespace meevax::kernel
     * TODO: Support upcast and downcast of arithmetic types
     *
     *======================================================================= */
-    template <typename U, REQUIRES(std::is_arithmetic<U>)>
+    template <typename U, Requires(std::is_arithmetic<U>)>
     auto as() const
       -> typename std::decay<U>::type
     {
