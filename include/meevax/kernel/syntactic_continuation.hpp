@@ -5,6 +5,7 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
+#include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
@@ -244,35 +245,9 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);
     }
 
-    const auto& rename(const object& object)
+    auto rename(const object& o)
     {
-      if (not object.is<symbol>())
-      {
-        write_to(current_verbose_port(),
-          header("syntax"), "renamer ignored non-symbol object ", object, "\n");
-
-        return object;
-      }
-      else
-      {
-        const std::string name {
-          object.as<const std::string>() + "." + std::to_string(generation)
-        };
-
-        write_to(current_verbose_port(),
-          header("syntax"),
-          "renaming ", console::underline, object, console::reset,
-          " to ", console::underline, name, console::reset, "\n");
-
-        // if (verbose_mode.equivalent_to(t))
-        // {
-        //   std::cerr << "; package\t; renaming \"" << object << "\" to \"" << name << "\"" << std::endl;
-        //   // std::cerr << "; package\t; renaming " << object << std::endl;
-        // }
-
-        // return intern(object.as<symbol>());
-        return intern(name);
-      }
+      return o;
     }
 
     decltype(auto) expand(const object& operands)
@@ -511,15 +486,6 @@ namespace meevax::kernel
     // DEFINE_PROCEDURE_1("compile",  compile);
 
     DEFINE_PROCEDURE_1("evaluate", evaluate);
-
-    define<procedure>("identifier=?", [this](auto&&, auto&& arguments)
-    {
-      // std::cerr << "; identifier=?\t; car\t; " << car(arguments) << std::endl;
-      // std::cerr << ";\t\t; cadr\t; " << cadr(arguments) << std::endl;
-      // XXX 二度リネームが発生すると hoge.0.0 見たいな名前になってしまって壊れる
-      // return rename(car(arguments)) == rename(cadr(arguments)) ? t : f;
-      return car(arguments) == rename(cadr(arguments)) ? t : f;
-    });
 
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);

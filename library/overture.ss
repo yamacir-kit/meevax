@@ -20,15 +20,11 @@
 (define equivalence.so
   (linker "libmeevax-equivalence.so"))
 
-(define equals?
+(define eq?
   (procedure equivalence.so "equals"))
 
-(define eq? equals?)
-
-(define equivalent? ; value-equal?
+(define eqv?
   (procedure equivalence.so "equivalent"))
-
-(define eqv? equivalent?)
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Numbers (Part 1 of 2)
@@ -166,19 +162,21 @@
               (list lambda identifier . transformer)))
           (list define identifier . transformer)))))
 
-(define-syntax (syntax-quote <datum>)
-  (fork
-    (lambda ()
-      <datum>)
-    ))
+; (define-syntax (syntax-quote <datum>)
+;   (fork
+;     (lambda ()
+;       <datum>)
+;     ))
+;
+; (define identifier?
+;   (lambda (syntax-object)
+;     (and (syntactic-continuation? syntax-object)
+;          (symbol? (car syntax-object))
+;       )
+;     )
+;   )
 
-(define identifier?
-  (lambda (syntax-object)
-    (and (syntactic-continuation? syntax-object)
-         (symbol? (car syntax-object))
-      )
-    )
-  )
+(define identifier=? eqv?)
 
 (define er-macro-transformer
   (lambda (transform)
