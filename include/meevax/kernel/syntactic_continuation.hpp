@@ -5,10 +5,10 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
-#include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
+#include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/writer.hpp>
 
 #include <meevax/kernel/port.hpp>
@@ -245,9 +245,10 @@ namespace meevax::kernel
           std::forward<decltype(operands)>(operands)...);
     }
 
-    auto rename(const object& o)
+    auto rename(const object& x)
     {
-      return o;
+      // return make<syntactic_closure>(x, interaction_environment());
+      return x;
     }
 
     decltype(auto) expand(const object& operands)
