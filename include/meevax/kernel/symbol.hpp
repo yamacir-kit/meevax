@@ -18,16 +18,17 @@ namespace meevax::kernel
     {
       if (symbol.empty())
       {
-        return os << console::magenta << "#("
-                  << console::green << "symbol"
-                  << console::reset
-                  << console::faint << " #;" << &symbol
-                  << console::magenta << ")"
-                  << console::reset;
+        /* ---- From R7RS 2.1. Identifiers -------------------------------------
+         *
+         * Note that || is a valid identifier that is different from any other
+         * identifier.
+         *
+         * ------------------------------------------------------------------ */
+        return os << "||";
       }
       else
       {
-        return os << console::reset << static_cast<const std::string&>(symbol);
+        return os << static_cast<const std::string&>(symbol);
       }
     }
   };
