@@ -72,9 +72,7 @@ namespace meevax::kernel
       return interaction_environment();
     }
 
-    auto lookup(const object& key,
-                const object& environment)
-      -> const object&
+    auto lookup(const object& key, const object& environment) -> const object&
     {
       if (not key or not environment)
       {
@@ -429,12 +427,7 @@ namespace meevax::kernel
       * => (object . S) E                           C  D
       *
       *====================================================================== */
-        if (const object value {
-              std::invoke(
-                cadr(c).template is<symbol>() ? assq : assoc,
-                cadr(c),
-                glocal_environment(e))
-            }; value != cadr(c))
+        if (const object value { assq(cadr(c), glocal_environment(e)) }; value != cadr(c))
         {
           push(s, cadr(value));
         }

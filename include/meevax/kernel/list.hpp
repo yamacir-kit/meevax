@@ -10,19 +10,6 @@
 
 /* ==== SRFI-1 ================================================================
 *
-* Predicates
-*   - circular-list?
-*   - dotted-list?
-*   - eq?                              => object::operator ==
-*   - eqv?                             => object::equivalent_to
-*   - euqal?                           => recursively_equivalent
-*   - list?
-*   - not-pair?
-*   - null-list?
-*   - null?                            => object::operator bool
-*   - pair?                            => object::is<pair>
-*   - proper-list?
-*
 * Miscellaneous
 *   - append
 *   - append!
@@ -269,10 +256,21 @@ namespace meevax::kernel
   }
 
   /* ==== Predicates ===========================================================
-  *
-  * TODO Documentations
-  *
-  *========================================================================== */
+   *
+   * From SRFI-1
+   *   - circular-list?
+   *   - dotted-list?
+   *   - eq?                            => object::operator ==
+   *   - eqv?                           => object::equivalent_to
+   *   - euqal?                         => equal
+   *   - list?
+   *   - not-pair?
+   *   - null-list?
+   *   - null?                          => object::operator bool
+   *   - pair?                          => object::is<pair>
+   *   - proper-list?
+   *
+   * ======================================================================== */
   inline namespace predicate
   {
     auto equivalent = [](auto&& x, auto&& y)
@@ -280,7 +278,7 @@ namespace meevax::kernel
       return x.equivalent_to(y);
     };
 
-    bool recursively_equivalent(const object& x, const object& y)
+    bool equal(const object& x, const object& y)
     {
       if (not x and not y)
       {
@@ -288,9 +286,7 @@ namespace meevax::kernel
       }
       else if (x.is<pair>() and y.is<pair>())
       {
-        return
-              recursively_equivalent(car(x), car(y))
-          and recursively_equivalent(cdr(x), cdr(y));
+        return equal(car(x), car(y)) and equal(cdr(x), cdr(y));
       }
       else
       {
@@ -316,8 +312,8 @@ namespace meevax::kernel
     }
 
     SPECIALIZE_EQUIVALENCE_COMPARATOR(0, std::equal_to {});
-    SPECIALIZE_EQUIVALENCE_COMPARATOR(1,             equivalent);
-    SPECIALIZE_EQUIVALENCE_COMPARATOR(2, recursively_equivalent);
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(1, equivalent);
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(2, equal);
 
     #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
 
@@ -488,18 +484,14 @@ namespace meevax::kernel
   *========================================================================== */
   inline namespace association_list
   {
-    const object&
-      assoc(
-        const object& value,
-        const object& association_list)
+    [[deprecated]]
+    const object& assoc(const object& value, const object& association_list)
     {
       if (not value or not association_list)
       {
         return value;
       }
-      else if (recursively_equivalent(
-                 caar(association_list),
-                 value))
+      else if (equal(caar(association_list), value))
       {
         return car(association_list);
       }
