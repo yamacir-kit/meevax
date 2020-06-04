@@ -73,17 +73,13 @@ namespace meevax::kernel
 
     auto lookup(const object& key, const object& environment) -> const object&
     {
-      if (not key or not environment)
+      if (const auto result { assq(key, environment) }; result.eqv(f))
       {
         return key;
       }
-      else if (caar(environment) == key)
-      {
-        return cadar(environment);
-      }
       else
       {
-        return lookup(key, cdr(environment));
+        return cadr(result);
       }
     }
 
