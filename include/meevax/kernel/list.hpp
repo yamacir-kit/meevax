@@ -3,6 +3,7 @@
 
 #include <algorithm> // std::equal
 #include <iterator> // std::begin, std::end, std::distance
+#include <utility>
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/kernel/boolean.hpp>
@@ -54,23 +55,6 @@
 *   - partition!
 *   - remove
 *   - remove!
-*
-* Searching
-*   - any
-*   - break
-*   - break!
-*   - drop-while
-*   - every
-*   - find
-*   - find-tail
-*   - list-index
-*   - member
-*   - memq
-*   - memv
-*   - span
-*   - span!
-*   - take-while
-*   - take-while!
 *
 * Deletion
 *   - delete
@@ -191,19 +175,37 @@ namespace meevax::kernel
       return unit;
     }
   };
+} // namespace meevax::kernel
 
-  // TODO move into namespace std?
-  homoiconic_iterator begin(const object& object) noexcept
+namespace std
+{
+  auto cbegin(const meevax::kernel::object& x)
+    -> meevax::kernel::homoiconic_iterator
   {
-    return object;
-  }
+    return x;
+  };
 
-  // TODO move into namespace std?
-  homoiconic_iterator end(const object&) noexcept
+  auto begin(const meevax::kernel::object& x)
+    -> meevax::kernel::homoiconic_iterator
   {
-    return unit;
-  }
+    return x;
+  };
 
+  auto cend(const meevax::kernel::object&)
+    -> meevax::kernel::homoiconic_iterator
+  {
+    return meevax::kernel::unit;
+  };
+
+  auto end(const meevax::kernel::object&)
+    -> meevax::kernel::homoiconic_iterator
+  {
+    return meevax::kernel::unit;
+  };
+} // namespace std
+
+namespace meevax::kernel
+{
   /* ==== Constructors =========================================================
   *
   * From R7RS
@@ -347,16 +349,14 @@ namespace meevax::kernel
   *========================================================================== */
   inline namespace selector
   {
-    auto list_tail
-      = [](homoiconic_iterator iter, auto n)
+    auto list_tail = [](auto&& list, auto&& x)
     {
-      return std::next(iter, n);
+      return std::next(std::begin(list), x);
     };
 
-    auto list_reference
-      = [](const object& x, auto n)
+    auto list_reference = [](auto&&... xs)
     {
-      return car(list_tail(x, n));
+      return car(list_tail(std::forward<decltype(xs)>(xs)...));
     };
 
     object take(const object& exp, std::size_t size)
@@ -468,6 +468,35 @@ namespace meevax::kernel
     }
   }
 
+  /* ==== Searching ============================================================
+   *
+   * From SRFI-1
+   *   - any
+   *   - break
+   *   - break!
+   *   - drop-while
+   *   - every
+   *   - find
+   *   - find-tail
+   *   - list-index
+   *   - member
+   *   - memq
+   *   - memv
+   *   - span
+   *   - span!
+   *   - take-while
+   *   - take-while!
+   *
+   * ======================================================================== */
+  inline namespace searching
+  {
+    auto find = [](const object& list, auto&& predicate) constexpr
+    {
+      const auto result { std::find_if(std::begin(list), std::end(list), predicate) };
+      return result ? car(result) : f;
+    };
+  };
+
   /* ==== Association List =====================================================
   *
   * From R7RS
@@ -484,25 +513,30 @@ namespace meevax::kernel
   *========================================================================== */
   inline namespace association_list
   {
-    [[deprecated]]
-    const object& assoc(const object& value, const object& association_list)
+    // [[deprecated]]
+    // const object& assoc(const object& value, const object& association_list)
+    // {
+    //   if (not value or not association_list)
+    //   {
+    //     return value;
+    //   }
+    //   else if (equal(caar(association_list), value))
+    //   {
+    //     return car(association_list);
+    //   }
+    //   else
+    //   {
+    //     return
+    //       assoc(
+    //         value,
+    //         cdr(association_list));
+    //   }
+    // }
+
+    auto assoc = [](const auto& key, const auto& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
-      if (not value or not association_list)
-      {
-        return value;
-      }
-      else if (equal(caar(association_list), value))
-      {
-        return car(association_list);
-      }
-      else
-      {
-        return
-          assoc(
-            value,
-            cdr(association_list));
-      }
-    }
+      return find(alist, [&](auto&& each) { return compare(car(each), key); });
+    };
 
     const object&
       assv(
@@ -526,6 +560,11 @@ namespace meevax::kernel
       }
     }
 
+    // auto assv = [](auto&&... xs) constexpr
+    // {
+    //   return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
+    // };
+
     const object&
       assq(
         const object& value,
@@ -547,6 +586,11 @@ namespace meevax::kernel
             cdr(association_list));
       }
     }
+
+    // auto assq = [](auto&&... xs) constexpr
+    // {
+    //   return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
+    // };
 
     const object
       alist_cons(
