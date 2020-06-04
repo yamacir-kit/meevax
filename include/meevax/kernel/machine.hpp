@@ -38,7 +38,6 @@ namespace meevax::kernel
            d; // Dump (S.E.C)
 
   public:
-    // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& variable, Ts&&... expression)
     {
@@ -85,23 +84,6 @@ namespace meevax::kernel
       else
       {
         return lookup(key, cdr(environment));
-      }
-    }
-
-    [[deprecated]]
-    const object& lookup_key(const object& key, const object& environment)
-    {
-      if (not key or not environment)
-      {
-        return key;
-      }
-      else if (caar(environment) == key)
-      {
-        return caar(environment);
-      }
-      else
-      {
-        return lookup_key(key, cdr(environment));
       }
     }
 
