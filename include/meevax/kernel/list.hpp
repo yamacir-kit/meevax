@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <algorithm> // std::equal
+#include <functional>
 #include <iterator> // std::begin, std::end, std::distance
 #include <utility>
 
@@ -9,123 +10,13 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
 
-/* ==== SRFI-1 ================================================================
-*
-* Miscellaneous
-*   - append
-*   - append!
-*   - append-reverse
-*   - append-reverse!
-*   - concatenate
-*   - concatenate!
-*   - count
-*   - length
-*   - length+
-*   - reverse
-*   - reverse!
-*   - unzip1
-*   - unzip2
-*   - unzip3
-*   - unzip4
-*   - unzip5
-*   - zip
-*
-* Fold, unfold & map
-*   - append-map
-*   - append-map!
-*   - filter-map
-*   - fold
-*   - fold-right
-*   - for-each
-*   - map
-*   - map!
-*   - map-in-order
-*   - pair-fold
-*   - pair-fold-right
-*   - pair-for-each
-*   - reduce
-*   - reduce-right
-*   - unfold
-*   - unfold-right
-*
-* Filtering & partitioning
-*   - filter
-*   - filter!
-*   - partition
-*   - partition!
-*   - remove
-*   - remove!
-*
-* Deletion
-*   - delete
-*   - delete!
-*   - delete-duplicates
-*   - delete-duplicates!
-*
-* Set operations on lists
-*   - lset-adjoin
-*   - lset-diff+intersection
-*   - lset-diff+intersection!
-*   - lset-difference
-*   - lset-difference!
-*   - lset-intersection
-*   - lset-intersection!
-*   - lset-union
-*   - lset-union!
-*   - lset-xor
-*   - lset-xor!
-*   - lset<=
-*   - lset=
-*
-* Primitive side-effects
-*   - set-car!                         ... TODO
-*   - set-cdr!                         ... TODO
-*
-*============================================================================ */
-
 namespace meevax::kernel
 {
-  /* ==== Cxr Library Procedures ===============================================
-  *
-  * Arbitrary compositions up to four deep are provided.
-  *
-  *========================================================================== */
-  auto caar = functional::compose(car, car);
-  auto cadr = functional::compose(car, cdr);
-  auto cdar = functional::compose(cdr, car);
-  auto cddr = functional::compose(cdr, cdr);
-
-  auto caaar = functional::compose(car, caar);
-  auto caadr = functional::compose(car, cadr);
-  auto cadar = functional::compose(car, cdar);
-  auto caddr = functional::compose(car, cddr);
-  auto cdaar = functional::compose(cdr, caar);
-  auto cdadr = functional::compose(cdr, cadr);
-  auto cddar = functional::compose(cdr, cdar);
-  auto cdddr = functional::compose(cdr, cddr);
-
-  auto caaaar = functional::compose(car, caaar);
-  auto caaadr = functional::compose(car, caadr);
-  auto caadar = functional::compose(car, cadar);
-  auto caaddr = functional::compose(car, caddr);
-  auto cadaar = functional::compose(car, cdaar);
-  auto cadadr = functional::compose(car, cdadr);
-  auto caddar = functional::compose(car, cddar);
-  auto cadddr = functional::compose(car, cdddr);
-  auto cdaaar = functional::compose(cdr, caaar);
-  auto cdaadr = functional::compose(cdr, caadr);
-  auto cdadar = functional::compose(cdr, cadar);
-  auto cdaddr = functional::compose(cdr, caddr);
-  auto cddaar = functional::compose(cdr, cdaar);
-  auto cddadr = functional::compose(cdr, cdadr);
-  auto cdddar = functional::compose(cdr, cddar);
-  auto cddddr = functional::compose(cdr, cdddr);
-
   /* ==== The Homoiconic Iterator ==============================================
-  *
-  * TODO std::empty
-  *
-  *========================================================================== */
+   *
+   * TODO std::empty
+   *
+   * ======================================================================== */
   struct homoiconic_iterator
     : public object
   {
@@ -183,45 +74,45 @@ namespace std
     -> meevax::kernel::homoiconic_iterator
   {
     return x;
-  };
+  }
 
   auto begin(const meevax::kernel::object& x)
     -> meevax::kernel::homoiconic_iterator
   {
     return x;
-  };
+  }
 
   auto cend(const meevax::kernel::object&)
     -> meevax::kernel::homoiconic_iterator
   {
     return meevax::kernel::unit;
-  };
+  }
 
   auto end(const meevax::kernel::object&)
     -> meevax::kernel::homoiconic_iterator
   {
     return meevax::kernel::unit;
-  };
+  }
 } // namespace std
 
 namespace meevax::kernel
 {
   /* ==== Constructors =========================================================
-  *
-  * From R7RS
-  *   - cons                            => cons
-  *   - list                            => list
-  *
-  * From SRFI-1
-  *   - circular-list
-  *   - cons*                           => cons
-  *   - iota
-  *   - list-copy
-  *   - list-tabulate
-  *   - make-list
-  *   - xcons                           => xcons
-  *
-  *========================================================================== */
+   *
+   * From R7RS
+   *   - cons                            => cons
+   *   - list                            => list
+   *
+   * From SRFI-1
+   *   - circular-list
+   *   - cons*                           => cons
+   *   - iota
+   *   - list-copy
+   *   - list-tabulate
+   *   - make-list
+   *   - xcons                           => xcons
+   *
+   * ======================================================================== */
   inline namespace constructor
   {
     inline decltype(auto) operator |(const object& lhs, const object& rhs)
@@ -239,11 +130,11 @@ namespace meevax::kernel
       return (xs | ... | unit);
     };
 
-    auto make_list = [](std::size_t size, const object& x = unit)
+    auto make_list = [](auto length, const auto& x = unit)
     {
-      object result;
+      auto result { unit };
 
-      for (std::size_t i {0}; i < size; ++i)
+      for (auto i { 0 }; i < length; ++i)
       {
         result = cons(x, result);
       }
@@ -255,18 +146,18 @@ namespace meevax::kernel
     {
       return (... | xs);
     };
-  }
+  } // inline namespace constructor
 
   /* ==== Predicates ===========================================================
    *
    * From SRFI-1
    *   - circular-list?
    *   - dotted-list?
-   *   - eq?                            => object::operator ==
-   *   - eqv?                           => object::equivalent_to
+   *   - eq?                            => eq, object::operator ==
+   *   - eqv?                           => eqv, object::equivalent_to
    *   - euqal?                         => equal
    *   - list?
-   *   - not-pair?
+   *   - not-pair?                      => not x.is<pair>()
    *   - null-list?
    *   - null?                          => object::operator bool
    *   - pair?                          => object::is<pair>
@@ -275,14 +166,24 @@ namespace meevax::kernel
    * ======================================================================== */
   inline namespace predicate
   {
-    auto equivalent = [](auto&& x, auto&& y)
+    auto null = [](auto&& x) constexpr
+    {
+      return not x;
+    };
+
+    auto eq = [](auto&& x, auto&& y) constexpr
+    {
+      return x == y;
+    };
+
+    auto eqv = [](auto&& x, auto&& y)
     {
       return x.equivalent_to(y);
     };
 
     bool equal(const object& x, const object& y)
     {
-      if (not x and not y)
+      if (null(x) and null(y))
       {
         return true;
       }
@@ -292,7 +193,7 @@ namespace meevax::kernel
       }
       else
       {
-        return x.equivalent_to(y);
+        return eqv(x, y);
       }
     }
 
@@ -303,18 +204,11 @@ namespace meevax::kernel
     template <>                                                                \
     struct equivalence_comparator<COARSENESS>                                  \
     {                                                                          \
-      template <typename... Ts>                                                \
-      decltype(auto) operator ()(Ts&&... operands)                             \
-      {                                                                        \
-        return                                                                 \
-          std::invoke(                                                         \
-            COMPARE,                                                           \
-            std::forward<decltype(operands)>(operands)...);                    \
-      }                                                                        \
+      Define_Const_Perfect_Forwarding(operator (), COMPARE);                   \
     }
 
-    SPECIALIZE_EQUIVALENCE_COMPARATOR(0, std::equal_to {});
-    SPECIALIZE_EQUIVALENCE_COMPARATOR(1, equivalent);
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(0, eq);
+    SPECIALIZE_EQUIVALENCE_COMPARATOR(1, eqv);
     SPECIALIZE_EQUIVALENCE_COMPARATOR(2, equal);
 
     #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
@@ -323,32 +217,63 @@ namespace meevax::kernel
   }
 
   /* ==== Selectors ============================================================
-  *
-  * From R7RS
-  *   - car                              => car
-  *   - cdr                              => cdr
-  *   - cxr
-  *   - list-ref                         => list_reference
-  *   - list-tail                        => list_tail
-  *
-  * Selectors
-  *   - car+cdr
-  *   - drop
-  *   - drop-right
-  *   - drop-right!
-  *   - first ~ tenth
-  *   - last
-  *   - last-pair
-  *   - split-at
-  *   - split-at!
-  *   - take                            => take
-  *   - take
-  *   - take!
-  *   - take-right
-  *
-  *========================================================================== */
+   *
+   * From R7RS
+   *   - car                              => car
+   *   - cdr                              => cdr
+   *   - cxr
+   *   - list-ref                         => list_reference
+   *   - list-tail                        => list_tail
+   *
+   * Selectors
+   *   - car+cdr
+   *   - drop
+   *   - drop-right
+   *   - drop-right!
+   *   - first ~ tenth
+   *   - last
+   *   - last-pair
+   *   - split-at
+   *   - split-at!
+   *   - take                            => take
+   *   - take
+   *   - take!
+   *   - take-right
+   *
+   * ======================================================================== */
   inline namespace selector
   {
+    auto caar = functional::compose(car, car);
+    auto cadr = functional::compose(car, cdr);
+    auto cdar = functional::compose(cdr, car);
+    auto cddr = functional::compose(cdr, cdr);
+
+    auto caaar = functional::compose(car, caar);
+    auto caadr = functional::compose(car, cadr);
+    auto cadar = functional::compose(car, cdar);
+    auto caddr = functional::compose(car, cddr);
+    auto cdaar = functional::compose(cdr, caar);
+    auto cdadr = functional::compose(cdr, cadr);
+    auto cddar = functional::compose(cdr, cdar);
+    auto cdddr = functional::compose(cdr, cddr);
+
+    auto caaaar = functional::compose(car, caaar);
+    auto caaadr = functional::compose(car, caadr);
+    auto caadar = functional::compose(car, cadar);
+    auto caaddr = functional::compose(car, caddr);
+    auto cadaar = functional::compose(car, cdaar);
+    auto cadadr = functional::compose(car, cdadr);
+    auto caddar = functional::compose(car, cddar);
+    auto cadddr = functional::compose(car, cdddr);
+    auto cdaaar = functional::compose(cdr, caaar);
+    auto cdaadr = functional::compose(cdr, caadr);
+    auto cdadar = functional::compose(cdr, cadar);
+    auto cdaddr = functional::compose(cdr, caddr);
+    auto cddaar = functional::compose(cdr, cdaar);
+    auto cddadr = functional::compose(cdr, cdadr);
+    auto cdddar = functional::compose(cdr, cddar);
+    auto cddddr = functional::compose(cdr, cdddr);
+
     auto list_tail = [](auto&& list, auto&& k) constexpr
     {
       return std::next(std::begin(list), k);
@@ -373,16 +298,33 @@ namespace meevax::kernel
   }
 
   /* ==== Miscellaneous ========================================================
-  *
-  * TODO Documentations
-  *
-  *========================================================================== */
+   *
+   * From SRFI-1
+   *   - append
+   *   - append!
+   *   - append-reverse
+   *   - append-reverse!
+   *   - concatenate
+   *   - concatenate!
+   *   - count
+   *   - length
+   *   - length+
+   *   - reverse
+   *   - reverse!
+   *   - unzip1
+   *   - unzip2
+   *   - unzip3
+   *   - unzip4
+   *   - unzip5
+   *   - zip
+   *
+   * ======================================================================== */
   inline namespace miscellaneous
   {
-    inline decltype(auto) length(const homoiconic_iterator& e)
+    auto length = [](const auto& x) constexpr
     {
-      return std::distance(std::begin(e), std::end(e));
-    }
+      return std::distance(std::begin(x), std::end(x));
+    };
 
     const object append(const object& x, const object& y)
     {
@@ -399,9 +341,7 @@ namespace meevax::kernel
       }
     }
 
-    template <typename List>
-    auto reverse(const List& x)
-      -> List
+    auto reverse(const object& x) -> object
     {
       return x ? append(reverse(cdr(x)), list(car(x))) : unit;
     }
@@ -424,28 +364,44 @@ namespace meevax::kernel
   }
 
   /* ==== Folding ==============================================================
-  *
-  * TODO Documentations
-  *
-  *========================================================================== */
+   *
+   * From SRFI-1
+   *   - fold
+   *   - fold-right
+   *   - pair-fold
+   *   - pair-fold-right
+   *   - reduce
+   *   - reduce-right
+   *
+   * ======================================================================== */
   inline namespace folding
   {
   }
 
   /* ==== Unfolding ============================================================
-  *
-  * TODO Documentations
-  *
-  *========================================================================== */
+   *
+   * From SRFI-1
+   *   - unfold
+   *   - unfold-right
+   *
+   * ======================================================================== */
   inline namespace unfolding
   {
   }
 
   /* ==== Mapping ==============================================================
-  *
-  * TODO Documentations
-  *
-  *========================================================================== */
+   *
+   * From SRFI-1
+   *   - append-map
+   *   - append-map!
+   *   - filter-map
+   *   - for-each
+   *   - map
+   *   - map!
+   *   - map-in-order
+   *   - pair-for-each
+   *
+   * ======================================================================== */
   inline namespace mapping
   {
     template <typename Procedure>
@@ -467,6 +423,18 @@ namespace meevax::kernel
       }
     }
   }
+
+  /* ==== Filtering & partitioning =============================================
+   *
+   * From SRFI-1
+   *   - filter
+   *   - filter!
+   *   - partition
+   *   - partition!
+   *   - remove
+   *   - remove!
+   *
+   * ======================================================================== */
 
   /* ==== Searching ============================================================
    *
@@ -495,44 +463,34 @@ namespace meevax::kernel
       const auto result { std::find_if(std::begin(list), std::end(list), predicate) };
       return result ? car(result) : f;
     };
-  };
+  }
+
+  /* ==== Deletion =============================================================
+   *
+   * From SRFI-1
+   *   - delete
+   *   - delete!
+   *   - delete-duplicates
+   *   - delete-duplicates!
+   *
+   * ======================================================================== */
 
   /* ==== Association List =====================================================
-  *
-  * From R7RS
-  *   - assoc                           => assoc
-  *   - assq                            => assq
-  *   - assv                            => assv
-  *
-  * From SRFI-1
-  *   - alist-cons                      => alist_cons
-  *   - alist-copy
-  *   - alist-delete
-  *   - alist-delete!
-  *
-  *========================================================================== */
+   *
+   * From R7RS
+   *   - assoc                           => assoc
+   *   - assq                            => assq
+   *   - assv                            => assv
+   *
+   * From SRFI-1
+   *   - alist-cons                      => alist_cons
+   *   - alist-copy
+   *   - alist-delete
+   *   - alist-delete!
+   *
+   * ======================================================================== */
   inline namespace association_list
   {
-    // [[deprecated]]
-    // const object& assoc(const object& value, const object& association_list)
-    // {
-    //   if (not value or not association_list)
-    //   {
-    //     return value;
-    //   }
-    //   else if (equal(caar(association_list), value))
-    //   {
-    //     return car(association_list);
-    //   }
-    //   else
-    //   {
-    //     return
-    //       assoc(
-    //         value,
-    //         cdr(association_list));
-    //   }
-    // }
-
     auto assoc = [](const auto& key, const auto& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
       return find(alist, [&](auto&& each) { return compare(car(each), key); });
@@ -548,18 +506,39 @@ namespace meevax::kernel
       return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
     };
 
-    const object
-      alist_cons(
-        const object& key,
-        const object& value,
-        const object& alist)
+    auto alist_cons = [](auto&& key, auto&& datum, auto&& alist) constexpr
     {
-      return
-        cons(
-          cons(key, value),
-          alist);
-    }
+      return cons(cons(key, datum), alist);
+    };
   }
+
+  /* ==== Set operations on lists ==============================================
+   *
+   * From SRFI-1
+   *   - lset-adjoin
+   *   - lset-diff+intersection
+   *   - lset-diff+intersection!
+   *   - lset-difference
+   *   - lset-difference!
+   *   - lset-intersection
+   *   - lset-intersection!
+   *   - lset-union
+   *   - lset-union!
+   *   - lset-xor
+   *   - lset-xor!
+   *   - lset<=
+   *   - lset=
+   *
+   * ======================================================================= */
+
+
+  /* ==== Primitive side-effects ===============================================
+   *
+   * From SRFI-1
+   *   - set-car!                         ... TODO
+   *   - set-cdr!                         ... TODO
+   *
+   * ======================================================================== */
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP
