@@ -349,9 +349,9 @@ namespace meevax::kernel
   *========================================================================== */
   inline namespace selector
   {
-    auto list_tail = [](auto&& list, auto&& x)
+    auto list_tail = [](auto&& list, auto&& k) constexpr
     {
-      return std::next(std::begin(list), x);
+      return std::next(std::begin(list), k);
     };
 
     auto list_reference = [](auto&&... xs)
@@ -490,7 +490,7 @@ namespace meevax::kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](const object& list, auto&& predicate) constexpr
+    auto find = [](const auto& list, auto&& predicate) constexpr
     {
       const auto result { std::find_if(std::begin(list), std::end(list), predicate) };
       return result ? car(result) : f;
@@ -538,59 +538,15 @@ namespace meevax::kernel
       return find(alist, [&](auto&& each) { return compare(car(each), key); });
     };
 
-    const object&
-      assv(
-        const object& value,
-        const object& association_list)
+    auto assv = [](auto&&... xs) constexpr
     {
-      if (not value or not association_list)
-      {
-        return value;
-      }
-      else if (caar(association_list).equivalent_to(value))
-      {
-        return car(association_list);
-      }
-      else
-      {
-        return
-          assv(
-            value,
-            cdr(association_list));
-      }
-    }
+      return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
+    };
 
-    // auto assv = [](auto&&... xs) constexpr
-    // {
-    //   return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
-    // };
-
-    const object&
-      assq(
-        const object& value,
-        const object& association_list)
+    auto assq = [](auto&&... xs) constexpr
     {
-      if (not value or not association_list)
-      {
-        return value;
-      }
-      else if (caar(association_list) == value)
-      {
-        return car(association_list);
-      }
-      else
-      {
-        return
-          assq(
-            value,
-            cdr(association_list));
-      }
-    }
-
-    // auto assq = [](auto&&... xs) constexpr
-    // {
-    //   return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
-    // };
+      return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
+    };
 
     const object
       alist_cons(

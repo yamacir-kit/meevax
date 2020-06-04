@@ -427,7 +427,7 @@ namespace meevax::kernel
       * => (object . S) E                           C  D
       *
       *====================================================================== */
-        if (const object value { assq(cadr(c), glocal_environment(e)) }; value != cadr(c))
+        if (const object value { assq(cadr(c), glocal_environment(e)) }; not value.eqv(f))
         {
           push(s, cadr(value));
         }
@@ -703,7 +703,7 @@ namespace meevax::kernel
       * (3) Should set with weak reference if right hand side is newer.
       *
       *====================================================================== */
-        if (const object pare { assq(cadr(c), glocal_environment(e)) }; pare != cdadr(c))
+        if (const object pare { assq(cadr(c), glocal_environment(e)) }; not pare.eqv(f))
         {
           if (const auto value {cadr(pare)}; not value or not car(s))
           {
