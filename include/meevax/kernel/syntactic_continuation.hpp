@@ -575,11 +575,7 @@ namespace meevax::kernel
       std::cout << car(operands);
       return unspecified;
     });
-  }
 
-  template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
-  {
     #define DEFINE_PREDICATE(NAME, TYPE)                                       \
     define<procedure>(NAME, [](auto&&, auto&& xs)                              \
     {                                                                          \
@@ -602,6 +598,15 @@ namespace meevax::kernel
     DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
     DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
 
+    define<procedure>("syntax", [this](auto&&, auto&& xs)
+    {
+      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
+    });
+  }
+
+  template <>
+  void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
+  {
     define<procedure>("std::cout", [](auto&&, auto&& xs)
     {
       for (const auto& x : xs)
