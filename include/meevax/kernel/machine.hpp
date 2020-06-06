@@ -72,19 +72,6 @@ namespace meevax::kernel
       return interaction_environment();
     }
 
-    [[deprecated]]
-    auto lookup(const object& key, const object& environment) -> const object&
-    {
-      if (const auto result { assq(key, environment) }; result.eqv(f))
-      {
-        return key;
-      }
-      else
-      {
-        return cadr(result);
-      }
-    }
-
     /* ------------------------------------------------------------------------
     *
     * <expression> = <identifier>
