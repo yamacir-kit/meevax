@@ -20,6 +20,9 @@
 * NOTE:
 *   readelf -a hoge.ss.o
 *
+* TODO:
+*   Move into new header.
+*
 *============================================================================ */
 extern char _binary_overture_ss_start;
 extern char _binary_overture_ss_end;
@@ -582,6 +585,26 @@ namespace meevax::kernel
       {
         return f;
       }
+    });
+
+    define<procedure>("std::cout", [](auto&&, auto&& xs)
+    {
+      for (const auto& x : xs)
+      {
+        // TODO
+        // std::cout << x.display();
+
+        if (x.template is<string>())
+        {
+          std::cout << static_cast<std::string>(x.template as<string>());
+        }
+        else
+        {
+          std::cout << x;
+        }
+      }
+
+      return unspecified; // TODO standard-output-port
     });
 
     auto port { open_input_string(overture.data()) };

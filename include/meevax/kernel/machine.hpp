@@ -21,6 +21,7 @@ namespace meevax::kernel
     {}
 
     Import(SK, debug);
+    Import(SK, evaluate);
     Import(SK, indent);
     Import(SK, interaction_environment);
     Import(SK, intern);
@@ -38,7 +39,6 @@ namespace meevax::kernel
            d; // Dump (S.E.C)
 
   public:
-    // Direct virtual machine instruction invocation.
     template <typename... Ts>
     decltype(auto) define(const object& variable, Ts&&... expression)
     {
@@ -70,41 +70,6 @@ namespace meevax::kernel
       }
 
       return interaction_environment();
-    }
-
-    auto lookup(const object& key,
-                const object& environment)
-      -> const object&
-    {
-      if (not key or not environment)
-      {
-        return key;
-      }
-      else if (caar(environment) == key)
-      {
-        return cadar(environment);
-      }
-      else
-      {
-        return lookup(key, cdr(environment));
-      }
-    }
-
-    [[deprecated]]
-    const object& lookup_key(const object& key, const object& environment)
-    {
-      if (not key or not environment)
-      {
-        return key;
-      }
-      else if (caar(environment) == key)
-      {
-        return caar(environment);
-      }
-      else
-      {
-        return lookup_key(key, cdr(environment));
-      }
     }
 
     /* ------------------------------------------------------------------------
@@ -179,9 +144,10 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        if (object applicant {lookup(
-              car(expression), syntactic_environment
-            )};
+        if (const object binding { assq(car(expression), syntactic_environment) },
+                       applicant { binding.eqv(f) ? car(expression) // applicant is value of variable in current-syntactic-environment
+                                                  : cadr(binding) // applicant may be directory inserted object
+                                                  };
             not applicant)
         {
           // TODO write_to_current_error_port => warning
@@ -429,12 +395,7 @@ namespace meevax::kernel
       * => (object . S) E                           C  D
       *
       *====================================================================== */
-        if (const object value {
-              std::invoke(
-                cadr(c).template is<symbol>() ? assq : assoc,
-                cadr(c),
-                glocal_environment(e))
-            }; value != cadr(c))
+        if (const object value { assq(cadr(c), glocal_environment(e)) }; not value.eqv(f))
         {
           push(s, cadr(value));
         }
@@ -710,7 +671,7 @@ namespace meevax::kernel
       * (3) Should set with weak reference if right hand side is newer.
       *
       *====================================================================== */
-        if (const object pare { assq(cadr(c), glocal_environment(e)) }; pare != cdadr(c))
+        if (const object pare { assq(cadr(c), glocal_environment(e)) }; not pare.eqv(f))
         {
           if (const auto value {cadr(pare)}; not value or not car(s))
           {
@@ -1029,22 +990,15 @@ namespace meevax::kernel
               continuation);
         }
       }
-      // XXX DIRTY HACK
+      // XXX UGLY CODE!!!
       else if (car(expression).is<pair>() // is application
                and caar(expression) // the operator is not illegal
                and caar(expression).template is<symbol>() // the operator is variable reference
-               and not de_bruijn_index( // the operator is not local variable
-                         caar(expression),
-                         frames)
-               and lookup( // the variable references syntax form
-                     caar(expression),
-                     syntactic_environment)
-                   .template is<syntax>()
-               and lookup( // the syntax form is "define"
-                     caar(expression),
-                     syntactic_environment)
-                   .template as<syntax>()
-                   .name == "define")
+               and not de_bruijn_index(caar(expression), frames) // the operator is not local binding
+               and not assq(caar(expression), syntactic_environment).eqv(f)
+               and cadr(assq(caar(expression), syntactic_environment)) // binding is not null
+               and cadr(assq(caar(expression), syntactic_environment)).is<syntax>()
+               and cadr(assq(caar(expression), syntactic_environment)).as<syntax>().name == "define")
       {
         /* --------------------------------------------------------------------
         *
