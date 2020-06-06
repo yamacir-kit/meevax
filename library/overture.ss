@@ -162,21 +162,27 @@
               (list lambda identifier . transformer)))
           (list define identifier . transformer)))))
 
-; (define-syntax (syntax-quote <datum>)
-;   (fork
-;     (lambda ()
-;       <datum>)
-;     ))
-;
-; (define identifier?
-;   (lambda (syntax-object)
-;     (and (syntactic-continuation? syntax-object)
-;          (symbol? (car syntax-object))
-;       )
-;     )
-;   )
+(define identifier?
+  (lambda (x)
+    (if (null? x) #false
+        (if (symbol? x) #true
+            (syntactic-closure? x)))))
 
-(define identifier=? eqv?)
+(define identifier=?
+  (lambda (x y)
+    (if (symbol? x)
+        (if (symbol? y)
+            (eq? x y)
+            (if (syntactic-closure? y)
+                (eq? x (car y))
+                #false))
+        (if (syntactic-closure? x)
+            (if (syntactic-closure? y)
+                (eqv? x y)
+                (if (symbol? y)
+                    (eq? (car x) y)
+                    #false))
+            #false))))
 
 (define er-macro-transformer
   (lambda (transform)
@@ -595,7 +601,7 @@
     (lambda (expressions)
       (cond
         ((null? expressions) result)
-        ((eq? => (car expressions))
+        ((identifier=? => (car expressions))
         `(,(cadr expressions) ,result))
         (else
          `(,begin ,@expressions) ))))
@@ -604,7 +610,7 @@
     (lambda (clauses)
       (cond
         ((null? clauses) #false)
-        ((eq? else (caar clauses))
+        ((identifier=? else (caar clauses))
          (body (cdar clauses)))
         ((and (pair? (caar clauses))
               (null? (cdaar clauses)))
@@ -986,8 +992,8 @@
 (define symbol ; Constructor
   (procedure symbol.so "symbol"))
 
-(define symbol?
-  (procedure symbol.so "is_symbol"))
+; (define symbol?
+;   (procedure symbol.so "is_symbol"))
 
 (define symbol=?
   (lambda (x y . xs)

@@ -42,7 +42,7 @@ namespace meevax::kernel
     friend auto operator <<(std::ostream& os, const syntactic_closure& sc)
       -> decltype(os)
     {
-      return os << console::underline << sc.syntax_quote() << console::reset;
+      return os << console::underline << sc.syntax_quote() << "." << &sc << console::reset;
     }
   };
 } // namespace meevax::kernel

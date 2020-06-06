@@ -8,6 +8,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
+#include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/syntax.hpp>
 
 namespace meevax::kernel
@@ -99,7 +100,7 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        if (expression.is<symbol>()) // is <variable>
+        if (expression.is<symbol>() or expression.is<syntactic_closure>()) // is <identifier>
         {
           if (de_bruijn_index index {expression, frames}; index)
           {
@@ -395,9 +396,13 @@ namespace meevax::kernel
       * => (object . S) E                           C  D
       *
       *====================================================================== */
-        if (const object value { assq(cadr(c), glocal_environment(e)) }; not value.eqv(f))
+        if (const object identifier { cadr(c) }; identifier.is<syntactic_closure>())
         {
-          push(s, cadr(value));
+          push(s, identifier.as<syntactic_closure>().lookup());
+        }
+        else if (const object binding { assq(identifier, glocal_environment(e)) }; not binding.eqv(f))
+        {
+          push(s, cadr(binding));
         }
         else // UNBOUND
         {

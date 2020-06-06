@@ -244,10 +244,19 @@ namespace meevax::kernel
           std::forward<decltype(xs)>(xs)...);
     }
 
-    auto rename(const object& x)
+    std::unordered_map<object, object> renames {};
+
+    auto rename(const object& identifier) -> const auto&
     {
-      // return make<syntactic_closure>(x, syntactic_environment());
-      return x;
+      if (const auto iter { renames.find(identifier) }; iter != std::end(renames))
+      {
+        return std::get<1>(*iter);
+      }
+      else
+      {
+        renames.emplace(identifier, make<syntactic_closure>(identifier, syntactic_environment()));
+        return renames.at(identifier);
+      }
     }
 
     decltype(auto) expand(const object& operands)
@@ -571,17 +580,27 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    define<procedure>("syntactic-continuation?", [](auto&&, auto&& xs)
-    {
-      if (xs and car(xs))
-      {
-        return car(xs).template is<syntactic_continuation>() ? t : f;
-      }
-      else
-      {
-        return f;
-      }
-    });
+    #define DEFINE_PREDICATE(NAME, TYPE)                                       \
+    define<procedure>(NAME, [](auto&&, auto&& xs)                              \
+    {                                                                          \
+      if (not xs)                                                              \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else for (const auto& x : xs)                                            \
+      {                                                                        \
+        if (not x or not x.template is<TYPE>())                                \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    })
+
+    DEFINE_PREDICATE("symbol?", symbol);
+    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
+    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
 
     define<procedure>("std::cout", [](auto&&, auto&& xs)
     {
