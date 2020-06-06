@@ -23,7 +23,7 @@ namespace meevax::kernel
     Import(SK, debug);
     Import(SK, evaluate);
     Import(SK, indent);
-    Import(SK, interaction_environment);
+    Import(SK, syntactic_environment);
     Import(SK, intern);
     Import(SK, rename);
     Import_Const(SK, current_debug_port);
@@ -43,16 +43,16 @@ namespace meevax::kernel
     decltype(auto) define(const object& variable, Ts&&... expression)
     {
       push(
-        interaction_environment(),
+        syntactic_environment(),
         list( // TODO => cons
           variable,
           Perfect_Forward(expression)...));
 
       write_to(current_debug_port(),
         header("define"),
-        caar(interaction_environment()),
+        caar(syntactic_environment()),
         console::faint, " binds ", console::reset,
-        cadar(interaction_environment()),
+        cadar(syntactic_environment()),
         "\n");
 
       return unspecified;
@@ -64,12 +64,12 @@ namespace meevax::kernel
       {
         if (frame and car(frame) and car(frame).is<SK>())
         {
-          // return car(frame).as<SK>().interaction_environment();
+          // return car(frame).as<SK>().syntactic_environment();
           return cdar(frame);
         }
       }
 
-      return interaction_environment();
+      return syntactic_environment();
     }
 
     /* ------------------------------------------------------------------------
@@ -460,7 +460,7 @@ namespace meevax::kernel
               e,
               cadr(c), // compile continuation
               d),
-            interaction_environment()));
+            syntactic_environment()));
         pop<2>(c);
         goto dispatch;
 
@@ -475,7 +475,7 @@ namespace meevax::kernel
       //     s,
       //     make<SK>(
       //       pop(s), // XXX car(s)?
-      //       interaction_environment()));
+      //       syntactic_environment()));
       //   pop<1>(c);
       //   goto dispatch;
 

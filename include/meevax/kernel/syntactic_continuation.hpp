@@ -131,7 +131,7 @@ namespace meevax::kernel
       return first;
     }
 
-    auto& interaction_environment()
+    auto& syntactic_environment()
     {
       return second;
     }
@@ -160,14 +160,16 @@ namespace meevax::kernel
         c = unit;
         d = cdddr(first);
 
-        const auto subprogram {compile(
-          car(caddr(first)),
-          interaction_environment(), // syntactic-environment
-          cdr(caddr(first)),
-          list(
-            make<instruction>(mnemonic::STOP)),
-          as_program_declaration
-        )};
+        const auto subprogram
+        {
+          compile(
+            car(caddr(first)),
+            syntactic_environment(),
+            cdr(caddr(first)),
+            list(
+              make<instruction>(mnemonic::STOP)),
+            as_program_declaration)
+        };
 
         c = subprogram;
 
@@ -225,32 +227,26 @@ namespace meevax::kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(const std::string& name, Ts&&... operands)
+    decltype(auto) define(const std::string& name, Ts&&... xs)
     {
       return
         machine<syntactic_continuation>::define(
-          override(
-            intern(name),
-            interaction_environment()),
-          make<T>(
-            name,
-            std::forward<decltype(operands)>(operands)...));
+          override(intern(name), syntactic_environment()),
+          make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) define(const std::string& name, Ts&&... operands)
+    decltype(auto) define(const std::string& name, Ts&&... xs)
     {
       return
         machine<syntactic_continuation>::define(
-          override(
-            intern(name),
-            interaction_environment()),
-          std::forward<decltype(operands)>(operands)...);
+          override(intern(name), syntactic_environment()),
+          std::forward<decltype(xs)>(xs)...);
     }
 
     auto rename(const object& x)
     {
-      // return make<syntactic_closure>(x, interaction_environment());
+      // return make<syntactic_closure>(x, syntactic_environment());
       return x;
     }
 
@@ -294,7 +290,7 @@ namespace meevax::kernel
         execute_interrupt(
           compile(
             expression,
-            interaction_environment()));
+            syntactic_environment()));
     }
 
     auto load(const path& path_to_source) -> const auto&
@@ -615,7 +611,7 @@ namespace meevax::kernel
     {
       // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
       write_to(current_debug_port(),
-        "\r\x1B[K", header("overture"), counts++, ": ", car(interaction_environment()));
+        "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
 
       current_interaction_port() << std::flush;
 
