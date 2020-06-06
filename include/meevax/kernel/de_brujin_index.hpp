@@ -19,10 +19,7 @@ namespace meevax::kernel
       : object { lookup(std::forward<decltype(operands)>(operands)...) }
     {}
 
-    const object
-      lookup(
-        const object& value,
-        const object& frames)
+    const object lookup(const object& value, const object& frames)
     {
       auto layer {0};
 
@@ -30,9 +27,9 @@ namespace meevax::kernel
       {
         auto index {0};
 
-        for (homoiconic_iterator node {frame}; node; ++node)
+        for (auto iter { std::begin(frame) }; iter != std::end(frame); ++iter)
         {
-          if (node.is<pair>() and compare(*node, value))
+          if (iter.is<pair>() and compare(*iter, value))
           {
             variadic = false;
 
@@ -41,7 +38,7 @@ namespace meevax::kernel
                 make<real>(layer),
                 make<real>(index));
           }
-          else if (node.is<symbol>() and compare(node, value))
+          else if (iter.is<symbol>() and compare(iter, value))
           {
             variadic = true;
 
