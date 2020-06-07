@@ -165,8 +165,7 @@
 (define identifier?
   (lambda (x)
     (if (null? x) #false
-        (if (symbol? x) #true
-            (syntactic-closure? x)))))
+        (syntactic-closure? x))))
 
 (define free-identifier=?
   (lambda (x y)
