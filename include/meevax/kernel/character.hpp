@@ -40,23 +40,26 @@ namespace meevax::kernel
   * ========================================================================= */
   extern const std::unordered_map<std::string, object> characters;
 
+  auto char_ci_eq = [](auto c, auto... xs) constexpr
+  {
+    return (std::char_traits<decltype(c)>::eq(c, xs) or ...);
+  };
+
   auto is_intraline_whitespace = [](auto c) constexpr
   {
-    return c == u8' '
-        or c == u8'\f'
-        or c == u8'\t'
-        or c == u8'\v';
+    return char_ci_eq(c, u8' ', u8'\f', u8'\t', u8'\v');
   };
 
   auto is_eol = [](auto c) constexpr
   {
-    return c == u8'\n'
-        or c == u8'\r';
+    return char_ci_eq(c, u8'\n', u8'\r');
   };
 
   auto is_eof = [](auto c) constexpr
   {
-    return c == std::char_traits<decltype(c)>::eof();
+    using traits = typename std::char_traits<decltype(c)>;
+
+    return traits::eq_int_type(traits::to_int_type(c), traits::eof());
   };
 
   auto is_whitespace = [](auto c) constexpr
@@ -68,25 +71,22 @@ namespace meevax::kernel
 
   auto is_parenthesis = [](auto c) constexpr
   {
-    return c == u8'('
-        or c == u8')';
+    return char_ci_eq(c, u8'(', u8')');
   };
 
   auto is_quotation = [](auto c) constexpr
   {
-    return c == u8'\''
-        or c == u8'"'
-        or c == u8'`';
+    return char_ci_eq(c, u8'\'', u8'"', u8'`');
   };
 
   auto is_vertical_line = [](auto c) constexpr
   {
-    return c == u8'|';
+    return char_ci_eq(c, u8'|');
   };
 
   auto is_discriminator = [](auto c) constexpr
   {
-    return c == u8'#';
+    return char_ci_eq(c, u8'#');
   };
 
   auto is_delimiter = [](auto c) constexpr
@@ -96,8 +96,7 @@ namespace meevax::kernel
         or is_quotation(c)
         or is_discriminator(c)
         or is_vertical_line(c)
-        or c == u8';'
-        or c == u8',';
+        or char_ci_eq(c, u8';', u8',');
   };
 
   // NOTE in R7RS

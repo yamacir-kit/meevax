@@ -31,7 +31,7 @@ namespace meevax::protocol
       return *data;                                                            \
     }                                                                          \
                                                                                \
-    template <typename T, REQUIRES(std::is_convertible<T, xcb_##NAME##_iterator_t>)> \
+    template <typename T, Requires(std::is_convertible<T, xcb_##NAME##_iterator_t>)> \
     bool equal(const T& rhs) const noexcept                                    \
     {                                                                          \
       return data == rhs.data;                                                 \

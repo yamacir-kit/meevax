@@ -104,8 +104,8 @@ namespace meevax::kernel
     }
 
   public:
-    Static_Perfect_Forward(open_output_file, std::ofstream);
-    Static_Perfect_Forward(open_output_string, std::stringstream);
+    Define_Static_Perfect_Forwarding(open_output_file, std::ofstream);
+    Define_Static_Perfect_Forwarding(open_output_string, std::stringstream);
   };
 } // namespace meevax::kernel
 

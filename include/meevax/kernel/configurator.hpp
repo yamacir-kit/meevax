@@ -27,13 +27,12 @@ namespace meevax::kernel
     object debug_mode       { f };
     object interactive_mode { f };
     object quiet_mode       { f };
+    object trace_mode       { f };
     object verbose_mode     { f };
 
   public:
     static inline const version current_version {};
     static inline const feature current_feature {};
-
-    object trace { f };
 
     object paths    { unit };
     object variable { unit };
@@ -51,6 +50,11 @@ namespace meevax::kernel
     auto quiet() const
     {
       return quiet_mode.as<boolean>().value;
+    }
+
+    auto tracing() const
+    {
+      return trace_mode.as<boolean>().value;
     }
 
     auto verbose() const
@@ -111,46 +115,72 @@ namespace meevax::kernel
 
     auto display_help() const -> const auto&
     {
-      display_title(current_version);
+      #define SECTION_HEADING(NAME) \
+        "; ", console::bold, NAME "\n", console::reset,
 
-      display_abstract();
+      #define SUBSECTION_HEADING(NAME) \
+        ";    ", console::bold, NAME "\n", console::reset,
 
-      write( //  10        20        30        40        50        60        70        80\n"
-        "; Usage: ice [option]... [file]...                                              \n"
-        ";                                                                               \n"
-        "; Operation mode:                                                               \n"
-        ";   -f, --file=FILE           Specify the file to be executed. If this option is\n"
-        ";                             used multiple times, the specified files will be  \n"
-        ";                             executed sequentially from left to right. Anything\n"
-        ";                             that is not an option name or option argument is  \n"
-        ";                             implicitly treated as an argument for this option.\n"
-        ";   -i, --interactive         Take over the control of root syntactic           \n"
-        ";                             continuation interactively after processing given \n"
-        ";                             <file>s.                                          \n"
-        ";   -q, --quiet               Suppress any output except side-effect of user's  \n"
-        ";                             explicit use of primitive procedure 'write'.      \n"
-        ";                                                                               \n"
-        "; Tools:                                                                        \n"
-        ";       --echo=EXPRESSION     Read an expression, construct an object from it,  \n"
-        ";                             and display its external representation. Note that\n"
-        ";                             the expression is parsed once by the shell before \n"
-        ";                             it is read. This output is useful to see what     \n"
-        ";                             objects the --evaluate option accepts.            \n"
-        ";   -e, --evaluate=EXPRESSION Read an expression, construct an object from it,  \n"
-        ";                             compile and execute it, and then display external \n"
-        ";                             representation of the result.                     \n"
-        ";                                                                               \n"
-        "; Debug:                                                                        \n"
-        ";       --trace               Display stacks of virtual machine on each         \n"
-        ";                             execution step.                                   \n"
-        ";       --verbose             Report the details of lexical parsing,            \n"
-        ";                             compilation, virtual machine execution to         \n"
-        ";                             standard-error.                                   \n"
-        ";                                                                               \n"
-        "; Miscellaneous:                                                                \n"
-        ";   -h, --help                Display version information and exit.             \n"
-        ";   -v, --version             Display this help message and exit.               \n"
-        ";                                                                               \n");
+      write(
+      // ;       10        20        30        40        50        60        70        80\n"
+        ";                 Meevax Lisp System ", current_version.major(), " - Revision ", current_version.minor(), " Patch ", current_version.patch(), "\n"
+        ";\n"
+        SECTION_HEADING("NAME")
+        ";        ice - Meevax incremental compiler/evaluator.\n"
+        ";\n"
+        SECTION_HEADING("SYNOPSIS")
+        ";        ice [option]... [path]...\n"
+        ";\n"
+        SECTION_HEADING("DESCRIPTION")
+        ";\n"
+        SECTION_HEADING("OPTIONS")
+          SUBSECTION_HEADING("Generic Program Information")
+        ";        -h, --help\n"
+        ";               Display version information and exit.\n"
+        ";\n"
+        ";        -v, --version\n"
+        ";               Display this help message and exit.\n"
+        ";\n"
+          SUBSECTION_HEADING("Operation Mode")
+        ";        -i, --interactive\n"
+        ";               Take over the control of root syntactic continuation\n"
+        ";               interactively after processing given <file>s.\n"
+        ";\n"
+        ";        -q, --quiet\n"
+        ";               Suppress any output except side-effect of user's explicit use of\n"
+        ";               primitive procedure 'write' or 'display'.\n"
+        ";\n"
+        ";       --trace Display stacks of virtual machine on each execution step.\n"
+        ";\n"
+        ";       --verbose\n"
+        ";               Report the details of lexical parsing, compilation, virtual\n"
+        ";               machine execution to standard-error-port.\n"
+        ";\n"
+          SUBSECTION_HEADING("Evaluation Target")
+        ";        -f path, --file path\n"
+        ";               Specify the file to be executed. If this option is used multiple\n"
+        ";               times, the specified files will be executed sequentially from\n"
+        ";               left to right. Anything that is not an option name or option\n"
+        ";               argument is implicitly treated as an argument for this option.\n"
+        ";\n"
+          SUBSECTION_HEADING("Tools")
+        ";        --echo expression\n"
+        ";               Read an expression, construct an object from it, and display its\n"
+        ";               external representation. Note that the expression is parsed once\n"
+        ";               by the shell before it is read. This output is useful to see\n"
+        ";               what objects the --evaluate option accepts.\n"
+        ";\n"
+        ";        -e expression, --evaluate expression\n"
+        ";               Read an expression, construct an object from it, compile and\n"
+        ";               execute it, and then display external representation of the\n"
+        ";               result.\n"
+        ";\n"
+        SECTION_HEADING("AUTHORS")
+        ";        Tatsuya Yamasaki\n"
+        ";\n"
+        SECTION_HEADING("LICENSE")
+        ";        ", unspecified, "\n"
+        );
 
       return unspecified;
     }
@@ -240,10 +270,11 @@ namespace meevax::kernel
       }),
 
       // TODO --srfi=0,1,2
+      // TODO --reviced=4,5,7
 
       std::make_pair("trace", [this](auto&&...) mutable
       {
-        return trace = t;
+        return trace_mode = t;
       }),
 
       std::make_pair("verbose", [this](auto&&...) mutable

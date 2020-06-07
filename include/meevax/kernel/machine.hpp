@@ -8,6 +8,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/symbol.hpp> // object::is<symbol>()
+#include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/syntax.hpp>
 
 namespace meevax::kernel
@@ -20,15 +21,17 @@ namespace meevax::kernel
     machine()
     {}
 
-    Import(SK, current_debug_port);
-    Import(SK, current_error_port);
     Import(SK, debug);
-    Import(SK, header);
+    Import(SK, evaluate);
     Import(SK, indent);
-    Import(SK, interaction_environment);
+    Import(SK, syntactic_environment);
     Import(SK, intern);
     Import(SK, rename);
-    Import(SK, write_to);
+    Import_Const(SK, current_debug_port);
+    Import_Const(SK, current_error_port);
+    Import_Const(SK, header);
+    Import_Const(SK, tracing);
+    Import_Const(SK, write_to);
 
   protected:
     object s, // Stack (holding intermediate results and return address)
@@ -37,22 +40,23 @@ namespace meevax::kernel
            d; // Dump (S.E.C)
 
   public:
-    // Direct virtual machine instruction invocation.
     template <typename... Ts>
-    decltype(auto) define(const object& identifier, Ts&&... operands)
+    decltype(auto) define(const object& variable, Ts&&... expression)
     {
       push(
-        interaction_environment(),
-        list(identifier, std::forward<decltype(operands)>(operands)...));
+        syntactic_environment(),
+        list( // TODO => cons
+          variable,
+          Perfect_Forward(expression)...));
 
       write_to(current_debug_port(),
         header("define"),
-        caar(interaction_environment()),
+        caar(syntactic_environment()),
         console::faint, " binds ", console::reset,
-        cadar(interaction_environment()),
+        cadar(syntactic_environment()),
         "\n");
 
-      return interaction_environment(); // temporary
+      return unspecified;
     }
 
     const object& glocal_environment(const object& e)
@@ -61,47 +65,12 @@ namespace meevax::kernel
       {
         if (frame and car(frame) and car(frame).is<SK>())
         {
-          // return car(frame).as<SK>().interaction_environment();
+          // return car(frame).as<SK>().syntactic_environment();
           return cdar(frame);
         }
       }
 
-      return interaction_environment();
-    }
-
-    auto lookup(const object& identifier,
-                const object& environment)
-      -> const object&
-    {
-      if (not identifier or not environment)
-      {
-        return identifier;
-      }
-      else if (caar(environment) == identifier)
-      {
-        return cadar(environment);
-      }
-      else
-      {
-        return lookup(identifier, cdr(environment));
-      }
-    }
-
-    const object& lookup_key(const object& identifier,
-                             const object& environment)
-    {
-      if (not identifier or not environment)
-      {
-        return identifier;
-      }
-      else if (caar(environment) == identifier)
-      {
-        return caar(environment);
-      }
-      else
-      {
-        return lookup_key(identifier, cdr(environment));
-      }
+      return syntactic_environment();
     }
 
     /* ------------------------------------------------------------------------
@@ -131,7 +100,7 @@ namespace meevax::kernel
       }
       else if (not expression.is<pair>())
       {
-        if (expression.is<symbol>()) // is variable
+        if (expression.is<symbol>() or expression.is<syntactic_closure>()) // is <identifier>
         {
           if (de_bruijn_index index {expression, frames}; index)
           {
@@ -164,7 +133,7 @@ namespace meevax::kernel
                 continuation);
           }
         }
-        else
+        else // is <self-evaluating>
         {
           debug(expression, console::faint, " ; is <self-evaluating>");
 
@@ -176,14 +145,15 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        if (object applicant {lookup(
-              car(expression), syntactic_environment
-            )};
+        if (const object binding { assq(car(expression), syntactic_environment) },
+                       applicant { binding.eqv(f) ? car(expression) // applicant is value of variable in current-syntactic-environment
+                                                  : cadr(binding) // applicant may be directory inserted object
+                                                  };
             not applicant)
         {
           // TODO write_to_current_error_port => warning
           write_to(current_error_port(),
-            "; compiler\t; ", console::bold, console::yellow, "WARNING\n",
+            header("compiler"), console::bold, console::yellow, "WARNING\n",
             std::string(80, '~'), "\n",
             "Compiler detected application of variable currently bounds "
             "empty-list. If the variable will not reset with applicable object "
@@ -220,10 +190,6 @@ namespace meevax::kernel
             console::faint, " ; is <macro use> of ",
             console::reset, applicant);
 
-          // std::cerr << "Syntactic-Continuation holds "
-          //           << applicant.as<SK>().continuation()
-          //           << std::endl;
-
           const auto expanded {
             applicant.as<SK>().expand(
               cons(
@@ -232,10 +198,12 @@ namespace meevax::kernel
           };
 
           write_to(current_debug_port(),
-            "; macroexpand\t; ", indent(), expanded, "\n");
+            header("macroexpand"), indent(), expanded, "\n");
 
-          auto result {compile(
-            expanded, syntactic_environment, frames, continuation)};
+          auto result {
+            compile(
+              expanded, syntactic_environment, frames, continuation)
+          };
 
           return result;
         }
@@ -371,8 +339,7 @@ namespace meevax::kernel
     object execute()
     {
     dispatch:
-      if (static_cast<SK&>(*this)
-            .trace.equivalent_to(t))
+      if (tracing())
       {
         std::cerr << "; trace s\t; " <<  s << std::endl;
         std::cerr << ";       e\t; " <<  e << std::endl;
@@ -429,14 +396,13 @@ namespace meevax::kernel
       * => (object . S) E                           C  D
       *
       *====================================================================== */
-        if (const object value {
-              std::invoke(
-                cadr(c).template is<symbol>() ? assq : assoc,
-                cadr(c),
-                glocal_environment(e))
-            }; value != cadr(c))
+        if (const object identifier { cadr(c) }; identifier.is<syntactic_closure>())
         {
-          push(s, cadr(value));
+          push(s, identifier.as<syntactic_closure>().lookup());
+        }
+        else if (const object binding { assq(identifier, glocal_environment(e)) }; not binding.eqv(f))
+        {
+          push(s, cadr(binding));
         }
         else // UNBOUND
         {
@@ -499,7 +465,7 @@ namespace meevax::kernel
               e,
               cadr(c), // compile continuation
               d),
-            interaction_environment()));
+            syntactic_environment()));
         pop<2>(c);
         goto dispatch;
 
@@ -514,7 +480,7 @@ namespace meevax::kernel
       //     s,
       //     make<SK>(
       //       pop(s), // XXX car(s)?
-      //       interaction_environment()));
+      //       syntactic_environment()));
       //   pop<1>(c);
       //   goto dispatch;
 
@@ -561,14 +527,13 @@ namespace meevax::kernel
       * => (identifier . S) E                      C  D
       *
       *====================================================================== */
-        if (static_cast<SK&>(*this).virgin)
+        if (0 < static_cast<SK&>(*this).generation)
         {
-          define(cadr(c), car(s));
-          car(s) = unspecified;
+          std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
         }
         else
         {
-          std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
+          car(s) = define(cadr(c), car(s));
         }
         pop<2>(c);
         goto dispatch;
@@ -598,22 +563,18 @@ namespace meevax::kernel
         }
         else if (callee.is<SK>()) // TODO REMOVE
         {
-          // s = cons(
-          //       callee.as<SK>().expand(
-          //         cons(
-          //           car(s),
-          //           cadr(s))),
-          //       cddr(s));
           s = cons(
-                callee.as<SK>().evaluate( // TODO expand => evaluate ?
+                callee.as<SK>().evaluate(
                   cadr(s)),
                 cddr(s));
           pop<1>(c);
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(caadr(s), car(callee));
-          e = cadr(callee);
+          s = cons(
+                caadr(s),
+                car(callee));
+          e =  cadr(callee);
           c = caddr(callee);
           d = cdddr(callee);
         }
@@ -646,12 +607,6 @@ namespace meevax::kernel
         }
         else if (callee.is<SK>()) // TODO REMOVE
         {
-          // s = cons(
-          //       callee.as<SK>().expand(
-          //         cons(
-          //           car(s),
-          //           cadr(s))),
-          //       cddr(s));
           s = cons(
                 callee.as<SK>().evaluate(
                   cadr(s)),
@@ -660,8 +615,10 @@ namespace meevax::kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(caadr(s), car(callee));
-          e = cadr(callee);
+          s = cons(
+                caadr(s),
+                car(callee));
+          e =  cadr(callee);
           c = caddr(callee);
           d = cdddr(callee);
         }
@@ -719,11 +676,9 @@ namespace meevax::kernel
       * (3) Should set with weak reference if right hand side is newer.
       *
       *====================================================================== */
-        if (const object pare {
-              assq(cadr(c), glocal_environment(e))
-            }; pare != cdadr(c))
+        if (const object pare { assq(cadr(c), glocal_environment(e)) }; not pare.eqv(f))
         {
-          if (const auto value {cadr(pare)}; not value)
+          if (const auto value {cadr(pare)}; not value or not car(s))
           {
             cadr(pare) = car(s);
           }
@@ -797,21 +752,20 @@ namespace meevax::kernel
     }
 
   protected: // Primitive Expression Types
-    #define DEFINE_PRIMITIVE_EXPRESSION(NAME, ...)                             \
+    #define DEFINE_PRIMITIVE_EXPRESSION(NAME)                                  \
     const object NAME(                                                         \
       [[maybe_unused]] const object& expression,                               \
       [[maybe_unused]] const object& syntactic_environment,                    \
       [[maybe_unused]] const object& frames,                                   \
       [[maybe_unused]] const object& continuation,                             \
-      [[maybe_unused]] const compilation_context in_a = as_is)                 \
-    __VA_ARGS__
+      [[maybe_unused]] const compilation_context in_a = as_is)
 
     /* ==== Quotation =========================================================
     *
     * <quotation> = (quote <datum>)
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(quotation,
+    DEFINE_PRIMITIVE_EXPRESSION(quotation)
     {
       debug(car(expression), console::faint, " ; is <datum>");
 
@@ -819,7 +773,7 @@ namespace meevax::kernel
         cons(
           make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
           continuation);
-    })
+    }
 
     /* ==== Sequence ==========================================================
     *
@@ -828,7 +782,7 @@ namespace meevax::kernel
     * <command> = <expression>
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(sequence,
+    DEFINE_PRIMITIVE_EXPRESSION(sequence)
     {
       if (in_a.program_declaration)
       {
@@ -887,7 +841,7 @@ namespace meevax::kernel
                   continuation)));
         }
       }
-    })
+    }
 
     /* ==== Definition ========================================================
     *
@@ -896,7 +850,7 @@ namespace meevax::kernel
     * TODO MOVE INTO SYNTACTIC_CONTINUATION
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(definition,
+    DEFINE_PRIMITIVE_EXPRESSION(definition)
     {
       if (not frames or in_a.program_declaration)
       {
@@ -957,14 +911,14 @@ namespace meevax::kernel
         //       make<instruction>(mnemonic::DEFINE), car(expression),
         //       continuation));
       }
-    })
+    }
 
     /* ==== Lambda Body =======================================================
     *
     * <body> = <definition>* <sequence>
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(body,
+    DEFINE_PRIMITIVE_EXPRESSION(body)
     {
       /* ----------------------------------------------------------------------
       *
@@ -1041,22 +995,15 @@ namespace meevax::kernel
               continuation);
         }
       }
-      // XXX DIRTY HACK
+      // XXX UGLY CODE!!!
       else if (car(expression).is<pair>() // is application
                and caar(expression) // the operator is not illegal
                and caar(expression).template is<symbol>() // the operator is variable reference
-               and not de_bruijn_index( // the operator is not local variable
-                         caar(expression),
-                         frames)
-               and lookup( // the variable references syntax form
-                     caar(expression),
-                     syntactic_environment)
-                   .template is<syntax>()
-               and lookup( // the syntax form is "define"
-                     caar(expression),
-                     syntactic_environment)
-                   .template as<syntax>()
-                   .name == "define")
+               and not de_bruijn_index(caar(expression), frames) // the operator is not local binding
+               and not assq(caar(expression), syntactic_environment).eqv(f)
+               and cadr(assq(caar(expression), syntactic_environment)) // binding is not null
+               and cadr(assq(caar(expression), syntactic_environment)).is<syntax>()
+               and cadr(assq(caar(expression), syntactic_environment)).as<syntax>().name == "define")
       {
         /* --------------------------------------------------------------------
         *
@@ -1187,14 +1134,14 @@ namespace meevax::kernel
                   continuation)));
         }
       }
-    })
+    }
 
     /* ==== Operand ===========================================================
     *
     * <operand> = <expression>
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(operand,
+    DEFINE_PRIMITIVE_EXPRESSION(operand)
     {
       if (expression and expression.is<pair>())
       {
@@ -1220,14 +1167,14 @@ namespace meevax::kernel
             frames,
             continuation);
       }
-    })
+    }
 
     /* ==== Conditional =======================================================
     *
     * <conditional> = (if <test> <consequent> <alternate>)
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(conditional,
+    DEFINE_PRIMITIVE_EXPRESSION(conditional)
     {
       debug(car(expression), console::faint, " ; is <test>");
 
@@ -1300,14 +1247,14 @@ namespace meevax::kernel
               make<instruction>(mnemonic::SELECT), consequent, alternate,
               continuation));
       }
-    })
+    }
 
     /* ==== Lambda Expression =================================================
     *
     * <lambda expression> = (lambda <formals> <body>)
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(lambda,
+    DEFINE_PRIMITIVE_EXPRESSION(lambda)
     {
       debug(car(expression), console::faint, " ; is <formals>");
 
@@ -1342,14 +1289,14 @@ namespace meevax::kernel
                 make<instruction>(mnemonic::RETURN))),
             continuation);
       }
-    })
+    }
 
     /* ==== Call-With-Current-Continuation ====================================
     *
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(call_cc,
+    DEFINE_PRIMITIVE_EXPRESSION(call_cc)
     {
       debug(car(expression), console::faint, " ; is <procedure>");
 
@@ -1364,14 +1311,14 @@ namespace meevax::kernel
             cons(
               make<instruction>(mnemonic::CALL),
               continuation)));
-    })
+    }
 
     /* ==== Fork ===============================================================
     *
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(fork,
+    DEFINE_PRIMITIVE_EXPRESSION(fork)
     {
       debug(car(expression), console::faint, " ; is <subprogram>");
 
@@ -1389,14 +1336,14 @@ namespace meevax::kernel
       //       make<instruction>(mnemonic::FORK),
       //       continuation),
       //     as_program_declaration);
-    })
+    }
 
     /* ==== Assignment ========================================================
     *
     * TODO documentation
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(assignment,
+    DEFINE_PRIMITIVE_EXPRESSION(assignment)
     {
       if (not expression)
       {
@@ -1444,7 +1391,7 @@ namespace meevax::kernel
               make<instruction>(mnemonic::STORE_GLOBAL), car(expression),
               continuation));
       }
-    })
+    }
 
     /* ==== Explicit Variable Reference =======================================
     *
@@ -1452,7 +1399,7 @@ namespace meevax::kernel
     * TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
     *
     *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(reference,
+    DEFINE_PRIMITIVE_EXPRESSION(reference)
     {
       if (not expression)
       {
@@ -1495,7 +1442,7 @@ namespace meevax::kernel
             make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
             continuation);
       }
-    })
+    }
   };
 } // namespace meevax::kernel
 

@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-#define REQUIRES(...) \
+#define Requires(...) \
   typename = typename std::enable_if< \
                         std::conjunction<__VA_ARGS__>::value \
                       >::type

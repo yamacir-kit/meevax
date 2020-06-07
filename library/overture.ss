@@ -20,15 +20,11 @@
 (define equivalence.so
   (linker "libmeevax-equivalence.so"))
 
-(define equals?
+(define eq?
   (procedure equivalence.so "equals"))
 
-(define eq? equals?)
-
-(define equivalent? ; value-equal?
+(define eqv?
   (procedure equivalence.so "equivalent"))
-
-(define eqv? equivalent?)
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Numbers (Part 1 of 2)
@@ -166,11 +162,30 @@
               (list lambda identifier . transformer)))
           (list define identifier . transformer)))))
 
-(define er-macro-transformer
-  (lambda (transform)
-    (fork
-      (lambda expression
-        (transform expression evaluate identifier=?) ))))
+(define identifier?
+  (lambda (x)
+    (if (null? x) #false
+        (syntactic-closure? x))))
+
+(define free-identifier=?
+  (lambda (x y)
+    (if (symbol? x)
+        (if (symbol? y)
+            (eq? x y)
+            (if (syntactic-closure? y)
+                (eq? x (car y))
+                #false))
+        (if (syntactic-closure? x)
+            (if (syntactic-closure? y)
+                (eqv? x y)
+                (if (symbol? y)
+                    (eq? (car x) y)
+                    #false))
+            #false))))
+
+(define-syntax (er-macro-transformer transform)
+  (lambda expression
+    (transform expression rename free-identifier=?)))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
@@ -180,12 +195,12 @@
   (if (null? clauses)
       (if #f #f)
       ((lambda (clause)
-         (if (identifier=? else (car clause))
+         (if (free-identifier=? else (car clause))
              (if (pair? (cdr clauses))
                  (error "else clause must be at the end of cond clause" clauses)
                  (cons begin (cdr clause)) )
              (if (if (null? (cdr clause)) #t
-                     (identifier=? => (cadr clause)) )
+                     (free-identifier=? => (cadr clause)) )
                  (list (list lambda (list result)
                              (list if result
                                    (if (null? (cdr clause)) result
@@ -583,7 +598,7 @@
     (lambda (expressions)
       (cond
         ((null? expressions) result)
-        ((eq? => (car expressions))
+        ((free-identifier=? => (car expressions))
         `(,(cadr expressions) ,result))
         (else
          `(,begin ,@expressions) ))))
@@ -592,7 +607,7 @@
     (lambda (clauses)
       (cond
         ((null? clauses) #false)
-        ((eq? else (caar clauses))
+        ((free-identifier=? else (caar clauses))
          (body (cdar clauses)))
         ((and (pair? (caar clauses))
               (null? (cdaar clauses)))
@@ -974,8 +989,8 @@
 (define symbol ; Constructor
   (procedure symbol.so "symbol"))
 
-(define symbol?
-  (procedure symbol.so "is_symbol"))
+; (define symbol?
+;   (procedure symbol.so "is_symbol"))
 
 (define symbol=?
   (lambda (x y . xs)

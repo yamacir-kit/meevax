@@ -15,7 +15,7 @@ namespace meevax::kernel
     {}
 
     Import(SK, write_to);
-    Import(SK, current_debug_port);
+    Import_Const(SK, current_debug_port);
 
   public:
     static inline           std::size_t depth {0};

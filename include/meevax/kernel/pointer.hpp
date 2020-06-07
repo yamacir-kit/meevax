@@ -41,15 +41,6 @@ namespace meevax::kernel
   template <typename T>
   using is_not_embeddable
     = std::is_compound<typename std::decay<T>::type>;
-  // template <typename T>
-  // struct is_not_embeddable
-  // {
-  //   using type = typename std::decay<T>::type;
-  //
-  //   static constexpr bool value {
-  //     std::is_compound<type>::value or sizeof(T) < word_size
-  //   };
-  // };
 
   /* ==== Tagged Pointers =====================================================
   *
@@ -94,7 +85,7 @@ namespace meevax::kernel
     return reinterpret_cast<std::uintptr_t>(value) bitand category_mask;
   }
 
-  Static_Perfect_Forward(is_tagged, category_of);
+  Define_Static_Perfect_Forwarding(is_tagged, category_of);
 
   template <typename T>
   using precision
@@ -177,11 +168,11 @@ namespace meevax::kernel
       explicit constexpr binder(Ts&&... operands)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<T, Bound>::value, T, Bound
-          >::type {std::forward<decltype(operands)>(operands)...}
+          >::type { std::forward<decltype(operands)>(operands)... }
       {}
 
       explicit constexpr binder(Bound&& bound)
-        : Bound {std::forward<decltype(bound)>(bound)}
+        : Bound { std::forward<decltype(bound)>(bound) }
       {}
 
       virtual ~binder() = default;
@@ -250,22 +241,6 @@ namespace meevax::kernel
       : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
     {}
 
-    /* ==== Destructor ========================================================
-    *
-    * TODO: Check all of allocated objects are deallocate correctly.
-    *
-    *======================================================================= */
-    ~pointer()
-    {
-      if (*this)
-      {
-        if (std::shared_ptr<T>::unique())
-        {
-          // std::cerr << "; pointer\t; deallocating " << *this << std::endl;
-        }
-      }
-    }
-
     /* ==== C/C++ Derived Types Bind ==========================================
     *
     * With this function, you don't have to worry about virtual destructors.
@@ -276,23 +251,23 @@ namespace meevax::kernel
     *======================================================================== */
     template <typename Bound,
               typename... Ts,
-              REQUIRES(is_not_embeddable<Bound>)>
-    static pointer make_binding(Ts&&... operands)
+              Requires(is_not_embeddable<Bound>)>
+    static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
 
       return
         std::make_shared<binding>(
-          std::forward<decltype(operands)>(operands)...);
+          std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename Bound,
               typename MemoryResource, // XXX (GCC-9 <=)
               typename... Ts,
-              REQUIRES(is_not_embeddable<Bound>)>
+              Requires(is_not_embeddable<Bound>)>
     static pointer allocate_binding(
       MemoryResource&& resource,
-      Ts&&... operands)
+      Ts&&... xs)
     {
       using binding = binder<Bound>;
 
@@ -301,14 +276,10 @@ namespace meevax::kernel
             decltype(resource)
           >::type::template rebind<binding>::other;
 
-      // return
-      //   std::make_shared<binding>(
-      //     std::forward<decltype(operands)>(operands)...);
-
       return
         std::allocate_shared<binding>(
-          binding_allocator {std::forward<decltype(resource)>(resource)},
-          std::forward<decltype(operands)>(operands)...);
+          binding_allocator { std::forward<decltype(resource)>(resource) },
+          std::forward<decltype(xs)>(xs)...);
     }
 
     /* ==== C/C++ Primitive Types Bind ========================================
@@ -316,7 +287,7 @@ namespace meevax::kernel
     * TODO: support bind for not is_embeddable types (e.g. double).
     *
     *======================================================================== */
-    template <typename U, REQUIRES(is_embeddable<U>)>
+    template <typename U, Requires(is_embeddable<U>)>
     static pointer make_binding(U&& value)
     {
       static auto ignore = [](auto* value)
@@ -415,7 +386,7 @@ namespace meevax::kernel
     /* ==== C/C++ Derived Type Restoration ====================================
     *
     *======================================================================= */
-    template <typename U, REQUIRES(is_not_embeddable<U>)>
+    template <typename U, Requires(is_not_embeddable<U>)>
     U& as() const
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -431,7 +402,7 @@ namespace meevax::kernel
     * TODO: Support upcast and downcast of arithmetic types
     *
     *======================================================================= */
-    template <typename U, REQUIRES(std::is_arithmetic<U>)>
+    template <typename U, Requires(std::is_arithmetic<U>)>
     auto as() const
       -> typename std::decay<U>::type
     {
@@ -487,7 +458,7 @@ namespace meevax::kernel
     }
 
     // NOTE: Can't compile with less than GCC-9 due to a bug in the compiler.
-    // Immutable_Perfect_Forward(eqv, equivalent_to);
+    // Define_Const_Perfect_Forwarding(eqv, equivalent_to);
 
     template <typename... Ts>
     constexpr auto eqv(Ts&&... xs) const
@@ -505,25 +476,6 @@ namespace meevax::kernel
     return not object ? (os << console::magenta << "()" << console::reset)
                       : object.dereference().dispatch(os);
   }
-
-  namespace debug
-  {
-    // static_assert(tag<void*>::value    == 0b0000);
-
-    static_assert(category<bool>::value == 0b1101);
-
-    static_assert(tag<float>::value    == 0b0101'1010);
-
-    static_assert(tag<int8_t>::value   == 0b0011'1000);
-    static_assert(tag<int16_t>::value  == 0b0100'1000);
-    static_assert(tag<int32_t>::value  == 0b0101'1000);
-    // static_assert(tag<int64_t>::value  == 0b1000);
-
-    static_assert(tag<uint8_t>::value  == 0b0011'1100);
-    static_assert(tag<uint16_t>::value == 0b0100'1100);
-    static_assert(tag<uint32_t>::value == 0b0101'1100);
-    // static_assert(tag<uint64_t>::value == 0b1100);
-  } // namespace debug
 } // namespace meevax::kernel
 
 namespace std

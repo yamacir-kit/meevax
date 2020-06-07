@@ -9,8 +9,8 @@ namespace meevax::kernel
     : public std::string
   {
     template <typename... Ts>
-    explicit constexpr symbol(Ts&&... operands)
-      : std::string {std::forward<decltype(operands)>(operands)...}
+    explicit constexpr symbol(Ts&&... xs)
+      : std::string { std::forward<decltype(xs)>(xs)... }
     {}
 
     friend auto operator<<(std::ostream& os, const symbol& symbol)
@@ -18,16 +18,17 @@ namespace meevax::kernel
     {
       if (symbol.empty())
       {
-        return os << console::magenta << "#("
-                  << console::green << "symbol"
-                  << console::reset
-                  << console::faint << " #;" << &symbol
-                  << console::magenta << ")"
-                  << console::reset;
+        /* ---- From R7RS 2.1. Identifiers -------------------------------------
+         *
+         * Note that || is a valid identifier that is different from any other
+         * identifier.
+         *
+         * ------------------------------------------------------------------ */
+        return os << "||";
       }
       else
       {
-        return os << console::reset << static_cast<const std::string&>(symbol);
+        return os << static_cast<const std::string&>(symbol);
       }
     }
   };

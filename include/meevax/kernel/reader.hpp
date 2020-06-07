@@ -174,7 +174,7 @@ namespace meevax::kernel
     {
       std::string token {};
 
-      for (seeker head {port}; head != seeker {}; ++head) switch (*head)
+      for (seeker head { port }; head != seeker {}; ++head) switch (*head)
       {
       case ';':
         port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -313,8 +313,8 @@ namespace meevax::kernel
     }
 
   public:
-    Static_Perfect_Forward(open_input_file, std::ifstream);
-    Static_Perfect_Forward(open_input_string, std::stringstream);
+    Define_Static_Perfect_Forwarding(open_input_file, std::ifstream);
+    Define_Static_Perfect_Forwarding(open_input_string, std::stringstream);
 
   private:
     const object discriminate(std::istream& is)

@@ -252,6 +252,17 @@ install(
   RUNTIME DESTINATION bin)
 
 # ==============================================================================
+#   Unit Test
+# ==============================================================================
+add_executable(unit-test
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/unit-test.cpp
+  ${${PROJECT_NAME}_LAYERS})
+
+target_link_libraries(unit-test
+  PRIVATE
+    meevax::kernel)
+
+# ==============================================================================
 #   Package Version
 # ==============================================================================
 include(CMakePackageConfigHelpers)
