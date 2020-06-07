@@ -498,6 +498,11 @@ namespace meevax::kernel
 
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
+
+    define<procedure>("rename", [this](auto&&, auto&& xs)
+    {
+      return rename(xs ? car(xs) : unspecified);
+    });
   }
 
   template <>

@@ -183,11 +183,9 @@
                     #false))
             #false))))
 
-(define er-macro-transformer
-  (lambda (transform)
-    (fork
-      (lambda expression
-        (transform expression evaluate free-identifier=?) ))))
+(define-syntax (er-macro-transformer transform)
+  (lambda expression
+    (transform expression rename free-identifier=?)))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
