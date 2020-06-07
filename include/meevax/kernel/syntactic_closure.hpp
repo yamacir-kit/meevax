@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
 
+#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/symbol.hpp>
 
@@ -11,7 +12,7 @@ namespace meevax::kernel
   {
     using pair::pair; // Inheriting Constructors
 
-    auto syntax_quote() const noexcept -> const auto&
+    auto symbol() const noexcept -> const auto&
     {
       return first;
     }
@@ -25,24 +26,24 @@ namespace meevax::kernel
     {
       for (const auto& each : syntactic_environment())
       {
-        if (car(each) == syntax_quote())
+        if (car(each) == symbol())
         {
           return cadr(each);
         }
       }
 
-      return syntax_quote();
+      return symbol();
     }
 
-    auto is_keyword() const
+    auto is_free() const
     {
-      return lookup() == syntax_quote();
+      return assq(symbol(), syntactic_environment()).eqv(f);
     }
 
     friend auto operator <<(std::ostream& os, const syntactic_closure& sc)
       -> decltype(os)
     {
-      return os << console::underline << sc.syntax_quote() << "." << &sc << console::reset;
+      return os << console::underline << sc.symbol() << "." << &sc << console::reset;
     }
   };
 } // namespace meevax::kernel
