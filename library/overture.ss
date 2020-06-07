@@ -168,7 +168,7 @@
         (if (symbol? x) #true
             (syntactic-closure? x)))))
 
-(define identifier=?
+(define free-identifier=?
   (lambda (x y)
     (if (symbol? x)
         (if (symbol? y)
@@ -188,7 +188,7 @@
   (lambda (transform)
     (fork
       (lambda expression
-        (transform expression evaluate identifier=?) ))))
+        (transform expression evaluate free-identifier=?) ))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
@@ -198,12 +198,12 @@
   (if (null? clauses)
       (if #f #f)
       ((lambda (clause)
-         (if (identifier=? else (car clause))
+         (if (free-identifier=? else (car clause))
              (if (pair? (cdr clauses))
                  (error "else clause must be at the end of cond clause" clauses)
                  (cons begin (cdr clause)) )
              (if (if (null? (cdr clause)) #t
-                     (identifier=? => (cadr clause)) )
+                     (free-identifier=? => (cadr clause)) )
                  (list (list lambda (list result)
                              (list if result
                                    (if (null? (cdr clause)) result
@@ -601,7 +601,7 @@
     (lambda (expressions)
       (cond
         ((null? expressions) result)
-        ((identifier=? => (car expressions))
+        ((free-identifier=? => (car expressions))
         `(,(cadr expressions) ,result))
         (else
          `(,begin ,@expressions) ))))
@@ -610,7 +610,7 @@
     (lambda (clauses)
       (cond
         ((null? clauses) #false)
-        ((identifier=? else (caar clauses))
+        ((free-identifier=? else (caar clauses))
          (body (cdar clauses)))
         ((and (pair? (caar clauses))
               (null? (cdaar clauses)))
