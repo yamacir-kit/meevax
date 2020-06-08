@@ -183,13 +183,40 @@
                     #false))
             #false))))
 
-(define-syntax (er-macro-transformer transform)
-  (lambda expression
-    (transform expression rename free-identifier=?)))
+(define er-macro-transformer
+  (lambda (transform)
+    (fork
+      (lambda expression
+        (transform expression rename free-identifier=?)))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
+
+; (define-syntax cond
+;   (er-macro-transformer
+;     (lambda (expr rename compare)
+;       (if (null? (cdr expr))
+;           (unspecified)
+;           ((lambda (cl)
+;              (if (compare (rename 'else) (car cl))
+;                  (if (pair? (cddr expr))
+;                      (error "else clause must be at the end of cond clause" expr)
+;                      (cons (rename 'begin) (cdr cl)))
+;                  (if (if (null? (cdr cl)) #t
+;                          (compare (rename '=>) (cadr cl)))
+;                      (list (list (rename 'lambda) (list (rename 'result))
+;                                  (list (rename 'if) (rename 'result)
+;                                        (if (null? (cdr cl))
+;                                            (rename 'result)
+;                                            (list (car (cddr cl)) (rename 'result)))
+;                                        (cons (rename 'cond) (cddr expr))))
+;                            (car cl))
+;                      (list (rename 'if)
+;                            (car cl)
+;                            (cons (rename 'begin) (cdr cl))
+;                            (cons (rename 'cond) (cddr expr))))))
+;            (cadr expr))))))
 
 (define-syntax (cond . clauses)
   (if (null? clauses)
