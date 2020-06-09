@@ -5,23 +5,18 @@
 
 namespace meevax::kernel
 {
-  /* ==== Object Facade ========================================================
-   *
-   * TODO
-   *   Rename to 'identity'
+  /* ==== Identity =============================================================
    *
    * ======================================================================== */
   template <typename T>
-  struct alignas(category_mask + 1) objective
+  struct alignas(category_mask + 1) identity
   {
-    virtual auto type() const noexcept
-      -> const std::type_info&
+    virtual auto type() const noexcept -> const std::type_info&
     {
       return typeid(T);
     }
 
-    virtual auto copy() const
-      -> std::shared_ptr<T>
+    virtual auto copy() const -> std::shared_ptr<T>
     {
       if constexpr (std::is_copy_constructible<T>::value)
       {
@@ -39,7 +34,7 @@ namespace meevax::kernel
     {
       if constexpr (concepts::is_equality_comparable<T>::value)
       {
-        const auto p {std::dynamic_pointer_cast<const T>(other)};
+        const auto p { std::dynamic_pointer_cast<const T>(other) };
         assert(p);
         return static_cast<const T&>(*this) == *p;
       }
@@ -59,10 +54,9 @@ namespace meevax::kernel
 
   struct pair; // forward declaration
 
-  // TODO Rename => identifier
   using object = pointer<pair>;
 
-  // TODO Rename => cons
+  // TODO Rename to 'cons'?
   using resource = std::allocator<object>;
 
   template <typename T, typename... Ts>
@@ -86,7 +80,7 @@ namespace meevax::kernel
 
   static const object unit {nullptr};
 
-  #define DEFINE_MISCELLANEOUS(TYPENAME)                                       \
+  #define DEFINE_GHOST(TYPENAME)                                               \
   struct TYPENAME##_t                                                          \
   {                                                                            \
     friend auto operator<<(std::ostream& os, const TYPENAME##_t&)              \
@@ -97,10 +91,10 @@ namespace meevax::kernel
     }                                                                          \
   };                                                                           \
                                                                                \
-  static const auto TYPENAME {make<TYPENAME##_t>()}
+  static const auto TYPENAME { make<TYPENAME##_t>() }
 
-  DEFINE_MISCELLANEOUS(undefined);
-  DEFINE_MISCELLANEOUS(unspecified);
+  DEFINE_GHOST(undefined);
+  DEFINE_GHOST(unspecified);
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

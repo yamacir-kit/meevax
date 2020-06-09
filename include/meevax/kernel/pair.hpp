@@ -22,12 +22,12 @@ namespace meevax::kernel
   *========================================================================== */
   struct pair
     : public std::pair<object, object>
-    , public objective<pair>
+    , public identity<pair>
   {
     using std::pair<object, object>::pair;
 
     explicit pair()
-      : std::pair<object, object> {unit, unit}
+      : std::pair<object, object> { unit, unit }
     {}
 
     virtual ~pair() = default;
