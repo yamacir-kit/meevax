@@ -133,6 +133,15 @@ namespace meevax::kernel
                 continuation);
           }
         }
+        // else if (expression.is<syntactic_closure>())
+        // {
+        //   debug(expression, console::faint, " ; is <syntax-object>");
+        //
+        //   return
+        //     cons(
+        //       make<instruction>(mnemonic::LOAD_LINK), expression,
+        //       continuation);
+        // }
         else // is <self-evaluating>
         {
           debug(expression, console::faint, " ; is <self-evaluating>");
@@ -276,16 +285,15 @@ namespace meevax::kernel
         case mnemonic::FORK:
         case mnemonic::LOAD_CONSTANT:
         case mnemonic::LOAD_GLOBAL:
+        case mnemonic::LOAD_LINK:
         case mnemonic::LOAD_LOCAL:
         case mnemonic::LOAD_VARIADIC:
         case mnemonic::STORE_GLOBAL:
         case mnemonic::STORE_LOCAL:
         case mnemonic::STORE_VARIADIC:
-          {
-            const auto opcode {*iter};
-            const auto operand {*++iter};
-            write_to(current_debug_port(), opcode, " ", operand, "\n");
-          }
+          // NOTE: evaluation order of function argument is undefined (C++).
+          write_to(current_debug_port(), *iter);
+          write_to(current_debug_port(), " ", *++iter, "\n");
           break;
 
         case mnemonic::LOAD_CLOSURE:
@@ -398,7 +406,7 @@ namespace meevax::kernel
       *====================================================================== */
         if (const object identifier { cadr(c) }; identifier.is<syntactic_closure>())
         {
-          push(s, identifier.as<syntactic_closure>().lookup());
+          push(s, identifier.as<syntactic_closure>().load());
         }
         else if (const object binding { assq(identifier, glocal_environment(e)) }; not binding.eqv(f))
         {
@@ -408,6 +416,11 @@ namespace meevax::kernel
         {
           push(s, rename(cadr(c)));
         }
+        pop<2>(c);
+        goto dispatch;
+
+      case mnemonic::LOAD_LINK:
+        push(s, cadr(c).template as<syntactic_closure>().load());
         pop<2>(c);
         goto dispatch;
 

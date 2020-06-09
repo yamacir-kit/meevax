@@ -22,22 +22,25 @@ namespace meevax::kernel
       return second;
     }
 
-    auto lookup() const -> const auto&
+    auto binding() const
     {
-      for (const auto& each : syntactic_environment())
-      {
-        if (car(each) == symbol())
-        {
-          return cadr(each);
-        }
-      }
+      return assq(symbol(), syntactic_environment());
+    }
 
-      return symbol();
+    auto load() const
+    {
+      const auto pare { binding() };
+      return pare.eqv(f) ? symbol() : cadr(pare);
     }
 
     auto is_free() const
     {
-      return assq(symbol(), syntactic_environment()).eqv(f);
+      return binding().eqv(f);
+    }
+
+    auto is_bound() const
+    {
+      return not is_free();
     }
 
     friend auto operator <<(std::ostream& os, const syntactic_closure& sc)

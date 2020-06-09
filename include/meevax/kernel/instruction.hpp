@@ -21,6 +21,7 @@ namespace meevax::kernel
     (LOAD_CONSTANT)                                                            \
     (LOAD_CONTINUATION)                                                        \
     (LOAD_GLOBAL)                                                              \
+    (LOAD_LINK)                                                                \
     (LOAD_LOCAL)                                                               \
     (LOAD_VARIADIC)                                                            \
     (POP)                                                                      \
