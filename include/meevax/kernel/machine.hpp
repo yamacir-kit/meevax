@@ -107,21 +107,13 @@ namespace meevax::kernel
 
     auto lookup(const object& x, const object& env)
     {
-      if (null(x))
-      {
-        return x;
-      }
-      else if (const object binding { assq(x, env) }; not binding.eqv(f))
+      if (const object binding { assq(x, env) }; not binding.eqv(f))
       {
         return cadr(binding); // TODO must be cdr(binding)
       }
-      else if (x.is<symbol>())
+      else
       {
-        return x;
-      }
-      else if (x.is<syntactic_closure>())
-      {
-        return x.as<syntactic_closure>().strip();
+        return strip(x);
       }
     }
 
@@ -206,11 +198,7 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        if (const object binding { assq(car(expression), syntactic_environment) },
-                       applicant { binding.eqv(f) ? car(expression) // applicant is value of variable in current-syntactic-environment
-                                                  : cadr(binding) // applicant may be directory inserted object
-                                                  };
-            not applicant)
+        if (const object applicant { lookup(car(expression), syntactic_environment) }; not applicant)
         {
           // TODO write_to_current_error_port => warning
           write_to(current_error_port(),
@@ -221,8 +209,7 @@ namespace meevax::kernel
             "later, cause runtime error.\n",
             std::string(2 * static_cast<SK&>(*this).depth + 18, '~'), "v", std::string(80 - 2 * static_cast<SK&>(*this).depth - 17, '~'), "\n");
         }
-        else if (applicant.is<syntax>()
-                 and not de_bruijn_index(car(expression), frames))
+        else if (applicant.is<syntax>() and not de_bruijn_index(car(expression), frames))
         {
           debug(
             console::magenta, "(",
@@ -242,8 +229,7 @@ namespace meevax::kernel
 
           return result;
         }
-        else if (applicant.is<SK>()
-                 and not de_bruijn_index(car(expression), frames))
+        else if (applicant.is<SK>() and not de_bruijn_index(car(expression), frames))
         {
           debug(
             console::magenta, "(",
