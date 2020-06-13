@@ -65,12 +65,64 @@ namespace meevax::kernel
       {
         if (frame and car(frame) and car(frame).is<SK>())
         {
-          // return car(frame).as<SK>().syntactic_environment();
           return cdar(frame);
         }
       }
 
       return syntactic_environment();
+    }
+
+    auto strip(const object& id) const
+    {
+      if (not null(id) and id.is<syntactic_closure>())
+      {
+        return id.as<syntactic_closure>().strip();
+      }
+      else
+      {
+        return id;
+      }
+    }
+
+    auto is_identifier(const object& x) const
+    {
+      // (define (identifier? x)
+      //   (or (symbol? x)
+      //       (and (syntactic-closure? x)
+      //            (symbol? (syntactic-closure-form x)))))
+
+      if (not null(x))
+      {
+        return false;
+      }
+      else if (x.is<symbol>())
+      {
+        return true;
+      }
+      else
+      {
+        return x.is<syntactic_closure>() and x.as<syntactic_closure>().is_identifier();
+      }
+    }
+
+    auto lookup(const object& x, const object& env)
+    {
+      if (null(x))
+      {
+        return x;
+      }
+      else if (const object binding { assq(x, env) }; not binding.eqv(f))
+      {
+        return cadr(binding); // TODO must be cdr(binding)
+      }
+      else if (x.is<symbol>())
+      {
+        return x;
+      }
+      else if (x.is<syntactic_closure>())
+      {
+        return x.as<syntactic_closure>().strip();
+      }
     }
 
     /* ------------------------------------------------------------------------
@@ -196,8 +248,7 @@ namespace meevax::kernel
           debug(
             console::magenta, "(",
             console::reset, car(expression),
-            console::faint, " ; is <macro use> of ",
-            console::reset, applicant);
+            console::faint, " ; is <macro use>");
 
           const auto expanded {
             applicant.as<SK>().expand(
@@ -209,22 +260,14 @@ namespace meevax::kernel
           write_to(current_debug_port(),
             header("macroexpand"), indent(), expanded, "\n");
 
-          auto result {
-            compile(
-              expanded, syntactic_environment, frames, continuation)
-          };
-
-          return result;
+          return compile(expanded, syntactic_environment, frames, continuation);
         }
 
-        debug(
-          console::magenta, "(",
-          console::reset,
-          console::faint, " ; is <procedure call>");
-
+        debug(console::magenta, "(", console::reset, console::faint, " ; is <procedure call>");
         indent() >> static_cast<SK&>(*this).default_shift;
 
-        auto result {
+        auto result
+        {
           operand(
             cdr(expression),
             syntactic_environment,
@@ -234,14 +277,11 @@ namespace meevax::kernel
               syntactic_environment,
               frames,
               cons(
-                make<instruction>(
-                  in_a.tail_expression ? mnemonic::TAIL_CALL
-                                       : mnemonic::CALL),
+                make<instruction>(in_a.tail_expression ? mnemonic::TAIL_CALL : mnemonic::CALL),
                 continuation)))
         };
 
         debug(console::magenta, ")");
-
         indent() << static_cast<SK&>(*this).default_shift;
 
         return result;
@@ -406,7 +446,7 @@ namespace meevax::kernel
       *====================================================================== */
         if (const object identifier { cadr(c) }; identifier.is<syntactic_closure>())
         {
-          push(s, identifier.as<syntactic_closure>().load());
+          push(s, identifier.as<syntactic_closure>().strip());
         }
         else if (const object binding { assq(identifier, glocal_environment(e)) }; not binding.eqv(f))
         {
@@ -420,7 +460,7 @@ namespace meevax::kernel
         goto dispatch;
 
       case mnemonic::LOAD_LINK:
-        push(s, cadr(c).template as<syntactic_closure>().load());
+        push(s, cadr(c).template as<syntactic_closure>().strip());
         pop<2>(c);
         goto dispatch;
 

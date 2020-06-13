@@ -12,7 +12,7 @@ namespace meevax::kernel
   {
     using pair::pair; // Inheriting Constructors
 
-    auto symbol() const noexcept -> const auto&
+    auto form() const noexcept -> const auto&
     {
       return first;
     }
@@ -22,20 +22,25 @@ namespace meevax::kernel
       return second;
     }
 
-    auto binding() const
+    auto lookup() const
     {
-      return assq(symbol(), syntactic_environment());
+      return assq(form(), syntactic_environment());
     }
 
-    auto load() const
+    auto strip() const
     {
-      const auto pare { binding() };
-      return pare.eqv(f) ? symbol() : cadr(pare);
+      const auto pare { lookup() };
+      return pare.eqv(f) ? form() : cadr(pare);
+    }
+
+    auto is_identifier() const
+    {
+      return not null(form()) and form().is<symbol>();
     }
 
     auto is_free() const
     {
-      return binding().eqv(f);
+      return lookup().eqv(f);
     }
 
     auto is_bound() const
@@ -46,7 +51,7 @@ namespace meevax::kernel
     friend auto operator <<(std::ostream& os, const syntactic_closure& sc)
       -> decltype(os)
     {
-      return os << console::underline << sc.symbol() << "." << &sc << console::reset;
+      return os << console::underline << sc.form() << "." << &sc << console::reset;
     }
   };
 } // namespace meevax::kernel

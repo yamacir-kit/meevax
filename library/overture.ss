@@ -242,8 +242,8 @@
   (cond ((null? tests))
         ((null? (cdr tests)) (car tests))
         (else (list if (car tests)
-                   (cons and (cdr tests))
-                   #f))))
+                    (cons and (cdr tests))
+                    #f))))
 
 (define-syntax (or . tests)
   (cond
