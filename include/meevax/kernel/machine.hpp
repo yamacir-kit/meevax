@@ -137,10 +137,7 @@ namespace meevax::kernel
     {
       if (not expression)
       {
-        return
-          cons(
-            make<instruction>(mnemonic::LOAD_CONSTANT), unit,
-            continuation);
+        return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
       }
       else if (not expression.is<pair>())
       {
@@ -295,10 +292,10 @@ namespace meevax::kernel
         switch ((*iter).as<instruction>().code)
         {
         case mnemonic::CALL:
-        case mnemonic::TAIL_CALL:
-        case mnemonic::JOIN:
-        case mnemonic::POP:
         case mnemonic::CONS:
+        case mnemonic::DROP:
+        case mnemonic::JOIN:
+        case mnemonic::TAIL_CALL:
           write_to(current_debug_port(), *iter, "\n");
           break;
 
@@ -311,7 +308,7 @@ namespace meevax::kernel
         case mnemonic::FORK:
         case mnemonic::LOAD_CONSTANT:
         case mnemonic::LOAD_GLOBAL:
-        case mnemonic::LOAD_LINK:
+        // case mnemonic::LOAD_LINK:
         case mnemonic::LOAD_LOCAL:
         case mnemonic::LOAD_VARIADIC:
         case mnemonic::STORE_GLOBAL:
@@ -445,10 +442,10 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_LINK:
-        push(s, cadr(c).template as<syntactic_closure>().strip());
-        pop<2>(c);
-        goto dispatch;
+      // case mnemonic::LOAD_LINK:
+      //   push(s, cadr(c).template as<syntactic_closure>().strip());
+      //   pop<2>(c);
+      //   goto dispatch;
 
       /* ====*/ case mnemonic::LOAD_CLOSURE: /*=================================
       *
@@ -692,13 +689,13 @@ namespace meevax::kernel
         pop<1>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::POP: /*==========================================
-      *
-      *    (result . S) E (POP . C) D
-      *
-      * =>           S  E        C  D
-      *
-      *====================================================================== */
+      case mnemonic::DROP: /* ==================================================
+        *
+        *   (result . S) E (DROP . C) D
+        *
+        * =>          S  E         C  D
+        *
+        * =================================================================== */
         pop<1>(s);
         pop<1>(c);
         goto dispatch;
@@ -843,7 +840,7 @@ namespace meevax::kernel
               syntactic_environment,
               frames,
               cons(
-                make<instruction>(mnemonic::POP),
+                make<instruction>(mnemonic::DROP),
                 sequence(
                   cdr(expression),
                   syntactic_environment,
@@ -872,7 +869,7 @@ namespace meevax::kernel
               syntactic_environment,
               frames,
               cons(
-                make<instruction>(mnemonic::POP), // pop result of head expression
+                make<instruction>(mnemonic::DROP), // pop result of head expression
                 sequence(
                   cdr(expression), // rest expressions
                   syntactic_environment,
@@ -1148,7 +1145,7 @@ namespace meevax::kernel
               syntactic_environment,
               frames,
               cons(
-                make<instruction>(mnemonic::POP),
+                make<instruction>(mnemonic::DROP),
                 sequence(
                   cdr(expression),
                   syntactic_environment,
@@ -1165,7 +1162,7 @@ namespace meevax::kernel
               syntactic_environment,
               frames,
               cons(
-                make<instruction>(mnemonic::POP), // remove result of expression
+                make<instruction>(mnemonic::DROP), // remove result of expression
                 sequence(
                   cdr(expression),
                   syntactic_environment,

@@ -15,6 +15,7 @@ namespace meevax::kernel
     (CALL)                                                                     \
     (CONS)                                                                     \
     (DEFINE)                                                                   \
+    (DROP)                                                                     \
     (FORK)                                                                     \
     (JOIN)                                                                     \
     (LOAD_CLOSURE)                                                             \
@@ -24,7 +25,6 @@ namespace meevax::kernel
     (LOAD_LINK)                                                                \
     (LOAD_LOCAL)                                                               \
     (LOAD_VARIADIC)                                                            \
-    (POP)                                                                      \
     (RETURN)                                                                   \
     (SELECT)                                                                   \
     (STOP)                                                                     \
@@ -33,8 +33,6 @@ namespace meevax::kernel
     (STORE_VARIADIC)                                                           \
     (TAIL_CALL)                                                                \
     (TAIL_SELECT)                                                              \
-
-  // TODO POP => DROP
 
   enum class mnemonic
     : std::int8_t
