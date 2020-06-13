@@ -381,52 +381,58 @@ namespace meevax::kernel
 
       switch (car(c).template as<instruction>().code)
       {
-      /* ====*/ case mnemonic::LOAD_LOCAL: /*===================================
-      *
-      *              S  E (LOAD_LOCAL (i . j) . C) D
-      *
-      * => (result . S) E                       C  D
-      *
-      * where result = (list-ref (list-ref E i) j)
-      *
-      *====================================================================== */
+      case mnemonic::LOAD_LOCAL: /* ============================================
+        *
+        *              S  E (LOAD-LOCAL (i . j) . C) D
+        * => (result . S) E                       C  D
+        *
+        * where result = (list-ref (list-ref E i) j)
+        *
+        * =================================================================== */
         push(
           s,
           list_reference(
             list_reference(
               e,
-              static_cast<int>(
-                caadr(c).template as<real>())),
-            static_cast<int>(
-              cdadr(c).template as<real>())));
+              static_cast<int>(caadr(c).template as<real>())),
+            static_cast<int>(cdadr(c).template as<real>())));
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_VARIADIC:
+      case mnemonic::LOAD_VARIADIC: /* =========================================
+        *
+        *              S  E (LOAD-VARIADIC (i . j) . C) D
+        * => (result . S) E                          C  D
+        *
+        * where result = (list-tail (list-ref E i) j)
+        *
+        * =================================================================== */
         push(
           s,
           list_tail(
             list_reference(
               e,
-              static_cast<int>(
-                caadr(c).template as<real>())),
-            static_cast<int>(
-              cdadr(c).template as<real>())));
+              static_cast<int>(caadr(c).template as<real>())),
+            static_cast<int>(cdadr(c).template as<real>())));
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_CONSTANT: // S E (LOAD_CONSTANT constant . C) D => (constant . S) E C D
+      case mnemonic::LOAD_CONSTANT: /* =========================================
+        *
+        *                S  E (LOAD-CONSTANT constant . C) D
+        * => (constant . S) E                           C  D
+        *
+        * =================================================================== */
         push(s, cadr(c));
         pop<2>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::LOAD_GLOBAL: /*==================================
-      *
-      *              S  E (LOAD_GLOBAL identifier . C) D
-      *
-      * => (object . S) E                           C  D
-      *
-      *====================================================================== */
+      case mnemonic::LOAD_GLOBAL: /* ===========================================
+        *
+        *              S  E (LOAD-GLOBAL identifier . C) D
+        * => (object . S) E                           C  D
+        *
+        * =================================================================== */
         if (const object identifier { cadr(c) }; identifier.is<syntactic_closure>())
         {
           push(s, identifier.as<syntactic_closure>().strip());
@@ -447,122 +453,78 @@ namespace meevax::kernel
       //   pop<2>(c);
       //   goto dispatch;
 
-      /* ====*/ case mnemonic::LOAD_CLOSURE: /*=================================
-      *
-      *               S  E (LOAD_CLOSURE body . C) D
-      *
-      * => (closure . S) E                      C  D
-      *
-      *====================================================================== */
-        push(
-          s,
-          make<closure>(
-            cadr(c),
-            e));
+      case mnemonic::LOAD_CLOSURE: /* ==========================================
+        *
+        *               S  E (LOAD-CLOSURE body . C) D
+        * => (closure . S) E                      C  D
+        *
+        * =================================================================== */
+        push(s, make<closure>(cadr(c), e));
         pop<2>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::LOAD_CONTINUATION: /*============================
-      *
-      *                      S  E (LOADK cc . C) D
-      *
-      * => ((continuation) . S) E             C  D
-      *
-      *====================================================================== */
-        push(
-          s,
-          list(
-            make<continuation>(
-              s,
-              cons(
-                e,
-                cadr(c),
-                d))));
+      case mnemonic::LOAD_CONTINUATION: /* =====================================
+        *
+        *                      S  E (LDK cc . C) D
+        * => ((continuation) . S) E           C  D
+        *
+        * =================================================================== */
+        push(s, list(make<continuation>(s, cons(e, cadr(c), d))));
         pop<2>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::FORK: /*=========================================
-      *
-      *                  S  E (FORK sc . C) D
-      *
-      * => (subprogram . S) E            C  D
-      *
-      *====================================================================== */
-        // std::cerr << "; FORK\t; making syntactic-continuation" << std::endl;
-        // std::cerr << "\t\t; s = " << s << std::endl;
-        // std::cerr << "\t\t; e = " << e << std::endl;
-        // std::cerr << "\t\t; c = " << c << std::endl;
-        // std::cerr << "\t\t; d = " << d << std::endl;
-        push(
-          s,
+      case mnemonic::FORK: /* ==================================================
+        *
+        *                  S  E (FORK csc . C) D
+        * => (subprogram . S) E             C  D
+        *
+        * =================================================================== */
+        push(s,
           make<SK>(
-            cons(
-              s,
-              e,
-              cadr(c), // compile continuation
-              d),
+            cons(s, e, cadr(c), d), // current-syntactic-continuation
             syntactic_environment()));
         pop<2>(c);
         goto dispatch;
 
-      // /* ====*/ case mnemonic::FORK: /*=========================================
-      // *
-      // *    (closure . S) E (FORK . C) D
-      // *
-      // * => (program . S) E         C  D
-      // *
-      // *====================================================================== */
-      //   push(
-      //     s,
-      //     make<SK>(
-      //       pop(s), // XXX car(s)?
-      //       syntactic_environment()));
-      //   pop<1>(c);
-      //   goto dispatch;
-
-      /* ====*/ case mnemonic::SELECT: /*=======================================
-      *
-      *    (test . S) E (SELECT consequent alternate . C)  D
-      *
-      * =>         S  E         selection             (C . D)
-      *
-      * where selection = (if test consequent alternate)
-      *
-      *====================================================================== */
+      case mnemonic::SELECT: /* ================================================
+        *
+        *    (test . S) E (SELECT consequent alternate . C)  D
+        * =>         S  E         selection             (C . D)
+        *
+        * where selection = (if test consequent alternate)
+        *
+        * =================================================================== */
         push(d, cdddr(c));
         [[fallthrough]];
 
-      /* ====*/ case mnemonic::TAIL_SELECT: /*==================================
-      *
-      *    (test . S) E (SELECT consequent alternate . C)  D
-      *
-      * =>         S  E         selection                  D
-      *
-      * where selection = (if test consequent alternate)
-      *
-      *====================================================================== */
+      case mnemonic::TAIL_SELECT: /* ===========================================
+        *
+        *    (test . S) E (SELECT consequent alternate . C)  D
+        * =>         S  E         selection                  D
+        *
+        * where selection = (if test consequent alternate)
+        *
+        * =================================================================== */
         c = not car(s).equivalent_to(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
-      /* ====*/ case mnemonic::JOIN: /*=========================================
-      *
-      *    S E (JOIN) (C . D)
-      *
-      * => S E         C   D
-      *
-      *====================================================================== */
+      case mnemonic::JOIN: /* ==================================================
+        *
+        *      S E (JOIN) (C . D)
+        *   => S E         C   D
+        *
+        * =================================================================== */
         c = car(d);
         pop<1>(d);
         goto dispatch;
 
-      /* ====*/ case mnemonic::DEFINE: /*=======================================
-      *
-      *        (object . S) E (DEFINE identifier . C) D
-      *
-      * => (identifier . S) E                      C  D
-      *
-      *====================================================================== */
+      case mnemonic::DEFINE: /* ================================================
+        *
+        *          (object . S) E (DEFINE identifier . C) D
+        *   => (identifier . S) E                      C  D
+        *
+        * =================================================================== */
         if (0 < static_cast<SK&>(*this).generation)
         {
           std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
@@ -664,54 +626,48 @@ namespace meevax::kernel
         }
         goto dispatch;
 
-      /* ====*/ case mnemonic::RETURN: /*=======================================
-      *
-      *    (result . S)  E (RETURN . C) (S' E' C' . D)
-      *
-      * => (result . S') E'          C'             D
-      *
-      *====================================================================== */
-        s = cons(
-              car(s), // The result of procedure
-              pop(d));
+      case mnemonic::RETURN: /* ================================================
+        *
+        *      (result . S)  E (RETURN . C) (S' E' C' . D)
+        *   => (result . S') E'          C'             D
+        *
+        * =================================================================== */
+        s = cons(car(s), pop(d));
         e = pop(d);
         c = pop(d);
         goto dispatch;
 
-      /* ====*/ case mnemonic::CONS: /*=========================================
-      *
-      *    ( X   Y  . S) E (CONS . C) D
-      *
-      * => ((X . Y) . S) E         C  D
-      *
-      *====================================================================== */
+      case mnemonic::CONS: /* ==================================================
+        *
+        *      ( X   Y  . S) E (CONS . C) D
+        *   => ((X . Y) . S) E         C  D
+        *
+        * =================================================================== */
         s = cons(cons(car(s), cadr(s)), cddr(s));
         pop<1>(c);
         goto dispatch;
 
       case mnemonic::DROP: /* ==================================================
         *
-        *   (result . S) E (DROP . C) D
-        *
-        * =>          S  E         C  D
+        *     (result . S) E (DROP . C) D
+        *   =>          S  E         C  D
         *
         * =================================================================== */
         pop<1>(s);
         pop<1>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::STORE_GLOBAL: /*=================================
-      *
-      *    (value . S) E (STORE-GLOBAL identifier . C) D
-      *
-      * => (value . S) E                            C  D
-      *
-      * TODO
-      * (1) There is no need to make copy if right hand side is unique.
-      * (2) There is no matter overwrite if left hand side is unique.
-      * (3) Should set with weak reference if right hand side is newer.
-      *
-      *====================================================================== */
+      case mnemonic::STORE_GLOBAL: /* ==========================================
+        *
+        *      (value . S) E (STORE-GLOBAL identifier . C) D
+        *   => (value . S) E                            C  D
+        *
+        * TODO
+        *   (1) There is no need to make copy if right hand side is unique.
+        *   (2) There is no matter overwrite if left hand side is unique.
+        *   (3) Should set with weak reference if right hand side is newer.
+        *
+        * =================================================================== */
         if (const object pare { assq(cadr(c), glocal_environment(e)) }; not pare.eqv(f))
         {
           if (const auto value {cadr(pare)}; not value or not car(s))
@@ -747,43 +703,44 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::STORE_LOCAL: // (value . S) E (STORE_LOCAL (i . j) . C) D => (value . S) E C D
-        std::atomic_store(
-          &car(
+      case mnemonic::STORE_LOCAL: /* ===========================================
+        *
+        *      (value . S) E (STORE-LOCAL (i . j) . C) D
+        *   => (value . S) E                        C  D
+        *
+        * =================================================================== */
+        std::atomic_store(&
+          car(
             list_tail(
               list_reference(
                 e,
-                static_cast<int>(
-                  caadr(c).template as<real>())),
-              static_cast<int>(
-                cdadr(c).template as<real>()))),
+                static_cast<int>(caadr(c).template as<real>())),
+              static_cast<int>(cdadr(c).template as<real>()))),
           car(s));
         pop<2>(c);
         goto dispatch;
 
       case mnemonic::STORE_VARIADIC:
-        std::atomic_store(
-          &cdr(
+        std::atomic_store(&
+          cdr(
             list_tail(
               list_reference(
                 e,
-                static_cast<int>(
-                  caadr(c).template as<real>())),
-              static_cast<int>(
-                cdadr(c).template as<real>() - 1))),
+                static_cast<int>(caadr(c).template as<real>())),
+              static_cast<int>(cdadr(c).template as<real>() - 1))),
           car(s));
         pop<2>(c);
         goto dispatch;
 
-      /* ====*/ case mnemonic::STOP: /*=========================================
-      *
-      * (result . S) E (STOP . C) D
-      *
-      *====================================================================== */
-      default:
+      default: // ERROR
+      case mnemonic::STOP: /* ==================================================
+        *
+        *    (result . S) E (STOP . C) D
+        * =>           S  E         C  D
+        *
+        * =================================================================== */
         pop<1>(c);
-        return pop(s);
-        // return car(s);
+        return pop(s); // return car(s);
       }
     }
 
