@@ -150,9 +150,10 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        if (const object applicant { lookup(car(expression), syntactic_environment) }; not null(applicant))
+        if (const object applicant { lookup(car(expression), syntactic_environment) };
+            not null(applicant) and not de_bruijn_index(car(expression), frames))
         {
-          if (applicant.is<syntax>() and not de_bruijn_index(car(expression), frames))
+          if (applicant.is<syntax>())
           {
             debug(
               console::magenta, "(",
@@ -172,15 +173,12 @@ namespace meevax::kernel
 
             return result;
           }
-          else if (applicant.is<SK>() and not de_bruijn_index(car(expression), frames))
+          else if (applicant.is<SK>())
           {
             debug(console::magenta, "(", console::reset, car(expression), console::faint, " ; is <macro application>");
 
             const auto expanded {
-              applicant.as<SK>().expand(
-                cons(
-                  applicant,
-                  cdr(expression)))
+              applicant.as<SK>().expand(cons(applicant, cdr(expression)))
             };
 
             debug(expanded);
@@ -502,14 +500,14 @@ namespace meevax::kernel
                 cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SK>()) // TODO REMOVE
-        {
-          s = cons(
-                callee.as<SK>().evaluate(
-                  cadr(s)),
-                cddr(s));
-          pop<1>(c);
-        }
+        // else if (callee.is<SK>()) // TODO REMOVE
+        // {
+        //   s = cons(
+        //         callee.as<SK>().evaluate(
+        //           cadr(s)),
+        //         cddr(s));
+        //   pop<1>(c);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(
@@ -538,22 +536,17 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          s = cons(
-                std::invoke(
-                  callee.as<procedure>(),
-                  resource {},
-                  cadr(s)),
-                cddr(s));
+          s = cons(std::invoke(callee.as<procedure>(), resource {}, cadr(s)), cddr(s));
           pop<1>(c);
         }
-        else if (callee.is<SK>()) // TODO REMOVE
-        {
-          s = cons(
-                callee.as<SK>().evaluate(
-                  cadr(s)),
-                cddr(s));
-          pop<1>(c);
-        }
+        // else if (callee.is<SK>()) // TODO REMOVE
+        // {
+        //   s = cons(
+        //         callee.as<SK>().evaluate(
+        //           cadr(s)),
+        //         cddr(s));
+        //   pop<1>(c);
+        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(

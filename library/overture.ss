@@ -65,7 +65,7 @@
 
 (define not
   (lambda (x)
-    (if x #false #true)))
+    (if x #f #t)))
 
 ; ------------------------------------------------------------------------------
 ;  6.4 Pairs and Lists (Part 1 of 2)
@@ -152,6 +152,8 @@
            (append-aux (cdr reversed)
                        (car reversed) ))
          (reverse x) ))))
+
+; ==== Low-Level Macro Facility ================================================
 
 (define define-syntax
   (fork
