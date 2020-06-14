@@ -118,6 +118,7 @@ namespace meevax::kernel
     using debugger::debug;
     using debugger::header;
     using debugger::indent;
+    using debugger::shift;
 
     using configurator::debugging;
     using configurator::interactive;

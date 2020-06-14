@@ -24,12 +24,13 @@ namespace meevax::kernel
     Import(SK, debug);
     Import(SK, evaluate);
     Import(SK, indent);
-    Import(SK, syntactic_environment);
     Import(SK, intern);
     Import(SK, rename);
+    Import(SK, syntactic_environment);
     Import_Const(SK, current_debug_port);
     Import_Const(SK, current_error_port);
     Import_Const(SK, header);
+    Import_Const(SK, shift);
     Import_Const(SK, tracing);
     Import_Const(SK, write_to);
 
@@ -213,7 +214,7 @@ namespace meevax::kernel
             console::reset, car(expression),
             console::faint, " ; is <primitive expression>");
 
-          indent() >> static_cast<SK&>(*this).default_shift;
+          indent() >> shift();
 
           auto result {
             std::invoke(applicant.as<syntax>(),
@@ -222,16 +223,13 @@ namespace meevax::kernel
 
           debug(console::magenta, ")");
 
-          indent() << static_cast<SK&>(*this).default_shift;
+          indent() << shift();
 
           return result;
         }
         else if (applicant.is<SK>() and not de_bruijn_index(car(expression), frames))
         {
-          debug(
-            console::magenta, "(",
-            console::reset, car(expression),
-            console::faint, " ; is <macro use>");
+          debug(console::magenta, "(", console::reset, car(expression), console::faint, " ; is <macro use>");
 
           const auto expanded {
             applicant.as<SK>().expand(
@@ -240,14 +238,13 @@ namespace meevax::kernel
                 cdr(expression)))
           };
 
-          write_to(current_debug_port(),
-            header("macroexpand"), indent(), expanded, "\n");
+          debug(expanded);
 
           return compile(expanded, syntactic_environment, frames, continuation);
         }
 
         debug(console::magenta, "(", console::reset, console::faint, " ; is <procedure call>");
-        indent() >> static_cast<SK&>(*this).default_shift;
+        indent() >> shift();
 
         auto result
         {
@@ -265,7 +262,7 @@ namespace meevax::kernel
         };
 
         debug(console::magenta, ")");
-        indent() << static_cast<SK&>(*this).default_shift;
+        indent() << shift();
 
         return result;
       }

@@ -21,8 +21,12 @@ namespace meevax::kernel
     static inline           std::size_t depth {0};
     static inline constexpr std::size_t default_shift {2};
 
-    auto header(const std::string& title = "compile") const
-      -> std::string
+    auto shift() const noexcept
+    {
+      return default_shift;
+    }
+
+    auto header(const std::string& title = "compiler") const -> std::string
     {
       std::string s {"; "};
 
@@ -43,8 +47,7 @@ namespace meevax::kernel
     }
 
     template <typename... Ts>
-    auto debug(Ts&&... xs)
-      -> decltype(auto)
+    auto debug(Ts&&... xs) -> decltype(auto)
     {
       return
         write_to(current_debug_port(),
