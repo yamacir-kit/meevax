@@ -181,7 +181,7 @@ namespace meevax::kernel
         //
         //   return
         //     cons(
-        //       make<instruction>(mnemonic::LOAD_LINK), expression,
+        //       make<instruction>(mnemonic::EXPAND), expression,
         //       continuation);
         // }
         else // is <self-evaluating>
@@ -196,51 +196,43 @@ namespace meevax::kernel
       }
       else // is (application . arguments)
       {
-        if (const object applicant { lookup(car(expression), syntactic_environment) }; not applicant)
+        if (const object applicant { lookup(car(expression), syntactic_environment) }; not null(applicant))
         {
-          // TODO write_to_current_error_port => warning
-          write_to(current_error_port(),
-            header("compiler"), console::bold, console::yellow, "WARNING\n",
-            std::string(80, '~'), "\n",
-            "Compiler detected application of variable currently bounds "
-            "empty-list. If the variable will not reset with applicable object "
-            "later, cause runtime error.\n",
-            std::string(2 * static_cast<SK&>(*this).depth + 18, '~'), "v", std::string(80 - 2 * static_cast<SK&>(*this).depth - 17, '~'), "\n");
-        }
-        else if (applicant.is<syntax>() and not de_bruijn_index(car(expression), frames))
-        {
-          debug(
-            console::magenta, "(",
-            console::reset, car(expression),
-            console::faint, " ; is <primitive expression>");
+          if (applicant.is<syntax>() and not de_bruijn_index(car(expression), frames))
+          {
+            debug(
+              console::magenta, "(",
+              console::reset, car(expression),
+              console::faint, " ; is <primitive expression>");
 
-          indent() >> shift();
+            indent() >> shift();
 
-          auto result {
-            std::invoke(applicant.as<syntax>(),
-              cdr(expression), syntactic_environment, frames, continuation, in_a)
-          };
+            auto result {
+              std::invoke(applicant.as<syntax>(),
+                cdr(expression), syntactic_environment, frames, continuation, in_a)
+            };
 
-          debug(console::magenta, ")");
+            debug(console::magenta, ")");
 
-          indent() << shift();
+            indent() << shift();
 
-          return result;
-        }
-        else if (applicant.is<SK>() and not de_bruijn_index(car(expression), frames))
-        {
-          debug(console::magenta, "(", console::reset, car(expression), console::faint, " ; is <macro use>");
+            return result;
+          }
+          else if (applicant.is<SK>() and not de_bruijn_index(car(expression), frames))
+          {
+            debug(console::magenta, "(", console::reset, car(expression), console::faint, " ; is <macro application>");
 
-          const auto expanded {
-            applicant.as<SK>().expand(
-              cons(
-                applicant,
-                cdr(expression)))
-          };
+            const auto expanded {
+              applicant.as<SK>().expand(
+                cons(
+                  applicant,
+                  cdr(expression)))
+            };
 
-          debug(expanded);
+            debug(expanded);
 
-          return compile(expanded, syntactic_environment, frames, continuation);
+            return compile(expanded, syntactic_environment, frames, continuation);
+          }
         }
 
         debug(console::magenta, "(", console::reset, console::faint, " ; is <procedure call>");
