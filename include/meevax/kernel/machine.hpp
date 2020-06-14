@@ -4,11 +4,10 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_brujin_index.hpp>
+#include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
-#include <meevax/kernel/symbol.hpp> // object::is<symbol>()
-#include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/syntax.hpp>
 
 namespace meevax::kernel
@@ -71,51 +70,6 @@ namespace meevax::kernel
       }
 
       return syntactic_environment();
-    }
-
-    auto strip(const object& id) const
-    {
-      if (not null(id) and id.is<syntactic_closure>())
-      {
-        return id.as<syntactic_closure>().strip();
-      }
-      else
-      {
-        return id;
-      }
-    }
-
-    auto is_identifier(const object& x) const
-    {
-      // (define (identifier? x)
-      //   (or (symbol? x)
-      //       (and (syntactic-closure? x)
-      //            (symbol? (syntactic-closure-form x)))))
-
-      if (not null(x))
-      {
-        return false;
-      }
-      else if (x.is<symbol>())
-      {
-        return true;
-      }
-      else
-      {
-        return x.is<syntactic_closure>() and x.as<syntactic_closure>().is_identifier();
-      }
-    }
-
-    auto lookup(const object& x, const object& env)
-    {
-      if (const object binding { assq(x, env) }; not binding.eqv(f))
-      {
-        return cadr(binding); // TODO must be cdr(binding)
-      }
-      else
-      {
-        return strip(x);
-      }
     }
 
     /* ------------------------------------------------------------------------

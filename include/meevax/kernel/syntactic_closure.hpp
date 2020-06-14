@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
 
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax::kernel
