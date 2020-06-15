@@ -101,9 +101,7 @@ namespace meevax::kernel
   {
   public:
     std::unordered_map<std::string, object> symbols;
-    std::unordered_map<std::string, object> external_symbols;
-
-    std::size_t current_layer {0};
+    std::unordered_map<std::string, object> external_symbols; // TODO REMOVE
 
     std::size_t generation {0};
 
@@ -167,8 +165,7 @@ namespace meevax::kernel
             car(caddr(first)),
             syntactic_environment(),
             cdr(caddr(first)),
-            list(
-              make<instruction>(mnemonic::STOP)),
+            list(make<instruction>(mnemonic::STOP)),
             as_program_declaration)
         };
 
@@ -260,10 +257,8 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) expand(const object& operands)
+    decltype(auto) expand(const object& operands) // TODO (2) => const object& self, const object& form
     {
-      // std::cerr << "; macroexpand\t; " << operands << std::endl;
-
       push( // XXX ???
         d,
         s,
@@ -274,19 +269,30 @@ namespace meevax::kernel
 
       s = unit;
 
+      // TODO (3)
+      // make<procedure>("rename", [this](auto&& xs)
+      // {
+      //   const auto id { car(xs) };
+      //
+      //
+      // });
+
       e = cons(
             operands, // <lambda> parameters
             lexical_environment()); // static environment
+      // TODO (4)
+      // => e = cons(
+      //          list(
+      //            expression,
+      //            make<procedure>("rename", [this](auto&& xs) { ... }),
+      //            make<procedure>("compare", [this](auto&& xs) { ... })
+      //            ),
+      //          lexical_environment()
+      //          );
 
       c = current_expression();
 
-      // std::cerr << ";\t\t; s = " << s << std::endl;
-      // std::cerr << ";\t\t; e = " << e << std::endl;
-      // std::cerr << ";\t\t; c = " << c << std::endl;
-      // std::cerr << ";\t\t; d = " << d << std::endl;
-
       const auto result {execute()};
-      // std::cerr << "; \t\t; " << result << std::endl;
 
       ++generation;
 
@@ -298,9 +304,7 @@ namespace meevax::kernel
     {
       return
         execute_interrupt(
-          compile(
-            expression,
-            syntactic_environment()));
+          compile(expression, syntactic_environment()));
     }
 
     auto load(const path& path_to_source) -> const auto&

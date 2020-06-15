@@ -180,6 +180,8 @@ namespace meevax::kernel
             const auto expanded {
               applicant.as<SK>().expand(cons(applicant, cdr(expression)))
             };
+            // TODO (1)
+            // => applicant.as<SK>().expand(expression)
 
             debug(expanded);
 
