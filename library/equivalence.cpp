@@ -4,15 +4,13 @@ extern "C" namespace meevax::equivalence
 {
   PROCEDURE(equals)
   {
-    return
-      kernel::convert(
-        kernel::car(operands) == kernel::cadr(operands));
+    return kernel::convert(kernel::car(xs) == kernel::cadr(xs));
   }
 
   PROCEDURE(equivalent)
   {
-    if (const kernel::object object1 {kernel::car(operands)},
-                             object2 {kernel::cadr(operands)};
+    if (const kernel::object object1 {kernel::car(xs)},
+                             object2 {kernel::cadr(xs)};
         object1 == object2)
     {
       return kernel::t;

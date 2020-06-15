@@ -37,8 +37,8 @@ namespace meevax::kernel
     using size_type = std::size_t;
 
     template <typename... Ts>
-    constexpr homoiconic_iterator(Ts&&... operands)
-      : object {std::forward<decltype(operands)>(operands)...}
+    constexpr homoiconic_iterator(Ts&&... xs)
+      : object { std::forward<decltype(xs)>(xs)... }
     {}
 
     decltype(auto) operator*() const

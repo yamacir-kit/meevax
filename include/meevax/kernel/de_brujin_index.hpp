@@ -15,8 +15,8 @@ namespace meevax::kernel
     Comparator compare {};
 
     template <typename... Ts>
-    explicit de_bruijn_index(Ts&&... operands)
-      : object { lookup(std::forward<decltype(operands)>(operands)...) }
+    explicit de_bruijn_index(Ts&&... xs)
+      : object { lookup(std::forward<decltype(xs)>(xs)...) }
     {}
 
     const object lookup(const object& value, const object& frames)

@@ -130,11 +130,11 @@ namespace meevax::kernel
   }
 
   template <typename T, typename... Ts>
-  inline constexpr auto untagged_value_as(Ts&&... operands) noexcept
+  inline constexpr auto untagged_value_as(Ts&&... xs) noexcept
     -> typename std::decay<T>::type
   {
     auto value {untagged_value_of(
-      std::forward<decltype(operands)>(operands)...
+      std::forward<decltype(xs)>(xs)...
     )};
     return reinterpret_cast<typename std::decay<T>::type&>(value);
   }
@@ -165,10 +165,10 @@ namespace meevax::kernel
       , public virtual T
     {
       template <typename... Ts>
-      explicit constexpr binder(Ts&&... operands)
+      explicit constexpr binder(Ts&&... xs)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<T, Bound>::value, T, Bound
-          >::type { std::forward<decltype(operands)>(operands)... }
+          >::type { std::forward<decltype(xs)>(xs)... }
       {}
 
       explicit constexpr binder(Bound&& bound)
@@ -237,8 +237,8 @@ namespace meevax::kernel
 
   public:
     template <typename... Ts>
-    constexpr pointer(Ts&&... operands)
-      : std::shared_ptr<T> {std::forward<decltype(operands)>(operands)...}
+    constexpr pointer(Ts&&... xs)
+      : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
     {}
 
     /* ==== C/C++ Derived Types Bind ==========================================

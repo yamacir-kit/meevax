@@ -10,29 +10,29 @@ extern "C" namespace meevax::numerical
   {
     return
       MEEVAX_API_FOLD(
-        operands, kernel::make<kernel::real>(0), std::plus {});
+        xs, kernel::make<kernel::real>(0), std::plus {});
   }
 
   PROCEDURE(multiplication)
   {
     return
       MEEVAX_API_FOLD(
-        operands, kernel::make<kernel::real>(1), std::multiplies {});
+        xs, kernel::make<kernel::real>(1), std::multiplies {});
   }
 
   PROCEDURE(subtraction)
   {
-    if (kernel::length(operands) < 2)
+    if (kernel::length(xs) < 2)
     {
       return
         MEEVAX_API_FOLD(
-          operands, kernel::make<kernel::real>(0), std::minus {});
+          xs, kernel::make<kernel::real>(0), std::minus {});
     }
     else
     {
       return std::accumulate(
-               std::next(std::begin(operands)), std::end(operands),
-               *std::begin(operands),
+               std::next(std::begin(xs)), std::end(xs),
+               *std::begin(xs),
                std::minus {}
              );
     }
@@ -40,17 +40,17 @@ extern "C" namespace meevax::numerical
 
   PROCEDURE(division)
   {
-    if (kernel::length(operands) < 2)
+    if (kernel::length(xs) < 2)
     {
       return
         MEEVAX_API_FOLD(
-          operands, kernel::make<kernel::real>(1), std::divides {});
+          xs, kernel::make<kernel::real>(1), std::divides {});
     }
     else
     {
       return std::accumulate(
-               std::next(std::begin(operands)), std::end(operands),
-               *std::begin(operands),
+               std::next(std::begin(xs)), std::end(xs),
+               *std::begin(xs),
                std::divides {}
              );
     }
@@ -88,7 +88,7 @@ extern "C" namespace meevax::numerical
   {
     return
       kernel::convert(
-        kernel::car(operands).is<kernel::real>());
+        kernel::car(xs).is<kernel::real>());
   }
 } // extern "C"
 

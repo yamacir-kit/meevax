@@ -12,19 +12,14 @@ extern "C" namespace meevax::string
 
   PROCEDURE(ccons)
   {
-    return
-      kernel::make<kernel::string>(
-        kernel::car(operands),
-        kernel::cadr(operands));
+    return kernel::make<kernel::string>(kernel::car(xs), kernel::cadr(xs));
   }
 
   PROCEDURE(string_from_number)
   {
     using namespace kernel;
 
-    return
-      read_string(
-        car(operands).as<real>().str());
+    return read_string(car(xs).as<real>().str());
   }
 } // extern "C"
 

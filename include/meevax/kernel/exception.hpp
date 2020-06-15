@@ -34,9 +34,9 @@
 namespace meevax::kernel
 {
   template <typename Ex, typename... Ts>
-  void raise(Ts&&... operands)
+  void raise(Ts&&... xs)
   {
-    Ex {std::forward<decltype(operands)>(operands)...}.raise();
+    Ex(std::forward<decltype(xs)>(xs)...).raise();
   }
 
   struct exception
@@ -85,8 +85,8 @@ namespace meevax::kernel
     : public exception                                                         \
   {                                                                            \
     template <typename... Ts>                                                  \
-    explicit constexpr CATEGORY(Ts&&... operands)                              \
-      : exception {std::forward<decltype(operands)>(operands)...}              \
+    explicit constexpr CATEGORY(Ts&&... xs)                                    \
+      : exception { std::forward<decltype(xs)>(xs)... }                        \
     {}                                                                         \
                                                                                \
     virtual void raise() const override                                        \
@@ -105,8 +105,8 @@ namespace meevax::kernel
     : public CATEGORY                                                          \
   {                                                                            \
     template <typename... Ts>                                                  \
-    explicit constexpr PREFIX##_##CATEGORY(Ts&&... operands)                   \
-      : CATEGORY {std::forward<decltype(operands)>(operands)...}               \
+    explicit constexpr PREFIX##_##CATEGORY(Ts&&... xs)                         \
+      : CATEGORY { std::forward<decltype(xs)>(xs)... }                         \
     {}                                                                         \
                                                                                \
     virtual void raise() const override                                        \
@@ -134,8 +134,8 @@ namespace meevax::kernel
     : public SECTION##_##CATEGORY                                              \
   {                                                                            \
     template <typename... Ts>                                                  \
-    explicit constexpr SECTION##_##CATEGORY##_about_##ABOUT(Ts&&... operands)  \
-      : SECTION##_##CATEGORY {std::forward<decltype(operands)>(operands)...}   \
+    explicit constexpr SECTION##_##CATEGORY##_about_##ABOUT(Ts&&... xs)        \
+      : SECTION##_##CATEGORY { std::forward<decltype(xs)>(xs)... }             \
     {}                                                                         \
                                                                                \
     virtual void raise() const override                                        \

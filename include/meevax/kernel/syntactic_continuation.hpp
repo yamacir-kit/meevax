@@ -147,8 +147,8 @@ namespace meevax::kernel
 
   public: // Constructors
     template <typename... Ts>
-    explicit syntactic_continuation(Ts&&... operands)
-      : pair {std::forward<decltype(operands)>(operands)...}
+    explicit syntactic_continuation(Ts&&... xs)
+      : pair { std::forward<decltype(xs)>(xs)... }
     {
       boot(layer<0>);
 

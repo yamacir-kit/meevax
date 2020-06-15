@@ -60,22 +60,20 @@ namespace meevax::kernel
   using resource = std::allocator<object>;
 
   template <typename T, typename... Ts>
-  inline constexpr decltype(auto) make(Ts&&... operands)
+  inline constexpr decltype(auto) make(Ts&&... xs)
   {
-    return
-      object::make_binding<T>(
-        std::forward<decltype(operands)>(operands)...);
+    return object::make_binding<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T,
             typename MemoryResource, // XXX (GCC-9 <=)
             typename... Ts>
-  inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... operands)
+  inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... xs)
   {
     return
       object::allocate_binding<T>(
         std::forward<decltype(resource)>(resource),
-        std::forward<decltype(operands)>(operands)...);
+        std::forward<decltype(xs)>(xs)...);
   }
 
   static const object unit {nullptr};

@@ -19,21 +19,10 @@ namespace meevax::kernel
     bool program_declaration;
   };
 
-  static constexpr compilation_context as_is {
-    false, false
-  };
-
-  static constexpr compilation_context as_tail_expression {
-    true, false
-  };
-
-  static constexpr compilation_context as_program_declaration {
-    false, true
-  };
-
-  static constexpr compilation_context as_tail_expression_of_program_declaration {
-    true, true
-  };
+  static constexpr compilation_context as_is { false, false };
+  static constexpr compilation_context as_tail_expression { true, false };
+  static constexpr compilation_context as_program_declaration { false, true };
+  static constexpr compilation_context as_tail_expression_of_program_declaration { true, true };
 
   struct syntax
     : public std::function<SYNTAX()>
@@ -43,22 +32,20 @@ namespace meevax::kernel
     const std::string name;
 
     template <typename... Ts>
-    syntax(const std::string& name, Ts&&... operands)
-      : std::function<SYNTAX()> {
-          std::forward<decltype(operands)>(operands)...
-        }
+    syntax(const std::string& name, Ts&&... xs)
+      : std::function<SYNTAX()> { std::forward<decltype(xs)>(xs)...  }
       , name {name}
     {}
 
     friend auto operator<<(std::ostream& os, const syntax& syntax)
       -> decltype(auto)
     {
-      return os << console::magenta  << "#,("
-                << console::green    << "syntax"
-                << console::reset  << " " << syntax.name
+      return os << console::magenta << "#,("
+                << console::green << "syntax"
+                << console::reset << " " << syntax.name
                 << console::faint << " #;" << &syntax
                 << console::reset
-                << console::magenta  << ")"
+                << console::magenta << ")"
                 << console::reset;
     }
   };

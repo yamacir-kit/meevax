@@ -17,7 +17,7 @@ namespace meevax::standard
   {
     auto result {kernel::make<vector>()};
 
-    for (const auto& each : operands)
+    for (const auto& each : xs)
     {
       std::cerr << ";\t\t; " << each << std::endl;
       result.as<vector>().push_back(each);
@@ -28,15 +28,15 @@ namespace meevax::standard
 
   extern "C" PROCEDURE(vector_reference)
   {
-    std::size_t index {kernel::cadr(operands).as<kernel::real>()};
+    std::size_t index {kernel::cadr(xs).as<kernel::real>()};
     std::cerr << "; vector\t; index is " << index << std::endl;
 
-    for (const auto& each : kernel::car(operands).as<vector>())
+    for (const auto& each : kernel::car(xs).as<vector>())
     {
       std::cerr << ";\t\t; " << each << std::endl;
     }
 
-    return kernel::car(operands).as<vector>().at(index);
+    return kernel::car(xs).as<vector>().at(index);
   }
 } // namespace meevax::standard
 
