@@ -5,10 +5,9 @@
 
 #include <meevax/kernel/list.hpp>
 
-#define PROCEDURE(NAME)                                                        \
-  const meevax::kernel::object NAME(                                           \
-    [[maybe_unused]] const meevax::kernel::resource& resource,                 \
-    [[maybe_unused]] const meevax::kernel::homoiconic_iterator& operands)
+#define PROCEDURE(IDENTIFIER)                                                  \
+  const meevax::kernel::object IDENTIFIER(                                     \
+    [[maybe_unused]] const meevax::kernel::object& operands)
 
 namespace meevax::kernel
 {
@@ -20,22 +19,20 @@ namespace meevax::kernel
     const std::string name;
 
     template <typename... Ts>
-    explicit procedure(const std::string& name, Ts&&... operands)
-      : std::function<PROCEDURE()> {
-          std::forward<decltype(operands)>(operands)...
-        }
+    explicit procedure(const std::string& name, Ts&&... xs)
+      : std::function<PROCEDURE()> { std::forward<decltype(xs)>(xs)...  }
       , name {name}
     {}
 
-    friend auto operator<<(std::ostream& os, const procedure& procedure)
+    friend auto operator<<(std::ostream& os, const procedure& proc)
       -> decltype(auto)
     {
-      return os << console::magenta  << "#("
-                << console::green    << "procedure "
-                << console::reset  << procedure.name
-                << console::faint << " #;" << &procedure
+      return os << console::magenta << "#,("
+                << console::green << "procedure "
+                << console::reset << proc.name
+                << console::faint << " #;" << &proc
                 << console::reset
-                << console::magenta  << ")"
+                << console::magenta << ")"
                 << console::reset;
     }
   };

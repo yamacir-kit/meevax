@@ -364,9 +364,9 @@ namespace meevax::kernel
         << console::reset << std::endl;
       }
 
-      auto exportation = [this](auto&&, const object& operands)
+      auto exportation = [this](const object& xs)
       {
-        for (const auto& each : operands)
+        for (const auto& each : xs)
         {
           std::cerr << ";\t\t; staging " << each << std::endl;
 
@@ -395,20 +395,17 @@ namespace meevax::kernel
 
     DEFINE_PRIMITIVE_EXPRESSION(importation)
     {
-      auto importation = [&](auto&&, const object& operands)
+      auto importation = [&](const object& xs)
       {
-        assert(
-          operands.is<syntactic_continuation>());
+        assert(xs.is<syntactic_continuation>());
 
-        if (operands.as<syntactic_continuation>().external_symbols.empty())
+        if (xs.as<syntactic_continuation>().external_symbols.empty())
         {
-          std::cerr << "; import\t; " << operands << " is virgin => expand" << std::endl;
-          operands.as<syntactic_continuation>().expand(
-            cons(
-              operands, unit));
+          std::cerr << "; import\t; " << xs << " is virgin => expand" << std::endl;
+          xs.as<syntactic_continuation>().expand(cons(xs, unit));
         }
 
-        for ([[maybe_unused]] const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
+        for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
         {
           std::cerr << ";\t\t; importing " << value << std::endl;
         }
@@ -478,20 +475,13 @@ namespace meevax::kernel
     return RULE(std::forward<decltype(xs)>(xs)...);                            \
   })
 
-  #define DEFINE_PROCEDURE_1(NAME, CALLEE)                                     \
-  define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
-  {                                                                            \
-    return                                                                     \
-      CALLEE(                                                                  \
-        car(operands));                                                        \
-  })
+  #define DEFINE_PROCEDURE_1(NAME, CALLEE) \
+  define<procedure>(NAME, [this](const auto& xs) { return CALLEE(car(xs)); })
 
   #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                     \
-  define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
+  define<procedure>(NAME, [this](const auto& xs)                               \
   {                                                                            \
-    return                                                                     \
-      CALLEE(                                                                  \
-        car(operands).template as<const string>());                            \
+    return CALLEE(car(xs).template as<const string>());                        \
   })
 
   template <>
@@ -504,7 +494,7 @@ namespace meevax::kernel
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
 
-    define<procedure>("rename", [this](auto&&, auto&& xs)
+    define<procedure>("rename", [this](auto&& xs)
     {
       return rename(xs ? car(xs) : unspecified);
     });
@@ -524,14 +514,12 @@ namespace meevax::kernel
 
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
 
-    DEFINE_PROCEDURE_S("load",   load);
+    DEFINE_PROCEDURE_S("load", load);
     // DEFINE_PROCEDURE_S("linker", make<linker>);
 
-    define<procedure>("linker", [](auto&&, auto&& xs)
+    define<procedure>("linker", [](auto&& xs)
     {
-      return
-        make<linker>(
-          car(xs).template as<const string>());
+      return make<linker>(car(xs).template as<const string>());
     });
 
     // define<syntax>("cons", [this](
@@ -560,34 +548,25 @@ namespace meevax::kernel
       return current_feature;
     });
 
-    define<procedure>("procedure", [](auto&&, auto&& operands)
+    define<procedure>("procedure", [](const object& xs)
     {
-      const std::string name { cadr(operands).template as<string>() };
-
-      return
-        make<procedure>(
-          name,
-          car(operands)
-            .template as<linker>()
-              .template link<procedure::signature>(name));
+      const std::string name { cadr(xs).as<string>() };
+      return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
     });
 
-    define<procedure>("read", [this](auto&&, auto&& operands)
+    define<procedure>("read", [this](const object& xs)
     {
-      return
-        read(
-          operands ? car(operands).template as<input_port>()
-                   : current_input_port());
+      return read(xs ? car(xs).as<input_port>() : current_input_port());
     });
 
-    define<procedure>("write", [](auto&&, auto&& operands)
+    define<procedure>("write", [](auto&& xs)
     {
-      std::cout << car(operands);
+      std::cout << car(xs);
       return unspecified;
     });
 
     #define DEFINE_PREDICATE(NAME, TYPE)                                       \
-    define<procedure>(NAME, [](auto&&, auto&& xs)                              \
+    define<procedure>(NAME, [](auto&& xs)                                      \
     {                                                                          \
       if (not xs)                                                              \
       {                                                                        \
@@ -608,7 +587,7 @@ namespace meevax::kernel
     DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
     DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
 
-    define<procedure>("syntax", [this](auto&&, auto&& xs)
+    define<procedure>("syntax", [this](auto&& xs)
     {
       return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
     });
@@ -617,7 +596,7 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    define<procedure>("std::cout", [](auto&&, auto&& xs)
+    define<procedure>("std::cout", [](auto&& xs)
     {
       for (const auto& x : xs)
       {

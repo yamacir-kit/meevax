@@ -494,12 +494,7 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          s = cons(
-                std::invoke(
-                  callee.as<procedure>(),
-                  resource {},
-                  cadr(s)),
-                cddr(s));
+          s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           pop<1>(c);
         }
         // else if (callee.is<SK>()) // TODO REMOVE
@@ -538,7 +533,7 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          s = cons(std::invoke(callee.as<procedure>(), resource {}, cadr(s)), cddr(s));
+          s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           pop<1>(c);
         }
         // else if (callee.is<SK>()) // TODO REMOVE
