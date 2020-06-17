@@ -178,10 +178,9 @@ namespace meevax::kernel
             debug(console::magenta, "(", console::reset, car(expression), console::faint, " ; is <macro application>");
 
             const auto expanded {
-              applicant.as<SK>().expand(cons(applicant, cdr(expression)))
+              // applicant.as<SK>().expand(cons(applicant, cdr(expression)))
+              applicant.as<SK>().expand(applicant, expression)
             };
-            // TODO (1)
-            // => applicant.as<SK>().expand(expression)
 
             debug(expanded);
 

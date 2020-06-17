@@ -220,8 +220,10 @@ namespace meevax::kernel
       }
     }
 
-    auto expand(const object& form) // TODO (2) => const object& self, const object& form
+    auto expand(const object& identifier, const object& form)
     {
+      renames.emplace(car(form), identifier); // set itself to current-renamer
+
       // XXX ???
       push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 
@@ -360,7 +362,7 @@ namespace meevax::kernel
         if (xs.as<syntactic_continuation>().external_symbols.empty())
         {
           std::cerr << "; import\t; " << xs << " is virgin => expand" << std::endl;
-          xs.as<syntactic_continuation>().expand(cons(xs, unit));
+          xs.as<syntactic_continuation>().expand(xs, cons(xs, unit));
         }
 
         for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)

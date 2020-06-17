@@ -188,57 +188,57 @@
 (define er-macro-transformer
   (lambda (transform)
     (fork
-      (lambda expression
-        (transform expression evaluate free-identifier=?)))))
+      (lambda form
+        (transform form evaluate free-identifier=?)))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-; (define-syntax cond
-;   (er-macro-transformer
-;     (lambda (expr rename compare)
-;       (if (null? (cdr expr))
-;           (unspecified)
-;           ((lambda (clause)
-;              (if (compare (rename 'else) (car clause))
-;                  (if (pair? (cddr expr))
-;                      (error "else clause must be at the end of cond clause" expr)
-;                      (cons (rename 'begin) (cdr clause)))
-;                  (if (if (null? (cdr clause)) #t
-;                          (compare (rename '=>) (cadr clause)))
-;                      (list (list (rename 'lambda) (list (rename 'result))
-;                                  (list (rename 'if) (rename 'result)
-;                                        (if (null? (cdr clause))
-;                                            (rename 'result)
-;                                            (list (car (cddr clause)) (rename 'result)))
-;                                        (cons (rename 'cond) (cddr expr))))
-;                            (car clause))
-;                      (list (rename 'if) (car clause)
-;                            (cons (rename 'begin) (cdr clause))
-;                            (cons (rename 'cond) (cddr expr))))))
-;            (cadr expr))))))
+(define-syntax cond
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (if (null? (cdr form))
+          (unspecified)
+          ((lambda (clause)
+             (if (compare (rename 'else) (car clause))
+                 (if (pair? (cddr form))
+                     (error "else clause must be at the end of cond clause" form)
+                     (cons (rename 'begin) (cdr clause)))
+                 (if (if (null? (cdr clause)) #t
+                         (compare (rename '=>) (cadr clause)))
+                     (list (list (rename 'lambda) (list (rename 'result))
+                                 (list (rename 'if) (rename 'result)
+                                       (if (null? (cdr clause))
+                                           (rename 'result)
+                                           (list (car (cddr clause)) (rename 'result)))
+                                       (cons (rename 'cond) (cddr form))))
+                           (car clause))
+                     (list (rename 'if) (car clause)
+                           (cons (rename 'begin) (cdr clause))
+                           (cons (rename 'cond) (cddr form))))))
+           (cadr form))))))
 
-(define-syntax (cond . clauses)
-  (if (null? clauses)
-      (if #f #f)
-      ((lambda (clause)
-         (if (free-identifier=? else (car clause))
-             (if (pair? (cdr clauses))
-                 (error "else clause must be at the end of cond clause" clauses)
-                 (cons begin (cdr clause)) )
-             (if (if (null? (cdr clause)) #t
-                     (free-identifier=? => (cadr clause)) )
-                 (list (list lambda (list result)
-                             (list if result
-                                   (if (null? (cdr clause)) result
-                                       (list (caddr clause) result))
-                                   (cons cond (cdr clauses)) ))
-                       (car clause) )
-                 (list if (car clause)
-                          (cons begin (cdr clause))
-                          (cons cond (cdr clauses)) ))))
-       (car clauses) )))
+; (define-syntax (cond . clauses)
+;   (if (null? clauses)
+;       (if #f #f)
+;       ((lambda (clause)
+;          (if (free-identifier=? else (car clause))
+;              (if (pair? (cdr clauses))
+;                  (error "else clause must be at the end of cond clause" clauses)
+;                  (cons begin (cdr clause)) )
+;              (if (if (null? (cdr clause)) #t
+;                      (free-identifier=? => (cadr clause)) )
+;                  (list (list lambda (list result)
+;                              (list if result
+;                                    (if (null? (cdr clause)) result
+;                                        (list (caddr clause) result))
+;                                    (cons cond (cdr clauses)) ))
+;                        (car clause) )
+;                  (list if (car clause)
+;                           (cons begin (cdr clause))
+;                           (cons cond (cdr clauses)) ))))
+;        (car clauses) )))
 
 (define-syntax (and . tests)
   (cond ((null? tests))
