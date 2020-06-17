@@ -189,7 +189,7 @@
   (lambda (transform)
     (fork
       (lambda expression
-        (transform expression rename free-identifier=?)))))
+        (transform expression evaluate free-identifier=?)))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)

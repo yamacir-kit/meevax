@@ -8,7 +8,6 @@
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
-#include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/writer.hpp>
 
 #include <meevax/kernel/port.hpp>
@@ -50,16 +49,11 @@ namespace meevax::kernel
   *
   * ========================================================================= */
   class syntactic_continuation
-    //
-    /* ==== Pair ===============================================================
-    *
-    * The syntactic-continuation is a pair of "the program" and "global
-    * environment (simple association list)". It also has the aspect of a
-    * meta-closure that closes the global environment when it constructed (this
-    * feature is known as syntactic-closure).
-    *
-    * ======================================================================= */
-    : public virtual pair
+
+    /* ==== Syntactic Closure ==================================================
+     *
+     * ====================================================================== */
+    : public syntactic_closure
 
     /* ==== Reader =============================================================
     *
@@ -257,15 +251,10 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) expand(const object& operands) // TODO (2) => const object& self, const object& form
+    auto expand(const object& form) // TODO (2) => const object& self, const object& form
     {
-      push( // XXX ???
-        d,
-        s,
-        e,
-        cons(
-          make<instruction>(mnemonic::STOP),
-          c));
+      // XXX ???
+      push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 
       s = unit;
 
@@ -278,7 +267,7 @@ namespace meevax::kernel
       // });
 
       e = cons(
-            operands, // <lambda> parameters
+            form, // <lambda> parameters
             lexical_environment()); // static environment
       // TODO (4)
       // => e = cons(
@@ -292,7 +281,7 @@ namespace meevax::kernel
 
       c = current_expression();
 
-      const auto result {execute()};
+      const auto result { execute() };
 
       ++generation;
 
@@ -475,9 +464,6 @@ namespace meevax::kernel
     return RULE(std::forward<decltype(xs)>(xs)...);                            \
   })
 
-  #define DEFINE_PROCEDURE_1(NAME, CALLEE) \
-  define<procedure>(NAME, [this](const auto& xs) { return CALLEE(car(xs)); })
-
   #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                     \
   define<procedure>(NAME, [this](const auto& xs)                               \
   {                                                                            \
@@ -487,9 +473,7 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
-    // DEFINE_PROCEDURE_1("compile",  compile);
-
-    DEFINE_PROCEDURE_1("evaluate", evaluate);
+    define<procedure>("evaluate", [this](auto&& xs) { return evaluate(car(xs)); });
 
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
