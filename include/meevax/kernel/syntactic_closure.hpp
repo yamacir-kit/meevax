@@ -11,15 +11,11 @@ namespace meevax::kernel
   {
     using pair::pair; // Inheriting Constructors
 
-    auto form() const noexcept -> const auto&
-    {
-      return first;
-    }
+    auto form() const noexcept -> decltype(auto) { return std::get<0>(*this); }
+    auto form()       noexcept -> decltype(auto) { return std::get<0>(*this); }
 
-    auto syntactic_environment() const noexcept -> const auto&
-    {
-      return second;
-    }
+    auto syntactic_environment() const noexcept -> decltype(auto) { return std::get<1>(*this); }
+    auto syntactic_environment()       noexcept -> decltype(auto) { return std::get<1>(*this); }
 
     auto lookup() const
     {

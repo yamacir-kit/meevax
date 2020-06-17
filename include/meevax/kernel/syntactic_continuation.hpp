@@ -99,7 +99,8 @@ namespace meevax::kernel
 
     std::size_t generation {0};
 
-    // CRTP Import from Below
+    using syntactic_closure::syntactic_environment;
+
     using writer::current_debug_port;
     using writer::current_error_port;
     using writer::current_interaction_port;
@@ -119,25 +120,8 @@ namespace meevax::kernel
     using configurator::verbose;
 
   public: // Accessors
-    const auto& program() const
-    {
-      return first;
-    }
-
-    auto& syntactic_environment()
-    {
-      return second;
-    }
-
-    decltype(auto) current_expression()
-    {
-      return car(program());
-    }
-
-    decltype(auto) lexical_environment() // TODO Rename to scope
-    {
-      return cdr(program());
-    }
+    auto current_expression() const -> const auto& { return car(form()); }
+    auto scope()              const -> const auto& { return cdr(form()); }
 
   public: // Constructors
     template <typename... Ts>
@@ -153,31 +137,16 @@ namespace meevax::kernel
         c = unit;
         d = cdddr(first);
 
-        const auto subprogram
-        {
-          compile(
-            car(caddr(first)),
-            syntactic_environment(),
-            cdr(caddr(first)),
-            list(make<instruction>(mnemonic::STOP)),
-            as_program_declaration)
-        };
+        c = compile( // subprogram
+              caaddr(first),
+              syntactic_environment(),
+              cdaddr(first),
+              list(make<instruction>(mnemonic::STOP)),
+              as_program_declaration);
 
-        c = subprogram;
+        form() = execute();
 
-        // std::cerr << ";\t\t; s = " << s << std::endl;
-        // std::cerr << ";\t\t; e = " << e << std::endl;
-        // std::cerr << ";\t\t; c = " << c << std::endl;
-        // std::cerr << ";\t\t; d = " << d << std::endl;
-
-        first = execute();
-
-        // std::cerr << ";\t\t; s = " << s << std::endl;
-        // std::cerr << ";\t\t; e = " << e << std::endl;
-        // std::cerr << ";\t\t; c = " << c << std::endl;
-        // std::cerr << ";\t\t; d = " << d << std::endl;
-
-        assert(first.is<closure>());
+        assert(form().is<closure>());
       }
     }
 
@@ -268,7 +237,7 @@ namespace meevax::kernel
 
       e = cons(
             form, // <lambda> parameters
-            lexical_environment()); // static environment
+            scope()); // static environment
       // TODO (4)
       // => e = cons(
       //          list(
@@ -276,7 +245,7 @@ namespace meevax::kernel
       //            make<procedure>("rename", [this](auto&& xs) { ... }),
       //            make<procedure>("compare", [this](auto&& xs) { ... })
       //            ),
-      //          lexical_environment()
+      //          scope()
       //          );
 
       c = current_expression();
@@ -464,12 +433,6 @@ namespace meevax::kernel
     return RULE(std::forward<decltype(xs)>(xs)...);                            \
   })
 
-  #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                     \
-  define<procedure>(NAME, [this](const auto& xs)                               \
-  {                                                                            \
-    return CALLEE(car(xs).template as<const string>());                        \
-  })
-
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
@@ -488,6 +451,7 @@ namespace meevax::kernel
   void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
     DEFINE_SYNTAX("begin", sequence);
+    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
     DEFINE_SYNTAX("define", definition);
     DEFINE_SYNTAX("fork", fork);
     DEFINE_SYNTAX("if", conditional);
@@ -496,10 +460,10 @@ namespace meevax::kernel
     DEFINE_SYNTAX("reference", reference);
     DEFINE_SYNTAX("set!", assignment);
 
-    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
-
-    DEFINE_PROCEDURE_S("load", load);
-    // DEFINE_PROCEDURE_S("linker", make<linker>);
+    define<procedure>("load", [this](auto&& xs)
+    {
+      return load(car(xs).template as<const string>());
+    });
 
     define<procedure>("linker", [](auto&& xs)
     {
@@ -620,8 +584,6 @@ namespace meevax::kernel
   }
 
   #undef DEFINE_SYNTAX
-  #undef DEFINE_PROCEDURE_1
-  #undef DEFINE_PROCEDURE_S
 
   template <>
   syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(0), 0>)
