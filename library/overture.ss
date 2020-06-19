@@ -1,10 +1,6 @@
 (define null-environment
   (fork
-    (lambda (this) this) ))
-
-(define eval
-  (lambda (this expr-or-def environment-specifier)
-    (apply environment-specifier expr-or-def) ))
+    (lambda (this) this)))
 
 (define identity
   (lambda (x) x))
@@ -189,7 +185,7 @@
   (lambda (transform)
     (fork
       (lambda form
-        (transform form evaluate free-identifier=?)))))
+        (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
@@ -226,19 +222,19 @@
 ;          (if (free-identifier=? else (car clause))
 ;              (if (pair? (cdr clauses))
 ;                  (error "else clause must be at the end of cond clause" clauses)
-;                  (cons begin (cdr clause)) )
+;                  (cons begin (cdr clause)))
 ;              (if (if (null? (cdr clause)) #t
-;                      (free-identifier=? => (cadr clause)) )
+;                      (free-identifier=? => (cadr clause)))
 ;                  (list (list lambda (list result)
 ;                              (list if result
 ;                                    (if (null? (cdr clause)) result
 ;                                        (list (caddr clause) result))
-;                                    (cons cond (cdr clauses)) ))
-;                        (car clause) )
+;                                    (cons cond (cdr clauses))))
+;                        (car clause))
 ;                  (list if (car clause)
 ;                           (cons begin (cdr clause))
-;                           (cons cond (cdr clauses)) ))))
-;        (car clauses) )))
+;                           (cons cond (cdr clauses))))))
+;        (car clauses))))
 
 (define-syntax (and . tests)
   (cond ((null? tests))

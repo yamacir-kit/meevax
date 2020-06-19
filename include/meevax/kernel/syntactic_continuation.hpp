@@ -238,7 +238,8 @@ namespace meevax::kernel
       // });
 
       e = cons(
-            form, // <lambda> parameters
+            // form, // <lambda> parameters
+            cons(identifier, cdr(form)),
             scope()); // static environment
       // TODO (4)
       // => e = cons(
@@ -451,8 +452,6 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
-    define<procedure>("evaluate", [this](auto&& xs) { return evaluate(car(xs)); });
-
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
 
@@ -474,6 +473,11 @@ namespace meevax::kernel
     DEFINE_SYNTAX("quote", quotation);
     DEFINE_SYNTAX("reference", reference);
     DEFINE_SYNTAX("set!", assignment);
+
+    define<procedure>("eval", [](auto&& xs)
+    {
+      return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
+    });
 
     define<procedure>("load", [this](auto&& xs)
     {
