@@ -307,7 +307,7 @@ namespace meevax::kernel
     }
 
     // XXX Need?
-    decltype(auto) dereference() const
+    decltype(auto) dereference() const noexcept
     {
       assert(*this);
       assert(not is_tagged(std::shared_ptr<T>::get()));

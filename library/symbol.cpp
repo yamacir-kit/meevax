@@ -7,8 +7,8 @@ extern "C" namespace meevax::symbol
   PROCEDURE(symbol)
   {
     if (not xs or
-        not car(xs) or
-        not car(xs).is<kernel::string>())
+        not kernel::car(xs) or
+        not kernel::car(xs).is<kernel::string>())
     {
       return kernel::make<kernel::symbol>();
     }
@@ -16,7 +16,7 @@ extern "C" namespace meevax::symbol
     {
       return
         kernel::make<kernel::symbol>(
-          car(xs).as<kernel::string>());
+          kernel::car(xs).as<kernel::string>());
     }
   }
 

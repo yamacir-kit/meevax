@@ -363,12 +363,12 @@ namespace meevax::kernel
               if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
               {
                 const auto operands {static_cast<SK&>(*this).read(rest)};
-                return std::invoke(std::get<1>(*callee), operands);
+                return std::invoke(cdr(*callee), operands);
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
                 const auto operands {static_cast<SK&>(*this).read(*option)};
-                return std::invoke(std::get<1>(*callee), operands);
+                return std::invoke(cdr(*callee), operands);
               }
               else
               {
@@ -377,7 +377,7 @@ namespace meevax::kernel
             }
             else if (auto callee {short_options.find(*so)}; callee != std::end(short_options))
             {
-              return std::invoke( std::get<1>(*callee), unit);
+              return std::invoke(cdr(*callee), unit);
             }
             else
             {
@@ -392,12 +392,12 @@ namespace meevax::kernel
             if (analysis.length(2)) // argument part
             {
               const auto operands {static_cast<SK&>(*this).read(analysis.str(3))};
-              return std::invoke(std::get<1>(*callee), operands);
+              return std::invoke(cdr(*callee), operands);
             }
             else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
               const auto operands {static_cast<SK&>(*this).read(*option)};
-              return std::invoke(std::get<1>(*callee), operands);
+              return std::invoke(cdr(*callee), operands);
             }
             else
             {
@@ -406,7 +406,7 @@ namespace meevax::kernel
           }
           else if (auto callee {long_options.find(lo)}; callee != std::end(long_options))
           {
-            return std::invoke(std::get<1>(*callee), unit);
+            return std::invoke(cdr(*callee), unit);
           }
           else
           {

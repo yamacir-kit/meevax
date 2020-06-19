@@ -373,13 +373,13 @@ namespace meevax::kernel
           // NOTE DIRTY HACK!
           if (auto iter {alias.find(name)}; iter != std::end(alias))
           {
-            name = std::get<1>(*iter);
+            name = cdr(*iter);
           }
 
           // TODO Provide datum<character>(name)?
           if (auto iter {characters.find(name)}; iter != std::end(characters))
           {
-            return std::get<1>(*iter);
+            return cdr(*iter);
           }
           else
           {

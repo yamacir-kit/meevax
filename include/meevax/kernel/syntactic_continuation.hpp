@@ -211,7 +211,7 @@ namespace meevax::kernel
     {
       if (const auto iter { renames.find(identifier) }; iter != std::end(renames))
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else
       {

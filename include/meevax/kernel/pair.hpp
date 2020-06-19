@@ -39,28 +39,74 @@ namespace meevax::kernel
   * operation for everyone except the empty list.
   *
   * ========================================================================= */
-  #define DEFINE_PAIR_ACCESSOR(SYMBOL, INDEX)                                  \
-  inline decltype(auto) SYMBOL(const object& o)                                \
-  {                                                                            \
-    assert(o);                                                                 \
-    return std::get<INDEX>(o.dereference());                                   \
-  }
+  // auto car = [](const object& x) noexcept -> decltype(auto)
+  // {
+  //   return std::get<0>(x.dereference());
+  // };
+  //
+  // auto cdr = [](const object& x) noexcept -> decltype(auto)
+  // {
+  //   return std::get<1>(x.dereference());
+  // };
 
-  DEFINE_PAIR_ACCESSOR(car, 0)
-  DEFINE_PAIR_ACCESSOR(cdr, 1)
+  // auto car = [](auto&& x) noexcept -> decltype(auto)
+  // {
+  //   if constexpr (std::is_base_of<pair, typename std::decay<decltype(x)>::type>::value)
+  //   {
+  //     return std::get<0>(std::forward<decltype(x)>(x));
+  //   }
+  //   else
+  //   {
+  //     return std::get<0>(x.dereference());
+  //   }
+  // };
+  //
+  // auto cdr = [](auto&& x) noexcept -> decltype(auto)
+  // {
+  //   if constexpr (std::is_base_of<pair, typename std::decay<decltype(x)>::type>::value)
+  //   {
+  //     return std::get<1>(std::forward<decltype(x)>(x));
+  //   }
+  //   else
+  //   {
+  //     return std::get<1>(x.dereference());
+  //   }
+  // };
+
+  auto car = [](auto&& x) noexcept -> decltype(auto)
+  {
+    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
+    {
+      return std::get<0>(x.dereference());
+    }
+    else
+    {
+      return std::get<0>(std::forward<decltype(x)>(x));
+    }
+  };
+
+  auto cdr = [](auto&& x) noexcept -> decltype(auto)
+  {
+    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
+    {
+      return std::get<1>(x.dereference());
+    }
+    else
+    {
+      return std::get<1>(std::forward<decltype(x)>(x));
+    }
+  };
 
   /* ==== Pairs and Lists External Representation ==============================
   *
   * TODO documentation
   *
   *========================================================================== */
-  auto operator<<(std::ostream& os, const pair& pare)
-    -> decltype(os)
+  auto operator<<(std::ostream& os, const pair& pare) -> decltype(os)
   {
-    os << console::magenta << "("
-       << console::reset << std::get<0>(pare);
+    os << console::magenta << "(" << console::reset << car(pare);
 
-    for (auto object {std::get<1>(pare)}; object; object = cdr(object))
+    for (auto object { cdr(pare) }; object; object = cdr(object))
     {
       if (object.is<pair>())
       {
@@ -68,13 +114,11 @@ namespace meevax::kernel
       }
       else // iter is the last element of dotted-list.
       {
-        os << console::magenta << " . "
-           << console::reset << object;
+        os << console::magenta << " . " << console::reset << object;
       }
     }
 
-    return os << console::magenta << ")"
-              << console::reset;
+    return os << console::magenta << ")" << console::reset;
   }
 } // namespace meevax::kernel
 

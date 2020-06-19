@@ -37,9 +37,9 @@ namespace meevax::kernel
     friend auto operator<<(std::ostream& os, const string& s)
       -> decltype(auto)
     {
-      os << console::cyan << "\"" << std::get<0>(s).as<std::string>();
+      os << console::cyan << "\"" << car(s).as<std::string>();
 
-      for (const auto& each : std::get<1>(s))
+      for (const auto& each : cdr(s))
       {
         if (each) // guard for malformed string
         {
