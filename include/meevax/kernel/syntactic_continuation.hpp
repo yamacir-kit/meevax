@@ -259,12 +259,25 @@ namespace meevax::kernel
       return result;
     }
 
-    // TODO CONVERT TO VM INSTRUCTION
     decltype(auto) evaluate(const object& expression)
     {
-      return
-        execute_interrupt(
-          compile(expression, syntactic_environment()));
+      push(d, s, e, c);
+
+      s = unit;
+      e = unit;
+      c = compile(expression, syntactic_environment());
+
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+      disassemble(c);
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+
+      decltype(auto) result { execute() };
+
+      s = pop(d);
+      e = pop(d);
+      c = pop(d);
+
+      return result;
     }
 
     auto load(const path& path_to_source) -> const auto&

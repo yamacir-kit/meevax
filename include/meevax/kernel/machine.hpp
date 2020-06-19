@@ -281,34 +281,6 @@ namespace meevax::kernel
       }
     }
 
-    // XXX DO NOT USE THIS EXCEPT FOR THE EVALUATE PROCEDURE.
-    decltype(auto) execute_interrupt(const object& expression)
-    {
-      push(
-        d,
-        s,
-        e,
-        cons(
-          make<instruction>(mnemonic::STOP),
-          c ? cdr(c) : c));
-
-      s = unit;
-      e = unit;
-      c = expression;
-
-      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
-      disassemble(c);
-      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
-
-      const auto result {execute()};
-
-      s = pop(d);
-      e = pop(d);
-      c = pop(d);
-
-      return result;
-    }
-
     object execute()
     {
     dispatch:
