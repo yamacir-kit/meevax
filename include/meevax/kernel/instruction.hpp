@@ -22,7 +22,6 @@ namespace meevax::kernel
     (LOAD_CONSTANT)                                                            \
     (LOAD_CONTINUATION)                                                        \
     (LOAD_GLOBAL)                                                              \
-    (LOAD_LINK)                                                                \
     (LOAD_LOCAL)                                                               \
     (LOAD_VARIADIC)                                                            \
     (RETURN)                                                                   \
@@ -31,6 +30,7 @@ namespace meevax::kernel
     (STORE_GLOBAL)                                                             \
     (STORE_LOCAL)                                                              \
     (STORE_VARIADIC)                                                           \
+    (STRIP)                                                                    \
     (TAIL_CALL)                                                                \
     (TAIL_SELECT)                                                              \
 

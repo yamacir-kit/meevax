@@ -13,10 +13,10 @@ namespace meevax::kernel
    *       (and (syntactic-closure? x)
    *            (symbol? (car x)))))
    *
-   * ======================================================================= */
+   * ======================================================================== */
   auto is_identifier(const object& x)
   {
-    if (not null(x))
+    if (null(x))
     {
       return false;
     }

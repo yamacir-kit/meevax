@@ -94,9 +94,9 @@ namespace meevax::kernel
       {
         return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
       }
-      else if (not expression.is<pair>())
+      else if (not expression.is<pair>()) // is <identifier>
       {
-        if (expression.is<symbol>() or expression.is<syntactic_closure>()) // is <identifier>
+        if (is_identifier(expression))
         {
           if (de_bruijn_index index {expression, frames}; index)
           {
@@ -119,6 +119,15 @@ namespace meevax::kernel
                   continuation);
             }
           }
+          else if (expression.is<syntactic_closure>())
+          {
+            debug(expression, console::faint, " ; is <alias>");
+
+            return
+              cons(
+                make<instruction>(mnemonic::STRIP), expression,
+                continuation);
+          }
           else
           {
             debug(expression, console::faint, " ; is a <glocal variable>");
@@ -129,15 +138,6 @@ namespace meevax::kernel
                 continuation);
           }
         }
-        // else if (expression.is<syntactic_closure>())
-        // {
-        //   debug(expression, console::faint, " ; is <syntax-object>");
-        //
-        //   return
-        //     cons(
-        //       make<instruction>(mnemonic::EXPAND), expression,
-        //       continuation);
-        // }
         else // is <self-evaluating>
         {
           debug(expression, console::faint, " ; is <self-evaluating>");
@@ -250,12 +250,12 @@ namespace meevax::kernel
         case mnemonic::FORK:
         case mnemonic::LOAD_CONSTANT:
         case mnemonic::LOAD_GLOBAL:
-        // case mnemonic::LOAD_LINK:
         case mnemonic::LOAD_LOCAL:
         case mnemonic::LOAD_VARIADIC:
         case mnemonic::STORE_GLOBAL:
         case mnemonic::STORE_LOCAL:
         case mnemonic::STORE_VARIADIC:
+        case mnemonic::STRIP:
           // NOTE: evaluation order of function argument is undefined (C++).
           write_to(current_debug_port(), *iter);
           write_to(current_debug_port(), " ", *++iter, "\n");
@@ -343,15 +343,11 @@ namespace meevax::kernel
 
       case mnemonic::LOAD_GLOBAL: /* ===========================================
         *
-        *              S  E (LOAD-GLOBAL identifier . C) D
-        * => (object . S) E                           C  D
+        *              S  E (LOAD-GLOBAL symbol . C) D
+        * => (object . S) E                       C  D
         *
         * =================================================================== */
-        if (const object identifier { cadr(c) }; identifier.is<syntactic_closure>())
-        {
-          push(s, identifier.as<syntactic_closure>().strip());
-        }
-        else if (const object binding { assq(identifier, glocal_environment(e)) }; not binding.eqv(f))
+        if (const object binding { assq(cadr(c), glocal_environment(e)) }; not binding.eqv(f))
         {
           push(s, cadr(binding));
         }
@@ -362,10 +358,15 @@ namespace meevax::kernel
         pop<2>(c);
         goto dispatch;
 
-      // case mnemonic::LOAD_LINK:
-      //   push(s, cadr(c).template as<syntactic_closure>().strip());
-      //   pop<2>(c);
-      //   goto dispatch;
+      case mnemonic::STRIP: /* =================================================
+        *
+        *            S  E (STRIP syntactic-closure . C) D
+        * => (form . S) E                            C  D
+        *
+        * =================================================================== */
+        push(s, cadr(c).template as<syntactic_closure>().strip());
+        pop<2>(c);
+        goto dispatch;
 
       case mnemonic::LOAD_CLOSURE: /* ==========================================
         *
