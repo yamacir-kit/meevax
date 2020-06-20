@@ -189,7 +189,12 @@ if test "$autotest" -ne 0
 then
   unit_test="valgrind $valgrind_options --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
 
-  full_test="$valgrind $repository/build/bin/ice --verbose --debug $repository/experimental/srfi-78.ss $repository/test/r4rs.ss"
+  # full_test="$valgrind $repository/build/bin/ice --verbose --debug $repository/experimental/srfi-78.ss $repository/test/r4rs.ss"
+  full_test=" \
+    $valgrind $repository/build/bin/ice --verbose --debug \
+    $repository/experimental/srfi-78.ss \
+    $repository/test/srfi-149.ss \
+    "
 
   echo "
 ; ==== Test ====================================================================
