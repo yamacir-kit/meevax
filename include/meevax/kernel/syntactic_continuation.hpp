@@ -423,10 +423,10 @@ namespace meevax::kernel
     }
   };
 
-  #define DEFINE_SYNTAX(NAME, RULE)                                            \
-  define<syntax>(NAME, [this](auto&&... xs)                                    \
+  #define DEFINE_SYNTAX(IDENTIFIER, TRANSFORMER_SPEC)                          \
+  define<syntax>(IDENTIFIER, [this](auto&&... xs)                              \
   {                                                                            \
-    return RULE(std::forward<decltype(xs)>(xs)...);                            \
+    return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
   template <>
@@ -442,7 +442,7 @@ namespace meevax::kernel
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
     DEFINE_SYNTAX("define", definition);
-    DEFINE_SYNTAX("fork", fork);
+    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork);
     DEFINE_SYNTAX("if", conditional);
     DEFINE_SYNTAX("lambda", lambda);
     DEFINE_SYNTAX("quote", quotation);

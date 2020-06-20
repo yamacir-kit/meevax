@@ -1,6 +1,8 @@
 (define null-environment
-  (fork
+  (fork-with-current-syntactic-continuation
     (lambda (this) this)))
+
+(define fork/csc fork-with-current-syntactic-continuation)
 
 (define identity
   (lambda (x) x))
@@ -152,11 +154,11 @@
 ; ==== Low-Level Macro Facility ================================================
 
 (define define-syntax
-  (fork
+  (fork/csc
     (lambda (define-syntax identifier . transformer)
       (if (pair? identifier)
           (list define (car identifier)
-            (list fork
+            (list fork/csc
               (list lambda identifier . transformer)))
           (list define identifier . transformer)))))
 
@@ -183,7 +185,7 @@
 
 (define er-macro-transformer
   (lambda (transform)
-    (fork
+    (fork/csc
       (lambda form
         (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
 
@@ -1403,13 +1405,13 @@
 
 (define current-lexical-environment ; deprecated
   (lambda ()
-    (cdar (fork
+    (cdar (fork/csc
             (lambda ()
              '())))))
 
 (define interaction-environment ; deprecated
   (lambda ()
-    (cdr (fork
+    (cdr (fork/csc
            (lambda ()
             '())))))
 
@@ -1602,7 +1604,7 @@
 ; ------------------------------------------------------------------------------
 
 (define swap!
-  (fork
+  (fork/csc
     (lambda (swap! x y)
       (let ((temporary (string->symbol)))
        `(,let ((,temporary ,x))
@@ -1610,7 +1612,7 @@
           (,set! ,y ,temporary)) ))))
 
 (define swap!
-  (fork
+  (fork/csc
     (lambda (swap! x y)
      `(,let ((,value ,x))
         (,set! ,x ,y)
@@ -1631,7 +1633,7 @@
 ;           (,(rename 'set!) ,b ,(rename 'value))) ))))
 
 (define loop
-  (fork
+  (fork/csc
     (lambda form
      `(,call/cc
         (,lambda (exit)
@@ -1680,15 +1682,15 @@
 ; ------------------------------------------------------------------------------
 
 (define define-something
-  (fork
+  (fork/csc
     (lambda (_ name value)
      `(,define ,name ,value))))
 
 (define define-library
-  (fork
+  (fork/csc
     (lambda (define-library name . declarations)
      `(,define ,name
-        (,fork
+        (,fork/csc
           (,lambda (,this . ,expression)
             ; (,begin (,define ,name ,this))
             ,@declarations
@@ -1703,31 +1705,31 @@
      )))
 
 ; (define export
-;   (fork
+;   (fork/csc
 ;     (lambda (_ . export-specs)
 ;      `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
 ; (define export
-;   (fork
+;   (fork/csc
 ;     (lambda (this . export-specs)
 ;      `(stage ,@(map (lambda (each)
 ;                       (list quote each))
 ;                     export-specs)))))
 
 ; (define import
-;   (fork
+;   (fork/csc
 ;     (lambda (import . import-set)
 ;      `(,display "; dummy-import\t; " ',import-set "\n"))))
 
 ; (define instantiate-library
-;   (fork
+;   (fork/csc
 ;     (lambda (this library-name)
 ;      `(,let ((,object (,reference ,library-name)))
 ;         (,object)))))
 
 ; TODO REMOVE
 ; (define evaluate-in
-;   (fork
+;   (fork/csc
 ;     (lambda (this namespace identifier)
 ;      `((,reference ,namespace) ',identifier))))
 
@@ -1894,7 +1896,7 @@
 ;       (evaluate `(increment ,@operands)))))
 
 (define from
-  (fork
+  (fork/csc
     (lambda (this library-name expression)
      `(,apply (,reference ,library-name) ,expression) )))
 
@@ -1909,7 +1911,7 @@
          `(increment ,xs) )))
 
 (define Module
-  (fork
+  (fork/csc
     (lambda (this)
       (begin
         (define x 1)
@@ -1922,7 +1924,7 @@
             (+ x y) ))))))
 
 (define factory ; letrec
-  (fork
+  (fork/csc
     (lambda (this)
       (letrec ((value 0)
                (increment
@@ -1934,7 +1936,7 @@
                (define get ,get)) ))))
 
 (define factory ; internal-define
-  (fork
+  (fork/csc
     (lambda (this)
       (define value 0)
       (define increment
@@ -1947,7 +1949,7 @@
              (define get ,get)) )))
 
 (define factory
-  (fork
+  (fork/csc
     (lambda (this)
 
       (begin (define value 0)
@@ -1977,16 +1979,16 @@
      )))
 
 (define let-syntax
-  (fork
+  (fork/csc
     (lambda (let-syntax bindings . body)
-     `((fork
+     `((fork/csc
          (,lambda (,this ,@(map car bindings))
             ,@body
             )
          )
        ,@(map cadr bindings)) )))
 
-; (let-syntax ((given-that (fork
+; (let-syntax ((given-that (fork/csc
 ;                            (lambda (this test . statements)
 ;                             `(,if test
 ;                                  (,begin ,statements))))))
@@ -1994,41 +1996,41 @@
 ;     (given-that if (set! if 'now))
 ;     if))
 
-; ((fork
+; ((fork/csc
 ;    (lambda (this given-that)
 ;      (let ((if #true))
 ;        (given-that if (set! if 'now))
 ;        if)
 ;      )
 ;    )
-;  (fork
+;  (fork/csc
 ;    (lambda (this test . statements)
 ;     `(,if test
 ;        (,begin ,statements)))))
 
 ; (let ((x 'outer))
-;   (let-syntax ((m (fork
+;   (let-syntax ((m (fork/csc
 ;                     (lambda (m) x))))
 ;     (let ((x 'inner))
 ;       (m))))
 
 (let ((x 'outer))
-  (fork
+  (fork/csc
     (lambda (this)
-      (begin (define m (fork
+      (begin (define m (fork/csc
                          (lambda (this) x)) ))
       (let ((x 'inner))
         (m) ))))
 
 ; (define letrec* ; transform to internal-definitions
-;   (fork
+;   (fork/csc
 ;     (lambda (letrec* bindings . body)
 ;       ((lambda (definitions)
 ;         `((,lambda () ,@definitions ,@body)))
 ;        (map (lambda (x) (cons 'define x)) bindings)))))
 
 ; (define letrec-syntax
-;   (fork
+;   (fork/csc
 ;     (lambda (letrec-syntax bindings . body)
 ;       ((lambda (definitions)
 ;         `((,lambda ()
@@ -2039,7 +2041,7 @@
 ;
 ; ; (define letrec-syntax let-syntax)
 ;
-; (letrec-syntax ((or (fork
+; (letrec-syntax ((or (fork/csc
 ;                       (lambda (or . tests)
 ;                         (cond
 ;                           ((null? tests) #false)
@@ -2061,7 +2063,7 @@
 ;         y)))
 
 (define scheme
-  (fork
+  (fork/csc
     (lambda (this . submodule)
 
       (begin (define equivalence.so (linker "libmeevax-equivalence.so"))
@@ -2076,13 +2078,13 @@
              ) ; begin
 
       (begin (define println
-               (fork
+               (fork/csc
                  (lambda (this . xs)
                   `(,display ,@xs "\n"))))
         )
 
       (begin (define base
-               (fork
+               (fork/csc
                  (lambda (this)
 
                    (begin (define null-environment
@@ -2116,11 +2118,11 @@
      ))) ; scheme
 
 ; (define let-syntax
-;   (fork
+;   (fork/csc
 ;     (lambda (let-syntax bindings . body)
 ;
 ;       (let ((definitions (map (lambda (x) (cons define x)) bindings)))
-;        `(,fork
+;        `(,fork/csc
 ;           (,lambda (this)
 ;             (,begin ,definitions)
 ;             ,@body
@@ -2128,7 +2130,7 @@
 ;         )
 ;       )))
 ;
-; (let-syntax ((given-that (fork
+; (let-syntax ((given-that (fork/csc
 ;                            (lambda (this test . statements)
 ;                             `(,if test
 ;                                  (,begin ,statements))))))
@@ -2137,7 +2139,7 @@
 ;     if))
 ;
 ; (let ((x 'outer))
-;   (let-syntax ((m (fork
+;   (let-syntax ((m (fork/csc
 ;                     (lambda (m) x))))
 ;     (let ((x 'inner))
 ;       (m))))
