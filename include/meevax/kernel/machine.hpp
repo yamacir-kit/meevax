@@ -337,7 +337,8 @@ namespace meevax::kernel
         * => (constant . S) E                           C  D
         *
         * =================================================================== */
-        push(s, strip(cadr(c)));
+        // push(s, strip(cadr(c)));
+        push(s, cadr(c));
         pop<2>(c);
         goto dispatch;
 

@@ -34,13 +34,14 @@ static const std::string_view overture
 
 namespace meevax::kernel
 {
-  /* ==== Standard Environment Layers ==========================================
-  *
-  * Layer 0 - Program Structure Controllers
-  * Layer 1 - Primitive Expression Types
-  * Layer 2 - Derived Expression Types and Standard Procedures
-  *
-  * ========================================================================= */
+  /* ==== System Layers ========================================================
+   *
+   * Layer 0 - Module Systems (Program Structures)
+   * Layer 1 - Primitive Expression Types
+   * Layer 2 - Scheme Standards (Derived Expression Types & Standard Procedures)
+   * Layer 3 - Experimental Features
+   *
+   * ======================================================================== */
   template <auto N>
   static constexpr std::integral_constant<decltype(N), N> layer {};
 
@@ -423,6 +424,18 @@ namespace meevax::kernel
     }
   };
 
+  template <>
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(0), 0>)
+    : syntactic_continuation::syntactic_continuation {} // boots layer<0>
+  {}
+
+  template <auto N>
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
+    : syntactic_continuation::syntactic_continuation { layer<N - 1> }
+  {
+    boot(layer<N>);
+  }
+
   #define DEFINE_SYNTAX(IDENTIFIER, TRANSFORMER_SPEC)                          \
   define<syntax>(IDENTIFIER, [this](auto&&... xs)                              \
   {                                                                            \
@@ -454,6 +467,17 @@ namespace meevax::kernel
       return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
     });
 
+    define<procedure>("read", [this](const object& xs)
+    {
+      return read(xs ? car(xs).as<input_port>() : current_input_port());
+    });
+
+    define<procedure>("write", [](auto&& xs)
+    {
+      std::cout << car(xs);
+      return unspecified;
+    });
+
     define<procedure>("load", [this](auto&& xs)
     {
       return load(car(xs).template as<const string>());
@@ -464,27 +488,6 @@ namespace meevax::kernel
       return make<linker>(car(xs).template as<const string>());
     });
 
-    // define<syntax>("cons", [this](
-    //   auto&& expression,
-    //   auto&& syntactic_environment,
-    //   auto&& frames,
-    //   auto&& continuation,
-    //   auto&&)
-    // {
-    //   return
-    //     compile(
-    //       cadr(expression),
-    //       syntactic_environment,
-    //       frames,
-    //       compile(
-    //         car(expression),
-    //         syntactic_environment,
-    //         frames,
-    //         cons(
-    //           make<instruction>(mnemonic::CONS),
-    //           continuation)));
-    // });
-
     define<procedure>("features", [](auto&&...)                 // (scheme base)
     {
       return current_feature;
@@ -494,17 +497,6 @@ namespace meevax::kernel
     {
       const std::string name { cadr(xs).as<string>() };
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
-    });
-
-    define<procedure>("read", [this](const object& xs)
-    {
-      return read(xs ? car(xs).as<input_port>() : current_input_port());
-    });
-
-    define<procedure>("write", [](auto&& xs)
-    {
-      std::cout << car(xs);
-      return unspecified;
     });
 
     #define DEFINE_PREDICATE(NAME, TYPE)                                       \
@@ -533,10 +525,53 @@ namespace meevax::kernel
     {
       return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
     });
+
+    // define<syntax>("cons", [this](
+    //   auto&& expression,
+    //   auto&& syntactic_environment,
+    //   auto&& frames,
+    //   auto&& continuation,
+    //   auto&&)
+    // {
+    //   return
+    //     compile(
+    //       cadr(expression),
+    //       syntactic_environment,
+    //       frames,
+    //       compile(
+    //         car(expression),
+    //         syntactic_environment,
+    //         frames,
+    //         cons(
+    //           make<instruction>(mnemonic::CONS),
+    //           continuation)));
+    // });
   }
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
+  {
+    auto port { open_input_string(overture.data()) };
+
+    std::size_t counts {0};
+
+    for (auto e {read(port)}; e != eof_object; e = read(port))
+    {
+      // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
+      write_to(current_debug_port(),
+        "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
+
+      current_interaction_port() << std::flush;
+
+      evaluate(e);
+    }
+
+    // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
+    write_to(current_debug_port(), "\n\n");
+  }
+
+  template <>
+  void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
   {
     define<procedure>("std::cout", [](auto&& xs)
     {
@@ -557,40 +592,9 @@ namespace meevax::kernel
 
       return unspecified; // TODO standard-output-port
     });
-
-    auto port { open_input_string(overture.data()) };
-
-    std::size_t counts {0};
-
-    for (auto e {read(port)}; e != eof_object; e = read(port))
-    {
-      // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-      write_to(current_debug_port(),
-        "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
-
-      current_interaction_port() << std::flush;
-
-      evaluate(e);
-    }
-
-    // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-    write_to(current_debug_port(), "\n\n");
-  }
-
-  #undef DEFINE_SYNTAX
-
-  template <>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(0), 0>)
-    : syntactic_continuation::syntactic_continuation {} // boots layer<0>
-  {}
-
-  template <auto N>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
-    : syntactic_continuation::syntactic_continuation { layer<N - 1> }
-  {
-    boot(layer<N>);
   }
 } // namespace meevax::kernel
 
+#undef DEFINE_SYNTAX
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
