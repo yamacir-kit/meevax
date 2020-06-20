@@ -4,25 +4,25 @@ extern "C" namespace meevax::pair
 {
   PROCEDURE(car)
   {
-    return kernel::caar(operands);
+    return kernel::caar(xs);
   }
 
   PROCEDURE(cdr)
   {
-    return kernel::cdar(operands);
+    return kernel::cdar(xs);
   }
 
   PROCEDURE(cons)
   {
     return
       kernel::cons(
-        kernel::car(operands),
-        kernel::cadr(operands));
+        kernel::car(xs),
+        kernel::cadr(xs));
   }
 
   PROCEDURE(pair_)
   {
-    // for (const auto& each : operands)
+    // for (const auto& each : xs)
     // {
     //   if (not each or not each.is<kernel::pair>())
     //   {
@@ -32,7 +32,7 @@ extern "C" namespace meevax::pair
     //
     // return t;
 
-    const auto& value {kernel::car(operands)};
+    const auto& value {kernel::car(xs)};
 
     return kernel::convert(value && value.is<kernel::pair>());
   }

@@ -6,41 +6,33 @@ extern "C" namespace meevax::kernel
 {
   PROCEDURE(is_input_port)
   {
-    return
-      convert(
-        car(operands).is<input_port>());
+    return convert(car(xs).is<input_port>());
   }
 
   PROCEDURE(is_output_port)
   {
-    return
-      convert(
-        car(operands).is<output_port>());
+    return convert(car(xs).is<output_port>());
   }
 
   PROCEDURE(open_input_file)
   {
-    return
-      make<input_port>(
-        car(operands).as<string>());
+    return make<input_port>(car(xs).as<string>());
   }
 
   PROCEDURE(open_output_file)
   {
-    return
-      make<output_port>(
-        car(operands).as<string>());
+    return make<output_port>(car(xs).as<string>());
   }
 
   PROCEDURE(close_input_port)
   {
-    car(operands).as<input_port>().close();
+    car(xs).as<input_port>().close();
     return unspecified;
   }
 
   PROCEDURE(close_output_port)
   {
-    car(operands).as<output_port>().close();
+    car(xs).as<output_port>().close();
     return unspecified;
   }
 } // extern "C"

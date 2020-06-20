@@ -8,7 +8,6 @@
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
-#include <meevax/kernel/syntactic_closure.hpp>
 #include <meevax/kernel/writer.hpp>
 
 #include <meevax/kernel/port.hpp>
@@ -35,13 +34,14 @@ static const std::string_view overture
 
 namespace meevax::kernel
 {
-  /* ==== Standard Environment Layers ==========================================
-  *
-  * Layer 0 - Program Structure Controllers
-  * Layer 1 - Primitive Expression Types
-  * Layer 2 - Derived Expression Types and Standard Procedures
-  *
-  * ========================================================================= */
+  /* ==== System Layers ========================================================
+   *
+   * Layer 0 - Module Systems (Program Structures)
+   * Layer 1 - Primitive Expression Types
+   * Layer 2 - Scheme Standards (Derived Expression Types & Standard Procedures)
+   * Layer 3 - Experimental Features
+   *
+   * ======================================================================== */
   template <auto N>
   static constexpr std::integral_constant<decltype(N), N> layer {};
 
@@ -50,16 +50,11 @@ namespace meevax::kernel
   *
   * ========================================================================= */
   class syntactic_continuation
-    //
-    /* ==== Pair ===============================================================
-    *
-    * The syntactic-continuation is a pair of "the program" and "global
-    * environment (simple association list)". It also has the aspect of a
-    * meta-closure that closes the global environment when it constructed (this
-    * feature is known as syntactic-closure).
-    *
-    * ======================================================================= */
-    : public virtual pair
+
+    /* ==== Syntactic Closure ==================================================
+     *
+     * ====================================================================== */
+    : public syntactic_closure
 
     /* ==== Reader =============================================================
     *
@@ -101,13 +96,12 @@ namespace meevax::kernel
   {
   public:
     std::unordered_map<std::string, object> symbols;
-    std::unordered_map<std::string, object> external_symbols;
-
-    std::size_t current_layer {0};
+    std::unordered_map<std::string, object> external_symbols; // TODO REMOVE
 
     std::size_t generation {0};
 
-    // CRTP Import from Below
+    using syntactic_closure::syntactic_environment;
+
     using writer::current_debug_port;
     using writer::current_error_port;
     using writer::current_interaction_port;
@@ -118,6 +112,7 @@ namespace meevax::kernel
     using debugger::debug;
     using debugger::header;
     using debugger::indent;
+    using debugger::shift;
 
     using configurator::debugging;
     using configurator::interactive;
@@ -126,30 +121,13 @@ namespace meevax::kernel
     using configurator::verbose;
 
   public: // Accessors
-    const auto& program() const
-    {
-      return first;
-    }
-
-    auto& syntactic_environment()
-    {
-      return second;
-    }
-
-    decltype(auto) current_expression()
-    {
-      return car(program());
-    }
-
-    decltype(auto) lexical_environment() // TODO Rename to scope
-    {
-      return cdr(program());
-    }
+    auto current_expression() const -> const auto& { return car(form()); }
+    auto scope()              const -> const auto& { return cdr(form()); }
 
   public: // Constructors
     template <typename... Ts>
-    explicit syntactic_continuation(Ts&&... operands)
-      : pair {std::forward<decltype(operands)>(operands)...}
+    explicit syntactic_continuation(Ts&&... xs)
+      : pair { std::forward<decltype(xs)>(xs)... }
     {
       boot(layer<0>);
 
@@ -160,32 +138,16 @@ namespace meevax::kernel
         c = unit;
         d = cdddr(first);
 
-        const auto subprogram
-        {
-          compile(
-            car(caddr(first)),
-            syntactic_environment(),
-            cdr(caddr(first)),
-            list(
-              make<instruction>(mnemonic::STOP)),
-            as_program_declaration)
-        };
+        c = compile( // subprogram
+              caaddr(first),
+              syntactic_environment(),
+              cdaddr(first),
+              list(make<instruction>(mnemonic::STOP)),
+              as_program_declaration);
 
-        c = subprogram;
+        form() = execute();
 
-        // std::cerr << ";\t\t; s = " << s << std::endl;
-        // std::cerr << ";\t\t; e = " << e << std::endl;
-        // std::cerr << ";\t\t; c = " << c << std::endl;
-        // std::cerr << ";\t\t; d = " << d << std::endl;
-
-        first = execute();
-
-        // std::cerr << ";\t\t; s = " << s << std::endl;
-        // std::cerr << ";\t\t; e = " << e << std::endl;
-        // std::cerr << ";\t\t; c = " << c << std::endl;
-        // std::cerr << ";\t\t; d = " << d << std::endl;
-
-        assert(first.is<closure>());
+        assert(form().is<closure>());
       }
     }
 
@@ -210,28 +172,12 @@ namespace meevax::kernel
       }
     }
 
-    const auto& override(const object& variable, const object& environment)
-    {
-      if (not variable or not environment)
-      {
-        return variable;
-      }
-      else if (caar(environment).equivalent_to(variable))
-      {
-        return caar(environment);
-      }
-      else
-      {
-        return override(variable, cdr(environment));
-      }
-    }
-
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... xs)
     {
       return
         machine<syntactic_continuation>::define(
-          override(intern(name), syntactic_environment()),
+          intern(name),
           make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
@@ -240,7 +186,7 @@ namespace meevax::kernel
     {
       return
         machine<syntactic_continuation>::define(
-          override(intern(name), syntactic_environment()),
+          intern(name),
           std::forward<decltype(xs)>(xs)...);
     }
 
@@ -250,7 +196,7 @@ namespace meevax::kernel
     {
       if (const auto iter { renames.find(identifier) }; iter != std::end(renames))
       {
-        return std::get<1>(*iter);
+        return cdr(*iter);
       }
       else
       {
@@ -259,47 +205,64 @@ namespace meevax::kernel
       }
     }
 
-    decltype(auto) expand(const object& operands)
+    auto expand(const object& identifier, const object& form)
     {
-      // std::cerr << "; macroexpand\t; " << operands << std::endl;
+      renames.emplace(car(form), identifier); // set itself to current-renamer
 
-      push( // XXX ???
-        d,
-        s,
-        e,
-        cons(
-          make<instruction>(mnemonic::STOP),
-          c));
+      // XXX ???
+      push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 
       s = unit;
 
+      // TODO (3)
+      // make<procedure>("rename", [this](auto&& xs)
+      // {
+      //   const auto id { car(xs) };
+      //
+      //
+      // });
+
       e = cons(
-            operands, // <lambda> parameters
-            lexical_environment()); // static environment
+            // form, // <lambda> parameters
+            cons(identifier, cdr(form)),
+            scope()); // static environment
+      // TODO (4)
+      // => e = cons(
+      //          list(
+      //            expression,
+      //            make<procedure>("rename", [this](auto&& xs) { ... }),
+      //            make<procedure>("compare", [this](auto&& xs) { ... })
+      //            ),
+      //          scope()
+      //          );
 
       c = current_expression();
 
-      // std::cerr << ";\t\t; s = " << s << std::endl;
-      // std::cerr << ";\t\t; e = " << e << std::endl;
-      // std::cerr << ";\t\t; c = " << c << std::endl;
-      // std::cerr << ";\t\t; d = " << d << std::endl;
-
-      const auto result {execute()};
-      // std::cerr << "; \t\t; " << result << std::endl;
+      const auto result { execute() };
 
       ++generation;
 
       return result;
     }
 
-    // TODO CONVERT TO VM INSTRUCTION
     decltype(auto) evaluate(const object& expression)
     {
-      return
-        execute_interrupt(
-          compile(
-            expression,
-            syntactic_environment()));
+      push(d,
+        std::atomic_exchange(&s, unit),
+        std::atomic_exchange(&e, unit),
+        std::atomic_exchange(&c, compile(expression, syntactic_environment())));
+
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+      disassemble(c);
+      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+
+      decltype(auto) result { execute() };
+
+      s = pop(d);
+      e = pop(d);
+      c = pop(d);
+
+      return result;
     }
 
     auto load(const path& path_to_source) -> const auto&
@@ -310,9 +273,6 @@ namespace meevax::kernel
       if (auto port {open_input_file(path_to_source.c_str())}; port)
       {
         write_to(current_debug_port(), t, "\n");
-
-        // push(d, s, e, c);
-        // s = e = c = unit;
 
         push(d,
           std::atomic_exchange(&s, unit),
@@ -359,9 +319,9 @@ namespace meevax::kernel
         << console::reset << std::endl;
       }
 
-      auto exportation = [this](auto&&, const object& operands)
+      auto exportation = [this](const object& xs)
       {
-        for (const auto& each : operands)
+        for (const auto& each : xs)
         {
           std::cerr << ";\t\t; staging " << each << std::endl;
 
@@ -390,20 +350,17 @@ namespace meevax::kernel
 
     DEFINE_PRIMITIVE_EXPRESSION(importation)
     {
-      auto importation = [&](auto&&, const object& operands)
+      auto importation = [&](const object& xs)
       {
-        assert(
-          operands.is<syntactic_continuation>());
+        assert(xs.is<syntactic_continuation>());
 
-        if (operands.as<syntactic_continuation>().external_symbols.empty())
+        if (xs.as<syntactic_continuation>().external_symbols.empty())
         {
-          std::cerr << "; import\t; " << operands << " is virgin => expand" << std::endl;
-          operands.as<syntactic_continuation>().expand(
-            cons(
-              operands, unit));
+          std::cerr << "; import\t; " << xs << " is virgin => expand" << std::endl;
+          xs.as<syntactic_continuation>().expand(xs, cons(xs, unit));
         }
 
-        for ([[maybe_unused]] const auto& [key, value] : operands.as<syntactic_continuation>().external_symbols)
+        for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
         {
           std::cerr << ";\t\t; importing " << value << std::endl;
         }
@@ -427,7 +384,7 @@ namespace meevax::kernel
       -> decltype(os)
     {
       return os << console::magenta << "#,("
-                << console::green   << "syntactic-continuation"
+                << console::green << "syntactic-continuation"
                 << console::reset
                 << console::faint << " #;" << &sc
                 << console::reset
@@ -467,66 +424,106 @@ namespace meevax::kernel
     }
   };
 
-  #define DEFINE_SYNTAX(NAME, RULE)                                            \
-  define<syntax>(NAME, [this](auto&&... xs)                                    \
-  {                                                                            \
-    return RULE(std::forward<decltype(xs)>(xs)...);                            \
-  })
+  template <>
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(0), 0>)
+    : syntactic_continuation::syntactic_continuation {} // boots layer<0>
+  {}
 
-  #define DEFINE_PROCEDURE_1(NAME, CALLEE)                                     \
-  define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
-  {                                                                            \
-    return                                                                     \
-      CALLEE(                                                                  \
-        car(operands));                                                        \
-  })
+  template <auto N>
+  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
+    : syntactic_continuation::syntactic_continuation { layer<N - 1> }
+  {
+    boot(layer<N>);
+  }
 
-  #define DEFINE_PROCEDURE_S(NAME, CALLEE)                                     \
-  define<procedure>(NAME, [this](auto&&, auto&& operands)                      \
+  #define DEFINE_SYNTAX(IDENTIFIER, TRANSFORMER_SPEC)                          \
+  define<syntax>(IDENTIFIER, [this](auto&&... xs)                              \
   {                                                                            \
-    return                                                                     \
-      CALLEE(                                                                  \
-        car(operands).template as<const string>());                            \
+    return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
-    // DEFINE_PROCEDURE_1("compile",  compile);
-
-    DEFINE_PROCEDURE_1("evaluate", evaluate);
-
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
-
-    define<procedure>("rename", [this](auto&&, auto&& xs)
-    {
-      return rename(xs ? car(xs) : unspecified);
-    });
   }
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
   {
     DEFINE_SYNTAX("begin", sequence);
+    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
     DEFINE_SYNTAX("define", definition);
-    DEFINE_SYNTAX("fork", fork);
+    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork);
     DEFINE_SYNTAX("if", conditional);
     DEFINE_SYNTAX("lambda", lambda);
     DEFINE_SYNTAX("quote", quotation);
     DEFINE_SYNTAX("reference", reference);
     DEFINE_SYNTAX("set!", assignment);
 
-    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
-
-    DEFINE_PROCEDURE_S("load",   load);
-    // DEFINE_PROCEDURE_S("linker", make<linker>);
-
-    define<procedure>("linker", [](auto&&, auto&& xs)
+    define<procedure>("eval", [](auto&& xs)
     {
-      return
-        make<linker>(
-          car(xs).template as<const string>());
+      return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
+    });
+
+    define<procedure>("read", [this](const object& xs)
+    {
+      return read(xs ? car(xs).as<input_port>() : current_input_port());
+    });
+
+    define<procedure>("write", [](auto&& xs)
+    {
+      std::cout << car(xs);
+      return unspecified;
+    });
+
+    define<procedure>("load", [this](auto&& xs)
+    {
+      return load(car(xs).template as<const string>());
+    });
+
+    define<procedure>("linker", [](auto&& xs)
+    {
+      return make<linker>(car(xs).template as<const string>());
+    });
+
+    define<procedure>("features", [](auto&&...)                 // (scheme base)
+    {
+      return current_feature;
+    });
+
+    define<procedure>("procedure", [](const object& xs)
+    {
+      const std::string name { cadr(xs).as<string>() };
+      return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
+    });
+
+    #define DEFINE_PREDICATE(NAME, TYPE)                                       \
+    define<procedure>(NAME, [](auto&& xs)                                      \
+    {                                                                          \
+      if (not xs)                                                              \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else for (const auto& x : xs)                                            \
+      {                                                                        \
+        if (not x or not x.template is<TYPE>())                                \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    })
+
+    DEFINE_PREDICATE("symbol?", symbol);
+    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
+    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
+
+    define<procedure>("syntax", [this](auto&& xs)
+    {
+      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
     });
 
     // define<syntax>("cons", [this](
@@ -549,89 +546,11 @@ namespace meevax::kernel
     //           make<instruction>(mnemonic::CONS),
     //           continuation)));
     // });
-
-    define<procedure>("features", [](auto&&...)                 // (scheme base)
-    {
-      return current_feature;
-    });
-
-    define<procedure>("procedure", [](auto&&, auto&& operands)
-    {
-      const std::string name { cadr(operands).template as<string>() };
-
-      return
-        make<procedure>(
-          name,
-          car(operands)
-            .template as<linker>()
-              .template link<procedure::signature>(name));
-    });
-
-    define<procedure>("read", [this](auto&&, auto&& operands)
-    {
-      return
-        read(
-          operands ? car(operands).template as<input_port>()
-                   : current_input_port());
-    });
-
-    define<procedure>("write", [](auto&&, auto&& operands)
-    {
-      std::cout << car(operands);
-      return unspecified;
-    });
-
-    #define DEFINE_PREDICATE(NAME, TYPE)                                       \
-    define<procedure>(NAME, [](auto&&, auto&& xs)                              \
-    {                                                                          \
-      if (not xs)                                                              \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else for (const auto& x : xs)                                            \
-      {                                                                        \
-        if (not x or not x.template is<TYPE>())                                \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    })
-
-    DEFINE_PREDICATE("symbol?", symbol);
-    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
-    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
-
-    define<procedure>("syntax", [this](auto&&, auto&& xs)
-    {
-      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
-    });
   }
 
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    define<procedure>("std::cout", [](auto&&, auto&& xs)
-    {
-      for (const auto& x : xs)
-      {
-        // TODO
-        // std::cout << x.display();
-
-        if (x.template is<string>())
-        {
-          std::cout << static_cast<std::string>(x.template as<string>());
-        }
-        else
-        {
-          std::cout << x;
-        }
-      }
-
-      return unspecified; // TODO standard-output-port
-    });
-
     auto port { open_input_string(overture.data()) };
 
     std::size_t counts {0};
@@ -651,22 +570,31 @@ namespace meevax::kernel
     write_to(current_debug_port(), "\n\n");
   }
 
-  #undef DEFINE_SYNTAX
-  #undef DEFINE_PROCEDURE_1
-  #undef DEFINE_PROCEDURE_S
-
   template <>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(0), 0>)
-    : syntactic_continuation::syntactic_continuation {} // boots layer<0>
-  {}
-
-  template <auto N>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
-    : syntactic_continuation::syntactic_continuation { layer<N - 1> }
+  void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
   {
-    boot(layer<N>);
+    define<procedure>("std::cout", [](auto&& xs)
+    {
+      for (const auto& x : xs)
+      {
+        // TODO
+        // std::cout << x.display();
+
+        if (x.template is<string>())
+        {
+          std::cout << static_cast<std::string>(x.template as<string>());
+        }
+        else
+        {
+          std::cout << x;
+        }
+      }
+
+      return unspecified; // TODO standard-output-port
+    });
   }
 } // namespace meevax::kernel
 
+#undef DEFINE_SYNTAX
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 

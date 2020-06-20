@@ -15,6 +15,7 @@ namespace meevax::kernel
     (CALL)                                                                     \
     (CONS)                                                                     \
     (DEFINE)                                                                   \
+    (DROP)                                                                     \
     (FORK)                                                                     \
     (JOIN)                                                                     \
     (LOAD_CLOSURE)                                                             \
@@ -23,17 +24,15 @@ namespace meevax::kernel
     (LOAD_GLOBAL)                                                              \
     (LOAD_LOCAL)                                                               \
     (LOAD_VARIADIC)                                                            \
-    (POP)                                                                      \
     (RETURN)                                                                   \
     (SELECT)                                                                   \
     (STOP)                                                                     \
     (STORE_GLOBAL)                                                             \
     (STORE_LOCAL)                                                              \
     (STORE_VARIADIC)                                                           \
+    (STRIP)                                                                    \
     (TAIL_CALL)                                                                \
     (TAIL_SELECT)                                                              \
-
-  // TODO POP => DROP
 
   enum class mnemonic
     : std::int8_t
@@ -48,16 +47,13 @@ namespace meevax::kernel
     const mnemonic code;
 
     template <typename... Ts>
-    explicit instruction(Ts&&... operands)
-      : code {std::forward<decltype(operands)>(operands)...}
+    explicit instruction(Ts&&... xs)
+      : code { std::forward<decltype(xs)>(xs)... }
     {}
 
     int value() const noexcept
     {
-      return
-        static_cast<
-          typename std::underlying_type<mnemonic>::type
-        >(code);
+      return static_cast<typename std::underlying_type<mnemonic>::type>(code);
     }
 
     friend auto operator<<(std::ostream& os, const identity& i)

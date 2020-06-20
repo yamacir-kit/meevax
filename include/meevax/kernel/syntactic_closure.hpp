@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax::kernel
@@ -11,38 +11,42 @@ namespace meevax::kernel
   {
     using pair::pair; // Inheriting Constructors
 
-    auto syntax_quote() const noexcept -> const auto&
+    auto form() const noexcept -> decltype(auto) { return car(*this); }
+    auto form()       noexcept -> decltype(auto) { return car(*this); }
+
+    auto syntactic_environment() const noexcept -> decltype(auto) { return cdr(*this); }
+    auto syntactic_environment()       noexcept -> decltype(auto) { return cdr(*this); }
+
+    auto lookup() const
     {
-      return first;
+      return assq(form(), syntactic_environment());
     }
 
-    auto syntactic_environment() const noexcept -> const auto&
+    auto strip() const
     {
-      return second;
+      const auto pare { lookup() };
+      return pare.eqv(f) ? form() : cadr(pare);
     }
 
-    auto lookup() const -> const auto&
+    auto is_identifier() const
     {
-      for (const auto& each : syntactic_environment())
-      {
-        if (car(each) == syntax_quote())
-        {
-          return cadr(each);
-        }
-      }
-
-      return syntax_quote();
+      return not null(form()) and form().is<symbol>();
     }
 
-    auto is_keyword() const
+    auto is_free() const
     {
-      return lookup() == syntax_quote();
+      return lookup().eqv(f);
+    }
+
+    auto is_bound() const
+    {
+      return not is_free();
     }
 
     friend auto operator <<(std::ostream& os, const syntactic_closure& sc)
       -> decltype(os)
     {
-      return os << console::underline << sc.syntax_quote() << "." << &sc << console::reset;
+      return os << console::underline << sc.form() << "." << &sc << console::reset;
     }
   };
 } // namespace meevax::kernel

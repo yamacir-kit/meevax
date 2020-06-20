@@ -20,6 +20,7 @@ namespace meevax::kernel
     explicit configurator()
     {}
 
+    Import(SK, evaluate);
     Import_Const(SK, current_verbose_port);
     Import_Const(SK, write);
     Import_Const(SK, write_to);
@@ -225,15 +226,13 @@ namespace meevax::kernel
 
     const dispatcher<char> short_options_
     {
-      std::make_pair('e', [this](auto&&, auto&& operands)
+      std::make_pair('e', [&](auto&&... xs)
       {
-        std::cout << static_cast<SK&>(*this).evaluate(
-                       std::forward<decltype(operands)>(operands))
-                  << std::endl;
+        std::cout << evaluate(std::forward<decltype(xs)>(xs)...) << std::endl;
         return unspecified;
       }),
 
-      std::make_pair('f', [this](auto&&, const object& s) mutable
+      std::make_pair('f', [this](const object& s) mutable
       {
         if (s.is<symbol>())
         {
@@ -250,7 +249,7 @@ namespace meevax::kernel
     {
       std::make_pair("debug", [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debug_mode = t;
+        return debug_mode = t;
       }),
 
       std::make_pair("help", [this](auto&&...)
@@ -266,7 +265,7 @@ namespace meevax::kernel
 
       std::make_pair("quiet", [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).quiet_mode = t;
+        return quiet_mode = t;
       }),
 
       // TODO --srfi=0,1,2
@@ -291,21 +290,19 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options_
     {
-      std::make_pair("echo", [](const auto&, const auto& operands)
+      std::make_pair("echo", [](const auto& xs)
       {
-        std::cout << operands << std::endl;
+        std::cout << xs << std::endl;
         return unspecified;
       }),
 
-      std::make_pair("evaluate", [this](auto&&, auto&& operands)
+      std::make_pair("evaluate", [&](auto&&... xs)
       {
-        std::cout << static_cast<SK&>(*this).evaluate(
-                       std::forward<decltype(operands)>(operands))
-                  << std::endl;
+        std::cout << evaluate(std::forward<decltype(xs)>(xs)...) << std::endl;
         return unspecified;
       }),
 
-      std::make_pair("file", [this](auto&&, const object& s) mutable
+      std::make_pair("file", [this](const object& s) mutable
       {
         if (s.is<symbol>())
         {
@@ -317,20 +314,18 @@ namespace meevax::kernel
         }
       }),
 
-      std::make_pair("variable", [this](const auto&, const auto& operands) mutable
+      std::make_pair("variable", [this](const auto& xs) mutable
       {
-        std::cerr << "; configure\t; "
-                  << variable << " => " << (variable = operands)
-                  << std::endl;
+        std::cerr << "; configure\t; " << variable << " => " << (variable = xs) << std::endl;
         return variable;
       }),
     };
 
   public: // Command Line Parser
     template <typename... Ts>
-    constexpr decltype(auto) configure(Ts&&... operands)
+    constexpr decltype(auto) configure(Ts&&... xs)
     {
-      return std::invoke(*this, std::forward<decltype(operands)>(operands)...);
+      return std::invoke(*this, std::forward<decltype(xs)>(xs)...);
     }
 
     decltype(auto) operator()(const int argc, char const* const* const argv)
@@ -368,12 +363,12 @@ namespace meevax::kernel
               if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
               {
                 const auto operands {static_cast<SK&>(*this).read(rest)};
-                return std::invoke(std::get<1>(*callee), resource {}, operands);
+                return std::invoke(cdr(*callee), operands);
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
                 const auto operands {static_cast<SK&>(*this).read(*option)};
-                return std::invoke(std::get<1>(*callee), resource {}, operands);
+                return std::invoke(cdr(*callee), operands);
               }
               else
               {
@@ -382,7 +377,7 @@ namespace meevax::kernel
             }
             else if (auto callee {short_options.find(*so)}; callee != std::end(short_options))
             {
-              return std::invoke( std::get<1>(*callee), resource {}, unit);
+              return std::invoke(cdr(*callee), unit);
             }
             else
             {
@@ -397,12 +392,12 @@ namespace meevax::kernel
             if (analysis.length(2)) // argument part
             {
               const auto operands {static_cast<SK&>(*this).read(analysis.str(3))};
-              return std::invoke(std::get<1>(*callee), resource {}, operands);
+              return std::invoke(cdr(*callee), operands);
             }
             else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
               const auto operands {static_cast<SK&>(*this).read(*option)};
-              return std::invoke(std::get<1>(*callee), resource {}, operands);
+              return std::invoke(cdr(*callee), operands);
             }
             else
             {
@@ -411,7 +406,7 @@ namespace meevax::kernel
           }
           else if (auto callee {long_options.find(lo)}; callee != std::end(long_options))
           {
-            return std::invoke(std::get<1>(*callee), resource {}, unit);
+            return std::invoke(cdr(*callee), unit);
           }
           else
           {

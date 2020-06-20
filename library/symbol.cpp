@@ -6,9 +6,9 @@ extern "C" namespace meevax::symbol
 {
   PROCEDURE(symbol)
   {
-    if (not operands or
-        not car(operands) or
-        not car(operands).is<kernel::string>())
+    if (not xs or
+        not kernel::car(xs) or
+        not kernel::car(xs).is<kernel::string>())
     {
       return kernel::make<kernel::symbol>();
     }
@@ -16,13 +16,13 @@ extern "C" namespace meevax::symbol
     {
       return
         kernel::make<kernel::symbol>(
-          car(operands).as<kernel::string>());
+          kernel::car(xs).as<kernel::string>());
     }
   }
 
   PROCEDURE(is_symbol)
   {
-    for (const auto& each : operands)
+    for (const auto& each : xs)
     {
       if (not each or not each.is<kernel::symbol>())
       {

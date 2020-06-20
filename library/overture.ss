@@ -1,10 +1,8 @@
 (define null-environment
-  (fork
-    (lambda (this) this) ))
+  (fork-with-current-syntactic-continuation
+    (lambda (this) this)))
 
-(define eval
-  (lambda (this expr-or-def environment-specifier)
-    (apply environment-specifier expr-or-def) ))
+(define fork/csc fork-with-current-syntactic-continuation)
 
 (define identity
   (lambda (x) x))
@@ -65,7 +63,7 @@
 
 (define not
   (lambda (x)
-    (if x #false #true)))
+    (if x #f #t)))
 
 ; ------------------------------------------------------------------------------
 ;  6.4 Pairs and Lists (Part 1 of 2)
@@ -153,12 +151,14 @@
                        (car reversed) ))
          (reverse x) ))))
 
+; ==== Low-Level Macro Facility ================================================
+
 (define define-syntax
-  (fork
+  (fork/csc
     (lambda (define-syntax identifier . transformer)
       (if (pair? identifier)
           (list define (car identifier)
-            (list fork
+            (list fork/csc
               (list lambda identifier . transformer)))
           (list define identifier . transformer)))))
 
@@ -183,41 +183,67 @@
                     #false))
             #false))))
 
-(define-syntax (er-macro-transformer transform)
-  (lambda expression
-    (transform expression rename free-identifier=?)))
+(define er-macro-transformer
+  (lambda (transform)
+    (fork/csc
+      (lambda form
+        (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
 ; --------------------------------------------------------------------------
 
-(define-syntax (cond . clauses)
-  (if (null? clauses)
-      (if #f #f)
-      ((lambda (clause)
-         (if (free-identifier=? else (car clause))
-             (if (pair? (cdr clauses))
-                 (error "else clause must be at the end of cond clause" clauses)
-                 (cons begin (cdr clause)) )
-             (if (if (null? (cdr clause)) #t
-                     (free-identifier=? => (cadr clause)) )
-                 (list (list lambda (list result)
-                             (list if result
-                                   (if (null? (cdr clause)) result
-                                       (list (caddr clause) result))
-                                   (cons cond (cdr clauses)) ))
-                       (car clause) )
-                 (list if (car clause)
-                          (cons begin (cdr clause))
-                          (cons cond (cdr clauses)) ))))
-       (car clauses) )))
+(define-syntax cond
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (if (null? (cdr form))
+          (unspecified)
+          ((lambda (clause)
+             (if (compare (rename 'else) (car clause))
+                 (if (pair? (cddr form))
+                     (error "else clause must be at the end of cond clause" form)
+                     (cons (rename 'begin) (cdr clause)))
+                 (if (if (null? (cdr clause)) #t
+                         (compare (rename '=>) (cadr clause)))
+                     (list (list (rename 'lambda) (list (rename 'result))
+                                 (list (rename 'if) (rename 'result)
+                                       (if (null? (cdr clause))
+                                           (rename 'result)
+                                           (list (car (cddr clause)) (rename 'result)))
+                                       (cons (rename 'cond) (cddr form))))
+                           (car clause))
+                     (list (rename 'if) (car clause)
+                           (cons (rename 'begin) (cdr clause))
+                           (cons (rename 'cond) (cddr form))))))
+           (cadr form))))))
+
+; (define-syntax (cond . clauses)
+;   (if (null? clauses)
+;       (if #f #f)
+;       ((lambda (clause)
+;          (if (free-identifier=? else (car clause))
+;              (if (pair? (cdr clauses))
+;                  (error "else clause must be at the end of cond clause" clauses)
+;                  (cons begin (cdr clause)))
+;              (if (if (null? (cdr clause)) #t
+;                      (free-identifier=? => (cadr clause)))
+;                  (list (list lambda (list result)
+;                              (list if result
+;                                    (if (null? (cdr clause)) result
+;                                        (list (caddr clause) result))
+;                                    (cons cond (cdr clauses))))
+;                        (car clause))
+;                  (list if (car clause)
+;                           (cons begin (cdr clause))
+;                           (cons cond (cdr clauses))))))
+;        (car clauses))))
 
 (define-syntax (and . tests)
   (cond ((null? tests))
         ((null? (cdr tests)) (car tests))
         (else (list if (car tests)
-                   (cons and (cdr tests))
-                   #f))))
+                    (cons and (cdr tests))
+                    #f))))
 
 (define-syntax (or . tests)
   (cond
@@ -1379,13 +1405,13 @@
 
 (define current-lexical-environment ; deprecated
   (lambda ()
-    (cdar (fork
+    (cdar (fork/csc
             (lambda ()
              '())))))
 
 (define interaction-environment ; deprecated
   (lambda ()
-    (cdr (fork
+    (cdr (fork/csc
            (lambda ()
             '())))))
 
@@ -1578,7 +1604,7 @@
 ; ------------------------------------------------------------------------------
 
 (define swap!
-  (fork
+  (fork/csc
     (lambda (swap! x y)
       (let ((temporary (string->symbol)))
        `(,let ((,temporary ,x))
@@ -1586,7 +1612,7 @@
           (,set! ,y ,temporary)) ))))
 
 (define swap!
-  (fork
+  (fork/csc
     (lambda (swap! x y)
      `(,let ((,value ,x))
         (,set! ,x ,y)
@@ -1607,7 +1633,7 @@
 ;           (,(rename 'set!) ,b ,(rename 'value))) ))))
 
 (define loop
-  (fork
+  (fork/csc
     (lambda form
      `(,call/cc
         (,lambda (exit)
@@ -1656,15 +1682,15 @@
 ; ------------------------------------------------------------------------------
 
 (define define-something
-  (fork
+  (fork/csc
     (lambda (_ name value)
      `(,define ,name ,value))))
 
 (define define-library
-  (fork
+  (fork/csc
     (lambda (define-library name . declarations)
      `(,define ,name
-        (,fork
+        (,fork/csc
           (,lambda (,this . ,expression)
             ; (,begin (,define ,name ,this))
             ,@declarations
@@ -1679,31 +1705,31 @@
      )))
 
 ; (define export
-;   (fork
+;   (fork/csc
 ;     (lambda (_ . export-specs)
 ;      `(,display "; dummy-export\t; " ',export-specs "\n"))))
 
 ; (define export
-;   (fork
+;   (fork/csc
 ;     (lambda (this . export-specs)
 ;      `(stage ,@(map (lambda (each)
 ;                       (list quote each))
 ;                     export-specs)))))
 
 ; (define import
-;   (fork
+;   (fork/csc
 ;     (lambda (import . import-set)
 ;      `(,display "; dummy-import\t; " ',import-set "\n"))))
 
 ; (define instantiate-library
-;   (fork
+;   (fork/csc
 ;     (lambda (this library-name)
 ;      `(,let ((,object (,reference ,library-name)))
 ;         (,object)))))
 
 ; TODO REMOVE
 ; (define evaluate-in
-;   (fork
+;   (fork/csc
 ;     (lambda (this namespace identifier)
 ;      `((,reference ,namespace) ',identifier))))
 
@@ -1870,7 +1896,7 @@
 ;       (evaluate `(increment ,@operands)))))
 
 (define from
-  (fork
+  (fork/csc
     (lambda (this library-name expression)
      `(,apply (,reference ,library-name) ,expression) )))
 
@@ -1885,7 +1911,7 @@
          `(increment ,xs) )))
 
 (define Module
-  (fork
+  (fork/csc
     (lambda (this)
       (begin
         (define x 1)
@@ -1898,7 +1924,7 @@
             (+ x y) ))))))
 
 (define factory ; letrec
-  (fork
+  (fork/csc
     (lambda (this)
       (letrec ((value 0)
                (increment
@@ -1910,7 +1936,7 @@
                (define get ,get)) ))))
 
 (define factory ; internal-define
-  (fork
+  (fork/csc
     (lambda (this)
       (define value 0)
       (define increment
@@ -1923,7 +1949,7 @@
              (define get ,get)) )))
 
 (define factory
-  (fork
+  (fork/csc
     (lambda (this)
 
       (begin (define value 0)
@@ -1953,16 +1979,16 @@
      )))
 
 (define let-syntax
-  (fork
+  (fork/csc
     (lambda (let-syntax bindings . body)
-     `((fork
+     `((fork/csc
          (,lambda (,this ,@(map car bindings))
             ,@body
             )
          )
        ,@(map cadr bindings)) )))
 
-; (let-syntax ((given-that (fork
+; (let-syntax ((given-that (fork/csc
 ;                            (lambda (this test . statements)
 ;                             `(,if test
 ;                                  (,begin ,statements))))))
@@ -1970,41 +1996,41 @@
 ;     (given-that if (set! if 'now))
 ;     if))
 
-; ((fork
+; ((fork/csc
 ;    (lambda (this given-that)
 ;      (let ((if #true))
 ;        (given-that if (set! if 'now))
 ;        if)
 ;      )
 ;    )
-;  (fork
+;  (fork/csc
 ;    (lambda (this test . statements)
 ;     `(,if test
 ;        (,begin ,statements)))))
 
 ; (let ((x 'outer))
-;   (let-syntax ((m (fork
+;   (let-syntax ((m (fork/csc
 ;                     (lambda (m) x))))
 ;     (let ((x 'inner))
 ;       (m))))
 
 (let ((x 'outer))
-  (fork
+  (fork/csc
     (lambda (this)
-      (begin (define m (fork
+      (begin (define m (fork/csc
                          (lambda (this) x)) ))
       (let ((x 'inner))
         (m) ))))
 
 ; (define letrec* ; transform to internal-definitions
-;   (fork
+;   (fork/csc
 ;     (lambda (letrec* bindings . body)
 ;       ((lambda (definitions)
 ;         `((,lambda () ,@definitions ,@body)))
 ;        (map (lambda (x) (cons 'define x)) bindings)))))
 
 ; (define letrec-syntax
-;   (fork
+;   (fork/csc
 ;     (lambda (letrec-syntax bindings . body)
 ;       ((lambda (definitions)
 ;         `((,lambda ()
@@ -2015,7 +2041,7 @@
 ;
 ; ; (define letrec-syntax let-syntax)
 ;
-; (letrec-syntax ((or (fork
+; (letrec-syntax ((or (fork/csc
 ;                       (lambda (or . tests)
 ;                         (cond
 ;                           ((null? tests) #false)
@@ -2037,7 +2063,7 @@
 ;         y)))
 
 (define scheme
-  (fork
+  (fork/csc
     (lambda (this . submodule)
 
       (begin (define equivalence.so (linker "libmeevax-equivalence.so"))
@@ -2052,13 +2078,13 @@
              ) ; begin
 
       (begin (define println
-               (fork
+               (fork/csc
                  (lambda (this . xs)
                   `(,display ,@xs "\n"))))
         )
 
       (begin (define base
-               (fork
+               (fork/csc
                  (lambda (this)
 
                    (begin (define null-environment
@@ -2092,11 +2118,11 @@
      ))) ; scheme
 
 ; (define let-syntax
-;   (fork
+;   (fork/csc
 ;     (lambda (let-syntax bindings . body)
 ;
 ;       (let ((definitions (map (lambda (x) (cons define x)) bindings)))
-;        `(,fork
+;        `(,fork/csc
 ;           (,lambda (this)
 ;             (,begin ,definitions)
 ;             ,@body
@@ -2104,7 +2130,7 @@
 ;         )
 ;       )))
 ;
-; (let-syntax ((given-that (fork
+; (let-syntax ((given-that (fork/csc
 ;                            (lambda (this test . statements)
 ;                             `(,if test
 ;                                  (,begin ,statements))))))
@@ -2113,7 +2139,7 @@
 ;     if))
 ;
 ; (let ((x 'outer))
-;   (let-syntax ((m (fork
+;   (let-syntax ((m (fork/csc
 ;                     (lambda (m) x))))
 ;     (let ((x 'inner))
 ;       (m))))

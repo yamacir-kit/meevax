@@ -9,14 +9,14 @@ extern "C" namespace meevax::experimental
 {
   PROCEDURE(emergency_exit)
   {
-    if (not operands or not kernel::car(operands).is<kernel::real>())
+    if (not xs or not kernel::car(xs).is<kernel::real>())
     {
       std::exit(boost::exit_success);
     }
     else
     {
       // XXX DIRTY HACK
-      std::exit(static_cast<int>(kernel::car(operands).as<kernel::real>()));
+      std::exit(static_cast<int>(kernel::car(xs).as<kernel::real>()));
     }
 
     return kernel::unspecified;
@@ -24,7 +24,7 @@ extern "C" namespace meevax::experimental
 
   PROCEDURE(display)
   {
-    for (const kernel::object& each : operands)
+    for (const kernel::object& each : xs)
     {
       if (each and each.is<kernel::string>()) // XXX DIRTY HACK
       {
