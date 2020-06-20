@@ -8,9 +8,7 @@
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream.hpp>
 
-#include <meevax/console/escape_sequence.hpp>
-#include <meevax/kernel/boolean.hpp>
-#include <meevax/utility/perfect_forward.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::kernel
 {

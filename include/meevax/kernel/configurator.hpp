@@ -3,10 +3,7 @@
 
 #include <regex>
 
-#include <boost/cstdlib.hpp>
-
 #include <meevax/kernel/feature.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 

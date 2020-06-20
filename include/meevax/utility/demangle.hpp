@@ -1,10 +1,11 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
 #define INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
 
-#include <cstdlib>
 #include <memory>
 #include <string>
 #include <typeinfo>
+
+#include <boost/cstdlib.hpp>
 
 #if __has_include(<cxxabi.h>)
 #include <cxxabi.h>

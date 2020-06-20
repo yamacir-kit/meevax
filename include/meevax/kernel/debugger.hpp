@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_DEBUGGER_HPP
 
 #include <ostream>
-#include <string>
 
 namespace meevax::kernel
 {
