@@ -171,28 +171,12 @@ namespace meevax::kernel
       }
     }
 
-    const auto& override(const object& variable, const object& environment)
-    {
-      if (not variable or not environment)
-      {
-        return variable;
-      }
-      else if (caar(environment).equivalent_to(variable))
-      {
-        return caar(environment);
-      }
-      else
-      {
-        return override(variable, cdr(environment));
-      }
-    }
-
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... xs)
     {
       return
         machine<syntactic_continuation>::define(
-          override(intern(name), syntactic_environment()),
+          intern(name),
           make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
@@ -201,7 +185,7 @@ namespace meevax::kernel
     {
       return
         machine<syntactic_continuation>::define(
-          override(intern(name), syntactic_environment()),
+          intern(name),
           std::forward<decltype(xs)>(xs)...);
     }
 
@@ -262,11 +246,10 @@ namespace meevax::kernel
 
     decltype(auto) evaluate(const object& expression)
     {
-      push(d, s, e, c);
-
-      s = unit;
-      e = unit;
-      c = compile(expression, syntactic_environment());
+      push(d,
+        std::atomic_exchange(&s, unit),
+        std::atomic_exchange(&e, unit),
+        std::atomic_exchange(&c, compile(expression, syntactic_environment())));
 
       write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
       disassemble(c);
@@ -289,9 +272,6 @@ namespace meevax::kernel
       if (auto port {open_input_file(path_to_source.c_str())}; port)
       {
         write_to(current_debug_port(), t, "\n");
-
-        // push(d, s, e, c);
-        // s = e = c = unit;
 
         push(d,
           std::atomic_exchange(&s, unit),
@@ -403,7 +383,7 @@ namespace meevax::kernel
       -> decltype(os)
     {
       return os << console::magenta << "#,("
-                << console::green   << "syntactic-continuation"
+                << console::green << "syntactic-continuation"
                 << console::reset
                 << console::faint << " #;" << &sc
                 << console::reset
@@ -454,11 +434,6 @@ namespace meevax::kernel
   {
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
-
-    define<procedure>("rename", [this](auto&& xs)
-    {
-      return rename(xs ? car(xs) : unspecified);
-    });
   }
 
   template <>

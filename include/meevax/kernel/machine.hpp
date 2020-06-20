@@ -337,9 +337,19 @@ namespace meevax::kernel
         * => (constant . S) E                           C  D
         *
         * =================================================================== */
-        push(s, cadr(c));
+        push(s, strip(cadr(c)));
         pop<2>(c);
         goto dispatch;
+
+      // case mnemonic::LOAD_SYNTAX: /* ===========================================
+      //   *
+      //   *                S  E (LOAD-CONSTANT syntax . C) D
+      //   * => (constant . S) E                         C  D
+      //   *
+      //   * =================================================================== */
+      //   push(s, cadr(c));
+      //   pop<2>(c);
+      //   goto dispatch;
 
       case mnemonic::LOAD_GLOBAL: /* ===========================================
         *
