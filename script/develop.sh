@@ -191,7 +191,7 @@ then
 
   # full_test="$valgrind $repository/build/bin/ice --verbose --debug $repository/experimental/srfi-78.ss $repository/test/r4rs.ss"
   full_test=" \
-    $valgrind $repository/build/bin/ice --verbose --debug \
+    $valgrind $repository/build/bin/ice --develop=internal-definitions \
     $repository/experimental/srfi-78.ss \
     $repository/test/srfi-149.ss \
     "

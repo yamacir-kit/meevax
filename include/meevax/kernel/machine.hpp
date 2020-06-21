@@ -28,6 +28,7 @@ namespace meevax::kernel
     Import(SK, syntactic_environment);
     Import_Const(SK, current_debug_port);
     Import_Const(SK, current_error_port);
+    Import_Const(SK, current_output_port);
     Import_Const(SK, header);
     Import_Const(SK, shift);
     Import_Const(SK, tracing);
@@ -822,13 +823,16 @@ namespace meevax::kernel
       }
     }
 
-    /* ==== Lambda Body =======================================================
-    *
-    * <body> = <definition>* <sequence>
-    *
-    *======================================================================== */
+    /* ==== Lambda Body ========================================================
+     *
+     * <body> = <definition>* <sequence>
+     *
+     * ====================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(body)
     {
+      write_to(current_output_port(intern("internal-definitions")),
+        "HELLO, WORLD!\n");
+
       /* ----------------------------------------------------------------------
       *
       * The expression may have following form.

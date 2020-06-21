@@ -2,6 +2,10 @@
 
 (define syntax-rules-transformer
   (lambda (form rename compare)
+
+    (std::cout "SYNTAX-RULES-TRANSFORMER") (newline)
+    (std::cout "FORM IS " form) (newline)
+
     (let ((count 0)
           )
       (define ellipsis-specified? (identifier? (cadr form)))
@@ -15,12 +19,13 @@
       (define forms
         (if ellipsis-specified? (cdr (cddr form)) (cddr form)))
 
-      (std::cout "; syntax-rules\t; debug" (newline))
-      (std::cout "; \t\t; ellipsis-specified? = " ellipsis-specified? (newline))
-      (std::cout "; \t\t; ellipsis = " ellipsis (newline))
-      (std::cout "; \t\t; literals = " literals (newline))
-      (std::cout "; \t\t; forms = " forms (newline))
+      (std::cout "; syntax-rules\t; debug") (newline)
+      (std::cout "; \t\t; ellipsis-specified? = " ellipsis-specified?) (newline)
+      (std::cout "; \t\t; ellipsis = " ellipsis) (newline)
+      (std::cout "; \t\t; literals = " literals) (newline)
+      (std::cout "; \t\t; forms = " forms) (newline)
 
+      #true
       )
     )
   )

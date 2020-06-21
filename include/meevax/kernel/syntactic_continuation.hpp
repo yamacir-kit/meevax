@@ -104,6 +104,7 @@ namespace meevax::kernel
     using writer::current_debug_port;
     using writer::current_error_port;
     using writer::current_interaction_port;
+    using writer::current_output_port;
     using writer::current_verbose_port;
     using writer::write;
     using writer::write_to;
@@ -114,6 +115,7 @@ namespace meevax::kernel
     using debugger::shift;
 
     using configurator::debugging;
+    using configurator::developing;
     using configurator::interactive;
     using configurator::quiet;
     using configurator::tracing;
