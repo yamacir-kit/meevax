@@ -574,7 +574,7 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
   {
-    define<procedure>("std::cout", [](auto&& xs)
+    define<procedure>("print", [](auto&& xs)
     {
       for (const auto& x : xs)
       {
