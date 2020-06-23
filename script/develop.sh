@@ -191,12 +191,13 @@ then
 
   full_test=" \
     $valgrind $repository/build/bin/ice \
-    --verbose --debug --develop=internal-definitions \
+    --verbose --debug \
     $repository/experimental/srfi-78.ss \
-    $repository/test/r4rs.ss"
+    $repository/test/r4rs.ss \
+    "
 
   hoge_test=" \
-    $valgrind $repository/build/bin/ice --develop=internal-definitions \
+    $valgrind $repository/build/bin/ice \
     $repository/experimental/srfi-78.ss \
     $repository/test/srfi-149.ss \
     "
