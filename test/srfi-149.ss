@@ -3,9 +3,6 @@
 (define syntax-rules-transformer
   (lambda (form rename compare)
 
-    (print "SYNTAX-RULES-TRANSFORMER") (newline)
-    (print "FORM IS " form) (newline)
-
     (let ((count 0)
           )
       (define ellipsis-specified? (identifier? (cadr form)))
@@ -19,13 +16,17 @@
       (define forms
         (if ellipsis-specified? (cdr (cddr form)) (cddr form)))
 
+      (define (next-symbol s)
+        (set! count (+ count 1))
+        (rename (string->symbol (string-append s (number->string count)))))
+
       (print "; syntax-rules\t; debug") (newline)
       (print "; \t\t; ellipsis-specified? = " ellipsis-specified?) (newline)
       (print "; \t\t; ellipsis = " ellipsis) (newline)
       (print "; \t\t; literals = " literals) (newline)
       (print "; \t\t; forms = " forms) (newline)
 
-      #true
+      (next-symbol "test.")
       )
     )
   )

@@ -872,21 +872,47 @@ namespace meevax::kernel
         //           << ";\t\t; binding-specs = " << binding_specs << "\n"
         //           << ";\t\t; tail-body = " << tail_body << std::endl;
 
-        const object variables { map(car, binding_specs) };
+        const object variables
+        {
+          map(
+            [](auto&& x)
+            {
+              return car(x).template is<pair>() ? caar(x) : car(x);
+            },
+            binding_specs)
+        };
         // std::cout << ";\t\t; variables = " << variables << std::endl;
 
         const object inits { make_list(length(variables), undefined) };
         // std::cout << ";\t\t; inits = " << inits << std::endl;
 
-        const object head_body {
+        const object head_body
+        {
           map(
-            [this](auto&& each)
+            [this](auto&& x)
             {
-              return cons(intern("set!"), each); // XXX NOT HYGIENIC!!!
+              if (car(x).template is<pair>())
+              {
+                return
+                  list(
+                    intern("set!"),
+                    caar(x),
+                    cons(intern("lambda"), cdar(x), cdr(x)));
+              }
+              else
+              {
+                return cons(intern("set!"), x);
+              }
             },
             binding_specs)
         };
-        // std::cout << ";\t\t; head_body = " << head_body << std::endl;
+
+        // std::cout << ";\t\t; head_body length is " << length(head_body) << std::endl;
+        //
+        // for (const auto& each : head_body)
+        // {
+        //   std::cout << ";\t\t; " << each << std::endl;
+        // }
 
         const object result {
           cons(
