@@ -500,28 +500,6 @@ namespace meevax::kernel
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
     });
 
-    #define DEFINE_PREDICATE(NAME, TYPE)                                       \
-    define<procedure>(NAME, [](auto&& xs)                                      \
-    {                                                                          \
-      if (not xs)                                                              \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else for (const auto& x : xs)                                            \
-      {                                                                        \
-        if (not x or not x.template is<TYPE>())                                \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    })
-
-    DEFINE_PREDICATE("symbol?", symbol);
-    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
-    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
-
     define<procedure>("syntax", [this](auto&& xs)
     {
       return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
@@ -552,6 +530,37 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
+    #define DEFINE_PREDICATE(NAME, TYPE)                                       \
+    define<procedure>(NAME, [](auto&& xs)                                      \
+    {                                                                          \
+      if (not xs)                                                              \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else for (const auto& x : xs)                                            \
+      {                                                                        \
+        if (not x or not x.template is<TYPE>())                                \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    })
+
+    DEFINE_PREDICATE("symbol?", symbol);
+    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
+    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
+
+    define<procedure>("vector", [&](auto&& xs)
+    {
+      auto v { make<vector>() };
+      std::copy(std::begin(xs), std::end(xs), std::back_inserter(v.as<vector>()));
+      return v;
+    });
+
+    DEFINE_PREDICATE("vector?", vector);
+
     auto port { open_input_string(overture.data()) };
 
     std::size_t counts {0};

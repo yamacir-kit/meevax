@@ -14,6 +14,7 @@
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
+#include <meevax/kernel/vector.hpp>
 
 namespace meevax::kernel
 {
