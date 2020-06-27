@@ -252,13 +252,13 @@ install(
   RUNTIME DESTINATION bin)
 
 # ==============================================================================
-#   Unit Test
+#   Example
 # ==============================================================================
-add_executable(unit-test
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/unit-test.cpp
+add_executable(example
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/example.cpp
   ${${PROJECT_NAME}_LAYERS})
 
-target_link_libraries(unit-test
+target_link_libraries(example
   PRIVATE
     meevax::kernel)
 

@@ -187,7 +187,7 @@ count()
 
 if test "$autotest" -ne 0
 then
-  unit_test="valgrind $valgrind_options --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
+  unit_test="valgrind $valgrind_options --log-file=$repository/build/exaple.leak-check.cpp $repository/build/bin/example"
 
   full_test=" \
     $valgrind $repository/build/bin/ice --verbose --debug \
@@ -217,6 +217,6 @@ then
 ; ==============================================================================
 "
   $unit_test
-  # $full_test
-  $chibi_test
+  $full_test
+  # $chibi_test
 fi
