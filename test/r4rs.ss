@@ -1342,6 +1342,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct)
-          exit-success
-          exit-failure))
+(exit (if (check-passed? check::correct) exit-success exit-failure))

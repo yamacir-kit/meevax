@@ -798,14 +798,34 @@ namespace meevax::kernel
         //     make<instruction>(mnemonic::LOAD_CONSTANT), result,
         //     continuation);
 
-        return
-          compile(
-            cdr(expression) ? cadr(expression) : unspecified,
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::DEFINE), car(expression),
-              continuation));
+        // (define ...)
+
+        if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
+        {
+          // caar(form) = f
+          // cdar(form) = <formals>
+          //  cdr(form) = <body>
+
+          return
+            compile(
+              cons(intern("lambda"), cdar(expression), cdr(expression)),
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::DEFINE), caar(expression),
+                continuation));
+        }
+        else // (define x ...)
+        {
+          return
+            compile(
+              cdr(expression) ? cadr(expression) : unspecified,
+              syntactic_environment,
+              frames,
+              cons(
+                make<instruction>(mnemonic::DEFINE), car(expression),
+                continuation));
+        }
       }
       else
       {
@@ -813,14 +833,6 @@ namespace meevax::kernel
         throw syntax_error_about_internal_define {
           "definition cannot appear in this context"
         };
-        // throw
-        //   compile(
-        //     cdr(expression) ? cadr(expression) : undefined,
-        //     syntactic_environment,
-        //     frames,
-        //     cons(
-        //       make<instruction>(mnemonic::DEFINE), car(expression),
-        //       continuation));
       }
     }
 
