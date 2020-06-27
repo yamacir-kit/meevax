@@ -1,14 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
-/* ==== Header Responsibility ==================================================
-*
-* This header is responsible for including <string>. But, this header knows
-* character.hpp includes <string>.
-*
-*============================================================================ */
 #include <meevax/kernel/character.hpp>
-#include <meevax/kernel/pair.hpp>
 
 namespace meevax::kernel
 {

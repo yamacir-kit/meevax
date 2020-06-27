@@ -3,6 +3,7 @@
 
 #include <numeric> // std::accumulate
 
+#include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/list.hpp>
 
 #define PROCEDURE(...) \

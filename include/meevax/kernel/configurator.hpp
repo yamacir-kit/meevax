@@ -3,10 +3,8 @@
 
 #include <regex>
 
-#include <boost/cstdlib.hpp>
-
+#include <meevax/functional/curry.hpp>
 #include <meevax/kernel/feature.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
@@ -35,12 +33,18 @@ namespace meevax::kernel
     static inline const version current_version {};
     static inline const feature current_feature {};
 
+    object develop  { unit };
     object paths    { unit };
     object variable { unit };
 
     auto debugging() const
     {
       return debug_mode.as<boolean>().value;
+    }
+
+    auto developing(const object& x) const
+    {
+      return find(develop, functional::curry(eq)(x));
     }
 
     auto interactive() const
@@ -290,6 +294,11 @@ namespace meevax::kernel
 
     const dispatcher<std::string> long_options_
     {
+      std::make_pair("develop", [&](auto&&... xs) mutable
+      {
+        return develop = cons(std::forward<decltype(xs)>(xs)..., develop);
+      }),
+
       std::make_pair("echo", [](const auto& xs)
       {
         std::cout << xs << std::endl;
@@ -302,6 +311,7 @@ namespace meevax::kernel
         return unspecified;
       }),
 
+      // TODO rename to 'load'
       std::make_pair("file", [this](const object& s) mutable
       {
         if (s.is<symbol>())

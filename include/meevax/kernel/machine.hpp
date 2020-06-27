@@ -28,6 +28,7 @@ namespace meevax::kernel
     Import(SK, syntactic_environment);
     Import_Const(SK, current_debug_port);
     Import_Const(SK, current_error_port);
+    Import_Const(SK, current_output_port);
     Import_Const(SK, header);
     Import_Const(SK, shift);
     Import_Const(SK, tracing);
@@ -453,7 +454,7 @@ namespace meevax::kernel
         * =================================================================== */
         if (0 < static_cast<SK&>(*this).generation)
         {
-          std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
+          // std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
         }
         else
         {
@@ -808,6 +809,7 @@ namespace meevax::kernel
       }
       else
       {
+        indent() << shift(); // XXX DIRTY HACK!
         throw syntax_error_about_internal_define {
           "definition cannot appear in this context"
         };
@@ -822,226 +824,138 @@ namespace meevax::kernel
       }
     }
 
-    /* ==== Lambda Body =======================================================
-    *
-    * <body> = <definition>* <sequence>
-    *
-    *======================================================================== */
+    /* ==== Lambda Body ========================================================
+     *
+     * <body> = <definition>* <sequence>
+     *
+     * ====================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(body)
     {
-      /* ----------------------------------------------------------------------
-      *
-      * The expression may have following form.
-      *
-      * (lambda (...)
-      *   <definition or command>  ;= <car expression>
-      *   <definition or sequence> ;= <cdr expression>
-      *   )
-      *
-      *---------------------------------------------------------------------- */
-      if (not cdr(expression)) // is tail sequence
-      {
-        /* --------------------------------------------------------------------
-        *
-        * The expression may have following form.
-        * If definition appears in <car expression>, it is an syntax error.
-        *
-        * (lambda (...)
-        *   <expression> ;= <car expression>
-        *   )
-        *
-        *-------------------------------------------------------------------- */
-        if (in_a.program_declaration)
-        {
-          return
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              continuation,
-              as_tail_expression_of_program_declaration);
-        }
-        else
-        {
-          return
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              continuation,
-              as_tail_expression);
-        }
-      }
-      else if (not car(expression))
-      {
-        /* --------------------------------------------------------------------
-        *
-        * The expression may have following form.
-        * If definition appears in <cdr expression>, it is an syntax error.
-        *
-        * (lambda (...)
-        *   ()         ;= <car expression>
-        *   <sequence> ;= <cdr expression>)
-        *
-        *-------------------------------------------------------------------- */
-        if (in_a.program_declaration)
-        {
-          return
-            sequence(
-              cdr(expression),
-              syntactic_environment,
-              frames,
-              continuation,
-              as_program_declaration);
-        }
-        else
-        {
-          return
-            sequence(
-              cdr(expression),
-              syntactic_environment,
-              frames,
-              continuation);
-        }
-      }
-      // XXX UGLY CODE!!!
-      else if (car(expression).is<pair>() // is application
-               and caar(expression) // the operator is not illegal
-               and caar(expression).template is<symbol>() // the operator is variable reference
-               and not de_bruijn_index(caar(expression), frames) // the operator is not local binding
-               and not assq(caar(expression), syntactic_environment).eqv(f)
-               and cadr(assq(caar(expression), syntactic_environment)) // binding is not null
-               and cadr(assq(caar(expression), syntactic_environment)).is<syntax>()
-               and cadr(assq(caar(expression), syntactic_environment)).as<syntax>().name == "define")
-      {
-        /* --------------------------------------------------------------------
-        *
-        * The expression may have following form.
-        * If definition appears in <car expression> or <cdr expression>, it is
-        * an syntax error.
-        *
-        * (lambda (...)
-        *   (define <variable> <initialization>) ;= <car expression>
-        *   <sequence> ;= <cdr expression>)
-        *
-        *-------------------------------------------------------------------- */
-        // std::cerr << "; letrec*\t; <expression> := " << expression << std::endl;
+      const auto flag { in_a.program_declaration ? as_program_declaration : as_is };
 
-        // <bindings> := ( (<variable> <initialization>) ...)
-        object bindings {list(
-          cdar(expression) // (<variable> <initialization>)
-        )};
-
-        // <body> of letrec* := <sequence>+
-        object body {};
-
-        /* --------------------------------------------------------------------
-        *
-        * Collect <definition>s from <cdr expression>.
-        * It is guaranteed that <cdr expression> is not unit from first
-        * conditional of this member function.
-        *
-        * The <cdr expression> may have following form.
-        *
-        * ( <expression 1>
-        *   <expression 2>
-        *   ...
-        *   <expression N> )
-        *
-        *-------------------------------------------------------------------- */
-        for (homoiconic_iterator each {cdr(expression)}; each; ++each)
+      auto is_definition = [&](const auto& form)
+      {
+        try
         {
-          if (not car(each) or // unit (TODO? syntax-error)
-              not car(each).is<pair>() or // <identifier or literal>
-              caar(each) != intern("define")) // XXX THIS IS NOT HYGIENIC
+          compile(form, syntactic_environment, frames, continuation, flag);
+          return false;
+        }
+        catch (syntax_error_about_internal_define)
+        {
+          return true;
+        }
+      };
+
+      auto sweep = [&](const auto& form)
+      {
+        auto binding_specs { unit };
+
+        for (auto iter { std::begin(form) }; iter != std::end(form); ++iter)
+        {
+          if (is_definition(*iter))
           {
-            body = each;
-
-            // std::cerr << "; letrec*\t; <bindings> := " << bindings << std::endl;
-            //
-            // std::cerr << "; letrec*\t; <body> := " << body << std::endl;
+            binding_specs = cons(cdr(*iter), binding_specs);
           }
           else
           {
-            bindings = append(bindings, list(cdar(each)));
+            return std::make_pair(reverse(binding_specs), iter);
           }
         }
 
-        const object formals {map(car, bindings)};
-        // std::cerr << "; letrec*\t; <formals> := " << formals << std::endl;
+        return std::make_pair(reverse(binding_specs), std::end(form));
+      };
 
-        const object operands {make_list(length(formals), undefined)};
-        // std::cerr << "; letrec*\t; <operands> := " << operands << std::endl;
+      auto letrec = [&](const auto& binding_specs, const auto& tail_body)
+      {
+        // std::cout << "\n"
+        //           << "; compiler\t; letrec\n"
+        //           << ";\t\t; binding-specs = " << binding_specs << "\n"
+        //           << ";\t\t; tail-body = " << tail_body << std::endl;
 
-        const object assignments {map(
-          [this](auto&& each)
-          {
-            return intern("set!") | each;
-          },
-          bindings
-        )};
-        // std::cerr << "; letrec*\t; <assignments> := " << assignments << std::endl;
+        const object variables
+        {
+          map(
+            [](auto&& x)
+            {
+              return car(x).template is<pair>() ? caar(x) : car(x);
+            },
+            binding_specs)
+        };
+        // std::cout << ";\t\t; variables = " << variables << std::endl;
+
+        const object inits { make_list(length(variables), undefined) };
+        // std::cout << ";\t\t; inits = " << inits << std::endl;
+
+        const object head_body
+        {
+          map(
+            [this](auto&& x)
+            {
+              if (car(x).template is<pair>())
+              {
+                return
+                  list(
+                    intern("set!"),
+                    caar(x),
+                    cons(intern("lambda"), cdar(x), cdr(x)));
+              }
+              else
+              {
+                return cons(intern("set!"), x);
+              }
+            },
+            binding_specs)
+        };
+
+        // std::cout << ";\t\t; head_body length is " << length(head_body) << std::endl;
+        //
+        // for (const auto& each : head_body)
+        // {
+        //   std::cout << ";\t\t; " << each << std::endl;
+        // }
 
         const object result {
           cons(
             cons(
-              intern("lambda"),
-              formals,
-              append(assignments, body)),
-            operands)
+              intern("lambda"), // XXX NOT HYGIENIC!!!
+              variables,
+              append(head_body, tail_body)),
+            inits)
         };
-        // std::cerr << "; letrec*\t; result := " << result << std::endl;
 
+        // std::cout << "\t\t; result = " << result << std::endl;
+
+        return result;
+      };
+
+      if (not cdr(expression)) // is tail-sequence
+      {
         return
           compile(
-            result,
+            car(expression), syntactic_environment, frames, continuation,
+            in_a.program_declaration ? as_tail_expression_of_program_declaration
+                                     : as_tail_expression);
+      }
+      else if (const auto [binding_specs, tail_body] { sweep(expression) }; binding_specs)
+      {
+        return
+          compile(
+            letrec(binding_specs, tail_body),
             syntactic_environment,
             frames,
-            continuation);
+            continuation,
+            flag);
       }
       else
       {
-        /* --------------------------------------------------------------------
-        *
-        * The expression may have following form.
-        *
-        * (lambda (...)
-        *   <non-definition expression> ;= <car expression>
-        *   <sequence>                  ;= <cdr expression>)
-        *
-        *-------------------------------------------------------------------- */
-        if (in_a.program_declaration)
-        {
-          return
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::DROP),
-                sequence(
-                  cdr(expression),
-                  syntactic_environment,
-                  frames,
-                  continuation,
-                  as_program_declaration)),
-              as_program_declaration);
-        }
-        else
-        {
-          return
-            compile(
-              car(expression), // <non-definition expression>
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::DROP), // remove result of expression
-                sequence(
-                  cdr(expression),
-                  syntactic_environment,
-                  frames,
-                  continuation)));
-        }
+        return
+          compile(
+            car(expression), syntactic_environment, frames,
+            cons(
+              make<instruction>(mnemonic::DROP),
+              sequence(
+                cdr(expression), syntactic_environment, frames, continuation, flag)),
+            flag);
       }
     }
 

@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
-#include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/syntactic_closure.hpp>
 
 namespace meevax::kernel

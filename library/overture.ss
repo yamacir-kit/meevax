@@ -140,16 +140,17 @@
 
 (define append
   (lambda x
-    (define append-aux
-      (lambda (x y)
-        (if (null? x) y
-            (append-aux (cdr x)
-                        (append-2 (car x) y) ))))
+
+    (define (append-aux x y)
+      (if (null? x) y
+          (append-aux (cdr x)
+                      (append-2 (car x) y) )))
+
     (if (null? x) '()
         ((lambda (reversed)
            (append-aux (cdr reversed)
-                       (car reversed) ))
-         (reverse x) ))))
+                       (car reversed)))
+         (reverse x)))))
 
 ; ==== Low-Level Macro Facility ================================================
 

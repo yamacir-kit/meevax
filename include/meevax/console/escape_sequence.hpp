@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_CONSOLE_ESCAPE_SEQUENCE_HPP
 #define INCLUDED_MEEVAX_CONSOLE_ESCAPE_SEQUENCE_HPP
 
-#include <iostream>
-
 #include <meevax/console/capability.hpp>
 
 namespace meevax::console

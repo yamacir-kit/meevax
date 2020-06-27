@@ -8,9 +8,7 @@
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream.hpp>
 
-#include <meevax/console/escape_sequence.hpp>
-#include <meevax/kernel/boolean.hpp>
-#include <meevax/utility/perfect_forward.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax::kernel
 {
@@ -23,6 +21,7 @@ namespace meevax::kernel
     {}
 
     Import_Const(SK, debugging);
+    Import_Const(SK, developing);
     Import_Const(SK, interactive);
     Import_Const(SK, quiet);
     Import_Const(SK, verbose);
@@ -81,6 +80,11 @@ namespace meevax::kernel
     auto current_output_port() const -> decltype(auto)
     {
       return standard_output_port(); // XXX R7RS INCOMPATIBLE!
+    }
+
+    auto current_output_port(const object& feature) const -> decltype(auto)
+    {
+      return developing(feature).eqv(f) ? standard_null_port() : current_output_port();
     }
 
     auto current_error_port() const -> decltype(auto)

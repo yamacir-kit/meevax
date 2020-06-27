@@ -2,9 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <algorithm> // std::equal
-#include <functional>
 #include <iterator> // std::begin, std::end, std::distance
-#include <utility>
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/kernel/boolean.hpp>

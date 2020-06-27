@@ -5,7 +5,6 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
-#include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
@@ -105,6 +104,7 @@ namespace meevax::kernel
     using writer::current_debug_port;
     using writer::current_error_port;
     using writer::current_interaction_port;
+    using writer::current_output_port;
     using writer::current_verbose_port;
     using writer::write;
     using writer::write_to;
@@ -115,6 +115,7 @@ namespace meevax::kernel
     using debugger::shift;
 
     using configurator::debugging;
+    using configurator::developing;
     using configurator::interactive;
     using configurator::quiet;
     using configurator::tracing;
@@ -573,7 +574,7 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
   {
-    define<procedure>("std::cout", [](auto&& xs)
+    define<procedure>("print", [](auto&& xs)
     {
       for (const auto& x : xs)
       {

@@ -2,24 +2,18 @@
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
 #include <istream>
-#include <sstream>
-
 #include <limits> // std::numeric_limits<std::streamsize>
+#include <sstream>
 #include <stack>
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/character.hpp>
-#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
-#include <meevax/utility/perfect_forward.hpp>
-#include <stdexcept>
-#include <string>
 
 namespace meevax::kernel
 {
