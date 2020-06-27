@@ -190,17 +190,16 @@ then
   unit_test="valgrind $valgrind_options --log-file=$repository/build/unit-test.leak-check.cpp $repository/build/bin/unit-test"
 
   full_test=" \
-    $valgrind $repository/build/bin/ice \
-    --verbose --debug \
+    $valgrind $repository/build/bin/ice --verbose --debug \
     $repository/experimental/srfi-78.ss \
     $repository/test/r4rs.ss \
     "
 
-  hoge_test=" \
-    $valgrind $repository/build/bin/ice \
-    $repository/experimental/srfi-78.ss \
-    $repository/test/srfi-149.ss \
-    "
+  # hoge_test=" \
+  #   $valgrind $repository/build/bin/ice \
+  #   $repository/experimental/srfi-78.ss \
+  #   $repository/test/srfi-149.ss \
+  #   "
 
   echo "
 ; ==== Test ====================================================================
@@ -219,6 +218,5 @@ then
 "
   $unit_test
   $full_test
-  $hoge_test
+  # $hoge_test
 fi
-
