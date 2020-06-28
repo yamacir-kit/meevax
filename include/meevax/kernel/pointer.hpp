@@ -265,9 +265,7 @@ namespace meevax::kernel
               typename MemoryResource, // XXX (GCC-9 <=)
               typename... Ts,
               Requires(is_not_embeddable<Bound>)>
-    static pointer allocate_binding(
-      MemoryResource&& resource,
-      Ts&&... xs)
+    static pointer allocate_binding(MemoryResource&& resource, Ts&&... xs)
     {
       using binding = binder<Bound>;
 

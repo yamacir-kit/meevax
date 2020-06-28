@@ -54,6 +54,13 @@ namespace meevax::kernel
       return *this = cdr(*this);
     }
 
+    value_type operator++(int)
+    {
+      auto result { *this };
+      operator ++();
+      return result;
+    }
+
     decltype(auto) begin() const noexcept
     {
       return *this;

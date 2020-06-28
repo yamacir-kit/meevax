@@ -37,8 +37,9 @@ namespace meevax::kernel
    *
    * Layer 0 - Module Systems (Program Structures)
    * Layer 1 - Primitive Expression Types
-   * Layer 2 - Scheme Standards (Derived Expression Types & Standard Procedures)
-   * Layer 3 - Experimental Features
+   * Layer 2 - Scheme Standards (Standard Procedures)
+   * Layer 3 - Scheme Standards (Derived Expression Types)
+   * Layer 4 - Experimental Features
    *
    * ======================================================================== */
   template <auto N>
@@ -443,6 +444,27 @@ namespace meevax::kernel
     return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
+  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                         \
+  define<procedure>(IDENTIFIER, [](auto&& xs)                                        \
+  {                                                                            \
+    if (null(xs))                                                              \
+    {                                                                          \
+      return f;                                                                \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      for (const auto& x : xs)                                                 \
+      {                                                                        \
+        if (null(x) or not x.template is<TYPE>())                              \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    }                                                                          \
+  })
+
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
@@ -500,28 +522,6 @@ namespace meevax::kernel
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
     });
 
-    #define DEFINE_PREDICATE(NAME, TYPE)                                       \
-    define<procedure>(NAME, [](auto&& xs)                                      \
-    {                                                                          \
-      if (not xs)                                                              \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else for (const auto& x : xs)                                            \
-      {                                                                        \
-        if (not x or not x.template is<TYPE>())                                \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    })
-
-    DEFINE_PREDICATE("symbol?", symbol);
-    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
-    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
-
     define<procedure>("syntax", [this](auto&& xs)
     {
       return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
@@ -552,6 +552,178 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
+    /* ==== R7RS 6.2. Numbers ==================================================
+     *
+     *
+     * ====================================================================== */
+    define<procedure>("sqrt", [](auto&& xs)
+    {
+      return
+        make<real>(
+          boost::multiprecision::sqrt(
+            car(xs).template as<real>()));
+    });
+
+    /* ==== R7RS 6.3. Booleans =================================================
+     *
+     *
+     * ====================================================================== */
+
+    /* ==== R7RS 6.4. Pairs and lists ==========================================
+     *
+     *
+     * ====================================================================== */
+    define<procedure>("set-car!", [](auto&& xs)
+    {
+      return caar(xs) = cadr(xs);
+    });
+
+    define<procedure>("set-cdr!", [](auto&& xs)
+    {
+      return cdar(xs) = cadr(xs);
+    });
+
+    /* ==== R7RS 6.5. Symbols ==================================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("symbol?", symbol);
+
+    define<procedure>("symbol->string", [this](auto&& xs)
+    {
+      return read('"' + car(xs).template as<std::string>() + '"');
+    });
+
+    define<procedure>("string->symbol", [](auto&& xs)
+    {
+      return make<symbol>(car(xs).template as<std::string>());
+    });
+
+    /* ==== R7RS 6.6. Characters ===============================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("char?", character);
+
+    /* ==== R7RS 6.8. Vectors ==================================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("vector?", vector);
+
+    define<procedure>("make-vector", [](auto&& xs)
+    {
+      auto v { make<vector>() };
+
+      v.as<vector>().resize(
+        static_cast<vector::size_type>(
+          car(xs).template as<real>()));
+
+      return v;
+    });
+
+    define<procedure>("vector", [](auto&& xs)
+    {
+      return make<vector>(in_range, xs);
+    });
+
+    define<procedure>("vector-length", [](auto&& xs)
+    {
+      return
+        make<real>(
+          car(xs).template as<vector>().size());
+    });
+
+    define<procedure>("vector-ref", [](auto&& xs)
+    {
+      return
+        car(xs).template as<vector>().at(
+          static_cast<vector::size_type>(
+            cadr(xs).template as<real>()));
+    });
+
+    define<procedure>("vector-set!", [](auto&& xs)
+    {
+      return
+        car(xs).template as<vector>().at(
+          static_cast<vector::size_type>(
+            cadr(xs).template as<real>()))
+        = caddr(xs);
+    });
+
+    define<procedure>("vector->list", [](auto&& xs)
+    {
+      auto result { unit };
+
+      auto& v { car(xs).template as<vector>() };
+
+      std::for_each(std::rbegin(v), std::rend(v), [&](auto&& each) mutable
+      {
+        return result = cons(each, result);
+      });
+
+      return result;
+    });
+
+    define<procedure>("list->vector", [](auto&& xs)
+    {
+      return make<vector>(in_range, std::begin(car(xs)), std::end(car(xs)));
+    });
+
+    // define<procedure>("vector->string", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("string->vector", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("vector-copy", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("vector-copy!", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("vector-append", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("vector-fill!", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    /* ==== R7RS 6.10. Constrol features =======================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("native-procedure?", procedure);
+    DEFINE_PREDICATE("closure?", closure);
+    DEFINE_PREDICATE("continuation?", continuation);
+
+    /* ==== R4RS APPENDIX: A compatible low-level macro facility ===============
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
+    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
+
+    define<procedure>("identifier?", [](auto&& xs)
+    {
+      return kernel::is_identifier(car(xs)) ? t : f;
+    });
+  }
+
+  template <>
+  void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
+  {
     auto port { open_input_string(overture.data()) };
 
     std::size_t counts {0};
@@ -572,7 +744,7 @@ namespace meevax::kernel
   }
 
   template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
+  void syntactic_continuation::boot(std::integral_constant<decltype(4), 4>)
   {
     define<procedure>("print", [](auto&& xs)
     {

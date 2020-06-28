@@ -15,11 +15,11 @@
 ; ---- 4.1.2. Literal expressions ----------------------------------------------
 
 (check (quote a) => a)
-; (check (quote #(a b c)) => #(a b c))
+(check (quote #(a b c)) => #(a b c))
 (check (quote (+ 1 2)) => (+ 1 2))
 
 (check 'a => a)
-; (check '#(a b c) => #(a b c))
+(check '#(a b c) => #(a b c))
 (check '(+ 1 2) => (+ 1 2))
 
 (check '() => ())
@@ -209,12 +209,12 @@
 
 ; ---- 4.2.4. Iteration --------------------------------------------------------
 
-; (check
-;   (do ((vec (make-vector 5))
-;        (i 0 (+ i 1)))
-;       ((= i 5) vec)
-;     (vector-set! vec i i))
-;   => #(0 1 2 3 4))
+(check
+  (do ((vec (make-vector 5))
+       (i 0 (+ i 1)))
+      ((= i 5) vec)
+    (vector-set! vec i i))
+  => #(0 1 2 3 4))
 
 (check
   (let ((x '(1 3 5 7 9)))
@@ -262,9 +262,9 @@
   `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons)))
   => ((foo 7) . cons))
 
-; (check
-;  `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8)
-;   => #(10 5 2 4 3 8))
+(check
+ `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8)
+  => #(10 5 2 4 3 8))
 
 ; NOTE: Fails due to syntactic-continuation's external representation.
 ; (check
@@ -352,8 +352,8 @@
 (check (not 3) => #f)
 (check (not (list 3)) => #f)
 (check (not #f) => #t)
-; (check (not '()) => #f) ; SEGV
-; (check (not (list)) => #f) ; SEGV
+(check (not '()) => #f) ; SEGV
+(check (not (list)) => #f) ; SEGV
 (check (not 'nil) => #f)
 
 ; ---- Procedure (boolean? obj) ------------------------------------------------
@@ -404,7 +404,9 @@
   (eqv? "abc" "abc") ; => unspecified
   => #t)
 
-; (check (eqv? '#() '#() => (unspecified))
+(check
+  (eqv? '#() '#()) ; => unspecified
+  => #t)
 
 (check
   (eqv? (lambda (x) x)
@@ -497,10 +499,10 @@
     (eq? x x))
   => #t)
 
-; (check
-;   (let ((x '#()))
-;     (eq? x x))
-;   => #t)
+(check
+  (let ((x '#()))
+    (eq? x x))
+  => #t)
 
 (check
   (let ((p (lambda (x) x)))
@@ -524,10 +526,10 @@
 
 (check (equal? 2 2) => #t)
 
-; (check
-;   (equal? (make-vector 5 'a)
-;           (make-vector 5 'a))
-;   => #t)
+(check
+  (equal? (make-vector 5 'a)
+          (make-vector 5 'a))
+  => #t)
 
 (check
   (equal? (lambda (x) x)
@@ -556,26 +558,26 @@
 (check (list? x) => #t)
 (check (list? y) => #t)
 
-; (set-cdr! x 4) ; => unspecified
+(set-cdr! x 4) ; => unspecified
 
-; (check x => (a . 4))
-; (check y => (a . 4))
+(check x => (a . 4))
+(check y => (a . 4))
 
 (check (eqv? x y) => #t)
 
-; (check (list? x) => #f)
-; (check (list? y) => #f)
+(check (list? x) => #f)
+(check (list? y) => #f)
 
-; (set-cdr! x x) ; => unspecified
+(set-cdr! x x) ; => unspecified
 
-; (check (list? x) => #f)
+(check (list? x) => #f)
 
 ; ---- Procedure (pair? obj) ---------------------------------------------------
 
 (check (pair? '(a . b)) => #t)
 (check (pair? '(a b c)) => #t)
 (check (pair? '()) => #f)
-; (check (pair? '#(a b)) => #f)
+(check (pair? '#(a b)) => #f)
 
 ; ---- Procedure (cons obj-1 obj-2) --------------------------------------------
 
@@ -606,8 +608,8 @@
 (define (g)
   '(constant-list))
 
-; (set-car! (f) 3) ; => unspecified
-; (cdt-car! (g) 3) ; => error
+(set-car! (f) 3) ; => unspecified
+(set-car! (g) 3) ; => error
 
 ; ---- Procedure (set-cdr! pair obj) -------------------------------------------
 
@@ -633,11 +635,11 @@
 
 (check (list? '(a . b)) => #f)
 
-; (check
-;   (let ((x (list 'a)))
-;     (set-cdr! x x)
-;     (list? x))
-;   => #f)
+(check
+  (let ((x (list 'a)))
+    (set-cdr! x x)
+    (list? x))
+  => #f)
 
 ; ---- Procedure (list obj ...) ------------------------------------------------
 
@@ -715,33 +717,35 @@
 
 ; ---- Procedure (symbol->string symbol) ---------------------------------------
 
-; (check (symbol->string 'flying-fish) => "flying-fish")
+(check (symbol->string 'flying-fish) => "flying-fish")
 ; (check (symbol->string 'Martin) => "martin")
-;
-; (check
-;   (symbol->string
-;     (string->symbol "Malvina"))
-;   => "Malvina")
+(check (symbol->string 'Martin) => "Martin")
+
+(check
+  (symbol->string
+    (string->symbol "Malvina"))
+  => "Malvina")
 
 ; ---- Procedure (string->symbol string) ---------------------------------------
 
-; (check (eq? 'mISSISSIppi 'mississippi) => #t)
-;
-; (check (string->symbol "mISSISSIppi") => 'mISSISSIppi)
-;
-; (check (eq? 'bitBlt (string->symbol "bitBlt")) => #f)
-;
-; (check
-;   (eq? 'JollyWog
-;        (string->symbol
-;          (symbol->string 'JollyWog)))
-;   => #t)
-;
-; (check
-;   (string=? "K. Harper, M.D."
-;             (symbol->string
-;               (string->symbol "K. Harper, M.D.")))
-;   => #t)
+; (check (eq? 'mISSISSIppi 'mississippi) => #t) ; in R4RS
+(check (eq? 'mISSISSIppi 'mississippi) => #f)
+
+(check (string->symbol "mISSISSIppi") => mISSISSIppi)
+
+(check (eq? 'bitBlt (string->symbol "bitBlt")) => #f)
+
+(check
+  (eqv? 'JollyWog ; in R4RS, eq? level equality required.
+       (string->symbol
+         (symbol->string 'JollyWog)))
+  => #t)
+
+(check
+  (string=? "K. Harper, M.D."
+            (symbol->string
+              (string->symbol "K. Harper, M.D.")))
+  => #t)
 
 
 ; ==== 6.5. Numbers ============================================================
@@ -973,18 +977,20 @@
 
 ; ---- Procedure (procedure? obj) ----------------------------------------------
 
-; (check (procedure?  car) => #t)
-; (check (procedure? 'car) => #f)
+(check (procedure?  car) => #t)
+(check (procedure? 'car) => #f)
 
-; (check
-;   (procedure?
-;     (lambda (x) (* x x)))
-;   => #t)
+(check
+  (procedure?
+    (lambda (x) (* x x)))
+  => #t)
 
-; (check
-;   '(procedure?
-;      (lambda (x) (* x x)))
-;   => #t)
+(check
+  (procedure?
+    '(lambda (x) (* x x)))
+  => #f)
+
+(check (call-with-current-continuation procedure?) => #t)
 
 ; ---- Procedure (apply proc args) ---------------------------------------------
 ; ---- Procedure (apply proc arg1 ... args) ------------------------------------
@@ -996,9 +1002,9 @@
     (lambda args
       (f (apply g args)))))
 
-; (check
-;   ((compose sqrt *) 12 75)
-;   => 30)
+(check
+  ((compose sqrt *) 12 75)
+  => 30)
 
 ; ---- Procedure (map proc list1 list2 ...) ------------------------------------
 
@@ -1027,13 +1033,13 @@
 
 ; ---- Procedure (for-each proc list1 list2 ...) -------------------------------
 
-; (check
-;   (let ((v (make-vector 5)))
-;     (for-each (lambda (i)
-;                 (vector-set! v i (* i i)))
-;               '(0 1 2 3 4))
-;     v)
-;   => #(0 1 4 9 16))
+(check
+  (let ((v (make-vector 5)))
+    (for-each (lambda (i)
+                (vector-set! v i (* i i)))
+              '(0 1 2 3 4))
+    v)
+  => #(0 1 4 9 16))
 
 ; ---- Procedure (force promise) -----------------------------------------------
 
@@ -1206,8 +1212,8 @@
 ;       (alpha)))
 ;   => error)
 
-(check (identifier? (syntax x)) => #t)
-(check (identifier? (quote x)) => #f)
+; (check (identifier? (syntax x)) => #t)
+; (check (identifier? (quote x)) => #f)
 (check (identifier? 3) => #f)
 
 ; (check

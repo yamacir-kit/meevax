@@ -163,11 +163,6 @@
               (list lambda identifier . transformer)))
           (list define identifier . transformer)))))
 
-(define identifier?
-  (lambda (x)
-    (if (null? x) #false
-        (syntactic-closure? x))))
-
 (define free-identifier=?
   (lambda (x y)
     (if (symbol? x)
@@ -184,11 +179,17 @@
                     #false))
             #false))))
 
-(define er-macro-transformer
+; (define er-macro-transformer
+;   (lambda (transform)
+;     (fork/csc
+;       (lambda form
+;         (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
+
+(define er-macro-transformer ; unhygienic-dummy
   (lambda (transform)
     (fork/csc
       (lambda form
-        (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
+        (transform form identity eqv?)))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.1 Standard Conditional Library (Part 1 of 2)
@@ -263,45 +264,96 @@
 ; (define unquote          identity)
 ; (define unquote-splicing identity)
 
-(define-syntax (quasiquote x)
+; (define-syntax (quasiquote x)
+;
+;   (define quasiquote-expand
+;     (lambda (e depth)
+;       (if (not (pair? e))
+;           (list 'quote e)
+;           (if (eqv? (car e) 'quasiquote)
+;               (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
+;               (if (eqv? (car e) 'unquote)
+;                   (if (< 0 depth)
+;                       (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
+;                       (if (and (not (null? (cdr e))) (null? (cddr e)))
+;                           (cadr e)
+;                           (error "illegal unquote")))
+;                   (if (eqv? (car e) 'unquote-splicing)
+;                       (if (< 0 depth)
+;                           (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
+;                           (error "illegal unquote-splicing"))
+;                       (list 'append (quasiquote-expand-list (car e) depth)
+;                                     (quasiquote-expand      (cdr e) depth) )))))))
+;
+;   (define quasiquote-expand-list
+;     (lambda (e depth)
+;       (if (not (pair? e))
+;           (list 'quote (list e))
+;           (if (eqv? (car e) 'quasiquote)
+;               (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)) ))
+;               (if (eqv? (car e) 'unquote)
+;                   (if (< 0 depth)
+;                       (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)) ))
+;                       (cons 'list (cdr e)))
+;                   (if (eqv? (car e) 'unquote-splicing)
+;                       (if (< 0 depth)
+;                           (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)) ))
+;                           (cons 'append (cdr e)))
+;                       (list 'list (list 'append (quasiquote-expand-list (car e) depth)
+;                                                 (quasiquote-expand      (cdr e) depth) ))))))))
+;
+;   (quasiquote-expand x 0) )
 
-  (define quasiquote-expand
-    (lambda (e depth)
-      (if (not (pair? e))
-          (list 'quote e)
-          (if (eqv? (car e) 'quasiquote)
-              (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)))
-              (if (eqv? (car e) 'unquote)
-                  (if (< 0 depth)
-                      (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)))
-                      (if (and (not (null? (cdr e))) (null? (cddr e)))
-                          (cadr e)
-                          (error "illegal unquote")))
-                  (if (eqv? (car e) 'unquote-splicing)
-                      (if (< 0 depth)
-                          (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)))
-                          (error "illegal unquote-splicing"))
-                      (list 'append (quasiquote-expand-list (car e) depth)
-                                    (quasiquote-expand      (cdr e) depth) )))))))
+(define-syntax quasiquote ; from Chibi-Scheme
+  (er-macro-transformer
+    (lambda (expr rename compare)
+      (define (qq x d)
+        (cond
 
-  (define quasiquote-expand-list
-    (lambda (e depth)
-      (if (not (pair? e))
-          (list 'quote (list e))
-          (if (eqv? (car e) 'quasiquote)
-              (list 'list (list 'cons 'quasiquote (quasiquote-expand (cdr e) (+ depth 1)) ))
-              (if (eqv? (car e) 'unquote)
-                  (if (< 0 depth)
-                      (list 'list (list 'cons 'unquote (quasiquote-expand (cdr e) (- depth 1)) ))
-                      (cons 'list (cdr e)))
-                  (if (eqv? (car e) 'unquote-splicing)
-                      (if (< 0 depth)
-                          (list 'list (list 'cons 'unquote-splicing (quasiquote-expand (cdr e) (- depth 1)) ))
-                          (cons 'append (cdr e)))
-                      (list 'list (list 'append (quasiquote-expand-list (car e) depth)
-                                                (quasiquote-expand      (cdr e) depth) ))))))))
+          ((pair? x)
+           (cond
 
-  (quasiquote-expand x 0) )
+             ((compare (rename 'unquote) (car x))
+              (if (<= d 0)
+                  (cadr x)
+                  (list (rename 'list)
+                        (list (rename 'quote) 'unquote)
+                        (qq (cadr x) (- d 1)))))
+
+             ((compare (rename 'unquote-splicing) (car x))
+              (if (<= d 0)
+                  (list (rename 'cons) (qq (car x) d)
+                                       (qq (cdr x) d))
+                  (list (rename 'list)
+                        (list (rename 'quote) 'unquote-splicing)
+                        (qq (cadr x) (- d 1)))))
+
+             ((compare (rename 'quasiquote) (car x))
+              (list (rename 'list)
+                    (list (rename 'quote) 'quasiquote)
+                    (qq (cadr x) (+ d 1))))
+
+             ((and (<= d 0) (pair? (car x))
+                   (compare (rename 'unquote-splicing) (caar x)))
+              (if (null? (cdr x))
+                  (cadr (car x))
+                  (list (rename 'append) (cadr (car x)) (qq (cdr x) d))))
+
+             (else
+               (list (rename 'cons) (qq (car x) d) (qq (cdr x) d)))))
+
+          ((vector? x)
+           (list (rename 'list->vector)
+                 (qq (vector->list x) d)))
+
+          ((if (identifier? x) #t
+               (null? x))
+           (list (rename 'quote) x))
+
+          (else x)))
+
+      (qq (cadr expr) 0))))
+
 
 ; ------------------------------------------------------------------------------
 ;  6.10 Control features (Part 1 of 2)
@@ -1037,10 +1089,10 @@
 (define character.so
   (linker "libmeevax-character.so"))
 
-(define character?
-  (procedure character.so "is_character"))
-
-(define char? character?)
+; (define character?
+;   (procedure character.so "is_character"))
+;
+; (define char? character?)
 
 (define character-compare
   (lambda (x xs compare)
@@ -1307,16 +1359,16 @@
 (define vector?
   (lambda (object) #false))
 
-(define vector-of
-  (procedure vector.so "vector_of"))
-
-(define vector vector-of)
-
-(define vector-reference
-  (procedure vector.so "vector_reference"))
-
-(define vector-ref
-        vector-reference)
+; (define vector-of
+;   (procedure vector.so "vector_of"))
+;
+; (define vector vector-of)
+;
+; (define vector-reference
+;   (procedure vector.so "vector_reference"))
+;
+; (define vector-ref
+;         vector-reference)
 
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
@@ -1331,7 +1383,7 @@
 
 (define procedure?
   (lambda (x)
-    (or (procedure? x)
+    (or (native-procedure? x)
         (closure? x)
         (continuation? x) )))
 
