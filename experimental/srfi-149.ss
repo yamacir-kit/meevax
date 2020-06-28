@@ -45,7 +45,7 @@
           (%cdr (rename 'cdr))
           (%compare (rename 'compare))
           (%cons (rename 'cons))
-          (%cons-source (rename 'cons-source))
+          ; (%cons-source (rename 'cons-source))
           (%eq? (rename 'eq?))
           (%equal? (rename 'equal?))
           (%er-macro-transformer (rename 'er-macro-transformer))
@@ -55,7 +55,7 @@
           (%if (rename 'if))
           (%lambda (rename 'lambda))
           (%len (rename 'len))
-          (%length (rename 'length*))
+          ; (%length (rename 'length*))
           (%let (rename 'let))
           (%list->vector (rename 'list->vector))
           (%list? (rename 'list?))
@@ -73,6 +73,29 @@
           (%vector->list (rename 'vector->list))
           (%vector? (rename 'vector?))
           )
+
+      (define (any pred x)
+        (if (pair? x)
+            (if (null? (cdr x))
+                (pred (car x))
+                (or (pred (car x))
+                    (any pred (cdr x))))
+            #f))
+
+      (define (length* x)
+        (let ((r (length x)))
+          (cond
+            ((positive? r) r)
+            ((= r -2) #f) ; is circular-list
+            (else
+              (let rec ((i 0)
+                        (x x))
+                (if (not (pair? x)) i
+                    (rec (+ i 1)
+                         (cdr x))))))))
+
+      (define (%cons-source x y z)
+        (cons x y))
 
       (define ellipsis
         (if ellipsis-specified? (cadr form) (rename '...)))
@@ -380,18 +403,14 @@
 ;      (if (memv key '(atoms ...))
 ;          (begin result1 result2 ...)
 ;          (case key clause clauses ...)))))
-
-(print "BREAK 1\n")
-
-(define-syntax and
-  (syntax-rules ()
-    ((and) #t)
-    ((and test) test)
-    ((and test1 test2 ...)
-     (if test1 (and test2 ...) #f))))
-
-(print "BREAK 2\n")
-
+;
+; (define-syntax and
+;   (syntax-rules ()
+;     ((and) #t)
+;     ((and test) test)
+;     ((and test1 test2 ...)
+;      (if test1 (and test2 ...) #f))))
+;
 ; (define-syntax or
 ;   (syntax-rules ()
 ;     ((or) #f)
