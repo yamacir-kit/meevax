@@ -592,6 +592,16 @@ namespace meevax::kernel
      * ====================================================================== */
     DEFINE_PREDICATE("symbol?", symbol);
 
+    define<procedure>("symbol->string", [this](auto&& xs)
+    {
+      return read('"' + car(xs).template as<std::string>() + '"');
+    });
+
+    define<procedure>("string->symbol", [](auto&& xs)
+    {
+      return make<symbol>(car(xs).template as<std::string>());
+    });
+
     /* ==== R7RS 6.8. Vectors ==================================================
      *
      *

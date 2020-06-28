@@ -577,7 +577,7 @@
 (check (pair? '(a . b)) => #t)
 (check (pair? '(a b c)) => #t)
 (check (pair? '()) => #f)
-; (check (pair? '#(a b)) => #f)
+(check (pair? '#(a b)) => #f)
 
 ; ---- Procedure (cons obj-1 obj-2) --------------------------------------------
 
@@ -608,8 +608,8 @@
 (define (g)
   '(constant-list))
 
-; (set-car! (f) 3) ; => unspecified
-; (cdt-car! (g) 3) ; => error
+(set-car! (f) 3) ; => unspecified
+(set-car! (g) 3) ; => error
 
 ; ---- Procedure (set-cdr! pair obj) -------------------------------------------
 
@@ -635,11 +635,11 @@
 
 (check (list? '(a . b)) => #f)
 
-; (check
-;   (let ((x (list 'a)))
-;     (set-cdr! x x)
-;     (list? x))
-;   => #f)
+(check
+  (let ((x (list 'a)))
+    (set-cdr! x x)
+    (list? x))
+  => #f)
 
 ; ---- Procedure (list obj ...) ------------------------------------------------
 
@@ -717,33 +717,35 @@
 
 ; ---- Procedure (symbol->string symbol) ---------------------------------------
 
-; (check (symbol->string 'flying-fish) => "flying-fish")
+(check (symbol->string 'flying-fish) => "flying-fish")
 ; (check (symbol->string 'Martin) => "martin")
-;
-; (check
-;   (symbol->string
-;     (string->symbol "Malvina"))
-;   => "Malvina")
+(check (symbol->string 'Martin) => "Martin")
+
+(check
+  (symbol->string
+    (string->symbol "Malvina"))
+  => "Malvina")
 
 ; ---- Procedure (string->symbol string) ---------------------------------------
 
-; (check (eq? 'mISSISSIppi 'mississippi) => #t)
-;
-; (check (string->symbol "mISSISSIppi") => 'mISSISSIppi)
-;
-; (check (eq? 'bitBlt (string->symbol "bitBlt")) => #f)
-;
-; (check
-;   (eq? 'JollyWog
-;        (string->symbol
-;          (symbol->string 'JollyWog)))
-;   => #t)
-;
-; (check
-;   (string=? "K. Harper, M.D."
-;             (symbol->string
-;               (string->symbol "K. Harper, M.D.")))
-;   => #t)
+; (check (eq? 'mISSISSIppi 'mississippi) => #t) ; in R4RS
+(check (eq? 'mISSISSIppi 'mississippi) => #f)
+
+(check (string->symbol "mISSISSIppi") => mISSISSIppi)
+
+(check (eq? 'bitBlt (string->symbol "bitBlt")) => #f)
+
+(check
+  (eqv? 'JollyWog ; in R4RS, eq? level equality required.
+       (string->symbol
+         (symbol->string 'JollyWog)))
+  => #t)
+
+(check
+  (string=? "K. Harper, M.D."
+            (symbol->string
+              (string->symbol "K. Harper, M.D.")))
+  => #t)
 
 
 ; ==== 6.5. Numbers ============================================================
