@@ -262,9 +262,9 @@
   `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons)))
   => ((foo 7) . cons))
 
-; (check
-;  `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8)
-;   => #(10 5 2 4 3 8))
+(check
+ `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8)
+  => #(10 5 2 4 3 8))
 
 ; NOTE: Fails due to syntactic-continuation's external representation.
 ; (check

@@ -552,17 +552,39 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    DEFINE_PREDICATE("symbol?", symbol);
     DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
     DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
 
-    /* ==== Vectors ============================================================
+    /* ==== R7RS 6.2. Numbers ==================================================
+     *
+     *
+     * ====================================================================== */
+    define<procedure>("sqrt", [](auto&& xs)
+    {
+      return
+        make<real>(
+          boost::multiprecision::sqrt(
+            car(xs).template as<real>()));
+    });
+
+    /* ==== R7RS 6.5. Symbols ==================================================
+     *
+     *
+     * ====================================================================== */
+
+    /* ==== R7RS 6.5. Symbols ==================================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("symbol?", symbol);
+
+    /* ==== R7RS 6.8. Vectors ==================================================
      *
      *
      * ====================================================================== */
     DEFINE_PREDICATE("vector?", vector);
 
-    define<procedure>("make-vector", [&](auto&& xs)
+    define<procedure>("make-vector", [](auto&& xs)
     {
       auto v { make<vector>() };
 
@@ -573,17 +595,19 @@ namespace meevax::kernel
       return v;
     });
 
-    define<procedure>("vector", [&](auto&& xs)
+    define<procedure>("vector", [](auto&& xs)
     {
       return make<vector>(in_range, xs);
     });
 
-    // define<procedure>("vector-length", [&](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
+    define<procedure>("vector-length", [](auto&& xs)
+    {
+      return
+        make<real>(
+          car(xs).template as<vector>().size());
+    });
 
-    define<procedure>("vector-ref", [&](auto&& xs)
+    define<procedure>("vector-ref", [](auto&& xs)
     {
       return
         car(xs).template as<vector>().at(
@@ -591,7 +615,7 @@ namespace meevax::kernel
             cadr(xs).template as<real>()));
     });
 
-    define<procedure>("vector-set!", [&](auto&& xs)
+    define<procedure>("vector-set!", [](auto&& xs)
     {
       return
         car(xs).template as<vector>().at(
@@ -600,42 +624,51 @@ namespace meevax::kernel
         = caddr(xs);
     });
 
-    // define<procedure>("vector->list", [&](auto&& xs)
+    // define<procedure>("vector->list", [](auto&& xs)
+    // {
+    //   auto result { unit };
+    //
+    //   auto& v { car(xs).template as<vector>() };
+    //
+    //   std::for_each(std::rbegin(v), std::rend(v), [&](auto&& each) mutable
+    //   {
+    //     return result = cons(each, result);
+    //   });
+    //
+    //   return result;
+    // });
+
+    // define<procedure>("list->vector", [](auto&& xs)
+    // {
+    //   return make<vector>(in_range, car(xs));
+    // });
+
+    // define<procedure>("vector->string", [](auto&& xs)
     // {
     //   return unspecified;
     // });
 
-    // define<procedure>("list->vector", [&](auto&& xs)
+    // define<procedure>("string->vector", [](auto&& xs)
     // {
     //   return unspecified;
     // });
 
-    // define<procedure>("vector->string", [&](auto&& xs)
+    // define<procedure>("vector-copy", [](auto&& xs)
     // {
     //   return unspecified;
     // });
 
-    // define<procedure>("string->vector", [&](auto&& xs)
+    // define<procedure>("vector-copy!", [](auto&& xs)
     // {
     //   return unspecified;
     // });
 
-    // define<procedure>("vector-copy", [&](auto&& xs)
+    // define<procedure>("vector-append", [](auto&& xs)
     // {
     //   return unspecified;
     // });
 
-    // define<procedure>("vector-copy!", [&](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
-
-    // define<procedure>("vector-append", [&](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
-
-    // define<procedure>("vector-fill!", [&](auto&& xs)
+    // define<procedure>("vector-fill!", [](auto&& xs)
     // {
     //   return unspecified;
     // });
