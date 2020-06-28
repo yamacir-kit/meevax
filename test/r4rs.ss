@@ -1002,9 +1002,9 @@
     (lambda args
       (f (apply g args)))))
 
-; (check
-;   ((compose sqrt *) 12 75)
-;   => 30)
+(check
+  ((compose sqrt *) 12 75)
+  => 30)
 
 ; ---- Procedure (map proc list1 list2 ...) ------------------------------------
 
@@ -1033,13 +1033,13 @@
 
 ; ---- Procedure (for-each proc list1 list2 ...) -------------------------------
 
-; (check
-;   (let ((v (make-vector 5)))
-;     (for-each (lambda (i)
-;                 (vector-set! v i (* i i)))
-;               '(0 1 2 3 4))
-;     v)
-;   => #(0 1 4 9 16))
+(check
+  (let ((v (make-vector 5)))
+    (for-each (lambda (i)
+                (vector-set! v i (* i i)))
+              '(0 1 2 3 4))
+    v)
+  => #(0 1 4 9 16))
 
 ; ---- Procedure (force promise) -----------------------------------------------
 
