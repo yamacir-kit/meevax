@@ -15,11 +15,11 @@
 ; ---- 4.1.2. Literal expressions ----------------------------------------------
 
 (check (quote a) => a)
-; (check (quote #(a b c)) => #(a b c))
+(check (quote #(a b c)) => #(a b c))
 (check (quote (+ 1 2)) => (+ 1 2))
 
 (check 'a => a)
-; (check '#(a b c) => #(a b c))
+(check '#(a b c) => #(a b c))
 (check '(+ 1 2) => (+ 1 2))
 
 (check '() => ())

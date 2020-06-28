@@ -37,8 +37,9 @@ namespace meevax::kernel
    *
    * Layer 0 - Module Systems (Program Structures)
    * Layer 1 - Primitive Expression Types
-   * Layer 2 - Scheme Standards (Derived Expression Types & Standard Procedures)
-   * Layer 3 - Experimental Features
+   * Layer 2 - Scheme Standards (Standard Procedures)
+   * Layer 3 - Scheme Standards (Derived Expression Types)
+   * Layer 4 - Experimental Features
    *
    * ======================================================================== */
   template <auto N>
@@ -443,6 +444,27 @@ namespace meevax::kernel
     return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
+  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                         \
+  define<procedure>(IDENTIFIER, [](auto&& xs)                                        \
+  {                                                                            \
+    if (null(xs))                                                              \
+    {                                                                          \
+      return f;                                                                \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      for (const auto& x : xs)                                                 \
+      {                                                                        \
+        if (null(x) or not x.template is<TYPE>())                              \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    }                                                                          \
+  })
+
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
   {
@@ -530,39 +552,22 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    #define DEFINE_PREDICATE(NAME, TYPE)                                       \
-    define<procedure>(NAME, [](auto&& xs)                                      \
-    {                                                                          \
-      if (not xs)                                                              \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else for (const auto& x : xs)                                            \
-      {                                                                        \
-        if (not x or not x.template is<TYPE>())                                \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    })
-
     DEFINE_PREDICATE("symbol?", symbol);
     DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
     DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
 
     define<procedure>("vector", [&](auto&& xs)
     {
-      // auto v { make<vector>() };
-      // std::copy(std::begin(xs), std::end(xs), std::back_inserter(v.as<vector>()));
-      // return v;
-
       return make<vector>(in_range, xs);
     });
 
     DEFINE_PREDICATE("vector?", vector);
 
+  }
+
+  template <>
+  void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
+  {
     auto port { open_input_string(overture.data()) };
 
     std::size_t counts {0};
@@ -583,7 +588,7 @@ namespace meevax::kernel
   }
 
   template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
+  void syntactic_continuation::boot(std::integral_constant<decltype(4), 4>)
   {
     define<procedure>("print", [](auto&& xs)
     {
