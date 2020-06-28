@@ -554,9 +554,11 @@ namespace meevax::kernel
 
     define<procedure>("vector", [&](auto&& xs)
     {
-      auto v { make<vector>() };
-      std::copy(std::begin(xs), std::end(xs), std::back_inserter(v.as<vector>()));
-      return v;
+      // auto v { make<vector>() };
+      // std::copy(std::begin(xs), std::end(xs), std::back_inserter(v.as<vector>()));
+      // return v;
+
+      return make<vector>(in_range, xs);
     });
 
     DEFINE_PREDICATE("vector?", vector);

@@ -58,8 +58,7 @@ namespace meevax::kernel
   *
   *
   * ========================================================================= */
-  auto read_string(std::istream& port)
-    -> const object
+  auto read_string(std::istream& port) -> const object
   {
     switch (auto c {port.narrow(port.get(), '\0')}; c)
     {
@@ -116,8 +115,7 @@ namespace meevax::kernel
     }
   }
 
-  auto read_string(const std::string& s)
-    -> decltype(auto)
+  auto read_string(const std::string& s) -> decltype(auto)
   {
     std::stringstream port {};
     port << s << "\"";
@@ -137,8 +135,7 @@ namespace meevax::kernel
     explicit reader()
       : sources {}
     {
-      sources.emplace(
-        std::cin.rdbuf());
+      sources.emplace(std::cin.rdbuf());
     }
 
     Import(SK, evaluate);
@@ -164,8 +161,7 @@ namespace meevax::kernel
     *   Rename read(std::istream&) => read_from
     *
     * ======================================================================= */
-    auto read(std::istream& port)
-      -> const object
+    auto read(std::istream& port) -> const object
     {
       std::string token {};
 
@@ -259,22 +255,19 @@ namespace meevax::kernel
       return eof_object;
     }
 
-    auto read(std::istream&& port)
-      -> decltype(auto)
+    auto read(std::istream&& port) -> decltype(auto)
     {
       return read(port);
     }
 
-    auto read()
-      -> decltype(auto)
+    auto read() -> decltype(auto)
     {
       return
         read(
           current_input_port());
     }
 
-    auto read(const std::string& s)
-      -> decltype(auto)
+    auto read(const std::string& s) -> decltype(auto)
     {
       return
         read(
@@ -289,14 +282,12 @@ namespace meevax::kernel
           current_input_port());
     }
 
-    auto standard_input_port()
-      -> decltype(auto)
+    auto standard_input_port() -> decltype(auto)
     {
       return std::cin;
     }
 
-    auto current_input_port()
-      -> decltype(auto)
+    auto current_input_port() -> decltype(auto)
     {
       return sources.top();
     }
@@ -312,32 +303,46 @@ namespace meevax::kernel
     Define_Static_Perfect_Forwarding(open_input_string, std::stringstream);
 
   private:
+    template <typename F>
+    auto& ignore(std::istream& port, F&& predicate)
+    {
+      while (predicate(port.peek()))
+      {
+        port.ignore(1);
+      }
+
+      return port;
+    }
+
     const object discriminate(std::istream& is)
     {
       switch (is.peek())
       {
       case 'f':
-        while (not is_delimiter(is.peek()))
-        {
-          is.ignore(1);
-        }
+        ignore(is, [](auto&& x) { return not is_delimiter(x); });
         return f;
 
       case 't':
-        while (not is_delimiter(is.peek()))
-        {
-          is.ignore(1);
-        }
+        ignore(is, [](auto&& x) { return not is_delimiter(x); });
         return t;
 
-      /* ==== Read-Time Evaluation =============================================
-      *
-      * From SRFI-10
-      *
-      * ===================================================================== */
+      /* ==== SRFI-10 Sharp-Comma External Form ================================
+       *
+       *
+       * ==================================================================== */
       case ',':
         is.ignore(1);
         return evaluate(read(is));
+
+      case '(':
+        if (const auto xs { read(is) }; null(xs))
+        {
+          return make<vector>();
+        }
+        else
+        {
+          return make<vector>(in_range, xs);
+        }
 
       case '\\':
         {
