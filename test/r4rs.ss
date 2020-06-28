@@ -404,7 +404,9 @@
   (eqv? "abc" "abc") ; => unspecified
   => #t)
 
-; (check (eqv? '#() '#() => (unspecified))
+(check
+  (eqv? '#() '#()) ; => unspecified
+  => #t)
 
 (check
   (eqv? (lambda (x) x)
@@ -497,10 +499,10 @@
     (eq? x x))
   => #t)
 
-; (check
-;   (let ((x '#()))
-;     (eq? x x))
-;   => #t)
+(check
+  (let ((x '#()))
+    (eq? x x))
+  => #t)
 
 (check
   (let ((p (lambda (x) x)))
@@ -524,10 +526,10 @@
 
 (check (equal? 2 2) => #t)
 
-; (check
-;   (equal? (make-vector 5 'a)
-;           (make-vector 5 'a))
-;   => #t)
+(check
+  (equal? (make-vector 5 'a)
+          (make-vector 5 'a))
+  => #t)
 
 (check
   (equal? (lambda (x) x)
@@ -556,19 +558,19 @@
 (check (list? x) => #t)
 (check (list? y) => #t)
 
-; (set-cdr! x 4) ; => unspecified
+(set-cdr! x 4) ; => unspecified
 
-; (check x => (a . 4))
-; (check y => (a . 4))
+(check x => (a . 4))
+(check y => (a . 4))
 
 (check (eqv? x y) => #t)
 
-; (check (list? x) => #f)
-; (check (list? y) => #f)
+(check (list? x) => #f)
+(check (list? y) => #f)
 
-; (set-cdr! x x) ; => unspecified
+(set-cdr! x x) ; => unspecified
 
-; (check (list? x) => #f)
+(check (list? x) => #f)
 
 ; ---- Procedure (pair? obj) ---------------------------------------------------
 
