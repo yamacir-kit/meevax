@@ -624,24 +624,24 @@ namespace meevax::kernel
         = caddr(xs);
     });
 
-    // define<procedure>("vector->list", [](auto&& xs)
-    // {
-    //   auto result { unit };
-    //
-    //   auto& v { car(xs).template as<vector>() };
-    //
-    //   std::for_each(std::rbegin(v), std::rend(v), [&](auto&& each) mutable
-    //   {
-    //     return result = cons(each, result);
-    //   });
-    //
-    //   return result;
-    // });
+    define<procedure>("vector->list", [](auto&& xs)
+    {
+      auto result { unit };
 
-    // define<procedure>("list->vector", [](auto&& xs)
-    // {
-    //   return make<vector>(in_range, car(xs));
-    // });
+      auto& v { car(xs).template as<vector>() };
+
+      std::for_each(std::rbegin(v), std::rend(v), [&](auto&& each) mutable
+      {
+        return result = cons(each, result);
+      });
+
+      return result;
+    });
+
+    define<procedure>("list->vector", [](auto&& xs)
+    {
+      return make<vector>(in_range, std::begin(car(xs)), std::end(car(xs)));
+    });
 
     // define<procedure>("vector->string", [](auto&& xs)
     // {
