@@ -552,9 +552,6 @@ namespace meevax::kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
-    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
-
     /* ==== R7RS 6.2. Numbers ==================================================
      *
      *
@@ -601,6 +598,12 @@ namespace meevax::kernel
     {
       return make<symbol>(car(xs).template as<std::string>());
     });
+
+    /* ==== R7RS 6.6. Characters ===============================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("char?", character);
 
     /* ==== R7RS 6.8. Vectors ==================================================
      *
@@ -696,6 +699,17 @@ namespace meevax::kernel
     // {
     //   return unspecified;
     // });
+
+    /* ==== R7RS 6.10. Constrol features =======================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("native-procedure?", procedure);
+    DEFINE_PREDICATE("closure?", closure);
+    DEFINE_PREDICATE("continuation?", continuation);
+
+    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
+    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
   }
 
   template <>

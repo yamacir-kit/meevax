@@ -977,18 +977,20 @@
 
 ; ---- Procedure (procedure? obj) ----------------------------------------------
 
-; (check (procedure?  car) => #t)
-; (check (procedure? 'car) => #f)
+(check (procedure?  car) => #t)
+(check (procedure? 'car) => #f)
 
-; (check
-;   (procedure?
-;     (lambda (x) (* x x)))
-;   => #t)
+(check
+  (procedure?
+    (lambda (x) (* x x)))
+  => #t)
 
-; (check
-;   '(procedure?
-;      (lambda (x) (* x x)))
-;   => #t)
+(check
+  (procedure?
+    '(lambda (x) (* x x)))
+  => #f)
+
+(check (call-with-current-continuation procedure?) => #t)
 
 ; ---- Procedure (apply proc args) ---------------------------------------------
 ; ---- Procedure (apply proc arg1 ... args) ------------------------------------

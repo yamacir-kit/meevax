@@ -1037,10 +1037,10 @@
 (define character.so
   (linker "libmeevax-character.so"))
 
-(define character?
-  (procedure character.so "is_character"))
-
-(define char? character?)
+; (define character?
+;   (procedure character.so "is_character"))
+;
+; (define char? character?)
 
 (define character-compare
   (lambda (x xs compare)
@@ -1331,7 +1331,7 @@
 
 (define procedure?
   (lambda (x)
-    (or (procedure? x)
+    (or (native-procedure? x)
         (closure? x)
         (continuation? x) )))
 
