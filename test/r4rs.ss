@@ -352,8 +352,8 @@
 (check (not 3) => #f)
 (check (not (list 3)) => #f)
 (check (not #f) => #t)
-; (check (not '()) => #f) ; SEGV
-; (check (not (list)) => #f) ; SEGV
+(check (not '()) => #f) ; SEGV
+(check (not (list)) => #f) ; SEGV
 (check (not 'nil) => #f)
 
 ; ---- Procedure (boolean? obj) ------------------------------------------------
