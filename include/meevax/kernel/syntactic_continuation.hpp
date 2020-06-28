@@ -708,8 +708,17 @@ namespace meevax::kernel
     DEFINE_PREDICATE("closure?", closure);
     DEFINE_PREDICATE("continuation?", continuation);
 
+    /* ==== R4RS APPENDIX: A compatible low-level macro facility ===============
+     *
+     *
+     * ====================================================================== */
     DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
     DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
+
+    define<procedure>("identifier?", [](auto&& xs)
+    {
+      return kernel::is_identifier(car(xs)) ? t : f;
+    });
   }
 
   template <>
