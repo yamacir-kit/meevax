@@ -27,6 +27,15 @@ namespace meevax::kernel
       std::copy(std::begin(xs), std::end(xs), std::back_inserter(*this));
     }
 
+    friend auto operator==(const vector& lhs, const vector& rhs)
+    {
+      return
+        std::equal(
+          std::begin(lhs), std::end(lhs),
+          std::begin(rhs), std::end(rhs),
+          equal);
+    }
+
     friend auto operator<<(std::ostream& os, const vector& v) -> decltype(os)
     {
       os << console::magenta << "#(" << console::reset;

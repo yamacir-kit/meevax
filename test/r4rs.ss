@@ -209,12 +209,12 @@
 
 ; ---- 4.2.4. Iteration --------------------------------------------------------
 
-; (check
-;   (do ((vec (make-vector 5))
-;        (i 0 (+ i 1)))
-;       ((= i 5) vec)
-;     (vector-set! vec i i))
-;   => #(0 1 2 3 4))
+(check
+  (do ((vec (make-vector 5))
+       (i 0 (+ i 1)))
+      ((= i 5) vec)
+    (vector-set! vec i i))
+  => #(0 1 2 3 4))
 
 (check
   (let ((x '(1 3 5 7 9)))
