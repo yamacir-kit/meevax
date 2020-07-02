@@ -151,14 +151,14 @@ namespace meevax::kernel
     : public std::shared_ptr<T>
   {
     /* ==== Binder =============================================================
-    *
-    * The object binder is the actual data pointed to by the pointer type. To
-    * handle all types uniformly, the binder inherits type T and uses dynamic
-    * polymorphism. This provides access to the bound type ID and its
-    * instances. However, the performance is inferior due to the heavy use of
-    * dynamic cast as a price for convenience.
-    *
-    *======================================================================== */
+     *
+     * The object binder is the actual data pointed to by the pointer type. To
+     * handle all types uniformly, the binder inherits type T and uses dynamic
+     * polymorphism. This provides access to the bound type ID and its
+     * instances. However, the performance is inferior due to the heavy use of
+     * dynamic cast as a price for convenience.
+     *
+     * ====================================================================== */
     template <typename Bound>
     struct binder
       : public Bound
@@ -198,7 +198,7 @@ namespace meevax::kernel
         };
       }
 
-      bool equivalent_to(const std::shared_ptr<T>& rhs) const override
+      bool compare(const std::shared_ptr<T>& rhs) const override
       {
         if constexpr (concepts::is_equality_comparable<Bound>::value)
         {
@@ -214,9 +214,8 @@ namespace meevax::kernel
         }
       }
 
-      // Override T::dispatch(), then invoke Bound's stream output operator.
-      auto dispatch(std::ostream& os) const
-        -> decltype(os) override
+      // Override T::write(), then invoke Bound's stream output operator.
+      auto write(std::ostream& os) const -> decltype(os) override
       {
         if constexpr (concepts::is_stream_insertable<Bound>::value)
         {
@@ -443,7 +442,7 @@ namespace meevax::kernel
       return dereference().copy();
     }
 
-    bool equivalent_to(const pointer& rhs) const
+    bool compare(const pointer& rhs) const
     {
       if (type() != rhs.type()) // TODO REMOVE IF OTHER NUMERICAL TYPE IMPLEMENTED
       {
@@ -451,19 +450,18 @@ namespace meevax::kernel
       }
       else
       {
-        return dereference().equivalent_to(rhs);
+        return dereference().compare(rhs);
       }
     }
 
     // NOTE: Can't compile with less than GCC-9 due to a bug in the compiler.
-    // Define_Const_Perfect_Forwarding(eqv, equivalent_to);
+    // Define_Const_Perfect_Forwarding(eqv, compare);
 
     template <typename... Ts>
-    constexpr auto eqv(Ts&&... xs) const
-      -> decltype(auto)
+    constexpr auto eqv(Ts&&... xs) const -> decltype(auto)
     {
       return
-        equivalent_to(
+        compare(
           std::forward<decltype(xs)>(xs)...);
     }
   };
@@ -472,7 +470,7 @@ namespace meevax::kernel
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
   {
     return not object ? (os << console::magenta << "()" << console::reset)
-                      : object.dereference().dispatch(os);
+                      : object.dereference().write(os);
   }
 } // namespace meevax::kernel
 

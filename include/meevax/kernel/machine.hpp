@@ -432,7 +432,7 @@ namespace meevax::kernel
         * where selection = (if test consequent alternate)
         *
         * =================================================================== */
-        c = not car(s) or not car(s).equivalent_to(f) ? cadr(c) : caddr(c);
+        c = not car(s) or not car(s).compare(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 

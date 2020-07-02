@@ -30,7 +30,7 @@ namespace meevax::kernel
       }
     }
 
-    virtual bool equivalent_to(const std::shared_ptr<T>& other) const
+    virtual bool compare(const std::shared_ptr<T>& other) const
     {
       if constexpr (concepts::is_equality_comparable<T>::value)
       {
@@ -45,8 +45,7 @@ namespace meevax::kernel
       }
     }
 
-    virtual auto dispatch(std::ostream& os) const
-      -> decltype(os)
+    virtual auto write(std::ostream& os) const -> decltype(os)
     {
       return os << static_cast<const T&>(*this);
     };

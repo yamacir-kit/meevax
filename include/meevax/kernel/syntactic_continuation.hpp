@@ -311,7 +311,7 @@ namespace meevax::kernel
   public: // Primitive Expression Types
     DEFINE_PRIMITIVE_EXPRESSION(exportation)
     {
-      if (verbose_mode.equivalent_to(t))
+      if (verbose_mode.compare(t))
       {
         std::cerr
         << (not depth ? "; compile\t; " : ";\t\t; ")

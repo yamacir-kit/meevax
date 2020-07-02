@@ -15,8 +15,7 @@ namespace meevax::kernel
 
   std::ostream& operator<<(std::ostream& os, const integral& integral)
   {
-    return os << console::cyan << integral.str()
-              << console::reset;
+    return os << console::cyan << integral.str() << console::reset;
   }
 
   // using real_base
