@@ -84,6 +84,24 @@ int main()
     result = true;
   });
 
+  // TEST("add number and number",
+  // {
+  //   auto x { make<real>(1) + make<real>(2) };
+  //   result = (x.as<real>() == 3);
+  // });
+  //
+  // TEST("add number and native int",
+  // {
+  //   auto x { make<real>(1) + 2 };
+  //   result = (x.as<real>() == 3);
+  // });
+  //
+  // TEST("add native int and number",
+  // {
+  //   auto x { 1 + make<real>(2) };
+  //   result = (x.as<real>() == 3);
+  // });
+
   // TEST("boot layer-2",
   // {
   //   syntactic_continuation x { layer<2> };

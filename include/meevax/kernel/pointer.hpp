@@ -164,6 +164,8 @@ namespace meevax::kernel
       : public Bound
       , public virtual T
     {
+      using binding = binder<Bound>;
+
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
@@ -186,8 +188,6 @@ namespace meevax::kernel
     private:
       std::shared_ptr<T> copy() const override
       {
-        using binding = binder<Bound>;
-
         if constexpr (std::is_copy_constructible<binding>::value)
         {
           return std::make_shared<binding>(*this);
@@ -400,8 +400,7 @@ namespace meevax::kernel
     *
     *======================================================================= */
     template <typename U, Requires(std::is_arithmetic<U>)>
-    auto as() const
-      -> typename std::decay<U>::type
+    auto as() const -> typename std::decay<U>::type
     {
       std::cerr << "; pointer\t; "
                 << utility::hexdump<std::uintptr_t>(
@@ -467,10 +466,16 @@ namespace meevax::kernel
   };
 
   template <typename T>
-  decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
+  decltype(auto) operator<<(std::ostream& os, const pointer<T>& x)
   {
-    return not object ? (os << console::magenta << "()" << console::reset)
-                      : object.dereference().write(os);
+    if (not x)
+    {
+      return os << console::magenta << "()" << console::reset;
+    }
+    else
+    {
+      return x.dereference().write(os);
+    }
   }
 } // namespace meevax::kernel
 

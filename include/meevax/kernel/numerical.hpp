@@ -42,8 +42,7 @@ namespace meevax::kernel
 
   std::ostream& operator<<(std::ostream& os, const real& real)
   {
-    return os << console::cyan << real.str()
-              << console::reset;
+    return os << console::cyan << real.str() << console::reset;
   }
 
   #define DEFINE_NUMERICAL_BINARY_ARITHMETIC(OPERATOR)                         \
