@@ -4,18 +4,76 @@
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/multiprecision/mpfr.hpp>
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax::kernel
 {
-  using integral
-    = boost::multiprecision::number<
-        boost::multiprecision::gmp_int,
-        boost::multiprecision::et_off>;
+  /* ==== Numbers ==============================================================
+   *
+   *
+   * ======================================================================== */
 
-  std::ostream& operator<<(std::ostream& os, const integral& integral)
+  struct complex
+    : public virtual pair
   {
-    return os << console::cyan << integral.str() << console::reset;
+    auto real() const noexcept -> decltype(auto) { return car(*this); }
+    auto real()       noexcept -> decltype(auto) { return car(*this); }
+
+    auto imag() const noexcept -> decltype(auto) { return cdr(*this); }
+    auto imag()       noexcept -> decltype(auto) { return cdr(*this); }
+
+    // friend auto operator +(const complex& lhs, const complex& rhs)
+    // {
+    //   return
+    //     make<complex>(
+    //       lhs.real() + rhs.real(),
+    //       lhs.imag() + rhs.imag());
+    // }
+    //
+    // template <typename T>
+    // friend auto operator +(const complex& lhs, T&& rhs)
+    // {
+    //   return
+    //     make<complex>(
+    //       lhs.real() + rhs,
+    //       lhs.imag());
+    // }
+  };
+
+  struct rational
+    : public virtual pair
+  {
+  };
+
+  struct integer
+    : public boost::multiprecision::number<
+               boost::multiprecision::gmp_int,
+               boost::multiprecision::et_off>
+  {
+    using boost_integer
+      = boost::multiprecision::number<
+          boost::multiprecision::gmp_int,
+          boost::multiprecision::et_off>;
+
+    using boost_integer::boost_integer;
+
+    // auto operator +(const object& rhs) const
+    // {
+    //   if (rhs.is<integer>())
+    //   {
+    //     // return make<integer>(*this + rhs.as<boost_integer>());
+    //     return make<integer>(42);
+    //   }
+    //   else
+    //   {
+    //     return unit;
+    //   }
+    // }
+  };
+
+  std::ostream& operator<<(std::ostream& os, const integer& x)
+  {
+    return os << console::cyan << x.str() << console::reset;
   }
 
   // using real_base

@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <stdexcept> // std::logic_error
 
+#include <meevax/concepts/addable.hpp>
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/console/escape_sequence.hpp>
@@ -202,7 +203,14 @@ namespace meevax::kernel
       {
         if constexpr (concepts::is_equality_comparable<Bound>::value)
         {
-          return static_cast<const Bound&>(*this) == *std::dynamic_pointer_cast<const Bound>(rhs);
+          if (const auto x { std::dynamic_pointer_cast<const Bound>(rhs) })
+          {
+            return static_cast<const Bound&>(*this) == *x;
+          }
+          else
+          {
+            return false;
+          }
         }
         else
         {
