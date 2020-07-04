@@ -16,7 +16,7 @@ namespace meevax::kernel
       return typeid(T);
     }
 
-    virtual auto copy() const -> std::shared_ptr<T>
+    virtual auto copy() const -> pointer<T>
     {
       if constexpr (std::is_copy_constructible<T>::value)
       {
@@ -24,23 +24,26 @@ namespace meevax::kernel
       }
       else
       {
-        static_assert(
-          []() constexpr { return false; }(),
+        static_assert([]() constexpr { return false; }(),
           "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
       }
     }
 
-    virtual bool compare(const std::shared_ptr<T>& other) const
+    virtual bool compare(const pointer<T>& rhs) const
     {
       if constexpr (concepts::is_equality_comparable<T>::value)
       {
-        const auto p { std::dynamic_pointer_cast<const T>(other) };
-        assert(p);
-        return static_cast<const T&>(*this) == *p;
+        if (const auto x { std::dynamic_pointer_cast<const T>(rhs) })
+        {
+          return static_cast<const T&>(*this) == *x;
+        }
+        else
+        {
+          return false;
+        }
       }
       else
       {
-        // TODO: warning
         return false;
       }
     }

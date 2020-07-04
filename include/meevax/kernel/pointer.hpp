@@ -193,7 +193,7 @@ namespace meevax::kernel
       }
 
     private:
-      auto copy() const -> std::shared_ptr<T> override
+      auto copy() const -> pointer override
       {
         if constexpr (std::is_copy_constructible<binding>::value)
         {
@@ -205,7 +205,7 @@ namespace meevax::kernel
         };
       }
 
-      bool compare(const std::shared_ptr<T>& rhs) const override
+      bool compare(const pointer& rhs) const override
       {
         if constexpr (concepts::is_equality_comparable<bound>::value)
         {
@@ -220,10 +220,6 @@ namespace meevax::kernel
         }
         else
         {
-          std::cerr << "; warning\t; equivalence comparison for type "
-                    << utility::demangle(type())
-                    << " is undefined (always return #false)"
-                    << std::endl;
           return false;
         }
       }
