@@ -17,6 +17,8 @@
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace meevax::kernel
 {
@@ -165,12 +167,17 @@ namespace meevax::kernel
       : public Bound
       , public virtual T
     {
-      using binding = binder<Bound>;
+      using base = T;
+
+      using bound = Bound;
+      using const_bound = const bound;
+
+      using binding = binder<bound>;
 
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
-            std::is_base_of<T, Bound>::value, T, Bound
+            std::is_base_of<base, bound>::value, base, bound
           >::type { std::forward<decltype(xs)>(xs)... }
       {}
 
@@ -180,14 +187,13 @@ namespace meevax::kernel
 
       virtual ~binder() = default;
 
-      auto type() const noexcept
-        -> const std::type_info& override
+      auto type() const noexcept -> const std::type_info& override
       {
-        return typeid(Bound);
+        return typeid(bound);
       }
 
     private:
-      std::shared_ptr<T> copy() const override
+      auto copy() const -> std::shared_ptr<T> override
       {
         if constexpr (std::is_copy_constructible<binding>::value)
         {
@@ -201,11 +207,11 @@ namespace meevax::kernel
 
       bool compare(const std::shared_ptr<T>& rhs) const override
       {
-        if constexpr (concepts::is_equality_comparable<Bound>::value)
+        if constexpr (concepts::is_equality_comparable<bound>::value)
         {
-          if (const auto x { std::dynamic_pointer_cast<const Bound>(rhs) })
+          if (const auto x { std::dynamic_pointer_cast<const bound>(rhs) })
           {
-            return static_cast<const Bound&>(*this) == *x;
+            return static_cast<const bound&>(*this) == *x;
           }
           else
           {
@@ -225,19 +231,31 @@ namespace meevax::kernel
       // Override T::write(), then invoke Bound's stream output operator.
       auto write(std::ostream& os) const -> decltype(os) override
       {
-        if constexpr (concepts::is_stream_insertable<Bound>::value)
+        if constexpr (concepts::is_stream_insertable<bound>::value)
         {
-          return os << static_cast<const Bound&>(*this);
+          return os << static_cast<const bound&>(*this);
         }
         else
         {
           return os << console::magenta << "#("
-                    << console::green << utility::demangle(typeid(Bound))
+                    << console::green << utility::demangle(type())
                     << console::reset
-                    << console::faint << " #;" << static_cast<const Bound*>(this)
+                    << console::faint << " #;" << static_cast<const bound*>(this)
                     << console::reset
                     << console::magenta << ")"
                     << console::reset;
+        }
+      }
+
+      auto operator +(const pointer& rhs) const -> pointer override
+      {
+        if constexpr (concepts::addable<bound, decltype(rhs)>::value)
+        {
+          return static_cast<const bound&>(*this).operator +(rhs);
+        }
+        else
+        {
+          throw std::runtime_error { "" };
         }
       }
     };
@@ -256,9 +274,7 @@ namespace meevax::kernel
     * correctly).
     *
     *======================================================================== */
-    template <typename Bound,
-              typename... Ts,
-              Requires(is_not_embeddable<Bound>)>
+    template <typename Bound, typename... Ts, Requires(is_not_embeddable<Bound>)>
     static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -305,7 +321,7 @@ namespace meevax::kernel
       const auto pattern {*reinterpret_cast<std::uintptr_t*>(&value)};
 
       return
-        std::shared_ptr<T>(
+        pointer(
           reinterpret_cast<T*>(
             pattern << mask_width bitor tag<U>::value),
             ignore);
@@ -483,6 +499,21 @@ namespace meevax::kernel
     else
     {
       return x.dereference().write(os);
+    }
+  }
+
+  template <typename T, typename U>
+  decltype(auto) operator +(const pointer<T>& lhs, const pointer<U>& rhs)
+  {
+    if (lhs && rhs)
+    {
+      return lhs.dereference().operator +(lhs);
+    }
+    else
+    {
+      std::stringstream ss {};
+      ss << "no viable overload with " << lhs << " and " << rhs;
+      throw std::logic_error { ss.str() };
     }
   }
 } // namespace meevax::kernel

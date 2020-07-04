@@ -11,7 +11,9 @@ namespace meevax::concepts
   {};
 
   template <typename T, typename U>
-  struct addable<T, U, std::void_t<decltype(std::declval<T>() + std::declval<U>())>>
+  struct addable<T, U, std::void_t<decltype(
+           std::declval<T>().operator +(std::declval<U>())
+         )>>
     : public std::true_type
   {};
 } // namespace meevax::concepts

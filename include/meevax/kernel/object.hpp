@@ -49,6 +49,14 @@ namespace meevax::kernel
     {
       return os << static_cast<const T&>(*this);
     };
+
+    // override by binder's operator +
+    virtual auto operator +(const pointer<T>&) const -> pointer<T>
+    {
+      std::stringstream ss {};
+      ss << __FILE__ << ":" << __LINE__;
+      throw std::logic_error { ss.str() };
+    }
   };
 
   struct pair; // forward declaration
