@@ -1,5 +1,8 @@
 #include <meevax/kernel/syntactic_continuation.hpp>
 
+#define DEBUG() \
+  std::cerr << __FILE__ << ":" << __LINE__ << std::endl
+
 #define TEST(TITLE, ...)                                                       \
   do                                                                           \
   {                                                                            \
@@ -84,12 +87,35 @@ int main()
     result = true;
   });
 
-  // TEST("add number and number",
-  // {
-  //   auto x { make<real>(1) + make<real>(2) };
-  //   result = (x.as<real>() == 3);
-  // });
-  //
+  TEST("add integer and integer",
+  {
+    std::cerr << std::endl;
+    DEBUG();
+
+    const auto a { make<integer>(1) };
+
+    if (a.is<integer>()) DEBUG();
+    DEBUG();
+
+    if (a.as<integer>() == 1) DEBUG();
+    DEBUG();
+
+    const auto b { make<integer>(2) };
+    DEBUG();
+
+    if (b.is<integer>()) DEBUG();
+    DEBUG();
+
+    if (b.as<integer>() == 2) DEBUG();
+    DEBUG();
+
+    const auto x = a + b;
+    DEBUG();
+
+    result = x.is<integer>() && (x.as<integer>() == 3);
+    DEBUG();
+  });
+
   // TEST("add number and native int",
   // {
   //   auto x { make<real>(1) + 2 };

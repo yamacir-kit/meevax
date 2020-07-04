@@ -8,6 +8,16 @@
 
 namespace meevax::kernel
 {
+  namespace multiprecision
+  {
+    using namespace boost::multiprecision;
+
+    using real = number<mpfr_float_backend<0>, et_off>;
+    // using real = number<gmp_float, et_off>;
+
+    using integer = mpz_int;
+  }
+
   /* ==== Numbers ==============================================================
    *
    *
@@ -40,78 +50,85 @@ namespace meevax::kernel
     // }
   };
 
+  struct real
+    : public multiprecision::real
+  {
+    using multiprecision::real::real;
+
+    auto operator +(const object& rhs) const
+    {
+      if (!rhs)
+      {
+        throw std::logic_error { "no viable addition with real and unit." };
+      }
+      else if (rhs.is<real>())
+      {
+        return
+          make<real>(
+            static_cast<const multiprecision::real&>(*this) + rhs.as<multiprecision::real>());
+      }
+      else
+      {
+        throw std::logic_error { "no viable addition with real and unknown." };
+      }
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const real& x)
+    {
+      return os << console::cyan << x.str() << console::reset;
+    }
+  };
+
+  auto operator ==(const real& x, const real& y)
+  {
+    return static_cast<const multiprecision::real&>(x)
+        == static_cast<const multiprecision::real&>(y);
+  }
+
   struct rational
     : public virtual pair
   {
   };
 
   struct integer
-    : public boost::multiprecision::number<
-               boost::multiprecision::gmp_int,
-               boost::multiprecision::et_off>
+    : public multiprecision::integer
   {
-    using boost_integer
-      = boost::multiprecision::number<
-          boost::multiprecision::gmp_int,
-          boost::multiprecision::et_off>;
+    using multiprecision::integer::integer;
 
-    using boost_integer::boost_integer;
+    auto operator +(const object& rhs) const
+    {
+      if (!rhs)
+      {
+        throw std::logic_error { "no viable addition with integer and unit." };
+      }
+      else if (rhs.is<integer>())
+      {
+        return
+          make<integer>(
+            static_cast<const multiprecision::integer&>(*this)
+            + rhs.as<multiprecision::integer>());
+      }
+      else
+      {
+        throw std::logic_error { "" };
+      }
+    }
 
-    // auto operator +(const object& rhs) const
-    // {
-    //   if (rhs.is<integer>())
-    //   {
-    //     // return make<integer>(*this + rhs.as<boost_integer>());
-    //     return make<integer>(42);
-    //   }
-    //   else
-    //   {
-    //     return unit;
-    //   }
-    // }
+    friend std::ostream& operator<<(std::ostream& os, const integer& x)
+    {
+      return os << console::cyan << x.str() << console::reset;
+    }
   };
-
-  std::ostream& operator<<(std::ostream& os, const integer& x)
-  {
-    return os << console::cyan << x.str() << console::reset;
-  }
-
-  // using real_base
-  using real
-    = boost::multiprecision::number<
-        boost::multiprecision::mpfr_float_backend<0>,
-        boost::multiprecision::et_off>;
-
-  // struct real
-  //   : public real_base
-  // {
-  //   visual::point position;
-  //
-  //   template <typename... Ts>
-  //   explicit constexpr real(Ts&&... operands)
-  //     : real_base {std::forward<decltype(operands)>(operands)...}
-  //   {}
-  //
-  //   const auto& boost() const noexcept
-  //   {
-  //     return static_cast<const real_base&>(*this);
-  //   }
-  // };
-
-  std::ostream& operator<<(std::ostream& os, const real& real)
-  {
-    return os << console::cyan << real.str() << console::reset;
-  }
 
   #define DEFINE_NUMERICAL_BINARY_ARITHMETIC(OPERATOR)                         \
   decltype(auto) operator OPERATOR(const object& lhs, const object& rhs)       \
   {                                                                            \
     return make<real>(                                                         \
-      lhs.as<const real>() OPERATOR rhs.as<const real>()                       \
+      lhs.as<const multiprecision::real>() OPERATOR rhs.as<const multiprecision::real>() \
     );                                                                         \
   }
 
-  DEFINE_NUMERICAL_BINARY_ARITHMETIC(+)
+  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(+)
   DEFINE_NUMERICAL_BINARY_ARITHMETIC(*)
   DEFINE_NUMERICAL_BINARY_ARITHMETIC(-)
   DEFINE_NUMERICAL_BINARY_ARITHMETIC(/)
@@ -119,7 +136,7 @@ namespace meevax::kernel
   #define DEFINE_NUMERICAL_BINARY_COMPARISON(OPERATOR)                         \
   decltype(auto) operator OPERATOR(const object& lhs, const object& rhs)       \
   {                                                                            \
-    return lhs.as<const real>() OPERATOR rhs.as<const real>();                 \
+    return lhs.as<const multiprecision::real>() OPERATOR rhs.as<const multiprecision::real>(); \
   }
 
   DEFINE_NUMERICAL_BINARY_COMPARISON(<)
@@ -129,4 +146,3 @@ namespace meevax::kernel
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
-

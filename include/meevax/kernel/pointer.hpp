@@ -17,8 +17,6 @@
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
-#include <type_traits>
-#include <utility>
 
 namespace meevax::kernel
 {
@@ -220,6 +218,7 @@ namespace meevax::kernel
         }
         else
         {
+          std::cerr << "; warning\t; no viable comparison with (" << type().name() << " " << static_cast<const bound&>(*this) << ") and (" << rhs.type().name() << " " << rhs << ") => return #f." << std::endl;
           return false;
         }
       }
@@ -503,12 +502,12 @@ namespace meevax::kernel
   {
     if (lhs && rhs)
     {
-      return lhs.dereference().operator +(lhs);
+      return lhs.dereference().operator +(rhs);
     }
     else
     {
       std::stringstream ss {};
-      ss << "no viable overload with " << lhs << " and " << rhs;
+      ss << "no viable addition with " << lhs << " and " << rhs;
       throw std::logic_error { ss.str() };
     }
   }

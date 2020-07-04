@@ -24,13 +24,13 @@
 (define check-set-mode!
   (lambda (mode)
     (set! check::mode
-          (case mode
-            ((off)               0)
-            ((summary)           1)
-            ((report-incorrect) 10)
-            ((report)          100)
-            (else
-              (error "unrecognized mode" mode))))))
+      (case mode
+        ((off)               0)
+        ((summary)           1)
+        ((report-incorrect) 10)
+        ((report)          100)
+        (else
+          (error "unrecognized mode" mode))))))
 
 (check-set-mode! 'report)
 
@@ -150,14 +150,21 @@
         (error "unrecognized check::mode" check::mode))
       (if #false #false))))
 
-(define-syntax (check expression rule expected)
-  (cond
-    ((and (pair? rule)
-          (eq? (car rule) '=>)
-          (symbol? (cadr rule)))
-     `(,check::proc ',expression (lambda () ,expression) ,(cadr rule) ',expected))
-    ((and (symbol? rule)
-          (eq? rule '=>))
-     `(,check ,expression (=> equal?) ,expected))
-    (else
-      (if #false #false))))
+(define-syntax check
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (let ((expr (cadr form))
+            (rule (caddr form))
+            (expected (cadddr form)))
+        (cond
+          ((and (pair? rule)
+                (compare (car rule) (rename '=>))
+                (identifier? (cadr rule)))
+           `(,(rename 'check::proc) ',expr (lambda () ,expr) ,(cadr rule) ',expected))
+
+          ((and (identifier? rule)
+                (compare rule (rename '=>)))
+           `(,(rename 'check) ,expr (,(rename '=>) ,(rename 'equal?)) ,expected))
+
+          (else
+            (if #f #f)))))))
