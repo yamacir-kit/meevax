@@ -3,6 +3,7 @@
 
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/multiprecision/mpfr.hpp>
+#include <boost/operators.hpp>
 
 #include <meevax/kernel/pair.hpp>
 
@@ -55,23 +56,31 @@ namespace meevax::kernel
   {
     using multiprecision::real::real;
 
-    auto operator +(const object& rhs) const
-    {
-      if (!rhs)
-      {
-        throw std::logic_error { "no viable addition with real and unit." };
-      }
-      else if (rhs.is<real>())
-      {
-        return
-          make<real>(
-            static_cast<const multiprecision::real&>(*this) + rhs.as<multiprecision::real>());
-      }
-      else
-      {
-        throw std::logic_error { "no viable addition with real and unknown." };
-      }
-    }
+    #define DEFINE_BINARY_ARITHMETIC_REAL(SYMBOL)                              \
+    auto operator SYMBOL(const object& rhs) const                              \
+    {                                                                          \
+      if (!rhs)                                                                \
+      {                                                                        \
+        throw std::logic_error { "no viable addition with real and unit." };   \
+      }                                                                        \
+      else if (rhs.is<real>())                                                 \
+      {                                                                        \
+        return                                                                 \
+          make<real>(                                                          \
+            static_cast<const multiprecision::real&>(*this)                    \
+            SYMBOL                                                             \
+            rhs.as<multiprecision::real>());                                   \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        throw std::logic_error { "no viable addition with real and unknown." };\
+      }                                                                        \
+    } static_assert(true, "semicolon required after this macro")
+
+    DEFINE_BINARY_ARITHMETIC_REAL(*);
+    DEFINE_BINARY_ARITHMETIC_REAL(+);
+    DEFINE_BINARY_ARITHMETIC_REAL(-);
+    DEFINE_BINARY_ARITHMETIC_REAL(/);
 
     friend std::ostream& operator<<(std::ostream& os, const real& x)
     {
@@ -95,24 +104,31 @@ namespace meevax::kernel
   {
     using multiprecision::integer::integer;
 
-    auto operator +(const object& rhs) const
-    {
-      if (!rhs)
-      {
-        throw std::logic_error { "no viable addition with integer and unit." };
-      }
-      else if (rhs.is<integer>())
-      {
-        return
-          make<integer>(
-            static_cast<const multiprecision::integer&>(*this)
-            + rhs.as<multiprecision::integer>());
-      }
-      else
-      {
-        throw std::logic_error { "" };
-      }
-    }
+    #define DEFINE_BINARY_ARITHMETIC_INTEGER(SYMBOL)                           \
+    auto operator SYMBOL(const object& rhs) const                              \
+    {                                                                          \
+      if (!rhs)                                                                \
+      {                                                                        \
+        throw std::logic_error { "no viable addition with integer and unit." };\
+      }                                                                        \
+      else if (rhs.is<integer>())                                              \
+      {                                                                        \
+        return                                                                 \
+          make<integer>(                                                       \
+            static_cast<const multiprecision::integer&>(*this)                 \
+            SYMBOL                                                             \
+            rhs.as<multiprecision::integer>());                                \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        throw std::logic_error { "" };                                         \
+      }                                                                        \
+    } static_assert(true, "semicolon required after this macro")
+
+    DEFINE_BINARY_ARITHMETIC_INTEGER(*);
+    DEFINE_BINARY_ARITHMETIC_INTEGER(+);
+    DEFINE_BINARY_ARITHMETIC_INTEGER(-);
+    DEFINE_BINARY_ARITHMETIC_INTEGER(/);
 
     friend std::ostream& operator<<(std::ostream& os, const integer& x)
     {
@@ -129,9 +145,9 @@ namespace meevax::kernel
   }
 
   // DEFINE_NUMERICAL_BINARY_ARITHMETIC(+)
-  DEFINE_NUMERICAL_BINARY_ARITHMETIC(*)
-  DEFINE_NUMERICAL_BINARY_ARITHMETIC(-)
-  DEFINE_NUMERICAL_BINARY_ARITHMETIC(/)
+  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(*)
+  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(-)
+  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(/)
 
   #define DEFINE_NUMERICAL_BINARY_COMPARISON(OPERATOR)                         \
   decltype(auto) operator OPERATOR(const object& lhs, const object& rhs)       \

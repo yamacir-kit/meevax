@@ -644,7 +644,7 @@ namespace meevax::kernel
               list_reference(
                 e,
                 static_cast<int>(caadr(c).template as<real>())),
-              static_cast<int>(cdadr(c).template as<real>() - 1))),
+              static_cast<int>(cdadr(c).template as<real>()))),
           car(s));
         pop<2>(c);
         goto dispatch;

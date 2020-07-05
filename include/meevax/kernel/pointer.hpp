@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <stdexcept> // std::logic_error
 
-#include <meevax/concepts/addable.hpp>
+#include <meevax/concepts/arithmetic.hpp>
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/console/escape_sequence.hpp>
@@ -242,17 +242,23 @@ namespace meevax::kernel
         }
       }
 
-      auto operator +(const pointer& rhs) const -> pointer override
-      {
-        if constexpr (concepts::addable<bound, decltype(rhs)>::value)
-        {
-          return static_cast<const bound&>(*this).operator +(rhs);
-        }
-        else
-        {
-          throw std::runtime_error { "" };
-        }
-      }
+      #define DEFINE_BINARY_OPERATION_FORWARDER(SYMBOL, CONCEPT)               \
+      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
+      {                                                                        \
+        if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
+        {                                                                      \
+          return static_cast<const bound&>(*this).operator SYMBOL(rhs);        \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          throw std::runtime_error { "" };                                     \
+        }                                                                      \
+      } static_assert(true, "semicolon required after this macro")
+
+      DEFINE_BINARY_OPERATION_FORWARDER(*, multipliable);
+      DEFINE_BINARY_OPERATION_FORWARDER(+, addable);
+      DEFINE_BINARY_OPERATION_FORWARDER(-, subtractable);
+      DEFINE_BINARY_OPERATION_FORWARDER(/, divisible);
     };
 
   public:
@@ -497,20 +503,26 @@ namespace meevax::kernel
     }
   }
 
-  template <typename T, typename U>
-  decltype(auto) operator +(const pointer<T>& lhs, const pointer<U>& rhs)
-  {
-    if (lhs && rhs)
-    {
-      return lhs.dereference().operator +(rhs);
-    }
-    else
-    {
-      std::stringstream ss {};
-      ss << "no viable addition with " << lhs << " and " << rhs;
-      throw std::logic_error { ss.str() };
-    }
-  }
+  #define DEFINE_BINARY_OPERATION_DISPATCHER(SYMBOL, NAME)                     \
+  template <typename T, typename U>                                            \
+  decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
+  {                                                                            \
+    if (lhs && rhs)                                                            \
+    {                                                                          \
+      return lhs.dereference().operator SYMBOL(rhs);                           \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " NAME " with " << lhs << " and " << rhs;               \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  DEFINE_BINARY_OPERATION_DISPATCHER(*, "multiplication");
+  DEFINE_BINARY_OPERATION_DISPATCHER(+, "addition");
+  DEFINE_BINARY_OPERATION_DISPATCHER(-, "subtraction");
+  DEFINE_BINARY_OPERATION_DISPATCHER(/, "division");
 } // namespace meevax::kernel
 
 namespace std
@@ -521,5 +533,7 @@ namespace std
   {};
 }
 
+#undef DEFINE_BINARY_OPERATION_FORWARDER
+#undef DEFINE_BINARY_OPERATION_DISPATCHER
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 

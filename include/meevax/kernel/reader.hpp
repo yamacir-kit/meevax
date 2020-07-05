@@ -128,14 +128,14 @@ namespace meevax::kernel
   * ========================================================================= */
   template <typename SK>
   class reader
-    : private boost::iostreams::stream_buffer<boost::iostreams::null_sink>
+    // : private boost::iostreams::stream_buffer<boost::iostreams::null_sink>
   {
     friend SK;
 
     explicit reader()
-      : sources {}
+      // : sources {}
     {
-      sources.emplace(std::cin.rdbuf());
+      // sources.emplace(std::cin.rdbuf());
     }
 
     Import(SK, evaluate);
@@ -152,7 +152,7 @@ namespace meevax::kernel
     // car(something) = path;
     // cdr(something) = make<integer>(1); // current line
 
-    std::stack<std::istream> sources;
+    // std::stack<std::istream> sources;
 
   public:
     /* ==== Read ===============================================================
@@ -282,21 +282,22 @@ namespace meevax::kernel
           current_input_port());
     }
 
-    auto standard_input_port() -> decltype(auto)
+    auto standard_input_port() const noexcept -> auto&
     {
       return std::cin;
     }
 
-    auto current_input_port() -> decltype(auto)
+    auto current_input_port() const noexcept -> decltype(auto)
     {
-      return sources.top();
+      // return sources.top();
+      return standard_input_port();
     }
 
-    auto current_input_port(std::istream&& port)
-    {
-      sources.push(port);
-      return current_input_port();
-    }
+    // auto current_input_port(std::istream&& port)
+    // {
+    //   sources.push(port);
+    //   return current_input_port();
+    // }
 
   public:
     Define_Static_Perfect_Forwarding(open_input_file, std::ifstream);

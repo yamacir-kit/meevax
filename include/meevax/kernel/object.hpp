@@ -53,13 +53,21 @@ namespace meevax::kernel
       return os << static_cast<const T&>(*this);
     };
 
-    // override by binder's operator +
-    virtual auto operator +(const pointer<T>&) const -> pointer<T>
-    {
-      std::stringstream ss {};
-      ss << __FILE__ << ":" << __LINE__;
-      throw std::logic_error { ss.str() };
-    }
+    // override by binder's operators
+    #define DEFINE_BINARY_OPERATOR_ELEVATOR(SYMBOL)                            \
+    virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << __FILE__ << ":" << __LINE__;                                       \
+      throw std::logic_error { ss.str() };                                     \
+    } static_assert(true, "semicolon required after this macro")
+
+    DEFINE_BINARY_OPERATOR_ELEVATOR(*);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(+);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(-);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(/);
+
+    #undef DEFINE_BINARY_OPERATOR_ELEVATOR
   };
 
   struct pair; // forward declaration
