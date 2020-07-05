@@ -3,8 +3,8 @@
 
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/multiprecision/mpfr.hpp>
-#include <boost/operators.hpp>
 
+#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax::kernel
@@ -66,22 +66,14 @@ namespace meevax::kernel
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
 
-    // auto operator ==(const object&) const -> object;
-    // auto operator !=(const object&) const -> object;
-
-    // auto operator < (const object&) const -> object;
-    // auto operator <=(const object&) const -> object;
-    // auto operator > (const object&) const -> object;
-    // auto operator >=(const object&) const -> object;
+    auto operator < (const object&) const -> object;
+    auto operator <=(const object&) const -> object;
+    auto operator > (const object&) const -> object;
+    auto operator >=(const object&) const -> object;
 
   public:
     auto operator ==(const real& rhs) const { return backend() == rhs.backend(); }
     auto operator !=(const real& rhs) const { return !(*this == rhs); }
-
-    // auto operator < (const real& rhs) const { return backend() < rhs.backend(); }
-    // auto operator > (const real& rhs) const { return rhs < *this; }
-    // auto operator <=(const real& rhs) const { return !(*this > rhs); }
-    // auto operator >=(const real& rhs) const { return !(*this < rhs); }
 
     friend std::ostream& operator<<(std::ostream& os, const real& x)
     {
@@ -110,40 +102,20 @@ namespace meevax::kernel
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
 
-    // auto operator ==(const object&) const -> object;
-    // auto operator !=(const object&) const -> object;
-
-    // auto operator < (const object&) const -> object;
-    // auto operator <=(const object&) const -> object;
-    // auto operator > (const object&) const -> object;
-    // auto operator >=(const object&) const -> object;
+    auto operator < (const object&) const -> object;
+    auto operator <=(const object&) const -> object;
+    auto operator > (const object&) const -> object;
+    auto operator >=(const object&) const -> object;
 
   public:
     auto operator ==(const integer& rhs) const { return backend() == rhs.backend(); }
     auto operator !=(const integer& rhs) const { return !(*this == rhs); }
-
-    // auto operator < (const integer& rhs) const { return backend() < rhs.backend(); }
-    // auto operator > (const integer& rhs) const { return rhs < *this; }
-    // auto operator <=(const integer& rhs) const { return !(*this > rhs); }
-    // auto operator >=(const integer& rhs) const { return !(*this < rhs); }
 
     friend std::ostream& operator<<(std::ostream& os, const integer& x)
     {
       return os << console::cyan << x.str() << console::reset;
     }
   };
-
-  #define DEFINE_NUMERICAL_BINARY_COMPARISON(OPERATOR)                         \
-  decltype(auto) operator OPERATOR(const object& lhs, const object& rhs)       \
-  {                                                                            \
-    return lhs.as<const multiprecision::real>() OPERATOR rhs.as<const multiprecision::real>(); \
-  }
-
-  DEFINE_NUMERICAL_BINARY_COMPARISON(<)
-  DEFINE_NUMERICAL_BINARY_COMPARISON(<=)
-  DEFINE_NUMERICAL_BINARY_COMPARISON(>)
-  DEFINE_NUMERICAL_BINARY_COMPARISON(>=)
-
 
   #define DEFINE_BINARY_ARITHMETIC_REAL(SYMBOL, OPERATION)                     \
   auto real::operator SYMBOL(const object& rhs) const -> object                \
@@ -175,11 +147,6 @@ namespace meevax::kernel
   DEFINE_BINARY_ARITHMETIC_REAL(-, "subtraction");
   DEFINE_BINARY_ARITHMETIC_REAL(/, "division");
 
-  // DEFINE_BINARY_ARITHMETIC_REAL(<,  "less-than comparison");
-  // DEFINE_BINARY_ARITHMETIC_REAL(<=, "less-equal comparison");
-  // DEFINE_BINARY_ARITHMETIC_REAL(>,  "greater-than comparison");
-  // DEFINE_BINARY_ARITHMETIC_REAL(>=, "greater-equal comparison");
-
   #define DEFINE_BINARY_ARITHMETIC_INTEGER(SYMBOL, OPERATION)                  \
   auto integer::operator SYMBOL(const object& rhs) const -> object             \
   {                                                                            \
@@ -210,10 +177,43 @@ namespace meevax::kernel
   DEFINE_BINARY_ARITHMETIC_INTEGER(-, "subtraction");
   DEFINE_BINARY_ARITHMETIC_INTEGER(/, "division");
 
-  // DEFINE_BINARY_ARITHMETIC_INTEGER(<,  "less-than comparison");
-  // DEFINE_BINARY_ARITHMETIC_INTEGER(<=, "less-equal comparison");
-  // DEFINE_BINARY_ARITHMETIC_INTEGER(>,  "greater-than comparison");
-  // DEFINE_BINARY_ARITHMETIC_INTEGER(>=, "greater-equal comparison");
+  #define DEFINE_COMPARISON(TYPE, SYMBOL, OPERATION)                           \
+  auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
+  {                                                                            \
+    if (!rhs)                                                                  \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+    else if (rhs.is<real>())                                                   \
+    {                                                                          \
+      return make<boolean>(backend() SYMBOL rhs.as<multiprecision::real>());   \
+    }                                                                          \
+    else if (rhs.is<integer>())                                                \
+    {                                                                          \
+      return make<boolean>(backend() SYMBOL rhs.as<multiprecision::integer>());\
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  DEFINE_COMPARISON(real, <,  "less-than comparison");
+  DEFINE_COMPARISON(real, <=, "less-equal comparison");
+  DEFINE_COMPARISON(real, >,  "greater-than comparison");
+  DEFINE_COMPARISON(real, >=, "greater-equal comparison");
+
+  DEFINE_COMPARISON(integer, <,  "less-than comparison");
+  DEFINE_COMPARISON(integer, <=, "less-equal comparison");
+  DEFINE_COMPARISON(integer, >,  "greater-than comparison");
+  DEFINE_COMPARISON(integer, >=, "greater-equal comparison");
 } // namespace meevax::kernel
 
+#undef DEFINE_BINARY_ARITHMETIC_INTEGER
+#undef DEFINE_BINARY_ARITHMETIC_REAL
+#undef DEFINE_COMPARISON
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP

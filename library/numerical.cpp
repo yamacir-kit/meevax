@@ -58,30 +58,22 @@ extern "C" namespace meevax::numerical
 
   PROCEDURE(less)
   {
-    return
-      kernel::convert(
-        MEEVAX_BINARY_OPERATION(std::less {}));
+    return MEEVAX_BINARY_OPERATION(std::less {});
   }
 
   PROCEDURE(less_equal)
   {
-    return
-      kernel::convert(
-        MEEVAX_BINARY_OPERATION(std::less_equal {}));
+    return MEEVAX_BINARY_OPERATION(std::less_equal {});
   }
 
   PROCEDURE(greater)
   {
-    return
-      kernel::convert(
-        MEEVAX_BINARY_OPERATION(std::greater {}));
+    return MEEVAX_BINARY_OPERATION(std::greater {});
   }
 
   PROCEDURE(greater_equal)
   {
-    return
-      kernel::convert(
-        MEEVAX_BINARY_OPERATION(std::greater_equal {}));
+    return MEEVAX_BINARY_OPERATION(std::greater_equal {});
   }
 
   PROCEDURE(real_)
