@@ -71,14 +71,22 @@ namespace meevax::kernel
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
 
+    // auto operator ==(const object&) const -> object;
+    // auto operator !=(const object&) const -> object;
+
+    // auto operator < (const object&) const -> object;
+    // auto operator <=(const object&) const -> object;
+    // auto operator > (const object&) const -> object;
+    // auto operator >=(const object&) const -> object;
+
   public:
     auto operator ==(const real& rhs) const { return backend() == rhs.backend(); }
     auto operator !=(const real& rhs) const { return !(*this == rhs); }
 
-    auto operator < (const real& rhs) const { return backend() < rhs.backend(); }
-    auto operator > (const real& rhs) const { return rhs < *this; }
-    auto operator <=(const real& rhs) const { return !(*this > rhs); }
-    auto operator >=(const real& rhs) const { return !(*this < rhs); }
+    // auto operator < (const real& rhs) const { return backend() < rhs.backend(); }
+    // auto operator > (const real& rhs) const { return rhs < *this; }
+    // auto operator <=(const real& rhs) const { return !(*this > rhs); }
+    // auto operator >=(const real& rhs) const { return !(*this < rhs); }
 
     friend std::ostream& operator<<(std::ostream& os, const real& x)
     {
@@ -101,10 +109,28 @@ namespace meevax::kernel
       return static_cast<const multiprecision::integer&>(*this);
     }
 
+  public:
     auto operator *(const object&) const -> object;
     auto operator +(const object&) const -> object;
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
+
+    // auto operator ==(const object&) const -> object;
+    // auto operator !=(const object&) const -> object;
+
+    // auto operator < (const object&) const -> object;
+    // auto operator <=(const object&) const -> object;
+    // auto operator > (const object&) const -> object;
+    // auto operator >=(const object&) const -> object;
+
+  public:
+    auto operator ==(const integer& rhs) const { return backend() == rhs.backend(); }
+    auto operator !=(const integer& rhs) const { return !(*this == rhs); }
+
+    // auto operator < (const integer& rhs) const { return backend() < rhs.backend(); }
+    // auto operator > (const integer& rhs) const { return rhs < *this; }
+    // auto operator <=(const integer& rhs) const { return !(*this > rhs); }
+    // auto operator >=(const integer& rhs) const { return !(*this < rhs); }
 
     friend std::ostream& operator<<(std::ostream& os, const integer& x)
     {
@@ -154,6 +180,11 @@ namespace meevax::kernel
   DEFINE_BINARY_ARITHMETIC_REAL(-, "subtraction");
   DEFINE_BINARY_ARITHMETIC_REAL(/, "division");
 
+  // DEFINE_BINARY_ARITHMETIC_REAL(<,  "less-than comparison");
+  // DEFINE_BINARY_ARITHMETIC_REAL(<=, "less-equal comparison");
+  // DEFINE_BINARY_ARITHMETIC_REAL(>,  "greater-than comparison");
+  // DEFINE_BINARY_ARITHMETIC_REAL(>=, "greater-equal comparison");
+
   #define DEFINE_BINARY_ARITHMETIC_INTEGER(SYMBOL, OPERATION)                  \
   auto integer::operator SYMBOL(const object& rhs) const -> object             \
   {                                                                            \
@@ -184,6 +215,10 @@ namespace meevax::kernel
   DEFINE_BINARY_ARITHMETIC_INTEGER(-, "subtraction");
   DEFINE_BINARY_ARITHMETIC_INTEGER(/, "division");
 
+  // DEFINE_BINARY_ARITHMETIC_INTEGER(<,  "less-than comparison");
+  // DEFINE_BINARY_ARITHMETIC_INTEGER(<=, "less-equal comparison");
+  // DEFINE_BINARY_ARITHMETIC_INTEGER(>,  "greater-than comparison");
+  // DEFINE_BINARY_ARITHMETIC_INTEGER(>=, "greater-equal comparison");
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP

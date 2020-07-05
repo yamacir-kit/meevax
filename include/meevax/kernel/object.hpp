@@ -67,7 +67,10 @@ namespace meevax::kernel
     DEFINE_BINARY_OPERATOR_ELEVATOR(-);
     DEFINE_BINARY_OPERATOR_ELEVATOR(/);
 
-    #undef DEFINE_BINARY_OPERATOR_ELEVATOR
+    // DEFINE_BINARY_OPERATOR_ELEVATOR(<);
+    // DEFINE_BINARY_OPERATOR_ELEVATOR(<=);
+    // DEFINE_BINARY_OPERATOR_ELEVATOR(>);
+    // DEFINE_BINARY_OPERATOR_ELEVATOR(>=);
   };
 
   struct pair; // forward declaration
@@ -113,5 +116,5 @@ namespace meevax::kernel
   DEFINE_GHOST(unspecified);
 } // namespace meevax::kernel
 
+#undef DEFINE_BINARY_OPERATOR_ELEVATOR
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
-

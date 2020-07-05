@@ -22,6 +22,11 @@ namespace meevax::concepts
   DEFINE_BINARY_ARITHMETIC_CONCEPT(divisible, /);
   DEFINE_BINARY_ARITHMETIC_CONCEPT(multipliable, *);
   DEFINE_BINARY_ARITHMETIC_CONCEPT(subtractable, -);
+
+  DEFINE_BINARY_ARITHMETIC_CONCEPT(greater_equal_comparable, >=);
+  DEFINE_BINARY_ARITHMETIC_CONCEPT(greater_than_comparable, >);
+  DEFINE_BINARY_ARITHMETIC_CONCEPT(less_equal_comparable, <=);
+  DEFINE_BINARY_ARITHMETIC_CONCEPT(less_than_comparable, <);
 } // namespace meevax::concepts
 
 #undef DEFINE_BINARY_ARITHMETIC_CONCEPT

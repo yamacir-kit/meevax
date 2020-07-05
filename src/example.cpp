@@ -97,7 +97,7 @@ int main()
     if (a.is<integer>()) DEBUG();
     DEBUG();
 
-    if (a.as<integer>() == 1) DEBUG();
+    if (static_cast<int>(a.as<integer>()) == 1) DEBUG();
     DEBUG();
 
     const auto b { make<integer>(2) };
@@ -106,13 +106,13 @@ int main()
     if (b.is<integer>()) DEBUG();
     DEBUG();
 
-    if (b.as<integer>() == 2) DEBUG();
+    if (static_cast<int>(b.as<integer>()) == 2) DEBUG();
     DEBUG();
 
     const auto x = a + b;
     DEBUG();
 
-    result = x.is<integer>() && (x.as<integer>() == 3);
+    result = x.is<integer>() && (static_cast<int>(x.as<integer>()) == 3);
     DEBUG();
   });
 

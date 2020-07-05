@@ -259,6 +259,24 @@ namespace meevax::kernel
       DEFINE_BINARY_OPERATION_FORWARDER(+, addable);
       DEFINE_BINARY_OPERATION_FORWARDER(-, subtractable);
       DEFINE_BINARY_OPERATION_FORWARDER(/, divisible);
+
+      // #define DEFINE_COMPARISON_FORWARDER(SYMBOL, CONCEPT)               \
+      // auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
+      // {                                                                        \
+      //   if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
+      //   {                                                                      \
+      //     return static_cast<const bound&>(*this).operator SYMBOL(rhs);        \
+      //   }                                                                      \
+      //   else                                                                   \
+      //   {                                                                      \
+      //     throw std::runtime_error { "" };                                     \
+      //   }                                                                      \
+      // } static_assert(true, "semicolon required after this macro")
+      //
+      // DEFINE_COMPARISON_FORWARDER(<,  less_than_comparable);
+      // DEFINE_COMPARISON_FORWARDER(<=, less_equal_comparable);
+      // DEFINE_COMPARISON_FORWARDER(>,  greater_than_comparable);
+      // DEFINE_COMPARISON_FORWARDER(>=, greater_equal_comparable);
     };
 
   public:
@@ -509,7 +527,7 @@ namespace meevax::kernel
   {                                                                            \
     if (lhs && rhs)                                                            \
     {                                                                          \
-      return lhs.dereference().operator SYMBOL(rhs);                           \
+      return lhs.dereference() SYMBOL rhs;                                     \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -523,6 +541,25 @@ namespace meevax::kernel
   DEFINE_BINARY_OPERATION_DISPATCHER(+, "addition");
   DEFINE_BINARY_OPERATION_DISPATCHER(-, "subtraction");
   DEFINE_BINARY_OPERATION_DISPATCHER(/, "division");
+
+  // #define DEFINE_COMPARISON_DISPATCHER(SYMBOL)                                 \
+  // template <typename T, typename U>                                            \
+  // decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
+  // {                                                                            \
+  //   if (lhs && rhs)                                                            \
+  //   {                                                                          \
+  //     return lhs.dereference() SYMBOL rhs;                                     \
+  //   }                                                                          \
+  //   else                                                                       \
+  //   {                                                                          \
+  //     throw std::logic_error { "" };                                           \
+  //   }                                                                          \
+  // } static_assert(true, "semicolon required after this macro")
+  //
+  // DEFINE_COMPARISON_DISPATCHER(<);
+  // DEFINE_COMPARISON_DISPATCHER(<=);
+  // DEFINE_COMPARISON_DISPATCHER(>);
+  // DEFINE_COMPARISON_DISPATCHER(>=);
 } // namespace meevax::kernel
 
 namespace std
@@ -533,7 +570,9 @@ namespace std
   {};
 }
 
-#undef DEFINE_BINARY_OPERATION_FORWARDER
 #undef DEFINE_BINARY_OPERATION_DISPATCHER
+#undef DEFINE_BINARY_OPERATION_FORWARDER
+// #undef DEFINE_COMPARISON_DISPATCHER
+// #undef DEFINE_COMPARISON_FORWARDER
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
