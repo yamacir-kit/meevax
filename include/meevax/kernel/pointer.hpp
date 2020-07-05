@@ -205,7 +205,7 @@ namespace meevax::kernel
 
       bool compare(const pointer& rhs) const override
       {
-        if constexpr (concepts::is_equality_comparable<bound>::value)
+        if constexpr (concepts::equality_comparable<bound>::value)
         {
           if (const auto x { std::dynamic_pointer_cast<const bound>(rhs) })
           {
@@ -275,6 +275,8 @@ namespace meevax::kernel
         }                                                                      \
       } static_assert(true, "semicolon required after this macro")
 
+      // DEFINE_COMPARISON_FORWARDER(==, equality_comparable_with);
+      // DEFINE_COMPARISON_FORWARDER(!=, equality_comparable_with);
       DEFINE_COMPARISON_FORWARDER(<,  less_than_comparable);
       DEFINE_COMPARISON_FORWARDER(<=, less_equal_comparable);
       DEFINE_COMPARISON_FORWARDER(>,  greater_than_comparable);

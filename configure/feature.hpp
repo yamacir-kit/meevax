@@ -18,7 +18,7 @@ namespace meevax::kernel
 
     Construct_On_First_Use(cxx_compiler, make<symbol>("${CMAKE_CXX_COMPILER}"));
     Construct_On_First_Use(cxx_flags, make<symbol>("${CMAKE_CXX_FLAGS}"));
-    Construct_On_First_Use(cxx_standard, make<real>("${CMAKE_CXX_STANDARD}"));
+    Construct_On_First_Use(cxx_standard, make<integer>("${CMAKE_CXX_STANDARD}"));
 
     Construct_On_First_Use(system_name, make<symbol>("${CMAKE_SYSTEM_NAME}"));
     Construct_On_First_Use(system_processor, make<symbol>("${CMAKE_SYSTEM_PROCESSOR}"));

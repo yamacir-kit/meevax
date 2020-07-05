@@ -556,12 +556,48 @@ namespace meevax::kernel
      *
      *
      * ====================================================================== */
+    // define<procedure>("=", [](auto&& xs)
+    // {
+    //   std::cerr << "procedure '='" << std::endl;
+    //   std::cerr << "arguments are " << xs << std::endl;
+    //
+    //   const auto head { std::begin(xs) };
+    //
+    //   for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
+    //   {
+    //     if ((*head).dereference() != *iter)
+    //     {
+    //       return f;
+    //     }
+    //   }
+    //
+    //   return t;
+    // });
+
     define<procedure>("sqrt", [](auto&& xs)
     {
-      return
-        make<real>(
-          boost::multiprecision::sqrt(
-            car(xs).template as<real>()));
+      if (const object x { car(xs) }; null(x))
+      {
+        return f;
+      }
+      else if (x.is<integer>())
+      {
+        return
+          make<real>(
+            boost::multiprecision::sqrt(
+              x.as<integer>()));
+      }
+      else if (x.is<real>())
+      {
+        return
+          make<real>(
+            boost::multiprecision::sqrt(
+              x.as<real>()));
+      }
+      else
+      {
+        return f;
+      }
     });
 
     /* ==== R7RS 6.3. Booleans =================================================
@@ -615,9 +651,16 @@ namespace meevax::kernel
     {
       auto v { make<vector>() };
 
-      v.as<vector>().resize(
-        static_cast<vector::size_type>(
-          car(xs).template as<real>()));
+      if (car(xs).template is<integer>())
+      {
+        v.as<vector>().resize(
+          static_cast<vector::size_type>(
+            car(xs).template as<integer>()));
+      }
+      else
+      {
+        throw std::runtime_error {"type-error"};
+      }
 
       return v;
     });
@@ -639,7 +682,7 @@ namespace meevax::kernel
       return
         car(xs).template as<vector>().at(
           static_cast<vector::size_type>(
-            cadr(xs).template as<real>()));
+            cadr(xs).template as<integer>()));
     });
 
     define<procedure>("vector-set!", [](auto&& xs)
@@ -647,7 +690,7 @@ namespace meevax::kernel
       return
         car(xs).template as<vector>().at(
           static_cast<vector::size_type>(
-            cadr(xs).template as<real>()))
+            cadr(xs).template as<integer>()))
         = caddr(xs);
     });
 

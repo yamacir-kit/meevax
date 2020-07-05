@@ -66,6 +66,9 @@ namespace meevax::kernel
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
 
+    // auto operator ==(const object&) const -> object;
+    // auto operator !=(const object&) const -> object;
+
     auto operator < (const object&) const -> object;
     auto operator <=(const object&) const -> object;
     auto operator > (const object&) const -> object;
@@ -77,7 +80,7 @@ namespace meevax::kernel
 
     friend std::ostream& operator<<(std::ostream& os, const real& x)
     {
-      return os << console::cyan << x.str() << console::reset;
+      return os << console::cyan << "#i" << x.str() << console::reset;
     }
   };
 
@@ -101,6 +104,9 @@ namespace meevax::kernel
     auto operator +(const object&) const -> object;
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
+
+    // auto operator ==(const object&) const -> object;
+    // auto operator !=(const object&) const -> object;
 
     auto operator < (const object&) const -> object;
     auto operator <=(const object&) const -> object;
@@ -202,11 +208,15 @@ namespace meevax::kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
+  // DEFINE_COMPARISON(real, ==, "equality comparison");
+  // DEFINE_COMPARISON(real, !=, "inequality comparison");
   DEFINE_COMPARISON(real, <,  "less-than comparison");
   DEFINE_COMPARISON(real, <=, "less-equal comparison");
   DEFINE_COMPARISON(real, >,  "greater-than comparison");
   DEFINE_COMPARISON(real, >=, "greater-equal comparison");
 
+  // DEFINE_COMPARISON(integer, ==, "equality comparison");
+  // DEFINE_COMPARISON(integer, !=, "inequality comparison");
   DEFINE_COMPARISON(integer, <,  "less-than comparison");
   DEFINE_COMPARISON(integer, <=, "less-equal comparison");
   DEFINE_COMPARISON(integer, >,  "greater-than comparison");

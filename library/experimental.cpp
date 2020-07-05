@@ -9,14 +9,14 @@ extern "C" namespace meevax::experimental
 {
   PROCEDURE(emergency_exit)
   {
-    if (not xs or not kernel::car(xs).is<kernel::real>())
+    if (not xs or not kernel::car(xs).is<kernel::integer>())
     {
       std::exit(boost::exit_success);
     }
     else
     {
       // XXX DIRTY HACK
-      std::exit(static_cast<int>(kernel::car(xs).as<kernel::real>()));
+      std::exit(static_cast<int>(kernel::car(xs).as<kernel::integer>()));
     }
 
     return kernel::unspecified;

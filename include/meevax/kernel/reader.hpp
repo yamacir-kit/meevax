@@ -15,6 +15,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
+#include <stdexcept>
 
 namespace meevax::kernel
 {
@@ -241,13 +242,20 @@ namespace meevax::kernel
           {
             throw reader_error_about_pair {"dot-notation"};
           }
-          else try // is symbol or real
+          else try
           {
-            return make<real>(token);
+            return make<integer>(token);
           }
-          catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
+          catch (const std::runtime_error&)
           {
-            return intern(token);
+            try
+            {
+              return make<real>(token);
+            }
+            catch (const std::runtime_error&) // means not numeric expression (XXX DIRTY HACK)
+            {
+              return intern(token);
+            }
           }
         }
       }

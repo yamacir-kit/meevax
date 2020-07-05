@@ -31,7 +31,7 @@ namespace meevax::kernel
 
     virtual bool compare(const pointer<T>& rhs) const
     {
-      if constexpr (concepts::is_equality_comparable<T>::value)
+      if constexpr (concepts::equality_comparable<T>::value)
       {
         if (const auto x { std::dynamic_pointer_cast<const T>(rhs) })
         {
@@ -66,6 +66,9 @@ namespace meevax::kernel
     DEFINE_BINARY_OPERATOR_ELEVATOR(+);
     DEFINE_BINARY_OPERATOR_ELEVATOR(-);
     DEFINE_BINARY_OPERATOR_ELEVATOR(/);
+
+    // DEFINE_BINARY_OPERATOR_ELEVATOR(==);
+    // DEFINE_BINARY_OPERATOR_ELEVATOR(!=);
 
     DEFINE_BINARY_OPERATOR_ELEVATOR(<);
     DEFINE_BINARY_OPERATOR_ELEVATOR(<=);

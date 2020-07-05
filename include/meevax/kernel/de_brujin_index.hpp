@@ -35,8 +35,8 @@ namespace meevax::kernel
 
             return
               cons(
-                make<real>(layer),
-                make<real>(index));
+                make<integer>(layer),
+                make<integer>(index));
           }
           else if (iter.is<symbol>() and compare(iter, value))
           {
@@ -44,8 +44,8 @@ namespace meevax::kernel
 
             return
               cons(
-                make<real>(layer),
-                make<real>(index));
+                make<integer>(layer),
+                make<integer>(index));
           }
 
           ++index;
