@@ -23,6 +23,10 @@ namespace meevax::kernel
    *
    *
    * ======================================================================== */
+  struct complex;
+  struct real;
+  struct rational;
+  struct integer;
 
   struct complex
     : public virtual pair
@@ -56,43 +60,31 @@ namespace meevax::kernel
   {
     using multiprecision::real::real;
 
-    #define DEFINE_BINARY_ARITHMETIC_REAL(SYMBOL)                              \
-    auto operator SYMBOL(const object& rhs) const                              \
-    {                                                                          \
-      if (!rhs)                                                                \
-      {                                                                        \
-        throw std::logic_error { "no viable addition with real and unit." };   \
-      }                                                                        \
-      else if (rhs.is<real>())                                                 \
-      {                                                                        \
-        return                                                                 \
-          make<real>(                                                          \
-            static_cast<const multiprecision::real&>(*this)                    \
-            SYMBOL                                                             \
-            rhs.as<multiprecision::real>());                                   \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        throw std::logic_error { "no viable addition with real and unknown." };\
-      }                                                                        \
-    } static_assert(true, "semicolon required after this macro")
+    decltype(auto) backend() const noexcept
+    {
+      return static_cast<const multiprecision::real&>(*this);
+    }
 
-    DEFINE_BINARY_ARITHMETIC_REAL(*);
-    DEFINE_BINARY_ARITHMETIC_REAL(+);
-    DEFINE_BINARY_ARITHMETIC_REAL(-);
-    DEFINE_BINARY_ARITHMETIC_REAL(/);
+  public:
+    auto operator *(const object&) const -> object;
+    auto operator +(const object&) const -> object;
+    auto operator -(const object&) const -> object;
+    auto operator /(const object&) const -> object;
+
+  public:
+    auto operator ==(const real& rhs) const { return backend() == rhs.backend(); }
+    auto operator !=(const real& rhs) const { return !(*this == rhs); }
+
+    auto operator < (const real& rhs) const { return backend() < rhs.backend(); }
+    auto operator > (const real& rhs) const { return rhs < *this; }
+    auto operator <=(const real& rhs) const { return !(*this > rhs); }
+    auto operator >=(const real& rhs) const { return !(*this < rhs); }
 
     friend std::ostream& operator<<(std::ostream& os, const real& x)
     {
       return os << console::cyan << x.str() << console::reset;
     }
   };
-
-  auto operator ==(const real& x, const real& y)
-  {
-    return static_cast<const multiprecision::real&>(x)
-        == static_cast<const multiprecision::real&>(y);
-  }
 
   struct rational
     : public virtual pair
@@ -104,50 +96,21 @@ namespace meevax::kernel
   {
     using multiprecision::integer::integer;
 
-    #define DEFINE_BINARY_ARITHMETIC_INTEGER(SYMBOL)                           \
-    auto operator SYMBOL(const object& rhs) const                              \
-    {                                                                          \
-      if (!rhs)                                                                \
-      {                                                                        \
-        throw std::logic_error { "no viable addition with integer and unit." };\
-      }                                                                        \
-      else if (rhs.is<integer>())                                              \
-      {                                                                        \
-        return                                                                 \
-          make<integer>(                                                       \
-            static_cast<const multiprecision::integer&>(*this)                 \
-            SYMBOL                                                             \
-            rhs.as<multiprecision::integer>());                                \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        throw std::logic_error { "" };                                         \
-      }                                                                        \
-    } static_assert(true, "semicolon required after this macro")
+    decltype(auto) backend() const noexcept
+    {
+      return static_cast<const multiprecision::integer&>(*this);
+    }
 
-    DEFINE_BINARY_ARITHMETIC_INTEGER(*);
-    DEFINE_BINARY_ARITHMETIC_INTEGER(+);
-    DEFINE_BINARY_ARITHMETIC_INTEGER(-);
-    DEFINE_BINARY_ARITHMETIC_INTEGER(/);
+    auto operator *(const object&) const -> object;
+    auto operator +(const object&) const -> object;
+    auto operator -(const object&) const -> object;
+    auto operator /(const object&) const -> object;
 
     friend std::ostream& operator<<(std::ostream& os, const integer& x)
     {
       return os << console::cyan << x.str() << console::reset;
     }
   };
-
-  #define DEFINE_NUMERICAL_BINARY_ARITHMETIC(OPERATOR)                         \
-  decltype(auto) operator OPERATOR(const object& lhs, const object& rhs)       \
-  {                                                                            \
-    return make<real>(                                                         \
-      lhs.as<const multiprecision::real>() OPERATOR rhs.as<const multiprecision::real>() \
-    );                                                                         \
-  }
-
-  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(+)
-  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(*)
-  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(-)
-  // DEFINE_NUMERICAL_BINARY_ARITHMETIC(/)
 
   #define DEFINE_NUMERICAL_BINARY_COMPARISON(OPERATOR)                         \
   decltype(auto) operator OPERATOR(const object& lhs, const object& rhs)       \
@@ -159,6 +122,68 @@ namespace meevax::kernel
   DEFINE_NUMERICAL_BINARY_COMPARISON(<=)
   DEFINE_NUMERICAL_BINARY_COMPARISON(>)
   DEFINE_NUMERICAL_BINARY_COMPARISON(>=)
+
+
+  #define DEFINE_BINARY_ARITHMETIC_REAL(SYMBOL, OPERATION)                     \
+  auto real::operator SYMBOL(const object& rhs) const -> object                \
+  {                                                                            \
+    if (!rhs)                                                                  \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+    else if (rhs.is<real>())                                                   \
+    {                                                                          \
+      return make<real>(backend() SYMBOL rhs.as<multiprecision::real>());      \
+    }                                                                          \
+    else if (rhs.is<integer>())                                                \
+    {                                                                          \
+      return make<real>(backend() SYMBOL rhs.as<multiprecision::integer>());   \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  DEFINE_BINARY_ARITHMETIC_REAL(*, "multiplication");
+  DEFINE_BINARY_ARITHMETIC_REAL(+, "addition");
+  DEFINE_BINARY_ARITHMETIC_REAL(-, "subtraction");
+  DEFINE_BINARY_ARITHMETIC_REAL(/, "division");
+
+  #define DEFINE_BINARY_ARITHMETIC_INTEGER(SYMBOL, OPERATION)                  \
+  auto integer::operator SYMBOL(const object& rhs) const -> object             \
+  {                                                                            \
+    if (!rhs)                                                                  \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+    else if (rhs.is<real>())                                                   \
+    {                                                                          \
+      return make<real>(backend() SYMBOL rhs.as<multiprecision::real>());      \
+    }                                                                          \
+    else if (rhs.is<integer>())                                                \
+    {                                                                          \
+      return make<integer>(backend() SYMBOL rhs.as<multiprecision::integer>());\
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  DEFINE_BINARY_ARITHMETIC_INTEGER(*, "multiplication");
+  DEFINE_BINARY_ARITHMETIC_INTEGER(+, "addition");
+  DEFINE_BINARY_ARITHMETIC_INTEGER(-, "subtraction");
+  DEFINE_BINARY_ARITHMETIC_INTEGER(/, "division");
+
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
