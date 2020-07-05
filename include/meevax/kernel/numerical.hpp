@@ -23,11 +23,6 @@ namespace meevax::kernel
    *
    *
    * ======================================================================== */
-  struct complex;
-  struct real;
-  struct rational;
-  struct integer;
-
   struct complex
     : public virtual pair
   {
