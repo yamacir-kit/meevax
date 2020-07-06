@@ -350,13 +350,12 @@ namespace meevax::kernel
             ignore);
     }
 
-    // XXX Need?
-    decltype(auto) dereference() const noexcept
+    decltype(auto) binding() const
     {
-      assert(*this);
+      assert(              std::shared_ptr<T>::get() );
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
-      return std::shared_ptr<T>::operator*();
+      return std::shared_ptr<T>::operator *();
     }
 
     /* ==== Type Predicates ===================================================
@@ -369,7 +368,7 @@ namespace meevax::kernel
       switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
       {
       case category<void*>::value: // address
-        return dereference().type();
+        return binding().type();
 
       case category<bool>::value:
         return typeid(bool);
@@ -435,7 +434,7 @@ namespace meevax::kernel
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
-      // return dynamic_cast<U&>(dereference());
+      // return dynamic_cast<U&>(binding());
       return *std::dynamic_pointer_cast<U>(*this);
     }
 
@@ -485,7 +484,7 @@ namespace meevax::kernel
 
     decltype(auto) copy() const
     {
-      return dereference().copy();
+      return binding().copy();
     }
 
     bool compare(const pointer& rhs) const
@@ -496,7 +495,7 @@ namespace meevax::kernel
       }
       else
       {
-        return dereference().compare(rhs);
+        return binding().compare(rhs);
       }
     }
 
@@ -521,7 +520,7 @@ namespace meevax::kernel
     }
     else
     {
-      return x.dereference().write(os);
+      return x.binding().write(os);
     }
   }
 
@@ -531,7 +530,7 @@ namespace meevax::kernel
   {                                                                            \
     if (lhs && rhs)                                                            \
     {                                                                          \
-      return lhs.dereference() SYMBOL rhs;                                     \
+      return lhs.binding() SYMBOL rhs;                                         \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -552,7 +551,7 @@ namespace meevax::kernel
   {                                                                            \
     if (lhs && rhs)                                                            \
     {                                                                          \
-      return lhs.dereference() SYMBOL rhs;                                     \
+      return lhs.binding() SYMBOL rhs;                                         \
     }                                                                          \
     else                                                                       \
     {                                                                          \
