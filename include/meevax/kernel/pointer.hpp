@@ -271,12 +271,16 @@ namespace meevax::kernel
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          throw std::runtime_error { "" };                                     \
+          std::stringstream port {};                                           \
+          port << "not " #CONCEPT " " << type().name() << " and " << rhs.type().name(); \
+          throw std::runtime_error { port.str() };                             \
         }                                                                      \
       } static_assert(true, "semicolon required after this macro")
 
+      // TODO RENAME TO NUMERIC_COMPARE
       DEFINE_COMPARISON_FORWARDER(==, equality_comparable_with);
       DEFINE_COMPARISON_FORWARDER(!=, equality_comparable_with);
+
       DEFINE_COMPARISON_FORWARDER(<,  less_than_comparable);
       DEFINE_COMPARISON_FORWARDER(<=, less_equal_comparable);
       DEFINE_COMPARISON_FORWARDER(>,  greater_than_comparable);
