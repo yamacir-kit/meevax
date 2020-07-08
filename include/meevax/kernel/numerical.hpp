@@ -66,8 +66,8 @@ namespace meevax::kernel
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
 
-    // auto operator ==(const object&) const -> object;
-    // auto operator !=(const object&) const -> object;
+    auto operator ==(const object&) const -> object;
+    auto operator !=(const object&) const -> object;
 
     auto operator < (const object&) const -> object;
     auto operator <=(const object&) const -> object;
@@ -105,8 +105,8 @@ namespace meevax::kernel
     auto operator -(const object&) const -> object;
     auto operator /(const object&) const -> object;
 
-    // auto operator ==(const object&) const -> object;
-    // auto operator !=(const object&) const -> object;
+    auto operator ==(const object&) const -> object;
+    auto operator !=(const object&) const -> object;
 
     auto operator < (const object&) const -> object;
     auto operator <=(const object&) const -> object;
@@ -208,15 +208,15 @@ namespace meevax::kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  // DEFINE_COMPARISON(real, ==, "equality comparison");
-  // DEFINE_COMPARISON(real, !=, "inequality comparison");
+  DEFINE_COMPARISON(real, ==, "equality comparison");
+  DEFINE_COMPARISON(real, !=, "inequality comparison");
   DEFINE_COMPARISON(real, <,  "less-than comparison");
   DEFINE_COMPARISON(real, <=, "less-equal comparison");
   DEFINE_COMPARISON(real, >,  "greater-than comparison");
   DEFINE_COMPARISON(real, >=, "greater-equal comparison");
 
-  // DEFINE_COMPARISON(integer, ==, "equality comparison");
-  // DEFINE_COMPARISON(integer, !=, "inequality comparison");
+  DEFINE_COMPARISON(integer, ==, "equality comparison");
+  DEFINE_COMPARISON(integer, !=, "inequality comparison");
   DEFINE_COMPARISON(integer, <,  "less-than comparison");
   DEFINE_COMPARISON(integer, <=, "less-equal comparison");
   DEFINE_COMPARISON(integer, >,  "greater-than comparison");

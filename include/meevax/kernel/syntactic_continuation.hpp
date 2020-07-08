@@ -556,23 +556,32 @@ namespace meevax::kernel
      *
      *
      * ====================================================================== */
-    // define<procedure>("=", [](auto&& xs)
-    // {
-    //   std::cerr << "procedure '='" << std::endl;
-    //   std::cerr << "arguments are " << xs << std::endl;
-    //
-    //   const auto head { std::begin(xs) };
-    //
-    //   for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
-    //   {
-    //     if ((*head).dereference() != *iter)
-    //     {
-    //       return f;
-    //     }
-    //   }
-    //
-    //   return t;
-    // });
+    define<procedure>("=", [](auto&& xs)
+    {
+      std::cerr << "procedure '='" << std::endl;
+      std::cerr << "arguments are " << xs << std::endl;
+
+      const auto head { std::begin(xs) };
+
+      for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
+      {
+        std::cerr << "head = " << head << std::endl;
+        std::cerr << "*head = " << *head << std::endl;
+
+        std::cerr << "iter = " << iter << std::endl;
+        std::cerr << "*iter = " << *iter << std::endl;
+
+        if (const auto result { (*head).binding() != *iter }; result.eqv(t))
+        {
+          return f;
+        }
+
+        std::cout << __LINE__ << std::endl;
+      }
+
+      std::cout << __LINE__ << std::endl;
+      return t;
+    });
 
     define<procedure>("sqrt", [](auto&& xs)
     {

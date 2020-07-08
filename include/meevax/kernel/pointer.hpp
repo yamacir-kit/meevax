@@ -275,8 +275,8 @@ namespace meevax::kernel
         }                                                                      \
       } static_assert(true, "semicolon required after this macro")
 
-      // DEFINE_COMPARISON_FORWARDER(==, equality_comparable_with);
-      // DEFINE_COMPARISON_FORWARDER(!=, equality_comparable_with);
+      DEFINE_COMPARISON_FORWARDER(==, equality_comparable_with);
+      DEFINE_COMPARISON_FORWARDER(!=, equality_comparable_with);
       DEFINE_COMPARISON_FORWARDER(<,  less_than_comparable);
       DEFINE_COMPARISON_FORWARDER(<=, less_equal_comparable);
       DEFINE_COMPARISON_FORWARDER(>,  greater_than_comparable);

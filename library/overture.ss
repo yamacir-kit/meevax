@@ -31,7 +31,7 @@
 (define numerical.so
   (linker "libmeevax-numerical.so"))
 
-(define = eqv?)
+; (define = eqv?)
 
 (define <
   (procedure numerical.so "less"))
