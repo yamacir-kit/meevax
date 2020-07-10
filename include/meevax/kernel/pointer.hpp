@@ -191,16 +191,44 @@ namespace meevax::kernel
       }
 
     private:
+      template <typename U, typename = void>
+      struct if_copy_constructible
+      {
+        template <typename... Ts>
+        static auto call_it_with(Ts&&...) -> pointer
+        {
+          std::stringstream ss {};
+          ss << typeid(U).name() << " is not copy-constructible";
+          throw std::logic_error { ss.str() };
+        }
+      };
+
+      template <typename U>
+      struct if_copy_constructible<U, typename std::enable_if<std::is_copy_constructible<U>::value>::type>
+      {
+        template <typename... Ts>
+        static auto call_it_with(Ts&&... xs) -> pointer
+        {
+          return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
+        }
+      };
+
       auto copy() const -> pointer override
       {
+        #if __cpp_if_constexpr
         if constexpr (std::is_copy_constructible<binding>::value)
         {
           return std::make_shared<binding>(*this);
         }
-        else throw std::logic_error
+        else
         {
-          "The base type of meevax::kernel::pointer requires concept CopyConstructible."
-        };
+          std::stringstream ss {};
+          ss << typeid(T).name() << " is not copy-constructible";
+          throw std::logic_error { ss.str() };
+        }
+        #else
+        return if_copy_constructible<binding>::call_it_with(*this);
+        #endif // __cpp_if_constexpr
       }
 
       bool compare(const pointer& rhs) const override
