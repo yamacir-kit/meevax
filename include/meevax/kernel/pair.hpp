@@ -41,12 +41,12 @@ namespace meevax::kernel
   * ========================================================================= */
   // auto car = [](const object& x) noexcept -> decltype(auto)
   // {
-  //   return std::get<0>(x.dereference());
+  //   return std::get<0>(x.binding());
   // };
   //
   // auto cdr = [](const object& x) noexcept -> decltype(auto)
   // {
-  //   return std::get<1>(x.dereference());
+  //   return std::get<1>(x.binding());
   // };
 
   // auto car = [](auto&& x) noexcept -> decltype(auto)
@@ -57,7 +57,7 @@ namespace meevax::kernel
   //   }
   //   else
   //   {
-  //     return std::get<0>(x.dereference());
+  //     return std::get<0>(x.binding());
   //   }
   // };
   //
@@ -69,7 +69,7 @@ namespace meevax::kernel
   //   }
   //   else
   //   {
-  //     return std::get<1>(x.dereference());
+  //     return std::get<1>(x.binding());
   //   }
   // };
 
@@ -77,7 +77,7 @@ namespace meevax::kernel
   {
     if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
     {
-      return std::get<0>(x.dereference());
+      return std::get<0>(x.binding());
     }
     else
     {
@@ -89,7 +89,7 @@ namespace meevax::kernel
   {
     if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
     {
-      return std::get<1>(x.dereference());
+      return std::get<1>(x.binding());
     }
     else
     {

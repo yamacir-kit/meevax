@@ -37,9 +37,9 @@ namespace meevax::kernel
   struct version
     : public object
   {
-    Construct_On_First_Use(major, make<real>("${PROJECT_VERSION_MAJOR}"));
-    Construct_On_First_Use(minor, make<real>("${PROJECT_VERSION_MINOR}"));
-    Construct_On_First_Use(patch, make<real>("${PROJECT_VERSION_PATCH}"));
+    Construct_On_First_Use(major, make<integer>("${PROJECT_VERSION_MAJOR}"));
+    Construct_On_First_Use(minor, make<integer>("${PROJECT_VERSION_MINOR}"));
+    Construct_On_First_Use(patch, make<integer>("${PROJECT_VERSION_PATCH}"));
 
     Construct_On_First_Use(semantic, make<symbol>("${PROJECT_VERSION}"));
 

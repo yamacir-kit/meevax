@@ -19,7 +19,7 @@ extern "C" namespace meevax::string
   {
     using namespace kernel;
 
-    return read_string(car(xs).as<real>().str());
+    return read_string(car(xs).as<integer>().str());
   }
 } // extern "C"
 

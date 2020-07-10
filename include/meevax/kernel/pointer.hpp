@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <stdexcept> // std::logic_error
 
+#include <meevax/concepts/arithmetic.hpp>
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/console/escape_sequence.hpp>
@@ -151,23 +152,30 @@ namespace meevax::kernel
     : public std::shared_ptr<T>
   {
     /* ==== Binder =============================================================
-    *
-    * The object binder is the actual data pointed to by the pointer type. To
-    * handle all types uniformly, the binder inherits type T and uses dynamic
-    * polymorphism. This provides access to the bound type ID and its
-    * instances. However, the performance is inferior due to the heavy use of
-    * dynamic cast as a price for convenience.
-    *
-    *======================================================================== */
+     *
+     * The object binder is the actual data pointed to by the pointer type. To
+     * handle all types uniformly, the binder inherits type T and uses dynamic
+     * polymorphism. This provides access to the bound type ID and its
+     * instances. However, the performance is inferior due to the heavy use of
+     * dynamic cast as a price for convenience.
+     *
+     * ====================================================================== */
     template <typename Bound>
     struct binder
       : public Bound
       , public virtual T
     {
+      using base = T;
+
+      using bound = Bound;
+      using const_bound = const bound;
+
+      using binding = binder<bound>;
+
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
-            std::is_base_of<T, Bound>::value, T, Bound
+            std::is_base_of<base, bound>::value, base, bound
           >::type { std::forward<decltype(xs)>(xs)... }
       {}
 
@@ -177,17 +185,14 @@ namespace meevax::kernel
 
       virtual ~binder() = default;
 
-      auto type() const noexcept
-        -> const std::type_info& override
+      auto type() const noexcept -> const std::type_info& override
       {
-        return typeid(Bound);
+        return typeid(bound);
       }
 
     private:
-      std::shared_ptr<T> copy() const override
+      auto copy() const -> pointer override
       {
-        using binding = binder<Bound>;
-
         if constexpr (std::is_copy_constructible<binding>::value)
         {
           return std::make_shared<binding>(*this);
@@ -198,41 +203,88 @@ namespace meevax::kernel
         };
       }
 
-      bool equivalent_to(const std::shared_ptr<T>& rhs) const override
+      bool compare(const pointer& rhs) const override
       {
-        if constexpr (concepts::is_equality_comparable<Bound>::value)
+        if constexpr (concepts::equality_comparable<bound>::value)
         {
-          return static_cast<const Bound&>(*this) == *std::dynamic_pointer_cast<const Bound>(rhs);
+          if (const auto x { std::dynamic_pointer_cast<const bound>(rhs) })
+          {
+            return static_cast<const bound&>(*this) == *x;
+          }
+          else
+          {
+            return false;
+          }
         }
         else
         {
-          std::cerr << "; warning\t; equivalence comparison for type "
-                    << utility::demangle(type())
-                    << " is undefined (always return #false)"
-                    << std::endl;
+          std::cerr << "; warning\t; no viable comparison with (" << type().name() << " " << static_cast<const bound&>(*this) << ") and (" << rhs.type().name() << " " << rhs << ") => return #f." << std::endl;
           return false;
         }
       }
 
-      // Override T::dispatch(), then invoke Bound's stream output operator.
-      auto dispatch(std::ostream& os) const
-        -> decltype(os) override
+      // Override T::write(), then invoke Bound's stream output operator.
+      auto write(std::ostream& os) const -> decltype(os) override
       {
-        if constexpr (concepts::is_stream_insertable<Bound>::value)
+        if constexpr (concepts::is_stream_insertable<bound>::value)
         {
-          return os << static_cast<const Bound&>(*this);
+          return os << static_cast<const bound&>(*this);
         }
         else
         {
           return os << console::magenta << "#("
-                    << console::green << utility::demangle(typeid(Bound))
+                    << console::green << utility::demangle(type())
                     << console::reset
-                    << console::faint << " #;" << static_cast<const Bound*>(this)
+                    << console::faint << " #;" << static_cast<const bound*>(this)
                     << console::reset
                     << console::magenta << ")"
                     << console::reset;
         }
       }
+
+      #define DEFINE_BINARY_OPERATION_FORWARDER(SYMBOL, CONCEPT)               \
+      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
+      {                                                                        \
+        if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
+        {                                                                      \
+          return static_cast<const bound&>(*this) SYMBOL rhs;                  \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          std::stringstream port {};                                           \
+          port << "not " #CONCEPT " " << type().name() << " and " << rhs.type().name(); \
+          throw std::runtime_error { port.str() };                             \
+        }                                                                      \
+      } static_assert(true, "semicolon required after this macro")
+
+      DEFINE_BINARY_OPERATION_FORWARDER(*, multipliable);
+      DEFINE_BINARY_OPERATION_FORWARDER(+, addable);
+      DEFINE_BINARY_OPERATION_FORWARDER(-, subtractable);
+      DEFINE_BINARY_OPERATION_FORWARDER(/, divisible);
+
+      #define DEFINE_COMPARISON_FORWARDER(SYMBOL, CONCEPT)                     \
+      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
+      {                                                                        \
+        if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
+        {                                                                      \
+          return static_cast<const bound&>(*this) SYMBOL rhs;                  \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          std::stringstream port {};                                           \
+          port << "not " #CONCEPT " " << type().name() << " and " << rhs.type().name(); \
+          throw std::runtime_error { port.str() };                             \
+        }                                                                      \
+      } static_assert(true, "semicolon required after this macro")
+
+      // TODO RENAME TO NUMERIC_COMPARE
+      DEFINE_COMPARISON_FORWARDER(==, equality_comparable_with);
+      DEFINE_COMPARISON_FORWARDER(!=, equality_comparable_with);
+
+      DEFINE_COMPARISON_FORWARDER(<,  less_than_comparable);
+      DEFINE_COMPARISON_FORWARDER(<=, less_equal_comparable);
+      DEFINE_COMPARISON_FORWARDER(>,  greater_than_comparable);
+      DEFINE_COMPARISON_FORWARDER(>=, greater_equal_comparable);
     };
 
   public:
@@ -249,9 +301,7 @@ namespace meevax::kernel
     * correctly).
     *
     *======================================================================== */
-    template <typename Bound,
-              typename... Ts,
-              Requires(is_not_embeddable<Bound>)>
+    template <typename Bound, typename... Ts, Requires(is_not_embeddable<Bound>)>
     static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -298,19 +348,18 @@ namespace meevax::kernel
       const auto pattern {*reinterpret_cast<std::uintptr_t*>(&value)};
 
       return
-        std::shared_ptr<T>(
+        pointer(
           reinterpret_cast<T*>(
             pattern << mask_width bitor tag<U>::value),
             ignore);
     }
 
-    // XXX Need?
-    decltype(auto) dereference() const noexcept
+    decltype(auto) binding() const
     {
-      assert(*this);
+      assert(              std::shared_ptr<T>::get() );
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
-      return std::shared_ptr<T>::operator*();
+      return std::shared_ptr<T>::operator *();
     }
 
     /* ==== Type Predicates ===================================================
@@ -323,7 +372,7 @@ namespace meevax::kernel
       switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
       {
       case category<void*>::value: // address
-        return dereference().type();
+        return binding().type();
 
       case category<bool>::value:
         return typeid(bool);
@@ -389,7 +438,7 @@ namespace meevax::kernel
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
-      // return dynamic_cast<U&>(dereference());
+      // return dynamic_cast<U&>(binding());
       return *std::dynamic_pointer_cast<U>(*this);
     }
 
@@ -401,8 +450,7 @@ namespace meevax::kernel
     *
     *======================================================================= */
     template <typename U, Requires(std::is_arithmetic<U>)>
-    auto as() const
-      -> typename std::decay<U>::type
+    auto as() const -> typename std::decay<U>::type
     {
       std::cerr << "; pointer\t; "
                 << utility::hexdump<std::uintptr_t>(
@@ -440,10 +488,10 @@ namespace meevax::kernel
 
     decltype(auto) copy() const
     {
-      return dereference().copy();
+      return binding().copy();
     }
 
-    bool equivalent_to(const pointer& rhs) const
+    bool compare(const pointer& rhs) const
     {
       if (type() != rhs.type()) // TODO REMOVE IF OTHER NUMERICAL TYPE IMPLEMENTED
       {
@@ -451,29 +499,74 @@ namespace meevax::kernel
       }
       else
       {
-        return dereference().equivalent_to(rhs);
+        return binding().compare(rhs);
       }
     }
 
     // NOTE: Can't compile with less than GCC-9 due to a bug in the compiler.
-    // Define_Const_Perfect_Forwarding(eqv, equivalent_to);
+    // Define_Const_Perfect_Forwarding(eqv, compare);
 
     template <typename... Ts>
-    constexpr auto eqv(Ts&&... xs) const
-      -> decltype(auto)
+    constexpr auto eqv(Ts&&... xs) const -> decltype(auto)
     {
       return
-        equivalent_to(
+        compare(
           std::forward<decltype(xs)>(xs)...);
     }
   };
 
   template <typename T>
-  decltype(auto) operator<<(std::ostream& os, const pointer<T>& object)
+  decltype(auto) operator<<(std::ostream& os, const pointer<T>& x)
   {
-    return not object ? (os << console::magenta << "()" << console::reset)
-                      : object.dereference().dispatch(os);
+    if (not x)
+    {
+      return os << console::magenta << "()" << console::reset;
+    }
+    else
+    {
+      return x.binding().write(os);
+    }
   }
+
+  #define DEFINE_BINARY_OPERATION_DISPATCHER(SYMBOL, NAME)                     \
+  template <typename T, typename U>                                            \
+  decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
+  {                                                                            \
+    if (lhs && rhs)                                                            \
+    {                                                                          \
+      return lhs.binding() SYMBOL rhs;                                         \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << "no viable " NAME " with " << lhs << " and " << rhs;               \
+      throw std::logic_error { ss.str() };                                     \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  DEFINE_BINARY_OPERATION_DISPATCHER(*, "multiplication");
+  DEFINE_BINARY_OPERATION_DISPATCHER(+, "addition");
+  DEFINE_BINARY_OPERATION_DISPATCHER(-, "subtraction");
+  DEFINE_BINARY_OPERATION_DISPATCHER(/, "division");
+
+  #define DEFINE_COMPARISON_DISPATCHER(SYMBOL)                                 \
+  template <typename T, typename U>                                            \
+  decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
+  {                                                                            \
+    if (lhs && rhs)                                                            \
+    {                                                                          \
+      return lhs.binding() SYMBOL rhs;                                         \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      throw std::logic_error { "" };                                           \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  DEFINE_COMPARISON_DISPATCHER(<);
+  DEFINE_COMPARISON_DISPATCHER(<=);
+  DEFINE_COMPARISON_DISPATCHER(>);
+  DEFINE_COMPARISON_DISPATCHER(>=);
 } // namespace meevax::kernel
 
 namespace std
@@ -484,5 +577,8 @@ namespace std
   {};
 }
 
+#undef DEFINE_BINARY_OPERATION_DISPATCHER
+#undef DEFINE_BINARY_OPERATION_FORWARDER
+#undef DEFINE_COMPARISON_DISPATCHER
+#undef DEFINE_COMPARISON_FORWARDER
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP
-

@@ -309,8 +309,8 @@ namespace meevax::kernel
           list_reference(
             list_reference(
               e,
-              static_cast<int>(caadr(c).template as<real>())),
-            static_cast<int>(cdadr(c).template as<real>())));
+              static_cast<std::size_t>(caadr(c).template as<integer>())),
+            static_cast<std::size_t>(cdadr(c).template as<integer>())));
         pop<2>(c);
         goto dispatch;
 
@@ -327,8 +327,8 @@ namespace meevax::kernel
           list_tail(
             list_reference(
               e,
-              static_cast<int>(caadr(c).template as<real>())),
-            static_cast<int>(cdadr(c).template as<real>())));
+              static_cast<std::size_t>(caadr(c).template as<integer>())),
+            static_cast<std::size_t>(cdadr(c).template as<integer>())));
         pop<2>(c);
         goto dispatch;
 
@@ -432,7 +432,7 @@ namespace meevax::kernel
         * where selection = (if test consequent alternate)
         *
         * =================================================================== */
-        c = not car(s) or not car(s).equivalent_to(f) ? cadr(c) : caddr(c);
+        c = not car(s) or not car(s).compare(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
@@ -631,8 +631,8 @@ namespace meevax::kernel
             list_tail(
               list_reference(
                 e,
-                static_cast<int>(caadr(c).template as<real>())),
-              static_cast<int>(cdadr(c).template as<real>()))),
+                static_cast<std::size_t>(caadr(c).template as<integer>())),
+              static_cast<std::size_t>(cdadr(c).template as<integer>()))),
           car(s));
         pop<2>(c);
         goto dispatch;
@@ -643,8 +643,8 @@ namespace meevax::kernel
             list_tail(
               list_reference(
                 e,
-                static_cast<int>(caadr(c).template as<real>())),
-              static_cast<int>(cdadr(c).template as<real>() - 1))),
+                static_cast<std::size_t>(caadr(c).template as<integer>())),
+              static_cast<std::size_t>(cdadr(c).template as<integer>()))),
           car(s));
         pop<2>(c);
         goto dispatch;

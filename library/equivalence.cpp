@@ -25,7 +25,7 @@ extern "C" namespace meevax::equivalence
     }
     else
     {
-      return kernel::convert(object1.equivalent_to(object2));
+      return kernel::convert(object1.compare(object2));
     }
   }
 } // extern "C"

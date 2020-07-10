@@ -159,7 +159,7 @@ namespace meevax::kernel
    *   - circular-list?
    *   - dotted-list?
    *   - eq?                            => eq, object::operator ==
-   *   - eqv?                           => eqv, object::equivalent_to
+   *   - eqv?                           => eqv, object::compare
    *   - euqal?                         => equal
    *   - list?
    *   - not-pair?                      => not x.is<pair>()
@@ -183,7 +183,7 @@ namespace meevax::kernel
 
     auto eqv = [](auto&& x, auto&& y)
     {
-      return x.equivalent_to(y);
+      return x.compare(y);
     };
 
     bool equal(const object& x, const object& y)

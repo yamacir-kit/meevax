@@ -16,7 +16,7 @@ namespace meevax::kernel
       return typeid(T);
     }
 
-    virtual auto copy() const -> std::shared_ptr<T>
+    virtual auto copy() const -> pointer<T>
     {
       if constexpr (std::is_copy_constructible<T>::value)
       {
@@ -24,32 +24,56 @@ namespace meevax::kernel
       }
       else
       {
-        static_assert(
-          []() constexpr { return false; }(),
+        static_assert([]() constexpr { return false; }(),
           "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
       }
     }
 
-    virtual bool equivalent_to(const std::shared_ptr<T>& other) const
+    virtual bool compare(const pointer<T>& rhs) const
     {
-      if constexpr (concepts::is_equality_comparable<T>::value)
+      if constexpr (concepts::equality_comparable<T>::value)
       {
-        const auto p { std::dynamic_pointer_cast<const T>(other) };
-        assert(p);
-        return static_cast<const T&>(*this) == *p;
+        if (const auto x { std::dynamic_pointer_cast<const T>(rhs) })
+        {
+          return static_cast<const T&>(*this) == *x;
+        }
+        else
+        {
+          return false;
+        }
       }
       else
       {
-        // TODO: warning
         return false;
       }
     }
 
-    virtual auto dispatch(std::ostream& os) const
-      -> decltype(os)
+    virtual auto write(std::ostream& os) const -> decltype(os)
     {
       return os << static_cast<const T&>(*this);
     };
+
+    // override by binder's operators
+    #define DEFINE_BINARY_OPERATOR_ELEVATOR(SYMBOL)                            \
+    virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << __FILE__ << ":" << __LINE__;                                       \
+      throw std::logic_error { ss.str() };                                     \
+    } static_assert(true, "semicolon required after this macro")
+
+    DEFINE_BINARY_OPERATOR_ELEVATOR(*);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(+);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(-);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(/);
+
+    DEFINE_BINARY_OPERATOR_ELEVATOR(==);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(!=);
+
+    DEFINE_BINARY_OPERATOR_ELEVATOR(<);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(<=);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(>);
+    DEFINE_BINARY_OPERATOR_ELEVATOR(>=);
   };
 
   struct pair; // forward declaration
@@ -95,5 +119,5 @@ namespace meevax::kernel
   DEFINE_GHOST(unspecified);
 } // namespace meevax::kernel
 
+#undef DEFINE_BINARY_OPERATOR_ELEVATOR
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
-

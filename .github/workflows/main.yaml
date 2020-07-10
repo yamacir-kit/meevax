@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-16.04, ubuntu-18.04]
+        os: [ubuntu-18.04]
         compiler: [g++-7, g++-9, clang++-6.0, clang++-9]
         configuration: [Debug, Release]
     steps:
@@ -34,4 +34,3 @@ jobs:
       run: |
         cd build
         make -j1
-
