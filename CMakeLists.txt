@@ -78,7 +78,7 @@ find_package(Boost REQUIRED)
 
 file(GLOB
   ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/library/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp
   )
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
@@ -213,10 +213,7 @@ install(
 # ==============================================================================
 #   Convert Scripts to ELF Binary
 # ==============================================================================
-file(GLOB
-  ${PROJECT_NAME}_LAYER_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/library/*.ss
-  )
+file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.ss)
 
 set(${PROJECT_NAME}_LAYERS "")
 
@@ -228,8 +225,11 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
     WORKING_DIRECTORY ${FILEPATH}
     COMMAND ${CMAKE_OBJCOPY}
-    ARGS -I binary -O elf64-x86-64 -B i386 ${FILENAME} ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
-    )
+    ARGS -I binary
+         -O elf64-x86-64
+         -B i386
+         ${FILENAME}
+         ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach(EACH)
@@ -280,4 +280,3 @@ install( # Install Package Version File
 # ==============================================================================
 add_custom_target(uninstall
   COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt)
-
