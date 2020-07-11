@@ -328,31 +328,15 @@ namespace meevax::kernel
       boilerplate(multipliable, *);
       boilerplate(subtractable, -);
 
+      boilerplate(equality_comparable_with, !=);
+      boilerplate(equality_comparable_with, ==);
+
+      boilerplate(greater_equal_comparable, >=);
+      boilerplate(greater_than_comparable, >);
+      boilerplate(less_equal_comparable, <=);
+      boilerplate(less_than_comparable, <);
+
       #undef boilerplate
-
-      #define DEFINE_COMPARISON_FORWARDER(SYMBOL, CONCEPT)                     \
-      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
-      {                                                                        \
-        if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
-        {                                                                      \
-          return static_cast<const bound&>(*this) SYMBOL rhs;                  \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          std::stringstream port {};                                           \
-          port << "not " #CONCEPT " " << type().name() << " and " << rhs.type().name(); \
-          throw std::runtime_error { port.str() };                             \
-        }                                                                      \
-      } static_assert(true, "semicolon required after this macro")
-
-      // TODO RENAME TO NUMERIC_COMPARE
-      DEFINE_COMPARISON_FORWARDER(==, equality_comparable_with);
-      DEFINE_COMPARISON_FORWARDER(!=, equality_comparable_with);
-
-      DEFINE_COMPARISON_FORWARDER(<,  less_than_comparable);
-      DEFINE_COMPARISON_FORWARDER(<=, less_equal_comparable);
-      DEFINE_COMPARISON_FORWARDER(>,  greater_than_comparable);
-      DEFINE_COMPARISON_FORWARDER(>=, greater_equal_comparable);
     };
 
   public:
