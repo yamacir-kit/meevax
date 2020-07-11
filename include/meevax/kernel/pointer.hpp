@@ -142,7 +142,8 @@ namespace meevax::kernel
 
   /* ==== Heterogenous Shared Pointer =========================================
   *
-  * TODO documentation
+  * TODO Documentation
+  * TODO Rename to 'garbage_collector'
   *
   * This type requires to the template parameter T inherits objective facade.
   *
@@ -191,6 +192,7 @@ namespace meevax::kernel
       }
 
     private:
+      #if not __cpp_if_constexpr
       template <typename U, typename = void>
       struct if_copy_constructible
       {
@@ -212,10 +214,13 @@ namespace meevax::kernel
           return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
         }
       };
+      #endif // not __cpp_if_constexpr
 
       auto copy() const -> pointer override
       {
-        #if __cpp_if_constexpr
+        #if not __cpp_if_constexpr
+        return if_copy_constructible<binding>::call_it_with(*this);
+        #else
         if constexpr (std::is_copy_constructible<binding>::value)
         {
           return std::make_shared<binding>(*this);
@@ -226,8 +231,6 @@ namespace meevax::kernel
           ss << typeid(T).name() << " is not copy-constructible";
           throw std::logic_error { ss.str() };
         }
-        #else
-        return if_copy_constructible<binding>::call_it_with(*this);
         #endif // __cpp_if_constexpr
       }
 
@@ -270,7 +273,9 @@ namespace meevax::kernel
         }
       }
 
-      #define DEFINE_BINARY_OPERATION_FORWARDER(SYMBOL, CONCEPT)               \
+      #if __cpp_if_constexpr
+
+      #define boilerplate(CONCEPT, SYMBOL)                                     \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
         if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
@@ -280,15 +285,50 @@ namespace meevax::kernel
         else                                                                   \
         {                                                                      \
           std::stringstream port {};                                           \
-          port << "not " #CONCEPT " " << type().name() << " and " << rhs.type().name(); \
+          port <<     type().name() << " and "                                 \
+               << rhs.type().name() << " are not " #CONCEPT ".";               \
           throw std::runtime_error { port.str() };                             \
         }                                                                      \
       } static_assert(true, "semicolon required after this macro")
 
-      DEFINE_BINARY_OPERATION_FORWARDER(*, multipliable);
-      DEFINE_BINARY_OPERATION_FORWARDER(+, addable);
-      DEFINE_BINARY_OPERATION_FORWARDER(-, subtractable);
-      DEFINE_BINARY_OPERATION_FORWARDER(/, divisible);
+      #else // __cpp_if_constexpr
+
+      #define boilerplate(CONCEPT, SYMBOL)                                     \
+      template <typename L, typename R, typename = void>                       \
+      struct if_##CONCEPT                                                      \
+      {                                                                        \
+        template <typename... Ts>                                              \
+        static auto call(Ts&&...) -> pointer                                   \
+        {                                                                      \
+          std::stringstream port {};                                           \
+          port << typeid(L).name() << " and "                                  \
+               << typeid(R).name() << " are not " #CONCEPT ".";                \
+          throw std::runtime_error { port.str() };                             \
+        }                                                                      \
+      };                                                                       \
+                                                                               \
+      template <typename L, typename R>                                        \
+      struct if_##CONCEPT<L, R, typename std::enable_if<concepts::CONCEPT<L, R>::value>::type> \
+      {                                                                        \
+        static auto call(L&& lhs, R&& rhs) -> pointer                          \
+        {                                                                      \
+          return lhs SYMBOL rhs;                                               \
+        }                                                                      \
+      };                                                                       \
+                                                                               \
+      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
+      {                                                                        \
+        return if_##CONCEPT<const bound&, decltype(rhs)>::call(*this, rhs);    \
+      } static_assert(true, "semicolon required after this macro")
+
+      #endif // __cpp_if_constexpr
+
+      boilerplate(addable, +);
+      boilerplate(divisible, /);
+      boilerplate(multipliable, *);
+      boilerplate(subtractable, -);
+
+      #undef boilerplate
 
       #define DEFINE_COMPARISON_FORWARDER(SYMBOL, CONCEPT)                     \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
