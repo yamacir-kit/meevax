@@ -54,4 +54,3 @@ namespace meevax::console
 } // namespace meevax::terminal
 
 #endif // INCLUDED_MEEVAX_CONSOLE_ESCAPE_SEQUENCE_HPP
-

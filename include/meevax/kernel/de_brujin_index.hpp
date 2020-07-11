@@ -65,4 +65,3 @@ namespace meevax::kernel
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_DE_BRUJIN_INDEX_HPP
-

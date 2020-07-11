@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
 #include <regex>
+#include <unordered_map>
 
 #include <meevax/functional/curry.hpp>
 #include <meevax/kernel/feature.hpp>
@@ -335,20 +336,33 @@ namespace meevax::kernel
     template <typename... Ts>
     constexpr decltype(auto) configure(Ts&&... xs)
     {
+      #if __cpp_lib_invoke
       return std::invoke(*this, std::forward<decltype(xs)>(xs)...);
+      #else
+      return (*this)(std::forward<decltype(xs)>(xs)...);
+      #endif
     }
 
     decltype(auto) operator()(const int argc, char const* const* const argv)
     {
       const std::vector<std::string> options {argv + 1, argv + argc};
+
+      #if __cpp_lib_invoke
       return std::invoke(*this, options);
+      #else
+      return (*this)(options);
+      #endif
     }
 
     void operator()(const std::vector<std::string>& args)
     {
       static const std::regex pattern {"--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)"};
 
+      #if __cpp_lib_nonmember_container_access
       if (std::empty(args))
+      #else
+      if (args.empty())
+      #endif
       {
         interactive_mode = t;
       }
@@ -373,12 +387,22 @@ namespace meevax::kernel
               if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
               {
                 const auto operands {static_cast<SK&>(*this).read(rest)};
+
+                #if __cpp_lib_invoke
                 return std::invoke(cdr(*callee), operands);
+                #else
+                return cdr(*callee)(operands);
+                #endif
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
                 const auto operands {static_cast<SK&>(*this).read(*option)};
+
+                #if __cpp_lib_invoke
                 return std::invoke(cdr(*callee), operands);
+                #else
+                return cdr(*callee)(operands);
+                #endif
               }
               else
               {
@@ -387,7 +411,11 @@ namespace meevax::kernel
             }
             else if (auto callee {short_options.find(*so)}; callee != std::end(short_options))
             {
+              #if __cpp_lib_invoke
               return std::invoke(cdr(*callee), unit);
+              #else
+              return cdr(*callee)(unit);
+              #endif
             }
             else
             {
@@ -402,12 +430,22 @@ namespace meevax::kernel
             if (analysis.length(2)) // argument part
             {
               const auto operands {static_cast<SK&>(*this).read(analysis.str(3))};
+
+              #if __cpp_lib_invoke
               return std::invoke(cdr(*callee), operands);
+              #else
+              return cdr(*callee)(operands);
+              #endif
             }
             else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
               const auto operands {static_cast<SK&>(*this).read(*option)};
+
+              #if __cpp_lib_invoke
               return std::invoke(cdr(*callee), operands);
+              #else
+              return cdr(*callee)(operands);
+              #endif
             }
             else
             {
@@ -416,7 +454,11 @@ namespace meevax::kernel
           }
           else if (auto callee {long_options.find(lo)}; callee != std::end(long_options))
           {
+            #if __cpp_lib_invoke
             return std::invoke(cdr(*callee), unit);
+            #else
+            return cdr(*callee)(unit);
+            #endif
           }
           else
           {

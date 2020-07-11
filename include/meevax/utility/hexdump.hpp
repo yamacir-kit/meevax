@@ -36,7 +36,11 @@ namespace meevax::utility
   template <typename T>
   std::ostream& operator<<(std::ostream& os, const hexdump<T>& hexdump)
   {
+    #if __cpp_lib_invoke
     return std::invoke(hexdump, os);
+    #else
+    return hexdump(os);
+    #endif
   }
 } // meevax::utility
 

@@ -1,33 +1,34 @@
 #ifndef INCLUDED_MEEVAX_CONCEPTS_ARITHMETIC_HPP
 #define INCLUDED_MEEVAX_CONCEPTS_ARITHMETIC_HPP
 
-#include <type_traits>
+#include <meevax/type_traits/void_t.hpp>
 
 namespace meevax::concepts
 {
-  #define DEFINE_BINARY_ARITHMETIC_CONCEPT(NAME, SYMBOL)                       \
+  #define boilerplate(NAME, SYMBOL)                                            \
   template <typename T, typename U, typename = void>                           \
   struct NAME                                                                  \
     : public std::false_type                                                   \
   {};                                                                          \
                                                                                \
   template <typename T, typename U>                                            \
-  struct NAME<T, U, std::void_t<decltype(                                      \
+  struct NAME<T, U, type_traits::void_t<decltype(                              \
            std::declval<T>().operator SYMBOL(std::declval<U>())                \
            )>>                                                                 \
     : public std::true_type                                                    \
   {}
 
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(addable, +);
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(divisible, /);
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(multipliable, *);
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(subtractable, -);
+  boilerplate(addable, +);
+  boilerplate(divisible, /);
+  boilerplate(multipliable, *);
+  boilerplate(subtractable, -);
 
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(greater_equal_comparable, >=);
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(greater_than_comparable, >);
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(less_equal_comparable, <=);
-  DEFINE_BINARY_ARITHMETIC_CONCEPT(less_than_comparable, <);
+  boilerplate(greater_equal_comparable, >=);
+  boilerplate(greater_than_comparable, >);
+  boilerplate(less_equal_comparable, <=);
+  boilerplate(less_than_comparable, <);
+
+  #undef boilerplate
 } // namespace meevax::concepts
 
-#undef DEFINE_BINARY_ARITHMETIC_CONCEPT
 #endif // INCLUDED_MEEVAX_CONCEPTS_ARITHMETIC_HPP

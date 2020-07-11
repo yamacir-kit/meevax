@@ -99,7 +99,11 @@ namespace meevax::kernel
       {
         if (is_identifier(expression))
         {
+          #if __cpp_deduction_guides
           if (de_bruijn_index index {expression, frames}; index)
+          #else
+          if (de_bruijn_index<default_equivalence_comparator> index {expression, frames}; index)
+          #endif
           {
             if (index.is_variadic())
             {
@@ -152,7 +156,11 @@ namespace meevax::kernel
       else // is (application . arguments)
       {
         if (const object applicant { lookup(car(expression), syntactic_environment) };
+        #if __cpp_deduction_guides
             not null(applicant) and not de_bruijn_index(car(expression), frames))
+        #else
+            not null(applicant) and not de_bruijn_index<default_equivalence_comparator>(car(expression), frames))
+        #endif
         {
           if (applicant.is<syntax>())
           {
@@ -164,8 +172,13 @@ namespace meevax::kernel
             indent() >> shift();
 
             auto result {
+              #if __cpp_lib_invoke
               std::invoke(applicant.as<syntax>(),
                 cdr(expression), syntactic_environment, frames, continuation, in_a)
+              #else
+              applicant.as<syntax>()(
+                cdr(expression), syntactic_environment, frames, continuation, in_a)
+              #endif
             };
 
             debug(console::magenta, ")");
@@ -478,7 +491,11 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
+          #if __cpp_lib_invoke
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
+          #else
+          s = cons(callee.as<procedure>()(cadr(s)), cddr(s));
+          #endif
           pop<1>(c);
         }
         // else if (callee.is<SK>()) // TODO REMOVE
@@ -517,7 +534,11 @@ namespace meevax::kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
+          #if __cpp_lib_invoke
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
+          #else
+          s = cons(callee.as<procedure>()(cadr(s)), cddr(s));
+          #endif
           pop<1>(c);
         }
         // else if (callee.is<SK>()) // TODO REMOVE
@@ -1184,7 +1205,11 @@ namespace meevax::kernel
       {
         throw syntax_error {"set!"};
       }
+      #if __cpp_deduction_guides
       else if (de_bruijn_index index {car(expression), frames}; index)
+      #else
+      else if (de_bruijn_index<default_equivalence_comparator> index {car(expression), frames}; index)
+      #endif
       {
         if (index.is_variadic())
         {
@@ -1282,4 +1307,3 @@ namespace meevax::kernel
 } // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
-

@@ -17,7 +17,11 @@ namespace meevax::kernel
     return stack = buffer;
   }
 
+  #if __cpp_nontype_template_parameter_auto
   template <auto N, typename T>
+  #else
+  template <std::size_t N, typename T>
+  #endif
   inline decltype(auto) pop(T&& stack)
   {
     return stack = std::next(begin(stack), N);

@@ -125,12 +125,18 @@ namespace meevax::kernel
       return std::make_shared<pair>(lhs, rhs);
     }
 
-    auto cons = [](auto&&... xs) constexpr
+    auto cons = [](auto&&... xs)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return (xs | ...);
     };
 
-    auto list = [](auto&& ... xs) constexpr
+    auto list = [](auto&& ... xs)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return (xs | ... | unit);
     };
@@ -147,7 +153,10 @@ namespace meevax::kernel
       return result;
     };
 
-    auto xcons = [](auto&&... xs) constexpr
+    auto xcons = [](auto&&... xs)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return (... | xs);
     };
@@ -171,12 +180,18 @@ namespace meevax::kernel
    * ======================================================================== */
   inline namespace predicate
   {
-    auto null = [](auto&& x) constexpr
+    auto null = [](auto&& x)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return not x;
     };
 
-    auto eq = [](auto&& x, auto&& y) constexpr
+    auto eq = [](auto&& x, auto&& y)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return x == y;
     };
@@ -202,7 +217,11 @@ namespace meevax::kernel
       }
     }
 
+    #if __cpp_nontype_template_parameter_auto
     template <auto Coarseness = 0>
+    #else
+    template <int Coarseness = 0>
+    #endif // __cpp_nontype_template_parameter_auto
     struct equivalence_comparator;
 
     #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)             \
@@ -279,7 +298,10 @@ namespace meevax::kernel
     auto cdddar = functional::compose(cdr, cddar);
     auto cddddr = functional::compose(cdr, cdddr);
 
-    auto list_tail = [](auto&& list, auto&& k) constexpr
+    auto list_tail = [](auto&& list, auto&& k)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return std::next(std::begin(list), k);
     };
@@ -326,7 +348,10 @@ namespace meevax::kernel
    * ======================================================================== */
   inline namespace miscellaneous
   {
-    auto length = [](const auto& x) constexpr
+    auto length = [](const auto& x)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return std::distance(std::begin(x), std::end(x));
     };
@@ -463,7 +488,10 @@ namespace meevax::kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](const auto& list, auto&& predicate) constexpr
+    auto find = [](const auto& list, auto&& predicate)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       const auto result { std::find_if(std::begin(list), std::end(list), predicate) };
       return result ? car(result) : f;
@@ -496,22 +524,34 @@ namespace meevax::kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](const auto& key, const auto& alist, auto&& compare = equivalence_comparator<2>()) constexpr
+    auto assoc = [](const auto& key, const auto& alist, auto&& compare = equivalence_comparator<2>())
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return find(alist, [&](auto&& each) { return compare(car(each), key); });
     };
 
-    auto assv = [](auto&&... xs) constexpr
+    auto assv = [](auto&&... xs)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
     };
 
-    auto assq = [](auto&&... xs) constexpr
+    auto assq = [](auto&&... xs)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
     };
 
-    auto alist_cons = [](auto&& key, auto&& datum, auto&& alist) constexpr
+    auto alist_cons = [](auto&& key, auto&& datum, auto&& alist)
+      #if 201603 <= __cpp_constexpr
+      constexpr
+      #endif
     {
       return cons(cons(key, datum), alist);
     };

@@ -25,7 +25,11 @@
 extern char _binary_overture_ss_start;
 extern char _binary_overture_ss_end;
 
+#if __cpp_lib_string_view
 static const std::string_view overture
+#else
+static const std::experimental::string_view overture
+#endif
 {
   &_binary_overture_ss_start,
   static_cast<std::size_t>(&_binary_overture_ss_end - &_binary_overture_ss_start)
@@ -42,7 +46,11 @@ namespace meevax::kernel
    * Layer 4 - Experimental Features
    *
    * ======================================================================== */
+  #if __cpp_nontype_template_parameter_auto
   template <auto N>
+  #else
+  template <int N>
+  #endif
   static constexpr std::integral_constant<decltype(N), N> layer {};
 
   /* ==== Syntactic Continuation (SK) ==========================================
@@ -153,10 +161,18 @@ namespace meevax::kernel
       }
     }
 
+    #if __cpp_nontype_template_parameter_auto
     template <auto N>
+    #else
+    template <int N>
+    #endif
     explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
 
+    #if __cpp_nontype_template_parameter_auto
     template <auto N>
+    #else
+    template <int N>
+    #endif
     void boot(std::integral_constant<decltype(N), N>)
     {}
 
@@ -431,7 +447,11 @@ namespace meevax::kernel
     : syntactic_continuation::syntactic_continuation {} // boots layer<0>
   {}
 
+  #if __cpp_nontype_template_parameter_auto
   template <auto N>
+  #else
+  template <int N>
+  #endif
   syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
     : syntactic_continuation::syntactic_continuation { layer<N - 1> }
   {
@@ -511,7 +531,7 @@ namespace meevax::kernel
       return make<linker>(car(xs).template as<const string>());
     });
 
-    define<procedure>("features", [](auto&&...)                 // (scheme base)
+    define<procedure>("features", [&](auto&&...)                // (scheme base)
     {
       return current_feature;
     });
