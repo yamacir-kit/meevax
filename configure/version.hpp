@@ -37,13 +37,20 @@ namespace meevax::kernel
   struct version
     : public object
   {
-    Construct_On_First_Use(major, make<integer>("${PROJECT_VERSION_MAJOR}"));
-    Construct_On_First_Use(minor, make<integer>("${PROJECT_VERSION_MINOR}"));
-    Construct_On_First_Use(patch, make<integer>("${PROJECT_VERSION_PATCH}"));
+    #define boilerplate(NAME, ...) \
+    auto NAME() const -> decltype(auto) \
+    { \
+      static const auto x { __VA_ARGS__ }; \
+      return x; \
+    } static_assert(true, "")
 
-    Construct_On_First_Use(semantic, make<symbol>("${PROJECT_VERSION}"));
+    boilerplate(major, make<integer>("${PROJECT_VERSION_MAJOR}"));
+    boilerplate(minor, make<integer>("${PROJECT_VERSION_MINOR}"));
+    boilerplate(patch, make<integer>("${PROJECT_VERSION_PATCH}"));
 
-    Construct_On_First_Use(libraries,
+    boilerplate(semantic, make<symbol>("${PROJECT_VERSION}"));
+
+    boilerplate(libraries,
       static_cast<object>(
         list(
           cons(
@@ -56,6 +63,8 @@ namespace meevax::kernel
             make<symbol>("mpfr"),
             make<symbol>(mpfr_get_version()))
           )));
+
+    #undef boilerplate
 
     explicit version()
       : object

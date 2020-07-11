@@ -141,5 +141,3 @@ namespace meevax::kernel
     {"delete",                    make<character>(u8"\u007F", "delete"                   )},
   }; // characters
 } // namespace meevax::kernel
-
-
