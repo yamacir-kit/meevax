@@ -191,7 +191,7 @@ namespace meevax::kernel
         return typeid(bound);
       }
 
-    private:
+    private: // copy
       #if __cpp_if_constexpr
 
       auto copy() const -> pointer override
@@ -217,7 +217,10 @@ namespace meevax::kernel
 
       #endif // __cpp_if_constexpr
 
-      bool compare(const pointer& rhs) const override
+    private: // eqv
+      #if __cpp_if_constexpr
+
+      auto compare(const pointer& rhs) const -> bool override
       {
         if constexpr (concepts::equality_comparable<bound>::value)
         {
@@ -232,11 +235,20 @@ namespace meevax::kernel
         }
         else
         {
-          std::cerr << "; warning\t; no viable comparison with (" << type().name() << " " << static_cast<const bound&>(*this) << ") and (" << rhs.type().name() << " " << rhs << ") => return #f." << std::endl;
           return false;
         }
       }
 
+      #else // __cpp_if_constexpr
+
+      auto compare(const pointer& rhs) const -> bool override
+      {
+        return top::if_equality_comparable<bound>::call_it(*this, rhs);
+      }
+
+      #endif // __cpp_if_constexpr
+
+    private: // write
       // Override T::write(), then invoke Bound's stream output operator.
       auto write(std::ostream& os) const -> decltype(os) override
       {
@@ -256,6 +268,7 @@ namespace meevax::kernel
         }
       }
 
+    private: // arithmetic
       #if __cpp_if_constexpr
 
       #define boilerplate(CONCEPT, SYMBOL)                                     \

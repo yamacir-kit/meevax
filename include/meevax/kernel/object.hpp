@@ -16,6 +16,7 @@ namespace meevax::kernel
       return typeid(T);
     }
 
+  public: // copy
     #if __cpp_if_constexpr
 
     virtual auto copy() const -> pointer<T>
@@ -63,6 +64,9 @@ namespace meevax::kernel
 
     #endif // __cpp_if_constexpr
 
+  public: // eqv
+    #if __cpp_if_constexpr
+
     virtual bool compare(const pointer<T>& rhs) const
     {
       if constexpr (concepts::equality_comparable<T>::value)
@@ -82,11 +86,48 @@ namespace meevax::kernel
       }
     }
 
+    #else // __cpp_if_constexpr
+
+    template <typename U, typename = void>
+    struct if_equality_comparable
+    {
+      template <typename... Ts>
+      static auto call_it(Ts&&...) -> pointer<T>
+      {
+        return false;
+      }
+    };
+
+    template <typename U>
+    struct if_equality_comparable<U, typename std::enable_if<concepts::equality_comparable<U>::value>::type>
+    {
+      static auto call_it(U&& lhs, const pointer<T>& rhs) -> pointer<T>
+      {
+        if (const auto rhs_ { std::dynamic_pointer_cast<const U>(rhs) })
+        {
+          return lhs == *rhs_;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    };
+
+    bool compare(const pointer<T>& rhs) const override
+    {
+      return if_equality_comparable<bound>::call_it(*this, rhs);
+    }
+
+    #endif // __cpp_if_constexpr
+
+  public: // write
     virtual auto write(std::ostream& os) const -> decltype(os)
     {
       return os << static_cast<const T&>(*this);
     };
 
+  public: // arithmetic
     // override by binder's operators
     #define boilerplate(SYMBOL)                                                \
     virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
