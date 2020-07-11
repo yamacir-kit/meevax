@@ -18,6 +18,8 @@
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
 
+#undef __cpp_if_constexpr
+
 namespace meevax::kernel
 {
   /* ==== Linux 64 Bit Address Space ==========================================
@@ -212,7 +214,7 @@ namespace meevax::kernel
 
       auto copy() const -> pointer override
       {
-        return top::if_copy_constructible<binding>::call_it(*this);
+        return top::template if_copy_constructible<binding>::call_it(*this);
       }
 
       #endif // __cpp_if_constexpr
@@ -243,7 +245,7 @@ namespace meevax::kernel
 
       auto compare(const pointer& rhs) const -> bool override
       {
-        return top::if_equality_comparable<bound>::call_it(*this, rhs);
+        return top::template if_equality_comparable<bound>::call_it(*this, rhs);
       }
 
       #endif // __cpp_if_constexpr
@@ -271,7 +273,7 @@ namespace meevax::kernel
 
       auto write(std::ostream& port) const -> decltype(port) override
       {
-        return top::if_stream_insertable<bound>::call_it(port, *this);
+        return top::template if_stream_insertable<bound>::call_it(port, *this);
       }
 
       #endif // __cpp_if_constexpr
@@ -332,8 +334,8 @@ namespace meevax::kernel
       boilerplate(multipliable, *);
       boilerplate(subtractable, -);
 
-      boilerplate(equality_comparable_with, !=);
       boilerplate(equality_comparable_with, ==);
+      boilerplate(not_equality_comparable_with, !=);
 
       boilerplate(greater_equal_comparable, >=);
       boilerplate(greater_than_comparable, >);

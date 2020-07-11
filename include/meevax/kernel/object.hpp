@@ -39,7 +39,7 @@ namespace meevax::kernel
     struct if_copy_constructible
     {
       template <typename... Ts>
-      static auto call_it(Ts&&...) -> pointer
+      static auto call_it(Ts&&...) -> pointer<T>
       {
         std::stringstream port {};
         port << typeid(U).name() << " is not copy_constructible";
@@ -51,7 +51,7 @@ namespace meevax::kernel
     struct if_copy_constructible<U, typename std::enable_if<std::is_copy_constructible<U>::value>::type>
     {
       template <typename... Ts>
-      static auto call_it(Ts&&... xs) -> pointer
+      static auto call_it(Ts&&... xs) -> pointer<T>
       {
         return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
       }
@@ -59,7 +59,9 @@ namespace meevax::kernel
 
     virtual auto copy() const -> pointer<T>
     {
-      return if_copy_constructible<T>::call_it(*this);
+      return
+        if_copy_constructible<T>::call_it(
+          static_cast<const T&>(*this));
     }
 
     #endif // __cpp_if_constexpr
@@ -92,7 +94,7 @@ namespace meevax::kernel
     struct if_equality_comparable
     {
       template <typename... Ts>
-      static auto call_it(Ts&&...) -> pointer<T>
+      static auto call_it(Ts&&...) -> bool
       {
         return false;
       }
@@ -101,7 +103,7 @@ namespace meevax::kernel
     template <typename U>
     struct if_equality_comparable<U, typename std::enable_if<concepts::equality_comparable<U>::value>::type>
     {
-      static auto call_it(U&& lhs, const pointer<T>& rhs) -> pointer<T>
+      static auto call_it(const U& lhs, const pointer<T>& rhs) -> bool
       {
         if (const auto rhs_ { std::dynamic_pointer_cast<const U>(rhs) })
         {
@@ -114,9 +116,9 @@ namespace meevax::kernel
       }
     };
 
-    bool compare(const pointer<T>& rhs) const override
+    virtual bool compare(const pointer<T>& rhs) const
     {
-      return if_equality_comparable<T>::call_it(*this, rhs);
+      return if_equality_comparable<T>::call_it(static_cast<const T&>(*this), rhs);
     }
 
     #endif // __cpp_if_constexpr
@@ -145,11 +147,11 @@ namespace meevax::kernel
     template <typename U, typename = void>
     struct if_stream_insertable
     {
-      static auto call_it(std::ostream& port, U&&) -> decltype(port)
+      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
       {
         return port << console::magenta << "#,("
-                    << console::green << type().name()
-                    << console::reset << " " << static_cast<const U*>(this)
+                    << console::green << typeid(U).name()
+                    << console::reset << " " << static_cast<const U*>(&rhs)
                     << console::magenta << ")"
                     << console::reset;
       }
@@ -158,7 +160,7 @@ namespace meevax::kernel
     template <typename U>
     struct if_stream_insertable<U, typename std::enable_if<concepts::is_stream_insertable<U>::value>::type>
     {
-      static auto call_it(std::ostream& port, U&& rhs) -> decltype(port)
+      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
       {
         return port << rhs;
       }
@@ -166,7 +168,7 @@ namespace meevax::kernel
 
     virtual auto write(std::ostream& port) const -> decltype(port)
     {
-      return if_stream_insertable<T>::call_it(port, *this);
+      return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
     }
 
     #endif // __cpp_if_constexpr
