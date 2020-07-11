@@ -54,7 +54,7 @@ namespace meevax::kernel
     };
 
     // override by binder's operators
-    #define DEFINE_BINARY_OPERATOR_ELEVATOR(SYMBOL)                            \
+    #define boilerplate(SYMBOL)                                                \
     virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
     {                                                                          \
       std::stringstream ss {};                                                 \
@@ -62,18 +62,20 @@ namespace meevax::kernel
       throw std::logic_error { ss.str() };                                     \
     } static_assert(true, "semicolon required after this macro")
 
-    DEFINE_BINARY_OPERATOR_ELEVATOR(*);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(+);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(-);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(/);
+    boilerplate(*);
+    boilerplate(+);
+    boilerplate(-);
+    boilerplate(/);
 
-    DEFINE_BINARY_OPERATOR_ELEVATOR(==);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(!=);
+    boilerplate(==);
+    boilerplate(!=);
 
-    DEFINE_BINARY_OPERATOR_ELEVATOR(<);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(<=);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(>);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(>=);
+    boilerplate(<);
+    boilerplate(<=);
+    boilerplate(>);
+    boilerplate(>=);
+
+    #undef boilerplate
   };
 
   struct pair; // forward declaration
