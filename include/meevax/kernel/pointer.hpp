@@ -18,8 +18,6 @@
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
 
-#undef __cpp_if_constexpr
-
 namespace meevax::kernel
 {
   /* ==== Linux 64 Bit Address Space ==========================================
