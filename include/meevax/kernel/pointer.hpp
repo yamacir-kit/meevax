@@ -166,9 +166,9 @@ namespace meevax::kernel
       : public Bound
       , public virtual T
     {
-      using base = T;
+      using top = T;
 
-      using bound = Bound;
+      using       bound =       Bound;
       using const_bound = const bound;
 
       using binding = binder<bound>;
@@ -176,7 +176,7 @@ namespace meevax::kernel
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
         : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
-            std::is_base_of<base, bound>::value, base, bound
+            std::is_base_of<top, bound>::value, top, bound
           >::type { std::forward<decltype(xs)>(xs)... }
       {}
 
@@ -203,38 +203,16 @@ namespace meevax::kernel
         else
         {
           std::stringstream ss {};
-          ss << typeid(T).name() << " is not copy-constructible";
+          ss << typeid(T).name() << " is not copy_constructible";
           throw std::logic_error { ss.str() };
         }
       }
 
       #else // __cpp_if_constexpr
 
-      template <typename U, typename = void>
-      struct if_copy_constructible
-      {
-        template <typename... Ts>
-        static auto call_it_with(Ts&&...) -> pointer
-        {
-          std::stringstream ss {};
-          ss << typeid(U).name() << " is not copy-constructible";
-          throw std::logic_error { ss.str() };
-        }
-      };
-
-      template <typename U>
-      struct if_copy_constructible<U, typename std::enable_if<std::is_copy_constructible<U>::value>::type>
-      {
-        template <typename... Ts>
-        static auto call_it_with(Ts&&... xs) -> pointer
-        {
-          return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
-        }
-      };
-
       auto copy() const -> pointer override
       {
-        return if_copy_constructible<binding>::call_it_with(*this);
+        return top::if_copy_constructible<binding>::call_it(*this);
       }
 
       #endif // __cpp_if_constexpr

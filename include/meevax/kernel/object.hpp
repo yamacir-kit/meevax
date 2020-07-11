@@ -16,6 +16,8 @@ namespace meevax::kernel
       return typeid(T);
     }
 
+    #if __cpp_if_constexpr
+
     virtual auto copy() const -> pointer<T>
     {
       if constexpr (std::is_copy_constructible<T>::value)
@@ -24,10 +26,42 @@ namespace meevax::kernel
       }
       else
       {
-        static_assert([]() constexpr { return false; }(),
-          "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
+        std::stringstream port {};
+        port << typeid(T).name() << " is not copy_constructible";
+        throw std::logic_error { port.str() };
       }
     }
+
+    #else // __cpp_if_constexpr
+
+    template <typename U, typename = void>
+    struct if_copy_constructible
+    {
+      template <typename... Ts>
+      static auto call_it(Ts&&...) -> pointer
+      {
+        std::stringstream port {};
+        port << typeid(U).name() << " is not copy_constructible";
+        throw std::logic_error { port.str() };
+      }
+    };
+
+    template <typename U>
+    struct if_copy_constructible<U, typename std::enable_if<std::is_copy_constructible<U>::value>::type>
+    {
+      template <typename... Ts>
+      static auto call_it(Ts&&... xs) -> pointer
+      {
+        return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
+      }
+    };
+
+    virtual auto copy() const -> pointer<T>
+    {
+      return if_copy_constructible<T>::call_it(*this);
+    }
+
+    #endif // __cpp_if_constexpr
 
     virtual bool compare(const pointer<T>& rhs) const
     {
