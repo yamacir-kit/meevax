@@ -116,16 +116,60 @@ namespace meevax::kernel
 
     bool compare(const pointer<T>& rhs) const override
     {
-      return if_equality_comparable<bound>::call_it(*this, rhs);
+      return if_equality_comparable<T>::call_it(*this, rhs);
     }
 
     #endif // __cpp_if_constexpr
 
   public: // write
-    virtual auto write(std::ostream& os) const -> decltype(os)
+    #if __cpp_if_constexpr
+
+    virtual auto write(std::ostream& port) const -> decltype(port)
     {
-      return os << static_cast<const T&>(*this);
+      if constexpr (concepts::is_stream_insertable<T>::value)
+      {
+        return port << static_cast<const T&>(*this);
+      }
+      else
+      {
+        return port << console::magenta << "#,("
+                    << console::green << type().name()
+                    << console::reset << " " << static_cast<const T*>(this)
+                    << console::magenta << ")"
+                    << console::reset;
+      }
     };
+
+    #else // __cpp_if_constexpr
+
+    template <typename U, typename = void>
+    struct if_stream_insertable
+    {
+      static auto call_it(std::ostream& port, U&&) -> decltype(port)
+      {
+        return port << console::magenta << "#,("
+                    << console::green << type().name()
+                    << console::reset << " " << static_cast<const U*>(this)
+                    << console::magenta << ")"
+                    << console::reset;
+      }
+    };
+
+    template <typename U>
+    struct if_stream_insertable<U, typename std::enable_if<concepts::is_stream_insertable<U>::value>::type>
+    {
+      static auto call_it(std::ostream& port, U&& rhs) -> decltype(port)
+      {
+        return port << rhs;
+      }
+    };
+
+    virtual auto write(std::ostream& port) const -> decltype(port)
+    {
+      return if_stream_insertable<T>::call_it(port, *this);
+    }
+
+    #endif // __cpp_if_constexpr
 
   public: // arithmetic
     // override by binder's operators

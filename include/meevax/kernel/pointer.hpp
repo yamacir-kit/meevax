@@ -249,24 +249,32 @@ namespace meevax::kernel
       #endif // __cpp_if_constexpr
 
     private: // write
-      // Override T::write(), then invoke Bound's stream output operator.
-      auto write(std::ostream& os) const -> decltype(os) override
+      #if __cpp_if_constexpr
+
+      auto write(std::ostream& port) const -> decltype(port) override
       {
         if constexpr (concepts::is_stream_insertable<bound>::value)
         {
-          return os << static_cast<const bound&>(*this);
+          return port << static_cast<const bound&>(*this);
         }
         else
         {
-          return os << console::magenta << "#("
-                    << console::green << utility::demangle(type())
-                    << console::reset
-                    << console::faint << " #;" << static_cast<const bound*>(this)
-                    << console::reset
-                    << console::magenta << ")"
-                    << console::reset;
+          return port << console::magenta << "#("
+                      << console::green << type().name()
+                      << console::reset << static_cast<const bound*>(this)
+                      << console::magenta << ")"
+                      << console::reset;
         }
       }
+
+      #else // __cpp_if_constexpr
+
+      auto write(std::ostream& port) const -> decltype(port) override
+      {
+        return top::if_stream_insertable<bound>::call_it(port, *this);
+      }
+
+      #endif // __cpp_if_constexpr
 
     private: // arithmetic
       #if __cpp_if_constexpr
