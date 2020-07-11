@@ -16,6 +16,9 @@ namespace meevax::kernel
       return typeid(T);
     }
 
+  public: // copy
+    #if __cpp_if_constexpr
+
     virtual auto copy() const -> pointer<T>
     {
       if constexpr (std::is_copy_constructible<T>::value)
@@ -24,10 +27,47 @@ namespace meevax::kernel
       }
       else
       {
-        static_assert([]() constexpr { return false; }(),
-          "The base type of meevax::kernel::pointer requires concept CopyConstructible.");
+        std::stringstream port {};
+        port << typeid(T).name() << " is not copy_constructible";
+        throw std::logic_error { port.str() };
       }
     }
+
+    #else // __cpp_if_constexpr
+
+    template <typename U, typename = void>
+    struct if_copy_constructible
+    {
+      template <typename... Ts>
+      static auto call_it(Ts&&...) -> pointer<T>
+      {
+        std::stringstream port {};
+        port << typeid(U).name() << " is not copy_constructible";
+        throw std::logic_error { port.str() };
+      }
+    };
+
+    template <typename U>
+    struct if_copy_constructible<U, typename std::enable_if<std::is_copy_constructible<U>::value>::type>
+    {
+      template <typename... Ts>
+      static auto call_it(Ts&&... xs) -> pointer<T>
+      {
+        return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
+      }
+    };
+
+    virtual auto copy() const -> pointer<T>
+    {
+      return
+        if_copy_constructible<T>::call_it(
+          static_cast<const T&>(*this));
+    }
+
+    #endif // __cpp_if_constexpr
+
+  public: // eqv
+    #if __cpp_if_constexpr
 
     virtual bool compare(const pointer<T>& rhs) const
     {
@@ -48,13 +88,94 @@ namespace meevax::kernel
       }
     }
 
-    virtual auto write(std::ostream& os) const -> decltype(os)
+    #else // __cpp_if_constexpr
+
+    template <typename U, typename = void>
+    struct if_equality_comparable
     {
-      return os << static_cast<const T&>(*this);
+      template <typename... Ts>
+      static auto call_it(Ts&&...) -> bool
+      {
+        return false;
+      }
     };
 
+    template <typename U>
+    struct if_equality_comparable<U, typename std::enable_if<concepts::equality_comparable<U>::value>::type>
+    {
+      static auto call_it(const U& lhs, const pointer<T>& rhs) -> bool
+      {
+        if (const auto rhs_ { std::dynamic_pointer_cast<const U>(rhs) })
+        {
+          return lhs == *rhs_;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    };
+
+    virtual bool compare(const pointer<T>& rhs) const
+    {
+      return if_equality_comparable<T>::call_it(static_cast<const T&>(*this), rhs);
+    }
+
+    #endif // __cpp_if_constexpr
+
+  public: // write
+    #if __cpp_if_constexpr
+
+    virtual auto write(std::ostream& port) const -> decltype(port)
+    {
+      if constexpr (concepts::is_stream_insertable<T>::value)
+      {
+        return port << static_cast<const T&>(*this);
+      }
+      else
+      {
+        return port << console::magenta << "#,("
+                    << console::green << type().name()
+                    << console::reset << " " << static_cast<const T*>(this)
+                    << console::magenta << ")"
+                    << console::reset;
+      }
+    };
+
+    #else // __cpp_if_constexpr
+
+    template <typename U, typename = void>
+    struct if_stream_insertable
+    {
+      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
+      {
+        return port << console::magenta << "#,("
+                    << console::green << typeid(U).name()
+                    << console::reset << " " << static_cast<const U*>(&rhs)
+                    << console::magenta << ")"
+                    << console::reset;
+      }
+    };
+
+    template <typename U>
+    struct if_stream_insertable<U, typename std::enable_if<concepts::is_stream_insertable<U>::value>::type>
+    {
+      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
+      {
+        return port << rhs;
+      }
+    };
+
+    virtual auto write(std::ostream& port) const -> decltype(port)
+    {
+      return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
+    }
+
+    #endif // __cpp_if_constexpr
+
+  public: // arithmetic
     // override by binder's operators
-    #define DEFINE_BINARY_OPERATOR_ELEVATOR(SYMBOL)                            \
+    #define boilerplate(SYMBOL)                                                \
     virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
     {                                                                          \
       std::stringstream ss {};                                                 \
@@ -62,18 +183,20 @@ namespace meevax::kernel
       throw std::logic_error { ss.str() };                                     \
     } static_assert(true, "semicolon required after this macro")
 
-    DEFINE_BINARY_OPERATOR_ELEVATOR(*);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(+);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(-);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(/);
+    boilerplate(*);
+    boilerplate(+);
+    boilerplate(-);
+    boilerplate(/);
 
-    DEFINE_BINARY_OPERATOR_ELEVATOR(==);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(!=);
+    boilerplate(==);
+    boilerplate(!=);
 
-    DEFINE_BINARY_OPERATOR_ELEVATOR(<);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(<=);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(>);
-    DEFINE_BINARY_OPERATOR_ELEVATOR(>=);
+    boilerplate(<);
+    boilerplate(<=);
+    boilerplate(>);
+    boilerplate(>=);
+
+    #undef boilerplate
   };
 
   struct pair; // forward declaration
