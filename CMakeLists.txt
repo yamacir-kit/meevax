@@ -35,6 +35,7 @@ set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON " \
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS " \
+    -Wno-strict-aliasing \
     -fdevirtualize-at-ltrans \
     -fdevirtualize-speculatively \
     -ffloat-store \

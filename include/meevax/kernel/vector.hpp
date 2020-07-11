@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   enum class in_range_tag {} in_range;
 
@@ -50,6 +50,6 @@ namespace meevax::kernel
   };
 
   static_assert(not std::is_base_of<pair, vector>::value);
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_VECTOR_HPP

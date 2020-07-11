@@ -7,7 +7,7 @@
 
 // TODO Rename to OutputStreamable (from Boost.IOStreams)
 
-namespace meevax::concepts
+namespace meevax { inline namespace concepts
 {
   template <typename T, typename = void>
   struct is_stream_insertable
@@ -20,7 +20,7 @@ namespace meevax::concepts
            )>>
     : public std::true_type
   {};
-} // namespace meevax::concepts
+}} // namespace meevax::concepts
 
 #endif // MEEVAX_CONCEPTS_IS_STREAM_INSERTABLE_HPP
 

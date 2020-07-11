@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace meevax::utility
+namespace meevax { inline namespace utility
 {
   template <typename... Ts>
   struct overloaded
@@ -21,7 +21,7 @@ namespace meevax::utility
   {
     return { std::forward<decltype(xs)>(xs)... };
   }
-} // namespace meevax::utility
+}} // namespace meevax::utility
 
 #endif // INCLUDED_MEEVAX_UTILITY_OVERLOAD_HPP
 

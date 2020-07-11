@@ -3,7 +3,7 @@
 
 #include <meevax/type_traits/void_t.hpp>
 
-namespace meevax::concepts
+namespace meevax { inline namespace concepts
 {
   #define boilerplate(NAME, SYMBOL)                                            \
   template <typename T, typename U, typename = void>                           \
@@ -29,6 +29,6 @@ namespace meevax::concepts
   boilerplate(less_than_comparable, <);
 
   #undef boilerplate
-} // namespace meevax::concepts
+}} // namespace meevax::concepts
 
 #endif // INCLUDED_MEEVAX_CONCEPTS_ARITHMETIC_HPP

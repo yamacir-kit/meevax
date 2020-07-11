@@ -4,7 +4,7 @@
 #include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/object.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== The Pair Type ========================================================
   *
@@ -120,7 +120,7 @@ namespace meevax::kernel
 
     return os << console::magenta << ")" << console::reset;
   }
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 

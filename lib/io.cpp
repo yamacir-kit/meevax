@@ -2,7 +2,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
 
-extern "C" namespace meevax::kernel
+extern "C" namespace meevax { inline namespace kernel
 {
   PROCEDURE(is_input_port)
   {
@@ -35,5 +35,4 @@ extern "C" namespace meevax::kernel
     car(xs).as<output_port>().close();
     return unspecified;
   }
-} // extern "C"
-
+}} // extern "C"

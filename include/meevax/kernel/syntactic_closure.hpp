@@ -4,7 +4,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct syntactic_closure
     : public virtual pair
@@ -49,6 +49,6 @@ namespace meevax::kernel
       return os << console::underline << sc.form() << "." << &sc << console::reset;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP

@@ -5,7 +5,7 @@
 
 #include <meevax/kernel/exception.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ===========================================================================
   *
@@ -108,7 +108,6 @@ namespace meevax::kernel
       }
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LINKER_HPP
-

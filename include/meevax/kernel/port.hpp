@@ -5,7 +5,7 @@
 
 #include <meevax/kernel/object.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Ports ================================================================
   *
@@ -47,7 +47,6 @@ namespace meevax::kernel
   DEFINE_PORT(       port,        "port",  fstream);
   DEFINE_PORT( input_port,  "input-port", ifstream);
   DEFINE_PORT(output_port, "output-port", ofstream);
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP
-

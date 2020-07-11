@@ -5,7 +5,7 @@
 
 #include <unistd.h>
 
-namespace meevax::console
+namespace meevax { inline namespace console
 {
   auto is_console = [](std::ostream& os)
   {
@@ -24,7 +24,6 @@ namespace meevax::console
       return false;
     }
   };
-} // namespace meevax::console
+}} // namespace meevax::console
 
 #endif // INCLUDED_MEEVAX_CONSOLE_TELETYPE_HPP
-

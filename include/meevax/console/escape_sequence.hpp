@@ -3,7 +3,7 @@
 
 #include <meevax/console/capability.hpp>
 
-namespace meevax::console
+namespace meevax { inline namespace console
 {
   template <typename... Ts>
   auto escape_sequence(std::ostream& os, Ts&&... xs)
@@ -51,6 +51,6 @@ namespace meevax::console
     DEFINE_ESCAPE_SEQUENCE("[46m", cyan);
     DEFINE_ESCAPE_SEQUENCE("[47m", white);
   }
-} // namespace meevax::terminal
+}} // namespace meevax::terminal
 
 #endif // INCLUDED_MEEVAX_CONSOLE_ESCAPE_SEQUENCE_HPP

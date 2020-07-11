@@ -10,7 +10,7 @@
 
 #include <meevax/kernel/object.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   template <typename SK>
   class writer
@@ -111,7 +111,6 @@ namespace meevax::kernel
     Define_Static_Perfect_Forwarding(open_output_file, std::ofstream);
     Define_Static_Perfect_Forwarding(open_output_string, std::stringstream);
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_WRITER_HPP
-

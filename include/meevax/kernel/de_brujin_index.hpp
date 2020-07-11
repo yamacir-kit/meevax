@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   template <typename Comparator = default_equivalence_comparator>
   class de_bruijn_index
@@ -62,6 +62,6 @@ namespace meevax::kernel
       return variadic;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_DE_BRUJIN_INDEX_HPP

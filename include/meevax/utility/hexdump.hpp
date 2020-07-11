@@ -6,7 +6,7 @@
 #include <iostream> // std::ostream
 #include <vector> // std::vector
 
-namespace meevax::utility
+namespace meevax { inline namespace utility
 {
   template <typename T>
   struct hexdump
@@ -42,7 +42,6 @@ namespace meevax::utility
     return hexdump(os);
     #endif
   }
-} // meevax::utility
+}} // meevax::utility
 
 #endif // INCLUDED_MEEVAX_UTILITY_HEXDUMP
-

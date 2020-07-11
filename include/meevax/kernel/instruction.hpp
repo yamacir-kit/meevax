@@ -9,7 +9,7 @@
 //   convert to lower-case
 //   use #! as external representation
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   #define MNEMONICS                                                            \
     (CALL)                                                                     \
@@ -97,7 +97,6 @@ namespace meevax::kernel
       return os << console::reset;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
-

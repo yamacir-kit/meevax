@@ -10,7 +10,7 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntax.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   template <typename SK>
   class machine // Simple SECD machine.
@@ -1304,6 +1304,6 @@ namespace meevax::kernel
       }
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_MACHINE_HPP

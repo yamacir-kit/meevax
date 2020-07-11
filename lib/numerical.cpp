@@ -4,7 +4,7 @@
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/procedure.hpp>
 
-extern "C" namespace meevax::numerical
+extern "C" namespace meevax { inline namespace numerical
 {
   PROCEDURE(addition)
   {
@@ -114,5 +114,4 @@ extern "C" namespace meevax::numerical
       kernel::convert(
         kernel::car(xs).is<kernel::real>());
   }
-} // extern "C"
-
+}} // extern "C"

@@ -19,7 +19,7 @@
 #include <meevax/utility/requires.hpp>
 #include <type_traits>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Linux 64 Bit Address Space ==========================================
   *
@@ -625,7 +625,7 @@ namespace meevax::kernel
   DEFINE_COMPARISON_DISPATCHER(<=);
   DEFINE_COMPARISON_DISPATCHER(>);
   DEFINE_COMPARISON_DISPATCHER(>=);
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 namespace std
 {
@@ -636,7 +636,5 @@ namespace std
 }
 
 #undef DEFINE_BINARY_OPERATION_DISPATCHER
-#undef DEFINE_BINARY_OPERATION_FORWARDER
 #undef DEFINE_COMPARISON_DISPATCHER
-#undef DEFINE_COMPARISON_FORWARDER
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP

@@ -7,7 +7,7 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   namespace multiprecision
   {
@@ -221,7 +221,7 @@ namespace meevax::kernel
   DEFINE_COMPARISON(integer, <=, "less-equal comparison");
   DEFINE_COMPARISON(integer, >,  "greater-than comparison");
   DEFINE_COMPARISON(integer, >=, "greater-equal comparison");
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #undef DEFINE_BINARY_ARITHMETIC_INTEGER
 #undef DEFINE_BINARY_ARITHMETIC_REAL

@@ -5,7 +5,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Character ============================================================
   *
@@ -170,6 +170,6 @@ namespace meevax::kernel
   //       or u8'"'
   //       or u8';';
   // };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP

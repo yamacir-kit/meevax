@@ -2,7 +2,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 
-extern "C" namespace meevax::symbol
+extern "C" namespace meevax { inline namespace standard
 {
   PROCEDURE(symbol)
   {
@@ -32,5 +32,4 @@ extern "C" namespace meevax::symbol
 
     return kernel::t;
   }
-} // extern "C"
-
+}} // extern "C"

@@ -5,7 +5,7 @@
 
 #include <meevax/kernel/object.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct path
     : public std::experimental::filesystem::path
@@ -19,7 +19,6 @@ namespace meevax::kernel
                 << console::reset;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PATH_HPP
-

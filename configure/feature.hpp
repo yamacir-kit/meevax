@@ -6,7 +6,7 @@
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/symbol.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct feature
     : public object
@@ -53,7 +53,6 @@ namespace meevax::kernel
         }
     {}
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_FEATURE_HPP
-

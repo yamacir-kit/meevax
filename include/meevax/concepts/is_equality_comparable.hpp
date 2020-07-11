@@ -3,7 +3,7 @@
 
 #include <meevax/type_traits/void_t.hpp>
 
-namespace meevax::concepts
+namespace meevax { inline namespace concepts
 {
   template <typename T, typename = void>
   struct equality_comparable
@@ -40,7 +40,6 @@ namespace meevax::concepts
            )>>
     : public std::true_type
   {};
-} // namespace meevax::concepts
+}} // namespace meevax::concepts
 
 #endif // INCLUDED_MEEVAX_CONCEPTS_IS_EQUALITY_COMPARABLE_HPP
-

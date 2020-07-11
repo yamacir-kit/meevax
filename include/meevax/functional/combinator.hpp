@@ -3,7 +3,7 @@
 
 #include <meevax/functional/curry.hpp>
 
-namespace meevax::functional
+namespace meevax { inline namespace functional
 {
   auto i = [](auto&& x) constexpr
   {
@@ -27,7 +27,6 @@ namespace meevax::functional
       curry(std::forward<decltype(f)>(f))
            (std::forward<decltype(f)>(f));
   };
-} // namespace meevax::functional
+}} // namespace meevax::functional
 
 #endif // INCLUDED_MEEVAX_FUNCTIONAL_COMBINATOR_HPP
-

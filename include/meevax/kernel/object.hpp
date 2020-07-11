@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/pointer.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Identity =============================================================
    *
@@ -245,6 +245,6 @@ namespace meevax::kernel
   boilerplate(unspecified);
 
   #undef boilerplate
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

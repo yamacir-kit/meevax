@@ -17,7 +17,7 @@
 #undef minor
 #endif
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   constexpr auto boost_version = []() -> std::string
   {
@@ -76,7 +76,6 @@ namespace meevax::kernel
         }
     {}
   };
-} // namespace meevax::kernal
+}} // namespace meevax::kernal
 
 #endif // INCLUDED_MEEVAX_CONFIGURE_VERSION_HPP
-

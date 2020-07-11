@@ -8,7 +8,7 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== The Homoiconic Iterator ==============================================
    *
@@ -71,7 +71,7 @@ namespace meevax::kernel
       return unit;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 namespace std
 {
@@ -100,7 +100,7 @@ namespace std
   }
 } // namespace std
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Constructors =========================================================
    *
@@ -584,7 +584,7 @@ namespace meevax::kernel
    *   - set-cdr!                         ... TODO
    *
    * ======================================================================== */
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP
 

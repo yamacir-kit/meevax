@@ -11,7 +11,7 @@
 #include <cxxabi.h>
 #endif
 
-namespace meevax::utility
+namespace meevax { inline namespace utility
 {
   auto demangle(const char* name) -> std::string
   {
@@ -34,7 +34,6 @@ namespace meevax::utility
   {
     return demangle(info.name());
   }
-} // namespace meevax::utility
+}} // namespace meevax::utility
 
 #endif // INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
-

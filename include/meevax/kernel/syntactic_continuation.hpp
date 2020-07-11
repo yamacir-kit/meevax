@@ -35,7 +35,7 @@ static const std::experimental::string_view overture
   static_cast<std::size_t>(&_binary_overture_ss_end - &_binary_overture_ss_start)
 };
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== System Layers ========================================================
    *
@@ -826,8 +826,8 @@ namespace meevax::kernel
       return unspecified; // TODO standard-output-port
     });
   }
-} // namespace meevax::kernel
 
-#undef DEFINE_SYNTAX
+  #undef DEFINE_SYNTAX
+}} // namespace meevax::kernel
+
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
-

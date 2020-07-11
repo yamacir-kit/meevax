@@ -5,7 +5,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/string.hpp>
 
-extern "C" namespace meevax::experimental
+extern "C" namespace meevax { inline namespace experimental
 {
   PROCEDURE(emergency_exit)
   {
@@ -38,5 +38,4 @@ extern "C" namespace meevax::experimental
 
     return kernel::unspecified;
   }
-} // extern "C"
-
+}} // extern "C"
