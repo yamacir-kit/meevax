@@ -192,7 +192,24 @@ namespace meevax::kernel
       }
 
     private:
-      #if not __cpp_if_constexpr
+      #if __cpp_if_constexpr
+
+      auto copy() const -> pointer override
+      {
+        if constexpr (std::is_copy_constructible<binding>::value)
+        {
+          return std::make_shared<binding>(*this);
+        }
+        else
+        {
+          std::stringstream ss {};
+          ss << typeid(T).name() << " is not copy-constructible";
+          throw std::logic_error { ss.str() };
+        }
+      }
+
+      #else // __cpp_if_constexpr
+
       template <typename U, typename = void>
       struct if_copy_constructible
       {
@@ -214,25 +231,13 @@ namespace meevax::kernel
           return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
         }
       };
-      #endif // not __cpp_if_constexpr
 
       auto copy() const -> pointer override
       {
-        #if not __cpp_if_constexpr
         return if_copy_constructible<binding>::call_it_with(*this);
-        #else
-        if constexpr (std::is_copy_constructible<binding>::value)
-        {
-          return std::make_shared<binding>(*this);
-        }
-        else
-        {
-          std::stringstream ss {};
-          ss << typeid(T).name() << " is not copy-constructible";
-          throw std::logic_error { ss.str() };
-        }
-        #endif // __cpp_if_constexpr
       }
+
+      #endif // __cpp_if_constexpr
 
       bool compare(const pointer& rhs) const override
       {
