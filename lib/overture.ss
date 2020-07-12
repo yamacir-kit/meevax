@@ -992,39 +992,26 @@
 
 (define boolean?
   (lambda (x)
-    (or (eqv? x #true)
-        (eqv? x #false))))
+    (or (eqv? x #t)
+        (eqv? x #f))))
 
 (define boolean=?
   (lambda (x y . xs)
     (and (eqv? x y)
          (if (pair? xs)
              (apply boolean=? y xs)
-             #true ))))
+             #t))))
 
 ; ------------------------------------------------------------------------------
 ;  6.5 Symbols
 ; ------------------------------------------------------------------------------
 
-(define symbol.so
-  (linker "libmeevax-symbol.so"))
-
-(define symbol ; Constructor
-  (procedure symbol.so "symbol"))
-
-; (define symbol?
-;   (procedure symbol.so "is_symbol"))
-
 (define symbol=?
   (lambda (x y . xs)
-    (and (eq? x y)
+    (and (eqv? x y)
          (if (pair? xs)
              (apply symbol=? y xs)
-             #true ))))
-
-; TODO symbol->string
-
-(define string->symbol symbol)
+             #t))))
 
 ; ------------------------------------------------------------------------------
 ;  6.6 Standard Characters Library

@@ -765,7 +765,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("string->symbol", [](auto&& xs)
     {
-      return make<symbol>(car(xs).template as<std::string>());
+      return make<symbol>(car(xs).template as<string>());
     });
 
     /* ==== R7RS 6.6. Characters ===============================================
