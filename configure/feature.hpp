@@ -5,31 +5,39 @@
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/symbol.hpp>
-#include <meevax/utility/construct_on_first_use.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct feature
     : public object
   {
-    Construct_On_First_Use(build_date, make<symbol>("${${PROJECT_NAME}_BUILD_DATE}"));
-    Construct_On_First_Use(build_hash, make<symbol>("${${PROJECT_NAME}_BUILD_HASH}"));
-    Construct_On_First_Use(build_type, make<symbol>("${CMAKE_BUILD_TYPE}"));
+    #define boilerplate(NAME, ...) \
+    auto NAME() const -> decltype(auto) \
+    { \
+      static const auto x { __VA_ARGS__ }; \
+      return x; \
+    } static_assert(true, "")
 
-    Construct_On_First_Use(cxx_compiler, make<symbol>("${CMAKE_CXX_COMPILER}"));
-    Construct_On_First_Use(cxx_flags, make<symbol>("${CMAKE_CXX_FLAGS}"));
-    Construct_On_First_Use(cxx_standard, make<integer>("${CMAKE_CXX_STANDARD}"));
+    boilerplate(build_date, make<symbol>("${${PROJECT_NAME}_BUILD_DATE}"));
+    boilerplate(build_hash, make<symbol>("${${PROJECT_NAME}_BUILD_HASH}"));
+    boilerplate(build_type, make<symbol>("${CMAKE_BUILD_TYPE}"));
 
-    Construct_On_First_Use(system_name, make<symbol>("${CMAKE_SYSTEM_NAME}"));
-    Construct_On_First_Use(system_processor, make<symbol>("${CMAKE_SYSTEM_PROCESSOR}"));
+    boilerplate(cxx_compiler, make<symbol>("${CMAKE_CXX_COMPILER}"));
+    boilerplate(cxx_flags, make<symbol>("${CMAKE_CXX_FLAGS}"));
+    boilerplate(cxx_standard, make<integer>("${CMAKE_CXX_STANDARD}"));
 
-    Construct_On_First_Use(install_prefix, make<path>("${CMAKE_INSTALL_PREFIX}"));
+    boilerplate(system_name, make<symbol>("${CMAKE_SYSTEM_NAME}"));
+    boilerplate(system_processor, make<symbol>("${CMAKE_SYSTEM_PROCESSOR}"));
 
-    Construct_On_First_Use(implementation_name, make<symbol>("${PROJECT_NAME}"));
-    Construct_On_First_Use(implementation_name_with_version, make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}"));
+    boilerplate(install_prefix, make<path>("${CMAKE_INSTALL_PREFIX}"));
 
-    Construct_On_First_Use(srfi_10, make<symbol>("srfi-10"));
-    Construct_On_First_Use(srfi_62, make<symbol>("srfi-62"));
+    boilerplate(implementation_name, make<symbol>("${PROJECT_NAME}"));
+    boilerplate(implementation_name_with_version, make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}"));
+
+    boilerplate(srfi_10, make<symbol>("srfi-10"));
+    boilerplate(srfi_62, make<symbol>("srfi-62"));
+
+    #undef boilerplate
 
     explicit feature()
       : object
@@ -45,7 +53,6 @@ namespace meevax::kernel
         }
     {}
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_FEATURE_HPP
-

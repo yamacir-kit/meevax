@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/object.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct boolean
   {
@@ -34,7 +34,6 @@ namespace meevax::kernel
   {
     return datum ? t : f;
   }
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
-

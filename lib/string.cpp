@@ -3,7 +3,7 @@
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/string.hpp>
 
-extern "C" namespace meevax::string
+extern "C" namespace meevax { inline namespace standard
 {
   PROCEDURE(is_string)
   {
@@ -21,5 +21,4 @@ extern "C" namespace meevax::string
 
     return read_string(car(xs).as<integer>().str());
   }
-} // extern "C"
-
+}} // extern "C"

@@ -1,6 +1,6 @@
 #include <meevax/kernel/procedure.hpp>
 
-extern "C" namespace meevax::pair
+extern "C" namespace meevax { inline namespace standard
 {
   PROCEDURE(car)
   {
@@ -36,5 +36,4 @@ extern "C" namespace meevax::pair
 
     return kernel::convert(value && value.is<kernel::pair>());
   }
-} // extern "C"
-
+}} // extern "C"

@@ -3,28 +3,25 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct continuation
     : public virtual pair
   {
-    using identity = continuation;
-
     using pair::pair;
 
-    friend auto operator<<(std::ostream& os, const identity& i)
+    friend auto operator<<(std::ostream& os, const continuation& k)
       -> decltype(os)
     {
       return os << console::magenta << "#,("
                 << console::green << "continuation"
                 << console::reset
-                << console::faint << " ;#" << &i
+                << console::faint << " ;#" << &k
                 << console::reset
                 << console::magenta << ")"
                 << console::reset;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP
-

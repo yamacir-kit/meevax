@@ -1,6 +1,6 @@
 #include <meevax/kernel/character.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   const std::unordered_map<std::string, object> characters
   {
@@ -140,6 +140,4 @@ namespace meevax::kernel
     {"~",                         make<character>(u8"\u007E"                             )}, // tilde
     {"delete",                    make<character>(u8"\u007F", "delete"                   )},
   }; // characters
-} // namespace meevax::kernel
-
-
+}} // namespace meevax::kernel

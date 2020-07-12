@@ -1,9 +1,9 @@
 #ifndef INCLUDED_MEEVAX_CONCEPTS_IS_EQUALITY_COMPARABLE_HPP
 #define INCLUDED_MEEVAX_CONCEPTS_IS_EQUALITY_COMPARABLE_HPP
 
-#include <type_traits>
+#include <meevax/type_traits/void_t.hpp>
 
-namespace meevax::concepts
+namespace meevax { inline namespace concepts
 {
   template <typename T, typename = void>
   struct equality_comparable
@@ -11,7 +11,7 @@ namespace meevax::concepts
   {};
 
   template <typename T>
-  struct equality_comparable<T, std::void_t<decltype(
+  struct equality_comparable<T, type_traits::void_t<decltype(
            std::declval<T>() == std::declval<T>()
            )>>
     : public std::true_type
@@ -23,7 +23,7 @@ namespace meevax::concepts
   {};
 
   template <typename T, typename U>
-  struct equality_comparable_with<T, U, std::void_t<decltype(
+  struct equality_comparable_with<T, U, type_traits::void_t<decltype(
            std::declval<T>() == std::declval<U>()
            )>>
     : public std::true_type
@@ -35,12 +35,11 @@ namespace meevax::concepts
   {};
 
   template <typename T, typename U>
-  struct not_equality_comparable_with<T, U, std::void_t<decltype(
+  struct not_equality_comparable_with<T, U, type_traits::void_t<decltype(
            std::declval<T>() != std::declval<U>()
            )>>
     : public std::true_type
   {};
-} // namespace meevax::concepts
+}} // namespace meevax::concepts
 
 #endif // INCLUDED_MEEVAX_CONCEPTS_IS_EQUALITY_COMPARABLE_HPP
-

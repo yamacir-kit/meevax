@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/character.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct string
     : public virtual pair
@@ -52,7 +52,6 @@ namespace meevax::kernel
       return os << "\"" << console::reset;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP
-

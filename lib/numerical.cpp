@@ -4,37 +4,45 @@
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/procedure.hpp>
 
-extern "C" namespace meevax::numerical
+extern "C" namespace meevax { inline namespace numerical
 {
   PROCEDURE(addition)
   {
-    return
-      MEEVAX_API_FOLD(
-        xs, kernel::make<kernel::integer>(0), std::plus {});
+    #if __cpp_deduction_guides
+    return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(0), std::plus {});
+    #else
+    return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(0), std::plus<kernel::object>());
+    #endif
   }
 
   PROCEDURE(multiplication)
   {
-    return
-      MEEVAX_API_FOLD(
-        xs, kernel::make<kernel::integer>(1), std::multiplies {});
+    #if __cpp_deduction_guides
+    return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(1), std::multiplies {});
+    #else
+    return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(1), std::multiplies<kernel::object>());
+    #endif
   }
 
   PROCEDURE(subtraction)
   {
     if (kernel::length(xs) < 2)
     {
-      return
-        MEEVAX_API_FOLD(
-          xs, kernel::make<kernel::integer>(0), std::minus {});
+      #if __cpp_deduction_guides
+      return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(0), std::minus {});
+      #else
+      return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(0), std::minus<kernel::object>());
+      #endif
     }
     else
     {
-      return std::accumulate(
-               std::next(std::begin(xs)), std::end(xs),
-               *std::begin(xs),
-               std::minus {}
-             );
+      auto iter { std::begin(xs) };
+
+      #if __cpp_deduction_guides
+      return std::accumulate(std::next(iter), std::end(xs), *iter, std::minus {});
+      #else
+      return std::accumulate(std::next(iter), std::end(xs), *iter, std::minus<kernel::object>());
+      #endif
     }
   }
 
@@ -42,38 +50,62 @@ extern "C" namespace meevax::numerical
   {
     if (kernel::length(xs) < 2)
     {
-      return
-        MEEVAX_API_FOLD(
-          xs, kernel::make<kernel::integer>(1), std::divides {});
+      #if __cpp_deduction_guides
+      return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(1), std::divides {});
+      #else
+      return MEEVAX_API_FOLD(xs, kernel::make<kernel::integer>(1), std::divides<kernel::object>());
+      #endif
     }
     else
     {
-      return std::accumulate(
-               std::next(std::begin(xs)), std::end(xs),
-               *std::begin(xs),
-               std::divides {}
-             );
+      auto iter { std::begin(xs) };
+
+      #if __cpp_deduction_guides
+      return std::accumulate(std::next(iter), std::end(xs), *iter, std::divides {});
+      #else
+      return std::accumulate(std::next(iter), std::end(xs), *iter, std::divides<kernel::object>());
+      #endif
     }
   }
 
   PROCEDURE(less)
   {
+    #if __cpp_deduction_guides
     return MEEVAX_BINARY_OPERATION(std::less {});
+    #else
+    using namespace meevax::kernel;
+    return car(xs) < cadr(xs);
+    #endif
   }
 
   PROCEDURE(less_equal)
   {
+    #if __cpp_deduction_guides
     return MEEVAX_BINARY_OPERATION(std::less_equal {});
+    #else
+    using namespace meevax::kernel;
+    return car(xs) <= cadr(xs);
+    #endif
   }
 
   PROCEDURE(greater)
   {
+    #if __cpp_deduction_guides
     return MEEVAX_BINARY_OPERATION(std::greater {});
+    #else
+    using namespace meevax::kernel;
+    return car(xs) > cadr(xs);
+    #endif
   }
 
   PROCEDURE(greater_equal)
   {
+    #if __cpp_deduction_guides
     return MEEVAX_BINARY_OPERATION(std::greater_equal {});
+    #else
+    using namespace meevax::kernel;
+    return car(xs) >= cadr(xs);
+    #endif
   }
 
   PROCEDURE(real_)
@@ -82,5 +114,4 @@ extern "C" namespace meevax::numerical
       kernel::convert(
         kernel::car(xs).is<kernel::real>());
   }
-} // extern "C"
-
+}} // extern "C"

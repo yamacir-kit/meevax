@@ -3,7 +3,7 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/numerical.hpp>
 
-namespace meevax::standard
+namespace meevax { inline namespace standard
 {
   // using vector = std::vector<kernel::object>;
 
@@ -38,5 +38,4 @@ namespace meevax::standard
 
     return kernel::car(xs).as<vector>().at(index);
   }
-} // namespace meevax::standard
-
+}} // namespace meevax::standard

@@ -1377,27 +1377,6 @@
 ; string-fill!
 
 ; ------------------------------------------------------------------------------
-;  6.8 Standard Vectors Library
-; ------------------------------------------------------------------------------
-
-(define vector.so
-  (linker "libmeevax-vector.so"))
-
-(define vector?
-  (lambda (object) #false))
-
-; (define vector-of
-;   (procedure vector.so "vector_of"))
-;
-; (define vector vector-of)
-;
-; (define vector-reference
-;   (procedure vector.so "vector_reference"))
-;
-; (define vector-ref
-;         vector-reference)
-
-; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
 ; ------------------------------------------------------------------------------
 

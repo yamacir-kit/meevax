@@ -17,8 +17,9 @@
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
+#include <type_traits>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Linux 64 Bit Address Space ==========================================
   *
@@ -357,20 +358,19 @@ namespace meevax::kernel
     * correctly).
     *
     *======================================================================== */
-    template <typename Bound, typename... Ts, Requires(is_not_embeddable<Bound>)>
+    template <typename Bound, typename... Ts,
+              typename = typename std::enable_if<is_not_embeddable<Bound>::value>::type>
     static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
-
-      return
-        std::make_shared<binding>(
-          std::forward<decltype(xs)>(xs)...);
+      return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
     }
 
+    #if __cpp_lib_memory_resource
     template <typename Bound,
               typename MemoryResource, // XXX (GCC-9 <=)
               typename... Ts,
-              Requires(is_not_embeddable<Bound>)>
+              typename = typename std::enable_if<is_not_embeddable<Bound>::type>::value>
     static pointer allocate_binding(MemoryResource&& resource, Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -385,13 +385,15 @@ namespace meevax::kernel
           binding_allocator { std::forward<decltype(resource)>(resource) },
           std::forward<decltype(xs)>(xs)...);
     }
+    #endif // __cpp_lib_memory_resource
 
     /* ==== C/C++ Primitive Types Bind ========================================
     *
     * TODO: support bind for not is_embeddable types (e.g. double).
     *
     *======================================================================== */
-    template <typename U, Requires(is_embeddable<U>)>
+    template <typename U,
+              typename = typename std::enable_if<is_embeddable<U>::value>::type>
     static pointer make_binding(U&& value)
     {
       static auto ignore = [](auto* value)
@@ -489,7 +491,8 @@ namespace meevax::kernel
     /* ==== C/C++ Derived Type Restoration ====================================
     *
     *======================================================================= */
-    template <typename U, Requires(is_not_embeddable<U>)>
+    template <typename U,
+              typename = typename std::enable_if<is_not_embeddable<U>::value>::type>
     U& as() const
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -505,7 +508,8 @@ namespace meevax::kernel
     * TODO: Support upcast and downcast of arithmetic types
     *
     *======================================================================= */
-    template <typename U, Requires(std::is_arithmetic<U>)>
+    template <typename U,
+              typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
     auto as() const -> typename std::decay<U>::type
     {
       std::cerr << "; pointer\t; "
@@ -518,9 +522,7 @@ namespace meevax::kernel
       {
       #define CASE_OF_TYPE(TYPE)                                              \
       case tag<TYPE>::value:                                                  \
-        return                                                                \
-          static_cast<U>(                                                     \
-            untagged_value_as<TYPE>(value))
+        return static_cast<U>(untagged_value_as<TYPE>(value))
 
       CASE_OF_TYPE(bool);
 
@@ -623,7 +625,7 @@ namespace meevax::kernel
   DEFINE_COMPARISON_DISPATCHER(<=);
   DEFINE_COMPARISON_DISPATCHER(>);
   DEFINE_COMPARISON_DISPATCHER(>=);
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 namespace std
 {
@@ -634,7 +636,5 @@ namespace std
 }
 
 #undef DEFINE_BINARY_OPERATION_DISPATCHER
-#undef DEFINE_BINARY_OPERATION_FORWARDER
 #undef DEFINE_COMPARISON_DISPATCHER
-#undef DEFINE_COMPARISON_FORWARDER
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP

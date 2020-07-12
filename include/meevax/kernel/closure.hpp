@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Closure ==============================================================
   *
@@ -27,7 +27,6 @@ namespace meevax::kernel
                 << console::reset;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP
-

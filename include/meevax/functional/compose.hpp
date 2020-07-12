@@ -4,7 +4,7 @@
 #include <tuple>
 #include <utility>
 
-namespace meevax::functional
+namespace meevax { inline namespace functional
 {
   auto compose = [](auto&& f, auto&& g)
   {
@@ -19,7 +19,6 @@ namespace meevax::functional
                    std::forward<decltype(xs)>(xs)...));
            };
   };
-} // namespace meevax::functional
+}} // namespace meevax::functional
 
 #endif // INCLUDED_MEEVAX_FUNCTIONAL_COMPOSE_HPP
-

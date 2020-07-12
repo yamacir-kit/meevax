@@ -6,10 +6,15 @@
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/list.hpp>
 
+#if __has_cpp_attribute(maybe_unused)
 #define PROCEDURE(...) \
   const meevax::kernel::object __VA_ARGS__([[maybe_unused]] const meevax::kernel::object& xs)
+#else
+#define PROCEDURE(...) \
+  const meevax::kernel::object __VA_ARGS__(const meevax::kernel::object& xs)
+#endif
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct procedure
     : public std::function<PROCEDURE()>
@@ -36,7 +41,7 @@ namespace meevax::kernel
                 << console::reset;
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #define MEEVAX_API_TYPE_PREDICATE(...) \
   kernel::convert(meevax::kernel::car(xs).is<__VA_ARGS__>())
@@ -48,4 +53,3 @@ namespace meevax::kernel
   std::invoke(__VA_ARGS__, meevax::kernel::car(xs), meevax::kernel::cadr(xs))
 
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
-

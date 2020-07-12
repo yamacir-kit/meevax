@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/pointer.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== Identity =============================================================
    *
@@ -59,9 +59,7 @@ namespace meevax::kernel
 
     virtual auto copy() const -> pointer<T>
     {
-      return
-        if_copy_constructible<T>::call_it(
-          static_cast<const T&>(*this));
+      return if_copy_constructible<T>::call_it(static_cast<const T&>(*this));
     }
 
     #endif // __cpp_if_constexpr
@@ -212,6 +210,7 @@ namespace meevax::kernel
     return object::make_binding<T>(std::forward<decltype(xs)>(xs)...);
   }
 
+  #if __cpp_lib_memory_resource
   template <typename T,
             typename MemoryResource, // XXX (GCC-9 <=)
             typename... Ts>
@@ -222,25 +221,28 @@ namespace meevax::kernel
         std::forward<decltype(resource)>(resource),
         std::forward<decltype(xs)>(xs)...);
   }
+  #endif // __cpp_lib_memory_resource
 
   static const object unit {nullptr};
 
-  #define DEFINE_GHOST(TYPENAME)                                               \
+  #define boilerplate(TYPENAME)                                                \
   struct TYPENAME##_t                                                          \
   {                                                                            \
+    TYPENAME##_t() = default;                                                  \
+                                                                               \
     friend auto operator<<(std::ostream& os, const TYPENAME##_t&)              \
       -> decltype(os)                                                          \
     {                                                                          \
-      return os << console::faint << "#;" #TYPENAME                            \
-                << console::reset;                                             \
+      return os << console::faint << "#;" #TYPENAME << console::reset;         \
     }                                                                          \
   };                                                                           \
                                                                                \
   static const auto TYPENAME { make<TYPENAME##_t>() }
 
-  DEFINE_GHOST(undefined);
-  DEFINE_GHOST(unspecified);
-} // namespace meevax::kernel
+  boilerplate(undefined);
+  boilerplate(unspecified);
 
-#undef DEFINE_BINARY_OPERATOR_ELEVATOR
+  #undef boilerplate
+}} // namespace meevax::kernel
+
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

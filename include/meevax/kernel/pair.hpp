@@ -4,7 +4,7 @@
 #include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/object.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== The Pair Type ========================================================
   *
@@ -39,63 +39,59 @@ namespace meevax::kernel
   * operation for everyone except the empty list.
   *
   * ========================================================================= */
-  // auto car = [](const object& x) noexcept -> decltype(auto)
-  // {
-  //   return std::get<0>(x.binding());
-  // };
-  //
-  // auto cdr = [](const object& x) noexcept -> decltype(auto)
-  // {
-  //   return std::get<1>(x.binding());
-  // };
+  #if __cpp_if_constexpr
 
-  // auto car = [](auto&& x) noexcept -> decltype(auto)
-  // {
-  //   if constexpr (std::is_base_of<pair, typename std::decay<decltype(x)>::type>::value)
-  //   {
-  //     return std::get<0>(std::forward<decltype(x)>(x));
-  //   }
-  //   else
-  //   {
-  //     return std::get<0>(x.binding());
-  //   }
-  // };
-  //
-  // auto cdr = [](auto&& x) noexcept -> decltype(auto)
-  // {
-  //   if constexpr (std::is_base_of<pair, typename std::decay<decltype(x)>::type>::value)
-  //   {
-  //     return std::get<1>(std::forward<decltype(x)>(x));
-  //   }
-  //   else
-  //   {
-  //     return std::get<1>(x.binding());
-  //   }
-  // };
-
-  auto car = [](auto&& x) noexcept -> decltype(auto)
+  auto car = [](auto&& pare) noexcept -> decltype(auto)
   {
-    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
+    if constexpr (std::is_base_of<object, typename std::decay<decltype(pare)>::type>::value)
     {
-      return std::get<0>(x.binding());
+      return std::get<0>(pare.binding());
     }
     else
     {
-      return std::get<0>(std::forward<decltype(x)>(x));
+      return std::get<0>(std::forward<decltype(pare)>(pare));
     }
   };
 
-  auto cdr = [](auto&& x) noexcept -> decltype(auto)
+  auto cdr = [](auto&& pare) noexcept -> decltype(auto)
   {
-    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
+    if constexpr (std::is_base_of<object, typename std::decay<decltype(pare)>::type>::value)
     {
-      return std::get<1>(x.binding());
+      return std::get<1>(pare.binding());
     }
     else
     {
-      return std::get<1>(std::forward<decltype(x)>(x));
+      return std::get<1>(std::forward<decltype(pare)>(pare));
     }
   };
+
+  #else // __cpp_if_constexpr
+
+  template <typename T, typename = void>
+  struct generic_accessor
+  {
+    static auto car(const T& pare) -> decltype(auto) { return std::get<0>(pare); }
+    static auto cdr(const T& pare) -> decltype(auto) { return std::get<1>(pare); }
+  };
+
+  template <typename T>
+  struct generic_accessor<T, typename std::enable_if<std::is_base_of<object, typename std::decay<T>::type>::value>::type>
+  {
+    static auto car(const T& pare) -> decltype(auto) { return std::get<0>(pare.binding()); }
+    static auto cdr(const T& pare) -> decltype(auto) { return std::get<1>(pare.binding()); }
+  };
+
+  auto car = [](auto&& pare) noexcept -> decltype(auto)
+  {
+    return generic_accessor<decltype(pare)>::car(pare);
+  };
+
+  auto cdr = [](auto&& pare) noexcept -> decltype(auto)
+  {
+    return generic_accessor<decltype(pare)>::cdr(pare);
+  };
+
+  #endif // __cpp_if_constexpr
 
   /* ==== Pairs and Lists External Representation ==============================
   *
@@ -120,7 +116,6 @@ namespace meevax::kernel
 
     return os << console::magenta << ")" << console::reset;
   }
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP
-

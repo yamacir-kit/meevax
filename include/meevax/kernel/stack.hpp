@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   template <typename T, typename... Ts>
   inline decltype(auto) push(T&& stack, Ts&&... xs)
@@ -17,7 +17,11 @@ namespace meevax::kernel
     return stack = buffer;
   }
 
+  #if __cpp_nontype_template_parameter_auto
   template <auto N, typename T>
+  #else
+  template <std::size_t N, typename T>
+  #endif
   inline decltype(auto) pop(T&& stack)
   {
     return stack = std::next(begin(stack), N);
@@ -30,7 +34,6 @@ namespace meevax::kernel
     pop<1>(stack);
     return buffer;
   }
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_STACK_HPP
-

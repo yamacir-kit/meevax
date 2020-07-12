@@ -3,7 +3,7 @@
 
 #include <meevax/kernel/object.hpp>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   struct symbol
     : public std::string
@@ -32,7 +32,6 @@ namespace meevax::kernel
       }
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
-

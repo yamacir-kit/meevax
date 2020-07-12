@@ -17,7 +17,7 @@
 #include <meevax/kernel/vector.hpp>
 #include <stdexcept>
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   /* ==== EOF ==================================================================
   *
@@ -406,7 +406,6 @@ namespace meevax::kernel
       }
     }
   };
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_READER_HPP
-

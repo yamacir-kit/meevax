@@ -2,7 +2,7 @@
 #include <meevax/kernel/numerical.hpp>
 #include <meevax/kernel/procedure.hpp>
 
-extern "C" namespace meevax::character
+extern "C" namespace meevax { inline namespace standard
 {
   PROCEDURE(is_character)
   {
@@ -30,5 +30,4 @@ extern "C" namespace meevax::character
       throw make<evaluation_error>("unicode unsupported");
     }
   }
-} // extern "C"
-
+}} // extern "C"

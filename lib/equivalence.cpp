@@ -1,6 +1,6 @@
 #include <meevax/kernel/procedure.hpp>
 
-extern "C" namespace meevax::equivalence
+extern "C" namespace meevax { inline namespace equivalence
 {
   PROCEDURE(equals)
   {
@@ -28,5 +28,4 @@ extern "C" namespace meevax::equivalence
       return kernel::convert(object1.compare(object2));
     }
   }
-} // extern "C"
-
+}} // extern "C"

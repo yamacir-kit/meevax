@@ -31,7 +31,7 @@
 *
 *=========================================================================== */
 
-namespace meevax::kernel
+namespace meevax { inline namespace kernel
 {
   template <typename Ex, typename... Ts>
   void raise(Ts&&... xs)
@@ -156,7 +156,7 @@ namespace meevax::kernel
   DEFINE_EXCEPTION_ABOUT(internal_define, syntax, error)
 
   DEFINE_EXCEPTION_ABOUT(pair, kernel, error)
-} // namespace meevax::kernel
+}} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_EXCEPTION_HPP
 
