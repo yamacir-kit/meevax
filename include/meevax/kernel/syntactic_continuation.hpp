@@ -327,7 +327,7 @@ namespace meevax { inline namespace kernel
   public: // Primitive Expression Types
     DEFINE_PRIMITIVE_EXPRESSION(exportation)
     {
-      if (verbose_mode.compare(t))
+      if (verbose_mode.eqv(t))
       {
         std::cerr
         << (not depth ? "; compile\t; " : ";\t\t; ")
@@ -597,7 +597,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        return lhs.compare(rhs) ? t : f;
+        return lhs.eqv(rhs) ? t : f;
       }
     });
 

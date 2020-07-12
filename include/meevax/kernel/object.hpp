@@ -67,7 +67,7 @@ namespace meevax { inline namespace kernel
   public: // eqv
     #if __cpp_if_constexpr
 
-    virtual bool compare(const pointer<T>& rhs) const
+    virtual bool eqv(const pointer<T>& rhs) const
     {
       if constexpr (concepts::equality_comparable<T>::value)
       {
@@ -114,7 +114,7 @@ namespace meevax { inline namespace kernel
       }
     };
 
-    virtual bool compare(const pointer<T>& rhs) const
+    virtual bool eqv(const pointer<T>& rhs) const
     {
       return if_equality_comparable<T>::call_it(static_cast<const T&>(*this), rhs);
     }

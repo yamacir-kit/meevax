@@ -168,7 +168,7 @@ namespace meevax { inline namespace kernel
    *   - circular-list?
    *   - dotted-list?
    *   - eq?                            => eq, object::operator ==
-   *   - eqv?                           => eqv, object::compare
+   *   - eqv?                           => eqv, object::eqv
    *   - euqal?                         => equal
    *   - list?
    *   - not-pair?                      => not x.is<pair>()
@@ -198,7 +198,7 @@ namespace meevax { inline namespace kernel
 
     auto eqv = [](auto&& x, auto&& y)
     {
-      return x.compare(y);
+      return x.eqv(y);
     };
 
     bool equal(const object& x, const object& y)
