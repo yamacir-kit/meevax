@@ -18,20 +18,6 @@
 (define numerical.so
   (linker "libmeevax-numerical.so"))
 
-; (define = eqv?)
-
-; (define <
-;   (procedure numerical.so "less"))
-
-; (define <=
-;   (procedure numerical.so "less_equal"))
-;
-; (define >
-;   (procedure numerical.so "greater"))
-;
-; (define >=
-;   (procedure numerical.so "greater_equal"))
-
 (define *
   (procedure numerical.so "multiplication"))
 
@@ -775,21 +761,6 @@
   (lambda (x)
     (or (exact? x)
         (inexact? x) )))
-
-(define complex?
-  (lambda (x)
-    ; (procedure numerical.so "is_complex") ; unimplemented
-    #false
-    ))
-
-(define real?
-  (procedure numerical.so "real_"))
-
-(define rational?
-  (lambda (x)
-    ; (procedure numerical.so "is_rational") ; unimplemented
-    #false
-    ))
 
 (define exact-integer?
   (lambda (x)

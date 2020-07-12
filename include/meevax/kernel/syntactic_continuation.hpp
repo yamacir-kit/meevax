@@ -605,6 +605,11 @@ namespace meevax { inline namespace kernel
      *
      *
      * ====================================================================== */
+    DEFINE_PREDICATE("complex?", complex);
+    DEFINE_PREDICATE("real?", real);
+    DEFINE_PREDICATE("rational?", rational);
+    DEFINE_PREDICATE("integer?", integer);
+
     define<procedure>("=", [](auto&& xs)
     {
       const auto head { std::begin(xs) };

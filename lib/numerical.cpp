@@ -67,11 +67,4 @@ extern "C" namespace meevax { inline namespace numerical
       #endif
     }
   }
-
-  PROCEDURE(real_)
-  {
-    return
-      kernel::convert(
-        kernel::car(xs).is<kernel::real>());
-  }
 }} // extern "C"
