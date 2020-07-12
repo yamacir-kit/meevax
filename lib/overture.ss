@@ -1419,19 +1419,14 @@
 
 ; TODO write-shared
 
-(define experimental.so
-  (linker "libmeevax-experimental.so"))
-
 ; (define display
-  ; (procedure experimental.so "display")
-  ; (lambda (x . option)
-  ;   (let ((output-port (if (pair? option)
-  ;                          (car option)
-  ;                          (current-output-port))))
-  ;     (if (char? x)
-  ;         (write-char x output-port)
-  ;         (write      x output-port))))
-  ; )
+;   (lambda (x . option)
+;     (let ((output-port (if (pair? option)
+;                            (car option)
+;                            (current-output-port))))
+;       (if (char? x)
+;           (write-char x output-port)
+;           (write      x output-port)))))
 
 (define newline
   (lambda ()
@@ -1455,9 +1450,6 @@
 ; TODO file-exists?
 ; TODO delete-file
 ; TODO command-line
-
-(define emergency-exit ;                                (scheme process-context)
-  (procedure experimental.so "emergency_exit"))
 
 (define exit emergency-exit) ;                          (scheme process-context)
 

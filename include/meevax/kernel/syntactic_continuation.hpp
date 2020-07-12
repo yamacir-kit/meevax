@@ -998,6 +998,20 @@ namespace meevax { inline namespace kernel
       return load(car(xs).template as<const string>());
     });
 
+    define<procedure>("emergency-exit", [](auto&& xs)
+    {
+      if (null(xs) or not car(xs).template is<integer>())
+      {
+        std::exit(boost::exit_success);
+      }
+      else
+      {
+        std::exit(car(xs).template as<integer>().template convert_to<int>());
+      }
+
+      return unspecified;
+    });
+
     define<procedure>("linker", [](auto&& xs)
     {
       return make<linker>(car(xs).template as<const string>());
