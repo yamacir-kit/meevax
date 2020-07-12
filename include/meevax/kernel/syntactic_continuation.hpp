@@ -686,10 +686,18 @@ namespace meevax { inline namespace kernel
       }
       else if (x.is<integer>())
       {
-        return
-          make<real>(
-            boost::multiprecision::sqrt(
-              x.as<integer>()));
+        const multiprecision::real inexact { x.as<integer>().str() };
+
+        if (const multiprecision::real value { boost::multiprecision::sqrt(inexact) };
+            value == boost::multiprecision::trunc(value))
+        {
+          const auto exact { boost::multiprecision::sqrt(x.as<integer>()) };
+          return make<integer>(exact);
+        }
+        else
+        {
+          return make<real>(value);
+        }
       }
       else if (x.is<real>())
       {

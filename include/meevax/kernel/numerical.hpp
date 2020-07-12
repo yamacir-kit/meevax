@@ -53,7 +53,10 @@ namespace meevax { inline namespace kernel
   struct real
     : public multiprecision::real
   {
-    using multiprecision::real::real;
+    template <typename... Ts>
+    explicit constexpr real(Ts&&... xs)
+      : multiprecision::real { std::forward<decltype(xs)>(xs)... }
+    {}
 
     decltype(auto) backend() const noexcept
     {
@@ -92,7 +95,10 @@ namespace meevax { inline namespace kernel
   struct integer
     : public multiprecision::integer
   {
-    using multiprecision::integer::integer;
+    template <typename... Ts>
+    explicit constexpr integer(Ts&&... xs)
+      : multiprecision::integer { std::forward<decltype(xs)>(xs)... }
+    {}
 
     decltype(auto) backend() const noexcept
     {
