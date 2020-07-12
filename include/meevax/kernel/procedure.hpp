@@ -6,8 +6,13 @@
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/list.hpp>
 
+#if __has_cpp_attribute(maybe_unused)
 #define PROCEDURE(...) \
   const meevax::kernel::object __VA_ARGS__([[maybe_unused]] const meevax::kernel::object& xs)
+#else
+#define PROCEDURE(...) \
+  const meevax::kernel::object __VA_ARGS__(const meevax::kernel::object& xs)
+#endif
 
 namespace meevax { inline namespace kernel
 {

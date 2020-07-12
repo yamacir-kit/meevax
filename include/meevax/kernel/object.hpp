@@ -59,9 +59,7 @@ namespace meevax { inline namespace kernel
 
     virtual auto copy() const -> pointer<T>
     {
-      return
-        if_copy_constructible<T>::call_it(
-          static_cast<const T&>(*this));
+      return if_copy_constructible<T>::call_it(static_cast<const T&>(*this));
     }
 
     #endif // __cpp_if_constexpr
