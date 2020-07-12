@@ -190,7 +190,7 @@ then
   unit_test="valgrind $valgrind_options --log-file=$repository/build/exaple.leak-check.cpp $repository/build/bin/example"
 
   full_test=" \
-    $valgrind $repository/build/bin/ice --verbose --debug \
+    $valgrind $repository/build/bin/ice \
     $repository/experimental/srfi-78.ss \
     $repository/test/r4rs.ss \
     "
@@ -211,7 +211,7 @@ then
 ;   $full_test
 ;"
 
-  count 5
+  count 3
 
   echo ";
 ; ==============================================================================

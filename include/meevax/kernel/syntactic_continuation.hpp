@@ -40,10 +40,10 @@ namespace meevax { inline namespace kernel
   /* ==== System Layers ========================================================
    *
    * Layer 0 - Module Systems (Program Structures)
-   * Layer 1 - Primitive Expression Types
-   * Layer 2 - Scheme Standards (Standard Procedures)
-   * Layer 3 - Scheme Standards (Derived Expression Types)
-   * Layer 4 - Experimental Features
+   * Layer 1 - R7RS Primitive Expression Types
+   * Layer 2 - R7RS Standard Procedures
+   * Layer 3 - R7RS Derived Expression Types
+   * Layer 4 - Experimental Procedures
    *
    * ======================================================================== */
   #if __cpp_nontype_template_parameter_auto
