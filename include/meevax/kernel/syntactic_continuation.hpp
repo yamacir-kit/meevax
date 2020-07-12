@@ -680,19 +680,19 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("sqrt", [](auto&& xs)
     {
+      using namespace boost::multiprecision;
+
       if (const object x { car(xs) }; null(x))
       {
         return f;
       }
       else if (x.is<integer>())
       {
-        const multiprecision::real inexact { x.as<integer>().str() };
+        const real inexact { x.as<integer>().str() };
 
-        if (const multiprecision::real value { boost::multiprecision::sqrt(inexact) };
-            value == boost::multiprecision::trunc(value))
+        if (const auto value { sqrt(inexact) }; value == trunc(value))
         {
-          const auto exact { boost::multiprecision::sqrt(x.as<integer>()) };
-          return make<integer>(exact);
+          return make<integer>(value.str());
         }
         else
         {
@@ -701,10 +701,14 @@ namespace meevax { inline namespace kernel
       }
       else if (x.is<real>())
       {
-        return
-          make<real>(
-            boost::multiprecision::sqrt(
-              x.as<real>()));
+        if (const auto value { sqrt(x.as<real>()) }; value == trunc(value))
+        {
+          return make<integer>(value.str());
+        }
+        else
+        {
+          return make<real>(value);
+        }
       }
       else
       {
