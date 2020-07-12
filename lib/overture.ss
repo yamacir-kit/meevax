@@ -12,19 +12,6 @@
     (if #false #false #;unspecified)))
 
 ; ------------------------------------------------------------------------------
-;  6.1 Equivalence predicates (Part 1 of 2)
-; ------------------------------------------------------------------------------
-
-(define equivalence.so
-  (linker "libmeevax-equivalence.so"))
-
-(define eq?
-  (procedure equivalence.so "equals"))
-
-(define eqv?
-  (procedure equivalence.so "equivalent"))
-
-; ------------------------------------------------------------------------------
 ;  6.2 Numbers (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 

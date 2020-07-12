@@ -572,6 +572,35 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
+    /* ==== R7RS 6.1. Equivalence predicates ===================================
+     *
+     *
+     * ====================================================================== */
+    define<procedure>("eq?", [](auto&& xs)
+    {
+      return car(xs) == cadr(xs) ? t : f;
+    });
+
+    define<procedure>("eqv?", [](auto&& xs)
+    {
+      if (const object lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
+      {
+        return t;
+      }
+      else if (null(lhs) && null(rhs))
+      {
+        return t;
+      }
+      else if (null(lhs) || null(rhs))
+      {
+        return f;
+      }
+      else
+      {
+        return lhs.compare(rhs) ? t : f;
+      }
+    });
+
     /* ==== R7RS 6.2. Numbers ==================================================
      *
      *
