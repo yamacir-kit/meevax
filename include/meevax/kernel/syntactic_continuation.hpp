@@ -725,6 +725,23 @@ namespace meevax { inline namespace kernel
      *
      *
      * ====================================================================== */
+    DEFINE_PREDICATE("pair?", pair);
+
+    define<procedure>("cons", [](auto&& xs)
+    {
+      return cons(car(xs), cadr(xs));
+    });
+
+    define<procedure>("car", [](auto&& xs)
+    {
+      return caar(xs);
+    });
+
+    define<procedure>("cdr", [](auto&& xs)
+    {
+      return cdar(xs);
+    });
+
     define<procedure>("set-car!", [](auto&& xs)
     {
       return caar(xs) = cadr(xs);

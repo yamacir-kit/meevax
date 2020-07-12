@@ -23,22 +23,6 @@
 ;  6.4 Pairs and Lists (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define pair.so
-  (linker "libmeevax-pair.so"))
-
-(define pair?
-  (procedure pair.so "pair_"))
-
-(define cons ; pair
-  (procedure pair.so "cons"))
-
-; (define cons ; hack
-;   (lambda (x y)
-;     (cons x y)))
-
-(define car (procedure pair.so "car"))
-(define cdr (procedure pair.so "cdr"))
-
 (define caar (lambda (x) (car (car x) )))
 (define cadr (lambda (x) (car (cdr x) )))
 (define cdar (lambda (x) (cdr (car x) )))
