@@ -68,46 +68,6 @@ extern "C" namespace meevax { inline namespace numerical
     }
   }
 
-  PROCEDURE(less)
-  {
-    #if __cpp_deduction_guides
-    return MEEVAX_BINARY_OPERATION(std::less {});
-    #else
-    using namespace meevax::kernel;
-    return car(xs) < cadr(xs);
-    #endif
-  }
-
-  PROCEDURE(less_equal)
-  {
-    #if __cpp_deduction_guides
-    return MEEVAX_BINARY_OPERATION(std::less_equal {});
-    #else
-    using namespace meevax::kernel;
-    return car(xs) <= cadr(xs);
-    #endif
-  }
-
-  PROCEDURE(greater)
-  {
-    #if __cpp_deduction_guides
-    return MEEVAX_BINARY_OPERATION(std::greater {});
-    #else
-    using namespace meevax::kernel;
-    return car(xs) > cadr(xs);
-    #endif
-  }
-
-  PROCEDURE(greater_equal)
-  {
-    #if __cpp_deduction_guides
-    return MEEVAX_BINARY_OPERATION(std::greater_equal {});
-    #else
-    using namespace meevax::kernel;
-    return car(xs) >= cadr(xs);
-    #endif
-  }
-
   PROCEDURE(real_)
   {
     return

@@ -20,17 +20,17 @@
 
 ; (define = eqv?)
 
-(define <
-  (procedure numerical.so "less"))
+; (define <
+;   (procedure numerical.so "less"))
 
-(define <=
-  (procedure numerical.so "less_equal"))
-
-(define >
-  (procedure numerical.so "greater"))
-
-(define >=
-  (procedure numerical.so "greater_equal"))
+; (define <=
+;   (procedure numerical.so "less_equal"))
+;
+; (define >
+;   (procedure numerical.so "greater"))
+;
+; (define >=
+;   (procedure numerical.so "greater_equal"))
 
 (define *
   (procedure numerical.so "multiplication"))

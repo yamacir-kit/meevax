@@ -611,7 +611,7 @@ namespace meevax { inline namespace kernel
 
       for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
       {
-        if (const auto result { (*head).binding() != *iter }; result.eqv(t))
+        if (const auto result { (*head).binding() == *iter }; result.eqv(f))
         {
           return f;
         }
@@ -619,6 +619,29 @@ namespace meevax { inline namespace kernel
 
       return t;
     });
+
+    #define boilerplate(SYMBOL)                                                \
+    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    {                                                                          \
+      auto lhs { std::begin(xs) };                                             \
+                                                                               \
+      for (auto rhs { std::next(lhs) }; rhs != std::end(xs); ++lhs, ++rhs)     \
+      {                                                                        \
+        if (const auto result { *lhs SYMBOL *rhs }; result.eqv(f))             \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    })
+
+    boilerplate(<);
+    boilerplate(<=);
+    boilerplate(>);
+    boilerplate(>=);
+
+    #undef boilerplate
 
     define<procedure>("sqrt", [](auto&& xs)
     {
