@@ -1112,15 +1112,6 @@
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
 
-(define string.so
-  (linker "libmeevax-string.so"))
-
-(define string?
-  (procedure string.so "is_string"))
-
-(define ccons
-  (procedure string.so "ccons"))
-
 (define make-string
   (lambda (k . x)
     (let ((default (if (pair? x) (car x) #\null)))
@@ -1132,23 +1123,16 @@
 
 (define string
   (lambda xs
-    (if (null? xs)
-       '()
+    (if (null? xs) '()
         (list->string xs))))
 
 (define list->string
   (lambda (x)
-    (if (null? x)
-       '()
+    (if (null? x) '()
         (if (pair? x)
             (ccons (car x)
                    (list->string (cdr x)))
             (ccons x '())))))
-
-(define string-from-number
-  (procedure string.so "string_from_number"))
-
-(define number->string string-from-number)
 
 (define string->list
   (lambda (x)

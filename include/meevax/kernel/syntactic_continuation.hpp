@@ -798,6 +798,35 @@ namespace meevax { inline namespace kernel
       }
     });
 
+    /* ==== R7RS 6.7. Strings ==================================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("string?", string);
+
+    define<procedure>("ccons", [](auto&& xs)
+    {
+      return make<string>(car(xs), cadr(xs));
+    });
+
+    define<procedure>("number->string", [](auto&& xs)
+    {
+      if (car(xs).template is<real>())
+      {
+        return read_string(car(xs).template as<real>().str());
+      }
+      else if (car(xs).template is<integer>())
+      {
+        return read_string(car(xs).template as<integer>().str());
+      }
+      else
+      {
+        std::stringstream port {};
+        port << __FILE__ << ":" << __LINE__;
+        throw std::runtime_error { port.str() };
+      }
+    });
+
     /* ==== R7RS 6.8. Vectors ==================================================
      *
      *
