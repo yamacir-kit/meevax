@@ -505,48 +505,6 @@ namespace meevax { inline namespace kernel
     DEFINE_SYNTAX("reference", reference);
     DEFINE_SYNTAX("set!", assignment);
 
-    define<procedure>("eval", [](auto&& xs)
-    {
-      return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
-    });
-
-    define<procedure>("read", [this](const object& xs)
-    {
-      return read(xs ? car(xs).as<input_port>() : current_input_port());
-    });
-
-    define<procedure>("write", [](auto&& xs)
-    {
-      std::cout << car(xs);
-      return unspecified;
-    });
-
-    define<procedure>("load", [this](auto&& xs)
-    {
-      return load(car(xs).template as<const string>());
-    });
-
-    define<procedure>("linker", [](auto&& xs)
-    {
-      return make<linker>(car(xs).template as<const string>());
-    });
-
-    define<procedure>("features", [&](auto&&...)                // (scheme base)
-    {
-      return current_feature;
-    });
-
-    define<procedure>("procedure", [](const object& xs)
-    {
-      const std::string name { cadr(xs).as<string>() };
-      return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
-    });
-
-    define<procedure>("syntax", [this](auto&& xs)
-    {
-      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
-    });
-
     // define<syntax>("cons", [this](
     //   auto&& expression,
     //   auto&& syntactic_environment,
@@ -574,6 +532,8 @@ namespace meevax { inline namespace kernel
   {
     /* ==== R7RS 6.1. Equivalence predicates ===================================
      *
+     *  eq?
+     *  eqv?
      *
      * ====================================================================== */
     define<procedure>("eq?", [](auto&& xs)
@@ -603,6 +563,14 @@ namespace meevax { inline namespace kernel
 
     /* ==== R7RS 6.2. Numbers ==================================================
      *
+     *  complex?
+     *  real?
+     *  rational?
+     *  exact-integer?
+     *  =
+     *  < <= > >=
+     *  + * - /
+     *  sqrt
      *
      * ====================================================================== */
     DEFINE_PREDICATE("complex?", complex);
@@ -859,7 +827,7 @@ namespace meevax { inline namespace kernel
     define<procedure>("vector-length", [](auto&& xs)
     {
       return
-        make<real>(
+        make<integer>(
           car(xs).template as<vector>().size());
     });
 
@@ -937,6 +905,15 @@ namespace meevax { inline namespace kernel
     DEFINE_PREDICATE("closure?", closure);
     DEFINE_PREDICATE("continuation?", continuation);
 
+    /* ==== R7RS 6.12. Environments and evaluation =============================
+     *
+     *
+     * ====================================================================== */
+    define<procedure>("eval", [](auto&& xs)
+    {
+      return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
+    });
+
     /* ==== R7RS 6.13. Input and output ========================================
      *
      *
@@ -966,6 +943,63 @@ namespace meevax { inline namespace kernel
       return unspecified;
     });
 
+    define<procedure>("read", [this](const object& xs)
+    {
+      return read(xs ? car(xs).as<input_port>() : current_input_port());
+    });
+
+    define<procedure>("write", [this](auto&& xs)
+    {
+      write_to(current_output_port(), car(xs));
+      return unspecified;
+    });
+
+    /* ==== R7RS 6.14. System interface ========================================
+     *
+     * From (scheme load)
+     *   load
+     *
+     * From (scheme file)
+     *   file-exists?
+     *   delete-file
+     *
+     * From (scheme process-context)
+     *   command-line
+     *   exit
+     *   emergency-exit
+     *   get-environment-variable
+     *   get-environment-variables
+     *
+     * From (sceheme time)
+     *   current-second
+     *   current-jiffy
+     *   jiffies-per-second
+     *
+     * From (sceheme base)
+     *   features
+     *
+     * ====================================================================== */
+    define<procedure>("load", [this](auto&& xs)
+    {
+      return load(car(xs).template as<const string>());
+    });
+
+    define<procedure>("linker", [](auto&& xs)
+    {
+      return make<linker>(car(xs).template as<const string>());
+    });
+
+    define<procedure>("procedure", [](const object& xs)
+    {
+      const std::string name { cadr(xs).as<string>() };
+      return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
+    });
+
+    define<procedure>("features", [&](auto&&...)                // (scheme base)
+    {
+      return current_feature;
+    });
+
     /* ==== R4RS APPENDIX: A compatible low-level macro facility ===============
      *
      *
@@ -976,6 +1010,11 @@ namespace meevax { inline namespace kernel
     define<procedure>("identifier?", [](auto&& xs)
     {
       return kernel::is_identifier(car(xs)) ? t : f;
+    });
+
+    define<procedure>("syntax", [this](auto&& xs)
+    {
+      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
     });
   }
 
