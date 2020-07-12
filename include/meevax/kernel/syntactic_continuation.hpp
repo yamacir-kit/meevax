@@ -937,6 +937,35 @@ namespace meevax { inline namespace kernel
     DEFINE_PREDICATE("closure?", closure);
     DEFINE_PREDICATE("continuation?", continuation);
 
+    /* ==== R7RS 6.13. Input and output ========================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("input-port?", input_port);
+    DEFINE_PREDICATE("output-port?", output_port);
+
+    define<procedure>("open-input-file", [](auto&& xs)
+    {
+      return make<input_port>(car(xs).template as<string>());
+    });
+
+    define<procedure>("open-output-file", [](auto&& xs)
+    {
+      return make<output_port>(car(xs).template as<string>());
+    });
+
+    define<procedure>("close-input-port", [](auto&& xs)
+    {
+      car(xs).template as<input_port>().close();
+      return unspecified;
+    });
+
+    define<procedure>("close-output-port", [](auto&& xs)
+    {
+      car(xs).template as<output_port>().close();
+      return unspecified;
+    });
+
     /* ==== R4RS APPENDIX: A compatible low-level macro facility ===============
      *
      *

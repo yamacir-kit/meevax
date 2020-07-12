@@ -1340,9 +1340,6 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
-(define io.so
-  (linker "libmeevax-io.so"))
-
 ; TODO call-with-port
 
 (define call-with-input-file
@@ -1359,12 +1356,6 @@
       (close-output-port output-port)
       result)))
 
-(define input-port?
-  (procedure io.so "is_input_port"))
-
-(define output-port?
-  (procedure io.so "is_output_port"))
-
 (define port?
   (lambda (x)
     (or (input-port? x) (output-port? x))))
@@ -1372,7 +1363,7 @@
 (define textual-port? port?)
 
 (define binary-port?
-  (lambda (x) #false))
+  (lambda (x) #f))
 
 ; TODO input-port-open?
 ; TODO output-port-open?
@@ -1384,21 +1375,8 @@
 ; TODO with-input-from-file
 ; TODO with-output-to-file
 
-(define open-input-file
-  (procedure io.so "open_input_file"))
-
 ; TODO open-binary-input-file
-
-(define open-output-file
-  (procedure io.so "open_output_file"))
-
 ; TODO open-binary-output-file
-
-(define close-input-port
-  (procedure io.so "close_input_port"))
-
-(define close-output-port
-  (procedure io.so "close_output_port"))
 
 (define close-port
   (lambda (x)
@@ -1406,7 +1384,7 @@
         (close-input-port x)
         (if (output-port? x)
             (close-output-port x)
-           '())))) ; TODO unspecified
+            (unspecified)))))
 
 ; TODO open-input-string
 ; TODO open-output-string
