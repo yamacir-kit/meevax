@@ -191,13 +191,13 @@ then
 
   full_test=" \
     $valgrind $repository/build/bin/ice \
-    $repository/experimental/srfi-78.ss \
+    $repository/lib/experimental/srfi-78.ss \
     $repository/test/r4rs.ss \
     "
 
   chibi_test=" \
     $valgrind $repository/build/bin/ice \
-    $repository/experimental/srfi-78.ss \
+    $repository/lib/experimental/srfi-78.ss \
     $repository/test/chibi-basic.ss \
     "
 
