@@ -954,6 +954,20 @@ namespace meevax { inline namespace kernel
       return unspecified;
     });
 
+    define<procedure>("display", [this](auto&& xs)
+    {
+      if (not null(cdr(xs)))
+      {
+        car(xs).binding().display(cadr(xs).template as<output_port>());
+      }
+      else
+      {
+        car(xs).binding().display(current_output_port());
+      }
+
+      return unspecified;
+    });
+
     /* ==== R7RS 6.14. System interface ========================================
      *
      * From (scheme load)

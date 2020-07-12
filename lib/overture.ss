@@ -1422,8 +1422,8 @@
 (define experimental.so
   (linker "libmeevax-experimental.so"))
 
-(define display
-  (procedure experimental.so "display")
+; (define display
+  ; (procedure experimental.so "display")
   ; (lambda (x . option)
   ;   (let ((output-port (if (pair? option)
   ;                          (car option)
@@ -1431,7 +1431,7 @@
   ;     (if (char? x)
   ;         (write-char x output-port)
   ;         (write      x output-port))))
-  )
+  ; )
 
 (define newline
   (lambda ()

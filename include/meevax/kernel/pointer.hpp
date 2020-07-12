@@ -277,6 +277,12 @@ namespace meevax { inline namespace kernel
 
       #endif // __cpp_if_constexpr
 
+    private: // display
+      auto display(std::ostream& port) const -> decltype(port) override
+      {
+        return top::template if_displayable<bound>::call_it(port, *this);
+      }
+
     private: // arithmetic
       #if __cpp_if_constexpr
 

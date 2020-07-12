@@ -8,18 +8,23 @@ namespace meevax { inline namespace kernel
   struct string
     : public virtual pair
   {
-    // TODO REPLACE TO BOOST::LEXICAL_CAST
-    operator std::string() const
+    auto write_string(std::ostream& port) const -> decltype(port)
     {
-      std::stringstream buffer {};
-      buffer << first.as<std::string>();
+      port << car(*this).as<std::string>();
 
-      for (const auto& each : second)
+      for (const auto& each : cdr(*this))
       {
-        buffer << each.as<std::string>();
+        port << each.as<std::string>();
       }
 
-      return buffer.str();
+      return port;
+    }
+
+    operator std::string() const
+    {
+      std::stringstream port {};
+      write_string(port);
+      return port.str();
     }
 
     friend auto operator==(const string& lhs, const string& rhs)
@@ -27,8 +32,7 @@ namespace meevax { inline namespace kernel
       return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);
     }
 
-    friend auto operator<<(std::ostream& os, const string& s)
-      -> decltype(auto)
+    friend auto operator<<(std::ostream& os, const string& s) -> decltype(auto)
     {
       os << console::cyan << "\"" << car(s).as<std::string>();
 
