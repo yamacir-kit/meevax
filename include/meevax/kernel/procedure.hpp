@@ -46,9 +46,6 @@ namespace meevax { inline namespace kernel
 #define MEEVAX_API_TYPE_PREDICATE(...) \
   kernel::convert(meevax::kernel::car(xs).is<__VA_ARGS__>())
 
-#define MEEVAX_API_FOLD(X, ...) \
-  std::accumulate(std::begin(X), std::end(X), __VA_ARGS__)
-
 #define MEEVAX_BINARY_OPERATION(...) \
   std::invoke(__VA_ARGS__, meevax::kernel::car(xs), meevax::kernel::cadr(xs))
 

@@ -12,25 +12,6 @@
     (if #false #false #;unspecified)))
 
 ; ------------------------------------------------------------------------------
-;  6.2 Numbers (Part 1 of 2)
-; ------------------------------------------------------------------------------
-
-(define numerical.so
-  (linker "libmeevax-numerical.so"))
-
-(define *
-  (procedure numerical.so "multiplication"))
-
-(define +
-  (procedure numerical.so "addition"))
-
-(define -
-  (procedure numerical.so "subtraction"))
-
-(define /
-  (procedure numerical.so "division"))
-
-; ------------------------------------------------------------------------------
 ;  6.3 Booleans (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
@@ -761,12 +742,6 @@
   (lambda (x)
     (or (exact? x)
         (inexact? x) )))
-
-(define exact-integer?
-  (lambda (x)
-    ; (procedure numerical.so "is_exact_integer") ; unimplemented
-    #false
-    ))
 
 (define integer?
   (lambda (x)
@@ -2083,10 +2058,7 @@
   (fork/csc
     (lambda (this . submodule)
 
-      (begin (define equivalence.so (linker "libmeevax-equivalence.so"))
-             (define numerical.so   (linker "libmeevax-numerical.so"))
-
-             (define identity
+      (begin (define identity
                (lambda (x) x) )
 
              (define unspecified

@@ -608,7 +608,7 @@ namespace meevax { inline namespace kernel
     DEFINE_PREDICATE("complex?", complex);
     DEFINE_PREDICATE("real?", real);
     DEFINE_PREDICATE("rational?", rational);
-    DEFINE_PREDICATE("integer?", integer);
+    DEFINE_PREDICATE("exact-integer?", integer);
 
     define<procedure>("=", [](auto&& xs)
     {
@@ -645,6 +645,36 @@ namespace meevax { inline namespace kernel
     boilerplate(<=);
     boilerplate(>);
     boilerplate(>=);
+
+    #undef boilerplate
+
+    #define boilerplate(SYMBOL, BASIS)                                         \
+    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    {                                                                          \
+      return std::accumulate(std::begin(xs), std::end(xs), make<integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+    })
+
+    boilerplate(+, 0);
+    boilerplate(*, 1);
+
+    #undef boilerplate
+
+    #define boilerplate(SYMBOL, BASIS)                                         \
+    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    {                                                                          \
+      if (length(xs) < 2)                                                      \
+      {                                                                        \
+        return std::accumulate(std::begin(xs), std::end(xs), make<integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        const auto basis { std::begin(xs) };                                   \
+        return std::accumulate(std::next(basis), std::end(xs), *basis, [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+      }                                                                        \
+    })
+
+    boilerplate(-, 0);
+    boilerplate(/, 1);
 
     #undef boilerplate
 
