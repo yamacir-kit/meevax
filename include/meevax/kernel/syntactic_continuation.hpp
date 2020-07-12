@@ -757,6 +757,30 @@ namespace meevax { inline namespace kernel
      * ====================================================================== */
     DEFINE_PREDICATE("char?", character);
 
+    define<procedure>("digit-value", [](auto&& xs)
+    {
+      try
+      {
+        return make<integer>(car(xs).template as<std::string>());
+      }
+      catch (std::runtime_error&)
+      {
+        return f;
+      }
+    });
+
+    define<procedure>("char->integer", [](auto&& xs)
+    {
+      switch (const auto& s { car(xs).template as<std::string>() }; s.size())
+      {
+      case 1:
+        return make<integer>(*reinterpret_cast<const std::uint8_t*>(s.data()));
+
+      default:
+        throw make<evaluation_error>("unicode unsupported");
+      }
+    });
+
     /* ==== R7RS 6.8. Vectors ==================================================
      *
      *

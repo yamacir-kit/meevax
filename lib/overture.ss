@@ -1046,14 +1046,6 @@
 ;  6.6 Standard Characters Library
 ; ------------------------------------------------------------------------------
 
-(define character.so
-  (linker "libmeevax-character.so"))
-
-; (define character?
-;   (procedure character.so "is_character"))
-;
-; (define char? character?)
-
 (define character-compare
   (lambda (x xs compare)
     (let rec ((compare compare)
@@ -1114,54 +1106,36 @@
   (lambda (x . xs)
     (case-insensitive-character-compare x xs >=)))
 
-(define codepoint
-  (procedure character.so "codepoint"))
+(define char-alphabetic? ;                                         (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\A)
+          (char->integer (char-upcase x))
+        #,(char->integer #\Z))))
 
-(define char->integer codepoint)
+(define char-numeric? ;                                            (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\0)
+          (char->integer x)
+        #,(char->integer #\9))))
 
-; (define alphabetical-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\A)
-;           (char->integer (char-upcase x))
-;         #,(char->integer #\Z))))
-;
-; (define char-alphabetic? alphabetical-character?) ;                (scheme char)
-
-(define digit-value ;                                              (scheme char)
-  (procedure character.so "digit_value"))
-
-; (define numerical-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\0)
-;           (char->integer x)
-;         #,(char->integer #\9))))
-;
-; (define char-numeric? numerical-character?) ;                      (scheme char)
-
-(define whitespace-character?
+(define char-whitespace? ;                                         (scheme char)
   (lambda (x)
     (or (eqv? x #\space)
         (eqv? x #\tab)
         (eqv? x #\newline)
         (eqv? x #\return))))
 
-(define char-whitespace? whitespace-character?) ;                  (scheme char)
+(define char-upper-case? ;                                         (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\A)
+          (char->integer x)
+        #,(char->integer #\Z))))
 
-; (define uppercase-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\A)
-;           (char->integer x)
-;         #,(char->integer #\Z))))
-;
-; (define char-upper-case? uppercase-character?) ;                   (scheme char)
-
-; (define lowercase-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\a)
-;           (char->integer x)
-;         #,(char->integer #\z))))
-;
-; (define char-lower-case? lowercase-character?) ;                   (scheme char)
+(define char-lower-case? ;                                         (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\a)
+          (char->integer x)
+        #,(char->integer #\z))))
 
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
