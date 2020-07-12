@@ -40,10 +40,10 @@ namespace meevax { inline namespace kernel
   /* ==== System Layers ========================================================
    *
    * Layer 0 - Module Systems (Program Structures)
-   * Layer 1 - Primitive Expression Types
-   * Layer 2 - Scheme Standards (Standard Procedures)
-   * Layer 3 - Scheme Standards (Derived Expression Types)
-   * Layer 4 - Experimental Features
+   * Layer 1 - R7RS Primitive Expression Types
+   * Layer 2 - R7RS Standard Procedures
+   * Layer 3 - R7RS Derived Expression Types
+   * Layer 4 - Experimental Procedures
    *
    * ======================================================================== */
   #if __cpp_nontype_template_parameter_auto
@@ -327,7 +327,7 @@ namespace meevax { inline namespace kernel
   public: // Primitive Expression Types
     DEFINE_PRIMITIVE_EXPRESSION(exportation)
     {
-      if (verbose_mode.compare(t))
+      if (verbose_mode.eqv(t))
       {
         std::cerr
         << (not depth ? "; compile\t; " : ";\t\t; ")
@@ -505,48 +505,6 @@ namespace meevax { inline namespace kernel
     DEFINE_SYNTAX("reference", reference);
     DEFINE_SYNTAX("set!", assignment);
 
-    define<procedure>("eval", [](auto&& xs)
-    {
-      return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
-    });
-
-    define<procedure>("read", [this](const object& xs)
-    {
-      return read(xs ? car(xs).as<input_port>() : current_input_port());
-    });
-
-    define<procedure>("write", [](auto&& xs)
-    {
-      std::cout << car(xs);
-      return unspecified;
-    });
-
-    define<procedure>("load", [this](auto&& xs)
-    {
-      return load(car(xs).template as<const string>());
-    });
-
-    define<procedure>("linker", [](auto&& xs)
-    {
-      return make<linker>(car(xs).template as<const string>());
-    });
-
-    define<procedure>("features", [&](auto&&...)                // (scheme base)
-    {
-      return current_feature;
-    });
-
-    define<procedure>("procedure", [](const object& xs)
-    {
-      const std::string name { cadr(xs).as<string>() };
-      return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
-    });
-
-    define<procedure>("syntax", [this](auto&& xs)
-    {
-      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
-    });
-
     // define<syntax>("cons", [this](
     //   auto&& expression,
     //   auto&& syntactic_environment,
@@ -572,17 +530,61 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
   {
-    /* ==== R7RS 6.2. Numbers ==================================================
+    /* ==== R7RS 6.1. Equivalence predicates ===================================
      *
+     *  eq?
+     *  eqv?
      *
      * ====================================================================== */
+    define<procedure>("eq?", [](auto&& xs)
+    {
+      return car(xs) == cadr(xs) ? t : f;
+    });
+
+    define<procedure>("eqv?", [](auto&& xs)
+    {
+      if (const object lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
+      {
+        return t;
+      }
+      else if (null(lhs) && null(rhs))
+      {
+        return t;
+      }
+      else if (null(lhs) || null(rhs))
+      {
+        return f;
+      }
+      else
+      {
+        return lhs.eqv(rhs) ? t : f;
+      }
+    });
+
+    /* ==== R7RS 6.2. Numbers ==================================================
+     *
+     *  complex?
+     *  real?
+     *  rational?
+     *  exact-integer?
+     *  =
+     *  < <= > >=
+     *  + * - /
+     *  sqrt
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("complex?", complex);
+    DEFINE_PREDICATE("real?", real);
+    DEFINE_PREDICATE("rational?", rational);
+    DEFINE_PREDICATE("exact-integer?", integer);
+
     define<procedure>("=", [](auto&& xs)
     {
       const auto head { std::begin(xs) };
 
       for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
       {
-        if (const auto result { (*head).binding() != *iter }; result.eqv(t))
+        if (const auto result { (*head).binding() == *iter }; result.eqv(f))
         {
           return f;
         }
@@ -591,25 +593,90 @@ namespace meevax { inline namespace kernel
       return t;
     });
 
+    #define boilerplate(SYMBOL)                                                \
+    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    {                                                                          \
+      auto lhs { std::begin(xs) };                                             \
+                                                                               \
+      for (auto rhs { std::next(lhs) }; rhs != std::end(xs); ++lhs, ++rhs)     \
+      {                                                                        \
+        if (const auto result { *lhs SYMBOL *rhs }; result.eqv(f))             \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    })
+
+    boilerplate(<);
+    boilerplate(<=);
+    boilerplate(>);
+    boilerplate(>=);
+
+    #undef boilerplate
+
+    #define boilerplate(SYMBOL, BASIS)                                         \
+    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    {                                                                          \
+      return std::accumulate(std::begin(xs), std::end(xs), make<integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+    })
+
+    boilerplate(+, 0);
+    boilerplate(*, 1);
+
+    #undef boilerplate
+
+    #define boilerplate(SYMBOL, BASIS)                                         \
+    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    {                                                                          \
+      if (length(xs) < 2)                                                      \
+      {                                                                        \
+        return std::accumulate(std::begin(xs), std::end(xs), make<integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        const auto basis { std::begin(xs) };                                   \
+        return std::accumulate(std::next(basis), std::end(xs), *basis, [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+      }                                                                        \
+    })
+
+    boilerplate(-, 0);
+    boilerplate(/, 1);
+
+    #undef boilerplate
+
     define<procedure>("sqrt", [](auto&& xs)
     {
+      using namespace boost::multiprecision;
+
       if (const object x { car(xs) }; null(x))
       {
         return f;
       }
       else if (x.is<integer>())
       {
-        return
-          make<real>(
-            boost::multiprecision::sqrt(
-              x.as<integer>()));
+        const real inexact { x.as<integer>().str() };
+
+        if (const auto value { sqrt(inexact) }; value == trunc(value))
+        {
+          return make<integer>(value.str());
+        }
+        else
+        {
+          return make<real>(value);
+        }
       }
       else if (x.is<real>())
       {
-        return
-          make<real>(
-            boost::multiprecision::sqrt(
-              x.as<real>()));
+        if (const auto value { sqrt(x.as<real>()) }; value == trunc(value))
+        {
+          return make<integer>(value.str());
+        }
+        else
+        {
+          return make<real>(value);
+        }
       }
       else
       {
@@ -626,6 +693,23 @@ namespace meevax { inline namespace kernel
      *
      *
      * ====================================================================== */
+    DEFINE_PREDICATE("pair?", pair);
+
+    define<procedure>("cons", [](auto&& xs)
+    {
+      return cons(car(xs), cadr(xs));
+    });
+
+    define<procedure>("car", [](auto&& xs)
+    {
+      return caar(xs);
+    });
+
+    define<procedure>("cdr", [](auto&& xs)
+    {
+      return cdar(xs);
+    });
+
     define<procedure>("set-car!", [](auto&& xs)
     {
       return caar(xs) = cadr(xs);
@@ -649,7 +733,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("string->symbol", [](auto&& xs)
     {
-      return make<symbol>(car(xs).template as<std::string>());
+      return make<symbol>(car(xs).template as<string>());
     });
 
     /* ==== R7RS 6.6. Characters ===============================================
@@ -657,6 +741,59 @@ namespace meevax { inline namespace kernel
      *
      * ====================================================================== */
     DEFINE_PREDICATE("char?", character);
+
+    define<procedure>("digit-value", [](auto&& xs)
+    {
+      try
+      {
+        return make<integer>(car(xs).template as<std::string>());
+      }
+      catch (std::runtime_error&)
+      {
+        return f;
+      }
+    });
+
+    define<procedure>("char->integer", [](auto&& xs)
+    {
+      switch (const auto& s { car(xs).template as<std::string>() }; s.size())
+      {
+      case 1:
+        return make<integer>(*reinterpret_cast<const std::uint8_t*>(s.data()));
+
+      default:
+        throw make<evaluation_error>("unicode unsupported");
+      }
+    });
+
+    /* ==== R7RS 6.7. Strings ==================================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("string?", string);
+
+    define<procedure>("ccons", [](auto&& xs)
+    {
+      return make<string>(car(xs), cadr(xs));
+    });
+
+    define<procedure>("number->string", [](auto&& xs)
+    {
+      if (car(xs).template is<real>())
+      {
+        return read_string(car(xs).template as<real>().str());
+      }
+      else if (car(xs).template is<integer>())
+      {
+        return read_string(car(xs).template as<integer>().str());
+      }
+      else
+      {
+        std::stringstream port {};
+        port << __FILE__ << ":" << __LINE__;
+        throw std::runtime_error { port.str() };
+      }
+    });
 
     /* ==== R7RS 6.8. Vectors ==================================================
      *
@@ -690,7 +827,7 @@ namespace meevax { inline namespace kernel
     define<procedure>("vector-length", [](auto&& xs)
     {
       return
-        make<real>(
+        make<integer>(
           car(xs).template as<vector>().size());
     });
 
@@ -768,6 +905,129 @@ namespace meevax { inline namespace kernel
     DEFINE_PREDICATE("closure?", closure);
     DEFINE_PREDICATE("continuation?", continuation);
 
+    /* ==== R7RS 6.12. Environments and evaluation =============================
+     *
+     *
+     * ====================================================================== */
+    define<procedure>("eval", [](auto&& xs)
+    {
+      return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
+    });
+
+    /* ==== R7RS 6.13. Input and output ========================================
+     *
+     *
+     * ====================================================================== */
+    DEFINE_PREDICATE("input-port?", input_port);
+    DEFINE_PREDICATE("output-port?", output_port);
+
+    define<procedure>("open-input-file", [](auto&& xs)
+    {
+      return make<input_port>(car(xs).template as<string>());
+    });
+
+    define<procedure>("open-output-file", [](auto&& xs)
+    {
+      return make<output_port>(car(xs).template as<string>());
+    });
+
+    define<procedure>("close-input-port", [](auto&& xs)
+    {
+      car(xs).template as<input_port>().close();
+      return unspecified;
+    });
+
+    define<procedure>("close-output-port", [](auto&& xs)
+    {
+      car(xs).template as<output_port>().close();
+      return unspecified;
+    });
+
+    define<procedure>("read", [this](const object& xs)
+    {
+      return read(xs ? car(xs).as<input_port>() : current_input_port());
+    });
+
+    define<procedure>("write", [this](auto&& xs)
+    {
+      write_to(current_output_port(), car(xs));
+      return unspecified;
+    });
+
+    define<procedure>("display", [this](auto&& xs)
+    {
+      if (not null(cdr(xs)))
+      {
+        car(xs).binding().display(cadr(xs).template as<output_port>());
+      }
+      else
+      {
+        car(xs).binding().display(current_output_port());
+      }
+
+      return unspecified;
+    });
+
+    /* ==== R7RS 6.14. System interface ========================================
+     *
+     * From (scheme load)
+     *   load
+     *
+     * From (scheme file)
+     *   file-exists?
+     *   delete-file
+     *
+     * From (scheme process-context)
+     *   command-line
+     *   exit
+     *   emergency-exit
+     *   get-environment-variable
+     *   get-environment-variables
+     *
+     * From (sceheme time)
+     *   current-second
+     *   current-jiffy
+     *   jiffies-per-second
+     *
+     * From (sceheme base)
+     *   features
+     *
+     * ====================================================================== */
+    define<procedure>("load", [this](auto&& xs)
+    {
+      return load(car(xs).template as<const string>());
+    });
+
+    define<procedure>("emergency-exit", [](auto&& xs)
+    {
+      if (null(xs) or not car(xs).template is<integer>())
+      {
+        std::exit(boost::exit_success);
+      }
+      else
+      {
+        std::exit(car(xs).template as<integer>().template convert_to<int>());
+      }
+
+      return unspecified;
+    });
+
+    define<procedure>("linker", [](auto&& xs)
+    {
+      return make<linker>(car(xs).template as<const string>());
+    });
+
+    define<procedure>("procedure", [](const object& xs)
+    {
+      const std::string name { cadr(xs).as<string>() };
+      return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
+    });
+
+    define<procedure>("features", [&](auto&&...)                // (scheme base)
+    {
+      return current_feature;
+    });
+
     /* ==== R4RS APPENDIX: A compatible low-level macro facility ===============
      *
      *
@@ -778,6 +1038,11 @@ namespace meevax { inline namespace kernel
     define<procedure>("identifier?", [](auto&& xs)
     {
       return kernel::is_identifier(car(xs)) ? t : f;
+    });
+
+    define<procedure>("syntax", [this](auto&& xs)
+    {
+      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
     });
   }
 

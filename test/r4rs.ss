@@ -1344,6 +1344,15 @@
 ;   => 3000)
 
 
+(define ffi.so (linker "libmeevax-foreign-function-interface.so"))
+
+(define dummy-procedure
+  (procedure ffi.so "dummy_procedure"))
+
+(check
+  (dummy-procedure "hello, world!\n" 42 '(1 . 2) #(1 2 3) 3.14)
+  => 43)
+
 ; ==== REPORT ==================================================================
 
 (check-report)

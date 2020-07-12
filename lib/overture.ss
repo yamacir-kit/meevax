@@ -12,52 +12,6 @@
     (if #false #false #;unspecified)))
 
 ; ------------------------------------------------------------------------------
-;  6.1 Equivalence predicates (Part 1 of 2)
-; ------------------------------------------------------------------------------
-
-(define equivalence.so
-  (linker "libmeevax-equivalence.so"))
-
-(define eq?
-  (procedure equivalence.so "equals"))
-
-(define eqv?
-  (procedure equivalence.so "equivalent"))
-
-; ------------------------------------------------------------------------------
-;  6.2 Numbers (Part 1 of 2)
-; ------------------------------------------------------------------------------
-
-(define numerical.so
-  (linker "libmeevax-numerical.so"))
-
-; (define = eqv?)
-
-(define <
-  (procedure numerical.so "less"))
-
-(define <=
-  (procedure numerical.so "less_equal"))
-
-(define >
-  (procedure numerical.so "greater"))
-
-(define >=
-  (procedure numerical.so "greater_equal"))
-
-(define *
-  (procedure numerical.so "multiplication"))
-
-(define +
-  (procedure numerical.so "addition"))
-
-(define -
-  (procedure numerical.so "subtraction"))
-
-(define /
-  (procedure numerical.so "division"))
-
-; ------------------------------------------------------------------------------
 ;  6.3 Booleans (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
@@ -68,22 +22,6 @@
 ; ------------------------------------------------------------------------------
 ;  6.4 Pairs and Lists (Part 1 of 2)
 ; ------------------------------------------------------------------------------
-
-(define pair.so
-  (linker "libmeevax-pair.so"))
-
-(define pair?
-  (procedure pair.so "pair_"))
-
-(define cons ; pair
-  (procedure pair.so "cons"))
-
-; (define cons ; hack
-;   (lambda (x y)
-;     (cons x y)))
-
-(define car (procedure pair.so "car"))
-(define cdr (procedure pair.so "cdr"))
 
 (define caar (lambda (x) (car (car x) )))
 (define cadr (lambda (x) (car (cdr x) )))
@@ -789,27 +727,6 @@
     (or (exact? x)
         (inexact? x) )))
 
-(define complex?
-  (lambda (x)
-    ; (procedure numerical.so "is_complex") ; unimplemented
-    #false
-    ))
-
-(define real?
-  (procedure numerical.so "real_"))
-
-(define rational?
-  (lambda (x)
-    ; (procedure numerical.so "is_rational") ; unimplemented
-    #false
-    ))
-
-(define exact-integer?
-  (lambda (x)
-    ; (procedure numerical.so "is_exact_integer") ; unimplemented
-    #false
-    ))
-
 (define integer?
   (lambda (x)
     (or (exact-integer? x)
@@ -1075,51 +992,30 @@
 
 (define boolean?
   (lambda (x)
-    (or (eqv? x #true)
-        (eqv? x #false))))
+    (or (eqv? x #t)
+        (eqv? x #f))))
 
 (define boolean=?
   (lambda (x y . xs)
     (and (eqv? x y)
          (if (pair? xs)
              (apply boolean=? y xs)
-             #true ))))
+             #t))))
 
 ; ------------------------------------------------------------------------------
 ;  6.5 Symbols
 ; ------------------------------------------------------------------------------
 
-(define symbol.so
-  (linker "libmeevax-symbol.so"))
-
-(define symbol ; Constructor
-  (procedure symbol.so "symbol"))
-
-; (define symbol?
-;   (procedure symbol.so "is_symbol"))
-
 (define symbol=?
   (lambda (x y . xs)
-    (and (eq? x y)
+    (and (eqv? x y)
          (if (pair? xs)
              (apply symbol=? y xs)
-             #true ))))
-
-; TODO symbol->string
-
-(define string->symbol symbol)
+             #t))))
 
 ; ------------------------------------------------------------------------------
 ;  6.6 Standard Characters Library
 ; ------------------------------------------------------------------------------
-
-(define character.so
-  (linker "libmeevax-character.so"))
-
-; (define character?
-;   (procedure character.so "is_character"))
-;
-; (define char? character?)
 
 (define character-compare
   (lambda (x xs compare)
@@ -1181,67 +1077,40 @@
   (lambda (x . xs)
     (case-insensitive-character-compare x xs >=)))
 
-(define codepoint
-  (procedure character.so "codepoint"))
+(define char-alphabetic? ;                                         (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\A)
+          (char->integer (char-upcase x))
+        #,(char->integer #\Z))))
 
-(define char->integer codepoint)
+(define char-numeric? ;                                            (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\0)
+          (char->integer x)
+        #,(char->integer #\9))))
 
-; (define alphabetical-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\A)
-;           (char->integer (char-upcase x))
-;         #,(char->integer #\Z))))
-;
-; (define char-alphabetic? alphabetical-character?) ;                (scheme char)
-
-(define digit-value ;                                              (scheme char)
-  (procedure character.so "digit_value"))
-
-; (define numerical-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\0)
-;           (char->integer x)
-;         #,(char->integer #\9))))
-;
-; (define char-numeric? numerical-character?) ;                      (scheme char)
-
-(define whitespace-character?
+(define char-whitespace? ;                                         (scheme char)
   (lambda (x)
     (or (eqv? x #\space)
         (eqv? x #\tab)
         (eqv? x #\newline)
         (eqv? x #\return))))
 
-(define char-whitespace? whitespace-character?) ;                  (scheme char)
+(define char-upper-case? ;                                         (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\A)
+          (char->integer x)
+        #,(char->integer #\Z))))
 
-; (define uppercase-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\A)
-;           (char->integer x)
-;         #,(char->integer #\Z))))
-;
-; (define char-upper-case? uppercase-character?) ;                   (scheme char)
-
-; (define lowercase-character?
-;   (lambda (x)
-;     (<= #,(char->integer #\a)
-;           (char->integer x)
-;         #,(char->integer #\z))))
-;
-; (define char-lower-case? lowercase-character?) ;                   (scheme char)
+(define char-lower-case? ;                                         (scheme char)
+  (lambda (x)
+    (<= #,(char->integer #\a)
+          (char->integer x)
+        #,(char->integer #\z))))
 
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
-
-(define string.so
-  (linker "libmeevax-string.so"))
-
-(define string?
-  (procedure string.so "is_string"))
-
-(define ccons
-  (procedure string.so "ccons"))
 
 (define make-string
   (lambda (k . x)
@@ -1254,23 +1123,16 @@
 
 (define string
   (lambda xs
-    (if (null? xs)
-       '()
+    (if (null? xs) '()
         (list->string xs))))
 
 (define list->string
   (lambda (x)
-    (if (null? x)
-       '()
+    (if (null? x) '()
         (if (pair? x)
             (ccons (car x)
                    (list->string (cdr x)))
             (ccons x '())))))
-
-(define string-from-number
-  (procedure string.so "string_from_number"))
-
-(define number->string string-from-number)
 
 (define string->list
   (lambda (x)
@@ -1478,9 +1340,6 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
-(define io.so
-  (linker "libmeevax-io.so"))
-
 ; TODO call-with-port
 
 (define call-with-input-file
@@ -1497,12 +1356,6 @@
       (close-output-port output-port)
       result)))
 
-(define input-port?
-  (procedure io.so "is_input_port"))
-
-(define output-port?
-  (procedure io.so "is_output_port"))
-
 (define port?
   (lambda (x)
     (or (input-port? x) (output-port? x))))
@@ -1510,7 +1363,7 @@
 (define textual-port? port?)
 
 (define binary-port?
-  (lambda (x) #false))
+  (lambda (x) #f))
 
 ; TODO input-port-open?
 ; TODO output-port-open?
@@ -1522,21 +1375,8 @@
 ; TODO with-input-from-file
 ; TODO with-output-to-file
 
-(define open-input-file
-  (procedure io.so "open_input_file"))
-
 ; TODO open-binary-input-file
-
-(define open-output-file
-  (procedure io.so "open_output_file"))
-
 ; TODO open-binary-output-file
-
-(define close-input-port
-  (procedure io.so "close_input_port"))
-
-(define close-output-port
-  (procedure io.so "close_output_port"))
 
 (define close-port
   (lambda (x)
@@ -1544,7 +1384,7 @@
         (close-input-port x)
         (if (output-port? x)
             (close-output-port x)
-           '())))) ; TODO unspecified
+            (unspecified)))))
 
 ; TODO open-input-string
 ; TODO open-output-string
@@ -1579,19 +1419,14 @@
 
 ; TODO write-shared
 
-(define experimental.so
-  (linker "libmeevax-experimental.so"))
-
-(define display
-  (procedure experimental.so "display")
-  ; (lambda (x . option)
-  ;   (let ((output-port (if (pair? option)
-  ;                          (car option)
-  ;                          (current-output-port))))
-  ;     (if (char? x)
-  ;         (write-char x output-port)
-  ;         (write      x output-port))))
-  )
+; (define display
+;   (lambda (x . option)
+;     (let ((output-port (if (pair? option)
+;                            (car option)
+;                            (current-output-port))))
+;       (if (char? x)
+;           (write-char x output-port)
+;           (write      x output-port)))))
 
 (define newline
   (lambda ()
@@ -1615,9 +1450,6 @@
 ; TODO file-exists?
 ; TODO delete-file
 ; TODO command-line
-
-(define emergency-exit ;                                (scheme process-context)
-  (procedure experimental.so "emergency_exit"))
 
 (define exit emergency-exit) ;                          (scheme process-context)
 
@@ -2125,10 +1957,7 @@
   (fork/csc
     (lambda (this . submodule)
 
-      (begin (define equivalence.so (linker "libmeevax-equivalence.so"))
-             (define numerical.so   (linker "libmeevax-numerical.so"))
-
-             (define identity
+      (begin (define identity
                (lambda (x) x) )
 
              (define unspecified

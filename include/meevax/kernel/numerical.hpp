@@ -1,8 +1,20 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <boost/multiprecision/gmp.hpp>
+#define MEEVAX_USE_MPFR
+#define MEEVAX_USE_GMP
+
+#ifdef MEEVAX_USE_MPFR
 #include <boost/multiprecision/mpfr.hpp>
+#else
+#include <boost/multiprecision/cpp_dec_float.hpp>
+#endif
+
+#ifdef MEEVAX_USE_GMP
+#include <boost/multiprecision/gmp.hpp>
+#else
+#include <boost/multiprecision/cpp_int.hpp>
+#endif
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
@@ -13,10 +25,17 @@ namespace meevax { inline namespace kernel
   {
     using namespace boost::multiprecision;
 
+    #ifdef MEEVAX_USE_MPFR
     using real = number<mpfr_float_backend<0>, et_off>;
-    // using real = number<gmp_float, et_off>;
+    #else
+    using real = cpp_dec_float_100;
+    #endif
 
-    using integer = mpz_int;
+    #ifdef MEEVAX_USE_GMP
+    using integer = number<gmp_int, et_off>; // mpz_int
+    #else
+    using integer = cpp_int;
+    #endif
   }
 
   /* ==== Numbers ==============================================================
@@ -53,7 +72,10 @@ namespace meevax { inline namespace kernel
   struct real
     : public multiprecision::real
   {
-    using multiprecision::real::real;
+    template <typename... Ts>
+    explicit constexpr real(Ts&&... xs)
+      : multiprecision::real { std::forward<decltype(xs)>(xs)... }
+    {}
 
     decltype(auto) backend() const noexcept
     {
@@ -92,7 +114,10 @@ namespace meevax { inline namespace kernel
   struct integer
     : public multiprecision::integer
   {
-    using multiprecision::integer::integer;
+    template <typename... Ts>
+    explicit constexpr integer(Ts&&... xs)
+      : multiprecision::integer { std::forward<decltype(xs)>(xs)... }
+    {}
 
     decltype(auto) backend() const noexcept
     {

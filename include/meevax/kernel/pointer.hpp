@@ -221,7 +221,7 @@ namespace meevax { inline namespace kernel
     private: // eqv
       #if __cpp_if_constexpr
 
-      auto compare(const pointer& rhs) const -> bool override
+      auto eqv(const pointer& rhs) const -> bool override
       {
         if constexpr (concepts::equality_comparable<bound>::value)
         {
@@ -242,7 +242,7 @@ namespace meevax { inline namespace kernel
 
       #else // __cpp_if_constexpr
 
-      auto compare(const pointer& rhs) const -> bool override
+      auto eqv(const pointer& rhs) const -> bool override
       {
         return top::template if_equality_comparable<bound>::call_it(*this, rhs);
       }
@@ -276,6 +276,12 @@ namespace meevax { inline namespace kernel
       }
 
       #endif // __cpp_if_constexpr
+
+    private: // display
+      auto display(std::ostream& port) const -> decltype(port) override
+      {
+        return top::template if_displayable<bound>::call_it(port, *this);
+      }
 
     private: // arithmetic
       #if __cpp_if_constexpr
@@ -549,27 +555,9 @@ namespace meevax { inline namespace kernel
       return binding().copy();
     }
 
-    bool compare(const pointer& rhs) const
+    bool eqv(const pointer& rhs) const
     {
-      if (type() != rhs.type()) // TODO REMOVE IF OTHER NUMERICAL TYPE IMPLEMENTED
-      {
-        return false;
-      }
-      else
-      {
-        return binding().compare(rhs);
-      }
-    }
-
-    // NOTE: Can't compile with less than GCC-9 due to a bug in the compiler.
-    // Define_Const_Perfect_Forwarding(eqv, compare);
-
-    template <typename... Ts>
-    constexpr auto eqv(Ts&&... xs) const -> decltype(auto)
-    {
-      return
-        compare(
-          std::forward<decltype(xs)>(xs)...);
+      return type() != rhs.type() ? false : binding().eqv(rhs);
     }
   };
 

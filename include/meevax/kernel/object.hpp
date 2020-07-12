@@ -67,7 +67,7 @@ namespace meevax { inline namespace kernel
   public: // eqv
     #if __cpp_if_constexpr
 
-    virtual bool compare(const pointer<T>& rhs) const
+    virtual bool eqv(const pointer<T>& rhs) const
     {
       if constexpr (concepts::equality_comparable<T>::value)
       {
@@ -114,7 +114,7 @@ namespace meevax { inline namespace kernel
       }
     };
 
-    virtual bool compare(const pointer<T>& rhs) const
+    virtual bool eqv(const pointer<T>& rhs) const
     {
       return if_equality_comparable<T>::call_it(static_cast<const T&>(*this), rhs);
     }
@@ -170,6 +170,32 @@ namespace meevax { inline namespace kernel
     }
 
     #endif // __cpp_if_constexpr
+
+  public: // display
+    template <typename U, typename = void>
+    struct if_displayable
+    {
+      static auto call_it(std::ostream& port, const U& target) -> decltype(port)
+      {
+        return port << target;
+      }
+    };
+
+    template <typename U>
+    struct if_displayable<U, type_traits::void_t<decltype(
+             std::declval<U>().write_string(
+               std::declval<std::ostream&>()))>>
+    {
+      static auto call_it(std::ostream& port, const U& target) -> decltype(port)
+      {
+        return target.write_string(port);
+      }
+    };
+
+    virtual auto display(std::ostream& port) const -> decltype(port)
+    {
+      return if_displayable<T>::call_it(port, static_cast<const T&>(*this));
+    }
 
   public: // arithmetic
     // override by binder's operators

@@ -445,7 +445,7 @@ namespace meevax { inline namespace kernel
         * where selection = (if test consequent alternate)
         *
         * =================================================================== */
-        c = not car(s) or not car(s).compare(f) ? cadr(c) : caddr(c);
+        c = not car(s) or not car(s).eqv(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
