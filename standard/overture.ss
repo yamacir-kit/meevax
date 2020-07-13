@@ -725,7 +725,28 @@
 (define number?
   (lambda (x)
     (or (exact? x)
-        (inexact? x) )))
+        (inexact? x))))
+
+(define complex? number?)
+
+(define exact-complex?
+  (lambda (x)
+    (and (the-complex? x)
+         (exact? (real-part x))
+         (exact? (imag-part x)))))
+
+(define real?
+  (lambda (x)
+    (and (number? x)
+         (not (the-complex? x)))))
+
+(define rational?
+  (lambda (x)
+    (and (real? x)
+         (= x x)
+         (if (or (< x -1) (< 1 x))
+             (not (= x (/ x 2)))
+             (<= -1 x 1)))))
 
 (define integer?
   (lambda (x)
@@ -733,16 +754,18 @@
         (and (real? x)
              (= x (truncate x)) ))))
 
-(define exact? ; Currently, any real numbers returns #false
+(define exact-integer? the-integer?)
+
+(define exact?
   (lambda (z)
-    (or (integer? z)
-        (rational? z)
-        ; TODO for exact-complex
-        )))
+    (or (the-integer? z)
+        (the-rational? z)
+        (exact-complex? z))))
 
 (define inexact?
   (lambda (z)
-    (not (exact? z))))
+    (or (the-real? z)
+        (not (exact-complex? z)))))
 
 (define finite?
   (lambda (z)
@@ -768,8 +791,8 @@
   (lambda (n)
     (= n 0)))
 
-(define positive?  (lambda (n) (> n 0)))
-(define negative?  (lambda (n) (< n 0)))
+(define positive? (lambda (n) (> n 0)))
+(define negative? (lambda (n) (< n 0)))
 
 (define even?
   (lambda (n)

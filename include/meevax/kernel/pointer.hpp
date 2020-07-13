@@ -283,6 +283,17 @@ namespace meevax { inline namespace kernel
         return top::template if_displayable<bound>::call_it(port, *this);
       }
 
+    private: // exact & inexact
+      auto exact() const -> bool override
+      {
+        return top::template if_has_exactness<bound>::call_it(*this);
+      }
+
+      auto inexact() const -> bool override
+      {
+        return top::template if_has_inexactness<bound>::call_it(*this);
+      }
+
     private: // arithmetic
       #if __cpp_if_constexpr
 

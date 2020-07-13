@@ -573,10 +573,20 @@ namespace meevax { inline namespace kernel
      *  sqrt
      *
      * ====================================================================== */
-    DEFINE_PREDICATE("complex?", complex);
-    DEFINE_PREDICATE("real?", real);
-    DEFINE_PREDICATE("rational?", rational);
-    DEFINE_PREDICATE("exact-integer?", integer);
+    DEFINE_PREDICATE("the-complex?", complex);
+    DEFINE_PREDICATE("the-real?", real);
+    DEFINE_PREDICATE("the-rational?", rational);
+    DEFINE_PREDICATE("the-integer?", integer);
+
+    // define<procedure>("exact?", [](auto&& xs)
+    // {
+    //   return car(xs).binding().exact() ? t : f;
+    // });
+    //
+    // define<procedure>("inexact?", [](auto&& xs)
+    // {
+    //   return car(xs).binding().inexact() ? t : f;
+    // });
 
     define<procedure>("=", [](auto&& xs)
     {

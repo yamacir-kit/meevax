@@ -197,6 +197,53 @@ namespace meevax { inline namespace kernel
       return if_displayable<T>::call_it(port, static_cast<const T&>(*this));
     }
 
+  public: // exact & inexact
+    template <typename Top, typename = void>
+    struct if_has_exactness
+    {
+      static auto call_it(const Top&)
+      {
+        return false;
+      }
+    };
+
+    template <typename Top>
+    struct if_has_exactness<Top, type_traits::void_t<decltype(std::declval<Top>().exact())>>
+    {
+      static auto call_it(const Top& top) -> decltype(auto)
+      {
+        return top.exact();
+      }
+    };
+
+    virtual auto exact() const -> bool
+    {
+      return if_has_exactness<T>::call_it(static_cast<const T&>(*this));
+    }
+
+    template <typename Top, typename = void>
+    struct if_has_inexactness
+    {
+      static auto call_it(const Top&)
+      {
+        return false;
+      }
+    };
+
+    template <typename Top>
+    struct if_has_inexactness<Top, type_traits::void_t<decltype(std::declval<Top>().inexact())>>
+    {
+      static auto call_it(const Top& top) -> decltype(auto)
+      {
+        return top.inexact();
+      }
+    };
+
+    virtual auto inexact() const -> bool
+    {
+      return if_has_exactness<T>::call_it(static_cast<const T&>(*this));
+    }
+
   public: // arithmetic
     // override by binder's operators
     #define boilerplate(SYMBOL)                                                \
