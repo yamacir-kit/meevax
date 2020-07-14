@@ -958,6 +958,16 @@ namespace meevax { inline namespace kernel
       return read(xs ? car(xs).as<input_port>() : current_input_port());
     });
 
+    define<procedure>("eof-object?", [](auto&& xs)
+    {
+      return car(xs).template is<eof>() ? t : f;
+    });
+
+    define<procedure>("eof-object", [](auto&&)
+    {
+      return eof_object;
+    });
+
     define<procedure>("write", [this](auto&& xs)
     {
       write_to(current_output_port(), car(xs));
