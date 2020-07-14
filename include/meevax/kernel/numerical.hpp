@@ -67,6 +67,11 @@ namespace meevax { inline namespace kernel
     //       lhs.real() + rhs,
     //       lhs.imag());
     // }
+
+    friend std::ostream& operator<<(std::ostream& os, const complex& z)
+    {
+      return os << magenta << "#c(" << cyan << z.real() << " " << z.imag() << magenta << ")" << reset;
+    }
   };
 
   struct real
@@ -82,7 +87,6 @@ namespace meevax { inline namespace kernel
       return static_cast<const multiprecision::real&>(*this);
     }
 
-  public:
     auto operator *(const object&) const -> object;
     auto operator +(const object&) const -> object;
     auto operator -(const object&) const -> object;
@@ -96,7 +100,6 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> object;
     auto operator >=(const object&) const -> object;
 
-  public:
     auto operator ==(const real& rhs) const { return backend() == rhs.backend(); }
     auto operator !=(const real& rhs) const { return !(*this == rhs); }
 
@@ -141,7 +144,6 @@ namespace meevax { inline namespace kernel
       return static_cast<const multiprecision::integer&>(*this);
     }
 
-  public:
     auto operator *(const object&) const -> object;
     auto operator +(const object&) const -> object;
     auto operator -(const object&) const -> object;
@@ -155,7 +157,6 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> object;
     auto operator >=(const object&) const -> object;
 
-  public:
     auto operator ==(const integer& rhs) const { return backend() == rhs.backend(); }
     auto operator !=(const integer& rhs) const { return !(*this == rhs); }
 

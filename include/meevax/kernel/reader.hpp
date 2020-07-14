@@ -339,6 +339,34 @@ namespace meevax { inline namespace kernel
     {
       switch (is.peek())
       {
+      case '!':
+        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return read(is);
+
+      case ',': // SRFI-10
+        is.ignore(1);
+        return evaluate(read(is));
+
+      case ';': // SRFI-62
+        is.ignore(1);
+        return read(is), read(is);
+
+      case 'c': // Common Lisp
+        is.ignore(1);
+
+        if (const auto xs { read(is) }; null(xs) or not xs.template is<pair>())
+        {
+          return make<complex>(make<integer>(0), make<integer>(0));
+        }
+        else if (null(cdr(xs)) or not cdr(xs).template is<pair>())
+        {
+          return make<complex>(car(xs), make<integer>(0));
+        }
+        else
+        {
+          return make<complex>(car(xs), cadr(xs));
+        }
+
       case 'd':
         is.ignore(1);
         return make<integer>(read_token(is));
@@ -351,6 +379,19 @@ namespace meevax { inline namespace kernel
         is.ignore(1);
         return make<integer>("0" + read_token(is));
 
+      case 'p':
+        is.ignore(1);
+
+        switch (is.peek())
+        {
+        case '"':
+          is.ignore(1);
+          return make<path>(read_string(is).as<string>());
+
+        default:
+          return make<path>(read_token(is));
+        }
+
       case 't':
         ignore(is, [](auto&& x) { return not is_delimiter(x); });
         return t;
@@ -358,14 +399,6 @@ namespace meevax { inline namespace kernel
       case 'x':
         is.ignore(1);
         return make<integer>("0x" + read_token(is));
-
-      case '!':
-        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return read(is);
-
-      case ',': // SRFI-10
-        is.ignore(1);
-        return evaluate(read(is));
 
       case '(':
         if (const auto xs { read(is) }; null(xs))
@@ -414,10 +447,6 @@ namespace meevax { inline namespace kernel
             throw reader_error_about_character {name, " is unknown character-name"};
           }
         }
-
-      case ';':
-        is.ignore(1);
-        return read(is), read(is);
 
       default:
         is.ignore(1);
