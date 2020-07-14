@@ -232,9 +232,21 @@ namespace meevax { inline namespace kernel
 
         if (auto c {port.peek()}; is_delimiter(c)) // delimiter
         {
+          static const std::unordered_map<std::string, object> infnan
+          {
+            std::make_pair("+inf.0", unit),
+            std::make_pair("-inf.0", unit),
+            std::make_pair("+nan.0", unit),
+            std::make_pair("-nan.0", unit)
+          };
+
           if (token == ".")
           {
             throw reader_error_about_pair {"dot-notation"};
+          }
+          else if (auto iter { infnan.find(token) }; iter != std::end(infnan))
+          {
+            return cdr(*iter);
           }
           else try
           {
@@ -311,16 +323,16 @@ namespace meevax { inline namespace kernel
       return port;
     }
 
-    auto read_identifier(std::istream& port)
+    auto read_token(std::istream& port)
     {
-      std::string id {};
+      std::string token {};
 
       for (auto c { port.peek() }; not is_delimiter(c); c = port.peek())
       {
-        id.push_back(port.get());
+        token.push_back(port.get());
       }
 
-      return id;
+      return token;
     }
 
     const object discriminate(std::istream& is)
@@ -329,7 +341,7 @@ namespace meevax { inline namespace kernel
       {
       case 'd':
         is.ignore(1);
-        return make<integer>(read_identifier(is));
+        return make<integer>(read_token(is));
 
       case 'f':
         ignore(is, [](auto&& x) { return not is_delimiter(x); });
@@ -337,7 +349,7 @@ namespace meevax { inline namespace kernel
 
       case 'o':
         is.ignore(1);
-        return make<integer>("0" + read_identifier(is));
+        return make<integer>("0" + read_token(is));
 
       case 't':
         ignore(is, [](auto&& x) { return not is_delimiter(x); });
@@ -345,7 +357,7 @@ namespace meevax { inline namespace kernel
 
       case 'x':
         is.ignore(1);
-        return make<integer>("0x" + read_identifier(is));
+        return make<integer>("0x" + read_token(is));
 
       case '!':
         is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -369,7 +381,7 @@ namespace meevax { inline namespace kernel
         {
           is.ignore(1);
 
-          auto name { read_identifier(is) };
+          auto name { read_token(is) };
 
           if (name.empty())
           {
