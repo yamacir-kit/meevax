@@ -102,17 +102,11 @@ namespace meevax { inline namespace kernel
         return read_string(port);
 
       default:
-        return
-          make<string>(
-            make<character>(std::string(1, '\0')),
-            read_string(port));
+        return make<string>(make<character>(std::string(1, '\0')), read_string(port));
       }
 
     default:
-      return
-        make<string>(
-          make<character>(std::string(1, c)),
-          read_string(port));
+      return make<string>(make<character>(std::string(1, c)), read_string(port));
     }
   }
 
@@ -270,24 +264,18 @@ namespace meevax { inline namespace kernel
 
     auto read() -> decltype(auto)
     {
-      return
-        read(
-          current_input_port());
+      return read(current_input_port());
     }
 
     auto read(const std::string& s) -> decltype(auto)
     {
-      return
-        read(
-          open_input_string(s));
+      return read(open_input_string(s));
     }
 
   public:
     auto ready()
     {
-      return
-        static_cast<bool>(
-          current_input_port());
+      return static_cast<bool>(current_input_port());
     }
 
     auto standard_input_port() const noexcept -> auto&
@@ -323,23 +311,47 @@ namespace meevax { inline namespace kernel
       return port;
     }
 
+    auto read_identifier(std::istream& port)
+    {
+      std::string id {};
+
+      for (auto c { port.peek() }; not is_delimiter(c); c = port.peek())
+      {
+        id.push_back(port.get());
+      }
+
+      return id;
+    }
+
     const object discriminate(std::istream& is)
     {
       switch (is.peek())
       {
+      case 'd':
+        is.ignore(1);
+        return make<integer>(read_identifier(is));
+
       case 'f':
         ignore(is, [](auto&& x) { return not is_delimiter(x); });
         return f;
+
+      case 'o':
+        is.ignore(1);
+        return make<integer>("0" + read_identifier(is));
 
       case 't':
         ignore(is, [](auto&& x) { return not is_delimiter(x); });
         return t;
 
-      /* ==== SRFI-10 Sharp-Comma External Form ================================
-       *
-       *
-       * ==================================================================== */
-      case ',':
+      case 'x':
+        is.ignore(1);
+        return make<integer>("0x" + read_identifier(is));
+
+      case '!':
+        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return read(is);
+
+      case ',': // SRFI-10
         is.ignore(1);
         return evaluate(read(is));
 
@@ -357,12 +369,7 @@ namespace meevax { inline namespace kernel
         {
           is.ignore(1);
 
-          std::string name {};
-
-          for (auto c {is.peek()}; not is_delimiter(c); c = is.peek())
-          {
-            name.push_back(is.get());
-          }
+          auto name { read_identifier(is) };
 
           if (name.empty())
           {
