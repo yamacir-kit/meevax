@@ -234,10 +234,10 @@ namespace meevax { inline namespace kernel
         {
           static const std::unordered_map<std::string, object> infnan
           {
-            std::make_pair("+inf.0", unit),
-            std::make_pair("-inf.0", unit),
-            std::make_pair("+nan.0", unit),
-            std::make_pair("-nan.0", unit)
+            std::make_pair("+inf.0", make<real>(+1.0 / 0)),
+            std::make_pair("-inf.0", make<real>(-1.0 / 0)),
+            std::make_pair("+nan.0", make<real>(+0.0 / 0)),
+            std::make_pair("-nan.0", make<real>(-0.0 / 0))
           };
 
           if (token == ".")

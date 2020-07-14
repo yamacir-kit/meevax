@@ -102,7 +102,24 @@ namespace meevax { inline namespace kernel
 
     friend std::ostream& operator<<(std::ostream& os, const real& x)
     {
-      return os << console::cyan << "#i" << x.str() << console::reset;
+      os << cyan;
+
+      if (const auto s { x.backend().str() }; s == "nan")
+      {
+        return os << "+nan.0" << reset;
+      }
+      else if (x.backend() == +1.0 / 0)
+      {
+        return os << "+inf.0" << reset;
+      }
+      else if (x.backend() == -1.0 / 0)
+      {
+        return os << "-inf.0" << reset;
+      }
+      else
+      {
+        return os << "#i" << s << reset;
+      }
     }
   };
 
