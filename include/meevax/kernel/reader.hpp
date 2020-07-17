@@ -15,7 +15,6 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
-#include <stdexcept>
 
 namespace meevax { inline namespace kernel
 {
@@ -117,6 +116,90 @@ namespace meevax { inline namespace kernel
     return read_string(port);
   }
 
+  /* ==== Number Constructor ===================================================
+   *
+   *
+   * ======================================================================== */
+  template <std::size_t R>
+  auto digit() -> const std::string;
+
+  template <> auto digit< 2>() -> const std::string { return "(0|1)"; };
+  template <> auto digit< 8>() -> const std::string { return "(0|1|2|3|4|5|6|7)"; };
+  template <> auto digit<10>() -> const std::string { return  "\\d"; };
+  template <> auto digit<16>() -> const std::string { return "(\\d|a|b|c|d|e|f)"; };
+
+  template <std::size_t R>
+  auto digits(const std::string& quantifier)
+  {
+    return digit<R>() + quantifier;
+  }
+
+  template <std::size_t R>
+  auto radix() -> const std::string;
+
+  template <> auto radix< 2>() -> const std::string { return  "#b";   }
+  template <> auto radix< 8>() -> const std::string { return  "#o";   }
+  template <> auto radix<10>() -> const std::string { return "(#d)?"; }
+  template <> auto radix<16>() -> const std::string { return  "#x";   }
+
+  const std::string exactness { "(#e|#i)?" };
+
+  const std::string sign { "[\\+-]?" };
+
+  const std::string exponent_marker { "e" };
+
+  const std::string infnan { "([\\+-](inf|nan)\\.0)" };
+
+  const std::string suffix {
+    "(" + exponent_marker + sign + digits<10>("+") + ")?"
+  };
+
+  template <std::size_t R>
+  const std::string prefix {
+    "((" + radix<R>() + exactness + ")|(" + exactness + radix<R>() + "))"
+  };
+
+  template <std::size_t R>
+  const std::string unsigned_integer { digits<R>("+") };
+
+  template <std::size_t R = 10>
+  const std::string decimal {
+    "(" + unsigned_integer<R>                     + suffix + ")" "|"
+    "("                    "\\." + digits<R>("+") + suffix + ")" "|"
+    "(" + digits<R>("+") + "\\." + digits<R>("*") + suffix + ")"
+  };
+
+  template <std::size_t R>
+  const std::string unsigned_real {
+    "(" + unsigned_integer<R>                             + "|"
+        + unsigned_integer<R> + "/" + unsigned_integer<R> + "|"
+        + decimal<R>                                      + ")"
+  };
+
+  template <std::size_t R = 10>
+  const std::string signed_real {
+    "((" + sign + unsigned_real<R> + ")|(" + infnan + "))"
+  };
+
+  template <std::size_t R = 10>
+  const std::string signed_complex {
+    "("     + signed_real<R> +                                    "|"
+        "(" + signed_real<R> +   "@" +   signed_real<R> +     ")" "|"
+        "(" + signed_real<R> + "\\+" + unsigned_real<R> + "i" ")" "|"
+        "(" + signed_real<R> +   "-" + unsigned_real<R> + "i" ")" "|"
+        "(" + signed_real<R> + "\\+" +                    "i" ")" "|"
+        "(" + signed_real<R> +   "-" +                    "i" ")" "|"
+        "(" + signed_real<R> +                   infnan + "i" ")" "|"
+        "(" +                  "\\+" + unsigned_real<R> + "i" ")" "|"
+        "(" +                    "-" + unsigned_real<R> + "i" ")" "|"
+        "(" +                                    infnan + "i" ")" "|"
+        "(" +                  "\\+"                      "i" ")" "|"
+        "(" +                    "-"                      "i" ")" ")"
+  };
+
+  template <std::size_t R = 10>
+  const std::string number { prefix<R> + signed_complex<R> };
+
   /* ==== Reader ===============================================================
   *
   *
@@ -188,9 +271,7 @@ namespace meevax { inline namespace kernel
         }
 
       case ')':
-        throw reader_error_about_parentheses {
-          "unexpected close parentheses inserted"
-        };
+        throw reader_error_about_parentheses { "unexpected close parentheses inserted" };
 
       case '#':
         return discriminate(port);
@@ -199,32 +280,20 @@ namespace meevax { inline namespace kernel
         return read_string(port);
 
       case '\'':
-        return
-          list(
-            intern("quote"),
-            read(port));
+        return list(intern("quote"), read(port));
 
       case '`':
-        return
-          list(
-            intern("quasiquote"),
-            read(port));
+        return list(intern("quasiquote"), read(port));
 
       case ',':
         switch (port.peek())
         {
         case '@':
           port.ignore(1);
-          return
-            list(
-              intern("unquote-splicing"),
-              read(port));
+          return list(intern("unquote-splicing"), read(port));
 
         default:
-          return
-            list(
-              intern("unquote"),
-              read(port));
+          return list(intern("unquote"), read(port));
         }
 
       default:
@@ -232,7 +301,7 @@ namespace meevax { inline namespace kernel
 
         if (auto c {port.peek()}; is_delimiter(c)) // delimiter
         {
-          static const std::unordered_map<std::string, object> infnan
+          static const std::unordered_map<std::string, object> infnans
           {
             std::make_pair("+inf.0", make<real>(+1.0 / 0)),
             std::make_pair("-inf.0", make<real>(-1.0 / 0)),
@@ -240,11 +309,25 @@ namespace meevax { inline namespace kernel
             std::make_pair("-nan.0", make<real>(-0.0 / 0))
           };
 
+          static const std::regex pattern { number<10> };
+
+          if (std::smatch result {}; std::regex_match(token, result, pattern))
+          {
+
+            for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
+            {
+              if ((*iter).length())
+              {
+                std::cout << "result[" << std::distance(std::begin(result), iter) << "] = " << *iter << std::endl;
+              }
+            }
+          }
+
           if (token == ".")
           {
             throw reader_error_about_pair {"dot-notation"};
           }
-          else if (auto iter { infnan.find(token) }; iter != std::end(infnan))
+          else if (auto iter { infnans.find(token) }; iter != std::end(infnans))
           {
             return cdr(*iter);
           }
@@ -307,7 +390,6 @@ namespace meevax { inline namespace kernel
     //   return current_input_port();
     // }
 
-  public:
     Define_Static_Perfect_Forwarding(open_input_file, std::ifstream);
     Define_Static_Perfect_Forwarding(open_input_string, std::stringstream);
 
