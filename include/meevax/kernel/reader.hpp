@@ -246,6 +246,11 @@ namespace meevax { inline namespace kernel
         return make<complex>(make_number<R>(result.str(31)), make_number<R>(result.str(38)));
       }
 
+      if (result.length(53)) // 6, 53, 54, 55, 61, 62
+      {
+        return make<complex>(make_number<R>(result.str(54)), make_number<R>(result.str(61)));
+      }
+
       if (result.length(14)) // 6, 7, 8, 14
       {
         static const std::unordered_map<std::string, object> infnan
