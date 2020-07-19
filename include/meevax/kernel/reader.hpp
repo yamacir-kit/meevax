@@ -123,10 +123,10 @@ namespace meevax { inline namespace kernel
   template <std::size_t R>
   auto digit() -> const std::string;
 
-  template <> auto digit< 2>() -> const std::string { return "(0|1)"; };
-  template <> auto digit< 8>() -> const std::string { return "(0|1|2|3|4|5|6|7)"; };
-  template <> auto digit<10>() -> const std::string { return  "\\d"; };
-  template <> auto digit<16>() -> const std::string { return "(\\d|a|b|c|d|e|f)"; };
+  template <> auto digit< 2>() -> const std::string { return "[01]"; };
+  template <> auto digit< 8>() -> const std::string { return "[01234567]"; };
+  template <> auto digit<10>() -> const std::string { return "\\d"; };
+  template <> auto digit<16>() -> const std::string { return "[" + digit<10>() + "abcdef]"; };
 
   template <std::size_t R>
   auto digits(const std::string& quantifier)
@@ -142,63 +142,85 @@ namespace meevax { inline namespace kernel
   template <> auto radix<10>() -> const std::string { return "(#d)?"; }
   template <> auto radix<16>() -> const std::string { return  "#x";   }
 
-  const std::string exactness { "(#e|#i)?" };
+  auto exactness() -> const std::string
+  {
+    return "(#e|#i)?";
+  };
 
-  const std::string sign { "[\\+-]?" };
+  auto sign() -> const std::string
+  {
+    return "[\\+-]?";
+  };
 
-  const std::string exponent_marker { "e" };
+  auto infnan() -> const std::string
+  {
+    return "[\\+-](inf|nan)\\.0";
+  };
 
-  const std::string infnan { "([\\+-](inf|nan)\\.0)" };
+  auto suffix() -> const std::string
+  {
+    return "(e" + sign() + digits<10>("+") + ")?";
+  };
 
-  const std::string suffix {
-    "(" + exponent_marker + sign + digits<10>("+") + ")?"
+  template <std::size_t R = 10>
+  auto prefix() -> const std::string
+  {
+    return "(" + radix<R>() + exactness() + "|" + exactness() + radix<R>() + ")";
+  };
+
+  template <std::size_t R = 10>
+  auto unsigned_integer() -> const std::string
+  {
+    return digits<R>("+");
+  };
+
+  template <std::size_t R = 10>
+  auto signed_integer() -> const std::string
+  {
+    return sign() + unsigned_integer<R>();
+  };
+
+  template <std::size_t R = 10>
+  auto decimal() -> const std::string
+  {
+    return "(" + unsigned_integer<R>()                   + suffix() +
+           "|"                    "\\." + digits<R>("+") + suffix() +
+           "|" + digits<R>("+") + "\\." + digits<R>("*") + suffix() + ")";
   };
 
   template <std::size_t R>
-  const std::string prefix {
-    "((" + radix<R>() + exactness + ")|(" + exactness + radix<R>() + "))"
-  };
-
-  template <std::size_t R>
-  const std::string unsigned_integer { digits<R>("+") };
-
-  template <std::size_t R = 10>
-  const std::string decimal {
-    "(" + unsigned_integer<R>                     + suffix + ")" "|"
-    "("                    "\\." + digits<R>("+") + suffix + ")" "|"
-    "(" + digits<R>("+") + "\\." + digits<R>("*") + suffix + ")"
-  };
-
-  template <std::size_t R>
-  const std::string unsigned_real {
-    "(" + unsigned_integer<R>                             + "|"
-        + unsigned_integer<R> + "/" + unsigned_integer<R> + "|"
-        + decimal<R>                                      + ")"
+  auto unsigned_real() -> const std::string
+  {
+    return "(" + unsigned_integer<R>()                               +
+           "|" + unsigned_integer<R>() + "/" + unsigned_integer<R>() +
+           "|" +          decimal<R>()                               + ")";
   };
 
   template <std::size_t R = 10>
-  const std::string signed_real {
-    "((" + sign + unsigned_real<R> + ")|(" + infnan + "))"
+  auto signed_real() -> const std::string
+  {
+    return "(" + sign() + unsigned_real<R>() + "|" + infnan() + ")";
   };
 
   template <std::size_t R = 10>
-  const std::string signed_complex {
-    "("     + signed_real<R> +                                    "|"
-        "(" + signed_real<R> +   "@" +   signed_real<R> +     ")" "|"
-        "(" + signed_real<R> + "\\+" + unsigned_real<R> + "i" ")" "|"
-        "(" + signed_real<R> +   "-" + unsigned_real<R> + "i" ")" "|"
-        "(" + signed_real<R> + "\\+" +                    "i" ")" "|"
-        "(" + signed_real<R> +   "-" +                    "i" ")" "|"
-        "(" + signed_real<R> +                   infnan + "i" ")" "|"
-        "(" +                  "\\+" + unsigned_real<R> + "i" ")" "|"
-        "(" +                    "-" + unsigned_real<R> + "i" ")" "|"
-        "(" +                                    infnan + "i" ")" "|"
-        "(" +                  "\\+"                      "i" ")" "|"
-        "(" +                    "-"                      "i" ")" ")"
+  auto signed_complex() -> const std::string
+  {
+    return "(" "(" + signed_real<R>() +                                       ")"
+           "|" "(" + signed_real<R>() +       "@" +   signed_real<R>() +      ")"
+           "|" "(" + signed_real<R>() + "([\\+-]" + unsigned_real<R>() + ")i" ")"
+           "|" "(" + signed_real<R>() + "([\\+-]" +                      ")i" ")"
+           "|" "(" + signed_real<R>() + "("       +           infnan() + ")i" ")"
+           "|" "(" +                    "([\\+-]" + unsigned_real<R>() + ")i" ")"
+           "|"     +                    "("       +           infnan() + ")i"
+           "|"     +                    "([\\+-]"                        ")i"
+           ")";
   };
 
   template <std::size_t R = 10>
-  const std::string number { prefix<R> + signed_complex<R> };
+  auto number() -> const std::string
+  {
+    return prefix<R>() + signed_complex<R>();
+  };
 
   /* ==== Reader ===============================================================
   *
@@ -301,7 +323,7 @@ namespace meevax { inline namespace kernel
 
         if (auto c {port.peek()}; is_delimiter(c)) // delimiter
         {
-          static const std::unordered_map<std::string, object> infnans
+          static const std::unordered_map<std::string, object> infnan
           {
             std::make_pair("+inf.0", make<real>(+1.0 / 0)),
             std::make_pair("-inf.0", make<real>(-1.0 / 0)),
@@ -309,27 +331,53 @@ namespace meevax { inline namespace kernel
             std::make_pair("-nan.0", make<real>(-0.0 / 0))
           };
 
-          static const std::regex pattern { number<10> };
+          static const std::regex number_pattern { number<10>() };
 
-          if (std::smatch result {}; std::regex_match(token, result, pattern))
+          if (std::smatch result {}; std::regex_match(token, result, number_pattern))
           {
-
-            for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
+            if (result.length(30)) // 6, 30, 31, 32, 38, 39
             {
-              if ((*iter).length())
-              {
-                std::cout << "result[" << std::distance(std::begin(result), iter) << "] = " << *iter << std::endl;
-              }
+              std::cout << "; complex\t; " << result.str(30) << std::endl;
             }
+
+            if (result.length(14)) // 6, 7, 8, 14
+            {
+              return infnan.at(token);
+            }
+
+            if (result.length(10)) // 6, 7, 8, 9, 10
+            {
+              return make<real>(token);
+            }
+
+            if (result.length(9)) // 6, 7, 8, 9
+            {
+              return make<integer>(token);
+            }
+
+            // for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
+            // {
+            //   if ((*iter).length())
+            //   {
+            //     switch (auto index { std::distance(std::begin(result), iter) }; index)
+            //     {
+            //     default:
+            //       std::cout << "; number[" << index << "/" << result.size() << "] = " << *iter << std::endl;
+            //       break;
+            //     }
+            //   }
+            // }
+
+            std::stringstream port {};
+            port << "the given token '"
+                 << token
+                 << "' is a valid Scheme numeric literal, but Meevax is not yet supported.";
+            throw std::runtime_error { port.str() };
           }
 
           if (token == ".")
           {
             throw reader_error_about_pair {"dot-notation"};
-          }
-          else if (auto iter { infnans.find(token) }; iter != std::end(infnans))
-          {
-            return cdr(*iter);
           }
           else try
           {
