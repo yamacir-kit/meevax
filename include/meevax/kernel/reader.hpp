@@ -110,7 +110,7 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  auto read_string(const std::string& s) -> decltype(auto)
+  auto make_string(const std::string& s) -> decltype(auto)
   {
     std::stringstream port {};
     port << s << "\"";
@@ -224,77 +224,75 @@ namespace meevax { inline namespace kernel
     {
       return prefix<R>() + signed_complex<R>();
     };
+  } // inline namespace regex
 
-    template <std::size_t R = 10>
-    auto is_number(const std::string& token)
+  template <std::size_t R = 10>
+  auto is_number(const std::string& token)
+  {
+    static const std::regex pattern { number<R>() };
+    std::smatch result {};
+    return std::regex_match(token, result, pattern);
+  }
+
+  template <std::size_t R = 10>
+  auto make_number(const std::string& token) -> const object
+  {
+    static const std::regex pattern { number<R>() };
+
+    if (std::smatch result {}; std::regex_match(token, result, pattern))
     {
-      static const std::regex pattern { number<R>() };
-      std::smatch result {};
-      return std::regex_match(token, result, pattern);
-    }
-
-    template <std::size_t R = 10>
-    auto read_number(const std::string& token) -> const object
-    {
-      static const std::regex pattern { number<R>() };
-
-      if (std::smatch result {}; std::regex_match(token, result, pattern))
+      if (result.length(30)) // 6, 30, 31, 32, 38, 39
       {
-        static const std::regex number_pattern { number<10>() };
+        return make<complex>(make_number<R>(result.str(31)), make_number<R>(result.str(38)));
+      }
 
-        if (result.length(30)) // 6, 30, 31, 32, 38, 39
+      if (result.length(14)) // 6, 7, 8, 14
+      {
+        static const std::unordered_map<std::string, object> infnan
         {
-          return make<complex>(read_number<R>(result.str(31)), read_number<R>(result.str(38)));
-        }
+          std::make_pair("+inf.0", make<real>(+1.0 / 0)),
+          std::make_pair("-inf.0", make<real>(-1.0 / 0)),
+          std::make_pair("+nan.0", make<real>(+0.0 / 0)),
+          std::make_pair("-nan.0", make<real>(-0.0 / 0))
+        };
 
-        if (result.length(14)) // 6, 7, 8, 14
+        return infnan.at(token);
+      }
+
+      if (result.length(10)) // 6, 7, 8, 9, 10
+      {
+        return make<real>(token.substr(token[0] == '+' ? 1 : 0));
+      }
+
+      if (result.length(9)) // 6, 7, 8, 9
+      {
+        return make<integer>(token.substr(token[0] == '+' ? 1 : 0));
+      }
+
+      for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
+      {
+        if ((*iter).length())
         {
-          static const std::unordered_map<std::string, object> infnan
+          switch (auto index { std::distance(std::begin(result), iter) }; index)
           {
-            std::make_pair("+inf.0", make<real>(+1.0 / 0)),
-            std::make_pair("-inf.0", make<real>(-1.0 / 0)),
-            std::make_pair("+nan.0", make<real>(+0.0 / 0)),
-            std::make_pair("-nan.0", make<real>(-0.0 / 0))
-          };
-
-          return infnan.at(token);
-        }
-
-        if (result.length(10)) // 6, 7, 8, 9, 10
-        {
-          return make<real>(token.substr(token[0] == '+' ? 1 : 0));
-        }
-
-        if (result.length(9)) // 6, 7, 8, 9
-        {
-          return make<integer>(token.substr(token[0] == '+' ? 1 : 0));
-        }
-
-        for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
-        {
-          if ((*iter).length())
-          {
-            switch (auto index { std::distance(std::begin(result), iter) }; index)
-            {
-            default:
-              std::cout << "; number[" << index << "/" << result.size() << "] = " << *iter << std::endl;
-              break;
-            }
+          default:
+            std::cout << "; number[" << index << "/" << result.size() << "] = " << *iter << std::endl;
+            break;
           }
         }
+      }
 
-        std::stringstream port {};
-        port << "the given token '" << token << "' is a valid Scheme numeric literal, but Meevax is not yet supported.";
-        throw std::runtime_error { port.str() };
-      }
-      else
-      {
-        std::stringstream port {};
-        port << "the given token '" << token << "' is a invalid Scheme numeric literal.";
-        throw std::runtime_error { port.str() };
-      }
+      std::stringstream port {};
+      port << "the given token '" << token << "' is a valid Scheme numeric literal, but Meevax is not yet supported.";
+      throw std::runtime_error { port.str() };
     }
-  } // inline namespace regex
+    else
+    {
+      std::stringstream port {};
+      port << "the given token '" << token << "' is a invalid Scheme numeric literal.";
+      throw std::runtime_error { port.str() };
+    }
+  }
 
   /* ==== Reader ===============================================================
   *
@@ -403,7 +401,7 @@ namespace meevax { inline namespace kernel
           }
           else try
           {
-            return read_number(token);
+            return make_number(token);
           }
           catch (...)
           {

@@ -791,11 +791,11 @@ namespace meevax { inline namespace kernel
     {
       if (car(xs).template is<real>())
       {
-        return read_string(car(xs).template as<real>().str());
+        return make_string(car(xs).template as<real>().str());
       }
       else if (car(xs).template is<integer>())
       {
-        return read_string(car(xs).template as<integer>().str());
+        return make_string(car(xs).template as<integer>().str());
       }
       else
       {
@@ -803,6 +803,11 @@ namespace meevax { inline namespace kernel
         port << __FILE__ << ":" << __LINE__;
         throw std::runtime_error { port.str() };
       }
+    });
+
+    define<procedure>("string->number", [](auto&& xs)
+    {
+      return make_number(car(xs).template as<string>());
     });
 
     /* ==== R7RS 6.8. Vectors ==================================================
