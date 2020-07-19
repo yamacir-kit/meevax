@@ -70,7 +70,7 @@ namespace meevax { inline namespace kernel
 
     friend std::ostream& operator<<(std::ostream& os, const complex& z)
     {
-      return os << magenta << "#c(" << cyan << z.real() << " " << z.imag() << magenta << ")" << reset;
+      return os << cyan << z.real() << (0 < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
     }
   };
 

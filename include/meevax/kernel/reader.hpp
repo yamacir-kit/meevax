@@ -233,19 +233,67 @@ namespace meevax { inline namespace kernel
       return std::regex_match(token, result, pattern);
     }
 
-    // template <std::size_t R = 10>
-    // auto read_number(const std::string& token)
-    // {
-    //   static const std::regex pattern { number<R>() };
-    //
-    //   if (std::smatch result {}; std::regex_match(token, result, pattern))
-    //   {
-    //   }
-    //   else
-    //   {
-    //     throw
-    //   }
-    // }
+    template <std::size_t R = 10>
+    auto read_number(const std::string& token) -> const object
+    {
+      static const std::regex pattern { number<R>() };
+
+      if (std::smatch result {}; std::regex_match(token, result, pattern))
+      {
+        static const std::regex number_pattern { number<10>() };
+
+        if (result.length(30)) // 6, 30, 31, 32, 38, 39
+        {
+          return make<complex>(read_number<R>(result.str(31)), read_number<R>(result.str(38)));
+        }
+
+        if (result.length(14)) // 6, 7, 8, 14
+        {
+          static const std::unordered_map<std::string, object> infnan
+          {
+            std::make_pair("+inf.0", make<real>(+1.0 / 0)),
+            std::make_pair("-inf.0", make<real>(-1.0 / 0)),
+            std::make_pair("+nan.0", make<real>(+0.0 / 0)),
+            std::make_pair("-nan.0", make<real>(-0.0 / 0))
+          };
+
+          return infnan.at(token);
+        }
+
+        if (result.length(10)) // 6, 7, 8, 9, 10
+        {
+          return make<real>(token.substr(token[0] == '+' ? 1 : 0));
+        }
+
+        if (result.length(9)) // 6, 7, 8, 9
+        {
+          return make<integer>(token.substr(token[0] == '+' ? 1 : 0));
+        }
+
+        for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
+        {
+          if ((*iter).length())
+          {
+            switch (auto index { std::distance(std::begin(result), iter) }; index)
+            {
+            default:
+              std::cout << "; number[" << index << "/" << result.size() << "] = " << *iter << std::endl;
+              break;
+            }
+          }
+        }
+
+        std::stringstream port {};
+        port << "the given token '" << token << "' is a valid Scheme numeric literal, but Meevax is not yet supported.";
+        throw std::runtime_error { port.str() };
+      }
+      else
+      {
+        std::stringstream port {};
+        port << "the given token '" << token << "' is a invalid Scheme numeric literal.";
+        throw std::runtime_error { port.str() };
+      }
+    }
   } // inline namespace regex
 
   /* ==== Reader ===============================================================
@@ -349,70 +397,18 @@ namespace meevax { inline namespace kernel
 
         if (auto c {port.peek()}; is_delimiter(c)) // delimiter
         {
-          static const std::unordered_map<std::string, object> infnan
-          {
-            std::make_pair("+inf.0", make<real>(+1.0 / 0)),
-            std::make_pair("-inf.0", make<real>(-1.0 / 0)),
-            std::make_pair("+nan.0", make<real>(+0.0 / 0)),
-            std::make_pair("-nan.0", make<real>(-0.0 / 0))
-          };
-
           if (token == ".")
           {
             throw reader_error_about_pair {"dot-notation"};
           }
-
-          static const std::regex number_pattern { number<10>() };
-
-          if (std::smatch result {}; std::regex_match(token, result, number_pattern))
+          else try
           {
-            if (result.length(30)) // 6, 30, 31, 32, 38, 39
-            {
-              const auto real_part {
-                result.length(33) ? make<real>(result.str(31)) : make<integer>(result.str(31))
-              };
-
-              const auto imag_part {
-                result.length(40) ? make<real>(result.str(38)) : make<integer>(result.str(38))
-              };
-
-              return make<complex>(real_part, imag_part);
-            }
-
-            if (result.length(14)) // 6, 7, 8, 14
-            {
-              return infnan.at(token);
-            }
-
-            if (result.length(10)) // 6, 7, 8, 9, 10
-            {
-              return make<real>(token);
-            }
-
-            if (result.length(9)) // 6, 7, 8, 9
-            {
-              return make<integer>(token);
-            }
-
-            for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
-            {
-              if ((*iter).length())
-              {
-                switch (auto index { std::distance(std::begin(result), iter) }; index)
-                {
-                default:
-                  std::cout << "; number[" << index << "/" << result.size() << "] = " << *iter << std::endl;
-                  break;
-                }
-              }
-            }
-
-            std::stringstream port {};
-            port << "the given token '" << token << "' is a valid Scheme numeric literal, but Meevax is not yet supported.";
-            throw std::runtime_error { port.str() };
+            return read_number(token);
           }
-
-          return intern(token);
+          catch (...)
+          {
+            return intern(token);
+          }
         }
       }
 
