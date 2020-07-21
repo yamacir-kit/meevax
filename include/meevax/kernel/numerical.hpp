@@ -40,6 +40,21 @@ namespace meevax { inline namespace kernel
 
   /* ==== Numbers ==============================================================
    *
+   *  number
+   *   `-- complex
+   *        `-- real
+   *             |-- decimal (IEEE 754)
+   *             |    |-- binary 16
+   *             |    |-- binary 32 (C++ single float)
+   *             |    |-- binary 64 (C++ double float)
+   *             |    `-- binary 128
+   *             `-- rational
+   *                  |-- ratio
+   *                  |-- arbitrary precision integer
+   *                  `-- fixed precision integer
+   *                       |-- signed and unsigned 16
+   *                       |-- signed and unsigned 32
+   *                       `-- signed and unsigned 64
    *
    * ======================================================================== */
   struct complex
