@@ -725,7 +725,22 @@
 (define number?
   (lambda (x)
     (or (exact? x)
-        (inexact? x) )))
+        (inexact? x))))
+
+(define complex? number?)
+
+(define real?
+  (lambda (x)
+    (and (number? x)
+         (not (the-complex? x)))))
+
+(define rational?
+  (lambda (x)
+    (and (real? x)
+         (= x x)
+         (if (or (< x -1) (< 1 x))
+             (not (= x (/ x 2)))
+             (<= -1 x 1)))))
 
 (define integer?
   (lambda (x)
@@ -733,16 +748,24 @@
         (and (real? x)
              (= x (truncate x)) ))))
 
-(define exact? ; Currently, any real numbers returns #false
+(define exact?
   (lambda (z)
-    (or (integer? z)
-        (rational? z)
-        ; TODO for exact-complex
-        )))
+    (or (the-integer? z)
+        (the-rational? z)
+        (exact-complex? z))))
 
 (define inexact?
   (lambda (z)
-    (not (exact? z))))
+    (or (the-real? z)
+        (not (exact-complex? z)))))
+
+(define exact-complex?
+  (lambda (x)
+    (and (the-complex? x)
+         (exact? (real-part x))
+         (exact? (imag-part x)))))
+
+(define exact-integer? the-integer?)
 
 (define finite?
   (lambda (z)
@@ -750,14 +773,14 @@
 
 (define infinite?
   (lambda (z)
-    #false
+    #f
     ; (or (= +inf.0 z)
     ;     (= -inf.0 z))
     ))
 
 (define nan?
   (lambda (z)
-    #false
+    #f
     ; (if (complex? z)
     ;     (or (= (real-part z) +nan.0)
     ;         (= (imag-part z) +nan.0))
@@ -768,60 +791,64 @@
   (lambda (n)
     (= n 0)))
 
-(define positive?  (lambda (n) (> n 0)))
-(define negative?  (lambda (n) (< n 0)))
+(define positive? (lambda (n) (> n 0)))
+(define negative? (lambda (n) (< n 0)))
 
-(define even?
-  (lambda (n)
-    ; (= (remainder n 2) 0)
-    (if (zero? n) #true
-        (odd? (- n 1)))
-    ))
+; (define odd?
+;   (lambda (n)
+;     (not (even? n))))
 
 (define odd?
   (lambda (n)
-    ; (not (even? n))))
-    (if (zero? n) #false
-        (even? (- n 1)))
-    ))
+    (if (zero? n) #f
+        (even? (- n 1)))))
 
-(define minimum
+; (define even?
+;   (lambda (n)
+;     (= (remainder n 2) 0)))
+
+(define even?
+  (lambda (n)
+    (if (zero? n) #t
+        (odd? (- n 1)))))
+
+(define max
   (lambda (x . xs)
-    (define minimum-aux
+
+    (define max-aux
       (lambda (x xs)
         (if (null? xs)
             (inexact x)
-            (minimum-aux (if (< (car xs) x) (car xs) x)
-                         (cdr xs) ))))
+            (max-aux (if (< x (car xs)) (car xs) x)
+                     (cdr xs)))))
+
     (if (inexact? x)
-        (minimum-aux x xs)
+        (max-aux x xs)
         (let rec ((x x) (xs xs))
           (if (null? xs) x
               (if (inexact? (car xs))
-                  (mimimum-aux x xs)
+                  (max-aux x xs)
+                  (rec (if (< x (car xs)) (car xs) x)
+                       (cdr xs))))))))
+
+(define min
+  (lambda (x . xs)
+
+    (define min-aux
+      (lambda (x xs)
+        (if (null? xs)
+            (inexact x)
+            (min-aux (if (< (car xs) x) (car xs) x)
+                     (cdr xs)))))
+
+    (if (inexact? x)
+        (min-aux x xs)
+        (let rec ((x x) (xs xs))
+          (if (null? xs) x
+              (if (inexact? (car xs))
+                  (min-aux x xs)
                   (rec (if (< (car xs) x) (car xs) x)
-                       (cdr xs) )))))))
-
-(define min minimum)
-
-(define maximum
-  (lambda (x . xs)
-    (define maximum-aux
-      (lambda (x xs)
-        (if (null? xs)
-            (inexact x)
-            (maximum-aux (if (> (car xs) x) (car xs) x)
-                         (cdr xs) ))))
-    (if (inexact? x)
-        (maximum-aux x xs)
-        (let rec ((x x) (xs xs))
-          (if (null? xs) x
-              (if (inexact? (car xs))
-                  (maximum-aux x xs)
-                  (rec (if (> (car xs) x) (car xs) x)
-                       (cdr xs) )))))))
-
-(define max maximum)
+                       (cdr xs))))))))
 
 (define abs
   (lambda (n)
@@ -840,11 +867,13 @@
 
 (define gcd
   (lambda xs
+
     (define gcd-2
       (lambda (a b)
         (if (zero? b)
             (abs a)
             (gcd b (remainder a b)))))
+
     (if (null? xs) 0
         (let rec ((n  (car xs))
                   (ns (cdr xs)))
@@ -853,9 +882,11 @@
 
 (define lcm
   (lambda xs
+
     (define lcm-2
       (lambda (a b)
         (abs (quotient (* a b) (gcd a b)))))
+
     (if (null? xs) 1
         (let rec ((n  (car xs))
                   (ns (cdr ns)))
@@ -964,11 +995,11 @@
 
 (define real-part
   (lambda (z)
-    (if (complex? z) (car z) z)))
+    (if (the-complex? z) (car z) z)))
 
 (define imag-part
   (lambda (z)
-    (if (complex? z) (cdr z) 0)))
+    (if (the-complex? z) (cdr z) 0)))
 
 (define magnitude
   (lambda (z)
@@ -979,9 +1010,6 @@
   (lambda (z)
     (atan (imag-part z)
           (real-part z) )))
-
-(define inexact identity)
-(define exact #;undefined)
 
 ; TODO number->string
 ; TODO string->number

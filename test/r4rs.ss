@@ -718,7 +718,6 @@
 ; ---- Procedure (symbol->string symbol) ---------------------------------------
 
 (check (symbol->string 'flying-fish) => "flying-fish")
-; (check (symbol->string 'Martin) => "martin")
 (check (symbol->string 'Martin) => "Martin")
 
 (check
@@ -728,7 +727,6 @@
 
 ; ---- Procedure (string->symbol string) ---------------------------------------
 
-; (check (eq? 'mISSISSIppi 'mississippi) => #t) ; in R4RS
 (check (eq? 'mISSISSIppi 'mississippi) => #f)
 
 (check (string->symbol "mISSISSIppi") => mISSISSIppi)
@@ -759,7 +757,7 @@
 ; ---- Procedure (complex? obj) ------------------------------------------------
 
 ; (check (complex? 3+4i) => #t)
-; (check (complex? 3) => #t)
+(check (complex? 3) => #t)
 
 ; ---- Procedure (real? obj) ---------------------------------------------------
 

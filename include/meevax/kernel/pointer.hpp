@@ -283,6 +283,17 @@ namespace meevax { inline namespace kernel
         return top::template if_displayable<bound>::call_it(port, *this);
       }
 
+    private: // exact & inexact
+      auto exact() const -> bool override
+      {
+        return top::template if_has_exactness<bound>::call_it(*this);
+      }
+
+      auto inexact() const -> bool override
+      {
+        return top::template if_has_inexactness<bound>::call_it(*this);
+      }
+
     private: // arithmetic
       #if __cpp_if_constexpr
 
@@ -503,8 +514,16 @@ namespace meevax { inline namespace kernel
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
 
-      // return dynamic_cast<U&>(binding());
-      return *std::dynamic_pointer_cast<U>(*this);
+      if (auto bound { std::dynamic_pointer_cast<U>(*this) }; bound)
+      {
+        return *bound;
+      }
+      else
+      {
+        std::stringstream port {};
+        port << "type-error: can't treat " << binding() << " as type " << typeid(U).name() << ".";
+        throw std::runtime_error { port.str() };
+      }
     }
 
     /* ==== C/C++ Primitive Type Restoration ==================================

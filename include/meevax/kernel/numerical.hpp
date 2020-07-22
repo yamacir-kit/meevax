@@ -40,6 +40,21 @@ namespace meevax { inline namespace kernel
 
   /* ==== Numbers ==============================================================
    *
+   *  number
+   *   `-- complex
+   *        `-- real
+   *             |-- decimal (IEEE 754)
+   *             |    |-- binary 16
+   *             |    |-- binary 32 (C++ single float)
+   *             |    |-- binary 64 (C++ double float)
+   *             |    `-- binary 128
+   *             `-- rational
+   *                  |-- ratio
+   *                  |-- arbitrary precision integer
+   *                  `-- fixed precision integer
+   *                       |-- signed and unsigned 16
+   *                       |-- signed and unsigned 32
+   *                       `-- signed and unsigned 64
    *
    * ======================================================================== */
   struct complex
@@ -67,6 +82,11 @@ namespace meevax { inline namespace kernel
     //       lhs.real() + rhs,
     //       lhs.imag());
     // }
+
+    friend std::ostream& operator<<(std::ostream& os, const complex& z)
+    {
+      return os << cyan << z.real() << (0 < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
+    }
   };
 
   struct real
@@ -82,7 +102,6 @@ namespace meevax { inline namespace kernel
       return static_cast<const multiprecision::real&>(*this);
     }
 
-  public:
     auto operator *(const object&) const -> object;
     auto operator +(const object&) const -> object;
     auto operator -(const object&) const -> object;
@@ -96,13 +115,29 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> object;
     auto operator >=(const object&) const -> object;
 
-  public:
     auto operator ==(const real& rhs) const { return backend() == rhs.backend(); }
     auto operator !=(const real& rhs) const { return !(*this == rhs); }
 
     friend std::ostream& operator<<(std::ostream& os, const real& x)
     {
-      return os << console::cyan << "#i" << x.str() << console::reset;
+      os << cyan;
+
+      if (const auto s { x.backend().str() }; s == "nan")
+      {
+        return os << "+nan.0" << reset;
+      }
+      else if (x.backend() == +1.0 / 0)
+      {
+        return os << "+inf.0" << reset;
+      }
+      else if (x.backend() == -1.0 / 0)
+      {
+        return os << "-inf.0" << reset;
+      }
+      else
+      {
+        return os << "#i" << s << reset;
+      }
     }
   };
 
@@ -124,7 +159,6 @@ namespace meevax { inline namespace kernel
       return static_cast<const multiprecision::integer&>(*this);
     }
 
-  public:
     auto operator *(const object&) const -> object;
     auto operator +(const object&) const -> object;
     auto operator -(const object&) const -> object;
@@ -138,7 +172,6 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> object;
     auto operator >=(const object&) const -> object;
 
-  public:
     auto operator ==(const integer& rhs) const { return backend() == rhs.backend(); }
     auto operator !=(const integer& rhs) const { return !(*this == rhs); }
 

@@ -573,10 +573,20 @@ namespace meevax { inline namespace kernel
      *  sqrt
      *
      * ====================================================================== */
-    DEFINE_PREDICATE("complex?", complex);
-    DEFINE_PREDICATE("real?", real);
-    DEFINE_PREDICATE("rational?", rational);
-    DEFINE_PREDICATE("exact-integer?", integer);
+    DEFINE_PREDICATE("the-complex?", complex);
+    DEFINE_PREDICATE("the-real?", real);
+    DEFINE_PREDICATE("the-rational?", rational);
+    DEFINE_PREDICATE("the-integer?", integer);
+
+    // define<procedure>("exact?", [](auto&& xs)
+    // {
+    //   return car(xs).binding().exact() ? t : f;
+    // });
+    //
+    // define<procedure>("inexact?", [](auto&& xs)
+    // {
+    //   return car(xs).binding().inexact() ? t : f;
+    // });
 
     define<procedure>("=", [](auto&& xs)
     {
@@ -781,11 +791,11 @@ namespace meevax { inline namespace kernel
     {
       if (car(xs).template is<real>())
       {
-        return read_string(car(xs).template as<real>().str());
+        return make_string(car(xs).template as<real>().str());
       }
       else if (car(xs).template is<integer>())
       {
-        return read_string(car(xs).template as<integer>().str());
+        return make_string(car(xs).template as<integer>().str());
       }
       else
       {
@@ -793,6 +803,11 @@ namespace meevax { inline namespace kernel
         port << __FILE__ << ":" << __LINE__;
         throw std::runtime_error { port.str() };
       }
+    });
+
+    define<procedure>("string->number", [](auto&& xs)
+    {
+      return make_number(car(xs).template as<string>());
     });
 
     /* ==== R7RS 6.8. Vectors ==================================================
@@ -946,6 +961,16 @@ namespace meevax { inline namespace kernel
     define<procedure>("read", [this](const object& xs)
     {
       return read(xs ? car(xs).as<input_port>() : current_input_port());
+    });
+
+    define<procedure>("eof-object?", [](auto&& xs)
+    {
+      return car(xs).template is<eof>() ? t : f;
+    });
+
+    define<procedure>("eof-object", [](auto&&)
+    {
+      return eof_object;
     });
 
     define<procedure>("write", [this](auto&& xs)

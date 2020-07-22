@@ -79,7 +79,7 @@ find_package(Boost REQUIRED)
 
 file(GLOB
   ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.cpp
   )
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
@@ -214,7 +214,7 @@ install(
 # ==============================================================================
 #   Convert Scripts to ELF Binary
 # ==============================================================================
-file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.ss)
+file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.ss)
 
 set(${PROJECT_NAME}_LAYERS "")
 
