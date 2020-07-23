@@ -1,13 +1,15 @@
 #!/bin/sh -eu
 
 working_directory=$(pwd -P)
+
 repository="$(git rev-parse --show-toplevel)"
 
+autotest=0
 clean_build=0
+install=0
 compile='g++-7'
 job=1
 purpose='Debug'
-autotest=0
 
 valgrind=''
 valgrind_options='--verbose --leak-check=full --show-leak-kinds=all --error-exitcode=1'
@@ -57,6 +59,12 @@ do
     -g | --gcc )
       compile="g++-7"
       printf ';   compile\t= %s\n' "$compile"
+      shift
+      ;;
+
+    -i | --install )
+      install=1
+      printf ';   install\t= %s\n' "$install"
       shift
       ;;
 
@@ -167,8 +175,22 @@ build()
 
 if test "$clean_build" -ne 0
 then
-  clean
-  build
+  clean && build
+fi
+
+if test "$install" -ne 0
+then
+  echo "
+; ==== Install ====================================================================
+;
+; Command
+;   $repository/tools/uninstall.sh
+;   sudo make install
+;
+; ==============================================================================
+"
+  $repository/tools/uninstall.sh
+  sudo make install
 fi
 
 count()
@@ -187,7 +209,9 @@ count()
 
 if test "$autotest" -ne 0
 then
-  unit_test="valgrind $valgrind_options --log-file=$repository/build/exaple.leak-check.cpp $repository/build/bin/example"
+  unit_test=" \
+    valgrind $valgrind_options --log-file=$repository/build/exaple.leak-check.cpp \
+    $repository/build/bin/example"
 
   full_test=" \
     $valgrind $repository/build/bin/ice \
