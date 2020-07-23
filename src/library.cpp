@@ -9,8 +9,8 @@
 *
 *============================================================================ */
 
-char _binary_overture_ss_start;
-char _binary_overture_ss_end;
+extern char _binary_overture_ss_start;
+extern char _binary_overture_ss_end;
 
 const STRING_VIEW overture
 {

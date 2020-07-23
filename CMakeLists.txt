@@ -72,30 +72,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 find_package(Boost REQUIRED)
 
 # ==============================================================================
-#   Generate List of Meevax Standard Libraries
-# ==============================================================================
-#
-# # XXX This section is partially duplicated in later builds of the standard library.
-#
-# file(GLOB
-#   ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
-#   ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.cpp
-#   )
-#
-# foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
-#   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
-#   list(APPEND ${PROJECT_NAME}_STANDARD_LIBRARIES ${TARGET_NAME})
-# endforeach()
-#
-# list(SORT ${PROJECT_NAME}_STANDARD_LIBRARIES)
-#
-# string(REPLACE ";" " "
-#   ${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST
-#   "${${PROJECT_NAME}_STANDARD_LIBRARIES}")
-#
-# message(STATUS "Meevax standard libraries: ${${PROJECT_NAME}_STANDARD_LIBRARIES_IN_WHITESPACE_SEPARATED_LIST}")
-
-# ==============================================================================
 #   Configure README
 # ==============================================================================
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
