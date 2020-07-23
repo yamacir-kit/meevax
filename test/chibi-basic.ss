@@ -212,10 +212,10 @@
                       (rename 'tmp)
                       (cons (rename 'myor) (cddr expr))))))))
 
-(check
-  (let ((tmp 6))
-    (myor #f tmp))
-  => 6)
+; (check
+;   (let ((tmp 6))
+;     (myor #f tmp))
+;   => 6)
 
 ; (check
 ;   (let ((x 'outer))

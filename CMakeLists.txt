@@ -190,12 +190,12 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
       SOVERSION ${PROJECT_VERSION_MAJOR})
 
   target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME})
-endforeach()
 
-install( # Will be installed automatically
-  TARGETS ${${PROJECT_NAME}_STANDARD_LIBRARIES}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
+  install( # Will be installed automatically
+    TARGETS ${TARGET_NAME}
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib)
+endforeach()
 
 # ==============================================================================
 #   Package Version

@@ -36,10 +36,16 @@ jobs:
 
       - name: Make
         working-directory: build
-        run: |
-          make -j1
+        run: make -j1
 
       - name: Install
         working-directory: build
-        run:
+        run: |
           sudo make install
+          sudo ldconfig
+
+      - name: R4RS tests
+        run: ice standard/experimental/srfi-78.ss test/r4rs.ss
+
+      - name: Chibi-Scheme basic tests
+        run: ice standard/experimental/srfi-78.ss test/chibi-basic.ss
