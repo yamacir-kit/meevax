@@ -2,7 +2,7 @@
 
 working_directory=$(pwd -P)
 
-repository="$(git rev-parse --show-toplevel)"
+root="$(git rev-parse --show-toplevel)"
 
 autotest=0
 clean_build=0
@@ -18,7 +18,7 @@ echo "
 ; ==== Overview ================================================================
 ;
 ; Drectory
-;   repository      = $repository
+;   root            = $root
 ;   current-working = $working_directory
 ;
 ; Configuration"
@@ -103,7 +103,7 @@ do
       ;;
 
     -v | --valgrind )
-      valgrind="valgrind $valgrind_options --log-file=$repository/build/full-test.leak-check.cpp"
+      valgrind="valgrind $valgrind_options --log-file=$root/build/full-test.leak-check.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
       shift
       ;;
@@ -131,17 +131,17 @@ clean()
 ;
 ; Command"
 
-  if test -n "$(ls "$repository/build")"
+  if test -n "$(ls "$root/build")"
   then
-    echo ";   rm -rf    $repository/build"
-              rm -rf   "$repository/build"
+    echo ";   rm -rf    $root/build"
+              rm -rf   "$root/build"
   fi
 
-  echo ";   mkdir -p  $repository/build"
-            mkdir -p "$repository/build"
+  echo ";   mkdir -p  $root/build"
+            mkdir -p "$root/build"
 
-  echo ";   cd        $repository/build"
-            cd       "$repository/build"
+  echo ";   cd        $root/build"
+            cd       "$root/build"
 
   echo ";
 ; ==============================================================================
@@ -158,7 +158,6 @@ build()
 ;
 ; ==============================================================================
 "
-
   cmake .. -DCMAKE_BUILD_TYPE="$purpose" -DCMAKE_CXX_COMPILER="$compile"
 
   echo "
@@ -169,7 +168,6 @@ build()
 ;
 ; ==============================================================================
 "
-
   make -j"$job"
 }
 
@@ -184,12 +182,12 @@ then
 ; ==== Install ====================================================================
 ;
 ; Command
-;   $repository/tools/uninstall.sh
+;   $root/tools/uninstall.sh
 ;   sudo make install
 ;
 ; ==============================================================================
 "
-  $repository/tools/uninstall.sh
+  $root/tools/uninstall.sh
   sudo make install
 fi
 
@@ -210,19 +208,19 @@ count()
 if test "$autotest" -ne 0
 then
   unit_test=" \
-    valgrind $valgrind_options --log-file=$repository/build/exaple.leak-check.cpp \
-    $repository/build/bin/example"
+    valgrind $valgrind_options --log-file=$root/build/exaple.leak-check.cpp \
+    $root/build/bin/example"
 
   full_test=" \
-    $valgrind $repository/build/bin/ice \
-    $repository/standard/experimental/srfi-78.ss \
-    $repository/test/r4rs.ss \
+    $valgrind $root/build/bin/ice \
+    $root/standard/experimental/srfi-78.ss \
+    $root/test/r4rs.ss \
     "
 
   chibi_test=" \
-    $valgrind $repository/build/bin/ice \
-    $repository/standard/experimental/srfi-78.ss \
-    $repository/test/chibi-basic.ss \
+    $valgrind $root/build/bin/ice \
+    $root/standard/experimental/srfi-78.ss \
+    $root/test/chibi-basic.ss \
     "
 
   echo "
