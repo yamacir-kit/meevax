@@ -23,37 +23,6 @@ endif()
 # ==============================================================================
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
-set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON " \
-  -fdata-sections \
-  -ffunction-sections \
-  -flto \
-  -fsized-deallocation \
-  -march=native \
-  -mtune=native \
-  -pipe \
-  ")
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS " \
-    -Wno-strict-aliasing \
-    -fdevirtualize-at-ltrans \
-    -fdevirtualize-speculatively \
-    -ffloat-store \
-    -frename-registers \
-    -mfpmath=sse \
-    -s \
-    ")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS " \
-    -Wno-return-type-c-linkage \
-    -faligned-allocation \
-    -fdouble-square-bracket-attributes \
-    -frelaxed-template-template-args \
-    ")
-else()
-  set(${PROJECT_NAME}_OPTIMIZATION_OPTIONS "")
-endif()
-
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -64,7 +33,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS} ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON}")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)

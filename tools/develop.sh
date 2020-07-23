@@ -209,6 +209,8 @@ count()
 
 if test "$autotest" -ne 0
 then
+  $root/examples/use-as-embedded-language/test.sh
+
   full_test=" \
     $valgrind $root/build/bin/ice \
     $root/standard/experimental/srfi-78.ss \
