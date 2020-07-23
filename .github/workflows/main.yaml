@@ -1,4 +1,4 @@
-name: "Matrix Build"
+name: "CI"
 
 on: push
 # on:
@@ -11,26 +11,35 @@ on: push
 jobs:
   Ubuntu:
     runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04]
-        compiler: [g++-7, g++-9, clang++-6.0, clang++-9]
-        configuration: [Debug, Release]
+        os: [ ubuntu-18.04 ]
+        compiler: [ g++-7, g++-9, clang++-6.0, clang++-9 ]
+        configuration: [ Debug, Release ]
+
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup
-      run: |
-        sudo apt update
-        sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
-    - name: Configure
-      env:
-        CXX: ${{ matrix.compiler }}
-      run: |
-        mkdir -p build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-    - name: Make
-      run: |
-        cd build
-        make -j1
+      - uses: actions/checkout@v1
+
+      - name: Prepare
+        run: |
+          sudo apt update
+          sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
+
+      - name: Configure
+        env:
+          CXX: ${{ matrix.compiler }}
+        run: |
+          mkdir -p build && cd $_
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+
+      - name: Make
+        working-directory: build
+        run: |
+          make -j1
+
+      - name: Install
+        working-directory: build
+        run:
+          sudo make install
