@@ -58,18 +58,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS} \
-                                                    ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON}")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS} ${${PROJECT_NAME}_OPTIMIZATION_OPTIONS_COMMON}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 find_package(Boost REQUIRED)
+find_package(Threads REQUIRED)
 
 # ==============================================================================
 #   Configure README
@@ -141,7 +142,7 @@ else()
   add_library(${PROJECT_NAME} SHARED)
 endif()
 
-add_library(${PROJECT_NAME}::kernel ALIAS ${PROJECT_NAME})
+# add_library(Meevax::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
   PRIVATE
@@ -152,16 +153,18 @@ target_sources(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+
+  PRIVATE
     Boost::boost
+    Threads::Threads
+
+  PUBLIC
     dl
     gmp
-    m
     mpfr
-    pthread
     stdc++fs
   )
 
@@ -174,15 +177,14 @@ set_target_properties(${PROJECT_NAME}
 install( # Install Kernel
   TARGETS ${PROJECT_NAME}
   EXPORT  ${PROJECT_NAME}-config # Generate Configuration
-  ARCHIVE DESTINATION lib # Will be installed automatically
-  LIBRARY DESTINATION lib # Will be installed automatically
-  )
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib)
 
-install( # Install config.cmake
+install( # Install generated config.cmake
   EXPORT ${PROJECT_NAME}-config
   EXPORT_LINK_INTERFACE_LIBRARIES
-  NAMESPACE ${PROJECT_NAME}::
-  DESTINATION lib/cmake/${PROJECT_NAME})
+  NAMESPACE Meevax::
+  DESTINATION share/cmake/${PROJECT_NAME})
 
 install( # Install Headers
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
@@ -202,16 +204,6 @@ install(
   RUNTIME DESTINATION bin)
 
 # ==============================================================================
-#   Example
-# ==============================================================================
-add_executable(example
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/example.cpp)
-
-target_link_libraries(example
-  PRIVATE
-    meevax::kernel)
-
-# ==============================================================================
 #   Build Meevax Standard Libraries (Shared Objects)
 # ==============================================================================
 file(GLOB
@@ -225,12 +217,10 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 
   set_target_properties(${TARGET_NAME}
     PROPERTIES
-      VERSION ${PROJECT_VERSION}
+        VERSION ${PROJECT_VERSION}
       SOVERSION ${PROJECT_VERSION_MAJOR})
 
-  target_link_libraries(${TARGET_NAME}
-    PUBLIC
-      ${PROJECT_NAME})
+  target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME})
 endforeach()
 
 install( # Will be installed automatically
@@ -249,10 +239,4 @@ write_basic_package_version_file(
 
 install( # Install Package Version File
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-  DESTINATION lib/cmake/${PROJECT_NAME})
-
-# ==============================================================================
-#   Uninstallation
-# ==============================================================================
-add_custom_target(uninstall
-  COMMAND xargs rm --verbose < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt)
+  DESTINATION share/cmake/${PROJECT_NAME})

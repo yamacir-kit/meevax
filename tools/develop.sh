@@ -184,11 +184,13 @@ then
 ; Command
 ;   $root/tools/uninstall.sh
 ;   sudo make install
+;   sudo ldconfig
 ;
 ; ==============================================================================
 "
   $root/tools/uninstall.sh
   sudo make install
+  sudo ldconfig
 fi
 
 count()
@@ -207,10 +209,6 @@ count()
 
 if test "$autotest" -ne 0
 then
-  unit_test=" \
-    valgrind $valgrind_options --log-file=$root/build/exaple.leak-check.cpp \
-    $root/build/bin/example"
-
   full_test=" \
     $valgrind $root/build/bin/ice \
     $root/standard/experimental/srfi-78.ss \
@@ -226,9 +224,6 @@ then
   echo "
 ; ==== Test ====================================================================
 ;
-; Unit Test
-;   $unit_test
-;
 ; Full Test
 ;   $full_test
 ;"
@@ -238,7 +233,6 @@ then
   echo ";
 ; ==============================================================================
 "
-  $unit_test
   $full_test
   # $chibi_test
 fi
