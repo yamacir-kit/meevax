@@ -25,7 +25,7 @@ jobs:
       - name: Prepare
         run: |
           sudo apt update
-          sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
+          sudo apt install libboost-all-dev libgmp-dev libmpfr-dev valgrind
 
       - name: Configure
         env:
@@ -44,8 +44,12 @@ jobs:
           sudo make install
           sudo ldconfig
 
-      - name: R4RS tests
+      - name: R4RS standard tests
         run: ice standard/experimental/srfi-78.ss test/r4rs.ss
 
       - name: Chibi-Scheme basic tests
         run: ice standard/experimental/srfi-78.ss test/chibi-basic.ss
+
+      - name: Example of use as embedded language
+        working-directory: examples/use-as-embedded-language
+        run: ./test.sh
