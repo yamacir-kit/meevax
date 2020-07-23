@@ -3,25 +3,16 @@
 
 #include <string_view>
 
-/* ==== Embedded Source Codes ==================================================
-*
-* library/hoge.ss
-*
-* NOTE:
-*   readelf -a hoge.ss.o
-*
-*============================================================================ */
-extern char _binary_overture_ss_start;
-extern char _binary_overture_ss_end;
-
-static const std::
-#if not __cpp_lib_string_view
-experimental::
+#if __cpp_lib_string_view
+#define STRING_VIEW std::string_view
+#else
+#define STRING_VIEW std::experimental::string_view
 #endif
-string_view overture
-{
-  &_binary_overture_ss_start,
-  static_cast<std::size_t>(&_binary_overture_ss_end - &_binary_overture_ss_start)
-};
+
+extern const STRING_VIEW overture;
+// {
+//                                                       &_binary_overture_ss_start,
+//   static_cast<std::size_t>(&_binary_overture_ss_end - &_binary_overture_ss_start)
+// };
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP
