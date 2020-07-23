@@ -1,13 +1,15 @@
 #!/bin/sh -eu
 
 working_directory=$(pwd -P)
-repository="$(git rev-parse --show-toplevel)"
 
+root="$(git rev-parse --show-toplevel)"
+
+autotest=0
 clean_build=0
+install=0
 compile='g++-7'
 job=1
 purpose='Debug'
-autotest=0
 
 valgrind=''
 valgrind_options='--verbose --leak-check=full --show-leak-kinds=all --error-exitcode=1'
@@ -16,7 +18,7 @@ echo "
 ; ==== Overview ================================================================
 ;
 ; Drectory
-;   repository      = $repository
+;   root            = $root
 ;   current-working = $working_directory
 ;
 ; Configuration"
@@ -60,6 +62,12 @@ do
       shift
       ;;
 
+    -i | --install )
+      install=1
+      printf ';   install\t= %s\n' "$install"
+      shift
+      ;;
+
     -j* )
       job="${each#*j}"
       printf ';   job\t= %s' "$job"
@@ -95,7 +103,7 @@ do
       ;;
 
     -v | --valgrind )
-      valgrind="valgrind $valgrind_options --log-file=$repository/build/full-test.leak-check.cpp"
+      valgrind="valgrind $valgrind_options --log-file=$root/build/full-test.leak-check.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
       shift
       ;;
@@ -123,17 +131,17 @@ clean()
 ;
 ; Command"
 
-  if test -n "$(ls "$repository/build")"
+  if test -n "$(ls "$root/build")"
   then
-    echo ";   rm -rf    $repository/build"
-              rm -rf   "$repository/build"
+    echo ";   rm -rf    $root/build"
+              rm -rf   "$root/build"
   fi
 
-  echo ";   mkdir -p  $repository/build"
-            mkdir -p "$repository/build"
+  echo ";   mkdir -p  $root/build"
+            mkdir -p "$root/build"
 
-  echo ";   cd        $repository/build"
-            cd       "$repository/build"
+  echo ";   cd        $root/build"
+            cd       "$root/build"
 
   echo ";
 ; ==============================================================================
@@ -150,7 +158,6 @@ build()
 ;
 ; ==============================================================================
 "
-
   cmake .. -DCMAKE_BUILD_TYPE="$purpose" -DCMAKE_CXX_COMPILER="$compile"
 
   echo "
@@ -161,14 +168,29 @@ build()
 ;
 ; ==============================================================================
 "
-
   make -j"$job"
 }
 
 if test "$clean_build" -ne 0
 then
-  clean
-  build
+  clean && build
+fi
+
+if test "$install" -ne 0
+then
+  echo "
+; ==== Install ====================================================================
+;
+; Command
+;   $root/tools/uninstall.sh
+;   sudo make install
+;   sudo ldconfig
+;
+; ==============================================================================
+"
+  $root/tools/uninstall.sh
+  sudo make install
+  sudo ldconfig
 fi
 
 count()
@@ -187,25 +209,22 @@ count()
 
 if test "$autotest" -ne 0
 then
-  unit_test="valgrind $valgrind_options --log-file=$repository/build/exaple.leak-check.cpp $repository/build/bin/example"
+  $root/examples/use-as-embedded-language/test.sh
 
   full_test=" \
-    $valgrind $repository/build/bin/ice \
-    $repository/standard/experimental/srfi-78.ss \
-    $repository/test/r4rs.ss \
+    $valgrind $root/build/bin/ice \
+    $root/standard/experimental/srfi-78.ss \
+    $root/test/r4rs.ss \
     "
 
   chibi_test=" \
-    $valgrind $repository/build/bin/ice \
-    $repository/standard/experimental/srfi-78.ss \
-    $repository/test/chibi-basic.ss \
+    $valgrind $root/build/bin/ice \
+    $root/standard/experimental/srfi-78.ss \
+    $root/test/chibi-basic.ss \
     "
 
   echo "
 ; ==== Test ====================================================================
-;
-; Unit Test
-;   $unit_test
 ;
 ; Full Test
 ;   $full_test
@@ -216,7 +235,6 @@ then
   echo ";
 ; ==============================================================================
 "
-  $unit_test
   $full_test
   # $chibi_test
 fi

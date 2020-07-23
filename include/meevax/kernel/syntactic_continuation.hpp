@@ -1,39 +1,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
-#include <string_view>
-
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
+#include <meevax/kernel/library.hpp>
 #include <meevax/kernel/machine.hpp>
+#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
-
-#include <meevax/kernel/port.hpp>
-
-/* ==== Embedded Source Codes ==================================================
-*
-* library/hoge.ss
-*
-* NOTE:
-*   readelf -a hoge.ss.o
-*
-* TODO:
-*   Move into new header.
-*
-*============================================================================ */
-extern char _binary_overture_ss_start;
-extern char _binary_overture_ss_end;
-
-#if __cpp_lib_string_view
-static const std::string_view overture
-#else
-static const std::experimental::string_view overture
-#endif
-{
-  &_binary_overture_ss_start,
-  static_cast<std::size_t>(&_binary_overture_ss_end - &_binary_overture_ss_start)
-};
 
 namespace meevax { inline namespace kernel
 {

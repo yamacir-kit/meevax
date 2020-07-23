@@ -69,14 +69,7 @@ namespace meevax { inline namespace kernel
     }
 
   public:
-    void display_title(const version& v) const
-    {
-      write( //  10        20        30        40        50        60        70        80\n"
-        "; Meevax Lisp System ", v.major(), " - Revision ", v.minor(), " Patch ", v.patch(), "\n"
-        ";                                                                               \n");
-    }
-
-    void display_abstract() const
+    [[deprecated]] void display_abstract() const
     {
       write( //  10        20        30        40        50        60        70        80\n"
         "; Abstract:                                                                     \n"
@@ -86,9 +79,9 @@ namespace meevax { inline namespace kernel
 
     auto display_version() const -> const auto&
     {
-      display_title(current_version);
-
       write( //  10        20        30        40        50        60        70        80\n"
+        "; Meevax Lisp System ", current_version.major(), " - Revision ", current_version.minor(), " Patch ", current_version.patch(), "\n"
+        "; ------------------------------------------------------------------------------\n"
         "; version               ; ", current_version.semantic(),                       "\n"
         );
 
