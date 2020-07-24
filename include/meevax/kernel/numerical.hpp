@@ -99,20 +99,46 @@ namespace meevax { inline namespace kernel
   struct decimal<BITS>                                                         \
     : public std::numeric_limits<TYPE>                                         \
   {                                                                            \
-    TYPE value;                                                                \
+    using value_type = TYPE;                                                   \
+                                                                               \
+    value_type value;                                                          \
                                                                                \
     template <typename... Ts>                                                  \
     explicit constexpr decimal(Ts&&... xs)                                     \
       : value { CONVERT(std::forward<decltype(xs)>(xs)...) }                   \
     {}                                                                         \
                                                                                \
-    explicit constexpr decimal(TYPE value)                                     \
+    explicit constexpr decimal(value_type value)                               \
       : value { value }                                                        \
     {}                                                                         \
                                                                                \
     constexpr operator TYPE() const noexcept                                   \
     {                                                                          \
       return value;                                                            \
+    }                                                                          \
+                                                                               \
+    auto operator ==(const object&) const -> object;                           \
+    auto operator !=(const object&) const -> object;                           \
+    auto operator < (const object&) const -> object;                           \
+    auto operator <=(const object&) const -> object;                           \
+    auto operator > (const object&) const -> object;                           \
+    auto operator >=(const object&) const -> object;                           \
+                                                                               \
+    template <typename T>                                                      \
+    auto operator ==(T&& rhs) const noexcept                                   \
+    {                                                                          \
+      return value == rhs;                                                     \
+    }                                                                          \
+                                                                               \
+    template <typename T>                                                      \
+    auto operator !=(T&& rhs) const noexcept                                   \
+    {                                                                          \
+      return value != rhs;                                                     \
+    }                                                                          \
+                                                                               \
+    auto exact() const noexcept                                                \
+    {                                                                          \
+      return value == std::trunc(value);                                       \
     }                                                                          \
   }
 
@@ -125,19 +151,17 @@ namespace meevax { inline namespace kernel
   template <auto B>
   auto operator<<(std::ostream& os, const decimal<B>& x) -> decltype(os)
   {
-    os << cyan;
-
     if (std::isnan(x))
     {
-      return os << "+nan.0" << reset;
+      return os << cyan << "+nan.0" << reset;
     }
     else if (std::isinf(x))
     {
-      return os << (0 < x.value ? '+' : '-') << "inf.0" << reset;
+      return os << cyan << (0 < x.value ? '+' : '-') << "inf.0" << reset;
     }
     else
     {
-      return os << x.value << reset;
+      return os << cyan << x.value << (x.exact() ? ".0" : "") << reset;
     }
   }
 
@@ -232,6 +256,52 @@ namespace meevax { inline namespace kernel
       return os << console::cyan << x.str() << console::reset;
     }
   };
+
+  // XXX vs integer comparison is incorrect!
+  #define boilerplate(TYPE, SYMBOL, OPERATION)                                 \
+  auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
+  {                                                                            \
+    if (!rhs)                                                                  \
+    {                                                                          \
+      std::stringstream port {};                                               \
+      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
+      throw std::logic_error { port.str() };                                   \
+    }                                                                          \
+    else if (rhs.is<decimal<32>>())                                            \
+    {                                                                          \
+      return make<boolean>(value SYMBOL rhs.as<decimal<32>>().value);          \
+    }                                                                          \
+    else if (rhs.is<decimal<64>>())                                            \
+    {                                                                          \
+      return make<boolean>(value SYMBOL rhs.as<decimal<64>>().value);          \
+    }                                                                          \
+    else if (rhs.is<integer>())                                                \
+    {                                                                          \
+      return static_cast<integer>(value) SYMBOL rhs; \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      std::stringstream port {};                                               \
+      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
+      throw std::logic_error { port.str() };                                   \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  boilerplate(decimal<32>, ==, "equality comparison");
+  boilerplate(decimal<32>, !=, "inequality comparison");
+  boilerplate(decimal<32>, <,  "less-than comparison");
+  boilerplate(decimal<32>, <=, "less-equal comparison");
+  boilerplate(decimal<32>, >,  "greater-than comparison");
+  boilerplate(decimal<32>, >=, "greater-equal comparison");
+
+  boilerplate(decimal<64>, ==, "equality comparison");
+  boilerplate(decimal<64>, !=, "inequality comparison");
+  boilerplate(decimal<64>, <,  "less-than comparison");
+  boilerplate(decimal<64>, <=, "less-equal comparison");
+  boilerplate(decimal<64>, >,  "greater-than comparison");
+  boilerplate(decimal<64>, >=, "greater-equal comparison");
+
+  #undef boilerplate
 
   #define DEFINE_BINARY_ARITHMETIC_REAL(SYMBOL, OPERATION)                     \
   auto real::operator SYMBOL(const object& rhs) const -> object                \

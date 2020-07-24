@@ -552,6 +552,9 @@ namespace meevax { inline namespace kernel
     DEFINE_PREDICATE("the-rational?", rational);
     DEFINE_PREDICATE("the-integer?", integer);
 
+    DEFINE_PREDICATE("decimal<32>?", decimal<32>);
+    DEFINE_PREDICATE("decimal<64>?", decimal<64>);
+
     // define<procedure>("exact?", [](auto&& xs)
     // {
     //   return car(xs).binding().exact() ? t : f;
