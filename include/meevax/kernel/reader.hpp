@@ -252,14 +252,12 @@ namespace meevax { inline namespace kernel
 
       if (result.length(14)) // 6, 7, 8, 14
       {
-        using infnan_t = decimal<64>;
-
         static const std::unordered_map<std::string, object> infnan
         {
-          std::make_pair("+inf.0", make<infnan_t>(+infnan_t::infinity())),
-          std::make_pair("-inf.0", make<infnan_t>(-infnan_t::infinity())),
-          std::make_pair("+nan.0", make<infnan_t>(+infnan_t::quiet_NaN())),
-          std::make_pair("-nan.0", make<infnan_t>(-infnan_t::quiet_NaN()))
+          std::make_pair("+inf.0", make<decimal<64>>(+decimal<64>::infinity())),
+          std::make_pair("-inf.0", make<decimal<64>>(-decimal<64>::infinity())),
+          std::make_pair("+nan.0", make<decimal<64>>(+decimal<64>::quiet_NaN())),
+          std::make_pair("-nan.0", make<decimal<64>>(-decimal<64>::quiet_NaN()))
         };
 
         return infnan.at(token);
@@ -267,7 +265,7 @@ namespace meevax { inline namespace kernel
 
       if (result.length(10)) // 6, 7, 8, 9, 10
       {
-        return make<real>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<decimal<64>>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
       if (result.length(9)) // 6, 7, 8, 9
