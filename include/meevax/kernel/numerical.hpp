@@ -94,7 +94,7 @@ namespace meevax { inline namespace kernel
   template <auto Bits>
   struct decimal;
 
-  #define boilerplate(BITS, TYPE)                                              \
+  #define boilerplate(BITS, TYPE, CONVERT)                                     \
   template <>                                                                  \
   struct decimal<BITS>                                                         \
     : public std::numeric_limits<TYPE>                                         \
@@ -103,7 +103,7 @@ namespace meevax { inline namespace kernel
                                                                                \
     template <typename... Ts>                                                  \
     explicit constexpr decimal(Ts&&... xs)                                     \
-      : value { boost::lexical_cast<TYPE>(std::forward<decltype(xs)>(xs)...) } \
+      : value { CONVERT(std::forward<decltype(xs)>(xs)...) }                   \
     {}                                                                         \
                                                                                \
     explicit constexpr decimal(TYPE value)                                     \
@@ -117,8 +117,8 @@ namespace meevax { inline namespace kernel
   }
 
   // XXX A terrible implementation based on optimistic assumptions.
-  boilerplate(32, float);
-  boilerplate(64, double);
+  boilerplate(32, float, std::stof);
+  boilerplate(64, double, std::stod);
 
   #undef boilerplate
 
