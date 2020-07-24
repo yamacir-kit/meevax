@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <bits/c++config.h>
 #include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
 #include <sstream>
@@ -121,7 +120,7 @@ namespace meevax { inline namespace kernel
    *
    *
    * ======================================================================== */
-  inline namespace regex
+  namespace regex
   {
     template <std::size_t R>
     auto digit() -> const std::string;
@@ -229,7 +228,7 @@ namespace meevax { inline namespace kernel
   template <std::size_t R = 10>
   auto is_number(const std::string& token)
   {
-    static const std::regex pattern { number<R>() };
+    static const std::regex pattern { regex::number<R>() };
     std::smatch result {};
     return std::regex_match(token, result, pattern);
   }
@@ -237,7 +236,7 @@ namespace meevax { inline namespace kernel
   template <std::size_t R = 10>
   auto make_number(const std::string& token) -> const object
   {
-    static const std::regex pattern { number<R>() };
+    static const std::regex pattern { regex::number<R>() };
 
     if (std::smatch result {}; std::regex_match(token, result, pattern))
     {
@@ -253,12 +252,14 @@ namespace meevax { inline namespace kernel
 
       if (result.length(14)) // 6, 7, 8, 14
       {
+        using infnan_t = decimal<64>;
+
         static const std::unordered_map<std::string, object> infnan
         {
-          std::make_pair("+inf.0", make<real>(+1.0 / 0)),
-          std::make_pair("-inf.0", make<real>(-1.0 / 0)),
-          std::make_pair("+nan.0", make<real>(+0.0 / 0)),
-          std::make_pair("-nan.0", make<real>(-0.0 / 0))
+          std::make_pair("+inf.0", make<infnan_t>(+infnan_t::infinity())),
+          std::make_pair("-inf.0", make<infnan_t>(-infnan_t::infinity())),
+          std::make_pair("+nan.0", make<infnan_t>(+infnan_t::quiet_NaN())),
+          std::make_pair("-nan.0", make<infnan_t>(-infnan_t::quiet_NaN()))
         };
 
         return infnan.at(token);

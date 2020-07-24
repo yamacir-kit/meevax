@@ -44,17 +44,19 @@ namespace meevax { inline namespace kernel
    *   `-- complex
    *        `-- real
    *             |-- decimal (IEEE 754)
-   *             |    |-- binary 16
-   *             |    |-- binary 32 (C++ single float)
-   *             |    |-- binary 64 (C++ double float)
+   *             |    |-- binary  16
+   *             |    |-- binary  32 (C++ single float)
+   *             |    |-- binary  64 (C++ double float)
    *             |    `-- binary 128
    *             `-- rational
    *                  |-- ratio
    *                  |-- arbitrary precision integer
    *                  `-- fixed precision integer
-   *                       |-- signed and unsigned 16
-   *                       |-- signed and unsigned 32
-   *                       `-- signed and unsigned 64
+   *                       |-- signed and unsigned   8
+   *                       |-- signed and unsigned  16
+   *                       |-- signed and unsigned  32
+   *                       |-- signed and unsigned  64
+   *                       `-- signed and unsigned 128
    *
    * ======================================================================== */
   struct complex
@@ -127,7 +129,7 @@ namespace meevax { inline namespace kernel
 
     if (std::isnan(x))
     {
-      return os << (0 < x.value ? '+' : '-') << "nan.0" << reset;
+      return os << "+nan.0" << reset;
     }
     else if (std::isinf(x))
     {
@@ -139,7 +141,7 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  struct real
+  struct [[deprecated]] real
     : public multiprecision::real
   {
     template <typename... Ts>

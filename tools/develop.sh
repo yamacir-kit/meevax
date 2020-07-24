@@ -8,8 +8,10 @@ autotest=0
 clean_build=0
 install=0
 compile='g++-7'
+install=0
 job=1
 purpose='Debug'
+uninstall=0
 
 valgrind=''
 valgrind_options='--verbose --leak-check=full --show-leak-kinds=all --error-exitcode=1'
@@ -102,6 +104,12 @@ do
       shift
       ;;
 
+    -u | --uninstall )
+      uninstall=1
+      printf ';   uninstall\t= %s\n' "$uninstall"
+      shift
+      ;;
+
     -v | --valgrind )
       valgrind="valgrind $valgrind_options --log-file=$root/build/full-test.leak-check.cpp"
       printf ';   valgrind\t= %s\n' "$valgrind"
@@ -129,23 +137,18 @@ clean()
   echo "
 ; ==== Clean ===================================================================
 ;
-; Command"
-
-  if test -n "$(ls "$root/build")"
-  then
-    echo ";   rm -rf    $root/build"
-              rm -rf   "$root/build"
-  fi
-
-  echo ";   mkdir -p  $root/build"
-            mkdir -p "$root/build"
-
-  echo ";   cd        $root/build"
-            cd       "$root/build"
-
-  echo ";
+; Command
+;   $root/tools/uninstall.sh
+;   rm -rf $root/build
+;   mkdir -p $root/build
+;   cd $root/build
+;
 ; ==============================================================================
 "
+  $root/tools/uninstall.sh
+  rm -rf $root/build
+  mkdir -p $root/build
+  cd $root/build
 }
 
 build()
@@ -182,13 +185,11 @@ then
 ; ==== Install ====================================================================
 ;
 ; Command
-;   $root/tools/uninstall.sh
 ;   sudo make install
 ;   sudo ldconfig
 ;
 ; ==============================================================================
 "
-  $root/tools/uninstall.sh
   sudo make install
   sudo ldconfig
 fi
