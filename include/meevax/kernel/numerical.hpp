@@ -89,6 +89,56 @@ namespace meevax { inline namespace kernel
     }
   };
 
+  template <auto Bits>
+  struct decimal;
+
+  #define boilerplate(BITS, TYPE)                                              \
+  template <>                                                                  \
+  struct decimal<BITS>                                                         \
+    : public std::numeric_limits<TYPE>                                         \
+  {                                                                            \
+    TYPE value;                                                                \
+                                                                               \
+    template <typename... Ts>                                                  \
+    explicit constexpr decimal(Ts&&... xs)                                     \
+      : value { boost::lexical_cast<TYPE>(std::forward<decltype(xs)>(xs)...) } \
+    {}                                                                         \
+                                                                               \
+    explicit constexpr decimal(TYPE value)                                     \
+      : value { value }                                                        \
+    {}                                                                         \
+                                                                               \
+    constexpr operator TYPE() const noexcept                                   \
+    {                                                                          \
+      return value;                                                            \
+    }                                                                          \
+  }
+
+  // XXX A terrible implementation based on optimistic assumptions.
+  boilerplate(32, float);
+  boilerplate(64, double);
+
+  #undef boilerplate
+
+  template <auto B>
+  auto operator<<(std::ostream& os, const decimal<B>& x) -> decltype(os)
+  {
+    os << cyan;
+
+    if (std::isnan(x))
+    {
+      return os << (0 < x.value ? '+' : '-') << "nan.0" << reset;
+    }
+    else if (std::isinf(x))
+    {
+      return os << (0 < x.value ? '+' : '-') << "inf.0" << reset;
+    }
+    else
+    {
+      return os << x.value << reset;
+    }
+  }
+
   struct real
     : public multiprecision::real
   {
