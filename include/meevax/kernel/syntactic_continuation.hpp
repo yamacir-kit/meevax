@@ -632,7 +632,7 @@ namespace meevax { inline namespace kernel
 
     #undef boilerplate
 
-    define<procedure>("sqrt", [](auto&& xs)
+    define<procedure>("sqrt", [&](auto&& xs)
     {
       if (const object x { car(xs) }; null(x))
       {
@@ -640,26 +640,26 @@ namespace meevax { inline namespace kernel
       }
       else if (x.is<integer>())
       {
-        const decimal<64> inexact { x.as<integer>().to_string() };
+        const decimal<most_precise> inexact { x.as<integer>().to_string() };
 
-        if (const decimal<64> value { std::sqrt(inexact) }; value.exact())
+        if (const decimal<most_precise> value { std::sqrt(inexact) }; value.exact())
         {
           return make<integer>(value.to_string());
         }
         else
         {
-          return make<decimal<64>>(value);
+          return make<decimal<most_precise>>(value);
         }
       }
-      else if (x.is<decimal<64>>())
+      else if (x.is<decimal<most_precise>>())
       {
-        if (const decimal<64> value { std::sqrt(x.as<decimal<64>>().value) }; value.exact())
+        if (const decimal<most_precise> value { std::sqrt(x.as<decimal<most_precise>>().value) }; value.exact())
         {
           return make<integer>(value.to_string());
         }
         else
         {
-          return make<decimal<64>>(value);
+          return make<decimal<most_precise>>(value);
         }
       }
       else

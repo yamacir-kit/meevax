@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
+#include <bits/c++config.h>
 #define MEEVAX_USE_MPFR
 #define MEEVAX_USE_GMP
 
@@ -155,6 +156,8 @@ namespace meevax { inline namespace kernel
   // XXX A terrible implementation based on optimistic assumptions.
   boilerplate(32, float, std::stof);
   boilerplate(64, double, std::stod);
+
+  constexpr auto most_precise = 64;
 
   #undef boilerplate
 
