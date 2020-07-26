@@ -37,7 +37,7 @@ Meevax provides
 *   not "**bug-ridden**",
 *   ~~not "**slow**"~~
 
-implementation **R7RS Scheme** subset to C++.
+subset of **R7RS Scheme** implementation to C++.
 
 <br/>
 
@@ -56,7 +56,7 @@ implementation **R7RS Scheme** subset to C++.
 
 HEAD: ${PROJECT_VERSION}.
 
-### Characteristic Features
+### Features
 
 *   C++ RTTI based **dynamic typing**
 *   C++ RAII based **lexical garbage collection**
@@ -64,7 +64,7 @@ HEAD: ${PROJECT_VERSION}.
 
 ### R7RS Support
 
-R7RS-small subset.
+Subset of R7RS-small.
 
 ### SRFI Support
 
@@ -84,20 +84,25 @@ R7RS-small subset.
 
 <br/>
 
-## Dependency
+## Requirements
 
-### Build Requirements
+### System
 
-*   C++17
+*   Ubuntu 18.04 or later
+
+### Tools
+
+*   C++17（GCC 7.5.0 or later, Clang 6.0.0 or later）
 *   CMake
+*   GNU Make
+*   GNU Binutils
 
-### Library Dependencies
+### Libraries
 
-*   [**Boost C++ Libraries**](https://www.boost.org/)
+*   [**Boost C++ Libraries**](https://www.boost.org/) (1.65.1 or later)
     * [Boost.Multiprecision](https://www.boost.org/doc/libs/release/libs/multiprecision/)
     * [Boost.IOStreams](https://www.boost.org/doc/libs/release/libs/iostreams/)
-*   [**GNU Multiple Precision Arithmetic Library** (MP)](https://gmplib.org/)
-*   [**GNU Multiple Precision Floating-Point Reliably Library** (MPFR)](https://www.mpfr.org/)
+*   [**GNU Multiple Precision Arithmetic Library** (GMP)](https://gmplib.org/)
 
 ### License
 
@@ -114,13 +119,11 @@ R7RS-small subset.
 Installation has been tested on Ubuntu 18.04.
 See `.github/workflows/main.yml` for the latest procedure.
 
-**Installation on Ubuntu 16.04 is sufficient, but has been removed from maintenance**.
-
 ### Ubuntu 18.04
 
 ``` shell
 sudo apt update
-sudo apt install libboost-all-dev libgmp-dev libmpfr-dev
+sudo apt install libboost-all-dev libgmp-dev
 
 git clone https://github.com/yamacir-kit/meevax.git
 cd meevax
@@ -142,4 +145,3 @@ make
 *   TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
 *   SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))
 -->
-

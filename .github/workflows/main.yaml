@@ -25,7 +25,7 @@ jobs:
       - name: Prepare
         run: |
           sudo apt update
-          sudo apt install libboost-all-dev libgmp-dev libmpfr-dev valgrind
+          sudo apt install libboost-all-dev libgmp-dev valgrind
 
       - name: Configure
         env:
