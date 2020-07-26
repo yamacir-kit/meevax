@@ -89,31 +89,33 @@ int main()
 
   TEST("add integer and integer",
   {
-    std::cerr << std::endl;
-    DEBUG();
-
     const auto a { make<integer>(1) };
 
-    if (a.is<integer>()) DEBUG();
-    DEBUG();
+    if (not a.is<integer>())
+    {
+      throw std::logic_error { std::to_string(__LINE__) };
+    }
 
-    if (static_cast<int>(a.as<integer>()) == 1) DEBUG();
-    DEBUG();
+    if (a.as<integer>().value.convert_to<int>() != 1)
+    {
+      throw std::logic_error { std::to_string(__LINE__) };
+    }
 
     const auto b { make<integer>(2) };
-    DEBUG();
 
-    if (b.is<integer>()) DEBUG();
-    DEBUG();
+    if (not b.is<integer>())
+    {
+      throw std::logic_error { std::to_string(__LINE__) };
+    }
 
-    if (static_cast<int>(b.as<integer>()) == 2) DEBUG();
-    DEBUG();
+    if (b.as<integer>().value.convert_to<int>() != 2)
+    {
+      throw std::logic_error { std::to_string(__LINE__) };
+    }
 
     const auto x = a + b;
-    DEBUG();
 
-    result = x.is<integer>() && (static_cast<int>(x.as<integer>()) == 3);
-    DEBUG();
+    result = x.is<integer>() && (x.as<integer>().value.convert_to<int>() == 3);
   });
 
   // TEST("add number and native int",

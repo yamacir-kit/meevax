@@ -58,10 +58,7 @@ namespace meevax { inline namespace kernel
             make<symbol>(boost_version())),
           cons(
             make<symbol>("gmp"),
-            make<symbol>(gmp_version)),
-          cons(
-            make<symbol>("mpfr"),
-            make<symbol>(mpfr_get_version()))
+            make<symbol>(gmp_version))
           )));
 
     #undef boilerplate

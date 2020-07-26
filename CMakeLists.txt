@@ -133,15 +133,13 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     dl
     gmp
-    mpfr
     stdc++fs
   )
 
 set_target_properties(${PROJECT_NAME}
   PROPERTIES
-      VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-  )
+      VERSION ${PROJECT_VERSION})
 
 install( # Install Kernel
   TARGETS ${PROJECT_NAME}
@@ -186,8 +184,8 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 
   set_target_properties(${TARGET_NAME}
     PROPERTIES
-        VERSION ${PROJECT_VERSION}
-      SOVERSION ${PROJECT_VERSION_MAJOR})
+      SOVERSION ${PROJECT_VERSION_MAJOR}
+        VERSION ${PROJECT_VERSION})
 
   target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME})
 

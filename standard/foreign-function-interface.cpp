@@ -21,7 +21,7 @@ extern "C"
       if (each.is<integer>())
       {
         std::cout << "; return incremented left-most integer object." << std::endl;
-        return make<integer>(each.as<integer>().convert_to<int>() + 1);
+        return make<integer>(each.as<integer>().value.convert_to<int>() + 1);
       }
     }
 
