@@ -548,7 +548,6 @@ namespace meevax { inline namespace kernel
      *
      * ====================================================================== */
     DEFINE_PREDICATE("the-complex?", complex);
-    DEFINE_PREDICATE("the-real?", real);
     DEFINE_PREDICATE("the-rational?", rational);
     DEFINE_PREDICATE("the-integer?", integer);
 
@@ -635,34 +634,32 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("sqrt", [](auto&& xs)
     {
-      using namespace boost::multiprecision;
-
       if (const object x { car(xs) }; null(x))
       {
         return f;
       }
       else if (x.is<integer>())
       {
-        const real inexact { x.as<integer>().str() };
+        const decimal<64> inexact { x.as<integer>().to_string() };
 
-        if (const auto value { sqrt(inexact) }; value == trunc(value))
+        if (const decimal<64> value { std::sqrt(inexact) }; value.exact())
         {
-          return make<integer>(value.str());
+          return make<integer>(value.to_string());
         }
         else
         {
-          return make<real>(value);
+          return make<decimal<64>>(value);
         }
       }
-      else if (x.is<real>())
+      else if (x.is<decimal<64>>())
       {
-        if (const auto value { sqrt(x.as<real>()) }; value == trunc(value))
+        if (const decimal<64> value { std::sqrt(x.as<decimal<64>>().value) }; value.exact())
         {
-          return make<integer>(value.str());
+          return make<integer>(value.to_string());
         }
         else
         {
-          return make<real>(value);
+          return make<decimal<64>>(value);
         }
       }
       else
@@ -766,13 +763,16 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      if (car(xs).template is<real>())
+      if (car(xs).template is<decimal<64>>())
       {
-        return make_string(car(xs).template as<real>().str());
+        return
+          make_string(
+            boost::lexical_cast<std::string>(
+              car(xs).template as<decimal<64>>()));
       }
       else if (car(xs).template is<integer>())
       {
-        return make_string(car(xs).template as<integer>().str());
+        return make_string(car(xs).template as<integer>().value.str());
       }
       else
       {
@@ -801,7 +801,7 @@ namespace meevax { inline namespace kernel
       {
         v.as<vector>().resize(
           static_cast<vector::size_type>(
-            car(xs).template as<integer>()));
+            car(xs).template as<integer>().value));
       }
       else
       {
@@ -828,7 +828,7 @@ namespace meevax { inline namespace kernel
       return
         car(xs).template as<vector>().at(
           static_cast<vector::size_type>(
-            cadr(xs).template as<integer>()));
+            cadr(xs).template as<integer>().value));
     });
 
     define<procedure>("vector-set!", [](auto&& xs)
@@ -836,7 +836,7 @@ namespace meevax { inline namespace kernel
       return
         car(xs).template as<vector>().at(
           static_cast<vector::size_type>(
-            cadr(xs).template as<integer>()))
+            cadr(xs).template as<integer>().value))
         = caddr(xs);
     });
 
@@ -1008,7 +1008,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        std::exit(car(xs).template as<integer>().template convert_to<int>());
+        std::exit(car(xs).template as<integer>().value.template convert_to<int>());
       }
 
       return unspecified;
