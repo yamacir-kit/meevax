@@ -537,14 +537,91 @@ namespace meevax { inline namespace kernel
 
     /* ==== R7RS 6.2. Numbers ==================================================
      *
+     *  number?
      *  complex?
      *  real?
      *  rational?
+     *
+     *  exact?
+     *  inexact?
      *  exact-integer?
+     *
+     *  finite?
+     *  infinite?
+     *  nan?
+     *
      *  =
-     *  < <= > >=
-     *  + * - /
-     *  sqrt
+     *  <
+     *  >
+     *  <=
+     *  >=
+     *
+     *  zero?
+     *  positive?
+     *  negative?
+     *  odd?
+     *  even?
+     *
+     *  max
+     *  min
+     *
+     *  +
+     *  *
+     *  -
+     *  /
+     *
+     *  abs
+     *
+     *  floor/
+     *  floor-quotient
+     *  floor-remainder
+     *  truncate/
+     *  truncate-quotient
+     *  truncate-remainder
+     *
+     *  quotient
+     *  remainder
+     *  modulo
+     *
+     *  gcd
+     *  lcm
+     *
+     *  numerator
+     *  denominator
+     *
+     *  floor
+     *  ceiling
+     *  truncate
+     *  round
+     *
+     *  rationalize
+     *
+     *  exp
+     *  log
+     *  sin
+     *  cos
+     *  tan
+     *  asin
+     *  acos
+     *  atan
+     *
+     *  square
+     *  sqrt (square-root)
+     *  exact-integer-sqrt
+     *  expt (exponential)
+     *
+     *  make-rectangular
+     *  make-polar
+     *  real-part
+     *  imag-part
+     *  magnitude
+     *  angle
+     *
+     *  inexact
+     *  exact
+     *
+     *  number->string
+     *  string->number
      *
      * ====================================================================== */
     DEFINE_PREDICATE("the-complex?", complex);
@@ -564,6 +641,7 @@ namespace meevax { inline namespace kernel
     //   return car(xs).binding().inexact() ? t : f;
     // });
 
+    // TODO Rewrite with STL algorithms
     define<procedure>("=", [](auto&& xs)
     {
       const auto head { std::begin(xs) };
