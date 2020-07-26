@@ -1,14 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <bits/c++config.h>
-#define MEEVAX_USE_MPFR
+#ifndef MEEVAX_USE_GMP
 #define MEEVAX_USE_GMP
-
-#ifdef MEEVAX_USE_MPFR
-#include <boost/multiprecision/mpfr.hpp>
-#else
-#include <boost/multiprecision/cpp_dec_float.hpp>
 #endif
 
 #ifdef MEEVAX_USE_GMP
@@ -22,23 +16,6 @@
 
 namespace meevax { inline namespace kernel
 {
-  namespace multiprecision
-  {
-    using namespace boost::multiprecision;
-
-    #ifdef MEEVAX_USE_MPFR
-    using real = number<mpfr_float_backend<0>, et_off>;
-    #else
-    using real = cpp_dec_float_100;
-    #endif
-
-    #ifdef MEEVAX_USE_GMP
-    using integer = number<gmp_int, et_off>; // mpz_int
-    #else
-    using integer = cpp_int;
-    #endif
-  }
-
   /* ==== Numbers ==============================================================
    *
    *  number
@@ -185,7 +162,12 @@ namespace meevax { inline namespace kernel
 
   struct integer
   {
-    using value_type = multiprecision::integer;
+    #ifdef MEEVAX_USE_GMP
+    // using value_type = boost::multiprecision::number<boost::multiprecision::gmp_int, boost::multiprecision::et_off>;
+    using value_type = boost::multiprecision::mpz_int;
+    #else
+    using value_type = boost::multiprecision::cpp_int;
+    #endif
 
     value_type value;
 
@@ -270,8 +252,8 @@ namespace meevax { inline namespace kernel
 
   #undef boilerplate
 
-  #define boilerplate(SYMBOL, OPERATION)                                 \
-  auto integer::operator SYMBOL(const object& rhs) const -> object                \
+  #define boilerplate(SYMBOL, OPERATION)                                       \
+  auto integer::operator SYMBOL(const object& rhs) const -> object             \
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \

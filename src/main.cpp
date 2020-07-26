@@ -1,5 +1,7 @@
 // #define THE_ONLY_SUBSET_OF_THE_EMPTY_SET_IS_ITSELF true
 
+#define MEEVAX_USE_GMP
+
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 int main(const int argc, char const* const* const argv) try
