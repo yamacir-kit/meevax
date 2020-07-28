@@ -760,6 +760,14 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     })
 
+    boilerplate("sin", std::sin);
+    boilerplate("cos", std::cos);
+    boilerplate("tan", std::tan);
+
+    boilerplate("asin", std::asin);
+    boilerplate("acos", std::acos);
+    boilerplate("atan", std::atan);
+
     boilerplate("sqrt", std::sqrt);
 
     #undef boilerplate
