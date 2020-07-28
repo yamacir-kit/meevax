@@ -931,7 +931,7 @@
 
 ; ---- 6.5.6. Numerical input and output ---------------------------------------
 
-; (check (string->number "100") => 100)
+(check (string->number "100") => 100)
 ; (check (string->number "100" 16) => 256)
 ; (check (string->number "1e2") => 100.0)
 ; (check (string->number "15##") => 1500.0)
@@ -946,9 +946,9 @@
 (check (char? #\space) => #t)
 (check (char? #\newline) => #t)
 
-; (check (char<? #\A #\B) => #t)
-; (check (char<? #\a #\b) => #t)
-; (check (char<? #\0 #\9) => #t)
+(check (char<? #\A #\B) => #t)
+(check (char<? #\a #\b) => #t)
+(check (char<? #\0 #\9) => #t)
 
 ; (check (char-ci=? #\A #\a) => #t)
 

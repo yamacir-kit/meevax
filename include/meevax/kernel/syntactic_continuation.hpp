@@ -772,6 +772,11 @@ namespace meevax { inline namespace kernel
 
     #undef boilerplate
 
+    define<procedure>("string->number", [](auto&& xs)
+    {
+      return make_number(car(xs).template as<string>());
+    });
+
     /* ==== R7RS 6.3. Booleans =================================================
      *
      *

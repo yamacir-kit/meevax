@@ -1046,7 +1046,7 @@
 ;  6.6 Standard Characters Library
 ; ------------------------------------------------------------------------------
 
-(define character-compare
+(define char-compare
   (lambda (x xs compare)
     (let rec ((compare compare)
               (lhs (char->integer x))
@@ -1054,27 +1054,13 @@
       (if (null? xs) #true
           (let ((rhs (char->integer (car xs))))
             (and (compare lhs rhs)
-                 (rec rhs (cdr xs) compare) ))))))
+                 (rec compare rhs (cdr xs))))))))
 
-(define char=?
-  (lambda (x . xs)
-    (character-compare x xs =)))
-
-(define char<?
-  (lambda (x . xs)
-    (character-compare x xs <)))
-
-(define char>?
-  (lambda (x . xs)
-    (character-compare x xs >)))
-
-(define char<=?
-  (lambda (x . xs)
-    (character-compare x xs <=)))
-
-(define char>=?
-  (lambda (x . xs)
-    (character-compare x xs >=)))
+(define (char=?  x . xs) (char-compare x xs =))
+(define (char<?  x . xs) (char-compare x xs <))
+(define (char>?  x . xs) (char-compare x xs >))
+(define (char<=? x . xs) (char-compare x xs <=))
+(define (char>=? x . xs) (char-compare x xs >=))
 
 (define case-insensitive-character-compare
   (lambda (x xs compare)
