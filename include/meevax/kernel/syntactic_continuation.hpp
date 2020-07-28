@@ -605,8 +605,8 @@ namespace meevax { inline namespace kernel
      *  acos
      *  atan
      *
-     *  square
-     *  sqrt (square-root)
+     *  square                         ; defined in overture.ss
+     *  sqrt (square-root)             ; implemented
      *  exact-integer-sqrt
      *  expt (exponential)
      *
@@ -710,41 +710,49 @@ namespace meevax { inline namespace kernel
 
     #undef boilerplate
 
-    define<procedure>("sqrt", [&](auto&& xs)
-    {
-      if (const object x { car(xs) }; null(x))
-      {
-        return f;
-      }
-      else if (x.is<integer>())
-      {
-        const decimal<most_precise> inexact { x.as<integer>().to_string() };
+    // TODO Throw exception insted of returg #f
+    #define boilerplate(NAME, CMATH)                                           \
+    define<procedure>(NAME, [&](auto&& xs)                                     \
+    {                                                                          \
+      if (const object x { car(xs) }; null(x))                                 \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else if (x.is<integer>())                                                \
+      {                                                                        \
+        if (const decimal<most_precise> result {                               \
+              CMATH(decimal<most_precise>(x.as<integer>().to_string()))        \
+            }; result.exact())                                                 \
+        {                                                                      \
+          return make<integer>(result.to_string());                            \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return make<decimal<most_precise>>(result);                          \
+        }                                                                      \
+      }                                                                        \
+      else if (x.is<decimal<most_precise>>())                                  \
+      {                                                                        \
+        if (const decimal<most_precise> result {                               \
+              CMATH(x.as<decimal<most_precise>>())                             \
+            }; result.exact())                                                 \
+        {                                                                      \
+          return make<integer>(result.to_string());                            \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return make<decimal<most_precise>>(result);                          \
+        }                                                                      \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+    })
 
-        if (const decimal<most_precise> value { std::sqrt(inexact) }; value.exact())
-        {
-          return make<integer>(value.to_string());
-        }
-        else
-        {
-          return make<decimal<most_precise>>(value);
-        }
-      }
-      else if (x.is<decimal<most_precise>>())
-      {
-        if (const decimal<most_precise> value { std::sqrt(x.as<decimal<most_precise>>().value) }; value.exact())
-        {
-          return make<integer>(value.to_string());
-        }
-        else
-        {
-          return make<decimal<most_precise>>(value);
-        }
-      }
-      else
-      {
-        return f;
-      }
-    });
+    boilerplate("sqrt", std::sqrt);
+
+    #undef boilerplate
 
     /* ==== R7RS 6.3. Booleans =================================================
      *
