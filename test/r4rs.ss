@@ -756,7 +756,7 @@
 
 ; ---- Procedure (complex? obj) ------------------------------------------------
 
-; (check (complex? 3+4i) => #t)
+(check (complex? 3+4i) => #t)
 (check (complex? 3) => #t)
 
 ; ---- Procedure (real? obj) ---------------------------------------------------

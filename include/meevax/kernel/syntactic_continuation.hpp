@@ -691,6 +691,7 @@ namespace meevax { inline namespace kernel
 
     #undef boilerplate
 
+
     #define boilerplate(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
@@ -710,7 +711,7 @@ namespace meevax { inline namespace kernel
 
     #undef boilerplate
 
-    // TODO Throw exception insted of returg #f
+
     #define boilerplate(NAME, CMATH)                                           \
     define<procedure>(NAME, [&](auto&& xs)                                     \
     {                                                                          \
@@ -731,17 +732,26 @@ namespace meevax { inline namespace kernel
           return make<decimal<most_precise>>(result);                          \
         }                                                                      \
       }                                                                        \
-      else if (x.is<decimal<most_precise>>())                                  \
+      else if (x.is<decimal<32>>())                                            \
       {                                                                        \
-        if (const decimal<most_precise> result {                               \
-              CMATH(x.as<decimal<most_precise>>())                             \
-            }; result.exact())                                                 \
+        if (const decimal<32> result { CMATH(x.as<decimal<32>>()) }; result.exact()) \
         {                                                                      \
           return make<integer>(result.to_string());                            \
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          return make<decimal<most_precise>>(result);                          \
+          return make<decimal<32>>(result);                                    \
+        }                                                                      \
+      }                                                                        \
+      else if (x.is<decimal<64>>())                                            \
+      {                                                                        \
+        if (const decimal<64> result { CMATH(x.as<decimal<64>>()) }; result.exact()) \
+        {                                                                      \
+          return make<integer>(result.to_string());                            \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return make<decimal<64>>(result);                                    \
         }                                                                      \
       }                                                                        \
       else                                                                     \

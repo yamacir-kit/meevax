@@ -756,7 +756,8 @@
 
 (define inexact?
   (lambda (z)
-    (or (the-real? z)
+    (or (decimal<32>? z)
+        (decimal<64>? z)
         (not (exact-complex? z)))))
 
 (define exact-complex?
