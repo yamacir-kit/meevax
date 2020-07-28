@@ -740,7 +740,7 @@ namespace meevax { inline namespace kernel
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          return make<decimal<32>>(result);                                    \
+          return make<decltype(result)>(result);                               \
         }                                                                      \
       }                                                                        \
       else if (x.is<decimal<64>>())                                            \
@@ -751,7 +751,7 @@ namespace meevax { inline namespace kernel
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          return make<decimal<64>>(result);                                    \
+          return make<decltype(result)>(result);                               \
         }                                                                      \
       }                                                                        \
       else                                                                     \
@@ -759,6 +759,8 @@ namespace meevax { inline namespace kernel
         return f;                                                              \
       }                                                                        \
     })
+
+    boilerplate("exp", std::exp);
 
     boilerplate("sin", std::sin);
     boilerplate("cos", std::cos);
@@ -768,9 +770,51 @@ namespace meevax { inline namespace kernel
     boilerplate("acos", std::acos);
     boilerplate("atan", std::atan);
 
+    boilerplate("sinh", std::sinh);
+    boilerplate("cosh", std::cosh);
+    boilerplate("tanh", std::tanh);
+
+    boilerplate("asinh", std::asinh);
+    boilerplate("acosh", std::acosh);
+    boilerplate("atanh", std::atanh);
+
     boilerplate("sqrt", std::sqrt);
 
     #undef boilerplate
+
+    // TODO atan & atan2
+
+    define<procedure>("expt", [](auto&& xs)
+    {
+      auto inexact = [](const object& z)
+      {
+        if (z.is<integer>())
+        {
+          return decimal<most_precise>(z.as<integer>().to_string()).value;
+        }
+        else if (z.is<decimal<32>>())
+        {
+          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<32>>().value);
+        }
+        else if (z.is<decimal<64>>())
+        {
+          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<64>>().value);
+        }
+        else
+        {
+          return static_cast<decimal<most_precise>::value_type>(0);
+        }
+      };
+
+      if (const decimal<most_precise> result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.exact())
+      {
+        return make<integer>(result.value);
+      }
+      else
+      {
+        return make<decltype(result)>(result);
+      }
+    });
 
     define<procedure>("string->number", [](auto&& xs)
     {

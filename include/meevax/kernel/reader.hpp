@@ -236,9 +236,18 @@ namespace meevax { inline namespace kernel
   template <std::size_t R = 10>
   auto make_number(const std::string& token) -> const object
   {
+    static const std::unordered_map<std::string, object> srfi_144
+    {
+      std::make_pair("fl-pi", make<decimal<most_precise>>(boost::math::constants::pi<decimal<most_precise>::value_type>()))
+    };
+
     static const std::regex pattern { regex::number<R>() };
 
-    if (std::smatch result {}; std::regex_match(token, result, pattern))
+    if (const auto iter { srfi_144.find(token) }; iter != std::end(srfi_144))
+    {
+      return cdr(*iter);
+    }
+    else if (std::smatch result {}; std::regex_match(token, result, pattern))
     {
       if (result.length(30)) // 6, 30, 31, 32, 38, 39
       {
@@ -254,10 +263,10 @@ namespace meevax { inline namespace kernel
       {
         static const std::unordered_map<std::string, object> infnan
         {
-          std::make_pair("+inf.0", make<decimal<64>>(+decimal<64>::infinity())),
-          std::make_pair("-inf.0", make<decimal<64>>(-decimal<64>::infinity())),
-          std::make_pair("+nan.0", make<decimal<64>>(+decimal<64>::quiet_NaN())),
-          std::make_pair("-nan.0", make<decimal<64>>(-decimal<64>::quiet_NaN()))
+          std::make_pair("+inf.0", make<decimal<most_precise>>(+decimal<most_precise>::infinity())),
+          std::make_pair("-inf.0", make<decimal<most_precise>>(-decimal<most_precise>::infinity())),
+          std::make_pair("+nan.0", make<decimal<most_precise>>(+decimal<most_precise>::quiet_NaN())),
+          std::make_pair("-nan.0", make<decimal<most_precise>>(-decimal<most_precise>::quiet_NaN()))
         };
 
         return infnan.at(token);

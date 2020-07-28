@@ -11,6 +11,8 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #endif
 
+#include <boost/math/constants/constants.hpp>
+
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
 
