@@ -25,18 +25,20 @@ namespace meevax { inline namespace kernel
    *        `-- real
    *             |-- decimal (IEEE 754)
    *             |    |-- binary  16
-   *             |    |-- binary  32 (C++ single float)
-   *             |    |-- binary  64 (C++ double float)
+   *             |    |-- binary  32 (C++ single float)      = number<float>
+   *             |    |-- binary  64 (C++ double float)      = number<double>
+   *             |    |-- binary  80 (C++ long double float) = number<long double>
    *             |    `-- binary 128
    *             `-- rational
-   *                  |-- ratio
-   *                  |-- arbitrary precision integer
-   *                  `-- fixed precision integer
-   *                       |-- signed and unsigned   8
-   *                       |-- signed and unsigned  16
-   *                       |-- signed and unsigned  32
-   *                       |-- signed and unsigned  64
-   *                       `-- signed and unsigned 128
+   *                  |-- fractional
+   *                  `-- integral
+   *                       |-- multi-precision integral
+   *                       `-- fixed precision integral
+   *                            |-- signed and unsigned   8  = number<std::u?int8_t>
+   *                            |-- signed and unsigned  16  = number<std::u?int16_t>
+   *                            |-- signed and unsigned  32  = number<std::u?int32_t>
+   *                            |-- signed and unsigned  64  = number<std::u?int64_t>
+   *                            `-- signed and unsigned 128  = number<std::u?int128_t>
    *
    * ======================================================================== */
   struct complex
@@ -157,15 +159,14 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  struct rational
+  struct fractional
     : public virtual pair
   {
   };
 
-  struct integer
+  struct integral
   {
     #ifdef MEEVAX_USE_GMP
-    // using value_type = boost::multiprecision::number<boost::multiprecision::gmp_int, boost::multiprecision::et_off>;
     using value_type = boost::multiprecision::mpz_int;
     #else
     using value_type = boost::multiprecision::cpp_int;
@@ -174,7 +175,7 @@ namespace meevax { inline namespace kernel
     value_type value;
 
     template <typename... Ts>
-    explicit constexpr integer(Ts&&... xs)
+    explicit constexpr integral(Ts&&... xs)
       : value { std::forward<decltype(xs)>(xs)... }
     {}
 
@@ -199,16 +200,16 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> object;
     auto operator >=(const object&) const -> object;
 
-    auto operator ==(const integer& rhs) const { return value == rhs.value; }
-    auto operator !=(const integer& rhs) const { return !(*this == rhs); }
+    auto operator ==(const integral& rhs) const { return value == rhs.value; }
+    auto operator !=(const integral& rhs) const { return !(*this == rhs); }
 
-    friend std::ostream& operator<<(std::ostream& os, const integer& x)
+    friend std::ostream& operator<<(std::ostream& os, const integral& x)
     {
       return os << console::cyan << x.value.str() << console::reset;
     }
   };
 
-  // XXX vs integer comparison is maybe incorrect!
+  // XXX vs integral comparison is maybe incorrect!
   #define boilerplate(TYPE, SYMBOL, OPERATION)                                 \
   auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
   {                                                                            \
@@ -226,9 +227,9 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       return make<boolean>(value SYMBOL rhs.as<decimal<64>>().value);          \
     }                                                                          \
-    else if (rhs.is<integer>())                                                \
+    else if (rhs.is<integral>())                                                \
     {                                                                          \
-      return static_cast<integer>(value) SYMBOL rhs;                           \
+      return static_cast<integral>(value) SYMBOL rhs;                           \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -255,7 +256,7 @@ namespace meevax { inline namespace kernel
   #undef boilerplate
 
   #define boilerplate(SYMBOL, OPERATION)                                       \
-  auto integer::operator SYMBOL(const object& rhs) const -> object             \
+  auto integral::operator SYMBOL(const object& rhs) const -> object             \
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \
@@ -265,15 +266,15 @@ namespace meevax { inline namespace kernel
     }                                                                          \
     else if (rhs.is<decimal<32>>())                                            \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integer::value_type>(rhs.as<decimal<32>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<32>>().value)); \
     }                                                                          \
     else if (rhs.is<decimal<64>>())                                            \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integer::value_type>(rhs.as<decimal<64>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<64>>().value)); \
     }                                                                          \
-    else if (rhs.is<integer>())                                                \
+    else if (rhs.is<integral>())                                                \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<integer>().value);              \
+      return make<boolean>(value SYMBOL rhs.as<integral>().value);              \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -293,7 +294,7 @@ namespace meevax { inline namespace kernel
   #undef boilerplate
 
   #define DEFINE_BINARY_ARITHMETIC_INTEGER(SYMBOL, OPERATION)                  \
-  auto integer::operator SYMBOL(const object& rhs) const -> object             \
+  auto integral::operator SYMBOL(const object& rhs) const -> object             \
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \
@@ -303,17 +304,17 @@ namespace meevax { inline namespace kernel
     }                                                                          \
     else if (rhs.is<decimal<32>>())                                            \
     {                                                                          \
-      const integer::value_type result { value SYMBOL static_cast<integer::value_type>(rhs.as<decimal<32>>().value) }; \
+      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<32>>().value) }; \
       return make<decimal<32>>(result.convert_to<decimal<32>::value_type>());  \
     }                                                                          \
     else if (rhs.is<decimal<64>>())                                            \
     {                                                                          \
-      const integer::value_type result { value SYMBOL static_cast<integer::value_type>(rhs.as<decimal<64>>().value) }; \
+      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<64>>().value) }; \
       return make<decimal<64>>(result.convert_to<decimal<64>::value_type>());  \
     }                                                                          \
-    else if (rhs.is<integer>())                                                \
+    else if (rhs.is<integral>())                                                \
     {                                                                          \
-      return make<integer>(value SYMBOL rhs.as<integer>().value);              \
+      return make<integral>(value SYMBOL rhs.as<integral>().value);              \
     }                                                                          \
     else                                                                       \
     {                                                                          \

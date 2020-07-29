@@ -750,8 +750,8 @@
 
 (define exact?
   (lambda (z)
-    (or (the-integer? z)
-        (the-rational? z)
+    (or (integral? z)
+        (fractional? z)
         (exact-complex? z))))
 
 (define inexact?
@@ -766,7 +766,7 @@
          (exact? (real-part x))
          (exact? (imag-part x)))))
 
-(define exact-integer? the-integer?)
+(define exact-integer? integral?)
 
 (define finite?
   (lambda (z)
