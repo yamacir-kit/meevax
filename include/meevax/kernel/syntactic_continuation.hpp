@@ -715,17 +715,17 @@ namespace meevax { inline namespace kernel
     #define boilerplate(NAME, CMATH)                                           \
     define<procedure>(NAME, [&](auto&& xs)                                     \
     {                                                                          \
-      if (const object x { car(xs) }; null(x))                                 \
+      if (let const x = car(xs); null(x))                                      \
       {                                                                        \
         return f;                                                              \
       }                                                                        \
-      else if (x.is<integral>())                                                \
+      else if (x.is<integral>())                                               \
       {                                                                        \
         if (const decimal<most_precise> result {                               \
-              CMATH(decimal<most_precise>(x.as<integral>().to_string()))        \
+              CMATH(x.as<integral>().value.template convert_to<decimal<most_precise>::value_type>()) \
             }; result.exact())                                                 \
         {                                                                      \
-          return make<integral>(result.to_string());                            \
+          return make<integral>(result.to_string());                           \
         }                                                                      \
         else                                                                   \
         {                                                                      \

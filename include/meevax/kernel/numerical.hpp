@@ -293,8 +293,8 @@ namespace meevax { inline namespace kernel
 
   #undef boilerplate
 
-  #define DEFINE_BINARY_ARITHMETIC_INTEGER(SYMBOL, OPERATION)                  \
-  auto integral::operator SYMBOL(const object& rhs) const -> object             \
+  #define boilerplate(SYMBOL, OPERATION)                                       \
+  auto integral::operator SYMBOL(const object& rhs) const -> object            \
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \
@@ -312,9 +312,9 @@ namespace meevax { inline namespace kernel
       const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<64>>().value) }; \
       return make<decimal<64>>(result.convert_to<decimal<64>::value_type>());  \
     }                                                                          \
-    else if (rhs.is<integral>())                                                \
+    else if (rhs.is<integral>())                                               \
     {                                                                          \
-      return make<integral>(value SYMBOL rhs.as<integral>().value);              \
+      return make<integral>(value SYMBOL rhs.as<integral>().value);            \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -324,11 +324,12 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  DEFINE_BINARY_ARITHMETIC_INTEGER(*, "multiplication");
-  DEFINE_BINARY_ARITHMETIC_INTEGER(+, "addition");
-  DEFINE_BINARY_ARITHMETIC_INTEGER(-, "subtraction");
-  DEFINE_BINARY_ARITHMETIC_INTEGER(/, "division");
+  boilerplate(*, "multiplication");
+  boilerplate(+, "addition");
+  boilerplate(-, "subtraction");
+  boilerplate(/, "division");
+
+  #undef boilerplate
 }} // namespace meevax::kernel
 
-#undef DEFINE_BINARY_ARITHMETIC_INTEGER
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP

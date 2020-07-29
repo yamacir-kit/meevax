@@ -155,7 +155,7 @@ namespace meevax { inline namespace kernel
       }
       else // is (application . arguments)
       {
-        if (const object applicant { lookup(car(expression), syntactic_environment) };
+        if (let const applicant = lookup(car(expression), syntactic_environment);
         #if __cpp_deduction_guides
             not null(applicant) and not de_bruijn_index(car(expression), frames))
         #else
@@ -372,7 +372,7 @@ namespace meevax { inline namespace kernel
         * => (object . S) E                       C  D
         *
         * =================================================================== */
-        if (const object binding { assq(cadr(c), glocal_environment(e)) }; not binding.eqv(f))
+        if (let const binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
         {
           push(s, cadr(binding));
         }
@@ -477,7 +477,7 @@ namespace meevax { inline namespace kernel
         goto dispatch;
 
       case mnemonic::CALL:
-        if (const object callee {car(s)}; not callee)
+        if (let const callee = car(s); not callee)
         {
           static const error e {"unit is not appliciable"};
           throw e;
@@ -522,7 +522,7 @@ namespace meevax { inline namespace kernel
         goto dispatch;
 
       case mnemonic::TAIL_CALL:
-        if (object callee {car(s)}; not callee)
+        if (let callee = car(s); not callee)
         {
           throw evaluation_error {"unit is not appliciable"};
         }
@@ -606,7 +606,7 @@ namespace meevax { inline namespace kernel
         *   (3) Should set with weak reference if right hand side is newer.
         *
         * =================================================================== */
-        if (const object pare { assq(cadr(c), glocal_environment(e)) }; not pare.eqv(f))
+        if (let const pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
           if (const auto value {cadr(pare)}; not value or not car(s))
           {
@@ -905,24 +905,18 @@ namespace meevax { inline namespace kernel
         //           << ";\t\t; binding-specs = " << binding_specs << "\n"
         //           << ";\t\t; tail-body = " << tail_body << std::endl;
 
-        const object variables
-        {
-          map(
-            [](auto&& x)
+        let const variables
+          = map([](auto&& x)
             {
               return car(x).template is<pair>() ? caar(x) : car(x);
-            },
-            binding_specs)
-        };
+            }, binding_specs);
         // std::cout << ";\t\t; variables = " << variables << std::endl;
 
-        const object inits { make_list(length(variables), undefined) };
+        let const inits = make_list(length(variables), undefined);
         // std::cout << ";\t\t; inits = " << inits << std::endl;
 
-        const object head_body
-        {
-          map(
-            [this](auto&& x)
+        let const head_body
+          = map([this](auto&& x)
             {
               if (car(x).template is<pair>())
               {
@@ -936,9 +930,7 @@ namespace meevax { inline namespace kernel
               {
                 return cons(intern("set!"), x);
               }
-            },
-            binding_specs)
-        };
+            }, binding_specs);
 
         // std::cout << ";\t\t; head_body length is " << length(head_body) << std::endl;
         //
@@ -947,14 +939,13 @@ namespace meevax { inline namespace kernel
         //   std::cout << ";\t\t; " << each << std::endl;
         // }
 
-        const object result {
-          cons(
-            cons(
-              intern("lambda"), // XXX NOT HYGIENIC!!!
-              variables,
-              append(head_body, tail_body)),
-            inits)
-        };
+        let const result
+          = cons(
+              cons(
+                intern("lambda"), // XXX NOT HYGIENIC!!!
+                variables,
+                append(head_body, tail_body)),
+              inits);
 
         // std::cout << "\t\t; result = " << result << std::endl;
 
