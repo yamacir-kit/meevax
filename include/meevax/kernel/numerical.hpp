@@ -73,6 +73,81 @@ namespace meevax { inline namespace kernel
     }
   };
 
+  template <typename T>
+  struct number
+    : public std::numeric_limits<T>
+  {
+    using value_type = T;
+
+    value_type value;
+
+    template <typename... Ts>
+    explicit constexpr number(Ts&&... xs)
+      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
+    {}
+
+    template <typename U, typename = typename std::enable_if<std::is_convertible<U, value_type>::value>::type>
+    explicit constexpr number(U&& x)
+      : value { x }
+    {}
+
+  public: // conversions
+    constexpr operator value_type() const noexcept
+    {
+      return value;
+    }
+
+    auto to_string() const -> std::string
+    {
+      return boost::lexical_cast<std::string>(value);
+    }
+
+  public: // predicates
+    auto exact() const noexcept
+    {
+      if constexpr (std::is_floating_point<value_type>::value)
+      {
+        return value == std::trunc(value);
+      }
+      else if constexpr (std::is_integral<value_type>::value)
+      {
+        return true;
+      }
+    }
+
+  public: // numerical operations
+    #define boilerplate(OPERATION)                                             \
+    template <typename U>                                                      \
+    constexpr auto OPERATION(U&& x) const noexcept                             \
+    {                                                                          \
+      return std::OPERATION<value_type>(*this, std::forward<decltype(x)>(x));  \
+    }
+
+    boilerplate(plus);
+    boilerplate(minus);
+    boilerplate(multiplies);
+    boilerplate(divides);
+    boilerplate(modulus);
+    boilerplate(negate);
+
+    boilerplate(equal_to);
+    boilerplate(not_equal_to);
+    boilerplate(less);
+    boilerplate(less_equal);
+    boilerplate(greater);
+    boilerplate(greater_equal);
+
+    #undef boilerplate
+
+  public: // miscllaneous
+    auto operator ==(const object&) const -> object;
+    auto operator !=(const object&) const -> object;
+    auto operator < (const object&) const -> object;
+    auto operator <=(const object&) const -> object;
+    auto operator > (const object&) const -> object;
+    auto operator >=(const object&) const -> object;
+  };
+
   template <auto Bits>
   struct decimal;
 
