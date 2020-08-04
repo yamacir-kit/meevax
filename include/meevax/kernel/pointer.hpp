@@ -12,12 +12,12 @@
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/console/escape_sequence.hpp>
 #include <meevax/numerical/exact.hpp>
+#include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
-#include <type_traits>
 
 namespace meevax { inline namespace kernel
 {
@@ -193,30 +193,13 @@ namespace meevax { inline namespace kernel
       }
 
     private: // copy
-      #if __cpp_if_constexpr
-
       auto copy() const -> pointer override
       {
-        if constexpr (std::is_copy_constructible<binding>::value)
+        return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
         {
-          return std::make_shared<binding>(*this);
-        }
-        else
-        {
-          std::stringstream ss {};
-          ss << typeid(T).name() << " is not copy_constructible";
-          throw std::logic_error { ss.str() };
-        }
+          return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
+        }, *this);
       }
-
-      #else // __cpp_if_constexpr
-
-      auto copy() const -> pointer override
-      {
-        return top::template if_copy_constructible<binding>::call_it(*this);
-      }
-
-      #endif // __cpp_if_constexpr
 
     private: // eqv
       #if __cpp_if_constexpr
