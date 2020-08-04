@@ -262,55 +262,14 @@ namespace meevax { inline namespace kernel
       }
 
     private: // arithmetic
-      #if __cpp_if_constexpr
-
-      #define boilerplate(CONCEPT, SYMBOL)                                     \
+      #define boilerplate(TRAIT, SYMBOL)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
-        if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
-        {                                                                      \
-          return static_cast<const bound&>(*this) SYMBOL rhs;                  \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          std::stringstream port {};                                           \
-          port <<     type().name() << " and "                                 \
-               << rhs.type().name() << " are not " #CONCEPT ".";               \
-          throw std::runtime_error { port.str() };                             \
-        }                                                                      \
-      } static_assert(true, "semicolon required after this macro")
-
-      #else // __cpp_if_constexpr
-
-      #define boilerplate(CONCEPT, SYMBOL)                                     \
-      template <typename L, typename R, typename = void>                       \
-      struct if_##CONCEPT                                                      \
-      {                                                                        \
-        template <typename... Ts>                                              \
-        static auto call(Ts&&...) -> pointer                                   \
-        {                                                                      \
-          std::stringstream port {};                                           \
-          port << typeid(L).name() << " and "                                  \
-               << typeid(R).name() << " are not " #CONCEPT ".";                \
-          throw std::runtime_error { port.str() };                             \
-        }                                                                      \
-      };                                                                       \
-                                                                               \
-      template <typename L, typename R>                                        \
-      struct if_##CONCEPT<L, R, typename std::enable_if<concepts::CONCEPT<L, R>::value>::type> \
-      {                                                                        \
-        static auto call(L&& lhs, R&& rhs) -> pointer                          \
+        return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<pointer>([](auto&& lhs, auto&& rhs) \
         {                                                                      \
           return lhs SYMBOL rhs;                                               \
-        }                                                                      \
-      };                                                                       \
-                                                                               \
-      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
-      {                                                                        \
-        return if_##CONCEPT<const bound&, decltype(rhs)>::call(*this, rhs);    \
+        }, static_cast<const bound&>(*this), rhs);                             \
       } static_assert(true, "semicolon required after this macro")
-
-      #endif // __cpp_if_constexpr
 
       boilerplate(addable, +);
       boilerplate(divisible, /);
