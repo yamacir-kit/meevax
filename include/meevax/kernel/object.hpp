@@ -16,53 +16,13 @@ namespace meevax { inline namespace kernel
       return typeid(T);
     }
 
-  public: // copy
-    #if __cpp_if_constexpr
-
     virtual auto copy() const -> pointer<T>
     {
-      if constexpr (std::is_copy_constructible<T>::value)
+      return if_is_copy_constructible<T>::template invoke<pointer<T>>([](auto&&... xs)
       {
-        return std::make_shared<T>(static_cast<const T&>(*this));
-      }
-      else
-      {
-        std::stringstream port {};
-        port << typeid(T).name() << " is not copy_constructible";
-        throw std::logic_error { port.str() };
-      }
+        return std::make_shared<T>(std::forward<decltype(xs)>(xs)...);
+      }, static_cast<const T&>(*this));
     }
-
-    #else // __cpp_if_constexpr
-
-    template <typename U, typename = void>
-    struct if_copy_constructible
-    {
-      template <typename... Ts>
-      static auto call_it(Ts&&...) -> pointer<T>
-      {
-        std::stringstream port {};
-        port << typeid(U).name() << " is not copy_constructible";
-        throw std::logic_error { port.str() };
-      }
-    };
-
-    template <typename U>
-    struct if_copy_constructible<U, typename std::enable_if<std::is_copy_constructible<U>::value>::type>
-    {
-      template <typename... Ts>
-      static auto call_it(Ts&&... xs) -> pointer<T>
-      {
-        return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
-      }
-    };
-
-    virtual auto copy() const -> pointer<T>
-    {
-      return if_copy_constructible<T>::call_it(static_cast<const T&>(*this));
-    }
-
-    #endif // __cpp_if_constexpr
 
   public: // eqv
     #if __cpp_if_constexpr
