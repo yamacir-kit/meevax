@@ -7,7 +7,7 @@
 
 namespace meevax { inline namespace type_traits
 {
-  #define boilerplate(TRAIT)                                                   \
+  #define boilerplate(NAMESPACE, TRAIT)                                        \
   template <typename T, typename = void>                                       \
   struct if_##TRAIT                                                            \
   {                                                                            \
@@ -21,7 +21,7 @@ namespace meevax { inline namespace type_traits
   };                                                                           \
                                                                                \
   template <typename T>                                                        \
-  struct if_##TRAIT<T, typename std::enable_if<std::TRAIT<T>::value>::type>    \
+  struct if_##TRAIT<T, typename std::enable_if<NAMESPACE::TRAIT<T>::value>::type> \
   {                                                                            \
     template <typename R, typename F, typename... Ts>                          \
     static auto invoke(F&& f, Ts&&... xs) -> R                                 \
@@ -30,7 +30,7 @@ namespace meevax { inline namespace type_traits
     }                                                                          \
   }
 
-  boilerplate(is_copy_constructible);
+  boilerplate(std, is_copy_constructible);
 
   #undef boilerplate
 }} // namespace meevax::type_traits
