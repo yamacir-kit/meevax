@@ -508,8 +508,7 @@ namespace meevax { inline namespace kernel
     /* ==== C/C++ Derived Type Restoration ====================================
     *
     *======================================================================= */
-    template <typename U,
-              typename = typename std::enable_if<is_not_embeddable<U>::value>::type>
+    template <typename U, typename = typename std::enable_if<is_not_embeddable<U>::value>::type>
     U& as() const
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));

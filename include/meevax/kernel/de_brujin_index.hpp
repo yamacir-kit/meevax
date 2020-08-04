@@ -35,8 +35,8 @@ namespace meevax { inline namespace kernel
 
             return
               cons(
-                make<integer>(layer),
-                make<integer>(index));
+                make<integral>(layer),
+                make<integral>(index));
           }
           else if (iter.is<symbol>() and compare(iter, value))
           {
@@ -44,8 +44,8 @@ namespace meevax { inline namespace kernel
 
             return
               cons(
-                make<integer>(layer),
-                make<integer>(index));
+                make<integral>(layer),
+                make<integral>(index));
           }
 
           ++index;

@@ -756,7 +756,7 @@
 
 ; ---- Procedure (complex? obj) ------------------------------------------------
 
-; (check (complex? 3+4i) => #t)
+(check (complex? 3+4i) => #t)
 (check (complex? 3) => #t)
 
 ; ---- Procedure (real? obj) ---------------------------------------------------
@@ -907,7 +907,16 @@
 
 ; ---- Procedure (exp z) -------------------------------------------------------
 ; ---- Procedure (log z) -------------------------------------------------------
+
 ; ---- Procedure (sin z) -------------------------------------------------------
+
+(check (sin 0) => 0)
+; (check (sin (/ fl-pi 6)) => 0.5)
+; (check (sin (/ fl-pi 4)) => 0.707107)
+; (check (sin (/ fl-pi 3)) => 0.866025)
+; (check (sin (/ fl-pi 2)) => 1)
+; (check (sin fl-pi) => 0)
+
 ; ---- Procedure (cos z) -------------------------------------------------------
 ; ---- Procedure (tan z) -------------------------------------------------------
 ; ---- Procedure (asin z) ------------------------------------------------------
@@ -931,7 +940,7 @@
 
 ; ---- 6.5.6. Numerical input and output ---------------------------------------
 
-; (check (string->number "100") => 100)
+(check (string->number "100") => 100)
 ; (check (string->number "100" 16) => 256)
 ; (check (string->number "1e2") => 100.0)
 ; (check (string->number "15##") => 1500.0)
@@ -946,9 +955,9 @@
 (check (char? #\space) => #t)
 (check (char? #\newline) => #t)
 
-; (check (char<? #\A #\B) => #t)
-; (check (char<? #\a #\b) => #t)
-; (check (char<? #\0 #\9) => #t)
+(check (char<? #\A #\B) => #t)
+(check (char<? #\a #\b) => #t)
+(check (char<? #\0 #\9) => #t)
 
 ; (check (char-ci=? #\A #\a) => #t)
 

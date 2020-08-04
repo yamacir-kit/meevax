@@ -750,13 +750,14 @@
 
 (define exact?
   (lambda (z)
-    (or (the-integer? z)
-        (the-rational? z)
+    (or (integral? z)
+        (fractional? z)
         (exact-complex? z))))
 
 (define inexact?
   (lambda (z)
-    (or (the-real? z)
+    (or (decimal<32>? z)
+        (decimal<64>? z)
         (not (exact-complex? z)))))
 
 (define exact-complex?
@@ -765,7 +766,7 @@
          (exact? (real-part x))
          (exact? (imag-part x)))))
 
-(define exact-integer? the-integer?)
+(define exact-integer? integral?)
 
 (define finite?
   (lambda (z)
@@ -1045,7 +1046,7 @@
 ;  6.6 Standard Characters Library
 ; ------------------------------------------------------------------------------
 
-(define character-compare
+(define char-compare
   (lambda (x xs compare)
     (let rec ((compare compare)
               (lhs (char->integer x))
@@ -1053,27 +1054,13 @@
       (if (null? xs) #true
           (let ((rhs (char->integer (car xs))))
             (and (compare lhs rhs)
-                 (rec rhs (cdr xs) compare) ))))))
+                 (rec compare rhs (cdr xs))))))))
 
-(define char=?
-  (lambda (x . xs)
-    (character-compare x xs =)))
-
-(define char<?
-  (lambda (x . xs)
-    (character-compare x xs <)))
-
-(define char>?
-  (lambda (x . xs)
-    (character-compare x xs >)))
-
-(define char<=?
-  (lambda (x . xs)
-    (character-compare x xs <=)))
-
-(define char>=?
-  (lambda (x . xs)
-    (character-compare x xs >=)))
+(define (char=?  x . xs) (char-compare x xs =))
+(define (char<?  x . xs) (char-compare x xs <))
+(define (char>?  x . xs) (char-compare x xs >))
+(define (char<=? x . xs) (char-compare x xs <=))
+(define (char>=? x . xs) (char-compare x xs >=))
 
 (define case-insensitive-character-compare
   (lambda (x xs compare)
