@@ -24,46 +24,11 @@ namespace meevax { inline namespace kernel
       }, static_cast<const T&>(*this));
     }
 
-  public: // eqv
-    #if __cpp_if_constexpr
-
     virtual bool eqv(const pointer<T>& rhs) const
     {
-      if constexpr (concepts::equality_comparable<T>::value)
+      return if_equality_comparable<T>::template invoke<bool>([](auto&& lhs, auto&& rhs)
       {
-        if (const auto x { std::dynamic_pointer_cast<const T>(rhs) })
-        {
-          return static_cast<const T&>(*this) == *x;
-        }
-        else
-        {
-          return false;
-        }
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-    #else // __cpp_if_constexpr
-
-    template <typename U, typename = void>
-    struct if_equality_comparable
-    {
-      template <typename... Ts>
-      static auto call_it(Ts&&...) -> bool
-      {
-        return false;
-      }
-    };
-
-    template <typename U>
-    struct if_equality_comparable<U, typename std::enable_if<concepts::equality_comparable<U>::value>::type>
-    {
-      static auto call_it(const U& lhs, const pointer<T>& rhs) -> bool
-      {
-        if (const auto rhs_ { std::dynamic_pointer_cast<const U>(rhs) })
+        if (const auto rhs_ { std::dynamic_pointer_cast<const T>(rhs) })
         {
           return lhs == *rhs_;
         }
@@ -71,15 +36,8 @@ namespace meevax { inline namespace kernel
         {
           return false;
         }
-      }
-    };
-
-    virtual bool eqv(const pointer<T>& rhs) const
-    {
-      return if_equality_comparable<T>::call_it(static_cast<const T&>(*this), rhs);
+      }, static_cast<const T&>(*this), rhs);
     }
-
-    #endif // __cpp_if_constexpr
 
   public: // write
     #if __cpp_if_constexpr
