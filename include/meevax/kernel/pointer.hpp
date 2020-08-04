@@ -201,36 +201,20 @@ namespace meevax { inline namespace kernel
         }, *this);
       }
 
-    private: // eqv
-      #if __cpp_if_constexpr
-
       auto eqv(const pointer& rhs) const -> bool override
       {
-        if constexpr (concepts::equality_comparable<bound>::value)
+        return if_equality_comparable<bound>::template invoke<bool>([](auto&& lhs, auto&& rhs)
         {
-          if (const auto x { std::dynamic_pointer_cast<const bound>(rhs) })
+          if (const auto rhsp { std::dynamic_pointer_cast<const bound>(rhs) })
           {
-            return static_cast<const bound&>(*this) == *x;
+            return lhs == *rhsp;
           }
           else
           {
             return false;
           }
-        }
-        else
-        {
-          return false;
-        }
+        }, static_cast<const bound&>(*this), rhs);
       }
-
-      #else // __cpp_if_constexpr
-
-      auto eqv(const pointer& rhs) const -> bool override
-      {
-        return top::template if_equality_comparable<bound>::call_it(*this, rhs);
-      }
-
-      #endif // __cpp_if_constexpr
 
     private: // write
       #if __cpp_if_constexpr

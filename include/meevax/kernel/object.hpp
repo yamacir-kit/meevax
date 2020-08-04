@@ -28,9 +28,9 @@ namespace meevax { inline namespace kernel
     {
       return if_equality_comparable<T>::template invoke<bool>([](auto&& lhs, auto&& rhs)
       {
-        if (const auto rhs_ { std::dynamic_pointer_cast<const T>(rhs) })
+        if (const auto rhsp { std::dynamic_pointer_cast<const T>(rhs) })
         {
-          return lhs == *rhs_;
+          return lhs == *rhsp;
         }
         else
         {
