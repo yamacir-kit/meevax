@@ -16,110 +16,28 @@ namespace meevax { inline namespace kernel
       return typeid(T);
     }
 
-  public: // copy
-    #if __cpp_if_constexpr
-
     virtual auto copy() const -> pointer<T>
     {
-      if constexpr (std::is_copy_constructible<T>::value)
+      return if_is_copy_constructible<T>::template invoke<pointer<T>>([](auto&&... xs)
       {
-        return std::make_shared<T>(static_cast<const T&>(*this));
-      }
-      else
-      {
-        std::stringstream port {};
-        port << typeid(T).name() << " is not copy_constructible";
-        throw std::logic_error { port.str() };
-      }
+        return std::make_shared<T>(std::forward<decltype(xs)>(xs)...);
+      }, static_cast<const T&>(*this));
     }
-
-    #else // __cpp_if_constexpr
-
-    template <typename U, typename = void>
-    struct if_copy_constructible
-    {
-      template <typename... Ts>
-      static auto call_it(Ts&&...) -> pointer<T>
-      {
-        std::stringstream port {};
-        port << typeid(U).name() << " is not copy_constructible";
-        throw std::logic_error { port.str() };
-      }
-    };
-
-    template <typename U>
-    struct if_copy_constructible<U, typename std::enable_if<std::is_copy_constructible<U>::value>::type>
-    {
-      template <typename... Ts>
-      static auto call_it(Ts&&... xs) -> pointer<T>
-      {
-        return std::make_shared<U>(std::forward<decltype(xs)>(xs)...);
-      }
-    };
-
-    virtual auto copy() const -> pointer<T>
-    {
-      return if_copy_constructible<T>::call_it(static_cast<const T&>(*this));
-    }
-
-    #endif // __cpp_if_constexpr
-
-  public: // eqv
-    #if __cpp_if_constexpr
 
     virtual bool eqv(const pointer<T>& rhs) const
     {
-      if constexpr (concepts::equality_comparable<T>::value)
+      return if_equality_comparable<T>::template invoke<bool>([](auto&& lhs, auto&& rhs)
       {
-        if (const auto x { std::dynamic_pointer_cast<const T>(rhs) })
+        if (const auto rhsp { std::dynamic_pointer_cast<const T>(rhs) })
         {
-          return static_cast<const T&>(*this) == *x;
+          return lhs == *rhsp;
         }
         else
         {
           return false;
         }
-      }
-      else
-      {
-        return false;
-      }
+      }, static_cast<const T&>(*this), rhs);
     }
-
-    #else // __cpp_if_constexpr
-
-    template <typename U, typename = void>
-    struct if_equality_comparable
-    {
-      template <typename... Ts>
-      static auto call_it(Ts&&...) -> bool
-      {
-        return false;
-      }
-    };
-
-    template <typename U>
-    struct if_equality_comparable<U, typename std::enable_if<concepts::equality_comparable<U>::value>::type>
-    {
-      static auto call_it(const U& lhs, const pointer<T>& rhs) -> bool
-      {
-        if (const auto rhs_ { std::dynamic_pointer_cast<const U>(rhs) })
-        {
-          return lhs == *rhs_;
-        }
-        else
-        {
-          return false;
-        }
-      }
-    };
-
-    virtual bool eqv(const pointer<T>& rhs) const
-    {
-      return if_equality_comparable<T>::call_it(static_cast<const T&>(*this), rhs);
-    }
-
-    #endif // __cpp_if_constexpr
 
   public: // write
     #if __cpp_if_constexpr

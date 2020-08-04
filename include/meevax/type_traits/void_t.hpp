@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace meevax { namespace type_traits
+namespace meevax { inline namespace type_traits
 {
   #if __cpp_lib_void_t
 

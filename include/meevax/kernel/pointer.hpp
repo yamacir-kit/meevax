@@ -12,12 +12,12 @@
 #include <meevax/concepts/is_stream_insertable.hpp>
 #include <meevax/console/escape_sequence.hpp>
 #include <meevax/numerical/exact.hpp>
+#include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
-#include <type_traits>
 
 namespace meevax { inline namespace kernel
 {
@@ -193,61 +193,28 @@ namespace meevax { inline namespace kernel
       }
 
     private: // copy
-      #if __cpp_if_constexpr
-
       auto copy() const -> pointer override
       {
-        if constexpr (std::is_copy_constructible<binding>::value)
+        return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
         {
-          return std::make_shared<binding>(*this);
-        }
-        else
-        {
-          std::stringstream ss {};
-          ss << typeid(T).name() << " is not copy_constructible";
-          throw std::logic_error { ss.str() };
-        }
+          return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
+        }, *this);
       }
-
-      #else // __cpp_if_constexpr
-
-      auto copy() const -> pointer override
-      {
-        return top::template if_copy_constructible<binding>::call_it(*this);
-      }
-
-      #endif // __cpp_if_constexpr
-
-    private: // eqv
-      #if __cpp_if_constexpr
 
       auto eqv(const pointer& rhs) const -> bool override
       {
-        if constexpr (concepts::equality_comparable<bound>::value)
+        return if_equality_comparable<bound>::template invoke<bool>([](auto&& lhs, auto&& rhs)
         {
-          if (const auto x { std::dynamic_pointer_cast<const bound>(rhs) })
+          if (const auto rhsp { std::dynamic_pointer_cast<const bound>(rhs) })
           {
-            return static_cast<const bound&>(*this) == *x;
+            return lhs == *rhsp;
           }
           else
           {
             return false;
           }
-        }
-        else
-        {
-          return false;
-        }
+        }, static_cast<const bound&>(*this), rhs);
       }
-
-      #else // __cpp_if_constexpr
-
-      auto eqv(const pointer& rhs) const -> bool override
-      {
-        return top::template if_equality_comparable<bound>::call_it(*this, rhs);
-      }
-
-      #endif // __cpp_if_constexpr
 
     private: // write
       #if __cpp_if_constexpr
@@ -295,55 +262,14 @@ namespace meevax { inline namespace kernel
       }
 
     private: // arithmetic
-      #if __cpp_if_constexpr
-
-      #define boilerplate(CONCEPT, SYMBOL)                                     \
+      #define boilerplate(TRAIT, SYMBOL)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
-        if constexpr (concepts::CONCEPT<bound, decltype(rhs)>::value)          \
-        {                                                                      \
-          return static_cast<const bound&>(*this) SYMBOL rhs;                  \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          std::stringstream port {};                                           \
-          port <<     type().name() << " and "                                 \
-               << rhs.type().name() << " are not " #CONCEPT ".";               \
-          throw std::runtime_error { port.str() };                             \
-        }                                                                      \
-      } static_assert(true, "semicolon required after this macro")
-
-      #else // __cpp_if_constexpr
-
-      #define boilerplate(CONCEPT, SYMBOL)                                     \
-      template <typename L, typename R, typename = void>                       \
-      struct if_##CONCEPT                                                      \
-      {                                                                        \
-        template <typename... Ts>                                              \
-        static auto call(Ts&&...) -> pointer                                   \
-        {                                                                      \
-          std::stringstream port {};                                           \
-          port << typeid(L).name() << " and "                                  \
-               << typeid(R).name() << " are not " #CONCEPT ".";                \
-          throw std::runtime_error { port.str() };                             \
-        }                                                                      \
-      };                                                                       \
-                                                                               \
-      template <typename L, typename R>                                        \
-      struct if_##CONCEPT<L, R, typename std::enable_if<concepts::CONCEPT<L, R>::value>::type> \
-      {                                                                        \
-        static auto call(L&& lhs, R&& rhs) -> pointer                          \
+        return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<pointer>([](auto&& lhs, auto&& rhs) \
         {                                                                      \
           return lhs SYMBOL rhs;                                               \
-        }                                                                      \
-      };                                                                       \
-                                                                               \
-      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
-      {                                                                        \
-        return if_##CONCEPT<const bound&, decltype(rhs)>::call(*this, rhs);    \
+        }, static_cast<const bound&>(*this), rhs);                             \
       } static_assert(true, "semicolon required after this macro")
-
-      #endif // __cpp_if_constexpr
 
       boilerplate(addable, +);
       boilerplate(divisible, /);
