@@ -192,7 +192,7 @@ namespace meevax { inline namespace kernel
         return typeid(bound);
       }
 
-    private: // copy
+    private:
       auto copy() const -> pointer override
       {
         return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
@@ -518,7 +518,7 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  #define DEFINE_BINARY_OPERATION_DISPATCHER(SYMBOL, NAME)                     \
+  #define boilerplate(SYMBOL, NAME)                                            \
   template <typename T, typename U>                                            \
   decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
   {                                                                            \
@@ -534,12 +534,14 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  DEFINE_BINARY_OPERATION_DISPATCHER(*, "multiplication");
-  DEFINE_BINARY_OPERATION_DISPATCHER(+, "addition");
-  DEFINE_BINARY_OPERATION_DISPATCHER(-, "subtraction");
-  DEFINE_BINARY_OPERATION_DISPATCHER(/, "division");
+  boilerplate(*, "multiplication");
+  boilerplate(+, "addition");
+  boilerplate(-, "subtraction");
+  boilerplate(/, "division");
 
-  #define DEFINE_COMPARISON_DISPATCHER(SYMBOL)                                 \
+  #undef boilerplate
+
+  #define boilerplate(SYMBOL)                                                  \
   template <typename T, typename U>                                            \
   decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
   {                                                                            \
@@ -553,10 +555,15 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  DEFINE_COMPARISON_DISPATCHER(<);
-  DEFINE_COMPARISON_DISPATCHER(<=);
-  DEFINE_COMPARISON_DISPATCHER(>);
-  DEFINE_COMPARISON_DISPATCHER(>=);
+  //     equal_to => eqv or arithmetic_compare
+  // not_equal_to => eqv or arithmetic_compare
+
+  boilerplate(<);
+  boilerplate(<=);
+  boilerplate(>);
+  boilerplate(>=);
+
+  #undef boilerplate
 }} // namespace meevax::kernel
 
 namespace std
@@ -567,6 +574,4 @@ namespace std
   {};
 }
 
-#undef DEFINE_BINARY_OPERATION_DISPATCHER
-#undef DEFINE_COMPARISON_DISPATCHER
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP

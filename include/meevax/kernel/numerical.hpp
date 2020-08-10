@@ -120,7 +120,7 @@ namespace meevax { inline namespace kernel
     template <typename U>                                                      \
     constexpr auto OPERATION(U&& x) const noexcept                             \
     {                                                                          \
-      return std::OPERATION<value_type>(*this, std::forward<decltype(x)>(x));  \
+      return std::OPERATION<void>(*this, std::forward<decltype(x)>(x));        \
     }
 
     boilerplate(plus);
