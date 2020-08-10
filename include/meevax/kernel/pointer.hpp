@@ -29,21 +29,6 @@ namespace meevax { inline namespace kernel
   *========================================================================= */
   static constexpr auto word_size {sizeof(std::size_t)};
 
-  // The Embeddable Concept is specified for safety.
-  template <typename T>
-  struct is_embeddable
-  {
-    using type = typename std::decay<T>::type;
-
-    static constexpr bool value {
-      std::is_fundamental<type>::value and sizeof(T) < word_size
-    };
-  };
-
-  template <typename T>
-  using is_not_embeddable
-    = std::is_compound<typename std::decay<T>::type>;
-
   /* ==== Tagged Pointers =====================================================
   *
   */ template <typename T>                                                   /*
@@ -315,8 +300,7 @@ namespace meevax { inline namespace kernel
     * correctly).
     *
     *======================================================================== */
-    template <typename Bound, typename... Ts,
-              typename = typename std::enable_if<is_not_embeddable<Bound>::value>::type>
+    template <typename Bound, typename... Ts, typename = typename std::enable_if<std::is_compound<Bound>::value>::type>
     static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -327,7 +311,7 @@ namespace meevax { inline namespace kernel
     template <typename Bound,
               typename MemoryResource, // XXX (GCC-9 <=)
               typename... Ts,
-              typename = typename std::enable_if<is_not_embeddable<Bound>::type>::value>
+              typename = typename std::enable_if<std::is_compound<Bound>::type>::value>
     static pointer allocate_binding(MemoryResource&& resource, Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -344,36 +328,20 @@ namespace meevax { inline namespace kernel
     }
     #endif // __cpp_lib_memory_resource
 
-    /* ==== C/C++ Primitive Types Bind ========================================
+    /* ==== C/C++ Fundamental Types Bind ========================================
     *
-    * TODO: support bind for not is_embeddable types (e.g. double).
     *
     *======================================================================== */
-    template <typename U,
-              typename = typename std::enable_if<is_embeddable<U>::value>::type>
-    static pointer make_binding(U&& value)
+    template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
+    static pointer make_binding(U&&)
     {
-      static auto ignore = [](auto* value)
-      {
-        std::cerr << "; pointer\t; deleter ignored tagged-pointer (this behavior is intended)" << std::endl;
-        std::cerr << ";\t\t; category:\t" << category_of(value) << std::endl;
-        std::cerr << ";\t\t; precision:\t" << precision_of(value) << " (" << std::pow(2, precision_of(value)) << "-bits)" << std::endl;
-      };
-
-      const auto pattern {*reinterpret_cast<std::uintptr_t*>(&value)};
-
-      return
-        pointer(
-          reinterpret_cast<T*>(
-            pattern << mask_width bitor tag<U>::value),
-            ignore);
+      return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
     }
 
     decltype(auto) binding() const
     {
       assert(              std::shared_ptr<T>::get() );
       assert(not is_tagged(std::shared_ptr<T>::get()));
-
       return std::shared_ptr<T>::operator *();
     }
 
@@ -448,7 +416,7 @@ namespace meevax { inline namespace kernel
     /* ==== C/C++ Derived Type Restoration ====================================
     *
     *======================================================================= */
-    template <typename U, typename = typename std::enable_if<is_not_embeddable<U>::value>::type>
+    template <typename U, typename = typename std::enable_if<std::is_compound<U>::value>::type>
     U& as() const
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -472,8 +440,7 @@ namespace meevax { inline namespace kernel
     * TODO: Support upcast and downcast of arithmetic types
     *
     *======================================================================= */
-    template <typename U,
-              typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
+    template <typename U, typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
     auto as() const -> typename std::decay<U>::type
     {
       std::cerr << "; pointer\t; "
@@ -522,14 +489,7 @@ namespace meevax { inline namespace kernel
   template <typename T>
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& x)
   {
-    if (not x)
-    {
-      return os << console::magenta << "()" << console::reset;
-    }
-    else
-    {
-      return x.binding().write(os);
-    }
+    return (x ? x.binding().write(os) : os << console::magenta << "()") << console::reset;
   }
 
   #define boilerplate(SYMBOL, NAME)                                            \
