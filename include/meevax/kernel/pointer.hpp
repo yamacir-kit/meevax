@@ -287,6 +287,20 @@ namespace meevax { inline namespace kernel
       #undef boilerplate
     };
 
+    union // small-object optimiazation
+    {
+      bool as_bool;
+
+      char as_char; signed char as_signed_char; unsigned char as_unsigned_char;
+
+      short int as_short_int; unsigned short int as_unsigned_short_int;
+      int as_int; unsigned int as_unsigned_int;
+      long int as_long_int; unsigned long int as_unsigned_long_int;
+      long long int as_long_long_int; unsigned long long int as_unsigned_long_long_int;
+
+      float as_float; double as_double; long double as_long_dougle;
+    } aux;
+
   public:
     template <typename... Ts>
     constexpr pointer(Ts&&... xs)
