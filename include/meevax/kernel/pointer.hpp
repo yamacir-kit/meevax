@@ -247,6 +247,8 @@ namespace meevax { inline namespace kernel
       }
 
     private: // arithmetic
+      // return static_cast<const bound&>(*this).plus[typeid(rhs)](rhs);
+
       #define boilerplate(TRAIT, SYMBOL)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
