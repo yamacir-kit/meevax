@@ -145,7 +145,11 @@ clean()
 ;
 ; ==============================================================================
 "
-  $root/tools/uninstall.sh
+  if test "$uninstall" -ne 0
+  then
+    $root/tools/uninstall.sh
+  fi
+
   rm -rf $root/build
   mkdir -p $root/build
   cd $root/build
