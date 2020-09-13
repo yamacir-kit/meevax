@@ -15,6 +15,7 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/complex.hpp>
 
 namespace meevax { inline namespace kernel
 {
@@ -41,38 +42,6 @@ namespace meevax { inline namespace kernel
    *                            `-- signed and unsigned 128  = number<std::u?int128_t>
    *
    * ======================================================================== */
-  struct complex
-    : public virtual pair
-  {
-    auto real() const noexcept -> decltype(auto) { return car(*this); }
-    auto real()       noexcept -> decltype(auto) { return car(*this); }
-
-    auto imag() const noexcept -> decltype(auto) { return cdr(*this); }
-    auto imag()       noexcept -> decltype(auto) { return cdr(*this); }
-
-    // friend auto operator +(const complex& lhs, const complex& rhs)
-    // {
-    //   return
-    //     make<complex>(
-    //       lhs.real() + rhs.real(),
-    //       lhs.imag() + rhs.imag());
-    // }
-    //
-    // template <typename T>
-    // friend auto operator +(const complex& lhs, T&& rhs)
-    // {
-    //   return
-    //     make<complex>(
-    //       lhs.real() + rhs,
-    //       lhs.imag());
-    // }
-
-    friend std::ostream& operator<<(std::ostream& os, const complex& z)
-    {
-      return os << cyan << z.real() << (0 < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
-    }
-  };
-
   template <typename T>
   struct number
     : public std::numeric_limits<T>
@@ -120,7 +89,7 @@ namespace meevax { inline namespace kernel
     template <typename U>                                                      \
     constexpr auto OPERATION(U&& x) const noexcept                             \
     {                                                                          \
-      return std::OPERATION<value_type>(*this, std::forward<decltype(x)>(x));  \
+      return std::OPERATION<void>(*this, std::forward<decltype(x)>(x));        \
     }
 
     boilerplate(plus);

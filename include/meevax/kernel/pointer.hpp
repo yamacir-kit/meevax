@@ -29,21 +29,6 @@ namespace meevax { inline namespace kernel
   *========================================================================= */
   static constexpr auto word_size {sizeof(std::size_t)};
 
-  // The Embeddable Concept is specified for safety.
-  template <typename T>
-  struct is_embeddable
-  {
-    using type = typename std::decay<T>::type;
-
-    static constexpr bool value {
-      std::is_fundamental<type>::value and sizeof(T) < word_size
-    };
-  };
-
-  template <typename T>
-  using is_not_embeddable
-    = std::is_compound<typename std::decay<T>::type>;
-
   /* ==== Tagged Pointers =====================================================
   *
   */ template <typename T>                                                   /*
@@ -192,7 +177,7 @@ namespace meevax { inline namespace kernel
         return typeid(bound);
       }
 
-    private: // copy
+    private:
       auto copy() const -> pointer override
       {
         return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
@@ -262,6 +247,8 @@ namespace meevax { inline namespace kernel
       }
 
     private: // arithmetic
+      // return static_cast<const bound&>(*this).plus[typeid(rhs)](rhs);
+
       #define boilerplate(TRAIT, SYMBOL)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
@@ -287,6 +274,20 @@ namespace meevax { inline namespace kernel
       #undef boilerplate
     };
 
+    union // small-object optimiazation
+    {
+      bool as_bool;
+
+      char as_char; signed char as_signed_char; unsigned char as_unsigned_char;
+
+      short int as_short_int; unsigned short int as_unsigned_short_int;
+      int as_int; unsigned int as_unsigned_int;
+      long int as_long_int; unsigned long int as_unsigned_long_int;
+      long long int as_long_long_int; unsigned long long int as_unsigned_long_long_int;
+
+      float as_float; double as_double; long double as_long_dougle;
+    } aux;
+
   public:
     template <typename... Ts>
     constexpr pointer(Ts&&... xs)
@@ -301,8 +302,7 @@ namespace meevax { inline namespace kernel
     * correctly).
     *
     *======================================================================== */
-    template <typename Bound, typename... Ts,
-              typename = typename std::enable_if<is_not_embeddable<Bound>::value>::type>
+    template <typename Bound, typename... Ts, typename = typename std::enable_if<std::is_compound<Bound>::value>::type>
     static pointer make_binding(Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -313,7 +313,7 @@ namespace meevax { inline namespace kernel
     template <typename Bound,
               typename MemoryResource, // XXX (GCC-9 <=)
               typename... Ts,
-              typename = typename std::enable_if<is_not_embeddable<Bound>::type>::value>
+              typename = typename std::enable_if<std::is_compound<Bound>::type>::value>
     static pointer allocate_binding(MemoryResource&& resource, Ts&&... xs)
     {
       using binding = binder<Bound>;
@@ -330,36 +330,20 @@ namespace meevax { inline namespace kernel
     }
     #endif // __cpp_lib_memory_resource
 
-    /* ==== C/C++ Primitive Types Bind ========================================
+    /* ==== C/C++ Fundamental Types Bind ========================================
     *
-    * TODO: support bind for not is_embeddable types (e.g. double).
     *
     *======================================================================== */
-    template <typename U,
-              typename = typename std::enable_if<is_embeddable<U>::value>::type>
-    static pointer make_binding(U&& value)
+    template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
+    static pointer make_binding(U&&)
     {
-      static auto ignore = [](auto* value)
-      {
-        std::cerr << "; pointer\t; deleter ignored tagged-pointer (this behavior is intended)" << std::endl;
-        std::cerr << ";\t\t; category:\t" << category_of(value) << std::endl;
-        std::cerr << ";\t\t; precision:\t" << precision_of(value) << " (" << std::pow(2, precision_of(value)) << "-bits)" << std::endl;
-      };
-
-      const auto pattern {*reinterpret_cast<std::uintptr_t*>(&value)};
-
-      return
-        pointer(
-          reinterpret_cast<T*>(
-            pattern << mask_width bitor tag<U>::value),
-            ignore);
+      return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
     }
 
     decltype(auto) binding() const
     {
       assert(              std::shared_ptr<T>::get() );
       assert(not is_tagged(std::shared_ptr<T>::get()));
-
       return std::shared_ptr<T>::operator *();
     }
 
@@ -434,7 +418,7 @@ namespace meevax { inline namespace kernel
     /* ==== C/C++ Derived Type Restoration ====================================
     *
     *======================================================================= */
-    template <typename U, typename = typename std::enable_if<is_not_embeddable<U>::value>::type>
+    template <typename U, typename = typename std::enable_if<std::is_compound<U>::value>::type>
     U& as() const
     {
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -458,8 +442,7 @@ namespace meevax { inline namespace kernel
     * TODO: Support upcast and downcast of arithmetic types
     *
     *======================================================================= */
-    template <typename U,
-              typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
+    template <typename U, typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
     auto as() const -> typename std::decay<U>::type
     {
       std::cerr << "; pointer\t; "
@@ -508,17 +491,10 @@ namespace meevax { inline namespace kernel
   template <typename T>
   decltype(auto) operator<<(std::ostream& os, const pointer<T>& x)
   {
-    if (not x)
-    {
-      return os << console::magenta << "()" << console::reset;
-    }
-    else
-    {
-      return x.binding().write(os);
-    }
+    return (x ? x.binding().write(os) : os << console::magenta << "()") << console::reset;
   }
 
-  #define DEFINE_BINARY_OPERATION_DISPATCHER(SYMBOL, NAME)                     \
+  #define boilerplate(SYMBOL, NAME)                                            \
   template <typename T, typename U>                                            \
   decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
   {                                                                            \
@@ -534,12 +510,14 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  DEFINE_BINARY_OPERATION_DISPATCHER(*, "multiplication");
-  DEFINE_BINARY_OPERATION_DISPATCHER(+, "addition");
-  DEFINE_BINARY_OPERATION_DISPATCHER(-, "subtraction");
-  DEFINE_BINARY_OPERATION_DISPATCHER(/, "division");
+  boilerplate(*, "multiplication");
+  boilerplate(+, "addition");
+  boilerplate(-, "subtraction");
+  boilerplate(/, "division");
 
-  #define DEFINE_COMPARISON_DISPATCHER(SYMBOL)                                 \
+  #undef boilerplate
+
+  #define boilerplate(SYMBOL)                                                  \
   template <typename T, typename U>                                            \
   decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
   {                                                                            \
@@ -553,10 +531,15 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  DEFINE_COMPARISON_DISPATCHER(<);
-  DEFINE_COMPARISON_DISPATCHER(<=);
-  DEFINE_COMPARISON_DISPATCHER(>);
-  DEFINE_COMPARISON_DISPATCHER(>=);
+  //     equal_to => eqv or arithmetic_compare
+  // not_equal_to => eqv or arithmetic_compare
+
+  boilerplate(<);
+  boilerplate(<=);
+  boilerplate(>);
+  boilerplate(>=);
+
+  #undef boilerplate
 }} // namespace meevax::kernel
 
 namespace std
@@ -567,6 +550,4 @@ namespace std
   {};
 }
 
-#undef DEFINE_BINARY_OPERATION_DISPATCHER
-#undef DEFINE_COMPARISON_DISPATCHER
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP
