@@ -138,18 +138,16 @@ clean()
 ; ==== Clean ===================================================================
 ;
 ; Command
-;   $root/tools/uninstall.sh
+;   cd $root/build
+;   make uninstall
 ;   rm -rf $root/build
 ;   mkdir -p $root/build
 ;   cd $root/build
 ;
 ; ==============================================================================
 "
-  if test "$uninstall" -ne 0
-  then
-    $root/tools/uninstall.sh
-  fi
-
+  cd $root/build
+  make uninstall
   rm -rf $root/build
   mkdir -p $root/build
   cd $root/build

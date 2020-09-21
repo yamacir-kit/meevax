@@ -207,3 +207,11 @@ write_basic_package_version_file(
 install( # Install Package Version File
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   DESTINATION share/cmake/${PROJECT_NAME})
+
+
+# ==============================================================================
+#   Uninstallation
+# ==============================================================================
+
+add_custom_target(uninstall
+  COMMAND xargs sudo rm -rfv < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt)
