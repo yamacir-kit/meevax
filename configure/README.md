@@ -117,7 +117,7 @@ make
 <br/>
 
 
-## Liscence
+## License
 
 ***TODO: Meevax license notation (probably Apache License 2.0 will be set)***
 

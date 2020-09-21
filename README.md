@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.2.639.
+Development HEAD: 0.2.640.
 
 ### Characteristic Features
 
@@ -117,7 +117,7 @@ make
 <br/>
 
 
-## Liscence
+## License
 
 ***TODO: Meevax license notation (probably Apache License 2.0 will be set)***
 
