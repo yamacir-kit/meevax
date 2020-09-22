@@ -115,6 +115,7 @@ endforeach()
 # ==============================================================================
 
 add_library(kernel SHARED "")
+add_library(Meevax::kernel ALIAS kernel)
 
 target_sources(kernel
   PRIVATE
@@ -134,13 +135,12 @@ target_link_libraries(kernel
   PUBLIC
     ${CMAKE_DL_LIBS}
     gmp
-    stdc++fs
-    )
+    stdc++fs)
 
 set_target_properties(kernel PROPERTIES
-    SOVERSION ${PROJECT_VERSION_MAJOR}
-    VERSION ${PROJECT_VERSION}
-    OUTPUT_NAME ${PROJECT_NAME})
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  OUTPUT_NAME ${PROJECT_NAME})
 
 install(
   TARGETS kernel
@@ -167,7 +167,7 @@ add_executable(evaluator
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(evaluator
-  PRIVATE kernel)
+  PRIVATE Meevax::kernel)
 
 set_target_properties(evaluator PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME})
@@ -190,12 +190,11 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
 
-  set_target_properties(${TARGET_NAME}
-    PROPERTIES
-      SOVERSION ${PROJECT_VERSION_MAJOR}
-        VERSION ${PROJECT_VERSION})
+  set_target_properties(${TARGET_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
 
-  target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME})
+  target_link_libraries(${TARGET_NAME} PUBLIC Meevax::kernel)
 
   install(
     TARGETS ${TARGET_NAME}
