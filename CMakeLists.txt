@@ -232,3 +232,7 @@ add_custom_target (test-r4rs
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/bin/ice
           ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
+
+add_custom_target (test-examples
+  ALL
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/examples/use-as-embedded-language/test.sh -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})

@@ -1,12 +1,13 @@
 #!/bin/sh -eu
 
+# THIS SCRIPT IS DEPRECATED
+
 working_directory=$(pwd -P)
 
 root="$(git rev-parse --show-toplevel)"
 
 autotest=0
 clean_build=0
-install=0
 compile='g++-7'
 install=0
 job=1
