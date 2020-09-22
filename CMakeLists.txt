@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 # ==============================================================================
 #   Project Version
 # ==============================================================================
+
 set(MAJOR 0)
 set(MAJOR_OFFSET 0)
 
@@ -18,9 +19,11 @@ else()
   set(PATCH 0)
 endif()
 
+
 # ==============================================================================
 #   Project Settings
 # ==============================================================================
+
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -41,18 +44,22 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 
+
 # ==============================================================================
 #   Configure README
 # ==============================================================================
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
 
+
 # ==============================================================================
 #   Configure Headers
 # ==============================================================================
+
 string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
@@ -76,9 +83,11 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
+
 # ==============================================================================
 #   Convert Scripts to ELF Binary
 # ==============================================================================
+
 file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.ss)
 
 set(${PROJECT_NAME}_LAYERS "")
@@ -100,43 +109,42 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach()
 
+
 # ==============================================================================
-#   Build Meevax Kernel
+#   Meevax Kernel
 # ==============================================================================
 
-add_library(${PROJECT_NAME} SHARED)
+add_library(kernel SHARED "")
 
-target_sources(${PROJECT_NAME}
+target_sources(kernel
   PRIVATE
     ${${PROJECT_NAME}_LAYERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp)
 
-target_include_directories(${PROJECT_NAME}
+target_include_directories(kernel
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(${PROJECT_NAME}
-
+target_link_libraries(kernel
   PRIVATE
     Boost::boost
     Threads::Threads
-
   PUBLIC
-    dl
+    ${CMAKE_DL_LIBS}
     gmp
     stdc++fs
-  )
+    )
 
-set_target_properties(${PROJECT_NAME}
-  PROPERTIES
+set_target_properties(kernel PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}
-      VERSION ${PROJECT_VERSION})
+    VERSION ${PROJECT_VERSION}
+    OUTPUT_NAME ${PROJECT_NAME})
 
-install( # Install Kernel
-  TARGETS ${PROJECT_NAME}
-  EXPORT  ${PROJECT_NAME}-config # Generate Configuration
+install(
+  TARGETS kernel
+  EXPORT ${PROJECT_NAME}-config # Generate Configuration
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
@@ -146,9 +154,10 @@ install( # Install generated config.cmake
   NAMESPACE Meevax::
   DESTINATION share/cmake/${PROJECT_NAME})
 
-install( # Install Headers
+install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
   DESTINATION include)
+
 
 # ==============================================================================
 #   Meevax Evaluator
@@ -158,7 +167,7 @@ add_executable(evaluator
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 target_link_libraries(evaluator
-  PRIVATE ${PROJECT_NAME})
+  PRIVATE kernel)
 
 set_target_properties(evaluator PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME})
@@ -169,7 +178,7 @@ install(
 
 
 # ==============================================================================
-#   Build Meevax Standard Libraries (Shared Objects)
+#   Meevax Standard Libraries
 # ==============================================================================
 
 file(GLOB
@@ -188,7 +197,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 
   target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME})
 
-  install( # Will be installed automatically
+  install(
     TARGETS ${TARGET_NAME}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib)
