@@ -10,14 +10,14 @@ on: push
 
 jobs:
   Ubuntu:
-    runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-18.04 ]
         compiler: [ g++-7, g++-9, clang++-6.0, clang++-9 ]
         configuration: [ Debug, Release ]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v1
@@ -47,13 +47,3 @@ jobs:
       - name: Test
         working-directory: build
         run: make test
-
-      # - name: R4RS standard tests
-      #   run: ice standard/experimental/srfi-78.ss test/r4rs.ss
-      #
-      # - name: Chibi-Scheme basic tests
-      #   run: ice standard/experimental/srfi-78.ss test/chibi-basic.ss
-      #
-      # - name: Example of use as embedded language
-      #   working-directory: examples/use-as-embedded-language
-      #   run: ./test.sh

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script is currently unused
+# THIS SCRIPT IS DEPRECATED
 
 root="$(git rev-parse --show-toplevel)"
 
