@@ -36,7 +36,7 @@ jobs:
 
       - name: Make
         working-directory: build
-        run: make -j1
+        run: make
 
       - name: Install
         working-directory: build
@@ -44,12 +44,16 @@ jobs:
           sudo make install
           sudo ldconfig
 
-      - name: R4RS standard tests
-        run: ice standard/experimental/srfi-78.ss test/r4rs.ss
+      - name: Test
+        working-directory: build
+        run: make test
 
-      - name: Chibi-Scheme basic tests
-        run: ice standard/experimental/srfi-78.ss test/chibi-basic.ss
-
-      - name: Example of use as embedded language
-        working-directory: examples/use-as-embedded-language
-        run: ./test.sh
+      # - name: R4RS standard tests
+      #   run: ice standard/experimental/srfi-78.ss test/r4rs.ss
+      #
+      # - name: Chibi-Scheme basic tests
+      #   run: ice standard/experimental/srfi-78.ss test/chibi-basic.ss
+      #
+      # - name: Example of use as embedded language
+      #   working-directory: examples/use-as-embedded-language
+      #   run: ./test.sh

@@ -216,23 +216,25 @@ install( # Install Package Version File
 add_custom_target (uninstall
   COMMAND xargs sudo rm -rfv < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt)
 
+
 # ==============================================================================
 #   make test
 # ==============================================================================
 
-set (${PROJECT_NAME}_LEAK_CHECK
-  valgrind --error-exitcode=1
-           --leak-check=full
-           --log-file=${CMAKE_CURRENT_BINARY_DIR}/valgrind-log.cpp
-           --show-leak-kinds=all
-           --verbose)
+enable_testing()
 
-add_custom_target (test-r4rs
-  ALL
+add_test(
+  NAME R4RS-Examples
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/bin/ice
           ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
 
-add_custom_target (test-examples
-  ALL
+add_test(
+  NAME Chibi-Scheme-Basic-Tests
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/bin/ice
+          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
+
+add_test(
+  NAME Meevax-Examples
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/examples/use-as-embedded-language/test.sh -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
