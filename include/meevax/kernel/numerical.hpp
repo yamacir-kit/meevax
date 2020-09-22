@@ -90,7 +90,7 @@ namespace meevax { inline namespace kernel
     constexpr auto OPERATION(U&& x) const noexcept                             \
     {                                                                          \
       return std::OPERATION<void>(*this, std::forward<decltype(x)>(x));        \
-    }
+    } static_assert(true)
 
     boilerplate(plus);
     boilerplate(minus);

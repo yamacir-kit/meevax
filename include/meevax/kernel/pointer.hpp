@@ -292,6 +292,7 @@ namespace meevax { inline namespace kernel
     template <typename... Ts>
     constexpr pointer(Ts&&... xs)
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
+      , aux {}
     {}
 
     /* ==== C/C++ Derived Types Bind ==========================================

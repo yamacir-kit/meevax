@@ -101,17 +101,10 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
 endforeach(EACH)
 
 # ==============================================================================
-#   Build Meevax Kernel (Shared Object)
+#   Build Meevax Kernel
 # ==============================================================================
-option(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY "Build lib${PROJECT_NAME} as a static library." OFF)
 
-if(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY)
-  add_library(${PROJECT_NAME} STATIC)
-else()
-  add_library(${PROJECT_NAME} SHARED)
-endif()
-
-# add_library(Meevax::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME}
   PRIVATE

@@ -157,10 +157,15 @@ namespace meevax { inline namespace kernel
       {
         return (*iter).second;
       }
+      else if (const auto [position, success] { symbols.emplace(s, make<symbol>(s)) }; success)
+      {
+        return (*position).second;
+      }
       else
       {
-        [[maybe_unused]] const auto [position, success] {symbols.emplace(s, make<symbol>(s))};
-        return (*position).second;
+        std::stringstream port {};
+        port << __FILE__ << ":" << __LINE__;
+        throw std::runtime_error { port.str() };
       }
     }
 
