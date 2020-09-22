@@ -69,14 +69,6 @@ namespace meevax { inline namespace kernel
     }
 
   public:
-    [[deprecated]] void display_abstract() const
-    {
-      write( //  10        20        30        40        50        60        70        80\n"
-        "; Abstract:                                                                     \n"
-        ";   ICE is Incremental Compiler/Evaluator of Lisp-1 programming language Meevax.\n"
-        ";                                                                               \n");
-    }
-
     auto display_version() const -> const auto&
     {
       write( //  10        20        30        40        50        60        70        80\n"
@@ -125,10 +117,10 @@ namespace meevax { inline namespace kernel
         ";                 Meevax Lisp System ", current_version.major(), " - Revision ", current_version.minor(), " Patch ", current_version.patch(), "\n"
         ";\n"
         SECTION_HEADING("NAME")
-        ";        ice - Meevax incremental compiler/evaluator.\n"
+        ";        meevax - Meta-Extensible EVAluator.\n"
         ";\n"
         SECTION_HEADING("SYNOPSIS")
-        ";        ice [option]... [path]...\n"
+        ";        meevax [option]... [path]...\n"
         ";\n"
         SECTION_HEADING("DESCRIPTION")
         ";\n"

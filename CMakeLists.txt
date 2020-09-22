@@ -29,7 +29,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-strict-aliasing")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
@@ -98,7 +98,7 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
          ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-endforeach(EACH)
+endforeach()
 
 # ==============================================================================
 #   Build Meevax Kernel
@@ -151,21 +151,27 @@ install( # Install Headers
   DESTINATION include)
 
 # ==============================================================================
-#   Meevax ICE (Incremental Compiler/Evaluator)
+#   Meevax Evaluator
 # ==============================================================================
-add_executable(ice
+
+add_executable(evaluator
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(ice
+target_link_libraries(evaluator
   PRIVATE ${PROJECT_NAME})
 
+set_target_properties(evaluator PROPERTIES
+  OUTPUT_NAME ${PROJECT_NAME})
+
 install(
-  TARGETS ice
+  TARGETS evaluator
   RUNTIME DESTINATION bin)
+
 
 # ==============================================================================
 #   Build Meevax Standard Libraries (Shared Objects)
 # ==============================================================================
+
 file(GLOB
   ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.cpp)
@@ -188,9 +194,11 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
     LIBRARY DESTINATION lib)
 endforeach()
 
+
 # ==============================================================================
 #   Package Version
 # ==============================================================================
+
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
@@ -218,13 +226,13 @@ enable_testing()
 
 add_test(
   NAME R4RS-Examples
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/bin/ice
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/bin/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
 
 add_test(
   NAME Chibi-Scheme-Basic-Tests
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/bin/ice
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/bin/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
 
