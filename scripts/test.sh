@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# THIS SCRIPT IS DEPRECATED
+
 root="$(git rev-parse --show-toplevel)"
 
 exit_code=0

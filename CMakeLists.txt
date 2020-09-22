@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 # ==============================================================================
 #   Project Version
 # ==============================================================================
+
 set(MAJOR 0)
-set(MAJOR_OFFSET   0)
+set(MAJOR_OFFSET 0)
 
 set(MINOR 2)
 set(MINOR_OFFSET 1000)
@@ -18,9 +19,11 @@ else()
   set(PATCH 0)
 endif()
 
+
 # ==============================================================================
 #   Project Settings
 # ==============================================================================
+
 project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -29,30 +32,36 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-strict-aliasing")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG")
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+include(GNUInstallDirs)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 
+
 # ==============================================================================
 #   Configure README
 # ==============================================================================
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
 
+
 # ==============================================================================
 #   Configure Headers
 # ==============================================================================
+
 string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
@@ -76,9 +85,11 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
+
 # ==============================================================================
 #   Convert Scripts to ELF Binary
 # ==============================================================================
+
 file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.ss)
 
 set(${PROJECT_NAME}_LAYERS "")
@@ -98,81 +109,78 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
          ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 
   list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-endforeach(EACH)
+endforeach()
+
 
 # ==============================================================================
-#   Build Meevax Kernel (Shared Object)
+#   Meevax Kernel
 # ==============================================================================
-option(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY "Build lib${PROJECT_NAME} as a static library." OFF)
 
-if(${PROJECT_NAME}_BUILD_AS_STATIC_LIBRARY)
-  add_library(${PROJECT_NAME} STATIC)
-else()
-  add_library(${PROJECT_NAME} SHARED)
-endif()
+add_library(kernel SHARED "")
+add_library(Meevax::kernel ALIAS kernel)
 
-# add_library(Meevax::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+target_sources(kernel PRIVATE
+  ${${PROJECT_NAME}_LAYERS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp)
 
-target_sources(${PROJECT_NAME}
-  PRIVATE
-    ${${PROJECT_NAME}_LAYERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp)
+target_include_directories(kernel PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_link_libraries(kernel PRIVATE
+  Boost::boost
+  Threads::Threads)
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(kernel PUBLIC
+  ${CMAKE_DL_LIBS}
+  gmp
+  stdc++fs)
 
-  PRIVATE
-    Boost::boost
-    Threads::Threads
+set_target_properties(kernel PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  OUTPUT_NAME ${PROJECT_NAME})
 
-  PUBLIC
-    dl
-    gmp
-    stdc++fs
-  )
-
-set_target_properties(${PROJECT_NAME}
-  PROPERTIES
-    SOVERSION ${PROJECT_VERSION_MAJOR}
-      VERSION ${PROJECT_VERSION})
-
-install( # Install Kernel
-  TARGETS ${PROJECT_NAME}
-  EXPORT  ${PROJECT_NAME}-config # Generate Configuration
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib)
+install(
+  TARGETS kernel
+  EXPORT ${PROJECT_NAME}-config # Generate Configuration
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 install( # Install generated config.cmake
   EXPORT ${PROJECT_NAME}-config
   EXPORT_LINK_INTERFACE_LIBRARIES
   NAMESPACE Meevax::
-  DESTINATION share/cmake/${PROJECT_NAME})
-
-install( # Install Headers
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-  DESTINATION include)
-
-# ==============================================================================
-#   Meevax ICE (Incremental Compiler/Evaluator)
-# ==============================================================================
-add_executable(ice
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
-
-target_link_libraries(ice
-  PRIVATE ${PROJECT_NAME})
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
 install(
-  TARGETS ice
-  RUNTIME DESTINATION bin)
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_INSTALL_INCLUDEDIR}/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 
 # ==============================================================================
-#   Build Meevax Standard Libraries (Shared Objects)
+#   Meevax Evaluator
 # ==============================================================================
+
+add_executable(evaluator
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+
+target_link_libraries(evaluator
+  PRIVATE Meevax::kernel)
+
+set_target_properties(evaluator PROPERTIES
+  OUTPUT_NAME ${PROJECT_NAME})
+
+install(
+  TARGETS evaluator
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+
+# ==============================================================================
+#   Meevax Standard Libraries
+# ==============================================================================
+
 file(GLOB
   ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.cpp)
@@ -182,22 +190,23 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
 
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
 
-  set_target_properties(${TARGET_NAME}
-    PROPERTIES
-      SOVERSION ${PROJECT_VERSION_MAJOR}
-        VERSION ${PROJECT_VERSION})
+  set_target_properties(${TARGET_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
 
-  target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME})
+  target_link_libraries(${TARGET_NAME} PUBLIC Meevax::kernel)
 
-  install( # Will be installed automatically
+  install(
     TARGETS ${TARGET_NAME}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib)
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endforeach()
+
 
 # ==============================================================================
 #   Package Version
 # ==============================================================================
+
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
@@ -206,4 +215,39 @@ write_basic_package_version_file(
 
 install( # Install Package Version File
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-  DESTINATION share/cmake/${PROJECT_NAME})
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+
+
+# ==============================================================================
+#   make uninstall
+# ==============================================================================
+
+add_custom_target(uninstall
+  # COMMAND xargs sudo rm -rfv < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
+  COMMAND sudo rm -rfv ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
+  COMMAND sudo rm -rfv ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+  COMMAND sudo rm -rfv ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
+  COMMAND sudo rm -rfv ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+
+
+# ==============================================================================
+#   make test
+# ==============================================================================
+
+enable_testing()
+
+add_test(
+  NAME R4RS-Examples
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
+
+add_test(
+  NAME Chibi-Scheme-Basic-Tests
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
+
+add_test(
+  NAME Meevax-Examples
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/examples/use-as-embedded-language/test.sh -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})

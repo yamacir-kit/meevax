@@ -1,12 +1,13 @@
 #!/bin/sh -eu
 
+# THIS SCRIPT IS DEPRECATED
+
 working_directory=$(pwd -P)
 
 root="$(git rev-parse --show-toplevel)"
 
 autotest=0
 clean_build=0
-install=0
 compile='g++-7'
 install=0
 job=1
@@ -138,18 +139,16 @@ clean()
 ; ==== Clean ===================================================================
 ;
 ; Command
-;   $root/tools/uninstall.sh
+;   cd $root/build
+;   make uninstall
 ;   rm -rf $root/build
 ;   mkdir -p $root/build
 ;   cd $root/build
 ;
 ; ==============================================================================
 "
-  if test "$uninstall" -ne 0
-  then
-    $root/tools/uninstall.sh
-  fi
-
+  cd $root/build
+  make uninstall
   rm -rf $root/build
   mkdir -p $root/build
   cd $root/build

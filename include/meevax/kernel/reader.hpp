@@ -125,10 +125,10 @@ namespace meevax { inline namespace kernel
     template <std::size_t R>
     auto digit() -> const std::string;
 
-    template <> auto digit< 2>() -> const std::string { return "[01]"; };
-    template <> auto digit< 8>() -> const std::string { return "[01234567]"; };
-    template <> auto digit<10>() -> const std::string { return "\\d"; };
-    template <> auto digit<16>() -> const std::string { return "[" + digit<10>() + "abcdef]"; };
+    template <> auto digit< 2>() -> const std::string { return "[01]"; }
+    template <> auto digit< 8>() -> const std::string { return "[01234567]"; }
+    template <> auto digit<10>() -> const std::string { return "\\d"; }
+    template <> auto digit<16>() -> const std::string { return "[" + digit<10>() + "abcdef]"; }
 
     template <std::size_t R>
     auto digits(const std::string& quantifier)
@@ -147,40 +147,40 @@ namespace meevax { inline namespace kernel
     auto exactness() -> const std::string
     {
       return "(#e|#i)?";
-    };
+    }
 
     auto sign() -> const std::string
     {
       return "[\\+-]?";
-    };
+    }
 
     auto infnan() -> const std::string
     {
       return "[\\+-](inf|nan)\\.0";
-    };
+    }
 
     auto suffix() -> const std::string
     {
       return "(e" + sign() + digits<10>("+") + ")?";
-    };
+    }
 
     template <std::size_t R = 10>
     auto prefix() -> const std::string
     {
       return "(" + radix<R>() + exactness() + "|" + exactness() + radix<R>() + ")";
-    };
+    }
 
     template <std::size_t R = 10>
     auto unsigned_integer() -> const std::string
     {
       return digits<R>("+");
-    };
+    }
 
     template <std::size_t R = 10>
     auto signed_integer() -> const std::string
     {
       return sign() + unsigned_integer<R>();
-    };
+    }
 
     template <std::size_t R = 10>
     auto decimal() -> const std::string
@@ -188,7 +188,7 @@ namespace meevax { inline namespace kernel
       return "(" + unsigned_integer<R>()                   + suffix() +
              "|"                    "\\." + digits<R>("+") + suffix() +
              "|" + digits<R>("+") + "\\." + digits<R>("*") + suffix() + ")";
-    };
+    }
 
     template <std::size_t R>
     auto unsigned_real() -> const std::string
@@ -196,13 +196,13 @@ namespace meevax { inline namespace kernel
       return "(" + unsigned_integer<R>()                               +
              "|" + unsigned_integer<R>() + "/" + unsigned_integer<R>() +
              "|" +          decimal<R>()                               + ")";
-    };
+    }
 
     template <std::size_t R = 10>
     auto signed_real() -> const std::string
     {
       return "(" + sign() + unsigned_real<R>() + "|" + infnan() + ")";
-    };
+    }
 
     template <std::size_t R = 10>
     auto signed_complex() -> const std::string
@@ -216,13 +216,13 @@ namespace meevax { inline namespace kernel
              "|"     +                    "("       +           infnan() + ")i"
              "|"     +                    "([\\+-]"                        ")i"
              ")";
-    };
+    }
 
     template <std::size_t R = 10>
     auto number() -> const std::string
     {
       return prefix<R>() + signed_complex<R>();
-    };
+    }
   } // inline namespace regex
 
   template <std::size_t R = 10>

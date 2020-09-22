@@ -17,4 +17,9 @@ cmake .. "$@"
 
 make
 
-valgrind --verbose --leak-check=full --show-leak-kinds=all --error-exitcode=1 $here/build/example
+valgrind \
+  --error-exitcode=1 \
+  --leak-check=full \
+  --show-leak-kinds=all \
+  --verbose \
+  $here/build/example
