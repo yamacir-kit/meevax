@@ -41,7 +41,7 @@ subset of **R7RS Scheme** implementation.
 0. [Overview](#Overview)
 1. [Requirements](#Requirements)
 2. [Installation](#Installation)
-3. [License](#License)
+3. [References](#References)
 4. [Resources](#Resources)
 
 <br/>
@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.2.647.
+Development HEAD: 0.2.648.
 
 ### Characteristic Features
 
@@ -81,8 +81,8 @@ An subset of R7RS-small.
 
 ### Tools
 
--   Compiler supports C++17 (GCC 7.5.0 or later, Clang 6.0.0 or later)
--   CMake 3.10.2
+-   Compiler supports C++17 (GCC >= 7.5.0, Clang >= 6.0.0)
+-   CMake (>= 3.10.2)
 -   GNU Make
 -   GNU Binutils
 -   [**Boost C++ Libraries**](https://www.boost.org/) (1.65.1 or later)
@@ -95,29 +95,44 @@ An subset of R7RS-small.
 
 ## Installation
 
-Installation has been tested on Ubuntu 18.04.
-See `.github/workflows/main.yaml` for the latest procedure.
 
-### Ubuntu 18.04
+### 1. Setup
 
-``` shell
+Valgrind is used for testing to check for memory leaks.
+If you do not run `make test`, which will be described later, you do not need to install it.
+
+``` bash
 sudo apt update
-sudo apt install libboost-all-dev libgmp-dev
+sudo apt install libboost-all-dev libgmp-dev valgrind
+```
 
+### 2. Clone
+
+``` bash
 git clone https://github.com/yamacir-kit/meevax.git
 cd meevax
-
-mkdir -p build
-cd build
-
-cmake ..
-make
 ```
+
+### 3. Configure
+
+``` bash
+mkdir -p build && cd $_
+cmake .. -DCMAKE_BUILD_TYPE=Release
+```
+
+### 4. Make
+
+| Command          | Description |
+|:-----------------|:--|
+| `make`           |
+| `make install`   | Don't forget to run `sudo ldconfig`.
+| `make test`      |
+| `make uninstall` |
 
 <br/>
 
 
-## License
+## Liscence
 
 ***TODO: Meevax license notation (probably Apache License 2.0 will be set)***
 
@@ -129,11 +144,14 @@ make
 <br/>
 
 
-## Resources
+## References
 
 - [1] A.shinn, J.Cowan, A. A. Greckler, editors, "<cite><a href="https://bitbucket.org/cowan/r7rs/raw/tip/rnrs/r7rs.pdf">Revised<sup>7</sup> Report on the Algorithmic Language Scheme</a></cite>", Technical report, 2013.
 
-<!--
-*   TinyScheme ([http://tinyscheme.sourceforge.net/](http://tinyscheme.sourceforge.net/))
-*   SECDR-Scheme ([http://www.maroon.dti.ne.jp/nagar17/mulasame/](http://www.maroon.dti.ne.jp/nagar17/mulasame/))
--->
+<br/>
+
+
+## Resources
+
+*   [TinyScheme](http://tinyscheme.sourceforge.net/)
+*   [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)
