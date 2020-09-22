@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 #   Project Version
 # ==============================================================================
 set(MAJOR 0)
-set(MAJOR_OFFSET   0)
+set(MAJOR_OFFSET 0)
 
 set(MINOR 2)
 set(MINOR_OFFSET 1000)
@@ -210,8 +210,25 @@ install( # Install Package Version File
 
 
 # ==============================================================================
-#   Uninstallation
+#   make uninstall
 # ==============================================================================
 
-add_custom_target(uninstall
+add_custom_target (uninstall
   COMMAND xargs sudo rm -rfv < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt)
+
+# ==============================================================================
+#   make test
+# ==============================================================================
+
+set (${PROJECT_NAME}_LEAK_CHECK
+  valgrind --error-exitcode=1
+           --leak-check=full
+           --log-file=${CMAKE_CURRENT_BINARY_DIR}/valgrind-log.cpp
+           --show-leak-kinds=all
+           --verbose)
+
+add_custom_target (test-r4rs
+  ALL
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/bin/ice
+          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
