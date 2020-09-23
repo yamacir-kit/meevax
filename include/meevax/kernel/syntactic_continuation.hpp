@@ -327,12 +327,12 @@ namespace meevax { inline namespace kernel
             each);
         }
 
-        std::cerr << ";\t\t; exported identifiers are" << std::endl;
-
-        for ([[maybe_unused]] const auto& [key, value] : external_symbols)
-        {
-          std::cerr << ";\t\t;   " << value << std::endl;
-        }
+        // std::cerr << ";\t\t; exported identifiers are" << std::endl;
+        //
+        // for ([[maybe_unused]] const auto& [key, value] : external_symbols)
+        // {
+        //   std::cerr << ";\t\t;   " << value << std::endl;
+        // }
 
         return unspecified;
       };
@@ -357,10 +357,10 @@ namespace meevax { inline namespace kernel
           xs.as<syntactic_continuation>().expand(xs, cons(xs, unit));
         }
 
-        for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
-        {
-          std::cerr << ";\t\t; importing " << value << std::endl;
-        }
+        // for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
+        // {
+        //   std::cerr << ";\t\t; importing " << value << std::endl;
+        // }
 
         return unspecified;
       };
