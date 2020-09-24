@@ -34,39 +34,22 @@ namespace meevax { inline namespace kernel
     static inline const version current_version {};
     static inline const feature current_feature {};
 
-    object develop  { unit };
     object paths    { unit };
     object variable { unit };
 
-    auto debugging() const
-    {
-      return debug_mode.as<boolean>().value;
-    }
+    #define BOILERPLATE(MODE)                                                  \
+    auto in_##MODE() const                                                     \
+    {                                                                          \
+      return MODE.is<boolean>() and MODE.as<boolean>();                        \
+    } static_assert(true)
 
-    auto developing(const object& x) const
-    {
-      return find(develop, functional::curry(eq)(x));
-    }
+    BOILERPLATE(debug_mode);
+    BOILERPLATE(interactive_mode);
+    BOILERPLATE(quiet_mode);
+    BOILERPLATE(trace_mode);
+    BOILERPLATE(verbose_mode);
 
-    auto interactive() const
-    {
-      return interactive_mode.as<boolean>().value;
-    }
-
-    auto quiet() const
-    {
-      return quiet_mode.as<boolean>().value;
-    }
-
-    auto tracing() const
-    {
-      return trace_mode.as<boolean>().value;
-    }
-
-    auto verbose() const
-    {
-      return verbose_mode.as<boolean>().value;
-    }
+    #undef BOILERPLATE
 
   public:
     auto display_version() const -> const auto&
@@ -280,11 +263,6 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<std::string> long_options_
     {
-      std::make_pair("develop", [&](auto&&... xs) mutable
-      {
-        return develop = cons(std::forward<decltype(xs)>(xs)..., develop);
-      }),
-
       std::make_pair("echo", [](const auto& xs)
       {
         std::cout << xs << std::endl;
@@ -462,7 +440,7 @@ namespace meevax { inline namespace kernel
 
       static const auto rc { path(::getenv("HOME")) / ".meevaxrc" };
 
-      if (interactive() and std::experimental::filesystem::exists(rc))
+      if (in_interactive_mode() and std::experimental::filesystem::exists(rc))
       {
         paths = cons(make<path>(rc), paths);
       }

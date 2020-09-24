@@ -97,12 +97,11 @@ namespace meevax { inline namespace kernel
     using debugger::indent;
     using debugger::shift;
 
-    using configurator::debugging;
-    using configurator::developing;
-    using configurator::interactive;
-    using configurator::quiet;
-    using configurator::tracing;
-    using configurator::verbose;
+    using configurator::in_debug_mode;
+    using configurator::in_interactive_mode;
+    using configurator::in_quiet_mode;
+    using configurator::in_trace_mode;
+    using configurator::in_verbose_mode;
 
   public: // Accessors
     auto current_expression() const -> const auto& { return car(form()); }

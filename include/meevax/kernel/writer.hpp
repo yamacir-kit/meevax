@@ -20,11 +20,10 @@ namespace meevax { inline namespace kernel
     explicit writer()
     {}
 
-    Import_Const(SK, debugging);
-    Import_Const(SK, developing);
-    Import_Const(SK, interactive);
-    Import_Const(SK, quiet);
-    Import_Const(SK, verbose);
+    Import_Const(SK, in_debug_mode);
+    Import_Const(SK, in_interactive_mode);
+    Import_Const(SK, in_quiet_mode);
+    Import_Const(SK, in_verbose_mode);
 
   public:
     template <typename... Ts>
@@ -53,38 +52,33 @@ namespace meevax { inline namespace kernel
 
     auto standard_output_port() const -> auto&
     {
-      return quiet() ? standard_null_port() : std::cout;
+      return in_quiet_mode() ? standard_null_port() : std::cout;
     }
 
     auto standard_error_port() const -> auto&
     {
-      return quiet() ? standard_null_port() : std::cerr;
+      return in_quiet_mode() ? standard_null_port() : std::cerr;
     }
 
     auto standard_verbose_port() const -> auto&
     {
-      return quiet() or not verbose() ? standard_null_port() : std::cout;
+      return in_quiet_mode() or not in_verbose_mode() ? standard_null_port() : std::cout;
     }
 
     auto standard_debug_port() const -> auto&
     {
-      return quiet() or not debugging() ? standard_null_port() : std::cerr;
+      return in_quiet_mode() or not in_debug_mode() ? standard_null_port() : std::cerr;
     }
 
     auto standard_interaction_port() const -> auto&
     {
-      return quiet() or not interactive() ? standard_null_port() : std::cout;
+      return in_quiet_mode() or not in_interactive_mode() ? standard_null_port() : std::cout;
     }
 
   public:
     auto current_output_port() const -> decltype(auto)
     {
       return standard_output_port(); // XXX R7RS INCOMPATIBLE!
-    }
-
-    auto current_output_port(const object& feature) const -> decltype(auto)
-    {
-      return developing(feature).eqv(f) ? standard_null_port() : current_output_port();
     }
 
     auto current_error_port() const -> decltype(auto)

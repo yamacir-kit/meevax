@@ -30,8 +30,8 @@ namespace meevax { inline namespace kernel
     Import_Const(SK, current_error_port);
     Import_Const(SK, current_output_port);
     Import_Const(SK, header);
+    Import_Const(SK, in_trace_mode);
     Import_Const(SK, shift);
-    Import_Const(SK, tracing);
     Import_Const(SK, write_to);
 
   protected:
@@ -298,7 +298,7 @@ namespace meevax { inline namespace kernel
     object execute()
     {
     dispatch:
-      if (tracing())
+      if (in_trace_mode())
       {
         std::cerr << "; trace s\t; " <<  s << std::endl;
         std::cerr << ";       e\t; " <<  e << std::endl;
