@@ -97,9 +97,9 @@ namespace meevax { inline namespace kernel
     using debugger::indent;
     using debugger::shift;
 
+    using configurator::in_batch_mode;
     using configurator::in_debug_mode;
     using configurator::in_interactive_mode;
-    using configurator::in_quiet_mode;
     using configurator::in_trace_mode;
     using configurator::in_verbose_mode;
 
@@ -442,8 +442,8 @@ namespace meevax { inline namespace kernel
     return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
-  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                         \
-  define<procedure>(IDENTIFIER, [](auto&& xs)                                        \
+  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                   \
+  define<procedure>(IDENTIFIER, [](auto&& xs)                                  \
   {                                                                            \
     if (null(xs))                                                              \
     {                                                                          \
@@ -740,7 +740,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         if (const decimal<32> result { CMATH(x.as<decimal<32>>()) }; result.exact()) \
         {                                                                      \
-          return make<integral>(result.to_string());                            \
+          return make<integral>(result.to_string());                           \
         }                                                                      \
         else                                                                   \
         {                                                                      \
@@ -751,7 +751,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         if (const decimal<64> result { CMATH(x.as<decimal<64>>()) }; result.exact()) \
         {                                                                      \
-          return make<integral>(result.to_string());                            \
+          return make<integral>(result.to_string());                           \
         }                                                                      \
         else                                                                   \
         {                                                                      \

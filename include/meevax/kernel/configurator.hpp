@@ -24,9 +24,9 @@ namespace meevax { inline namespace kernel
     Import_Const(SK, write);
     Import_Const(SK, write_to);
 
+    object batch_mode       { f };
     object debug_mode       { f };
     object interactive_mode { f };
-    object quiet_mode       { f };
     object trace_mode       { f };
     object verbose_mode     { f };
 
@@ -43,9 +43,9 @@ namespace meevax { inline namespace kernel
       return MODE.is<boolean>() and MODE.as<boolean>();                        \
     } static_assert(true)
 
+    BOILERPLATE(batch_mode);
     BOILERPLATE(debug_mode);
     BOILERPLATE(interactive_mode);
-    BOILERPLATE(quiet_mode);
     BOILERPLATE(trace_mode);
     BOILERPLATE(verbose_mode);
 
@@ -116,13 +116,13 @@ namespace meevax { inline namespace kernel
         ";               Display this help message and exit.\n"
         ";\n"
           SUBSECTION_HEADING("Operation Mode")
+        ";        -b, --batch\n"
+        ";               Suppress any output except side-effect of user's explicit use of\n"
+        ";               primitive procedure 'write' or 'display'.\n"
+        ";\n"
         ";        -i, --interactive\n"
         ";               Take over the control of root syntactic continuation\n"
         ";               interactively after processing given <file>s.\n"
-        ";\n"
-        ";        -q, --quiet\n"
-        ";               Suppress any output except side-effect of user's explicit use of\n"
-        ";               primitive procedure 'write' or 'display'.\n"
         ";\n"
         ";        --trace Display stacks of virtual machine on each execution step.\n"
         ";\n"
@@ -169,9 +169,14 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<char> short_options
     {
+      std::make_pair('b', [this](auto&&...) mutable
+      {
+        return batch_mode = t;
+      }),
+
       std::make_pair('d', [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debug_mode = t;
+        return debug_mode = t;
       }),
 
       std::make_pair('h', [this](auto&&...)
@@ -183,11 +188,6 @@ namespace meevax { inline namespace kernel
       std::make_pair('i', [this](auto&&...) mutable
       {
         return interactive_mode = t;
-      }),
-
-      std::make_pair('q', [this](auto&&...) mutable
-      {
-        return static_cast<SK&>(*this).quiet_mode = t;
       }),
 
       std::make_pair('v', [this](auto&&...)
@@ -220,6 +220,11 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<std::string> long_options
     {
+      std::make_pair("batch", [this](auto&&...) mutable
+      {
+        return batch_mode = t;
+      }),
+
       std::make_pair("debug", [this](auto&&...) mutable
       {
         return debug_mode = t;
@@ -234,11 +239,6 @@ namespace meevax { inline namespace kernel
       std::make_pair("interactive", [this](auto&&...) mutable
       {
         return interactive_mode = t;
-      }),
-
-      std::make_pair("quiet", [this](auto&&...) mutable
-      {
-        return quiet_mode = t;
       }),
 
       // TODO --srfi=0,1,2

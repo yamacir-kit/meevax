@@ -22,9 +22,9 @@ namespace meevax { inline namespace kernel
     explicit writer()
     {}
 
+    Import_Const(SK, in_batch_mode);
     Import_Const(SK, in_debug_mode);
     Import_Const(SK, in_interactive_mode);
-    Import_Const(SK, in_quiet_mode);
     Import_Const(SK, in_verbose_mode);
 
   public:
@@ -73,27 +73,27 @@ namespace meevax { inline namespace kernel
 
     auto standard_output_port() const -> auto&
     {
-      return in_quiet_mode() ? standard_null_port() : std::cout;
+      return in_batch_mode() ? standard_null_port() : std::cout;
     }
 
     auto standard_error_port() const -> auto&
     {
-      return in_quiet_mode() ? standard_null_port() : std::cerr;
+      return in_batch_mode() ? standard_null_port() : std::cerr;
     }
 
     auto standard_verbose_port() const -> auto&
     {
-      return in_quiet_mode() or not in_verbose_mode() ? standard_null_port() : std::cout;
+      return in_batch_mode() or not in_verbose_mode() ? standard_null_port() : std::cout;
     }
 
     auto standard_debug_port() const -> auto&
     {
-      return in_quiet_mode() or not in_debug_mode() ? standard_null_port() : std::cerr;
+      return in_batch_mode() or not in_debug_mode() ? standard_null_port() : std::cerr;
     }
 
     auto standard_interaction_port() const -> auto&
     {
-      return in_quiet_mode() or not in_interactive_mode() ? standard_null_port() : std::cout;
+      return in_batch_mode() or not in_interactive_mode() ? standard_null_port() : std::cout;
     }
 
   public:
