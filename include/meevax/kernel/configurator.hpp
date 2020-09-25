@@ -20,9 +20,12 @@ namespace meevax { inline namespace kernel
     {}
 
     Import(SK, evaluate);
+
     Import_Const(SK, current_verbose_port);
+    Import_Const(SK, newline);
     Import_Const(SK, write);
     Import_Const(SK, write_to);
+    Import_Const(SK, writeln);
 
     object batch_mode       { f };
     object debug_mode       { f };
@@ -52,7 +55,14 @@ namespace meevax { inline namespace kernel
     #undef BOILERPLATE
 
   public:
-    auto display_version() const -> const auto&
+    auto display_version() const -> decltype(auto)
+    {
+      write("Meevax Lisp System, version ", current_version.semantic(), "\n");
+
+      return unspecified;
+    }
+
+    auto display_version_() const -> const auto&
     {
       write( //  10        20        30        40        50        60        70        80\n"
         "; Meevax Lisp System ", current_version.major(), " - Revision ", current_version.minor(), " Patch ", current_version.patch(), "\n"
@@ -87,76 +97,45 @@ namespace meevax { inline namespace kernel
       return unspecified;
     }
 
-    auto display_help() const -> const auto&
+    auto display_help() const -> decltype(auto)
     {
-      #define SECTION_HEADING(NAME) \
-        "; ", console::bold, NAME "\n", console::reset,
+      display_version();
+      newline();
 
-      #define SUBSECTION_HEADING(NAME) \
-        ";    ", console::bold, NAME "\n", console::reset,
+      #define SECTION(NAME) writeln(bold, NAME)
+      #define BOLD(...) bold, __VA_ARGS__, reset
+      #define UNDERLINE(...) underline, __VA_ARGS__, reset
 
-      write(
-      // ;       10        20        30        40        50        60        70        80\n"
-        ";                 Meevax Lisp System ", current_version.major(), " - Revision ", current_version.minor(), " Patch ", current_version.patch(), "\n"
-        ";\n"
-        SECTION_HEADING("NAME")
-        ";        meevax - Meta-Extensible EVAluator.\n"
-        ";\n"
-        SECTION_HEADING("SYNOPSIS")
-        ";        meevax [option]... [path]...\n"
-        ";\n"
-        SECTION_HEADING("DESCRIPTION")
-        ";\n"
-        SECTION_HEADING("OPTIONS")
-          SUBSECTION_HEADING("Generic Program Information")
-        ";        -h, --help\n"
-        ";               Display version information and exit.\n"
-        ";\n"
-        ";        -v, --version\n"
-        ";               Display this help message and exit.\n"
-        ";\n"
-          SUBSECTION_HEADING("Operation Mode")
-        ";        -b, --batch\n"
-        ";               Suppress any output except side-effect of user's explicit use of\n"
-        ";               primitive procedure 'write' or 'display'.\n"
-        ";\n"
-        ";        -i, --interactive\n"
-        ";               Take over the control of root syntactic continuation\n"
-        ";               interactively after processing given <file>s.\n"
-        ";\n"
-        ";        --trace Display stacks of virtual machine on each execution step.\n"
-        ";\n"
-        ";        --verbose\n"
-        ";               Report the details of lexical parsing, compilation, virtual\n"
-        ";               machine execution to standard-error-port.\n"
-        ";\n"
-          SUBSECTION_HEADING("Evaluation Target")
-        ";        ", bold, "-l ", reset, underline, "file", reset, ", --load file\n"
-        ";               Specify the file to be loaded. If this option is used multiple\n"
-        ";               times, the specified files will be executed sequentially from\n"
-        ";               left to right. Anything that is not an option name or option\n"
-        ";               argument is implicitly treated as an argument for this option.\n"
-        ";\n"
-          SUBSECTION_HEADING("Tools")
-        ";        --echo expression\n"
-        ";               Read an expression, construct an object from it, and display its\n"
-        ";               external representation. Note that the expression is parsed once\n"
-        ";               by the shell before it is read. This output is useful to see\n"
-        ";               what objects the --evaluate option accepts.\n"
-        ";\n"
-        ";        -e expression, --evaluate expression\n"
-        ";               Read an expression, construct an object from it, compile and\n"
-        ";               execute it, and then display external representation of the\n"
-        ";               result.\n"
-        ";\n"
-        SECTION_HEADING("AUTHORS")
-        ";        Tatsuya Yamasaki\n"
-        ";\n"
-        SECTION_HEADING("LICENSE")
-        ";        ", unspecified, "\n"
-        );
+      SECTION("Usage:");
+      writeln("  ", BOLD("meevax"), " [", UNDERLINE("option"), "]... [", UNDERLINE("file"), "]...");
+      newline();
 
-      return unspecified;
+      SECTION("Options:");
+      writeln("  ", BOLD("-b"), ", ", BOLD("--batch"), "                Batch mode: Suppress any system output.");
+      writeln("  ", BOLD("-d"), ", ", BOLD("--debug"), "                Debug mode: Display detailed information for developers.");
+      writeln("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
+      writeln("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
+      writeln("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
+      writeln("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display version information and exit.");
+      writeln("  ", BOLD("-i"), ", ", BOLD("--interactive"), "          Interactive mode: Take over control of root syntactic-continuation.");
+      writeln("  ", BOLD("-l"), ", ", BOLD("--load"), "=", UNDERLINE("file"), "            Load ", UNDERLINE("file"), " before main session.");
+      writeln("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
+      writeln("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
+      writeln("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display this help text and exit.");
+      newline();
+
+      SECTION("Sequence:");
+      writeln("  1. ", BOLD("configuration"));
+      writeln("  2. ", BOLD("batch operation"), " (for each ", UNDERLINE("file"), " specified)");
+      writeln("  3. ", BOLD("Interactive operation"), " (when --interactive specified)");
+      newline();
+
+      SECTION("Examples:");
+      writeln("  $ meevax -e '(features)'  => Display features.");
+
+      #undef SECTION
+      #undef BOLD
+      #undef UNDERLINE
     }
 
   public:
@@ -263,9 +242,9 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<std::string> long_options_
     {
-      std::make_pair("echo", [](const auto& xs)
+      std::make_pair("echo", [this](const auto& xs)
       {
-        std::cout << xs << std::endl;
+        writeln(xs);
         return unspecified;
       }),
 

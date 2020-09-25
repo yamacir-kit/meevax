@@ -1,11 +1,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
-#include <chrono>
 #include <fstream>
 #include <ostream>
 #include <sstream>
-#include <thread>
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -31,34 +29,24 @@ namespace meevax { inline namespace kernel
     template <typename... Ts>
     auto write_to(std::ostream& port, Ts&&... xs) const -> decltype(port)
     {
-      // if (in_debug_mode())
-      // {
-      //   std::stringstream buffer {};
-      //
-      //   (buffer << ... << xs);
-      //
-      //   port << hide_cursor << std::flush;
-      //
-      //   for (const auto& each : buffer.str())
-      //   {
-      //     port << each << std::flush;
-      //     std::this_thread::sleep_for(std::chrono::milliseconds(4));
-      //   }
-      //
-      //   return port << show_cursor;
-      // }
-      // else
-      // {
-        return (port << ... << xs) << console::reset;
-      // }
+      return (port << ... << xs) << console::reset;
     }
 
     template <typename... Ts>
     auto write(Ts&&... xs) const -> decltype(auto)
     {
-      return
-        write_to(current_output_port(),
-          std::forward<decltype(xs)>(xs)...);
+      return write_to(current_output_port(), std::forward<decltype(xs)>(xs)...);
+    }
+
+    template <typename... Ts>
+    auto writeln(Ts&&... xs) const -> decltype(auto)
+    {
+      return write(std::forward<decltype(xs)>(xs)..., '\n');
+    }
+
+    auto newline() const -> decltype(auto)
+    {
+      return writeln();
     }
 
   public:
@@ -96,7 +84,6 @@ namespace meevax { inline namespace kernel
       return in_batch_mode() or not in_interactive_mode() ? standard_null_port() : std::cout;
     }
 
-  public:
     auto current_output_port() const -> decltype(auto)
     {
       return standard_output_port(); // XXX R7RS INCOMPATIBLE!
@@ -122,7 +109,6 @@ namespace meevax { inline namespace kernel
       return standard_interaction_port();
     }
 
-  public:
     Define_Static_Perfect_Forwarding(open_output_file, std::ofstream);
     Define_Static_Perfect_Forwarding(open_output_string, std::stringstream);
   };

@@ -89,8 +89,10 @@ namespace meevax { inline namespace kernel
     using writer::current_interaction_port;
     using writer::current_output_port;
     using writer::current_verbose_port;
+    using writer::newline;
     using writer::write;
     using writer::write_to;
+    using writer::writeln;
 
     using debugger::debug;
     using debugger::header;
