@@ -31,26 +31,26 @@ namespace meevax { inline namespace kernel
     template <typename... Ts>
     auto write_to(std::ostream& port, Ts&&... xs) const -> decltype(port)
     {
-      if (in_debug_mode())
-      {
-        std::stringstream buffer {};
-
-        (buffer << ... << xs);
-
-        port << hide_cursor << std::flush;
-
-        for (const auto& each : buffer.str())
-        {
-          port << each << std::flush;
-          std::this_thread::sleep_for(std::chrono::milliseconds(4));
-        }
-
-        return port << show_cursor;
-      }
-      else
-      {
+      // if (in_debug_mode())
+      // {
+      //   std::stringstream buffer {};
+      //
+      //   (buffer << ... << xs);
+      //
+      //   port << hide_cursor << std::flush;
+      //
+      //   for (const auto& each : buffer.str())
+      //   {
+      //     port << each << std::flush;
+      //     std::this_thread::sleep_for(std::chrono::milliseconds(4));
+      //   }
+      //
+      //   return port << show_cursor;
+      // }
+      // else
+      // {
         return (port << ... << xs) << console::reset;
-      }
+      // }
     }
 
     template <typename... Ts>
