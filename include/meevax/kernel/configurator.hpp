@@ -112,7 +112,7 @@ namespace meevax { inline namespace kernel
 
       SECTION("Options:");
       writeln("  ", BOLD("-b"), ", ", BOLD("--batch"), "                Batch mode: Suppress any system output.");
-      writeln("  ", BOLD("-d"), ", ", BOLD("--debug"), "                Debug mode: Display detailed information for developers.");
+      writeln("  ", BOLD("-d"), ", ", BOLD("--debug"), "                Debug mode: Display detailed informations for developers.");
       writeln("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
       writeln("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
       writeln("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
@@ -122,6 +122,7 @@ namespace meevax { inline namespace kernel
       writeln("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
       writeln("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
       writeln("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display this help text and exit.");
+      writeln("  ", BOLD("  "), "  ", BOLD("--verbose"), "              Verbose mode: Display detailed informations.");
       newline();
 
       SECTION("Sequence:");
@@ -131,7 +132,7 @@ namespace meevax { inline namespace kernel
       newline();
 
       SECTION("Examples:");
-      writeln("  $ meevax -e '(features)'  => Display features.");
+      writeln("  $ meevax -e '(features)'  ; => Display features.");
 
       #undef SECTION
       #undef BOLD
