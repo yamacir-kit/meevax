@@ -1,9 +1,11 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
+#include <chrono>
 #include <fstream>
-#include <ostream>                                                // responsible
+#include <ostream>
 #include <sstream>
+#include <thread>
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -27,9 +29,28 @@ namespace meevax { inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(std::ostream& os, Ts&&... xs) const -> decltype(os)
+    auto write_to(std::ostream& port, Ts&&... xs) const -> decltype(port)
     {
-      return (os << ... << xs) << console::reset;
+      if (in_debug_mode())
+      {
+        std::stringstream buffer {};
+
+        (buffer << ... << xs);
+
+        port << hide_cursor << std::flush;
+
+        for (const auto& each : buffer.str())
+        {
+          port << each << std::flush;
+          std::this_thread::sleep_for(std::chrono::milliseconds(4));
+        }
+
+        return port << show_cursor;
+      }
+      else
+      {
+        return (port << ... << xs) << console::reset;
+      }
     }
 
     template <typename... Ts>
