@@ -124,15 +124,15 @@ namespace meevax { inline namespace kernel
         ";               Suppress any output except side-effect of user's explicit use of\n"
         ";               primitive procedure 'write' or 'display'.\n"
         ";\n"
-        ";       --trace Display stacks of virtual machine on each execution step.\n"
+        ";        --trace Display stacks of virtual machine on each execution step.\n"
         ";\n"
-        ";       --verbose\n"
+        ";        --verbose\n"
         ";               Report the details of lexical parsing, compilation, virtual\n"
         ";               machine execution to standard-error-port.\n"
         ";\n"
           SUBSECTION_HEADING("Evaluation Target")
-        ";        -f path, --file path\n"
-        ";               Specify the file to be executed. If this option is used multiple\n"
+        ";        ", bold, "-l ", reset, underline, "file", reset, ", --load file\n"
+        ";               Specify the file to be loaded. If this option is used multiple\n"
         ";               times, the specified files will be executed sequentially from\n"
         ";               left to right. Anything that is not an option name or option\n"
         ";               argument is implicitly treated as an argument for this option.\n"
@@ -205,7 +205,7 @@ namespace meevax { inline namespace kernel
         return unspecified;
       }),
 
-      std::make_pair('f', [this](const object& s) mutable
+      std::make_pair('l', [this](const object& s) mutable
       {
         if (s.is<symbol>())
         {
@@ -275,8 +275,7 @@ namespace meevax { inline namespace kernel
         return unspecified;
       }),
 
-      // TODO rename to 'load'
-      std::make_pair("file", [this](const object& s) mutable
+      std::make_pair("load", [this](const object& s) mutable
       {
         if (s.is<symbol>())
         {
