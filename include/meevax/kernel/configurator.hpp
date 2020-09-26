@@ -20,13 +20,17 @@ namespace meevax { inline namespace kernel
     {}
 
     Import(SK, evaluate);
+    Import(SK, read);
+
     Import_Const(SK, current_verbose_port);
+    Import_Const(SK, newline);
     Import_Const(SK, write);
     Import_Const(SK, write_to);
+    Import_Const(SK, writeln);
 
+    object batch_mode       { f };
     object debug_mode       { f };
     object interactive_mode { f };
-    object quiet_mode       { f };
     object trace_mode       { f };
     object verbose_mode     { f };
 
@@ -34,42 +38,32 @@ namespace meevax { inline namespace kernel
     static inline const version current_version {};
     static inline const feature current_feature {};
 
-    object develop  { unit };
     object paths    { unit };
     object variable { unit };
 
-    auto debugging() const
-    {
-      return debug_mode.as<boolean>().value;
-    }
+    #define BOILERPLATE(MODE)                                                  \
+    auto in_##MODE() const                                                     \
+    {                                                                          \
+      return MODE.is<boolean>() and MODE.as<boolean>();                        \
+    } static_assert(true)
 
-    auto developing(const object& x) const
-    {
-      return find(develop, functional::curry(eq)(x));
-    }
+    BOILERPLATE(batch_mode);
+    BOILERPLATE(debug_mode);
+    BOILERPLATE(interactive_mode);
+    BOILERPLATE(trace_mode);
+    BOILERPLATE(verbose_mode);
 
-    auto interactive() const
-    {
-      return interactive_mode.as<boolean>().value;
-    }
-
-    auto quiet() const
-    {
-      return quiet_mode.as<boolean>().value;
-    }
-
-    auto tracing() const
-    {
-      return trace_mode.as<boolean>().value;
-    }
-
-    auto verbose() const
-    {
-      return verbose_mode.as<boolean>().value;
-    }
+    #undef BOILERPLATE
 
   public:
-    auto display_version() const -> const auto&
+    auto display_version() const -> decltype(auto)
+    {
+      write("Meevax Lisp System, version ", current_version.semantic(), "\n");
+
+      return unspecified;
+    }
+
+    auto display_version_() const -> const auto&
     {
       write( //  10        20        30        40        50        60        70        80\n"
         "; Meevax Lisp System ", current_version.major(), " - Revision ", current_version.minor(), " Patch ", current_version.patch(), "\n"
@@ -104,76 +98,46 @@ namespace meevax { inline namespace kernel
       return unspecified;
     }
 
-    auto display_help() const -> const auto&
+    auto display_help() const -> decltype(auto)
     {
-      #define SECTION_HEADING(NAME) \
-        "; ", console::bold, NAME "\n", console::reset,
+      display_version();
+      newline();
 
-      #define SUBSECTION_HEADING(NAME) \
-        ";    ", console::bold, NAME "\n", console::reset,
+      #define SECTION(NAME) writeln(bold, NAME)
+      #define BOLD(...) bold, __VA_ARGS__, reset
+      #define UNDERLINE(...) underline, __VA_ARGS__, reset
 
-      write(
-      // ;       10        20        30        40        50        60        70        80\n"
-        ";                 Meevax Lisp System ", current_version.major(), " - Revision ", current_version.minor(), " Patch ", current_version.patch(), "\n"
-        ";\n"
-        SECTION_HEADING("NAME")
-        ";        meevax - Meta-Extensible EVAluator.\n"
-        ";\n"
-        SECTION_HEADING("SYNOPSIS")
-        ";        meevax [option]... [path]...\n"
-        ";\n"
-        SECTION_HEADING("DESCRIPTION")
-        ";\n"
-        SECTION_HEADING("OPTIONS")
-          SUBSECTION_HEADING("Generic Program Information")
-        ";        -h, --help\n"
-        ";               Display version information and exit.\n"
-        ";\n"
-        ";        -v, --version\n"
-        ";               Display this help message and exit.\n"
-        ";\n"
-          SUBSECTION_HEADING("Operation Mode")
-        ";        -i, --interactive\n"
-        ";               Take over the control of root syntactic continuation\n"
-        ";               interactively after processing given <file>s.\n"
-        ";\n"
-        ";        -q, --quiet\n"
-        ";               Suppress any output except side-effect of user's explicit use of\n"
-        ";               primitive procedure 'write' or 'display'.\n"
-        ";\n"
-        ";       --trace Display stacks of virtual machine on each execution step.\n"
-        ";\n"
-        ";       --verbose\n"
-        ";               Report the details of lexical parsing, compilation, virtual\n"
-        ";               machine execution to standard-error-port.\n"
-        ";\n"
-          SUBSECTION_HEADING("Evaluation Target")
-        ";        -f path, --file path\n"
-        ";               Specify the file to be executed. If this option is used multiple\n"
-        ";               times, the specified files will be executed sequentially from\n"
-        ";               left to right. Anything that is not an option name or option\n"
-        ";               argument is implicitly treated as an argument for this option.\n"
-        ";\n"
-          SUBSECTION_HEADING("Tools")
-        ";        --echo expression\n"
-        ";               Read an expression, construct an object from it, and display its\n"
-        ";               external representation. Note that the expression is parsed once\n"
-        ";               by the shell before it is read. This output is useful to see\n"
-        ";               what objects the --evaluate option accepts.\n"
-        ";\n"
-        ";        -e expression, --evaluate expression\n"
-        ";               Read an expression, construct an object from it, compile and\n"
-        ";               execute it, and then display external representation of the\n"
-        ";               result.\n"
-        ";\n"
-        SECTION_HEADING("AUTHORS")
-        ";        Tatsuya Yamasaki\n"
-        ";\n"
-        SECTION_HEADING("LICENSE")
-        ";        ", unspecified, "\n"
-        );
+      SECTION("Usage:");
+      writeln("  ", BOLD("meevax"), " [", UNDERLINE("option"), "]... [", UNDERLINE("file"), "]...");
+      newline();
 
-      return unspecified;
+      SECTION("Options:");
+      writeln("  ", BOLD("-b"), ", ", BOLD("--batch"), "                Batch mode: Suppress any system output.");
+      writeln("  ", BOLD("-d"), ", ", BOLD("--debug"), "                Debug mode: Display detailed informations for developers.");
+      writeln("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
+      writeln("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
+      writeln("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
+      writeln("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display version information and exit.");
+      writeln("  ", BOLD("-i"), ", ", BOLD("--interactive"), "          Interactive mode: Take over control of root syntactic-continuation.");
+      writeln("  ", BOLD("-l"), ", ", BOLD("--load"), "=", UNDERLINE("file"), "            Load ", UNDERLINE("file"), " before main session.");
+      writeln("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
+      writeln("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
+      writeln("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display this help text and exit.");
+      writeln("  ", BOLD("  "), "  ", BOLD("--verbose"), "              Verbose mode: Display detailed informations.");
+      newline();
+
+      SECTION("Sequence:");
+      writeln("  1. ", BOLD("configuration"));
+      writeln("  2. ", BOLD("batch operation"), " (for each ", UNDERLINE("file"), " specified)");
+      writeln("  3. ", BOLD("Interactive operation"), " (when --interactive specified)");
+      newline();
+
+      SECTION("Examples:");
+      writeln("  $ meevax -e '(features)'  ; => Display features.");
+
+      #undef SECTION
+      #undef BOLD
+      #undef UNDERLINE
     }
 
   public:
@@ -186,9 +150,14 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<char> short_options
     {
+      std::make_pair('b', [this](auto&&...) mutable
+      {
+        return batch_mode = t;
+      }),
+
       std::make_pair('d', [this](auto&&...) mutable
       {
-        return static_cast<SK&>(*this).debug_mode = t;
+        return debug_mode = t;
       }),
 
       std::make_pair('h', [this](auto&&...)
@@ -200,11 +169,6 @@ namespace meevax { inline namespace kernel
       std::make_pair('i', [this](auto&&...) mutable
       {
         return interactive_mode = t;
-      }),
-
-      std::make_pair('q', [this](auto&&...) mutable
-      {
-        return static_cast<SK&>(*this).quiet_mode = t;
       }),
 
       std::make_pair('v', [this](auto&&...)
@@ -222,7 +186,7 @@ namespace meevax { inline namespace kernel
         return unspecified;
       }),
 
-      std::make_pair('f', [this](const object& s) mutable
+      std::make_pair('l', [this](const object& s) mutable
       {
         if (s.is<symbol>())
         {
@@ -237,6 +201,11 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<std::string> long_options
     {
+      std::make_pair("batch", [this](auto&&...) mutable
+      {
+        return batch_mode = t;
+      }),
+
       std::make_pair("debug", [this](auto&&...) mutable
       {
         return debug_mode = t;
@@ -251,11 +220,6 @@ namespace meevax { inline namespace kernel
       std::make_pair("interactive", [this](auto&&...) mutable
       {
         return interactive_mode = t;
-      }),
-
-      std::make_pair("quiet", [this](auto&&...) mutable
-      {
-        return quiet_mode = t;
       }),
 
       // TODO --srfi=0,1,2
@@ -280,14 +244,9 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<std::string> long_options_
     {
-      std::make_pair("develop", [&](auto&&... xs) mutable
+      std::make_pair("echo", [this](const auto& xs)
       {
-        return develop = cons(std::forward<decltype(xs)>(xs)..., develop);
-      }),
-
-      std::make_pair("echo", [](const auto& xs)
-      {
-        std::cout << xs << std::endl;
+        writeln(xs);
         return unspecified;
       }),
 
@@ -297,8 +256,7 @@ namespace meevax { inline namespace kernel
         return unspecified;
       }),
 
-      // TODO rename to 'load'
-      std::make_pair("file", [this](const object& s) mutable
+      std::make_pair("load", [this](const object& s) mutable
       {
         if (s.is<symbol>())
         {
@@ -317,137 +275,77 @@ namespace meevax { inline namespace kernel
       }),
     };
 
-  public: // Command Line Parser
-    template <typename... Ts>
-    constexpr decltype(auto) configure(Ts&&... xs)
-    {
-      #if __cpp_lib_invoke
-      return std::invoke(*this, std::forward<decltype(xs)>(xs)...);
-      #else
-      return (*this)(std::forward<decltype(xs)>(xs)...);
-      #endif
-    }
-
-    decltype(auto) operator()(const int argc, char const* const* const argv)
+  public:
+    auto configure(const int argc, char const* const* const argv) -> decltype(auto)
     {
       const std::vector<std::string> options {argv + 1, argv + argc};
 
-      #if __cpp_lib_invoke
-      return std::invoke(*this, options);
-      #else
-      return (*this)(options);
-      #endif
+      return configure(options);
     }
 
-    void operator()(const std::vector<std::string>& args)
+    void configure(const std::vector<std::string>& args)
     {
-      static const std::regex pattern {"--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)"};
-
-      #if __cpp_lib_nonmember_container_access
-      if (std::empty(args))
-      #else
-      if (args.empty())
-      #endif
-      {
-        interactive_mode = t;
-      }
+      static const std::regex pattern { "--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)" };
 
       for (auto option {std::begin(args)}; option != std::end(args); ++option) [&]()
       {
         std::smatch analysis {};
+
         std::regex_match(*option, analysis, pattern);
 
-        // std::cerr << ";\t\t; analysis[0] " << analysis[0] << std::endl;
-        // std::cerr << ";\t\t; analysis[1] " << analysis[1] << std::endl;
-        // std::cerr << ";\t\t; analysis[2] " << analysis[2] << std::endl;
-        // std::cerr << ";\t\t; analysis[3] " << analysis[3] << std::endl;
-        // std::cerr << ";\t\t; analysis[4] " << analysis[4] << std::endl;
-
-        if (const auto sos {analysis.str(4)}; sos.length()) // short-options
+        if (const auto sos { analysis.str(4) }; sos.length()) // short-options
         {
-          for (auto so {std::begin(sos)}; so != std::end(sos); ++so) // each short-option
+          for (auto so { std::begin(sos) }; so != std::end(sos); ++so) // each short-option
           {
-            if (auto callee {short_options_.find(*so)}; callee != std::end(short_options_))
+            if (auto callee { short_options_.find(*so) }; callee != std::end(short_options_))
             {
-              if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
+              if (const std::string rest { std::next(so), std::end(sos) }; rest.length())
               {
-                const auto operands {static_cast<SK&>(*this).read(rest)};
-
-                #if __cpp_lib_invoke
-                return std::invoke(cdr(*callee), operands);
-                #else
-                return cdr(*callee)(operands);
-                #endif
+                return std::invoke(cdr(*callee), read(*option));
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
-                const auto operands {static_cast<SK&>(*this).read(*option)};
-
-                #if __cpp_lib_invoke
-                return std::invoke(cdr(*callee), operands);
-                #else
-                return cdr(*callee)(operands);
-                #endif
+                return std::invoke(cdr(*callee), read(*option));
               }
               else
               {
-                throw configuration_error {*so, " requires operands"};
+                throw configuration_error { "option -", *so, " requires an argument" };
               }
             }
-            else if (auto callee {short_options.find(*so)}; callee != std::end(short_options))
+            else if (auto callee { short_options.find(*so) }; callee != std::end(short_options))
             {
-              #if __cpp_lib_invoke
               return std::invoke(cdr(*callee), unit);
-              #else
-              return cdr(*callee)(unit);
-              #endif
             }
             else
             {
-              throw configuration_error {*so, " is unknown short-option (in ", *option, ")"};
+              throw configuration_error { *so, " is unknown short-option (in ", *option, ")" };
             }
           }
         }
-        else if (const auto lo {analysis.str(1)}; lo.length())
+        else if (const auto lo { analysis.str(1) }; lo.length())
         {
-          if (auto callee {long_options_.find(lo)}; callee != std::end(long_options_))
+          if (auto callee { long_options_.find(lo) }; callee != std::end(long_options_))
           {
             if (analysis.length(2)) // argument part
             {
-              const auto operands {static_cast<SK&>(*this).read(analysis.str(3))};
-
-              #if __cpp_lib_invoke
-              return std::invoke(cdr(*callee), operands);
-              #else
-              return cdr(*callee)(operands);
-              #endif
+              return std::invoke(cdr(*callee), read(analysis.str(3)));
             }
             else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
-              const auto operands {static_cast<SK&>(*this).read(*option)};
-
-              #if __cpp_lib_invoke
-              return std::invoke(cdr(*callee), operands);
-              #else
-              return cdr(*callee)(operands);
-              #endif
+              return std::invoke(cdr(*callee), read(*option));
             }
             else
             {
-              throw configuration_error {lo, " requires operands"};
+              throw configuration_error { "option --", lo, " requires an argument" };
             }
           }
-          else if (auto callee {long_options.find(lo)}; callee != std::end(long_options))
+          else if (auto callee { long_options.find(lo) }; callee != std::end(long_options))
           {
-            #if __cpp_lib_invoke
             return std::invoke(cdr(*callee), unit);
-            #else
-            return cdr(*callee)(unit);
-            #endif
           }
           else
           {
-            throw configuration_error {*option, " is unknown long-option"};
+            throw configuration_error { *option, " is unknown long-option" };
           }
         }
         else
@@ -462,7 +360,7 @@ namespace meevax { inline namespace kernel
 
       static const auto rc { path(::getenv("HOME")) / ".meevaxrc" };
 
-      if (interactive() and std::experimental::filesystem::exists(rc))
+      if (in_interactive_mode() and std::experimental::filesystem::exists(rc))
       {
         paths = cons(make<path>(rc), paths);
       }

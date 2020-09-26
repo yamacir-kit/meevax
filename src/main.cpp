@@ -22,7 +22,8 @@ int main(const int argc, char const* const* const argv) try
     root.load(each.as<path>());
   }
 
-  if (root.interactive())
+  // TODO exit if not in interactive_mode
+  if (root.in_interactive_mode())
   {
     root.write_to(
       root.current_interaction_port(),
@@ -57,7 +58,7 @@ int main(const int argc, char const* const* const argv) try
     {
       std::cerr << exception << std::endl; // NOTE: Use std::cerr directly because the meevax may be broken.
 
-      if (root.interactive())
+      if (root.in_interactive_mode())
       {
         continue;
       }

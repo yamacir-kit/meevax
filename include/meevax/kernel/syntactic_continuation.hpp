@@ -84,25 +84,28 @@ namespace meevax { inline namespace kernel
 
     using syntactic_closure::syntactic_environment;
 
+    using reader::read;
+
     using writer::current_debug_port;
     using writer::current_error_port;
     using writer::current_interaction_port;
     using writer::current_output_port;
     using writer::current_verbose_port;
+    using writer::newline;
     using writer::write;
     using writer::write_to;
+    using writer::writeln;
 
     using debugger::debug;
     using debugger::header;
     using debugger::indent;
     using debugger::shift;
 
-    using configurator::debugging;
-    using configurator::developing;
-    using configurator::interactive;
-    using configurator::quiet;
-    using configurator::tracing;
-    using configurator::verbose;
+    using configurator::in_batch_mode;
+    using configurator::in_debug_mode;
+    using configurator::in_interactive_mode;
+    using configurator::in_trace_mode;
+    using configurator::in_verbose_mode;
 
   public: // Accessors
     auto current_expression() const -> const auto& { return car(form()); }
@@ -327,12 +330,12 @@ namespace meevax { inline namespace kernel
             each);
         }
 
-        std::cerr << ";\t\t; exported identifiers are" << std::endl;
-
-        for ([[maybe_unused]] const auto& [key, value] : external_symbols)
-        {
-          std::cerr << ";\t\t;   " << value << std::endl;
-        }
+        // std::cerr << ";\t\t; exported identifiers are" << std::endl;
+        //
+        // for ([[maybe_unused]] const auto& [key, value] : external_symbols)
+        // {
+        //   std::cerr << ";\t\t;   " << value << std::endl;
+        // }
 
         return unspecified;
       };
@@ -357,10 +360,10 @@ namespace meevax { inline namespace kernel
           xs.as<syntactic_continuation>().expand(xs, cons(xs, unit));
         }
 
-        for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
-        {
-          std::cerr << ";\t\t; importing " << value << std::endl;
-        }
+        // for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
+        // {
+        //   std::cerr << ";\t\t; importing " << value << std::endl;
+        // }
 
         return unspecified;
       };
@@ -443,8 +446,8 @@ namespace meevax { inline namespace kernel
     return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
-  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                         \
-  define<procedure>(IDENTIFIER, [](auto&& xs)                                        \
+  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                   \
+  define<procedure>(IDENTIFIER, [](auto&& xs)                                  \
   {                                                                            \
     if (null(xs))                                                              \
     {                                                                          \
@@ -741,7 +744,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         if (const decimal<32> result { CMATH(x.as<decimal<32>>()) }; result.exact()) \
         {                                                                      \
-          return make<integral>(result.to_string());                            \
+          return make<integral>(result.to_string());                           \
         }                                                                      \
         else                                                                   \
         {                                                                      \
@@ -752,7 +755,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         if (const decimal<64> result { CMATH(x.as<decimal<64>>()) }; result.exact()) \
         {                                                                      \
-          return make<integral>(result.to_string());                            \
+          return make<integral>(result.to_string());                           \
         }                                                                      \
         else                                                                   \
         {                                                                      \
