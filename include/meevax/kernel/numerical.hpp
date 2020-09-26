@@ -40,9 +40,9 @@ namespace meevax { inline namespace kernel
    * ┌─────┬─────┬─────┬─────┬
    * │ l\r │ f32 │ f64 │ mpi │
    * ├─────┼─────┼─────┼─────┼
-   * │ f32 │     │     │     │
+   * │ f32 │  v  │  v  │  v  │
    * ├─────┼─────┼─────┼─────┼
-   * │ f64 │     │     │     │
+   * │ f64 │  v  │  v  │  v  │
    * ├─────┼─────┼─────┼─────┼
    * │ mpi │  v  │  v  │  v  │
    * ├─────┼─────┼─────┼─────┼
@@ -53,7 +53,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
   {                                                                            \
-    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
+    return floating_point<T>(lhs.value SYMBOL rhs.value.convert_to<T>());      \
   } static_assert(true)
 
   BOILERPLATE(*);
@@ -63,6 +63,25 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
+  {                                                                            \
+    return floating_point<T>(lhs.value.convert_to<T>() SYMBOL rhs.value);      \
+  } static_assert(true)
+
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+
+  #undef BOILERPLATE
+
+  /* ---- Arithmetic Operation Dispatcher --------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
   #define BOILERPLATE(FLOATING_POINT, SYMBOL, OPERATION)                       \
   auto FLOATING_POINT::operator SYMBOL(const object& rhs) const -> object      \
   {                                                                            \
@@ -70,15 +89,15 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       if (rhs.is<exact_integer>())                                             \
       {                                                                        \
-        return make<FLOATING_POINT>(*this SYMBOL rhs.as<exact_integer>());     \
+        return make(*this SYMBOL rhs.as<exact_integer>());                     \
       }                                                                        \
       else if (rhs.is<single_float>())                                         \
       {                                                                        \
-        return make(*this SYMBOL rhs.as<single_float>());      \
+        return make(*this SYMBOL rhs.as<single_float>());                      \
       }                                                                        \
       else if (rhs.is<double_float>())                                         \
       {                                                                        \
-        return make(*this SYMBOL rhs.as<double_float>());      \
+        return make(*this SYMBOL rhs.as<double_float>());                      \
       }                                                                        \
     }                                                                          \
                                                                                \
@@ -96,20 +115,6 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(double_float, +, plus);
   BOILERPLATE(double_float, -, minus);
   BOILERPLATE(double_float, /, divides);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
-  {                                                                            \
-    return floating_point<T>(lhs.value.convert_to<T>() SYMBOL rhs.value);      \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
 
   #undef BOILERPLATE
 
@@ -144,7 +149,41 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
-  // XXX vs exact_integer comparison is maybe incorrect!
+  /* ---- Arithmetic Comparisons -----------------------------------------------
+   *
+   * ┌─────┬─────┬─────┬─────┬
+   * │ l\r │ f32 │ f64 │ mpi │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f32 │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f64 │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   * │ mpi │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   *
+   * ------------------------------------------------------------------------ */
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
+  {                                                                            \
+    return lhs SYMBOL static_cast<exact_integer>(rhs.value);                   \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
+  /* ---- Arithmetic Comparison Dispatcher -------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
   #define BOILERPLATE(TYPE, SYMBOL, OPERATION)                                 \
   auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
   {                                                                            \
@@ -174,49 +213,19 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  BOILERPLATE(floating_point<float>, ==, "equality comparison");
-  BOILERPLATE(floating_point<float>, !=, "inequality comparison");
-  BOILERPLATE(floating_point<float>, <,  "less-than comparison");
-  BOILERPLATE(floating_point<float>, <=, "less-equal comparison");
-  BOILERPLATE(floating_point<float>, >,  "greater-than comparison");
-  BOILERPLATE(floating_point<float>, >=, "greater-equal comparison");
+  BOILERPLATE(single_float, ==, "equality comparison");
+  BOILERPLATE(single_float, !=, "inequality comparison");
+  BOILERPLATE(single_float, <,  "less-than comparison");
+  BOILERPLATE(single_float, <=, "less-equal comparison");
+  BOILERPLATE(single_float, >,  "greater-than comparison");
+  BOILERPLATE(single_float, >=, "greater-equal comparison");
 
-  BOILERPLATE(floating_point<double>, ==, "equality comparison");
-  BOILERPLATE(floating_point<double>, !=, "inequality comparison");
-  BOILERPLATE(floating_point<double>, <,  "less-than comparison");
-  BOILERPLATE(floating_point<double>, <=, "less-equal comparison");
-  BOILERPLATE(floating_point<double>, >,  "greater-than comparison");
-  BOILERPLATE(floating_point<double>, >=, "greater-equal comparison");
-
-  #undef BOILERPLATE
-
-  /* ---- Arithmetic Comparisons -----------------------------------------------
-   *
-   * ┌─────┬─────┬─────┬─────┬
-   * │ l\r │ f32 │ f64 │ mpi │
-   * ├─────┼─────┼─────┼─────┼
-   * │ f32 │     │     │     │
-   * ├─────┼─────┼─────┼─────┼
-   * │ f64 │     │     │     │
-   * ├─────┼─────┼─────┼─────┼
-   * │ mpi │     │     │     │
-   * ├─────┼─────┼─────┼─────┼
-   *
-   * ------------------------------------------------------------------------ */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
-  {                                                                            \
-    return lhs SYMBOL static_cast<exact_integer>(rhs.value);                   \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
+  BOILERPLATE(double_float, ==, "equality comparison");
+  BOILERPLATE(double_float, !=, "inequality comparison");
+  BOILERPLATE(double_float, <,  "less-than comparison");
+  BOILERPLATE(double_float, <=, "less-equal comparison");
+  BOILERPLATE(double_float, >,  "greater-than comparison");
+  BOILERPLATE(double_float, >=, "greater-equal comparison");
 
   #undef BOILERPLATE
 
