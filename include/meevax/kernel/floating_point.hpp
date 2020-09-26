@@ -123,12 +123,12 @@ namespace meevax { inline namespace kernel
     return lhs.value SYMBOL rhs.value;                                         \
   } static_assert(true)
 
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
+  // BOILERPLATE(!=);
+  // BOILERPLATE(<);
+  // BOILERPLATE(<=);
+  // BOILERPLATE(==);
+  // BOILERPLATE(>);
+  // BOILERPLATE(>=);
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel
