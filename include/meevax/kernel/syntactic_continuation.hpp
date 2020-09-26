@@ -605,9 +605,9 @@ namespace meevax { inline namespace kernel
      *  string->number
      *
      * ====================================================================== */
-    DEFINE_PREDICATE("the-complex?", complex);
+    DEFINE_PREDICATE("the-complex?", complex); // TODO RENAME
     DEFINE_PREDICATE("ratio?", ratio);
-    DEFINE_PREDICATE("integral?", integral);
+    DEFINE_PREDICATE("exact-integer?", integral);
 
     DEFINE_PREDICATE("float?", decimal<float>);
     DEFINE_PREDICATE("double?", decimal<double>);
