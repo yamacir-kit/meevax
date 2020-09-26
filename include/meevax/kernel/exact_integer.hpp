@@ -38,6 +38,11 @@ namespace meevax { inline namespace kernel
       return value.str();
     }
 
+    static constexpr auto exact() noexcept
+    {
+      return true;
+    }
+
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
 

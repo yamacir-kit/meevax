@@ -34,10 +34,18 @@ namespace meevax { inline namespace kernel
       : value { x }                                                            \
     {}                                                                         \
                                                                                \
-    constexpr operator value_type() const noexcept                             \
+    auto to_string() const -> std::string                                      \
     {                                                                          \
-      return value;                                                            \
+      return boost::lexical_cast<std::string>(value);                          \
     }                                                                          \
+                                                                               \
+    auto exact() const noexcept                                                \
+    {                                                                          \
+      return value == std::trunc(value);                                       \
+    }                                                                          \
+                                                                               \
+    constexpr operator value_type() const noexcept { return value; }           \
+    constexpr operator value_type()       noexcept { return value; }           \
                                                                                \
     auto operator * (const object&) const -> object;                           \
     auto operator + (const object&) const -> object;                           \
@@ -50,16 +58,6 @@ namespace meevax { inline namespace kernel
     auto operator <=(const object&) const -> object;                           \
     auto operator > (const object&) const -> object;                           \
     auto operator >=(const object&) const -> object;                           \
-                                                                               \
-    auto exact() const noexcept                                                \
-    {                                                                          \
-      return value == std::trunc(value);                                       \
-    }                                                                          \
-                                                                               \
-    auto to_string() const -> std::string                                      \
-    {                                                                          \
-      return boost::lexical_cast<std::string>(value);                          \
-    }                                                                          \
   }
 
   BOILERPLATE(float);
