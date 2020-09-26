@@ -238,7 +238,7 @@ namespace meevax { inline namespace kernel
   {
     static const std::unordered_map<std::string, object> srfi_144
     {
-      std::make_pair("fl-pi", make<decimal<most_precise>>(boost::math::constants::pi<decimal<most_precise>::value_type>()))
+      std::make_pair("fl-pi", make<floating_point<most_precise>>(boost::math::constants::pi<floating_point<most_precise>::value_type>()))
     };
 
     static const std::regex pattern { regex::number<R>() };
@@ -263,10 +263,10 @@ namespace meevax { inline namespace kernel
       {
         static const std::unordered_map<std::string, object> infnan
         {
-          std::make_pair("+inf.0", make<decimal<most_precise>>(+decimal<most_precise>::infinity())),
-          std::make_pair("-inf.0", make<decimal<most_precise>>(-decimal<most_precise>::infinity())),
-          std::make_pair("+nan.0", make<decimal<most_precise>>(+decimal<most_precise>::quiet_NaN())),
-          std::make_pair("-nan.0", make<decimal<most_precise>>(-decimal<most_precise>::quiet_NaN()))
+          std::make_pair("+inf.0", make<floating_point<most_precise>>(+floating_point<most_precise>::infinity())),
+          std::make_pair("-inf.0", make<floating_point<most_precise>>(-floating_point<most_precise>::infinity())),
+          std::make_pair("+nan.0", make<floating_point<most_precise>>(+floating_point<most_precise>::quiet_NaN())),
+          std::make_pair("-nan.0", make<floating_point<most_precise>>(-floating_point<most_precise>::quiet_NaN()))
         };
 
         return infnan.at(token);
@@ -274,7 +274,7 @@ namespace meevax { inline namespace kernel
 
       if (result.length(10)) // 6, 7, 8, 9, 10
       {
-        return make<decimal<most_precise>>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<floating_point<most_precise>>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
       if (result.length(9)) // 6, 7, 8, 9

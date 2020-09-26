@@ -43,11 +43,11 @@ namespace meevax { inline namespace kernel
    *
    * ======================================================================== */
   template <typename T>
-  struct decimal;
+  struct floating_point;
 
   #define BOILERPLATE(TYPE)                                                    \
   template <>                                                                  \
-  struct decimal<TYPE>                                                         \
+  struct floating_point<TYPE>                                                  \
     : public std::numeric_limits<TYPE>                                         \
   {                                                                            \
     using value_type = TYPE;                                                   \
@@ -55,7 +55,7 @@ namespace meevax { inline namespace kernel
     value_type value;                                                          \
                                                                                \
     template <typename... Ts>                                                  \
-    explicit constexpr decimal(Ts&&... xs)                                     \
+    explicit constexpr floating_point(Ts&&... xs)                              \
       : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) } \
     {}                                                                         \
                                                                                \
@@ -64,7 +64,7 @@ namespace meevax { inline namespace kernel
                 typename std::enable_if<                                       \
                   std::is_convertible<T, value_type>::value                    \
                 >::type>                                                       \
-    explicit constexpr decimal(T&& x)                                          \
+    explicit constexpr floating_point(T&& x)                                   \
       : value { x }                                                            \
     {}                                                                         \
                                                                                \
@@ -112,7 +112,7 @@ namespace meevax { inline namespace kernel
   #undef BOILERPLATE
 
   template <typename T>
-  auto operator <<(std::ostream& os, const decimal<T>& rhs) -> decltype(auto)
+  auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)
   {
     if (std::isnan(rhs))
     {
@@ -188,13 +188,13 @@ namespace meevax { inline namespace kernel
       port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
       throw std::logic_error { port.str() };                                   \
     }                                                                          \
-    else if (rhs.is<decimal<float>>())                                         \
+    else if (rhs.is<floating_point<float>>())                                  \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<decimal<float>>().value);       \
+      return make<boolean>(value SYMBOL rhs.as<floating_point<float>>().value); \
     }                                                                          \
-    else if (rhs.is<decimal<double>>())                                        \
+    else if (rhs.is<floating_point<double>>())                                 \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<decimal<double>>().value);      \
+      return make<boolean>(value SYMBOL rhs.as<floating_point<double>>().value); \
     }                                                                          \
     else if (rhs.is<exact_integer>())                                          \
     {                                                                          \
@@ -208,19 +208,19 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  BOILERPLATE(decimal<float>, ==, "equality comparison");
-  BOILERPLATE(decimal<float>, !=, "inequality comparison");
-  BOILERPLATE(decimal<float>, <,  "less-than comparison");
-  BOILERPLATE(decimal<float>, <=, "less-equal comparison");
-  BOILERPLATE(decimal<float>, >,  "greater-than comparison");
-  BOILERPLATE(decimal<float>, >=, "greater-equal comparison");
+  BOILERPLATE(floating_point<float>, ==, "equality comparison");
+  BOILERPLATE(floating_point<float>, !=, "inequality comparison");
+  BOILERPLATE(floating_point<float>, <,  "less-than comparison");
+  BOILERPLATE(floating_point<float>, <=, "less-equal comparison");
+  BOILERPLATE(floating_point<float>, >,  "greater-than comparison");
+  BOILERPLATE(floating_point<float>, >=, "greater-equal comparison");
 
-  BOILERPLATE(decimal<double>, ==, "equality comparison");
-  BOILERPLATE(decimal<double>, !=, "inequality comparison");
-  BOILERPLATE(decimal<double>, <,  "less-than comparison");
-  BOILERPLATE(decimal<double>, <=, "less-equal comparison");
-  BOILERPLATE(decimal<double>, >,  "greater-than comparison");
-  BOILERPLATE(decimal<double>, >=, "greater-equal comparison");
+  BOILERPLATE(floating_point<double>, ==, "equality comparison");
+  BOILERPLATE(floating_point<double>, !=, "inequality comparison");
+  BOILERPLATE(floating_point<double>, <,  "less-than comparison");
+  BOILERPLATE(floating_point<double>, <=, "less-equal comparison");
+  BOILERPLATE(floating_point<double>, >,  "greater-than comparison");
+  BOILERPLATE(floating_point<double>, >=, "greater-equal comparison");
 
   #undef BOILERPLATE
 
@@ -233,13 +233,13 @@ namespace meevax { inline namespace kernel
       port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
       throw std::logic_error { port.str() };                                   \
     }                                                                          \
-    else if (rhs.is<decimal<float>>())                                         \
+    else if (rhs.is<floating_point<float>>())                                  \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<float>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<float>>().value)); \
     }                                                                          \
-    else if (rhs.is<decimal<double>>())                                        \
+    else if (rhs.is<floating_point<double>>())                                 \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<double>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<double>>().value)); \
     }                                                                          \
     else if (rhs.is<exact_integer>())                                          \
     {                                                                          \
@@ -271,15 +271,15 @@ namespace meevax { inline namespace kernel
       ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
       throw std::logic_error { ss.str() };                                     \
     }                                                                          \
-    else if (rhs.is<decimal<float>>())                                         \
+    else if (rhs.is<floating_point<float>>())                                  \
     {                                                                          \
-      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<float>>().value) }; \
-      return make<decimal<float>>(result.convert_to<decimal<float>::value_type>()); \
+      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<float>>().value) }; \
+      return make<floating_point<float>>(result.convert_to<floating_point<float>::value_type>()); \
     }                                                                          \
-    else if (rhs.is<decimal<double>>())                                        \
+    else if (rhs.is<floating_point<double>>())                                 \
     {                                                                          \
-      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<double>>().value) }; \
-      return make<decimal<double>>(result.convert_to<double>());               \
+      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<double>>().value) }; \
+      return make<floating_point<double>>(result.convert_to<double>());        \
     }                                                                          \
     else if (rhs.is<exact_integer>())                                          \
     {                                                                          \

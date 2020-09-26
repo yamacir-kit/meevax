@@ -756,8 +756,8 @@
 
 (define inexact?
   (lambda (z)
-    (or (float? z)
-        (double? z)
+    (or (single-float? z)
+        (double-float? z)
         (not (exact-complex? z)))))
 
 (define exact-complex?

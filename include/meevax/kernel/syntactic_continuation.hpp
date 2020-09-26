@@ -609,8 +609,8 @@ namespace meevax { inline namespace kernel
     DEFINE_PREDICATE("ratio?", ratio);
     DEFINE_PREDICATE("exact-integer?", exact_integer);
 
-    DEFINE_PREDICATE("float?", decimal<float>);
-    DEFINE_PREDICATE("double?", decimal<double>);
+    DEFINE_PREDICATE("single-float?", floating_point<float>);
+    DEFINE_PREDICATE("double-float?", floating_point<double>);
 
     // define<procedure>("exact?", [](auto&& xs)
     // {
@@ -702,20 +702,20 @@ namespace meevax { inline namespace kernel
       }                                                                        \
       else if (x.is<exact_integer>())                                          \
       {                                                                        \
-        if (const decimal<most_precise> result {                               \
-              CMATH(x.as<exact_integer>().value.template convert_to<decimal<most_precise>::value_type>()) \
+        if (const floating_point<most_precise> result {                        \
+              CMATH(x.as<exact_integer>().value.template convert_to<floating_point<most_precise>::value_type>()) \
             }; result.exact())                                                 \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          return make<decimal<most_precise>>(result);                          \
+          return make<floating_point<most_precise>>(result);                   \
         }                                                                      \
       }                                                                        \
-      else if (x.is<decimal<float>>())                                         \
+      else if (x.is<floating_point<float>>())                                  \
       {                                                                        \
-        if (const decimal<float> result { CMATH(x.as<decimal<float>>()) }; result.exact()) \
+        if (const floating_point<float> result { CMATH(x.as<floating_point<float>>()) }; result.exact()) \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
@@ -724,9 +724,9 @@ namespace meevax { inline namespace kernel
           return make<decltype(result)>(result);                               \
         }                                                                      \
       }                                                                        \
-      else if (x.is<decimal<double>>())                                        \
+      else if (x.is<floating_point<double>>())                                 \
       {                                                                        \
-        if (const decimal<double> result { CMATH(x.as<decimal<double>>()) }; result.exact()) \
+        if (const floating_point<double> result { CMATH(x.as<floating_point<double>>()) }; result.exact()) \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
@@ -771,23 +771,23 @@ namespace meevax { inline namespace kernel
       {
         if (z.is<exact_integer>())
         {
-          return decimal<most_precise>(z.as<exact_integer>().to_string()).value;
+          return floating_point<most_precise>(z.as<exact_integer>().to_string()).value;
         }
-        else if (z.is<decimal<float>>())
+        else if (z.is<floating_point<float>>())
         {
-          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<float>>().value);
+          return static_cast<floating_point<most_precise>::value_type>(z.as<floating_point<float>>().value);
         }
-        else if (z.is<decimal<double>>())
+        else if (z.is<floating_point<double>>())
         {
-          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<double>>().value);
+          return static_cast<floating_point<most_precise>::value_type>(z.as<floating_point<double>>().value);
         }
         else
         {
-          return static_cast<decimal<most_precise>::value_type>(0);
+          return static_cast<floating_point<most_precise>::value_type>(0);
         }
       };
 
-      if (const decimal<most_precise> result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.exact())
+      if (const floating_point<most_precise> result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.exact())
       {
         return make<exact_integer>(result.value);
       }
@@ -897,12 +897,12 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      if (car(xs).template is<decimal<double>>())
+      if (car(xs).template is<floating_point<double>>())
       {
         return
           make_string(
             boost::lexical_cast<std::string>(
-              car(xs).template as<decimal<double>>()));
+              car(xs).template as<floating_point<double>>()));
       }
       else if (car(xs).template is<exact_integer>())
       {
