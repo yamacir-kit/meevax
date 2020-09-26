@@ -292,16 +292,16 @@ namespace meevax { inline namespace kernel
       , aux {}
     {}
 
-    /* ==== C/C++ Derived Types Bind ==========================================
-    *
-    * With this function, you don't have to worry about virtual destructors.
-    * std::shared_ptr<T> remembers it has assigned binder type which knows T
-    * and the type you binding (both T and Bound's destructor will works
-    * correctly).
-    *
-    *======================================================================== */
+    /* ---- C/C++ Derived Types Bind -------------------------------------------
+     *
+     * With this function, you don't have to worry about virtual destructors.
+     * std::shared_ptr<T> remembers it has assigned binder type which knows T
+     * and the type you binding (both T and Bound's destructor will works
+     * correctly).
+     *
+     * ---------------------------------------------------------------------- */
     template <typename Bound, typename... Ts, typename = typename std::enable_if<std::is_compound<Bound>::value>::type>
-    static pointer make_binding(Ts&&... xs)
+    static pointer bind(Ts&&... xs)
     {
       using binding = binder<Bound>;
       return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
@@ -333,7 +333,7 @@ namespace meevax { inline namespace kernel
     *
     *======================================================================== */
     template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
-    static pointer make_binding(U&&)
+    static pointer bind(U&&)
     {
       return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
     }
