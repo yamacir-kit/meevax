@@ -34,41 +34,63 @@ namespace meevax { inline namespace kernel
    *                            `-- signed and unsigned 128  = number<std::u?int128_t>
    *
    * ------------------------------------------------------------------------ */
+
+  /* ---- Arithmetic Operations ------------------------------------------------
+   *
+   * ┌─────┬─────┬─────┬─────┬
+   * │ l\r │ f32 │ f64 │ mpi │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f32 │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f64 │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   * │ mpi │  v  │  v  │  v  │
+   * ├─────┼─────┼─────┼─────┼
+   *
+   * ------------------------------------------------------------------------ */
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
+  {                                                                            \
+    return lhs.value.convert_to<T>() SYMBOL rhs.value;                         \
+  } static_assert(true)
+
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+
+  #undef BOILERPLATE
+
   #define BOILERPLATE(SYMBOL, OPERATION)                                       \
   auto exact_integer::operator SYMBOL(const object& rhs) const -> object       \
   {                                                                            \
-    if (!rhs)                                                                  \
+    if (rhs)                                                                   \
     {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
-      throw std::logic_error { ss.str() };                                     \
+      if (rhs.is<exact_integer>())                                             \
+      {                                                                        \
+        return make<exact_integer>(*this SYMBOL rhs.as<exact_integer>());      \
+      }                                                                        \
+      else if (rhs.is<single_float>())                                         \
+      {                                                                        \
+        return make<single_float>(*this SYMBOL rhs.as<single_float>());        \
+      }                                                                        \
+      else if (rhs.is<double_float>())                                         \
+      {                                                                        \
+        return make<double_float>(*this SYMBOL rhs.as<double_float>());        \
+      }                                                                        \
     }                                                                          \
-    else if (rhs.is<floating_point<float>>())                                  \
-    {                                                                          \
-      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<float>>().value) }; \
-      return make<floating_point<float>>(result.convert_to<floating_point<float>::value_type>()); \
-    }                                                                          \
-    else if (rhs.is<floating_point<double>>())                                 \
-    {                                                                          \
-      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<double>>().value) }; \
-      return make<floating_point<double>>(result.convert_to<double>());        \
-    }                                                                          \
-    else if (rhs.is<exact_integer>())                                          \
-    {                                                                          \
-      return make<exact_integer>(value SYMBOL rhs.as<exact_integer>().value);  \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
-      throw std::logic_error { ss.str() };                                     \
-    }                                                                          \
-  } static_assert(true, "semicolon required after this macro")
+                                                                               \
+    std::stringstream ss {};                                                   \
+    ss << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
+    throw std::logic_error { ss.str() };                                       \
+  } static_assert(true)
 
-  BOILERPLATE(*, "multiplication");
-  BOILERPLATE(+, "addition");
-  BOILERPLATE(-, "subtraction");
-  BOILERPLATE(/, "division");
+  BOILERPLATE(*, multiplies);
+  BOILERPLATE(+, plus);
+  BOILERPLATE(-, minus);
+  BOILERPLATE(/, divides);
 
   #undef BOILERPLATE
 
@@ -117,6 +139,20 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(floating_point<double>, >=, "greater-equal comparison");
 
   #undef BOILERPLATE
+
+  /* ---- Arithmetic Comparisons -----------------------------------------------
+   *
+   * ┌─────┬─────┬─────┬─────┬
+   * │ l\r │ f32 │ f64 │ mpi │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f32 │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f64 │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   * │ mpi │     │     │     │
+   * ├─────┼─────┼─────┼─────┼
+   *
+   * ------------------------------------------------------------------------ */
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \

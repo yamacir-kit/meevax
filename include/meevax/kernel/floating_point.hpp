@@ -74,6 +74,9 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
+  using single_float = floating_point<float>;
+  using double_float = floating_point<double>;
+
   using most_precise = double;
 
   template <typename T>
