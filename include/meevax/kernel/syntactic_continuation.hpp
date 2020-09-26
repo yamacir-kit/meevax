@@ -137,9 +137,9 @@ namespace meevax { inline namespace kernel
 
     const auto& intern(const std::string& s)
     {
-      if (auto iter {symbols.find(s)}; iter != std::end(symbols))
+      if (auto iter { symbols.find(s) }; iter != std::end(symbols))
       {
-        return (*iter).second;
+        return cdr(*iter);
       }
       else if (const auto [position, success] { symbols.emplace(s, make<symbol>(s)) }; success)
       {
@@ -1227,7 +1227,8 @@ namespace meevax { inline namespace kernel
     });
   }
 
-  #undef DEFINE_SYNTAX
+  #undef DEFINE_PREDICATE
+  // #undef DEFINE_SYNTAX
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP

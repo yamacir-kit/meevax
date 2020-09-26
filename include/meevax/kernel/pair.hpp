@@ -6,20 +6,20 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== The Pair Type ========================================================
-  *
-  * The pair type is always underlies any object type (is performance hack).
-  *
-  * We implemented heterogenous pointer by type-erasure, this is very flexible
-  * but, requires dynamic-cast to restore erased type in any case. So, we
-  * decided to remove typecheck for pair type, by always waste memory space
-  * for two heterogenous pointer slot (yes, is cons-cell). If pair selector
-  * (car/cdr) always requires typecheck, our kernel will be unbearlably slowly.
-  * Built-in types are designed to make the best possible use of the fact that
-  * these are pair as well (e.g. closure is pair of expression and lexical
-  * environment, string is linear-list of character, complex, rational).
-  *
-  *========================================================================== */
+  /* ---- Pair -----------------------------------------------------------------
+   *
+   * The pair type is always underlies any object type (is performance hack).
+   *
+   * We implemented heterogenous pointer by type-erasure, this is very flexible
+   * but, requires dynamic-cast to restore erased type in any case. So, we
+   * decided to remove typecheck for pair type, by always waste memory space
+   * for two heterogenous pointer slot (yes, is cons-cell). If pair selector
+   * (car/cdr) always requires typecheck, our kernel will be unbearlably slowly.
+   * Built-in types are designed to make the best possible use of the fact that
+   * these are pair as well (e.g. closure is pair of expression and lexical
+   * environment, string is linear-list of character, complex, rational).
+   *
+   * ------------------------------------------------------------------------ */
   struct pair
     : public std::pair<object, object>
     , public identity<pair>
@@ -33,14 +33,12 @@ namespace meevax { inline namespace kernel
     virtual ~pair() = default;
   };
 
-  /* ==== Pair Accessor ========================================================
-  *
-  * Pair accessors are not only for pair type. Accessing car and cdr is a valid
-  * operation for everyone except the empty list.
-  *
-  * ========================================================================= */
-  #if __cpp_if_constexpr
-
+  /* ---- Pair Accessor --------------------------------------------------------
+   *
+   * Pair accessors are not only for pair type. Accessing car and cdr is a valid
+   * operation for everyone except the empty list.
+   *
+   * ------------------------------------------------------------------------ */
   auto car = [](auto&& pare) noexcept -> decltype(auto)
   {
     if constexpr (std::is_base_of<object, typename std::decay<decltype(pare)>::type>::value)
@@ -65,56 +63,28 @@ namespace meevax { inline namespace kernel
     }
   };
 
-  #else // __cpp_if_constexpr
-
-  template <typename T, typename = void>
-  struct generic_accessor
+  /* ---- Pairs and Lists External Representation ------------------------------
+   *
+   * TODO documentation
+   *
+   * ------------------------------------------------------------------------ */
+  auto operator <<(std::ostream& os, const pair& pare) -> decltype(os)
   {
-    static auto car(const T& pare) -> decltype(auto) { return std::get<0>(pare); }
-    static auto cdr(const T& pare) -> decltype(auto) { return std::get<1>(pare); }
-  };
+    os << magenta << "(" << reset << car(pare);
 
-  template <typename T>
-  struct generic_accessor<T, typename std::enable_if<std::is_base_of<object, typename std::decay<T>::type>::value>::type>
-  {
-    static auto car(const T& pare) -> decltype(auto) { return std::get<0>(pare.binding()); }
-    static auto cdr(const T& pare) -> decltype(auto) { return std::get<1>(pare.binding()); }
-  };
-
-  auto car = [](auto&& pare) noexcept -> decltype(auto)
-  {
-    return generic_accessor<decltype(pare)>::car(pare);
-  };
-
-  auto cdr = [](auto&& pare) noexcept -> decltype(auto)
-  {
-    return generic_accessor<decltype(pare)>::cdr(pare);
-  };
-
-  #endif // __cpp_if_constexpr
-
-  /* ==== Pairs and Lists External Representation ==============================
-  *
-  * TODO documentation
-  *
-  *========================================================================== */
-  auto operator<<(std::ostream& os, const pair& pare) -> decltype(os)
-  {
-    os << console::magenta << "(" << console::reset << car(pare);
-
-    for (auto object { cdr(pare) }; object; object = cdr(object))
+    for (auto rest { cdr(pare) }; rest; rest = cdr(rest))
     {
-      if (object.is<pair>())
+      if (rest.is<pair>())
       {
-        os << " " << car(object);
+        os << " " << car(rest);
       }
       else // iter is the last element of dotted-list.
       {
-        os << console::magenta << " . " << console::reset << object;
+        os << magenta << " . " << reset << rest;
       }
     }
 
-    return os << console::magenta << ")" << console::reset;
+    return os << magenta << ")" << reset;
   }
 }} // namespace meevax::kernel
 

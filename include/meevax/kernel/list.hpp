@@ -180,18 +180,12 @@ namespace meevax { inline namespace kernel
    * ======================================================================== */
   inline namespace predicate
   {
-    auto null = [](auto&& x)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto null = [](auto&& x) constexpr
     {
       return not x;
     };
 
-    auto eq = [](auto&& x, auto&& y)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto eq = [](auto&& x, auto&& y) constexpr
     {
       return x == y;
     };
@@ -217,11 +211,7 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    #if __cpp_nontype_template_parameter_auto
-    template <auto Coarseness = 0>
-    #else
-    template <int Coarseness = 0>
-    #endif // __cpp_nontype_template_parameter_auto
+    template <std::size_t Coarseness = 0>
     struct equivalence_comparator;
 
     #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)             \
