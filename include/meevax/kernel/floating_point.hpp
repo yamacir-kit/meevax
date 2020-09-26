@@ -51,18 +51,6 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> object;                           \
     auto operator >=(const object&) const -> object;                           \
                                                                                \
-    template <typename T>                                                      \
-    auto operator ==(T&& rhs) const noexcept                                   \
-    {                                                                          \
-      return value == rhs;                                                     \
-    }                                                                          \
-                                                                               \
-    template <typename T>                                                      \
-    auto operator !=(T&& rhs) const noexcept                                   \
-    {                                                                          \
-      return value != rhs;                                                     \
-    }                                                                          \
-                                                                               \
     auto exact() const noexcept                                                \
     {                                                                          \
       return value == std::trunc(value);                                       \
@@ -123,12 +111,12 @@ namespace meevax { inline namespace kernel
     return lhs.value SYMBOL rhs.value;                                         \
   } static_assert(true)
 
-  // BOILERPLATE(!=);
-  // BOILERPLATE(<);
-  // BOILERPLATE(<=);
-  // BOILERPLATE(==);
-  // BOILERPLATE(>);
-  // BOILERPLATE(>=);
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel

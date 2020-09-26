@@ -158,16 +158,34 @@ namespace meevax { inline namespace kernel
    * ├─────┼─────┼─────┼─────┼
    * │ f64 │     │     │     │
    * ├─────┼─────┼─────┼─────┼
-   * │ mpi │     │     │     │
+   * │ mpi │  v  │  v  │  v  │
    * ├─────┼─────┼─────┼─────┼
    *
    * ------------------------------------------------------------------------ */
 
+  // TODO CONSIDER EPSILON
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
+  {                                                                            \
+    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
+  // TODO CONSIDER EPSILON
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
-    return lhs SYMBOL static_cast<exact_integer>(rhs.value);                   \
+    return lhs.value.convert_to<T>() SYMBOL rhs.value;                         \
   } static_assert(true)
 
   BOILERPLATE(!=);
@@ -184,48 +202,43 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  #define BOILERPLATE(TYPE, SYMBOL, OPERATION)                                 \
-  auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
+  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
+  auto NUMBER::operator SYMBOL(const object& rhs) const -> object              \
   {                                                                            \
-    if (!rhs)                                                                  \
+    if (rhs)                                                                   \
     {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
+      if (rhs.is<exact_integer>())                                             \
+      {                                                                        \
+        return make<boolean>(*this SYMBOL rhs.as<exact_integer>());            \
+      }                                                                        \
+      else if (rhs.is<single_float>())                                         \
+      {                                                                        \
+        return make<boolean>(*this SYMBOL rhs.as<single_float>());             \
+      }                                                                        \
+      else if (rhs.is<double_float>())                                         \
+      {                                                                        \
+        return make<boolean>(*this SYMBOL rhs.as<double_float>());             \
+      }                                                                        \
     }                                                                          \
-    else if (rhs.is<floating_point<float>>())                                  \
-    {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<floating_point<float>>().value); \
-    }                                                                          \
-    else if (rhs.is<floating_point<double>>())                                 \
-    {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<floating_point<double>>().value); \
-    }                                                                          \
-    else if (rhs.is<exact_integer>())                                          \
-    {                                                                          \
-      return static_cast<exact_integer>(value) SYMBOL rhs;                     \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
-    }                                                                          \
+                                                                               \
+    std::stringstream port {};                                                 \
+    port << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
+    throw std::logic_error { port.str() };                                     \
   } static_assert(true, "semicolon required after this macro")
 
-  BOILERPLATE(single_float, ==, "equality comparison");
-  BOILERPLATE(single_float, !=, "inequality comparison");
-  BOILERPLATE(single_float, <,  "less-than comparison");
-  BOILERPLATE(single_float, <=, "less-equal comparison");
-  BOILERPLATE(single_float, >,  "greater-than comparison");
-  BOILERPLATE(single_float, >=, "greater-equal comparison");
+  BOILERPLATE(single_float, !=, not_equal_to);
+  BOILERPLATE(single_float, <,  less);
+  BOILERPLATE(single_float, <=, less_equal);
+  BOILERPLATE(single_float, ==, equal_to);
+  BOILERPLATE(single_float, >,  greater);
+  BOILERPLATE(single_float, >=, greater_equal);
 
-  BOILERPLATE(double_float, ==, "equality comparison");
-  BOILERPLATE(double_float, !=, "inequality comparison");
-  BOILERPLATE(double_float, <,  "less-than comparison");
-  BOILERPLATE(double_float, <=, "less-equal comparison");
-  BOILERPLATE(double_float, >,  "greater-than comparison");
-  BOILERPLATE(double_float, >=, "greater-equal comparison");
+  BOILERPLATE(double_float, !=, not_equal_to);
+  BOILERPLATE(double_float, <,  less);
+  BOILERPLATE(double_float, <=, less_equal);
+  BOILERPLATE(double_float, ==, equal_to);
+  BOILERPLATE(double_float, >,  greater);
+  BOILERPLATE(double_float, >=, greater_equal);
 
   #undef BOILERPLATE
 
