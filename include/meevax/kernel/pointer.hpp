@@ -247,8 +247,6 @@ namespace meevax { inline namespace kernel
       }
 
     private: // arithmetic
-      // return static_cast<const bound&>(*this).plus[typeid(rhs)](rhs);
-
       #define boilerplate(TRAIT, SYMBOL)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
@@ -495,52 +493,36 @@ namespace meevax { inline namespace kernel
     return (x ? x.binding().write(os) : os << console::magenta << "()") << console::reset;
   }
 
-  #define boilerplate(SYMBOL, NAME)                                            \
+  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
   template <typename T, typename U>                                            \
   decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
   {                                                                            \
     if (lhs && rhs)                                                            \
     {                                                                          \
-      return lhs.binding() SYMBOL rhs;                                         \
+      return std::invoke(std::OPERATION<void>(), lhs.binding(), rhs);          \
     }                                                                          \
     else                                                                       \
     {                                                                          \
       std::stringstream ss {};                                                 \
-      ss << "no viable " NAME " with " << lhs << " and " << rhs;               \
+      ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
       throw std::logic_error { ss.str() };                                     \
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  boilerplate(*, "multiplication");
-  boilerplate(+, "addition");
-  boilerplate(-, "subtraction");
-  boilerplate(/, "division");
+  BOILERPLATE(*, multiplies);
+  BOILERPLATE(+, plus);
+  BOILERPLATE(-, minus);
+  BOILERPLATE(/, divides);
 
-  #undef boilerplate
+  // TODO     equal_to => eqv or arithmetic_compare
+  // TODO not_equal_to => eqv or arithmetic_compare
 
-  #define boilerplate(SYMBOL)                                                  \
-  template <typename T, typename U>                                            \
-  decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
-  {                                                                            \
-    if (lhs && rhs)                                                            \
-    {                                                                          \
-      return lhs.binding() SYMBOL rhs;                                         \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      throw std::logic_error { "" };                                           \
-    }                                                                          \
-  } static_assert(true, "semicolon required after this macro")
+  BOILERPLATE(<,  less);
+  BOILERPLATE(<=, less_equal);
+  BOILERPLATE(>,  greater);
+  BOILERPLATE(>=, greater_equal);
 
-  //     equal_to => eqv or arithmetic_compare
-  // not_equal_to => eqv or arithmetic_compare
-
-  boilerplate(<);
-  boilerplate(<=);
-  boilerplate(>);
-  boilerplate(>=);
-
-  #undef boilerplate
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 namespace std
