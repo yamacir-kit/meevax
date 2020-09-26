@@ -1,25 +1,17 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#ifndef MEEVAX_USE_GMP
-#define MEEVAX_USE_GMP
-#endif
-
-#ifdef MEEVAX_USE_GMP
-#include <boost/multiprecision/gmp.hpp>
-#else
-#include <boost/multiprecision/cpp_int.hpp>
-#endif
-
 #include <boost/math/constants/constants.hpp>
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/complex.hpp>
+#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/floating_point.hpp>
+#include <meevax/kernel/ratio.hpp>
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Numbers ==============================================================
+  /* ---- Numbers --------------------------------------------------------------
    *
    *  number
    *   `-- complex
@@ -41,143 +33,7 @@ namespace meevax { inline namespace kernel
    *                            |-- signed and unsigned  64  = number<std::u?int64_t>
    *                            `-- signed and unsigned 128  = number<std::u?int128_t>
    *
-   * ======================================================================== */
-  template <typename T>
-  struct floating_point;
-
-  #define BOILERPLATE(TYPE)                                                    \
-  template <>                                                                  \
-  struct floating_point<TYPE>                                                  \
-    : public std::numeric_limits<TYPE>                                         \
-  {                                                                            \
-    using value_type = TYPE;                                                   \
-                                                                               \
-    value_type value;                                                          \
-                                                                               \
-    template <typename... Ts>                                                  \
-    explicit constexpr floating_point(Ts&&... xs)                              \
-      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) } \
-    {}                                                                         \
-                                                                               \
-    template <typename T,                                                      \
-              typename =                                                       \
-                typename std::enable_if<                                       \
-                  std::is_convertible<T, value_type>::value                    \
-                >::type>                                                       \
-    explicit constexpr floating_point(T&& x)                                   \
-      : value { x }                                                            \
-    {}                                                                         \
-                                                                               \
-    constexpr operator value_type() const noexcept                             \
-    {                                                                          \
-      return value;                                                            \
-    }                                                                          \
-                                                                               \
-    auto operator ==(const object&) const -> object;                           \
-    auto operator !=(const object&) const -> object;                           \
-    auto operator < (const object&) const -> object;                           \
-    auto operator <=(const object&) const -> object;                           \
-    auto operator > (const object&) const -> object;                           \
-    auto operator >=(const object&) const -> object;                           \
-                                                                               \
-    template <typename T>                                                      \
-    auto operator ==(T&& rhs) const noexcept                                   \
-    {                                                                          \
-      return value == rhs;                                                     \
-    }                                                                          \
-                                                                               \
-    template <typename T>                                                      \
-    auto operator !=(T&& rhs) const noexcept                                   \
-    {                                                                          \
-      return value != rhs;                                                     \
-    }                                                                          \
-                                                                               \
-    auto exact() const noexcept                                                \
-    {                                                                          \
-      return value == std::trunc(value);                                       \
-    }                                                                          \
-                                                                               \
-    auto to_string() const -> std::string                                      \
-    {                                                                          \
-      return boost::lexical_cast<std::string>(value);                          \
-    }                                                                          \
-  }
-
-  // XXX A terrible implementation based on optimistic assumptions.
-  BOILERPLATE(float);
-  BOILERPLATE(double);
-
-  using most_precise = double;
-
-  #undef BOILERPLATE
-
-  template <typename T>
-  auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)
-  {
-    if (std::isnan(rhs))
-    {
-      return os << cyan << "+nan.0" << reset;
-    }
-    else if (std::isinf(rhs))
-    {
-      return os << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
-    }
-    else
-    {
-      return os << cyan << rhs.value << (rhs.exact() ? ".0" : "") << reset;
-    }
-  }
-
-  struct ratio
-    : public virtual pair
-  {
-  };
-
-  struct exact_integer
-  {
-    #ifdef MEEVAX_USE_GMP
-    using value_type = boost::multiprecision::mpz_int;
-    #else
-    using value_type = boost::multiprecision::cpp_int;
-    #endif
-
-    value_type value;
-
-    template <typename... Ts>
-    explicit constexpr exact_integer(Ts&&... xs)
-      : value { std::forward<decltype(xs)>(xs)... }
-    {}
-
-    auto to_string() const -> std::string
-    {
-      return value.str();
-    }
-
-    operator value_type() const noexcept { return value; }
-    operator value_type()       noexcept { return value; }
-
-    auto operator *(const object&) const -> object;
-    auto operator +(const object&) const -> object;
-    auto operator -(const object&) const -> object;
-    auto operator /(const object&) const -> object;
-
-    auto operator ==(const object&) const -> object;
-    auto operator !=(const object&) const -> object;
-
-    auto operator < (const object&) const -> object;
-    auto operator <=(const object&) const -> object;
-    auto operator > (const object&) const -> object;
-    auto operator >=(const object&) const -> object;
-
-    auto operator ==(const exact_integer& rhs) const { return value == rhs.value; }
-    auto operator !=(const exact_integer& rhs) const { return !(*this == rhs); }
-
-    friend std::ostream& operator<<(std::ostream& os, const exact_integer& x)
-    {
-      return os << console::cyan << x.value.str() << console::reset;
-    }
-  };
-
+   * ------------------------------------------------------------------------ */
   // XXX vs exact_integer comparison is maybe incorrect!
   #define BOILERPLATE(TYPE, SYMBOL, OPERATION)                                 \
   auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
@@ -229,44 +85,6 @@ namespace meevax { inline namespace kernel
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
-    }                                                                          \
-    else if (rhs.is<floating_point<float>>())                                  \
-    {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<float>>().value)); \
-    }                                                                          \
-    else if (rhs.is<floating_point<double>>())                                 \
-    {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<double>>().value)); \
-    }                                                                          \
-    else if (rhs.is<exact_integer>())                                          \
-    {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<exact_integer>().value);        \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
-    }                                                                          \
-  } static_assert(true, "semicolon required after this macro")
-
-  BOILERPLATE(==, "equality comparison");
-  BOILERPLATE(!=, "inequality comparison");
-  BOILERPLATE(<,  "less-than comparison");
-  BOILERPLATE(<=, "less-equal comparison");
-  BOILERPLATE(>,  "greater-than comparison");
-  BOILERPLATE(>=, "greater-equal comparison");
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  auto exact_integer::operator SYMBOL(const object& rhs) const -> object       \
-  {                                                                            \
-    if (!rhs)                                                                  \
-    {                                                                          \
       std::stringstream ss {};                                                 \
       ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
       throw std::logic_error { ss.str() };                                     \
@@ -297,6 +115,44 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(+, "addition");
   BOILERPLATE(-, "subtraction");
   BOILERPLATE(/, "division");
+
+  #undef BOILERPLATE
+
+  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
+  auto exact_integer::operator SYMBOL(const object& rhs) const -> object       \
+  {                                                                            \
+    if (!rhs)                                                                  \
+    {                                                                          \
+      std::stringstream port {};                                               \
+      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
+      throw std::logic_error { port.str() };                                   \
+    }                                                                          \
+    else if (rhs.is<floating_point<float>>())                                  \
+    {                                                                          \
+      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<float>>().value)); \
+    }                                                                          \
+    else if (rhs.is<floating_point<double>>())                                 \
+    {                                                                          \
+      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<floating_point<double>>().value)); \
+    }                                                                          \
+    else if (rhs.is<exact_integer>())                                          \
+    {                                                                          \
+      return make<boolean>(value SYMBOL rhs.as<exact_integer>().value);        \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      std::stringstream port {};                                               \
+      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
+      throw std::logic_error { port.str() };                                   \
+    }                                                                          \
+  } static_assert(true, "semicolon required after this macro")
+
+  BOILERPLATE(==, "equality comparison");
+  BOILERPLATE(!=, "inequality comparison");
+  BOILERPLATE(<,  "less-than comparison");
+  BOILERPLATE(<=, "less-equal comparison");
+  BOILERPLATE(>,  "greater-than comparison");
+  BOILERPLATE(>=, "greater-equal comparison");
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel

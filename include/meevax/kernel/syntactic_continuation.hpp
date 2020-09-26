@@ -612,16 +612,6 @@ namespace meevax { inline namespace kernel
     DEFINE_PREDICATE("single-float?", floating_point<float>);
     DEFINE_PREDICATE("double-float?", floating_point<double>);
 
-    // define<procedure>("exact?", [](auto&& xs)
-    // {
-    //   return car(xs).binding().exact() ? t : f;
-    // });
-    //
-    // define<procedure>("inexact?", [](auto&& xs)
-    // {
-    //   return car(xs).binding().inexact() ? t : f;
-    // });
-
     // TODO Rewrite with STL algorithms
     define<procedure>("=", [](auto&& xs)
     {
