@@ -48,20 +48,31 @@ namespace meevax { inline namespace kernel
 
     auto operator ==(const object&) const -> object;
     auto operator !=(const object&) const -> object;
-
     auto operator < (const object&) const -> object;
     auto operator <=(const object&) const -> object;
     auto operator > (const object&) const -> object;
     auto operator >=(const object&) const -> object;
-
-    auto operator ==(const exact_integer& rhs) const { return value == rhs.value; }
-    auto operator !=(const exact_integer& rhs) const { return !(*this == rhs); }
   };
 
   auto operator <<(std::ostream& os, const exact_integer& rhs) -> decltype(auto)
   {
     return os << cyan << rhs.value.str() << reset;
   }
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  auto operator SYMBOL(const exact_integer& lhs, const exact_integer& rhs)     \
+  {                                                                            \
+    return lhs.value SYMBOL rhs.value;                                         \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
