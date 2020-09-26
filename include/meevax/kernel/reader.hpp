@@ -279,7 +279,7 @@ namespace meevax { inline namespace kernel
 
       if (result.length(9)) // 6, 7, 8, 9
       {
-        return make<integral>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<exact_integer>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
       for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
@@ -335,7 +335,7 @@ namespace meevax { inline namespace kernel
     // auto path {read_string("/path/to/file")};
     // auto something {make<input_port>(path.as<std::string>())};
     // car(something) = path;
-    // cdr(something) = make<integral>(1); // current line
+    // cdr(something) = make<exact_integer>(1); // current line
 
     // std::stack<std::istream> sources;
 
@@ -512,11 +512,11 @@ namespace meevax { inline namespace kernel
 
         if (const auto xs { read(is) }; null(xs) or not xs.template is<pair>())
         {
-          return make<complex>(make<integral>(0), make<integral>(0));
+          return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
         }
         else if (null(cdr(xs)) or not cdr(xs).template is<pair>())
         {
-          return make<complex>(car(xs), make<integral>(0));
+          return make<complex>(car(xs), make<exact_integer>(0));
         }
         else
         {
@@ -525,7 +525,7 @@ namespace meevax { inline namespace kernel
 
       case 'd':
         is.ignore(1);
-        return make<integral>(read_token(is));
+        return make<exact_integer>(read_token(is));
 
       case 'f':
         ignore(is, [](auto&& x) { return not is_delimiter(x); });
@@ -533,7 +533,7 @@ namespace meevax { inline namespace kernel
 
       case 'o':
         is.ignore(1);
-        return make<integral>("0" + read_token(is));
+        return make<exact_integer>("0" + read_token(is));
 
       case 'p':
         is.ignore(1);
@@ -554,7 +554,7 @@ namespace meevax { inline namespace kernel
 
       case 'x':
         is.ignore(1);
-        return make<integral>("0x" + read_token(is));
+        return make<exact_integer>("0x" + read_token(is));
 
       case '(':
         if (const auto xs { read(is) }; null(xs))

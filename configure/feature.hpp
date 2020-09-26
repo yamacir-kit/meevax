@@ -24,7 +24,7 @@ namespace meevax { inline namespace kernel
 
     boilerplate(cxx_compiler, make<symbol>("${CMAKE_CXX_COMPILER}"));
     boilerplate(cxx_flags, make<symbol>("${CMAKE_CXX_FLAGS}"));
-    boilerplate(cxx_standard, make<integral>("${CMAKE_CXX_STANDARD}"));
+    boilerplate(cxx_standard, make<exact_integer>("${CMAKE_CXX_STANDARD}"));
 
     boilerplate(system_name, make<symbol>("${CMAKE_SYSTEM_NAME}"));
     boilerplate(system_processor, make<symbol>("${CMAKE_SYSTEM_PROCESSOR}"));

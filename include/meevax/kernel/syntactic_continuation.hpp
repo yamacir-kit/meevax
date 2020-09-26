@@ -607,7 +607,7 @@ namespace meevax { inline namespace kernel
      * ====================================================================== */
     DEFINE_PREDICATE("the-complex?", complex); // TODO RENAME
     DEFINE_PREDICATE("ratio?", ratio);
-    DEFINE_PREDICATE("exact-integer?", integral);
+    DEFINE_PREDICATE("exact-integer?", exact_integer);
 
     DEFINE_PREDICATE("float?", decimal<float>);
     DEFINE_PREDICATE("double?", decimal<double>);
@@ -664,7 +664,7 @@ namespace meevax { inline namespace kernel
     #define boilerplate(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
-      return std::accumulate(std::begin(xs), std::end(xs), make<integral>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+      return std::accumulate(std::begin(xs), std::end(xs), make<exact_integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
     })
 
     boilerplate(+, 0);
@@ -678,7 +678,7 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       if (length(xs) < 2)                                                      \
       {                                                                        \
-        return std::accumulate(std::begin(xs), std::end(xs), make<integral>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+        return std::accumulate(std::begin(xs), std::end(xs), make<exact_integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
       }                                                                        \
       else                                                                     \
       {                                                                        \
@@ -700,35 +700,35 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         return f;                                                              \
       }                                                                        \
-      else if (x.is<integral>())                                               \
+      else if (x.is<exact_integer>())                                          \
       {                                                                        \
         if (const decimal<most_precise> result {                               \
-              CMATH(x.as<integral>().value.template convert_to<decimal<most_precise>::value_type>()) \
+              CMATH(x.as<exact_integer>().value.template convert_to<decimal<most_precise>::value_type>()) \
             }; result.exact())                                                 \
         {                                                                      \
-          return make<integral>(result.to_string());                           \
+          return make<exact_integer>(result.to_string());                      \
         }                                                                      \
         else                                                                   \
         {                                                                      \
           return make<decimal<most_precise>>(result);                          \
         }                                                                      \
       }                                                                        \
-      else if (x.is<decimal<float>>())                                            \
+      else if (x.is<decimal<float>>())                                         \
       {                                                                        \
         if (const decimal<float> result { CMATH(x.as<decimal<float>>()) }; result.exact()) \
         {                                                                      \
-          return make<integral>(result.to_string());                           \
+          return make<exact_integer>(result.to_string());                      \
         }                                                                      \
         else                                                                   \
         {                                                                      \
           return make<decltype(result)>(result);                               \
         }                                                                      \
       }                                                                        \
-      else if (x.is<decimal<double>>())                                            \
+      else if (x.is<decimal<double>>())                                        \
       {                                                                        \
         if (const decimal<double> result { CMATH(x.as<decimal<double>>()) }; result.exact()) \
         {                                                                      \
-          return make<integral>(result.to_string());                           \
+          return make<exact_integer>(result.to_string());                      \
         }                                                                      \
         else                                                                   \
         {                                                                      \
@@ -769,9 +769,9 @@ namespace meevax { inline namespace kernel
     {
       auto inexact = [](const object& z)
       {
-        if (z.is<integral>())
+        if (z.is<exact_integer>())
         {
-          return decimal<most_precise>(z.as<integral>().to_string()).value;
+          return decimal<most_precise>(z.as<exact_integer>().to_string()).value;
         }
         else if (z.is<decimal<float>>())
         {
@@ -789,7 +789,7 @@ namespace meevax { inline namespace kernel
 
       if (const decimal<most_precise> result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.exact())
       {
-        return make<integral>(result.value);
+        return make<exact_integer>(result.value);
       }
       else
       {
@@ -864,7 +864,7 @@ namespace meevax { inline namespace kernel
     {
       try
       {
-        return make<integral>(car(xs).template as<std::string>());
+        return make<exact_integer>(car(xs).template as<std::string>());
       }
       catch (std::runtime_error&)
       {
@@ -877,7 +877,7 @@ namespace meevax { inline namespace kernel
       switch (const auto& s { car(xs).template as<std::string>() }; s.size())
       {
       case 1:
-        return make<integral>(*reinterpret_cast<const std::uint8_t*>(s.data()));
+        return make<exact_integer>(*reinterpret_cast<const std::uint8_t*>(s.data()));
 
       default:
         throw make<evaluation_error>("unicode unsupported");
@@ -904,9 +904,9 @@ namespace meevax { inline namespace kernel
             boost::lexical_cast<std::string>(
               car(xs).template as<decimal<double>>()));
       }
-      else if (car(xs).template is<integral>())
+      else if (car(xs).template is<exact_integer>())
       {
-        return make_string(car(xs).template as<integral>().value.str());
+        return make_string(car(xs).template as<exact_integer>().value.str());
       }
       else
       {
@@ -931,11 +931,11 @@ namespace meevax { inline namespace kernel
     {
       auto v { make<vector>() };
 
-      if (car(xs).template is<integral>())
+      if (car(xs).template is<exact_integer>())
       {
         v.as<vector>().resize(
           static_cast<vector::size_type>(
-            car(xs).template as<integral>().value));
+            car(xs).template as<exact_integer>().value));
       }
       else
       {
@@ -953,7 +953,7 @@ namespace meevax { inline namespace kernel
     define<procedure>("vector-length", [](auto&& xs)
     {
       return
-        make<integral>(
+        make<exact_integer>(
           car(xs).template as<vector>().size());
     });
 
@@ -962,7 +962,7 @@ namespace meevax { inline namespace kernel
       return
         car(xs).template as<vector>().at(
           static_cast<vector::size_type>(
-            cadr(xs).template as<integral>().value));
+            cadr(xs).template as<exact_integer>().value));
     });
 
     define<procedure>("vector-set!", [](auto&& xs)
@@ -970,7 +970,7 @@ namespace meevax { inline namespace kernel
       return
         car(xs).template as<vector>().at(
           static_cast<vector::size_type>(
-            cadr(xs).template as<integral>().value))
+            cadr(xs).template as<exact_integer>().value))
         = caddr(xs);
     });
 
@@ -1136,13 +1136,13 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("emergency-exit", [](auto&& xs)
     {
-      if (null(xs) or not car(xs).template is<integral>())
+      if (null(xs) or not car(xs).template is<exact_integer>())
       {
         std::exit(boost::exit_success);
       }
       else
       {
-        std::exit(car(xs).template as<integral>().value.template convert_to<int>());
+        std::exit(car(xs).template as<exact_integer>().value.template convert_to<int>());
       }
 
       return unspecified;

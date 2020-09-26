@@ -24,17 +24,17 @@ namespace meevax { inline namespace kernel
    *  number
    *   `-- complex
    *        `-- real
-   *             |-- decimal (IEEE 754)
+   *             |-- floating-point (IEEE 754)
    *             |    |-- binary  16
-   *             |    |-- binary  32 (C++ single float)      = number<float>
-   *             |    |-- binary  64 (C++ double float)      = number<double>
-   *             |    |-- binary  80 (C++ long double float) = number<long double>
+   *             |    |-- binary  32 (C++ single float)      = floating_point<float>
+   *             |    |-- binary  64 (C++ double float)      = floating_point<double>
+   *             |    |-- binary  80 (C++ long double float) = floating_point<long double>
    *             |    `-- binary 128
    *             `-- rational
    *                  |-- fractional
-   *                  `-- integral
-   *                       |-- multi-precision integral
-   *                       `-- fixed precision integral
+   *                  `-- exact-integer
+   *                       |-- multi-precision exact-integer
+   *                       `-- fixed precision exact-integer
    *                            |-- signed and unsigned   8  = number<std::u?int8_t>
    *                            |-- signed and unsigned  16  = number<std::u?int16_t>
    *                            |-- signed and unsigned  32  = number<std::u?int32_t>
@@ -133,7 +133,7 @@ namespace meevax { inline namespace kernel
   {
   };
 
-  struct integral
+  struct exact_integer
   {
     #ifdef MEEVAX_USE_GMP
     using value_type = boost::multiprecision::mpz_int;
@@ -144,7 +144,7 @@ namespace meevax { inline namespace kernel
     value_type value;
 
     template <typename... Ts>
-    explicit constexpr integral(Ts&&... xs)
+    explicit constexpr exact_integer(Ts&&... xs)
       : value { std::forward<decltype(xs)>(xs)... }
     {}
 
@@ -169,16 +169,16 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> object;
     auto operator >=(const object&) const -> object;
 
-    auto operator ==(const integral& rhs) const { return value == rhs.value; }
-    auto operator !=(const integral& rhs) const { return !(*this == rhs); }
+    auto operator ==(const exact_integer& rhs) const { return value == rhs.value; }
+    auto operator !=(const exact_integer& rhs) const { return !(*this == rhs); }
 
-    friend std::ostream& operator<<(std::ostream& os, const integral& x)
+    friend std::ostream& operator<<(std::ostream& os, const exact_integer& x)
     {
       return os << console::cyan << x.value.str() << console::reset;
     }
   };
 
-  // XXX vs integral comparison is maybe incorrect!
+  // XXX vs exact_integer comparison is maybe incorrect!
   #define BOILERPLATE(TYPE, SYMBOL, OPERATION)                                 \
   auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
   {                                                                            \
@@ -196,9 +196,9 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       return make<boolean>(value SYMBOL rhs.as<decimal<double>>().value);      \
     }                                                                          \
-    else if (rhs.is<integral>())                                               \
+    else if (rhs.is<exact_integer>())                                          \
     {                                                                          \
-      return static_cast<integral>(value) SYMBOL rhs;                          \
+      return static_cast<exact_integer>(value) SYMBOL rhs;                     \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -225,7 +225,7 @@ namespace meevax { inline namespace kernel
   #undef BOILERPLATE
 
   #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  auto integral::operator SYMBOL(const object& rhs) const -> object            \
+  auto exact_integer::operator SYMBOL(const object& rhs) const -> object       \
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \
@@ -235,15 +235,15 @@ namespace meevax { inline namespace kernel
     }                                                                          \
     else if (rhs.is<decimal<float>>())                                         \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<float>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<float>>().value)); \
     }                                                                          \
     else if (rhs.is<decimal<double>>())                                        \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<double>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<double>>().value)); \
     }                                                                          \
-    else if (rhs.is<integral>())                                               \
+    else if (rhs.is<exact_integer>())                                          \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<integral>().value);             \
+      return make<boolean>(value SYMBOL rhs.as<exact_integer>().value);        \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -263,7 +263,7 @@ namespace meevax { inline namespace kernel
   #undef BOILERPLATE
 
   #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  auto integral::operator SYMBOL(const object& rhs) const -> object            \
+  auto exact_integer::operator SYMBOL(const object& rhs) const -> object       \
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \
@@ -273,17 +273,17 @@ namespace meevax { inline namespace kernel
     }                                                                          \
     else if (rhs.is<decimal<float>>())                                         \
     {                                                                          \
-      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<float>>().value) }; \
+      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<float>>().value) }; \
       return make<decimal<float>>(result.convert_to<decimal<float>::value_type>()); \
     }                                                                          \
     else if (rhs.is<decimal<double>>())                                        \
     {                                                                          \
-      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<double>>().value) }; \
+      const exact_integer::value_type result { value SYMBOL static_cast<exact_integer::value_type>(rhs.as<decimal<double>>().value) }; \
       return make<decimal<double>>(result.convert_to<double>());               \
     }                                                                          \
-    else if (rhs.is<integral>())                                               \
+    else if (rhs.is<exact_integer>())                                          \
     {                                                                          \
-      return make<integral>(value SYMBOL rhs.as<integral>().value);            \
+      return make<exact_integer>(value SYMBOL rhs.as<exact_integer>().value);  \
     }                                                                          \
     else                                                                       \
     {                                                                          \

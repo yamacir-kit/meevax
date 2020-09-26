@@ -322,8 +322,8 @@ namespace meevax { inline namespace kernel
           list_reference(
             list_reference(
               e,
-              caadr(c).template as<integral>().value.template convert_to<std::size_t>()),
-            cdadr(c).template as<integral>().value.template convert_to<std::size_t>()));
+              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
         pop<2>(c);
         goto dispatch;
 
@@ -340,8 +340,8 @@ namespace meevax { inline namespace kernel
           list_tail(
             list_reference(
               e,
-              caadr(c).template as<integral>().value.template convert_to<std::size_t>()),
-            cdadr(c).template as<integral>().value.template convert_to<std::size_t>()));
+              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
         pop<2>(c);
         goto dispatch;
 
@@ -652,8 +652,8 @@ namespace meevax { inline namespace kernel
             list_tail(
               list_reference(
                 e,
-                caadr(c).template as<integral>().value.template convert_to<std::size_t>()),
-              cdadr(c).template as<integral>().value.template convert_to<std::size_t>())),
+                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
           car(s));
         pop<2>(c);
         goto dispatch;
@@ -664,8 +664,8 @@ namespace meevax { inline namespace kernel
             list_tail(
               list_reference(
                 e,
-                caadr(c).template as<integral>().value.template convert_to<std::size_t>()),
-              cdadr(c).template as<integral>().value.template convert_to<std::size_t>())),
+                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
           car(s));
         pop<2>(c);
         goto dispatch;

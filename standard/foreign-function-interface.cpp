@@ -18,10 +18,10 @@ extern "C"
 
     for (const object& each : xs)
     {
-      if (each.is<integral>())
+      if (each.is<exact_integer>())
       {
         std::cout << "; return incremented left-most integer object." << std::endl;
-        return make<integral>(each.as<integral>().value.convert_to<int>() + 1);
+        return make<exact_integer>(each.as<exact_integer>().value.convert_to<int>() + 1);
       }
     }
 

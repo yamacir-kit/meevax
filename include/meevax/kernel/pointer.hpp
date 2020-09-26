@@ -247,7 +247,7 @@ namespace meevax { inline namespace kernel
       }
 
     private: // arithmetic
-      #define boilerplate(TRAIT, SYMBOL)                                       \
+      #define BOILERPLATE(SYMBOL, TRAIT)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
         return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<pointer>([](auto&& lhs, auto&& rhs) \
@@ -256,20 +256,19 @@ namespace meevax { inline namespace kernel
         }, static_cast<const bound&>(*this), rhs);                             \
       } static_assert(true, "semicolon required after this macro")
 
-      boilerplate(addable, +);
-      boilerplate(divisible, /);
-      boilerplate(multipliable, *);
-      boilerplate(subtractable, -);
+      BOILERPLATE(*, multipliable);
+      BOILERPLATE(+, addable);
+      BOILERPLATE(-, subtractable);
+      BOILERPLATE(/, divisible);
 
-      boilerplate(equality_comparable_with, ==);
-      boilerplate(not_equality_comparable_with, !=);
+      BOILERPLATE(!=, not_equality_comparable_with);
+      BOILERPLATE(<,  less_than_comparable);
+      BOILERPLATE(<=, less_equal_comparable);
+      BOILERPLATE(==, equality_comparable_with);
+      BOILERPLATE(>,  greater_than_comparable);
+      BOILERPLATE(>=, greater_equal_comparable);
 
-      boilerplate(greater_equal_comparable, >=);
-      boilerplate(greater_than_comparable, >);
-      boilerplate(less_equal_comparable, <=);
-      boilerplate(less_than_comparable, <);
-
-      #undef boilerplate
+      #undef BOILERPLATE
     };
 
     union // small-object optimiazation
@@ -513,9 +512,6 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(+, plus);
   BOILERPLATE(-, minus);
   BOILERPLATE(/, divides);
-
-  // TODO     equal_to => eqv or arithmetic_compare
-  // TODO not_equal_to => eqv or arithmetic_compare
 
   BOILERPLATE(<,  less);
   BOILERPLATE(<=, less_equal);
