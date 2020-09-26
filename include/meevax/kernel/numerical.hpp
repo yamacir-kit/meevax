@@ -82,8 +82,8 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  #define BOILERPLATE(FLOATING_POINT, SYMBOL, OPERATION)                       \
-  auto FLOATING_POINT::operator SYMBOL(const object& rhs) const -> object      \
+  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
+  auto NUMBER::operator SYMBOL(const object& rhs) const -> object              \
   {                                                                            \
     if (rhs)                                                                   \
     {                                                                          \
@@ -116,36 +116,10 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(double_float, -, minus);
   BOILERPLATE(double_float, /, divides);
 
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  auto exact_integer::operator SYMBOL(const object& rhs) const -> object       \
-  {                                                                            \
-    if (rhs)                                                                   \
-    {                                                                          \
-      if (rhs.is<exact_integer>())                                             \
-      {                                                                        \
-        return make(*this SYMBOL rhs.as<exact_integer>());                     \
-      }                                                                        \
-      else if (rhs.is<single_float>())                                         \
-      {                                                                        \
-        return make(*this SYMBOL rhs.as<single_float>());                      \
-      }                                                                        \
-      else if (rhs.is<double_float>())                                         \
-      {                                                                        \
-        return make(*this SYMBOL rhs.as<double_float>());                      \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    std::stringstream ss {};                                                   \
-    ss << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
-    throw std::logic_error { ss.str() };                                       \
-  } static_assert(true)
-
-  BOILERPLATE(*, multiplies);
-  BOILERPLATE(+, plus);
-  BOILERPLATE(-, minus);
-  BOILERPLATE(/, divides);
+  BOILERPLATE(exact_integer, *, multiplies);
+  BOILERPLATE(exact_integer, +, plus);
+  BOILERPLATE(exact_integer, -, minus);
+  BOILERPLATE(exact_integer, /, divides);
 
   #undef BOILERPLATE
 
@@ -154,9 +128,9 @@ namespace meevax { inline namespace kernel
    * ┌─────┬─────┬─────┬─────┬
    * │ l\r │ f32 │ f64 │ mpi │
    * ├─────┼─────┼─────┼─────┼
-   * │ f32 │     │     │     │
+   * │ f32 │  v  │  v  │  v  │
    * ├─────┼─────┼─────┼─────┼
-   * │ f64 │     │     │     │
+   * │ f64 │  v  │  v  │  v  │
    * ├─────┼─────┼─────┼─────┼
    * │ mpi │  v  │  v  │  v  │
    * ├─────┼─────┼─────┼─────┼
@@ -240,38 +214,12 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(double_float, >,  greater);
   BOILERPLATE(double_float, >=, greater_equal);
 
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  auto exact_integer::operator SYMBOL(const object& rhs) const -> object       \
-  {                                                                            \
-    if (rhs)                                                                   \
-    {                                                                          \
-      if (rhs.is<exact_integer>())                                             \
-      {                                                                        \
-        return make<boolean>(*this SYMBOL rhs.as<exact_integer>());            \
-      }                                                                        \
-      else if (rhs.is<floating_point<float>>())                                \
-      {                                                                        \
-        return make<boolean>(*this SYMBOL rhs.as<floating_point<float>>());    \
-      }                                                                        \
-      else if (rhs.is<floating_point<double>>())                               \
-      {                                                                        \
-        return make<boolean>(*this SYMBOL rhs.as<floating_point<double>>());   \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    std::stringstream port {};                                                 \
-    port << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
-    throw std::logic_error { port.str() };                                     \
-  } static_assert(true, "semicolon required after this macro")
-
-  BOILERPLATE(!=, not_equal_to);
-  BOILERPLATE(<,  less);
-  BOILERPLATE(<=, less_equal);
-  BOILERPLATE(==, equal_to);
-  BOILERPLATE(>,  greater);
-  BOILERPLATE(>=, greater_equal);
+  BOILERPLATE(exact_integer, !=, not_equal_to);
+  BOILERPLATE(exact_integer, <,  less);
+  BOILERPLATE(exact_integer, <=, less_equal);
+  BOILERPLATE(exact_integer, ==, equal_to);
+  BOILERPLATE(exact_integer, >,  greater);
+  BOILERPLATE(exact_integer, >=, greater_equal);
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel
