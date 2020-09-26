@@ -143,7 +143,7 @@ namespace meevax { inline namespace kernel
       }
       else if (const auto [position, success] { symbols.emplace(s, make<symbol>(s)) }; success)
       {
-        return (*position).second;
+        return cdr(*position);
       }
       else
       {
@@ -361,8 +361,7 @@ namespace meevax { inline namespace kernel
     }
 
   public:
-    friend auto operator<<(std::ostream& os, const syntactic_continuation& sc)
-      -> decltype(os)
+    friend auto operator<<(std::ostream& os, const syntactic_continuation& sc) -> decltype(auto)
     {
       return os << console::magenta << "#,("
                 << console::green << "syntactic-continuation"
@@ -393,8 +392,7 @@ namespace meevax { inline namespace kernel
       return is;
     }
 
-    friend auto operator <<(std::ostream& os, syntactic_continuation& sk)
-      -> decltype(os)
+    friend auto operator <<(std::ostream& os, syntactic_continuation& sk) -> decltype(auto)
     {
       // TODO
       // Evaluate current_expression, and write the evaluation to ostream.
@@ -430,9 +428,9 @@ namespace meevax { inline namespace kernel
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      for (const auto& x : xs)                                                 \
+      for (let const & x : xs)                                                 \
       {                                                                        \
-        if (null(x) or not x.template is<TYPE>())                              \
+        if (null(x) or not x.is<TYPE>())                                       \
         {                                                                      \
           return f;                                                            \
         }                                                                      \
