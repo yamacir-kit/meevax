@@ -606,11 +606,11 @@ namespace meevax { inline namespace kernel
      *
      * ====================================================================== */
     DEFINE_PREDICATE("the-complex?", complex);
-    DEFINE_PREDICATE("fractional?", fractional);
+    DEFINE_PREDICATE("ratio?", ratio);
     DEFINE_PREDICATE("integral?", integral);
 
-    DEFINE_PREDICATE("decimal<32>?", decimal<32>);
-    DEFINE_PREDICATE("decimal<64>?", decimal<64>);
+    DEFINE_PREDICATE("float?", decimal<float>);
+    DEFINE_PREDICATE("double?", decimal<double>);
 
     // define<procedure>("exact?", [](auto&& xs)
     // {
@@ -713,9 +713,9 @@ namespace meevax { inline namespace kernel
           return make<decimal<most_precise>>(result);                          \
         }                                                                      \
       }                                                                        \
-      else if (x.is<decimal<32>>())                                            \
+      else if (x.is<decimal<float>>())                                            \
       {                                                                        \
-        if (const decimal<32> result { CMATH(x.as<decimal<32>>()) }; result.exact()) \
+        if (const decimal<float> result { CMATH(x.as<decimal<float>>()) }; result.exact()) \
         {                                                                      \
           return make<integral>(result.to_string());                           \
         }                                                                      \
@@ -724,9 +724,9 @@ namespace meevax { inline namespace kernel
           return make<decltype(result)>(result);                               \
         }                                                                      \
       }                                                                        \
-      else if (x.is<decimal<64>>())                                            \
+      else if (x.is<decimal<double>>())                                            \
       {                                                                        \
-        if (const decimal<64> result { CMATH(x.as<decimal<64>>()) }; result.exact()) \
+        if (const decimal<double> result { CMATH(x.as<decimal<double>>()) }; result.exact()) \
         {                                                                      \
           return make<integral>(result.to_string());                           \
         }                                                                      \
@@ -773,13 +773,13 @@ namespace meevax { inline namespace kernel
         {
           return decimal<most_precise>(z.as<integral>().to_string()).value;
         }
-        else if (z.is<decimal<32>>())
+        else if (z.is<decimal<float>>())
         {
-          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<32>>().value);
+          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<float>>().value);
         }
-        else if (z.is<decimal<64>>())
+        else if (z.is<decimal<double>>())
         {
-          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<64>>().value);
+          return static_cast<decimal<most_precise>::value_type>(z.as<decimal<double>>().value);
         }
         else
         {
@@ -897,12 +897,12 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      if (car(xs).template is<decimal<64>>())
+      if (car(xs).template is<decimal<double>>())
       {
         return
           make_string(
             boost::lexical_cast<std::string>(
-              car(xs).template as<decimal<64>>()));
+              car(xs).template as<decimal<double>>()));
       }
       else if (car(xs).template is<integral>())
       {

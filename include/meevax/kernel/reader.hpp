@@ -274,7 +274,7 @@ namespace meevax { inline namespace kernel
 
       if (result.length(10)) // 6, 7, 8, 9, 10
       {
-        return make<decimal<64>>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<decimal<most_precise>>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
       if (result.length(9)) // 6, 7, 8, 9

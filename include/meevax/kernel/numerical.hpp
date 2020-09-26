@@ -42,12 +42,12 @@ namespace meevax { inline namespace kernel
    *                            `-- signed and unsigned 128  = number<std::u?int128_t>
    *
    * ======================================================================== */
-  template <auto Bits>
+  template <typename T>
   struct decimal;
 
-  #define boilerplate(BITS, TYPE, CONVERT)                                     \
+  #define BOILERPLATE(TYPE)                                                    \
   template <>                                                                  \
-  struct decimal<BITS>                                                         \
+  struct decimal<TYPE>                                                         \
     : public std::numeric_limits<TYPE>                                         \
   {                                                                            \
     using value_type = TYPE;                                                   \
@@ -56,7 +56,7 @@ namespace meevax { inline namespace kernel
                                                                                \
     template <typename... Ts>                                                  \
     explicit constexpr decimal(Ts&&... xs)                                     \
-      : value { CONVERT(std::forward<decltype(xs)>(xs)...) }                   \
+      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) } \
     {}                                                                         \
                                                                                \
     template <typename T,                                                      \
@@ -104,31 +104,31 @@ namespace meevax { inline namespace kernel
   }
 
   // XXX A terrible implementation based on optimistic assumptions.
-  boilerplate(32, float, std::stof);
-  boilerplate(64, double, std::stod);
+  BOILERPLATE(float);
+  BOILERPLATE(double);
 
-  constexpr auto most_precise = 64;
+  using most_precise = double;
 
-  #undef boilerplate
+  #undef BOILERPLATE
 
-  template <auto B>
-  auto operator<<(std::ostream& os, const decimal<B>& x) -> decltype(os)
+  template <typename T>
+  auto operator <<(std::ostream& os, const decimal<T>& rhs) -> decltype(auto)
   {
-    if (std::isnan(x))
+    if (std::isnan(rhs))
     {
       return os << cyan << "+nan.0" << reset;
     }
-    else if (std::isinf(x))
+    else if (std::isinf(rhs))
     {
-      return os << cyan << (0 < x.value ? '+' : '-') << "inf.0" << reset;
+      return os << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
     }
     else
     {
-      return os << cyan << x.value << (x.exact() ? ".0" : "") << reset;
+      return os << cyan << rhs.value << (rhs.exact() ? ".0" : "") << reset;
     }
   }
 
-  struct fractional
+  struct ratio
     : public virtual pair
   {
   };
@@ -179,7 +179,7 @@ namespace meevax { inline namespace kernel
   };
 
   // XXX vs integral comparison is maybe incorrect!
-  #define boilerplate(TYPE, SYMBOL, OPERATION)                                 \
+  #define BOILERPLATE(TYPE, SYMBOL, OPERATION)                                 \
   auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
   {                                                                            \
     if (!rhs)                                                                  \
@@ -188,17 +188,17 @@ namespace meevax { inline namespace kernel
       port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
       throw std::logic_error { port.str() };                                   \
     }                                                                          \
-    else if (rhs.is<decimal<32>>())                                            \
+    else if (rhs.is<decimal<float>>())                                         \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<decimal<32>>().value);          \
+      return make<boolean>(value SYMBOL rhs.as<decimal<float>>().value);       \
     }                                                                          \
-    else if (rhs.is<decimal<64>>())                                            \
+    else if (rhs.is<decimal<double>>())                                        \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<decimal<64>>().value);          \
+      return make<boolean>(value SYMBOL rhs.as<decimal<double>>().value);      \
     }                                                                          \
-    else if (rhs.is<integral>())                                                \
+    else if (rhs.is<integral>())                                               \
     {                                                                          \
-      return static_cast<integral>(value) SYMBOL rhs;                           \
+      return static_cast<integral>(value) SYMBOL rhs;                          \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -208,24 +208,24 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  boilerplate(decimal<32>, ==, "equality comparison");
-  boilerplate(decimal<32>, !=, "inequality comparison");
-  boilerplate(decimal<32>, <,  "less-than comparison");
-  boilerplate(decimal<32>, <=, "less-equal comparison");
-  boilerplate(decimal<32>, >,  "greater-than comparison");
-  boilerplate(decimal<32>, >=, "greater-equal comparison");
+  BOILERPLATE(decimal<float>, ==, "equality comparison");
+  BOILERPLATE(decimal<float>, !=, "inequality comparison");
+  BOILERPLATE(decimal<float>, <,  "less-than comparison");
+  BOILERPLATE(decimal<float>, <=, "less-equal comparison");
+  BOILERPLATE(decimal<float>, >,  "greater-than comparison");
+  BOILERPLATE(decimal<float>, >=, "greater-equal comparison");
 
-  boilerplate(decimal<64>, ==, "equality comparison");
-  boilerplate(decimal<64>, !=, "inequality comparison");
-  boilerplate(decimal<64>, <,  "less-than comparison");
-  boilerplate(decimal<64>, <=, "less-equal comparison");
-  boilerplate(decimal<64>, >,  "greater-than comparison");
-  boilerplate(decimal<64>, >=, "greater-equal comparison");
+  BOILERPLATE(decimal<double>, ==, "equality comparison");
+  BOILERPLATE(decimal<double>, !=, "inequality comparison");
+  BOILERPLATE(decimal<double>, <,  "less-than comparison");
+  BOILERPLATE(decimal<double>, <=, "less-equal comparison");
+  BOILERPLATE(decimal<double>, >,  "greater-than comparison");
+  BOILERPLATE(decimal<double>, >=, "greater-equal comparison");
 
-  #undef boilerplate
+  #undef BOILERPLATE
 
-  #define boilerplate(SYMBOL, OPERATION)                                       \
-  auto integral::operator SYMBOL(const object& rhs) const -> object             \
+  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
+  auto integral::operator SYMBOL(const object& rhs) const -> object            \
   {                                                                            \
     if (!rhs)                                                                  \
     {                                                                          \
@@ -233,17 +233,17 @@ namespace meevax { inline namespace kernel
       port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
       throw std::logic_error { port.str() };                                   \
     }                                                                          \
-    else if (rhs.is<decimal<32>>())                                            \
+    else if (rhs.is<decimal<float>>())                                         \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<32>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<float>>().value)); \
     }                                                                          \
-    else if (rhs.is<decimal<64>>())                                            \
+    else if (rhs.is<decimal<double>>())                                        \
     {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<64>>().value)); \
+      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<double>>().value)); \
     }                                                                          \
-    else if (rhs.is<integral>())                                                \
+    else if (rhs.is<integral>())                                               \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<integral>().value);              \
+      return make<boolean>(value SYMBOL rhs.as<integral>().value);             \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -253,16 +253,16 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  boilerplate(==, "equality comparison");
-  boilerplate(!=, "inequality comparison");
-  boilerplate(<,  "less-than comparison");
-  boilerplate(<=, "less-equal comparison");
-  boilerplate(>,  "greater-than comparison");
-  boilerplate(>=, "greater-equal comparison");
+  BOILERPLATE(==, "equality comparison");
+  BOILERPLATE(!=, "inequality comparison");
+  BOILERPLATE(<,  "less-than comparison");
+  BOILERPLATE(<=, "less-equal comparison");
+  BOILERPLATE(>,  "greater-than comparison");
+  BOILERPLATE(>=, "greater-equal comparison");
 
-  #undef boilerplate
+  #undef BOILERPLATE
 
-  #define boilerplate(SYMBOL, OPERATION)                                       \
+  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
   auto integral::operator SYMBOL(const object& rhs) const -> object            \
   {                                                                            \
     if (!rhs)                                                                  \
@@ -271,15 +271,15 @@ namespace meevax { inline namespace kernel
       ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
       throw std::logic_error { ss.str() };                                     \
     }                                                                          \
-    else if (rhs.is<decimal<32>>())                                            \
+    else if (rhs.is<decimal<float>>())                                         \
     {                                                                          \
-      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<32>>().value) }; \
-      return make<decimal<32>>(result.convert_to<decimal<32>::value_type>());  \
+      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<float>>().value) }; \
+      return make<decimal<float>>(result.convert_to<decimal<float>::value_type>()); \
     }                                                                          \
-    else if (rhs.is<decimal<64>>())                                            \
+    else if (rhs.is<decimal<double>>())                                        \
     {                                                                          \
-      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<64>>().value) }; \
-      return make<decimal<64>>(result.convert_to<decimal<64>::value_type>());  \
+      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<double>>().value) }; \
+      return make<decimal<double>>(result.convert_to<double>());               \
     }                                                                          \
     else if (rhs.is<integral>())                                               \
     {                                                                          \
@@ -293,12 +293,12 @@ namespace meevax { inline namespace kernel
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  boilerplate(*, "multiplication");
-  boilerplate(+, "addition");
-  boilerplate(-, "subtraction");
-  boilerplate(/, "division");
+  BOILERPLATE(*, "multiplication");
+  BOILERPLATE(+, "addition");
+  BOILERPLATE(-, "subtraction");
+  BOILERPLATE(/, "division");
 
-  #undef boilerplate
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
