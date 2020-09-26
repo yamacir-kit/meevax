@@ -11,70 +11,60 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== System Layers ========================================================
+  /* ---- System Layers --------------------------------------------------------
    *
-   * Layer 0 - Module Systems (Program Structures)
+   * Layer 0 - Module System (Program Structures)
    * Layer 1 - R7RS Primitive Expression Types
    * Layer 2 - R7RS Standard Procedures
    * Layer 3 - R7RS Derived Expression Types
    * Layer 4 - Experimental Procedures
    *
-   * ======================================================================== */
-  #if __cpp_nontype_template_parameter_auto
-  template <auto N>
-  #else
-  template <int N>
-  #endif
-  static constexpr std::integral_constant<decltype(N), N> layer {};
+   * ------------------------------------------------------------------------ */
+  template <std::size_t N>
+  using layer = std::integral_constant<decltype(N), N>;
 
-  /* ==== Syntactic Continuation (SK) ==========================================
-  *
-  *
-  * ========================================================================= */
+  /* ---- Syntactic Continuation (SK) ------------------------------------------
+   *
+   * TODO
+   *
+   * ------------------------------------------------------------------------ */
   class syntactic_continuation
 
-    /* ==== Syntactic Closure ==================================================
-     *
-     * ====================================================================== */
-    : public syntactic_closure
+    : public syntactic_closure /* ----------------------------------------------
+    *
+    * TODO
+    *
+    * ---------------------------------------------------------------------- */
 
-    /* ==== Reader =============================================================
+    , public reader<syntactic_continuation> /* ---------------------------------
     *
-    * Reader access symbol table of this syntactic_continuation (by member
-    * function "intern") via static polymorphism. The syntactic_continuation
-    * indirectly inherits the non-copyable class std::istream (reader base
-    * class), so it cannot be copied.
+    * TODO
     *
-    * ======================================================================= */
-    , public reader<syntactic_continuation>
+    * ----------------------------------------------------------------------- */
 
-    /* ==== Writer =============================================================
+    , public writer<syntactic_continuation> /* ---------------------------------
     *
+    * TODO
     *
-    * ======================================================================= */
-    , public writer<syntactic_continuation>
+    * ----------------------------------------------------------------------- */
 
-    /* =========================================================================
+    , public machine<syntactic_continuation> /* --------------------------------
     *
     * Each syntactic-continuation has a virtual machine and a compiler.
     *
-    * ======================================================================= */
-    , public machine<syntactic_continuation>
+    * ----------------------------------------------------------------------- */
 
-    /* ==== Debugger ===========================================================
+    , public debugger<syntactic_continuation> /* -------------------------------
     *
+    * TODO
     *
-    * ======================================================================= */
-    , public debugger<syntactic_continuation>
+    * ----------------------------------------------------------------------- */
 
-    /* ==== Configurator =======================================================
+    , public configurator<syntactic_continuation> /* ---------------------------
     *
-    * Global configuration is shared in all of syntactic_continuations running
-    * on same process. Thus, any change of configuration member influences any
-    * other syntactic_continuations immediately.
+    * TODO
     *
-    * ======================================================================= */
-    , public configurator<syntactic_continuation>
+    * ----------------------------------------------------------------------- */
   {
   public:
     std::unordered_map<std::string, object> symbols;
@@ -107,16 +97,12 @@ namespace meevax { inline namespace kernel
     using configurator::in_trace_mode;
     using configurator::in_verbose_mode;
 
-  public: // Accessors
-    auto current_expression() const -> const auto& { return car(form()); }
-    auto scope()              const -> const auto& { return cdr(form()); }
-
-  public: // Constructors
+  public:
     template <typename... Ts>
     explicit syntactic_continuation(Ts&&... xs)
       : pair { std::forward<decltype(xs)>(xs)... }
     {
-      boot(layer<0>);
+      boot(layer<0>());
 
       if (first)
       {
@@ -138,22 +124,17 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    #if __cpp_nontype_template_parameter_auto
-    template <auto N>
-    #else
-    template <int N>
-    #endif
-    explicit syntactic_continuation(std::integral_constant<decltype(N), N>);
+    template <std::size_t N>
+    explicit syntactic_continuation(layer<N>);
 
-    #if __cpp_nontype_template_parameter_auto
-    template <auto N>
-    #else
-    template <int N>
-    #endif
-    void boot(std::integral_constant<decltype(N), N>)
+    template <std::size_t N>
+    void boot(layer<N>)
     {}
 
-  public: // Interfaces
+  public:
+    auto current_expression() const -> const auto& { return car(form()); }
+    auto scope()              const -> const auto& { return cdr(form()); }
+
     const auto& intern(const std::string& s)
     {
       if (auto iter {symbols.find(s)}; iter != std::end(symbols))
@@ -418,26 +399,20 @@ namespace meevax { inline namespace kernel
       // TODO
       // Evaluate current_expression, and write the evaluation to ostream.
 
-      return
-        sk.write_to(os,
-          "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
+      return sk.write_to(os, "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
     }
   };
 
   template <>
-  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(0), 0>)
+  syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {} // boots layer<0>
   {}
 
-  #if __cpp_nontype_template_parameter_auto
-  template <auto N>
-  #else
-  template <int N>
-  #endif
-  syntactic_continuation::syntactic_continuation(std::integral_constant<decltype(N), N>)
-    : syntactic_continuation::syntactic_continuation { layer<N - 1> }
+  template <std::size_t N>
+  syntactic_continuation::syntactic_continuation(layer<N>)
+    : syntactic_continuation::syntactic_continuation { layer<N - 1>() }
   {
-    boot(layer<N>);
+    boot(layer<N>());
   }
 
   #define DEFINE_SYNTAX(IDENTIFIER, TRANSFORMER_SPEC)                          \
@@ -468,14 +443,14 @@ namespace meevax { inline namespace kernel
   })
 
   template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(0), 0>)
+  void syntactic_continuation::boot(layer<0>)
   {
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
   }
 
   template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(1), 1>)
+  void syntactic_continuation::boot(layer<1>)
   {
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
@@ -510,7 +485,7 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(2), 2>)
+  void syntactic_continuation::boot(layer<2>)
   {
     /* ==== R7RS 6.1. Equivalence predicates ===================================
      *
@@ -1210,7 +1185,7 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(3), 3>)
+  void syntactic_continuation::boot(layer<3>)
   {
     auto port { open_input_string(overture.data()) };
 
@@ -1232,15 +1207,12 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(std::integral_constant<decltype(4), 4>)
+  void syntactic_continuation::boot(layer<4>)
   {
     define<procedure>("print", [](auto&& xs)
     {
-      for (const auto& x : xs)
+      for (let const & x : xs)
       {
-        // TODO
-        // std::cout << x.display();
-
         if (x.template is<string>())
         {
           std::cout << static_cast<std::string>(x.template as<string>());
