@@ -247,9 +247,7 @@ namespace meevax { inline namespace kernel
       }
 
     private: // arithmetic
-      // return static_cast<const bound&>(*this).plus[typeid(rhs)](rhs);
-
-      #define boilerplate(TRAIT, SYMBOL)                                       \
+      #define BOILERPLATE(SYMBOL, TRAIT)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
         return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<pointer>([](auto&& lhs, auto&& rhs) \
@@ -258,20 +256,19 @@ namespace meevax { inline namespace kernel
         }, static_cast<const bound&>(*this), rhs);                             \
       } static_assert(true, "semicolon required after this macro")
 
-      boilerplate(addable, +);
-      boilerplate(divisible, /);
-      boilerplate(multipliable, *);
-      boilerplate(subtractable, -);
+      BOILERPLATE(*, multipliable);
+      BOILERPLATE(+, addable);
+      BOILERPLATE(-, subtractable);
+      BOILERPLATE(/, divisible);
 
-      boilerplate(equality_comparable_with, ==);
-      boilerplate(not_equality_comparable_with, !=);
+      BOILERPLATE(!=, not_equality_comparable_with);
+      BOILERPLATE(<,  less_than_comparable);
+      BOILERPLATE(<=, less_equal_comparable);
+      BOILERPLATE(==, equality_comparable_with);
+      BOILERPLATE(>,  greater_than_comparable);
+      BOILERPLATE(>=, greater_equal_comparable);
 
-      boilerplate(greater_equal_comparable, >=);
-      boilerplate(greater_than_comparable, >);
-      boilerplate(less_equal_comparable, <=);
-      boilerplate(less_than_comparable, <);
-
-      #undef boilerplate
+      #undef BOILERPLATE
     };
 
     union // small-object optimiazation
@@ -295,16 +292,16 @@ namespace meevax { inline namespace kernel
       , aux {}
     {}
 
-    /* ==== C/C++ Derived Types Bind ==========================================
-    *
-    * With this function, you don't have to worry about virtual destructors.
-    * std::shared_ptr<T> remembers it has assigned binder type which knows T
-    * and the type you binding (both T and Bound's destructor will works
-    * correctly).
-    *
-    *======================================================================== */
+    /* ---- C/C++ Derived Types Bind -------------------------------------------
+     *
+     * With this function, you don't have to worry about virtual destructors.
+     * std::shared_ptr<T> remembers it has assigned binder type which knows T
+     * and the type you binding (both T and Bound's destructor will works
+     * correctly).
+     *
+     * ---------------------------------------------------------------------- */
     template <typename Bound, typename... Ts, typename = typename std::enable_if<std::is_compound<Bound>::value>::type>
-    static pointer make_binding(Ts&&... xs)
+    static pointer bind(Ts&&... xs)
     {
       using binding = binder<Bound>;
       return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
@@ -336,7 +333,7 @@ namespace meevax { inline namespace kernel
     *
     *======================================================================== */
     template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
-    static pointer make_binding(U&&)
+    static pointer bind(U&&)
     {
       return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
     }
@@ -495,52 +492,33 @@ namespace meevax { inline namespace kernel
     return (x ? x.binding().write(os) : os << console::magenta << "()") << console::reset;
   }
 
-  #define boilerplate(SYMBOL, NAME)                                            \
+  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
   template <typename T, typename U>                                            \
   decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
   {                                                                            \
     if (lhs && rhs)                                                            \
     {                                                                          \
-      return lhs.binding() SYMBOL rhs;                                         \
+      return std::invoke(std::OPERATION<void>(), lhs.binding(), rhs);          \
     }                                                                          \
     else                                                                       \
     {                                                                          \
       std::stringstream ss {};                                                 \
-      ss << "no viable " NAME " with " << lhs << " and " << rhs;               \
+      ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
       throw std::logic_error { ss.str() };                                     \
     }                                                                          \
   } static_assert(true, "semicolon required after this macro")
 
-  boilerplate(*, "multiplication");
-  boilerplate(+, "addition");
-  boilerplate(-, "subtraction");
-  boilerplate(/, "division");
+  BOILERPLATE(*, multiplies);
+  BOILERPLATE(+, plus);
+  BOILERPLATE(-, minus);
+  BOILERPLATE(/, divides);
 
-  #undef boilerplate
+  BOILERPLATE(<,  less);
+  BOILERPLATE(<=, less_equal);
+  BOILERPLATE(>,  greater);
+  BOILERPLATE(>=, greater_equal);
 
-  #define boilerplate(SYMBOL)                                                  \
-  template <typename T, typename U>                                            \
-  decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
-  {                                                                            \
-    if (lhs && rhs)                                                            \
-    {                                                                          \
-      return lhs.binding() SYMBOL rhs;                                         \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      throw std::logic_error { "" };                                           \
-    }                                                                          \
-  } static_assert(true, "semicolon required after this macro")
-
-  //     equal_to => eqv or arithmetic_compare
-  // not_equal_to => eqv or arithmetic_compare
-
-  boilerplate(<);
-  boilerplate(<=);
-  boilerplate(>);
-  boilerplate(>=);
-
-  #undef boilerplate
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 namespace std

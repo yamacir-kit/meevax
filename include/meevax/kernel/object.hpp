@@ -50,11 +50,11 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        return port << console::magenta << "#,("
-                    << console::green << type().name()
-                    << console::reset << " " << static_cast<const T*>(this)
-                    << console::magenta << ")"
-                    << console::reset;
+        return port << magenta << "#,("
+                    << green << type().name()
+                    << reset << " " << static_cast<const T*>(this)
+                    << magenta << ")"
+                    << reset;
       }
     };
 
@@ -65,11 +65,11 @@ namespace meevax { inline namespace kernel
     {
       static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
       {
-        return port << console::magenta << "#,("
-                    << console::green << typeid(U).name()
-                    << console::reset << " " << static_cast<const U*>(&rhs)
-                    << console::magenta << ")"
-                    << console::reset;
+        return port << magenta << "#,("
+                    << green << typeid(U).name()
+                    << reset << " " << static_cast<const U*>(&rhs)
+                    << magenta << ")"
+                    << reset;
       }
     };
 
@@ -164,7 +164,7 @@ namespace meevax { inline namespace kernel
 
   public: // arithmetic
     // override by binder's operators
-    #define boilerplate(SYMBOL)                                                \
+    #define BOILERPLATE(SYMBOL)                                                \
     virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
     {                                                                          \
       std::stringstream ss {};                                                 \
@@ -172,25 +172,26 @@ namespace meevax { inline namespace kernel
       throw std::logic_error { ss.str() };                                     \
     } static_assert(true, "semicolon required after this macro")
 
-    boilerplate(*);
-    boilerplate(+);
-    boilerplate(-);
-    boilerplate(/);
+    BOILERPLATE(*);
+    BOILERPLATE(+);
+    BOILERPLATE(-);
+    BOILERPLATE(/);
 
-    boilerplate(==);
-    boilerplate(!=);
+    BOILERPLATE(==);
+    BOILERPLATE(!=);
 
-    boilerplate(<);
-    boilerplate(<=);
-    boilerplate(>);
-    boilerplate(>=);
+    BOILERPLATE(<);
+    BOILERPLATE(<=);
+    BOILERPLATE(>);
+    BOILERPLATE(>=);
 
-    #undef boilerplate
+    #undef BOILERPLATE
   };
 
   struct pair; // forward declaration
 
   using object = pointer<pair>;
+
   using let = object;
 
   // TODO Rename to 'cons'?
@@ -199,7 +200,13 @@ namespace meevax { inline namespace kernel
   template <typename T, typename... Ts>
   inline constexpr decltype(auto) make(Ts&&... xs)
   {
-    return object::make_binding<T>(std::forward<decltype(xs)>(xs)...);
+    return object::bind<T>(std::forward<decltype(xs)>(xs)...);
+  }
+
+  template <typename T>
+  inline constexpr auto make(T&& x)
+  {
+    return object::bind<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
   #if __cpp_lib_memory_resource
@@ -217,24 +224,23 @@ namespace meevax { inline namespace kernel
 
   static const object unit {nullptr};
 
-  #define boilerplate(TYPENAME)                                                \
+  #define BOILERPLATE(TYPENAME)                                                \
   struct TYPENAME##_t                                                          \
   {                                                                            \
     TYPENAME##_t() = default;                                                  \
                                                                                \
-    friend auto operator<<(std::ostream& os, const TYPENAME##_t&)              \
-      -> decltype(os)                                                          \
+    friend auto operator <<(std::ostream& os, const TYPENAME##_t&) -> decltype(os) \
     {                                                                          \
-      return os << console::faint << "#;" #TYPENAME << console::reset;         \
+      return os << faint << "#;" #TYPENAME << reset;                           \
     }                                                                          \
   };                                                                           \
                                                                                \
   static const auto TYPENAME { make<TYPENAME##_t>() }
 
-  boilerplate(undefined);
-  boilerplate(unspecified);
+  BOILERPLATE(undefined);
+  BOILERPLATE(unspecified);
 
-  #undef boilerplate
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

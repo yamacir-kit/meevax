@@ -244,7 +244,7 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<std::string> long_options_
     {
-      std::make_pair("echo", [this](const auto& xs)
+      std::make_pair("echo", [&](const auto& xs)
       {
         writeln(xs);
         return unspecified;

@@ -89,33 +89,33 @@ int main()
 
   TEST("add integer and integer",
   {
-    const auto a { make<integral>(1) };
+    const auto a { make<exact_integer>(1) };
 
-    if (not a.is<integral>())
+    if (not a.is<exact_integer>())
     {
       throw std::logic_error { std::to_string(__LINE__) };
     }
 
-    if (a.as<integral>().value.convert_to<int>() != 1)
+    if (a.as<exact_integer>().value.convert_to<int>() != 1)
     {
       throw std::logic_error { std::to_string(__LINE__) };
     }
 
-    const auto b { make<integral>(2) };
+    const auto b { make<exact_integer>(2) };
 
-    if (not b.is<integral>())
+    if (not b.is<exact_integer>())
     {
       throw std::logic_error { std::to_string(__LINE__) };
     }
 
-    if (b.as<integral>().value.convert_to<int>() != 2)
+    if (b.as<exact_integer>().value.convert_to<int>() != 2)
     {
       throw std::logic_error { std::to_string(__LINE__) };
     }
 
     const auto x = a + b;
 
-    result = x.is<integral>() && (x.as<integral>().value.convert_to<int>() == 3);
+    result = x.is<exact_integer>() && (x.as<exact_integer>().value.convert_to<int>() == 3);
   });
 
   // TEST("add number and native int",

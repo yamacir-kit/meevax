@@ -44,9 +44,9 @@ namespace meevax { inline namespace kernel
       return x; \
     } static_assert(true, "")
 
-    boilerplate(major, make<integral>("${PROJECT_VERSION_MAJOR}"));
-    boilerplate(minor, make<integral>("${PROJECT_VERSION_MINOR}"));
-    boilerplate(patch, make<integral>("${PROJECT_VERSION_PATCH}"));
+    boilerplate(major, make<exact_integer>("${PROJECT_VERSION_MAJOR}"));
+    boilerplate(minor, make<exact_integer>("${PROJECT_VERSION_MINOR}"));
+    boilerplate(patch, make<exact_integer>("${PROJECT_VERSION_PATCH}"));
 
     boilerplate(semantic, make<symbol>("${PROJECT_VERSION}"));
 

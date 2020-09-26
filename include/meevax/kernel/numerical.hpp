@@ -1,379 +1,227 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#ifndef MEEVAX_USE_GMP
-#define MEEVAX_USE_GMP
-#endif
-
-#ifdef MEEVAX_USE_GMP
-#include <boost/multiprecision/gmp.hpp>
-#else
-#include <boost/multiprecision/cpp_int.hpp>
-#endif
-
 #include <boost/math/constants/constants.hpp>
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/complex.hpp>
+#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/floating_point.hpp>
+#include <meevax/kernel/ratio.hpp>
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Numbers ==============================================================
+  /* ---- Numbers --------------------------------------------------------------
    *
    *  number
    *   `-- complex
    *        `-- real
-   *             |-- decimal (IEEE 754)
+   *             |-- floating-point (IEEE 754)
    *             |    |-- binary  16
-   *             |    |-- binary  32 (C++ single float)      = number<float>
-   *             |    |-- binary  64 (C++ double float)      = number<double>
-   *             |    |-- binary  80 (C++ long double float) = number<long double>
+   *             |    |-- binary  32 (C++ single float)      = floating_point<float>
+   *             |    |-- binary  64 (C++ double float)      = floating_point<double>
+   *             |    |-- binary  80 (C++ long double float) = floating_point<long double>
    *             |    `-- binary 128
    *             `-- rational
    *                  |-- fractional
-   *                  `-- integral
-   *                       |-- multi-precision integral
-   *                       `-- fixed precision integral
+   *                  `-- exact-integer
+   *                       |-- multi-precision exact-integer
+   *                       `-- fixed precision exact-integer
    *                            |-- signed and unsigned   8  = number<std::u?int8_t>
    *                            |-- signed and unsigned  16  = number<std::u?int16_t>
    *                            |-- signed and unsigned  32  = number<std::u?int32_t>
    *                            |-- signed and unsigned  64  = number<std::u?int64_t>
    *                            `-- signed and unsigned 128  = number<std::u?int128_t>
    *
-   * ======================================================================== */
-  template <typename T>
-  struct number
-    : public std::numeric_limits<T>
-  {
-    using value_type = T;
+   * ------------------------------------------------------------------------ */
 
-    value_type value;
+  /* ---- Arithmetic Operations ------------------------------------------------
+   *
+   * ┌─────┬─────┬─────┬─────┬
+   * │ l\r │ f32 │ f64 │ mpi │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f32 │  v  │  v  │  v  │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f64 │  v  │  v  │  v  │
+   * ├─────┼─────┼─────┼─────┼
+   * │ mpi │  v  │  v  │  v  │
+   * ├─────┼─────┼─────┼─────┼
+   *
+   * ------------------------------------------------------------------------ */
 
-    template <typename... Ts>
-    explicit constexpr number(Ts&&... xs)
-      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
-    {}
-
-    template <typename U, typename = typename std::enable_if<std::is_convertible<U, value_type>::value>::type>
-    explicit constexpr number(U&& x)
-      : value { x }
-    {}
-
-  public: // conversions
-    constexpr operator value_type() const noexcept
-    {
-      return value;
-    }
-
-    auto to_string() const -> std::string
-    {
-      return boost::lexical_cast<std::string>(value);
-    }
-
-  public: // predicates
-    auto exact() const noexcept
-    {
-      if constexpr (std::is_floating_point<value_type>::value)
-      {
-        return value == std::trunc(value);
-      }
-      else if constexpr (std::is_integral<value_type>::value)
-      {
-        return true;
-      }
-    }
-
-  public: // numerical operations
-    #define boilerplate(OPERATION)                                             \
-    template <typename U>                                                      \
-    constexpr auto OPERATION(U&& x) const noexcept                             \
-    {                                                                          \
-      return std::OPERATION<void>(*this, std::forward<decltype(x)>(x));        \
-    } static_assert(true)
-
-    boilerplate(plus);
-    boilerplate(minus);
-    boilerplate(multiplies);
-    boilerplate(divides);
-    boilerplate(modulus);
-    boilerplate(negate);
-
-    boilerplate(equal_to);
-    boilerplate(not_equal_to);
-    boilerplate(less);
-    boilerplate(less_equal);
-    boilerplate(greater);
-    boilerplate(greater_equal);
-
-    #undef boilerplate
-
-  public: // miscllaneous
-    auto operator ==(const object&) const -> object;
-    auto operator !=(const object&) const -> object;
-    auto operator < (const object&) const -> object;
-    auto operator <=(const object&) const -> object;
-    auto operator > (const object&) const -> object;
-    auto operator >=(const object&) const -> object;
-  };
-
-  template <auto Bits>
-  struct decimal;
-
-  #define boilerplate(BITS, TYPE, CONVERT)                                     \
-  template <>                                                                  \
-  struct decimal<BITS>                                                         \
-    : public std::numeric_limits<TYPE>                                         \
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
   {                                                                            \
-    using value_type = TYPE;                                                   \
-                                                                               \
-    value_type value;                                                          \
-                                                                               \
-    template <typename... Ts>                                                  \
-    explicit constexpr decimal(Ts&&... xs)                                     \
-      : value { CONVERT(std::forward<decltype(xs)>(xs)...) }                   \
-    {}                                                                         \
-                                                                               \
-    template <typename T,                                                      \
-              typename =                                                       \
-                typename std::enable_if<                                       \
-                  std::is_convertible<T, value_type>::value                    \
-                >::type>                                                       \
-    explicit constexpr decimal(T&& x)                                          \
-      : value { x }                                                            \
-    {}                                                                         \
-                                                                               \
-    constexpr operator value_type() const noexcept                             \
-    {                                                                          \
-      return value;                                                            \
-    }                                                                          \
-                                                                               \
-    auto operator ==(const object&) const -> object;                           \
-    auto operator !=(const object&) const -> object;                           \
-    auto operator < (const object&) const -> object;                           \
-    auto operator <=(const object&) const -> object;                           \
-    auto operator > (const object&) const -> object;                           \
-    auto operator >=(const object&) const -> object;                           \
-                                                                               \
-    template <typename T>                                                      \
-    auto operator ==(T&& rhs) const noexcept                                   \
-    {                                                                          \
-      return value == rhs;                                                     \
-    }                                                                          \
-                                                                               \
-    template <typename T>                                                      \
-    auto operator !=(T&& rhs) const noexcept                                   \
-    {                                                                          \
-      return value != rhs;                                                     \
-    }                                                                          \
-                                                                               \
-    auto exact() const noexcept                                                \
-    {                                                                          \
-      return value == std::trunc(value);                                       \
-    }                                                                          \
-                                                                               \
-    auto to_string() const -> std::string                                      \
-    {                                                                          \
-      return boost::lexical_cast<std::string>(value);                          \
-    }                                                                          \
-  }
+    return floating_point<T>(lhs.value SYMBOL rhs.value.convert_to<T>());      \
+  } static_assert(true)
 
-  // XXX A terrible implementation based on optimistic assumptions.
-  boilerplate(32, float, std::stof);
-  boilerplate(64, double, std::stod);
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
 
-  constexpr auto most_precise = 64;
+  #undef BOILERPLATE
 
-  #undef boilerplate
-
-  template <auto B>
-  auto operator<<(std::ostream& os, const decimal<B>& x) -> decltype(os)
-  {
-    if (std::isnan(x))
-    {
-      return os << cyan << "+nan.0" << reset;
-    }
-    else if (std::isinf(x))
-    {
-      return os << cyan << (0 < x.value ? '+' : '-') << "inf.0" << reset;
-    }
-    else
-    {
-      return os << cyan << x.value << (x.exact() ? ".0" : "") << reset;
-    }
-  }
-
-  struct fractional
-    : public virtual pair
-  {
-  };
-
-  struct integral
-  {
-    #ifdef MEEVAX_USE_GMP
-    using value_type = boost::multiprecision::mpz_int;
-    #else
-    using value_type = boost::multiprecision::cpp_int;
-    #endif
-
-    value_type value;
-
-    template <typename... Ts>
-    explicit constexpr integral(Ts&&... xs)
-      : value { std::forward<decltype(xs)>(xs)... }
-    {}
-
-    auto to_string() const -> std::string
-    {
-      return value.str();
-    }
-
-    operator value_type() const noexcept { return value; }
-    operator value_type()       noexcept { return value; }
-
-    auto operator *(const object&) const -> object;
-    auto operator +(const object&) const -> object;
-    auto operator -(const object&) const -> object;
-    auto operator /(const object&) const -> object;
-
-    auto operator ==(const object&) const -> object;
-    auto operator !=(const object&) const -> object;
-
-    auto operator < (const object&) const -> object;
-    auto operator <=(const object&) const -> object;
-    auto operator > (const object&) const -> object;
-    auto operator >=(const object&) const -> object;
-
-    auto operator ==(const integral& rhs) const { return value == rhs.value; }
-    auto operator !=(const integral& rhs) const { return !(*this == rhs); }
-
-    friend std::ostream& operator<<(std::ostream& os, const integral& x)
-    {
-      return os << console::cyan << x.value.str() << console::reset;
-    }
-  };
-
-  // XXX vs integral comparison is maybe incorrect!
-  #define boilerplate(TYPE, SYMBOL, OPERATION)                                 \
-  auto TYPE::operator SYMBOL(const object& rhs) const -> object                \
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
-    if (!rhs)                                                                  \
+    return floating_point<T>(lhs.value.convert_to<T>() SYMBOL rhs.value);      \
+  } static_assert(true)
+
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+
+  #undef BOILERPLATE
+
+  /* ---- Arithmetic Operation Dispatcher --------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
+  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
+  auto NUMBER::operator SYMBOL(const object& rhs) const -> object              \
+  {                                                                            \
+    if (rhs)                                                                   \
     {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
+      if (rhs.is<exact_integer>())                                             \
+      {                                                                        \
+        return make(*this SYMBOL rhs.as<exact_integer>());                     \
+      }                                                                        \
+      else if (rhs.is<single_float>())                                         \
+      {                                                                        \
+        return make(*this SYMBOL rhs.as<single_float>());                      \
+      }                                                                        \
+      else if (rhs.is<double_float>())                                         \
+      {                                                                        \
+        return make(*this SYMBOL rhs.as<double_float>());                      \
+      }                                                                        \
     }                                                                          \
-    else if (rhs.is<decimal<32>>())                                            \
+                                                                               \
+    std::stringstream ss {};                                                   \
+    ss << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
+    throw std::logic_error { ss.str() };                                       \
+  } static_assert(true)
+
+  BOILERPLATE(single_float, *, multiplies);
+  BOILERPLATE(single_float, +, plus);
+  BOILERPLATE(single_float, -, minus);
+  BOILERPLATE(single_float, /, divides);
+
+  BOILERPLATE(double_float, *, multiplies);
+  BOILERPLATE(double_float, +, plus);
+  BOILERPLATE(double_float, -, minus);
+  BOILERPLATE(double_float, /, divides);
+
+  BOILERPLATE(exact_integer, *, multiplies);
+  BOILERPLATE(exact_integer, +, plus);
+  BOILERPLATE(exact_integer, -, minus);
+  BOILERPLATE(exact_integer, /, divides);
+
+  #undef BOILERPLATE
+
+  /* ---- Arithmetic Comparisons -----------------------------------------------
+   *
+   * ┌─────┬─────┬─────┬─────┬
+   * │ l\r │ f32 │ f64 │ mpi │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f32 │  v  │  v  │  v  │
+   * ├─────┼─────┼─────┼─────┼
+   * │ f64 │  v  │  v  │  v  │
+   * ├─────┼─────┼─────┼─────┼
+   * │ mpi │  v  │  v  │  v  │
+   * ├─────┼─────┼─────┼─────┼
+   *
+   * ------------------------------------------------------------------------ */
+
+  // TODO CONSIDER EPSILON
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
+  {                                                                            \
+    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
+  // TODO CONSIDER EPSILON
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
+  {                                                                            \
+    return lhs.value.convert_to<T>() SYMBOL rhs.value;                         \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
+  /* ---- Arithmetic Comparison Dispatcher -------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
+  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
+  auto NUMBER::operator SYMBOL(const object& rhs) const -> object              \
+  {                                                                            \
+    if (rhs)                                                                   \
     {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<decimal<32>>().value);          \
+      if (rhs.is<exact_integer>())                                             \
+      {                                                                        \
+        return make<boolean>(*this SYMBOL rhs.as<exact_integer>());            \
+      }                                                                        \
+      else if (rhs.is<single_float>())                                         \
+      {                                                                        \
+        return make<boolean>(*this SYMBOL rhs.as<single_float>());             \
+      }                                                                        \
+      else if (rhs.is<double_float>())                                         \
+      {                                                                        \
+        return make<boolean>(*this SYMBOL rhs.as<double_float>());             \
+      }                                                                        \
     }                                                                          \
-    else if (rhs.is<decimal<64>>())                                            \
-    {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<decimal<64>>().value);          \
-    }                                                                          \
-    else if (rhs.is<integral>())                                                \
-    {                                                                          \
-      return static_cast<integral>(value) SYMBOL rhs;                           \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
-    }                                                                          \
+                                                                               \
+    std::stringstream port {};                                                 \
+    port << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
+    throw std::logic_error { port.str() };                                     \
   } static_assert(true, "semicolon required after this macro")
 
-  boilerplate(decimal<32>, ==, "equality comparison");
-  boilerplate(decimal<32>, !=, "inequality comparison");
-  boilerplate(decimal<32>, <,  "less-than comparison");
-  boilerplate(decimal<32>, <=, "less-equal comparison");
-  boilerplate(decimal<32>, >,  "greater-than comparison");
-  boilerplate(decimal<32>, >=, "greater-equal comparison");
+  BOILERPLATE(single_float, !=, not_equal_to);
+  BOILERPLATE(single_float, <,  less);
+  BOILERPLATE(single_float, <=, less_equal);
+  BOILERPLATE(single_float, ==, equal_to);
+  BOILERPLATE(single_float, >,  greater);
+  BOILERPLATE(single_float, >=, greater_equal);
 
-  boilerplate(decimal<64>, ==, "equality comparison");
-  boilerplate(decimal<64>, !=, "inequality comparison");
-  boilerplate(decimal<64>, <,  "less-than comparison");
-  boilerplate(decimal<64>, <=, "less-equal comparison");
-  boilerplate(decimal<64>, >,  "greater-than comparison");
-  boilerplate(decimal<64>, >=, "greater-equal comparison");
+  BOILERPLATE(double_float, !=, not_equal_to);
+  BOILERPLATE(double_float, <,  less);
+  BOILERPLATE(double_float, <=, less_equal);
+  BOILERPLATE(double_float, ==, equal_to);
+  BOILERPLATE(double_float, >,  greater);
+  BOILERPLATE(double_float, >=, greater_equal);
 
-  #undef boilerplate
+  BOILERPLATE(exact_integer, !=, not_equal_to);
+  BOILERPLATE(exact_integer, <,  less);
+  BOILERPLATE(exact_integer, <=, less_equal);
+  BOILERPLATE(exact_integer, ==, equal_to);
+  BOILERPLATE(exact_integer, >,  greater);
+  BOILERPLATE(exact_integer, >=, greater_equal);
 
-  #define boilerplate(SYMBOL, OPERATION)                                       \
-  auto integral::operator SYMBOL(const object& rhs) const -> object             \
-  {                                                                            \
-    if (!rhs)                                                                  \
-    {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
-    }                                                                          \
-    else if (rhs.is<decimal<32>>())                                            \
-    {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<32>>().value)); \
-    }                                                                          \
-    else if (rhs.is<decimal<64>>())                                            \
-    {                                                                          \
-      return make<boolean>(value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<64>>().value)); \
-    }                                                                          \
-    else if (rhs.is<integral>())                                                \
-    {                                                                          \
-      return make<boolean>(value SYMBOL rhs.as<integral>().value);              \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      std::stringstream port {};                                               \
-      port << "no viable " OPERATION " with " << *this << " and " << rhs;      \
-      throw std::logic_error { port.str() };                                   \
-    }                                                                          \
-  } static_assert(true, "semicolon required after this macro")
-
-  boilerplate(==, "equality comparison");
-  boilerplate(!=, "inequality comparison");
-  boilerplate(<,  "less-than comparison");
-  boilerplate(<=, "less-equal comparison");
-  boilerplate(>,  "greater-than comparison");
-  boilerplate(>=, "greater-equal comparison");
-
-  #undef boilerplate
-
-  #define boilerplate(SYMBOL, OPERATION)                                       \
-  auto integral::operator SYMBOL(const object& rhs) const -> object            \
-  {                                                                            \
-    if (!rhs)                                                                  \
-    {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
-      throw std::logic_error { ss.str() };                                     \
-    }                                                                          \
-    else if (rhs.is<decimal<32>>())                                            \
-    {                                                                          \
-      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<32>>().value) }; \
-      return make<decimal<32>>(result.convert_to<decimal<32>::value_type>());  \
-    }                                                                          \
-    else if (rhs.is<decimal<64>>())                                            \
-    {                                                                          \
-      const integral::value_type result { value SYMBOL static_cast<integral::value_type>(rhs.as<decimal<64>>().value) }; \
-      return make<decimal<64>>(result.convert_to<decimal<64>::value_type>());  \
-    }                                                                          \
-    else if (rhs.is<integral>())                                               \
-    {                                                                          \
-      return make<integral>(value SYMBOL rhs.as<integral>().value);            \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << "no viable " OPERATION " with " << *this << " and " << rhs;        \
-      throw std::logic_error { ss.str() };                                     \
-    }                                                                          \
-  } static_assert(true, "semicolon required after this macro")
-
-  boilerplate(*, "multiplication");
-  boilerplate(+, "addition");
-  boilerplate(-, "subtraction");
-  boilerplate(/, "division");
-
-  #undef boilerplate
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP

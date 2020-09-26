@@ -238,7 +238,7 @@ namespace meevax { inline namespace kernel
   {
     static const std::unordered_map<std::string, object> srfi_144
     {
-      std::make_pair("fl-pi", make<decimal<most_precise>>(boost::math::constants::pi<decimal<most_precise>::value_type>()))
+      std::make_pair("fl-pi", make<floating_point<most_precise>>(boost::math::constants::pi<floating_point<most_precise>::value_type>()))
     };
 
     static const std::regex pattern { regex::number<R>() };
@@ -263,10 +263,10 @@ namespace meevax { inline namespace kernel
       {
         static const std::unordered_map<std::string, object> infnan
         {
-          std::make_pair("+inf.0", make<decimal<most_precise>>(+decimal<most_precise>::infinity())),
-          std::make_pair("-inf.0", make<decimal<most_precise>>(-decimal<most_precise>::infinity())),
-          std::make_pair("+nan.0", make<decimal<most_precise>>(+decimal<most_precise>::quiet_NaN())),
-          std::make_pair("-nan.0", make<decimal<most_precise>>(-decimal<most_precise>::quiet_NaN()))
+          std::make_pair("+inf.0", make<floating_point<most_precise>>(+floating_point<most_precise>::infinity())),
+          std::make_pair("-inf.0", make<floating_point<most_precise>>(-floating_point<most_precise>::infinity())),
+          std::make_pair("+nan.0", make<floating_point<most_precise>>(+floating_point<most_precise>::quiet_NaN())),
+          std::make_pair("-nan.0", make<floating_point<most_precise>>(-floating_point<most_precise>::quiet_NaN()))
         };
 
         return infnan.at(token);
@@ -274,12 +274,12 @@ namespace meevax { inline namespace kernel
 
       if (result.length(10)) // 6, 7, 8, 9, 10
       {
-        return make<decimal<64>>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<floating_point<most_precise>>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
       if (result.length(9)) // 6, 7, 8, 9
       {
-        return make<integral>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<exact_integer>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
       for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
@@ -335,7 +335,7 @@ namespace meevax { inline namespace kernel
     // auto path {read_string("/path/to/file")};
     // auto something {make<input_port>(path.as<std::string>())};
     // car(something) = path;
-    // cdr(something) = make<integral>(1); // current line
+    // cdr(something) = make<exact_integer>(1); // current line
 
     // std::stack<std::istream> sources;
 
@@ -512,11 +512,11 @@ namespace meevax { inline namespace kernel
 
         if (const auto xs { read(is) }; null(xs) or not xs.template is<pair>())
         {
-          return make<complex>(make<integral>(0), make<integral>(0));
+          return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
         }
         else if (null(cdr(xs)) or not cdr(xs).template is<pair>())
         {
-          return make<complex>(car(xs), make<integral>(0));
+          return make<complex>(car(xs), make<exact_integer>(0));
         }
         else
         {
@@ -525,7 +525,7 @@ namespace meevax { inline namespace kernel
 
       case 'd':
         is.ignore(1);
-        return make<integral>(read_token(is));
+        return make<exact_integer>(read_token(is));
 
       case 'f':
         ignore(is, [](auto&& x) { return not is_delimiter(x); });
@@ -533,7 +533,7 @@ namespace meevax { inline namespace kernel
 
       case 'o':
         is.ignore(1);
-        return make<integral>("0" + read_token(is));
+        return make<exact_integer>("0" + read_token(is));
 
       case 'p':
         is.ignore(1);
@@ -554,7 +554,7 @@ namespace meevax { inline namespace kernel
 
       case 'x':
         is.ignore(1);
-        return make<integral>("0x" + read_token(is));
+        return make<exact_integer>("0x" + read_token(is));
 
       case '(':
         if (const auto xs { read(is) }; null(xs))
