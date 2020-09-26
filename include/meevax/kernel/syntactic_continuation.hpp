@@ -84,6 +84,8 @@ namespace meevax { inline namespace kernel
 
     using syntactic_closure::syntactic_environment;
 
+    using reader::read;
+
     using writer::current_debug_port;
     using writer::current_error_port;
     using writer::current_interaction_port;

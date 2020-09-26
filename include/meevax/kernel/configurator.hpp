@@ -20,6 +20,7 @@ namespace meevax { inline namespace kernel
     {}
 
     Import(SK, evaluate);
+    Import(SK, read);
 
     Import_Const(SK, current_verbose_port);
     Import_Const(SK, newline);
@@ -274,7 +275,7 @@ namespace meevax { inline namespace kernel
       }),
     };
 
-  public: // Command Line Parser
+  public:
     auto configure(const int argc, char const* const* const argv) -> decltype(auto)
     {
       const std::vector<std::string> options {argv + 1, argv + argc};
@@ -289,75 +290,62 @@ namespace meevax { inline namespace kernel
       for (auto option {std::begin(args)}; option != std::end(args); ++option) [&]()
       {
         std::smatch analysis {};
+
         std::regex_match(*option, analysis, pattern);
 
-        // std::cerr << ";\t\t; analysis[0] " << analysis[0] << std::endl;
-        // std::cerr << ";\t\t; analysis[1] " << analysis[1] << std::endl;
-        // std::cerr << ";\t\t; analysis[2] " << analysis[2] << std::endl;
-        // std::cerr << ";\t\t; analysis[3] " << analysis[3] << std::endl;
-        // std::cerr << ";\t\t; analysis[4] " << analysis[4] << std::endl;
-
-        if (const auto sos {analysis.str(4)}; sos.length()) // short-options
+        if (const auto sos { analysis.str(4) }; sos.length()) // short-options
         {
-          for (auto so {std::begin(sos)}; so != std::end(sos); ++so) // each short-option
+          for (auto so { std::begin(sos) }; so != std::end(sos); ++so) // each short-option
           {
-            if (auto callee {short_options_.find(*so)}; callee != std::end(short_options_))
+            if (auto callee { short_options_.find(*so) }; callee != std::end(short_options_))
             {
-              if (const std::string rest {std::next(so), std::end(sos)}; rest.length())
+              if (const std::string rest { std::next(so), std::end(sos) }; rest.length())
               {
-                const auto operands {static_cast<SK&>(*this).read(rest)};
-
-                return std::invoke(cdr(*callee), operands);
+                return std::invoke(cdr(*callee), read(*option));
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
-                const auto operands {static_cast<SK&>(*this).read(*option)};
-
-                return std::invoke(cdr(*callee), operands);
+                return std::invoke(cdr(*callee), read(*option));
               }
               else
               {
-                throw configuration_error {*so, " requires operands"};
+                throw configuration_error { "option -", *so, " requires an argument" };
               }
             }
-            else if (auto callee {short_options.find(*so)}; callee != std::end(short_options))
+            else if (auto callee { short_options.find(*so) }; callee != std::end(short_options))
             {
               return std::invoke(cdr(*callee), unit);
             }
             else
             {
-              throw configuration_error {*so, " is unknown short-option (in ", *option, ")"};
+              throw configuration_error { *so, " is unknown short-option (in ", *option, ")" };
             }
           }
         }
-        else if (const auto lo {analysis.str(1)}; lo.length())
+        else if (const auto lo { analysis.str(1) }; lo.length())
         {
-          if (auto callee {long_options_.find(lo)}; callee != std::end(long_options_))
+          if (auto callee { long_options_.find(lo) }; callee != std::end(long_options_))
           {
             if (analysis.length(2)) // argument part
             {
-              const auto operands {static_cast<SK&>(*this).read(analysis.str(3))};
-
-              return std::invoke(cdr(*callee), operands);
+              return std::invoke(cdr(*callee), read(analysis.str(3)));
             }
             else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
             {
-              const auto operands {static_cast<SK&>(*this).read(*option)};
-
-              return std::invoke(cdr(*callee), operands);
+              return std::invoke(cdr(*callee), read(*option));
             }
             else
             {
-              throw configuration_error {lo, " requires operands"};
+              throw configuration_error { "option --", lo, " requires an argument" };
             }
           }
-          else if (auto callee {long_options.find(lo)}; callee != std::end(long_options))
+          else if (auto callee { long_options.find(lo) }; callee != std::end(long_options))
           {
             return std::invoke(cdr(*callee), unit);
           }
           else
           {
-            throw configuration_error {*option, " is unknown long-option"};
+            throw configuration_error { *option, " is unknown long-option" };
           }
         }
         else
