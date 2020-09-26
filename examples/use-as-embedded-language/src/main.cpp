@@ -77,13 +77,13 @@ int main()
 
   TEST("boot layer-0",
   {
-    syntactic_continuation x { layer<0> };
+    syntactic_continuation x { layer<0>() };
     result = true;
   });
 
   TEST("boot layer-1",
   {
-    syntactic_continuation x { layer<1> };
+    syntactic_continuation x { layer<1>() };
     result = true;
   });
 
