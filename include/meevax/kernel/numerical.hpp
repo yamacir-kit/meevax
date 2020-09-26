@@ -51,9 +51,59 @@ namespace meevax { inline namespace kernel
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
+  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
+  {                                                                            \
+    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
+  } static_assert(true)
+
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+
+  #undef BOILERPLATE
+
+  #define BOILERPLATE(FLOATING_POINT, SYMBOL, OPERATION)                       \
+  auto FLOATING_POINT::operator SYMBOL(const object& rhs) const -> object      \
+  {                                                                            \
+    if (rhs)                                                                   \
+    {                                                                          \
+      if (rhs.is<exact_integer>())                                             \
+      {                                                                        \
+        return make<FLOATING_POINT>(*this SYMBOL rhs.as<exact_integer>());     \
+      }                                                                        \
+      else if (rhs.is<single_float>())                                         \
+      {                                                                        \
+        return make(*this SYMBOL rhs.as<single_float>());      \
+      }                                                                        \
+      else if (rhs.is<double_float>())                                         \
+      {                                                                        \
+        return make(*this SYMBOL rhs.as<double_float>());      \
+      }                                                                        \
+    }                                                                          \
+                                                                               \
+    std::stringstream ss {};                                                   \
+    ss << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
+    throw std::logic_error { ss.str() };                                       \
+  } static_assert(true)
+
+  BOILERPLATE(single_float, *, multiplies);
+  BOILERPLATE(single_float, +, plus);
+  BOILERPLATE(single_float, -, minus);
+  BOILERPLATE(single_float, /, divides);
+
+  BOILERPLATE(double_float, *, multiplies);
+  BOILERPLATE(double_float, +, plus);
+  BOILERPLATE(double_float, -, minus);
+  BOILERPLATE(double_float, /, divides);
+
+  #undef BOILERPLATE
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
-    return lhs.value.convert_to<T>() SYMBOL rhs.value;                         \
+    return floating_point<T>(lhs.value.convert_to<T>() SYMBOL rhs.value);      \
   } static_assert(true)
 
   BOILERPLATE(*);
@@ -70,15 +120,15 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       if (rhs.is<exact_integer>())                                             \
       {                                                                        \
-        return make<exact_integer>(*this SYMBOL rhs.as<exact_integer>());      \
+        return make(*this SYMBOL rhs.as<exact_integer>());                     \
       }                                                                        \
       else if (rhs.is<single_float>())                                         \
       {                                                                        \
-        return make<single_float>(*this SYMBOL rhs.as<single_float>());        \
+        return make(*this SYMBOL rhs.as<single_float>());                      \
       }                                                                        \
       else if (rhs.is<double_float>())                                         \
       {                                                                        \
-        return make<double_float>(*this SYMBOL rhs.as<double_float>());        \
+        return make(*this SYMBOL rhs.as<double_float>());                      \
       }                                                                        \
     }                                                                          \
                                                                                \

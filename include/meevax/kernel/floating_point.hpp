@@ -39,6 +39,11 @@ namespace meevax { inline namespace kernel
       return value;                                                            \
     }                                                                          \
                                                                                \
+    auto operator * (const object&) const -> object;                           \
+    auto operator + (const object&) const -> object;                           \
+    auto operator - (const object&) const -> object;                           \
+    auto operator / (const object&) const -> object;                           \
+                                                                               \
     auto operator ==(const object&) const -> object;                           \
     auto operator !=(const object&) const -> object;                           \
     auto operator < (const object&) const -> object;                           \
@@ -95,6 +100,37 @@ namespace meevax { inline namespace kernel
       return os << cyan << rhs.value << (rhs.exact() ? ".0" : "") << reset;
     }
   }
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T, typename U>                                            \
+  constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
+  {                                                                            \
+    using result_type = decltype(std::declval<T>() SYMBOL std::declval<U>());  \
+    return floating_point<result_type>(lhs.value SYMBOL rhs.value);            \
+  } static_assert(true)
+
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+
+  #undef BOILERPLATE
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T, typename U>                                            \
+  constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
+  {                                                                            \
+    return lhs.value SYMBOL rhs.value;                                         \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP

@@ -62,13 +62,21 @@ namespace meevax { inline namespace kernel
   #define BOILERPLATE(SYMBOL)                                                  \
   auto operator SYMBOL(const exact_integer& lhs, const exact_integer& rhs)     \
   {                                                                            \
-    return lhs.value SYMBOL rhs.value;                                         \
+    return exact_integer(lhs.value SYMBOL rhs.value);                          \
   } static_assert(true)
 
   BOILERPLATE(*);
   BOILERPLATE(+);
   BOILERPLATE(-);
   BOILERPLATE(/);
+
+  #undef BOILERPLATE
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  auto operator SYMBOL(const exact_integer& lhs, const exact_integer& rhs)     \
+  {                                                                            \
+    return lhs.value SYMBOL rhs.value;                                         \
+  } static_assert(true)
 
   BOILERPLATE(!=);
   BOILERPLATE(<);
