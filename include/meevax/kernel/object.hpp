@@ -40,26 +40,6 @@ namespace meevax { inline namespace kernel
     }
 
   public: // write
-    #if __cpp_if_constexpr
-
-    virtual auto write(std::ostream& port) const -> decltype(port)
-    {
-      if constexpr (concepts::is_stream_insertable<T>::value)
-      {
-        return port << static_cast<const T&>(*this);
-      }
-      else
-      {
-        return port << magenta << "#,("
-                    << green << type().name()
-                    << reset << " " << static_cast<const T*>(this)
-                    << magenta << ")"
-                    << reset;
-      }
-    };
-
-    #else // __cpp_if_constexpr
-
     template <typename U, typename = void>
     struct if_stream_insertable
     {
@@ -86,8 +66,6 @@ namespace meevax { inline namespace kernel
     {
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
     }
-
-    #endif // __cpp_if_constexpr
 
   public: // display
     template <typename U, typename = void>

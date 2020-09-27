@@ -27,7 +27,7 @@ namespace meevax { inline namespace kernel
   * kernel 0xFFFF 8000 0000 0000 ~
   *
   *========================================================================= */
-  static constexpr auto word_size {sizeof(std::size_t)};
+  static constexpr auto word_size { sizeof(std::size_t) };
 
   /* ==== Tagged Pointers =====================================================
   *
@@ -63,8 +63,8 @@ namespace meevax { inline namespace kernel
   *
   *========================================================================== */
 
-  constexpr std::uintptr_t category_mask {0x0F};
-  constexpr auto           category_mask_width {4};
+  constexpr std::uintptr_t category_mask { 0x0F };
+  constexpr auto           category_mask_width { 4 };
 
   template <typename T>
   inline constexpr auto category_of(T const* const value) noexcept
@@ -126,19 +126,19 @@ namespace meevax { inline namespace kernel
     return reinterpret_cast<typename std::decay<T>::type&>(value);
   }
 
-  /* ==== Heterogenous Shared Pointer =========================================
-  *
-  * TODO Documentation
-  * TODO Rename to 'garbage_collector'
-  *
-  * This type requires to the template parameter T inherits objective facade.
-  *
-  *========================================================================= */
+  /* ---- Heterogenous Shared Pointer ------------------------------------------
+   *
+   * TODO Documentation
+   * TODO Rename to 'garbage_collector'
+   *
+   * This type requires to the template parameter T inherits objective facade.
+   *
+   * ------------------------------------------------------------------------ */
   template <typename T>
   class pointer
     : public std::shared_ptr<T>
   {
-    /* ==== Binder =============================================================
+    /* ---- Binder -------------------------------------------------------------
      *
      * The object binder is the actual data pointed to by the pointer type. To
      * handle all types uniformly, the binder inherits type T and uses dynamic
@@ -146,7 +146,7 @@ namespace meevax { inline namespace kernel
      * instances. However, the performance is inferior due to the heavy use of
      * dynamic cast as a price for convenience.
      *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
     template <typename Bound>
     struct binder
       : public Bound
@@ -172,12 +172,12 @@ namespace meevax { inline namespace kernel
 
       virtual ~binder() = default;
 
+    private:
       auto type() const noexcept -> const std::type_info& override
       {
         return typeid(bound);
       }
 
-    private:
       auto copy() const -> pointer override
       {
         return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
@@ -201,41 +201,16 @@ namespace meevax { inline namespace kernel
         }, static_cast<const bound&>(*this), rhs);
       }
 
-    private: // write
-      #if __cpp_if_constexpr
-
-      auto write(std::ostream& port) const -> decltype(port) override
-      {
-        if constexpr (concepts::is_stream_insertable<bound>::value)
-        {
-          return port << static_cast<const bound&>(*this);
-        }
-        else
-        {
-          return port << console::magenta << "#("
-                      << console::green << type().name()
-                      << console::reset << static_cast<const bound*>(this)
-                      << console::magenta << ")"
-                      << console::reset;
-        }
-      }
-
-      #else // __cpp_if_constexpr
-
       auto write(std::ostream& port) const -> decltype(port) override
       {
         return top::template if_stream_insertable<bound>::call_it(port, *this);
       }
 
-      #endif // __cpp_if_constexpr
-
-    private: // display
       auto display(std::ostream& port) const -> decltype(port) override
       {
         return top::template if_displayable<bound>::call_it(port, *this);
       }
 
-    private: // exact & inexact
       auto exact() const -> bool override
       {
         return top::template if_has_exactness<bound>::call_it(*this);
