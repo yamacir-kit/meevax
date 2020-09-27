@@ -20,7 +20,7 @@ namespace meevax { inline namespace kernel
     {
       return if_is_copy_constructible<T>::template invoke<pointer<T>>([](auto&&... xs)
       {
-        return std::make_shared<T>(std::forward<decltype(xs)>(xs)...);
+        return static_cast<pointer<T>>(std::make_shared<T>(std::forward<decltype(xs)>(xs)...));
       }, static_cast<const T&>(*this));
     }
 
@@ -108,7 +108,6 @@ namespace meevax { inline namespace kernel
 
     BOILERPLATE(==);
     BOILERPLATE(!=);
-
     BOILERPLATE(<);
     BOILERPLATE(<=);
     BOILERPLATE(>);

@@ -178,7 +178,7 @@ namespace meevax { inline namespace kernel
       {
         return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
         {
-          return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
+          return static_cast<pointer>(std::make_shared<binding>(std::forward<decltype(xs)>(xs)...));
         }, *this);
       }
 
@@ -237,25 +237,14 @@ namespace meevax { inline namespace kernel
       #undef BOILERPLATE
     };
 
-    union // small-object optimiazation
-    {
-      bool as_bool;
-
-      char as_char; signed char as_signed_char; unsigned char as_unsigned_char;
-
-      short int as_short_int; unsigned short int as_unsigned_short_int;
-      int as_int; unsigned int as_unsigned_int;
-      long int as_long_int; unsigned long int as_unsigned_long_int;
-      long long int as_long_long_int; unsigned long long int as_unsigned_long_long_int;
-
-      float as_float; double as_double; long double as_long_dougle;
-    } aux;
-
   public:
+    pointer(const std::shared_ptr<T>& other)
+      : std::shared_ptr<T> { other }
+    {}
+
     template <typename... Ts>
-    constexpr pointer(Ts&&... xs)
+    explicit constexpr pointer(Ts&&... xs)
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
-      , aux {}
     {}
 
     /* ---- C/C++ Derived Types Bind -------------------------------------------
@@ -267,10 +256,10 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     template <typename Bound, typename... Ts, typename = typename std::enable_if<std::is_compound<Bound>::value>::type>
-    static pointer bind(Ts&&... xs)
+    static auto bind(Ts&&... xs) -> pointer
     {
       using binding = binder<Bound>;
-      return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
+      return static_cast<pointer>(std::make_shared<binding>(std::forward<decltype(xs)>(xs)...));
     }
 
     #if __cpp_lib_memory_resource
@@ -304,7 +293,7 @@ namespace meevax { inline namespace kernel
       return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
     }
 
-    decltype(auto) binding() const
+    auto binding() const -> decltype(auto)
     {
       assert(              std::shared_ptr<T>::get() );
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -374,14 +363,14 @@ namespace meevax { inline namespace kernel
     }
 
     template <typename U>
-    decltype(auto) is() const
+    auto is() const
     {
       return type() == typeid(typename std::decay<U>::type);
     }
 
-    /* ==== C/C++ Derived Type Restoration ====================================
-    *
-    *======================================================================= */
+    /* ---- C/C++ Derived Type Restoration -------------------------------------
+     *
+     * ---------------------------------------------------------------------- */
     template <typename U, typename = typename std::enable_if<std::is_compound<U>::value>::type>
     U& as() const
     {
@@ -399,13 +388,13 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== C/C++ Primitive Type Restoration ==================================
-    *
-    * Currently only supports when the request and actual type match.
-    *
-    * TODO: Support upcast and downcast of arithmetic types
-    *
-    *======================================================================= */
+    /* ---- C/C++ Primitive Type Restoration -----------------------------------
+     *
+     * Currently only supports when the request and actual type match.
+     *
+     * TODO: Support upcast and downcast of arithmetic types
+     *
+     * ---------------------------------------------------------------------- */
     template <typename U, typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
     auto as() const -> typename std::decay<U>::type
     {
