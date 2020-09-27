@@ -9,10 +9,9 @@
 
 #include <meevax/concepts/arithmetic.hpp>
 #include <meevax/concepts/is_equality_comparable.hpp>
-#include <meevax/concepts/is_stream_insertable.hpp>
-#include <meevax/console/escape_sequence.hpp>
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
+#include <meevax/type_traits/if_stream_insertable.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
@@ -117,12 +116,9 @@ namespace meevax { inline namespace kernel
   }
 
   template <typename T, typename... Ts>
-  inline constexpr auto untagged_value_as(Ts&&... xs) noexcept
-    -> typename std::decay<T>::type
+  inline constexpr auto untagged_value_as(Ts&&... xs) noexcept -> typename std::decay<T>::type
   {
-    auto value {untagged_value_of(
-      std::forward<decltype(xs)>(xs)...
-    )};
+    auto value { untagged_value_of(std::forward<decltype(xs)>(xs)...) };
     return reinterpret_cast<typename std::decay<T>::type&>(value);
   }
 
@@ -203,7 +199,7 @@ namespace meevax { inline namespace kernel
 
       auto write(std::ostream& port) const -> decltype(port) override
       {
-        return top::template if_stream_insertable<bound>::call_it(port, *this);
+        return if_stream_insertable<bound>::call_it(port, *this);
       }
 
       auto display(std::ostream& port) const -> decltype(port) override

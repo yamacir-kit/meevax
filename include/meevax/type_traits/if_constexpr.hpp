@@ -9,7 +9,7 @@
 
 namespace meevax { inline namespace type_traits
 {
-  #define boilerplate(NAMESPACE, TRAIT)                                        \
+  #define BOILERPLATE(NAMESPACE, TRAIT)                                        \
   template <typename T, typename = void>                                       \
   struct if_##TRAIT                                                            \
   {                                                                            \
@@ -32,13 +32,13 @@ namespace meevax { inline namespace type_traits
     }                                                                          \
   }
 
-  boilerplate(std, is_copy_constructible);
+  BOILERPLATE(std, is_copy_constructible);
 
-  boilerplate(concepts, equality_comparable);
+  BOILERPLATE(concepts, equality_comparable);
 
-  #undef boilerplate
+  #undef BOILERPLATE
 
-  #define boilerplate(NAMESPACE, TRAIT)                                        \
+  #define BOILERPLATE(NAMESPACE, TRAIT)                                        \
   template <typename T, typename U, typename = void>                           \
   struct if_##TRAIT                                                            \
   {                                                                            \
@@ -62,20 +62,19 @@ namespace meevax { inline namespace type_traits
     }                                                                          \
   }
 
-  boilerplate(concepts, addable);
-  boilerplate(concepts, divisible);
-  boilerplate(concepts, multipliable);
-  boilerplate(concepts, subtractable);
+  BOILERPLATE(concepts, addable);
+  BOILERPLATE(concepts, divisible);
+  BOILERPLATE(concepts, multipliable);
+  BOILERPLATE(concepts, subtractable);
 
-  boilerplate(concepts, equality_comparable_with);
-  boilerplate(concepts, not_equality_comparable_with);
+  BOILERPLATE(concepts, equality_comparable_with);
+  BOILERPLATE(concepts, not_equality_comparable_with);
+  BOILERPLATE(concepts, greater_equal_comparable);
+  BOILERPLATE(concepts, greater_than_comparable);
+  BOILERPLATE(concepts, less_equal_comparable);
+  BOILERPLATE(concepts, less_than_comparable);
 
-  boilerplate(concepts, greater_equal_comparable);
-  boilerplate(concepts, greater_than_comparable);
-  boilerplate(concepts, less_equal_comparable);
-  boilerplate(concepts, less_than_comparable);
-
-  #undef boilerplate
+  #undef BOILERPLATE
 }} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_IF_CONSTEXPR_HPP

@@ -39,29 +39,6 @@ namespace meevax { inline namespace kernel
       }, static_cast<const T&>(*this), rhs);
     }
 
-  public: // write
-    template <typename U, typename = void>
-    struct if_stream_insertable
-    {
-      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
-      {
-        return port << magenta << "#,("
-                    << green << typeid(U).name()
-                    << reset << " " << static_cast<const U*>(&rhs)
-                    << magenta << ")"
-                    << reset;
-      }
-    };
-
-    template <typename U>
-    struct if_stream_insertable<U, typename std::enable_if<concepts::is_stream_insertable<U>::value>::type>
-    {
-      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
-      {
-        return port << rhs;
-      }
-    };
-
     virtual auto write(std::ostream& port) const -> decltype(port)
     {
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
