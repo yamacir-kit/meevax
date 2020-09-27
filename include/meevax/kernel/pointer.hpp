@@ -202,11 +202,6 @@ namespace meevax { inline namespace kernel
         return if_stream_insertable<bound>::call_it(port, *this);
       }
 
-      auto display(std::ostream& port) const -> decltype(port) override
-      {
-        return top::template if_displayable<bound>::call_it(port, *this);
-      }
-
       auto exact() const -> bool override
       {
         return top::template if_has_exactness<bound>::call_it(*this);

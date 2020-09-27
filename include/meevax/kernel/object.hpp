@@ -44,32 +44,6 @@ namespace meevax { inline namespace kernel
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
     }
 
-  public: // display
-    template <typename U, typename = void>
-    struct if_displayable
-    {
-      static auto call_it(std::ostream& port, const U& target) -> decltype(port)
-      {
-        return port << target;
-      }
-    };
-
-    template <typename U>
-    struct if_displayable<U, type_traits::void_t<decltype(
-             std::declval<U>().write_string(
-               std::declval<std::ostream&>()))>>
-    {
-      static auto call_it(std::ostream& port, const U& target) -> decltype(port)
-      {
-        return target.write_string(port);
-      }
-    };
-
-    virtual auto display(std::ostream& port) const -> decltype(port)
-    {
-      return if_displayable<T>::call_it(port, static_cast<const T&>(*this));
-    }
-
   public: // exact & inexact
     template <typename Top, typename = void>
     struct if_has_exactness

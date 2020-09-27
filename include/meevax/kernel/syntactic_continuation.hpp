@@ -854,17 +854,17 @@ namespace meevax { inline namespace kernel
     {
       try
       {
-        return make<exact_integer>(car(xs).template as<std::string>());
+        return make<exact_integer>(car(xs).template as<character>().display());
       }
       catch (std::runtime_error&)
       {
-        return f;
+        return f; // XXX
       }
     });
 
     define<procedure>("char->integer", [](auto&& xs)
     {
-      switch (const auto& s { car(xs).template as<std::string>() }; s.size())
+      switch (const auto& s { car(xs).template as<character>().display() }; s.size())
       {
       case 1:
         return make<exact_integer>(*reinterpret_cast<const std::uint8_t*>(s.data()));
@@ -1080,19 +1080,17 @@ namespace meevax { inline namespace kernel
       return unspecified;
     });
 
-    define<procedure>("display", [this](auto&& xs)
-    {
-      if (not null(cdr(xs)))
-      {
-        car(xs).binding().display(cadr(xs).template as<output_port>());
-      }
-      else
-      {
-        car(xs).binding().display(current_output_port());
-      }
+    #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
+    define<procedure>("write-" SUFFIX, [this](auto&& xs)                       \
+    {                                                                          \
+      car(xs).template as<TYPENAME>().display_to(null(cdr(xs)) ? current_output_port() : cadr(xs).template as<output_port>()); \
+      return unspecified;                                                      \
+    })
 
-      return unspecified;
-    });
+    BOILERPLATE("char", character);
+    BOILERPLATE("string", string);
+
+    #undef BOILERPLATE
 
     /* ==== R7RS 6.14. System interface ========================================
      *

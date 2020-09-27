@@ -1371,7 +1371,8 @@
 
 (define port?
   (lambda (x)
-    (or (input-port? x) (output-port? x))))
+    (or (input-port?  x)
+        (output-port? x))))
 
 (define textual-port? port?)
 
@@ -1411,15 +1412,6 @@
 ; TODO peek-char
 ; TODO read-line
 
-; (define eof-object
-;   (lambda () #\end-of-file))
-;
-; (define eof-object?
-;   (lambda (x)
-;     (eqv? x #\end-of-file)))
-
-; TODO eof-object
-
 ; TODO char-ready?
 
 ; TODO read-string
@@ -1432,26 +1424,28 @@
 
 ; TODO write-shared
 
-; (define display
-;   (lambda (x . option)
-;     (let ((output-port (if (pair? option)
-;                            (car option)
-;                            (current-output-port))))
-;       (if (char? x)
-;           (write-char x output-port)
-;           (write      x output-port)))))
+(define display
+  (lambda (x . option)
+    (let ((port (if (pair? option)
+                    (car option)
+                    ; (current-output-port)
+                    )))
+      (cond
+        ((char?   x) (write-char   x))
+        ((string? x) (write-string x))
+        (else        (write        x))
+        ; ((char?   x) (write-char   x port))
+        ; ((string? x) (write-string x port))
+        ; (else        (write        x port))
+        ))))
 
 (define newline
-  (lambda ()
-    (display "\n"))
-  ; (lambda option
-  ;   (write-char #\newline (if (pair? option)
-  ;                             (car option)
-  ;                             (current-output-port))))
-  )
+  (lambda option
+    (write-char #\newline ; (if (pair? option)
+                          ;     (car option)
+                          ;     (current-output-port))
+                          )))
 
-; TODO write-char
-; TODO write-string
 ; TODO write-u8
 ; TODO write-bytevector
 ; TODO flush-output-port
