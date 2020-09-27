@@ -9,10 +9,9 @@
 
 #include <meevax/concepts/arithmetic.hpp>
 #include <meevax/concepts/is_equality_comparable.hpp>
-#include <meevax/concepts/is_stream_insertable.hpp>
-#include <meevax/console/escape_sequence.hpp>
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
+#include <meevax/type_traits/if_stream_insertable.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
@@ -27,7 +26,7 @@ namespace meevax { inline namespace kernel
   * kernel 0xFFFF 8000 0000 0000 ~
   *
   *========================================================================= */
-  static constexpr auto word_size {sizeof(std::size_t)};
+  static constexpr auto word_size { sizeof(std::size_t) };
 
   /* ==== Tagged Pointers =====================================================
   *
@@ -63,8 +62,8 @@ namespace meevax { inline namespace kernel
   *
   *========================================================================== */
 
-  constexpr std::uintptr_t category_mask {0x0F};
-  constexpr auto           category_mask_width {4};
+  constexpr std::uintptr_t category_mask { 0x0F };
+  constexpr auto           category_mask_width { 4 };
 
   template <typename T>
   inline constexpr auto category_of(T const* const value) noexcept
@@ -117,28 +116,25 @@ namespace meevax { inline namespace kernel
   }
 
   template <typename T, typename... Ts>
-  inline constexpr auto untagged_value_as(Ts&&... xs) noexcept
-    -> typename std::decay<T>::type
+  inline constexpr auto untagged_value_as(Ts&&... xs) noexcept -> typename std::decay<T>::type
   {
-    auto value {untagged_value_of(
-      std::forward<decltype(xs)>(xs)...
-    )};
+    auto value { untagged_value_of(std::forward<decltype(xs)>(xs)...) };
     return reinterpret_cast<typename std::decay<T>::type&>(value);
   }
 
-  /* ==== Heterogenous Shared Pointer =========================================
-  *
-  * TODO Documentation
-  * TODO Rename to 'garbage_collector'
-  *
-  * This type requires to the template parameter T inherits objective facade.
-  *
-  *========================================================================= */
+  /* ---- Heterogenous Shared Pointer ------------------------------------------
+   *
+   * TODO Documentation
+   * TODO Rename to 'garbage_collector'
+   *
+   * This type requires to the template parameter T inherits objective facade.
+   *
+   * ------------------------------------------------------------------------ */
   template <typename T>
   class pointer
     : public std::shared_ptr<T>
   {
-    /* ==== Binder =============================================================
+    /* ---- Binder -------------------------------------------------------------
      *
      * The object binder is the actual data pointed to by the pointer type. To
      * handle all types uniformly, the binder inherits type T and uses dynamic
@@ -146,7 +142,7 @@ namespace meevax { inline namespace kernel
      * instances. However, the performance is inferior due to the heavy use of
      * dynamic cast as a price for convenience.
      *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
     template <typename Bound>
     struct binder
       : public Bound
@@ -172,17 +168,17 @@ namespace meevax { inline namespace kernel
 
       virtual ~binder() = default;
 
+    private:
       auto type() const noexcept -> const std::type_info& override
       {
         return typeid(bound);
       }
 
-    private:
       auto copy() const -> pointer override
       {
         return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
         {
-          return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
+          return static_cast<pointer>(std::make_shared<binding>(std::forward<decltype(xs)>(xs)...));
         }, *this);
       }
 
@@ -201,41 +197,11 @@ namespace meevax { inline namespace kernel
         }, static_cast<const bound&>(*this), rhs);
       }
 
-    private: // write
-      #if __cpp_if_constexpr
-
       auto write(std::ostream& port) const -> decltype(port) override
       {
-        if constexpr (concepts::is_stream_insertable<bound>::value)
-        {
-          return port << static_cast<const bound&>(*this);
-        }
-        else
-        {
-          return port << console::magenta << "#("
-                      << console::green << type().name()
-                      << console::reset << static_cast<const bound*>(this)
-                      << console::magenta << ")"
-                      << console::reset;
-        }
+        return if_stream_insertable<bound>::call_it(port, *this);
       }
 
-      #else // __cpp_if_constexpr
-
-      auto write(std::ostream& port) const -> decltype(port) override
-      {
-        return top::template if_stream_insertable<bound>::call_it(port, *this);
-      }
-
-      #endif // __cpp_if_constexpr
-
-    private: // display
-      auto display(std::ostream& port) const -> decltype(port) override
-      {
-        return top::template if_displayable<bound>::call_it(port, *this);
-      }
-
-    private: // exact & inexact
       auto exact() const -> bool override
       {
         return top::template if_has_exactness<bound>::call_it(*this);
@@ -271,25 +237,14 @@ namespace meevax { inline namespace kernel
       #undef BOILERPLATE
     };
 
-    union // small-object optimiazation
-    {
-      bool as_bool;
-
-      char as_char; signed char as_signed_char; unsigned char as_unsigned_char;
-
-      short int as_short_int; unsigned short int as_unsigned_short_int;
-      int as_int; unsigned int as_unsigned_int;
-      long int as_long_int; unsigned long int as_unsigned_long_int;
-      long long int as_long_long_int; unsigned long long int as_unsigned_long_long_int;
-
-      float as_float; double as_double; long double as_long_dougle;
-    } aux;
-
   public:
+    pointer(const std::shared_ptr<T>& other)
+      : std::shared_ptr<T> { other }
+    {}
+
     template <typename... Ts>
-    constexpr pointer(Ts&&... xs)
+    explicit constexpr pointer(Ts&&... xs)
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
-      , aux {}
     {}
 
     /* ---- C/C++ Derived Types Bind -------------------------------------------
@@ -301,10 +256,10 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     template <typename Bound, typename... Ts, typename = typename std::enable_if<std::is_compound<Bound>::value>::type>
-    static pointer bind(Ts&&... xs)
+    static auto bind(Ts&&... xs) -> pointer
     {
       using binding = binder<Bound>;
-      return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
+      return static_cast<pointer>(std::make_shared<binding>(std::forward<decltype(xs)>(xs)...));
     }
 
     #if __cpp_lib_memory_resource
@@ -338,7 +293,7 @@ namespace meevax { inline namespace kernel
       return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
     }
 
-    decltype(auto) binding() const
+    auto binding() const -> decltype(auto)
     {
       assert(              std::shared_ptr<T>::get() );
       assert(not is_tagged(std::shared_ptr<T>::get()));
@@ -408,14 +363,14 @@ namespace meevax { inline namespace kernel
     }
 
     template <typename U>
-    decltype(auto) is() const
+    auto is() const
     {
       return type() == typeid(typename std::decay<U>::type);
     }
 
-    /* ==== C/C++ Derived Type Restoration ====================================
-    *
-    *======================================================================= */
+    /* ---- C/C++ Derived Type Restoration -------------------------------------
+     *
+     * ---------------------------------------------------------------------- */
     template <typename U, typename = typename std::enable_if<std::is_compound<U>::value>::type>
     U& as() const
     {
@@ -433,13 +388,13 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== C/C++ Primitive Type Restoration ==================================
-    *
-    * Currently only supports when the request and actual type match.
-    *
-    * TODO: Support upcast and downcast of arithmetic types
-    *
-    *======================================================================= */
+    /* ---- C/C++ Primitive Type Restoration -----------------------------------
+     *
+     * Currently only supports when the request and actual type match.
+     *
+     * TODO: Support upcast and downcast of arithmetic types
+     *
+     * ---------------------------------------------------------------------- */
     template <typename U, typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
     auto as() const -> typename std::decay<U>::type
     {

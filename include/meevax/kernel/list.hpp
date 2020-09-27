@@ -125,18 +125,12 @@ namespace meevax { inline namespace kernel
       return std::make_shared<pair>(lhs, rhs);
     }
 
-    auto cons = [](auto&&... xs)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto cons = [](auto&&... xs) constexpr
     {
       return (xs | ...);
     };
 
-    auto list = [](auto&& ... xs)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto list = [](auto&& ... xs) constexpr
     {
       return (xs | ... | unit);
     };

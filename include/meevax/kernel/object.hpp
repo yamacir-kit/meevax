@@ -20,7 +20,7 @@ namespace meevax { inline namespace kernel
     {
       return if_is_copy_constructible<T>::template invoke<pointer<T>>([](auto&&... xs)
       {
-        return std::make_shared<T>(std::forward<decltype(xs)>(xs)...);
+        return static_cast<pointer<T>>(std::make_shared<T>(std::forward<decltype(xs)>(xs)...));
       }, static_cast<const T&>(*this));
     }
 
@@ -39,80 +39,9 @@ namespace meevax { inline namespace kernel
       }, static_cast<const T&>(*this), rhs);
     }
 
-  public: // write
-    #if __cpp_if_constexpr
-
-    virtual auto write(std::ostream& port) const -> decltype(port)
-    {
-      if constexpr (concepts::is_stream_insertable<T>::value)
-      {
-        return port << static_cast<const T&>(*this);
-      }
-      else
-      {
-        return port << magenta << "#,("
-                    << green << type().name()
-                    << reset << " " << static_cast<const T*>(this)
-                    << magenta << ")"
-                    << reset;
-      }
-    };
-
-    #else // __cpp_if_constexpr
-
-    template <typename U, typename = void>
-    struct if_stream_insertable
-    {
-      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
-      {
-        return port << magenta << "#,("
-                    << green << typeid(U).name()
-                    << reset << " " << static_cast<const U*>(&rhs)
-                    << magenta << ")"
-                    << reset;
-      }
-    };
-
-    template <typename U>
-    struct if_stream_insertable<U, typename std::enable_if<concepts::is_stream_insertable<U>::value>::type>
-    {
-      static auto call_it(std::ostream& port, const U& rhs) -> decltype(port)
-      {
-        return port << rhs;
-      }
-    };
-
     virtual auto write(std::ostream& port) const -> decltype(port)
     {
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
-    }
-
-    #endif // __cpp_if_constexpr
-
-  public: // display
-    template <typename U, typename = void>
-    struct if_displayable
-    {
-      static auto call_it(std::ostream& port, const U& target) -> decltype(port)
-      {
-        return port << target;
-      }
-    };
-
-    template <typename U>
-    struct if_displayable<U, type_traits::void_t<decltype(
-             std::declval<U>().write_string(
-               std::declval<std::ostream&>()))>>
-    {
-      static auto call_it(std::ostream& port, const U& target) -> decltype(port)
-      {
-        return target.write_string(port);
-      }
-    };
-
-    virtual auto display(std::ostream& port) const -> decltype(port)
-    {
-      return if_displayable<T>::call_it(port, static_cast<const T&>(*this));
     }
 
   public: // exact & inexact
@@ -179,7 +108,6 @@ namespace meevax { inline namespace kernel
 
     BOILERPLATE(==);
     BOILERPLATE(!=);
-
     BOILERPLATE(<);
     BOILERPLATE(<=);
     BOILERPLATE(>);

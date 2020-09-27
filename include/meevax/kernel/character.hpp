@@ -7,32 +7,36 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Character ============================================================
-  *
-  * TODO
-  *
-  * ========================================================================= */
+  using variable_width_character = std::string; // TODO convert std::u8string in future.
+
+  /* ---- Character ------------------------------------------------------------
+   *
+   * TODO
+   *
+   * ------------------------------------------------------------------------ */
   struct character
-    : public std::string // TODO convert std::u8string in future.
+    : private variable_width_character
   {
     const std::string name;
 
-    explicit character(const std::string& unicode,
-                       const std::string& name = {})
-      : std::string {unicode}
-      , name {name}
+    explicit character(const std::string& code, const std::string& name = {})
+      : variable_width_character { code }
+      , name { name }
     {}
 
-    friend auto operator<<(std::ostream& os, const character& c)
-      -> decltype(os)
+    auto display() const -> decltype(auto)
     {
-      return os << console::cyan << "#\\"
-                #if __cpp_lib_nonmember_container_access
-                << (std::empty(c.name) ? static_cast<std::string>(c) : c.name)
-                #else
-                << (c.name.empty() ? static_cast<std::string>(c) : c.name)
-                #endif
-                << console::reset;
+      return static_cast<std::string>(*this);
+    }
+
+    auto display_to(std::ostream& port) const -> decltype(auto)
+    {
+      return port << cyan << display() << reset;
+    }
+
+    friend auto operator<<(std::ostream& port, const character& c) -> decltype(auto)
+    {
+      return port << cyan << "#\\" << (std::empty(c.name) ? c.display() : c.name) << reset;
     }
   };
 
@@ -44,18 +48,12 @@ namespace meevax { inline namespace kernel
   * ========================================================================= */
   extern const std::unordered_map<std::string, object> characters;
 
-  auto char_ci_eq = [](auto c, auto... xs)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto char_ci_eq = [](auto c, auto... xs) constexpr
   {
     return (std::char_traits<decltype(c)>::eq(c, xs) or ...);
   };
 
-  auto is_intraline_whitespace = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_intraline_whitespace = [](auto c) constexpr
   {
     #if 201703L <= __cplusplus
     return char_ci_eq(c, u8' ', u8'\f', u8'\t', u8'\v');
@@ -64,10 +62,7 @@ namespace meevax { inline namespace kernel
     #endif
   };
 
-  auto is_eol = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_eol = [](auto c) constexpr
   {
     #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'\n', u8'\r');
@@ -76,30 +71,21 @@ namespace meevax { inline namespace kernel
     #endif
   };
 
-  auto is_eof = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_eof = [](auto c) constexpr
   {
     using traits = typename std::char_traits<decltype(c)>;
 
     return traits::eq_int_type(traits::to_int_type(c), traits::eof());
   };
 
-  auto is_whitespace = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_whitespace = [](auto c) constexpr
   {
     return is_intraline_whitespace(c)
         or is_eol(c)
         or is_eof(c);
   };
 
-  auto is_parenthesis = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_parenthesis = [](auto c) constexpr
   {
     #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'(', u8')');
@@ -108,10 +94,7 @@ namespace meevax { inline namespace kernel
     #endif
   };
 
-  auto is_quotation = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_quotation = [](auto c) constexpr
   {
     #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'\'', u8'"', u8'`');
@@ -120,10 +103,7 @@ namespace meevax { inline namespace kernel
     #endif
   };
 
-  auto is_vertical_line = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_vertical_line = [](auto c) constexpr
   {
     #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'|');
@@ -132,10 +112,7 @@ namespace meevax { inline namespace kernel
     #endif
   };
 
-  auto is_discriminator = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_discriminator = [](auto c) constexpr
   {
     #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'#');
@@ -144,10 +121,7 @@ namespace meevax { inline namespace kernel
     #endif
   };
 
-  auto is_delimiter = [](auto c)
-    #if 201603 <= __cpp_constexpr
-    constexpr
-    #endif
+  auto is_delimiter = [](auto c) constexpr
   {
     return is_whitespace(c)
         or is_parenthesis(c)
