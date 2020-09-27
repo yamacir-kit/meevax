@@ -106,15 +106,10 @@ namespace meevax { inline namespace kernel
     throw std::logic_error { ss.str() };                                       \
   } static_assert(true)
 
-  BOILERPLATE(single_float, *, multiplies);
-  BOILERPLATE(single_float, +, plus);
-  BOILERPLATE(single_float, -, minus);
-  BOILERPLATE(single_float, /, divides);
-
-  BOILERPLATE(double_float, *, multiplies);
-  BOILERPLATE(double_float, +, plus);
-  BOILERPLATE(double_float, -, minus);
-  BOILERPLATE(double_float, /, divides);
+  template <typename T> BOILERPLATE(floating_point<T>, *, multiplies);
+  template <typename T> BOILERPLATE(floating_point<T>, +, plus);
+  template <typename T> BOILERPLATE(floating_point<T>, -, minus);
+  template <typename T> BOILERPLATE(floating_point<T>, /, divides);
 
   BOILERPLATE(exact_integer, *, multiplies);
   BOILERPLATE(exact_integer, +, plus);
@@ -200,19 +195,12 @@ namespace meevax { inline namespace kernel
     throw std::logic_error { port.str() };                                     \
   } static_assert(true, "semicolon required after this macro")
 
-  BOILERPLATE(single_float, !=, not_equal_to);
-  BOILERPLATE(single_float, <,  less);
-  BOILERPLATE(single_float, <=, less_equal);
-  BOILERPLATE(single_float, ==, equal_to);
-  BOILERPLATE(single_float, >,  greater);
-  BOILERPLATE(single_float, >=, greater_equal);
-
-  BOILERPLATE(double_float, !=, not_equal_to);
-  BOILERPLATE(double_float, <,  less);
-  BOILERPLATE(double_float, <=, less_equal);
-  BOILERPLATE(double_float, ==, equal_to);
-  BOILERPLATE(double_float, >,  greater);
-  BOILERPLATE(double_float, >=, greater_equal);
+  template <typename T> BOILERPLATE(floating_point<T>, !=, not_equal_to);
+  template <typename T> BOILERPLATE(floating_point<T>, <,  less);
+  template <typename T> BOILERPLATE(floating_point<T>, <=, less_equal);
+  template <typename T> BOILERPLATE(floating_point<T>, ==, equal_to);
+  template <typename T> BOILERPLATE(floating_point<T>, >,  greater);
+  template <typename T> BOILERPLATE(floating_point<T>, >=, greater_equal);
 
   BOILERPLATE(exact_integer, !=, not_equal_to);
   BOILERPLATE(exact_integer, <,  less);

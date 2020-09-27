@@ -9,61 +9,52 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
   template <typename T>
-  struct floating_point;
+  struct floating_point
+    : public std::numeric_limits<T>
+  {
+    using value_type = T;
 
-  #define BOILERPLATE(TYPE)                                                    \
-  template <>                                                                  \
-  struct floating_point<TYPE>                                                  \
-    : public std::numeric_limits<TYPE>                                         \
-  {                                                                            \
-    using value_type = TYPE;                                                   \
-                                                                               \
-    value_type value;                                                          \
-                                                                               \
-    template <typename... Ts>                                                  \
-    explicit constexpr floating_point(Ts&&... xs)                              \
-      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) } \
-    {}                                                                         \
-                                                                               \
-    template <typename T,                                                      \
-              typename =                                                       \
-                typename std::enable_if<                                       \
-                  std::is_convertible<T, value_type>::value                    \
-                >::type>                                                       \
-    explicit constexpr floating_point(T&& x)                                   \
-      : value { x }                                                            \
-    {}                                                                         \
-                                                                               \
-    auto to_string() const -> std::string                                      \
-    {                                                                          \
-      return boost::lexical_cast<std::string>(value);                          \
-    }                                                                          \
-                                                                               \
-    auto exact() const noexcept                                                \
-    {                                                                          \
-      return value == std::trunc(value);                                       \
-    }                                                                          \
-                                                                               \
-    constexpr operator value_type() const noexcept { return value; }           \
-    constexpr operator value_type()       noexcept { return value; }           \
-                                                                               \
-    auto operator * (const object&) const -> object;                           \
-    auto operator + (const object&) const -> object;                           \
-    auto operator - (const object&) const -> object;                           \
-    auto operator / (const object&) const -> object;                           \
-                                                                               \
-    auto operator ==(const object&) const -> object;                           \
-    auto operator !=(const object&) const -> object;                           \
-    auto operator < (const object&) const -> object;                           \
-    auto operator <=(const object&) const -> object;                           \
-    auto operator > (const object&) const -> object;                           \
-    auto operator >=(const object&) const -> object;                           \
-  }
+    value_type value;
 
-  BOILERPLATE(float);
-  BOILERPLATE(double);
+    template <typename... Ts>
+    explicit constexpr floating_point(Ts&&... xs)
+      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
+    {}
 
-  #undef BOILERPLATE
+    template <typename U, typename = typename std::enable_if<std::is_convertible<U, value_type>::value>::type>
+    explicit constexpr floating_point(U&& x)
+      : value { x }
+    {}
+
+    auto to_string() const
+    {
+      return boost::lexical_cast<std::string>(value);
+    }
+
+    auto exact() const noexcept
+    {
+      return value == std::trunc(value);
+    }
+
+    constexpr operator value_type() const noexcept { return value; }
+    constexpr operator value_type()       noexcept { return value; }
+
+    auto operator * (const object&) const -> object;
+    auto operator + (const object&) const -> object;
+    auto operator - (const object&) const -> object;
+    auto operator / (const object&) const -> object;
+
+    auto operator ==(const object&) const -> object;
+    auto operator !=(const object&) const -> object;
+    auto operator < (const object&) const -> object;
+    auto operator <=(const object&) const -> object;
+    auto operator > (const object&) const -> object;
+    auto operator >=(const object&) const -> object;
+  };
+
+  template struct floating_point<float>;
+  template struct floating_point<double>;
+  template struct floating_point<long double>;
 
   using single_float = floating_point<float>;
   using double_float = floating_point<double>;
