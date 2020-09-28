@@ -74,7 +74,7 @@ namespace meevax { inline namespace kernel
     }
     else
     {
-      return os << cyan << rhs.value << (rhs.exact() ? ".0" : "") << reset;
+      return os << cyan << rhs.value << (rhs.exact() ? "." : ".0") << reset;
     }
   }
 

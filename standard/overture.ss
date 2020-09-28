@@ -722,31 +722,53 @@
 ;  6.2 Standard Numerical Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-(define number?
-  (lambda (x)
-    (or (exact? x)
-        (inexact? x))))
+; number?
+;  `-- complex?
+;       |-- %complex? ................................................... atomic
+;       `-- real?
+;            |-- floating-point?
+;            |    |-- single-float? ..................................... atomic
+;            |    `-- double-float? ..................................... atomic
+;            `-- rational?
+;                 |-- ratio? ............................................ atomic
+;                 `-- integer?
+;                      `-- exact-integer? ............................... atomic
 
-(define complex? number?)
+(define floating-point?
+  (lambda (z)
+    (or (single-float? z)
+        (double-float? z))))
 
 (define real?
   (lambda (x)
-    (and (number? x)
-         (not (the-complex? x)))))
+    (or (floating-point? x)
+        (rational? x))))
 
 (define rational?
   (lambda (x)
-    (and (real? x)
-         (= x x)
-         (if (or (< x -1) (< 1 x))
-             (not (= x (/ x 2)))
-             (<= -1 x 1)))))
+    (or (ratio? x)
+        (integer? x))))
+
+(define almost-exact-floating-point?
+  (lambda (x)
+    (and (floating-point? x)
+         (= x (truncate x)))))
 
 (define integer?
   (lambda (x)
     (or (exact-integer? x)
-        (and (real? x)
-             (= x (truncate x)) ))))
+        (almost-exact-floating-point?))))
+
+;  .
+;  |-- exact?
+;  |    |-- exact-complex?
+;  |    |-- exact-integer? .............................................. atomic
+;  |    `-- ratio? ...................................................... atomic
+;  `-- inexact?
+;       |-- floating-point?
+;       |    |--- single-float? ......................................... atomic
+;       |    `--- single-float? ......................................... atomic
+;       `-- inexact-complex?
 
 (define exact?
   (lambda (z)
@@ -754,17 +776,23 @@
         (ratio? z)
         (exact-complex? z))))
 
-(define inexact?
-  (lambda (z)
-    (or (single-float? z)
-        (double-float? z)
-        (not (exact-complex? z)))))
-
 (define exact-complex?
   (lambda (x)
     (and (the-complex? x)
          (exact? (real-part x))
          (exact? (imag-part x)))))
+
+(define inexact?
+  (lambda (z)
+    (or (floating-point? z)
+        (not (exact-complex? z)))))
+
+(define complex?
+  (lambda (x)
+    (or (exact? x)
+        (inexact? x))))
+
+(define number? complex?)
 
 (define finite?
   (lambda (z)
@@ -772,10 +800,8 @@
 
 (define infinite?
   (lambda (z)
-    #f
-    ; (or (= +inf.0 z)
-    ;     (= -inf.0 z))
-    ))
+    (or (= +inf.0 z)
+        (= -inf.0 z))))
 
 (define nan?
   (lambda (z)
