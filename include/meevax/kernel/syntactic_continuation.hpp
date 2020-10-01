@@ -499,7 +499,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (const object lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
+      if (let const lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
       {
         return t;
       }
