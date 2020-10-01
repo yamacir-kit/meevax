@@ -585,67 +585,30 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ =                  │ C++        │ T::operator ==(const T&)           │
+     * │ =                  │ C++        │ Number::operator ==(const object&) │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ <                  │ C++        │ T::operator < (const T&)           │
+     * │ <                  │ C++        │ Number::operator < (const object&) │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ >                  │ C++        │ T::operator > (const T&)           │
+     * │ >                  │ C++        │ Number::operator > (const object&) │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ <=                 │ C++        │ T::operator <=(const T&)           │
+     * │ <=                 │ C++        │ Number::operator <=(const object&) │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ >=                 │ C++        │ T::operator >=(const T&)           │
+     * │ >=                 │ C++        │ Number::operator >=(const object&) │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
 
-    // TODO Rewrite with STL algorithms
-    define<procedure>("=", [](auto&& xs)
-    {
-      const auto head { std::begin(xs) };
-
-      for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
-      {
-        if ((*head).binding() != *iter)
-        {
-          return f;
-        }
-      }
-
-      return t;
-    });
-
-    #define DEFINE_TRANSITIVE_PREDICATE(SYMBOL)                                \
-    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
-    {                                                                          \
-      auto lhs { std::begin(xs) };                                             \
-                                                                               \
-      for (auto rhs { std::next(lhs) }; rhs != std::end(xs); ++lhs, ++rhs)     \
-      {                                                                        \
-        if (const auto result { *lhs SYMBOL *rhs }; not result)                \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    })
-
-    DEFINE_TRANSITIVE_PREDICATE(<);
-    DEFINE_TRANSITIVE_PREDICATE(<=);
-    DEFINE_TRANSITIVE_PREDICATE(>);
-    DEFINE_TRANSITIVE_PREDICATE(>=);
-
     #define DEFINE_TRANSITIVE_COMPARISON(SYMBOL, COMPARE)                      \
-    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    define<procedure>(#SYMBOL, [](auto&& xs) constexpr                         \
     {                                                                          \
-      return std::is_sorted(std::begin(xs), std::end(xs), COMPARE) ? t : f;    \
+      return std::adjacent_find(std::begin(xs), std::end(xs), std::not_fn(COMPARE)) == std::end(xs) ? t : f; \
     })
 
-    // DEFINE_TRANSITIVE_COMPARISON(=,  [](auto&& lhs, auto&& rhs) { return lhs.binding() == rhs; });
-    // DEFINE_TRANSITIVE_COMPARISON(<,  std::less());
-    // DEFINE_TRANSITIVE_COMPARISON(<=, std::less_equal());
-    // DEFINE_TRANSITIVE_COMPARISON(>,  std::greater());
-    // DEFINE_TRANSITIVE_COMPARISON(>=, std::greater_equal());
+    DEFINE_TRANSITIVE_COMPARISON(=,  [](auto&& lhs, auto&& rhs) { return lhs.binding() == rhs; });
+    DEFINE_TRANSITIVE_COMPARISON(<,  std::less<void>());
+    DEFINE_TRANSITIVE_COMPARISON(<=, std::less_equal<void>());
+    DEFINE_TRANSITIVE_COMPARISON(>,  std::greater<void>());
+    DEFINE_TRANSITIVE_COMPARISON(>=, std::greater_equal<void>());
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
      *

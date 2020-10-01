@@ -147,10 +147,7 @@ namespace meevax { inline namespace kernel
       return result;
     };
 
-    auto xcons = [](auto&&... xs)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto xcons = [](auto&&... xs) constexpr
     {
       return (... | xs);
     };
@@ -282,10 +279,7 @@ namespace meevax { inline namespace kernel
     auto cdddar = functional::compose(cdr, cddar);
     auto cddddr = functional::compose(cdr, cdddr);
 
-    auto list_tail = [](auto&& list, auto&& k)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto list_tail = [](auto&& list, auto&& k) constexpr
     {
       return std::next(std::begin(list), k);
     };
@@ -332,10 +326,7 @@ namespace meevax { inline namespace kernel
    * ======================================================================== */
   inline namespace miscellaneous
   {
-    auto length = [](const auto& x)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto length = [](const auto& x) constexpr
     {
       return std::distance(std::begin(x), std::end(x));
     };
@@ -472,10 +463,7 @@ namespace meevax { inline namespace kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](const auto& list, auto&& predicate)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto find = [](const auto& list, auto&& predicate) constexpr
     {
       const auto result { std::find_if(std::begin(list), std::end(list), predicate) };
       return result ? car(result) : f;
@@ -508,34 +496,22 @@ namespace meevax { inline namespace kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](const auto& key, const auto& alist, auto&& compare = equivalence_comparator<2>())
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto assoc = [](const auto& key, const auto& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
       return find(alist, [&](auto&& each) { return compare(car(each), key); });
     };
 
-    auto assv = [](auto&&... xs)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto assv = [](auto&&... xs) constexpr
     {
       return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
     };
 
-    auto assq = [](auto&&... xs)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto assq = [](auto&&... xs) constexpr
     {
       return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
     };
 
-    auto alist_cons = [](auto&& key, auto&& datum, auto&& alist)
-      #if 201603 <= __cpp_constexpr
-      constexpr
-      #endif
+    auto alist_cons = [](auto&& key, auto&& datum, auto&& alist) constexpr
     {
       return cons(cons(key, datum), alist);
     };
