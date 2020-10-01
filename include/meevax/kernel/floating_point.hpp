@@ -16,14 +16,18 @@ namespace meevax { inline namespace kernel
 
     value_type value;
 
-    template <typename... Ts>
-    explicit constexpr floating_point(Ts&&... xs)
-      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
+    explicit constexpr floating_point(T value)
+      : value { value }
     {}
 
     template <typename U, typename = typename std::enable_if<std::is_convertible<U, value_type>::value>::type>
     explicit constexpr floating_point(U&& x)
       : value { x }
+    {}
+
+    template <typename... Ts>
+    explicit constexpr floating_point(Ts&&... xs)
+      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
     {}
 
     auto to_string() const
@@ -82,8 +86,7 @@ namespace meevax { inline namespace kernel
   template <typename T, typename U>                                            \
   constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
   {                                                                            \
-    using result_type = decltype(std::declval<T>() SYMBOL std::declval<U>());  \
-    return floating_point<result_type>(lhs.value SYMBOL rhs.value);            \
+    return floating_point(lhs.value SYMBOL rhs.value);                         \
   } static_assert(true)
 
   BOILERPLATE(*);

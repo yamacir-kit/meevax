@@ -776,8 +776,8 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define BOILERPLATE(NAME, CMATH)                                           \
-    define<procedure>(NAME, [&](auto&& xs)                                     \
+    #define DEFINE_ELEMENTARY_FUNCTION(FUNCTION)                               \
+    define<procedure>(#FUNCTION, [&](auto&& xs)                                \
     {                                                                          \
       if (let const x = car(xs); null(x))                                      \
       {                                                                        \
@@ -785,38 +785,26 @@ namespace meevax { inline namespace kernel
       }                                                                        \
       else if (x.is<exact_integer>())                                          \
       {                                                                        \
-        if (const floating_point<most_precise> result {                        \
-              CMATH(x.as<exact_integer>().value.template convert_to<floating_point<most_precise>::value_type>()) \
+        if (const floating_point result {                                      \
+              std::FUNCTION(                                                   \
+                floating_point<most_precise>(                                  \
+                  x.as<exact_integer>().value))                                \
             }; result.exact())                                                 \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          return make<floating_point<most_precise>>(result);                   \
+          return make(result);                                                 \
         }                                                                      \
       }                                                                        \
-      else if (x.is<floating_point<float>>())                                  \
+      else if (x.is<single_float>())                                           \
       {                                                                        \
-        if (const floating_point<float> result { CMATH(x.as<floating_point<float>>()) }; result.exact()) \
-        {                                                                      \
-          return make<exact_integer>(result.to_string());                      \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return make<decltype(result)>(result);                               \
-        }                                                                      \
+        return make(floating_point(std::FUNCTION(x.as<single_float>())));      \
       }                                                                        \
-      else if (x.is<floating_point<double>>())                                 \
+      else if (x.is<double_float>())                                           \
       {                                                                        \
-        if (const floating_point<double> result { CMATH(x.as<floating_point<double>>()) }; result.exact()) \
-        {                                                                      \
-          return make<exact_integer>(result.to_string());                      \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return make<decltype(result)>(result);                               \
-        }                                                                      \
+        return make(floating_point(std::FUNCTION(x.as<double_float>())));      \
       }                                                                        \
       else                                                                     \
       {                                                                        \
@@ -824,28 +812,27 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     })
 
-    BOILERPLATE("exp", std::exp);
+    DEFINE_ELEMENTARY_FUNCTION(exp);
 
-    BOILERPLATE("sin", std::sin);
-    BOILERPLATE("cos", std::cos);
-    BOILERPLATE("tan", std::tan);
+    DEFINE_ELEMENTARY_FUNCTION(sin);
+    DEFINE_ELEMENTARY_FUNCTION(cos);
+    DEFINE_ELEMENTARY_FUNCTION(tan);
 
-    BOILERPLATE("asin", std::asin);
-    BOILERPLATE("acos", std::acos);
-    BOILERPLATE("atan", std::atan);
+    DEFINE_ELEMENTARY_FUNCTION(asin);
+    DEFINE_ELEMENTARY_FUNCTION(acos);
+    DEFINE_ELEMENTARY_FUNCTION(atan);
 
-    BOILERPLATE("sinh", std::sinh);
-    BOILERPLATE("cosh", std::cosh);
-    BOILERPLATE("tanh", std::tanh);
+    DEFINE_ELEMENTARY_FUNCTION(sinh);
+    DEFINE_ELEMENTARY_FUNCTION(cosh);
+    DEFINE_ELEMENTARY_FUNCTION(tanh);
 
-    BOILERPLATE("asinh", std::asinh);
-    BOILERPLATE("acosh", std::acosh);
-    BOILERPLATE("atanh", std::atanh);
+    DEFINE_ELEMENTARY_FUNCTION(asinh);
+    DEFINE_ELEMENTARY_FUNCTION(acosh);
+    DEFINE_ELEMENTARY_FUNCTION(atanh);
 
-    BOILERPLATE("sqrt", std::sqrt);
+    DEFINE_ELEMENTARY_FUNCTION(sqrt);
 
-    #undef BOILERPLATE
-
+    // TODO log & log2
     // TODO atan & atan2
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
