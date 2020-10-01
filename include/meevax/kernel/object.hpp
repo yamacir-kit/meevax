@@ -106,6 +106,16 @@ namespace meevax { inline namespace kernel
     BOILERPLATE(-);
     BOILERPLATE(/);
 
+    #undef BOILERPLATE
+
+    #define BOILERPLATE(SYMBOL)                                                \
+    virtual auto operator SYMBOL(const pointer<T>&) const -> bool              \
+    {                                                                          \
+      std::stringstream ss {};                                                 \
+      ss << __FILE__ << ":" << __LINE__;                                       \
+      throw std::logic_error { ss.str() };                                     \
+    } static_assert(true)
+
     BOILERPLATE(==);
     BOILERPLATE(!=);
     BOILERPLATE(<);

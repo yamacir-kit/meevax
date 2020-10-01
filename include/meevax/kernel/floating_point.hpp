@@ -44,12 +44,12 @@ namespace meevax { inline namespace kernel
     auto operator - (const object&) const -> object;
     auto operator / (const object&) const -> object;
 
-    auto operator ==(const object&) const -> object;
-    auto operator !=(const object&) const -> object;
-    auto operator < (const object&) const -> object;
-    auto operator <=(const object&) const -> object;
-    auto operator > (const object&) const -> object;
-    auto operator >=(const object&) const -> object;
+    auto operator ==(const object&) const -> bool;
+    auto operator !=(const object&) const -> bool;
+    auto operator < (const object&) const -> bool;
+    auto operator <=(const object&) const -> bool;
+    auto operator > (const object&) const -> bool;
+    auto operator >=(const object&) const -> bool;
   };
 
   template struct floating_point<float>;

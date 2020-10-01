@@ -172,21 +172,21 @@ namespace meevax { inline namespace kernel
    * ------------------------------------------------------------------------ */
 
   #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
-  auto NUMBER::operator SYMBOL(const object& rhs) const -> object              \
+  auto NUMBER::operator SYMBOL(const object& rhs) const -> bool                \
   {                                                                            \
     if (rhs)                                                                   \
     {                                                                          \
       if (rhs.is<exact_integer>())                                             \
       {                                                                        \
-        return make<boolean>(*this SYMBOL rhs.as<exact_integer>());            \
+        return *this SYMBOL rhs.as<exact_integer>();                           \
       }                                                                        \
       else if (rhs.is<single_float>())                                         \
       {                                                                        \
-        return make<boolean>(*this SYMBOL rhs.as<single_float>());             \
+        return *this SYMBOL rhs.as<single_float>();                            \
       }                                                                        \
       else if (rhs.is<double_float>())                                         \
       {                                                                        \
-        return make<boolean>(*this SYMBOL rhs.as<double_float>());             \
+        return *this SYMBOL rhs.as<double_float>();                            \
       }                                                                        \
     }                                                                          \
                                                                                \

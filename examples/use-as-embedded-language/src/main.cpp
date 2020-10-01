@@ -113,7 +113,7 @@ int main()
       throw std::logic_error { std::to_string(__LINE__) };
     }
 
-    const auto x = a + b;
+    let const x = a + b;
 
     result = x.is<exact_integer>() && (x.as<exact_integer>().value.convert_to<int>() == 3);
   });

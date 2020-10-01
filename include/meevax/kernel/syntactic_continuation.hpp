@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
+#include <algorithm>
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/library.hpp>
@@ -565,10 +566,6 @@ namespace meevax { inline namespace kernel
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ finite?            │ Scheme     │ inexact library procedure          │
-     * └────────────────────┴────────────┴────────────────────────────────────┘
-     *
-     * ┌────────────────────┬────────────┬────────────────────────────────────┐
-     * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ infinite?          │ Scheme     │ inexact library procedure          │
      * └────────────────────┴────────────┴────────────────────────────────────┘
@@ -608,7 +605,7 @@ namespace meevax { inline namespace kernel
 
       for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
       {
-        if (const auto result { (*head).binding() == *iter }; result.eqv(f))
+        if ((*head).binding() != *iter)
         {
           return f;
         }
@@ -624,7 +621,7 @@ namespace meevax { inline namespace kernel
                                                                                \
       for (auto rhs { std::next(lhs) }; rhs != std::end(xs); ++lhs, ++rhs)     \
       {                                                                        \
-        if (const auto result { *lhs SYMBOL *rhs }; result.eqv(f))             \
+        if (const auto result { *lhs SYMBOL *rhs }; not result)                \
         {                                                                      \
           return f;                                                            \
         }                                                                      \
@@ -637,6 +634,18 @@ namespace meevax { inline namespace kernel
     DEFINE_TRANSITIVE_PREDICATE(<=);
     DEFINE_TRANSITIVE_PREDICATE(>);
     DEFINE_TRANSITIVE_PREDICATE(>=);
+
+    #define DEFINE_TRANSITIVE_COMPARISON(SYMBOL, COMPARE)                      \
+    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    {                                                                          \
+      return std::is_sorted(std::begin(xs), std::end(xs), COMPARE) ? t : f;    \
+    })
+
+    // DEFINE_TRANSITIVE_COMPARISON(=,  [](auto&& lhs, auto&& rhs) { return lhs.binding() == rhs; });
+    // DEFINE_TRANSITIVE_COMPARISON(<,  std::less());
+    // DEFINE_TRANSITIVE_COMPARISON(<=, std::less_equal());
+    // DEFINE_TRANSITIVE_COMPARISON(>,  std::greater());
+    // DEFINE_TRANSITIVE_COMPARISON(>=, std::greater_equal());
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
      *
