@@ -869,27 +869,27 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("expt", [](auto&& xs)
     {
-      auto as_inexact = [](const object& z)
+      auto as_inexact = [](const object& z) -> most_precise
       {
         if (z.is<exact_integer>())
         {
-          return floating_point<most_precise>(z.as<exact_integer>().to_string()).value;
+          return z.as<exact_integer>().as_inexact();
         }
-        else if (z.is<floating_point<float>>())
+        else if (z.is<single_float>())
         {
-          return static_cast<floating_point<most_precise>::value_type>(z.as<floating_point<float>>().value);
+          return z.as<single_float>().as_inexact();
         }
-        else if (z.is<floating_point<double>>())
+        else if (z.is<double_float>())
         {
-          return static_cast<floating_point<most_precise>::value_type>(z.as<floating_point<double>>().value);
+          return z.as<double_float>().as_inexact();
         }
         else
         {
-          return static_cast<floating_point<most_precise>::value_type>(0);
+          return 0;
         }
       };
 
-      if (const floating_point<most_precise> result {
+      if (const floating_point result {
             std::pow(as_inexact(car(xs)), as_inexact(cadr(xs)))
           }; result.is_exact())
       {
@@ -897,7 +897,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        return make<decltype(result)>(result);
+        return make(result);
       }
     });
 
