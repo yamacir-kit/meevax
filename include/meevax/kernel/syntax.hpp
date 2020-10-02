@@ -37,16 +37,9 @@ namespace meevax { inline namespace kernel
       , name {name}
     {}
 
-    friend auto operator<<(std::ostream& os, const syntax& syntax)
-      -> decltype(auto)
+    friend auto operator <<(std::ostream& os, const syntax& syntax) -> decltype(auto)
     {
-      return os << console::magenta << "#,("
-                << console::green << "syntax"
-                << console::reset << " " << syntax.name
-                << console::faint << " #;" << &syntax
-                << console::reset
-                << console::magenta << ")"
-                << console::reset;
+      return os << magenta << "#,(" << green << "syntax" << reset << " " << syntax.name << faint << " #;" << &syntax << reset << magenta << ")" << reset;
     }
   };
 }} // namespace meevax::kernel

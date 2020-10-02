@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
+#include <algorithm>
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/library.hpp>
@@ -498,7 +499,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (const object lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
+      if (let const lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
       {
         return t;
       }
@@ -516,154 +517,157 @@ namespace meevax { inline namespace kernel
       }
     });
 
-    /* ==== R7RS 6.2. Numbers ==================================================
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
-     *  number?
-     *  complex?
-     *  real?
-     *  rational?
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ number?            │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ complex?           │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ real?              │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ rational?          │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ integer?           │ Scheme     │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
      *
-     *  exact?
-     *  inexact?
-     *  exact-integer?
-     *
-     *  finite?
-     *  infinite?
-     *  nan?
-     *
-     *  =
-     *  <
-     *  >
-     *  <=
-     *  >=
-     *
-     *  zero?
-     *  positive?
-     *  negative?
-     *  odd?
-     *  even?
-     *
-     *  max
-     *  min
-     *
-     *  +
-     *  *
-     *  -
-     *  /
-     *
-     *  abs
-     *
-     *  floor/
-     *  floor-quotient
-     *  floor-remainder
-     *  truncate/
-     *  truncate-quotient
-     *  truncate-remainder
-     *
-     *  quotient
-     *  remainder
-     *  modulo
-     *
-     *  gcd
-     *  lcm
-     *
-     *  numerator
-     *  denominator
-     *
-     *  floor
-     *  ceiling
-     *  truncate
-     *  round
-     *
-     *  rationalize
-     *
-     *  exp
-     *  log
-     *  sin
-     *  cos
-     *  tan
-     *  asin
-     *  acos
-     *  atan
-     *
-     *  square                         ; defined in overture.ss
-     *  sqrt (square-root)             ; implemented
-     *  exact-integer-sqrt
-     *  expt (exponential)
-     *
-     *  make-rectangular
-     *  make-polar
-     *  real-part
-     *  imag-part
-     *  magnitude
-     *  angle
-     *
-     *  inexact
-     *  exact
-     *
-     *  number->string
-     *  string->number
-     *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
+
     DEFINE_PREDICATE("the-complex?", complex); // TODO RENAME
     DEFINE_PREDICATE("ratio?", ratio);
-    DEFINE_PREDICATE("exact-integer?", exact_integer);
-
     DEFINE_PREDICATE("single-float?", floating_point<float>);
     DEFINE_PREDICATE("double-float?", floating_point<double>);
 
-    // TODO Rewrite with STL algorithms
-    define<procedure>("=", [](auto&& xs)
-    {
-      const auto head { std::begin(xs) };
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ exact?             │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ inexact?           │ Scheme     │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ exact-integer?     │ C++        │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
 
-      for (auto iter { std::next(head) }; iter != std::end(xs); ++iter)
-      {
-        if (const auto result { (*head).binding() == *iter }; result.eqv(f))
-        {
-          return f;
-        }
-      }
+    DEFINE_PREDICATE("exact-integer?", exact_integer);
 
-      return t;
-    });
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ finite?            │ Scheme     │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ infinite?          │ Scheme     │ inexact library procedure          │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ nan?               │ C++        │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
 
-    #define boilerplate(SYMBOL)                                                \
-    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    // TODO nan?
+
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ =                  │ C++        │ Number::operator ==(const object&) │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ <                  │ C++        │ Number::operator < (const object&) │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ >                  │ C++        │ Number::operator > (const object&) │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ <=                 │ C++        │ Number::operator <=(const object&) │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ >=                 │ C++        │ Number::operator >=(const object&) │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+    #define DEFINE_TRANSITIVE_COMPARISON(SYMBOL, COMPARE)                      \
+    define<procedure>(#SYMBOL, [](auto&& xs) constexpr                         \
     {                                                                          \
-      auto lhs { std::begin(xs) };                                             \
-                                                                               \
-      for (auto rhs { std::next(lhs) }; rhs != std::end(xs); ++lhs, ++rhs)     \
-      {                                                                        \
-        if (const auto result { *lhs SYMBOL *rhs }; result.eqv(f))             \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
+      return std::adjacent_find(std::begin(xs), std::end(xs), std::not_fn(COMPARE)) == std::end(xs) ? t : f; \
     })
 
-    boilerplate(<);
-    boilerplate(<=);
-    boilerplate(>);
-    boilerplate(>=);
+    DEFINE_TRANSITIVE_COMPARISON(=,  [](auto&& lhs, auto&& rhs) { return lhs.binding() == rhs; });
+    DEFINE_TRANSITIVE_COMPARISON(<,  std::less<void>());
+    DEFINE_TRANSITIVE_COMPARISON(<=, std::less_equal<void>());
+    DEFINE_TRANSITIVE_COMPARISON(>,  std::greater<void>());
+    DEFINE_TRANSITIVE_COMPARISON(>=, std::greater_equal<void>());
 
-    #undef boilerplate
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ zero?              │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ positive?          │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ negative?          │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ odd?               │ Scheme     │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ even?              │ Scheme     │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ max                │ Scheme     │ TODO inexact                       │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ min                │ Scheme     │ TODO inexact                       │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ +                  │ C++        │ std::plus<object>                  │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ *                  │ C++        │ std::multiplies<object>            │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
 
-    #define boilerplate(SYMBOL, BASIS)                                         \
+    #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
       return std::accumulate(std::begin(xs), std::end(xs), make<exact_integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
     })
 
-    boilerplate(+, 0);
-    boilerplate(*, 1);
+    BOILERPLATE(+, 0);
+    BOILERPLATE(*, 1);
 
-    #undef boilerplate
+    #undef BOILERPLATE
 
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ -                  │ C++        │ std::minus<object>                 │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ /                  │ C++        │ std::divides<object>               │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
 
-    #define boilerplate(SYMBOL, BASIS)                                         \
+    #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
       if (length(xs) < 2)                                                      \
@@ -677,14 +681,103 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     })
 
-    boilerplate(-, 0);
-    boilerplate(/, 1);
+    BOILERPLATE(-, 0);
+    BOILERPLATE(/, 1);
 
-    #undef boilerplate
+    #undef BOILERPLATE
 
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ abs                │ Scheme     │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ floor/             │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ floor-quotient     │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ floor-remainder    │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ truncate           │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ truncate-quotient  │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ trucate-remainer   │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ quotient           │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ remainder          │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ modulo             │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ gcd                │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ lcm                │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ numerator          │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ denominator        │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ floor              │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ ceiling            │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ truncate           │            │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ round              │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ rationalize        │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ exp                │ C++        │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ log                │ C++        │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ sin                │ C++        │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ cos                │ C++        │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ tan                │ C++        │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ asin               │ C++        │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ acos               │ C++        │ inexact library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ atan               │ C++        │ inexact library procedure          │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
 
-    #define boilerplate(NAME, CMATH)                                           \
-    define<procedure>(NAME, [&](auto&& xs)                                     \
+    #define DEFINE_ELEMENTARY_FUNCTION(FUNCTION)                               \
+    define<procedure>(#FUNCTION, [&](auto&& xs)                                \
     {                                                                          \
       if (let const x = car(xs); null(x))                                      \
       {                                                                        \
@@ -692,38 +785,26 @@ namespace meevax { inline namespace kernel
       }                                                                        \
       else if (x.is<exact_integer>())                                          \
       {                                                                        \
-        if (const floating_point<most_precise> result {                        \
-              CMATH(x.as<exact_integer>().value.template convert_to<floating_point<most_precise>::value_type>()) \
-            }; result.exact())                                                 \
+        if (const floating_point result {                                      \
+              std::FUNCTION(                                                   \
+                floating_point<most_precise>(                                  \
+                  x.as<exact_integer>().value))                                \
+            }; result.is_exact())                                              \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
         else                                                                   \
         {                                                                      \
-          return make<floating_point<most_precise>>(result);                   \
+          return make(result);                                                 \
         }                                                                      \
       }                                                                        \
-      else if (x.is<floating_point<float>>())                                  \
+      else if (x.is<single_float>())                                           \
       {                                                                        \
-        if (const floating_point<float> result { CMATH(x.as<floating_point<float>>()) }; result.exact()) \
-        {                                                                      \
-          return make<exact_integer>(result.to_string());                      \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return make<decltype(result)>(result);                               \
-        }                                                                      \
+        return make(floating_point(std::FUNCTION(x.as<single_float>())));      \
       }                                                                        \
-      else if (x.is<floating_point<double>>())                                 \
+      else if (x.is<double_float>())                                           \
       {                                                                        \
-        if (const floating_point<double> result { CMATH(x.as<floating_point<double>>()) }; result.exact()) \
-        {                                                                      \
-          return make<exact_integer>(result.to_string());                      \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return make<decltype(result)>(result);                               \
-        }                                                                      \
+        return make(floating_point(std::FUNCTION(x.as<double_float>())));      \
       }                                                                        \
       else                                                                     \
       {                                                                        \
@@ -731,60 +812,147 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     })
 
-    boilerplate("exp", std::exp);
+    DEFINE_ELEMENTARY_FUNCTION(exp);
 
-    boilerplate("sin", std::sin);
-    boilerplate("cos", std::cos);
-    boilerplate("tan", std::tan);
+    DEFINE_ELEMENTARY_FUNCTION(sin);
+    DEFINE_ELEMENTARY_FUNCTION(cos);
+    DEFINE_ELEMENTARY_FUNCTION(tan);
 
-    boilerplate("asin", std::asin);
-    boilerplate("acos", std::acos);
-    boilerplate("atan", std::atan);
+    DEFINE_ELEMENTARY_FUNCTION(asin);
+    DEFINE_ELEMENTARY_FUNCTION(acos);
+    DEFINE_ELEMENTARY_FUNCTION(atan);
 
-    boilerplate("sinh", std::sinh);
-    boilerplate("cosh", std::cosh);
-    boilerplate("tanh", std::tanh);
+    DEFINE_ELEMENTARY_FUNCTION(sinh);
+    DEFINE_ELEMENTARY_FUNCTION(cosh);
+    DEFINE_ELEMENTARY_FUNCTION(tanh);
 
-    boilerplate("asinh", std::asinh);
-    boilerplate("acosh", std::acosh);
-    boilerplate("atanh", std::atanh);
+    DEFINE_ELEMENTARY_FUNCTION(asinh);
+    DEFINE_ELEMENTARY_FUNCTION(acosh);
+    DEFINE_ELEMENTARY_FUNCTION(atanh);
 
-    boilerplate("sqrt", std::sqrt);
+    DEFINE_ELEMENTARY_FUNCTION(sqrt);
 
-    #undef boilerplate
-
+    // TODO log & log2
     // TODO atan & atan2
+
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ square             │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ sqrt               │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ exact-integer-sqrt │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ expt               │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("expt", [](auto&& xs)
     {
-      auto inexact = [](const object& z)
-      {
-        if (z.is<exact_integer>())
-        {
-          return floating_point<most_precise>(z.as<exact_integer>().to_string()).value;
-        }
-        else if (z.is<floating_point<float>>())
-        {
-          return static_cast<floating_point<most_precise>::value_type>(z.as<floating_point<float>>().value);
-        }
-        else if (z.is<floating_point<double>>())
-        {
-          return static_cast<floating_point<most_precise>::value_type>(z.as<floating_point<double>>().value);
-        }
-        else
-        {
-          return static_cast<floating_point<most_precise>::value_type>(0);
-        }
-      };
-
-      if (const floating_point<most_precise> result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.exact())
+      if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_exact())
       {
         return make<exact_integer>(result.value);
       }
       else
       {
-        return make<decltype(result)>(result);
+        return make(result);
       }
+    });
+
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ make-rectangular   │            │ complex library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ make-polar         │            │ complex library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ real-part          │            │ complex library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ imag-part          │            │ complex library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ magnitude          │            │ complex library procedure          │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ angle              │            │ complex library procedure          │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ inexact            │ C++        │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ exact              │ C++        │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("exact", [](auto&& xs)
+    {
+      return make(exact(car(xs)));
+    });
+
+    define<procedure>("inexact", [](auto&& xs)
+    {
+      return make(inexact(car(xs)));
+    });
+
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ %complex?          │ C++        │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ ratio?             │ C++        │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ single-float?      │ C++        │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ double-float?      │ C++        │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+
+    /* ---- 6.2.7 Numerical input and output -----------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ number->string     │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ string->number     │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("number->string", [](auto&& xs)
+    {
+      return make_string(boost::lexical_cast<std::string>(car(xs)));
     });
 
     define<procedure>("string->number", [](auto&& xs)

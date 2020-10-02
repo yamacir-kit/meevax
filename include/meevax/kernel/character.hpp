@@ -31,7 +31,7 @@ namespace meevax { inline namespace kernel
 
     auto display_to(std::ostream& port) const -> decltype(auto)
     {
-      return port << cyan << display() << reset;
+      return port << display() << reset;
     }
 
     friend auto operator<<(std::ostream& port, const character& c) -> decltype(auto)

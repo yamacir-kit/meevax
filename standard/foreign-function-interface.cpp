@@ -1,4 +1,4 @@
-#include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
 
 extern "C"

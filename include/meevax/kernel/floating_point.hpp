@@ -5,70 +5,76 @@
 
 namespace meevax { inline namespace kernel
 {
+  using most_precise = double;
+
+  using default_float = decltype(0.0);
+
   /* ---- Floating Point Number ------------------------------------------------
    *
    * ------------------------------------------------------------------------ */
   template <typename T>
-  struct floating_point;
+  struct floating_point
+    : public std::numeric_limits<T>
+  {
+    using value_type = T;
 
-  #define BOILERPLATE(TYPE)                                                    \
-  template <>                                                                  \
-  struct floating_point<TYPE>                                                  \
-    : public std::numeric_limits<TYPE>                                         \
-  {                                                                            \
-    using value_type = TYPE;                                                   \
-                                                                               \
-    value_type value;                                                          \
-                                                                               \
-    template <typename... Ts>                                                  \
-    explicit constexpr floating_point(Ts&&... xs)                              \
-      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) } \
-    {}                                                                         \
-                                                                               \
-    template <typename T,                                                      \
-              typename =                                                       \
-                typename std::enable_if<                                       \
-                  std::is_convertible<T, value_type>::value                    \
-                >::type>                                                       \
-    explicit constexpr floating_point(T&& x)                                   \
-      : value { x }                                                            \
-    {}                                                                         \
-                                                                               \
-    auto to_string() const -> std::string                                      \
-    {                                                                          \
-      return boost::lexical_cast<std::string>(value);                          \
-    }                                                                          \
-                                                                               \
-    auto exact() const noexcept                                                \
-    {                                                                          \
-      return value == std::trunc(value);                                       \
-    }                                                                          \
-                                                                               \
-    constexpr operator value_type() const noexcept { return value; }           \
-    constexpr operator value_type()       noexcept { return value; }           \
-                                                                               \
-    auto operator * (const object&) const -> object;                           \
-    auto operator + (const object&) const -> object;                           \
-    auto operator - (const object&) const -> object;                           \
-    auto operator / (const object&) const -> object;                           \
-                                                                               \
-    auto operator ==(const object&) const -> object;                           \
-    auto operator !=(const object&) const -> object;                           \
-    auto operator < (const object&) const -> object;                           \
-    auto operator <=(const object&) const -> object;                           \
-    auto operator > (const object&) const -> object;                           \
-    auto operator >=(const object&) const -> object;                           \
-  }
+    value_type value;
 
-  BOILERPLATE(float);
-  BOILERPLATE(double);
+    explicit constexpr floating_point(T value = {})
+      : value { value }
+    {}
 
-  #undef BOILERPLATE
+    template <typename U, typename = typename std::enable_if<std::is_convertible<U, value_type>::value>::type>
+    explicit constexpr floating_point(U&& x)
+      : value { x }
+    {}
+
+    template <typename... Ts>
+    explicit constexpr floating_point(Ts&&... xs)
+      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
+    {}
+
+    auto to_string() const
+    {
+      return boost::lexical_cast<std::string>(value);
+    }
+
+    constexpr auto is_exact() const noexcept
+    {
+      return value == std::trunc(value);
+    }
+
+    constexpr auto is_inexact() const noexcept
+    {
+      return not is_exact();
+    }
+
+    auto as_exact() const;
+
+    constexpr auto as_inexact() const noexcept;
+
+    constexpr operator value_type() const noexcept { return value; }
+    constexpr operator value_type()       noexcept { return value; }
+
+    auto operator * (const object&) const -> object;
+    auto operator + (const object&) const -> object;
+    auto operator - (const object&) const -> object;
+    auto operator / (const object&) const -> object;
+
+    auto operator ==(const object&) const -> bool;
+    auto operator !=(const object&) const -> bool;
+    auto operator < (const object&) const -> bool;
+    auto operator <=(const object&) const -> bool;
+    auto operator > (const object&) const -> bool;
+    auto operator >=(const object&) const -> bool;
+  };
+
+  template struct floating_point<float>;
+  template struct floating_point<double>;
+  template struct floating_point<long double>;
 
   using single_float = floating_point<float>;
   using double_float = floating_point<double>;
-
-  using most_precise = double;
 
   template <typename T>
   auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)
@@ -83,7 +89,7 @@ namespace meevax { inline namespace kernel
     }
     else
     {
-      return os << cyan << rhs.value << (rhs.exact() ? ".0" : "") << reset;
+      return os << cyan << rhs.value << (rhs.is_exact() ? "." : ".0") << reset;
     }
   }
 
@@ -91,8 +97,7 @@ namespace meevax { inline namespace kernel
   template <typename T, typename U>                                            \
   constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
   {                                                                            \
-    using result_type = decltype(std::declval<T>() SYMBOL std::declval<U>());  \
-    return floating_point<result_type>(lhs.value SYMBOL rhs.value);            \
+    return floating_point(lhs.value SYMBOL rhs.value);                         \
   } static_assert(true)
 
   BOILERPLATE(*);

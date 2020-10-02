@@ -910,12 +910,12 @@
 
 ; ---- Procedure (sin z) -------------------------------------------------------
 
-(check (sin 0) => 0)
-; (check (sin (/ fl-pi 6)) => 0.5)
-; (check (sin (/ fl-pi 4)) => 0.707107)
-; (check (sin (/ fl-pi 3)) => 0.866025)
-; (check (sin (/ fl-pi 2)) => 1)
-; (check (sin fl-pi) => 0)
+(check (sin          0)  (=> =) 0)
+; (check (sin (/ fl-pi 6)) (=> =) 0.5)
+; (check (sin (/ fl-pi 4)) (=> =) 0.707107)
+; (check (sin (/ fl-pi 3)) (=> =) 0.866025)
+; (check (sin (/ fl-pi 2)) (=> =) 1)
+; (check (sin    fl-pi)    (=> =) 0)
 
 ; ---- Procedure (cos z) -------------------------------------------------------
 ; ---- Procedure (tan z) -------------------------------------------------------
@@ -1019,11 +1019,11 @@
   (map cadr '((a b) (d e) (g h)))
   => (b e h))
 
-; (check
-;   (map (lambda (n)
-;          (expt n n))
-;        '(1 2 3 4 5))
-;   => (1 4 27 256 3125))
+(check
+  (map (lambda (n)
+         (expt n n))
+       '(1 2 3 4 5))
+  => (1 4 27 256 3125))
 
 (check
   (map + '(1 2 3)

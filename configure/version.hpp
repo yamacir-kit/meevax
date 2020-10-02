@@ -5,7 +5,7 @@
 #include <boost/version.hpp>
 
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/utility/construct_on_first_use.hpp>
 
@@ -42,7 +42,7 @@ namespace meevax { inline namespace kernel
     { \
       static const auto x { __VA_ARGS__ }; \
       return x; \
-    } static_assert(true, "")
+    } static_assert(true)
 
     boilerplate(major, make<exact_integer>("${PROJECT_VERSION_MAJOR}"));
     boilerplate(minor, make<exact_integer>("${PROJECT_VERSION_MINOR}"));
@@ -64,13 +64,7 @@ namespace meevax { inline namespace kernel
     #undef boilerplate
 
     explicit version()
-      : object
-        {
-          list(
-            major(),
-            minor(),
-            patch())
-        }
+      : object { list(major(), minor(), patch()) }
     {}
   };
 }} // namespace meevax::kernal

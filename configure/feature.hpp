@@ -2,7 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_FEATURE_HPP
 
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/symbol.hpp>
 
@@ -16,7 +16,7 @@ namespace meevax { inline namespace kernel
     { \
       static const auto x { __VA_ARGS__ }; \
       return x; \
-    } static_assert(true, "")
+    } static_assert(true)
 
     boilerplate(build_date, make<symbol>("${${PROJECT_NAME}_BUILD_DATE}"));
     boilerplate(build_hash, make<symbol>("${${PROJECT_NAME}_BUILD_HASH}"));

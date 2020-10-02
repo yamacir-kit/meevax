@@ -35,14 +35,14 @@ namespace meevax { inline namespace kernel
     Import_Const(SK, write_to);
 
   protected:
-    object s, // Stack (holding intermediate results and return address)
-           e, // Environment (giving values to symbols)
-           c, // Control (instructions yet to be executed)
-           d; // Dump (S.E.C)
+    let s, // Stack (holding intermediate results and return address)
+        e, // Environment (giving values to symbols)
+        c, // Control (instructions yet to be executed)
+        d; // Dump (S.E.C)
 
   public:
     template <typename... Ts>
-    decltype(auto) define(const object& variable, Ts&&... expression)
+    let define(const object& variable, Ts&&... expression)
     {
       push(
         syntactic_environment(),
@@ -60,7 +60,7 @@ namespace meevax { inline namespace kernel
       return unspecified;
     }
 
-    const object& glocal_environment(const object& e)
+    let const& glocal_environment(const object& e)
     {
       for (const auto& frame : e)
       {
@@ -84,7 +84,7 @@ namespace meevax { inline namespace kernel
     *              | <derived expression>
     *
     *----------------------------------------------------------------------- */
-    object compile(
+    let compile(
       const object& expression,
       const object& syntactic_environment,
       const object& frames = unit,
@@ -231,7 +231,7 @@ namespace meevax { inline namespace kernel
     {
       assert(0 < depth);
 
-      for (homoiconic_iterator iter {c}; iter; ++iter)
+      for (auto iter { std::begin(c) }; iter; ++iter)
       {
         write_to(current_debug_port(), "; ");
 
@@ -295,7 +295,7 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    object execute()
+    let execute()
     {
     dispatch:
       if (in_trace_mode())
@@ -491,21 +491,9 @@ namespace meevax { inline namespace kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          #if __cpp_lib_invoke
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
-          #else
-          s = cons(callee.as<procedure>()(cadr(s)), cddr(s));
-          #endif
           pop<1>(c);
         }
-        // else if (callee.is<SK>()) // TODO REMOVE
-        // {
-        //   s = cons(
-        //         callee.as<SK>().evaluate(
-        //           cadr(s)),
-        //         cddr(s));
-        //   pop<1>(c);
-        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(
@@ -534,21 +522,9 @@ namespace meevax { inline namespace kernel
         }
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          #if __cpp_lib_invoke
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
-          #else
-          s = cons(callee.as<procedure>()(cadr(s)), cddr(s));
-          #endif
           pop<1>(c);
         }
-        // else if (callee.is<SK>()) // TODO REMOVE
-        // {
-        //   s = cons(
-        //         callee.as<SK>().evaluate(
-        //           cadr(s)),
-        //         cddr(s));
-        //   pop<1>(c);
-        // }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
           s = cons(

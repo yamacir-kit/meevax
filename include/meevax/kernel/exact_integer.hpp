@@ -38,10 +38,19 @@ namespace meevax { inline namespace kernel
       return value.str();
     }
 
-    static constexpr auto exact() noexcept
+    static constexpr auto is_exact() noexcept
     {
       return true;
     }
+
+    static constexpr auto is_inexact() noexcept
+    {
+      return not is_exact();
+    }
+
+    auto as_exact() const;
+
+    auto as_inexact() const;
 
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
@@ -51,12 +60,12 @@ namespace meevax { inline namespace kernel
     auto operator - (const object&) const -> object;
     auto operator / (const object&) const -> object;
 
-    auto operator ==(const object&) const -> object;
-    auto operator !=(const object&) const -> object;
-    auto operator < (const object&) const -> object;
-    auto operator <=(const object&) const -> object;
-    auto operator > (const object&) const -> object;
-    auto operator >=(const object&) const -> object;
+    auto operator ==(const object&) const -> bool;
+    auto operator !=(const object&) const -> bool;
+    auto operator < (const object&) const -> bool;
+    auto operator <=(const object&) const -> bool;
+    auto operator > (const object&) const -> bool;
+    auto operator >=(const object&) const -> bool;
   };
 
   auto operator <<(std::ostream& os, const exact_integer& rhs) -> decltype(auto)
