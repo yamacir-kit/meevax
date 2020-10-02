@@ -49,10 +49,7 @@ namespace meevax { inline namespace kernel
 
     auto as_exact() const;
 
-    constexpr auto as_inexact() const noexcept
-    {
-      return value;
-    }
+    constexpr auto as_inexact() const noexcept;
 
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }

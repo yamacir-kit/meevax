@@ -50,10 +50,7 @@ namespace meevax { inline namespace kernel
 
     auto as_exact() const;
 
-    auto as_inexact() const
-    {
-      return value.convert_to<most_precise>();
-    }
+    auto as_inexact() const;
 
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }

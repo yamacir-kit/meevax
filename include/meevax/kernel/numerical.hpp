@@ -3,7 +3,6 @@
 
 #include <boost/math/constants/constants.hpp>
 
-#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/floating_point.hpp>
@@ -35,6 +34,28 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
+  template <typename T>
+  inline auto floating_point<T>::as_exact() const
+  {
+    return static_cast<exact_integer>(value);
+  }
+
+  template <typename T>
+  inline constexpr auto floating_point<T>::as_inexact() const noexcept
+  {
+    return value;
+  }
+
+  inline auto exact_integer::as_exact() const
+  {
+    return value;
+  }
+
+  inline auto exact_integer::as_inexact() const
+  {
+    return value.convert_to<most_precise>();
+  }
+
   /* ---- Arithmetic Operations ------------------------------------------------
    *
    * ┌─────┬─────┬─────┬─────┬
@@ -53,7 +74,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
   {                                                                            \
-    return floating_point<T>(lhs.value SYMBOL rhs.value.convert_to<T>());      \
+    return floating_point(lhs.value SYMBOL rhs.as_inexact());                  \
   } static_assert(true)
 
   BOILERPLATE(*);
@@ -67,7 +88,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
-    return floating_point<T>(lhs.value.convert_to<T>() SYMBOL rhs.value);      \
+    return floating_point(lhs.as_inexact() SYMBOL rhs.value);                  \
   } static_assert(true)
 
   BOILERPLATE(*);
