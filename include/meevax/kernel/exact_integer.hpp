@@ -11,7 +11,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #endif
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/floating_point.hpp>
 
 namespace meevax { inline namespace kernel
 {
@@ -46,6 +46,13 @@ namespace meevax { inline namespace kernel
     static constexpr auto is_inexact() noexcept
     {
       return not is_exact();
+    }
+
+    auto as_exact() const;
+
+    auto as_inexact() const
+    {
+      return value.convert_to<most_precise>();
     }
 
     operator value_type() const noexcept { return value; }
