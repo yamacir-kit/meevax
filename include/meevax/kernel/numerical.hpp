@@ -34,27 +34,72 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
+  /* ---- Numerical Operations -------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
   template <typename T>
   inline auto floating_point<T>::as_exact() const
   {
     return static_cast<exact_integer>(value);
   }
 
+  inline auto exact_integer::as_exact() const
+  {
+    return *this;
+  }
+
+  auto exact = [](const object& z)
+  {
+    if (z.is<exact_integer>())
+    {
+      return z.as<exact_integer>().as_exact();
+    }
+    else if (z.is<single_float>())
+    {
+      return z.as<single_float>().as_exact();
+    }
+    else if (z.is<double_float>())
+    {
+      return z.as<double_float>().as_exact();
+    }
+    else
+    {
+      return exact_integer(0);
+    }
+  };
+
   template <typename T>
   inline constexpr auto floating_point<T>::as_inexact() const noexcept
   {
-    return value;
-  }
-
-  inline auto exact_integer::as_exact() const
-  {
-    return value;
+    return floating_point<most_precise>(*this);
   }
 
   inline auto exact_integer::as_inexact() const
   {
-    return value.convert_to<most_precise>();
+    return floating_point(value.convert_to<most_precise>());
   }
+
+  auto inexact = [](const object& z)
+  {
+    if (z.is<exact_integer>())
+    {
+      return z.as<exact_integer>().as_inexact();
+    }
+    else if (z.is<single_float>())
+    {
+      return z.as<single_float>().as_inexact();
+    }
+    else if (z.is<double_float>())
+    {
+      return z.as<double_float>().as_inexact();
+    }
+    else
+    {
+      return floating_point(0.0);
+    }
+  };
 
   /* ---- Arithmetic Operations ------------------------------------------------
    *
@@ -231,31 +276,6 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(exact_integer, >=, greater_equal);
 
   #undef BOILERPLATE
-
-  /* ---- Numerical Operations -------------------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
-
-  auto inexact = [](const object& z) -> most_precise
-  {
-    if (z.is<exact_integer>())
-    {
-      return z.as<exact_integer>().as_inexact();
-    }
-    else if (z.is<single_float>())
-    {
-      return z.as<single_float>().as_inexact();
-    }
-    else if (z.is<double_float>())
-    {
-      return z.as<double_float>().as_inexact();
-    }
-    else
-    {
-      return 0;
-    }
-  };
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
