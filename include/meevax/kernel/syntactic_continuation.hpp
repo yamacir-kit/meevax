@@ -950,6 +950,11 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
+    define<procedure>("number->string", [](auto&& xs)
+    {
+      return make_string(boost::lexical_cast<std::string>(car(xs)));
+    });
+
     define<procedure>("string->number", [](auto&& xs)
     {
       return make_number(car(xs).template as<string>());

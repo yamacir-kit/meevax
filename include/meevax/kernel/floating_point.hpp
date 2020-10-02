@@ -7,6 +7,8 @@ namespace meevax { inline namespace kernel
 {
   using most_precise = double;
 
+  using default_float = decltype(0.0);
+
   /* ---- Floating Point Number ------------------------------------------------
    *
    * ------------------------------------------------------------------------ */
