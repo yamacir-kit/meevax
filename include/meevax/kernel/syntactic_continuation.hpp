@@ -869,29 +869,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("expt", [](auto&& xs)
     {
-      auto as_inexact = [](const object& z) -> most_precise
-      {
-        if (z.is<exact_integer>())
-        {
-          return z.as<exact_integer>().as_inexact();
-        }
-        else if (z.is<single_float>())
-        {
-          return z.as<single_float>().as_inexact();
-        }
-        else if (z.is<double_float>())
-        {
-          return z.as<double_float>().as_inexact();
-        }
-        else
-        {
-          return 0;
-        }
-      };
-
-      if (const floating_point result {
-            std::pow(as_inexact(car(xs)), as_inexact(cadr(xs)))
-          }; result.is_exact())
+      if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_exact())
       {
         return make<exact_integer>(result.value);
       }

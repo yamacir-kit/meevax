@@ -210,6 +210,31 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(exact_integer, >=, greater_equal);
 
   #undef BOILERPLATE
+
+  /* ---- Numerical Operations -------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
+  auto inexact = [](const object& z) -> most_precise
+  {
+    if (z.is<exact_integer>())
+    {
+      return z.as<exact_integer>().as_inexact();
+    }
+    else if (z.is<single_float>())
+    {
+      return z.as<single_float>().as_inexact();
+    }
+    else if (z.is<double_float>())
+    {
+      return z.as<double_float>().as_inexact();
+    }
+    else
+    {
+      return 0;
+    }
+  };
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
