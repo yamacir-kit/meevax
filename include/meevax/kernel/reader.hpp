@@ -11,7 +11,7 @@
 
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/numerical.hpp>
+#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -24,13 +24,9 @@ namespace meevax { inline namespace kernel
   * ========================================================================= */
   struct eof
   {
-    friend auto operator<<(std::ostream& os, const eof&)
-      -> decltype(auto)
+    friend auto operator <<(std::ostream& os, const eof&) -> decltype(auto)
     {
-      return os << console::magenta << "#,("
-                << console::green   << "eof-object"
-                << console::magenta << ")"
-                << console::reset;
+      return os << magenta << "#,(" << green << "eof-object" << magenta << ")" << reset;
     }
   };
 
@@ -42,13 +38,9 @@ namespace meevax { inline namespace kernel
   * ========================================================================= */
   struct eos
   {
-    friend auto operator<<(std::ostream& os, const eos&)
-      -> decltype(auto)
+    friend auto operator <<(std::ostream& os, const eos&) -> decltype(auto)
     {
-      return os << console::magenta << "#,("
-                << console::green   << "eos-object"
-                << console::magenta << ")"
-                << console::reset;
+      return os << magenta << "#,(" << green << "eos-object" << magenta << ")" << reset;
     }
   };
 
@@ -326,8 +318,7 @@ namespace meevax { inline namespace kernel
     Import(SK, evaluate);
     Import(SK, intern);
 
-    using seeker
-      = std::istream_iterator<std::istream::char_type>;
+    using seeker = std::istream_iterator<std::istream::char_type>;
 
   protected:
     // NOTE
@@ -346,7 +337,7 @@ namespace meevax { inline namespace kernel
     *   Rename read(std::istream&) => read_from
     *
     * ======================================================================= */
-    auto read(std::istream& port) -> const object
+    let const read(std::istream& port)
     {
       std::string token {};
 

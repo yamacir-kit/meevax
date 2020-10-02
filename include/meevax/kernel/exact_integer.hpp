@@ -11,7 +11,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #endif
 
-#include <meevax/kernel/floating_point.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax { inline namespace kernel
 {
