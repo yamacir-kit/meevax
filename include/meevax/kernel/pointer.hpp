@@ -202,16 +202,6 @@ namespace meevax { inline namespace kernel
         return if_stream_insertable<bound>::call_it(port, *this);
       }
 
-      auto exact() const -> bool override
-      {
-        return top::template if_has_exactness<bound>::call_it(*this);
-      }
-
-      auto inexact() const -> bool override
-      {
-        return top::template if_has_inexactness<bound>::call_it(*this);
-      }
-
     private: // arithmetic
       #define BOILERPLATE(SYMBOL, TRAIT)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \

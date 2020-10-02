@@ -789,7 +789,7 @@ namespace meevax { inline namespace kernel
               std::FUNCTION(                                                   \
                 floating_point<most_precise>(                                  \
                   x.as<exact_integer>().value))                                \
-            }; result.exact())                                                 \
+            }; result.is_exact())                                              \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
@@ -851,9 +851,25 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ exact-integer-sqrt │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ expt               │            │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("expt", [](auto&& xs)
     {
-      auto inexact = [](const object& z)
+      auto as_inexact = [](const object& z)
       {
         if (z.is<exact_integer>())
         {
@@ -873,7 +889,9 @@ namespace meevax { inline namespace kernel
         }
       };
 
-      if (const floating_point<most_precise> result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.exact())
+      if (const floating_point<most_precise> result {
+            std::pow(as_inexact(car(xs)), as_inexact(cadr(xs)))
+          }; result.is_exact())
       {
         return make<exact_integer>(result.value);
       }
@@ -882,22 +900,6 @@ namespace meevax { inline namespace kernel
         return make<decltype(result)>(result);
       }
     });
-
-    /* ---- 6.2.6 numerical operations -----------------------------------------
-     *
-     * ┌────────────────────┬────────────┬────────────────────────────────────┐
-     * │ Symbol             │ Written in │ Note                               │
-     * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ exact-integer-sqrt │            │                                    │
-     * └────────────────────┴────────────┴────────────────────────────────────┘
-     *
-     * ┌────────────────────┬────────────┬────────────────────────────────────┐
-     * │ Symbol             │ Written in │ Note                               │
-     * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ expt               │            │                                    │
-     * └────────────────────┴────────────┴────────────────────────────────────┘
-     *
-     * ---------------------------------------------------------------------- */
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
      *

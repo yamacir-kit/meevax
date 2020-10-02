@@ -5,6 +5,8 @@
 
 namespace meevax { inline namespace kernel
 {
+  using most_precise = double;
+
   /* ---- Floating Point Number ------------------------------------------------
    *
    * ------------------------------------------------------------------------ */
@@ -16,7 +18,7 @@ namespace meevax { inline namespace kernel
 
     value_type value;
 
-    explicit constexpr floating_point(T value)
+    explicit constexpr floating_point(T value = {})
       : value { value }
     {}
 
@@ -35,7 +37,7 @@ namespace meevax { inline namespace kernel
       return boost::lexical_cast<std::string>(value);
     }
 
-    auto exact() const noexcept
+    auto is_exact() const noexcept
     {
       return value == std::trunc(value);
     }
@@ -63,8 +65,6 @@ namespace meevax { inline namespace kernel
   using single_float = floating_point<float>;
   using double_float = floating_point<double>;
 
-  using most_precise = double;
-
   template <typename T>
   auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)
   {
@@ -78,7 +78,7 @@ namespace meevax { inline namespace kernel
     }
     else
     {
-      return os << cyan << rhs.value << (rhs.exact() ? "." : ".0") << reset;
+      return os << cyan << rhs.value << (rhs.is_exact() ? "." : ".0") << reset;
     }
   }
 

@@ -38,7 +38,7 @@ namespace meevax { inline namespace kernel
       return value.str();
     }
 
-    static constexpr auto exact() noexcept
+    static constexpr auto is_exact() noexcept
     {
       return true;
     }
