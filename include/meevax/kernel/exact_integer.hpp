@@ -43,6 +43,11 @@ namespace meevax { inline namespace kernel
       return true;
     }
 
+    static constexpr auto is_inexact() noexcept
+    {
+      return not is_exact();
+    }
+
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
 

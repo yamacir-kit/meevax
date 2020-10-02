@@ -37,9 +37,14 @@ namespace meevax { inline namespace kernel
       return boost::lexical_cast<std::string>(value);
     }
 
-    auto is_exact() const noexcept
+    constexpr auto is_exact() const noexcept
     {
       return value == std::trunc(value);
+    }
+
+    constexpr auto is_inexact() const noexcept
+    {
+      return not is_exact();
     }
 
     constexpr operator value_type() const noexcept { return value; }
