@@ -778,7 +778,7 @@
 
 (define exact-complex?
   (lambda (x)
-    (and (the-complex? x)
+    (and (COMPLEX? x)
          (exact? (real-part x))
          (exact? (imag-part x)))))
 
@@ -805,7 +805,7 @@
 
 (define nan?
   (lambda (z)
-    (if (complex? z)
+    (if (COMPLEX? z)
         (or (ieee-nan? (real-part z))
             (ieee-nan? (imag-part z)))
         (ieee-nan? z))))
@@ -1018,11 +1018,11 @@
 
 (define real-part
   (lambda (z)
-    (if (the-complex? z) (car z) z)))
+    (if (COMPLEX? z) (car z) z)))
 
 (define imag-part
   (lambda (z)
-    (if (the-complex? z) (cdr z) 0)))
+    (if (COMPLEX? z) (cdr z) 0)))
 
 (define magnitude
   (lambda (z)

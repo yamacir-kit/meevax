@@ -541,7 +541,7 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    DEFINE_PREDICATE("the-complex?", complex); // TODO RENAME
+    DEFINE_PREDICATE("COMPLEX?", complex);
     DEFINE_PREDICATE("ratio?", ratio);
     DEFINE_PREDICATE("single-float?", floating_point<float>);
     DEFINE_PREDICATE("double-float?", floating_point<double>);
