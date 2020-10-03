@@ -420,27 +420,6 @@ namespace meevax { inline namespace kernel
     return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
-  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                   \
-  define<procedure>(IDENTIFIER, [](auto&& xs)                                  \
-  {                                                                            \
-    if (null(xs))                                                              \
-    {                                                                          \
-      return f;                                                                \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      for (let const & x : xs)                                                 \
-      {                                                                        \
-        if (null(x) or not x.is<TYPE>())                                       \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    }                                                                          \
-  })
-
   template <>
   void syntactic_continuation::boot(layer<0>)
   {
@@ -486,10 +465,37 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<2>)
   {
+    #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                 \
+    define<procedure>(IDENTIFIER, [](auto&& xs)                                \
+    {                                                                          \
+      if (null(xs))                                                            \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        for (let const & x : xs)                                               \
+        {                                                                      \
+          if (null(x) or not x.is<TYPE>())                                     \
+          {                                                                    \
+            return f;                                                          \
+          }                                                                    \
+        }                                                                      \
+                                                                               \
+        return t;                                                              \
+      }                                                                        \
+    })
+
+
     /* ==== R7RS 6.1. Equivalence predicates ===================================
      *
-     *  eq?
-     *  eqv?
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ eq?                │ C++        │ Compare memory address of object   │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ eqv?               │ C++        │ Comapre value of same type object  │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ====================================================================== */
     define<procedure>("eq?", [](auto&& xs)
@@ -578,7 +584,10 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    // TODO nan?
+    define<procedure>("ieee-nan?", [](auto&& xs)
+    {
+      return std::all_of(std::begin(xs), std::end(xs), is_nan) ? t : f;
+    });
 
     /* ---- 6.2.6 Numerical operations -----------------------------------------
      *

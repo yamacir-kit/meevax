@@ -101,6 +101,27 @@ namespace meevax { inline namespace kernel
     }
   };
 
+  auto is_nan = [](const object& x)
+  {
+    if (not x)
+    {
+      return false;
+    }
+    else if (x.is<single_float>())
+    {
+      return std::isnan(x.as<single_float>());
+    }
+    else if (x.is<double_float>())
+    {
+      return std::isnan(x.as<double_float>());
+    }
+    else
+    {
+     return false;
+    }
+  };
+
+
   /* ---- Arithmetic Operations ------------------------------------------------
    *
    * ┌─────┬─────┬─────┬─────┬

@@ -805,12 +805,10 @@
 
 (define nan?
   (lambda (z)
-    #f
-    ; (if (complex? z)
-    ;     (or (= (real-part z) +nan.0)
-    ;         (= (imag-part z) +nan.0))
-    ;     (= z +nan.0))
-    ))
+    (if (complex? z)
+        (or (ieee-nan? (real-part z))
+            (ieee-nan? (imag-part z)))
+        (ieee-nan? z))))
 
 (define zero?
   (lambda (n)
