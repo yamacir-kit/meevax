@@ -757,7 +757,7 @@
 (define integer?
   (lambda (x)
     (or (exact-integer? x)
-        (almost-exact-floating-point?))))
+        (almost-exact-floating-point? x))))
 
 ;  .
 ;  |-- exact?
@@ -837,14 +837,12 @@
 
 (define max
   (lambda (x . xs)
-
     (define max-aux
       (lambda (x xs)
         (if (null? xs)
             (inexact x)
             (max-aux (if (< x (car xs)) (car xs) x)
                      (cdr xs)))))
-
     (if (inexact? x)
         (max-aux x xs)
         (let rec ((x x) (xs xs))
@@ -856,14 +854,12 @@
 
 (define min
   (lambda (x . xs)
-
     (define min-aux
       (lambda (x xs)
         (if (null? xs)
             (inexact x)
             (min-aux (if (< (car xs) x) (car xs) x)
                      (cdr xs)))))
-
     (if (inexact? x)
         (min-aux x xs)
         (let rec ((x x) (xs xs))
@@ -937,9 +933,6 @@
         (if (integer? x) 1.0
             (inexact (denominator (exact x))) ))))
 
-; TODO floor
-; TODO ceiling
-; TODO truncate
 ; TODO round
 
 (define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm

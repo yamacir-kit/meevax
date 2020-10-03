@@ -773,7 +773,7 @@
 ; ---- Procedure (integer? obj) ------------------------------------------------
 
 ; (check (integer? 3+0i) => #t)
-; (check (integer? 3.0) => #t)
+(check (integer? 3.0) => #t)
 ; (check (integer? 8/4) => #t)
 
 ; ---- Procedure (exact? obj) --------------------------------------------------
