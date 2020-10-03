@@ -877,26 +877,35 @@
   (lambda (n)
     (if (< n 0) (- n) n)))
 
-(define floor/)
 (define floor-quotient)
 (define floor-remainder)
-(define truncate/)
+
+(define floor/
+  (lambda (x y)
+    (values (floor-quotient x y)
+            (floor-remainder x y))))
+
 (define truncate-quotient)
 (define truncate-remainder)
 
+(define truncate/
+  (lambda (x y)
+    (values (truncate-quotient x y)
+            (truncate-remainder x y))))
+
 (define quotient truncate-quotient)
+
 (define remainder truncate-remainder)
+
 (define modulo floor-remainder)
 
 (define gcd
   (lambda xs
-
     (define gcd-2
       (lambda (a b)
         (if (zero? b)
             (abs a)
             (gcd b (remainder a b)))))
-
     (if (null? xs) 0
         (let rec ((n  (car xs))
                   (ns (cdr xs)))
@@ -905,11 +914,9 @@
 
 (define lcm
   (lambda xs
-
     (define lcm-2
       (lambda (a b)
         (abs (quotient (* a b) (gcd a b)))))
-
     (if (null? xs) 1
         (let rec ((n  (car xs))
                   (ns (cdr ns)))
@@ -918,7 +925,7 @@
 
 (define numerator
   (lambda (x)
-    (if (rational? x)
+    (if (ratio? x)
         (car x)
         (if (exact? x) x
             (inexact (numerator (exact x))) ))))
@@ -926,7 +933,7 @@
 (define denominator
   (lambda (x)
     (if (exact? x)
-        (if (rational? x) (cdr x) 1)
+        (if (ratio? x) (cdr x) 1)
         (if (integer? x) 1.0
             (inexact (denominator (exact x))) ))))
 
@@ -960,20 +967,12 @@
           (+ x e)
           return))))
 
-; TODO (exp z)
-
 (define log
   (lambda (z . base)
     (if (pair? base)
         (/ (ln x)
            (ln (car base)))
         (ln x))))
-
-; TODO (sin z)
-; TODO (cos z)
-; TODO (tan z)
-; TODO (asin z)
-; TODO (acos z)
 
 (define atan
   (lambda (y . x)
@@ -1000,12 +999,7 @@
   (lambda (z)
     (* z z)))
 
-; TODO sqrt
 ; TODO exact-integer-sqrt
-; TODO expt
-
-
-;; Standard Complex Library
 
 (define make-rectangular
   (lambda (x y)
