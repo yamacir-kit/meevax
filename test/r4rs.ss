@@ -878,19 +878,16 @@
 ;   => 2.0)
 
 ; ---- Procedure (floor x) -----------------------------------------------------
-
-(check (floor -4.3) => -5.0)
-(check (floor  3.5) => 3.0)
-
 ; ---- Procedure (ceiling x) ---------------------------------------------------
-
-; (check (ceiling -4.3) => -4.0)
-; (check (ceiling 3.5) => 4.0)
-
 ; ---- Procedure (truncate x) --------------------------------------------------
 
-; (check (truncate -4.3) => -4.0)
-; (check (truncate 3.5) => 4.0)
+(check (floor    -4.3) => -5.0)
+(check (ceiling  -4.3) => -4.0)
+(check (truncate -4.3) => -4.0)
+
+(check (floor    3.5) => 3.0)
+(check (ceiling  3.5) => 4.0)
+(check (truncate 3.5) => 3.0)
 
 ; ---- Procedure (round x) -----------------------------------------------------
 
