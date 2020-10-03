@@ -486,6 +486,41 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     })
 
+    #define DEFINE_ELEMENTARY_FUNCTION(SYMBOL, FUNCTION)                       \
+    define<procedure>(SYMBOL, [&](auto&& xs)                                   \
+    {                                                                          \
+      if (let const x = car(xs); null(x))                                      \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else if (x.is<exact_integer>())                                          \
+      {                                                                        \
+        if (const floating_point result {                                      \
+              FUNCTION(                                                        \
+                floating_point<most_precise>(                                  \
+                  x.as<exact_integer>().value))                                \
+            }; result.is_exact())                                              \
+        {                                                                      \
+          return make<exact_integer>(result.to_string());                      \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return make(result);                                                 \
+        }                                                                      \
+      }                                                                        \
+      else if (x.is<single_float>())                                           \
+      {                                                                        \
+        return make(floating_point(FUNCTION(x.as<single_float>())));           \
+      }                                                                        \
+      else if (x.is<double_float>())                                           \
+      {                                                                        \
+        return make(floating_point(FUNCTION(x.as<double_float>())));           \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+    })
 
     /* ---- R7RS 6.1. Equivalence predicates -----------------------------------
      *
@@ -737,11 +772,6 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("floor-quotient", [](auto&& xs)
-    {
-      return unspecified;
-    });
-
     /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
@@ -773,7 +803,7 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ floor              │            │                                    │
+     * │ floor              │ C++        │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ ceiling            │            │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -781,6 +811,12 @@ namespace meevax { inline namespace kernel
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ round              │            │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+    DEFINE_ELEMENTARY_FUNCTION("floor", std::floor);
+
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
@@ -810,61 +846,25 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define DEFINE_ELEMENTARY_FUNCTION(FUNCTION)                               \
-    define<procedure>(#FUNCTION, [&](auto&& xs)                                \
-    {                                                                          \
-      if (let const x = car(xs); null(x))                                      \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else if (x.is<exact_integer>())                                          \
-      {                                                                        \
-        if (const floating_point result {                                      \
-              std::FUNCTION(                                                   \
-                floating_point<most_precise>(                                  \
-                  x.as<exact_integer>().value))                                \
-            }; result.is_exact())                                              \
-        {                                                                      \
-          return make<exact_integer>(result.to_string());                      \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return make(result);                                                 \
-        }                                                                      \
-      }                                                                        \
-      else if (x.is<single_float>())                                           \
-      {                                                                        \
-        return make(floating_point(std::FUNCTION(x.as<single_float>())));      \
-      }                                                                        \
-      else if (x.is<double_float>())                                           \
-      {                                                                        \
-        return make(floating_point(std::FUNCTION(x.as<double_float>())));      \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-    })
+    DEFINE_ELEMENTARY_FUNCTION("exp", std::exp);
 
-    DEFINE_ELEMENTARY_FUNCTION(exp);
+    DEFINE_ELEMENTARY_FUNCTION("sin", std::sin);
+    DEFINE_ELEMENTARY_FUNCTION("cos", std::cos);
+    DEFINE_ELEMENTARY_FUNCTION("tan", std::tan);
 
-    DEFINE_ELEMENTARY_FUNCTION(sin);
-    DEFINE_ELEMENTARY_FUNCTION(cos);
-    DEFINE_ELEMENTARY_FUNCTION(tan);
+    DEFINE_ELEMENTARY_FUNCTION("asin", std::asin);
+    DEFINE_ELEMENTARY_FUNCTION("acos", std::acos);
+    DEFINE_ELEMENTARY_FUNCTION("atan", std::atan);
 
-    DEFINE_ELEMENTARY_FUNCTION(asin);
-    DEFINE_ELEMENTARY_FUNCTION(acos);
-    DEFINE_ELEMENTARY_FUNCTION(atan);
+    DEFINE_ELEMENTARY_FUNCTION("sinh", std::sinh);
+    DEFINE_ELEMENTARY_FUNCTION("cosh", std::cosh);
+    DEFINE_ELEMENTARY_FUNCTION("tanh", std::tanh);
 
-    DEFINE_ELEMENTARY_FUNCTION(sinh);
-    DEFINE_ELEMENTARY_FUNCTION(cosh);
-    DEFINE_ELEMENTARY_FUNCTION(tanh);
+    DEFINE_ELEMENTARY_FUNCTION("asinh", std::asinh);
+    DEFINE_ELEMENTARY_FUNCTION("acosh", std::acosh);
+    DEFINE_ELEMENTARY_FUNCTION("atanh", std::atanh);
 
-    DEFINE_ELEMENTARY_FUNCTION(asinh);
-    DEFINE_ELEMENTARY_FUNCTION(acosh);
-    DEFINE_ELEMENTARY_FUNCTION(atanh);
-
-    DEFINE_ELEMENTARY_FUNCTION(sqrt);
+    DEFINE_ELEMENTARY_FUNCTION("sqrt", std::sqrt);
 
     // TODO log & log2
     // TODO atan & atan2
@@ -1395,6 +1395,11 @@ namespace meevax { inline namespace kernel
       }
 
       return unspecified; // TODO standard-output-port
+    });
+
+    define<procedure>("IEC-60559?", [](auto&&)
+    {
+      return std::numeric_limits<double>::is_iec559 ? t : f;
     });
   }
 
