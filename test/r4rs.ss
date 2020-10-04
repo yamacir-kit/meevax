@@ -842,6 +842,11 @@
 ; ---- Procedure (remainder n1 n2) ---------------------------------------------
 ; ---- Procedure (modulo n1 n2) ------------------------------------------------
 
+; (check (floor-quotient  5  2) =>  2)
+; (check (floor-quotient -5  2) => -3)
+; (check (floor-quotient  5 -2) => -3)
+; (check (floor-quotient -5 -2) =>  2)
+
 ; (check (modulo 13 4) => 1)
 ; (check (modulo -13 4) => 3)
 ; (check (modulo 13 -4) => -3)

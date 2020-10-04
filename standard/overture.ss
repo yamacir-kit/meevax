@@ -873,16 +873,26 @@
   (lambda (n)
     (if (< n 0) (- n) n)))
 
-(define floor-quotient)
-(define floor-remainder)
+(define floor-quotient
+  (lambda (x y)
+    (floor (/ x y))))
+
+(define floor-remainder
+  (lambda (x y)
+    (floor (% x y))))
 
 (define floor/
   (lambda (x y)
     (values (floor-quotient x y)
             (floor-remainder x y))))
 
-(define truncate-quotient)
-(define truncate-remainder)
+(define truncate-quotient
+  (lambda (x y)
+    (truncate (/ x y))))
+
+(define truncate-remainder
+  (lambda (x y)
+    (truncate (% x y))))
 
 (define truncate/
   (lambda (x y)
@@ -1021,8 +1031,8 @@
     (atan (imag-part z)
           (real-part z) )))
 
-; TODO number->string
-; TODO string->number
+(define inexact->exact exact)
+(define exact->inexact inexact)
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Standard Boolean Library (Part 2 of 2)
