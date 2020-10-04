@@ -9,6 +9,13 @@ namespace meevax { inline namespace kernel
     : public virtual pair
   {
   };
+
+  auto operator <<(std::ostream& port, const ratio& rhs) -> decltype(auto)
+  {
+    return port << cyan << car(rhs)
+                << cyan << "/"
+                << cyan << cdr(rhs) << reset;
+  }
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_RATIO_HPP
