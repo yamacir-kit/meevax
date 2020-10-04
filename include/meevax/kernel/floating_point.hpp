@@ -94,25 +94,26 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  #define BOILERPLATE(SYMBOL)                                                  \
+  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
   template <typename T, typename U>                                            \
   constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
   {                                                                            \
-    return floating_point(lhs.value SYMBOL rhs.value);                         \
+    return floating_point(OPERATION(lhs.value, rhs.value));                    \
   } static_assert(true)
 
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
+  BOILERPLATE(*, std::multiplies<void>());
+  BOILERPLATE(+, std::plus<void>());
+  BOILERPLATE(-, std::minus<void>());
+  BOILERPLATE(/, std::divides<void>());
+  BOILERPLATE(%, std::fmod);
 
   #undef BOILERPLATE
 
-  template <typename T, typename U>
-  constexpr auto operator %(const floating_point<T>& lhs, const floating_point<U>& rhs)
-  {
-    return floating_point(std::fmod(lhs.value, rhs.value));
-  }
+  // template <typename T, typename U>
+  // constexpr auto operator %(const floating_point<T>& lhs, const floating_point<U>& rhs)
+  // {
+  //   return floating_point(std::fmod(lhs.value, rhs.value));
+  // }
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T, typename U>                                            \
