@@ -44,7 +44,6 @@ namespace meevax { inline namespace kernel
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
     }
 
-  public: // arithmetic
     // override by binder's operators
     #define BOILERPLATE(SYMBOL)                                                \
     virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
@@ -52,12 +51,13 @@ namespace meevax { inline namespace kernel
       std::stringstream ss {};                                                 \
       ss << __FILE__ << ":" << __LINE__;                                       \
       throw std::logic_error { ss.str() };                                     \
-    } static_assert(true, "semicolon required after this macro")
+    } static_assert(true)
 
     BOILERPLATE(*);
     BOILERPLATE(+);
     BOILERPLATE(-);
     BOILERPLATE(/);
+    BOILERPLATE(%);
 
     #undef BOILERPLATE
 

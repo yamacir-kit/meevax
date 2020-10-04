@@ -1002,7 +1002,11 @@
   (lambda (z)
     (* z z)))
 
+(define sqrt square-root)
+
 ; TODO exact-integer-sqrt
+
+(define expt exponential)
 
 (define make-rectangular
   (lambda (x y)

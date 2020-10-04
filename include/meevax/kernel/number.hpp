@@ -121,7 +121,6 @@ namespace meevax { inline namespace kernel
     }
   };
 
-
   /* ---- Arithmetic Operations ------------------------------------------------
    *
    * ┌─────┬─────┬─────┬─────┬
@@ -140,13 +139,14 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
   {                                                                            \
-    return floating_point(lhs.value SYMBOL rhs.as_inexact());                  \
+    return floating_point(lhs SYMBOL rhs.as_inexact());                        \
   } static_assert(true)
 
   BOILERPLATE(*);
   BOILERPLATE(+);
   BOILERPLATE(-);
   BOILERPLATE(/);
+  BOILERPLATE(%);
 
   #undef BOILERPLATE
 
@@ -154,13 +154,14 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
-    return floating_point(lhs.as_inexact() SYMBOL rhs.value);                  \
+    return floating_point(lhs.as_inexact() SYMBOL rhs);                        \
   } static_assert(true)
 
   BOILERPLATE(*);
   BOILERPLATE(+);
   BOILERPLATE(-);
   BOILERPLATE(/);
+  BOILERPLATE(%);
 
   #undef BOILERPLATE
 
@@ -197,11 +198,13 @@ namespace meevax { inline namespace kernel
   template <typename T> BOILERPLATE(floating_point<T>, +, plus);
   template <typename T> BOILERPLATE(floating_point<T>, -, minus);
   template <typename T> BOILERPLATE(floating_point<T>, /, divides);
+  template <typename T> BOILERPLATE(floating_point<T>, %, modulus);
 
   BOILERPLATE(exact_integer, *, multiplies);
   BOILERPLATE(exact_integer, +, plus);
   BOILERPLATE(exact_integer, -, minus);
   BOILERPLATE(exact_integer, /, divides);
+  BOILERPLATE(exact_integer, %, modulus);
 
   #undef BOILERPLATE
 

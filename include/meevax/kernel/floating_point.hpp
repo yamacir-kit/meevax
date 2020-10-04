@@ -60,6 +60,7 @@ namespace meevax { inline namespace kernel
     auto operator + (const object&) const -> object;
     auto operator - (const object&) const -> object;
     auto operator / (const object&) const -> object;
+    auto operator % (const object&) const -> object;
 
     auto operator ==(const object&) const -> bool;
     auto operator !=(const object&) const -> bool;
@@ -106,6 +107,12 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(/);
 
   #undef BOILERPLATE
+
+  template <typename T, typename U>
+  constexpr auto operator %(const floating_point<T>& lhs, const floating_point<U>& rhs)
+  {
+    return floating_point(std::fmod(lhs.value, rhs.value));
+  }
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T, typename U>                                            \

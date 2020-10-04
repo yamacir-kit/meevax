@@ -814,9 +814,9 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    DEFINE_ELEMENTARY_FUNCTION("floor", std::floor);
-    DEFINE_ELEMENTARY_FUNCTION("ceiling", std::ceil);
-    DEFINE_ELEMENTARY_FUNCTION("truncate", std::trunc);
+    DEFINE_ELEMENTARY_FUNCTION("floor", std::floor); // XXX DIRTY HACK!
+    DEFINE_ELEMENTARY_FUNCTION("ceiling", std::ceil); // XXX DIRTY HACK!
+    DEFINE_ELEMENTARY_FUNCTION("truncate", std::trunc); // XXX DIRTY HACK!
 
     /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
@@ -848,7 +848,7 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    DEFINE_ELEMENTARY_FUNCTION("exp", std::exp);
+    DEFINE_ELEMENTARY_FUNCTION("exp", std::exp); // natural exponential
 
     DEFINE_ELEMENTARY_FUNCTION("sin", std::sin);
     DEFINE_ELEMENTARY_FUNCTION("cos", std::cos);
@@ -866,9 +866,7 @@ namespace meevax { inline namespace kernel
     DEFINE_ELEMENTARY_FUNCTION("acosh", std::acosh);
     DEFINE_ELEMENTARY_FUNCTION("atanh", std::atanh);
 
-    DEFINE_ELEMENTARY_FUNCTION("sqrt", std::sqrt);
-
-    // TODO log & log2
+    // TODO ln
     // TODO atan & atan2
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
@@ -876,16 +874,18 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ square             │            │                                    │
+     * │ square             │ Scheme     │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ sqrt               │            │                                    │
+     * │ square-root        │ C++        │ sqrt                               │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
+
+    DEFINE_ELEMENTARY_FUNCTION("square-root", std::sqrt);
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
      *
@@ -898,12 +898,12 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ expt               │            │                                    │
+     * │ exponential        │            │ expt                               │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("expt", [](auto&& xs)
+    define<procedure>("exponential", [](auto&& xs)
     {
       if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_exact())
       {

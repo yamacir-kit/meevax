@@ -210,12 +210,13 @@ namespace meevax { inline namespace kernel
         {                                                                      \
           return lhs SYMBOL rhs;                                               \
         }, static_cast<const bound&>(*this), rhs);                             \
-      } static_assert(true, "semicolon required after this macro")
+      } static_assert(true)
 
       BOILERPLATE(*, multipliable);
       BOILERPLATE(+, addable);
       BOILERPLATE(-, subtractable);
       BOILERPLATE(/, divisible);
+      BOILERPLATE(%, supports_modulo_operation);
 
       #undef BOILERPLATE
 
@@ -469,6 +470,7 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(+, plus);
   BOILERPLATE(-, minus);
   BOILERPLATE(/, divides);
+  BOILERPLATE(%, modulus);
 
   BOILERPLATE(<,  less);
   BOILERPLATE(<=, less_equal);
