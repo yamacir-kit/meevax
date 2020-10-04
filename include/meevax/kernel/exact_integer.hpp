@@ -59,6 +59,7 @@ namespace meevax { inline namespace kernel
     auto operator + (const object&) const -> object;
     auto operator - (const object&) const -> object;
     auto operator / (const object&) const -> object;
+    auto operator % (const object&) const -> object;
 
     auto operator ==(const object&) const -> bool;
     auto operator !=(const object&) const -> bool;
@@ -83,6 +84,7 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(+);
   BOILERPLATE(-);
   BOILERPLATE(/);
+  BOILERPLATE(%);
 
   #undef BOILERPLATE
 

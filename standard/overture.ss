@@ -757,7 +757,7 @@
 (define integer?
   (lambda (x)
     (or (exact-integer? x)
-        (almost-exact-floating-point?))))
+        (almost-exact-floating-point? x))))
 
 ;  .
 ;  |-- exact?
@@ -778,7 +778,7 @@
 
 (define exact-complex?
   (lambda (x)
-    (and (the-complex? x)
+    (and (COMPLEX? x)
          (exact? (real-part x))
          (exact? (imag-part x)))))
 
@@ -805,12 +805,10 @@
 
 (define nan?
   (lambda (z)
-    #f
-    ; (if (complex? z)
-    ;     (or (= (real-part z) +nan.0)
-    ;         (= (imag-part z) +nan.0))
-    ;     (= z +nan.0))
-    ))
+    (if (COMPLEX? z)
+        (or (ieee-nan? (real-part z))
+            (ieee-nan? (imag-part z)))
+        (ieee-nan? z))))
 
 (define zero?
   (lambda (n)
@@ -839,14 +837,12 @@
 
 (define max
   (lambda (x . xs)
-
     (define max-aux
       (lambda (x xs)
         (if (null? xs)
             (inexact x)
             (max-aux (if (< x (car xs)) (car xs) x)
                      (cdr xs)))))
-
     (if (inexact? x)
         (max-aux x xs)
         (let rec ((x x) (xs xs))
@@ -858,14 +854,12 @@
 
 (define min
   (lambda (x . xs)
-
     (define min-aux
       (lambda (x xs)
         (if (null? xs)
             (inexact x)
             (min-aux (if (< (car xs) x) (car xs) x)
                      (cdr xs)))))
-
     (if (inexact? x)
         (min-aux x xs)
         (let rec ((x x) (xs xs))
@@ -879,26 +873,45 @@
   (lambda (n)
     (if (< n 0) (- n) n)))
 
-(define floor/)
-(define floor-quotient)
-(define floor-remainder)
-(define truncate/)
-(define truncate-quotient)
-(define truncate-remainder)
+(define floor-quotient
+  (lambda (x y)
+    (floor (/ x y))))
 
-(define quotient truncate-quotient)
-(define remainder truncate-remainder)
-(define modulo floor-remainder)
+(define floor-remainder
+  (lambda (x y)
+    (floor (% x y))))
+
+(define floor/
+  (lambda (x y)
+    (values (floor-quotient x y)
+            (floor-remainder x y))))
+
+(define truncate-quotient
+  (lambda (x y)
+    (truncate (/ x y))))
+
+(define truncate-remainder
+  (lambda (x y)
+    (truncate (% x y))))
+
+(define truncate/
+  (lambda (x y)
+    (values (truncate-quotient x y)
+            (truncate-remainder x y))))
+
+(define quotient truncate-quotient) ; for backward compatibility
+
+(define remainder truncate-remainder) ; for backward compatibility
+
+(define modulo floor-remainder) ; for backward compatibility
 
 (define gcd
   (lambda xs
-
     (define gcd-2
       (lambda (a b)
         (if (zero? b)
             (abs a)
             (gcd b (remainder a b)))))
-
     (if (null? xs) 0
         (let rec ((n  (car xs))
                   (ns (cdr xs)))
@@ -907,11 +920,9 @@
 
 (define lcm
   (lambda xs
-
     (define lcm-2
       (lambda (a b)
         (abs (quotient (* a b) (gcd a b)))))
-
     (if (null? xs) 1
         (let rec ((n  (car xs))
                   (ns (cdr ns)))
@@ -920,7 +931,7 @@
 
 (define numerator
   (lambda (x)
-    (if (rational? x)
+    (if (ratio? x)
         (car x)
         (if (exact? x) x
             (inexact (numerator (exact x))) ))))
@@ -928,13 +939,10 @@
 (define denominator
   (lambda (x)
     (if (exact? x)
-        (if (rational? x) (cdr x) 1)
+        (if (ratio? x) (cdr x) 1)
         (if (integer? x) 1.0
             (inexact (denominator (exact x))) ))))
 
-; TODO floor
-; TODO ceiling
-; TODO truncate
 ; TODO round
 
 (define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm
@@ -962,20 +970,12 @@
           (+ x e)
           return))))
 
-; TODO (exp z)
-
 (define log
   (lambda (z . base)
     (if (pair? base)
         (/ (ln x)
            (ln (car base)))
         (ln x))))
-
-; TODO (sin z)
-; TODO (cos z)
-; TODO (tan z)
-; TODO (asin z)
-; TODO (acos z)
 
 (define atan
   (lambda (y . x)
@@ -1002,12 +1002,11 @@
   (lambda (z)
     (* z z)))
 
-; TODO sqrt
+(define sqrt square-root)
+
 ; TODO exact-integer-sqrt
-; TODO expt
 
-
-;; Standard Complex Library
+(define expt exponential)
 
 (define make-rectangular
   (lambda (x y)
@@ -1020,11 +1019,11 @@
 
 (define real-part
   (lambda (z)
-    (if (the-complex? z) (car z) z)))
+    (if (COMPLEX? z) (car z) z)))
 
 (define imag-part
   (lambda (z)
-    (if (the-complex? z) (cdr z) 0)))
+    (if (COMPLEX? z) (cdr z) 0)))
 
 (define magnitude
   (lambda (z)
@@ -1036,8 +1035,8 @@
     (atan (imag-part z)
           (real-part z) )))
 
-; TODO number->string
-; TODO string->number
+(define inexact->exact exact)
+(define exact->inexact inexact)
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Standard Boolean Library (Part 2 of 2)

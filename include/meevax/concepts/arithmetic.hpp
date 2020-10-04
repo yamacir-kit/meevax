@@ -22,6 +22,7 @@ namespace meevax { inline namespace concepts
   boilerplate(divisible, /);
   boilerplate(multipliable, *);
   boilerplate(subtractable, -);
+  boilerplate(supports_modulo_operation, %);
 
   boilerplate(greater_equal_comparable, >=);
   boilerplate(greater_than_comparable, >);

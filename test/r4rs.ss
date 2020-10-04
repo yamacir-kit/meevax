@@ -773,7 +773,7 @@
 ; ---- Procedure (integer? obj) ------------------------------------------------
 
 ; (check (integer? 3+0i) => #t)
-; (check (integer? 3.0) => #t)
+(check (integer? 3.0) => #t)
 ; (check (integer? 8/4) => #t)
 
 ; ---- Procedure (exact? obj) --------------------------------------------------
@@ -842,21 +842,43 @@
 ; ---- Procedure (remainder n1 n2) ---------------------------------------------
 ; ---- Procedure (modulo n1 n2) ------------------------------------------------
 
-; (check (modulo 13 4) => 1)
-; (check (modulo -13 4) => 3)
-; (check (modulo 13 -4) => -3)
-; (check (modulo -13 -4) => -1)
+(check (floor-quotient  5  2) =>  2)
+; (check (floor-quotient -5  2) => -3) ; REQUIRES RATIO
+; (check (floor-quotient  5 -2) => -3) ; REQUIRES RATIO
+(check (floor-quotient -5 -2) =>  2)
 
-; (check (remainder 13 4) => 1)
-; (check (remainder -13 4) => -1)
-; (check (remainder 13 -4) => 1)
-; (check (remainder -13 -4) => -1)
-; (check (remainder -13 -4.0) => -1.0) ; inexact
+(check (floor-remainder  5  2) =>  1)
+; (check (floor-remainder -5  2) =>  1) ; REQUIRES RATIO
+; (check (floor-remainder  5 -2) => -1) ; REQUIRES RATIO
+(check (floor-remainder -5 -2) => -1)
+
+(check (truncate-quotient  5    2) =>  2)
+(check (truncate-quotient -5    2) => -2)
+(check (truncate-quotient  5   -2) => -2)
+(check (truncate-quotient -5   -2) =>  2)
+(check (truncate-quotient -5.0 -2) =>  2.0)
+
+(check (truncate-remainder  5    2) =>  1)
+(check (truncate-remainder -5    2) => -1)
+(check (truncate-remainder  5   -2) =>  1)
+(check (truncate-remainder -5   -2) => -1)
+(check (truncate-remainder -5.0 -2) => -1.0)
+
+(check (modulo  13  4) =>  1)
+; (check (modulo -13  4) =>  3)
+; (check (modulo  13 -4) => -3)
+(check (modulo -13 -4) => -1)
+
+(check (remainder  13  4)   =>  1)
+(check (remainder -13  4)   => -1)
+(check (remainder  13 -4)   =>  1)
+(check (remainder -13 -4)   => -1)
+(check (remainder -13 -4.0) => -1.0) ; inexact
 
 ; ---- Procedure (gcd n1 ...) --------------------------------------------------
 
 ; (check (gcd 32 -36) => 4)
-; (check (gcd) => 0)
+(check (gcd) => 0)
 
 ; ---- Procedure (lcm n1 ...) --------------------------------------------------
 
@@ -878,19 +900,16 @@
 ;   => 2.0)
 
 ; ---- Procedure (floor x) -----------------------------------------------------
-
-; (check (floor -4.3) => -5.0)
-; (check (floor 3.5) => 3.0)
-
 ; ---- Procedure (ceiling x) ---------------------------------------------------
-
-; (check (ceiling -4.3) => -4.0)
-; (check (ceiling 3.5) => 4.0)
-
 ; ---- Procedure (truncate x) --------------------------------------------------
 
-; (check (truncate -4.3) => -4.0)
-; (check (truncate 3.5) => 4.0)
+(check (floor    -4.3) => -5.0)
+(check (ceiling  -4.3) => -4.0)
+(check (truncate -4.3) => -4.0)
+
+(check (floor    3.5) => 3.0)
+(check (ceiling  3.5) => 4.0)
+(check (truncate 3.5) => 3.0)
 
 ; ---- Procedure (round x) -----------------------------------------------------
 

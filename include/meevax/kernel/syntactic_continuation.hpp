@@ -420,27 +420,6 @@ namespace meevax { inline namespace kernel
     return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
 
-  #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                   \
-  define<procedure>(IDENTIFIER, [](auto&& xs)                                  \
-  {                                                                            \
-    if (null(xs))                                                              \
-    {                                                                          \
-      return f;                                                                \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      for (let const & x : xs)                                                 \
-      {                                                                        \
-        if (null(x) or not x.is<TYPE>())                                       \
-        {                                                                      \
-          return f;                                                            \
-        }                                                                      \
-      }                                                                        \
-                                                                               \
-      return t;                                                                \
-    }                                                                          \
-  })
-
   template <>
   void syntactic_continuation::boot(layer<0>)
   {
@@ -486,12 +465,74 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<2>)
   {
-    /* ==== R7RS 6.1. Equivalence predicates ===================================
+    #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                 \
+    define<procedure>(IDENTIFIER, [](auto&& xs)                                \
+    {                                                                          \
+      if (null(xs))                                                            \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        for (let const & x : xs)                                               \
+        {                                                                      \
+          if (null(x) or not x.is<TYPE>())                                     \
+          {                                                                    \
+            return f;                                                          \
+          }                                                                    \
+        }                                                                      \
+                                                                               \
+        return t;                                                              \
+      }                                                                        \
+    })
+
+    #define DEFINE_ELEMENTARY_FUNCTION(SYMBOL, FUNCTION)                       \
+    define<procedure>(SYMBOL, [&](auto&& xs)                                   \
+    {                                                                          \
+      if (let const x = car(xs); null(x))                                      \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+      else if (x.is<exact_integer>())                                          \
+      {                                                                        \
+        if (const floating_point result {                                      \
+              FUNCTION(                                                        \
+                floating_point<most_precise>(                                  \
+                  x.as<exact_integer>().value))                                \
+            }; result.is_exact())                                              \
+        {                                                                      \
+          return make<exact_integer>(result.to_string());                      \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return make(result);                                                 \
+        }                                                                      \
+      }                                                                        \
+      else if (x.is<single_float>())                                           \
+      {                                                                        \
+        return make(floating_point(FUNCTION(x.as<single_float>())));           \
+      }                                                                        \
+      else if (x.is<double_float>())                                           \
+      {                                                                        \
+        return make(floating_point(FUNCTION(x.as<double_float>())));           \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        return f;                                                              \
+      }                                                                        \
+    })
+
+    /* ---- R7RS 6.1. Equivalence predicates -----------------------------------
      *
-     *  eq?
-     *  eqv?
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ eq?                │ C++        │ Compare memory address of object   │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ eqv?               │ C++        │ Comapre value of same type object  │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
      *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
     define<procedure>("eq?", [](auto&& xs)
     {
       return car(xs) == cadr(xs) ? t : f;
@@ -535,7 +576,23 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    DEFINE_PREDICATE("the-complex?", complex); // TODO RENAME
+    /* ---- 6.2.6 numerical operations -----------------------------------------
+     *
+     * ┌────────────────────┬────────────┬────────────────────────────────────┐
+     * │ Symbol             │ Written in │ Note                               │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ COMPLEX?           │ C++        │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ ratio?             │ C++        │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ single-float?      │ C++        │                                    │
+     * ├────────────────────┼────────────┼────────────────────────────────────┤
+     * │ double-float?      │ C++        │                                    │
+     * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+    DEFINE_PREDICATE("COMPLEX?", complex);
     DEFINE_PREDICATE("ratio?", ratio);
     DEFINE_PREDICATE("single-float?", floating_point<float>);
     DEFINE_PREDICATE("double-float?", floating_point<double>);
@@ -578,7 +635,10 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    // TODO nan?
+    define<procedure>("ieee-nan?", [](auto&& xs)
+    {
+      return std::all_of(std::begin(xs), std::end(xs), is_nan) ? t : f;
+    });
 
     /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
@@ -683,6 +743,7 @@ namespace meevax { inline namespace kernel
 
     BOILERPLATE(-, 0);
     BOILERPLATE(/, 1);
+    BOILERPLATE(%, 1);
 
     #undef BOILERPLATE
 
@@ -697,56 +758,68 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ floor/             │            │                                    │
+     * │ floor/             │ Scheme     │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ floor-quotient     │            │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ floor-remainder    │            │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ truncate           │            │                                    │
+     * │ truncate/          │ Scheme     │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ truncate-quotient  │            │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ trucate-remainer   │            │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
+     * ---------------------------------------------------------------------- */
+
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
+     *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ quotient           │            │                                    │
+     * │ quotient           │ Scheme     │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ remainder          │            │                                    │
+     * │ remainder          │ Scheme     │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ modulo             │            │                                    │
+     * │ modulo             │ Scheme     │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ gcd                │            │                                    │
+     * │ gcd                │ Scheme     │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ lcm                │            │                                    │
+     * │ lcm                │ Scheme     │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ numerator          │            │                                    │
+     * │ numerator          │ Scheme     │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ denominator        │            │                                    │
+     * │ denominator        │ Scheme     │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ floor              │            │                                    │
+     * │ floor              │ C++        │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ ceiling            │            │                                    │
+     * │ ceiling            │ C++        │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ truncate           │            │                                    │
+     * │ truncate           │ C++        │                                    │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
      * │ round              │            │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
+
+    DEFINE_ELEMENTARY_FUNCTION("floor", std::floor); // XXX DIRTY HACK!
+    DEFINE_ELEMENTARY_FUNCTION("ceiling", std::ceil); // XXX DIRTY HACK!
+    DEFINE_ELEMENTARY_FUNCTION("truncate", std::trunc); // XXX DIRTY HACK!
+
+    /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
@@ -776,63 +849,25 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define DEFINE_ELEMENTARY_FUNCTION(FUNCTION)                               \
-    define<procedure>(#FUNCTION, [&](auto&& xs)                                \
-    {                                                                          \
-      if (let const x = car(xs); null(x))                                      \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else if (x.is<exact_integer>())                                          \
-      {                                                                        \
-        if (const floating_point result {                                      \
-              std::FUNCTION(                                                   \
-                floating_point<most_precise>(                                  \
-                  x.as<exact_integer>().value))                                \
-            }; result.is_exact())                                              \
-        {                                                                      \
-          return make<exact_integer>(result.to_string());                      \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return make(result);                                                 \
-        }                                                                      \
-      }                                                                        \
-      else if (x.is<single_float>())                                           \
-      {                                                                        \
-        return make(floating_point(std::FUNCTION(x.as<single_float>())));      \
-      }                                                                        \
-      else if (x.is<double_float>())                                           \
-      {                                                                        \
-        return make(floating_point(std::FUNCTION(x.as<double_float>())));      \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-    })
+    DEFINE_ELEMENTARY_FUNCTION("exp", std::exp); // natural exponential
 
-    DEFINE_ELEMENTARY_FUNCTION(exp);
+    DEFINE_ELEMENTARY_FUNCTION("sin", std::sin);
+    DEFINE_ELEMENTARY_FUNCTION("cos", std::cos);
+    DEFINE_ELEMENTARY_FUNCTION("tan", std::tan);
 
-    DEFINE_ELEMENTARY_FUNCTION(sin);
-    DEFINE_ELEMENTARY_FUNCTION(cos);
-    DEFINE_ELEMENTARY_FUNCTION(tan);
+    DEFINE_ELEMENTARY_FUNCTION("asin", std::asin);
+    DEFINE_ELEMENTARY_FUNCTION("acos", std::acos);
+    DEFINE_ELEMENTARY_FUNCTION("atan", std::atan);
 
-    DEFINE_ELEMENTARY_FUNCTION(asin);
-    DEFINE_ELEMENTARY_FUNCTION(acos);
-    DEFINE_ELEMENTARY_FUNCTION(atan);
+    DEFINE_ELEMENTARY_FUNCTION("sinh", std::sinh);
+    DEFINE_ELEMENTARY_FUNCTION("cosh", std::cosh);
+    DEFINE_ELEMENTARY_FUNCTION("tanh", std::tanh);
 
-    DEFINE_ELEMENTARY_FUNCTION(sinh);
-    DEFINE_ELEMENTARY_FUNCTION(cosh);
-    DEFINE_ELEMENTARY_FUNCTION(tanh);
+    DEFINE_ELEMENTARY_FUNCTION("asinh", std::asinh);
+    DEFINE_ELEMENTARY_FUNCTION("acosh", std::acosh);
+    DEFINE_ELEMENTARY_FUNCTION("atanh", std::atanh);
 
-    DEFINE_ELEMENTARY_FUNCTION(asinh);
-    DEFINE_ELEMENTARY_FUNCTION(acosh);
-    DEFINE_ELEMENTARY_FUNCTION(atanh);
-
-    DEFINE_ELEMENTARY_FUNCTION(sqrt);
-
-    // TODO log & log2
+    // TODO ln
     // TODO atan & atan2
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
@@ -840,16 +875,18 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ square             │            │                                    │
+     * │ square             │ Scheme     │                                    │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ sqrt               │            │                                    │
+     * │ square-root        │ C++        │ sqrt                               │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
+
+    DEFINE_ELEMENTARY_FUNCTION("square-root", std::sqrt);
 
     /* ---- 6.2.6 numerical operations -----------------------------------------
      *
@@ -862,12 +899,12 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ expt               │            │                                    │
+     * │ exponential        │            │ expt                               │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("expt", [](auto&& xs)
+    define<procedure>("exponential", [](auto&& xs)
     {
       if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_exact())
       {
@@ -884,17 +921,17 @@ namespace meevax { inline namespace kernel
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
      * │ Symbol             │ Written in │ Note                               │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ make-rectangular   │            │ complex library procedure          │
+     * │ make-rectangular   │ Scheme     │ complex library procedure          │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ make-polar         │            │ complex library procedure          │
+     * │ make-polar         │ Scheme     │ complex library procedure          │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ real-part          │            │ complex library procedure          │
+     * │ real-part          │ Scheme     │ complex library procedure          │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ imag-part          │            │ complex library procedure          │
+     * │ imag-part          │ Scheme     │ complex library procedure          │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ magnitude          │            │ complex library procedure          │
+     * │ magnitude          │ Scheme     │ complex library procedure          │
      * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ angle              │            │ complex library procedure          │
+     * │ angle              │ Scheme     │ complex library procedure          │
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ┌────────────────────┬────────────┬────────────────────────────────────┐
@@ -916,23 +953,6 @@ namespace meevax { inline namespace kernel
     {
       return make(inexact(car(xs)));
     });
-
-    /* ---- 6.2.6 numerical operations -----------------------------------------
-     *
-     * ┌────────────────────┬────────────┬────────────────────────────────────┐
-     * │ Symbol             │ Written in │ Note                               │
-     * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ %complex?          │ C++        │                                    │
-     * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ ratio?             │ C++        │                                    │
-     * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ single-float?      │ C++        │                                    │
-     * ├────────────────────┼────────────┼────────────────────────────────────┤
-     * │ double-float?      │ C++        │                                    │
-     * └────────────────────┴────────────┴────────────────────────────────────┘
-     *
-     * ---------------------------------------------------------------------- */
-
 
     /* ---- 6.2.7 Numerical input and output -----------------------------------
      *
@@ -1378,6 +1398,11 @@ namespace meevax { inline namespace kernel
       }
 
       return unspecified; // TODO standard-output-port
+    });
+
+    define<procedure>("IEC-60559?", [](auto&&)
+    {
+      return std::numeric_limits<double>::is_iec559 ? t : f;
     });
   }
 
