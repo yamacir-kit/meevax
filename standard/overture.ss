@@ -899,11 +899,11 @@
     (values (truncate-quotient x y)
             (truncate-remainder x y))))
 
-(define quotient truncate-quotient)
+(define quotient truncate-quotient) ; for backward compatibility
 
-(define remainder truncate-remainder)
+(define remainder truncate-remainder) ; for backward compatibility
 
-(define modulo floor-remainder)
+(define modulo floor-remainder) ; for backward compatibility
 
 (define gcd
   (lambda xs

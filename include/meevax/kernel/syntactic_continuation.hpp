@@ -743,6 +743,7 @@ namespace meevax { inline namespace kernel
 
     BOILERPLATE(-, 0);
     BOILERPLATE(/, 1);
+    BOILERPLATE(%, 1);
 
     #undef BOILERPLATE
 
