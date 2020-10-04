@@ -884,7 +884,7 @@
 
 ; (check (lcm 32 -36) => 288)
 ; (check (lcm 32.0 -36) => 288.0) ; inexact
-; (check (lcm) => 1)
+(check (lcm) => 1)
 
 ; ---- Procedure (numerator q) -------------------------------------------------
 
