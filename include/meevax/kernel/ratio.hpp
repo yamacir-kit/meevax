@@ -28,7 +28,7 @@ namespace meevax { inline namespace kernel
 
     // auto as_exact() const;
 
-    // auto as_inexact() const;
+    auto as_inexact() const;
 
     // auto operator * (const object&) const -> object;
     // auto operator + (const object&) const -> object;

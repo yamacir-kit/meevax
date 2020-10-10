@@ -48,7 +48,10 @@ namespace meevax { inline namespace kernel
       return not is_exact();
     }
 
-    auto as_exact() const;
+    auto as_exact() const -> const auto&
+    {
+      return *this;
+    }
 
     auto as_inexact() const;
 

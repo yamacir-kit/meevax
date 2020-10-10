@@ -767,8 +767,8 @@
 
 ; ---- Procedure (rational? obj) -----------------------------------------------
 
-; (check (rational? 6/10) => #t)
-; (check (rational? 6/3) => #t)
+(check (rational? 6/10) => #t)
+(check (rational? 6/3) => #t)
 
 ; ---- Procedure (integer? obj) ------------------------------------------------
 

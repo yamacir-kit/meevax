@@ -45,13 +45,17 @@ namespace meevax { inline namespace kernel
     return static_cast<exact_integer>(value);
   }
 
-  inline auto exact_integer::as_exact() const
-  {
-    return *this;
-  }
+  // auto ratio::as_exact() const
+  // {
+  // }
 
   auto exact = [](const object& z)
   {
+    // if (z.is<ratio>())
+    // {
+    //   return z.as<ratio>().as_exact();
+    // }
+    // else
     if (z.is<exact_integer>())
     {
       return z.as<exact_integer>().as_exact();
@@ -81,9 +85,18 @@ namespace meevax { inline namespace kernel
     return floating_point(value.convert_to<most_precise>());
   }
 
+  inline auto ratio::as_inexact() const
+  {
+    return floating_point(numerator().as<exact_integer>().as_inexact() / denominator().as<exact_integer>().as_inexact());
+  }
+
   auto inexact = [](const object& z)
   {
-    if (z.is<exact_integer>())
+    if (z.is<ratio>())
+    {
+      return z.as<ratio>().as_inexact();
+    }
+    else if (z.is<exact_integer>())
     {
       return z.as<exact_integer>().as_inexact();
     }
@@ -123,21 +136,40 @@ namespace meevax { inline namespace kernel
 
   /* ---- Arithmetic Operations ------------------------------------------------
    *
-   * ┌─────┬─────┬─────┬─────┬
-   * │ l\r │ f32 │ f64 │ mpi │
-   * ├─────┼─────┼─────┼─────┼
-   * │ f32 │  v  │  v  │  v  │
-   * ├─────┼─────┼─────┼─────┼
-   * │ f64 │  v  │  v  │  v  │
-   * ├─────┼─────┼─────┼─────┼
-   * │ mpi │  v  │  v  │  v  │
-   * ├─────┼─────┼─────┼─────┼
+   * ┌─────────┬─────────┬─────────┬─────────┬───────┬─────────┬
+   * │ LHS\RHS │   f32   │   f64   │   big   │ ratio │ complex │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │   f32   │    t    │    t    │    t    │   T   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │   f64   │    t    │    t    │    t    │   T   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │   big   │    t    │    t    │    t    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │  ratio  │    f    │    f    │    f    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │ complex │    f    │    f    │    f    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    *
    * ------------------------------------------------------------------------ */
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
+  {                                                                            \
+    return floating_point(lhs SYMBOL rhs.as_inexact());                        \
+  } static_assert(true)
+
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+  BOILERPLATE(%);
+
+  #undef BOILERPLATE
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
   {                                                                            \
     return floating_point(lhs SYMBOL rhs.as_inexact());                        \
   } static_assert(true)
@@ -210,15 +242,19 @@ namespace meevax { inline namespace kernel
 
   /* ---- Arithmetic Comparisons -----------------------------------------------
    *
-   * ┌─────┬─────┬─────┬─────┬
-   * │ l\r │ f32 │ f64 │ mpi │
-   * ├─────┼─────┼─────┼─────┼
-   * │ f32 │  v  │  v  │  v  │
-   * ├─────┼─────┼─────┼─────┼
-   * │ f64 │  v  │  v  │  v  │
-   * ├─────┼─────┼─────┼─────┼
-   * │ mpi │  v  │  v  │  v  │
-   * ├─────┼─────┼─────┼─────┼
+   * ┌─────────┬─────────┬─────────┬─────────┬───────┬─────────┬
+   * │ LHS\RHS │   f32   │   f64   │   big   │ ratio │ complex │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │   f32   │    t    │    t    │    t    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │   f64   │    t    │    t    │    t    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │   big   │    t    │    t    │    t    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │  ratio  │    f    │    f    │    f    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
+   * │ complex │    f    │    f    │    f    │   f   │    f    │
+   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    *
    * ------------------------------------------------------------------------ */
 
