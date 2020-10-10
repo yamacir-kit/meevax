@@ -243,6 +243,12 @@ add_test(
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
 
 add_test(
+  NAME sicp-1
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/sicp-1.ss)
+
+add_test(
   NAME chibi
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
