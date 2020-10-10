@@ -213,32 +213,33 @@
 
 ; ---- Exercise 1.8 ------------------------------------------------------------
 
-(define (square guess)
-  (* guess guess))
+(let ()
+  (define (square guess)
+    (* guess guess))
 
-(define (improve guess x)
-  (/ (+ (/ x (square guess)) (* 2 guess)) 3))
+  (define (improve guess x)
+    (/ (+ (/ x (square guess)) (* 2 guess)) 3))
 
-(define (good-enough? guess x)
-  (= (improve guess x) guess))
+  (define (good-enough? guess x)
+    (= (improve guess x) guess))
 
-(define (cube-root-iter guess x)
-  (if (good-enough? guess x) guess
-      (cube-root-iter (improve guess x) x)))
+  (define (cube-root-iter guess x)
+    (if (good-enough? guess x) guess
+        (cube-root-iter (improve guess x) x)))
 
-(define (cube-root x)
-  (cube-root-iter 1.1 x))
+  (define (cube-root x)
+    (cube-root-iter 1.1 x))
 
-(check (cube-root 5) => 1.709975946676697)
+  (check (cube-root 5) => 1.709975946676697)
 
-(check (cube-root -2) => -1.2599210498948732)
+  (check (cube-root -2) => -1.2599210498948732)
 
-(check (cube-root 27) => 3.0)
+  (check (cube-root 27) => 3.0)
 
-; TODO
-; (check (cube-root 0) => 4.9406564584125e-324)
+  ; TODO
+  ; (check (cube-root 0) => 4.9406564584125e-324)
 
-(check (cube-root 100000000000000.0001) => 46415.88833612779)
+  (check (cube-root 100000000000000.0001) => 46415.88833612779))
 
 ; ---- Section 1.1.8 -----------------------------------------------------------
 
@@ -252,23 +253,232 @@
 (define (sqrt x)
   (define (good-enough? guess x)
     (< (abs (- (square guess) x)) 0.001))
-  (define (improve guess x) (average guess (/ x guess)))
+
+  (define (improve guess x)
+    (average guess (/ x guess)))
+
   (define (sqrt-iter guess x)
     (if (good-enough? guess x) guess
         (sqrt-iter (improve guess x) x)))
+
   (sqrt-iter 1.0 x))
 
 (define (sqrt x)
   (define (good-enough? guess)
     (< (abs (- (square guess) x)) 0.001))
+
   (define (improve guess)
     (average guess (/ x guess)))
+
   (define (sqrt-iter guess)
     (if (good-enough? guess) guess
         (sqrt-iter (improve guess))))
+
   (sqrt-iter 1.0))
 
 ; ---- Section 1.2.1 -----------------------------------------------------------
+
+(let ()
+  (define (factorial n)
+    (if (= n 1) 1
+        (* n (factorial (- n 1)))))
+
+  (check (factorial 6) => 720))
+
+(let ()
+  (define (factorial n)
+    (fact-iter 1 1 n))
+
+  (define (fact-iter product counter max-count)
+    (if (> counter max-count) product
+        (fact-iter (* counter product)
+                   (+ counter 1)
+                   max-count)))
+
+  (check (factorial 6) => 720))
+
+; ---- Exercise 1.9 ------------------------------------------------------------
+
+(define (inc n) (+ n 1))
+(define (dec n) (- n 1))
+
+(let ()
+  (define (+ a b)
+    (if (= a 0) b (inc (+ (dec a) b))))
+  (check (+ 4 5) => 9))
+
+(let ()
+  (define (+ a b)
+    (if (= a 0) b (+ (dec a) (inc b))))
+  (check (+ 4 5) => 9))
+
+; ---- Exercise 1.10 -----------------------------------------------------------
+
+(define (A x y)
+  (cond ((= y 0) 0)
+        ((= x 0) (* 2 y))
+        ((= y 1) 2)
+        (else (A (- x 1) (A x (- y 1))))))
+
+(check (A 1 10) => 1024)
+
+(check (A 2 4) => 65536)
+
+(check (A 3 3) => 65536)
+
+(define (f n) (A 0 n))
+(define (g n) (A 1 n))
+(define (h n) (A 2 n))
+(define (k n) (* 5 n n))
+
+; ---- Section 1.2.2 -----------------------------------------------------------
+
+(let ()
+  (define (fib n)
+    (cond ((= n 0) 0)
+          ((= n 1) 1)
+          (else (+ (fib (- n 1))
+                   (fib (- n 2))))))
+  (check (fib 5) => 5))
+
+(let ()
+  (define (fib n)
+    (fib-iter 1 0 n))
+  (define (fib-iter a b count)
+    (if (= count 0) b
+        (fib-iter (+ a b) a (- count 1))))
+  (check (fib 5) => 5))
+
+(let ()
+  (define (count-change amount)
+    (cc amount 5))
+
+  (define (cc amount kinds-of-coins)
+    (cond ((= amount 0) 1)
+          ((or (< amount 0) (= kinds-of-coins 0)) 0)
+          (else (+ (cc amount
+                       (- kinds-of-coins 1))
+                   (cc (- amount
+                          (first-denomination kinds-of-coins))
+                       kinds-of-coins)))))
+
+  (define (first-denomination kinds-of-coins)
+    (cond ((= kinds-of-coins 1) 1)
+          ((= kinds-of-coins 2) 5)
+          ((= kinds-of-coins 3) 10)
+          ((= kinds-of-coins 4) 25)
+          ((= kinds-of-coins 5) 50)))
+
+  (check (count-change 100) => 292))
+
+; ---- Exercise 1.11 -----------------------------------------------------------
+
+(let ()
+  (define (f n)
+    (cond ((< n 3) n)
+          (else (+ (f (- n 1))
+                   (* 2 (f (- n 2)))
+                   (* 3 (f (- n 3)))))))
+
+  (check (f   -1) => -1)
+  (check (f    0) =>  0)
+  (check (f    5) => 25)
+  ; (check (f 1000) => 1200411335581569104197621183222182410228690281055710781687044573790661709343985308756380381850406620666042607564631605876156610535933789714780132607755663854744223225249491730428647795602251203632973677695221003056803565827035107926395650932180708300409716979009255557336360673626403040863408122386349183735643342985009827495351241264386090544972951146415009560371824341466875)
+ )
+
+(let ()
+ (define (f n)
+   (define (f-i a b c count)
+     (cond ((< n 3) n)
+           ((<= count 0) a)
+           (else (f-i (+ a (* 2 b) (* 3 c)) a b (- count 1)))))
+   (f-i 2 1 0 (- n 2)))
+
+  (check (f   -1) => -1)
+  (check (f    0) =>  0)
+  (check (f    5) => 25)
+  (check (f 1000) => 1200411335581569104197621183222182410228690281055710781687044573790661709343985308756380381850406620666042607564631605876156610535933789714780132607755663854744223225249491730428647795602251203632973677695221003056803565827035107926395650932180708300409716979009255557336360673626403040863408122386349183735643342985009827495351241264386090544972951146415009560371824341466875)
+ )
+
+; ---- Exercise 1.12 -----------------------------------------------------------
+
+(let ()
+  (define (pascal r c)
+    (if (or (= c 1)
+            (= c r))
+        1
+        (+ (pascal (- r 1) (- c 1))
+           (pascal (- r 1) c))))
+
+  (check (pascal 1 1) => 1)
+  (check (pascal 2 2) => 1)
+  (check (pascal 3 2) => 2)
+  (check (pascal 4 2) => 3)
+  (check (pascal 5 2) => 4)
+  (check (pascal 5 3) => 6))
+
+; ---- Exercise 1.13 -----------------------------------------------------------
+
+; ---- Section 1.2.3 -----------------------------------------------------------
+
+; ---- Exercise 1.14 -----------------------------------------------------------
+
+(let ()
+  (define (cube x)
+    (* x x x))
+
+  (define (p x)
+    (- (* 3 x)
+       (* 4 (cube x))))
+
+  (define (sine angle)
+    (if (not (> (abs angle) 0.1)) angle
+        (p (sine (/ angle 3.0)))))
+
+  ; (check (sine 12.15) => 0)
+ )
+
+; ---- Section 1.2.4 -----------------------------------------------------------
+
+(let ()
+  (define (expt b n)
+    (if (= n 0)
+        1
+        (* b (expt b (- n 1)))))
+
+  (check (expt 1 1) => 1)
+  (check (expt 2 2) => 4)
+  (check (expt 2 8) => 256)
+  (check (expt 2 16) => 65536))
+
+(let ()
+  (define (expt b n)
+    (expt-iter b n 1))
+
+  (define (expt-iter b counter product)
+    (if (= counter 0) product
+        (expt-iter b
+                   (- counter 1)
+                   (* b product))))
+
+  (check (expt 1 1) => 1)
+  (check (expt 2 2) => 4)
+  (check (expt 2 8) => 256)
+  (check (expt 2 16) => 65536))
+
+(define (fast-expt b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else (* b (fast-expt b (- n 1))))))
+
+(let ()
+  (define (even? n)
+    (= (remainder n 2) 0))
+
+  (check (even? 1) => #f)
+  (check (even? 2) => #t)
+  )
+
 
 ; SRFI-78
 

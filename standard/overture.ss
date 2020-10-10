@@ -817,23 +817,13 @@
 (define positive? (lambda (n) (> n 0)))
 (define negative? (lambda (n) (< n 0)))
 
-; (define odd?
-;   (lambda (n)
-;     (not (even? n))))
-
 (define odd?
   (lambda (n)
-    (if (zero? n) #f
-        (even? (- n 1)))))
-
-; (define even?
-;   (lambda (n)
-;     (= (remainder n 2) 0)))
+    (not (even? n))))
 
 (define even?
   (lambda (n)
-    (if (zero? n) #t
-        (odd? (- n 1)))))
+    (= (remainder n 2) 0)))
 
 (define max
   (lambda (x . xs)
