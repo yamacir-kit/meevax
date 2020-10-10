@@ -285,7 +285,12 @@ namespace meevax { inline namespace kernel
 
       if (result.length(10) and result.length(11)) // 6, 7, 8, 9, 10, 11
       {
-        return make<ratio>(make_number<R>(result.str(10)), make_number<R>(result.str(11)));
+        ratio value {
+          make_number<R>(result.str(10)),
+          make_number<R>(result.str(11))
+        };
+
+        return make(value.reduce());
       }
 
       if (result.length(9)) // 6, 7, 8, 9

@@ -39,6 +39,23 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
+  auto ratio::reduce() -> const auto&
+  {
+    if (const exact_integer divisor {
+          boost::multiprecision::gcd(
+            numerator().as<exact_integer>().value,
+            denominator().as<exact_integer>().value)
+        };
+        not divisor.is(1))
+    {
+      numerator() = make(numerator().as<exact_integer>() / divisor);
+
+      denominator() = make(denominator().as<exact_integer>() / divisor);
+    }
+
+    return *this;
+  }
+
   template <typename T>
   inline auto floating_point<T>::as_exact() const
   {
@@ -139,13 +156,13 @@ namespace meevax { inline namespace kernel
    * ┌─────────┬─────────┬─────────┬─────────┬───────┬─────────┬
    * │ LHS\RHS │   f32   │   f64   │   big   │ ratio │ complex │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   f32   │    t    │    t    │    t    │   T   │    f    │
+   * │   f32   │    t    │    t    │    t    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   f64   │    t    │    t    │    t    │   T   │    f    │
+   * │   f64   │    t    │    t    │    t    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   big   │    t    │    t    │    t    │   f   │    f    │
+   * │   big   │    t    │    t    │    t    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │  ratio  │    f    │    f    │    f    │   f   │    f    │
+   * │  ratio  │    f    │    f    │    f    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    * │ complex │    f    │    f    │    f    │   f   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
@@ -183,6 +200,58 @@ namespace meevax { inline namespace kernel
   #undef BOILERPLATE
 
   #define BOILERPLATE(SYMBOL)                                                  \
+  auto operator SYMBOL(const exact_integer& lhs, const ratio& rhs)             \
+  {                                                                            \
+    return                                                                     \
+      make<ratio>(                                                             \
+        lhs * rhs.denominator() SYMBOL rhs.numerator(),                        \
+              rhs.denominator());                                              \
+  } static_assert(true)
+
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+
+  #undef BOILERPLATE
+
+  auto operator *(const exact_integer& lhs, const ratio& rhs)
+  {
+    if (rhs.denominator().as<exact_integer>().value.convert_to<decltype(1)>() == 1)
+    {
+      //      n
+      // x * ---
+      //      1
+
+      return lhs * rhs.numerator();
+    }
+    else if (lhs == rhs.denominator())
+    {
+      //      n
+      // x * ---
+      //      x
+
+      return rhs.numerator();
+    }
+    else
+    {
+      //      n
+      // x * ---
+      //      d
+
+      return make<ratio>(lhs * rhs.numerator(), rhs.denominator());
+    }
+  }
+
+  auto operator /(const exact_integer& lhs, const ratio& rhs)
+  {
+    return lhs * rhs.invert();
+  }
+
+  auto operator %(const exact_integer& lhs, const ratio& rhs)
+  {
+    return unspecified;
+  }
+
+  #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
@@ -207,6 +276,10 @@ namespace meevax { inline namespace kernel
   {                                                                            \
     if (rhs)                                                                   \
     {                                                                          \
+      if (rhs.is<ratio>())                                                     \
+      {                                                                        \
+        return make(*this SYMBOL rhs.as<ratio>());                             \
+      }                                                                        \
       if (rhs.is<exact_integer>())                                             \
       {                                                                        \
         return make(*this SYMBOL rhs.as<exact_integer>());                     \
@@ -334,6 +407,13 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(exact_integer, ==, equal_to);
   BOILERPLATE(exact_integer, >,  greater);
   BOILERPLATE(exact_integer, >=, greater_equal);
+
+  // BOILERPLATE(ratio, !=, not_equal_to);
+  // BOILERPLATE(ratio, <,  less);
+  // BOILERPLATE(ratio, <=, less_equal);
+  // BOILERPLATE(ratio, ==, equal_to);
+  // BOILERPLATE(ratio, >,  greater);
+  // BOILERPLATE(ratio, >=, greater_equal);
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel

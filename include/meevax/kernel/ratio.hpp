@@ -16,6 +16,13 @@ namespace meevax { inline namespace kernel
     auto denominator() const noexcept -> decltype(auto) { return cdr(*this); }
     auto denominator()       noexcept -> decltype(auto) { return cdr(*this); }
 
+    auto invert() const
+    {
+      return make<ratio>(denominator(), numerator());
+    }
+
+    auto reduce() -> const auto&;
+
     auto is_exact() const noexcept
     {
       return true;
@@ -73,18 +80,12 @@ namespace meevax { inline namespace kernel
 
   auto operator *(const ratio& lhs, const ratio& rhs)
   {
-    return
-      make<ratio>(
-        car(lhs) * car(rhs),
-        cdr(lhs) * cdr(rhs));
+    return make<ratio>(car(lhs) * car(rhs), cdr(lhs) * cdr(rhs));
   }
 
   auto operator /(const ratio& lhs, const ratio& rhs)
   {
-    return
-      make<ratio>(
-        car(lhs) * cdr(rhs),
-        cdr(lhs) * car(rhs));
+    return make<ratio>(car(lhs) * cdr(rhs), cdr(lhs) * car(rhs));
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \

@@ -38,6 +38,12 @@ namespace meevax { inline namespace kernel
       return value.str();
     }
 
+    template <typename T>
+    auto is(T&& x) const
+    {
+      return value.convert_to<T>() == x;
+    }
+
     static constexpr auto is_exact() noexcept
     {
       return true;
