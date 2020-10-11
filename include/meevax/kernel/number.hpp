@@ -300,7 +300,7 @@ namespace meevax { inline namespace kernel
   #undef BOILERPLATE
 
   #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  let exact_integer::operator SYMBOL(const object& rhs) const                       \
+  let operator SYMBOL(const exact_integer& lhs, const object& rhs)             \
   {                                                                            \
     static const std::unordered_map<                                           \
       std::type_index,                                                         \
@@ -343,12 +343,12 @@ namespace meevax { inline namespace kernel
                                                                                \
     if (auto iter { overloads.find(rhs.type()) }; iter != std::end(overloads)) \
     {                                                                          \
-      return std::invoke(cdr(*iter), *this, rhs);                              \
+      return std::invoke(cdr(*iter), lhs, rhs);                                \
     }                                                                          \
     else                                                                       \
     {                                                                          \
       std::stringstream ss {};                                                 \
-      ss << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
+      ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
       throw std::logic_error { ss.str() };                                     \
     }                                                                          \
   } static_assert(true)

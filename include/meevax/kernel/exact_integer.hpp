@@ -64,12 +64,6 @@ namespace meevax { inline namespace kernel
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
 
-    auto operator * (const object&) const -> object;
-    auto operator + (const object&) const -> object;
-    auto operator - (const object&) const -> object;
-    auto operator / (const object&) const -> object;
-    auto operator % (const object&) const -> object;
-
     auto operator ==(const object&) const -> bool;
     auto operator !=(const object&) const -> bool;
     auto operator < (const object&) const -> bool;
@@ -77,6 +71,12 @@ namespace meevax { inline namespace kernel
     auto operator > (const object&) const -> bool;
     auto operator >=(const object&) const -> bool;
   };
+
+  let operator *(const exact_integer&, const object&);
+  let operator +(const exact_integer&, const object&);
+  let operator -(const exact_integer&, const object&);
+  let operator /(const exact_integer&, const object&);
+  let operator %(const exact_integer&, const object&);
 
   auto operator <<(std::ostream& os, const exact_integer& rhs) -> decltype(auto)
   {
