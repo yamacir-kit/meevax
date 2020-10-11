@@ -53,19 +53,6 @@ namespace meevax { inline namespace kernel
 
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }
-
-    auto operator * (const object&) const -> object;
-    auto operator + (const object&) const -> object;
-    auto operator - (const object&) const -> object;
-    auto operator / (const object&) const -> object;
-    auto operator % (const object&) const -> object;
-
-    auto operator ==(const object&) const -> bool;
-    auto operator !=(const object&) const -> bool;
-    auto operator < (const object&) const -> bool;
-    auto operator <=(const object&) const -> bool;
-    auto operator > (const object&) const -> bool;
-    auto operator >=(const object&) const -> bool;
   };
 
   template struct floating_point<float>;
@@ -76,6 +63,19 @@ namespace meevax { inline namespace kernel
   using double_float = floating_point<double>;
 
   using default_float = floating_point<decltype(0.0)>;
+
+  template <typename T> let operator * (floating_point<T>&, const object&);
+  template <typename T> let operator + (floating_point<T>&, const object&);
+  template <typename T> let operator - (floating_point<T>&, const object&);
+  template <typename T> let operator / (floating_point<T>&, const object&);
+  template <typename T> let operator % (floating_point<T>&, const object&);
+
+  template <typename T> auto operator == (floating_point<T>&, const object&) -> bool;
+  template <typename T> auto operator != (floating_point<T>&, const object&) -> bool;
+  template <typename T> auto operator <  (floating_point<T>&, const object&) -> bool;
+  template <typename T> auto operator <= (floating_point<T>&, const object&) -> bool;
+  template <typename T> auto operator >  (floating_point<T>&, const object&) -> bool;
+  template <typename T> auto operator >= (floating_point<T>&, const object&) -> bool;
 
   template <typename T>
   auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)

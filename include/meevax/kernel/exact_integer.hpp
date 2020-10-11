@@ -39,9 +39,9 @@ namespace meevax { inline namespace kernel
     }
 
     template <typename T>
-    auto is(T&& x) const
+    auto is(T&& number) const
     {
-      return value.convert_to<T>() == x;
+      return value.convert_to<T>() == number;
     }
 
     static constexpr auto is_exact() noexcept
@@ -63,13 +63,6 @@ namespace meevax { inline namespace kernel
 
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
-
-    auto operator ==(const object&) const -> bool;
-    auto operator !=(const object&) const -> bool;
-    auto operator < (const object&) const -> bool;
-    auto operator <=(const object&) const -> bool;
-    auto operator > (const object&) const -> bool;
-    auto operator >=(const object&) const -> bool;
   };
 
   let operator *(const exact_integer&, const object&);
@@ -77,6 +70,13 @@ namespace meevax { inline namespace kernel
   let operator -(const exact_integer&, const object&);
   let operator /(const exact_integer&, const object&);
   let operator %(const exact_integer&, const object&);
+
+  auto operator ==(const exact_integer&, const object&) -> bool;
+  auto operator !=(const exact_integer&, const object&) -> bool;
+  auto operator < (const exact_integer&, const object&) -> bool;
+  auto operator <=(const exact_integer&, const object&) -> bool;
+  auto operator > (const exact_integer&, const object&) -> bool;
+  auto operator >=(const exact_integer&, const object&) -> bool;
 
   auto operator <<(std::ostream& os, const exact_integer& rhs) -> decltype(auto)
   {

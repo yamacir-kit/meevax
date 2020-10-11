@@ -263,39 +263,40 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
-  auto NUMBER::operator SYMBOL(const object& rhs) const -> object              \
+  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
+  template <typename T>                                                        \
+  let operator SYMBOL(const floating_point<T>& lhs, const object& rhs)         \
   {                                                                            \
     if (rhs)                                                                   \
     {                                                                          \
       if (rhs.is<ratio>())                                                     \
       {                                                                        \
-        return make(*this SYMBOL rhs.as<ratio>());                             \
+        return make(lhs SYMBOL rhs.as<ratio>());                               \
       }                                                                        \
       if (rhs.is<exact_integer>())                                             \
       {                                                                        \
-        return make(*this SYMBOL rhs.as<exact_integer>());                     \
+        return make(lhs SYMBOL rhs.as<exact_integer>());                       \
       }                                                                        \
       else if (rhs.is<single_float>())                                         \
       {                                                                        \
-        return make(*this SYMBOL rhs.as<single_float>());                      \
+        return make(lhs SYMBOL rhs.as<single_float>());                        \
       }                                                                        \
       else if (rhs.is<double_float>())                                         \
       {                                                                        \
-        return make(*this SYMBOL rhs.as<double_float>());                      \
+        return make(lhs SYMBOL rhs.as<double_float>());                        \
       }                                                                        \
     }                                                                          \
                                                                                \
     std::stringstream ss {};                                                   \
-    ss << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
+    ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
     throw std::logic_error { ss.str() };                                       \
   } static_assert(true)
 
-  template <typename T> BOILERPLATE(floating_point<T>, *, multiplies);
-  template <typename T> BOILERPLATE(floating_point<T>, +, plus);
-  template <typename T> BOILERPLATE(floating_point<T>, -, minus);
-  template <typename T> BOILERPLATE(floating_point<T>, /, divides);
-  template <typename T> BOILERPLATE(floating_point<T>, %, modulus);
+  BOILERPLATE(*, multiplies);
+  BOILERPLATE(+, plus);
+  BOILERPLATE(-, minus);
+  BOILERPLATE(/, divides);
+  BOILERPLATE(%, modulus);
 
   #undef BOILERPLATE
 
@@ -497,61 +498,7 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
-  /* ---- Arithmetic Comparison Dispatcher -------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
-
-  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
-  auto NUMBER::operator SYMBOL(const object& rhs) const -> bool                \
-  {                                                                            \
-    if (rhs)                                                                   \
-    {                                                                          \
-      if (rhs.is<exact_integer>())                                             \
-      {                                                                        \
-        return *this SYMBOL rhs.as<exact_integer>();                           \
-      }                                                                        \
-      else if (rhs.is<ratio>())                                                \
-      {                                                                        \
-        return *this SYMBOL rhs.as<ratio>();                                   \
-      }                                                                        \
-      else if (rhs.is<single_float>())                                         \
-      {                                                                        \
-        return *this SYMBOL rhs.as<single_float>();                            \
-      }                                                                        \
-      else if (rhs.is<double_float>())                                         \
-      {                                                                        \
-        return *this SYMBOL rhs.as<double_float>();                            \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    std::stringstream port {};                                                 \
-    port << "no viable operation '" #OPERATION "' with " << *this << " and " << rhs; \
-    throw std::logic_error { port.str() };                                     \
-  } static_assert(true, "semicolon required after this macro")
-
-  template <typename T> BOILERPLATE(floating_point<T>, !=, not_equal_to);
-  template <typename T> BOILERPLATE(floating_point<T>, <,  less);
-  template <typename T> BOILERPLATE(floating_point<T>, <=, less_equal);
-  template <typename T> BOILERPLATE(floating_point<T>, ==, equal_to);
-  template <typename T> BOILERPLATE(floating_point<T>, >,  greater);
-  template <typename T> BOILERPLATE(floating_point<T>, >=, greater_equal);
-
-  BOILERPLATE(exact_integer, !=, not_equal_to);
-  BOILERPLATE(exact_integer, <,  less);
-  BOILERPLATE(exact_integer, <=, less_equal);
-  BOILERPLATE(exact_integer, ==, equal_to);
-  BOILERPLATE(exact_integer, >,  greater);
-  BOILERPLATE(exact_integer, >=, greater_equal);
-
-  // BOILERPLATE(ratio, !=, not_equal_to);
-  // BOILERPLATE(ratio, <,  less);
-  // BOILERPLATE(ratio, <=, less_equal);
-  // BOILERPLATE(ratio, ==, equal_to);
-  // BOILERPLATE(ratio, >,  greater);
-  // BOILERPLATE(ratio, >=, greater_equal);
-
-  #undef BOILERPLATE
+  /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
 
   #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
   auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \
@@ -580,6 +527,20 @@ namespace meevax { inline namespace kernel
     port << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
     throw std::logic_error { port.str() };                                     \
   } static_assert(true, "semicolon required after this macro")
+
+  template <typename T> BOILERPLATE(floating_point<T>, !=, not_equal_to);
+  template <typename T> BOILERPLATE(floating_point<T>, <,  less);
+  template <typename T> BOILERPLATE(floating_point<T>, <=, less_equal);
+  template <typename T> BOILERPLATE(floating_point<T>, ==, equal_to);
+  template <typename T> BOILERPLATE(floating_point<T>, >,  greater);
+  template <typename T> BOILERPLATE(floating_point<T>, >=, greater_equal);
+
+  BOILERPLATE(exact_integer, !=, not_equal_to);
+  BOILERPLATE(exact_integer, <,  less);
+  BOILERPLATE(exact_integer, <=, less_equal);
+  BOILERPLATE(exact_integer, ==, equal_to);
+  BOILERPLATE(exact_integer, >,  greater);
+  BOILERPLATE(exact_integer, >=, greater_equal);
 
   BOILERPLATE(ratio, !=, not_equal_to);
   BOILERPLATE(ratio, <,  less);
