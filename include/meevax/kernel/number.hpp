@@ -97,27 +97,28 @@ namespace meevax { inline namespace kernel
 
   auto exact = [](const object& z)
   {
-    // if (z.is<ratio>())
-    // {
-    //   return z.as<ratio>().as_exact();
-    // }
-    // else
-    if (z.is<exact_integer>())
-    {
-      return z.as<exact_integer>().as_exact();
+    #define BOILERPLATE(TYPE)                                                  \
+    {                                                                          \
+      typeid(TYPE), [](auto&& z)                                               \
+      {                                                                        \
+        return z.template as<TYPE>().as_exact();                               \
+      }                                                                        \
     }
-    else if (z.is<single_float>())
+
+    static const std::unordered_map<
+      std::type_index,
+      std::function<exact_integer (const object&)>
+    > match
     {
-      return z.as<single_float>().as_exact();
-    }
-    else if (z.is<double_float>())
-    {
-      return z.as<double_float>().as_exact();
-    }
-    else
-    {
-      return exact_integer(0);
-    }
+      BOILERPLATE(single_float),
+      BOILERPLATE(double_float),
+      // BOILERPLATE(ratio),
+      BOILERPLATE(exact_integer),
+    };
+
+    #undef BOILERPLATE
+
+    return match.at(z.type())(z);
   };
 
   auto inexact = [](const object& z)
