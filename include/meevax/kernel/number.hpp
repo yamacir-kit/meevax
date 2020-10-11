@@ -45,12 +45,17 @@ namespace meevax { inline namespace kernel
 
   /* ---- Ratio ------------------------------------------------------------- */
 
+  auto ratio::is_integer() const
+  {
+    return denominator().as<exact_integer>().is(1);
+  }
+
   auto ratio::as_inexact() const
   {
     return floating_point(numerator().as<exact_integer>().as_inexact() / denominator().as<exact_integer>().as_inexact());
   }
 
-  auto ratio::reduce() -> const auto&
+  auto ratio::reduce() -> const ratio&
   {
     if (const exact_integer divisor {
           boost::multiprecision::gcd(
@@ -209,9 +214,7 @@ namespace meevax { inline namespace kernel
 
   auto operator *(const exact_integer& lhs, const ratio& rhs)
   {
-    ratio result { lhs * rhs.numerator(), rhs.denominator() };
-
-    if (result.reduce().denominator().as<exact_integer>().is(1))
+    if (ratio result { lhs * rhs.numerator(), rhs.denominator() }; result.reduce().denominator().as<exact_integer>().is(1))
     {
       return result.numerator();
     }
@@ -230,6 +233,9 @@ namespace meevax { inline namespace kernel
   {
     return unspecified;
   }
+
+  /* ---- Ratio ------------------------------------------------------------- */
+
 
   /* ---- Floating-Point Numbers -------------------------------------------- */
 
@@ -312,6 +318,8 @@ namespace meevax { inline namespace kernel
 
   /* ---- Arithmetic Comparisons -----------------------------------------------
    *
+   * TODO CONSIDER EPSILON
+   *
    * ┌─────────┬─────────┬─────────┬─────────┬───────┬─────────┬
    * │ LHS\RHS │   f32   │   f64   │   big   │ ratio │ complex │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
@@ -319,7 +327,7 @@ namespace meevax { inline namespace kernel
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    * │   f64   │    t    │    t    │    t    │   f   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   big   │    t    │    t    │    t    │   f   │    f    │
+   * │   big   │    t    │    t    │    t    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    * │  ratio  │    f    │    f    │    f    │   f   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
@@ -328,12 +336,19 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  // TODO CONSIDER EPSILON
+  /* ---- Multi-Precision Exact-Integer --------------------------------------*/
+
   #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
+  auto operator SYMBOL(const exact_integer& lhs, ratio& rhs)                   \
   {                                                                            \
-    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
+    if (rhs.reduce().is_integer())                                             \
+    {                                                                          \
+      return lhs SYMBOL rhs.numerator();                                       \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return false;                                                            \
+    }                                                                          \
   } static_assert(true)
 
   BOILERPLATE(!=);
@@ -345,12 +360,31 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
-  // TODO CONSIDER EPSILON
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
     return lhs.value.convert_to<T>() SYMBOL rhs.value;                         \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
+  /* ---- Ratio ------------------------------------------------------------- */
+
+  /* ---- Floating-Point Number --------------------------------------------- */
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
+  {                                                                            \
+    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
   } static_assert(true)
 
   BOILERPLATE(!=);

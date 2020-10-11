@@ -16,12 +16,7 @@ namespace meevax { inline namespace kernel
     auto denominator() const noexcept -> decltype(auto) { return cdr(*this); }
     auto denominator()       noexcept -> decltype(auto) { return cdr(*this); }
 
-    auto invert() const
-    {
-      return make<ratio>(denominator(), numerator());
-    }
-
-    auto reduce() -> const auto&;
+    auto is_integer() const;
 
     static constexpr auto is_exact() noexcept
     {
@@ -33,7 +28,26 @@ namespace meevax { inline namespace kernel
       return not is_exact();
     }
 
-    // auto as_exact() const;
+    auto invert() const
+    {
+      return make<ratio>(denominator(), numerator());
+    }
+
+    auto reduce() -> const ratio&;
+
+    auto reduce() const
+    {
+      auto copy { *this };
+
+      copy.reduce();
+
+      return copy;
+    }
+
+    auto as_exact() const -> const auto&
+    {
+      return *this;
+    }
 
     auto as_inexact() const;
 
