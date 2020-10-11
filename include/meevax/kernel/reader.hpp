@@ -290,7 +290,14 @@ namespace meevax { inline namespace kernel
           make_number<R>(result.str(11))
         };
 
-        return make(value.reduce());
+        if (value.reduce().is_integer())
+        {
+          return value.numerator();
+        }
+        else
+        {
+          return make(value);
+        }
       }
 
       if (result.length(9)) // 6, 7, 8, 9
