@@ -8,6 +8,8 @@
 #include <meevax/kernel/floating_point.hpp>
 #include <meevax/kernel/ratio.hpp>
 
+#include <typeindex>
+
 namespace meevax { inline namespace kernel
 {
   /* ---- Numbers --------------------------------------------------------------
@@ -22,7 +24,7 @@ namespace meevax { inline namespace kernel
    *             |    |-- binary  80 (C++ long double float) = floating_point<long double>
    *             |    `-- binary 128
    *             `-- rational
-   *                  |-- fractional
+   *                  |-- ratio
    *                  `-- exact-integer
    *                       |-- multi-precision exact-integer
    *                       `-- fixed precision exact-integer
@@ -34,10 +36,25 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  /* ---- Numerical Operations -------------------------------------------------
+  /* ---- Multi-Precision Exact-Integer Operations -----------------------------
    *
    *
    * ------------------------------------------------------------------------ */
+
+  inline auto exact_integer::as_inexact() const
+  {
+    return floating_point(value.convert_to<most_precise>());
+  }
+
+  /* ---- Ratio Operations -----------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
+  auto ratio::as_inexact() const
+  {
+    return floating_point(numerator().as<exact_integer>().as_inexact() / denominator().as<exact_integer>().as_inexact());
+  }
 
   auto ratio::reduce() -> const auto&
   {
@@ -56,15 +73,27 @@ namespace meevax { inline namespace kernel
     return *this;
   }
 
+  /* ---- Floating-Point Numbers Operations ------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
   template <typename T>
   inline auto floating_point<T>::as_exact() const
   {
     return static_cast<exact_integer>(value);
   }
 
-  // auto ratio::as_exact() const
-  // {
-  // }
+  template <typename T>
+  inline constexpr auto floating_point<T>::as_inexact() const noexcept
+  {
+    return floating_point<most_precise>(*this); // XXX ???
+  }
+
+  /* ---- Numerical Operations -------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
 
   auto exact = [](const object& z)
   {
@@ -91,44 +120,30 @@ namespace meevax { inline namespace kernel
     }
   };
 
-  template <typename T>
-  inline constexpr auto floating_point<T>::as_inexact() const noexcept
-  {
-    return floating_point<most_precise>(*this);
-  }
-
-  inline auto exact_integer::as_inexact() const
-  {
-    return floating_point(value.convert_to<most_precise>());
-  }
-
-  inline auto ratio::as_inexact() const
-  {
-    return floating_point(numerator().as<exact_integer>().as_inexact() / denominator().as<exact_integer>().as_inexact());
-  }
-
   auto inexact = [](const object& z)
   {
-    if (z.is<ratio>())
-    {
-      return z.as<ratio>().as_inexact();
+    #define BOILERPLATE(TYPE)                                                  \
+    {                                                                          \
+      typeid(TYPE), [](auto&& z)                                               \
+      {                                                                        \
+        return z.template as<TYPE>().as_inexact();                             \
+      }                                                                        \
     }
-    else if (z.is<exact_integer>())
+
+    static const std::unordered_map<
+      std::type_index,
+      std::function<default_float (const object&)>
+    > match
     {
-      return z.as<exact_integer>().as_inexact();
-    }
-    else if (z.is<single_float>())
-    {
-      return z.as<single_float>().as_inexact();
-    }
-    else if (z.is<double_float>())
-    {
-      return z.as<double_float>().as_inexact();
-    }
-    else
-    {
-      return floating_point(0.0);
-    }
+      BOILERPLATE(single_float),
+      BOILERPLATE(double_float),
+      BOILERPLATE(ratio),
+      BOILERPLATE(exact_integer),
+    };
+
+    #undef BOILERPLATE
+
+    return match.at(z.type())(z);
   };
 
   auto is_nan = [](const object& x)

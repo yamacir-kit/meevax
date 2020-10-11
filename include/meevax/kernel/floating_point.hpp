@@ -7,8 +7,6 @@ namespace meevax { inline namespace kernel
 {
   using most_precise = double;
 
-  using default_float = decltype(0.0);
-
   /* ---- Floating Point Number ------------------------------------------------
    *
    * ------------------------------------------------------------------------ */
@@ -76,6 +74,8 @@ namespace meevax { inline namespace kernel
 
   using single_float = floating_point<float>;
   using double_float = floating_point<double>;
+
+  using default_float = floating_point<decltype(0.0)>;
 
   template <typename T>
   auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)

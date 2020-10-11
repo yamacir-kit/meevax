@@ -23,12 +23,12 @@ namespace meevax { inline namespace kernel
 
     auto reduce() -> const auto&;
 
-    auto is_exact() const noexcept
+    static constexpr auto is_exact() noexcept
     {
       return true;
     }
 
-    auto is_inexact() const noexcept
+    static constexpr auto is_inexact() noexcept
     {
       return not is_exact();
     }
@@ -85,7 +85,7 @@ namespace meevax { inline namespace kernel
 
   auto operator /(const ratio& lhs, const ratio& rhs)
   {
-    return make<ratio>(car(lhs) * cdr(rhs), cdr(lhs) * car(rhs));
+    return lhs * rhs.invert();
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
