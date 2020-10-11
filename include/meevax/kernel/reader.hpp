@@ -185,9 +185,9 @@ namespace meevax { inline namespace kernel
     template <std::size_t R>
     auto unsigned_real() -> const std::string
     {
-      return "(" + unsigned_integer<R>()                               +
-             "|" + unsigned_integer<R>() + "/" + unsigned_integer<R>() +
-             "|" +          decimal<R>()                               + ")";
+      return "("  + unsigned_integer<R>()                                 +
+             "|(" + unsigned_integer<R>() + ")/(" + unsigned_integer<R>() + ")" +
+             "|"  +          decimal<R>()                                 + ")";
     }
 
     template <std::size_t R = 10>
@@ -241,17 +241,31 @@ namespace meevax { inline namespace kernel
     }
     else if (std::smatch result {}; std::regex_match(token, result, pattern))
     {
-      if (result.length(30)) // 6, 30, 31, 32, 38, 39
-      {
-        return make<complex>(make_number<R>(result.str(31)), make_number<R>(result.str(38)));
-      }
+      // FOR DEVELOPER
+      // for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
+      // {
+      //   if ((*iter).length())
+      //   {
+      //     switch (auto index { std::distance(std::begin(result), iter) }; index)
+      //     {
+      //     default:
+      //       std::cout << "; number[" << index << "/" << result.size() << "] = " << *iter << std::endl;
+      //       break;
+      //     }
+      //   }
+      // }
 
-      if (result.length(53)) // 6, 53, 54, 55, 61, 62
-      {
-        return make<complex>(make_number<R>(result.str(54)), make_number<R>(result.str(61)));
-      }
+      // if (result.length(30)) // 6, 30, 31, 32, 38, 39
+      // {
+      //   return make<complex>(make_number<R>(result.str(31)), make_number<R>(result.str(38)));
+      // }
+      //
+      // if (result.length(53)) // 6, 53, 54, 55, 61, 62
+      // {
+      //   return make<complex>(make_number<R>(result.str(54)), make_number<R>(result.str(61)));
+      // }
 
-      if (result.length(14)) // 6, 7, 8, 14
+      if (result.length(16)) // 6, 7, 8, 16
       {
         static const std::unordered_map<std::string, object> infnan
         {
@@ -264,27 +278,31 @@ namespace meevax { inline namespace kernel
         return infnan.at(token);
       }
 
-      if (result.length(10)) // 6, 7, 8, 9, 10
+      if (result.length(12)) // 6, 7, 8, 9, 12
       {
         return make<floating_point<most_precise>>(token.substr(token[0] == '+' ? 1 : 0));
+      }
+
+      if (result.length(10) and result.length(11)) // 6, 7, 8, 9, 10, 11
+      {
+        ratio value {
+          make_number<R>(result.str(10)),
+          make_number<R>(result.str(11))
+        };
+
+        if (value.reduce().is_integer())
+        {
+          return value.numerator();
+        }
+        else
+        {
+          return make(value);
+        }
       }
 
       if (result.length(9)) // 6, 7, 8, 9
       {
         return make<exact_integer>(token.substr(token[0] == '+' ? 1 : 0));
-      }
-
-      for (auto iter { std::begin(result) }; iter != std::end(result); ++iter)
-      {
-        if ((*iter).length())
-        {
-          switch (auto index { std::distance(std::begin(result), iter) }; index)
-          {
-          default:
-            std::cout << "; number[" << index << "/" << result.size() << "] = " << *iter << std::endl;
-            break;
-          }
-        }
       }
 
       std::stringstream port {};
@@ -401,7 +419,7 @@ namespace meevax { inline namespace kernel
         {
           if (token == ".")
           {
-            throw reader_error_about_pair {"dot-notation"};
+            throw reader_error_about_pair { "dot-notation" };
           }
           else try
           {

@@ -250,6 +250,11 @@ namespace meevax { inline namespace kernel
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
     {}
 
+    auto null() const noexcept
+    {
+      return not std::shared_ptr<T>::operator bool();
+    }
+
     /* ---- C/C++ Derived Types Bind -------------------------------------------
      *
      * With this function, you don't have to worry about virtual destructors.
@@ -310,7 +315,11 @@ namespace meevax { inline namespace kernel
     *======================================================================= */
     decltype(auto) type() const
     {
-      switch (auto* value {std::shared_ptr<T>::get()}; category_of(value))
+      if (null())
+      {
+        return typeid(std::nullptr_t);
+      }
+      else switch (auto* value { std::shared_ptr<T>::get() }; category_of(value))
       {
       case category<void*>::value: // address
         return binding().type();

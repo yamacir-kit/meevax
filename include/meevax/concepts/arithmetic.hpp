@@ -12,11 +12,11 @@ namespace meevax { inline namespace concepts
   {};                                                                          \
                                                                                \
   template <typename T, typename U>                                            \
-  struct NAME<T, U, type_traits::void_t<decltype(                              \
-           std::declval<T>().operator SYMBOL(std::declval<U>())                \
-           )>>                                                                 \
+  struct NAME<T, U, type_traits::void_t<decltype(std::declval<const T&>() SYMBOL std::declval<const U&>())>> \
     : public std::true_type                                                    \
   {}
+
+  // TODO RENAME TO 'supports_##FUNCTOR_NAME##_operation'
 
   boilerplate(addable, +);
   boilerplate(divisible, /);

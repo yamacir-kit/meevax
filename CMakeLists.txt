@@ -237,17 +237,23 @@ add_custom_target(uninstall
 enable_testing()
 
 add_test(
-  NAME R4RS-Examples
+  NAME r4rs
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
 
 add_test(
-  NAME Chibi-Scheme-Basic-Tests
+  NAME sicp-1
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/sicp-1.ss)
+
+add_test(
+  NAME chibi
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
 
 add_test(
-  NAME Meevax-Examples
+  NAME examples
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/examples/use-as-embedded-language/test.sh -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
