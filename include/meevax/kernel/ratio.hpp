@@ -56,13 +56,6 @@ namespace meevax { inline namespace kernel
     // auto operator - (const object&) const -> object;
     // auto operator / (const object&) const -> object;
     // auto operator % (const object&) const -> object;
-    //
-    // auto operator ==(const object&) const -> bool;
-    // auto operator !=(const object&) const -> bool;
-    // auto operator < (const object&) const -> bool;
-    // auto operator <=(const object&) const -> bool;
-    // auto operator > (const object&) const -> bool;
-    // auto operator >=(const object&) const -> bool;
   };
 
   auto operator <<(std::ostream& port, const ratio& rhs) -> decltype(auto)
@@ -105,9 +98,11 @@ namespace meevax { inline namespace kernel
   #define BOILERPLATE(SYMBOL)                                                  \
   auto operator SYMBOL(const ratio& lhs, const ratio& rhs)                     \
   {                                                                            \
-    return lhs.numerator() * rhs.denominator() SYMBOL rhs.numerator() * lhs.denominator(); \
+    return (lhs.numerator() * rhs.denominator()).binding() SYMBOL (rhs.numerator() * lhs.denominator()); \
   } static_assert(true)
 
+  BOILERPLATE(==);
+  BOILERPLATE(!=);
   BOILERPLATE(<);
   BOILERPLATE(<=);
   BOILERPLATE(>);

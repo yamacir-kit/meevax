@@ -1404,6 +1404,12 @@ namespace meevax { inline namespace kernel
     {
       return std::numeric_limits<double>::is_iec559 ? t : f;
     });
+
+    define<procedure>("type-of", [](auto&& xs)
+    {
+      std::cout << car(xs).type().name() << std::endl;
+      return unspecified;
+    });
   }
 
   #undef DEFINE_PREDICATE

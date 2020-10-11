@@ -507,6 +507,43 @@ namespace meevax { inline namespace kernel
   // BOILERPLATE(ratio, >=, greater_equal);
 
   #undef BOILERPLATE
+
+  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
+  auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \
+  {                                                                            \
+    if (rhs)                                                                   \
+    {                                                                          \
+      if (rhs.is<exact_integer>())                                             \
+      {                                                                        \
+        return lhs SYMBOL rhs.as<exact_integer>();                             \
+      }                                                                        \
+      else if (rhs.is<ratio>())                                                \
+      {                                                                        \
+        return lhs SYMBOL rhs.as<ratio>();                                     \
+      }                                                                        \
+      else if (rhs.is<single_float>())                                         \
+      {                                                                        \
+        return lhs SYMBOL rhs.as<single_float>();                              \
+      }                                                                        \
+      else if (rhs.is<double_float>())                                         \
+      {                                                                        \
+        return lhs SYMBOL rhs.as<double_float>();                              \
+      }                                                                        \
+    }                                                                          \
+                                                                               \
+    std::stringstream port {};                                                 \
+    port << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
+    throw std::logic_error { port.str() };                                     \
+  } static_assert(true, "semicolon required after this macro")
+
+  BOILERPLATE(ratio, !=, not_equal_to);
+  BOILERPLATE(ratio, <,  less);
+  BOILERPLATE(ratio, <=, less_equal);
+  BOILERPLATE(ratio, ==, equal_to);
+  BOILERPLATE(ratio, >,  greater);
+  BOILERPLATE(ratio, >=, greater_equal);
+
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
