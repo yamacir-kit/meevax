@@ -323,9 +323,9 @@ namespace meevax { inline namespace kernel
    * ┌─────────┬─────────┬─────────┬─────────┬───────┬─────────┬
    * │ LHS\RHS │   f32   │   f64   │   big   │ ratio │ complex │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   f32   │    t    │    t    │    t    │   f   │    f    │
+   * │   f32   │    t    │    t    │    t    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   f64   │    t    │    t    │    t    │   f   │    f    │
+   * │   f64   │    t    │    t    │    t    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    * │   big   │    t    │    t    │    t    │   t   │    f    │
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
@@ -396,6 +396,22 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
+  {                                                                            \
+    return lhs SYMBOL rhs.as_inexact();                                        \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
   /* ---- Arithmetic Comparison Dispatcher -------------------------------------
    *
    *
@@ -409,6 +425,10 @@ namespace meevax { inline namespace kernel
       if (rhs.is<exact_integer>())                                             \
       {                                                                        \
         return *this SYMBOL rhs.as<exact_integer>();                           \
+      }                                                                        \
+      else if (rhs.is<ratio>())                                                \
+      {                                                                        \
+        return *this SYMBOL rhs.as<ratio>();                                   \
       }                                                                        \
       else if (rhs.is<single_float>())                                         \
       {                                                                        \
