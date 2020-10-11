@@ -28,9 +28,9 @@ namespace meevax { inline namespace kernel
       return not is_exact();
     }
 
-    auto invert() const
+    auto invert() const -> ratio
     {
-      return make<ratio>(denominator(), numerator());
+      return { denominator(), numerator() };
     }
 
     auto reduce() -> const ratio&;
@@ -67,27 +67,23 @@ namespace meevax { inline namespace kernel
 
   auto operator +(const ratio& lhs, const ratio& rhs)
   {
-    // car(lhs)   car(rhs)   car(lhs) * cdr(rhs) + car(rhs) * cdr(lhs)
-    // -------- + -------- = -----------------------------------------
-    // cdr(lhs)   cdr(rhs)   cdr(lhs)            * cdr(rhs)
-
     return
       make<ratio>(
-        car(lhs) * cdr(rhs) + car(rhs) * cdr(lhs),
-        cdr(lhs)            * cdr(rhs));
+        lhs.numerator() * rhs.denominator() + rhs.numerator() * lhs.denominator(),
+        lhs.denominator() * rhs.denominator());
   }
 
   auto operator -(const ratio& lhs, const ratio& rhs)
   {
     return
       make<ratio>(
-        car(lhs) * cdr(rhs) - car(rhs) * cdr(lhs),
-        cdr(lhs)            * cdr(rhs));
+        lhs.numerator() * rhs.denominator() - rhs.numerator() * lhs.denominator(),
+        lhs.denominator() * rhs.denominator());
   }
 
   auto operator *(const ratio& lhs, const ratio& rhs)
   {
-    return make<ratio>(car(lhs) * car(rhs), cdr(lhs) * cdr(rhs));
+    return make<ratio>(lhs.numerator() * rhs.numerator(), lhs.denominator() * rhs.denominator());
   }
 
   auto operator /(const ratio& lhs, const ratio& rhs)

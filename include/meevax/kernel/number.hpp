@@ -214,7 +214,7 @@ namespace meevax { inline namespace kernel
 
   auto operator *(const exact_integer& lhs, const ratio& rhs)
   {
-    if (ratio result { lhs * rhs.numerator(), rhs.denominator() }; result.reduce().denominator().as<exact_integer>().is(1))
+    if (ratio result { lhs * rhs.numerator(), rhs.denominator() }; result.reduce().is_integer())
     {
       return result.numerator();
     }
@@ -258,7 +258,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
   {                                                                            \
-    return floating_point(lhs SYMBOL rhs.as_inexact());                        \
+    return make(floating_point(lhs SYMBOL rhs.as_inexact()));                  \
   } static_assert(true)
 
   BOILERPLATE(*);
@@ -281,7 +281,7 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       if (rhs.is<ratio>())                                                     \
       {                                                                        \
-        return make(*this SYMBOL rhs.as<ratio>());                             \
+        return *this SYMBOL rhs.as<ratio>();                                   \
       }                                                                        \
       if (rhs.is<exact_integer>())                                             \
       {                                                                        \
