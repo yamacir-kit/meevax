@@ -378,6 +378,46 @@ namespace meevax { inline namespace kernel
 
   /* ---- Ratio ------------------------------------------------------------- */
 
+  #define BOILERPLATE(SYMBOL)                                                  \
+  auto operator SYMBOL(const ratio& lhs, const exact_integer& rhs)             \
+  {                                                                            \
+    auto copy { lhs };                                                         \
+                                                                               \
+    if (copy.reduce().is_integer())                                            \
+    {                                                                          \
+      return copy.numerator().as<exact_integer>() SYMBOL rhs;                  \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return false;                                                            \
+    }                                                                          \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
+  #define BOILERPLATE(SYMBOL)                                                  \
+  template <typename T>                                                        \
+  auto operator SYMBOL(const ratio& lhs, const floating_point<T>& rhs)         \
+  {                                                                            \
+    return lhs.as_inexact() SYMBOL rhs;                                        \
+  } static_assert(true)
+
+  BOILERPLATE(!=);
+  BOILERPLATE(<);
+  BOILERPLATE(<=);
+  BOILERPLATE(==);
+  BOILERPLATE(>);
+  BOILERPLATE(>=);
+
+  #undef BOILERPLATE
+
   /* ---- Floating-Point Number --------------------------------------------- */
 
   #define BOILERPLATE(SYMBOL)                                                  \

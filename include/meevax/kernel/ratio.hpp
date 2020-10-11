@@ -105,12 +105,9 @@ namespace meevax { inline namespace kernel
   #define BOILERPLATE(SYMBOL)                                                  \
   auto operator SYMBOL(const ratio& lhs, const ratio& rhs)                     \
   {                                                                            \
-    return (lhs.numerator() SYMBOL rhs.numerator())                            \
-       and (lhs.denominator() SYMBOL rhs.denominator());                       \
+    return lhs.numerator() * rhs.denominator() SYMBOL rhs.numerator() * lhs.denominator(); \
   } static_assert(true)
 
-  BOILERPLATE(==);
-  BOILERPLATE(!=);
   BOILERPLATE(<);
   BOILERPLATE(<=);
   BOILERPLATE(>);
