@@ -28,9 +28,9 @@ namespace meevax { inline namespace kernel
       return not is_exact();
     }
 
-    auto invert() const -> ratio
+    auto invert() const
     {
-      return { denominator(), numerator() };
+      return ratio(denominator(), numerator());
     }
 
     auto reduce() -> const ratio&;
@@ -68,7 +68,7 @@ namespace meevax { inline namespace kernel
   auto operator +(const ratio& lhs, const ratio& rhs)
   {
     return
-      make<ratio>(
+      ratio(
         lhs.numerator() * rhs.denominator() + rhs.numerator() * lhs.denominator(),
         lhs.denominator() * rhs.denominator());
   }
@@ -76,14 +76,14 @@ namespace meevax { inline namespace kernel
   auto operator -(const ratio& lhs, const ratio& rhs)
   {
     return
-      make<ratio>(
+      ratio(
         lhs.numerator() * rhs.denominator() - rhs.numerator() * lhs.denominator(),
         lhs.denominator() * rhs.denominator());
   }
 
   auto operator *(const ratio& lhs, const ratio& rhs)
   {
-    return make<ratio>(lhs.numerator() * rhs.numerator(), lhs.denominator() * rhs.denominator());
+    return ratio(lhs.numerator() * rhs.numerator(), lhs.denominator() * rhs.denominator());
   }
 
   auto operator /(const ratio& lhs, const ratio& rhs)
