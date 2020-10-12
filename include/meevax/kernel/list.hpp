@@ -324,7 +324,7 @@ namespace meevax { inline namespace kernel
 
     const object append(const object& x, const object& y)
     {
-      if (not x)
+      if (x.is<null>())
       {
         return y;
       }
@@ -344,11 +344,11 @@ namespace meevax { inline namespace kernel
 
     object zip(const object& x, const object& y)
     {
-      if (!x && !y)
+      if (x.is<null>() and y.is<null>())
       {
         return unit;
       }
-      else if (x.is<pair>() && y.is<pair>())
+      else if (x.is<pair>() and y.is<pair>())
       {
         return list(car(x), car(y)) | zip(cdr(x), cdr(y));
       }
@@ -403,7 +403,7 @@ namespace meevax { inline namespace kernel
     template <typename Procedure>
     object map(Procedure procedure, const object& x)
     {
-      if (not x)
+      if (x.is<null>())
       {
         return unit;
       }

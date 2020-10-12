@@ -143,7 +143,7 @@ namespace meevax { inline namespace kernel
 
   auto is_nan = [](const object& x)
   {
-    if (not x)
+    if (x.is<null>())
     {
       return false;
     }

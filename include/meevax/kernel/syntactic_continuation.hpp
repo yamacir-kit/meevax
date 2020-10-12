@@ -973,9 +973,9 @@ namespace meevax { inline namespace kernel
       return make_string(boost::lexical_cast<std::string>(car(xs)));
     });
 
-    define<procedure>("string->number", [](auto&& xs)
+    define<procedure>("string->number", [](let const & xs)
     {
-      return make_number(car(xs).template as<string>());
+      return make_number(car(xs).as<string>());
     });
 
     /* ==== R7RS 6.3. Booleans =================================================
