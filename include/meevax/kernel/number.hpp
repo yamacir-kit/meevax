@@ -40,7 +40,7 @@ namespace meevax { inline namespace kernel
 
   inline auto exact_integer::as_inexact() const
   {
-    return floating_point(value.convert_to<most_precise>());
+    return floating_point(value.convert_to<default_float::value_type>());
   }
 
   /* ---- Ratio ------------------------------------------------------------- */
@@ -83,7 +83,7 @@ namespace meevax { inline namespace kernel
   template <typename T>
   inline constexpr auto floating_point<T>::as_inexact() const noexcept
   {
-    return floating_point<most_precise>(*this); // XXX ???
+    return default_float(*this); // XXX ???
   }
 
   /* ---- Generic ----------------------------------------------------------- */

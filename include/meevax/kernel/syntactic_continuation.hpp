@@ -496,9 +496,7 @@ namespace meevax { inline namespace kernel
       else if (x.is<exact_integer>())                                          \
       {                                                                        \
         if (const floating_point result {                                      \
-              FUNCTION(                                                        \
-                floating_point<most_precise>(                                  \
-                  x.as<exact_integer>().value))                                \
+              FUNCTION(x.as<exact_integer>().as_inexact())                     \
             }; result.is_exact())                                              \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \

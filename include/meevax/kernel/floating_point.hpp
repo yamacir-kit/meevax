@@ -5,8 +5,6 @@
 
 namespace meevax { inline namespace kernel
 {
-  using most_precise = double;
-
   /* ---- Floating Point Number ------------------------------------------------
    *
    * ------------------------------------------------------------------------ */
