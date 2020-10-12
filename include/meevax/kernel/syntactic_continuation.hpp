@@ -497,7 +497,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         if (const floating_point result {                                      \
               FUNCTION(x.as<exact_integer>().as_inexact())                     \
-            }; result.is_exact())                                              \
+            }; result.is_integer())                                            \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
@@ -904,7 +904,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("exponential", [](auto&& xs)
     {
-      if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_exact())
+      if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_integer())
       {
         return make<exact_integer>(result.value);
       }

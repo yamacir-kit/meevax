@@ -18,16 +18,6 @@ namespace meevax { inline namespace kernel
 
     auto is_integer() const;
 
-    static constexpr auto is_exact() noexcept
-    {
-      return true;
-    }
-
-    static constexpr auto is_inexact() noexcept
-    {
-      return not is_exact();
-    }
-
     auto invert() const
     {
       return ratio(denominator(), numerator());

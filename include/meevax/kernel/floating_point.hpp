@@ -35,14 +35,9 @@ namespace meevax { inline namespace kernel
       return boost::lexical_cast<std::string>(value);
     }
 
-    constexpr auto is_exact() const noexcept
+    constexpr auto is_integer() const noexcept
     {
       return value == std::trunc(value);
-    }
-
-    constexpr auto is_inexact() const noexcept
-    {
-      return not is_exact();
     }
 
     auto as_exact() const;
@@ -88,7 +83,7 @@ namespace meevax { inline namespace kernel
     }
     else
     {
-      return os << cyan << (rhs.is_exact() ? "#i" : "") << rhs.value << reset;
+      return os << cyan << rhs.value << reset;
     }
   }
 
@@ -106,12 +101,6 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(%, std::fmod);
 
   #undef BOILERPLATE
-
-  // template <typename T, typename U>
-  // constexpr auto operator %(const floating_point<T>& lhs, const floating_point<U>& rhs)
-  // {
-  //   return floating_point(std::fmod(lhs.value, rhs.value));
-  // }
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T, typename U>                                            \
