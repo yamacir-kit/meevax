@@ -75,26 +75,22 @@ namespace meevax { inline namespace kernel
 
 namespace std
 {
-  auto cbegin(const meevax::kernel::object& x)
-    -> meevax::kernel::homoiconic_iterator
+  auto cbegin(const meevax::kernel::object& x) -> meevax::kernel::homoiconic_iterator
   {
     return x;
   }
 
-  auto begin(const meevax::kernel::object& x)
-    -> meevax::kernel::homoiconic_iterator
+  auto begin(const meevax::kernel::object& x) -> meevax::kernel::homoiconic_iterator
   {
     return x;
   }
 
-  auto cend(const meevax::kernel::object&)
-    -> meevax::kernel::homoiconic_iterator
+  auto cend(const meevax::kernel::object&) -> meevax::kernel::homoiconic_iterator
   {
     return meevax::kernel::unit;
   }
 
-  auto end(const meevax::kernel::object&)
-    -> meevax::kernel::homoiconic_iterator
+  auto end(const meevax::kernel::object&) -> meevax::kernel::homoiconic_iterator
   {
     return meevax::kernel::unit;
   }
@@ -164,18 +160,13 @@ namespace meevax { inline namespace kernel
    *   - list?
    *   - not-pair?                      => not x.is<pair>()
    *   - null-list?
-   *   - null?                          => object::operator bool
-   *   - pair?                          => object::is<pair>
+   *   - null?                          => object::is<null>()
+   *   - pair?                          => object::is<pair>()
    *   - proper-list?
    *
    * ======================================================================== */
   inline namespace predicate
   {
-    auto null = [](auto&& x) constexpr
-    {
-      return not x;
-    };
-
     auto eq = [](auto&& x, auto&& y) constexpr
     {
       return x == y;
@@ -188,7 +179,7 @@ namespace meevax { inline namespace kernel
 
     bool equal(const object& x, const object& y)
     {
-      if (null(x) and null(y))
+      if (x.is<null>() and y.is<null>())
       {
         return true;
       }

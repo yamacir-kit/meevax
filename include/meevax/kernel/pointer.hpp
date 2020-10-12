@@ -20,47 +20,49 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Linux 64 Bit Address Space ==========================================
-  *
-  * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
-  * kernel 0xFFFF 8000 0000 0000 ~
-  *
-  *========================================================================= */
+  using null = std::nullptr_t;
+
+  /* ---- Linux 64 Bit Address Space -------------------------------------------
+   *
+   * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
+   * kernel 0xFFFF 8000 0000 0000 ~
+   *
+   * ------------------------------------------------------------------------ */
   static constexpr auto word_size { sizeof(std::size_t) };
 
-  /* ==== Tagged Pointers =====================================================
-  *
-  */ template <typename T>                                                   /*
-  */ using category                                                          /*
-  */   = std::integral_constant<                                             /*
-  */       std::uintptr_t,                                                   /*
-  *
-  *               ┌─ The value of meevax::kernel::pointer::get()
-  *          ┌────┴─────────┐
-  * address   0... .... 0000 => object binder (is 16 byte aligned)
-  *
-  * boolean   0... 0000 1101 NOTE: sizeof bool is implementation-defined
-  *
-  * single    0... 0101 1010
-  * double    0... 0110 1010
-  *
-  * int08_t   0... 0011 1000
-  * int16_t   0... 0100 1000
-  * int32_t   0... 0101 1000
-  *
-  * uint08_t  0... 0011 1100
-  * uint16_t  0... 0100 1100
-  * uint32_t  0... 0101 1100
-  *                ───┬ ┬┬┬┬
-  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) |    /*
-  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) |    /*
-  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) |    /*
-  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)      /*
-  *                   │
-  *                   └────── precision of the type = 2^N bit
-  */     >;                                                                  /*
-  *
-  *========================================================================== */
+  /* ---- Tagged Pointers ------------------------------------------------------
+   *
+   */ template <typename T>                                                   /*
+   */ using category                                                          /*
+   */   = std::integral_constant<                                             /*
+   */       std::uintptr_t,                                                   /*
+   *
+   *               ┌─ The value of meevax::kernel::pointer::get()
+   *          ┌────┴─────────┐
+   * address   0... .... 0000 => object binder (is 16 byte aligned)
+   *
+   * boolean   0... 0000 1101 NOTE: sizeof bool is implementation-defined
+   *
+   * single    0... 0101 1010
+   * double    0... 0110 1010
+   *
+   * int08_t   0... 0011 1000
+   * int16_t   0... 0100 1000
+   * int32_t   0... 0101 1000
+   *
+   * uint08_t  0... 0011 1100
+   * uint16_t  0... 0100 1100
+   * uint32_t  0... 0101 1100
+   *                ───┬ ┬┬┬┬
+   *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) |    /*
+   *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) |    /*
+   *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) |    /*
+   *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)      /*
+   *                   │
+   *                   └────── precision of the type = 2^N bit
+   */     >;                                                                  /*
+   *
+   * ------------------------------------------------------------------------ */
 
   constexpr std::uintptr_t category_mask { 0x0F };
   constexpr auto           category_mask_width { 4 };
@@ -250,11 +252,6 @@ namespace meevax { inline namespace kernel
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
     {}
 
-    auto null() const noexcept
-    {
-      return not std::shared_ptr<T>::operator bool();
-    }
-
     /* ---- C/C++ Derived Types Bind -------------------------------------------
      *
      * With this function, you don't have to worry about virtual destructors.
@@ -291,10 +288,10 @@ namespace meevax { inline namespace kernel
     }
     #endif // __cpp_lib_memory_resource
 
-    /* ==== C/C++ Fundamental Types Bind ========================================
-    *
-    *
-    *======================================================================== */
+    /* ---- C/C++ Fundamental Types Bind ---------------------------------------
+     *
+     *
+     * ---------------------------------------------------------------------- */
     template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
     static pointer bind(U&&)
     {
@@ -308,14 +305,14 @@ namespace meevax { inline namespace kernel
       return std::shared_ptr<T>::operator *();
     }
 
-    /* ==== Type Predicates ===================================================
-    *
-    * TODO: is_compatible_to (non-strict type comparison)
-    *
-    *======================================================================= */
-    decltype(auto) type() const
+    /* ---- Type Predicates ----------------------------------------------------
+     *
+     * TODO: is_compatible_to (non-strict type comparison)
+     *
+     * ---------------------------------------------------------------------- */
+    auto type() const -> decltype(auto)
     {
-      if (null())
+      if (not *this)
       {
         return typeid(std::nullptr_t);
       }
@@ -378,6 +375,15 @@ namespace meevax { inline namespace kernel
     auto is() const
     {
       return type() == typeid(typename std::decay<U>::type);
+    }
+
+    template <typename U,
+              typename std::enable_if<
+                std::is_null_pointer<typename std::decay<U>::type>::value
+              >::type = 0>
+    auto is() const
+    {
+      return not std::shared_ptr<T>::operator bool();
     }
 
     /* ---- C/C++ Derived Type Restoration -------------------------------------

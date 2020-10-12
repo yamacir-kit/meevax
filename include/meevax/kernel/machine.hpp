@@ -156,11 +156,7 @@ namespace meevax { inline namespace kernel
       else // is (application . arguments)
       {
         if (let const applicant = lookup(car(expression), syntactic_environment);
-        #if __cpp_deduction_guides
-            not null(applicant) and not de_bruijn_index(car(expression), frames))
-        #else
-            not null(applicant) and not de_bruijn_index<default_equivalence_comparator>(car(expression), frames))
-        #endif
+            not applicant.is<null>() and not de_bruijn_index<default_equivalence_comparator>(car(expression), frames))
         {
           if (applicant.is<syntax>())
           {

@@ -519,11 +519,11 @@ namespace meevax { inline namespace kernel
       case 'c': // Common Lisp
         is.ignore(1);
 
-        if (const auto xs { read(is) }; null(xs) or not xs.template is<pair>())
+        if (let const xs { read(is) }; xs.is<null>() or not xs.is<pair>())
         {
           return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
         }
-        else if (null(cdr(xs)) or not cdr(xs).template is<pair>())
+        else if (cdr(xs).is<null>() or not cdr(xs).is<pair>())
         {
           return make<complex>(car(xs), make<exact_integer>(0));
         }
@@ -566,7 +566,7 @@ namespace meevax { inline namespace kernel
         return make<exact_integer>("0x" + read_token(is));
 
       case '(':
-        if (const auto xs { read(is) }; null(xs))
+        if (let const xs { read(is) }; xs.is<null>())
         {
           return make<vector>();
         }

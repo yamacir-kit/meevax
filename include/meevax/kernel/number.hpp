@@ -65,7 +65,6 @@ namespace meevax { inline namespace kernel
         not divisor.is(1))
     {
       numerator() = make(numerator().as<exact_integer>() / divisor);
-
       denominator() = make(denominator().as<exact_integer>() / divisor);
     }
 
@@ -218,7 +217,8 @@ namespace meevax { inline namespace kernel
     return lhs * rhs.invert();
   }
 
-  auto operator %(const exact_integer& lhs, const ratio& rhs)
+  // TODO
+  auto operator %(const exact_integer&, const ratio& rhs)
   {
     return rhs;
   }

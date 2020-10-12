@@ -466,9 +466,9 @@ namespace meevax { inline namespace kernel
   void syntactic_continuation::boot(layer<2>)
   {
     #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                 \
-    define<procedure>(IDENTIFIER, [](auto&& xs)                                \
+    define<procedure>(IDENTIFIER, [](let const & xs)                           \
     {                                                                          \
-      if (null(xs))                                                            \
+      if (xs.is<null>())                                                       \
       {                                                                        \
         return f;                                                              \
       }                                                                        \
@@ -476,7 +476,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         for (let const & x : xs)                                               \
         {                                                                      \
-          if (null(x) or not x.is<TYPE>())                                     \
+          if (x.is<null>() or not x.is<TYPE>())                                \
           {                                                                    \
             return f;                                                          \
           }                                                                    \
@@ -489,7 +489,7 @@ namespace meevax { inline namespace kernel
     #define DEFINE_ELEMENTARY_FUNCTION(SYMBOL, FUNCTION)                       \
     define<procedure>(SYMBOL, [&](auto&& xs)                                   \
     {                                                                          \
-      if (let const x = car(xs); null(x))                                      \
+      if (let const x = car(xs); x.is<null>())                                 \
       {                                                                        \
         return f;                                                              \
       }                                                                        \
@@ -538,15 +538,15 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (let const lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
+      if (let const lhs { car(xs) }, rhs { cadr(xs) }; eq(lhs, rhs))
       {
         return t;
       }
-      else if (null(lhs) && null(rhs))
+      else if (lhs.is<null>() and rhs.is<null>())
       {
         return t;
       }
-      else if (null(lhs) || null(rhs))
+      else if (lhs.is<null>() or rhs.is<null>())
       {
         return f;
       }
@@ -1267,9 +1267,9 @@ namespace meevax { inline namespace kernel
     });
 
     #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
-    define<procedure>("write-" SUFFIX, [this](auto&& xs)                       \
+    define<procedure>("write-" SUFFIX, [this](let const & xs)                  \
     {                                                                          \
-      car(xs).template as<TYPENAME>().display_to(null(cdr(xs)) ? current_output_port() : cadr(xs).template as<output_port>()); \
+      car(xs).as<TYPENAME>().display_to(cdr(xs).is<null>() ? current_output_port() : cadr(xs).as<output_port>()); \
       return unspecified;                                                      \
     })
 
@@ -1308,15 +1308,15 @@ namespace meevax { inline namespace kernel
       return load(car(xs).template as<const string>());
     });
 
-    define<procedure>("emergency-exit", [](auto&& xs)
+    define<procedure>("emergency-exit", [](let const & xs)
     {
-      if (null(xs) or not car(xs).template is<exact_integer>())
+      if (xs.is<null>() or not car(xs).is<exact_integer>())
       {
         std::exit(boost::exit_success);
       }
       else
       {
-        std::exit(car(xs).template as<exact_integer>().value.template convert_to<int>());
+        std::exit(car(xs).as<exact_integer>().value.convert_to<int>());
       }
 
       return unspecified;
