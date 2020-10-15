@@ -41,6 +41,10 @@ namespace meevax { inline namespace kernel
 
     virtual auto write(std::ostream& port) const -> decltype(port)
     {
+      // TODO
+      //
+      // if_<T, is_stream_insertable>::operator <<();
+
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
     }
 

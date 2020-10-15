@@ -12,6 +12,7 @@
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/type_traits/if_stream_insertable.hpp>
+#include <meevax/type_traits/operation_support.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
@@ -218,9 +219,14 @@ namespace meevax { inline namespace kernel
       BOILERPLATE(+, addable);
       BOILERPLATE(-, subtractable);
       BOILERPLATE(/, divisible);
-      BOILERPLATE(%, supports_modulo_operation);
+      // BOILERPLATE(%, supports_modulo_operation);
 
       #undef BOILERPLATE
+
+      auto operator %(pointer const& rhs) const -> pointer override
+      {
+        return if_supports_modulo_operation(static_cast<const bound&>(*this), rhs);
+      }
 
       #define BOILERPLATE(SYMBOL, TRAIT)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> bool override          \

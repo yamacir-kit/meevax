@@ -8,12 +8,12 @@ namespace meevax { inline namespace type_traits
   #if __cpp_lib_void_t
 
   template <typename... Ts>
-  using void_t = std::void_t<Ts...>;
+  using void_t [[deprecated]] = std::void_t<Ts...>;
 
   #else // __cpp_lib_void_t
 
   template <typename...>
-  using void_t = void;
+  using void_t [[deprecated]] = void;
 
   #endif // __cpp_lib_void_t
 }} // namespace meevax::type_traits
