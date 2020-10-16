@@ -44,6 +44,10 @@ jobs:
           sudo make install
           sudo ldconfig
 
+      - name: Verbose test
+        working-directory: build
+        run: ctest -V -R examples
+
       - name: Test
         working-directory: build
         run: make test

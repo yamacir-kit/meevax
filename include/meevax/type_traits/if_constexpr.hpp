@@ -62,10 +62,10 @@ namespace meevax { inline namespace type_traits
     }                                                                          \
   }
 
-  BOILERPLATE(concepts, addable);
-  BOILERPLATE(concepts, divisible);
-  BOILERPLATE(concepts, multipliable);
-  BOILERPLATE(concepts, subtractable);
+  // BOILERPLATE(concepts, addable);
+  // BOILERPLATE(concepts, divisible);
+  // BOILERPLATE(concepts, multipliable);
+  // BOILERPLATE(concepts, subtractable);
   // BOILERPLATE(concepts, supports_modulo_operation);
 
   BOILERPLATE(concepts, equality_comparable_with);

@@ -84,6 +84,10 @@ namespace meevax { inline namespace type_traits
     return if_supports_##OPERATION##_operation<Ts...>()(std::forward<decltype(xs)>(xs)...); \
   } static_assert(true)
 
+  macroexpand(addition);
+  macroexpand(subtraction);
+  macroexpand(multiplication);
+  macroexpand(division);
   macroexpand(modulo);
 
   #undef macroexpand
