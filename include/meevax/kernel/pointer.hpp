@@ -205,7 +205,6 @@ namespace meevax { inline namespace kernel
         return if_stream_insertable<bound>::call_it(port, *this);
       }
 
-    private: // arithmetic
       #define BOILERPLATE(SYMBOL, TRAIT)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
@@ -225,7 +224,7 @@ namespace meevax { inline namespace kernel
 
       auto operator %(pointer const& rhs) const -> pointer override
       {
-        return if_supports_modulo_operation(static_cast<const bound&>(*this), rhs);
+        return apply_if_supports_modulo_operation(static_cast<const bound&>(*this), rhs);
       }
 
       #define BOILERPLATE(SYMBOL, TRAIT)                                       \

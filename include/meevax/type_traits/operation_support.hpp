@@ -56,7 +56,7 @@ namespace meevax { inline namespace type_traits
 
   #define macroexpand(OPERATION)                                               \
   template <typename T, typename U, typename = void>                           \
-  struct if_supports_##OPERATION##_operation_aux                               \
+  struct if_supports_##OPERATION##_operation                                   \
   {                                                                            \
     template <typename... Ts>                                                  \
     auto operator ()(Ts&&...)                                                  \
@@ -71,17 +71,17 @@ namespace meevax { inline namespace type_traits
   };                                                                           \
                                                                                \
   template <typename T, typename U>                                            \
-  struct if_supports_##OPERATION##_operation_aux<T, U,                         \
+  struct if_supports_##OPERATION##_operation<T, U,                             \
     typename std::enable_if<                                                   \
       supports_##OPERATION##_operation<T, U>::value                            \
     >::type>                                                                   \
     : public OPERATION                                                         \
   {};                                                                          \
                                                                                \
-  template <typename T, typename U>                                            \
-  constexpr auto if_supports_##OPERATION##_operation(const T& lhs, const U& rhs) -> decltype(auto) \
+  template <typename... Ts>                                                    \
+  constexpr auto apply_if_supports_##OPERATION##_operation(Ts&&... xs) -> decltype(auto) \
   {                                                                            \
-    return if_supports_##OPERATION##_operation_aux<T, U>()(lhs, rhs);          \
+    return if_supports_##OPERATION##_operation<Ts...>()(std::forward<decltype(xs)>(xs)...); \
   } static_assert(true)
 
   macroexpand(modulo);
