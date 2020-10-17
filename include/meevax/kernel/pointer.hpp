@@ -207,17 +207,17 @@ namespace meevax { inline namespace kernel
 
       /* ---- Numerical operations ------------------------------------------ */
 
-      #define BOILERPLATE(SYMBOL, OPERATION)                                   \
-      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
+      #define BOILERPLATE(SYMBOL, RESULT, LAZY_APPLY)                          \
+      auto operator SYMBOL(const pointer& rhs) const -> RESULT override        \
       {                                                                        \
-        return apply_if_supports_##OPERATION##_operation<pointer>(static_cast<const bound&>(*this), rhs); \
+        return LAZY_APPLY<RESULT>(static_cast<const bound&>(*this), rhs);      \
       } static_assert(true)
 
-      BOILERPLATE(+, addition);
-      BOILERPLATE(-, subtraction);
-      BOILERPLATE(*, multiplication);
-      BOILERPLATE(/, division);
-      BOILERPLATE(%, modulo);
+      BOILERPLATE(+, pointer, apply_if_supports_addition_operation);
+      BOILERPLATE(-, pointer, apply_if_supports_subtraction_operation);
+      BOILERPLATE(*, pointer, apply_if_supports_multiplication_operation);
+      BOILERPLATE(/, pointer, apply_if_supports_division_operation);
+      BOILERPLATE(%, pointer, apply_if_supports_modulo_operation);
 
       #undef BOILERPLATE
 

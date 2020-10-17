@@ -12,7 +12,7 @@ namespace meevax { inline namespace type_traits
 {
   /* ---- Binary Operations ------------------------------------------------- */
 
-  #define macroexpand(OPERATION)                                               \
+  #define BOILERPLATE(OPERATION)                                               \
   template <typename T, typename U, typename = void>                           \
   struct supports_##OPERATION##_operation                                      \
     : public std::false_type                                                   \
@@ -25,24 +25,24 @@ namespace meevax { inline namespace type_traits
     : public std::true_type                                                    \
   {}
 
-  macroexpand(addition);
-  macroexpand(subtraction);
-  macroexpand(multiplication);
-  macroexpand(division);
-  macroexpand(modulo);
+  BOILERPLATE(addition);
+  BOILERPLATE(subtraction);
+  BOILERPLATE(multiplication);
+  BOILERPLATE(division);
+  BOILERPLATE(modulo);
 
-  macroexpand(equal_to);
-  macroexpand(not_equal_to);
-  macroexpand(less_than);
-  macroexpand(less_than_or_equal_to);
-  macroexpand(greater_than);
-  macroexpand(greater_than_or_equal_to);
+  BOILERPLATE(equal_to);
+  BOILERPLATE(not_equal_to);
+  BOILERPLATE(less_than);
+  BOILERPLATE(less_than_or_equal_to);
+  BOILERPLATE(greater_than);
+  BOILERPLATE(greater_than_or_equal_to);
 
-  #undef macroexpand
+  #undef BOILERPLATE
 
   /* ---- Unary Operations -------------------------------------------------- */
 
-  #define macroexpand(OPERATION)                                               \
+  #define BOILERPLATE(OPERATION)                                               \
   template <typename T, typename = void>                                       \
   struct supports_##OPERATION##_operation                                      \
     : public std::false_type                                                   \
@@ -55,14 +55,14 @@ namespace meevax { inline namespace type_traits
     : public std::true_type                                                    \
   {}
 
-  macroexpand(unary_plus);
-  macroexpand(unary_minus);
+  BOILERPLATE(unary_plus);
+  BOILERPLATE(unary_minus);
 
-  #undef macroexpand
+  #undef BOILERPLATE
 
-  /* ---- Lazy Operations --------------------------------------------------- */
+  /* ---- Lazy Operation Applications ----------------------------------------*/
 
-  #define macroexpand(OPERATION)                                               \
+  #define BOILERPLATE(OPERATION)                                               \
   template <typename T, typename U, typename = void>                           \
   struct if_supports_##OPERATION##_operation                                   \
   {                                                                            \
@@ -98,13 +98,13 @@ namespace meevax { inline namespace type_traits
       std::forward<decltype(xs)>(xs)...);                                      \
   } static_assert(true)
 
-  macroexpand(addition);
-  macroexpand(subtraction);
-  macroexpand(multiplication);
-  macroexpand(division);
-  macroexpand(modulo);
+  BOILERPLATE(addition);
+  BOILERPLATE(subtraction);
+  BOILERPLATE(multiplication);
+  BOILERPLATE(division);
+  BOILERPLATE(modulo);
 
-  #undef macroexpand
+  #undef BOILERPLATE
 }} // namespace meevax::type_traits
 
 #endif // INCLUDED_MEEVAX_TYPE_TRAITS_OPERATION_SUPPORT_HPP
