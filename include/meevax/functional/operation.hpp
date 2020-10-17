@@ -27,14 +27,33 @@ namespace meevax { inline namespace functional
 
   /* ---- Unary Operations -------------------------------------------------- */
 
-  template <typename... Ts>
-  using unary_plus = identity<Ts...>;
+  struct unary_plus
+  {
+    template <typename T>
+    constexpr auto operator ()(T&& x) const -> decltype(auto)
+    {
+      return +std::forward<decltype(x)>(x);
+    }
+  };
 
-  template <typename... Ts>
-  using unary_minus = std::negate<Ts...>;
+  using unary_minus = std::negate<void>;
 
   // TODO increment
   // TODO decrement
+
+  /* ---- Comparisons ------------------------------------------------------- */
+
+  using equal_to = std::equal_to<void>;
+
+  using not_equal_to = std::not_equal_to<void>;
+
+  using less_than = std::less<void>;
+
+  using less_than_or_equal_to = std::less_equal<void>;
+
+  using greater_than = std::greater<void>;
+
+  using greater_than_or_equal_to = std::greater_equal<void>;
 }} // namespace meevax::functional
 
 #endif // INCLUDED_MEEVAX_FUNCTIONAL_OPERATION_HPP

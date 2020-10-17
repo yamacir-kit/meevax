@@ -18,10 +18,10 @@ namespace meevax { inline namespace concepts
 
   // TODO RENAME TO 'supports_##FUNCTOR_NAME##_operation'
 
-  boilerplate(addable, +);
-  boilerplate(divisible, /);
-  boilerplate(multipliable, *);
-  boilerplate(subtractable, -);
+  // boilerplate(addable, +);
+  // boilerplate(divisible, /);
+  // boilerplate(multipliable, *);
+  // boilerplate(subtractable, -);
   // boilerplate(supports_modulo_operation, %);
 
   boilerplate(greater_equal_comparable, >=);

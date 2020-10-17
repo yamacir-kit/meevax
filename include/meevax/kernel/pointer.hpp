@@ -205,11 +205,12 @@ namespace meevax { inline namespace kernel
         return if_stream_insertable<bound>::call_it(port, *this);
       }
 
+      /* ---- Numerical operations ------------------------------------------ */
+
       #define BOILERPLATE(SYMBOL, OPERATION)                                   \
       auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
       {                                                                        \
-        return apply_if_supports_##OPERATION##_operation(                      \
-          static_cast<const bound&>(*this), rhs);                              \
+        return apply_if_supports_##OPERATION##_operation<pointer>(static_cast<const bound&>(*this), rhs); \
       } static_assert(true)
 
       BOILERPLATE(+, addition);
@@ -219,6 +220,8 @@ namespace meevax { inline namespace kernel
       BOILERPLATE(%, modulo);
 
       #undef BOILERPLATE
+
+      /* ---- Numerical comparisons ----------------------------------------- */
 
       #define BOILERPLATE(SYMBOL, TRAIT)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> bool override          \
