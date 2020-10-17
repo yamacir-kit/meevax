@@ -227,27 +227,6 @@ namespace meevax { inline namespace kernel
       BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
 
       #undef BOILERPLATE
-
-      /* ---- Numerical comparisons ----------------------------------------- */
-
-      // #define BOILERPLATE(SYMBOL, TRAIT)                                       \
-      auto operator SYMBOL(const pointer& rhs) const -> bool override          \
-      {                                                                        \
-        return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<bool>([](auto&& lhs, auto&& rhs) \
-        {                                                                      \
-          return lhs SYMBOL rhs;                                               \
-        }, static_cast<const bound&>(*this), rhs);                             \
-      } static_assert(true)
-
-      // BOILERPLATE(==, equality_comparable_with);
-      // BOILERPLATE(!=, not_equality_comparable_with);
-      //
-      // BOILERPLATE(<,  less_than_comparable);
-      // BOILERPLATE(<=, less_equal_comparable);
-      // BOILERPLATE(>,  greater_than_comparable);
-      // BOILERPLATE(>=, greater_equal_comparable);
-      //
-      // #undef BOILERPLATE
     };
 
   public:

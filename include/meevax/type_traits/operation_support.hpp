@@ -38,6 +38,9 @@ namespace meevax { inline namespace type_traits
   BOILERPLATE(greater_than);
   BOILERPLATE(greater_than_or_equal_to);
 
+  BOILERPLATE(read);
+  BOILERPLATE(write);
+
   #undef BOILERPLATE
 
   /* ---- Unary Operations -------------------------------------------------- */
@@ -57,6 +60,11 @@ namespace meevax { inline namespace type_traits
 
   BOILERPLATE(unary_plus);
   BOILERPLATE(unary_minus);
+
+  BOILERPLATE(prefix_increment);
+  BOILERPLATE(prefix_decrement);
+  BOILERPLATE(postfix_increment);
+  BOILERPLATE(postfix_decrement);
 
   #undef BOILERPLATE
 
@@ -110,6 +118,14 @@ namespace meevax { inline namespace type_traits
   BOILERPLATE(less_than_or_equal_to);
   BOILERPLATE(greater_than);
   BOILERPLATE(greater_than_or_equal_to);
+
+  BOILERPLATE(unary_plus);
+  BOILERPLATE(unary_minus);
+
+  BOILERPLATE(prefix_increment);
+  BOILERPLATE(prefix_decrement);
+  BOILERPLATE(postfix_increment);
+  BOILERPLATE(postfix_decrement);
 
   #undef BOILERPLATE
 }} // namespace meevax::type_traits
