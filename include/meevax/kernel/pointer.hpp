@@ -219,11 +219,18 @@ namespace meevax { inline namespace kernel
       BOILERPLATE(/, pointer, apply_if_supports_division_operation);
       BOILERPLATE(%, pointer, apply_if_supports_modulo_operation);
 
+      BOILERPLATE(==, bool, apply_if_supports_equal_to_operation);
+      BOILERPLATE(!=, bool, apply_if_supports_not_equal_to_operation);
+      BOILERPLATE(<,  bool, apply_if_supports_less_than_operation);
+      BOILERPLATE(<=, bool, apply_if_supports_less_than_or_equal_to_operation);
+      BOILERPLATE(>,  bool, apply_if_supports_greater_than_operation);
+      BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
+
       #undef BOILERPLATE
 
       /* ---- Numerical comparisons ----------------------------------------- */
 
-      #define BOILERPLATE(SYMBOL, TRAIT)                                       \
+      // #define BOILERPLATE(SYMBOL, TRAIT)                                       \
       auto operator SYMBOL(const pointer& rhs) const -> bool override          \
       {                                                                        \
         return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<bool>([](auto&& lhs, auto&& rhs) \
@@ -232,15 +239,15 @@ namespace meevax { inline namespace kernel
         }, static_cast<const bound&>(*this), rhs);                             \
       } static_assert(true)
 
-      BOILERPLATE(==, equality_comparable_with);
-      BOILERPLATE(!=, not_equality_comparable_with);
-
-      BOILERPLATE(<,  less_than_comparable);
-      BOILERPLATE(<=, less_equal_comparable);
-      BOILERPLATE(>,  greater_than_comparable);
-      BOILERPLATE(>=, greater_equal_comparable);
-
-      #undef BOILERPLATE
+      // BOILERPLATE(==, equality_comparable_with);
+      // BOILERPLATE(!=, not_equality_comparable_with);
+      //
+      // BOILERPLATE(<,  less_than_comparable);
+      // BOILERPLATE(<=, less_equal_comparable);
+      // BOILERPLATE(>,  greater_than_comparable);
+      // BOILERPLATE(>=, greater_equal_comparable);
+      //
+      // #undef BOILERPLATE
     };
 
   public:

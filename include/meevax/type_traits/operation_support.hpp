@@ -104,6 +104,13 @@ namespace meevax { inline namespace type_traits
   BOILERPLATE(division);
   BOILERPLATE(modulo);
 
+  BOILERPLATE(equal_to);
+  BOILERPLATE(not_equal_to);
+  BOILERPLATE(less_than);
+  BOILERPLATE(less_than_or_equal_to);
+  BOILERPLATE(greater_than);
+  BOILERPLATE(greater_than_or_equal_to);
+
   #undef BOILERPLATE
 }} // namespace meevax::type_traits
 
