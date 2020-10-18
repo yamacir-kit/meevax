@@ -40,7 +40,7 @@ namespace meevax { inline namespace kernel
 
   inline auto exact_integer::as_inexact() const
   {
-    return floating_point(value.convert_to<most_precise>());
+    return floating_point(value.convert_to<default_float::value_type>());
   }
 
   /* ---- Ratio ------------------------------------------------------------- */
@@ -65,7 +65,6 @@ namespace meevax { inline namespace kernel
         not divisor.is(1))
     {
       numerator() = make(numerator().as<exact_integer>() / divisor);
-
       denominator() = make(denominator().as<exact_integer>() / divisor);
     }
 
@@ -83,7 +82,7 @@ namespace meevax { inline namespace kernel
   template <typename T>
   inline constexpr auto floating_point<T>::as_inexact() const noexcept
   {
-    return floating_point<most_precise>(*this); // XXX ???
+    return default_float(*this); // XXX ???
   }
 
   /* ---- Generic ----------------------------------------------------------- */
@@ -144,7 +143,7 @@ namespace meevax { inline namespace kernel
 
   auto is_nan = [](const object& x)
   {
-    if (not x)
+    if (x.is<null>())
     {
       return false;
     }
@@ -218,7 +217,8 @@ namespace meevax { inline namespace kernel
     return lhs * rhs.invert();
   }
 
-  auto operator %(const exact_integer& lhs, const ratio& rhs)
+  // TODO
+  auto operator %(const exact_integer&, const ratio& rhs)
   {
     return rhs;
   }

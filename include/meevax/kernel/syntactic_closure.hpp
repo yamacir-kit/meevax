@@ -30,7 +30,7 @@ namespace meevax { inline namespace kernel
 
     auto is_identifier() const
     {
-      return not null(form()) and form().is<symbol>();
+      return not form().is<null>() and form().is<symbol>();
     }
 
     auto is_free() const
@@ -43,10 +43,9 @@ namespace meevax { inline namespace kernel
       return not is_free();
     }
 
-    friend auto operator <<(std::ostream& os, const syntactic_closure& sc)
-      -> decltype(os)
+    friend auto operator <<(std::ostream& os, const syntactic_closure& sc) -> decltype(auto)
     {
-      return os << console::underline << sc.form() << "." << &sc << console::reset;
+      return os << underline << sc.form() << "." << &sc << reset;
     }
   };
 }} // namespace meevax::kernel

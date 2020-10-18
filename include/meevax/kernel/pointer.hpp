@@ -12,6 +12,7 @@
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/type_traits/if_stream_insertable.hpp>
+#include <meevax/type_traits/operation_support.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
@@ -20,47 +21,49 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Linux 64 Bit Address Space ==========================================
-  *
-  * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
-  * kernel 0xFFFF 8000 0000 0000 ~
-  *
-  *========================================================================= */
+  using null = std::nullptr_t;
+
+  /* ---- Linux 64 Bit Address Space -------------------------------------------
+   *
+   * user   0x0000 0000 0000 0000 ~ 0x0000 7FFF FFFF FFFF
+   * kernel 0xFFFF 8000 0000 0000 ~
+   *
+   * ------------------------------------------------------------------------ */
   static constexpr auto word_size { sizeof(std::size_t) };
 
-  /* ==== Tagged Pointers =====================================================
-  *
-  */ template <typename T>                                                   /*
-  */ using category                                                          /*
-  */   = std::integral_constant<                                             /*
-  */       std::uintptr_t,                                                   /*
-  *
-  *               ┌─ The value of meevax::kernel::pointer::get()
-  *          ┌────┴─────────┐
-  * address   0... .... 0000 => object binder (is 16 byte aligned)
-  *
-  * boolean   0... 0000 1101 NOTE: sizeof bool is implementation-defined
-  *
-  * single    0... 0101 1010
-  * double    0... 0110 1010
-  *
-  * int08_t   0... 0011 1000
-  * int16_t   0... 0100 1000
-  * int32_t   0... 0101 1000
-  *
-  * uint08_t  0... 0011 1100
-  * uint16_t  0... 0100 1100
-  * uint32_t  0... 0101 1100
-  *                ───┬ ┬┬┬┬
-  *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) |    /*
-  *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) |    /*
-  *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) |    /*
-  *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)      /*
-  *                   │
-  *                   └────── precision of the type = 2^N bit
-  */     >;                                                                  /*
-  *
-  *========================================================================== */
+  /* ---- Tagged Pointers ------------------------------------------------------
+   *
+   */ template <typename T>                                                   /*
+   */ using category                                                          /*
+   */   = std::integral_constant<                                             /*
+   */       std::uintptr_t,                                                   /*
+   *
+   *               ┌─ The value of meevax::kernel::pointer::get()
+   *          ┌────┴─────────┐
+   * address   0... .... 0000 => object binder (is 16 byte aligned)
+   *
+   * boolean   0... 0000 1101 NOTE: sizeof bool is implementation-defined
+   *
+   * single    0... 0101 1010
+   * double    0... 0110 1010
+   *
+   * int08_t   0... 0011 1000
+   * int16_t   0... 0100 1000
+   * int32_t   0... 0101 1000
+   *
+   * uint08_t  0... 0011 1100
+   * uint16_t  0... 0100 1100
+   * uint32_t  0... 0101 1100
+   *                ───┬ ┬┬┬┬
+   *                   │ │││└─*/ (std::is_same<bool,     T>::value << 0) |    /*
+   *                   │ ││└──*/ (std::is_floating_point<T>::value << 1) |    /*
+   *                   │ │└───*/ (std::is_unsigned<      T>::value << 2) |    /*
+   *                   │ └────*/ (std::is_arithmetic<    T>::value << 3)      /*
+   *                   │
+   *                   └────── precision of the type = 2^N bit
+   */     >;                                                                  /*
+   *
+   * ------------------------------------------------------------------------ */
 
   constexpr std::uintptr_t category_mask { 0x0F };
   constexpr auto           category_mask_width { 4 };
@@ -202,40 +205,26 @@ namespace meevax { inline namespace kernel
         return if_stream_insertable<bound>::call_it(port, *this);
       }
 
-    private: // arithmetic
-      #define BOILERPLATE(SYMBOL, TRAIT)                                       \
-      auto operator SYMBOL(const pointer& rhs) const -> pointer override       \
+      /* ---- Numerical operations ------------------------------------------ */
+
+      #define BOILERPLATE(SYMBOL, RESULT, LAZY_APPLY)                          \
+      auto operator SYMBOL(const pointer& rhs) const -> RESULT override        \
       {                                                                        \
-        return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<pointer>([](auto&& lhs, auto&& rhs) \
-        {                                                                      \
-          return lhs SYMBOL rhs;                                               \
-        }, static_cast<const bound&>(*this), rhs);                             \
+        return LAZY_APPLY<RESULT>(static_cast<const bound&>(*this), rhs);      \
       } static_assert(true)
 
-      BOILERPLATE(*, multipliable);
-      BOILERPLATE(+, addable);
-      BOILERPLATE(-, subtractable);
-      BOILERPLATE(/, divisible);
-      BOILERPLATE(%, supports_modulo_operation);
+      BOILERPLATE(+, pointer, apply_if_supports_addition_operation);
+      BOILERPLATE(-, pointer, apply_if_supports_subtraction_operation);
+      BOILERPLATE(*, pointer, apply_if_supports_multiplication_operation);
+      BOILERPLATE(/, pointer, apply_if_supports_division_operation);
+      BOILERPLATE(%, pointer, apply_if_supports_modulo_operation);
 
-      #undef BOILERPLATE
-
-      #define BOILERPLATE(SYMBOL, TRAIT)                                       \
-      auto operator SYMBOL(const pointer& rhs) const -> bool override          \
-      {                                                                        \
-        return if_##TRAIT<const bound&, decltype(rhs)>::template invoke<bool>([](auto&& lhs, auto&& rhs) \
-        {                                                                      \
-          return lhs SYMBOL rhs;                                               \
-        }, static_cast<const bound&>(*this), rhs);                             \
-      } static_assert(true)
-
-      BOILERPLATE(==, equality_comparable_with);
-      BOILERPLATE(!=, not_equality_comparable_with);
-
-      BOILERPLATE(<,  less_than_comparable);
-      BOILERPLATE(<=, less_equal_comparable);
-      BOILERPLATE(>,  greater_than_comparable);
-      BOILERPLATE(>=, greater_equal_comparable);
+      BOILERPLATE(==, bool, apply_if_supports_equal_to_operation);
+      BOILERPLATE(!=, bool, apply_if_supports_not_equal_to_operation);
+      BOILERPLATE(<,  bool, apply_if_supports_less_than_operation);
+      BOILERPLATE(<=, bool, apply_if_supports_less_than_or_equal_to_operation);
+      BOILERPLATE(>,  bool, apply_if_supports_greater_than_operation);
+      BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
 
       #undef BOILERPLATE
     };
@@ -249,11 +238,6 @@ namespace meevax { inline namespace kernel
     explicit constexpr pointer(Ts&&... xs)
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
     {}
-
-    auto null() const noexcept
-    {
-      return not std::shared_ptr<T>::operator bool();
-    }
 
     /* ---- C/C++ Derived Types Bind -------------------------------------------
      *
@@ -291,10 +275,10 @@ namespace meevax { inline namespace kernel
     }
     #endif // __cpp_lib_memory_resource
 
-    /* ==== C/C++ Fundamental Types Bind ========================================
-    *
-    *
-    *======================================================================== */
+    /* ---- C/C++ Fundamental Types Bind ---------------------------------------
+     *
+     *
+     * ---------------------------------------------------------------------- */
     template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
     static pointer bind(U&&)
     {
@@ -308,14 +292,14 @@ namespace meevax { inline namespace kernel
       return std::shared_ptr<T>::operator *();
     }
 
-    /* ==== Type Predicates ===================================================
-    *
-    * TODO: is_compatible_to (non-strict type comparison)
-    *
-    *======================================================================= */
-    decltype(auto) type() const
+    /* ---- Type Predicates ----------------------------------------------------
+     *
+     * TODO: is_compatible_to (non-strict type comparison)
+     *
+     * ---------------------------------------------------------------------- */
+    auto type() const -> decltype(auto)
     {
-      if (null())
+      if (not *this)
       {
         return typeid(std::nullptr_t);
       }
@@ -378,6 +362,15 @@ namespace meevax { inline namespace kernel
     auto is() const
     {
       return type() == typeid(typename std::decay<U>::type);
+    }
+
+    template <typename U,
+              typename std::enable_if<
+                std::is_null_pointer<typename std::decay<U>::type>::value
+              >::type = 0>
+    auto is() const
+    {
+      return not std::shared_ptr<T>::operator bool();
     }
 
     /* ---- C/C++ Derived Type Restoration -------------------------------------

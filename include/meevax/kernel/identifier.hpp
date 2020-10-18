@@ -13,9 +13,9 @@ namespace meevax { inline namespace kernel
    *            (symbol? (car x)))))
    *
    * ======================================================================== */
-  auto is_identifier(const object& x)
+  auto is_identifier(let const & x)
   {
-    if (null(x))
+    if (x.is<null>())
     {
       return false;
     }
@@ -29,9 +29,9 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  auto strip(const object& id)
+  auto strip(let const & id)
   {
-    if (not null(id) and id.is<syntactic_closure>())
+    if (not id.is<null>() and id.is<syntactic_closure>())
     {
       return id.as<syntactic_closure>().strip();
     }
@@ -41,7 +41,7 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  auto lookup(const object& x, const object& env)
+  auto lookup(let const & x, let const & env)
   {
     if (const object binding { assq(x, env) }; not binding.eqv(f))
     {

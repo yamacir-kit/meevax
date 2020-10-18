@@ -53,7 +53,7 @@ namespace meevax { inline namespace kernel
       write_to(current_debug_port(),
         header("define"),
         caar(syntactic_environment()),
-        console::faint, " binds ", console::reset,
+        faint, " binds ", reset,
         cadar(syntactic_environment()),
         "\n");
 
@@ -91,7 +91,7 @@ namespace meevax { inline namespace kernel
       const object& continuation = list(make<instruction>(mnemonic::STOP)),
       const compilation_context in_a = as_is)
     {
-      if (not expression)
+      if (expression.is<null>())
       {
         return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
       }
@@ -107,7 +107,7 @@ namespace meevax { inline namespace kernel
           {
             if (index.is_variadic())
             {
-              debug(expression, console::faint, " ; is a <variadic bound variable> references ", console::reset, index);
+              debug(expression, faint, " ; is a <variadic bound variable> references ", reset, index);
 
               return
                 cons(
@@ -116,7 +116,7 @@ namespace meevax { inline namespace kernel
             }
             else
             {
-              debug(expression, console::faint, " ; is a <bound variable> references ", console::reset, index);
+              debug(expression, faint, " ; is a <bound variable> references ", reset, index);
 
               return
                 cons(
@@ -126,7 +126,7 @@ namespace meevax { inline namespace kernel
           }
           else if (expression.is<syntactic_closure>())
           {
-            debug(expression, console::faint, " ; is <alias>");
+            debug(expression, faint, " ; is <alias>");
 
             return
               cons(
@@ -135,7 +135,7 @@ namespace meevax { inline namespace kernel
           }
           else
           {
-            debug(expression, console::faint, " ; is a <glocal variable>");
+            debug(expression, faint, " ; is a <glocal variable>");
 
             return
               cons(
@@ -145,7 +145,7 @@ namespace meevax { inline namespace kernel
         }
         else // is <self-evaluating>
         {
-          debug(expression, console::faint, " ; is <self-evaluating>");
+          debug(expression, faint, " ; is <self-evaluating>");
 
           return
             cons(
@@ -156,18 +156,14 @@ namespace meevax { inline namespace kernel
       else // is (application . arguments)
       {
         if (let const applicant = lookup(car(expression), syntactic_environment);
-        #if __cpp_deduction_guides
-            not null(applicant) and not de_bruijn_index(car(expression), frames))
-        #else
-            not null(applicant) and not de_bruijn_index<default_equivalence_comparator>(car(expression), frames))
-        #endif
+            not applicant.is<null>() and not de_bruijn_index<default_equivalence_comparator>(car(expression), frames))
         {
           if (applicant.is<syntax>())
           {
             debug(
-              console::magenta, "(",
-              console::reset, car(expression),
-              console::faint, " ; is <primitive expression>");
+              magenta, "(",
+              reset, car(expression),
+              faint, " ; is <primitive expression>");
 
             indent() >> shift();
 
@@ -181,7 +177,7 @@ namespace meevax { inline namespace kernel
               #endif
             };
 
-            debug(console::magenta, ")");
+            debug(magenta, ")");
 
             indent() << shift();
 
@@ -189,7 +185,7 @@ namespace meevax { inline namespace kernel
           }
           else if (applicant.is<SK>())
           {
-            debug(console::magenta, "(", console::reset, car(expression), console::faint, " ; is <macro application>");
+            debug(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
             const auto expanded {
               // applicant.as<SK>().expand(cons(applicant, cdr(expression)))
@@ -202,7 +198,7 @@ namespace meevax { inline namespace kernel
           }
         }
 
-        debug(console::magenta, "(", console::reset, console::faint, " ; is <procedure call>");
+        debug(magenta, "(", reset, faint, " ; is <procedure call>");
         indent() >> shift();
 
         auto result
@@ -220,7 +216,7 @@ namespace meevax { inline namespace kernel
                 continuation)))
         };
 
-        debug(console::magenta, ")");
+        debug(magenta, ")");
         indent() << shift();
 
         return result;
@@ -238,7 +234,7 @@ namespace meevax { inline namespace kernel
         if (iter == c)
         {
           write_to(current_debug_port(),
-            std::string(4 * (depth - 1), ' '), console::magenta, "(   ");
+            std::string(4 * (depth - 1), ' '), magenta, "(   ");
         }
         else
         {
@@ -257,7 +253,7 @@ namespace meevax { inline namespace kernel
 
         case mnemonic::RETURN:
         case mnemonic::STOP:
-          write_to(current_debug_port(), *iter, console::magenta, "\t)\n");
+          write_to(current_debug_port(), *iter, magenta, "\t)\n");
           break;
 
         case mnemonic::DEFINE:
@@ -445,7 +441,7 @@ namespace meevax { inline namespace kernel
         * where selection = (if test consequent alternate)
         *
         * =================================================================== */
-        c = not car(s) or not car(s).eqv(f) ? cadr(c) : caddr(c);
+        c = car(s).template is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
@@ -477,7 +473,7 @@ namespace meevax { inline namespace kernel
         goto dispatch;
 
       case mnemonic::CALL:
-        if (let const callee = car(s); not callee)
+        if (let const callee = car(s); callee.is<null>())
         {
           static const error e {"unit is not appliciable"};
           throw e;
@@ -510,7 +506,7 @@ namespace meevax { inline namespace kernel
         goto dispatch;
 
       case mnemonic::TAIL_CALL:
-        if (let callee = car(s); not callee)
+        if (let const callee = car(s); callee.is<null>())
         {
           throw evaluation_error {"unit is not appliciable"};
         }
@@ -584,7 +580,7 @@ namespace meevax { inline namespace kernel
         * =================================================================== */
         if (let const pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
-          if (const auto value {cadr(pare)}; not value or not car(s))
+          if (let const value { cadr(pare) }; value.template is<null>() or car(s).template is<null>())
           {
             cadr(pare) = car(s);
           }
@@ -674,7 +670,7 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(quotation)
     {
-      debug(car(expression), console::faint, " ; is <datum>");
+      debug(car(expression), faint, " ; is <datum>");
 
       return
         cons(
@@ -693,7 +689,7 @@ namespace meevax { inline namespace kernel
     {
       if (in_a.program_declaration)
       {
-        if (not cdr(expression))
+        if (cdr(expression).is<null>())
         {
           return
             compile(
@@ -723,7 +719,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        if (not cdr(expression)) // is tail sequence
+        if (cdr(expression).is<null>()) // is tail sequence
         {
           return
             compile(
@@ -759,9 +755,9 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(definition)
     {
-      if (not frames or in_a.program_declaration)
+      if (frames.is<null>() or in_a.program_declaration)
       {
-        debug(car(expression), console::faint, " ; is <variable>");
+        debug(car(expression), faint, " ; is <variable>");
 
         // const auto definition {compile(
         //   cdr(expression) ? cadr(expression) : unspecified,
@@ -928,7 +924,7 @@ namespace meevax { inline namespace kernel
         return result;
       };
 
-      if (not cdr(expression)) // is tail-sequence
+      if (cdr(expression).is<null>()) // is tail-sequence
       {
         return
           compile(
@@ -999,7 +995,7 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(conditional)
     {
-      debug(car(expression), console::faint, " ; is <test>");
+      debug(car(expression), faint, " ; is <test>");
 
       if (in_a.tail_expression)
       {
@@ -1079,7 +1075,7 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(lambda)
     {
-      debug(car(expression), console::faint, " ; is <formals>");
+      debug(car(expression), faint, " ; is <formals>");
 
       if (in_a.program_declaration)
       {
@@ -1121,7 +1117,7 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(call_cc)
     {
-      debug(car(expression), console::faint, " ; is <procedure>");
+      debug(car(expression), faint, " ; is <procedure>");
 
       return
         cons(
@@ -1143,7 +1139,7 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(fork)
     {
-      debug(car(expression), console::faint, " ; is <subprogram>");
+      debug(car(expression), faint, " ; is <subprogram>");
 
       return
         cons(
@@ -1168,19 +1164,15 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(assignment)
     {
-      if (not expression)
+      if (expression.is<null>())
       {
         throw syntax_error {"set!"};
       }
-      #if __cpp_deduction_guides
-      else if (de_bruijn_index index {car(expression), frames}; index)
-      #else
-      else if (de_bruijn_index<default_equivalence_comparator> index {car(expression), frames}; index)
-      #endif
+      else if (de_bruijn_index index { car(expression), frames }; not index.is<null>())
       {
         if (index.is_variadic())
         {
-          debug(car(expression), console::faint, " ; is <variadic bound variable> references ", console::reset, index);
+          debug(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
 
           return
             compile(
@@ -1193,7 +1185,7 @@ namespace meevax { inline namespace kernel
         }
         else
         {
-          debug(car(expression), console::faint, "; is a <bound variable> references ", console::reset, index);
+          debug(car(expression), faint, "; is a <bound variable> references ", reset, index);
 
           return
             compile(
@@ -1207,7 +1199,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        debug(car(expression), console::faint, "; is a <glocal variable>");
+        debug(car(expression), faint, "; is a <glocal variable>");
 
         return
           compile(
@@ -1228,9 +1220,9 @@ namespace meevax { inline namespace kernel
     *======================================================================== */
     DEFINE_PRIMITIVE_EXPRESSION(reference)
     {
-      if (not expression)
+      if (expression.is<null>())
       {
-        debug(car(expression), console::faint, " ; is <identifier> of itself");
+        debug(car(expression), faint, " ; is <identifier> of itself");
 
         return unit;
       }
@@ -1243,7 +1235,7 @@ namespace meevax { inline namespace kernel
       {
         if (variable.is_variadic())
         {
-          debug(car(expression), console::faint, " ; is <identifier> of local variadic ", console::reset, variable);
+          debug(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable);
 
           return
             cons(
@@ -1252,7 +1244,7 @@ namespace meevax { inline namespace kernel
         }
         else
         {
-          debug(car(expression), console::faint, " ; is <identifier> of local ", console::reset, variable);
+          debug(car(expression), faint, " ; is <identifier> of local ", reset, variable);
 
           return
             cons(
@@ -1262,7 +1254,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        debug(car(expression), console::faint, " ; is <identifier> of glocal variable");
+        debug(car(expression), faint, " ; is <identifier> of glocal variable");
 
         return
           cons(

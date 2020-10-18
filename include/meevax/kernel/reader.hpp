@@ -230,7 +230,7 @@ namespace meevax { inline namespace kernel
   {
     static const std::unordered_map<std::string, object> srfi_144
     {
-      std::make_pair("fl-pi", make<floating_point<most_precise>>(boost::math::constants::pi<floating_point<most_precise>::value_type>()))
+      std::make_pair("fl-pi", make<default_float>(boost::math::constants::pi<default_float::value_type>())),
     };
 
     static const std::regex pattern { regex::number<R>() };
@@ -269,10 +269,10 @@ namespace meevax { inline namespace kernel
       {
         static const std::unordered_map<std::string, object> infnan
         {
-          std::make_pair("+inf.0", make<floating_point<most_precise>>(+floating_point<most_precise>::infinity())),
-          std::make_pair("-inf.0", make<floating_point<most_precise>>(-floating_point<most_precise>::infinity())),
-          std::make_pair("+nan.0", make<floating_point<most_precise>>(+floating_point<most_precise>::quiet_NaN())),
-          std::make_pair("-nan.0", make<floating_point<most_precise>>(-floating_point<most_precise>::quiet_NaN()))
+          std::make_pair("+inf.0", make<default_float>(+default_float::infinity())),
+          std::make_pair("-inf.0", make<default_float>(-default_float::infinity())),
+          std::make_pair("+nan.0", make<default_float>(+default_float::quiet_NaN())),
+          std::make_pair("-nan.0", make<default_float>(-default_float::quiet_NaN()))
         };
 
         return infnan.at(token);
@@ -280,7 +280,7 @@ namespace meevax { inline namespace kernel
 
       if (result.length(12)) // 6, 7, 8, 9, 12
       {
-        return make<floating_point<most_precise>>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<default_float>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
       if (result.length(10) and result.length(11)) // 6, 7, 8, 9, 10, 11
@@ -519,11 +519,11 @@ namespace meevax { inline namespace kernel
       case 'c': // Common Lisp
         is.ignore(1);
 
-        if (const auto xs { read(is) }; null(xs) or not xs.template is<pair>())
+        if (let const xs { read(is) }; xs.is<null>() or not xs.is<pair>())
         {
           return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
         }
-        else if (null(cdr(xs)) or not cdr(xs).template is<pair>())
+        else if (cdr(xs).is<null>() or not cdr(xs).is<pair>())
         {
           return make<complex>(car(xs), make<exact_integer>(0));
         }
@@ -566,7 +566,7 @@ namespace meevax { inline namespace kernel
         return make<exact_integer>("0x" + read_token(is));
 
       case '(':
-        if (const auto xs { read(is) }; null(xs))
+        if (let const xs { read(is) }; xs.is<null>())
         {
           return make<vector>();
         }

@@ -5,9 +5,8 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Identity =============================================================
-   *
-   * ======================================================================== */
+  /* ---- Identity ---------------------------------------------------------- */
+
   template <typename T>
   struct alignas(category_mask + 1) identity
   {
@@ -41,40 +40,31 @@ namespace meevax { inline namespace kernel
 
     virtual auto write(std::ostream& port) const -> decltype(port)
     {
+      // TODO
+      //
+      // if_<T, is_stream_insertable>::operator <<();
+
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
     }
 
-    // override by binder's operators
-    #define BOILERPLATE(SYMBOL)                                                \
-    virtual auto operator SYMBOL(const pointer<T>&) const -> pointer<T>        \
+    #define BOILERPLATE(SYMBOL, RESULT, LAZY_APPLY)                            \
+    virtual auto operator SYMBOL(const pointer<T>& rhs) const -> RESULT        \
     {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << __FILE__ << ":" << __LINE__;                                       \
-      throw std::logic_error { ss.str() };                                     \
+      return LAZY_APPLY<RESULT>(static_cast<const T&>(*this), rhs);            \
     } static_assert(true)
 
-    BOILERPLATE(*);
-    BOILERPLATE(+);
-    BOILERPLATE(-);
-    BOILERPLATE(/);
-    BOILERPLATE(%);
+    BOILERPLATE(+, pointer<T>, apply_if_supports_addition_operation);
+    BOILERPLATE(-, pointer<T>, apply_if_supports_subtraction_operation);
+    BOILERPLATE(*, pointer<T>, apply_if_supports_multiplication_operation);
+    BOILERPLATE(/, pointer<T>, apply_if_supports_division_operation);
+    BOILERPLATE(%, pointer<T>, apply_if_supports_modulo_operation);
 
-    #undef BOILERPLATE
-
-    #define BOILERPLATE(SYMBOL)                                                \
-    virtual auto operator SYMBOL(const pointer<T>&) const -> bool              \
-    {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << __FILE__ << ":" << __LINE__;                                       \
-      throw std::logic_error { ss.str() };                                     \
-    } static_assert(true)
-
-    BOILERPLATE(==);
-    BOILERPLATE(!=);
-    BOILERPLATE(<);
-    BOILERPLATE(<=);
-    BOILERPLATE(>);
-    BOILERPLATE(>=);
+    BOILERPLATE(==, bool, apply_if_supports_equal_to_operation);
+    BOILERPLATE(!=, bool, apply_if_supports_not_equal_to_operation);
+    BOILERPLATE(<,  bool, apply_if_supports_less_than_operation);
+    BOILERPLATE(<=, bool, apply_if_supports_less_than_or_equal_to_operation);
+    BOILERPLATE(>,  bool, apply_if_supports_greater_than_operation);
+    BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
 
     #undef BOILERPLATE
   };

@@ -108,14 +108,14 @@ int main()
       throw std::logic_error { std::to_string(__LINE__) };
     }
 
-    if (b.as<exact_integer>().value.convert_to<int>() != 2)
+    if (not b.as<exact_integer>().is(2))
     {
       throw std::logic_error { std::to_string(__LINE__) };
     }
 
     let const x = a + b;
 
-    result = x.is<exact_integer>() && (x.as<exact_integer>().value.convert_to<int>() == 3);
+    result = x.is<exact_integer>() && (x.as<exact_integer>().is(3));
   });
 
   // TEST("add number and native int",

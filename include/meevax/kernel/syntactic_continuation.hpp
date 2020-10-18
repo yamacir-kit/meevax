@@ -466,9 +466,9 @@ namespace meevax { inline namespace kernel
   void syntactic_continuation::boot(layer<2>)
   {
     #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                 \
-    define<procedure>(IDENTIFIER, [](auto&& xs)                                \
+    define<procedure>(IDENTIFIER, [](let const & xs)                           \
     {                                                                          \
-      if (null(xs))                                                            \
+      if (xs.is<null>())                                                       \
       {                                                                        \
         return f;                                                              \
       }                                                                        \
@@ -476,7 +476,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         for (let const & x : xs)                                               \
         {                                                                      \
-          if (null(x) or not x.is<TYPE>())                                     \
+          if (x.is<null>() or not x.is<TYPE>())                                \
           {                                                                    \
             return f;                                                          \
           }                                                                    \
@@ -489,17 +489,15 @@ namespace meevax { inline namespace kernel
     #define DEFINE_ELEMENTARY_FUNCTION(SYMBOL, FUNCTION)                       \
     define<procedure>(SYMBOL, [&](auto&& xs)                                   \
     {                                                                          \
-      if (let const x = car(xs); null(x))                                      \
+      if (let const x = car(xs); x.is<null>())                                 \
       {                                                                        \
         return f;                                                              \
       }                                                                        \
       else if (x.is<exact_integer>())                                          \
       {                                                                        \
         if (const floating_point result {                                      \
-              FUNCTION(                                                        \
-                floating_point<most_precise>(                                  \
-                  x.as<exact_integer>().value))                                \
-            }; result.is_exact())                                              \
+              FUNCTION(x.as<exact_integer>().as_inexact())                     \
+            }; result.is_integer())                                            \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \
@@ -540,15 +538,15 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (let const lhs { car(xs) }, rhs { cadr(xs) }; lhs == rhs)
+      if (let const lhs { car(xs) }, rhs { cadr(xs) }; eq(lhs, rhs))
       {
         return t;
       }
-      else if (null(lhs) && null(rhs))
+      else if (lhs.is<null>() and rhs.is<null>())
       {
         return t;
       }
-      else if (null(lhs) || null(rhs))
+      else if (lhs.is<null>() or rhs.is<null>())
       {
         return f;
       }
@@ -906,7 +904,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("exponential", [](auto&& xs)
     {
-      if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_exact())
+      if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_integer())
       {
         return make<exact_integer>(result.value);
       }
@@ -975,9 +973,9 @@ namespace meevax { inline namespace kernel
       return make_string(boost::lexical_cast<std::string>(car(xs)));
     });
 
-    define<procedure>("string->number", [](auto&& xs)
+    define<procedure>("string->number", [](let const & xs)
     {
-      return make_number(car(xs).template as<string>());
+      return make_number(car(xs).as<string>());
     });
 
     /* ==== R7RS 6.3. Booleans =================================================
@@ -1269,9 +1267,9 @@ namespace meevax { inline namespace kernel
     });
 
     #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
-    define<procedure>("write-" SUFFIX, [this](auto&& xs)                       \
+    define<procedure>("write-" SUFFIX, [this](let const & xs)                  \
     {                                                                          \
-      car(xs).template as<TYPENAME>().display_to(null(cdr(xs)) ? current_output_port() : cadr(xs).template as<output_port>()); \
+      car(xs).as<TYPENAME>().display_to(cdr(xs).is<null>() ? current_output_port() : cadr(xs).as<output_port>()); \
       return unspecified;                                                      \
     })
 
@@ -1310,15 +1308,15 @@ namespace meevax { inline namespace kernel
       return load(car(xs).template as<const string>());
     });
 
-    define<procedure>("emergency-exit", [](auto&& xs)
+    define<procedure>("emergency-exit", [](let const & xs)
     {
-      if (null(xs) or not car(xs).template is<exact_integer>())
+      if (xs.is<null>() or not car(xs).is<exact_integer>())
       {
         std::exit(boost::exit_success);
       }
       else
       {
-        std::exit(car(xs).template as<exact_integer>().value.template convert_to<int>());
+        std::exit(car(xs).as<exact_integer>().value.convert_to<int>());
       }
 
       return unspecified;
