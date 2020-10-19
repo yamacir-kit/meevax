@@ -254,36 +254,36 @@ namespace meevax { inline namespace kernel
       return static_cast<pointer>(std::make_shared<binding>(std::forward<decltype(xs)>(xs)...));
     }
 
-    #if __cpp_lib_memory_resource
-    template <typename Bound,
-              typename MemoryResource, // XXX (GCC-9 <=)
-              typename... Ts,
-              typename = typename std::enable_if<std::is_compound<Bound>::type>::value>
-    static pointer allocate_binding(MemoryResource&& resource, Ts&&... xs)
-    {
-      using binding = binder<Bound>;
-
-      using binding_allocator
-        = typename std::decay<
-            decltype(resource)
-          >::type::template rebind<binding>::other;
-
-      return
-        std::allocate_shared<binding>(
-          binding_allocator { std::forward<decltype(resource)>(resource) },
-          std::forward<decltype(xs)>(xs)...);
-    }
-    #endif // __cpp_lib_memory_resource
+    // #if __cpp_lib_memory_resource
+    // template <typename Bound,
+    //           typename MemoryResource, // XXX (GCC-9 <=)
+    //           typename... Ts,
+    //           typename = typename std::enable_if<std::is_compound<Bound>::type>::value>
+    // static pointer allocate_binding(MemoryResource&& resource, Ts&&... xs)
+    // {
+    //   using binding = binder<Bound>;
+    //
+    //   using binding_allocator
+    //     = typename std::decay<
+    //         decltype(resource)
+    //       >::type::template rebind<binding>::other;
+    //
+    //   return
+    //     std::allocate_shared<binding>(
+    //       binding_allocator { std::forward<decltype(resource)>(resource) },
+    //       std::forward<decltype(xs)>(xs)...);
+    // }
+    // #endif // __cpp_lib_memory_resource
 
     /* ---- C/C++ Fundamental Types Bind ---------------------------------------
      *
      *
      * ---------------------------------------------------------------------- */
-    template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
-    static pointer bind(U&&)
-    {
-      return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
-    }
+    // template <typename U, typename = typename std::enable_if<std::is_fundamental<U>::value>::type>
+    // static pointer bind(U&&)
+    // {
+    //   return pointer(reinterpret_cast<T*>(tag<U>::value), [](auto*) {});
+    // }
 
     auto binding() const -> decltype(auto)
     {
@@ -299,63 +299,65 @@ namespace meevax { inline namespace kernel
      * ---------------------------------------------------------------------- */
     auto type() const -> decltype(auto)
     {
-      if (not *this)
-      {
-        return typeid(std::nullptr_t);
-      }
-      else switch (auto* value { std::shared_ptr<T>::get() }; category_of(value))
-      {
-      case category<void*>::value: // address
-        return binding().type();
+      return std::shared_ptr<T>::operator bool() ? binding().type() : typeid(null);
 
-      case category<bool>::value:
-        return typeid(bool);
-
-      case category<float>::value:
-        switch (precision_of(value))
-        {
-        case precision<float>::value:
-          return typeid(float);
-
-        default:
-          throw std::logic_error {"floating-point types with precision greater than 32-bits are not supported."};
-        }
-
-      case category<signed int>::value:
-        switch (precision_of(value))
-        {
-        case precision<std::int8_t>::value:
-          return typeid(std::int8_t);
-
-        case precision<std::int16_t>::value:
-          return typeid(std::int16_t);
-
-        case precision<std::int32_t>::value:
-          return typeid(std::int32_t);
-
-        default:
-          throw std::logic_error {"signed-integer types with precision greater than 32-bits are not supported."};
-        }
-
-      case category<unsigned int>::value:
-        switch (precision_of(value))
-        {
-        case precision<uint8_t>::value:
-          return typeid(std::uint8_t);
-
-        case precision<uint16_t>::value:
-          return typeid(std::uint16_t);
-
-        case precision<uint32_t>::value:
-          return typeid(std::uint32_t);
-
-        default:
-          throw std::logic_error {"unsigned-integer types with precision greater than 32-bits are not supported."};
-        }
-
-      default:
-        throw std::logic_error {"dispatching unimplemented tagged type"};
-      }
+      // if (not *this)
+      // {
+      //   return typeid(std::nullptr_t);
+      // }
+      // else switch (auto* value { std::shared_ptr<T>::get() }; category_of(value))
+      // {
+      // case category<void*>::value: // address
+      //   return binding().type();
+      //
+      // case category<bool>::value:
+      //   return typeid(bool);
+      //
+      // case category<float>::value:
+      //   switch (precision_of(value))
+      //   {
+      //   case precision<float>::value:
+      //     return typeid(float);
+      //
+      //   default:
+      //     throw std::logic_error {"floating-point types with precision greater than 32-bits are not supported."};
+      //   }
+      //
+      // case category<signed int>::value:
+      //   switch (precision_of(value))
+      //   {
+      //   case precision<std::int8_t>::value:
+      //     return typeid(std::int8_t);
+      //
+      //   case precision<std::int16_t>::value:
+      //     return typeid(std::int16_t);
+      //
+      //   case precision<std::int32_t>::value:
+      //     return typeid(std::int32_t);
+      //
+      //   default:
+      //     throw std::logic_error {"signed-integer types with precision greater than 32-bits are not supported."};
+      //   }
+      //
+      // case category<unsigned int>::value:
+      //   switch (precision_of(value))
+      //   {
+      //   case precision<uint8_t>::value:
+      //     return typeid(std::uint8_t);
+      //
+      //   case precision<uint16_t>::value:
+      //     return typeid(std::uint16_t);
+      //
+      //   case precision<uint32_t>::value:
+      //     return typeid(std::uint32_t);
+      //
+      //   default:
+      //     throw std::logic_error {"unsigned-integer types with precision greater than 32-bits are not supported."};
+      //   }
+      //
+      // default:
+      //   throw std::logic_error {"dispatching unimplemented tagged type"};
+      // }
     }
 
     template <typename U>
@@ -400,40 +402,40 @@ namespace meevax { inline namespace kernel
      * TODO: Support upcast and downcast of arithmetic types
      *
      * ---------------------------------------------------------------------- */
-    template <typename U, typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
-    auto as() const -> typename std::decay<U>::type
-    {
-      std::cerr << "; pointer\t; "
-                << utility::hexdump<std::uintptr_t>(
-                     reinterpret_cast<std::uintptr_t>(std::shared_ptr<T>::get()))
-                << std::endl;
-
-      // Helper function "tag_of" includes assertion "is_tagged".
-      switch (auto* value {std::shared_ptr<T>::get()}; tag_of(value))
-      {
-      #define CASE_OF_TYPE(TYPE)                                              \
-      case tag<TYPE>::value:                                                  \
-        return static_cast<U>(untagged_value_as<TYPE>(value))
-
-      CASE_OF_TYPE(bool);
-
-      CASE_OF_TYPE(float);
-      CASE_OF_TYPE(double);
-
-      CASE_OF_TYPE(std::int8_t);
-      CASE_OF_TYPE(std::int16_t);
-      CASE_OF_TYPE(std::int32_t);
-
-      CASE_OF_TYPE(std::uint8_t);
-      CASE_OF_TYPE(std::uint16_t);
-      CASE_OF_TYPE(std::uint32_t);
-
-      #undef CASE_OF_TYPE
-
-      default:
-        throw std::logic_error {"unexpected immediate value restoration"};
-      }
-    }
+    // template <typename U, typename = typename std::enable_if<std::is_arithmetic<U>::value>::type>
+    // auto as() const -> typename std::decay<U>::type
+    // {
+    //   std::cerr << "; pointer\t; "
+    //             << utility::hexdump<std::uintptr_t>(
+    //                  reinterpret_cast<std::uintptr_t>(std::shared_ptr<T>::get()))
+    //             << std::endl;
+    //
+    //   // Helper function "tag_of" includes assertion "is_tagged".
+    //   switch (auto* value {std::shared_ptr<T>::get()}; tag_of(value))
+    //   {
+    //   #define CASE_OF_TYPE(TYPE)
+    //   case tag<TYPE>::value:
+    //     return static_cast<U>(untagged_value_as<TYPE>(value))
+    //
+    //   CASE_OF_TYPE(bool);
+    //
+    //   CASE_OF_TYPE(float);
+    //   CASE_OF_TYPE(double);
+    //
+    //   CASE_OF_TYPE(std::int8_t);
+    //   CASE_OF_TYPE(std::int16_t);
+    //   CASE_OF_TYPE(std::int32_t);
+    //
+    //   CASE_OF_TYPE(std::uint8_t);
+    //   CASE_OF_TYPE(std::uint16_t);
+    //   CASE_OF_TYPE(std::uint32_t);
+    //
+    //   #undef CASE_OF_TYPE
+    //
+    //   default:
+    //     throw std::logic_error {"unexpected immediate value restoration"};
+    //   }
+    // }
 
     decltype(auto) copy() const
     {

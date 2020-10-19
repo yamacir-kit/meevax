@@ -105,6 +105,7 @@ namespace meevax { inline namespace kernel
 
   static const object unit {nullptr};
 
+  // Ghost types
   #define BOILERPLATE(TYPENAME)                                                \
   struct TYPENAME##_t                                                          \
   {                                                                            \

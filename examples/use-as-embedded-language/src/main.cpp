@@ -142,25 +142,54 @@ int main()
   //   result = true;
   // });
 
-  {
-    using namespace meevax::kernel;
+  // {
+  //   using namespace meevax::kernel;
+  //
+  //   // static_assert(tag<void*>::value    == 0b0000);
+  //
+  //   static_assert(category<bool>::value == 0b1101);
+  //
+  //   static_assert(tag<float>::value    == 0b0101'1010);
+  //
+  //   static_assert(tag<int8_t>::value   == 0b0011'1000);
+  //   static_assert(tag<int16_t>::value  == 0b0100'1000);
+  //   static_assert(tag<int32_t>::value  == 0b0101'1000);
+  //   // static_assert(tag<int64_t>::value  == 0b1000);
+  //
+  //   static_assert(tag<uint8_t>::value  == 0b0011'1100);
+  //   static_assert(tag<uint16_t>::value == 0b0100'1100);
+  //   static_assert(tag<uint32_t>::value == 0b0101'1100);
+  //   // static_assert(tag<uint64_t>::value == 0b1100);
+  // }
 
-    // static_assert(tag<void*>::value    == 0b0000);
-
-    static_assert(category<bool>::value == 0b1101);
-
-    static_assert(tag<float>::value    == 0b0101'1010);
-
-    static_assert(tag<int8_t>::value   == 0b0011'1000);
-    static_assert(tag<int16_t>::value  == 0b0100'1000);
-    static_assert(tag<int32_t>::value  == 0b0101'1000);
-    // static_assert(tag<int64_t>::value  == 0b1000);
-
-    static_assert(tag<uint8_t>::value  == 0b0011'1100);
-    static_assert(tag<uint16_t>::value == 0b0100'1100);
-    static_assert(tag<uint32_t>::value == 0b0101'1100);
-    // static_assert(tag<uint64_t>::value == 0b1100);
-  }
+  // if (false)
+  // {
+  //   std::cerr << "Test/1 - Write/Read Invariance" << std::endl;
+  //
+  //   std::stringstream text_port {"'(+ 1 2 3)"};
+  //
+  //   text_port >> root;
+  //   text_port << root;
+  //   text_port >> root;
+  //   std::cout << root;
+  //
+  //   std::cerr << std::endl;
+  // }
+  //
+  // if (false)
+  // {
+  //   std::cerr << "Test/2 - Tagged Pointers" << std::endl;
+  //
+  //   auto value {meevax::kernel::make<float>(3.14)};
+  //
+  //   auto x {value.as<float>()};
+  //   std::cout << "; pointer\t; " << x << std::endl;
+  //
+  //   auto y {value.as<int>()};
+  //   std::cout << "; pointer\t; " << y << std::endl;
+  //
+  //   std::cerr << std::endl;
+  // }
 
   std::cout << "\n"
             << passed << " of " << cases << " cases passed the unit-test.\n";
