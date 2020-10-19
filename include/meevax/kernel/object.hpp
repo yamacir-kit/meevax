@@ -17,54 +17,51 @@ namespace meevax { inline namespace kernel
 
     virtual auto copy() const -> pointer<T>
     {
-      return if_is_copy_constructible<T>::template invoke<pointer<T>>([](auto&&... xs)
-      {
-        return static_cast<pointer<T>>(std::make_shared<T>(std::forward<decltype(xs)>(xs)...));
-      }, static_cast<const T&>(*this));
+      return delay<clone>().yield<pointer<T>>(static_cast<const T&>(*this), nullptr);
     }
 
     virtual bool eqv(const pointer<T>& rhs) const
     {
-      return if_equality_comparable<T>::template invoke<bool>([](auto&& lhs, auto&& rhs)
+      if constexpr (is_equality_comparable<T>::value)
       {
         if (const auto rhsp { std::dynamic_pointer_cast<const T>(rhs) })
         {
-          return lhs == *rhsp;
+          return static_cast<const T&>(*this) == *rhsp;
         }
         else
         {
           return false;
         }
-      }, static_cast<const T&>(*this), rhs);
+      }
+      else
+      {
+        return false;
+      }
     }
 
-    virtual auto write(std::ostream& port) const -> decltype(port)
+    virtual auto write_to(std::ostream& port) const -> decltype(port)
     {
-      // TODO
-      //
-      // if_<T, is_stream_insertable>::operator <<();
-
-      return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
+      return delay<write>().yield<decltype(port)>(port, static_cast<const T&>(*this));
     }
 
-    #define BOILERPLATE(SYMBOL, RESULT, LAZY_APPLY)                            \
+    #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                             \
     virtual auto operator SYMBOL(const pointer<T>& rhs) const -> RESULT        \
     {                                                                          \
-      return LAZY_APPLY<RESULT>(static_cast<const T&>(*this), rhs);            \
+      return delay<OPERATION>().yield<RESULT>(static_cast<const T&>(*this), rhs); \
     } static_assert(true)
 
-    BOILERPLATE(+, pointer<T>, apply_if_supports_addition_operation);
-    BOILERPLATE(-, pointer<T>, apply_if_supports_subtraction_operation);
-    BOILERPLATE(*, pointer<T>, apply_if_supports_multiplication_operation);
-    BOILERPLATE(/, pointer<T>, apply_if_supports_division_operation);
-    BOILERPLATE(%, pointer<T>, apply_if_supports_modulo_operation);
+    BOILERPLATE(+, pointer<T>, std::plus<void>);
+    BOILERPLATE(-, pointer<T>, std::minus<void>);
+    BOILERPLATE(*, pointer<T>, std::multiplies<void>);
+    BOILERPLATE(/, pointer<T>, std::divides<void>);
+    BOILERPLATE(%, pointer<T>, std::modulus<void>);
 
-    BOILERPLATE(==, bool, apply_if_supports_equal_to_operation);
-    BOILERPLATE(!=, bool, apply_if_supports_not_equal_to_operation);
-    BOILERPLATE(<,  bool, apply_if_supports_less_than_operation);
-    BOILERPLATE(<=, bool, apply_if_supports_less_than_or_equal_to_operation);
-    BOILERPLATE(>,  bool, apply_if_supports_greater_than_operation);
-    BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
+    BOILERPLATE(==, bool, std::equal_to<void>);
+    BOILERPLATE(!=, bool, std::not_equal_to<void>);
+    BOILERPLATE(<,  bool, std::less<void>);
+    BOILERPLATE(<=, bool, std::less_equal<void>);
+    BOILERPLATE(>,  bool, std::greater<void>);
+    BOILERPLATE(>=, bool, std::greater_equal<void>);
 
     #undef BOILERPLATE
   };
@@ -90,38 +87,20 @@ namespace meevax { inline namespace kernel
     return object::bind<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  #if __cpp_lib_memory_resource
-  template <typename T,
-            typename MemoryResource, // XXX (GCC-9 <=)
-            typename... Ts>
-  inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... xs)
-  {
-    return
-      object::allocate_binding<T>(
-        std::forward<decltype(resource)>(resource),
-        std::forward<decltype(xs)>(xs)...);
-  }
-  #endif // __cpp_lib_memory_resource
+  // #if __cpp_lib_memory_resource
+  // template <typename T,
+  //           typename MemoryResource, // XXX (GCC-9 <=)
+  //           typename... Ts>
+  // inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... xs)
+  // {
+  //   return
+  //     object::allocate_binding<T>(
+  //       std::forward<decltype(resource)>(resource),
+  //       std::forward<decltype(xs)>(xs)...);
+  // }
+  // #endif // __cpp_lib_memory_resource
 
-  static const object unit {nullptr};
-
-  #define BOILERPLATE(TYPENAME)                                                \
-  struct TYPENAME##_t                                                          \
-  {                                                                            \
-    TYPENAME##_t() = default;                                                  \
-                                                                               \
-    friend auto operator <<(std::ostream& os, const TYPENAME##_t&) -> decltype(os) \
-    {                                                                          \
-      return os << faint << "#;" #TYPENAME << reset;                           \
-    }                                                                          \
-  };                                                                           \
-                                                                               \
-  static const auto TYPENAME { make<TYPENAME##_t>() }
-
-  BOILERPLATE(undefined);
-  BOILERPLATE(unspecified);
-
-  #undef BOILERPLATE
+  static const object unit { nullptr };
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

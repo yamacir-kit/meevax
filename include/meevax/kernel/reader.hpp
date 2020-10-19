@@ -10,6 +10,7 @@
 #include <boost/iostreams/stream_buffer.hpp>
 
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/string.hpp>

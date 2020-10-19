@@ -74,35 +74,6 @@ int main(const int argc, char const* const* const argv) try
       root.header("interaction"), "I have control of root syntactic-continuation.\n");
   }
 
-  if (false)
-  {
-    std::cerr << "Test/1 - Write/Read Invariance" << std::endl;
-
-    std::stringstream text_port {"'(+ 1 2 3)"};
-
-    text_port >> root;
-    text_port << root;
-    text_port >> root;
-    std::cout << root;
-
-    std::cerr << std::endl;
-  }
-
-  if (false)
-  {
-    std::cerr << "Test/2 - Tagged Pointers" << std::endl;
-
-    auto value {meevax::kernel::make<float>(3.14)};
-
-    auto x {value.as<float>()};
-    std::cout << "; pointer\t; " << x << std::endl;;
-
-    auto y {value.as<int>()};
-    std::cout << "; pointer\t; " << y << std::endl;;
-
-    std::cerr << std::endl;
-  }
-
   return boost::exit_success;
 }
 catch (const meevax::kernel::exception& error)
