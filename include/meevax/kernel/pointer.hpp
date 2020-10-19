@@ -213,7 +213,7 @@ namespace meevax { inline namespace kernel
         return LAZY_APPLY<RESULT>(static_cast<const bound&>(*this), rhs);      \
       } static_assert(true)
 
-      BOILERPLATE(+, pointer, apply_if_supports_addition_operation);
+      // BOILERPLATE(+, pointer, apply_if_supports_addition_operation);
       BOILERPLATE(-, pointer, apply_if_supports_subtraction_operation);
       BOILERPLATE(*, pointer, apply_if_supports_multiplication_operation);
       BOILERPLATE(/, pointer, apply_if_supports_division_operation);
@@ -227,6 +227,11 @@ namespace meevax { inline namespace kernel
       BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
 
       #undef BOILERPLATE
+
+      auto operator +(const pointer& rhs) const -> pointer override
+      {
+        return delay<addition>().yield<pointer>(static_cast<const bound&>(*this), rhs);
+      }
     };
 
   public:
