@@ -200,9 +200,9 @@ namespace meevax { inline namespace kernel
         }, static_cast<const bound&>(*this), rhs);
       }
 
-      auto write(std::ostream& port) const -> decltype(port) override
+      auto write_to(std::ostream& port) const -> decltype(port) override
       {
-        return if_stream_insertable<bound>::call_it(port, *this);
+        return delay<write>().yield<decltype(port)>(port, static_cast<const bound&>(*this));
       }
 
       /* ---- Numerical operations ------------------------------------------ */
@@ -449,9 +449,9 @@ namespace meevax { inline namespace kernel
   };
 
   template <typename T>
-  decltype(auto) operator<<(std::ostream& os, const pointer<T>& x)
+  auto operator <<(std::ostream& port, const pointer<T>& rhs) -> decltype(auto)
   {
-    return (x ? x.binding().write(os) : os << console::magenta << "()") << console::reset;
+    return (rhs.template is<null>() ? port << magenta << "()" : rhs.binding().write_to(port)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL, OPERATION)                                       \
@@ -468,7 +468,7 @@ namespace meevax { inline namespace kernel
       ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
       throw std::logic_error { ss.str() };                                     \
     }                                                                          \
-  } static_assert(true, "semicolon required after this macro")
+  } static_assert(true)
 
   BOILERPLATE(*, multiplies);
   BOILERPLATE(+, plus);
