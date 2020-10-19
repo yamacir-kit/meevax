@@ -6,6 +6,7 @@
 
 #include <meevax/functional/curry.hpp>
 #include <meevax/kernel/feature.hpp>
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 

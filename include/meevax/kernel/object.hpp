@@ -103,26 +103,7 @@ namespace meevax { inline namespace kernel
   // }
   // #endif // __cpp_lib_memory_resource
 
-  static const object unit {nullptr};
-
-  // Ghost types
-  #define BOILERPLATE(TYPENAME)                                                \
-  struct TYPENAME##_t                                                          \
-  {                                                                            \
-    TYPENAME##_t() = default;                                                  \
-                                                                               \
-    friend auto operator <<(std::ostream& os, const TYPENAME##_t&) -> decltype(os) \
-    {                                                                          \
-      return os << faint << "#;" #TYPENAME << reset;                           \
-    }                                                                          \
-  };                                                                           \
-                                                                               \
-  static const auto TYPENAME { make<TYPENAME##_t>() }
-
-  BOILERPLATE(undefined);
-  BOILERPLATE(unspecified);
-
-  #undef BOILERPLATE
+  static const object unit { nullptr };
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

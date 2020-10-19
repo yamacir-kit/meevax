@@ -1,3 +1,4 @@
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/procedure.hpp>
 

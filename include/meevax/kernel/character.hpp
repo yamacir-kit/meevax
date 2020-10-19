@@ -9,11 +9,8 @@ namespace meevax { inline namespace kernel
 {
   using variable_width_character = std::string; // TODO convert std::u8string in future.
 
-  /* ---- Character ------------------------------------------------------------
-   *
-   * TODO
-   *
-   * ------------------------------------------------------------------------ */
+  /* ---- Character --------------------------------------------------------- */
+
   struct character
     : private variable_width_character
   {
@@ -40,12 +37,11 @@ namespace meevax { inline namespace kernel
     }
   };
 
-  /* ==== Character Table ======================================================
-  *
-  * Abstract
-  *   For character literal #\<character> or #\<character name>.
-  *
-  * ========================================================================= */
+  /* ---- Character Table ------------------------------------------------------
+   *
+   *   Contains character literal #\<character> or #\<character name>.
+   *
+   * ------------------------------------------------------------------------ */
   extern const std::unordered_map<std::string, object> characters;
 
   auto char_ci_eq = [](auto c, auto... xs) constexpr
