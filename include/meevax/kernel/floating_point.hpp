@@ -20,11 +20,6 @@ namespace meevax { inline namespace kernel
       : value { value }
     {}
 
-    // template <typename U, typename = typename std::enable_if<std::is_convertible<U, value_type>::value>::type>
-    // explicit constexpr floating_point(U&& x)
-    //   : value { x }
-    // {}
-
     template <typename... Ts>
     explicit constexpr floating_point(Ts&&... xs)
       : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }

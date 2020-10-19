@@ -90,18 +90,18 @@ namespace meevax { inline namespace kernel
     return object::bind<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  #if __cpp_lib_memory_resource
-  template <typename T,
-            typename MemoryResource, // XXX (GCC-9 <=)
-            typename... Ts>
-  inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... xs)
-  {
-    return
-      object::allocate_binding<T>(
-        std::forward<decltype(resource)>(resource),
-        std::forward<decltype(xs)>(xs)...);
-  }
-  #endif // __cpp_lib_memory_resource
+  // #if __cpp_lib_memory_resource
+  // template <typename T,
+  //           typename MemoryResource, // XXX (GCC-9 <=)
+  //           typename... Ts>
+  // inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... xs)
+  // {
+  //   return
+  //     object::allocate_binding<T>(
+  //       std::forward<decltype(resource)>(resource),
+  //       std::forward<decltype(xs)>(xs)...);
+  // }
+  // #endif // __cpp_lib_memory_resource
 
   static const object unit {nullptr};
 
