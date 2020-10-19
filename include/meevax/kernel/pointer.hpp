@@ -10,7 +10,6 @@
 
 #include <meevax/console//escape_sequence.hpp>
 #include <meevax/numerical/exact.hpp>
-#include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/demangle.hpp>
@@ -18,7 +17,6 @@
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
-#include <type_traits>
 
 namespace meevax { inline namespace kernel
 {
