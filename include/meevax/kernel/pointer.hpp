@@ -7,12 +7,13 @@
 #include <cstdint>
 #include <stdexcept> // std::logic_error
 
-#include <meevax/concepts/arithmetic.hpp>
+// #include <meevax/concepts/arithmetic.hpp>
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/type_traits/if_stream_insertable.hpp>
 #include <meevax/type_traits/operation_support.hpp>
+#include <meevax/utility/delay.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
@@ -207,31 +208,26 @@ namespace meevax { inline namespace kernel
 
       /* ---- Numerical operations ------------------------------------------ */
 
-      #define BOILERPLATE(SYMBOL, RESULT, LAZY_APPLY)                          \
+      #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                           \
       auto operator SYMBOL(const pointer& rhs) const -> RESULT override        \
       {                                                                        \
-        return LAZY_APPLY<RESULT>(static_cast<const bound&>(*this), rhs);      \
+        return delay<OPERATION>().yield<RESULT>(static_cast<const bound&>(*this), rhs); \
       } static_assert(true)
 
-      // BOILERPLATE(+, pointer, apply_if_supports_addition_operation);
-      BOILERPLATE(-, pointer, apply_if_supports_subtraction_operation);
-      BOILERPLATE(*, pointer, apply_if_supports_multiplication_operation);
-      BOILERPLATE(/, pointer, apply_if_supports_division_operation);
-      BOILERPLATE(%, pointer, apply_if_supports_modulo_operation);
+      BOILERPLATE(+, pointer, addition);
+      BOILERPLATE(-, pointer, subtraction);
+      BOILERPLATE(*, pointer, multiplication);
+      BOILERPLATE(/, pointer, division);
+      BOILERPLATE(%, pointer, modulo);
 
-      BOILERPLATE(==, bool, apply_if_supports_equal_to_operation);
-      BOILERPLATE(!=, bool, apply_if_supports_not_equal_to_operation);
-      BOILERPLATE(<,  bool, apply_if_supports_less_than_operation);
-      BOILERPLATE(<=, bool, apply_if_supports_less_than_or_equal_to_operation);
-      BOILERPLATE(>,  bool, apply_if_supports_greater_than_operation);
-      BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
+      BOILERPLATE(==, bool, equal_to);
+      BOILERPLATE(!=, bool, not_equal_to);
+      BOILERPLATE(<,  bool, less_than);
+      BOILERPLATE(<=, bool, less_than_or_equal_to);
+      BOILERPLATE(>,  bool, greater_than);
+      BOILERPLATE(>=, bool, greater_than_or_equal_to);
 
       #undef BOILERPLATE
-
-      auto operator +(const pointer& rhs) const -> pointer override
-      {
-        return delay<addition>().yield<pointer>(static_cast<const bound&>(*this), rhs);
-      }
     };
 
   public:
