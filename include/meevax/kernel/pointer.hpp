@@ -8,9 +8,9 @@
 #include <functional>
 #include <stdexcept> // std::logic_error
 
+#include <meevax/console//escape_sequence.hpp>
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
-#include <meevax/type_traits/if_stream_insertable.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/demangle.hpp>
