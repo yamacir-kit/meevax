@@ -53,6 +53,26 @@ namespace meevax { inline namespace utility
       return select<Ts...>().template apply<R>(std::forward<decltype(xs)>(xs)...);
     }
   };
+
+  /* ---- Stream Input/Output ----------------------------------------------- */
+
+  struct read
+  {
+    template <typename Port, typename... Ts>
+    constexpr auto operator ()(Port&& port, Ts&&... xs) const -> decltype(auto)
+    {
+      return (port >> ... >> xs);
+    }
+  };
+
+  struct write
+  {
+    template <typename Port, typename... Ts>
+    constexpr auto operator ()(Port&& port, Ts&&... xs) const -> decltype(auto)
+    {
+      return (port << ... << xs);
+    }
+  };
 }} // namespace meevax::utility
 
 #endif // INCLUDED_MEEVAX_UTILITY_DELAY_HPP

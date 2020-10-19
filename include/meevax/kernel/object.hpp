@@ -47,24 +47,24 @@ namespace meevax { inline namespace kernel
       return if_stream_insertable<T>::call_it(port, static_cast<const T&>(*this));
     }
 
-    #define BOILERPLATE(SYMBOL, RESULT, LAZY_APPLY)                            \
+    #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                             \
     virtual auto operator SYMBOL(const pointer<T>& rhs) const -> RESULT        \
     {                                                                          \
-      return LAZY_APPLY<RESULT>(static_cast<const T&>(*this), rhs);            \
+      return delay<OPERATION>().yield<RESULT>(static_cast<const T&>(*this), rhs); \
     } static_assert(true)
 
-    BOILERPLATE(+, pointer<T>, apply_if_supports_addition_operation);
-    BOILERPLATE(-, pointer<T>, apply_if_supports_subtraction_operation);
-    BOILERPLATE(*, pointer<T>, apply_if_supports_multiplication_operation);
-    BOILERPLATE(/, pointer<T>, apply_if_supports_division_operation);
-    BOILERPLATE(%, pointer<T>, apply_if_supports_modulo_operation);
+    BOILERPLATE(+, pointer<T>, std::plus<void>);
+    BOILERPLATE(-, pointer<T>, std::minus<void>);
+    BOILERPLATE(*, pointer<T>, std::multiplies<void>);
+    BOILERPLATE(/, pointer<T>, std::divides<void>);
+    BOILERPLATE(%, pointer<T>, std::modulus<void>);
 
-    BOILERPLATE(==, bool, apply_if_supports_equal_to_operation);
-    BOILERPLATE(!=, bool, apply_if_supports_not_equal_to_operation);
-    BOILERPLATE(<,  bool, apply_if_supports_less_than_operation);
-    BOILERPLATE(<=, bool, apply_if_supports_less_than_or_equal_to_operation);
-    BOILERPLATE(>,  bool, apply_if_supports_greater_than_operation);
-    BOILERPLATE(>=, bool, apply_if_supports_greater_than_or_equal_to_operation);
+    BOILERPLATE(==, bool, std::equal_to<void>);
+    BOILERPLATE(!=, bool, std::not_equal_to<void>);
+    BOILERPLATE(<,  bool, std::less<void>);
+    BOILERPLATE(<=, bool, std::less_equal<void>);
+    BOILERPLATE(>,  bool, std::greater<void>);
+    BOILERPLATE(>=, bool, std::greater_equal<void>);
 
     #undef BOILERPLATE
   };
