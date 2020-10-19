@@ -8,12 +8,10 @@
 #include <functional>
 #include <stdexcept> // std::logic_error
 
-// #include <meevax/concepts/arithmetic.hpp>
 #include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/type_traits/if_stream_insertable.hpp>
-// #include <meevax/type_traits/operation_support.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
