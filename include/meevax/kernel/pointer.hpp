@@ -18,6 +18,7 @@
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
+#include <type_traits>
 
 namespace meevax { inline namespace kernel
 {
@@ -179,10 +180,7 @@ namespace meevax { inline namespace kernel
 
       auto copy() const -> pointer override
       {
-        return if_is_copy_constructible<binding>::template invoke<pointer>([](auto&&... xs)
-        {
-          return static_cast<pointer>(std::make_shared<binding>(std::forward<decltype(xs)>(xs)...));
-        }, *this);
+        return delay<clone>().yield<pointer>(*this, nullptr);
       }
 
       auto eqv(const pointer& rhs) const -> bool override
@@ -238,6 +236,11 @@ namespace meevax { inline namespace kernel
       : std::shared_ptr<T> { other }
     {}
 
+    template <typename B>
+    pointer(const std::shared_ptr<binder<B>>& binding)
+      : std::shared_ptr<T> { binding }
+    {}
+
     template <typename... Ts>
     explicit constexpr pointer(Ts&&... xs)
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
@@ -255,7 +258,7 @@ namespace meevax { inline namespace kernel
     static auto bind(Ts&&... xs) -> pointer
     {
       using binding = binder<Bound>;
-      return static_cast<pointer>(std::make_shared<binding>(std::forward<decltype(xs)>(xs)...));
+      return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
     }
 
     // #if __cpp_lib_memory_resource

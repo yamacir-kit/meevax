@@ -17,10 +17,7 @@ namespace meevax { inline namespace kernel
 
     virtual auto copy() const -> pointer<T>
     {
-      return if_is_copy_constructible<T>::template invoke<pointer<T>>([](auto&&... xs)
-      {
-        return static_cast<pointer<T>>(std::make_shared<T>(std::forward<decltype(xs)>(xs)...));
-      }, static_cast<const T&>(*this));
+      return delay<clone>().yield<pointer<T>>(static_cast<const T&>(*this), nullptr);
     }
 
     virtual bool eqv(const pointer<T>& rhs) const

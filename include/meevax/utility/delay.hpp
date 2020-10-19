@@ -64,6 +64,16 @@ namespace meevax { inline namespace utility
 
   /* ---- Miscellaneous ----------------------------------------------------- */
 
+  struct clone
+  {
+    template <typename T,
+              typename = typename std::enable_if<std::is_copy_constructible<T>::value>::type>
+    auto operator ()(const T& origin, std::nullptr_t) const -> decltype(auto)
+    {
+      return std::make_shared<T>(origin);
+    }
+  };
+
   struct read
   {
     template <typename Port, typename... Ts>
