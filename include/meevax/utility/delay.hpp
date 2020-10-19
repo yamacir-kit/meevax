@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
+#include <memory>
 #include <sstream> // TODO #include <meevax/kernel/error.hpp>
 #include <stdexcept>
 #include <type_traits>
@@ -62,10 +63,6 @@ namespace meevax { inline namespace utility
   };
 
   /* ---- Miscellaneous ----------------------------------------------------- */
-
-  struct compare
-  {
-  };
 
   struct read
   {

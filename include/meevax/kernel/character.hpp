@@ -12,7 +12,7 @@ namespace meevax { inline namespace kernel
   /* ---- Character --------------------------------------------------------- */
 
   struct character
-    : private variable_width_character
+    : public variable_width_character
   {
     const std::string name;
 
@@ -31,7 +31,7 @@ namespace meevax { inline namespace kernel
       return port << display() << reset;
     }
 
-    friend auto operator<<(std::ostream& port, const character& c) -> decltype(auto)
+    friend auto operator <<(std::ostream& port, const character& c) -> decltype(auto)
     {
       return port << cyan << "#\\" << (std::empty(c.name) ? c.display() : c.name) << reset;
     }
