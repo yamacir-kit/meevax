@@ -29,11 +29,18 @@ namespace meevax { inline namespace utility
       template <typename R>
       static auto apply(T&&, U&&) -> R
       {
-        std::stringstream port {};
-        port << typeid(T).name() << " and "
-             << typeid(U).name() << " are not supports operation "
-             << typeid(F).name();
-        throw std::runtime_error(port.str());
+        if constexpr (std::is_same<R, bool>::value)
+        {
+          return false;
+        }
+        else
+        {
+          std::stringstream port {};
+          port << typeid(T).name() << " and "
+               << typeid(U).name() << " are not supports operation "
+               << typeid(F).name();
+          throw std::runtime_error(port.str());
+        }
       }
     };
 
@@ -54,7 +61,11 @@ namespace meevax { inline namespace utility
     }
   };
 
-  /* ---- Stream Input/Output ----------------------------------------------- */
+  /* ---- Miscellaneous ----------------------------------------------------- */
+
+  struct compare
+  {
+  };
 
   struct read
   {
