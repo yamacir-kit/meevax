@@ -8,10 +8,10 @@
 #include <functional>
 #include <stdexcept> // std::logic_error
 
-#include <meevax/concepts/is_equality_comparable.hpp>
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/if_constexpr.hpp>
 #include <meevax/type_traits/if_stream_insertable.hpp>
+#include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/hexdump.hpp>
@@ -187,17 +187,21 @@ namespace meevax { inline namespace kernel
 
       auto eqv(const pointer& rhs) const -> bool override
       {
-        return if_equality_comparable<bound>::template invoke<bool>([](auto&& lhs, auto&& rhs)
+        if constexpr (is_equality_comparable<bound>::value)
         {
           if (const auto rhsp { std::dynamic_pointer_cast<const bound>(rhs) })
           {
-            return lhs == *rhsp;
+            return static_cast<const bound&>(*this) == *rhsp;
           }
           else
           {
             return false;
           }
-        }, static_cast<const bound&>(*this), rhs);
+        }
+        else
+        {
+          return false;
+        }
       }
 
       auto write_to(std::ostream& port) const -> decltype(port) override

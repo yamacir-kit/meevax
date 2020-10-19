@@ -5,8 +5,6 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <meevax/concepts/is_equality_comparable.hpp>
-
 namespace meevax { inline namespace type_traits
 {
   #define BOILERPLATE(NAMESPACE, TRAIT)                                        \
@@ -33,8 +31,6 @@ namespace meevax { inline namespace type_traits
   }
 
   BOILERPLATE(std, is_copy_constructible);
-
-  BOILERPLATE(concepts, equality_comparable);
 
   #undef BOILERPLATE
 }} // namespace meevax::type_traits

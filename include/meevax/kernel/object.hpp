@@ -25,17 +25,21 @@ namespace meevax { inline namespace kernel
 
     virtual bool eqv(const pointer<T>& rhs) const
     {
-      return if_equality_comparable<T>::template invoke<bool>([](auto&& lhs, auto&& rhs)
+      if constexpr (is_equality_comparable<T>::value)
       {
         if (const auto rhsp { std::dynamic_pointer_cast<const T>(rhs) })
         {
-          return lhs == *rhsp;
+          return static_cast<const T&>(*this) == *rhsp;
         }
         else
         {
           return false;
         }
-      }, static_cast<const T&>(*this), rhs);
+      }
+      else
+      {
+        return false;
+      }
     }
 
     virtual auto write_to(std::ostream& port) const -> decltype(port)
