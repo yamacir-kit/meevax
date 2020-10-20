@@ -1,35 +1,35 @@
-#ifndef INCLUDED_MEEVAX_KERNEL_EXCEPTION_HPP
-#define INCLUDED_MEEVAX_KERNEL_EXCEPTION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
+#define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
 #include <sstream>
 
 #include <meevax/kernel/object.hpp>
 
-/* ==== The Exception Tower ===================================================
-*
-* TODO: Reduce the hierarchy. warning category is unused.
-*
-* - exception
-*    │
-*    ├── error                                                       (category)
-*    │    │
-*    │    ├── configuration_error                                     (section)
-*    │    │
-*    │    ├── evaluation_error                                        (section)
-*    │    │
-*    │    ├── reader_error                                            (section)
-*    │    │    ├── reader_error_about_pair                              (about)
-*    │    │    └── reader_error_about_parentheses                       (about)
-*    │    │
-*    │    ├── syntax_error                                            (section)
-*    │    │    ├── syntax_error_about_assignment                        (about)
-*    │    │    └── syntax_error_about_internal_define                   (about)
-*    │    │
-*    │    └── kernel_error                                            (section)
-*    │
-*    └── warning                                                     (category)
-*
-*=========================================================================== */
+/* ---- Error ------------------------------------------------------------------
+ *
+ * TODO: Reduce the hierarchy. warning category is unused.
+ *
+ * - exception
+ *    │
+ *    ├── error                                                       (category)
+ *    │    │
+ *    │    ├── configuration_error                                     (section)
+ *    │    │
+ *    │    ├── evaluation_error                                        (section)
+ *    │    │
+ *    │    ├── reader_error                                            (section)
+ *    │    │    ├── reader_error_about_pair                              (about)
+ *    │    │    └── reader_error_about_parentheses                       (about)
+ *    │    │
+ *    │    ├── syntax_error                                            (section)
+ *    │    │    ├── syntax_error_about_assignment                        (about)
+ *    │    │    └── syntax_error_about_internal_define                   (about)
+ *    │    │
+ *    │    └── kernel_error                                            (section)
+ *    │
+ *    └── warning                                                     (category)
+ *
+ * -------------------------------------------------------------------------- */
 
 namespace meevax { inline namespace kernel
 {
@@ -158,5 +158,4 @@ namespace meevax { inline namespace kernel
   DEFINE_EXCEPTION_ABOUT(pair, kernel, error)
 }} // namespace meevax::kernel
 
-#endif // INCLUDED_MEEVAX_KERNEL_EXCEPTION_HPP
-
+#endif // INCLUDED_MEEVAX_KERNEL_ERROR_HPP

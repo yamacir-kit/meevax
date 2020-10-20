@@ -3,7 +3,7 @@
 
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
-#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/error.hpp>
 
 namespace meevax { inline namespace kernel
 {
