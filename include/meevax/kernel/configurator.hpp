@@ -4,7 +4,6 @@
 #include <regex>
 #include <unordered_map>
 
-#include <meevax/functional/curry.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/procedure.hpp>

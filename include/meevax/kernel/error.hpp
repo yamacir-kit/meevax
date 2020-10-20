@@ -37,13 +37,7 @@
 
 namespace meevax { inline namespace kernel
 {
-  template <typename Ex, typename... Ts>
-  void raise(Ts&&... xs)
-  {
-    Ex(std::forward<decltype(xs)>(xs)...).raise();
-  }
-
-  struct exception
+  struct [[deprecated]] exception
     : public std::runtime_error
   {
     using std::runtime_error::runtime_error;
@@ -85,7 +79,7 @@ namespace meevax { inline namespace kernel
   DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(exception, "exception")
 
   #define DEFINE_EXCEPTION_CATEGORY(CATEGORY)                                  \
-  struct [[maybe_unused]] CATEGORY                                             \
+  struct [[deprecated]] CATEGORY                                               \
     : public exception                                                         \
   {                                                                            \
     template <typename... Ts>                                                  \
@@ -105,7 +99,7 @@ namespace meevax { inline namespace kernel
   DEFINE_EXCEPTION_CATEGORY(warning)
 
   #define DEFINE_EXCEPTION_SECTION(PREFIX, CATEGORY)                           \
-  struct [[maybe_unused]] PREFIX##_##CATEGORY                                  \
+  struct [[deprecated]] PREFIX##_##CATEGORY                                    \
     : public CATEGORY                                                          \
   {                                                                            \
     template <typename... Ts>                                                  \
@@ -134,7 +128,7 @@ namespace meevax { inline namespace kernel
   DEFINE_EXCEPTION_SECTION(kernel, warning)
 
   #define DEFINE_EXCEPTION_ABOUT(ABOUT, SECTION, CATEGORY)                     \
-  struct [[maybe_unused]] SECTION##_##CATEGORY##_about_##ABOUT                 \
+  struct [[deprecated]] SECTION##_##CATEGORY##_about_##ABOUT                   \
     : public SECTION##_##CATEGORY                                              \
   {                                                                            \
     template <typename... Ts>                                                  \
