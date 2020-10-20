@@ -12,11 +12,9 @@ namespace meevax { inline namespace kernel
   {
     using std::experimental::filesystem::path::path;
 
-    friend auto operator<<(std::ostream& os, const path& p)
-      -> decltype(os)
+    friend auto operator<<(std::ostream& os, const path& p) -> decltype(auto)
     {
-      return os << console::cyan << "#p\"" << p.c_str() << "\""
-                << console::reset;
+      return os << cyan << "#p\"" << p.c_str() << "\"" << reset;
     }
   };
 }} // namespace meevax::kernel

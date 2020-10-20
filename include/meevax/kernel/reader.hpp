@@ -3,7 +3,6 @@
 
 #include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
-#include <sstream>
 #include <stack>
 
 #include <boost/iostreams/device/null.hpp>

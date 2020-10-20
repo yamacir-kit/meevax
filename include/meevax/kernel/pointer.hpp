@@ -5,15 +5,11 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
-#include <stdexcept> // std::logic_error
 
-#include <meevax/console//escape_sequence.hpp>
 #include <meevax/numerical/exact.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/demangle.hpp>
-#include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>

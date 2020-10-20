@@ -2,10 +2,9 @@
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
 #include <memory>
-#include <sstream> // TODO #include <meevax/kernel/error.hpp>
-#include <stdexcept>
 #include <type_traits>
-#include <utility>
+
+#include <meevax/kernel/error.hpp>
 
 namespace meevax { inline namespace utility
 {

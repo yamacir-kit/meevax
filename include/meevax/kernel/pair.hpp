@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/object.hpp>
 
 namespace meevax { inline namespace kernel

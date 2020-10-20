@@ -1,9 +1,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
+#include <iomanip>
 #include <sstream>
+#include <stdexcept>
+#include <utility>
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/console/escape_sequence.hpp>
+#include <meevax/utility/hexdump.hpp>
 
 /* ---- Error ------------------------------------------------------------------
  *

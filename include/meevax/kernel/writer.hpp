@@ -3,7 +3,6 @@
 
 #include <fstream>
 #include <ostream>
-#include <sstream>
 
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream.hpp>
