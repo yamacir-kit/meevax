@@ -33,6 +33,9 @@
  *    │
  *    └── warning                                                     (category)
  *
+ * - error
+ *    |-- syntax_error
+ *
  * -------------------------------------------------------------------------- */
 
 namespace meevax { inline namespace kernel
@@ -96,7 +99,7 @@ namespace meevax { inline namespace kernel
   DEFINE_EXCEPTION_EXTERNAL_REPRESENTATION(CATEGORY, #CATEGORY)
 
   DEFINE_EXCEPTION_CATEGORY(error)
-  DEFINE_EXCEPTION_CATEGORY(warning)
+  // DEFINE_EXCEPTION_CATEGORY(warning)
 
   #define DEFINE_EXCEPTION_SECTION(PREFIX, CATEGORY)                           \
   struct [[deprecated]] PREFIX##_##CATEGORY                                    \
@@ -121,11 +124,11 @@ namespace meevax { inline namespace kernel
   DEFINE_EXCEPTION_SECTION(syntax, error)
   DEFINE_EXCEPTION_SECTION(kernel, error)
 
-  DEFINE_EXCEPTION_SECTION(configuration, warning)
-  DEFINE_EXCEPTION_SECTION(evaluation, warning)
-  DEFINE_EXCEPTION_SECTION(reader, warning)
-  DEFINE_EXCEPTION_SECTION(syntax, warning)
-  DEFINE_EXCEPTION_SECTION(kernel, warning)
+  // DEFINE_EXCEPTION_SECTION(configuration, warning)
+  // DEFINE_EXCEPTION_SECTION(evaluation, warning)
+  // DEFINE_EXCEPTION_SECTION(reader, warning)
+  // DEFINE_EXCEPTION_SECTION(syntax, warning)
+  // DEFINE_EXCEPTION_SECTION(kernel, warning)
 
   #define DEFINE_EXCEPTION_ABOUT(ABOUT, SECTION, CATEGORY)                     \
   struct [[deprecated]] SECTION##_##CATEGORY##_about_##ABOUT                   \
