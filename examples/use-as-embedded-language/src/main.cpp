@@ -47,8 +47,8 @@ int main()
 
   TEST("make exception",
   {
-    const auto x { make<exception>("This is test exception") };
-    result = x.is<exception>();
+    const auto x { make<error>("This is test exception") };
+    result = x.is<error>();
   });
 
   TEST("make symbol",

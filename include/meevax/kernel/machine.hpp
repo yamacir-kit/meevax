@@ -476,8 +476,7 @@ namespace meevax { inline namespace kernel
       case mnemonic::CALL:
         if (let const callee = car(s); callee.is<null>())
         {
-          static const error e {"unit is not appliciable"};
-          throw e;
+          throw error("unit is not appliciable");
         }
         else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
@@ -502,14 +501,14 @@ namespace meevax { inline namespace kernel
         }
         else
         {
-          throw evaluation_error {callee, " is not applicable"};
+          throw error(callee, " is not applicable");
         }
         goto dispatch;
 
       case mnemonic::TAIL_CALL:
         if (let const callee = car(s); callee.is<null>())
         {
-          throw evaluation_error {"unit is not appliciable"};
+          throw error("unit is not appliciable");
         }
         else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
@@ -533,7 +532,7 @@ namespace meevax { inline namespace kernel
         }
         else
         {
-          throw evaluation_error {callee, " is not applicable"};
+          throw error(callee, " is not applicable");
         }
         goto dispatch;
 
@@ -606,9 +605,7 @@ namespace meevax { inline namespace kernel
         {
           // TODO IF TOPLELVEL, SET ON UNBOUND VARIABLE => DEFINE
 
-          throw evaluation_error {
-            "it would be an error to perform a set! on an unbound variable (from R7RS 5.3.1. Top level definitions)"
-          };
+          throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
         }
         // car(s) = unspecified;
         pop<2>(c);
@@ -747,6 +744,8 @@ namespace meevax { inline namespace kernel
       }
     }
 
+    enum class internal_definition_tag {};
+
     /* ==== Definition ========================================================
     *
     * <definition> = (define <identifier> <expression>)
@@ -824,9 +823,7 @@ namespace meevax { inline namespace kernel
       else
       {
         indent() << shift(); // XXX DIRTY HACK!
-        throw syntax_error_about_internal_define {
-          "definition cannot appear in this context"
-        };
+        throw syntax_error<internal_definition_tag>("definition cannot appear in this context");
       }
     }
 
@@ -846,7 +843,7 @@ namespace meevax { inline namespace kernel
           compile(form, syntactic_environment, frames, continuation, flag);
           return false;
         }
-        catch (syntax_error_about_internal_define)
+        catch (const syntax_error<internal_definition_tag>&)
         {
           return true;
         }
@@ -1167,7 +1164,7 @@ namespace meevax { inline namespace kernel
     {
       if (expression.is<null>())
       {
-        throw syntax_error {"set!"};
+        throw syntax_error<void>("set!");
       }
       else if (de_bruijn_index index { car(expression), frames }; not index.is<null>())
       {

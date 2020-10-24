@@ -305,15 +305,11 @@ namespace meevax { inline namespace kernel
         return make<exact_integer>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
-      std::stringstream port {};
-      port << "the given token '" << token << "' is a valid Scheme numeric literal, but Meevax is not yet supported.";
-      throw std::runtime_error { port.str() };
+      throw read_error<void>("the given token ", token, " is a valid Scheme numeric literal, but is not yet supported");
     }
     else
     {
-      std::stringstream port {};
-      port << "the given token '" << token << "' is a invalid Scheme numeric literal.";
-      throw std::runtime_error { port.str() };
+      throw read_error<void>("the given token ", token, " is a invalid Scheme numeric literal");
     }
   }
 
@@ -337,6 +333,9 @@ namespace meevax { inline namespace kernel
     Import(SK, intern);
 
     using seeker = std::istream_iterator<std::istream::char_type>;
+
+    enum class   proper_list_tag {};
+    enum class improper_list_tag {};
 
   protected:
     // NOTE
@@ -375,19 +374,19 @@ namespace meevax { inline namespace kernel
           port.putback('(');
           return cons(expression, read(port));
         }
-        catch (const reader_error_about_parentheses&)
+        catch (const read_error<proper_list_tag>&)
         {
           return unit;
         }
-        catch (const reader_error_about_pair&)
+        catch (const read_error<improper_list_tag>&)
         {
-          auto expression {read(port)};
+          let y = read(port);
           port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-          return expression;
+          return y;
         }
 
       case ')':
-        throw reader_error_about_parentheses { "unexpected close parentheses inserted" };
+        throw read_error<proper_list_tag>("unexpected close parentheses inserted");
 
       case '#':
         return discriminate(port);
@@ -419,7 +418,7 @@ namespace meevax { inline namespace kernel
         {
           if (token == ".")
           {
-            throw reader_error_about_pair { "dot-notation" };
+            throw read_error<improper_list_tag>("dot-notation");
           }
           else try
           {
@@ -603,13 +602,13 @@ namespace meevax { inline namespace kernel
           }
 
           // TODO Provide datum<character>(name)?
-          if (auto iter {characters.find(name)}; iter != std::end(characters))
+          if (auto iter { characters.find(name) }; iter != std::end(characters))
           {
             return cdr(*iter);
           }
           else
           {
-            throw reader_error_about_character {name, " is unknown character-name"};
+            throw read_error<void>("unknown character-name: ", name);
           }
         }
 

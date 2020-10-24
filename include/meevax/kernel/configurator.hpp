@@ -309,7 +309,7 @@ namespace meevax { inline namespace kernel
               }
               else
               {
-                throw configuration_error { "option -", *so, " requires an argument" };
+                throw error("option -", *so, " requires an argument");
               }
             }
             else if (auto callee { short_options.find(*so) }; callee != std::end(short_options))
@@ -318,7 +318,7 @@ namespace meevax { inline namespace kernel
             }
             else
             {
-              throw configuration_error { *so, " is unknown short-option (in ", *option, ")" };
+              throw error("unknown short-option: ", *so);
             }
           }
         }
@@ -336,7 +336,7 @@ namespace meevax { inline namespace kernel
             }
             else
             {
-              throw configuration_error { "option --", lo, " requires an argument" };
+              throw error("option --", lo, " requires an argument");
             }
           }
           else if (auto callee { long_options.find(lo) }; callee != std::end(long_options))
@@ -345,7 +345,7 @@ namespace meevax { inline namespace kernel
           }
           else
           {
-            throw configuration_error { *option, " is unknown long-option" };
+            throw error("unknown long-option: ", *option);
           }
         }
         else

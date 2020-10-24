@@ -277,7 +277,7 @@ namespace meevax { inline namespace kernel
       else
       {
         write_to(current_debug_port(), f, "\n");
-        throw evaluation_error { "failed to open file ", path_to_source.c_str() };
+        throw file_error<void>("failed to open file: ", path_to_source.c_str());
       }
     }
 
@@ -1055,7 +1055,7 @@ namespace meevax { inline namespace kernel
         return make<exact_integer>(*reinterpret_cast<const std::uint8_t*>(s.data()));
 
       default:
-        throw make<evaluation_error>("unicode unsupported");
+        throw error("unicode unsupported");
       }
     });
 
@@ -1085,9 +1085,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        std::stringstream port {};
-        port << __FILE__ << ":" << __LINE__;
-        throw std::runtime_error { port.str() };
+        throw error("no viable operation 'number->string with ", car(xs));
       }
     });
 
@@ -1106,16 +1104,9 @@ namespace meevax { inline namespace kernel
     {
       auto v { make<vector>() };
 
-      if (car(xs).template is<exact_integer>())
-      {
-        v.as<vector>().resize(
-          static_cast<vector::size_type>(
-            car(xs).template as<exact_integer>().value));
-      }
-      else
-      {
-        throw std::runtime_error {"type-error"};
-      }
+      v.as<vector>().resize(
+        static_cast<vector::size_type>(
+          car(xs).template as<exact_integer>().value));
 
       return v;
     });

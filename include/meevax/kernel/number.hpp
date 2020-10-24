@@ -263,7 +263,7 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
+  #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
   let operator SYMBOL(const floating_point<T>& lhs, const object& rhs)         \
   {                                                                            \
@@ -287,20 +287,18 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     }                                                                          \
                                                                                \
-    std::stringstream ss {};                                                   \
-    ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
-    throw std::logic_error { ss.str() };                                       \
+    throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs);  \
   } static_assert(true)
 
-  BOILERPLATE(*, multiplies);
-  BOILERPLATE(+, plus);
-  BOILERPLATE(-, minus);
-  BOILERPLATE(/, divides);
-  BOILERPLATE(%, modulus);
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+  BOILERPLATE(%);
 
   #undef BOILERPLATE
 
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
+  #define BOILERPLATE(SYMBOL)                                                  \
   let operator SYMBOL(const exact_integer& lhs, const object& rhs)             \
   {                                                                            \
     static const std::unordered_map<                                           \
@@ -348,17 +346,15 @@ namespace meevax { inline namespace kernel
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
-      throw std::logic_error { ss.str() };                                     \
+      throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs); \
     }                                                                          \
   } static_assert(true)
 
-  BOILERPLATE(*, multiplies);
-  BOILERPLATE(+, plus);
-  BOILERPLATE(-, minus);
-  BOILERPLATE(/, divides);
-  BOILERPLATE(%, modulus);
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+  BOILERPLATE(%);
 
   #undef BOILERPLATE
 
@@ -500,7 +496,7 @@ namespace meevax { inline namespace kernel
 
   /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
 
-  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
+  #define BOILERPLATE(NUMBER, SYMBOL)                                          \
   auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \
   {                                                                            \
     if (rhs)                                                                   \
@@ -523,31 +519,29 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     }                                                                          \
                                                                                \
-    std::stringstream port {};                                                 \
-    port << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
-    throw std::logic_error { port.str() };                                     \
-  } static_assert(true, "semicolon required after this macro")
+    throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs);  \
+  } static_assert(true)
 
-  template <typename T> BOILERPLATE(floating_point<T>, !=, not_equal_to);
-  template <typename T> BOILERPLATE(floating_point<T>, <,  less);
-  template <typename T> BOILERPLATE(floating_point<T>, <=, less_equal);
-  template <typename T> BOILERPLATE(floating_point<T>, ==, equal_to);
-  template <typename T> BOILERPLATE(floating_point<T>, >,  greater);
-  template <typename T> BOILERPLATE(floating_point<T>, >=, greater_equal);
+  template <typename T> BOILERPLATE(floating_point<T>, !=);
+  template <typename T> BOILERPLATE(floating_point<T>, < );
+  template <typename T> BOILERPLATE(floating_point<T>, <=);
+  template <typename T> BOILERPLATE(floating_point<T>, ==);
+  template <typename T> BOILERPLATE(floating_point<T>, > );
+  template <typename T> BOILERPLATE(floating_point<T>, >=);
 
-  BOILERPLATE(exact_integer, !=, not_equal_to);
-  BOILERPLATE(exact_integer, <,  less);
-  BOILERPLATE(exact_integer, <=, less_equal);
-  BOILERPLATE(exact_integer, ==, equal_to);
-  BOILERPLATE(exact_integer, >,  greater);
-  BOILERPLATE(exact_integer, >=, greater_equal);
+  BOILERPLATE(exact_integer, !=);
+  BOILERPLATE(exact_integer, < );
+  BOILERPLATE(exact_integer, <=);
+  BOILERPLATE(exact_integer, ==);
+  BOILERPLATE(exact_integer, > );
+  BOILERPLATE(exact_integer, >=);
 
-  BOILERPLATE(ratio, !=, not_equal_to);
-  BOILERPLATE(ratio, <,  less);
-  BOILERPLATE(ratio, <=, less_equal);
-  BOILERPLATE(ratio, ==, equal_to);
-  BOILERPLATE(ratio, >,  greater);
-  BOILERPLATE(ratio, >=, greater_equal);
+  BOILERPLATE(ratio, !=);
+  BOILERPLATE(ratio, < );
+  BOILERPLATE(ratio, <=);
+  BOILERPLATE(ratio, ==);
+  BOILERPLATE(ratio, > );
+  BOILERPLATE(ratio, >=);
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel

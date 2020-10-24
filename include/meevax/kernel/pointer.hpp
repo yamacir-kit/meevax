@@ -227,9 +227,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        std::stringstream port {};
-        port << "type-error: can't treat " << binding() << " as type " << typeid(U).name() << ".";
-        throw std::runtime_error { port.str() };
+        throw error("no viable conversion from ", binding().type().name(), " to ", typeid(U).name());
       }
     }
 
@@ -267,9 +265,7 @@ namespace meevax { inline namespace kernel
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
-      throw std::logic_error { ss.str() };                                     \
+      throw error("no viable operation '" #SYMBOL "' with ", lhs, " and ", rhs); \
     }                                                                          \
   } static_assert(true)
 
