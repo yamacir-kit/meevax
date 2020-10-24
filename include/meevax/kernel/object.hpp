@@ -8,7 +8,7 @@ namespace meevax { inline namespace kernel
   /* ---- Identity ---------------------------------------------------------- */
 
   template <typename T>
-  struct alignas(category_mask + 1) identity
+  struct alignas(sizeof(word)) identity
   {
     virtual auto type() const noexcept -> const std::type_info&
     {
