@@ -2,11 +2,11 @@
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
 #include <iomanip>
-#include <sstream>
 #include <stdexcept>
 #include <utility>
 
 #include <meevax/console/escape_sequence.hpp>
+#include <meevax/string/cat.hpp>
 #include <meevax/utility/hexdump.hpp>
 
 /* ---- Error ------------------------------------------------------------------
@@ -40,14 +40,6 @@
 
 namespace meevax { inline namespace kernel
 {
-  template <typename... Ts>
-  auto cat(Ts&&... xs)
-  {
-    std::stringstream port {};
-    (port << ... << xs);
-    return port.str();
-  }
-
   struct error
     : public std::runtime_error
   {
