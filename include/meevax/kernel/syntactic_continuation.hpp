@@ -296,8 +296,8 @@ namespace meevax { inline namespace kernel
         << (not depth ? "; compile\t; " : ";\t\t; ")
         << std::string(depth * 2, ' ')
         << expression
-        << console::faint << " is <export specs>"
-        << console::reset << std::endl;
+        << faint << " is <export specs>"
+        << reset << std::endl;
       }
 
       auto exportation = [this](const object& xs)
@@ -363,13 +363,10 @@ namespace meevax { inline namespace kernel
   public:
     friend auto operator<<(std::ostream& os, const syntactic_continuation& sc) -> decltype(auto)
     {
-      return os << console::magenta << "#,("
-                << console::green << "syntactic-continuation"
-                << console::reset
-                << console::faint << " #;" << &sc
-                << console::reset
-                << console::magenta << ")"
-                << console::reset;
+      return os << magenta << "#,("
+                << green << "syntactic-continuation" << reset
+                << faint << " #;" << &sc << reset
+                << magenta << ")" << reset;
     }
 
     friend auto operator >>(std::istream& is, syntactic_continuation& sk)

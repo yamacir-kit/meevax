@@ -122,7 +122,9 @@ add_library(Meevax::kernel ALIAS kernel)
 target_sources(kernel PRIVATE
   ${${PROJECT_NAME}_LAYERS}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/error.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp
+  )
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

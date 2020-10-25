@@ -1,16 +1,16 @@
-#ifndef INCLUDED_MEEVAX_CONSOLE_ESCAPE_SEQUENCE_HPP
-#define INCLUDED_MEEVAX_CONSOLE_ESCAPE_SEQUENCE_HPP
+#ifndef INCLUDED_MEEVAX_POSIX_VT102_HPP
+#define INCLUDED_MEEVAX_POSIX_VT102_HPP
 
-#include <meevax/console/capability.hpp>
+#include <meevax/posix/is_tty.hpp>
 
-namespace meevax { inline namespace console
+namespace meevax { inline namespace posix
 {
-  constexpr auto control_sequnce_introducer { "\x1b[" };
+  constexpr auto csi { "\x1b[" }; // control seqeunce introducer
 
   template <typename... Ts>
-  auto escape_sequence(std::ostream& os, Ts&&... xs) -> auto&
+  auto escape_sequence(std::ostream& os, Ts&&... xs) -> decltype(auto)
   {
-    return is_console(os) ? os << control_sequnce_introducer, (os << ... << xs) : os;
+    return is_tty(os) ? os << csi, (os << ... << xs) : os;
   }
 
   struct cursor_move
@@ -22,10 +22,7 @@ namespace meevax { inline namespace console
     const char code;
   };
 
-  auto operator <<(std::ostream& port, const cursor_move& move) -> decltype(port)
-  {
-    return escape_sequence(port, move.value, move.code);
-  }
+  auto operator <<(std::ostream& port, const cursor_move& move) -> decltype(port);
 
   #define DEFINE_CURSOR_MOVE(CODE, DIRECTION)                                  \
   struct cursor_##DIRECTION                                                    \
@@ -89,4 +86,4 @@ namespace meevax { inline namespace console
   #undef DEFINE_ESCAPE_SEQUENCE
 }} // namespace meevax::terminal
 
-#endif // INCLUDED_MEEVAX_CONSOLE_ESCAPE_SEQUENCE_HPP
+#endif // INCLUDED_MEEVAX_POSIX_VT102_HPP

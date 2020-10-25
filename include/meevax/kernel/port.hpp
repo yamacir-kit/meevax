@@ -7,12 +7,13 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Ports ================================================================
-  *
-  * TODO std::string => std::filesystem::path
-  * TODO null-port
-  *
-  *========================================================================== */
+  /* ---- Ports ----------------------------------------------------------------
+   *
+   *  TODO std::string => std::filesystem::path
+   *  TODO null-port
+   *
+   * ------------------------------------------------------------------------ */
+
   #define DEFINE_PORT(IDENTIFIER, NAME, BASE)                                  \
   struct IDENTIFIER                                                            \
     : public std::BASE                                                         \
@@ -29,18 +30,17 @@ namespace meevax { inline namespace kernel
     friend auto operator<<(std::ostream& os, const IDENTIFIER& port)           \
       -> decltype(os)                                                          \
     {                                                                          \
-      os << console::magenta << "#,("                                          \
-         << console::green << NAME                                             \
-         << console::cyan << " #p" << std::quoted(port.name)                   \
-         << console::reset;                                                    \
+      os << magenta << "#,("                                                   \
+         << green << NAME                                                      \
+         << cyan << " #p" << std::quoted(port.name)                            \
+         << reset;                                                             \
                                                                                \
       if (not port.is_open())                                                  \
       {                                                                        \
-        os << console::faint << " #;" << std::quoted("failed to open file");   \
+        os << faint << " #;" << std::quoted("failed to open file");            \
       }                                                                        \
                                                                                \
-      return os << console::magenta << ")"                                     \
-                << console::reset;                                             \
+      return os << magenta << ")" << reset;                                    \
     }                                                                          \
   }
 

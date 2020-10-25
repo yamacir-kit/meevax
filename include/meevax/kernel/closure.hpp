@@ -5,11 +5,6 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Closure ==============================================================
-  *
-  * Closure is pair of expression and lexical-environment
-  *
-  * ========================================================================= */
   struct closure
     : public virtual pair
   {
@@ -18,13 +13,12 @@ namespace meevax { inline namespace kernel
     friend auto operator <<(std::ostream& os, const closure& c)
       -> decltype(os)
     {
-      return os << console::magenta  << "#,("
-                << console::green    << "closure"
-                << console::reset
-                << console::faint << " #;" << &c
-                << console::reset
-                << console::magenta  << ")"
-                << console::reset;
+      return os << magenta << "#,("
+                << green << "closure" << reset
+                << faint << " #;" << &c
+                << reset
+                << magenta << ")"
+                << reset;
     }
   };
 }} // namespace meevax::kernel

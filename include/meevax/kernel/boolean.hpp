@@ -22,8 +22,7 @@ namespace meevax { inline namespace kernel
     friend auto operator<<(std::ostream& os, const boolean& datum)
       -> decltype(os)
     {
-      return os << console::cyan << "#" << std::boolalpha << datum.value
-                << console::reset;
+      return os << cyan << "#" << std::boolalpha << datum.value << reset;
     }
   };
 

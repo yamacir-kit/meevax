@@ -28,7 +28,7 @@ namespace meevax { inline namespace kernel
     template <typename... Ts>
     auto write_to(std::ostream& port, Ts&&... xs) const -> decltype(port)
     {
-      return (port << ... << xs) << console::reset;
+      return (port << ... << xs) << reset;
     }
 
     template <typename... Ts>

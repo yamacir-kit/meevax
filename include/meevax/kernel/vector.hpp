@@ -38,14 +38,14 @@ namespace meevax { inline namespace kernel
 
     friend auto operator<<(std::ostream& os, const vector& v) -> decltype(os)
     {
-      os << console::magenta << "#(" << console::reset;
+      os << magenta << "#(" << reset;
 
       for (auto iter { std::begin(v) }; iter != std::end(v); ++iter)
       {
         os << *iter << (std::next(iter) != std::end(v) ? " " : "");
       }
 
-      return os << console::magenta << ")" << console::reset;
+      return os << magenta << ")" << reset;
     }
   };
 

@@ -13,13 +13,11 @@ namespace meevax { inline namespace kernel
     friend auto operator<<(std::ostream& os, const continuation& k)
       -> decltype(os)
     {
-      return os << console::magenta << "#,("
-                << console::green << "continuation"
-                << console::reset
-                << console::faint << " ;#" << &k
-                << console::reset
-                << console::magenta << ")"
-                << console::reset;
+      return os << magenta << "#,("
+                << green << "continuation" << reset
+                << faint << " ;#" << &k << reset
+                << magenta << ")"
+                << reset;
     }
   };
 }} // namespace meevax::kernel
