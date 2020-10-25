@@ -6,35 +6,16 @@
 #include <utility>
 
 #include <meevax/console/escape_sequence.hpp>
+#include <meevax/kernel/preface.hpp>
 #include <meevax/string/cat.hpp>
 #include <meevax/utility/hexdump.hpp>
 
 /* ---- Error ------------------------------------------------------------------
  *
- * TODO: Reduce the hierarchy. warning category is unused.
- *
- * - exception
- *    │
- *    ├── error                                                       (category)
- *    │    │
- *    │    ├── configuration_error                                     (section)
- *    │    │
- *    │    ├── evaluation_error                                        (section)
- *    │    │
- *    │    ├── reader_error                                            (section)
- *    │    │    ├── reader_error_about_pair                              (about)
- *    │    │    └── reader_error_about_parentheses                       (about)
- *    │    │
- *    │    ├── syntax_error                                            (section)
- *    │    │    ├── syntax_error_about_assignment                        (about)
- *    │    │    └── syntax_error_about_internal_define                   (about)
- *    │    │
- *    │    └── kernel_error                                            (section)
- *    │
- *    └── warning                                                     (category)
- *
  * - error
- *    |-- syntax_error
+ *    |-- file-error
+ *    |-- read_error
+ *    `-- syntax_error
  *
  * -------------------------------------------------------------------------- */
 

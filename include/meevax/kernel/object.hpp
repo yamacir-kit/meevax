@@ -66,12 +66,6 @@ namespace meevax { inline namespace kernel
     #undef BOILERPLATE
   };
 
-  struct pair; // forward declaration
-
-  using object = pointer<pair>;
-
-  using let = object;
-
   // TODO Rename to 'cons'?
   using resource = std::allocator<object>;
 
