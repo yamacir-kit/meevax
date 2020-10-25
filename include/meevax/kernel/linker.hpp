@@ -27,10 +27,7 @@ namespace meevax { inline namespace kernel
       {
         if (handle && dlclose(handle))
         {
-          std::cerr << "failed to close shared library " << name
-                    << ": " << dlerror()
-                    << std::endl;
-          std::exit(boost::exit_failure);
+          std::cerr << "failed to close shared library " << name << ": " << dlerror() << std::endl;
         }
       }
     };

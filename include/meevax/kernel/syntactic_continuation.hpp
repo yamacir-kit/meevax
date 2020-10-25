@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
+#include <boost/cstdlib.hpp>
+
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/library.hpp>
