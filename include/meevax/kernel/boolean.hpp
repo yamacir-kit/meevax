@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
 #define INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax { inline namespace kernel
 {
@@ -13,26 +13,12 @@ namespace meevax { inline namespace kernel
     {
       return value;
     }
-
-    friend auto operator==(const boolean& lhs, const boolean& rhs)
-    {
-      return lhs.value == rhs.value;
-    }
-
-    friend auto operator<<(std::ostream& os, const boolean& datum)
-      -> decltype(os)
-    {
-      return os << cyan << "#" << std::boolalpha << datum.value << reset;
-    }
   };
 
-  static const object t {make<boolean>(true)};
-  static const object f {make<boolean>(false)};
+  auto operator <<(std::ostream& port, const boolean&) -> decltype(port);
 
-  inline const object& convert(bool datum)
-  {
-    return datum ? t : f;
-  }
+  extern let const t;
+  extern let const f;
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
