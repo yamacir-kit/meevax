@@ -92,7 +92,7 @@ endif()
 
 file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.ss)
 
-set(${PROJECT_NAME}_LAYERS "")
+set(${PROJECT_NAME}_LAYERS "") # TODO RENAME TO 'BASIS'
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
@@ -126,6 +126,7 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ghost.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pair.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/path.cpp
   )
 
 target_include_directories(kernel PUBLIC
