@@ -127,6 +127,7 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pair.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/path.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/symbol.cpp
   )
 
 target_include_directories(kernel PUBLIC
