@@ -101,30 +101,7 @@ namespace meevax { inline namespace kernel
 
   public:
     template <typename... Ts>
-    explicit syntactic_continuation(Ts&&... xs)
-      : pair { std::forward<decltype(xs)>(xs)... }
-    {
-      boot(layer<0>());
-
-      if (first)
-      {
-        s = car(first);
-        e = cadr(first);
-        c = unit;
-        d = cdddr(first);
-
-        c = compile( // subprogram
-              caaddr(first),
-              syntactic_environment(),
-              cdaddr(first),
-              list(make<instruction>(mnemonic::STOP)),
-              as_program_declaration);
-
-        form() = execute();
-
-        assert(form().is<closure>());
-      }
-    }
+    explicit syntactic_continuation(Ts&&...);
 
     template <std::size_t N>
     explicit syntactic_continuation(layer<N>);
@@ -400,27 +377,49 @@ namespace meevax { inline namespace kernel
     }
   };
 
-  template <>
-  syntactic_continuation::syntactic_continuation(layer<0>)
-    : syntactic_continuation::syntactic_continuation {}
-  {
-    std::cout << "HOGE" << std::endl;
-  }
-
-  template <std::size_t N>
-  syntactic_continuation::syntactic_continuation(layer<N>)
-    : syntactic_continuation::syntactic_continuation { layer<N - 1>() }
-  {
-    std::cout << "start: " << N << std::endl;
-    boot(layer<N>());
-    std::cout << "end: " << N << std::endl;
-  }
-
   template <> void syntactic_continuation::boot(layer<0>);
   template <> void syntactic_continuation::boot(layer<1>);
   template <> void syntactic_continuation::boot(layer<2>);
   template <> void syntactic_continuation::boot(layer<3>);
   template <> void syntactic_continuation::boot(layer<4>);
+
+  template <>
+  syntactic_continuation::syntactic_continuation(layer<0>)
+    : syntactic_continuation::syntactic_continuation {}
+  {}
+
+  template <std::size_t N>
+  syntactic_continuation::syntactic_continuation(layer<N>)
+    : syntactic_continuation::syntactic_continuation { layer<N - 1>() }
+  {
+    boot(layer<N>());
+  }
+
+  template <typename... Ts>
+  syntactic_continuation::syntactic_continuation(Ts&&... xs)
+    : pair { std::forward<decltype(xs)>(xs)... }
+  {
+    boot(layer<0>());
+
+    if (first)
+    {
+      s = car(first);
+      e = cadr(first);
+      c = unit;
+      d = cdddr(first);
+
+      c = compile( // subprogram
+            caaddr(first),
+            syntactic_environment(),
+            cdaddr(first),
+            list(make<instruction>(mnemonic::STOP)),
+            as_program_declaration);
+
+      form() = execute();
+
+      assert(form().is<closure>());
+    }
+  }
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
