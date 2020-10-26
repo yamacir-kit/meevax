@@ -104,10 +104,10 @@ namespace meevax { inline namespace kernel
     explicit syntactic_continuation(Ts&&...);
 
     template <std::size_t N>
-    explicit syntactic_continuation(layer<N>);
+    explicit syntactic_continuation(layer<N>&&);
 
     template <std::size_t N>
-    void boot(layer<N>)
+    void boot(layer<N>&&)
     {}
 
   public:
@@ -377,19 +377,19 @@ namespace meevax { inline namespace kernel
     }
   };
 
-  template <> void syntactic_continuation::boot(layer<0>);
-  template <> void syntactic_continuation::boot(layer<1>);
-  template <> void syntactic_continuation::boot(layer<2>);
-  template <> void syntactic_continuation::boot(layer<3>);
-  template <> void syntactic_continuation::boot(layer<4>);
+  template <> void syntactic_continuation::boot(layer<0>&&);
+  template <> void syntactic_continuation::boot(layer<1>&&);
+  template <> void syntactic_continuation::boot(layer<2>&&);
+  template <> void syntactic_continuation::boot(layer<3>&&);
+  template <> void syntactic_continuation::boot(layer<4>&&);
 
   template <>
-  syntactic_continuation::syntactic_continuation(layer<0>)
+  syntactic_continuation::syntactic_continuation(layer<0>&&)
     : syntactic_continuation::syntactic_continuation {}
   {}
 
   template <std::size_t N>
-  syntactic_continuation::syntactic_continuation(layer<N>)
+  syntactic_continuation::syntactic_continuation(layer<N>&&)
     : syntactic_continuation::syntactic_continuation { layer<N - 1>() }
   {
     boot(layer<N>());

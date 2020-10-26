@@ -10,14 +10,14 @@ namespace meevax { inline namespace kernel
   })
 
   template <>
-  void syntactic_continuation::boot(layer<0>)
+  void syntactic_continuation::boot(layer<0>&&)
   {
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
   }
 
   template <>
-  void syntactic_continuation::boot(layer<1>)
+  void syntactic_continuation::boot(layer<1>&&)
   {
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
@@ -52,7 +52,7 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<2>)
+  void syntactic_continuation::boot(layer<2>&&)
   {
     #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                 \
     define<procedure>(IDENTIFIER, [](let const & xs)                           \
@@ -937,37 +937,29 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<3>)
+  void syntactic_continuation::boot(layer<3>&&)
   {
-    std::cout << __LINE__ << std::endl;
     auto port { open_input_string(overture.data()) };
 
-    std::cout << __LINE__ << std::endl;
     std::size_t counts {0};
 
-    std::cout << __LINE__ << std::endl;
     for (let e = read(port); e != eof_object; e = read(port))
     {
-      std::cout << __LINE__ << std::endl;
       // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
       write_to(current_debug_port(),
         "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
 
-      std::cout << __LINE__ << std::endl;
       current_interaction_port() << std::flush;
 
-      std::cout << __LINE__ << std::endl;
       evaluate(e);
     }
 
-    std::cout << __LINE__ << std::endl;
     // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
     write_to(current_debug_port(), "\n\n");
-    std::cout << __LINE__ << std::endl;
   }
 
   template <>
-  void syntactic_continuation::boot(layer<4>)
+  void syntactic_continuation::boot(layer<4>&&)
   {
     define<procedure>("print", [](auto&& xs)
     {
