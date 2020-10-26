@@ -5,7 +5,7 @@
 
 namespace meevax { inline namespace kernel
 {
-  enum class in_range_tag {} in_range;
+  enum class in_range_tag {} static constexpr in_range {};
 
   struct vector
     : public std::vector<object>
@@ -26,30 +26,11 @@ namespace meevax { inline namespace kernel
     {
       std::copy(std::begin(xs), std::end(xs), std::back_inserter(*this));
     }
-
-    friend auto operator==(const vector& lhs, const vector& rhs)
-    {
-      return
-        std::equal(
-          std::begin(lhs), std::end(lhs),
-          std::begin(rhs), std::end(rhs),
-          equal);
-    }
-
-    friend auto operator<<(std::ostream& os, const vector& v) -> decltype(os)
-    {
-      os << magenta << "#(" << reset;
-
-      for (auto iter { std::begin(v) }; iter != std::end(v); ++iter)
-      {
-        os << *iter << (std::next(iter) != std::end(v) ? " " : "");
-      }
-
-      return os << magenta << ")" << reset;
-    }
   };
 
-  static_assert(not std::is_base_of<pair, vector>::value);
+  auto operator ==(const vector&, const vector&) -> bool;
+
+  auto operator <<(std::ostream& port, const vector&) -> decltype(port);
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_VECTOR_HPP

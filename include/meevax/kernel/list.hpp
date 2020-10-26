@@ -10,11 +10,11 @@
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== The Homoiconic Iterator ==============================================
+  /* ---- Homoiconic Iterator --------------------------------------------------
    *
    * TODO std::empty
    *
-   * ======================================================================== */
+   * ------------------------------------------------------------------------ */
   struct homoiconic_iterator
     : public object
   {
@@ -75,25 +75,11 @@ namespace meevax { inline namespace kernel
 
 namespace std
 {
-  auto cbegin(const meevax::kernel::object& x) -> meevax::kernel::homoiconic_iterator
-  {
-    return x;
-  }
+  auto cbegin(const meevax::kernel::object& x) -> meevax::homoiconic_iterator;
+  auto  begin(const meevax::kernel::object& x) -> meevax::homoiconic_iterator;
 
-  auto begin(const meevax::kernel::object& x) -> meevax::kernel::homoiconic_iterator
-  {
-    return x;
-  }
-
-  auto cend(const meevax::kernel::object&) -> meevax::kernel::homoiconic_iterator
-  {
-    return meevax::kernel::unit;
-  }
-
-  auto end(const meevax::kernel::object&) -> meevax::kernel::homoiconic_iterator
-  {
-    return meevax::kernel::unit;
-  }
+  auto cend(const meevax::kernel::object&) -> meevax::homoiconic_iterator;
+  auto  end(const meevax::kernel::object&) -> meevax::homoiconic_iterator;
 } // namespace std
 
 namespace meevax { inline namespace kernel
@@ -149,7 +135,7 @@ namespace meevax { inline namespace kernel
     };
   } // inline namespace constructor
 
-  /* ==== Predicates ===========================================================
+  /* ---- Predicates -----------------------------------------------------------
    *
    * From SRFI-1
    *   - circular-list?
@@ -164,7 +150,7 @@ namespace meevax { inline namespace kernel
    *   - pair?                          => object::is<pair>()
    *   - proper-list?
    *
-   * ======================================================================== */
+   * ------------------------------------------------------------------------ */
   inline namespace predicate
   {
     auto eq = [](auto&& x, auto&& y) constexpr
@@ -177,21 +163,7 @@ namespace meevax { inline namespace kernel
       return x.eqv(y);
     };
 
-    bool equal(const object& x, const object& y)
-    {
-      if (x.is<null>() and y.is<null>())
-      {
-        return true;
-      }
-      else if (x.is<pair>() and y.is<pair>())
-      {
-        return equal(car(x), car(y)) and equal(cdr(x), cdr(y));
-      }
-      else
-      {
-        return eqv(x, y);
-      }
-    }
+    auto equal(const object& x, const object& y) -> bool;
 
     template <std::size_t Coarseness = 0>
     struct equivalence_comparator;
@@ -212,7 +184,7 @@ namespace meevax { inline namespace kernel
     using default_equivalence_comparator = equivalence_comparator<>;
   }
 
-  /* ==== Selectors ============================================================
+  /* ---- Selectors ------------------------------------------------------------
    *
    * From R7RS
    *   - car                              => car
@@ -236,7 +208,7 @@ namespace meevax { inline namespace kernel
    *   - take!
    *   - take-right
    *
-   * ======================================================================== */
+   * ------------------------------------------------------------------------ */
   inline namespace selector
   {
     auto caar = functional::compose(car, car);
@@ -280,20 +252,10 @@ namespace meevax { inline namespace kernel
       return car(list_tail(std::forward<decltype(xs)>(xs)...));
     };
 
-    object take(const object& exp, std::size_t size)
-    {
-      if (0 < size)
-      {
-        return car(exp) | take(cdr(exp), --size);
-      }
-      else
-      {
-        return unit;
-      }
-    }
+    let take(const object& exp, std::size_t size);
   }
 
-  /* ==== Miscellaneous ========================================================
+  /* ---- Miscellaneous --------------------------------------------------------
    *
    * From SRFI-1
    *   - append
@@ -314,7 +276,7 @@ namespace meevax { inline namespace kernel
    *   - unzip5
    *   - zip
    *
-   * ======================================================================== */
+   * ------------------------------------------------------------------------ */
   inline namespace miscellaneous
   {
     auto length = [](const auto& x) constexpr
@@ -322,41 +284,11 @@ namespace meevax { inline namespace kernel
       return std::distance(std::begin(x), std::end(x));
     };
 
-    const object append(const object& x, const object& y)
-    {
-      if (x.is<null>())
-      {
-        return y;
-      }
-      else
-      {
-        return
-          cons(
-            car(x),
-            append(cdr(x), y));
-      }
-    }
+    let append(const object& x, const object& y);
 
-    auto reverse(const object& x) -> object
-    {
-      return x ? append(reverse(cdr(x)), list(car(x))) : unit;
-    }
+    let reverse(const object& x);
 
-    object zip(const object& x, const object& y)
-    {
-      if (x.is<null>() and y.is<null>())
-      {
-        return unit;
-      }
-      else if (x.is<pair>() and y.is<pair>())
-      {
-        return list(car(x), car(y)) | zip(cdr(x), cdr(y));
-      }
-      else
-      {
-        return unit;
-      }
-    }
+    let zip(const object& x, const object& y);
   }
 
   /* ==== Folding ==============================================================
