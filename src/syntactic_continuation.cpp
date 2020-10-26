@@ -10,14 +10,14 @@ namespace meevax { inline namespace kernel
   })
 
   template <>
-  void syntactic_continuation::boot(layer<0>&&)
+  void syntactic_continuation::boot(layer<0>)
   {
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
   }
 
   template <>
-  void syntactic_continuation::boot(layer<1>&&)
+  void syntactic_continuation::boot(layer<1>)
   {
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
@@ -52,7 +52,7 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<2>&&)
+  void syntactic_continuation::boot(layer<2>)
   {
     #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                 \
     define<procedure>(IDENTIFIER, [](let const & xs)                           \
@@ -937,7 +937,7 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<3>&&)
+  void syntactic_continuation::boot(layer<3>)
   {
     auto port { open_input_string(overture.data()) };
 
@@ -959,7 +959,7 @@ namespace meevax { inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<4>&&)
+  void syntactic_continuation::boot(layer<4>)
   {
     define<procedure>("print", [](auto&& xs)
     {
