@@ -8,19 +8,10 @@ namespace meevax { inline namespace kernel
   struct closure
     : public virtual pair
   {
-    using pair::pair; // inheriting constructors
-
-    friend auto operator <<(std::ostream& os, const closure& c)
-      -> decltype(os)
-    {
-      return os << magenta << "#,("
-                << green << "closure" << reset
-                << faint << " #;" << &c
-                << reset
-                << magenta << ")"
-                << reset;
-    }
+    using pair::pair;
   };
+
+  auto operator <<(std::ostream& port, const closure& datum) -> decltype(port);
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP

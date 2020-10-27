@@ -123,6 +123,7 @@ target_sources(kernel PRIVATE
   ${${PROJECT_NAME}_LAYERS}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/boolean.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/closure.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/continuation.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/error.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/exact_integer.cpp
