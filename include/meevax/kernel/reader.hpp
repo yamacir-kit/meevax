@@ -143,7 +143,7 @@ namespace meevax { inline namespace kernel
     {
       return prefix<R>() + signed_complex<R>();
     }
-  } // inline namespace regex
+  } // inline namespace lexical_structure
 
   template <std::size_t R = 10>
   auto is_number(const std::string& token)
