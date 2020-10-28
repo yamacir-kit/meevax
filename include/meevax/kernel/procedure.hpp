@@ -30,13 +30,12 @@ namespace meevax { inline namespace kernel
     friend auto operator<<(std::ostream& os, const procedure& proc)
       -> decltype(auto)
     {
-      return os << console::magenta << "#,("
-                << console::green << "procedure "
-                << console::reset << proc.name
-                << console::faint << " #;" << &proc
-                << console::reset
-                << console::magenta << ")"
-                << console::reset;
+      return os << magenta << "#,("
+                << green << "procedure "
+                << reset << proc.name
+                << faint << " #;" << &proc << reset
+                << magenta << ")"
+                << reset;
     }
   };
 }} // namespace meevax::kernel

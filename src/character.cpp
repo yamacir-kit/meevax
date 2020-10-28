@@ -1,7 +1,19 @@
 #include <meevax/kernel/character.hpp>
+#include <meevax/kernel/pair.hpp>
+#include <meevax/posix/vt102.hpp>
 
 namespace meevax { inline namespace kernel
 {
+  auto character::display_to(std::ostream& port) const -> decltype(port)
+  {
+    return port << display() << reset;
+  }
+
+  auto operator <<(std::ostream& port, const character& datum) -> decltype(port)
+  {
+    return port << cyan << "#\\" << (std::empty(datum.name) ? datum.display() : datum.name) << reset;
+  }
+
   const std::unordered_map<std::string, object> characters
   {
     {"null",                      make<character>(u8"\u0000", "null"                     )},

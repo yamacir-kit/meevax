@@ -19,10 +19,10 @@ namespace meevax { inline namespace kernel
     bool program_declaration;
   };
 
-  static constexpr compilation_context as_is { false, false };
-  static constexpr compilation_context as_tail_expression { true, false };
-  static constexpr compilation_context as_program_declaration { false, true };
-  static constexpr compilation_context as_tail_expression_of_program_declaration { true, true };
+  constexpr compilation_context as_is { false, false };
+  constexpr compilation_context as_tail_expression { true, false };
+  constexpr compilation_context as_program_declaration { false, true };
+  constexpr compilation_context as_tail_expression_of_program_declaration { true, true };
 
   struct syntax
     : public std::function<SYNTAX()>

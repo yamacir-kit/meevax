@@ -59,7 +59,7 @@ namespace meevax { inline namespace kernel
     friend auto operator<<(std::ostream& os, const identity& i)
       -> decltype(auto)
     {
-      os << console::underline;
+      os << underline;
 
       auto kebab = [](std::string s) // XXX DIRTY HACK
       {
@@ -94,7 +94,7 @@ namespace meevax { inline namespace kernel
 
       // os << "#" << std::hex << std::setw(2) << std::setfill('0') << i.value();
 
-      return os << console::reset;
+      return os << reset;
     }
   };
 }} // namespace meevax::kernel

@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax { inline namespace kernel
 {
@@ -26,16 +26,10 @@ namespace meevax { inline namespace kernel
       return static_cast<std::string>(*this);
     }
 
-    auto display_to(std::ostream& port) const -> decltype(auto)
-    {
-      return port << display() << reset;
-    }
-
-    friend auto operator <<(std::ostream& port, const character& c) -> decltype(auto)
-    {
-      return port << cyan << "#\\" << (std::empty(c.name) ? c.display() : c.name) << reset;
-    }
+    auto display_to(std::ostream& port) const -> decltype(port);
   };
+
+  auto operator <<(std::ostream& port, const character&) -> decltype(port);
 
   /* ---- Character Table ------------------------------------------------------
    *
@@ -51,20 +45,12 @@ namespace meevax { inline namespace kernel
 
   auto is_intraline_whitespace = [](auto c) constexpr
   {
-    #if 201703L <= __cplusplus
     return char_ci_eq(c, u8' ', u8'\f', u8'\t', u8'\v');
-    #else
-    return char_ci_eq(c, ' ', '\f', '\t', '\v');
-    #endif
   };
 
   auto is_eol = [](auto c) constexpr
   {
-    #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'\n', u8'\r');
-    #else
-    return char_ci_eq(c, '\n', '\r');
-    #endif
   };
 
   auto is_eof = [](auto c) constexpr
@@ -83,38 +69,22 @@ namespace meevax { inline namespace kernel
 
   auto is_parenthesis = [](auto c) constexpr
   {
-    #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'(', u8')');
-    #else
-    return char_ci_eq(c, '(', ')');
-    #endif
   };
 
   auto is_quotation = [](auto c) constexpr
   {
-    #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'\'', u8'"', u8'`');
-    #else
-    return char_ci_eq(c, '\'', '"', '`');
-    #endif
   };
 
   auto is_vertical_line = [](auto c) constexpr
   {
-    #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'|');
-    #else
-    return char_ci_eq(c, '|');
-    #endif
   };
 
   auto is_discriminator = [](auto c) constexpr
   {
-    #if 201703L <= __cplusplus
     return char_ci_eq(c, u8'#');
-    #else
-    return char_ci_eq(c, '#');
-    #endif
   };
 
   auto is_delimiter = [](auto c) constexpr
@@ -124,11 +94,7 @@ namespace meevax { inline namespace kernel
         or is_quotation(c)
         or is_discriminator(c)
         or is_vertical_line(c)
-    #if 201703L <= __cplusplus
         or char_ci_eq(c, u8';', u8',');
-    #else
-        or char_ci_eq(c, ';', ',');
-    #endif
   };
 
   // NOTE in R7RS

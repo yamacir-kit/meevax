@@ -92,7 +92,7 @@ endif()
 
 file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.ss)
 
-set(${PROJECT_NAME}_LAYERS "")
+set(${PROJECT_NAME}_LAYERS "") # TODO RENAME TO 'BASIS'
 
 foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
@@ -121,8 +121,25 @@ add_library(Meevax::kernel ALIAS kernel)
 
 target_sources(kernel PRIVATE
   ${${PROJECT_NAME}_LAYERS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/boolean.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/closure.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/continuation.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/error.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/exact_integer.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ghost.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/list.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/number.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/pair.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/path.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/port.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ratio.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/reader.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/symbol.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/syntactic_continuation.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/vector.cpp
+  )
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -256,4 +273,6 @@ add_test(
 
 add_test(
   NAME examples
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/examples/use-as-embedded-language/test.sh -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/examples/use-as-embedded-language/test.sh
+          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+          -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})

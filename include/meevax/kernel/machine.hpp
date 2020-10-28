@@ -169,13 +169,8 @@ namespace meevax { inline namespace kernel
             indent() >> shift();
 
             auto result {
-              #if __cpp_lib_invoke
               std::invoke(applicant.as<syntax>(),
                 cdr(expression), syntactic_environment, frames, continuation, in_a)
-              #else
-              applicant.as<syntax>()(
-                cdr(expression), syntactic_environment, frames, continuation, in_a)
-              #endif
             };
 
             debug(magenta, ")");

@@ -16,7 +16,7 @@ namespace meevax { inline namespace kernel
     auto denominator() const noexcept -> decltype(auto) { return cdr(*this); }
     auto denominator()       noexcept -> decltype(auto) { return cdr(*this); }
 
-    auto is_integer() const;
+    auto is_integer() const -> bool;
 
     auto invert() const
     {
@@ -39,8 +39,6 @@ namespace meevax { inline namespace kernel
       return *this;
     }
 
-    auto as_inexact() const;
-
     // auto operator * (const object&) const -> object;
     // auto operator + (const object&) const -> object;
     // auto operator - (const object&) const -> object;
@@ -48,53 +46,19 @@ namespace meevax { inline namespace kernel
     // auto operator % (const object&) const -> object;
   };
 
-  auto operator <<(std::ostream& port, const ratio& rhs) -> decltype(auto)
-  {
-    return port << cyan << car(rhs)
-                << cyan << "/"
-                << cyan << cdr(rhs) << reset;
-  }
+  auto operator <<(std::ostream& port, const ratio&) -> decltype(port);
 
-  auto operator +(const ratio& lhs, const ratio& rhs)
-  {
-    return
-      ratio(
-        lhs.numerator() * rhs.denominator() + rhs.numerator() * lhs.denominator(),
-        lhs.denominator() * rhs.denominator());
-  }
+  auto operator +(const ratio&, const ratio&) -> ratio;
+  auto operator -(const ratio&, const ratio&) -> ratio;
+  auto operator *(const ratio&, const ratio&) -> ratio;
+  auto operator /(const ratio&, const ratio&) -> ratio;
 
-  auto operator -(const ratio& lhs, const ratio& rhs)
-  {
-    return
-      ratio(
-        lhs.numerator() * rhs.denominator() - rhs.numerator() * lhs.denominator(),
-        lhs.denominator() * rhs.denominator());
-  }
-
-  auto operator *(const ratio& lhs, const ratio& rhs)
-  {
-    return ratio(lhs.numerator() * rhs.numerator(), lhs.denominator() * rhs.denominator());
-  }
-
-  auto operator /(const ratio& lhs, const ratio& rhs)
-  {
-    return lhs * rhs.invert();
-  }
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const ratio& lhs, const ratio& rhs)                     \
-  {                                                                            \
-    return (lhs.numerator() * rhs.denominator()).binding() SYMBOL (rhs.numerator() * lhs.denominator()); \
-  } static_assert(true)
-
-  BOILERPLATE(==);
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
+  auto operator ==(const ratio&, const ratio&) -> bool;
+  auto operator !=(const ratio&, const ratio&) -> bool;
+  auto operator < (const ratio&, const ratio&) -> bool;
+  auto operator <=(const ratio&, const ratio&) -> bool;
+  auto operator > (const ratio&, const ratio&) -> bool;
+  auto operator >=(const ratio&, const ratio&) -> bool;
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_RATIO_HPP

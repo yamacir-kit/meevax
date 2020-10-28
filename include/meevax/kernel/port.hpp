@@ -3,50 +3,36 @@
 
 #include <fstream>
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/path.hpp>
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== Ports ================================================================
-  *
-  * TODO std::string => std::filesystem::path
-  * TODO null-port
-  *
-  *========================================================================== */
-  #define DEFINE_PORT(IDENTIFIER, NAME, BASE)                                  \
-  struct IDENTIFIER                                                            \
+  /* ---- Ports ----------------------------------------------------------------
+   *
+   *  TODO null-port
+   *
+   * ------------------------------------------------------------------------ */
+
+  #define BOILERPLATE(TYPENAME, BASE)                                          \
+  struct TYPENAME                                                              \
     : public std::BASE                                                         \
   {                                                                            \
-    const std::string name;                                                    \
+    const path pathname;                                                       \
                                                                                \
     using std::BASE::BASE;                                                     \
                                                                                \
-    explicit IDENTIFIER(const std::string& name)                               \
-      : std::BASE {name}                                                       \
-      , name {name}                                                            \
+    explicit TYPENAME(const std::string& pathname)                             \
+      : std::BASE { pathname }                                                 \
+      , pathname { pathname }                                                  \
     {}                                                                         \
+  };                                                                           \
                                                                                \
-    friend auto operator<<(std::ostream& os, const IDENTIFIER& port)           \
-      -> decltype(os)                                                          \
-    {                                                                          \
-      os << console::magenta << "#,("                                          \
-         << console::green << NAME                                             \
-         << console::cyan << " #p" << std::quoted(port.name)                   \
-         << console::reset;                                                    \
-                                                                               \
-      if (not port.is_open())                                                  \
-      {                                                                        \
-        os << console::faint << " #;" << std::quoted("failed to open file");   \
-      }                                                                        \
-                                                                               \
-      return os << console::magenta << ")"                                     \
-                << console::reset;                                             \
-    }                                                                          \
-  }
+  auto operator <<(std::ostream& port, const TYPENAME&) -> decltype(port)
 
-  DEFINE_PORT(       port,        "port",  fstream);
-  DEFINE_PORT( input_port,  "input-port", ifstream);
-  DEFINE_PORT(output_port, "output-port", ofstream);
+  BOILERPLATE( input_port, ifstream);
+  BOILERPLATE(output_port, ofstream);
+
+  #undef BOILERPLATE
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP

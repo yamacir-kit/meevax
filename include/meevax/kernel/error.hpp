@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <utility>
 
-#include <meevax/console/escape_sequence.hpp>
 #include <meevax/kernel/preface.hpp>
+#include <meevax/posix/vt102.hpp>
 #include <meevax/string/cat.hpp>
 #include <meevax/utility/hexdump.hpp>
 
@@ -39,14 +39,7 @@ namespace meevax { inline namespace kernel
     }
   };
 
-  auto operator <<(std::ostream& port, const error& datum) -> decltype(auto)
-  {
-    return port << magenta << "#("
-                << green << "error "
-                << cyan << std::quoted(datum.what())
-                << magenta << ")"
-                << reset;
-  }
+  auto operator <<(std::ostream&, const error&) -> std::ostream&;
 
   #define BOILERPLATE(CATEGORY)                                                \
   template <typename Tag>                                                      \

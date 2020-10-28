@@ -9,19 +9,9 @@ namespace meevax { inline namespace kernel
     : public virtual pair
   {
     using pair::pair;
-
-    friend auto operator<<(std::ostream& os, const continuation& k)
-      -> decltype(os)
-    {
-      return os << console::magenta << "#,("
-                << console::green << "continuation"
-                << console::reset
-                << console::faint << " ;#" << &k
-                << console::reset
-                << console::magenta << ")"
-                << console::reset;
-    }
   };
+
+  auto operator <<(std::ostream& port, const continuation&) -> decltype(port);
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP
