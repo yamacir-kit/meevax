@@ -90,11 +90,11 @@ endif()
 #   Convert Scripts to ELF Binary
 # ==============================================================================
 
-file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
+file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 
-set(${PROJECT_NAME}_LAYERS "") # TODO RENAME TO 'BASIS'
+set(${PROJECT_NAME}_BASIS "")
 
-foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
+foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
   get_filename_component(FILEPATH ${EACH} PATH)
 
@@ -108,7 +108,7 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
          ${FILENAME}
          ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 
-  list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+  list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach()
 
 
@@ -120,7 +120,7 @@ add_library(kernel SHARED "")
 add_library(Meevax::kernel ALIAS kernel)
 
 target_sources(kernel PRIVATE
-  ${${PROJECT_NAME}_LAYERS}
+  ${${PROJECT_NAME}_BASIS}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/basis.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/boolean.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
