@@ -17,5 +17,10 @@ cmake .. "$@"
 
 make
 
-ctest --output-on-failure \
-      --verbose
+valgrind --error-exitcode=1 \
+         --leak-check=full \
+         --quiet \
+         --show-leak-kinds=all \
+         "$here/build/unit-test" --report_level=detailed
+
+# ctest --verbose

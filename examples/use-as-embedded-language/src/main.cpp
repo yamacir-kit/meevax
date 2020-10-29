@@ -1,14 +1,16 @@
+#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/floating_point.hpp>
 #define BOOST_TEST_MODULE Example
 
 #include <boost/test/included/unit_test.hpp>
 
 #include <meevax/kernel/syntactic_continuation.hpp>
 
-struct interaction_environment
+struct basis
 {
   meevax::syntactic_continuation root;
 
-  explicit interaction_environment()
+  explicit basis()
     : root { meevax::layer<2>() }
   {}
 };
@@ -16,197 +18,91 @@ struct interaction_environment
 using meevax::let;
 using meevax::make;
 
-BOOST_FIXTURE_TEST_SUITE(Type, interaction_environment);
+BOOST_FIXTURE_TEST_SUITE(Expressions, basis); // 4.
 
-  BOOST_AUTO_TEST_CASE(Null)
-  {
-    using meevax::null;
+BOOST_AUTO_TEST_CASE(Procedures) // 4.1.4.
+{
+  using meevax::closure;
 
-    let x;
+  let f = make<closure>();
 
-    BOOST_CHECK(x.is<null>());
-  }
-
-// BOOST_AUTO_TEST_CASE(boolean)
-// {
-//   let x = make<boolean>(true);
-//
-//   BOOST_CHECK(x.is<boolean>());
-//   BOOST_CHECK(x.as<meevax::boolean>() == true); // TODO
-// }
+  BOOST_CHECK(f.is<closure>());
+}
 
 BOOST_AUTO_TEST_SUITE_END();
 
-// int main()
-// {
-//   std::size_t cases { 0 }, passed { 0 };
-//
-//   TEST("make boolean",
-//   {
-//     const auto x { make<boolean>(true) };
-//     result = x.is<boolean>();
-//   });
-//
-//   TEST("make character",
-//   {
-//     const auto x { make<character>("x") };
-//     result = x.is<character>();
-//   });
-//
-//   TEST("make closure",
-//   {
-//     const auto x { make<closure>() };
-//     result = x.is<closure>();
-//   });
-//
-//   TEST("make exception",
-//   {
-//     const auto x { make<error>("This is test exception") };
-//     result = x.is<error>();
-//   });
-//
-//   TEST("make symbol",
-//   {
-//     const auto x { make<symbol>("test") };
-//     result = x.is<symbol>();
-//   });
-//
-//   TEST("make pair",
-//   {
-//     const object x { cons(make<symbol>("hoge"), make<symbol>("fuga")) };
-//     result = x.is<pair>();
-//   });
-//
-//   TEST("make list",
-//   {
-//     const object x
-//     {
-//       list(
-//         make<symbol>("hoge"),
-//         make<symbol>("fuga"))
-//     };
-//
-//     result = x.is<pair>();
-//   });
-//
-//   TEST("boot layer-0",
-//   {
-//     syntactic_continuation x { layer<0>() };
-//     result = true;
-//   });
-//
-//   TEST("boot layer-1",
-//   {
-//     syntactic_continuation x { layer<1>() };
-//     result = true;
-//   });
-//
-//   TEST("add integer and integer",
-//   {
-//     const auto a { make<exact_integer>(1) };
-//
-//     if (not a.is<exact_integer>())
-//     {
-//       throw std::logic_error { std::to_string(__LINE__) };
-//     }
-//
-//     if (a.as<exact_integer>().value.convert_to<int>() != 1)
-//     {
-//       throw std::logic_error { std::to_string(__LINE__) };
-//     }
-//
-//     const auto b { make<exact_integer>(2) };
-//
-//     if (not b.is<exact_integer>())
-//     {
-//       throw std::logic_error { std::to_string(__LINE__) };
-//     }
-//
-//     if (not b.as<exact_integer>().is(2))
-//     {
-//       throw std::logic_error { std::to_string(__LINE__) };
-//     }
-//
-//     let const x = a + b;
-//
-//     result = x.is<exact_integer>() && (x.as<exact_integer>().is(3));
-//   });
-//
-//   // TEST("add number and native int",
-//   // {
-//   //   auto x { make<real>(1) + 2 };
-//   //   result = (x.as<real>() == 3);
-//   // });
-//   //
-//   // TEST("add native int and number",
-//   // {
-//   //   auto x { 1 + make<real>(2) };
-//   //   result = (x.as<real>() == 3);
-//   // });
-//
-//   // TEST("boot layer-2",
-//   // {
-//   //   syntactic_continuation x { layer<2> };
-//   //   result = true;
-//   // });
-//   //
-//   // TEST("boot layer-42",
-//   // {
-//   //   syntactic_continuation x { layer<42> };
-//   //   result = true;
-//   // });
-//
-//   // {
-//   //   using namespace meevax::kernel;
-//   //
-//   //   // static_assert(tag<void*>::value    == 0b0000);
-//   //
-//   //   static_assert(category<bool>::value == 0b1101);
-//   //
-//   //   static_assert(tag<float>::value    == 0b0101'1010);
-//   //
-//   //   static_assert(tag<int8_t>::value   == 0b0011'1000);
-//   //   static_assert(tag<int16_t>::value  == 0b0100'1000);
-//   //   static_assert(tag<int32_t>::value  == 0b0101'1000);
-//   //   // static_assert(tag<int64_t>::value  == 0b1000);
-//   //
-//   //   static_assert(tag<uint8_t>::value  == 0b0011'1100);
-//   //   static_assert(tag<uint16_t>::value == 0b0100'1100);
-//   //   static_assert(tag<uint32_t>::value == 0b0101'1100);
-//   //   // static_assert(tag<uint64_t>::value == 0b1100);
-//   // }
-//
-//   // if (false)
-//   // {
-//   //   std::cerr << "Test/1 - Write/Read Invariance" << std::endl;
-//   //
-//   //   std::stringstream text_port {"'(+ 1 2 3)"};
-//   //
-//   //   text_port >> root;
-//   //   text_port << root;
-//   //   text_port >> root;
-//   //   std::cout << root;
-//   //
-//   //   std::cerr << std::endl;
-//   // }
-//   //
-//   // if (false)
-//   // {
-//   //   std::cerr << "Test/2 - Tagged Pointers" << std::endl;
-//   //
-//   //   auto value {meevax::kernel::make<float>(3.14)};
-//   //
-//   //   auto x {value.as<float>()};
-//   //   std::cout << "; pointer\t; " << x << std::endl;
-//   //
-//   //   auto y {value.as<int>()};
-//   //   std::cout << "; pointer\t; " << y << std::endl;
-//   //
-//   //   std::cerr << std::endl;
-//   // }
-//
-//   std::cout << "\n"
-//             << passed << " of " << cases << " cases passed the unit-test.\n";
-//
-//   return cases != passed ? boost::exit_failure : boost::exit_success;
-// }
+BOOST_FIXTURE_TEST_SUITE(Standard_procedures, basis); // 6.
+
+BOOST_AUTO_TEST_CASE(Numbers) // 6.2.
+{
+  using meevax::exact_integer;
+  using meevax::ratio;
+  using meevax::default_float;
+
+  let x1 = make<exact_integer>(1);
+
+  BOOST_CHECK(x1);
+  BOOST_CHECK(x1.is<exact_integer>());
+  BOOST_CHECK(x1.as<exact_integer>().is(1));
+
+  let x2 = root.read("2");
+
+  BOOST_CHECK(x2);
+  BOOST_CHECK(x2.is<exact_integer>());
+  BOOST_CHECK(x2.as<exact_integer>().is(2));
+
+  let x3 = x1 + x2;
+
+  BOOST_CHECK(x3);
+  BOOST_CHECK(x3.is<exact_integer>());
+  BOOST_CHECK(x3.as<exact_integer>().is(3));
+}
+
+BOOST_AUTO_TEST_CASE(Booleans) // 6.3.
+{
+  using meevax::boolean;
+
+  let x = make<boolean>(true);
+
+  BOOST_CHECK(x.is<boolean>());
+  BOOST_CHECK(x.as<boolean>() == true);
+}
+
+BOOST_AUTO_TEST_CASE(Pairs_and_lists) // 6.4.
+{
+  using meevax::null;
+
+  let x;
+
+  BOOST_CHECK(x.is<null>());
+
+  using meevax::pair;
+  using meevax::cons;
+  using meevax::symbol;
+
+  let p = cons(make<symbol>("hoge"), make<symbol>("fuga"));
+
+  BOOST_CHECK(p.is<pair>());
+}
+
+BOOST_AUTO_TEST_CASE(Symbols) // 6.5.
+{
+  using meevax::symbol;
+
+  let x = make<symbol>("hoge");
+
+  BOOST_CHECK(x);
+  BOOST_CHECK(x.is<symbol>());
+}
+
+BOOST_AUTO_TEST_CASE(Characters) // 6.6.
+{
+  using meevax::character;
+
+  let c = make<character>("c");
+
+  BOOST_CHECK(c);
+  BOOST_CHECK(c.is<character>());
+}
+
+BOOST_AUTO_TEST_SUITE_END();
