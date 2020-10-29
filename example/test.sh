@@ -1,8 +1,6 @@
 #!/bin/sh -eu
 
-root="$(git rev-parse --show-toplevel)"
-
-here="$root/examples/use-as-embedded-language"
+here="$(git rev-parse --show-toplevel)/example"
 
 if test -e "$here/build"
 then
