@@ -17,9 +17,5 @@ cmake .. "$@"
 
 make
 
-valgrind \
-  --error-exitcode=1 \
-  --leak-check=full \
-  --show-leak-kinds=all \
-  --verbose \
-  $here/build/example
+ctest --output-on-failure \
+      --verbose
