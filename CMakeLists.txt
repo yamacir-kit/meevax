@@ -90,11 +90,11 @@ endif()
 #   Convert Scripts to ELF Binary
 # ==============================================================================
 
-file(GLOB ${PROJECT_NAME}_LAYER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.ss)
+file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 
-set(${PROJECT_NAME}_LAYERS "") # TODO RENAME TO 'BASIS'
+set(${PROJECT_NAME}_BASIS "")
 
-foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
+foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
   get_filename_component(FILEPATH ${EACH} PATH)
 
@@ -108,7 +108,7 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_LAYER_SOURCES)
          ${FILENAME}
          ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 
-  list(APPEND ${PROJECT_NAME}_LAYERS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
+  list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach()
 
 
@@ -120,7 +120,8 @@ add_library(kernel SHARED "")
 add_library(Meevax::kernel ALIAS kernel)
 
 target_sources(kernel PRIVATE
-  ${${PROJECT_NAME}_LAYERS}
+  ${${PROJECT_NAME}_BASIS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/basis.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/boolean.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/closure.cpp
@@ -128,7 +129,6 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/error.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/exact_integer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ghost.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/library.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/list.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/number.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pair.cpp
@@ -195,14 +195,14 @@ install(
 
 
 # ==============================================================================
-#   Meevax Standard Libraries
+#   Meevax Basis Library
 # ==============================================================================
 
 file(GLOB
-  ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/standard/*.cpp)
+  ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.cpp)
 
-foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_STANDARD_LIBRARY_SOURCES)
+foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
 
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
@@ -256,23 +256,23 @@ enable_testing()
 add_test(
   NAME r4rs
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
 
 add_test(
   NAME sicp-1
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/sicp-1.ss)
 
 add_test(
   NAME chibi
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/standard/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
 
 add_test(
   NAME examples
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/examples/use-as-embedded-language/test.sh
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/example/test.sh
           -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})

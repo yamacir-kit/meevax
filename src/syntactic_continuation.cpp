@@ -1,3 +1,4 @@
+#include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/posix/vt102.hpp>
 

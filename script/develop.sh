@@ -217,13 +217,13 @@ then
 
   full_test=" \
     $valgrind $root/build/bin/ice \
-    $root/standard/experimental/srfi-78.ss \
+    $root/basis/experimental/srfi-78.ss \
     $root/test/r4rs.ss \
     "
 
   chibi_test=" \
     $valgrind $root/build/bin/ice \
-    $root/standard/experimental/srfi-78.ss \
+    $root/basis/experimental/srfi-78.ss \
     $root/test/chibi-basic.ss \
     "
 

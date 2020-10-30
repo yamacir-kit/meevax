@@ -5,7 +5,6 @@
 
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
-#include <meevax/kernel/library.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/reader.hpp>
