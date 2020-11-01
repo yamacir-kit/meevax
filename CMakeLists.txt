@@ -272,7 +272,7 @@ add_test(
           ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
 
 add_test(
-  NAME examples
+  NAME example
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/example/test.sh
           -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
