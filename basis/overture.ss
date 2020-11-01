@@ -1075,7 +1075,7 @@
 (define (char<=? x . xs) (char-compare x xs <=))
 (define (char>=? x . xs) (char-compare x xs >=))
 
-(define case-insensitive-character-compare
+(define char-ci-compare
   (lambda (x xs compare)
     (let rec ((compare compare)
               (lhs (char->integer (char-downcase x)))
@@ -1083,27 +1083,13 @@
       (if (null? xs) #true
           (let ((rhs (char->integer (char-downcase (car xs)))))
             (and (compare lhs rhs)
-                 (rec rhs (cdr xs) compare)))))))
+                 (rec compare rhs (cdr xs))))))))
 
-(define char-ci=? ;                                                (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs =)))
-
-(define char-ci<? ;                                                (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs <)))
-
-(define char-ci>? ;                                                (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs >)))
-
-(define char-ci<=? ;                                               (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs <=)))
-
-(define char-ci>=? ;                                               (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs >=)))
+(define (char-ci=?  x . xs) (char-ci-compare x xs =))
+(define (char-ci<?  x . xs) (char-ci-compare x xs <))
+(define (char-ci>?  x . xs) (char-ci-compare x xs >))
+(define (char-ci<=? x . xs) (char-ci-compare x xs <=))
+(define (char-ci>=? x . xs) (char-ci-compare x xs >=))
 
 (define char-alphabetic? ;                                         (scheme char)
   (lambda (x)
