@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 #define INCLUDED_MEEVAX_KERNEL_PAIR_HPP
 
-#include <meevax/kernel/exception.hpp>
 #include <meevax/kernel/object.hpp>
 
 namespace meevax { inline namespace kernel
@@ -33,10 +32,12 @@ namespace meevax { inline namespace kernel
     virtual ~pair() = default;
   };
 
+  auto operator <<(std::ostream& port, const pair&) -> decltype(port);
+
   /* ---- Pair Accessor --------------------------------------------------------
    *
-   * Pair accessors are not only for pair type. Accessing car and cdr is a valid
-   * operation for everyone except the empty list.
+   *  Pair accessors are not only for pair type. Accessing car and cdr is a
+   *  valid operation for everyone except the empty list.
    *
    * ------------------------------------------------------------------------ */
   auto car = [](auto&& pare) noexcept -> decltype(auto)
@@ -63,29 +64,6 @@ namespace meevax { inline namespace kernel
     }
   };
 
-  /* ---- Pairs and Lists External Representation ------------------------------
-   *
-   * TODO documentation
-   *
-   * ------------------------------------------------------------------------ */
-  auto operator <<(std::ostream& os, const pair& pare) -> decltype(os)
-  {
-    os << magenta << "(" << reset << car(pare);
-
-    for (auto rest { cdr(pare) }; rest; rest = cdr(rest))
-    {
-      if (rest.is<pair>())
-      {
-        os << " " << car(rest);
-      }
-      else // iter is the last element of dotted-list.
-      {
-        os << magenta << " . " << reset << rest;
-      }
-    }
-
-    return os << magenta << ")" << reset;
-  }
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP

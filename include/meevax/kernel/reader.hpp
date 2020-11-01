@@ -3,7 +3,7 @@
 
 #include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
-#include <sstream>
+#include <regex>
 #include <stack>
 
 #include <boost/iostreams/device/null.hpp>
@@ -13,115 +13,54 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 
 namespace meevax { inline namespace kernel
 {
-  /* ==== EOF ==================================================================
-  *
-  *
-  * ========================================================================= */
+  /* ---- End-of-File ------------------------------------------------------- */
+
   struct eof
-  {
-    friend auto operator <<(std::ostream& os, const eof&) -> decltype(auto)
-    {
-      return os << magenta << "#,(" << green << "eof-object" << magenta << ")" << reset;
-    }
-  };
+  {};
 
-  static const auto eof_object {make<eof>()};
+  extern let const eof_object;
 
-  /* ==== EOS ==================================================================
-  *
-  *
-  * ========================================================================= */
+  auto operator <<(std::ostream& port, const eof&) -> decltype(port);
+
+  /* ---- End-of-String ----------------------------------------------------- */
+
   struct eos
-  {
-    friend auto operator <<(std::ostream& os, const eos&) -> decltype(auto)
-    {
-      return os << magenta << "#,(" << green << "eos-object" << magenta << ")" << reset;
-    }
-  };
+  {};
 
-  static const auto eos_object {make<eos>()};
+  extern let const eos_object;
 
-  /* ==== String Constructor ===================================================
-  *
-  *
-  * ========================================================================= */
-  auto read_string(std::istream& port) -> const object
-  {
-    switch (auto c {port.narrow(port.get(), '\0')}; c)
-    {
-    case '"': // Right Double Quotation
-      return unit;
+  auto operator <<(std::ostream& port, const eos&) -> decltype(port);
 
-    case '\\': // Escape Sequences
-      switch (auto c {port.narrow(port.get(), '\0')}; c)
-      {
-      case 'a':
-        return make<string>(characters.at("bell"), read_string(port));
-
-      case 'b':
-        return make<string>(characters.at("backspace"), read_string(port));
-
-      case 'n':
-        return make<string>(characters.at("line-feed"), read_string(port));
-
-      case 'r':
-        return make<string>(characters.at("carriage-return"), read_string(port));
-
-      case 't':
-        return make<string>(characters.at("horizontal-tabulation"), read_string(port));
-
-      case '|':
-        return make<string>(make<character>("|"), read_string(port));
-
-      case '"':
-        return make<string>(make<character>("\""), read_string(port));
-
-      case '\\':
-        return make<string>(make<character>("\\"), read_string(port));
-
-      case '\r':
-      case '\n':
-        while (is_intraline_whitespace(port.peek()))
-        {
-          port.ignore(1);
-        }
-        return read_string(port);
-
-      default:
-        return make<string>(make<character>(std::string(1, '\0')), read_string(port));
-      }
-
-    default:
-      return make<string>(make<character>(std::string(1, c)), read_string(port));
-    }
-  }
-
-  auto make_string(const std::string& s) -> decltype(auto)
-  {
-    std::stringstream port {};
-    port << s << "\"";
-    return read_string(port);
-  }
-
-  /* ==== Number Constructor ===================================================
+  /* ---- String Constructor ---------------------------------------------------
    *
    *
-   * ======================================================================== */
-  namespace regex
+   * ------------------------------------------------------------------------ */
+
+  let read_string(std::istream& port);
+
+  let make_string(const std::string&);
+
+  /* ---- Number Constructor ---------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+
+  inline namespace lexical_structure
   {
     template <std::size_t R>
-    auto digit() -> const std::string;
+    auto digit() -> std::string;
 
-    template <> auto digit< 2>() -> const std::string { return "[01]"; }
-    template <> auto digit< 8>() -> const std::string { return "[01234567]"; }
-    template <> auto digit<10>() -> const std::string { return "\\d"; }
-    template <> auto digit<16>() -> const std::string { return "[" + digit<10>() + "abcdef]"; }
+    template <> auto digit< 2>() -> std::string;
+    template <> auto digit< 8>() -> std::string;
+    template <> auto digit<10>() -> std::string;
+    template <> auto digit<16>() -> std::string;
 
     template <std::size_t R>
     auto digits(const std::string& quantifier)
@@ -130,32 +69,20 @@ namespace meevax { inline namespace kernel
     }
 
     template <std::size_t R>
-    auto radix() -> const std::string;
+    auto radix() -> std::string;
 
-    template <> auto radix< 2>() -> const std::string { return  "#b";   }
-    template <> auto radix< 8>() -> const std::string { return  "#o";   }
-    template <> auto radix<10>() -> const std::string { return "(#d)?"; }
-    template <> auto radix<16>() -> const std::string { return  "#x";   }
+    template <> auto radix< 2>() -> std::string;
+    template <> auto radix< 8>() -> std::string;
+    template <> auto radix<10>() -> std::string;
+    template <> auto radix<16>() -> std::string;
 
-    auto exactness() -> const std::string
-    {
-      return "(#e|#i)?";
-    }
+    auto exactness() -> std::string;
 
-    auto sign() -> const std::string
-    {
-      return "[\\+-]?";
-    }
+    auto sign() -> std::string;
 
-    auto infnan() -> const std::string
-    {
-      return "[\\+-](inf|nan)\\.0";
-    }
+    auto infnan() -> std::string;
 
-    auto suffix() -> const std::string
-    {
-      return "(e" + sign() + digits<10>("+") + ")?";
-    }
+    auto suffix() -> std::string;
 
     template <std::size_t R = 10>
     auto prefix() -> const std::string
@@ -216,25 +143,25 @@ namespace meevax { inline namespace kernel
     {
       return prefix<R>() + signed_complex<R>();
     }
-  } // inline namespace regex
+  } // inline namespace lexical_structure
 
   template <std::size_t R = 10>
   auto is_number(const std::string& token)
   {
-    static const std::regex pattern { regex::number<R>() };
+    static const std::regex pattern { number<R>() };
     std::smatch result {};
     return std::regex_match(token, result, pattern);
   }
 
   template <std::size_t R = 10>
-  auto make_number(const std::string& token) -> const object
+  let make_number(const std::string& token)
   {
     static const std::unordered_map<std::string, object> srfi_144
     {
       std::make_pair("fl-pi", make<default_float>(boost::math::constants::pi<default_float::value_type>())),
     };
 
-    static const std::regex pattern { regex::number<R>() };
+    static const std::regex pattern { number<R>() };
 
     if (const auto iter { srfi_144.find(token) }; iter != std::end(srfi_144))
     {
@@ -306,15 +233,11 @@ namespace meevax { inline namespace kernel
         return make<exact_integer>(token.substr(token[0] == '+' ? 1 : 0));
       }
 
-      std::stringstream port {};
-      port << "the given token '" << token << "' is a valid Scheme numeric literal, but Meevax is not yet supported.";
-      throw std::runtime_error { port.str() };
+      throw read_error<void>("the given token ", token, " is a valid Scheme numeric literal, but is not yet supported");
     }
     else
     {
-      std::stringstream port {};
-      port << "the given token '" << token << "' is a invalid Scheme numeric literal.";
-      throw std::runtime_error { port.str() };
+      throw read_error<void>("the given token ", token, " is a invalid Scheme numeric literal");
     }
   }
 
@@ -338,6 +261,9 @@ namespace meevax { inline namespace kernel
     Import(SK, intern);
 
     using seeker = std::istream_iterator<std::istream::char_type>;
+
+    enum class   proper_list_tag {};
+    enum class improper_list_tag {};
 
   protected:
     // NOTE
@@ -376,19 +302,19 @@ namespace meevax { inline namespace kernel
           port.putback('(');
           return cons(expression, read(port));
         }
-        catch (const reader_error_about_parentheses&)
+        catch (const read_error<proper_list_tag>&)
         {
           return unit;
         }
-        catch (const reader_error_about_pair&)
+        catch (const read_error<improper_list_tag>&)
         {
-          auto expression {read(port)};
+          let y = read(port);
           port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-          return expression;
+          return y;
         }
 
       case ')':
-        throw reader_error_about_parentheses { "unexpected close parentheses inserted" };
+        throw read_error<proper_list_tag>("unexpected close parentheses inserted");
 
       case '#':
         return discriminate(port);
@@ -420,7 +346,7 @@ namespace meevax { inline namespace kernel
         {
           if (token == ".")
           {
-            throw reader_error_about_pair { "dot-notation" };
+            throw read_error<improper_list_tag>("dot-notation");
           }
           else try
           {
@@ -604,13 +530,13 @@ namespace meevax { inline namespace kernel
           }
 
           // TODO Provide datum<character>(name)?
-          if (auto iter {characters.find(name)}; iter != std::end(characters))
+          if (auto iter { characters.find(name) }; iter != std::end(characters))
           {
             return cdr(*iter);
           }
           else
           {
-            throw reader_error_about_character {name, " is unknown character-name"};
+            throw read_error<void>("unknown character-name: ", name);
           }
         }
 

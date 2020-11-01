@@ -38,51 +38,24 @@ namespace meevax { inline namespace kernel
 
   /* ---- Multi-Precision Exact-Integer ------------------------------------- */
 
-  inline auto exact_integer::as_inexact() const
-  {
-    return floating_point(value.convert_to<default_float::value_type>());
-  }
+  auto to_inexact(const exact_integer&) -> default_float;
 
   /* ---- Ratio ------------------------------------------------------------- */
 
-  auto ratio::is_integer() const
-  {
-    return denominator().as<exact_integer>().is(1);
-  }
-
-  auto ratio::as_inexact() const
-  {
-    return floating_point(numerator().as<exact_integer>().as_inexact() / denominator().as<exact_integer>().as_inexact());
-  }
-
-  auto ratio::reduce() -> const ratio&
-  {
-    if (const exact_integer divisor {
-          boost::multiprecision::gcd(
-            numerator().as<exact_integer>().value,
-            denominator().as<exact_integer>().value)
-        };
-        not divisor.is(1))
-    {
-      numerator() = make(numerator().as<exact_integer>() / divisor);
-      denominator() = make(denominator().as<exact_integer>() / divisor);
-    }
-
-    return *this;
-  }
+  auto to_inexact(const ratio&) -> default_float;
 
   /* ---- Floating-Point Numbers -------------------------------------------- */
 
   template <typename T>
-  inline auto floating_point<T>::as_exact() const
+  auto floating_point<T>::as_exact() const
   {
     return static_cast<exact_integer>(value);
   }
 
   template <typename T>
-  inline constexpr auto floating_point<T>::as_inexact() const noexcept
+  constexpr auto to_inexact(const floating_point<T>& datum)
   {
-    return default_float(*this); // XXX ???
+    return datum;
   }
 
   /* ---- Generic ----------------------------------------------------------- */
@@ -120,7 +93,7 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       typeid(TYPE), [](auto&& z)                                               \
       {                                                                        \
-        return z.template as<TYPE>().as_inexact();                             \
+        return to_inexact(z.template as<TYPE>());                              \
       }                                                                        \
     }
 
@@ -130,7 +103,7 @@ namespace meevax { inline namespace kernel
     >
     match
     {
-      BOILERPLATE(single_float),
+      // BOILERPLATE(single_float),
       BOILERPLATE(double_float),
       BOILERPLATE(ratio),
       BOILERPLATE(exact_integer),
@@ -185,7 +158,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
   {                                                                            \
-    return floating_point(lhs.as_inexact() SYMBOL rhs);                        \
+    return floating_point(to_inexact(lhs) SYMBOL rhs);                         \
   } static_assert(true)
 
   BOILERPLATE(*);
@@ -196,32 +169,11 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, const ratio& rhs)             \
-  {                                                                            \
-    return ratio(lhs * rhs.denominator() SYMBOL rhs.numerator(), rhs.denominator()); \
-  } static_assert(true)
-
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-
-  #undef BOILERPLATE
-
-  auto operator *(const exact_integer& lhs, const ratio& rhs)
-  {
-    return ratio(lhs * rhs.numerator(), rhs.denominator());
-  }
-
-  auto operator /(const exact_integer& lhs, const ratio& rhs)
-  {
-    return lhs * rhs.invert();
-  }
-
-  // TODO
-  auto operator %(const exact_integer&, const ratio& rhs)
-  {
-    return rhs;
-  }
+  auto operator +(const exact_integer&, const ratio&) -> ratio;
+  auto operator -(const exact_integer&, const ratio&) -> ratio;
+  auto operator *(const exact_integer&, const ratio&) -> ratio;
+  auto operator /(const exact_integer&, const ratio&) -> ratio;
+  auto operator %(const exact_integer&, const ratio&) -> ratio;
 
   /* ---- Ratio ------------------------------------------------------------- */
 
@@ -232,7 +184,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
   {                                                                            \
-    return floating_point(lhs SYMBOL rhs.as_inexact());                        \
+    return floating_point(lhs SYMBOL to_inexact(rhs));                         \
   } static_assert(true)
 
   BOILERPLATE(*);
@@ -247,7 +199,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
   {                                                                            \
-    return floating_point(lhs SYMBOL rhs.as_inexact());                        \
+    return floating_point(lhs SYMBOL to_inexact(rhs));                         \
   } static_assert(true)
 
   BOILERPLATE(*);
@@ -263,7 +215,7 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
+  #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
   let operator SYMBOL(const floating_point<T>& lhs, const object& rhs)         \
   {                                                                            \
@@ -287,80 +239,22 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     }                                                                          \
                                                                                \
-    std::stringstream ss {};                                                   \
-    ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
-    throw std::logic_error { ss.str() };                                       \
+    throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs);  \
   } static_assert(true)
 
-  BOILERPLATE(*, multiplies);
-  BOILERPLATE(+, plus);
-  BOILERPLATE(-, minus);
-  BOILERPLATE(/, divides);
-  BOILERPLATE(%, modulus);
+  BOILERPLATE(*);
+  BOILERPLATE(+);
+  BOILERPLATE(-);
+  BOILERPLATE(/);
+  BOILERPLATE(%);
 
   #undef BOILERPLATE
 
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  let operator SYMBOL(const exact_integer& lhs, const object& rhs)             \
-  {                                                                            \
-    static const std::unordered_map<                                           \
-      std::type_index,                                                         \
-      std::function<object (const exact_integer&, const object&)>              \
-    >                                                                          \
-    overloads                                                                  \
-    {                                                                          \
-      {                                                                        \
-        typeid(ratio), [](auto&& lhs, auto&& rhs)                              \
-        {                                                                      \
-          if (auto result { lhs SYMBOL rhs.template as<ratio>() }; result.reduce().is_integer()) \
-          {                                                                    \
-            return result.numerator();                                         \
-          }                                                                    \
-          else                                                                 \
-          {                                                                    \
-            return make(result);                                               \
-          }                                                                    \
-        }                                                                      \
-      },                                                                       \
-      {                                                                        \
-        typeid(exact_integer), [](auto&& lhs, auto&& rhs)                      \
-        {                                                                      \
-          return make(lhs SYMBOL rhs.template as<exact_integer>());            \
-        }                                                                      \
-      },                                                                       \
-      {                                                                        \
-        typeid(single_float), [](auto&& lhs, auto&& rhs)                       \
-        {                                                                      \
-          return make(lhs SYMBOL rhs.template as<single_float>());             \
-        }                                                                      \
-      },                                                                       \
-      {                                                                        \
-        typeid(double_float), [](auto&& lhs, auto&& rhs)                       \
-        {                                                                      \
-          return make(lhs SYMBOL rhs.template as<double_float>());             \
-        }                                                                      \
-      },                                                                       \
-    };                                                                         \
-                                                                               \
-    if (auto iter { overloads.find(rhs.type()) }; iter != std::end(overloads)) \
-    {                                                                          \
-      return std::invoke(cdr(*iter), lhs, rhs);                                \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      std::stringstream ss {};                                                 \
-      ss << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
-      throw std::logic_error { ss.str() };                                     \
-    }                                                                          \
-  } static_assert(true)
-
-  BOILERPLATE(*, multiplies);
-  BOILERPLATE(+, plus);
-  BOILERPLATE(-, minus);
-  BOILERPLATE(/, divides);
-  BOILERPLATE(%, modulus);
-
-  #undef BOILERPLATE
+  let operator +(const exact_integer&, const object&);
+  let operator -(const exact_integer&, const object&);
+  let operator *(const exact_integer&, const object&);
+  let operator /(const exact_integer&, const object&);
+  let operator %(const exact_integer&, const object&);
 
   /* ---- Arithmetic Comparisons -----------------------------------------------
    *
@@ -384,25 +278,12 @@ namespace meevax { inline namespace kernel
 
   /* ---- Multi-Precision Exact-Integer --------------------------------------*/
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, ratio& rhs)                   \
-  {                                                                            \
-    if (rhs.reduce().is_integer())                                             \
-    {                                                                          \
-      return lhs SYMBOL rhs.numerator();                                       \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return false;                                                            \
-    }                                                                          \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
+  auto operator !=(const exact_integer&, ratio&) -> bool;
+  auto operator < (const exact_integer&, ratio&) -> bool;
+  auto operator <=(const exact_integer&, ratio&) -> bool;
+  auto operator ==(const exact_integer&, ratio&) -> bool;
+  auto operator > (const exact_integer&, ratio&) -> bool;
+  auto operator >=(const exact_integer&, ratio&) -> bool;
 
   #undef BOILERPLATE
 
@@ -424,27 +305,12 @@ namespace meevax { inline namespace kernel
 
   /* ---- Ratio ------------------------------------------------------------- */
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const ratio& lhs, const exact_integer& rhs)             \
-  {                                                                            \
-    auto copy { lhs };                                                         \
-                                                                               \
-    if (copy.reduce().is_integer())                                            \
-    {                                                                          \
-      return copy.numerator().as<exact_integer>() SYMBOL rhs;                  \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return false;                                                            \
-    }                                                                          \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
+  auto operator !=(const ratio&, const exact_integer&) -> bool;
+  auto operator < (const ratio&, const exact_integer&) -> bool;
+  auto operator <=(const ratio&, const exact_integer&) -> bool;
+  auto operator ==(const ratio&, const exact_integer&) -> bool;
+  auto operator > (const ratio&, const exact_integer&) -> bool;
+  auto operator >=(const ratio&, const exact_integer&) -> bool;
 
   #undef BOILERPLATE
 
@@ -452,7 +318,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const ratio& lhs, const floating_point<T>& rhs)         \
   {                                                                            \
-    return lhs.as_inexact() SYMBOL rhs;                                        \
+    return to_inexact(lhs) SYMBOL rhs;                                         \
   } static_assert(true)
 
   BOILERPLATE(!=);
@@ -486,7 +352,7 @@ namespace meevax { inline namespace kernel
   template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
   {                                                                            \
-    return lhs SYMBOL rhs.as_inexact();                                        \
+    return lhs SYMBOL to_inexact(rhs);                                         \
   } static_assert(true)
 
   BOILERPLATE(!=);
@@ -500,7 +366,21 @@ namespace meevax { inline namespace kernel
 
   /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
 
-  #define BOILERPLATE(NUMBER, SYMBOL, OPERATION)                               \
+  auto operator !=(const exact_integer&, const object&) -> bool;
+  auto operator < (const exact_integer&, const object&) -> bool;
+  auto operator <=(const exact_integer&, const object&) -> bool;
+  auto operator ==(const exact_integer&, const object&) -> bool;
+  auto operator > (const exact_integer&, const object&) -> bool;
+  auto operator >=(const exact_integer&, const object&) -> bool;
+
+  auto operator !=(const ratio&, const object&) -> bool;
+  auto operator < (const ratio&, const object&) -> bool;
+  auto operator <=(const ratio&, const object&) -> bool;
+  auto operator ==(const ratio&, const object&) -> bool;
+  auto operator > (const ratio&, const object&) -> bool;
+  auto operator >=(const ratio&, const object&) -> bool;
+
+  #define BOILERPLATE(NUMBER, SYMBOL)                                          \
   auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \
   {                                                                            \
     if (rhs)                                                                   \
@@ -523,31 +403,15 @@ namespace meevax { inline namespace kernel
       }                                                                        \
     }                                                                          \
                                                                                \
-    std::stringstream port {};                                                 \
-    port << "no viable operation '" #OPERATION "' with " << lhs << " and " << rhs; \
-    throw std::logic_error { port.str() };                                     \
-  } static_assert(true, "semicolon required after this macro")
+    throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs);  \
+  } static_assert(true)
 
-  template <typename T> BOILERPLATE(floating_point<T>, !=, not_equal_to);
-  template <typename T> BOILERPLATE(floating_point<T>, <,  less);
-  template <typename T> BOILERPLATE(floating_point<T>, <=, less_equal);
-  template <typename T> BOILERPLATE(floating_point<T>, ==, equal_to);
-  template <typename T> BOILERPLATE(floating_point<T>, >,  greater);
-  template <typename T> BOILERPLATE(floating_point<T>, >=, greater_equal);
-
-  BOILERPLATE(exact_integer, !=, not_equal_to);
-  BOILERPLATE(exact_integer, <,  less);
-  BOILERPLATE(exact_integer, <=, less_equal);
-  BOILERPLATE(exact_integer, ==, equal_to);
-  BOILERPLATE(exact_integer, >,  greater);
-  BOILERPLATE(exact_integer, >=, greater_equal);
-
-  BOILERPLATE(ratio, !=, not_equal_to);
-  BOILERPLATE(ratio, <,  less);
-  BOILERPLATE(ratio, <=, less_equal);
-  BOILERPLATE(ratio, ==, equal_to);
-  BOILERPLATE(ratio, >,  greater);
-  BOILERPLATE(ratio, >=, greater_equal);
+  template <typename T> BOILERPLATE(floating_point<T>, !=);
+  template <typename T> BOILERPLATE(floating_point<T>, < );
+  template <typename T> BOILERPLATE(floating_point<T>, <=);
+  template <typename T> BOILERPLATE(floating_point<T>, ==);
+  template <typename T> BOILERPLATE(floating_point<T>, > );
+  template <typename T> BOILERPLATE(floating_point<T>, >=);
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel

@@ -49,11 +49,11 @@ namespace meevax { inline namespace kernel
       return *this;
     }
 
-    auto as_inexact() const;
-
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
   };
+
+  auto operator <<(std::ostream& port, const exact_integer&) -> decltype(port);
 
   let operator *(const exact_integer&, const object&);
   let operator +(const exact_integer&, const object&);
@@ -68,39 +68,18 @@ namespace meevax { inline namespace kernel
   auto operator > (const exact_integer&, const object&) -> bool;
   auto operator >=(const exact_integer&, const object&) -> bool;
 
-  auto operator <<(std::ostream& os, const exact_integer& rhs) -> decltype(auto)
-  {
-    return os << cyan << rhs.value.str() << reset;
-  }
+  auto operator * (const exact_integer&, const exact_integer&) -> exact_integer;
+  auto operator + (const exact_integer&, const exact_integer&) -> exact_integer;
+  auto operator - (const exact_integer&, const exact_integer&) -> exact_integer;
+  auto operator / (const exact_integer&, const exact_integer&) -> exact_integer;
+  auto operator % (const exact_integer&, const exact_integer&) -> exact_integer;
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, const exact_integer& rhs)     \
-  {                                                                            \
-    return exact_integer(lhs.value SYMBOL rhs.value);                          \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, const exact_integer& rhs)     \
-  {                                                                            \
-    return lhs.value SYMBOL rhs.value;                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
+  auto operator !=(const exact_integer&, const exact_integer&) -> bool;
+  auto operator < (const exact_integer&, const exact_integer&) -> bool;
+  auto operator <=(const exact_integer&, const exact_integer&) -> bool;
+  auto operator ==(const exact_integer&, const exact_integer&) -> bool;
+  auto operator > (const exact_integer&, const exact_integer&) -> bool;
+  auto operator >=(const exact_integer&, const exact_integer&) -> bool;
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP

@@ -54,9 +54,9 @@ int main(const int argc, char const* const* const argv) try
       std::cerr << something << std::endl; // NOTE: Use std::cerr directly because the meevax may be broken.
       continue;
     }
-    catch (const meevax::kernel::exception& exception)
+    catch (const meevax::kernel::error& datum)
     {
-      std::cerr << exception << std::endl; // NOTE: Use std::cerr directly because the meevax may be broken.
+      std::cerr << datum << std::endl; // NOTE: Use std::cerr directly because the meevax may be broken.
 
       if (root.in_interactive_mode())
       {
@@ -76,9 +76,9 @@ int main(const int argc, char const* const* const argv) try
 
   return boost::exit_success;
 }
-catch (const meevax::kernel::exception& error)
+catch (const meevax::kernel::error& datum)
 {
-  std::cerr << error << std::endl;
+  std::cerr << datum << std::endl;
   return boost::exit_exception_failure;
 }
 catch (const std::exception& error)

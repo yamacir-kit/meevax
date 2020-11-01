@@ -1330,6 +1330,20 @@
 ;  6.11 Standard Exceptions Library
 ; ------------------------------------------------------------------------------
 
+; (define-syntax receive
+;   (syntax-rules ()
+;     ((receive parameters expression . body)
+;      (call-with-values
+;        (lambda () expression)
+;        (lambda parameters . body)))))
+
+(define-syntax receive ; (receive parameters expression . body)
+  (er-macro-transformer
+    (lambda (form rename compare)
+      `(call-with-values
+         (,(rename 'lambda) () ,(caddr form))
+         (,(rename 'lambda) ,(cadr form) ,@(cdddr form))))))
+
 ; TODO with-exception-handler
 ; TODO raise
 ; TODO raise-continuable
@@ -1339,7 +1353,6 @@
 (define error-object?
   (lambda (x) #false) )
 
-; TODO error-object?
 ; TODO error-object-message
 ; TODO error-object-irritants
 ; TODO read-error?

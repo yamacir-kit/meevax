@@ -3,8 +3,6 @@
 
 #include <experimental/filesystem>
 
-#include <meevax/kernel/object.hpp>
-
 namespace meevax { inline namespace kernel
 {
   struct path
@@ -12,12 +10,7 @@ namespace meevax { inline namespace kernel
   {
     using std::experimental::filesystem::path::path;
 
-    friend auto operator<<(std::ostream& os, const path& p)
-      -> decltype(os)
-    {
-      return os << console::cyan << "#p\"" << p.c_str() << "\""
-                << console::reset;
-    }
+    friend auto operator<<(std::ostream& port, const path&) -> decltype(port);
   };
 }} // namespace meevax::kernel
 

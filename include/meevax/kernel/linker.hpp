@@ -3,7 +3,7 @@
 
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 
-#include <meevax/kernel/exception.hpp>
+#include <meevax/kernel/error.hpp>
 
 namespace meevax { inline namespace kernel
 {
@@ -27,13 +27,7 @@ namespace meevax { inline namespace kernel
       {
         if (handle && dlclose(handle))
         {
-          // throw kernel_error {
-          //   "failed to close shared library ", name, ": ", dlerror()
-          // };
-          std::cerr << "failed to close shared library " << name
-                    << ": " << dlerror()
-                    << std::endl;
-          std::exit(boost::exit_failure);
+          std::cerr << "failed to close shared library " << name << ": " << dlerror() << std::endl;
         }
       }
     };
@@ -52,11 +46,9 @@ namespace meevax { inline namespace kernel
         close {name}
       };
 
-      if (auto* message {dlerror()}; message)
+      if (auto* message { dlerror() }; message)
       {
-        throw kernel_error {
-          "failed to open shared library ", name, ": ", message
-        };
+        throw file_error<void>(message);
       }
       else
       {
@@ -87,24 +79,18 @@ namespace meevax { inline namespace kernel
         {
           return reinterpret_cast<Signature>(function);
         }
-        else if (auto* message {dlerror()}; message)
+        else if (auto* message { dlerror() }; message)
         {
-          throw kernel_error {
-            "failed to link symbol ", symbol, " of shared library ", name, ": ", message
-          };
+          throw error("failed to link symbol ", symbol, " of shared library ", name, ": ", message);
         }
         else
         {
-          throw kernel_error {
-            "failed to link symbol in unexpected situation"
-          };
+          throw error("failed to link symbol in unexpected situation");
         }
       }
       else
       {
-        throw kernel_error {
-          "shared library is not opened"
-        };
+        throw error("shared library is not opened");
       }
     }
   };

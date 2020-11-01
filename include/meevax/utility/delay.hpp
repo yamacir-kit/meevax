@@ -2,10 +2,9 @@
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
 #include <memory>
-#include <sstream> // TODO #include <meevax/kernel/error.hpp>
-#include <stdexcept>
 #include <type_traits>
-#include <utility>
+
+#include <meevax/kernel/error.hpp>
 
 namespace meevax { inline namespace utility
 {
@@ -38,11 +37,7 @@ namespace meevax { inline namespace utility
         }
         else
         {
-          std::stringstream port {};
-          port << typeid(T).name() << " and "
-               << typeid(U).name() << " are not supports operation "
-               << typeid(F).name();
-          throw std::runtime_error(port.str());
+          throw error("no viable operation '", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
         }
       }
     };
