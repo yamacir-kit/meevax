@@ -982,12 +982,20 @@
 
 ; ==== 6.6. Characters =========================================================
 
+(check (char? #\alarm)     => #t) ; U+0007
+(check (char? #\backspace) => #t) ; U+0008
+(check (char? #\delete)    => #t) ; U+007F
+(check (char? #\escape)    => #t) ; U+001B
+(check (char? #\newline)   => #t) ; U+000A
+(check (char? #\null)      => #t) ; U+0000
+(check (char? #\return)    => #t) ; U+000D
+(check (char? #\space)     => #t) ;
+(check (char? #\tab)       => #t) ; U+0009
+
 (check (char? #\a) => #t)
 (check (char? #\A) => #t)
 (check (char? #\() => #t)
 (check (char? #\ ) => #t)
-(check (char? #\space) => #t)
-(check (char? #\newline) => #t)
 
 (check (char<? #\A #\B) => #t)
 (check (char<? #\a #\b) => #t)

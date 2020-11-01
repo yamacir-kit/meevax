@@ -1136,6 +1136,16 @@
           (char->integer x)
         #,(char->integer #\z))))
 
+(define char-downcase
+  (lambda (c)
+    (if (char-lower-case? c) c
+        (integer->char (+ (char->integer c) 32)))))
+
+(define char-upcase
+  (lambda (c)
+    (if (char-upper-case? c) c
+        (integer->char (- (char->integer c) 32)))))
+
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
