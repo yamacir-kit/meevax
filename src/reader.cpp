@@ -25,31 +25,31 @@ namespace meevax { inline namespace kernel
       return unit;
 
     case '\\': // Escape Sequences
-      switch (auto c {port.narrow(port.get(), '\0')}; c)
+      switch (auto c { port.narrow(port.get(), '\0') }; c)
       {
       case 'a':
-        return make<string>(characters.at("bell"), read_string(port));
+        return make<string>(make<character>('\a'), read_string(port));
 
       case 'b':
-        return make<string>(characters.at("backspace"), read_string(port));
+        return make<string>(make<character>('\b'), read_string(port));
 
       case 'n':
-        return make<string>(characters.at("line-feed"), read_string(port));
+        return make<string>(make<character>('\n'), read_string(port));
 
       case 'r':
-        return make<string>(characters.at("carriage-return"), read_string(port));
+        return make<string>(make<character>('\r'), read_string(port));
 
       case 't':
-        return make<string>(characters.at("horizontal-tabulation"), read_string(port));
+        return make<string>(make<character>('\t'), read_string(port));
 
       case '|':
-        return make<string>(make<character>("|"), read_string(port));
+        return make<string>(make<character>('|'), read_string(port));
 
       case '"':
-        return make<string>(make<character>("\""), read_string(port));
+        return make<string>(make<character>('"'), read_string(port));
 
       case '\\':
-        return make<string>(make<character>("\\"), read_string(port));
+        return make<string>(make<character>('\\'), read_string(port));
 
       case '\r':
       case '\n':
@@ -60,11 +60,11 @@ namespace meevax { inline namespace kernel
         return read_string(port);
 
       default:
-        return make<string>(make<character>(std::string(1, '\0')), read_string(port));
+        return make<string>(make<character>(c), read_string(port));
       }
 
     default:
-      return make<string>(make<character>(std::string(1, c)), read_string(port));
+      return make<string>(make<character>(c), read_string(port));
     }
   }
 

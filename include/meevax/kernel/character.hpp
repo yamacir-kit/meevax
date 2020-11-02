@@ -17,6 +17,10 @@ namespace meevax { inline namespace kernel
   {
     const std::string name;
 
+    explicit character(char code)
+      : std::string(1, code)
+    {}
+
     explicit character(std::uint32_t code)
       : std::string { encode(code) }
     {}
