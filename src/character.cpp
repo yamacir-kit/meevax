@@ -4,6 +4,47 @@
 
 namespace meevax { inline namespace kernel
 {
+  auto encode(std::uint_least32_t code) -> std::string
+  {
+    char sequence[5] = {};
+
+    if (code <= 0x7F)
+    {
+      sequence[1] = '\0';
+      sequence[0] = (code & 0x7F);
+    }
+    else if (code <= 0x7FF)
+    {
+      sequence[2] = '\0';
+      sequence[1] = 0x80 | (code & 0x3F); code >>= 6;
+      sequence[0] = 0xC0 | (code & 0x1F);
+    }
+    else if (code <= 0xFFFF)
+    {
+      sequence[3] = '\0';
+      sequence[2] = 0x80 | (code & 0x3F); code >>= 6;
+      sequence[1] = 0x80 | (code & 0x3F); code >>= 6;
+      sequence[0] = 0xE0 | (code & 0x0F);
+    }
+    else if (code <= 0x10FFFF)
+    {
+      sequence[4] = '\0';
+      sequence[3] = 0x80 | (code & 0x3F); code >>= 6;
+      sequence[2] = 0x80 | (code & 0x3F); code >>= 6;
+      sequence[1] = 0x80 | (code & 0x3F); code >>= 6;
+      sequence[0] = 0xF0 | (code & 0x07);
+    }
+    else
+    {
+      sequence[3] = '\0';
+      sequence[2] = 0xEF;
+      sequence[1] = 0xBF;
+      sequence[0] = 0xBD;
+    }
+
+    return sequence;
+  }
+
   auto character::display_to(std::ostream& port) const -> decltype(port)
   {
     return port << display() << reset;
