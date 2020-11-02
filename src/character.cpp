@@ -52,7 +52,32 @@ namespace meevax { inline namespace kernel
 
   auto operator <<(std::ostream& port, const character& datum) -> decltype(port)
   {
-    return port << cyan << "#\\" << (std::empty(datum.name) ? datum.display() : datum.name) << reset;
+    port << cyan << "#\\";
+
+    switch (std::size(datum))
+    {
+    case 1:
+      switch (datum[0])
+      {
+      case 0x00: return port << "null"      << reset;
+      case 0x07: return port << "alarm"     << reset;
+      case 0x08: return port << "backspace" << reset;
+      case 0x09: return port << "tab"       << reset;
+      case 0x0A: return port << "newline"   << reset;
+      case 0x0D: return port << "return"    << reset;
+      case 0x1B: return port << "escape"    << reset;
+      case 0x20: return port << "space"     << reset;
+      case 0x7F: return port << "delete"    << reset;
+
+      default:
+        return port << datum.display() << reset;
+      }
+
+    default:
+      return port << datum.display() << reset;
+    }
+
+    // return port << cyan << "#\\" << (std::empty(datum.name) ? datum.display() : datum.name) << reset;
   }
 
   const std::unordered_map<std::string, object> characters

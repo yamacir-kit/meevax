@@ -27,29 +27,14 @@ namespace meevax { inline namespace kernel
     case '\\': // Escape Sequences
       switch (auto c { port.narrow(port.get(), '\0') }; c)
       {
-      case 'a':
-        return make<string>(make<character>('\a'), read_string(port));
-
-      case 'b':
-        return make<string>(make<character>('\b'), read_string(port));
-
-      case 'n':
-        return make<string>(make<character>('\n'), read_string(port));
-
-      case 'r':
-        return make<string>(make<character>('\r'), read_string(port));
-
-      case 't':
-        return make<string>(make<character>('\t'), read_string(port));
-
-      case '|':
-        return make<string>(make<character>('|'), read_string(port));
-
-      case '"':
-        return make<string>(make<character>('"'), read_string(port));
-
-      case '\\':
-        return make<string>(make<character>('\\'), read_string(port));
+      case 'a':  return make<string>(make<character>('\a'), read_string(port));
+      case 'b':  return make<string>(make<character>('\b'), read_string(port));
+      case 't':  return make<string>(make<character>('\t'), read_string(port));
+      case 'n':  return make<string>(make<character>('\n'), read_string(port));
+      case 'r':  return make<string>(make<character>('\r'), read_string(port));
+      case '"':  return make<string>(make<character>('"'),  read_string(port));
+      case '\\': return make<string>(make<character>('\\'), read_string(port));
+      case '|':  return make<string>(make<character>('|'),  read_string(port));
 
       case '\r':
       case '\n':
