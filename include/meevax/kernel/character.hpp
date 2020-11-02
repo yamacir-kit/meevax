@@ -15,8 +15,6 @@ namespace meevax { inline namespace kernel
   struct character
     : public std::string
   {
-    const std::string name;
-
     explicit character(char code)
       : std::string(1, code)
     {}
@@ -25,10 +23,12 @@ namespace meevax { inline namespace kernel
       : std::string { encode(code) }
     {}
 
-    explicit character(const std::string& code, const std::string& name = {})
-      : std::string { code }
-      , name { name }
+    template <typename... Ts>
+    explicit constexpr character(Ts&&... xs)
+      : std::string { std::forward<decltype(xs)>(xs)... }
     {}
+
+    virtual ~character() = default;
 
     auto decode() const
     {
@@ -83,13 +83,6 @@ namespace meevax { inline namespace kernel
   };
 
   auto operator <<(std::ostream& port, const character&) -> decltype(port);
-
-  /* ---- Character Table ------------------------------------------------------
-   *
-   *   Contains character literal #\<character> or #\<character name>.
-   *
-   * ------------------------------------------------------------------------ */
-  extern const std::unordered_map<std::string, object> characters;
 
   auto char_ci_eq = [](auto c, auto... xs) constexpr
   {
