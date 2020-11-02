@@ -638,15 +638,21 @@ namespace meevax { inline namespace kernel
       }
     });
 
-    define<procedure>("char->integer", [](auto&& xs)
+    define<procedure>("char->integer", [](let const& xs)
     {
-      switch (const auto& s { car(xs).template as<character>().display() }; s.size())
+      if (xs.is<null>())
       {
-      case 1:
-        return make<exact_integer>(*reinterpret_cast<const std::uint8_t*>(s.data()));
-
-      default:
-        throw error("unicode unsupported");
+        throw error(
+          cat("Procedure char->integer got ", xs));
+      }
+      else if (let const& x = car(xs); x.is<character>())
+      {
+        return make<exact_integer>(x.as<character>().decode());
+      }
+      else
+      {
+        throw error(
+          cat("Procedure char-integer got ", xs));
       }
     });
 

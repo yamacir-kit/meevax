@@ -1093,9 +1093,9 @@
 
 (define char-alphabetic? ;                                         (scheme char)
   (lambda (x)
-    (<= #,(char->integer #\A)
-          (char->integer (char-upcase x))
-        #,(char->integer #\Z))))
+    (<= #,(char->integer #\a)
+          (char->integer (char-downcase x))
+        #,(char->integer #\z))))
 
 (define char-numeric? ;                                            (scheme char)
   (lambda (x)
