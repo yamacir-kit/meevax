@@ -941,15 +941,22 @@
 
 ; ==== 6.7. Strings ============================================================
 
-"The word \"recursion\" has many meanings."
+(check (string? "The word \"recursion\" has many meanings.") => #t)
+(check (string? "Another example:\ntwo lines of test") => #t)
+(check (string? "Here's test \
+                   containing just one line") => #t)
+(check (string? "\x03B1; is named GREEK SMALL LETTER ALPHA.") => #t)
 
 (define (f) (make-string 3 #\*))
 (define (g) "***")
-
 ; (string-set! (f) 0 #\?) ; => unspecified
 ; (string-set! (g) 0 #\?) ; => error
-
 ; (string-set! (symbol->string 'immutable) 0 #\?) ; => error
+
+; (define a "12345")
+; (define b (string-copy "abcde"))
+; (string-copy! b 1 a 0 2)
+; (check b => "a12de")
 
 
 ; ==== 6.8. Vectors ============================================================
