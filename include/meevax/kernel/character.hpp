@@ -1,25 +1,78 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
+#include <cstdint>
 #include <unordered_map>
 
 #include <meevax/kernel/object.hpp>
 
 namespace meevax { inline namespace kernel
 {
-  using variable_width_character = std::string; // TODO convert std::u8string in future.
-
   /* ---- Character --------------------------------------------------------- */
 
-  struct character
-    : public variable_width_character
-  {
-    const std::string name;
+  auto encode(std::uint_least32_t code) -> std::string;
 
-    explicit character(const std::string& code, const std::string& name = {})
-      : variable_width_character { code }
-      , name { name }
+  struct character
+    : public std::string
+  {
+    explicit character(char code)
+      : std::string(1, code)
     {}
+
+    explicit character(std::uint32_t code)
+      : std::string { encode(code) }
+    {}
+
+    template <typename... Ts>
+    explicit constexpr character(Ts&&... xs)
+      : std::string { std::forward<decltype(xs)>(xs)... }
+    {}
+
+    virtual ~character() = default;
+
+    auto decode() const
+    {
+      std::uint_least32_t code {};
+
+      /* -----------------------------------------------------------------------
+       *
+       *  00000000 -- 0000007F: 0xxxxxxx
+       *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
+       *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+       *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+       *
+       * -------------------------------------------------------------------- */
+
+      switch (size())
+      {
+      case 1:
+        code = (*this)[0] & 0b0111'1111;
+        break;
+
+      case 2:
+        code |= (*this)[0] & 0b0001'1111; code <<= 6;
+        code |= (*this)[1] & 0b0011'1111;
+        break;
+
+      case 3:
+        code |= (*this)[0] & 0b0000'1111; code <<= 6;
+        code |= (*this)[1] & 0b0011'1111; code <<= 6;
+        code |= (*this)[2] & 0b0011'1111;
+        break;
+
+      case 4:
+        code |= (*this)[0] & 0b0000'0111; code <<= 6;
+        code |= (*this)[1] & 0b0011'1111; code <<= 6;
+        code |= (*this)[2] & 0b0011'1111; code <<= 6;
+        code |= (*this)[3] & 0b0011'1111;
+        break;
+
+      default:
+        throw error("Malformed character.");
+      }
+
+      return code;
+    }
 
     auto display() const -> decltype(auto)
     {
@@ -30,13 +83,6 @@ namespace meevax { inline namespace kernel
   };
 
   auto operator <<(std::ostream& port, const character&) -> decltype(port);
-
-  /* ---- Character Table ------------------------------------------------------
-   *
-   *   Contains character literal #\<character> or #\<character name>.
-   *
-   * ------------------------------------------------------------------------ */
-  extern const std::unordered_map<std::string, object> characters;
 
   auto char_ci_eq = [](auto c, auto... xs) constexpr
   {

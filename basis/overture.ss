@@ -1075,7 +1075,7 @@
 (define (char<=? x . xs) (char-compare x xs <=))
 (define (char>=? x . xs) (char-compare x xs >=))
 
-(define case-insensitive-character-compare
+(define char-ci-compare
   (lambda (x xs compare)
     (let rec ((compare compare)
               (lhs (char->integer (char-downcase x)))
@@ -1083,33 +1083,19 @@
       (if (null? xs) #true
           (let ((rhs (char->integer (char-downcase (car xs)))))
             (and (compare lhs rhs)
-                 (rec rhs (cdr xs) compare)))))))
+                 (rec compare rhs (cdr xs))))))))
 
-(define char-ci=? ;                                                (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs =)))
-
-(define char-ci<? ;                                                (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs <)))
-
-(define char-ci>? ;                                                (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs >)))
-
-(define char-ci<=? ;                                               (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs <=)))
-
-(define char-ci>=? ;                                               (scheme char)
-  (lambda (x . xs)
-    (case-insensitive-character-compare x xs >=)))
+(define (char-ci=?  x . xs) (char-ci-compare x xs =))
+(define (char-ci<?  x . xs) (char-ci-compare x xs <))
+(define (char-ci>?  x . xs) (char-ci-compare x xs >))
+(define (char-ci<=? x . xs) (char-ci-compare x xs <=))
+(define (char-ci>=? x . xs) (char-ci-compare x xs >=))
 
 (define char-alphabetic? ;                                         (scheme char)
   (lambda (x)
-    (<= #,(char->integer #\A)
-          (char->integer (char-upcase x))
-        #,(char->integer #\Z))))
+    (<= #,(char->integer #\a)
+          (char->integer (char-downcase x))
+        #,(char->integer #\z))))
 
 (define char-numeric? ;                                            (scheme char)
   (lambda (x)
@@ -1135,6 +1121,16 @@
     (<= #,(char->integer #\a)
           (char->integer x)
         #,(char->integer #\z))))
+
+(define char-downcase
+  (lambda (c)
+    (if (char-lower-case? c) c
+        (integer->char (+ (char->integer c) 32)))))
+
+(define char-upcase
+  (lambda (c)
+    (if (char-upper-case? c) c
+        (integer->char (- (char->integer c) 32)))))
 
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library

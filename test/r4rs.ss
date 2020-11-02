@@ -367,56 +367,28 @@
 
 ; ---- Procedure (eqv? obj-1 obj-2) --------------------------------------------
 
-(check (eqv? 'a 'a) => #t)
-(check (eqv? 'a 'b) => #f)
+(check (eqv? 'a 'a)                    => #t)
+(check (eqv? 'a 'b)                    => #f)
+(check (eqv? 2 2)                      => #t)
+(check (eqv? 2 2.0)                    => #f)
+(check (eqv? '() '())                  => #t)
+(check (eqv? 100000000 100000000)      => #t)
+(check (eqv? 0.0 +nan.0)               => #f)
+(check (eqv? (cons 1 2) (cons 1 2))    => #f)
+(check (eqv? (lambda () 1)
+             (lambda () 2))            => #f)
+(check (let ((p (lambda (x) x)))
+         (eqv? p p))                   => #t)
+(check (eqv? #f 'nil)                  => #f)
 
-(check (eqv? 2 2) => #t)
-
-(check (eqv? '() '()) => #t)
-
-(check
-  (eqv? 100000000
-        100000000)
-  => #t)
-
-(check
-  (eqv? (cons 1 2)
-        (cons 1 2))
-  => #f)
-
-(check
-  (eqv? (lambda () 1)
-        (lambda () 2))
-  => #f)
-
-(check (eqv? #f 'nil) => #f)
-
-(check
-  (let ((p (lambda (x) x)))
-    (eqv? p p))
-  => #t)
-
-(check
-  (eqv? "" "") ; => unspecified
-  => #t)
-
-(check
-  (eqv? "abc" "abc") ; => unspecified
-  => #t)
-
-(check
-  (eqv? '#() '#()) ; => unspecified
-  => #t)
-
-(check
-  (eqv? (lambda (x) x)
-        (lambda (x) x)) ; => unspecified
-  => #f)
-
-(check
-  (eqv? (lambda (x) x)
-        (lambda (x) y)) ; => unspecified
-  => #f)
+(check (eqv? "" "")                    => #t) ; unspecified
+(check (eqv? '#() '#())                => #t) ; unspecified
+(check (eqv? (lambda (x) x)
+             (lambda (x) x))           => #f) ; unspecified
+(check (eqv? (lambda (x) x)
+             (lambda (y) y))           => #f) ; unspecified
+; (check (eqv? 1.0e0 1.0e0)            => TODO) ; unspecified
+(check (eqv? +nan.0 +nan.0)            => #t) ; unspecified
 
 (define generate-counter
   (lambda ()
@@ -425,13 +397,11 @@
 
 (check
   (let ((g (generate-counter)))
-    (eqv? g g))
-  => #t)
+    (eqv? g g))                        => #t)
 
 (check
   (eqv? (generate-counter)
-        (generate-counter))
-  => #f)
+        (generate-counter))            => #f)
 
 (define generate-loser
   (lambda ()
@@ -440,101 +410,66 @@
 
 (check
   (let ((g (generate-loser)))
-    (eqv? g g))
-  => #t)
+    (eqv? g g))                        => #t)
 
 (check
   (eqv? (generate-loser)
-        (generate-loser)) ; => unspecified
-  => #f)
+        (generate-loser))              => #f) ; unspecified
 
 (check
   (letrec ((f (lambda () (if (eqv? f g) 'both 'f)))
            (g (lambda () (if (eqv? f g) 'both 'g))))
-    (eqv? f g)) ; => unspecified
-  => #f)
+    (eqv? f g))
+                                       => #f) ; unspecified
 
 (check
   (letrec ((f (lambda () (if (eqv? f g) 'f 'both)))
            (g (lambda () (if (eqv? f g) 'g 'both))))
-    (eqv? f g)) ; => unspecified
-  => #f)
+    (eqv? f g))
+                                       => #f) ; unspecified
 
-(check (eqv? '(a) '(a)) => #t) ; unspecified
-(check (eqv? "a" "a") => #t) ; unspecified
-(check (eqv? '(b) (cdr '(a b))) => #t) ; unspecified
+(check (eqv? '(a) '(a))                => #t) ; unspecified
+(check (eqv? "a" "a")                  => #t) ; unspecified
+(check (eqv? '(b) (cdr '(a b)))        => #t) ; unspecified
+(check (let ((x '(a)))
+         (eqv? x x))                   => #t)
 
-(check
-  (let ((x '(a)))
-    (eqv? x x))
-  => #t)
 
 ; ---- Procedure (eq? obj-1 obj-2) ---------------------------------------------
 
-(check (eq? 'a 'a) => #t)
-(check (eq? '(a) '(a)) => #f) ; unspecified
+(check (eq? 'a 'a)                     => #t)
+(check (eq? '(a) '(a))                 => #f) ; unspecified
+(check (eq? (list 'a) (list 'a))       => #f)
+(check (eq? "a" "a")                   => #f) ; unspecified
+(check (eq? "" "")                     => #t) ; unspecified
+(check (eq? '() '())                   => #t)
+(check (eq? 2 2)                       => #f) ; unspecified
+(check (eq? #\A #\A)                   => #f) ; unspecified
+(check (eq? car car)                   => #t)
+(check (let ((n (+ 2 3)))
+         (eq? n n))                    => #t) ; unspecified
+(check (let ((x '(a)))
+         (eq? x x))                    => #t)
+(check (let ((x '#()))
+         (eq? x x))                    => #t)
+(check (let ((p (lambda (x) x)))
+         (eq? p p))                    => #t)
 
-(check
-  (eq? (list 'a)
-       (list 'a))
-  => #f)
-
-(check (eq? "a" "a") => #f) ; unspecified
-(check (eq? "" "") => #t) ; unspecified
-
-(check (eq? '() '()) => #t)
-
-(check (eq? 2 2) => #f) ; unspecified
-(check (eq? #\A #\A) => #t) ; unspecified
-
-(check (eq? car car) => #t)
-
-(check
-  (let ((n (+ 2 3)))
-    (eq? n n)) ; unspecified
-  => #t)
-
-(check
-  (let ((x '(a)))
-    (eq? x x))
-  => #t)
-
-(check
-  (let ((x '#()))
-    (eq? x x))
-  => #t)
-
-(check
-  (let ((p (lambda (x) x)))
-    (eq? p p))
-  => #t)
 
 ; ---- Procedure (equal? obj-1 obj-2) ------------------------------------------
 
-(check (equal? 'a 'a) => #t)
-(check (equal? '(a) '(a)) => #t)
-
-(check
-  (equal? '(a (b) c)
-          '(a (b) c))
-  => #t)
-
-(check
-  (equal? "abc"
-          "abc")
-  => #t)
-
-(check (equal? 2 2) => #t)
-
-(check
-  (equal? (make-vector 5 'a)
-          (make-vector 5 'a))
-  => #t)
-
-(check
-  (equal? (lambda (x) x)
-          (lambda (y) y)) ; unspecified
-  => #f)
+(check (equal? 'a 'a)                  => #t)
+(check (equal? '(a) '(a))              => #t)
+(check (equal? '(a (b) c)
+               '(a (b) c))             => #t)
+(check (equal? "abc" "abc")            => #t)
+(check (equal? 2 2)                    => #t)
+(check (equal? (make-vector 5 'a)
+               (make-vector 5 'a))     => #t)
+; (check '#1=(a b . #1#)
+;        '#2=(a b a b . #2#)           => #t)
+(check (equal? (lambda (x) x)
+               (lambda (y) y))         => #f) ; unspecified
 
 
 ; ==== 6.3. Pairs and lists ====================================================
@@ -982,31 +917,46 @@
 
 ; ==== 6.6. Characters =========================================================
 
+(check (char? #\alarm)     => #t) ; U+0007
+(check (char? #\backspace) => #t) ; U+0008
+(check (char? #\delete)    => #t) ; U+007F
+(check (char? #\escape)    => #t) ; U+001B
+(check (char? #\newline)   => #t) ; U+000A
+(check (char? #\null)      => #t) ; U+0000
+(check (char? #\return)    => #t) ; U+000D
+(check (char? #\space)     => #t) ;
+(check (char? #\tab)       => #t) ; U+0009
+
 (check (char? #\a) => #t)
 (check (char? #\A) => #t)
 (check (char? #\() => #t)
 (check (char? #\ ) => #t)
-(check (char? #\space) => #t)
-(check (char? #\newline) => #t)
 
 (check (char<? #\A #\B) => #t)
 (check (char<? #\a #\b) => #t)
 (check (char<? #\0 #\9) => #t)
 
-; (check (char-ci=? #\A #\a) => #t)
+(check (char-ci=? #\A #\a) => #t)
 
 
 ; ==== 6.7. Strings ============================================================
 
-"The word \"recursion\" has many meanings."
+(check (string? "The word \"recursion\" has many meanings.") => #t)
+(check (string? "Another example:\ntwo lines of test") => #t)
+(check (string? "Here's test \
+                   containing just one line") => #t)
+(check (string? "\x03B1; is named GREEK SMALL LETTER ALPHA.") => #t)
 
 (define (f) (make-string 3 #\*))
 (define (g) "***")
-
 ; (string-set! (f) 0 #\?) ; => unspecified
 ; (string-set! (g) 0 #\?) ; => error
-
 ; (string-set! (symbol->string 'immutable) 0 #\?) ; => error
+
+; (define a "12345")
+; (define b (string-copy "abcde"))
+; (string-copy! b 1 a 0 2)
+; (check b => "a12de")
 
 
 ; ==== 6.8. Vectors ============================================================

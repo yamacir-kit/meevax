@@ -513,30 +513,26 @@ namespace meevax { inline namespace kernel
             name.push_back(is.get());
           }
 
-          // NOTE Provide user-defined character-name?
-          static const std::unordered_map<std::string, std::string> alias
+          static const std::unordered_map<std::string, char> names
           {
-            {" ", "space"}, // for R7RS
-            {"alarm", "bell"}, // for R7RS
-            {"newline", "line-feed"}, // for R7RS
-            {"return", "carriage-return"}, // for R7RS
-            {"tab", "horizontal-tabulation"}, // for R7RS
+            { "alarm"    , 0x07 },
+            { "backspace", 0x08 },
+            { "delete"   , 0x7F },
+            { "escape"   , 0x1B },
+            { "newline"  , 0x0A },
+            { "null"     , 0x00 },
+            { "return"   , 0x0D },
+            { "space"    , 0x20 },
+            { "tab"      , 0x09 },
           };
 
-          // NOTE DIRTY HACK!
-          if (auto iter {alias.find(name)}; iter != std::end(alias))
+          if (const auto iter { names.find(name) }; iter != std::end(names))
           {
-            name = cdr(*iter);
-          }
-
-          // TODO Provide datum<character>(name)?
-          if (auto iter { characters.find(name) }; iter != std::end(characters))
-          {
-            return cdr(*iter);
+            return make<character>(cdr(*iter));
           }
           else
           {
-            throw read_error<void>("unknown character-name: ", name);
+            return make<character>(name);
           }
         }
 
