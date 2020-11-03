@@ -1302,7 +1302,26 @@
           (string-append-aux (cdr rx)
                              (car rx))))))
 
-; string-copy
+(define string->list
+  (lambda (s . o)
+    (cond ((null? o)
+           (let rec ((s s)
+                     (result '()))
+             (if (string? s)
+                 (rec (cdr s)
+                      (cons (car s) result))
+                 (append (reverse result) s))))
+          ((and (pair? o)
+                (null? (cdr o)))
+           (string->list (substring s (car o) (- (string-length s) 1)))
+           )
+          (else
+            (string->list (apply substring s o))))))
+
+(define string-copy
+  (lambda (s . o)
+    (apply substring s (if (pair? o) o '(0)))))
+
 ; string-copy!
 ; string-fill!
 
@@ -1313,15 +1332,6 @@
            (ccons (car x)
                   (rec (cdr x))))
           (else (ccons x '())))))
-
-(define string->list
-  (lambda (x)
-    (if (null? x) '()
-        (if (string? x)
-            (cons (car x)
-                  (string->list (cdr x)))
-            (cons x '()) ; This maybe error
-          ))))
 
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library

@@ -1014,6 +1014,11 @@
 (check (string-append "abc" "def")       => "abcdef")
 (check (string-append "abc" "def" "ghi") => "abcdefghi")
 
+; ---- string->list ------------------------------------------------------------
+
+(check (string->list "abcde")     => (#\a #\b #\c #\d #\e))
+(check (string->list "abcde" 1)   => (    #\b #\c #\d #\e))
+(check (string->list "abcde" 1 3) => (    #\b #\c #\d    ))
 
 ; ==== 6.8. Vectors ============================================================
 
