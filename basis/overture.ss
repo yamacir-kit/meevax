@@ -1146,6 +1146,13 @@
 
 (define (string . xs) (list->string xs))
 
+(define (string-length s)
+  (let rec ((s s)
+            (k 0))
+    (if (null? s) k
+        (rec (cdr s)
+             (+ k 1)))))
+
 (define (list->string x)
   (let rec ((x x))
     (cond ((null? x) '())
@@ -1162,14 +1169,6 @@
                   (string->list (cdr x)))
             (cons x '()) ; This maybe error
           ))))
-
-(define string-length
-  (lambda (x)
-    (let rec ((x x)
-              (result 0))
-      (if (null? x) result
-          (rec (cdr x)
-               (+ result 1))))))
 
 (define (string-compare x xs . compare)
   (define (string-compare-aux x y)

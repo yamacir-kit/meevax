@@ -969,6 +969,11 @@
 (check (string=? (string) "") => #t)
 (check (string=? (string #\h #\o #\g #\e) "hoge") => #t)
 
+; ---- string-length -----------------------------------------------------------
+
+(check (string-length "") => 0)
+(check (string-length "abc") => 3)
+
 
 ; ==== 6.8. Vectors ============================================================
 
