@@ -1160,8 +1160,7 @@
 
 (define string->list
   (lambda (x)
-    (if (null? x)
-       '()
+    (if (null? x) '()
         (if (string? x)
             (cons (car x)
                   (string->list (cdr x)))
@@ -1173,33 +1172,33 @@
     (let rec ((x x)
               (result 0))
       (if (null? x) result
-          (rec (cdr x) (+ result 1))))))
+          (rec (cdr x)
+               (+ result 1))))))
 
-(define lexicographical-compare-2
-  (lambda (x y)
+(define (string-compare x xs . compare)
+  (define (string-compare-aux x y)
     (if (or (null? x)
             (null? y))
         (- (string-length y)
            (string-length x))
         (let ((distance (- (char->integer (car y))
                            (char->integer (car x)))))
-          (if (not (zero? distance)) distance
-              (lexicographical-compare-2 (cdr x)
-                                         (cdr y)))))))
+          (if (zero? distance)
+              (string-compare-aux (cdr x)
+                                  (cdr y))
+              distance))))
+  (let ((compare (if (pair? compare) (car compare) =)))
+    (if (null? xs) #t
+        (and (compare 0 (string-compare-aux x (car xs)))
+             (string-compare (car xs)
+                             (cdr xs)
+                             compare)))))
 
-(define lexicographical-compare
-  (lambda (x xs . compare)
-    (let ((compare (if (pair? compare) (car compare) =)))
-      (if (null? xs) #true
-          (and (compare 0 (lexicographical-compare-2 x (car xs)))
-               (lexicographical-compare (car xs) (cdr xs) compare))))))
-
-(define string=? (lambda (x . xs) (lexicographical-compare x xs =)))
-(define string<? (lambda (x . xs) (lexicographical-compare x xs <)))
-(define string>? (lambda (x . xs) (lexicographical-compare x xs >)))
-
-(define string<=? (lambda (x . xs) (lexicographical-compare x xs <=)))
-(define string>=? (lambda (x . xs) (lexicographical-compare x xs >=)))
+(define (string=?  x . xs) (string-compare x xs = ))
+(define (string<?  x . xs) (string-compare x xs < ))
+(define (string>?  x . xs) (string-compare x xs > ))
+(define (string<=? x . xs) (string-compare x xs <=))
+(define (string>=? x . xs) (string-compare x xs >=))
 
 (define case-insensitive-lexicographical-compare-2
   (lambda (x y)
@@ -1223,7 +1222,6 @@
 (define string-ci=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs =)))
 (define string-ci<? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <)))
 (define string-ci>? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >)))
-
 (define string-ci<=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <=)))
 (define string-ci>=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >=)))
 

@@ -958,6 +958,17 @@
 ; (string-copy! b 1 a 0 2)
 ; (check b => "a12de")
 
+; ---- make-string -------------------------------------------------------------
+
+(check (string=? (make-string 3) "") => #f)
+(check (string=? (make-string 3)
+                 (make-string 3 #\null)) => #t)
+(check (string=? (make-string 3 #\a) "aaa") => #t)
+
+; ---- string ------------------------------------------------------------------
+
+(check (string=? (string #\h #\o #\g #\e) "hoge") => #t)
+
 
 ; ==== 6.8. Vectors ============================================================
 
