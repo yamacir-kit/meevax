@@ -1153,6 +1153,8 @@
         (rec (cdr s)
              (+ k 1)))))
 
+(define string-ref list-ref)
+
 (define (list->string x)
   (let rec ((x x))
     (cond ((null? x) '())
@@ -1219,9 +1221,6 @@
 (define string-ci>? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >)))
 (define string-ci<=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <=)))
 (define string-ci>=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >=)))
-
-(define string-reference list-ref)
-(define string-ref string-reference)
 
 (define string-append-2
   (lambda (x y)
