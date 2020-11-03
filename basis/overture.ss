@@ -1146,13 +1146,13 @@
 
 (define (string . xs) (list->string xs))
 
-(define list->string
-  (lambda (x)
-    (if (null? x) '()
-        (if (pair? x)
-            (ccons (car x)
-                   (list->string (cdr x)))
-            (ccons x '())))))
+(define (list->string x)
+  (let rec ((x x))
+    (cond ((null? x) '())
+          ((pair? x)
+           (ccons (car x)
+                  (rec (cdr x))))
+          (else (ccons x '())))))
 
 (define string->list
   (lambda (x)
