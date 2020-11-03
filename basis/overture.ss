@@ -1144,10 +1144,7 @@
           (rec (- k 1)
                (ccons c result))))))
 
-(define string
-  (lambda xs
-    (if (null? xs) '()
-        (list->string xs))))
+(define (string . xs) (list->string xs))
 
 (define list->string
   (lambda (x)
