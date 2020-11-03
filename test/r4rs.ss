@@ -998,6 +998,11 @@
 (check (string-ci<=? "aBc" "AbD") => #t)
 (check (string-ci>=? "aBc" "AbA") => #t)
 
+; ---- string-foldcase ---------------------------------------------------------
+
+(check (string-upcase   "AbdEgH") => "ABDEGH")
+(check (string-downcase "AbdEgH") => "abdegh")
+
 
 ; ==== 6.8. Vectors ============================================================
 

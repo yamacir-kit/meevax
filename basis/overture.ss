@@ -71,7 +71,7 @@
   (lambda (x)
     (if (null? x) '()
         (append-2 (reverse (cdr x))
-                  (list (car x)) ))))
+                  (list (car x))))))
 
 (define append
   (lambda x
@@ -1133,6 +1133,8 @@
     (if (char-upper-case? c) c
         (integer->char (- (char->integer c) 32)))))
 
+(define char-foldcase char-downcase)
+
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
@@ -1181,11 +1183,25 @@
                                         (cdr xs)
                                         compare))))))
 
-(define string=?  (lambda (x . xs) (lexicographical-compare x xs = )))
-(define string<?  (lambda (x . xs) (lexicographical-compare x xs < )))
-(define string>?  (lambda (x . xs) (lexicographical-compare x xs > )))
-(define string<=? (lambda (x . xs) (lexicographical-compare x xs <=)))
-(define string>=? (lambda (x . xs) (lexicographical-compare x xs >=)))
+(define string=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs =)))
+
+(define string<?
+  (lambda (x . xs)
+    (lexicographical-compare x xs <)))
+
+(define string>?
+  (lambda (x . xs)
+    (lexicographical-compare x xs >)))
+
+(define string<=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs <=)))
+
+(define string>=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs >=)))
 
 (define lexicographical-ci-compare
   (lambda (x xs . compare)
@@ -1210,11 +1226,37 @@
                                            (cdr xs)
                                            compare))))))
 
-(define string-ci=?  (lambda (x . xs) (lexicographical-ci-compare x xs = )))
-(define string-ci<?  (lambda (x . xs) (lexicographical-ci-compare x xs < )))
-(define string-ci>?  (lambda (x . xs) (lexicographical-ci-compare x xs > )))
-(define string-ci<=? (lambda (x . xs) (lexicographical-ci-compare x xs <=)))
-(define string-ci>=? (lambda (x . xs) (lexicographical-ci-compare x xs >=)))
+(define string-ci=?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs =)))
+
+(define string-ci<?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs <)))
+
+(define string-ci>?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs >)))
+
+(define string-ci<=?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs <=)))
+
+(define string-ci>=?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs >=)))
+
+(define string-upcase ; Toy implementaion
+  (lambda (s)
+    (string-map char-upcase s)))
+
+(define string-downcase ; Toy implementaion
+  (lambda (s)
+    (string-map char-downcase s)))
+
+(define string-foldcase
+  (lambda (s)
+    (string-map char-foldcase s)))
 
 (define (list->string x)
   (let rec ((x x))
@@ -1282,7 +1324,31 @@
         (closure? x)
         (continuation? x) )))
 
-; TODO string-map
+(define string-map
+  (lambda (f x . xs)
+
+    (define map-1
+      (lambda (f x result)
+        (if (string? x)
+            (map-1 f
+                   (cdr x)
+                   (ccons (f (car x))
+                          result))
+            (string-reverse result))))
+
+    (define map-n
+      (lambda (f xs result)
+        (if (every string? xs)
+            (map-n f
+                   (map-1 cdr xs '())
+                   (ccons (apply f (map-1 car xs '()))
+                          result))
+            (string-reverse result))))
+
+    (if (null? xs)
+        (map-1 f x '())
+        (map-n f (ccons x xs) '()))))
+
 ; TODO vector-map
 
 ; TODO string-for-each
