@@ -1003,6 +1003,10 @@
 (check (string-upcase   "AbdEgH") => "ABDEGH")
 (check (string-downcase "AbdEgH") => "abdegh")
 
+; ---- substring ---------------------------------------------------------------
+
+(check (substring "abcde" 1 3) => "bcd")
+
 
 ; ==== 6.8. Vectors ============================================================
 

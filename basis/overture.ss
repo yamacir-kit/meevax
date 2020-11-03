@@ -65,7 +65,7 @@
   (lambda (x y)
     (if (null? x) y
         (cons (car x)
-              (append-2 (cdr x) y) ))))
+              (append-2 (cdr x) y)))))
 
 (define reverse ; simple but slow
   (lambda (x)
@@ -79,7 +79,7 @@
     (define (append-aux x y)
       (if (null? x) y
           (append-aux (cdr x)
-                      (append-2 (car x) y) )))
+                      (append-2 (car x) y))))
 
     (if (null? x) '()
         ((lambda (reversed)
@@ -1257,6 +1257,26 @@
 (define string-foldcase
   (lambda (s)
     (string-map char-foldcase s)))
+
+(define substring
+  (lambda (s start end)
+
+  (define string-take
+    (lambda (x k)
+      (let rec ((x x)
+                (k k))
+        (if (zero? k) '()
+            (ccons (car x)
+                   (rec (cdr x) (- k 1)))))))
+
+  (define string-drop
+    (lambda (x k)
+      (let rec ((x x)
+                (k k))
+        (if (zero? k) x
+            (rec (cdr x) (- k 1))))))
+
+  (string-take (string-drop s start) end)))
 
 (define (list->string x)
   (let rec ((x x))
