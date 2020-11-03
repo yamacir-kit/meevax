@@ -1278,6 +1278,34 @@
 
   (string-take (string-drop s start) end)))
 
+(define string-append-2
+  (lambda (x y)
+    (if (null? x) y
+        (ccons (car x)
+               (string-append-2 (cdr x) y) ))))
+
+(define string-reverse
+  (lambda (x)
+    (if (null? x) ""
+        (string-append-2 (string-reverse (cdr x))
+                         (string (car x))))))
+
+(define string-append
+  (lambda x
+    (define string-append-aux
+      (lambda (x y)
+        (if (null? x) y
+            (string-append-aux (cdr x)
+                               (string-append-2 (car x) y) ))))
+    (if (null? x) ""
+        (let ((rx (string-reverse x)))
+          (string-append-aux (cdr rx)
+                             (car rx))))))
+
+; string-copy
+; string-copy!
+; string-fill!
+
 (define (list->string x)
   (let rec ((x x))
     (cond ((null? x) '())
@@ -1294,38 +1322,6 @@
                   (string->list (cdr x)))
             (cons x '()) ; This maybe error
           ))))
-
-(define string-append-2
-  (lambda (x y)
-    (if (null? x) y
-        (ccons (car x)
-               (string-append-2 (cdr x) y) ))))
-
-(define string-reverse
-  (lambda (x)
-    (if (null? x)
-       '()
-        (string-append-2 (string-reverse (cdr x))
-                         (string (car x)) ))))
-
-(define string-append
-  (lambda x
-    (define string-append-aux
-      (lambda (x y)
-        (if (null? x) y
-            (string-append-aux (cdr x)
-                               (string-append-2 (car x) y) ))))
-    (if (null? x)
-       '()
-        (let ((reversed (string-reverse x)))
-          (string-append-aux (cdr reversed)
-                             (car reversed) )))))
-
-; string->list
-
-; string-copy
-; string-copy!
-; string-fill!
 
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library

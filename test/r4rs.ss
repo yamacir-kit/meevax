@@ -1007,6 +1007,13 @@
 
 (check (substring "abcde" 1 3) => "bcd")
 
+; ---- string-append -----------------------------------------------------------
+
+(check (string-append)                   => "")
+(check (string-append "abc")             => "abc")
+(check (string-append "abc" "def")       => "abcdef")
+(check (string-append "abc" "def" "ghi") => "abcdefghi")
+
 
 ; ==== 6.8. Vectors ============================================================
 
