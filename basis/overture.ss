@@ -576,7 +576,8 @@
   (lambda (x k)
     (car (list-tail x k)) ))
 
-; TODO list-set!
+(define (list-set! x k object)
+  (set-car! (list-tail x k) object))
 
 (define member
   (lambda (o x . c)
@@ -1154,6 +1155,8 @@
              (+ k 1)))))
 
 (define string-ref list-ref)
+
+(define string-set! list-set!)
 
 (define (list->string x)
   (let rec ((x x))
