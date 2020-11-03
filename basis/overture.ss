@@ -1158,6 +1158,64 @@
 
 (define string-set! list-set!)
 
+(define lexicographical-compare
+  (lambda (x xs . compare)
+
+    (define distance
+      (lambda (x y)
+        (if (or (null? x)
+                (null? y))
+            (- (string-length y)
+               (string-length x))
+            (let ((d (- (char->integer (car y))
+                     (char->integer (car x)))))
+              (if (zero? d)
+                  (distance (cdr x)
+                            (cdr y))
+                  d)))))
+
+    (let ((compare (if (pair? compare) (car compare) =)))
+      (if (null? xs) #t
+          (and (compare 0 (distance x (car xs)))
+               (lexicographical-compare (car xs)
+                                        (cdr xs)
+                                        compare))))))
+
+(define string=?  (lambda (x . xs) (lexicographical-compare x xs = )))
+(define string<?  (lambda (x . xs) (lexicographical-compare x xs < )))
+(define string>?  (lambda (x . xs) (lexicographical-compare x xs > )))
+(define string<=? (lambda (x . xs) (lexicographical-compare x xs <=)))
+(define string>=? (lambda (x . xs) (lexicographical-compare x xs >=)))
+
+(define lexicographical-ci-compare
+  (lambda (x xs . compare)
+
+    (define distance
+      (lambda (x y)
+        (if (or (null? x)
+                (null? y))
+            (- (string-length y)
+               (string-length x))
+            (let ((d (- (char->integer (char-downcase (car y)))
+                        (char->integer (char-downcase (car x))))))
+              (if (zero? d)
+                  (distance (cdr x)
+                            (cdr y))
+                  d)))))
+
+    (let ((compare (if (pair? compare) (car compare) =)))
+      (if (null? xs) #t
+          (and (compare 0 (distance x (car xs)))
+               (lexicographical-ci-compare (car xs)
+                                           (cdr xs)
+                                           compare))))))
+
+(define string-ci=?  (lambda (x . xs) (lexicographical-ci-compare x xs = )))
+(define string-ci<?  (lambda (x . xs) (lexicographical-ci-compare x xs < )))
+(define string-ci>?  (lambda (x . xs) (lexicographical-ci-compare x xs > )))
+(define string-ci<=? (lambda (x . xs) (lexicographical-ci-compare x xs <=)))
+(define string-ci>=? (lambda (x . xs) (lexicographical-ci-compare x xs >=)))
+
 (define (list->string x)
   (let rec ((x x))
     (cond ((null? x) '())
@@ -1174,56 +1232,6 @@
                   (string->list (cdr x)))
             (cons x '()) ; This maybe error
           ))))
-
-(define (string-compare x xs . compare)
-  (define (string-compare-aux x y)
-    (if (or (null? x)
-            (null? y))
-        (- (string-length y)
-           (string-length x))
-        (let ((distance (- (char->integer (car y))
-                           (char->integer (car x)))))
-          (if (zero? distance)
-              (string-compare-aux (cdr x)
-                                  (cdr y))
-              distance))))
-  (let ((compare (if (pair? compare) (car compare) =)))
-    (if (null? xs) #t
-        (and (compare 0 (string-compare-aux x (car xs)))
-             (string-compare (car xs)
-                             (cdr xs)
-                             compare)))))
-
-(define (string=?  x . xs) (string-compare x xs = ))
-(define (string<?  x . xs) (string-compare x xs < ))
-(define (string>?  x . xs) (string-compare x xs > ))
-(define (string<=? x . xs) (string-compare x xs <=))
-(define (string>=? x . xs) (string-compare x xs >=))
-
-(define case-insensitive-lexicographical-compare-2
-  (lambda (x y)
-    (if (or (null? x)
-            (null? y))
-        (- (string-length y)
-           (string-length x))
-        (let ((distance (- (char->integer (char-downcase (car y)))
-                           (char->integer (char-downcase (car x))))))
-          (if (not (zero? distance)) distance
-              (case-insensitive-lexicographical-compare-2 (cdr x)
-                                                          (cdr y)))))))
-
-(define case-insensitive-lexicographical-compare
-  (lambda (x xs . compare)
-    (let ((compare (if (pair? compare) (car compare) =)))
-      (if (null? xs) #true
-          (and (compare 0 (case-insensitive-lexicographical-compare-2 x (car xs)))
-               (case-insensitive-lexicographical-compare (car xs) (cdr xs) compare))))))
-
-(define string-ci=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs =)))
-(define string-ci<? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <)))
-(define string-ci>? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >)))
-(define string-ci<=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <=)))
-(define string-ci>=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >=)))
 
 (define string-append-2
   (lambda (x y)

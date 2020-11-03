@@ -984,6 +984,20 @@
 (string-set! s 1 #\x)
 (check s => "axc")
 
+; ---- lexicographical-compare -------------------------------------------------
+
+(check (string=?  "abc" "abc") => #t)
+(check (string<?  "abc" "bcd") => #t)
+(check (string>?  "bcd" "abc") => #t)
+(check (string<=? "abc" "abd") => #t)
+(check (string>=? "abc" "aba") => #t)
+
+(check (string-ci=?  "aBc" "AbC") => #t)
+(check (string-ci<?  "aBc" "BcD") => #t)
+(check (string-ci>?  "bCd" "AbC") => #t)
+(check (string-ci<=? "aBc" "AbD") => #t)
+(check (string-ci>=? "aBc" "AbA") => #t)
+
 
 ; ==== 6.8. Vectors ============================================================
 
