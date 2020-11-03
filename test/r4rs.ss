@@ -961,8 +961,7 @@
 ; ---- make-string -------------------------------------------------------------
 
 (check (string=? (make-string 3) "") => #f)
-(check (string=? (make-string 3)
-                 (make-string 3 #\null)) => #t)
+(check (string=? (make-string 3) "   ") => #t)
 (check (string=? (make-string 3 #\a) "aaa") => #t)
 
 ; ---- string ------------------------------------------------------------------

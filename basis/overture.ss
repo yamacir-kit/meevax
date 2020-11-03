@@ -1136,14 +1136,13 @@
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
 
-(define make-string
-  (lambda (k . x)
-    (let ((default (if (pair? x) (car x) #\null)))
-      (let rec ((k k)
-                (result '()))
-        (if (<= k 0) result
-            (rec (- k 1)
-                 (ccons default result)))))))
+(define (make-string k . c)
+  (let ((c (if (pair? c) (car c) #\space)))
+    (let rec ((k k)
+              (result '()))
+      (if (<= k 0) result
+          (rec (- k 1)
+               (ccons c result))))))
 
 (define string
   (lambda xs
