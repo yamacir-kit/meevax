@@ -65,13 +65,13 @@
   (lambda (x y)
     (if (null? x) y
         (cons (car x)
-              (append-2 (cdr x) y) ))))
+              (append-2 (cdr x) y)))))
 
 (define reverse ; simple but slow
   (lambda (x)
     (if (null? x) '()
         (append-2 (reverse (cdr x))
-                  (list (car x)) ))))
+                  (list (car x))))))
 
 (define append
   (lambda x
@@ -79,7 +79,7 @@
     (define (append-aux x y)
       (if (null? x) y
           (append-aux (cdr x)
-                      (append-2 (car x) y) )))
+                      (append-2 (car x) y))))
 
     (if (null? x) '()
         ((lambda (reversed)
@@ -576,7 +576,8 @@
   (lambda (x k)
     (car (list-tail x k)) ))
 
-; TODO list-set!
+(define (list-set! x k object)
+  (set-car! (list-tail x k) object))
 
 (define member
   (lambda (o x . c)
@@ -631,6 +632,27 @@
 ;     (if (not (pair? x)) x
 ;         (cons (deep-copy (car x))
 ;               (deep-copy (cdr x))))))
+
+(define take
+  (lambda (x k)
+    (let rec ((x x)
+              (k k))
+      (if (zero? k) '()
+          (cons (car x)
+                (rec (cdr x) (- k 1)))))))
+
+(define take!
+  (lambda (x k)
+    (if (zero? k)
+        (begin (set-cdr! (drop x (- k 1)) '()) x))))
+
+(define drop
+  (lambda (x k)
+    (let rec ((x x)
+              (k k))
+      (if (zero? k) x
+          (rec (cdr x) (- k 1))))))
+
 
 ; ------------------------------------------------------------------------------
 ;  4.2.1 Conditionals (Part 2 of 2)
@@ -1132,116 +1154,172 @@
     (if (char-upper-case? c) c
         (integer->char (- (char->integer c) 32)))))
 
+(define char-foldcase char-downcase)
+
 ; ------------------------------------------------------------------------------
 ;  6.7 Standard Strings Library
 ; ------------------------------------------------------------------------------
 
-(define make-string
-  (lambda (k . x)
-    (let ((default (if (pair? x) (car x) #\null)))
-      (let rec ((k k)
-                (result '()))
-        (if (<= k 0) result
-            (rec (- k 1)
-                 (ccons default result)))))))
+(define (make-string k . c)
+  (let ((c (if (pair? c) (car c) #\space)))
+    (let rec ((k k)
+              (result '()))
+      (if (<= k 0) result
+          (rec (- k 1)
+               (char-cons c result))))))
 
-(define string
-  (lambda xs
-    (if (null? xs) '()
-        (list->string xs))))
+(define (string . xs) (list->string xs))
 
-(define list->string
-  (lambda (x)
-    (if (null? x) '()
-        (if (pair? x)
-            (ccons (car x)
-                   (list->string (cdr x)))
-            (ccons x '())))))
+(define (string-length s)
+  (let rec ((s s)
+            (k 0))
+    (if (null? s) k
+        (rec (cdr s)
+             (+ k 1)))))
 
-(define string->list
-  (lambda (x)
-    (if (null? x)
-       '()
-        (if (string? x)
-            (cons (car x)
-                  (string->list (cdr x)))
-            (cons x '()) ; This maybe error
-          ))))
+(define string-ref list-ref)
 
-(define string-length
-  (lambda (x)
-    (let rec ((x x)
-              (result 0))
-      (if (null? x) result
-          (rec (cdr x) (+ result 1))))))
-
-(define lexicographical-compare-2
-  (lambda (x y)
-    (if (or (null? x)
-            (null? y))
-        (- (string-length y)
-           (string-length x))
-        (let ((distance (- (char->integer (car y))
-                           (char->integer (car x)))))
-          (if (not (zero? distance)) distance
-              (lexicographical-compare-2 (cdr x)
-                                         (cdr y)))))))
+(define string-set! list-set!)
 
 (define lexicographical-compare
   (lambda (x xs . compare)
+
+    (define distance
+      (lambda (x y)
+        (if (or (null? x)
+                (null? y))
+            (- (string-length y)
+               (string-length x))
+            (let ((d (- (char->integer (car y))
+                     (char->integer (car x)))))
+              (if (zero? d)
+                  (distance (cdr x)
+                            (cdr y))
+                  d)))))
+
     (let ((compare (if (pair? compare) (car compare) =)))
-      (if (null? xs) #true
-          (and (compare 0 (lexicographical-compare-2 x (car xs)))
-               (lexicographical-compare (car xs) (cdr xs) compare))))))
+      (if (null? xs) #t
+          (and (compare 0 (distance x (car xs)))
+               (lexicographical-compare (car xs)
+                                        (cdr xs)
+                                        compare))))))
 
-(define string=? (lambda (x . xs) (lexicographical-compare x xs =)))
-(define string<? (lambda (x . xs) (lexicographical-compare x xs <)))
-(define string>? (lambda (x . xs) (lexicographical-compare x xs >)))
+(define string=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs =)))
 
-(define string<=? (lambda (x . xs) (lexicographical-compare x xs <=)))
-(define string>=? (lambda (x . xs) (lexicographical-compare x xs >=)))
+(define string<?
+  (lambda (x . xs)
+    (lexicographical-compare x xs <)))
 
-(define case-insensitive-lexicographical-compare-2
-  (lambda (x y)
-    (if (or (null? x)
-            (null? y))
-        (- (string-length y)
-           (string-length x))
-        (let ((distance (- (char->integer (char-downcase (car y)))
-                           (char->integer (char-downcase (car x))))))
-          (if (not (zero? distance)) distance
-              (case-insensitive-lexicographical-compare-2 (cdr x)
-                                                          (cdr y)))))))
+(define string>?
+  (lambda (x . xs)
+    (lexicographical-compare x xs >)))
 
-(define case-insensitive-lexicographical-compare
+(define string<=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs <=)))
+
+(define string>=?
+  (lambda (x . xs)
+    (lexicographical-compare x xs >=)))
+
+(define lexicographical-ci-compare
   (lambda (x xs . compare)
+
+    (define distance
+      (lambda (x y)
+        (if (or (null? x)
+                (null? y))
+            (- (string-length y)
+               (string-length x))
+            (let ((d (- (char->integer (char-downcase (car y)))
+                        (char->integer (char-downcase (car x))))))
+              (if (zero? d)
+                  (distance (cdr x)
+                            (cdr y))
+                  d)))))
+
     (let ((compare (if (pair? compare) (car compare) =)))
-      (if (null? xs) #true
-          (and (compare 0 (case-insensitive-lexicographical-compare-2 x (car xs)))
-               (case-insensitive-lexicographical-compare (car xs) (cdr xs) compare))))))
+      (if (null? xs) #t
+          (and (compare 0 (distance x (car xs)))
+               (lexicographical-ci-compare (car xs)
+                                           (cdr xs)
+                                           compare))))))
 
-(define string-ci=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs =)))
-(define string-ci<? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <)))
-(define string-ci>? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >)))
+(define string-ci=?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs =)))
 
-(define string-ci<=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs <=)))
-(define string-ci>=? (lambda (x . xs) (case-insensitive-lexicographical-compare x xs >=)))
+(define string-ci<?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs <)))
 
-(define string-reference list-ref)
-(define string-ref string-reference)
+(define string-ci>?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs >)))
+
+(define string-ci<=?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs <=)))
+
+(define string-ci>=?
+  (lambda (x . xs)
+    (lexicographical-ci-compare x xs >=)))
+
+(define string-upcase ; Toy implementaion
+  (lambda (s)
+    (string-map char-upcase s)))
+
+(define string-downcase ; Toy implementaion
+  (lambda (s)
+    (string-map char-downcase s)))
+
+(define string-foldcase
+  (lambda (s)
+    (string-map char-foldcase s)))
+
+(define string-take
+  (lambda (x k)
+    (let rec ((x x)
+              (k k))
+      (if (zero? k) '()
+          (char-cons (car x)
+                     (rec (cdr x) (- k 1)))))))
+
+(define string-drop drop)
+
+(define string-copy
+  (lambda (s . o)
+
+    (define start
+      (if (and (pair? o)
+               (exact-integer? (car o)))
+          (car o)
+          0))
+
+    (define end
+      (if (and (pair? o)
+               (pair? (cdr o))
+               (exact-integer? (cadr o)))
+          (cadr o)
+          (string-length s)))
+
+    (string-take (string-drop s start) (- end start))))
+
+(define substring string-copy)
 
 (define string-append-2
   (lambda (x y)
     (if (null? x) y
-        (ccons (car x)
-               (string-append-2 (cdr x) y) ))))
+        (char-cons (car x)
+                   (string-append-2 (cdr x) y) ))))
 
 (define string-reverse
   (lambda (x)
-    (if (null? x)
-       '()
+    (if (null? x) ""
         (string-append-2 (string-reverse (cdr x))
-                         (string (car x)) ))))
+                         (string (car x))))))
 
 (define string-append
   (lambda x
@@ -1250,17 +1328,54 @@
         (if (null? x) y
             (string-append-aux (cdr x)
                                (string-append-2 (car x) y) ))))
-    (if (null? x)
-       '()
-        (let ((reversed (string-reverse x)))
-          (string-append-aux (cdr reversed)
-                             (car reversed) )))))
+    (if (null? x) ""
+        (let ((rx (string-reverse x)))
+          (string-append-aux (cdr rx)
+                             (car rx))))))
 
-; string->list
+(define string->list
+  (lambda (s . o)
 
-; string-copy
+    (define start
+      (if (and (pair? o)
+               (exact-integer? (car o)))
+          (car o)
+          0))
+
+    (define end
+      (if (and (pair? o)
+               (pair? (cdr o))
+               (exact-integer? (cadr o)))
+          (cadr o)
+          (string-length s)))
+
+    (take (drop s start) (- end start))))
+
 ; string-copy!
-; string-fill!
+
+(define string-fill!
+  (lambda (s c . o)
+    (let ((start (if (and (pair? o)
+                          (exact-integer? (car o)))
+                     (car o)
+                     0))
+          (end (if (and (pair? o)
+                        (pair? (cdr o))
+                        (exact-integer? (cadr o)))
+                   (cadr o)
+                   (string-length s))))
+      (let rec ((k (- end 1)))
+        (if (<= start k)
+            (begin (string-set! s k c)
+                   (rec (- k 1))))))))
+
+(define (list->string x)
+  (let rec ((x x))
+    (cond ((null? x) '())
+          ((pair? x)
+           (char-cons (car x)
+                      (rec (cdr x))))
+          (else (char-cons x '())))))
 
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
@@ -1279,7 +1394,31 @@
         (closure? x)
         (continuation? x) )))
 
-; TODO string-map
+(define string-map
+  (lambda (f x . xs)
+
+    (define map-1
+      (lambda (f x result)
+        (if (string? x)
+            (map-1 f
+                   (cdr x)
+                   (char-cons (f (car x))
+                              result))
+            (string-reverse result))))
+
+    (define map-n
+      (lambda (f xs result)
+        (if (every string? xs)
+            (map-n f
+                   (map-1 cdr xs '())
+                   (char-cons (apply f (map-1 car xs '()))
+                              result))
+            (string-reverse result))))
+
+    (if (null? xs)
+        (map-1 f x '())
+        (map-n f (char-cons x xs) '()))))
+
 ; TODO vector-map
 
 ; TODO string-for-each

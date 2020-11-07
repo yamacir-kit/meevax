@@ -958,6 +958,76 @@
 ; (string-copy! b 1 a 0 2)
 ; (check b => "a12de")
 
+; ---- make-string -------------------------------------------------------------
+
+(check (string=? (make-string 3) "") => #f)
+(check (string=? (make-string 3) "   ") => #t)
+(check (string=? (make-string 3 #\a) "aaa") => #t)
+
+; ---- string ------------------------------------------------------------------
+
+(check (string=? (string) "") => #t)
+(check (string=? (string #\h #\o #\g #\e) "hoge") => #t)
+
+; ---- string-length -----------------------------------------------------------
+
+(check (string-length "") => 0)
+(check (string-length "abc") => 3)
+
+; ---- string-ref --------------------------------------------------------------
+
+(check (string-ref "abc" 1) => #\b)
+
+; ---- string-set! -------------------------------------------------------------
+
+(define s "abc")
+(string-set! s 1 #\x)
+(check s => "axc")
+
+; ---- lexicographical-compare -------------------------------------------------
+
+(check (string=?  "abc" "abc") => #t)
+(check (string<?  "abc" "bcd") => #t)
+(check (string>?  "bcd" "abc") => #t)
+(check (string<=? "abc" "abd") => #t)
+(check (string>=? "abc" "aba") => #t)
+
+(check (string-ci=?  "aBc" "AbC") => #t)
+(check (string-ci<?  "aBc" "BcD") => #t)
+(check (string-ci>?  "bCd" "AbC") => #t)
+(check (string-ci<=? "aBc" "AbD") => #t)
+(check (string-ci>=? "aBc" "AbA") => #t)
+
+; ---- string-foldcase ---------------------------------------------------------
+
+(check (string-upcase   "AbdEgH") => "ABDEGH")
+(check (string-downcase "AbdEgH") => "abdegh")
+
+; ---- string-copy (substring) -------------------------------------------------
+
+(check (string-copy "abcde")     => "abcde")
+(check (string-copy "abcde" 1)   =>  "bcde")
+(check (string-copy "abcde" 1 4) =>  "bcd" )
+
+; ---- string-append -----------------------------------------------------------
+
+(check (string-append)                   => "")
+(check (string-append "abc")             => "abc")
+(check (string-append "abc" "def")       => "abcdef")
+(check (string-append "abc" "def" "ghi") => "abcdefghi")
+
+; ---- string->list ------------------------------------------------------------
+
+(check (string->list "abcde")     => (#\a #\b #\c #\d #\e))
+(check (string->list "abcde" 1)   => (    #\b #\c #\d #\e))
+(check (string->list "abcde" 1 4) => (    #\b #\c #\d    ))
+
+; ---- string-fill! ------------------------------------------------------------
+
+(let ((s "abcde")) (check (begin (string-fill! s #\x) s) => "xxxxx"))
+(let ((s "abcde")) (check (begin (string-fill! s #\x 1) s) => "axxxx"))
+(let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
+
 
 ; ==== 6.8. Vectors ============================================================
 

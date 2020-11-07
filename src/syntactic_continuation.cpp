@@ -681,7 +681,7 @@ namespace meevax { inline namespace kernel
      * ====================================================================== */
     DEFINE_PREDICATE("string?", string);
 
-    define<procedure>("ccons", [](auto&& xs)
+    define<procedure>("char-cons", [](let const& xs)
     {
       return make<string>(car(xs), cadr(xs));
     });
