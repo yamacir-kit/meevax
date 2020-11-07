@@ -368,6 +368,22 @@ namespace meevax { inline namespace kernel
       return read(port);
     }
 
+    auto read(let const& x) -> decltype(auto)
+    {
+      if (x.is<null>())
+      {
+        throw read_error<void>(__FILE__, ":", __LINE__);
+      }
+      else if (x.is<input_port>())
+      {
+        return read(x.as<input_port>());
+      }
+      else
+      {
+        throw read_error<void>(__FILE__, ":", __LINE__);
+      }
+    }
+
     auto read() -> decltype(auto)
     {
       return read(current_input_port());
@@ -379,14 +395,15 @@ namespace meevax { inline namespace kernel
     }
 
   public:
-    auto ready()
+    auto ready() // TODO RENAME TO 'char-ready'
     {
-      return static_cast<bool>(current_input_port());
+      return static_cast<bool>(
+        current_input_port() and current_input_port().template as<input_port>());
     }
 
-    auto standard_input_port() const noexcept -> auto&
+    let standard_input_port() const noexcept
     {
-      static input_port port { "/dev/stdin" };
+      let static port = make<input_port>("/dev/stdin");
       return port;
     }
 

@@ -612,7 +612,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("symbol->string", [this](auto&& xs)
     {
-      return read('"' + car(xs).template as<std::string>() + '"');
+      return make_string(car(xs).template as<symbol>());
     });
 
     define<procedure>("string->symbol", [](auto&& xs)
@@ -853,7 +853,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("read", [this](const object& xs)
     {
-      return read(xs ? car(xs).as<input_port>() : current_input_port());
+      return read(xs.is<null>() ? current_input_port() : car(xs));
     });
 
     define<procedure>("eof-object?", [](auto&& xs)
