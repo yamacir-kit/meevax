@@ -19,8 +19,6 @@ namespace meevax { inline namespace kernel
   {                                                                            \
     const path pathname;                                                       \
                                                                                \
-    using std::BASE::BASE;                                                     \
-                                                                               \
     explicit TYPENAME(const std::string& pathname)                             \
       : std::BASE { pathname }                                                 \
       , pathname { pathname }                                                  \

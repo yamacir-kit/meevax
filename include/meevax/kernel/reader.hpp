@@ -14,6 +14,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/path.hpp>
+#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -276,12 +277,12 @@ namespace meevax { inline namespace kernel
     // std::stack<std::istream> sources;
 
   public:
-    /* ==== Read ===============================================================
-    *
-    * TODO
-    *   Rename read(std::istream&) => read_from
-    *
-    * ======================================================================= */
+    /* ---- Read ---------------------------------------------------------------
+     *
+     *  TODO
+     *    Rename read(std::istream&) => read_from
+     *
+     * ---------------------------------------------------------------------- */
     let const read(std::istream& port)
     {
       std::string token {};
@@ -385,7 +386,8 @@ namespace meevax { inline namespace kernel
 
     auto standard_input_port() const noexcept -> auto&
     {
-      return std::cin;
+      static input_port port { "/dev/stdin" };
+      return port;
     }
 
     auto current_input_port() const noexcept -> decltype(auto)
