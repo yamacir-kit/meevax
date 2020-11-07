@@ -1352,7 +1352,22 @@
     (take (drop s start) (- end start))))
 
 ; string-copy!
-; string-fill!
+
+(define string-fill!
+  (lambda (s c . o)
+    (let ((start (if (and (pair? o)
+                          (exact-integer? (car o)))
+                     (car o)
+                     0))
+          (end (if (and (pair? o)
+                        (pair? (cdr o))
+                        (exact-integer? (cadr o)))
+                   (cadr o)
+                   (string-length s))))
+      (let rec ((k (- end 1)))
+        (if (<= start k)
+            (begin (string-set! s k c)
+                   (rec (- k 1))))))))
 
 (define (list->string x)
   (let rec ((x x))

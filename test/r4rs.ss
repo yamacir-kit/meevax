@@ -1022,6 +1022,13 @@
 (check (string->list "abcde" 1)   => (    #\b #\c #\d #\e))
 (check (string->list "abcde" 1 4) => (    #\b #\c #\d    ))
 
+; ---- string-fill! ------------------------------------------------------------
+
+(let ((s "abcde")) (check (begin (string-fill! s #\x) s) => "xxxxx"))
+(let ((s "abcde")) (check (begin (string-fill! s #\x 1) s) => "axxxx"))
+(let ((s "abcde")) (check (begin (string-fill! s #\x 1 4) s) => "axxxe"))
+
+
 ; ==== 6.8. Vectors ============================================================
 
 ; TODO
