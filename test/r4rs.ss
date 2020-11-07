@@ -1003,9 +1003,11 @@
 (check (string-upcase   "AbdEgH") => "ABDEGH")
 (check (string-downcase "AbdEgH") => "abdegh")
 
-; ---- substring ---------------------------------------------------------------
+; ---- string-copy (substring) -------------------------------------------------
 
-(check (substring "abcde" 1 3) => "bcd")
+(check (string-copy "abcde")     => "abcde")
+(check (string-copy "abcde" 1)   =>  "bcde")
+(check (string-copy "abcde" 1 4) =>  "bcd" )
 
 ; ---- string-append -----------------------------------------------------------
 
@@ -1018,7 +1020,7 @@
 
 (check (string->list "abcde")     => (#\a #\b #\c #\d #\e))
 (check (string->list "abcde" 1)   => (    #\b #\c #\d #\e))
-(check (string->list "abcde" 1 3) => (    #\b #\c #\d    ))
+(check (string->list "abcde" 1 4) => (    #\b #\c #\d    ))
 
 ; ==== 6.8. Vectors ============================================================
 

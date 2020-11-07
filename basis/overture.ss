@@ -633,6 +633,27 @@
 ;         (cons (deep-copy (car x))
 ;               (deep-copy (cdr x))))))
 
+(define take
+  (lambda (x k)
+    (let rec ((x x)
+              (k k))
+      (if (zero? k) '()
+          (cons (car x)
+                (rec (cdr x) (- k 1)))))))
+
+(define take!
+  (lambda (x k)
+    (if (zero? k)
+        (begin (set-cdr! (drop x (- k 1)) '()) x))))
+
+(define drop
+  (lambda (x k)
+    (let rec ((x x)
+              (k k))
+      (if (zero? k) x
+          (rec (cdr x) (- k 1))))))
+
+
 ; ------------------------------------------------------------------------------
 ;  4.2.1 Conditionals (Part 2 of 2)
 ; ------------------------------------------------------------------------------
@@ -1258,25 +1279,35 @@
   (lambda (s)
     (string-map char-foldcase s)))
 
-(define substring
-  (lambda (s start end)
+(define string-take
+  (lambda (x k)
+    (let rec ((x x)
+              (k k))
+      (if (zero? k) '()
+          (char-cons (car x)
+                     (rec (cdr x) (- k 1)))))))
 
-  (define string-take
-    (lambda (x k)
-      (let rec ((x x)
-                (k k))
-        (if (zero? k) '()
-            (char-cons (car x)
-                       (rec (cdr x) (- k 1)))))))
+(define string-drop drop)
 
-  (define string-drop
-    (lambda (x k)
-      (let rec ((x x)
-                (k k))
-        (if (zero? k) x
-            (rec (cdr x) (- k 1))))))
+(define string-copy
+  (lambda (s . o)
 
-  (string-take (string-drop s start) end)))
+    (define start
+      (if (and (pair? o)
+               (exact-integer? (car o)))
+          (car o)
+          0))
+
+    (define end
+      (if (and (pair? o)
+               (pair? (cdr o))
+               (exact-integer? (cadr o)))
+          (cadr o)
+          (string-length s)))
+
+    (string-take (string-drop s start) (- end start))))
+
+(define substring string-copy)
 
 (define string-append-2
   (lambda (x y)
@@ -1304,23 +1335,21 @@
 
 (define string->list
   (lambda (s . o)
-    (cond ((null? o)
-           (let rec ((s s)
-                     (result '()))
-             (if (string? s)
-                 (rec (cdr s)
-                      (cons (car s) result))
-                 (append (reverse result) s))))
-          ((and (pair? o)
-                (null? (cdr o)))
-           (string->list (substring s (car o) (- (string-length s) 1)))
-           )
-          (else
-            (string->list (apply substring s o))))))
 
-(define string-copy
-  (lambda (s . o)
-    (apply substring s (if (pair? o) o '(0)))))
+    (define start
+      (if (and (pair? o)
+               (exact-integer? (car o)))
+          (car o)
+          0))
+
+    (define end
+      (if (and (pair? o)
+               (pair? (cdr o))
+               (exact-integer? (cadr o)))
+          (cadr o)
+          (string-length s)))
+
+    (take (drop s start) (- end start))))
 
 ; string-copy!
 ; string-fill!
