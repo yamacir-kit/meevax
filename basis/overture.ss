@@ -1145,7 +1145,7 @@
               (result '()))
       (if (<= k 0) result
           (rec (- k 1)
-               (ccons c result))))))
+               (char-cons c result))))))
 
 (define (string . xs) (list->string xs))
 
@@ -1266,8 +1266,8 @@
       (let rec ((x x)
                 (k k))
         (if (zero? k) '()
-            (ccons (car x)
-                   (rec (cdr x) (- k 1)))))))
+            (char-cons (car x)
+                       (rec (cdr x) (- k 1)))))))
 
   (define string-drop
     (lambda (x k)
@@ -1281,8 +1281,8 @@
 (define string-append-2
   (lambda (x y)
     (if (null? x) y
-        (ccons (car x)
-               (string-append-2 (cdr x) y) ))))
+        (char-cons (car x)
+                   (string-append-2 (cdr x) y) ))))
 
 (define string-reverse
   (lambda (x)
@@ -1329,9 +1329,9 @@
   (let rec ((x x))
     (cond ((null? x) '())
           ((pair? x)
-           (ccons (car x)
-                  (rec (cdr x))))
-          (else (ccons x '())))))
+           (char-cons (car x)
+                      (rec (cdr x))))
+          (else (char-cons x '())))))
 
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
@@ -1358,8 +1358,8 @@
         (if (string? x)
             (map-1 f
                    (cdr x)
-                   (ccons (f (car x))
-                          result))
+                   (char-cons (f (car x))
+                              result))
             (string-reverse result))))
 
     (define map-n
@@ -1367,13 +1367,13 @@
         (if (every string? xs)
             (map-n f
                    (map-1 cdr xs '())
-                   (ccons (apply f (map-1 car xs '()))
-                          result))
+                   (char-cons (apply f (map-1 car xs '()))
+                              result))
             (string-reverse result))))
 
     (if (null? xs)
         (map-1 f x '())
-        (map-n f (ccons x xs) '()))))
+        (map-n f (char-cons x xs) '()))))
 
 ; TODO vector-map
 
