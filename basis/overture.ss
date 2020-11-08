@@ -213,6 +213,11 @@
 ;                            (cons or (cdr tests))))
 ;                 (car tests)))))
 
+; ------------------------------------------------------------------------------
+;  4.2.6. Dynamic bindings
+; ------------------------------------------------------------------------------
+
+
 ; --------------------------------------------------------------------------
 ;  4.2.8 Quasiquotations
 ; --------------------------------------------------------------------------
@@ -1424,11 +1429,11 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
-(define call-with-current-continuation ; hack
-  (lambda (procedure)
-    (call-with-current-continuation procedure)))
-
-(define call/cc call-with-current-continuation)
+; (define call-with-current-continuation ; hack
+;   (lambda (procedure)
+;     (call-with-current-continuation procedure)))
+;
+; (define call/cc call-with-current-continuation)
 
 ; (define values
 ;   (lambda xs
@@ -1459,7 +1464,50 @@
           (apply consumer (cdr result))
           (consumer result) ))))
 
-; TODO dynamic-wind
+; ---- dynamic-wind ------------------------------------------------------------
+
+; from https://groups.csail.mit.edu/mac/ftpdir/scheme-mail/HTML/rrrs-1992/msg00194.html
+
+(define dynamic-extents '())
+
+(define dynamic-wind
+  (lambda (before body after)
+    (before)
+    (set! dynamic-extents (cons (cons before after) dynamic-extents))
+    (let ((result (body)))
+      (set! dynamic-extents (cdr dynamic-extents))
+      (after)
+      result)))
+
+(define call-with-current-continuation
+  (let ((call/cc
+          (lambda (procedure)
+            (call-with-current-continuation procedure)))) ; Original call/cc is syntax
+    (lambda (proc)
+      (let ((winds dynamic-extents))
+        (call/cc
+          (lambda (k1)
+            (proc (lambda (k2)
+                    (windup! dynamic-extents winds)
+                    (k1 k2)))))))))
+
+(define windup!
+  (lambda (from to)
+    (set! dynamic-extents from)
+    (cond ((eq? from to))
+          ((null? from)
+           (windup! from (cdr to))
+           ((caar to)))
+          ((null? to)
+           ((cdar from))
+           (windup! (cdr from) to))
+          (else
+            ((cdar from))
+            (windup! (cdr from) (cdr to))
+            ((caar to))))
+    (set! dynamic-extents to)))
+
+(define call/cc call-with-current-continuation)
 
 ; ------------------------------------------------------------------------------
 ;  6.11 Standard Exceptions Library

@@ -368,7 +368,7 @@ namespace meevax { inline namespace kernel
       return read(port);
     }
 
-    auto read(let const& x) -> decltype(auto)
+    auto read(const object& x) -> decltype(auto)
     {
       if (x.is<null>())
       {
