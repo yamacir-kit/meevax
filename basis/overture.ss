@@ -1484,28 +1484,29 @@
           (lambda (procedure)
             (call-with-current-continuation procedure)))) ; Original call/cc is syntax
     (lambda (proc)
+
+      (define windup!
+        (lambda (from to)
+          (set! dynamic-extents from)
+          (cond ((eq? from to))
+                ((null? from)
+                 (windup! from (cdr to))
+                 ((caar to)))
+                ((null? to)
+                 ((cdar from))
+                 (windup! (cdr from) to))
+                (else
+                  ((cdar from))
+                  (windup! (cdr from) (cdr to))
+                  ((caar to))))
+          (set! dynamic-extents to)))
+
       (let ((winds dynamic-extents))
         (call/cc
           (lambda (k1)
             (proc (lambda (k2)
                     (windup! dynamic-extents winds)
                     (k1 k2)))))))))
-
-(define windup!
-  (lambda (from to)
-    (set! dynamic-extents from)
-    (cond ((eq? from to))
-          ((null? from)
-           (windup! from (cdr to))
-           ((caar to)))
-          ((null? to)
-           ((cdar from))
-           (windup! (cdr from) to))
-          (else
-            ((cdar from))
-            (windup! (cdr from) (cdr to))
-            ((caar to))))
-    (set! dynamic-extents to)))
 
 (define call/cc call-with-current-continuation)
 
