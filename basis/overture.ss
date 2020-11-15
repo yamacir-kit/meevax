@@ -480,9 +480,8 @@
              (cons #f (convert init))))
 
       (define dynamic-lookup
-        (lambda (parameter global-cell)
-          (or (assq parameter dynamic-environment)
-              global-cell)))
+        (lambda (parameter global-dynamic-environment)
+          (or (assq parameter dynamic-environment) global-dynamic-environment)))
 
       (define parameter
         (lambda maybe-value
