@@ -6,7 +6,7 @@ namespace meevax { inline namespace kernel
   #define BOILERPLATE(TYPENAME, FILETYPE)                                      \
   auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
   {                                                                            \
-    port << magenta << "#,(" << green << "open-" FILETYPE << " " << datum.pathname << reset; \
+    port << magenta << "#,(" << green << "open-" FILETYPE << " " << datum.name << reset; \
                                                                                \
     if (not datum.is_open())                                                   \
     {                                                                          \

@@ -463,6 +463,63 @@
 ; TODO let*-values
 
 ; ------------------------------------------------------------------------------
+;  4.2.6. Dynamic bindings
+; ------------------------------------------------------------------------------
+
+; SRFI 39: Parameter objects
+
+(define dynamic-environment '())
+
+(define make-parameter
+  (lambda (init . maybe-converter)
+    (let* ((convert
+             (if (null? maybe-converter)
+                 (lambda (x) x)
+                 (car maybe-converter)))
+           (global-dynamic-environment
+             (cons #f (convert init))))
+
+      (define dynamic-lookup
+        (lambda (parameter global-dynamic-environment)
+          (or (assq parameter dynamic-environment) global-dynamic-environment)))
+
+      (define parameter
+        (lambda maybe-value
+          (let ((binding
+                  (dynamic-lookup parameter global-dynamic-environment)))
+            (cond ((null? maybe-value)
+                   (cdr binding))
+                  ((null? (cdr maybe-value))
+                   (set-cdr! binding (convert (car maybe-value))))
+                  (else (convert (car maybe-value)))))))
+
+      (set-car! global-dynamic-environment parameter)
+      parameter)))
+
+(define parameterize-aux
+  (lambda (parameters values body)
+    (let* ((saved dynamic-environment)
+           (bindings
+             (map (lambda (parameter value)
+                    (cons parameter (parameter value #f)))
+                  parameters
+                  values)))
+      (dynamic-wind
+        (lambda () (set! dynamic-environment (append bindings saved)))
+        body
+        (lambda () (set! dynamic-environment                  saved))))))
+
+(define-syntax parameterize
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (let* ((bindings (cadr form))
+             (body (cddr form)))
+        `(parameterize-aux
+           (list ,@(map  car bindings))
+           (list ,@(map cadr bindings))
+           (lambda () ,@body))))))
+
+; ------------------------------------------------------------------------------
 ;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
@@ -1424,11 +1481,11 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
-(define call-with-current-continuation ; hack
-  (lambda (procedure)
-    (call-with-current-continuation procedure)))
-
-(define call/cc call-with-current-continuation)
+; (define call-with-current-continuation ; hack
+;   (lambda (procedure)
+;     (call-with-current-continuation procedure)))
+;
+; (define call/cc call-with-current-continuation)
 
 ; (define values
 ;   (lambda xs
@@ -1459,7 +1516,50 @@
           (apply consumer (cdr result))
           (consumer result) ))))
 
-; TODO dynamic-wind
+; ---- dynamic-wind ------------------------------------------------------------
+
+; from https://groups.csail.mit.edu/mac/ftpdir/scheme-mail/HTML/rrrs-1992/msg00194.html
+
+(define dynamic-extents '())
+
+(define dynamic-wind
+  (lambda (before body after)
+    (before)
+    (set! dynamic-extents (cons (cons before after) dynamic-extents))
+    (let ((result (body)))
+      (set! dynamic-extents (cdr dynamic-extents))
+      (after)
+      result)))
+
+(define call-with-current-continuation
+  (let ((call/cc
+          (lambda (procedure)
+            (call-with-current-continuation procedure)))) ; Original call/cc is syntax
+    (lambda (proc)
+
+      (define windup!
+        (lambda (from to)
+          (set! dynamic-extents from)
+          (cond ((eq? from to))
+                ((null? from)
+                 (windup! from (cdr to))
+                 ((caar to)))
+                ((null? to)
+                 ((cdar from))
+                 (windup! (cdr from) to))
+                (else ((cdar from))
+                      (windup! (cdr from) (cdr to))
+                      ((caar to))))
+          (set! dynamic-extents to)))
+
+      (let ((winds dynamic-extents))
+        (call/cc
+          (lambda (k1)
+            (proc (lambda (k2)
+                    (windup! dynamic-extents winds)
+                    (k1 k2)))))))))
+
+(define call/cc call-with-current-continuation)
 
 ; ------------------------------------------------------------------------------
 ;  6.11 Standard Exceptions Library

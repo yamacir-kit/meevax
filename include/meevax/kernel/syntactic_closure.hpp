@@ -9,7 +9,7 @@ namespace meevax { inline namespace kernel
   struct syntactic_closure
     : public virtual pair
   {
-    using pair::pair; // Inheriting Constructors
+    using pair::pair;
 
     auto form() const noexcept -> decltype(auto) { return car(*this); }
     auto form()       noexcept -> decltype(auto) { return car(*this); }
@@ -43,9 +43,9 @@ namespace meevax { inline namespace kernel
       return not is_free();
     }
 
-    friend auto operator <<(std::ostream& os, const syntactic_closure& sc) -> decltype(auto)
+    friend auto operator <<(std::ostream& port, const syntactic_closure& datum) -> decltype(auto)
     {
-      return os << underline << sc.form() << "." << &sc << reset;
+      return port << underline << datum.form() << faint << " #;" << &datum << reset;
     }
   };
 }} // namespace meevax::kernel

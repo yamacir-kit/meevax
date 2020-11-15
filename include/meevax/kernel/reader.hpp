@@ -368,7 +368,7 @@ namespace meevax { inline namespace kernel
       return read(port);
     }
 
-    auto read(let const& x) -> decltype(auto)
+    auto read(const object& x) -> decltype(auto)
     {
       if (x.is<null>())
       {
@@ -403,7 +403,7 @@ namespace meevax { inline namespace kernel
 
     let standard_input_port() const noexcept
     {
-      let static port = make<input_port>("/dev/stdin");
+      let static port = make<input_port>("/dev/stdin", std::cin);
       return port;
     }
 

@@ -13,16 +13,24 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  #define BOILERPLATE(TYPENAME, BASE)                                          \
+  #define BOILERPLATE(TYPENAME, STREAM)                                        \
   struct TYPENAME                                                              \
-    : public std::BASE                                                         \
+    : public std::STREAM                                                       \
   {                                                                            \
-    const path pathname;                                                       \
+    const path name;                                                           \
                                                                                \
-    explicit TYPENAME(const std::string& pathname)                             \
-      : std::BASE { pathname }                                                 \
-      , pathname { pathname }                                                  \
+    explicit TYPENAME(const std::string& name)                                 \
+      : std::STREAM { name }                                                   \
+      , name { name }                                                          \
     {}                                                                         \
+                                                                               \
+    explicit TYPENAME(const std::string& name, const std::ios& ios)            \
+      : std::STREAM { name }                                                   \
+      , name { name }                                                          \
+    {                                                                          \
+      copyfmt(ios);                                                            \
+      clear(ios.rdstate());                                                    \
+    }                                                                          \
   };                                                                           \
                                                                                \
   auto operator <<(std::ostream& port, const TYPENAME&) -> decltype(port)
