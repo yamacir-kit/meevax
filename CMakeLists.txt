@@ -260,6 +260,12 @@ add_test(
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
 
 add_test(
+  NAME r7rs
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/r7rs.ss)
+
+add_test(
   NAME sicp-1
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
