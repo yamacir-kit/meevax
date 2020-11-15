@@ -1495,10 +1495,9 @@
                 ((null? to)
                  ((cdar from))
                  (windup! (cdr from) to))
-                (else
-                  ((cdar from))
-                  (windup! (cdr from) (cdr to))
-                  ((caar to))))
+                (else ((cdar from))
+                      (windup! (cdr from) (cdr to))
+                      ((caar to))))
           (set! dynamic-extents to)))
 
       (let ((winds dynamic-extents))
