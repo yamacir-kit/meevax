@@ -853,7 +853,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("read", [this](const object& xs)
     {
-      return read(xs.is<null>() ? current_input_port() : car(xs));
+      return read(car(xs));
     });
 
     define<procedure>("eof-object?", [](auto&& xs)

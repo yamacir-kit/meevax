@@ -242,10 +242,10 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  /* ==== Reader ===============================================================
-  *
-  *
-  * ========================================================================= */
+  /* ---- Reader ---------------------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
   template <typename SK>
   class reader
     // : private boost::iostreams::stream_buffer<boost::iostreams::null_sink>
@@ -253,10 +253,7 @@ namespace meevax { inline namespace kernel
     friend SK;
 
     explicit reader()
-      // : sources {}
-    {
-      // sources.emplace(std::cin.rdbuf());
-    }
+    {}
 
     Import(SK, evaluate);
     Import(SK, intern);
@@ -265,16 +262,6 @@ namespace meevax { inline namespace kernel
 
     enum class   proper_list_tag {};
     enum class improper_list_tag {};
-
-  protected:
-    // NOTE
-    // std::stack<object> sources {};
-    // auto path {read_string("/path/to/file")};
-    // auto something {make<input_port>(path.as<std::string>())};
-    // car(something) = path;
-    // cdr(something) = make<exact_integer>(1); // current line
-
-    // std::stack<std::istream> sources;
 
   public:
     /* ---- Read ---------------------------------------------------------------
@@ -386,7 +373,7 @@ namespace meevax { inline namespace kernel
 
     auto read() -> decltype(auto)
     {
-      return read(current_input_port());
+      return read(standard_input_port());
     }
 
     auto read(const std::string& s) -> decltype(auto)
@@ -397,8 +384,7 @@ namespace meevax { inline namespace kernel
   public:
     auto ready() // TODO RENAME TO 'char-ready'
     {
-      return static_cast<bool>(
-        current_input_port() and current_input_port().template as<input_port>());
+      return not standard_input_port().template is<null>() and standard_input_port().template as<input_port>();
     }
 
     let standard_input_port() const noexcept
@@ -406,18 +392,6 @@ namespace meevax { inline namespace kernel
       let static port = make<input_port>("/dev/stdin", std::cin);
       return port;
     }
-
-    auto current_input_port() const noexcept -> decltype(auto)
-    {
-      // return sources.top();
-      return standard_input_port();
-    }
-
-    // auto current_input_port(std::istream&& port)
-    // {
-    //   sources.push(port);
-    //   return current_input_port();
-    // }
 
     Define_Static_Perfect_Forwarding(open_input_file, std::ifstream);
     Define_Static_Perfect_Forwarding(open_input_string, std::stringstream);
