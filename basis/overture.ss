@@ -1583,7 +1583,9 @@
 ; TODO raise
 ; TODO raise-continuable
 
-(define error display)
+(define error
+  (lambda (message . irritants)
+    (display message)))
 
 (define error-object?
   (lambda (x) #false) )
@@ -1616,21 +1618,31 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
-; TODO call-with-port
+(define current-input-port
+  (make-parameter (standard-input-port)
+    (lambda (x)
+      (cond ((not (input-port? x))
+             (error "current-input-port: not input-port" x))
+            ((not (input-port-open? x))
+             (error "current-input-port: not input-port-open" x))
+            (else x)))))
+
+(define with-input-from-file
+  (lambda (string thunk)
+    (parameterize ((current-input-port (open-input-file string)))
+      (thunk))))
+
+(define call-with-port
+  (lambda (port procedure)
+    (procedure port)))
 
 (define call-with-input-file
-  (lambda (path proc)
-    (let* ((input-port (open-input-file path))
-           (result (proc input-port)))
-      (close-input-port input-port)
-      result)))
+  (lambda (string procedure)
+    (call-with-port (open-input-file string) procedure)))
 
 (define call-with-output-file
-  (lambda (path proc)
-    (let* ((output-port (open-output-file path))
-           (result (proc output-port)))
-      (close-output-port output-port)
-      result)))
+  (lambda (string procedure)
+    (call-with-port (open-output-file string) procedure)))
 
 (define port?
   (lambda (x)
