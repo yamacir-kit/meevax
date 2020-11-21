@@ -77,12 +77,12 @@ namespace meevax { inline namespace kernel
 
     using reader::read;
 
-    using writer::current_debug_port;
-    using writer::current_error_port;
-    using writer::current_interaction_port;
-    using writer::current_output_port;
-    using writer::current_verbose_port;
     using writer::newline;
+    using writer::standard_debug_port;
+    using writer::standard_error_port;
+    using writer::standard_interaction_port;
+    using writer::standard_output_port;
+    using writer::standard_verbose_port;
     using writer::write;
     using writer::write_to;
     using writer::writeln;
@@ -211,9 +211,9 @@ namespace meevax { inline namespace kernel
         std::atomic_exchange(&e, unit),
         std::atomic_exchange(&c, compile(expression, syntactic_environment())));
 
-      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+      write_to(standard_debug_port(), "; ", std::string(78, '-'), "\n");
       disassemble(c);
-      write_to(current_debug_port(), "; ", std::string(78, '-'), "\n");
+      write_to(standard_debug_port(), "; ", std::string(78, '-'), "\n");
 
       decltype(auto) result { execute() };
 
@@ -226,12 +226,12 @@ namespace meevax { inline namespace kernel
 
     auto load(const path& path_to_source) -> const auto&
     {
-      write_to(current_debug_port(),
+      write_to(standard_debug_port(),
         header("loader"), "open ", path_to_source, " => ");
 
       if (auto port {open_input_file(path_to_source.c_str())}; port)
       {
-        write_to(current_debug_port(), t, "\n");
+        write_to(standard_debug_port(), t, "\n");
 
         push(d,
           std::atomic_exchange(&s, unit),
@@ -240,7 +240,7 @@ namespace meevax { inline namespace kernel
 
         for (auto expression {read(port)}; expression != eof_object; expression = read(port))
         {
-          write_to(current_debug_port(),
+          write_to(standard_debug_port(),
             header("loader"), expression, "\n");
 
           evaluate(expression);
@@ -254,7 +254,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        write_to(current_debug_port(), f, "\n");
+        write_to(standard_debug_port(), f, "\n");
         throw file_error<void>("failed to open file: ", path_to_source.c_str());
       }
     }

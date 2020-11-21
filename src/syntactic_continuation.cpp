@@ -128,7 +128,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (let const lhs { car(xs) }, rhs { cadr(xs) }; eq(lhs, rhs))
+      if (let const lhs = car(xs), rhs = cadr(xs); eq(lhs, rhs))
       {
         return t;
       }
@@ -610,9 +610,9 @@ namespace meevax { inline namespace kernel
      * ====================================================================== */
     DEFINE_PREDICATE("symbol?", symbol);
 
-    define<procedure>("symbol->string", [this](auto&& xs)
+    define<procedure>("symbol->string", [](let const& xs)
     {
-      return make_string(car(xs).template as<symbol>());
+      return make_string(car(xs).as<symbol>());
     });
 
     define<procedure>("string->symbol", [](auto&& xs)
@@ -996,14 +996,14 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("write", [this](auto&& xs)
     {
-      write_to(current_output_port(), car(xs));
+      write_to(standard_output_port(), car(xs));
       return unspecified;
     });
 
     #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
-    define<procedure>("write-" SUFFIX, [this](let const & xs)                  \
+    define<procedure>("write-" SUFFIX, [this](let const& xs)                   \
     {                                                                          \
-      car(xs).as<TYPENAME>().display_to(cdr(xs).is<null>() ? current_output_port() : cadr(xs).as<output_port>()); \
+      car(xs).as<TYPENAME>().display_to(cdr(xs).is<null>() ? standard_output_port() : cadr(xs)); \
       return unspecified;                                                      \
     })
 
@@ -1100,16 +1100,14 @@ namespace meevax { inline namespace kernel
     for (let e = read(port); e != eof_object; e = read(port))
     {
       // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-      write_to(current_debug_port(),
+      write_to(standard_debug_port(),
         "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
-
-      current_interaction_port() << std::flush;
 
       evaluate(e);
     }
 
     // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-    write_to(current_debug_port(), "\n\n");
+    write_to(standard_debug_port(), "\n\n");
   }
 
   template <>

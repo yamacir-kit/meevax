@@ -1518,7 +1518,7 @@
 
 ; ---- dynamic-wind ------------------------------------------------------------
 
-; from https://groups.csail.mit.edu/mac/ftpdir/scheme-mail/HTML/rrrs-1992/msg00194.html
+; from SRFI-39
 
 (define dynamic-extents '())
 

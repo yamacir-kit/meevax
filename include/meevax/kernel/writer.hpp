@@ -4,9 +4,6 @@
 #include <fstream>
 #include <ostream>
 
-#include <boost/iostreams/device/null.hpp>
-#include <boost/iostreams/stream.hpp>
-
 #include <meevax/kernel/object.hpp>
 
 namespace meevax { inline namespace kernel
@@ -26,15 +23,21 @@ namespace meevax { inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(std::ostream& port, Ts&&... xs) const -> decltype(port)
+    auto write_to(std::ostream& port, Ts&&... xs) const -> decltype(auto)
     {
       return (port << ... << xs) << reset;
     }
 
     template <typename... Ts>
+    auto write_to(const object& x, Ts&&... xs) const -> decltype(auto)
+    {
+      return write_to(x.as<output_port>(), std::forward<decltype(xs)>(xs)...);
+    }
+
+    template <typename... Ts>
     auto write(Ts&&... xs) const -> decltype(auto)
     {
-      return write_to(current_output_port(), std::forward<decltype(xs)>(xs)...);
+      return write_to(standard_output_port(), std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename... Ts>
@@ -49,63 +52,40 @@ namespace meevax { inline namespace kernel
     }
 
   public:
-    auto standard_null_port() const -> auto&
+    // TODO MOVE INTO writer.cpp
+    let standard_null_port() const
     {
-      static boost::iostreams::stream<boost::iostreams::null_sink> dev_null {
-        boost::iostreams::null_sink()
-      };
-
-      return dev_null;
+      let static port = make<output_port>("/dev/null");
+      return port;
     }
 
-    auto standard_output_port() const -> auto&
+    // TODO MOVE INTO writer.cpp
+    let standard_output_port() const
     {
-      return in_batch_mode() ? standard_null_port() : std::cout;
+      let static port = make<output_port>("/dev/stdout", std::cout);
+      return in_batch_mode() ? standard_null_port() : port;
     }
 
-    auto standard_error_port() const -> auto&
+    // TODO MOVE INTO writer.cpp
+    let standard_error_port() const
     {
-      return in_batch_mode() ? standard_null_port() : std::cerr;
+      let static port = make<output_port>("/dev/stderr", std::cerr);
+      return in_batch_mode() ? standard_null_port() : port;
     }
 
-    auto standard_verbose_port() const -> auto&
+    auto standard_verbose_port() const -> decltype(auto)
     {
-      return in_batch_mode() or not in_verbose_mode() ? standard_null_port() : std::cout;
+      return in_verbose_mode() ? standard_output_port() : standard_null_port();
     }
 
-    auto standard_debug_port() const -> auto&
+    auto standard_debug_port() const -> decltype(auto)
     {
-      return in_batch_mode() or not in_debug_mode() ? standard_null_port() : std::cerr;
+      return in_debug_mode() ? standard_error_port() : standard_null_port();
     }
 
-    auto standard_interaction_port() const -> auto&
+    auto standard_interaction_port() const -> decltype(auto)
     {
-      return in_batch_mode() or not in_interactive_mode() ? standard_null_port() : std::cout;
-    }
-
-    auto current_output_port() const -> decltype(auto)
-    {
-      return standard_output_port(); // XXX R7RS INCOMPATIBLE!
-    }
-
-    auto current_error_port() const -> decltype(auto)
-    {
-      return standard_error_port(); // XXX R7RS INCOMPATIBLE!
-    }
-
-    auto current_verbose_port() const -> decltype(auto)
-    {
-      return standard_verbose_port();
-    }
-
-    auto current_debug_port() const -> decltype(auto)
-    {
-      return standard_debug_port(); // XXX R7RS INCOMPATIBLE!
-    }
-
-    auto current_interaction_port() const -> decltype(auto)
-    {
-      return standard_interaction_port();
+      return in_interactive_mode() ? standard_output_port() : standard_null_port();
     }
 
     Define_Static_Perfect_Forwarding(open_output_file, std::ofstream);

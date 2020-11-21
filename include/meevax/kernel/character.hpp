@@ -79,7 +79,9 @@ namespace meevax { inline namespace kernel
       return static_cast<std::string>(*this);
     }
 
-    auto display_to(std::ostream& port) const -> decltype(port);
+    auto display_to(std::ostream&) const -> std::ostream&;
+
+    auto display_to(let const&) const -> std::ostream&;
   };
 
   auto operator <<(std::ostream& port, const character&) -> decltype(port);

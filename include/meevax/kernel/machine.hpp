@@ -27,12 +27,13 @@ namespace meevax { inline namespace kernel
     Import(SK, intern);
     Import(SK, rename);
     Import(SK, syntactic_environment);
-    Import_Const(SK, current_debug_port);
-    Import_Const(SK, current_error_port);
-    Import_Const(SK, current_output_port);
+
     Import_Const(SK, header);
     Import_Const(SK, in_trace_mode);
     Import_Const(SK, shift);
+    Import_Const(SK, standard_debug_port);
+    Import_Const(SK, standard_error_port);
+    Import_Const(SK, standard_output_port);
     Import_Const(SK, write_to);
 
   protected:
@@ -51,7 +52,7 @@ namespace meevax { inline namespace kernel
           variable,
           Perfect_Forward(expression)...));
 
-      write_to(current_debug_port(),
+      write_to(standard_debug_port(),
         header("define"),
         caar(syntactic_environment()),
         faint, " binds ", reset,
@@ -225,16 +226,16 @@ namespace meevax { inline namespace kernel
 
       for (auto iter { std::begin(c) }; iter; ++iter)
       {
-        write_to(current_debug_port(), "; ");
+        write_to(standard_debug_port(), "; ");
 
         if (iter == c)
         {
-          write_to(current_debug_port(),
+          write_to(standard_debug_port(),
             std::string(4 * (depth - 1), ' '), magenta, "(   ");
         }
         else
         {
-          write_to(current_debug_port(), std::string(4 * depth, ' '));
+          write_to(standard_debug_port(), std::string(4 * depth, ' '));
         }
 
         switch ((*iter).as<instruction>().code)
@@ -244,12 +245,12 @@ namespace meevax { inline namespace kernel
         case mnemonic::DROP:
         case mnemonic::JOIN:
         case mnemonic::TAIL_CALL:
-          write_to(current_debug_port(), *iter, "\n");
+          write_to(standard_debug_port(), *iter, "\n");
           break;
 
         case mnemonic::RETURN:
         case mnemonic::STOP:
-          write_to(current_debug_port(), *iter, magenta, "\t)\n");
+          write_to(standard_debug_port(), *iter, magenta, "\t)\n");
           break;
 
         case mnemonic::DEFINE:
@@ -263,20 +264,20 @@ namespace meevax { inline namespace kernel
         case mnemonic::STORE_VARIADIC:
         case mnemonic::STRIP:
           // NOTE: evaluation order of function argument is undefined (C++).
-          write_to(current_debug_port(), *iter);
-          write_to(current_debug_port(), " ", *++iter, "\n");
+          write_to(standard_debug_port(), *iter);
+          write_to(standard_debug_port(), " ", *++iter, "\n");
           break;
 
         case mnemonic::LOAD_CLOSURE:
         case mnemonic::LOAD_CONTINUATION:
-          write_to(current_debug_port(), *iter, "\n");
+          write_to(standard_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           break;
 
 
         case mnemonic::SELECT:
         case mnemonic::TAIL_SELECT:
-          write_to(current_debug_port(), *iter, "\n");
+          write_to(standard_debug_port(), *iter, "\n");
           disassemble(*++iter, depth + 1);
           disassemble(*++iter, depth + 1);
           break;

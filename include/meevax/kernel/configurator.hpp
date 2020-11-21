@@ -22,7 +22,7 @@ namespace meevax { inline namespace kernel
     Import(SK, evaluate);
     Import(SK, read);
 
-    Import_Const(SK, current_verbose_port);
+    Import_Const(SK, standard_verbose_port);
     Import_Const(SK, newline);
     Import_Const(SK, write);
     Import_Const(SK, write_to);
@@ -71,7 +71,7 @@ namespace meevax { inline namespace kernel
         "; version               ; ", current_version.semantic(),                       "\n"
         );
 
-      write_to(current_verbose_port(),
+      write_to(standard_verbose_port(),
         "; license               ; ", unspecified,                                      "\n"
         ";\n"
         "; build-date            ; ", current_feature.build_date(),                     "\n"
