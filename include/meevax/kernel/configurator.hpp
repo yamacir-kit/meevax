@@ -127,8 +127,8 @@ namespace meevax { inline namespace kernel
       newline();
 
       SECTION("Sequence:");
-      write_line("  1. ", BOLD("configuration"));
-      write_line("  2. ", BOLD("batch operation"), " (for each ", UNDERLINE("file"), " specified)");
+      write_line("  1. ", BOLD("Configure"));
+      write_line("  2. ", BOLD("Batch operation"), " (for each ", UNDERLINE("file"), " specified)");
       write_line("  3. ", BOLD("Interactive operation"), " (when --interactive specified)");
       newline();
 
@@ -150,12 +150,12 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<char> short_options
     {
-      std::make_pair('b', [this](auto&&...) mutable
+      std::make_pair('b', [this](auto&&...)
       {
         return batch_mode = t;
       }),
 
-      std::make_pair('d', [this](auto&&...) mutable
+      std::make_pair('d', [this](auto&&...)
       {
         return debug_mode = t;
       }),
@@ -166,7 +166,7 @@ namespace meevax { inline namespace kernel
         return std::exit(boost::exit_success), unspecified;
       }),
 
-      std::make_pair('i', [this](auto&&...) mutable
+      std::make_pair('i', [this](auto&&...)
       {
         return interactive_mode = t;
       }),
@@ -186,7 +186,7 @@ namespace meevax { inline namespace kernel
         return unspecified;
       }),
 
-      std::make_pair('l', [this](const object& s) mutable
+      std::make_pair('l', [this](const object& s)
       {
         if (s.is<symbol>())
         {
@@ -201,12 +201,12 @@ namespace meevax { inline namespace kernel
 
     const dispatcher<std::string> long_options
     {
-      std::make_pair("batch", [this](auto&&...) mutable
+      std::make_pair("batch", [this](auto&&...)
       {
         return batch_mode = t;
       }),
 
-      std::make_pair("debug", [this](auto&&...) mutable
+      std::make_pair("debug", [this](auto&&...)
       {
         return debug_mode = t;
       }),
@@ -217,7 +217,7 @@ namespace meevax { inline namespace kernel
         return std::exit(boost::exit_success), unspecified;
       }),
 
-      std::make_pair("interactive", [this](auto&&...) mutable
+      std::make_pair("interactive", [this](auto&&...)
       {
         return interactive_mode = t;
       }),
@@ -225,12 +225,12 @@ namespace meevax { inline namespace kernel
       // TODO --srfi=0,1,2
       // TODO --reviced=4,5,7
 
-      std::make_pair("trace", [this](auto&&...) mutable
+      std::make_pair("trace", [this](auto&&...)
       {
         return trace_mode = t;
       }),
 
-      std::make_pair("verbose", [this](auto&&...) mutable
+      std::make_pair("verbose", [this](auto&&...)
       {
         return static_cast<SK&>(*this).verbose_mode = t;
       }),
@@ -256,7 +256,7 @@ namespace meevax { inline namespace kernel
         return unspecified;
       }),
 
-      std::make_pair("load", [this](const object& s) mutable
+      std::make_pair("load", [this](const object& s)
       {
         if (s.is<symbol>())
         {
@@ -268,7 +268,7 @@ namespace meevax { inline namespace kernel
         }
       }),
 
-      std::make_pair("variable", [this](const auto& xs) mutable
+      std::make_pair("variable", [this](const auto& xs)
       {
         std::cerr << "; configure\t; " << variable << " => " << (variable = xs) << std::endl;
         return variable;
