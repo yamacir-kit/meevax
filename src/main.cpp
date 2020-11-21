@@ -26,7 +26,7 @@ int main(const int argc, char const* const* const argv) try
   {
     root.write_to(
       root.standard_interaction_port(),
-      root.header("interaction"), "You have control of root syntactic-continuation.\n");
+      root.header("system"), "You have control of root syntactic-continuation.\n");
 
     for (const auto prompt { "\n> " }; root.ready(); ) try
     {
@@ -70,7 +70,7 @@ int main(const int argc, char const* const* const argv) try
     root.write_to(
       root.standard_interaction_port(),
       "\n",
-      root.header("interaction"), "I have control of root syntactic-continuation.\n");
+      root.header("system"), "I have control of root syntactic-continuation.\n");
   }
 
   return boost::exit_success;
@@ -82,12 +82,12 @@ catch (const meevax::kernel::error& datum)
 }
 catch (const std::exception& error)
 {
-  std::cout << "\x1b[1;31m" << "unexpected standard exception: \"" << error.what() << "\"" << "\x1b[0m" << std::endl;
+  std::cout << meevax::bold << meevax::red << "unexpected standard exception: \"" << error.what() << "\"" << meevax::reset << std::endl;
   return boost::exit_exception_failure;
 }
 catch (...)
 {
-  std::cout << "\x1b[1;31m" << "unexpected exception occurred." << "\x1b[0m" << std::endl;
+  std::cout << meevax::bold << meevax::red << "unexpected exception occurred." << meevax::reset << std::endl;
   return boost::exit_exception_failure;
 }
 
