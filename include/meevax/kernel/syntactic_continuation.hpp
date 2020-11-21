@@ -229,7 +229,7 @@ namespace meevax { inline namespace kernel
       write_to(standard_debug_port(),
         header("loader"), "open ", name, " => ");
 
-      if (let port = make<input_port>(name.c_str()); port)
+      if (let port = make<input_file_port>(name.c_str()); port)
       {
         write_to(standard_debug_port(), t, "\n");
 
@@ -260,9 +260,9 @@ namespace meevax { inline namespace kernel
     }
 
     // XXX DIRTY HACK
-    decltype(auto) load(const std::string& path_to_source)
+    decltype(auto) load(const std::string& name)
     {
-      return load(path(path_to_source));
+      return load(path(name));
     }
 
   public: // Primitive Expression Types

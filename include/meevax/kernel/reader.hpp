@@ -362,7 +362,7 @@ namespace meevax { inline namespace kernel
       {
         throw read_error<void>(__FILE__, ":", __LINE__);
       }
-      else if (x.is<input_port>())
+      else if (x.is_polymorphically<input_port>())
       {
         return read(x.as<input_port>());
       }
@@ -391,7 +391,7 @@ namespace meevax { inline namespace kernel
 
     let standard_input_port() const noexcept
     {
-      let static port = make<input_port>("/dev/stdin", std::cin);
+      let static port = make<input_file_port>("/dev/stdin", std::cin);
       return port;
     }
 

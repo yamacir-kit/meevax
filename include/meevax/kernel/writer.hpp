@@ -55,21 +55,21 @@ namespace meevax { inline namespace kernel
     // TODO MOVE INTO writer.cpp
     let standard_null_port() const
     {
-      let static port = make<output_port>("/dev/null");
+      let static port = make<output_file_port>("/dev/null");
       return port;
     }
 
     // TODO MOVE INTO writer.cpp
     let standard_output_port() const
     {
-      let static port = make<output_port>("/dev/stdout", std::cout);
+      let static port = make<output_file_port>("/dev/stdout", std::cout);
       return in_batch_mode() ? standard_null_port() : port;
     }
 
     // TODO MOVE INTO writer.cpp
     let standard_error_port() const
     {
-      let static port = make<output_port>("/dev/stderr", std::cerr);
+      let static port = make<output_file_port>("/dev/stderr", std::cerr);
       return in_batch_mode() ? standard_null_port() : port;
     }
 

@@ -178,11 +178,6 @@ namespace meevax { inline namespace kernel
       return std::shared_ptr<T>::operator *();
     }
 
-    /* ---- Type Predicates ----------------------------------------------------
-     *
-     * TODO: is_compatible_to (non-strict type comparison)
-     *
-     * ---------------------------------------------------------------------- */
     auto type() const -> decltype(auto)
     {
       if (*this)
@@ -202,10 +197,18 @@ namespace meevax { inline namespace kernel
       }
     }
 
+    /* ---- Type Predicates ------------------------------------------------- */
+
     template <typename U>
     auto is() const
     {
       return type() == typeid(typename std::decay<U>::type);
+    }
+
+    template <typename U>
+    auto is_polymorphically() const
+    {
+      return std::dynamic_pointer_cast<U>(*this).operator bool();
     }
 
     template <typename U,

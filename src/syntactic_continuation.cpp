@@ -824,6 +824,24 @@ namespace meevax { inline namespace kernel
 
     /* ---- R7RS 6.13. Input and output ----------------------------------------
      *
+     *  Kernel
+     *
+     * ┌─────────────────────────┬────────────┬────────────────────────────────┐
+     * │ Symbol                  │ Written in │ Note                           │
+     * ├─────────────────────────┼────────────┼────────────────────────────────┤
+     * │ input-file-port?        │ C++        │                                │
+     * ├─────────────────────────┼────────────┼────────────────────────────────┤
+     * │ output-file-port?       │ C++        │                                │
+     * ├─────────────────────────┼────────────┼────────────────────────────────┤
+     * │ input-file-port-open?   │ C++        │                                │
+     * ├─────────────────────────┼────────────┼────────────────────────────────┤
+     * │ output-file-port-open?  │ C++        │                                │
+     * ├─────────────────────────┼────────────┼────────────────────────────────┤
+     * │ input-string-port?      │ C++        │                                │
+     * ├─────────────────────────┼────────────┼────────────────────────────────┤
+     * │ output-string-port?     │ C++        │                                │
+     * └─────────────────────────┴────────────┴────────────────────────────────┘
+     *
      *  6.13.1. Port
      *
      * ┌─────────────────────────┬────────────┬────────────────────────────────┐
@@ -835,13 +853,13 @@ namespace meevax { inline namespace kernel
      * ├─────────────────────────┼────────────┼────────────────────────────────┤
      * │ call-with-output-file   │ Scheme     │ (scheme file) library          │
      * ├─────────────────────────┼────────────┼────────────────────────────────┤
-     * │ input-port?             │ C++        │                                │
+     * │ input-port?             │ Scheme     │                                │
      * ├─────────────────────────┼────────────┼────────────────────────────────┤
-     * │ output-port?            │ C++        │                                │
+     * │ output-port?            │ Scheme     │                                │
      * ├─────────────────────────┼────────────┼────────────────────────────────┤
-     * │ textual-port?           │            │                                │
+     * │ textual-port?           │ Scheme     │                                │
      * ├─────────────────────────┼────────────┼────────────────────────────────┤
-     * │ binary-port?            │            │                                │
+     * │ binary-port?            │            │ TODO bytevector                │
      * ├─────────────────────────┼────────────┼────────────────────────────────┤
      * │ port?                   │ Scheme     │                                │
      * ├─────────────────────────┼────────────┼────────────────────────────────┤
@@ -946,13 +964,22 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    DEFINE_PREDICATE("input-port?", input_port);
+    DEFINE_PREDICATE("input-file-port?", input_file_port);
 
-    DEFINE_PREDICATE("output-port?", output_port);
+    DEFINE_PREDICATE("output-file-port?", output_file_port);
 
-    define<procedure>("input-port-open?", [](let const& xs)
+    DEFINE_PREDICATE("input-string-port?", input_string_port);
+
+    DEFINE_PREDICATE("output-string-port?", output_string_port);
+
+    define<procedure>("input-file-port-open?", [](let const& xs)
     {
-      return car(xs).as<input_port>().is_open() ? t : f;
+      return car(xs).as<input_file_port>().is_open() ? t : f;
+    });
+
+    define<procedure>("output-file-port-open?", [](let const& xs)
+    {
+      return car(xs).as<output_file_port>().is_open() ? t : f;
     });
 
     define<procedure>("standard-input-port", [this](auto&&)
@@ -962,23 +989,23 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("open-input-file", [](auto&& xs)
     {
-      return make<input_port>(car(xs).template as<string>());
+      return make<input_file_port>(car(xs).template as<string>());
     });
 
     define<procedure>("open-output-file", [](auto&& xs)
     {
-      return make<output_port>(car(xs).template as<string>());
+      return make<output_file_port>(car(xs).template as<string>());
     });
 
     define<procedure>("close-input-port", [](auto&& xs)
     {
-      car(xs).template as<input_port>().close();
+      car(xs).template as<input_file_port>().close();
       return unspecified;
     });
 
     define<procedure>("close-output-port", [](auto&& xs)
     {
-      car(xs).template as<output_port>().close();
+      car(xs).template as<output_file_port>().close();
       return unspecified;
     });
 
@@ -1093,11 +1120,11 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    std::stringstream ss { overture.data() };
+    std::stringstream port { overture.data() };
 
     // std::size_t counts {0};
 
-    for (let e = read(ss); e != eof_object; e = read(ss))
+    for (let e = read(port); e != eof_object; e = read(port))
     {
       // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
       // write_to(standard_debug_port(),

@@ -1618,6 +1618,45 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
+(define input-port?
+  (lambda (x)
+    (or (input-file-port? x)
+        (input-string-port? x))))
+
+(define output-port?
+  (lambda (x)
+    (or (output-file-port? x)
+        (output-string-port? x))))
+
+(define textual-port?
+  (lambda (x)
+    (or ( input-file-port? x)
+        (output-file-port? x)
+        ( input-string-port? x)
+        (output-string-port? x))))
+
+(define binary-port?
+  (lambda (x) #f))
+
+(define port?
+  (lambda (x)
+    (or (input-port? x)
+        (output-port? x))))
+
+(define input-port-open?
+  (lambda (port)
+    (cond ((input-file-port? port)
+           (input-file-port-open? port))
+          ((input-string-port? port) #t)
+          (else #f))))
+
+(define output-port-open?
+  (lambda (port)
+    (cond ((output-file-port? port)
+           (output-file-port-open? port))
+          ((output-string-port? port) #t)
+          (else #f))))
+
 (define current-input-port
   (make-parameter (standard-input-port)
     (lambda (x)
@@ -1643,16 +1682,6 @@
 (define call-with-output-file
   (lambda (string procedure)
     (call-with-port (open-output-file string) procedure)))
-
-(define port?
-  (lambda (x)
-    (or (input-port?  x)
-        (output-port? x))))
-
-(define textual-port? port?)
-
-(define binary-port?
-  (lambda (x) #f))
 
 ; TODO input-port-open?
 ; TODO output-port-open?
