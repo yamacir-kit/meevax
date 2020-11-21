@@ -26,7 +26,7 @@ namespace meevax { inline namespace kernel
     Import_Const(SK, newline);
     Import_Const(SK, write);
     Import_Const(SK, write_to);
-    Import_Const(SK, writeln);
+    Import_Const(SK, write_line);
 
     object batch_mode       { f };
     object debug_mode       { f };
@@ -103,37 +103,37 @@ namespace meevax { inline namespace kernel
       display_version();
       newline();
 
-      #define SECTION(NAME) writeln(bold, NAME)
+      #define SECTION(NAME) write_line(bold, NAME)
       #define BOLD(...) bold, __VA_ARGS__, reset
       #define UNDERLINE(...) underline, __VA_ARGS__, reset
 
       SECTION("Usage:");
-      writeln("  ", BOLD("meevax"), " [", UNDERLINE("option"), "]... [", UNDERLINE("file"), "]...");
+      write_line("  ", BOLD("meevax"), " [", UNDERLINE("option"), "]... [", UNDERLINE("file"), "]...");
       newline();
 
       SECTION("Options:");
-      writeln("  ", BOLD("-b"), ", ", BOLD("--batch"), "                Batch mode: Suppress any system output.");
-      writeln("  ", BOLD("-d"), ", ", BOLD("--debug"), "                Debug mode: Display detailed informations for developers.");
-      writeln("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
-      writeln("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
-      writeln("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
-      writeln("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display version information and exit.");
-      writeln("  ", BOLD("-i"), ", ", BOLD("--interactive"), "          Interactive mode: Take over control of root syntactic-continuation.");
-      writeln("  ", BOLD("-l"), ", ", BOLD("--load"), "=", UNDERLINE("file"), "            Load ", UNDERLINE("file"), " before main session.");
-      writeln("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
-      writeln("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
-      writeln("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display this help text and exit.");
-      writeln("  ", BOLD("  "), "  ", BOLD("--verbose"), "              Verbose mode: Display detailed informations.");
+      write_line("  ", BOLD("-b"), ", ", BOLD("--batch"), "                Batch mode: Suppress any system output.");
+      write_line("  ", BOLD("-d"), ", ", BOLD("--debug"), "                Debug mode: Display detailed informations for developers.");
+      write_line("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
+      write_line("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
+      write_line("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
+      write_line("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display version information and exit.");
+      write_line("  ", BOLD("-i"), ", ", BOLD("--interactive"), "          Interactive mode: Take over control of root syntactic-continuation.");
+      write_line("  ", BOLD("-l"), ", ", BOLD("--load"), "=", UNDERLINE("file"), "            Load ", UNDERLINE("file"), " before main session.");
+      write_line("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
+      write_line("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
+      write_line("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display this help text and exit.");
+      write_line("  ", BOLD("  "), "  ", BOLD("--verbose"), "              Verbose mode: Display detailed informations.");
       newline();
 
       SECTION("Sequence:");
-      writeln("  1. ", BOLD("configuration"));
-      writeln("  2. ", BOLD("batch operation"), " (for each ", UNDERLINE("file"), " specified)");
-      writeln("  3. ", BOLD("Interactive operation"), " (when --interactive specified)");
+      write_line("  1. ", BOLD("configuration"));
+      write_line("  2. ", BOLD("batch operation"), " (for each ", UNDERLINE("file"), " specified)");
+      write_line("  3. ", BOLD("Interactive operation"), " (when --interactive specified)");
       newline();
 
       SECTION("Examples:");
-      writeln("  $ meevax -e '(features)'  ; => Display features.");
+      write_line("  $ meevax -e '(features)'  ; => Display features.");
 
       #undef SECTION
       #undef BOLD
@@ -246,7 +246,7 @@ namespace meevax { inline namespace kernel
     {
       std::make_pair("echo", [&](const auto& xs)
       {
-        writeln(xs);
+        write_line(xs);
         return unspecified;
       }),
 

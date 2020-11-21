@@ -41,14 +41,14 @@ namespace meevax { inline namespace kernel
     }
 
     template <typename... Ts>
-    auto writeln(Ts&&... xs) const -> decltype(auto)
+    auto write_line(Ts&&... xs) const -> decltype(auto)
     {
       return write(std::forward<decltype(xs)>(xs)..., '\n');
     }
 
     auto newline() const -> decltype(auto)
     {
-      return writeln();
+      return write_line();
     }
 
   public:
