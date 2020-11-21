@@ -10,9 +10,11 @@ namespace meevax { inline namespace kernel
 {
   /* ---- Ports ----------------------------------------------------------------
    *
-   *  TODO null-port
    *
    * ------------------------------------------------------------------------ */
+
+  using  input_port = std::istream;
+  using output_port = std::ostream;
 
   #define BOILERPLATE(TYPENAME, STREAM)                                        \
   struct TYPENAME                                                              \
@@ -31,13 +33,11 @@ namespace meevax { inline namespace kernel
     {                                                                          \
       copyfmt(ios);                                                            \
       clear(ios.rdstate());                                                    \
+      static_cast<std::ios&>(*this).rdbuf(ios.rdbuf());                        \
     }                                                                          \
   };                                                                           \
                                                                                \
   auto operator <<(std::ostream& port, const TYPENAME&) -> decltype(port)
-
-  using  input_port = std::istream;
-  using output_port = std::ostream;
 
   BOILERPLATE( input_file_port, ifstream);
   BOILERPLATE(output_file_port, ofstream);

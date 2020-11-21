@@ -10,12 +10,6 @@ int main(const int argc, char const* const* const argv) try
 
   meevax::kernel::syntactic_continuation root { meevax::kernel::layer<4>() };
 
-  root.standard_input_port().as<input_port>().tie(
-    &root.standard_output_port().as<output_port>());
-
-  root.standard_error_port().as<output_port>().tie(
-    &root.standard_output_port().as<output_port>());
-
   // TODO pass argc and argv to syntactic-continuation's constructor directly.
   root.configure(argc, argv);
 
