@@ -1744,11 +1744,13 @@
       (::read port))))
 
 
-(define write
+(define write-simple
   (lambda (datum . maybe-port)
     (let ((port (cond ((pair? maybe-port) => car)
                       (else (current-output-port)))))
-      (::write datum port))))
+      (::write-simple datum port))))
+
+(define write write-simple)
 
 (define display
   (lambda (datum . maybe-port)
@@ -1774,7 +1776,12 @@
 
 ; TODO write-u8
 ; TODO write-bytevector
-; TODO flush-output-port
+
+(define flush-output-port
+  (lambda maybe-port
+    (::flush-output-port (cond ((pair? maybe-port) => car)
+                               (else (current-output-port))))))
+
 
 ; ------------------------------------------------------------------------------
 ;  6.14 Standard System Interface Library

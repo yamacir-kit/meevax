@@ -962,11 +962,11 @@ namespace meevax { inline namespace kernel
      * ┌─────────────────────────┬────────────┬───────────────────────────────┐
      * │ Symbol                  │ Written in │ Note                          │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write                   │ Scheme     │ (scheme write) library        │
+     * │ write                   │ TODO       │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ write-shared            │ TODO       │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write-simple            │ TODO       │ (scheme write) library        │
+     * │ write-simple            │ Scheme     │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ display                 │ Scheme     │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -980,7 +980,7 @@ namespace meevax { inline namespace kernel
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ write-bytevector        │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ flush-output-port       │ TODO       │                               │
+     * │ flush-output-port       │ Scheme     │                               │
      * └─────────────────────────┴────────────┴───────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
@@ -1070,25 +1070,31 @@ namespace meevax { inline namespace kernel
     });
 
 
-    define<procedure>("::write", [this](let const& xs)
+    define<procedure>("::write-simple", [this](let const& xs)
     {
-      let const port = cadr(xs);
-      write_to(port, car(xs));
-      return port;
+      write_to(cadr(xs), car(xs));
+      return unspecified;
     });
 
     #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
     define<procedure>("::write-" SUFFIX, [](let const& xs)                     \
     {                                                                          \
-      let const port = cadr(xs);                                               \
-      car(xs).as<TYPENAME>().display_to(port);                                 \
-      return port;                                                             \
+      car(xs).as<TYPENAME>().display_to(cadr(xs));                             \
+      return unspecified;                                                      \
     })
 
     BOILERPLATE("char", character);
     BOILERPLATE("string", string);
 
     #undef BOILERPLATE
+
+
+    define<procedure>("::flush-output-port", [](let const& xs)
+    {
+      car(xs).as<output_port>() << std::flush;
+      return unspecified;
+    });
+
 
     /* ==== R7RS 6.14. System interface ========================================
      *
