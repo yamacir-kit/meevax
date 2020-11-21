@@ -50,11 +50,15 @@ namespace meevax { inline namespace kernel
     using std::istringstream::istringstream;
   };
 
+  auto operator <<(std::ostream& port, const input_string_port) -> decltype(port);
+
   struct output_string_port
     : public std::ostringstream
   {
     using std::ostringstream::ostringstream;
   };
+
+  auto operator <<(std::istream& port, const output_string_port) -> decltype(port);
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP

@@ -832,7 +832,7 @@ namespace meevax { inline namespace kernel
      *  -----------------------
      *
      * ┌─────────────────────────┬────────────┬───────────────────────────────┐
-     * │ Symbol                  │ Written in │ Note                          │
+     * │ Identifier              │ Written in │ Note                          │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ standard-input-port     │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -851,6 +851,10 @@ namespace meevax { inline namespace kernel
      * │ input-file-port-open?   │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ output-file-port-open?  │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ close-input-file-port   │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ close-output-file-port  │ C++        │                               │
      * └─────────────────────────┴────────────┴───────────────────────────────┘
      *
      *
@@ -858,7 +862,7 @@ namespace meevax { inline namespace kernel
      *  ------------
      *
      * ┌─────────────────────────┬────────────┬───────────────────────────────┐
-     * │ Symbol                  │ Written in │ Note                          │
+     * │ Identifier              │ Written in │ Note                          │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ call-with-port          │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -882,13 +886,13 @@ namespace meevax { inline namespace kernel
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ current-input-port      │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ current-output-port     │ TODO       │                               │
+     * │ current-output-port     │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ current-error-port      │ TODO       │                               │
+     * │ current-error-port      │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ with-input-from-file    │ TODO       │ (scheme file) library         │
+     * │ with-input-from-file    │ Scheme     │ (scheme file) library         │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ with-output-to-file     │ TODO       │ (scheme file) library         │
+     * │ with-output-to-file     │ Scheme     │ (scheme file) library         │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ open-input-file         │ C++        │ (scheme file) library         │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -900,13 +904,13 @@ namespace meevax { inline namespace kernel
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ close-port              │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ close-input-port        │ C++        │                               │
+     * │ close-input-port        │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ close-output-port       │ C++        │                               │
+     * │ close-output-port       │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ open-input-string       │ TODO       │                               │
+     * │ open-input-string       │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ open-output-string      │ TODO       │                               │
+     * │ open-output-string      │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ get-output-string       │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -924,31 +928,31 @@ namespace meevax { inline namespace kernel
      * ┌─────────────────────────┬────────────┬───────────────────────────────┐
      * │ Symbol                  │ Written in │ Note                          │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ read                    │            │ (scheme read) library         │
+     * │ read                    │ Scheme     │ (scheme read) library         │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ read-char               │            │                               │
+     * │ read-char               │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ peek-char               │            │                               │
+     * │ peek-char               │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ read-line               │            │                               │
+     * │ read-line               │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ eof-object?             │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ eof-object              │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ char-ready?             │            │                               │
+     * │ char-ready?             │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ read-string             │            │                               │
+     * │ read-string             │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ read-u8                 │            │                               │
+     * │ read-u8                 │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ peek-u8                 │            │                               │
+     * │ peek-u8                 │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ u8-ready?               │            │                               │
+     * │ u8-ready?               │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ read-bytevector         │            │                               │
+     * │ read-bytevector         │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ read-bytevector!        │            │                               │
+     * │ read-bytevector!        │ TODO       │                               │
      * └─────────────────────────┴────────────┴───────────────────────────────┘
      *
      *
@@ -958,25 +962,25 @@ namespace meevax { inline namespace kernel
      * ┌─────────────────────────┬────────────┬───────────────────────────────┐
      * │ Symbol                  │ Written in │ Note                          │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write                   │            │ (scheme write) library        │
+     * │ write                   │ Scheme     │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write-shared            │            │ (scheme write) library        │
+     * │ write-shared            │ TODO       │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write-simple            │            │ (scheme write) library        │
+     * │ write-simple            │ TODO       │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ display                 │            │ (scheme write) library        │
+     * │ display                 │ Scheme     │ (scheme write) library        │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ newline                 │            │                               │
+     * │ newline                 │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write-char              │ C++        │                               │
+     * │ write-char              │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write-string            │ C++        │                               │
+     * │ write-string            │ Scheme     │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write-u8                │            │                               │
+     * │ write-u8                │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ write-bytevector        │            │                               │
+     * │ write-bytevector        │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ flush-output-port       │            │                               │
+     * │ flush-output-port       │ TODO       │                               │
      * └─────────────────────────┴────────────┴───────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
@@ -1028,23 +1032,35 @@ namespace meevax { inline namespace kernel
     });
 
 
-    define<procedure>("close-input-port", [](let const& xs)
+    define<procedure>("close-input-file-port", [](let const& xs)
     {
       car(xs).as<input_file_port>().close();
       return unspecified;
     });
 
-    define<procedure>("close-output-port", [](let const& xs)
+    define<procedure>("close-output-file-port", [](let const& xs)
     {
       car(xs).as<output_file_port>().close();
       return unspecified;
     });
 
 
-    define<procedure>("read", [this](const object& xs)
+    // define<procedure>("open-input-string", [](auto&&)
+    // {
+    //   return make<input_string_port>();
+    // });
+    //
+    // define<procedure>("open-output-string", [](auto&&)
+    // {
+    //   return make<output_string_port>();
+    // });
+
+
+    define<procedure>("::read", [this](let const& xs)
     {
       return read(car(xs));
     });
+
 
     DEFINE_PREDICATE("eof-object?", eof);
 
@@ -1053,17 +1069,20 @@ namespace meevax { inline namespace kernel
       return eof_object;
     });
 
-    define<procedure>("write", [this](auto&& xs)
+
+    define<procedure>("::write", [this](let const& xs)
     {
-      write_to(standard_output_port(), car(xs));
-      return unspecified;
+      let const port = cadr(xs);
+      write_to(port, car(xs));
+      return port;
     });
 
     #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
-    define<procedure>("write-" SUFFIX, [this](let const& xs)                   \
+    define<procedure>("::write-" SUFFIX, [](let const& xs)                     \
     {                                                                          \
-      car(xs).as<TYPENAME>().display_to(cdr(xs).is<null>() ? standard_output_port() : cadr(xs)); \
-      return unspecified;                                                      \
+      let const port = cadr(xs);                                               \
+      car(xs).as<TYPENAME>().display_to(port);                                 \
+      return port;                                                             \
     })
 
     BOILERPLATE("char", character);

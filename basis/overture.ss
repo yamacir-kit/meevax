@@ -1618,6 +1618,19 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
+(define call-with-port
+  (lambda (port procedure)
+    (procedure port)))
+
+(define call-with-input-file
+  (lambda (string procedure)
+    (call-with-port (open-input-file string) procedure)))
+
+(define call-with-output-file
+  (lambda (string procedure)
+    (call-with-port (open-output-file string) procedure)))
+
+
 (define input-port?
   (lambda (x)
     (or (input-file-port? x)
@@ -1643,6 +1656,7 @@
     (or (input-port? x)
         (output-port? x))))
 
+
 (define input-port-open?
   (lambda (port)
     (cond ((input-file-port? port)
@@ -1657,6 +1671,7 @@
           ((output-string-port? port) #t)
           (else #f))))
 
+
 (define current-input-port
   (make-parameter (standard-input-port)
     (lambda (x)
@@ -1666,89 +1681,96 @@
              (error "current-input-port: not input-port-open" x))
             (else x)))))
 
+(define current-output-port
+  (make-parameter (standard-output-port)
+    (lambda (x)
+      (cond ((not (output-port? x))
+             (error "current-output-port: not output-port" x))
+            ((not (output-port-open? x))
+             (error "current-output-port: not output-port-open" x))
+            (else x)))))
+
+(define current-error-port
+  (make-parameter (standard-error-port)
+    (lambda (x)
+      (cond ((not (output-port? x))
+             (error "current-error-port: not output-port" x))
+            ((not (output-port-open? x))
+             (error "current-error-port: not output-port-open" x))
+            (else x)))))
+
+
 (define with-input-from-file
   (lambda (string thunk)
     (parameterize ((current-input-port (open-input-file string)))
       (thunk))))
 
-(define call-with-port
-  (lambda (port procedure)
-    (procedure port)))
+(define with-output-to-file
+  (lambda (string thunk)
+    (parameterize ((current-output-port (open-output-file string)))
+      (thunk))))
 
-(define call-with-input-file
-  (lambda (string procedure)
-    (call-with-port (open-input-file string) procedure)))
-
-(define call-with-output-file
-  (lambda (string procedure)
-    (call-with-port (open-output-file string) procedure)))
-
-; TODO input-port-open?
-; TODO output-port-open?
-
-; TODO current-input-port
-; TODO current-output-port
-; TODO current-error-port
-
-; TODO with-input-from-file
-; TODO with-output-to-file
-
-; TODO open-binary-input-file
-; TODO open-binary-output-file
 
 (define close-port
   (lambda (x)
-    (if (input-port? x)
-        (close-input-port x)
-        (if (output-port? x)
-            (close-output-port x)
-            (unspecified)))))
+    (cond (( input-port? x) ( close-input-port x))
+          ((output-port? x) (close-output-port x))
+          (else (unspecified)))))
 
-; TODO open-input-string
-; TODO open-output-string
+(define close-input-port
+  (lambda (x)
+    (cond ((      input-file-port? x)
+           (close-input-file-port  x))
+          (else (unspecified)))))
+
+(define close-output-port
+  (lambda (x)
+    (cond ((      output-file-port? x)
+           (close-output-file-port  x))
+          (else (unspecified)))))
+
+
 ; TODO get-output-string
 
 ; TODO open-input-bytevector
 ; TODO open-output-bytevector
 ; TODO get-output-bytevector
 
-; TODO read-char
-; TODO peek-char
-; TODO read-line
 
-; TODO char-ready?
+(define read
+  (lambda maybe-port
+    (let ((port (cond ((pair? maybe-port) => car)
+                      (else (current-input-port)))))
+      (::read port))))
 
-; TODO read-string
-; TODO read-u8
 
-; TODO u8-ready?
-
-; TODO read-bytevector
-; TODO read-bytevector!
-
-; TODO write-shared
+(define write
+  (lambda (datum . maybe-port)
+    (let ((port (cond ((pair? maybe-port) => car)
+                      (else (current-output-port)))))
+      (::write datum port))))
 
 (define display
-  (lambda (x . option)
-    (let ((port (if (pair? option)
-                    (car option)
-                    ; (current-output-port)
-                    )))
-      (cond
-        ((char?   x) (write-char   x))
-        ((string? x) (write-string x))
-        (else        (write        x))
-        ; ((char?   x) (write-char   x port))
-        ; ((string? x) (write-string x port))
-        ; (else        (write        x port))
-        ))))
+  (lambda (datum . maybe-port)
+    (cond ((char?   datum) (apply write-char    datum maybe-port))
+          ((string? datum) (apply write-string  datum maybe-port))
+          (else            (apply write         datum maybe-port)))))
 
 (define newline
-  (lambda option
-    (write-char #\newline ; (if (pair? option)
-                          ;     (car option)
-                          ;     (current-output-port))
-                          )))
+  (lambda xs
+    (apply write-char #\newline xs)))
+
+(define write-char
+  (lambda (char . maybe-port)
+    (::write-char char (cond ((pair? maybe-port) => car)
+                             (else (current-output-port))))))
+
+(define write-string
+  (lambda (string . xs)
+    (case (length xs)
+      ((0)  (::write-string string (current-output-port)))
+      ((1)  (::write-string string (car xs)))
+      (else (::write-string (apply string-copy string (cadr xs)) (car xs))))))
 
 ; TODO write-u8
 ; TODO write-bytevector
