@@ -87,9 +87,6 @@ namespace meevax { inline namespace kernel
     {
       return in_interactive_mode() ? standard_output_port() : standard_null_port();
     }
-
-    Define_Static_Perfect_Forwarding(open_output_file, std::ofstream);
-    Define_Static_Perfect_Forwarding(open_output_string, std::stringstream);
   };
 }} // namespace meevax::kernel
 

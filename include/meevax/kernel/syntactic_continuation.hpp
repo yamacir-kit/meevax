@@ -224,12 +224,12 @@ namespace meevax { inline namespace kernel
       return result;
     }
 
-    auto load(const path& path_to_source) -> const auto&
+    auto load(const path& name) -> const auto&
     {
       write_to(standard_debug_port(),
-        header("loader"), "open ", path_to_source, " => ");
+        header("loader"), "open ", name, " => ");
 
-      if (auto port {open_input_file(path_to_source.c_str())}; port)
+      if (let port = make<input_port>(name.c_str()); port)
       {
         write_to(standard_debug_port(), t, "\n");
 
@@ -238,10 +238,9 @@ namespace meevax { inline namespace kernel
           std::atomic_exchange(&e, unit),
           std::atomic_exchange(&c, unit));
 
-        for (auto expression {read(port)}; expression != eof_object; expression = read(port))
+        for (let expression = read(port); expression != eof_object; expression = read(port))
         {
-          write_to(standard_debug_port(),
-            header("loader"), expression, "\n");
+          write_to(standard_debug_port(), header("loader"), expression, "\n");
 
           evaluate(expression);
         }
@@ -255,7 +254,8 @@ namespace meevax { inline namespace kernel
       else
       {
         write_to(standard_debug_port(), f, "\n");
-        throw file_error<void>("failed to open file: ", path_to_source.c_str());
+
+        throw file_error<void>("failed to open file: ", name.c_str());
       }
     }
 

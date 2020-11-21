@@ -1093,21 +1093,21 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    auto port { open_input_string(overture.data()) };
+    std::stringstream ss { overture.data() };
 
-    std::size_t counts {0};
+    // std::size_t counts {0};
 
-    for (let e = read(port); e != eof_object; e = read(port))
+    for (let e = read(ss); e != eof_object; e = read(ss))
     {
       // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-      write_to(standard_debug_port(),
-        "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
+      // write_to(standard_debug_port(),
+      //   "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
 
       evaluate(e);
     }
 
     // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-    write_to(standard_debug_port(), "\n\n");
+    // write_to(standard_debug_port(), "\n\n");
   }
 
   template <>

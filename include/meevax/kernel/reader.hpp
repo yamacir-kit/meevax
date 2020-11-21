@@ -4,6 +4,7 @@
 #include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
 #include <regex>
+#include <sstream>
 #include <stack>
 
 #include <boost/iostreams/device/null.hpp>
@@ -26,7 +27,7 @@ namespace meevax { inline namespace kernel
   struct eof
   {};
 
-  extern let const eof_object;
+  let extern const eof_object;
 
   auto operator <<(std::ostream& port, const eof&) -> decltype(port);
 
@@ -35,7 +36,7 @@ namespace meevax { inline namespace kernel
   struct eos
   {};
 
-  extern let const eos_object;
+  let extern const eos_object;
 
   auto operator <<(std::ostream& port, const eos&) -> decltype(port);
 
@@ -248,7 +249,6 @@ namespace meevax { inline namespace kernel
    * ------------------------------------------------------------------------ */
   template <typename SK>
   class reader
-    // : private boost::iostreams::stream_buffer<boost::iostreams::null_sink>
   {
     friend SK;
 
@@ -350,6 +350,7 @@ namespace meevax { inline namespace kernel
       return eof_object;
     }
 
+    [[deprecated]]
     auto read(std::istream&& port) -> decltype(auto)
     {
       return read(port);
@@ -378,7 +379,8 @@ namespace meevax { inline namespace kernel
 
     auto read(const std::string& s) -> decltype(auto)
     {
-      return read(open_input_string(s));
+      std::stringstream ss { s };
+      return read(ss);
     }
 
   public:
@@ -392,9 +394,6 @@ namespace meevax { inline namespace kernel
       let static port = make<input_port>("/dev/stdin", std::cin);
       return port;
     }
-
-    Define_Static_Perfect_Forwarding(open_input_file, std::ifstream);
-    Define_Static_Perfect_Forwarding(open_input_string, std::stringstream);
 
   private:
     template <typename F>
