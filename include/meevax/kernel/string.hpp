@@ -37,9 +37,9 @@ inline namespace kernel
     }
   };
 
-  bool operator==(const string& lhs, const string& rhs);
+  bool operator==(const string&, const string&);
 
-  output_port& operator <<(output_port& port, const string& datum);
+  output_port& operator <<(output_port&, const string&);
 } // namespace kernel
 } // namespace meevax
 

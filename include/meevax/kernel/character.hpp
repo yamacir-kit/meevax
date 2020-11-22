@@ -46,7 +46,7 @@ namespace meevax { inline namespace kernel
       switch (size())
       {
       case 1:
-        code = (*this)[0] & 0b0111'1111;
+        code |= (*this)[0] & 0b0111'1111;
         break;
 
       case 2:
@@ -74,9 +74,19 @@ namespace meevax { inline namespace kernel
       return code;
     }
 
+    decltype(auto) codepoint() const
+    {
+      return decode();
+    }
+
     auto display() const -> decltype(auto)
     {
       return static_cast<std::string>(*this);
+    }
+
+    auto write_char() const
+    {
+      return display();
     }
 
     auto display_to(std::ostream&) const -> std::ostream&;
