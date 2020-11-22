@@ -912,7 +912,7 @@ namespace meevax { inline namespace kernel
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ open-output-string      │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ get-output-string       │ TODO       │                               │
+     * │ get-output-string       │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ open-input-bytevector   │ TODO       │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -1047,26 +1047,39 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("open-input-string", [](let const& xs)
     {
-      if (let const x = car(xs); x.is<string>())
+      if (xs.is<null>())
+      {
+        return make<input_string_port>();
+      }
+      else if (let const x = car(xs); x.is<string>())
       {
         return make<input_string_port>(x.as<string>());
       }
       else
       {
-        return make<input_string_port>();
+        throw error("open-input-string: not string", car(xs));
       }
     });
 
     define<procedure>("open-output-string", [](let const& xs)
     {
-      if (let const x = car(xs); x.is<string>())
+      if (xs.is<null>())
+      {
+        return make<output_string_port>();
+      }
+      else if (let const x = car(xs); x.is<string>())
       {
         return make<output_string_port>(x.as<string>());
       }
       else
       {
-        return make<output_string_port>();
+        throw error("open-output-string: not string", car(xs));
       }
+    });
+
+    define<procedure>("get-output-string", [](let const& xs)
+    {
+      return make_string(car(xs).as<output_string_port>().str());
     });
 
 

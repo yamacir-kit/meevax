@@ -1719,18 +1719,16 @@
 
 (define close-input-port
   (lambda (x)
-    (cond ((      input-file-port? x)
-           (close-input-file-port  x))
+    (cond ((input-file-port? x)
+           (close-input-file-port x))
           (else (unspecified)))))
 
 (define close-output-port
   (lambda (x)
-    (cond ((      output-file-port? x)
-           (close-output-file-port  x))
+    (cond ((output-file-port? x)
+           (close-output-file-port x))
           (else (unspecified)))))
 
-
-; TODO get-output-string
 
 ; TODO open-input-bytevector
 ; TODO open-output-bytevector
@@ -1739,15 +1737,17 @@
 
 (define read
   (lambda maybe-port
-    (let ((port (cond ((pair? maybe-port) => car)
-                      (else (current-input-port)))))
+    (let ((port (if (pair? maybe-port)
+                    (car maybe-port)
+                    (current-output-port))))
       (::read port))))
 
 
 (define write-simple
   (lambda (datum . maybe-port)
-    (let ((port (cond ((pair? maybe-port) => car)
-                      (else (current-output-port)))))
+    (let ((port (if (pair? maybe-port)
+                    (car maybe-port)
+                    (current-output-port))))
       (::write-simple datum port))))
 
 (define write write-simple)
@@ -1764,8 +1764,9 @@
 
 (define write-char
   (lambda (char . maybe-port)
-    (::write-char char (cond ((pair? maybe-port) => car)
-                             (else (current-output-port))))))
+    (::write-char char (if (pair? maybe-port)
+                           (car maybe-port)
+                           (current-output-port)))))
 
 (define write-string
   (lambda (string . xs)
@@ -1779,8 +1780,9 @@
 
 (define flush-output-port
   (lambda maybe-port
-    (::flush-output-port (cond ((pair? maybe-port) => car)
-                               (else (current-output-port))))))
+    (::flush-output-port (if (pair? maybe-port)
+                             (car maybe-port)
+                             (current-output-port)))))
 
 
 ; ------------------------------------------------------------------------------
