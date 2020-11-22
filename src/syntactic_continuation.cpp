@@ -1045,15 +1045,15 @@ namespace meevax { inline namespace kernel
     });
 
 
-    // define<procedure>("open-input-string", [](auto&&)
-    // {
-    //   return make<input_string_port>();
-    // });
-    //
-    // define<procedure>("open-output-string", [](auto&&)
-    // {
-    //   return make<output_string_port>();
-    // });
+    define<procedure>("open-input-string", [](auto&&)
+    {
+      return make<input_string_port>();
+    });
+
+    define<procedure>("open-output-string", [](auto&&)
+    {
+      return make<output_string_port>();
+    });
 
 
     define<procedure>("::read", [this](let const& xs)
