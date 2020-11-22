@@ -14,7 +14,7 @@ namespace meevax { inline namespace kernel
     {}
 
     Import(SK, write_to);
-    Import_Const(SK, current_debug_port);
+    Import_Const(SK, standard_debug_port);
 
   public:
     static inline           std::size_t depth {0};
@@ -49,7 +49,7 @@ namespace meevax { inline namespace kernel
     auto debug(Ts&&... xs) -> decltype(auto)
     {
       return
-        write_to(current_debug_port(),
+        write_to(standard_debug_port(),
           header(), indent(), std::forward<decltype(xs)>(xs)..., "\n");
     }
 

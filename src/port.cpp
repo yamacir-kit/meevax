@@ -1,12 +1,15 @@
+#include <iomanip>
+
 #include <meevax/kernel/port.hpp>
+#include <meevax/kernel/reader.hpp>
 #include <meevax/posix/vt102.hpp>
 
 namespace meevax { inline namespace kernel
 {
-  #define BOILERPLATE(TYPENAME, FILETYPE)                                      \
+  #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
   auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
   {                                                                            \
-    port << magenta << "#,(" << green << "open-" FILETYPE << " " << datum.pathname << reset; \
+    port << magenta << "#,(" << green << "open-" PORTTYPE << " " << datum.name << reset; \
                                                                                \
     if (not datum.is_open())                                                   \
     {                                                                          \
@@ -16,8 +19,27 @@ namespace meevax { inline namespace kernel
     return port << magenta << ")" << reset;                                    \
   }
 
-  BOILERPLATE( input_port,  "input-file");
-  BOILERPLATE(output_port, "output-file");
+  BOILERPLATE( input_file_port,  "input-file");
+  BOILERPLATE(output_file_port, "output-file");
+
+  #undef BOILERPLATE
+
+
+  #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
+  auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
+  {                                                                            \
+    port << magenta << "#,(" << green << "open-" PORTTYPE;                     \
+                                                                               \
+    if (const auto s { datum.str() }; not std::empty(s))                       \
+    {                                                                          \
+      port << " " << cyan << make_string(s);                                   \
+    }                                                                          \
+                                                                               \
+    return port << magenta << ")" << reset;                                    \
+  }
+
+  BOILERPLATE( input_string_port,  "input-string");
+  BOILERPLATE(output_string_port, "output-string");
 
   #undef BOILERPLATE
 }} // namespace meevax::kernel

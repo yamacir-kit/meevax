@@ -4,6 +4,7 @@
 #include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
 #include <regex>
+#include <sstream>
 #include <stack>
 
 #include <boost/iostreams/device/null.hpp>
@@ -14,6 +15,7 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/path.hpp>
+#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -25,7 +27,7 @@ namespace meevax { inline namespace kernel
   struct eof
   {};
 
-  extern let const eof_object;
+  let extern const eof_object;
 
   auto operator <<(std::ostream& port, const eof&) -> decltype(port);
 
@@ -34,7 +36,7 @@ namespace meevax { inline namespace kernel
   struct eos
   {};
 
-  extern let const eos_object;
+  let extern const eos_object;
 
   auto operator <<(std::ostream& port, const eos&) -> decltype(port);
 
@@ -241,21 +243,17 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  /* ==== Reader ===============================================================
-  *
-  *
-  * ========================================================================= */
+  /* ---- Reader ---------------------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
   template <typename SK>
   class reader
-    // : private boost::iostreams::stream_buffer<boost::iostreams::null_sink>
   {
     friend SK;
 
     explicit reader()
-      // : sources {}
-    {
-      // sources.emplace(std::cin.rdbuf());
-    }
+    {}
 
     Import(SK, evaluate);
     Import(SK, intern);
@@ -265,23 +263,13 @@ namespace meevax { inline namespace kernel
     enum class   proper_list_tag {};
     enum class improper_list_tag {};
 
-  protected:
-    // NOTE
-    // std::stack<object> sources {};
-    // auto path {read_string("/path/to/file")};
-    // auto something {make<input_port>(path.as<std::string>())};
-    // car(something) = path;
-    // cdr(something) = make<exact_integer>(1); // current line
-
-    // std::stack<std::istream> sources;
-
   public:
-    /* ==== Read ===============================================================
-    *
-    * TODO
-    *   Rename read(std::istream&) => read_from
-    *
-    * ======================================================================= */
+    /* ---- Read ---------------------------------------------------------------
+     *
+     *  TODO
+     *    Rename read(std::istream&) => read_from
+     *
+     * ---------------------------------------------------------------------- */
     let const read(std::istream& port)
     {
       std::string token {};
@@ -362,46 +350,50 @@ namespace meevax { inline namespace kernel
       return eof_object;
     }
 
+    [[deprecated]]
     auto read(std::istream&& port) -> decltype(auto)
     {
       return read(port);
     }
 
+    auto read(const object& x) -> decltype(auto)
+    {
+      if (x.is<null>())
+      {
+        throw read_error<void>(__FILE__, ":", __LINE__);
+      }
+      else if (x.is_polymorphically<input_port>())
+      {
+        return read(x.as<input_port>());
+      }
+      else
+      {
+        throw read_error<void>(__FILE__, ":", __LINE__);
+      }
+    }
+
     auto read() -> decltype(auto)
     {
-      return read(current_input_port());
+      return read(standard_input_port());
     }
 
     auto read(const std::string& s) -> decltype(auto)
     {
-      return read(open_input_string(s));
+      std::stringstream ss { s };
+      return read(ss);
     }
 
   public:
-    auto ready()
+    auto ready() // TODO RENAME TO 'char-ready'
     {
-      return static_cast<bool>(current_input_port());
+      return not standard_input_port().template is<null>() and standard_input_port().template as<input_port>();
     }
 
-    auto standard_input_port() const noexcept -> auto&
+    let standard_input_port() const noexcept
     {
-      return std::cin;
+      let static port = make<input_file_port>("/dev/stdin", std::cin);
+      return port;
     }
-
-    auto current_input_port() const noexcept -> decltype(auto)
-    {
-      // return sources.top();
-      return standard_input_port();
-    }
-
-    // auto current_input_port(std::istream&& port)
-    // {
-    //   sources.push(port);
-    //   return current_input_port();
-    // }
-
-    Define_Static_Perfect_Forwarding(open_input_file, std::ifstream);
-    Define_Static_Perfect_Forwarding(open_input_string, std::stringstream);
 
   private:
     template <typename F>

@@ -463,6 +463,63 @@
 ; TODO let*-values
 
 ; ------------------------------------------------------------------------------
+;  4.2.6. Dynamic bindings
+; ------------------------------------------------------------------------------
+
+; SRFI 39: Parameter objects
+
+(define dynamic-environment '())
+
+(define make-parameter
+  (lambda (init . maybe-converter)
+    (let* ((convert
+             (if (null? maybe-converter)
+                 (lambda (x) x)
+                 (car maybe-converter)))
+           (global-dynamic-environment
+             (cons #f (convert init))))
+
+      (define dynamic-lookup
+        (lambda (parameter global-dynamic-environment)
+          (or (assq parameter dynamic-environment) global-dynamic-environment)))
+
+      (define parameter
+        (lambda maybe-value
+          (let ((binding
+                  (dynamic-lookup parameter global-dynamic-environment)))
+            (cond ((null? maybe-value)
+                   (cdr binding))
+                  ((null? (cdr maybe-value))
+                   (set-cdr! binding (convert (car maybe-value))))
+                  (else (convert (car maybe-value)))))))
+
+      (set-car! global-dynamic-environment parameter)
+      parameter)))
+
+(define parameterize-aux
+  (lambda (parameters values body)
+    (let* ((saved dynamic-environment)
+           (bindings
+             (map (lambda (parameter value)
+                    (cons parameter (parameter value #f)))
+                  parameters
+                  values)))
+      (dynamic-wind
+        (lambda () (set! dynamic-environment (append bindings saved)))
+        body
+        (lambda () (set! dynamic-environment                  saved))))))
+
+(define-syntax parameterize
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (let* ((bindings (cadr form))
+             (body (cddr form)))
+        `(parameterize-aux
+           (list ,@(map  car bindings))
+           (list ,@(map cadr bindings))
+           (lambda () ,@body))))))
+
+; ------------------------------------------------------------------------------
 ;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
@@ -1424,11 +1481,11 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
-(define call-with-current-continuation ; hack
-  (lambda (procedure)
-    (call-with-current-continuation procedure)))
-
-(define call/cc call-with-current-continuation)
+; (define call-with-current-continuation ; hack
+;   (lambda (procedure)
+;     (call-with-current-continuation procedure)))
+;
+; (define call/cc call-with-current-continuation)
 
 ; (define values
 ;   (lambda xs
@@ -1459,7 +1516,50 @@
           (apply consumer (cdr result))
           (consumer result) ))))
 
-; TODO dynamic-wind
+; ---- dynamic-wind ------------------------------------------------------------
+
+; from SRFI-39
+
+(define dynamic-extents '())
+
+(define dynamic-wind
+  (lambda (before body after)
+    (before)
+    (set! dynamic-extents (cons (cons before after) dynamic-extents))
+    (let ((result (body)))
+      (set! dynamic-extents (cdr dynamic-extents))
+      (after)
+      result)))
+
+(define call-with-current-continuation
+  (let ((call/cc
+          (lambda (procedure)
+            (call-with-current-continuation procedure)))) ; Original call/cc is syntax
+    (lambda (proc)
+
+      (define windup!
+        (lambda (from to)
+          (set! dynamic-extents from)
+          (cond ((eq? from to))
+                ((null? from)
+                 (windup! from (cdr to))
+                 ((caar to)))
+                ((null? to)
+                 ((cdar from))
+                 (windup! (cdr from) to))
+                (else ((cdar from))
+                      (windup! (cdr from) (cdr to))
+                      ((caar to))))
+          (set! dynamic-extents to)))
+
+      (let ((winds dynamic-extents))
+        (call/cc
+          (lambda (k1)
+            (proc (lambda (k2)
+                    (windup! dynamic-extents winds)
+                    (k1 k2)))))))))
+
+(define call/cc call-with-current-continuation)
 
 ; ------------------------------------------------------------------------------
 ;  6.11 Standard Exceptions Library
@@ -1483,7 +1583,9 @@
 ; TODO raise
 ; TODO raise-continuable
 
-(define error display)
+(define error
+  (lambda (message . irritants)
+    (display message)))
 
 (define error-object?
   (lambda (x) #false) )
@@ -1516,102 +1618,172 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
-; TODO call-with-port
+(define call-with-port
+  (lambda (port procedure)
+    (procedure port)))
 
 (define call-with-input-file
-  (lambda (path proc)
-    (let* ((input-port (open-input-file path))
-           (result (proc input-port)))
-      (close-input-port input-port)
-      result)))
+  (lambda (string procedure)
+    (call-with-port (open-input-file string) procedure)))
 
 (define call-with-output-file
-  (lambda (path proc)
-    (let* ((output-port (open-output-file path))
-           (result (proc output-port)))
-      (close-output-port output-port)
-      result)))
+  (lambda (string procedure)
+    (call-with-port (open-output-file string) procedure)))
 
-(define port?
+
+(define input-port?
   (lambda (x)
-    (or (input-port?  x)
-        (output-port? x))))
+    (or (input-file-port? x)
+        (input-string-port? x))))
 
-(define textual-port? port?)
+(define output-port?
+  (lambda (x)
+    (or (output-file-port? x)
+        (output-string-port? x))))
+
+(define textual-port?
+  (lambda (x)
+    (or ( input-file-port? x)
+        (output-file-port? x)
+        ( input-string-port? x)
+        (output-string-port? x))))
 
 (define binary-port?
   (lambda (x) #f))
 
-; TODO input-port-open?
-; TODO output-port-open?
+(define port?
+  (lambda (x)
+    (or (input-port? x)
+        (output-port? x))))
 
-; TODO current-input-port
-; TODO current-output-port
-; TODO current-error-port
 
-; TODO with-input-from-file
-; TODO with-output-to-file
+(define input-port-open?
+  (lambda (port)
+    (cond ((input-file-port? port)
+           (input-file-port-open? port))
+          ((input-string-port? port) #t)
+          (else #f))))
 
-; TODO open-binary-input-file
-; TODO open-binary-output-file
+(define output-port-open?
+  (lambda (port)
+    (cond ((output-file-port? port)
+           (output-file-port-open? port))
+          ((output-string-port? port) #t)
+          (else #f))))
+
+
+(define current-input-port
+  (make-parameter (standard-input-port)
+    (lambda (x)
+      (cond ((not (input-port? x))
+             (error "current-input-port: not input-port" x))
+            ((not (input-port-open? x))
+             (error "current-input-port: not input-port-open" x))
+            (else x)))))
+
+(define current-output-port
+  (make-parameter (standard-output-port)
+    (lambda (x)
+      (cond ((not (output-port? x))
+             (error "current-output-port: not output-port" x))
+            ((not (output-port-open? x))
+             (error "current-output-port: not output-port-open" x))
+            (else x)))))
+
+(define current-error-port
+  (make-parameter (standard-error-port)
+    (lambda (x)
+      (cond ((not (output-port? x))
+             (error "current-error-port: not output-port" x))
+            ((not (output-port-open? x))
+             (error "current-error-port: not output-port-open" x))
+            (else x)))))
+
+
+(define with-input-from-file
+  (lambda (string thunk)
+    (parameterize ((current-input-port (open-input-file string)))
+      (thunk))))
+
+(define with-output-to-file
+  (lambda (string thunk)
+    (parameterize ((current-output-port (open-output-file string)))
+      (thunk))))
+
 
 (define close-port
   (lambda (x)
-    (if (input-port? x)
-        (close-input-port x)
-        (if (output-port? x)
-            (close-output-port x)
-            (unspecified)))))
+    (cond (( input-port? x) ( close-input-port x))
+          ((output-port? x) (close-output-port x))
+          (else (unspecified)))))
 
-; TODO open-input-string
-; TODO open-output-string
-; TODO get-output-string
+(define close-input-port
+  (lambda (x)
+    (cond ((input-file-port? x)
+           (close-input-file-port x))
+          (else (unspecified)))))
+
+(define close-output-port
+  (lambda (x)
+    (cond ((output-file-port? x)
+           (close-output-file-port x))
+          (else (unspecified)))))
+
 
 ; TODO open-input-bytevector
 ; TODO open-output-bytevector
 ; TODO get-output-bytevector
 
-; TODO read-char
-; TODO peek-char
-; TODO read-line
 
-; TODO char-ready?
+(define read
+  (lambda maybe-port
+    (let ((port (if (pair? maybe-port)
+                    (car maybe-port)
+                    (current-output-port))))
+      (::read port))))
 
-; TODO read-string
-; TODO read-u8
 
-; TODO u8-ready?
+(define write-simple
+  (lambda (datum . maybe-port)
+    (let ((port (if (pair? maybe-port)
+                    (car maybe-port)
+                    (current-output-port))))
+      (::write-simple datum port))))
 
-; TODO read-bytevector
-; TODO read-bytevector!
-
-; TODO write-shared
+(define write write-simple)
 
 (define display
-  (lambda (x . option)
-    (let ((port (if (pair? option)
-                    (car option)
-                    ; (current-output-port)
-                    )))
-      (cond
-        ((char?   x) (write-char   x))
-        ((string? x) (write-string x))
-        (else        (write        x))
-        ; ((char?   x) (write-char   x port))
-        ; ((string? x) (write-string x port))
-        ; (else        (write        x port))
-        ))))
+  (lambda (datum . maybe-port)
+    (cond ((char?   datum) (apply write-char    datum maybe-port))
+          ((string? datum) (apply write-string  datum maybe-port))
+          (else            (apply write         datum maybe-port)))))
 
 (define newline
-  (lambda option
-    (write-char #\newline ; (if (pair? option)
-                          ;     (car option)
-                          ;     (current-output-port))
-                          )))
+  (lambda xs
+    (apply write-char #\newline xs)))
+
+(define write-char
+  (lambda (char . maybe-port)
+    (::write-char char (if (pair? maybe-port)
+                           (car maybe-port)
+                           (current-output-port)))))
+
+(define write-string
+  (lambda (string . xs)
+    (case (length xs)
+      ((0)  (::write-string string (current-output-port)))
+      ((1)  (::write-string string (car xs)))
+      (else (::write-string (apply string-copy string (cadr xs)) (car xs))))))
 
 ; TODO write-u8
 ; TODO write-bytevector
-; TODO flush-output-port
+
+(define flush-output-port
+  (lambda maybe-port
+    (::flush-output-port (if (pair? maybe-port)
+                             (car maybe-port)
+                             (current-output-port)))))
+
 
 ; ------------------------------------------------------------------------------
 ;  6.14 Standard System Interface Library

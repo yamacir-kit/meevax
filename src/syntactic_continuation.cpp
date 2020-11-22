@@ -128,7 +128,7 @@ namespace meevax { inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (let const lhs { car(xs) }, rhs { cadr(xs) }; eq(lhs, rhs))
+      if (let const lhs = car(xs), rhs = cadr(xs); eq(lhs, rhs))
       {
         return t;
       }
@@ -181,9 +181,13 @@ namespace meevax { inline namespace kernel
      * ---------------------------------------------------------------------- */
 
     DEFINE_PREDICATE("COMPLEX?", complex);
+
     DEFINE_PREDICATE("ratio?", ratio);
+
     DEFINE_PREDICATE("single-float?", floating_point<float>);
+
     DEFINE_PREDICATE("double-float?", floating_point<double>);
+
 
     /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
@@ -610,9 +614,9 @@ namespace meevax { inline namespace kernel
      * ====================================================================== */
     DEFINE_PREDICATE("symbol?", symbol);
 
-    define<procedure>("symbol->string", [this](auto&& xs)
+    define<procedure>("symbol->string", [](let const& xs)
     {
-      return read('"' + car(xs).template as<std::string>() + '"');
+      return make_string(car(xs).as<symbol>());
     });
 
     define<procedure>("string->symbol", [](auto&& xs)
@@ -822,60 +826,287 @@ namespace meevax { inline namespace kernel
       return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
     });
 
-    /* ==== R7RS 6.13. Input and output ========================================
+    /* ---- R7RS 6.13. Input and output ----------------------------------------
+     *
+     *  Non-standard procedures
+     *  -----------------------
+     *
+     * ┌─────────────────────────┬────────────┬───────────────────────────────┐
+     * │ Identifier              │ Written in │ Note                          │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ standard-input-port     │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ standard-output-port    │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ standard-error-port     │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ input-file-port?        │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ output-file-port?       │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ input-string-port?      │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ output-string-port?     │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ input-file-port-open?   │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ output-file-port-open?  │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ close-input-file-port   │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ close-output-file-port  │ C++        │                               │
+     * └─────────────────────────┴────────────┴───────────────────────────────┘
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("input-port?", input_port);
-    DEFINE_PREDICATE("output-port?", output_port);
+     *  6.13.1. Port
+     *  ------------
+     *
+     * ┌─────────────────────────┬────────────┬───────────────────────────────┐
+     * │ Identifier              │ Written in │ Note                          │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ call-with-port          │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ call-with-input-file    │ Scheme     │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ call-with-output-file   │ Scheme     │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ input-port?             │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ output-port?            │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ textual-port?           │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ binary-port?            │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ port?                   │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ input-port-open?        │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ output-port-open?       │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ current-input-port      │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ current-output-port     │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ current-error-port      │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ with-input-from-file    │ Scheme     │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ with-output-to-file     │ Scheme     │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-input-file         │ C++        │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-binary-input-file  │ TODO       │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-output-file        │ C++        │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-binary-output-file │ TODO       │ (scheme file) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ close-port              │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ close-input-port        │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ close-output-port       │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-input-string       │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-output-string      │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ get-output-string       │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-input-bytevector   │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ open-output-bytevector  │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ get-output-bytevector   │ TODO       │                               │
+     * └─────────────────────────┴────────────┴───────────────────────────────┘
+     *
+     *
+     *  6.13.2. Input
+     *  -------------
+     *
+     * ┌─────────────────────────┬────────────┬───────────────────────────────┐
+     * │ Symbol                  │ Written in │ Note                          │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ read                    │ Scheme     │ (scheme read) library         │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ read-char               │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ peek-char               │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ read-line               │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ eof-object?             │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ eof-object              │ C++        │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ char-ready?             │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ read-string             │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ read-u8                 │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ peek-u8                 │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ u8-ready?               │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ read-bytevector         │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ read-bytevector!        │ TODO       │                               │
+     * └─────────────────────────┴────────────┴───────────────────────────────┘
+     *
+     *
+     *  6.13.3. Output
+     *  --------------
+     *
+     * ┌─────────────────────────┬────────────┬───────────────────────────────┐
+     * │ Symbol                  │ Written in │ Note                          │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ write                   │ TODO       │ (scheme write) library        │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ write-shared            │ TODO       │ (scheme write) library        │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ write-simple            │ Scheme     │ (scheme write) library        │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ display                 │ Scheme     │ (scheme write) library        │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ newline                 │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ write-char              │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ write-string            │ Scheme     │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ write-u8                │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ write-bytevector        │ TODO       │                               │
+     * ├─────────────────────────┼────────────┼───────────────────────────────┤
+     * │ flush-output-port       │ Scheme     │                               │
+     * └─────────────────────────┴────────────┴───────────────────────────────┘
+     *
+     * ---------------------------------------------------------------------- */
 
-    define<procedure>("open-input-file", [](auto&& xs)
+    define<procedure>("standard-input-port", [this](auto&&)
     {
-      return make<input_port>(car(xs).template as<string>());
+      return standard_input_port();
     });
 
-    define<procedure>("open-output-file", [](auto&& xs)
+    define<procedure>("standard-output-port", [this](auto&&)
     {
-      return make<output_port>(car(xs).template as<string>());
+      return standard_output_port();
     });
 
-    define<procedure>("close-input-port", [](auto&& xs)
+    define<procedure>("standard-error-port", [this](auto&&)
     {
-      car(xs).template as<input_port>().close();
+      return standard_error_port();
+    });
+
+
+    DEFINE_PREDICATE("input-file-port?", input_file_port);
+
+    DEFINE_PREDICATE("output-file-port?", output_file_port);
+
+    DEFINE_PREDICATE("input-string-port?", input_string_port);
+
+    DEFINE_PREDICATE("output-string-port?", output_string_port);
+
+
+    define<procedure>("input-file-port-open?", [](let const& xs)
+    {
+      return car(xs).as<input_file_port>().is_open() ? t : f;
+    });
+
+    define<procedure>("output-file-port-open?", [](let const& xs)
+    {
+      return car(xs).as<output_file_port>().is_open() ? t : f;
+    });
+
+
+    define<procedure>("open-input-file", [](let const& xs)
+    {
+      return make<input_file_port>(car(xs).as<string>());
+    });
+
+    define<procedure>("open-output-file", [](let const& xs)
+    {
+      return make<output_file_port>(car(xs).as<string>());
+    });
+
+
+    define<procedure>("close-input-file-port", [](let const& xs)
+    {
+      car(xs).as<input_file_port>().close();
       return unspecified;
     });
 
-    define<procedure>("close-output-port", [](auto&& xs)
+    define<procedure>("close-output-file-port", [](let const& xs)
     {
-      car(xs).template as<output_port>().close();
+      car(xs).as<output_file_port>().close();
       return unspecified;
     });
 
-    define<procedure>("read", [this](const object& xs)
+
+    define<procedure>("open-input-string", [](let const& xs)
     {
-      return read(xs ? car(xs).as<input_port>() : current_input_port());
+      if (xs.is<null>())
+      {
+        return make<input_string_port>();
+      }
+      else if (let const x = car(xs); x.is<string>())
+      {
+        return make<input_string_port>(x.as<string>());
+      }
+      else
+      {
+        throw error("open-input-string: not string", car(xs));
+      }
     });
 
-    define<procedure>("eof-object?", [](auto&& xs)
+    define<procedure>("open-output-string", [](let const& xs)
     {
-      return car(xs).template is<eof>() ? t : f;
+      if (xs.is<null>())
+      {
+        return make<output_string_port>();
+      }
+      else if (let const x = car(xs); x.is<string>())
+      {
+        return make<output_string_port>(x.as<string>());
+      }
+      else
+      {
+        throw error("open-output-string: not string", car(xs));
+      }
     });
+
+    define<procedure>("get-output-string", [](let const& xs)
+    {
+      return make_string(car(xs).as<output_string_port>().str());
+    });
+
+
+    define<procedure>("::read", [this](let const& xs)
+    {
+      return read(car(xs));
+    });
+
+
+    DEFINE_PREDICATE("eof-object?", eof);
 
     define<procedure>("eof-object", [](auto&&)
     {
       return eof_object;
     });
 
-    define<procedure>("write", [this](auto&& xs)
+
+    define<procedure>("::write-simple", [this](let const& xs)
     {
-      write_to(current_output_port(), car(xs));
+      write_to(cadr(xs), car(xs));
       return unspecified;
     });
 
     #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
-    define<procedure>("write-" SUFFIX, [this](let const & xs)                  \
+    define<procedure>("::write-" SUFFIX, [](let const& xs)                     \
     {                                                                          \
-      car(xs).as<TYPENAME>().display_to(cdr(xs).is<null>() ? current_output_port() : cadr(xs).as<output_port>()); \
+      car(xs).as<TYPENAME>().display_to(cadr(xs));                             \
       return unspecified;                                                      \
     })
 
@@ -883,6 +1114,14 @@ namespace meevax { inline namespace kernel
     BOILERPLATE("string", string);
 
     #undef BOILERPLATE
+
+
+    define<procedure>("::flush-output-port", [](let const& xs)
+    {
+      car(xs).as<output_port>() << std::flush;
+      return unspecified;
+    });
+
 
     /* ==== R7RS 6.14. System interface ========================================
      *
@@ -965,23 +1204,21 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    auto port { open_input_string(overture.data()) };
+    std::stringstream port { overture.data() };
 
-    std::size_t counts {0};
+    // std::size_t counts {0};
 
     for (let e = read(port); e != eof_object; e = read(port))
     {
       // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-      write_to(current_debug_port(),
-        "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
-
-      current_interaction_port() << std::flush;
+      // write_to(standard_debug_port(),
+      //   "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
 
       evaluate(e);
     }
 
     // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-    write_to(current_debug_port(), "\n\n");
+    // write_to(standard_debug_port(), "\n\n");
   }
 
   template <>

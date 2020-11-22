@@ -20,6 +20,11 @@ namespace meevax { inline namespace kernel
       return port;
     }
 
+    auto display_to(let const& maybe_port) const -> decltype(auto)
+    {
+      return display_to(maybe_port.as<output_port>());
+    }
+
     operator std::string() const
     {
       std::stringstream port {};

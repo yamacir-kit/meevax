@@ -1,5 +1,6 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/port.hpp>
 #include <meevax/posix/vt102.hpp>
 
 namespace meevax { inline namespace kernel
@@ -48,6 +49,11 @@ namespace meevax { inline namespace kernel
   auto character::display_to(std::ostream& port) const -> decltype(port)
   {
     return port << display() << reset;
+  }
+
+  auto character::display_to(let const& maybe_port) const -> std::ostream&
+  {
+    return display_to(maybe_port.as<output_port>());
   }
 
   auto operator <<(std::ostream& port, const character& datum) -> decltype(port)
