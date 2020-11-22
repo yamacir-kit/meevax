@@ -2,13 +2,17 @@
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
 #include <meevax/kernel/character.hpp>
+#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/port.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct string
     : public virtual pair
   {
-    auto display_to(std::ostream& port) const -> decltype(auto)
+    output_port& display_to(output_port& port) const
     {
       car(*this).as<character>().display_to(port);
 
@@ -27,40 +31,16 @@ namespace meevax { inline namespace kernel
 
     operator std::string() const
     {
-      std::stringstream port {};
+      output_string_port port {};
       display_to(port);
       return port.str();
     }
-
-    friend auto operator==(const string& lhs, const string& rhs)
-    {
-      return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);
-    }
-
-    friend auto operator<<(std::ostream& port, const string& s) -> decltype(auto)
-    {
-      port << cyan << "\"" << car(s).as<character>().display();
-
-      for (const auto& each : cdr(s))
-      {
-        if (each) // guard for malformed string
-        {
-          switch (const auto& s { each.as<character>().display() }; s[0])
-          {
-          case '\n': port << "\\n"; break;
-          case '\t': port << "\\t"; break;
-
-          default:
-            port << s;
-            break;
-          }
-        }
-        else break;
-      }
-
-      return port << "\"" << reset;
-    }
   };
-}} // namespace meevax::kernel
+
+  bool operator==(const string& lhs, const string& rhs);
+
+  output_port& operator <<(output_port& port, const string& datum);
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP
