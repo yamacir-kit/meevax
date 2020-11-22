@@ -1,4 +1,7 @@
+#include <iomanip>
+
 #include <meevax/kernel/port.hpp>
+#include <meevax/kernel/reader.hpp>
 #include <meevax/posix/vt102.hpp>
 
 namespace meevax { inline namespace kernel
@@ -21,10 +24,18 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
+
   #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
-  auto operator<<(std::ostream& port, const TYPENAME&) -> decltype(port)       \
+  auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
   {                                                                            \
-    return port << magenta << "#,(" << green << "open-" PORTTYPE << magenta << ")" << reset; \
+    port << magenta << "#,(" << green << "open-" PORTTYPE;                     \
+                                                                               \
+    if (const auto s { datum.str() }; not std::empty(s))                       \
+    {                                                                          \
+      port << " " << cyan << make_string(s);                                   \
+    }                                                                          \
+                                                                               \
+    return port << magenta << ")" << reset;                                    \
   }
 
   BOILERPLATE( input_string_port,  "input-string");
