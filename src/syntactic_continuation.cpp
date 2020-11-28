@@ -630,11 +630,11 @@ namespace meevax { inline namespace kernel
      * ====================================================================== */
     DEFINE_PREDICATE("char?", character);
 
-    define<procedure>("digit-value", [](auto&& xs)
+    define<procedure>("digit-value", [](let const& xs)
     {
       try
       {
-        return make<exact_integer>(car(xs).template as<character>().display());
+        return make<exact_integer>(car(xs).as<character>().write_char());
       }
       catch (std::runtime_error&)
       {
@@ -1103,6 +1103,12 @@ namespace meevax { inline namespace kernel
       return unspecified;
     });
 
+    define<procedure>("::write-char", [](let const& xs)
+    {
+      car(xs).as<character>().write_char(cadr(xs));
+      return unspecified;
+    });
+
     #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
     define<procedure>("::write-" SUFFIX, [](let const& xs)                     \
     {                                                                          \
@@ -1110,7 +1116,6 @@ namespace meevax { inline namespace kernel
       return unspecified;                                                      \
     })
 
-    BOILERPLATE("char", character);
     BOILERPLATE("string", string);
 
     #undef BOILERPLATE

@@ -1,6 +1,5 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/port.hpp>
 #include <meevax/posix/vt102.hpp>
 
 namespace meevax { inline namespace kernel
@@ -90,17 +89,22 @@ namespace meevax { inline namespace kernel
     return codepoint;
   }
 
-  auto character::display_to(std::ostream& port) const -> decltype(port)
+  auto character::write_char() const -> std::string const&
   {
-    return port << display() << reset;
+    return static_cast<std::string const&>(*this);
   }
 
-  auto character::display_to(let const& maybe_port) const -> std::ostream&
+  auto character::write_char(std::ostream & port) const -> decltype(port)
   {
-    return display_to(maybe_port.as<output_port>());
+    return port << write_char();
   }
 
-  auto operator <<(std::ostream& port, const character& datum) -> decltype(port)
+  auto character::write_char(let const& maybe_port) const -> std::ostream&
+  {
+    return write_char(maybe_port.as<output_port>());
+  }
+
+  auto operator <<(std::ostream& port, character const& datum) -> decltype(port)
   {
     port << cyan << "#\\";
 
@@ -120,11 +124,11 @@ namespace meevax { inline namespace kernel
       case 0x7F: return port << "delete"    << reset;
 
       default:
-        return port << datum.display() << reset;
+        return datum.write_char(port) << reset;
       }
 
     default:
-      return port << datum.display() << reset;
+      return datum.write_char(port) << reset;
     }
   }
 }} // namespace meevax::kernel

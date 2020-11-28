@@ -14,11 +14,11 @@ inline namespace kernel
   {
     output_port& display_to(output_port& port) const
     {
-      car(*this).as<character>().display_to(port);
+      car(*this).as<character>().write_char(port);
 
       for (const auto& each : cdr(*this))
       {
-        each.as<character>().display_to(port);
+        each.as<character>().write_char(port);
       }
 
       return port;
@@ -37,7 +37,7 @@ inline namespace kernel
     }
   };
 
-  bool operator==(const string&, const string&);
+  bool operator ==(string const&, string const&);
 
   output_port& operator <<(output_port&, const string&);
 } // namespace kernel
