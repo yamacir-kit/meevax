@@ -17,6 +17,20 @@ namespace meevax { inline namespace kernel
     return port << magenta << "#,(" << green << "eos-object" << magenta << ")" << reset;
   }
 
+  /* ---- Parser ------------------------------------------------------------ */
+
+  auto read_token(input_port & port) -> std::string
+  {
+    std::string result {};
+
+    for (auto c { port.peek() }; not is_end_of_token(c); c = port.peek())
+    {
+      result.push_back(port.get());
+    }
+
+    return result;
+  }
+
   let read_string(std::istream& port)
   {
     switch (auto c { port.narrow(port.get(), '\0') }; c)

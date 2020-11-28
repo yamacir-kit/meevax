@@ -14,13 +14,16 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/parser.hpp>
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- End-of-File ------------------------------------------------------- */
 
@@ -39,6 +42,10 @@ namespace meevax { inline namespace kernel
   let extern const eos_object;
 
   auto operator <<(std::ostream& port, const eos&) -> decltype(port);
+
+  /* ---- Parser ------------------------------------------------------------ */
+
+  auto read_token(input_port & port) -> std::string;
 
   /* ---- String Constructor ---------------------------------------------------
    *
@@ -330,7 +337,7 @@ namespace meevax { inline namespace kernel
       default:
         token.push_back(*head);
 
-        if (auto c {port.peek()}; is_delimiter(c)) // delimiter
+        if (auto c { port.peek() }; is_end_of_token(c))
         {
           if (token == ".")
           {
@@ -407,19 +414,41 @@ namespace meevax { inline namespace kernel
       return port;
     }
 
-    auto read_token(std::istream& port)
+    auto read_character(input_port & is)
     {
-      std::string token {};
+      is.ignore(1);
 
-      for (auto c { port.peek() }; not is_delimiter(c); c = port.peek())
+      auto name { read_token(is) };
+
+      if (name.empty())
       {
-        token.push_back(port.get());
+        name.push_back(is.get());
       }
 
-      return token;
+      static const std::unordered_map<std::string, char> names
+      {
+        { "alarm"    , 0x07 },
+        { "backspace", 0x08 },
+        { "delete"   , 0x7F },
+        { "escape"   , 0x1B },
+        { "newline"  , 0x0A },
+        { "null"     , 0x00 },
+        { "return"   , 0x0D },
+        { "space"    , 0x20 },
+        { "tab"      , 0x09 },
+      };
+
+      if (const auto iter { names.find(name) }; iter != std::end(names))
+      {
+        return make<character>(cdr(*iter));
+      }
+      else
+      {
+        return make<character>(name);
+      }
     }
 
-    const object discriminate(std::istream& is)
+    let discriminate(input_port & is)
     {
       switch (is.peek())
       {
@@ -456,7 +485,7 @@ namespace meevax { inline namespace kernel
         return make<exact_integer>(read_token(is));
 
       case 'f':
-        ignore(is, [](auto&& x) { return not is_delimiter(x); });
+        ignore(is, [](auto&& x) { return not is_end_of_token(x); });
         return f;
 
       case 'o':
@@ -477,7 +506,7 @@ namespace meevax { inline namespace kernel
         }
 
       case 't':
-        ignore(is, [](auto&& x) { return not is_delimiter(x); });
+        ignore(is, [](auto&& x) { return not is_end_of_token(x); });
         return t;
 
       case 'x':
@@ -495,38 +524,7 @@ namespace meevax { inline namespace kernel
         }
 
       case '\\':
-        {
-          is.ignore(1);
-
-          auto name { read_token(is) };
-
-          if (name.empty())
-          {
-            name.push_back(is.get());
-          }
-
-          static const std::unordered_map<std::string, char> names
-          {
-            { "alarm"    , 0x07 },
-            { "backspace", 0x08 },
-            { "delete"   , 0x7F },
-            { "escape"   , 0x1B },
-            { "newline"  , 0x0A },
-            { "null"     , 0x00 },
-            { "return"   , 0x0D },
-            { "space"    , 0x20 },
-            { "tab"      , 0x09 },
-          };
-
-          if (const auto iter { names.find(name) }; iter != std::end(names))
-          {
-            return make<character>(cdr(*iter));
-          }
-          else
-          {
-            return make<character>(name);
-          }
-        }
+        return read_character(is);
 
       default:
         is.ignore(1);
@@ -534,6 +532,7 @@ namespace meevax { inline namespace kernel
       }
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_READER_HPP
