@@ -651,7 +651,7 @@ namespace meevax { inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<character>())
       {
-        return make<exact_integer>(x.as<character>().decode());
+        return make<exact_integer>(x.as<character>().codepoint());
       }
       else
       {

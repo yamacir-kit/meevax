@@ -12,6 +12,8 @@ namespace meevax { inline namespace kernel
 
   auto encode(std::uint_least32_t code) -> std::string;
 
+  auto decode(std::string const&) -> std::uint_least32_t;
+
   struct character
     : public std::string
   {
@@ -30,53 +32,9 @@ namespace meevax { inline namespace kernel
 
     virtual ~character() = default;
 
-    auto decode() const
-    {
-      std::uint_least32_t code {};
-
-      /* -----------------------------------------------------------------------
-       *
-       *  00000000 -- 0000007F: 0xxxxxxx
-       *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
-       *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
-       *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-       *
-       * -------------------------------------------------------------------- */
-
-      switch (size())
-      {
-      case 1:
-        code |= (*this)[0] & 0b0111'1111;
-        break;
-
-      case 2:
-        code |= (*this)[0] & 0b0001'1111; code <<= 6;
-        code |= (*this)[1] & 0b0011'1111;
-        break;
-
-      case 3:
-        code |= (*this)[0] & 0b0000'1111; code <<= 6;
-        code |= (*this)[1] & 0b0011'1111; code <<= 6;
-        code |= (*this)[2] & 0b0011'1111;
-        break;
-
-      case 4:
-        code |= (*this)[0] & 0b0000'0111; code <<= 6;
-        code |= (*this)[1] & 0b0011'1111; code <<= 6;
-        code |= (*this)[2] & 0b0011'1111; code <<= 6;
-        code |= (*this)[3] & 0b0011'1111;
-        break;
-
-      default:
-        throw error("Malformed character.");
-      }
-
-      return code;
-    }
-
     decltype(auto) codepoint() const
     {
-      return decode();
+      return decode(*this);
     }
 
     auto display() const -> decltype(auto)

@@ -5,35 +5,35 @@
 
 namespace meevax { inline namespace kernel
 {
-  auto encode(std::uint_least32_t code) -> std::string
+  auto encode(std::uint_least32_t codepoint) -> std::string
   {
     char sequence[5] = {};
 
-    if (code <= 0x7F)
+    if (codepoint <= 0x7F)
     {
       sequence[1] = '\0';
-      sequence[0] = (code & 0x7F);
+      sequence[0] = (codepoint & 0x7F);
     }
-    else if (code <= 0x7FF)
+    else if (codepoint <= 0x7FF)
     {
       sequence[2] = '\0';
-      sequence[1] = 0x80 | (code & 0x3F); code >>= 6;
-      sequence[0] = 0xC0 | (code & 0x1F);
+      sequence[1] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
+      sequence[0] = 0xC0 | (codepoint & 0x1F);
     }
-    else if (code <= 0xFFFF)
+    else if (codepoint <= 0xFFFF)
     {
       sequence[3] = '\0';
-      sequence[2] = 0x80 | (code & 0x3F); code >>= 6;
-      sequence[1] = 0x80 | (code & 0x3F); code >>= 6;
-      sequence[0] = 0xE0 | (code & 0x0F);
+      sequence[2] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
+      sequence[1] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
+      sequence[0] = 0xE0 | (codepoint & 0x0F);
     }
-    else if (code <= 0x10FFFF)
+    else if (codepoint <= 0x10FFFF)
     {
       sequence[4] = '\0';
-      sequence[3] = 0x80 | (code & 0x3F); code >>= 6;
-      sequence[2] = 0x80 | (code & 0x3F); code >>= 6;
-      sequence[1] = 0x80 | (code & 0x3F); code >>= 6;
-      sequence[0] = 0xF0 | (code & 0x07);
+      sequence[3] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
+      sequence[2] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
+      sequence[1] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
+      sequence[0] = 0xF0 | (codepoint & 0x07);
     }
     else
     {
@@ -44,6 +44,50 @@ namespace meevax { inline namespace kernel
     }
 
     return sequence;
+  }
+
+  auto decode(std::string const& code) -> std::uint_least32_t
+  {
+    std::uint_least32_t codepoint {};
+
+    /* -------------------------------------------------------------------------
+     *
+     *  00000000 -- 0000007F: 0xxxxxxx
+     *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
+     *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+     *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     *
+     * ---------------------------------------------------------------------- */
+
+    switch (std::size(code))
+    {
+    case 1:
+      codepoint |= code[0] & 0b0111'1111;
+      break;
+
+    case 2:
+      codepoint |= code[0] & 0b0001'1111; codepoint <<= 6;
+      codepoint |= code[1] & 0b0011'1111;
+      break;
+
+    case 3:
+      codepoint |= code[0] & 0b0000'1111; codepoint <<= 6;
+      codepoint |= code[1] & 0b0011'1111; codepoint <<= 6;
+      codepoint |= code[2] & 0b0011'1111;
+      break;
+
+    case 4:
+      codepoint |= code[0] & 0b0000'0111; codepoint <<= 6;
+      codepoint |= code[1] & 0b0011'1111; codepoint <<= 6;
+      codepoint |= code[2] & 0b0011'1111; codepoint <<= 6;
+      codepoint |= code[3] & 0b0011'1111;
+      break;
+
+    default:
+      throw error("Malformed character.");
+    }
+
+    return codepoint;
   }
 
   auto character::display_to(std::ostream& port) const -> decltype(port)
