@@ -13,6 +13,7 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
+#include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/parser.hpp>
 #include <meevax/kernel/path.hpp>
@@ -25,26 +26,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- End-of-File ------------------------------------------------------- */
-
-  struct eof
-  {};
-
-  let extern const eof_object;
-
-  auto operator <<(std::ostream& port, const eof&) -> decltype(port);
-
-  /* ---- End-of-String ----------------------------------------------------- */
-
-  struct eos
-  {};
-
-  let extern const eos_object;
-
-  auto operator <<(std::ostream& port, const eos&) -> decltype(port);
-
-  /* ---- Parser ------------------------------------------------------------ */
-
   auto read_token(input_port & port) -> std::string;
 
   /* ---- String Constructor ---------------------------------------------------

@@ -1,24 +1,9 @@
 #include <meevax/kernel/reader.hpp>
-#include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  let const eof_object = make<eof>();
-
-  auto operator <<(std::ostream& port, const eof&) -> decltype(port)
-  {
-    return port << magenta << "#,(" << green << "eof-object" << magenta << ")" << reset;
-  }
-
-  let const eos_object = make<eos>();
-
-  auto operator <<(std::ostream& port, const eos&) -> decltype(port)
-  {
-    return port << magenta << "#,(" << green << "eos-object" << magenta << ")" << reset;
-  }
-
-  /* ---- Parser ------------------------------------------------------------ */
-
+inline namespace kernel
+{
   auto read_token(input_port & port) -> std::string
   {
     std::string result {};
@@ -106,5 +91,5 @@ namespace meevax { inline namespace kernel
       return "(e" + sign() + digits<10>("+") + ")?";
     }
   }
-}} // namespace meevax::kernel
-
+} // namespace kernel
+} // namespace meevax

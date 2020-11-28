@@ -94,6 +94,7 @@ namespace meevax { inline namespace kernel
   // }
   // #endif // __cpp_lib_memory_resource
 
+  // TODO extern
   static const object unit { nullptr };
 }} // namespace meevax::kernel
 
