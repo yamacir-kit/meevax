@@ -7,14 +7,38 @@ namespace meevax
 {
 inline namespace kernel
 {
-  bool operator==(const string& lhs, const string& rhs)
+  auto string::write_string() const -> std::string
   {
-    return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);
+    output_string_port port {};
+
+    car(*this).as<character>().write_char(port);
+
+    for (const auto& each : cdr(*this))
+    {
+      each.as<character>().write_char(port);
+    }
+
+    return port.str();
   }
 
-  output_port& operator <<(output_port& port, const string& datum)
+  auto string::write_string(output_port& port) const -> output_port &
   {
-    auto write_char = [&](const character& code) -> decltype(auto)
+    return port << write_string();
+  }
+
+  auto string::write_string(let const& x) const -> output_port &
+  {
+    return write_string(x.as<output_port>());
+  }
+
+  bool operator==(const string& lhs, const string& rhs)
+  {
+    return lhs.write_string() == rhs.write_string();
+  }
+
+  auto operator <<(output_port& port, const string& datum) -> output_port &
+  {
+    auto print = [&](const character& code) -> decltype(auto)
     {
       switch (std::size(code))
       {
@@ -41,11 +65,11 @@ inline namespace kernel
 
     port << cyan << "\"";
 
-    write_char(car(datum).as<character>());
+    print(car(datum).as<character>());
 
     for (let const& each : cdr(datum))
     {
-      write_char(each.as<character>());
+      print(each.as<character>());
     }
 
     return port << cyan << "\"" << reset;

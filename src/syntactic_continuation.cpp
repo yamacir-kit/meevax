@@ -1109,16 +1109,11 @@ namespace meevax { inline namespace kernel
       return unspecified;
     });
 
-    #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
-    define<procedure>("::write-" SUFFIX, [](let const& xs)                     \
-    {                                                                          \
-      car(xs).as<TYPENAME>().display_to(cadr(xs));                             \
-      return unspecified;                                                      \
-    })
-
-    BOILERPLATE("string", string);
-
-    #undef BOILERPLATE
+    define<procedure>("::write-string", [](let const& xs)
+    {
+      car(xs).as<string>().write_string(cadr(xs));
+      return unspecified;
+    });
 
 
     define<procedure>("::flush-output-port", [](let const& xs)

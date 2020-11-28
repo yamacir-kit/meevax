@@ -12,34 +12,21 @@ inline namespace kernel
   struct string
     : public virtual pair
   {
-    output_port& display_to(output_port& port) const
-    {
-      car(*this).as<character>().write_char(port);
+    auto write_string() const -> std::string;
 
-      for (const auto& each : cdr(*this))
-      {
-        each.as<character>().write_char(port);
-      }
+    auto write_string(output_port&) const -> output_port &;
 
-      return port;
-    }
-
-    auto display_to(let const& maybe_port) const -> decltype(auto)
-    {
-      return display_to(maybe_port.as<output_port>());
-    }
+    auto write_string(let const&) const -> output_port &;
 
     operator std::string() const
     {
-      output_string_port port {};
-      display_to(port);
-      return port.str();
+      return write_string();
     }
   };
 
   bool operator ==(string const&, string const&);
 
-  output_port& operator <<(output_port&, const string&);
+  auto operator <<(output_port&, const string&) -> output_port &;
 } // namespace kernel
 } // namespace meevax
 
