@@ -340,12 +340,6 @@ inline namespace kernel
       return eof_object;
     }
 
-    [[deprecated]]
-    auto read(std::istream&& port) -> decltype(auto)
-    {
-      return read(port);
-    }
-
     auto read(const object& x) -> decltype(auto)
     {
       if (x.is<null>())
@@ -374,15 +368,15 @@ inline namespace kernel
     }
 
   public:
-    auto ready() // TODO RENAME TO 'char-ready'
-    {
-      return not standard_input_port().template is<null>() and standard_input_port().template as<input_port>();
-    }
-
     let standard_input_port() const noexcept
     {
       let static port = make<input_file_port>("/dev/stdin", std::cin);
       return port;
+    }
+
+    auto ready() // TODO RENAME TO 'char-ready'
+    {
+      return not standard_input_port().template is<null>() and standard_input_port().template as<input_port>();
     }
 
   private:
@@ -473,6 +467,7 @@ inline namespace kernel
         }
 
       case '\\':
+        is.ignore(1);
         return read_char(is);
 
       default:

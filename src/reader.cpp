@@ -18,8 +18,6 @@ inline namespace kernel
 
   let read_char(input_port & port)
   {
-    port.ignore(1);
-
     auto name { read_token(port) };
 
     if (name.empty())
