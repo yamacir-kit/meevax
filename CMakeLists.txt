@@ -132,6 +132,7 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/list.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/miscellaneous.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/number.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/object.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pair.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/path.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/port.cpp
