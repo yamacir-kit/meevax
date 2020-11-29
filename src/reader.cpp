@@ -16,6 +16,40 @@ inline namespace kernel
     return result;
   }
 
+  let read_char(input_port & port)
+  {
+    port.ignore(1);
+
+    auto name { read_token(port) };
+
+    if (name.empty())
+    {
+      name.push_back(port.get());
+    }
+
+    static const std::unordered_map<std::string, char> names
+    {
+      { "alarm"    , 0x07 },
+      { "backspace", 0x08 },
+      { "delete"   , 0x7F },
+      { "escape"   , 0x1B },
+      { "newline"  , 0x0A },
+      { "null"     , 0x00 },
+      { "return"   , 0x0D },
+      { "space"    , 0x20 },
+      { "tab"      , 0x09 },
+    };
+
+    if (const auto iter { names.find(name) }; iter != std::end(names))
+    {
+      return make<character>(cdr(*iter));
+    }
+    else
+    {
+      return make<character>(name);
+    }
+  }
+
   let read_string(std::istream& port)
   {
     switch (auto c { port.narrow(port.get(), '\0') }; c)

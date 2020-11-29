@@ -104,10 +104,6 @@ namespace meevax { inline namespace kernel
     return write_char(maybe_port.as<output_port>());
   }
 
-  // let read_char(input_port & port)
-  // {
-  // }
-
   auto operator <<(std::ostream& port, character const& datum) -> decltype(port)
   {
     port << cyan << "#\\";

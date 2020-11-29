@@ -28,6 +28,8 @@ inline namespace kernel
 {
   auto read_token(input_port & port) -> std::string;
 
+  let read_char(input_port &);
+
   /* ---- String Constructor ---------------------------------------------------
    *
    *
@@ -278,11 +280,11 @@ inline namespace kernel
           port.putback('(');
           return cons(expression, read(port));
         }
-        catch (const read_error<proper_list_tag>&)
+        catch (read_error<proper_list_tag> const&)
         {
           return unit;
         }
-        catch (const read_error<improper_list_tag>&)
+        catch (read_error<improper_list_tag> const&)
         {
           let y = read(port);
           port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
@@ -395,40 +397,6 @@ inline namespace kernel
       return port;
     }
 
-    auto read_character(input_port & is)
-    {
-      is.ignore(1);
-
-      auto name { read_token(is) };
-
-      if (name.empty())
-      {
-        name.push_back(is.get());
-      }
-
-      static const std::unordered_map<std::string, char> names
-      {
-        { "alarm"    , 0x07 },
-        { "backspace", 0x08 },
-        { "delete"   , 0x7F },
-        { "escape"   , 0x1B },
-        { "newline"  , 0x0A },
-        { "null"     , 0x00 },
-        { "return"   , 0x0D },
-        { "space"    , 0x20 },
-        { "tab"      , 0x09 },
-      };
-
-      if (const auto iter { names.find(name) }; iter != std::end(names))
-      {
-        return make<character>(cdr(*iter));
-      }
-      else
-      {
-        return make<character>(name);
-      }
-    }
-
     let discriminate(input_port & is)
     {
       switch (is.peek())
@@ -505,7 +473,7 @@ inline namespace kernel
         }
 
       case '\\':
-        return read_character(is);
+        return read_char(is);
 
       default:
         is.ignore(1);
