@@ -55,27 +55,6 @@ namespace meevax { inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<2>)
   {
-    #define DEFINE_PREDICATE(IDENTIFIER, TYPE)                                 \
-    define<procedure>(IDENTIFIER, [](let const & xs)                           \
-    {                                                                          \
-      if (xs.is<null>())                                                       \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        for (let const & x : xs)                                               \
-        {                                                                      \
-          if (x.is<null>() or not x.is<TYPE>())                                \
-          {                                                                    \
-            return f;                                                          \
-          }                                                                    \
-        }                                                                      \
-                                                                               \
-        return t;                                                              \
-      }                                                                        \
-    })
-
     #define DEFINE_ELEMENTARY_FUNCTION(SYMBOL, FUNCTION)                       \
     define<procedure>(SYMBOL, [&](auto&& xs)                                   \
     {                                                                          \
@@ -121,6 +100,7 @@ namespace meevax { inline namespace kernel
      * └────────────────────┴────────────┴────────────────────────────────────┘
      *
      * ---------------------------------------------------------------------- */
+
     define<procedure>("eq?", [](auto&& xs)
     {
       return car(xs) == cadr(xs) ? t : f;
@@ -180,13 +160,12 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    DEFINE_PREDICATE("COMPLEX?", complex);
+    define<procedure>("COMPLEX?", make_predicate<complex>());
 
-    DEFINE_PREDICATE("ratio?", ratio);
+    define<procedure>("ratio?", make_predicate<ratio>());
 
-    DEFINE_PREDICATE("single-float?", floating_point<float>);
-
-    DEFINE_PREDICATE("double-float?", floating_point<double>);
+    define<procedure>("single-float?", make_predicate<single_float>());
+    define<procedure>("double-float?", make_predicate<double_float>());
 
 
     /* ---- 6.2.6 Numerical operations -----------------------------------------
@@ -207,7 +186,7 @@ namespace meevax { inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    DEFINE_PREDICATE("exact-integer?", exact_integer);
+    define<procedure>("exact-integer?", make_predicate<exact_integer>());
 
     /* ---- 6.2.6 Numerical operations -----------------------------------------
      *
@@ -572,16 +551,17 @@ namespace meevax { inline namespace kernel
       return make_number(car(xs).as<string>());
     });
 
-    /* ==== R7RS 6.3. Booleans =================================================
+    /* ---- R7RS 6.3. Booleans -------------------------------------------------
      *
      *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
 
-    /* ==== R7RS 6.4. Pairs and lists ==========================================
+    /* ---- R7RS 6.4. Pairs and lists ------------------------------------------
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("pair?", pair);
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("pair?", make_predicate<pair>());
 
     define<procedure>("cons", [](auto&& xs)
     {
@@ -594,27 +574,29 @@ namespace meevax { inline namespace kernel
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
-    /* ==== R7RS 6.5. Symbols ==================================================
+    /* ---- R7RS 6.5. Symbols --------------------------------------------------
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("symbol?", symbol);
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("symbol?", make_predicate<symbol>());
 
     define<procedure>("symbol->string", [](let const& xs)
     {
       return make_string(car(xs).as<symbol>());
     });
 
-    define<procedure>("string->symbol", [](auto&& xs)
+    define<procedure>("string->symbol", [](let const& xs)
     {
-      return make<symbol>(car(xs).template as<string>());
+      return make<symbol>(car(xs).as<string>());
     });
 
-    /* ==== R7RS 6.6. Characters ===============================================
+    /* ---- R7RS 6.6. Characters -----------------------------------------------
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("char?", character);
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("char?", make_predicate<character>());
 
     define<procedure>("digit-value", [](let const& xs)
     {
@@ -665,11 +647,12 @@ namespace meevax { inline namespace kernel
       }
     });
 
-    /* ==== R7RS 6.7. Strings ==================================================
+    /* ---- R7RS 6.7. Strings --------------------------------------------------
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("string?", string);
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string?", make_predicate<string>());
 
     define<procedure>("char-cons", [](let const& xs)
     {
@@ -700,11 +683,12 @@ namespace meevax { inline namespace kernel
       return make_number(car(xs).template as<string>());
     });
 
-    /* ==== R7RS 6.8. Vectors ==================================================
+    /* ---- R7RS 6.8. Vectors --------------------------------------------------
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("vector?", vector);
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector?", make_predicate<vector>());
 
     define<procedure>("make-vector", [](auto&& xs)
     {
@@ -795,18 +779,22 @@ namespace meevax { inline namespace kernel
     //   return unspecified;
     // });
 
-    /* ==== R7RS 6.10. Constrol features =======================================
+    /* ---- R7RS 6.10. Constrol features ---------------------------------------
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("native-procedure?", procedure);
-    DEFINE_PREDICATE("closure?", closure);
-    DEFINE_PREDICATE("continuation?", continuation);
+     * ---------------------------------------------------------------------- */
 
-    /* ==== R7RS 6.12. Environments and evaluation =============================
+    define<procedure>("native-procedure?", make_predicate<procedure>());
+
+    define<procedure>("closure?", make_predicate<closure>());
+
+    define<procedure>("continuation?", make_predicate<continuation>());
+
+    /* ---- R7RS 6.12. Environments and evaluation -----------------------------
      *
      *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("eval", [](auto&& xs)
     {
       return cadr(xs).template as<syntactic_continuation>().evaluate(car(xs));
@@ -987,13 +975,13 @@ namespace meevax { inline namespace kernel
     });
 
 
-    DEFINE_PREDICATE("input-file-port?", input_file_port);
+    define<procedure>("input-file-port?", make_predicate<input_file_port>());
 
-    DEFINE_PREDICATE("output-file-port?", output_file_port);
+    define<procedure>("output-file-port?", make_predicate<output_file_port>());
 
-    DEFINE_PREDICATE("input-string-port?", input_string_port);
+    define<procedure>("input-string-port?", make_predicate<input_string_port>());
 
-    DEFINE_PREDICATE("output-string-port?", output_string_port);
+    define<procedure>("output-string-port?", make_predicate<output_string_port>());
 
 
     define<procedure>("input-file-port-open?", [](let const& xs)
@@ -1075,7 +1063,7 @@ namespace meevax { inline namespace kernel
     });
 
 
-    DEFINE_PREDICATE("eof-object?", eof);
+    define<procedure>("eof-object?", make_predicate<eof>());
 
     define<procedure>("eof-object", [](auto&&)
     {
@@ -1169,12 +1157,14 @@ namespace meevax { inline namespace kernel
       return current_feature;
     });
 
-    /* ==== R4RS APPENDIX: A compatible low-level macro facility ===============
+    /* ---- R4RS APPENDIX: A compatible low-level macro facility ---------------
      *
      *
-     * ====================================================================== */
-    DEFINE_PREDICATE("syntactic-closure?", syntactic_closure);
-    DEFINE_PREDICATE("syntactic-continuation?", syntactic_continuation);
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("syntactic-closure?", make_predicate<syntactic_closure>());
+
+    define<procedure>("syntactic-continuation?", make_predicate<syntactic_continuation>());
 
     define<procedure>("identifier?", [](auto&& xs)
     {
