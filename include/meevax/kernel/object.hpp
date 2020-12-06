@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/pointer.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- Identity ---------------------------------------------------------- */
 
@@ -94,7 +96,8 @@ namespace meevax { inline namespace kernel
   // }
   // #endif // __cpp_lib_memory_resource
 
-  static const object unit { nullptr };
-}} // namespace meevax::kernel
+  let extern const unit;
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_OBJECT_HPP

@@ -1,20 +1,51 @@
 #include <meevax/kernel/reader.hpp>
-#include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  let const eof_object = make<eof>();
-
-  auto operator <<(std::ostream& port, const eof&) -> decltype(port)
+inline namespace kernel
+{
+  auto read_token(input_port & port) -> std::string
   {
-    return port << magenta << "#,(" << green << "eof-object" << magenta << ")" << reset;
+    std::string result {};
+
+    for (auto c { port.peek() }; not is_end_of_token(c); c = port.peek())
+    {
+      result.push_back(port.get());
+    }
+
+    return result;
   }
 
-  let const eos_object = make<eos>();
-
-  auto operator <<(std::ostream& port, const eos&) -> decltype(port)
+  let read_char(input_port & port)
   {
-    return port << magenta << "#,(" << green << "eos-object" << magenta << ")" << reset;
+    auto name { read_token(port) };
+
+    if (name.empty())
+    {
+      name.push_back(port.get());
+    }
+
+    static const std::unordered_map<std::string, char> names
+    {
+      { "alarm"    , 0x07 },
+      { "backspace", 0x08 },
+      { "delete"   , 0x7F },
+      { "escape"   , 0x1B },
+      { "newline"  , 0x0A },
+      { "null"     , 0x00 },
+      { "return"   , 0x0D },
+      { "space"    , 0x20 },
+      { "tab"      , 0x09 },
+    };
+
+    if (const auto iter { names.find(name) }; iter != std::end(names))
+    {
+      return make<character>(cdr(*iter));
+    }
+    else
+    {
+      return make<character>(name);
+    }
   }
 
   let read_string(std::istream& port)
@@ -92,5 +123,5 @@ namespace meevax { inline namespace kernel
       return "(e" + sign() + digits<10>("+") + ")?";
     }
   }
-}} // namespace meevax::kernel
-
+} // namespace kernel
+} // namespace meevax

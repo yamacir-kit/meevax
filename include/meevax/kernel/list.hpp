@@ -58,7 +58,7 @@ namespace meevax { inline namespace kernel
     {
       auto result { *this };
       operator ++();
-      return result;
+      return std::move(result);
     }
 
     decltype(auto) begin() const noexcept

@@ -5,22 +5,25 @@
 #include <unordered_map>
 
 #include <meevax/kernel/object.hpp>
+#include <meevax/kernel/port.hpp>
 
 namespace meevax { inline namespace kernel
 {
   /* ---- Character --------------------------------------------------------- */
 
-  auto encode(std::uint_least32_t code) -> std::string;
+  auto encode(std::uint_least32_t) -> std::string;
+
+  auto decode(std::string const&) -> std::uint_least32_t;
 
   struct character
     : public std::string
   {
-    explicit character(char code)
-      : std::string(1, code)
+    explicit character(char ascii)
+      : std::string(1, ascii)
     {}
 
-    explicit character(std::uint32_t code)
-      : std::string { encode(code) }
+    explicit character(std::uint32_t codepoint) // R7RS integer->char
+      : std::string { encode(codepoint) }
     {}
 
     template <typename... Ts>
@@ -30,130 +33,21 @@ namespace meevax { inline namespace kernel
 
     virtual ~character() = default;
 
-    auto decode() const
+    decltype(auto) codepoint() const // R7RS char->integer
     {
-      std::uint_least32_t code {};
-
-      /* -----------------------------------------------------------------------
-       *
-       *  00000000 -- 0000007F: 0xxxxxxx
-       *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
-       *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
-       *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-       *
-       * -------------------------------------------------------------------- */
-
-      switch (size())
-      {
-      case 1:
-        code = (*this)[0] & 0b0111'1111;
-        break;
-
-      case 2:
-        code |= (*this)[0] & 0b0001'1111; code <<= 6;
-        code |= (*this)[1] & 0b0011'1111;
-        break;
-
-      case 3:
-        code |= (*this)[0] & 0b0000'1111; code <<= 6;
-        code |= (*this)[1] & 0b0011'1111; code <<= 6;
-        code |= (*this)[2] & 0b0011'1111;
-        break;
-
-      case 4:
-        code |= (*this)[0] & 0b0000'0111; code <<= 6;
-        code |= (*this)[1] & 0b0011'1111; code <<= 6;
-        code |= (*this)[2] & 0b0011'1111; code <<= 6;
-        code |= (*this)[3] & 0b0011'1111;
-        break;
-
-      default:
-        throw error("Malformed character.");
-      }
-
-      return code;
+      return decode(*this);
     }
 
-    auto display() const -> decltype(auto)
-    {
-      return static_cast<std::string>(*this);
-    }
+    /* ---- R7RS write-char ------------------------------------------------- */
 
-    auto display_to(std::ostream&) const -> std::ostream&;
+    auto write_char() const -> std::string const&;
 
-    auto display_to(let const&) const -> std::ostream&;
+    auto write_char(output_port &) const -> output_port &;
+
+    auto write_char(let const&) const -> output_port &;
   };
 
   auto operator <<(std::ostream& port, const character&) -> decltype(port);
-
-  auto char_ci_eq = [](auto c, auto... xs) constexpr
-  {
-    return (std::char_traits<decltype(c)>::eq(c, xs) or ...);
-  };
-
-  auto is_intraline_whitespace = [](auto c) constexpr
-  {
-    return char_ci_eq(c, u8' ', u8'\f', u8'\t', u8'\v');
-  };
-
-  auto is_eol = [](auto c) constexpr
-  {
-    return char_ci_eq(c, u8'\n', u8'\r');
-  };
-
-  auto is_eof = [](auto c) constexpr
-  {
-    using traits = typename std::char_traits<decltype(c)>;
-
-    return traits::eq_int_type(traits::to_int_type(c), traits::eof());
-  };
-
-  auto is_whitespace = [](auto c) constexpr
-  {
-    return is_intraline_whitespace(c)
-        or is_eol(c)
-        or is_eof(c);
-  };
-
-  auto is_parenthesis = [](auto c) constexpr
-  {
-    return char_ci_eq(c, u8'(', u8')');
-  };
-
-  auto is_quotation = [](auto c) constexpr
-  {
-    return char_ci_eq(c, u8'\'', u8'"', u8'`');
-  };
-
-  auto is_vertical_line = [](auto c) constexpr
-  {
-    return char_ci_eq(c, u8'|');
-  };
-
-  auto is_discriminator = [](auto c) constexpr
-  {
-    return char_ci_eq(c, u8'#');
-  };
-
-  auto is_delimiter = [](auto c) constexpr
-  {
-    return is_whitespace(c)
-        or is_parenthesis(c)
-        or is_quotation(c)
-        or is_discriminator(c)
-        or is_vertical_line(c)
-        or char_ci_eq(c, u8';', u8',');
-  };
-
-  // NOTE in R7RS
-  // auto is_delimiter = [](auto c) constexpr
-  // {
-  //   return is_whitespace(c)
-  //       or is_vertical_line(c)
-  //       or is_parenthesis(c)
-  //       or u8'"'
-  //       or u8';';
-  // };
 }} // namespace meevax::kernel
 
 #endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP

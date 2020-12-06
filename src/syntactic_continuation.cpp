@@ -588,25 +588,11 @@ namespace meevax { inline namespace kernel
       return cons(car(xs), cadr(xs));
     });
 
-    define<procedure>("car", [](auto&& xs)
-    {
-      return caar(xs);
-    });
+    define<procedure>("car", [](auto&& xs) { return caar(xs); });
+    define<procedure>("cdr", [](auto&& xs) { return cdar(xs); });
 
-    define<procedure>("cdr", [](auto&& xs)
-    {
-      return cdar(xs);
-    });
-
-    define<procedure>("set-car!", [](auto&& xs)
-    {
-      return caar(xs) = cadr(xs);
-    });
-
-    define<procedure>("set-cdr!", [](auto&& xs)
-    {
-      return cdar(xs) = cadr(xs);
-    });
+    define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
+    define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
     /* ==== R7RS 6.5. Symbols ==================================================
      *
@@ -630,11 +616,11 @@ namespace meevax { inline namespace kernel
      * ====================================================================== */
     DEFINE_PREDICATE("char?", character);
 
-    define<procedure>("digit-value", [](auto&& xs)
+    define<procedure>("digit-value", [](let const& xs)
     {
       try
       {
-        return make<exact_integer>(car(xs).template as<character>().display());
+        return make<exact_integer>(car(xs).as<character>().write_char());
       }
       catch (std::runtime_error&)
       {
@@ -651,7 +637,7 @@ namespace meevax { inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<character>())
       {
-        return make<exact_integer>(x.as<character>().decode());
+        return make<exact_integer>(x.as<character>().codepoint());
       }
       else
       {
@@ -834,11 +820,11 @@ namespace meevax { inline namespace kernel
      * ┌─────────────────────────┬────────────┬───────────────────────────────┐
      * │ Identifier              │ Written in │ Note                          │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ standard-input-port     │ C++        │                               │
+     * │ standard-input-port     │ C++        │ std::cin                      │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ standard-output-port    │ C++        │                               │
+     * │ standard-output-port    │ C++        │ std::cout                     │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ standard-error-port     │ C++        │                               │
+     * │ standard-error-port     │ C++        │ std::cerr                     │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ input-file-port?        │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -1103,17 +1089,17 @@ namespace meevax { inline namespace kernel
       return unspecified;
     });
 
-    #define BOILERPLATE(SUFFIX, TYPENAME)                                      \
-    define<procedure>("::write-" SUFFIX, [](let const& xs)                     \
-    {                                                                          \
-      car(xs).as<TYPENAME>().display_to(cadr(xs));                             \
-      return unspecified;                                                      \
-    })
+    define<procedure>("::write-char", [](let const& xs)
+    {
+      car(xs).as<character>().write_char(cadr(xs));
+      return unspecified;
+    });
 
-    BOILERPLATE("char", character);
-    BOILERPLATE("string", string);
-
-    #undef BOILERPLATE
+    define<procedure>("::write-string", [](let const& xs)
+    {
+      car(xs).as<string>().write_string(cadr(xs));
+      return unspecified;
+    });
 
 
     define<procedure>("::flush-output-port", [](let const& xs)

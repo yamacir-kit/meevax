@@ -2,65 +2,32 @@
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
 #include <meevax/kernel/character.hpp>
+#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/port.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct string
     : public virtual pair
   {
-    auto display_to(std::ostream& port) const -> decltype(auto)
-    {
-      car(*this).as<character>().display_to(port);
+    auto write_string() const -> std::string;
 
-      for (const auto& each : cdr(*this))
-      {
-        each.as<character>().display_to(port);
-      }
+    auto write_string(output_port&) const -> output_port &;
 
-      return port;
-    }
-
-    auto display_to(let const& maybe_port) const -> decltype(auto)
-    {
-      return display_to(maybe_port.as<output_port>());
-    }
+    auto write_string(let const&) const -> output_port &;
 
     operator std::string() const
     {
-      std::stringstream port {};
-      display_to(port);
-      return port.str();
-    }
-
-    friend auto operator==(const string& lhs, const string& rhs)
-    {
-      return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);
-    }
-
-    friend auto operator<<(std::ostream& port, const string& s) -> decltype(auto)
-    {
-      port << cyan << "\"" << car(s).as<character>().display();
-
-      for (const auto& each : cdr(s))
-      {
-        if (each) // guard for malformed string
-        {
-          switch (const auto& s { each.as<character>().display() }; s[0])
-          {
-          case '\n': port << "\\n"; break;
-          case '\t': port << "\\t"; break;
-
-          default:
-            port << s;
-            break;
-          }
-        }
-        else break;
-      }
-
-      return port << "\"" << reset;
+      return write_string();
     }
   };
-}} // namespace meevax::kernel
+
+  bool operator ==(string const&, string const&);
+
+  auto operator <<(output_port&, const string&) -> output_port &;
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_STRING_HPP

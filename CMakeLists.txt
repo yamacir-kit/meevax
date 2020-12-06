@@ -130,12 +130,15 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/exact_integer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ghost.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/list.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/miscellaneous.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/number.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/object.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/pair.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/path.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/port.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ratio.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/reader.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/string.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/symbol.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/syntactic_continuation.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/vector.cpp

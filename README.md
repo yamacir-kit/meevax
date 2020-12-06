@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.2.852.
+Development HEAD: 0.2.865.
 
 ### Characteristic Features
 
@@ -82,7 +82,7 @@ An subset of R7RS-small.
 ### Tools
 
 -   Compiler supports C++17 (GCC >= 7.5.0, Clang >= 6.0.0)
--   CMake (>= 3.10.2)
+-   CMake (>= 3.16.3)
 -   GNU Make
 -   GNU Binutils
 -   [**Boost C++ Libraries**](https://www.boost.org/) (1.65.1 or later)
