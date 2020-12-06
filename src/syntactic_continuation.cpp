@@ -588,25 +588,11 @@ namespace meevax { inline namespace kernel
       return cons(car(xs), cadr(xs));
     });
 
-    define<procedure>("car", [](auto&& xs)
-    {
-      return caar(xs);
-    });
+    define<procedure>("car", [](auto&& xs) { return caar(xs); });
+    define<procedure>("cdr", [](auto&& xs) { return cdar(xs); });
 
-    define<procedure>("cdr", [](auto&& xs)
-    {
-      return cdar(xs);
-    });
-
-    define<procedure>("set-car!", [](auto&& xs)
-    {
-      return caar(xs) = cadr(xs);
-    });
-
-    define<procedure>("set-cdr!", [](auto&& xs)
-    {
-      return cdar(xs) = cadr(xs);
-    });
+    define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
+    define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
     /* ==== R7RS 6.5. Symbols ==================================================
      *
@@ -834,11 +820,11 @@ namespace meevax { inline namespace kernel
      * ┌─────────────────────────┬────────────┬───────────────────────────────┐
      * │ Identifier              │ Written in │ Note                          │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ standard-input-port     │ C++        │                               │
+     * │ standard-input-port     │ C++        │ std::cin                      │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ standard-output-port    │ C++        │                               │
+     * │ standard-output-port    │ C++        │ std::cout                     │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
-     * │ standard-error-port     │ C++        │                               │
+     * │ standard-error-port     │ C++        │ std::cerr                     │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
      * │ input-file-port?        │ C++        │                               │
      * ├─────────────────────────┼────────────┼───────────────────────────────┤
