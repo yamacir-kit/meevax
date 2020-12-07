@@ -1483,12 +1483,6 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
-; (define call-with-current-continuation ; hack
-;   (lambda (procedure)
-;     (call-with-current-continuation procedure)))
-;
-; (define call/cc call-with-current-continuation)
-
 ; (define values
 ;   (lambda xs
 ;     (call-with-current-continuation
