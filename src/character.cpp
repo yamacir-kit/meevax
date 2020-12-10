@@ -2,7 +2,9 @@
 #include <meevax/kernel/pair.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   auto encode(std::uint_least32_t codepoint) -> std::string
   {
@@ -131,4 +133,5 @@ namespace meevax { inline namespace kernel
       return datum.write_char(port) << reset;
     }
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

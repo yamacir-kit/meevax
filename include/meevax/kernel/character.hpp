@@ -26,6 +26,10 @@ namespace meevax { inline namespace kernel
       : std::string { encode(codepoint) }
     {}
 
+    // explicit character(std::istream & port) // R7RS read-char
+    // {
+    // }
+
     template <typename... Ts>
     explicit constexpr character(Ts&&... xs)
       : std::string { std::forward<decltype(xs)>(xs)... }
