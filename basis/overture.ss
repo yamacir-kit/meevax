@@ -533,9 +533,9 @@
                 (let ((x (cdr x))
                       (y (cdr y)))
                   (and (not (eq? x y))
-                       (rec x y) ))
-                (null? x) ))
-          (null? x) ))))
+                       (rec x y)))
+                (null? x)))
+          (null? x)))))
 
 (define list? proper-list?)
 
@@ -549,9 +549,9 @@
                 (let ((x (cdr x))
                       (y (cdr y)))
                   (and (not (eq? x y))
-                       (rec x y) ))
-                (not (null? x)) ))
-          (not (null? x)) ))))
+                       (rec x y)))
+                (not (null? x))))
+          (not (null? x))))))
 
 (define circular-list?
   (lambda (x)
@@ -563,7 +563,7 @@
                   (let ((x (cdr x))
                         (y (cdr y)))
                     (or (eq? x y)
-                        (rec x y) ))))))))
+                        (rec x y)))))))))
 
 (define null-list?
   (lambda (x)
@@ -793,9 +793,11 @@
   (lambda (x y)
     (if (and (pair? x)
              (pair? y))
-        (and (equal? (car x) (car y))
-             (equal? (cdr x) (cdr y)))
-        (eqv? x y) )))
+        (and (equal? (car x)
+                     (car y))
+             (equal? (cdr x)
+                     (cdr y)))
+        (eqv? x y))))
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Standard Numerical Library (Part 2 of 2)
@@ -1135,7 +1137,7 @@
              #t))))
 
 ; ------------------------------------------------------------------------------
-;  6.6 Standard Characters Library
+;  6.6 Characters
 ; ------------------------------------------------------------------------------
 
 (define char-compare
@@ -1214,7 +1216,7 @@
 (define char-foldcase char-downcase)
 
 ; ------------------------------------------------------------------------------
-;  6.7 Standard Strings Library
+;  6.7 Strings
 ; ------------------------------------------------------------------------------
 
 (define (make-string k . c)
@@ -1408,6 +1410,14 @@
 
     (take (drop s start) (- end start))))
 
+(define (list->string x)
+  (let rec ((x x))
+    (cond ((null? x) '())
+          ((pair? x)
+           (char-cons (car x)
+                      (rec (cdr x))))
+          (else (char-cons x '())))))
+
 ; string-copy!
 
 (define string-fill!
@@ -1425,14 +1435,6 @@
         (if (<= start k)
             (begin (string-set! s k c)
                    (rec (- k 1))))))))
-
-(define (list->string x)
-  (let rec ((x x))
-    (cond ((null? x) '())
-          ((pair? x)
-           (char-cons (car x)
-                      (rec (cdr x))))
-          (else (char-cons x '())))))
 
 ; ------------------------------------------------------------------------------
 ;  6.9 Standard Bytevectors Library
@@ -1480,12 +1482,6 @@
 
 ; TODO string-for-each
 ; TODO vector-for-each
-
-; (define call-with-current-continuation ; hack
-;   (lambda (procedure)
-;     (call-with-current-continuation procedure)))
-;
-; (define call/cc call-with-current-continuation)
 
 ; (define values
 ;   (lambda xs

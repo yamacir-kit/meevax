@@ -6,12 +6,16 @@
 #include <meevax/kernel/linker.hpp>
 #include <meevax/kernel/list.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   #if __has_cpp_attribute(maybe_unused)
-  #define PROCEDURE(...) const meevax::kernel::object __VA_ARGS__([[maybe_unused]] const meevax::kernel::object& xs)
+  #define PROCEDURE(...) \
+    meevax::object const __VA_ARGS__([[maybe_unused]] meevax::object const& xs)
   #else
-  #define PROCEDURE(...) const meevax::kernel::object __VA_ARGS__(                 const meevax::kernel::object& xs)
+  #define PROCEDURE(...) \
+    meevax::object const __VA_ARGS__(                 meevax::object const& xs)
   #endif // __has_cpp_attribute(maybe_unused)
 
   struct procedure
@@ -24,20 +28,44 @@ namespace meevax { inline namespace kernel
     template <typename... Ts>
     explicit procedure(const std::string& name, Ts&&... xs)
       : std::function<PROCEDURE()> { std::forward<decltype(xs)>(xs)...  }
-      , name {name}
+      , name { name }
     {}
 
-    friend auto operator<<(std::ostream& os, const procedure& proc)
-      -> decltype(auto)
+    friend auto operator <<(std::ostream & port, procedure const& datum) -> std::ostream &
     {
-      return os << magenta << "#,("
-                << green << "procedure "
-                << reset << proc.name
-                << faint << " #;" << &proc << reset
-                << magenta << ")"
-                << reset;
+      return port << magenta << "#,("
+                  << green << "procedure "
+                  << reset << datum.name
+                  << faint << " #;" << &datum << reset
+                  << magenta << ")"
+                  << reset;
     }
   };
-}} // namespace meevax::kernel
+
+  template <typename T>
+  struct make_predicate
+  {
+    let operator ()(let const& xs) const
+    {
+      if (xs.is<null>())
+      {
+        return f;
+      }
+      else
+      {
+        for (let const& x : xs)
+        {
+          if (x.is<null>() or not x.is<T>())
+          {
+            return f;
+          }
+        }
+
+        return t;
+      }
+    }
+  };
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
