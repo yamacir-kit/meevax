@@ -1242,43 +1242,14 @@ inline namespace kernel
 
     define<procedure>("::read-char", [](let const& xs)
     {
-      auto read_char = [](std::istream & port)
+      try
       {
-        std::string code {};
-
-        if (const auto c { port.peek() }; is_end_of_file(c))
-        {
-          return eof_object;
-        }
-        else if (0b1111'0000 < c)
-        {
-          code.push_back(port.narrow(port.get() /* & 0b0000'0111 */, 'A'));
-          code.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-          code.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
-          code.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'D'));
-          return make<character>(code);
-        }
-        else if (0b1110'0000 < c)
-        {
-          code.push_back(port.narrow(port.get() /* & 0b0000'1111 */, 'A'));
-          code.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-          code.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
-          return make<character>(code);
-        }
-        else if (0b1100'0000 < c)
-        {
-          code.push_back(port.narrow(port.get() /* & 0b0001'1111 */, 'A'));
-          code.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-          return make<character>(code);
-        }
-        else
-        {
-          code.push_back(port.narrow(port.get() & 0b0111'1111, 'A'));
-          return make<character>(code);
-        }
-      };
-
-      return read_char(car(xs).as<input_port>());
+        return make<character>(car(xs).as<input_port>());
+      }
+      catch (read_error<eof> const&)
+      {
+        return eof_object;
+      }
     });
 
 

@@ -4,10 +4,14 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/kernel/object.hpp>
+#include <meevax/kernel/parser.hpp>
 #include <meevax/kernel/port.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- Character --------------------------------------------------------- */
 
@@ -26,9 +30,35 @@ namespace meevax { inline namespace kernel
       : std::string { encode(codepoint) }
     {}
 
-    // explicit character(std::istream & port) // R7RS read-char
-    // {
-    // }
+    explicit character(input_port & port) // R7RS read-char
+    {
+      if (const auto c { port.peek() }; is_end_of_file(c))
+      {
+        throw read_error<eof>("exhausted input-port");
+      }
+      else if (0b1111'0000 < c)
+      {
+        push_back(port.narrow(port.get() /* & 0b0000'0111 */, 'A'));
+        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
+        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
+        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'D'));
+      }
+      else if (0b1110'0000 < c)
+      {
+        push_back(port.narrow(port.get() /* & 0b0000'1111 */, 'A'));
+        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
+        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
+      }
+      else if (0b1100'0000 < c)
+      {
+        push_back(port.narrow(port.get() /* & 0b0001'1111 */, 'A'));
+        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
+      }
+      else
+      {
+        push_back(port.narrow(port.get() & 0b0111'1111, 'A'));
+      }
+    }
 
     template <typename... Ts>
     explicit constexpr character(Ts&&... xs)
@@ -52,6 +82,7 @@ namespace meevax { inline namespace kernel
   };
 
   auto operator <<(std::ostream& port, const character&) -> decltype(port);
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
