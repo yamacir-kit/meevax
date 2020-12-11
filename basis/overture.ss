@@ -1732,11 +1732,22 @@
 
 
 (define read
-  (lambda maybe-port
-    (let ((port (if (pair? maybe-port)
-                    (car maybe-port)
-                    (current-output-port))))
-      (::read port))))
+  (lambda x
+    (::read (if (pair? x)
+                (car x)
+                (current-input-port)))))
+
+(define read-char
+  (lambda x
+    (::read-char (if (pair? x)
+                     (car x)
+                     (current-input-port)))))
+
+(define char-ready?
+  (lambda x
+    (::char-ready? (if (pair? x)
+                       (car x)
+                       (current-input-port)))))
 
 
 (define write-simple
