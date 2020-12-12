@@ -891,10 +891,7 @@
             (ieee-nan? (imag-part z)))
         (ieee-nan? z))))
 
-(define zero?
-  (lambda (n)
-    (= n 0)))
-
+(define zero?     (lambda (n) (= n 0)))
 (define positive? (lambda (n) (> n 0)))
 (define negative? (lambda (n) (< n 0)))
 
