@@ -1,3 +1,4 @@
+#include <iterator>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/posix/vt102.hpp>
@@ -1250,6 +1251,20 @@ inline namespace kernel
       {
         return eof_object;
       }
+    });
+
+    define<procedure>("push-char", [](let const& xs)
+    {
+      auto & port { car(xs).as<input_port>() };
+
+      auto const& c { cadr(xs).as<std::string const>() };
+
+      for (auto iter { std::crbegin(c) }; iter != std::crend(c); ++iter)
+      {
+        port.putback(*iter);
+      }
+
+      return car(xs);
     });
 
 

@@ -6,7 +6,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto encode(std::uint_least32_t codepoint) -> std::string
+  auto codepoint_to_codeunit(std::uint_least32_t codepoint) -> std::string
   {
     char sequence[5] = {};
 
@@ -47,7 +47,7 @@ inline namespace kernel
     return sequence;
   }
 
-  auto decode(std::string const& code) -> std::uint_least32_t
+  auto codeunit_to_codepoint(std::string const& code) -> std::uint_least32_t
   {
     std::uint_least32_t codepoint {};
 
