@@ -16,19 +16,13 @@ inline namespace kernel
 {
   /* ---- Multi-Precision Exact-Integer ------------------------------------- */
 
-  auto to_inexact(const exact_integer&) -> default_float;
+  auto to_inexact(const exact_integer&) -> default_float; // TODO use exact_integer::as_inexact
 
   /* ---- Ratio ------------------------------------------------------------- */
 
   auto to_inexact(const ratio&) -> default_float;
 
   /* ---- Floating-Point Numbers -------------------------------------------- */
-
-  template <typename T>
-  auto floating_point<T>::as_exact() const
-  {
-    return static_cast<exact_integer>(value);
-  }
 
   template <typename T>
   constexpr auto to_inexact(const floating_point<T>& datum)
@@ -69,9 +63,9 @@ inline namespace kernel
   {
     #define BOILERPLATE(TYPE)                                                  \
     {                                                                          \
-      typeid(TYPE), [](auto&& z)                                               \
+      typeid(TYPE), [](let const& z)                                           \
       {                                                                        \
-        return to_inexact(z.template as<TYPE>());                              \
+        return to_inexact(z.as<TYPE>());                                       \
       }                                                                        \
     }
 

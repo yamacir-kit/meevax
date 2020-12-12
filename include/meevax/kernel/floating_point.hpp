@@ -35,7 +35,15 @@ inline namespace kernel
       return value == std::trunc(value);
     }
 
-    auto as_exact() const;
+    auto as_exact() const
+    {
+      return static_cast<exact_integer>(value);
+    }
+
+    auto as_inexact() const
+    {
+      return value;
+    }
 
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }
