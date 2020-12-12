@@ -1,5 +1,6 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/parser.hpp>
 #include <meevax/posix/vt102.hpp>
 
 namespace meevax
@@ -89,6 +90,40 @@ inline namespace kernel
     }
 
     return codepoint;
+  }
+
+  auto read_codeunit(input_port & port) -> std::string
+  {
+    std::string codeunit {};
+
+    if (const auto c { port.peek() }; is_end_of_file(c))
+    {
+      throw read_error<eof>("exhausted input-port");
+    }
+    else if (0b1111'0000 < c)
+    {
+      codeunit.push_back(port.narrow(port.get() /* & 0b0000'0111 */, 'A'));
+      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
+      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
+      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'D'));
+    }
+    else if (0b1110'0000 < c)
+    {
+      codeunit.push_back(port.narrow(port.get() /* & 0b0000'1111 */, 'A'));
+      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
+      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
+    }
+    else if (0b1100'0000 < c)
+    {
+      codeunit.push_back(port.narrow(port.get() /* & 0b0001'1111 */, 'A'));
+      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
+    }
+    else
+    {
+      codeunit.push_back(port.narrow(port.get() /* & 0b0111'1111 */, 'A'));
+    }
+
+    return codeunit;
   }
 
   auto character::write_char() const -> std::string const&

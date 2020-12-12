@@ -6,7 +6,6 @@
 
 #include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/kernel/object.hpp>
-#include <meevax/kernel/parser.hpp>
 #include <meevax/kernel/port.hpp>
 
 namespace meevax
@@ -18,6 +17,8 @@ inline namespace kernel
   auto codepoint_to_codeunit(std::uint_least32_t) -> std::string;
 
   auto codeunit_to_codepoint(std::string const&) -> std::uint_least32_t;
+
+  auto read_codeunit(input_port &) -> std::string;
 
   struct character
     : public std::string
@@ -31,34 +32,8 @@ inline namespace kernel
     {}
 
     explicit character(input_port & port) // R7RS read-char
-    {
-      if (const auto c { port.peek() }; is_end_of_file(c))
-      {
-        throw read_error<eof>("exhausted input-port");
-      }
-      else if (0b1111'0000 < c)
-      {
-        push_back(port.narrow(port.get() /* & 0b0000'0111 */, 'A'));
-        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
-        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'D'));
-      }
-      else if (0b1110'0000 < c)
-      {
-        push_back(port.narrow(port.get() /* & 0b0000'1111 */, 'A'));
-        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
-      }
-      else if (0b1100'0000 < c)
-      {
-        push_back(port.narrow(port.get() /* & 0b0001'1111 */, 'A'));
-        push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-      }
-      else
-      {
-        push_back(port.narrow(port.get() & 0b0111'1111, 'A'));
-      }
-    }
+      : std::string { read_codeunit(port) }
+    {}
 
     template <typename... Ts>
     explicit constexpr character(Ts&&... xs)
