@@ -4,16 +4,22 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/kernel/object.hpp>
 #include <meevax/kernel/port.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- Character --------------------------------------------------------- */
 
-  auto encode(std::uint_least32_t) -> std::string;
+  auto codepoint_to_codeunit(std::uint_least32_t) -> std::string;
 
-  auto decode(std::string const&) -> std::uint_least32_t;
+  auto codeunit_to_codepoint(std::string const&) -> std::uint_least32_t;
+
+  auto read_codeunit(input_port &) -> std::string;
+  auto peek_codeunit(input_port &) -> std::string;
 
   struct character
     : public std::string
@@ -23,7 +29,11 @@ namespace meevax { inline namespace kernel
     {}
 
     explicit character(std::uint32_t codepoint) // R7RS integer->char
-      : std::string { encode(codepoint) }
+      : std::string { codepoint_to_codeunit(codepoint) }
+    {}
+
+    explicit character(input_port & port) // R7RS read-char
+      : std::string { read_codeunit(port) }
     {}
 
     template <typename... Ts>
@@ -35,7 +45,7 @@ namespace meevax { inline namespace kernel
 
     decltype(auto) codepoint() const // R7RS char->integer
     {
-      return decode(*this);
+      return codeunit_to_codepoint(*this);
     }
 
     /* ---- R7RS write-char ------------------------------------------------- */
@@ -47,7 +57,8 @@ namespace meevax { inline namespace kernel
     auto write_char(let const&) const -> output_port &;
   };
 
-  auto operator <<(std::ostream& port, const character&) -> decltype(port);
-}} // namespace meevax::kernel
+  auto operator <<(output_port & port, character const&) -> output_port &;
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP

@@ -1,10 +1,13 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/parser.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  auto encode(std::uint_least32_t codepoint) -> std::string
+inline namespace kernel
+{
+  auto codepoint_to_codeunit(std::uint_least32_t codepoint) -> std::string
   {
     char sequence[5] = {};
 
@@ -45,7 +48,7 @@ namespace meevax { inline namespace kernel
     return sequence;
   }
 
-  auto decode(std::string const& code) -> std::uint_least32_t
+  auto codeunit_to_codepoint(std::string const& code) -> std::uint_least32_t
   {
     std::uint_least32_t codepoint {};
 
@@ -87,6 +90,51 @@ namespace meevax { inline namespace kernel
     }
 
     return codepoint;
+  }
+
+  auto read_codeunit(input_port & port) -> std::string
+  {
+    std::string codeunit {};
+
+    if (const auto c { port.peek() }; is_end_of_file(c))
+    {
+      throw read_error<eof>("exhausted input-port");
+    }
+    else if (0b1111'0000 < c)
+    {
+      codeunit.push_back(port.narrow(port.get(), 'A'));
+      codeunit.push_back(port.narrow(port.get(), 'B'));
+      codeunit.push_back(port.narrow(port.get(), 'C'));
+      codeunit.push_back(port.narrow(port.get(), 'D'));
+    }
+    else if (0b1110'0000 < c)
+    {
+      codeunit.push_back(port.narrow(port.get(), 'A'));
+      codeunit.push_back(port.narrow(port.get(), 'B'));
+      codeunit.push_back(port.narrow(port.get(), 'C'));
+    }
+    else if (0b1100'0000 < c)
+    {
+      codeunit.push_back(port.narrow(port.get(), 'A'));
+      codeunit.push_back(port.narrow(port.get(), 'B'));
+    }
+    else
+    {
+      codeunit.push_back(port.narrow(port.get(), 'A'));
+    }
+
+    return codeunit;
+  }
+
+  auto peek_codeunit(input_port & port) -> std::string
+  {
+    const auto position { port.tellg() };
+
+    const auto codeunit { read_codeunit(port) };
+
+    port.seekg(position);
+
+    return codeunit;
   }
 
   auto character::write_char() const -> std::string const&
@@ -131,4 +179,5 @@ namespace meevax { inline namespace kernel
       return datum.write_char(port) << reset;
     }
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

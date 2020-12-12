@@ -891,10 +891,7 @@
             (ieee-nan? (imag-part z)))
         (ieee-nan? z))))
 
-(define zero?
-  (lambda (n)
-    (= n 0)))
-
+(define zero?     (lambda (n) (= n 0)))
 (define positive? (lambda (n) (> n 0)))
 (define negative? (lambda (n) (< n 0)))
 
@@ -1731,13 +1728,10 @@
 ; TODO get-output-bytevector
 
 
-(define read
-  (lambda maybe-port
-    (let ((port (if (pair? maybe-port)
-                    (car maybe-port)
-                    (current-output-port))))
-      (::read port))))
-
+(define read        (lambda x (::read        (if (pair? x) (car x) (current-input-port)))))
+(define read-char   (lambda x (::read-char   (if (pair? x) (car x) (current-input-port)))))
+(define peek-char   (lambda x (::peek-char   (if (pair? x) (car x) (current-input-port)))))
+(define char-ready? (lambda x (::char-ready? (if (pair? x) (car x) (current-input-port)))))
 
 (define write-simple
   (lambda (datum . maybe-port)
