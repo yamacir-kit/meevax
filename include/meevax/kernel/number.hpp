@@ -10,32 +10,10 @@
 
 #include <typeindex>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ---- Numbers --------------------------------------------------------------
-   *
-   *  number
-   *   `-- complex
-   *        `-- real
-   *             |-- floating-point (IEEE 754)
-   *             |    |-- binary  16
-   *             |    |-- binary  32 (C++ single float)      = floating_point<float>
-   *             |    |-- binary  64 (C++ double float)      = floating_point<double>
-   *             |    |-- binary  80 (C++ long double float) = floating_point<long double>
-   *             |    `-- binary 128
-   *             `-- rational
-   *                  |-- ratio
-   *                  `-- exact-integer
-   *                       |-- multi-precision exact-integer
-   *                       `-- fixed precision exact-integer
-   *                            |-- signed and unsigned   8  = number<std::u?int8_t>
-   *                            |-- signed and unsigned  16  = number<std::u?int16_t>
-   *                            |-- signed and unsigned  32  = number<std::u?int32_t>
-   *                            |-- signed and unsigned  64  = number<std::u?int64_t>
-   *                            `-- signed and unsigned 128  = number<std::u?int128_t>
-   *
-   * ------------------------------------------------------------------------ */
-
+inline namespace kernel
+{
   /* ---- Multi-Precision Exact-Integer ------------------------------------- */
 
   auto to_inexact(const exact_integer&) -> default_float;
@@ -414,6 +392,7 @@ namespace meevax { inline namespace kernel
   template <typename T> BOILERPLATE(floating_point<T>, >=);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP

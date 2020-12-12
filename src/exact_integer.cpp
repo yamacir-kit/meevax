@@ -1,9 +1,12 @@
 #include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/port.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  auto operator <<(std::ostream& port, const exact_integer& datum) -> decltype(port)
+inline namespace kernel
+{
+  auto operator <<(output_port & port, exact_integer const& datum) -> output_port &
   {
     return port << cyan << datum.value.str() << reset;
   }
@@ -36,4 +39,5 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(>=);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

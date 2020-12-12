@@ -11,13 +11,12 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #endif
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/algebra.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ---- Multi-Presition Exact Integer ----------------------------------------
-   *
-   * ------------------------------------------------------------------------ */
+inline namespace kernel
+{
   struct exact_integer
   {
     #ifdef MEEVAX_USE_GMP
@@ -80,6 +79,7 @@ namespace meevax { inline namespace kernel
   auto operator ==(const exact_integer&, const exact_integer&) -> bool;
   auto operator > (const exact_integer&, const exact_integer&) -> bool;
   auto operator >=(const exact_integer&, const exact_integer&) -> bool;
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP

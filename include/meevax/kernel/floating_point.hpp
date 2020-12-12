@@ -1,13 +1,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/algebra.hpp>
+#include <meevax/kernel/port.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ---- Floating Point Number ------------------------------------------------
-   *
-   * ------------------------------------------------------------------------ */
+inline namespace kernel
+{
   template <typename T>
   struct floating_point
     : public std::numeric_limits<T>
@@ -41,20 +41,11 @@ namespace meevax { inline namespace kernel
     constexpr operator value_type()       noexcept { return value; }
   };
 
-  template struct floating_point<float>;
-  template struct floating_point<double>;
-  template struct floating_point<long double>;
-
-  using single_float = floating_point<float>;
-  using double_float = floating_point<double>;
-
-  using default_float = floating_point<decltype(0.0)>;
-
-  template <typename T> let operator * (floating_point<T>&, const object&);
-  template <typename T> let operator + (floating_point<T>&, const object&);
-  template <typename T> let operator - (floating_point<T>&, const object&);
-  template <typename T> let operator / (floating_point<T>&, const object&);
-  template <typename T> let operator % (floating_point<T>&, const object&);
+  template <typename T> let operator * (floating_point<T>&, object const&);
+  template <typename T> let operator + (floating_point<T>&, object const&);
+  template <typename T> let operator - (floating_point<T>&, object const&);
+  template <typename T> let operator / (floating_point<T>&, object const&);
+  template <typename T> let operator % (floating_point<T>&, object const&);
 
   template <typename T> auto operator == (floating_point<T>&, const object&) -> bool;
   template <typename T> auto operator != (floating_point<T>&, const object&) -> bool;
@@ -64,7 +55,7 @@ namespace meevax { inline namespace kernel
   template <typename T> auto operator >= (floating_point<T>&, const object&) -> bool;
 
   template <typename T>
-  auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)
+  auto operator <<(output_port & os, floating_point<T> const& rhs) -> output_port &
   {
     if (std::isnan(rhs))
     {
@@ -110,6 +101,7 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(>=);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP

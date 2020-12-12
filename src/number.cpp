@@ -1,6 +1,8 @@
 #include <meevax/kernel/number.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- Multi-Precision Exact-Integer ------------------------------------- */
 
@@ -216,4 +218,5 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(ratio, >=);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

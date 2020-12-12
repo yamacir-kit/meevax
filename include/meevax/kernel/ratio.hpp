@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct ratio
     : public virtual pair
@@ -59,6 +61,7 @@ namespace meevax { inline namespace kernel
   auto operator <=(const ratio&, const ratio&) -> bool;
   auto operator > (const ratio&, const ratio&) -> bool;
   auto operator >=(const ratio&, const ratio&) -> bool;
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_RATIO_HPP
