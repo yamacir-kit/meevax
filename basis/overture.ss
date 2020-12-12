@@ -1731,24 +1731,10 @@
 ; TODO get-output-bytevector
 
 
-(define read
-  (lambda x
-    (::read (if (pair? x)
-                (car x)
-                (current-input-port)))))
-
-(define read-char
-  (lambda x
-    (::read-char (if (pair? x)
-                     (car x)
-                     (current-input-port)))))
-
-(define char-ready?
-  (lambda x
-    (::char-ready? (if (pair? x)
-                       (car x)
-                       (current-input-port)))))
-
+(define read        (lambda x (::read        (if (pair? x) (car x) (current-input-port)))))
+(define read-char   (lambda x (::read-char   (if (pair? x) (car x) (current-input-port)))))
+(define peek-char   (lambda x (::peek-char   (if (pair? x) (car x) (current-input-port)))))
+(define char-ready? (lambda x (::char-ready? (if (pair? x) (car x) (current-input-port)))))
 
 (define write-simple
   (lambda (datum . maybe-port)

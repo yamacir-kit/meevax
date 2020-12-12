@@ -19,6 +19,7 @@ inline namespace kernel
   auto codeunit_to_codepoint(std::string const&) -> std::uint_least32_t;
 
   auto read_codeunit(input_port &) -> std::string;
+  auto peek_codeunit(input_port &) -> std::string;
 
   struct character
     : public std::string

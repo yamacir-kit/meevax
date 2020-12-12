@@ -126,6 +126,17 @@ inline namespace kernel
     return codeunit;
   }
 
+  auto peek_codeunit(input_port & port) -> std::string
+  {
+    const auto position { port.tellg() };
+
+    const auto codeunit { read_codeunit(port) };
+
+    port.seekg(position);
+
+    return codeunit;
+  }
+
   auto character::write_char() const -> std::string const&
   {
     return static_cast<std::string const&>(*this);

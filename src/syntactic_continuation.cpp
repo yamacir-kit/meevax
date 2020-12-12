@@ -1086,7 +1086,7 @@ inline namespace kernel
       ├─────────────────────────┼────────────┼───────────────────────────────┤
       │ read-char               │ C++/Scheme │                               │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ peek-char               │ TODO       │                               │
+      │ peek-char               │ C++/Scheme │                               │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
       │ read-line               │ TODO       │                               │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -1253,18 +1253,16 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("push-char", [](let const& xs)
+    define<procedure>("::peek-char", [](let const& xs)
     {
-      auto & port { car(xs).as<input_port>() };
-
-      auto const& c { cadr(xs).as<std::string const>() };
-
-      for (auto iter { std::crbegin(c) }; iter != std::crend(c); ++iter)
+      try
       {
-        port.putback(*iter);
+        return make<character>(peek_codeunit(car(xs).as<input_port>()));
       }
-
-      return car(xs);
+      catch (read_error<eof> const&)
+      {
+        return eof_object;
+      }
     });
 
 
