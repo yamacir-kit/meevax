@@ -11,33 +11,17 @@ inline namespace kernel
     return port << cyan << datum.value.str() << reset;
   }
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(exact_integer const& lhs, exact_integer const& rhs) -> exact_integer \
-  {                                                                            \
-    return exact_integer(lhs.value SYMBOL rhs.value);                          \
-  } static_assert(true)
+  auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value * b.value); }
+  auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value + b.value); }
+  auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value - b.value); }
+  auto operator / (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value / b.value); }
+  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value % b.value); }
 
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, const exact_integer& rhs) -> bool \
-  {                                                                            \
-    return lhs.value SYMBOL rhs.value;                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
+  auto operator !=(exact_integer const& a, exact_integer const& b) -> bool { return a.value != b.value; }
+  auto operator < (exact_integer const& a, exact_integer const& b) -> bool { return a.value <  b.value; }
+  auto operator <=(exact_integer const& a, exact_integer const& b) -> bool { return a.value <= b.value; }
+  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool { return a.value == b.value; }
+  auto operator > (exact_integer const& a, exact_integer const& b) -> bool { return a.value >  b.value; }
+  auto operator >=(exact_integer const& a, exact_integer const& b) -> bool { return a.value >= b.value; }
 } // namespace kernel
 } // namespace meevax

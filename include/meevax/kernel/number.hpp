@@ -312,22 +312,6 @@ inline namespace kernel
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
-  {                                                                            \
-    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
   {                                                                            \
     return lhs SYMBOL to_inexact(rhs);                                         \
@@ -343,13 +327,6 @@ inline namespace kernel
   #undef BOILERPLATE
 
   /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
-
-  auto operator !=(const exact_integer&, const object&) -> bool;
-  auto operator < (const exact_integer&, const object&) -> bool;
-  auto operator <=(const exact_integer&, const object&) -> bool;
-  auto operator ==(const exact_integer&, const object&) -> bool;
-  auto operator > (const exact_integer&, const object&) -> bool;
-  auto operator >=(const exact_integer&, const object&) -> bool;
 
   auto operator !=(const ratio&, const object&) -> bool;
   auto operator < (const ratio&, const object&) -> bool;

@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 #define INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 
+#include <type_traits>
 #ifndef MEEVAX_USE_GMP
 #define MEEVAX_USE_GMP
 #endif
@@ -49,25 +50,22 @@ inline namespace kernel
       return *this;
     }
 
+    auto as_inexact() const
+    {
+      return value.convert_to<decltype(0.0)>();
+    }
+
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
   };
 
   auto operator <<(output_port & port, exact_integer const&) -> output_port &;
 
-  let operator *(const exact_integer&, const object&);
-  let operator +(const exact_integer&, const object&);
-  let operator -(const exact_integer&, const object&);
-  let operator /(const exact_integer&, const object&);
-  let operator %(const exact_integer&, const object&);
-
-
-  auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
-
+  // let operator *(const exact_integer&, const object&);
+  // let operator +(const exact_integer&, const object&);
+  // let operator -(const exact_integer&, const object&);
+  // let operator /(const exact_integer&, const object&);
+  // let operator %(const exact_integer&, const object&);
 
   auto operator ==(const exact_integer&, const object&) -> bool;
   auto operator !=(const exact_integer&, const object&) -> bool;
@@ -76,12 +74,18 @@ inline namespace kernel
   auto operator > (const exact_integer&, const object&) -> bool;
   auto operator >=(const exact_integer&, const object&) -> bool;
 
-  auto operator !=(const exact_integer&, const exact_integer&) -> bool;
-  auto operator < (const exact_integer&, const exact_integer&) -> bool;
-  auto operator <=(const exact_integer&, const exact_integer&) -> bool;
-  auto operator ==(const exact_integer&, const exact_integer&) -> bool;
-  auto operator > (const exact_integer&, const exact_integer&) -> bool;
-  auto operator >=(const exact_integer&, const exact_integer&) -> bool;
+  auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
+
+  auto operator !=(exact_integer const&, exact_integer const&) -> bool;
+  auto operator < (exact_integer const&, exact_integer const&) -> bool;
+  auto operator <=(exact_integer const&, exact_integer const&) -> bool;
+  auto operator ==(exact_integer const&, exact_integer const&) -> bool;
+  auto operator > (exact_integer const&, exact_integer const&) -> bool;
+  auto operator >=(exact_integer const&, exact_integer const&) -> bool;
 } // namespace kernel
 } // namespace meevax
 

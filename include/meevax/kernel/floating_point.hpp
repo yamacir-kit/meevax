@@ -71,36 +71,26 @@ inline namespace kernel
     }
   }
 
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  template <typename T, typename U>                                            \
-  constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
-  {                                                                            \
-    return floating_point(OPERATION(lhs.value, rhs.value));                    \
-  } static_assert(true)
+  template <typename T, typename U> constexpr auto operator * (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value * b.value); }
+  template <typename T, typename U> constexpr auto operator + (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value + b.value); }
+  template <typename T, typename U> constexpr auto operator - (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value - b.value); }
+  template <typename T, typename U> constexpr auto operator / (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value / b.value); }
+  template <typename T, typename U> constexpr auto operator % (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(std::fmod(a.value, b.value)); }
 
-  BOILERPLATE(*, std::multiplies<void>());
-  BOILERPLATE(+, std::plus<void>());
-  BOILERPLATE(-, std::minus<void>());
-  BOILERPLATE(/, std::divides<void>());
-  BOILERPLATE(%, std::fmod);
 
-  #undef BOILERPLATE
+  template <typename T, typename U> constexpr auto operator !=(floating_point<T> const& a, floating_point<U> const& b) { return a.value != b.value; }
+  template <typename T, typename U> constexpr auto operator < (floating_point<T> const& a, floating_point<U> const& b) { return a.value <  b.value; }
+  template <typename T, typename U> constexpr auto operator <=(floating_point<T> const& a, floating_point<U> const& b) { return a.value <= b.value; }
+  template <typename T, typename U> constexpr auto operator ==(floating_point<T> const& a, floating_point<U> const& b) { return a.value == b.value; }
+  template <typename T, typename U> constexpr auto operator > (floating_point<T> const& a, floating_point<U> const& b) { return a.value >  b.value; }
+  template <typename T, typename U> constexpr auto operator >=(floating_point<T> const& a, floating_point<U> const& b) { return a.value >= b.value; }
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T, typename U>                                            \
-  constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
-  {                                                                            \
-    return lhs.value SYMBOL rhs.value;                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
+  template <typename T> constexpr auto operator !=(floating_point<T> const& a, exact_integer const& b) { return a.value != b.as_inexact(); }
+  template <typename T> constexpr auto operator < (floating_point<T> const& a, exact_integer const& b) { return a.value <  b.as_inexact(); }
+  template <typename T> constexpr auto operator <=(floating_point<T> const& a, exact_integer const& b) { return a.value <= b.as_inexact(); }
+  template <typename T> constexpr auto operator ==(floating_point<T> const& a, exact_integer const& b) { return a.value == b.as_inexact(); }
+  template <typename T> constexpr auto operator > (floating_point<T> const& a, exact_integer const& b) { return a.value >  b.as_inexact(); }
+  template <typename T> constexpr auto operator >=(floating_point<T> const& a, exact_integer const& b) { return a.value >= b.as_inexact(); }
 } // namespace kernel
 } // namespace meevax
 
