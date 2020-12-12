@@ -102,25 +102,25 @@ inline namespace kernel
     }
     else if (0b1111'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get() /* & 0b0000'0111 */, 'A'));
-      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
-      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'D'));
+      codeunit.push_back(port.narrow(port.get(), 'A'));
+      codeunit.push_back(port.narrow(port.get(), 'B'));
+      codeunit.push_back(port.narrow(port.get(), 'C'));
+      codeunit.push_back(port.narrow(port.get(), 'D'));
     }
     else if (0b1110'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get() /* & 0b0000'1111 */, 'A'));
-      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
-      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'C'));
+      codeunit.push_back(port.narrow(port.get(), 'A'));
+      codeunit.push_back(port.narrow(port.get(), 'B'));
+      codeunit.push_back(port.narrow(port.get(), 'C'));
     }
     else if (0b1100'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get() /* & 0b0001'1111 */, 'A'));
-      codeunit.push_back(port.narrow(port.get() /* & 0b0011'1111 */, 'B'));
+      codeunit.push_back(port.narrow(port.get(), 'A'));
+      codeunit.push_back(port.narrow(port.get(), 'B'));
     }
     else
     {
-      codeunit.push_back(port.narrow(port.get() /* & 0b0111'1111 */, 'A'));
+      codeunit.push_back(port.narrow(port.get(), 'A'));
     }
 
     return codeunit;
