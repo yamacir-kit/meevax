@@ -12,6 +12,7 @@
 #endif
 
 #include <meevax/kernel/algebra.hpp>
+#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {
@@ -43,7 +44,7 @@ inline namespace kernel
       return value.convert_to<T>() == number;
     }
 
-    auto as_exact() const -> const auto&
+    auto as_exact() const -> auto const&
     {
       return *this;
     }
@@ -52,7 +53,7 @@ inline namespace kernel
     operator value_type()       noexcept { return value; }
   };
 
-  auto operator <<(std::ostream& port, const exact_integer&) -> decltype(port);
+  auto operator <<(output_port & port, exact_integer const&) -> output_port &;
 
   let operator *(const exact_integer&, const object&);
   let operator +(const exact_integer&, const object&);
@@ -60,18 +61,20 @@ inline namespace kernel
   let operator /(const exact_integer&, const object&);
   let operator %(const exact_integer&, const object&);
 
+
+  auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
+
+
   auto operator ==(const exact_integer&, const object&) -> bool;
   auto operator !=(const exact_integer&, const object&) -> bool;
   auto operator < (const exact_integer&, const object&) -> bool;
   auto operator <=(const exact_integer&, const object&) -> bool;
   auto operator > (const exact_integer&, const object&) -> bool;
   auto operator >=(const exact_integer&, const object&) -> bool;
-
-  auto operator * (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator + (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator - (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator / (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator % (const exact_integer&, const exact_integer&) -> exact_integer;
 
   auto operator !=(const exact_integer&, const exact_integer&) -> bool;
   auto operator < (const exact_integer&, const exact_integer&) -> bool;

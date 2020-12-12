@@ -12,7 +12,7 @@ inline namespace kernel
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, const exact_integer& rhs) -> exact_integer \
+  auto operator SYMBOL(exact_integer const& lhs, exact_integer const& rhs) -> exact_integer \
   {                                                                            \
     return exact_integer(lhs.value SYMBOL rhs.value);                          \
   } static_assert(true)
