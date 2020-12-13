@@ -15,7 +15,7 @@ inline namespace kernel
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value + b.value); }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value - b.value); }
   auto operator / (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value / b.value); }
-  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value % b.value); }
+  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value % b.value); } // TODO ratio
   auto operator !=(exact_integer const& a, exact_integer const& b) -> bool { return a.value != b.value; }
   auto operator < (exact_integer const& a, exact_integer const& b) -> bool { return a.value <  b.value; }
   auto operator <=(exact_integer const& a, exact_integer const& b) -> bool { return a.value <= b.value; }
@@ -34,6 +34,5 @@ inline namespace kernel
   auto operator ==(exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a == b.numerator() : false; }
   auto operator > (exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a >  b.numerator() : false; }
   auto operator >=(exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a >= b.numerator() : false; }
-
 } // namespace kernel
 } // namespace meevax

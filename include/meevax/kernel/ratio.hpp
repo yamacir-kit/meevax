@@ -39,6 +39,12 @@ inline namespace kernel
     {
       return *this;
     }
+
+    template <typename T>
+    auto as_inexact() const
+    {
+      return std::fmod(numerator().as<exact_integer>().as_inexact<T>(), denominator().as<exact_integer>().as_inexact<T>());
+    }
   };
 
   auto operator <<(output_port & port, ratio const&) -> output_port &;
