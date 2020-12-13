@@ -118,22 +118,11 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  /* ---- Floating-Point Numbers -------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
-  {                                                                            \
-    return floating_point(lhs SYMBOL to_inexact(rhs));                         \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
+  template <typename T> auto operator * (floating_point<T> const& a, ratio const& b) { return a * b.as_inexact<T>(); }
+  template <typename T> auto operator + (floating_point<T> const& a, ratio const& b) { return a + b.as_inexact<T>(); }
+  template <typename T> auto operator - (floating_point<T> const& a, ratio const& b) { return a - b.as_inexact<T>(); }
+  template <typename T> auto operator / (floating_point<T> const& a, ratio const& b) { return a / b.as_inexact<T>(); }
+  template <typename T> auto operator % (floating_point<T> const& a, ratio const& b) { return a % b.as_inexact<T>(); }
 
   /* ---- Arithmetic Operation Dispatcher --------------------------------------
    *
