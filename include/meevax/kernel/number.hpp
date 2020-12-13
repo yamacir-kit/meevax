@@ -121,11 +121,17 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  template <typename T> auto operator * (floating_point<T> const& a, ratio const& b) { return a * b.as_inexact<T>(); }
-  template <typename T> auto operator + (floating_point<T> const& a, ratio const& b) { return a + b.as_inexact<T>(); }
-  template <typename T> auto operator - (floating_point<T> const& a, ratio const& b) { return a - b.as_inexact<T>(); }
-  template <typename T> auto operator / (floating_point<T> const& a, ratio const& b) { return a / b.as_inexact<T>(); }
-  template <typename T> auto operator % (floating_point<T> const& a, ratio const& b) { return a % b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator * (floating_point<T> const& a, ratio const& b) { return a *  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator + (floating_point<T> const& a, ratio const& b) { return a +  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator - (floating_point<T> const& a, ratio const& b) { return a -  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator / (floating_point<T> const& a, ratio const& b) { return a /  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator % (floating_point<T> const& a, ratio const& b) { return a %  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator !=(floating_point<T> const& a, ratio const& b) { return a != b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator < (floating_point<T> const& a, ratio const& b) { return a <  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator <=(floating_point<T> const& a, ratio const& b) { return a <= b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator ==(floating_point<T> const& a, ratio const& b) { return a == b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator > (floating_point<T> const& a, ratio const& b) { return a >  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator >=(floating_point<T> const& a, ratio const& b) { return a >= b.as_inexact<T>(); }
 
   /* ---- Arithmetic Operation Dispatcher --------------------------------------
    *
@@ -187,32 +193,7 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  /* ---- Floating-Point Number --------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
-  {                                                                            \
-    return lhs SYMBOL to_inexact(rhs);                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
   /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
-
-  auto operator !=(const ratio&, const object&) -> bool;
-  auto operator < (const ratio&, const object&) -> bool;
-  auto operator <=(const ratio&, const object&) -> bool;
-  auto operator ==(const ratio&, const object&) -> bool;
-  auto operator > (const ratio&, const object&) -> bool;
-  auto operator >=(const ratio&, const object&) -> bool;
 
   #define BOILERPLATE(NUMBER, SYMBOL)                                          \
   auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \

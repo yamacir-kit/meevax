@@ -49,6 +49,13 @@ inline namespace kernel
 
   auto operator <<(output_port & port, ratio const&) -> output_port &;
 
+  auto operator !=(ratio const&, object const&) -> bool;
+  auto operator < (ratio const&, object const&) -> bool;
+  auto operator <=(ratio const&, object const&) -> bool;
+  auto operator ==(ratio const&, object const&) -> bool;
+  auto operator > (ratio const&, object const&) -> bool;
+  auto operator >=(ratio const&, object const&) -> bool;
+
   auto operator !=(ratio const&, exact_integer const&) -> bool;
   auto operator < (ratio const&, exact_integer const&) -> bool;
   auto operator <=(ratio const&, exact_integer const&) -> bool;
