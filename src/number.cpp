@@ -4,16 +4,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto to_inexact(const exact_integer& datum) -> default_float
-  {
-    return default_float(datum.value.convert_to<default_float::value_type>());
-  }
-
-  auto to_inexact(const ratio& datum) -> default_float
-  {
-    return to_inexact(datum.numerator().as<exact_integer>()) / to_inexact(datum.denominator().as<exact_integer>());
-  }
-
   /* ---- Arithmetic Operation Dispatcher ----------------------------------- */
 
   #define BOILERPLATE(SYMBOL)                                                  \

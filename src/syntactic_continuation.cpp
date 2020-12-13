@@ -67,9 +67,7 @@ inline namespace kernel
       }                                                                        \
       else if (x.is<exact_integer>())                                          \
       {                                                                        \
-        if (const floating_point result {                                      \
-              FUNCTION(to_inexact(x.as<exact_integer>()))                      \
-            }; result.is_integer())                                            \
+        if (const floating_point result { FUNCTION(x.as<exact_integer>().as_inexact<decltype(0.0)>()) }; result.is_integer()) \
         {                                                                      \
           return make<exact_integer>(result.to_string());                      \
         }                                                                      \

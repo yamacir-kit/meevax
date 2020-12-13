@@ -35,7 +35,7 @@ inline namespace kernel
       return copy;
     }
 
-    auto as_exact() const -> const auto&
+    auto as_exact() const -> auto const&
     {
       return *this;
     }

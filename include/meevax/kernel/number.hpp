@@ -14,44 +14,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  [[deprecated]]
-  auto to_inexact(const exact_integer&) -> default_float; // TODO use exact_integer::as_inexact
-
-  [[deprecated]]
-  auto to_inexact(const ratio&) -> default_float;
-
-  template <typename T>
-  [[deprecated]]
-  constexpr auto to_inexact(const floating_point<T>& datum)
+  auto exact = [](let const& z)
   {
-    return datum;
-  }
-
-  /* ---- Generic ----------------------------------------------------------- */
-
-  auto exact = [](const object& z)
-  {
-    #define BOILERPLATE(TYPE)                                                  \
-    {                                                                          \
-      typeid(TYPE), [](auto&& z)                                               \
-      {                                                                        \
-        return z.template as<TYPE>().as_exact();                               \
-      }                                                                        \
-    }
-
     static const std::unordered_map<
       std::type_index,
       std::function<exact_integer (const object&)>
     >
     match
     {
-      BOILERPLATE(single_float),
-      BOILERPLATE(double_float),
-      // BOILERPLATE(ratio),
-      BOILERPLATE(exact_integer),
+      { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_exact(); } },
+      { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_exact(); } },
+      // TODO ratio
+      { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_exact(); } },
     };
-
-    #undef BOILERPLATE
 
     return match.at(z.type())(z);
   };
@@ -138,7 +113,7 @@ inline namespace kernel
       {                                                                        \
         return make(lhs SYMBOL rhs.as<ratio>());                               \
       }                                                                        \
-      if (rhs.is<exact_integer>())                                             \
+      else if (rhs.is<exact_integer>())                                        \
       {                                                                        \
         return make(lhs SYMBOL rhs.as<exact_integer>());                       \
       }                                                                        \
