@@ -14,15 +14,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Multi-Precision Exact-Integer ------------------------------------- */
-
   auto to_inexact(const exact_integer&) -> default_float; // TODO use exact_integer::as_inexact
 
-  /* ---- Ratio ------------------------------------------------------------- */
-
   auto to_inexact(const ratio&) -> default_float;
-
-  /* ---- Floating-Point Numbers -------------------------------------------- */
 
   template <typename T>
   constexpr auto to_inexact(const floating_point<T>& datum)
@@ -141,15 +135,6 @@ inline namespace kernel
 
   #undef BOILERPLATE
 
-  auto operator +(const exact_integer&, const ratio&) -> ratio;
-  auto operator -(const exact_integer&, const ratio&) -> ratio;
-  auto operator *(const exact_integer&, const ratio&) -> ratio;
-  auto operator /(const exact_integer&, const ratio&) -> ratio;
-  auto operator %(const exact_integer&, const ratio&) -> ratio;
-
-  /* ---- Ratio ------------------------------------------------------------- */
-
-
   /* ---- Floating-Point Numbers -------------------------------------------- */
 
   #define BOILERPLATE(SYMBOL)                                                  \
@@ -222,12 +207,6 @@ inline namespace kernel
 
   #undef BOILERPLATE
 
-  let operator +(const exact_integer&, const object&);
-  let operator -(const exact_integer&, const object&);
-  let operator *(const exact_integer&, const object&);
-  let operator /(const exact_integer&, const object&);
-  let operator %(const exact_integer&, const object&);
-
   /* ---- Arithmetic Comparisons -----------------------------------------------
    *
    * TODO CONSIDER EPSILON
@@ -267,15 +246,6 @@ inline namespace kernel
   #undef BOILERPLATE
 
   /* ---- Ratio ------------------------------------------------------------- */
-
-  auto operator !=(const ratio&, const exact_integer&) -> bool;
-  auto operator < (const ratio&, const exact_integer&) -> bool;
-  auto operator <=(const ratio&, const exact_integer&) -> bool;
-  auto operator ==(const ratio&, const exact_integer&) -> bool;
-  auto operator > (const ratio&, const exact_integer&) -> bool;
-  auto operator >=(const ratio&, const exact_integer&) -> bool;
-
-  #undef BOILERPLATE
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \

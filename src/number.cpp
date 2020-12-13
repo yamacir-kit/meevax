@@ -78,32 +78,6 @@ inline namespace kernel
 
   #undef BOILERPLATE
 
-  /* ---- Arithmetic Comparisons -------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const ratio& lhs, const exact_integer& rhs) -> bool     \
-  {                                                                            \
-    auto copy { lhs };                                                         \
-                                                                               \
-    if (copy.reduce().is_integer())                                            \
-    {                                                                          \
-      return copy.numerator().as<exact_integer>() SYMBOL rhs;                  \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return false;                                                            \
-    }                                                                          \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
   /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
 
   #define BOILERPLATE(NUMBER, SYMBOL)                                          \
