@@ -85,7 +85,6 @@ inline namespace kernel
   template <typename T, typename U> constexpr auto operator / (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value / b.value); }
   template <typename T, typename U> constexpr auto operator % (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(std::fmod(a.value, b.value)); }
 
-
   template <typename T, typename U> constexpr auto operator !=(floating_point<T> const& a, floating_point<U> const& b) { return a.value != b.value; }
   template <typename T, typename U> constexpr auto operator < (floating_point<T> const& a, floating_point<U> const& b) { return a.value <  b.value; }
   template <typename T, typename U> constexpr auto operator <=(floating_point<T> const& a, floating_point<U> const& b) { return a.value <= b.value; }

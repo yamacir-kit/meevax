@@ -67,12 +67,12 @@ inline namespace kernel
   // let operator /(const exact_integer&, const object&);
   // let operator %(const exact_integer&, const object&);
 
-  auto operator ==(const exact_integer&, const object&) -> bool;
-  auto operator !=(const exact_integer&, const object&) -> bool;
-  auto operator < (const exact_integer&, const object&) -> bool;
-  auto operator <=(const exact_integer&, const object&) -> bool;
-  auto operator > (const exact_integer&, const object&) -> bool;
-  auto operator >=(const exact_integer&, const object&) -> bool;
+  auto operator ==(exact_integer const&, object const&) -> bool;
+  auto operator !=(exact_integer const&, object const&) -> bool;
+  auto operator < (exact_integer const&, object const&) -> bool;
+  auto operator <=(exact_integer const&, object const&) -> bool;
+  auto operator > (exact_integer const&, object const&) -> bool;
+  auto operator >=(exact_integer const&, object const&) -> bool;
 
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;

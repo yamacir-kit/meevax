@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_ALGEBRA_HPP
 
 #include <meevax/kernel/pair.hpp>
-#include <type_traits>
 
 namespace meevax
 {
@@ -38,6 +37,8 @@ inline namespace kernel
   using double_float = floating_point<double>;
 
   using default_float = floating_point<decltype(0.0)>;
+
+  struct ratio;
 
   struct exact_integer;
 } // namespace kernel

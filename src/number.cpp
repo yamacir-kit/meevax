@@ -6,6 +6,7 @@ inline namespace kernel
 {
   /* ---- Multi-Precision Exact-Integer ------------------------------------- */
 
+  [[deprecated]]
   auto to_inexact(const exact_integer& datum) -> default_float
   {
     return default_float(datum.value.convert_to<default_float::value_type>());
