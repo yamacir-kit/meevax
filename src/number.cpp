@@ -29,22 +29,6 @@ inline namespace kernel
     return to_inexact(datum.numerator().as<exact_integer>()) / to_inexact(datum.denominator().as<exact_integer>());
   }
 
-  auto ratio::reduce() -> const ratio&
-  {
-    if (const exact_integer divisor {
-          boost::multiprecision::gcd(
-            numerator().as<exact_integer>().value,
-            denominator().as<exact_integer>().value)
-        };
-        not divisor.is(1))
-    {
-      numerator() = make(numerator().as<exact_integer>() / divisor);
-      denominator() = make(denominator().as<exact_integer>() / divisor);
-    }
-
-    return *this;
-  }
-
   /* ---- Arithmetic Operation Dispatcher ----------------------------------- */
 
   #define BOILERPLATE(SYMBOL)                                                  \
