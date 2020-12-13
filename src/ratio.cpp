@@ -1,53 +1,47 @@
+#include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  auto operator <<(std::ostream& port, const ratio& rhs) -> decltype(port)
+inline namespace kernel
+{
+  auto ratio::is_integer() const -> bool
   {
-    return port << cyan << car(rhs)
+    return denominator().as<exact_integer>().is(1);
+  }
+
+  auto ratio::reduce() -> ratio const&
+  {
+    if (const exact_integer divisor {
+          boost::multiprecision::gcd(numerator().as<exact_integer>().value, denominator().as<exact_integer>().value)
+        };
+        not divisor.is(1))
+    {
+      numerator() = make(numerator().as<exact_integer>() / divisor);
+      denominator() = make(denominator().as<exact_integer>() / divisor);
+    }
+
+    return *this;
+  }
+
+  auto operator <<(output_port & port, ratio const& datum) -> output_port &
+  {
+    return port << cyan << car(datum)
                 << cyan << "/"
-                << cyan << cdr(rhs) << reset;
+                << cyan << cdr(datum) << reset;
   }
 
-  auto operator +(const ratio& lhs, const ratio& rhs) -> ratio
-  {
-    return ratio(
-      lhs.numerator() * rhs.denominator() + rhs.numerator() * lhs.denominator(),
-      lhs.denominator() * rhs.denominator());
-  }
+  auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(a.numerator() * b.denominator() + b.numerator() * a.denominator(), a.denominator() * b.denominator()); }
+  auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(a.numerator() * b.denominator() - b.numerator() * a.denominator(), a.denominator() * b.denominator()); }
+  auto operator * (ratio const& a, ratio const& b) -> ratio { return ratio(a.numerator() *                   b.numerator(),                   a.denominator() * b.denominator()); }
+  auto operator / (ratio const& a, ratio const& b) -> ratio { return a * b.invert(); }
 
-  auto operator -(const ratio& lhs, const ratio& rhs) -> ratio
-  {
-    return ratio(
-      lhs.numerator() * rhs.denominator() - rhs.numerator() * lhs.denominator(),
-      lhs.denominator() * rhs.denominator());
-  }
-
-  auto operator *(const ratio& lhs, const ratio& rhs) -> ratio
-  {
-    return ratio(
-      lhs.numerator() * rhs.numerator(),
-      lhs.denominator() * rhs.denominator());
-  }
-
-  auto operator /(const ratio& lhs, const ratio& rhs) -> ratio
-  {
-    return lhs * rhs.invert();
-  }
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const ratio& lhs, const ratio& rhs) -> bool             \
-  {                                                                            \
-    return (lhs.numerator() * rhs.denominator()).binding() SYMBOL (rhs.numerator() * lhs.denominator()); \
-  } static_assert(true)
-
-  BOILERPLATE(==);
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-}} // namespace meevax::kernel
+  auto operator ==(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() == (b.numerator() * a.denominator()); }
+  auto operator !=(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() != (b.numerator() * a.denominator()); }
+  auto operator < (ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() <  (b.numerator() * a.denominator()); }
+  auto operator <=(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() <= (b.numerator() * a.denominator()); }
+  auto operator > (ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() >  (b.numerator() * a.denominator()); }
+  auto operator >=(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() >= (b.numerator() * a.denominator()); }
+} // namespace kernel
+} // namespace meevax

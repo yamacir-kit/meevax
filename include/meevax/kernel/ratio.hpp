@@ -26,14 +26,12 @@ inline namespace kernel
       return ratio(denominator(), numerator());
     }
 
-    auto reduce() -> const ratio&;
+    auto reduce() -> ratio const&;
 
     auto reduce() const
     {
       auto copy { *this };
-
       copy.reduce();
-
       return copy;
     }
 
@@ -43,19 +41,19 @@ inline namespace kernel
     }
   };
 
-  auto operator <<(std::ostream& port, const ratio&) -> decltype(port);
+  auto operator <<(output_port & port, ratio const&) -> output_port &;
 
-  auto operator +(const ratio&, const ratio&) -> ratio;
-  auto operator -(const ratio&, const ratio&) -> ratio;
-  auto operator *(const ratio&, const ratio&) -> ratio;
-  auto operator /(const ratio&, const ratio&) -> ratio;
+  auto operator + (ratio const&, ratio const&) -> ratio;
+  auto operator - (ratio const&, ratio const&) -> ratio;
+  auto operator * (ratio const&, ratio const&) -> ratio;
+  auto operator / (ratio const&, ratio const&) -> ratio;
 
-  auto operator ==(const ratio&, const ratio&) -> bool;
-  auto operator !=(const ratio&, const ratio&) -> bool;
-  auto operator < (const ratio&, const ratio&) -> bool;
-  auto operator <=(const ratio&, const ratio&) -> bool;
-  auto operator > (const ratio&, const ratio&) -> bool;
-  auto operator >=(const ratio&, const ratio&) -> bool;
+  auto operator ==(ratio const&, ratio const&) -> bool;
+  auto operator !=(ratio const&, ratio const&) -> bool;
+  auto operator < (ratio const&, ratio const&) -> bool;
+  auto operator <=(ratio const&, ratio const&) -> bool;
+  auto operator > (ratio const&, ratio const&) -> bool;
+  auto operator >=(ratio const&, ratio const&) -> bool;
 } // namespace kernel
 } // namespace meevax
 

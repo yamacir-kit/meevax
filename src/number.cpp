@@ -12,38 +12,17 @@ inline namespace kernel
     return default_float(datum.value.convert_to<default_float::value_type>());
   }
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, const ratio& rhs) -> ratio    \
-  {                                                                            \
-    return ratio(lhs * rhs.denominator() SYMBOL rhs.numerator(), rhs.denominator()); \
-  } static_assert(true)
+  auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() + b.numerator(), b.denominator()); }
+  auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() - b.numerator(), b.denominator()); }
+  auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.numerator(), b.denominator()); }
+  auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
 
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-
-  #undef BOILERPLATE
-
-  auto operator *(const exact_integer& lhs, const ratio& rhs) -> ratio
+  auto operator % (exact_integer const&, ratio const& rhs) -> ratio
   {
-    return ratio(lhs * rhs.numerator(), rhs.denominator());
-  }
-
-  auto operator /(const exact_integer& lhs, const ratio& rhs) -> ratio
-  {
-    return lhs * rhs.invert();
-  }
-
-  auto operator %(const exact_integer&, const ratio& rhs) -> ratio
-  {
-    return rhs;
+    return rhs; // TODO
   }
 
   /* ---- Ratio ------------------------------------------------------------- */
-
-  auto ratio::is_integer() const -> bool
-  {
-    return denominator().as<exact_integer>().is(1);
-  }
 
   auto to_inexact(const ratio& datum) -> default_float
   {
