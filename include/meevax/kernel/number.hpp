@@ -21,6 +21,7 @@ inline namespace kernel
   auto to_inexact(const ratio&) -> default_float;
 
   template <typename T>
+  [[deprecated]]
   constexpr auto to_inexact(const floating_point<T>& datum)
   {
     return datum;
@@ -185,24 +186,6 @@ inline namespace kernel
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    *
    * ------------------------------------------------------------------------ */
-
-  /* ---- Ratio ------------------------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const ratio& lhs, const floating_point<T>& rhs)         \
-  {                                                                            \
-    return to_inexact(lhs) SYMBOL rhs;                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
 
   /* ---- Floating-Point Number --------------------------------------------- */
 
