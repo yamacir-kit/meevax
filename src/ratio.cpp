@@ -33,11 +33,9 @@ inline namespace kernel
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const ratio& lhs, const exact_integer& rhs) -> bool     \
+  auto operator SYMBOL(ratio const& lhs, exact_integer const& rhs) -> bool     \
   {                                                                            \
-    auto copy { lhs };                                                         \
-                                                                               \
-    if (copy.reduce().is_integer())                                            \
+    if (auto copy { lhs }; copy.reduce().is_integer())                         \
     {                                                                          \
       return copy.numerator().as<exact_integer>() SYMBOL rhs;                  \
     }                                                                          \

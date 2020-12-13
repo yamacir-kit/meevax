@@ -118,23 +118,6 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  /* ---- Multi-Precision Exact-Integer ------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
-  {                                                                            \
-    return floating_point(to_inexact(lhs) SYMBOL rhs);                         \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
-
   /* ---- Floating-Point Numbers -------------------------------------------- */
 
   #define BOILERPLATE(SYMBOL)                                                  \

@@ -50,9 +50,10 @@ inline namespace kernel
       return *this;
     }
 
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
     auto as_inexact() const
     {
-      return value.convert_to<decltype(0.0)>();
+      return value.convert_to<T>();
     }
 
     operator value_type() const noexcept { return value; }
@@ -97,6 +98,12 @@ inline namespace kernel
   auto operator ==(exact_integer const&, ratio const&) -> bool;
   auto operator > (exact_integer const&, ratio const&) -> bool;
   auto operator >=(exact_integer const&, ratio const&) -> bool;
+
+  template <typename T> auto operator * (exact_integer const& a, floating_point<T> const& b) { return floating_point(a.as_inexact<T>() * b); }
+  template <typename T> auto operator + (exact_integer const& a, floating_point<T> const& b) { return floating_point(a.as_inexact<T>() + b); }
+  template <typename T> auto operator - (exact_integer const& a, floating_point<T> const& b) { return floating_point(a.as_inexact<T>() - b); }
+  template <typename T> auto operator / (exact_integer const& a, floating_point<T> const& b) { return floating_point(a.as_inexact<T>() / b); }
+  template <typename T> auto operator % (exact_integer const& a, floating_point<T> const& b) { return floating_point(std::fmod(a.as_inexact<T>(), b)); }
 } // namespace kernel
 } // namespace meevax
 
