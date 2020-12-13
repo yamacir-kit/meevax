@@ -250,15 +250,6 @@ inline namespace kernel
 
   /* ---- Multi-Precision Exact-Integer --------------------------------------*/
 
-  auto operator !=(const exact_integer&, ratio&) -> bool;
-  auto operator < (const exact_integer&, ratio&) -> bool;
-  auto operator <=(const exact_integer&, ratio&) -> bool;
-  auto operator ==(const exact_integer&, ratio&) -> bool;
-  auto operator > (const exact_integer&, ratio&) -> bool;
-  auto operator >=(const exact_integer&, ratio&) -> bool;
-
-  #undef BOILERPLATE
-
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
   auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \

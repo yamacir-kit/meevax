@@ -4,16 +4,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Multi-Precision Exact-Integer ------------------------------------- */
-
   [[deprecated]]
   auto to_inexact(const exact_integer& datum) -> default_float
   {
     return default_float(datum.value.convert_to<default_float::value_type>());
   }
 
-  /* ---- Ratio ------------------------------------------------------------- */
-
+  [[deprecated]]
   auto to_inexact(const ratio& datum) -> default_float
   {
     return to_inexact(datum.numerator().as<exact_integer>()) / to_inexact(datum.denominator().as<exact_integer>());
@@ -82,28 +79,6 @@ inline namespace kernel
   #undef BOILERPLATE
 
   /* ---- Arithmetic Comparisons -------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, ratio& rhs) -> bool           \
-  {                                                                            \
-    if (rhs.reduce().is_integer())                                             \
-    {                                                                          \
-      return lhs SYMBOL rhs.numerator();                                       \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return false;                                                            \
-    }                                                                          \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
 
   #define BOILERPLATE(SYMBOL)                                                  \
   auto operator SYMBOL(const ratio& lhs, const exact_integer& rhs) -> bool     \
