@@ -56,29 +56,19 @@ inline namespace kernel
     return match.at(z.type())(z);
   };
 
-  auto inexact = [](const object& z)
+  auto inexact = [](let const& z)
   {
-    #define BOILERPLATE(TYPE)                                                  \
-    {                                                                          \
-      typeid(TYPE), [](let const& z)                                           \
-      {                                                                        \
-        return to_inexact(z.as<TYPE>());                                       \
-      }                                                                        \
-    }
-
     static const std::unordered_map<
       std::type_index,
       std::function<default_float (const object&)>
     >
     match
     {
-      // BOILERPLATE(single_float),
-      BOILERPLATE(double_float),
-      BOILERPLATE(ratio),
-      BOILERPLATE(exact_integer),
+      { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_inexact<decltype(0.0)>(); } },
+      { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_inexact<decltype(0.0)>(); } },
+      { typeid(ratio),         [](let const& x) { return x.as<ratio>()        .as_inexact<decltype(0.0)>(); } },
+      { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_inexact<decltype(0.0)>(); } },
     };
-
-    #undef BOILERPLATE
 
     return match.at(z.type())(z);
   };

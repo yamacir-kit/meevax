@@ -3,6 +3,7 @@
 
 #include <meevax/kernel/algebra.hpp>
 #include <meevax/kernel/port.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -40,9 +41,10 @@ inline namespace kernel
       return static_cast<exact_integer>(value);
     }
 
-    auto as_inexact() const
+    template <typename U, typename = typename std::enable_if<std::is_floating_point<U>::value>::type>
+    constexpr auto as_inexact() const noexcept
     {
-      return value;
+      return floating_point<U>(value);
     }
 
     constexpr operator value_type() const noexcept { return value; }
@@ -101,7 +103,6 @@ inline namespace kernel
   template <typename T, typename U> constexpr auto operator ==(floating_point<T> const& a, floating_point<U> const& b) { return a.value == b.value; }
   template <typename T, typename U> constexpr auto operator > (floating_point<T> const& a, floating_point<U> const& b) { return a.value >  b.value; }
   template <typename T, typename U> constexpr auto operator >=(floating_point<T> const& a, floating_point<U> const& b) { return a.value >= b.value; }
-
 } // namespace kernel
 } // namespace meevax
 
