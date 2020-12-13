@@ -1,68 +1,9 @@
 #include <meevax/kernel/number.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ---- Multi-Precision Exact-Integer ------------------------------------- */
-
-  auto to_inexact(const exact_integer& datum) -> default_float
-  {
-    return default_float(datum.value.convert_to<default_float::value_type>());
-  }
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, const ratio& rhs) -> ratio    \
-  {                                                                            \
-    return ratio(lhs * rhs.denominator() SYMBOL rhs.numerator(), rhs.denominator()); \
-  } static_assert(true)
-
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-
-  #undef BOILERPLATE
-
-  auto operator *(const exact_integer& lhs, const ratio& rhs) -> ratio
-  {
-    return ratio(lhs * rhs.numerator(), rhs.denominator());
-  }
-
-  auto operator /(const exact_integer& lhs, const ratio& rhs) -> ratio
-  {
-    return lhs * rhs.invert();
-  }
-
-  auto operator %(const exact_integer&, const ratio& rhs) -> ratio
-  {
-    return rhs;
-  }
-
-  /* ---- Ratio ------------------------------------------------------------- */
-
-  auto ratio::is_integer() const -> bool
-  {
-    return denominator().as<exact_integer>().is(1);
-  }
-
-  auto to_inexact(const ratio& datum) -> default_float
-  {
-    return to_inexact(datum.numerator().as<exact_integer>()) / to_inexact(datum.denominator().as<exact_integer>());
-  }
-
-  auto ratio::reduce() -> const ratio&
-  {
-    if (const exact_integer divisor {
-          boost::multiprecision::gcd(
-            numerator().as<exact_integer>().value,
-            denominator().as<exact_integer>().value)
-        };
-        not divisor.is(1))
-    {
-      numerator() = make(numerator().as<exact_integer>() / divisor);
-      denominator() = make(denominator().as<exact_integer>() / divisor);
-    }
-
-    return *this;
-  }
-
+inline namespace kernel
+{
   /* ---- Arithmetic Operation Dispatcher ----------------------------------- */
 
   #define BOILERPLATE(SYMBOL)                                                  \
@@ -125,54 +66,6 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
-  /* ---- Arithmetic Comparisons -------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const exact_integer& lhs, ratio& rhs) -> bool           \
-  {                                                                            \
-    if (rhs.reduce().is_integer())                                             \
-    {                                                                          \
-      return lhs SYMBOL rhs.numerator();                                       \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return false;                                                            \
-    }                                                                          \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(const ratio& lhs, const exact_integer& rhs) -> bool     \
-  {                                                                            \
-    auto copy { lhs };                                                         \
-                                                                               \
-    if (copy.reduce().is_integer())                                            \
-    {                                                                          \
-      return copy.numerator().as<exact_integer>() SYMBOL rhs;                  \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-      return false;                                                            \
-    }                                                                          \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
   /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
 
   #define BOILERPLATE(NUMBER, SYMBOL)                                          \
@@ -216,4 +109,5 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(ratio, >=);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

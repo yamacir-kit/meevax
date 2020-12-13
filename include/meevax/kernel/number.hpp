@@ -10,106 +10,40 @@
 
 #include <typeindex>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ---- Numbers --------------------------------------------------------------
-   *
-   *  number
-   *   `-- complex
-   *        `-- real
-   *             |-- floating-point (IEEE 754)
-   *             |    |-- binary  16
-   *             |    |-- binary  32 (C++ single float)      = floating_point<float>
-   *             |    |-- binary  64 (C++ double float)      = floating_point<double>
-   *             |    |-- binary  80 (C++ long double float) = floating_point<long double>
-   *             |    `-- binary 128
-   *             `-- rational
-   *                  |-- ratio
-   *                  `-- exact-integer
-   *                       |-- multi-precision exact-integer
-   *                       `-- fixed precision exact-integer
-   *                            |-- signed and unsigned   8  = number<std::u?int8_t>
-   *                            |-- signed and unsigned  16  = number<std::u?int16_t>
-   *                            |-- signed and unsigned  32  = number<std::u?int32_t>
-   *                            |-- signed and unsigned  64  = number<std::u?int64_t>
-   *                            `-- signed and unsigned 128  = number<std::u?int128_t>
-   *
-   * ------------------------------------------------------------------------ */
-
-  /* ---- Multi-Precision Exact-Integer ------------------------------------- */
-
-  auto to_inexact(const exact_integer&) -> default_float;
-
-  /* ---- Ratio ------------------------------------------------------------- */
-
-  auto to_inexact(const ratio&) -> default_float;
-
-  /* ---- Floating-Point Numbers -------------------------------------------- */
-
-  template <typename T>
-  auto floating_point<T>::as_exact() const
+inline namespace kernel
+{
+  auto exact = [](let const& z)
   {
-    return static_cast<exact_integer>(value);
-  }
-
-  template <typename T>
-  constexpr auto to_inexact(const floating_point<T>& datum)
-  {
-    return datum;
-  }
-
-  /* ---- Generic ----------------------------------------------------------- */
-
-  auto exact = [](const object& z)
-  {
-    #define BOILERPLATE(TYPE)                                                  \
-    {                                                                          \
-      typeid(TYPE), [](auto&& z)                                               \
-      {                                                                        \
-        return z.template as<TYPE>().as_exact();                               \
-      }                                                                        \
-    }
-
     static const std::unordered_map<
       std::type_index,
       std::function<exact_integer (const object&)>
     >
     match
     {
-      BOILERPLATE(single_float),
-      BOILERPLATE(double_float),
-      // BOILERPLATE(ratio),
-      BOILERPLATE(exact_integer),
+      { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_exact(); } },
+      { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_exact(); } },
+      // TODO ratio
+      { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_exact(); } },
     };
-
-    #undef BOILERPLATE
 
     return match.at(z.type())(z);
   };
 
-  auto inexact = [](const object& z)
+  auto inexact = [](let const& z)
   {
-    #define BOILERPLATE(TYPE)                                                  \
-    {                                                                          \
-      typeid(TYPE), [](auto&& z)                                               \
-      {                                                                        \
-        return to_inexact(z.template as<TYPE>());                              \
-      }                                                                        \
-    }
-
     static const std::unordered_map<
       std::type_index,
       std::function<default_float (const object&)>
     >
     match
     {
-      // BOILERPLATE(single_float),
-      BOILERPLATE(double_float),
-      BOILERPLATE(ratio),
-      BOILERPLATE(exact_integer),
+      { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_inexact<decltype(0.0)>(); } },
+      { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_inexact<decltype(0.0)>(); } },
+      { typeid(ratio),         [](let const& x) { return x.as<ratio>()        .as_inexact<decltype(0.0)>(); } },
+      { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_inexact<decltype(0.0)>(); } },
     };
-
-    #undef BOILERPLATE
 
     return match.at(z.type())(z);
   };
@@ -152,63 +86,17 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  /* ---- Multi-Precision Exact-Integer ------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
-  {                                                                            \
-    return floating_point(to_inexact(lhs) SYMBOL rhs);                         \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
-
-  auto operator +(const exact_integer&, const ratio&) -> ratio;
-  auto operator -(const exact_integer&, const ratio&) -> ratio;
-  auto operator *(const exact_integer&, const ratio&) -> ratio;
-  auto operator /(const exact_integer&, const ratio&) -> ratio;
-  auto operator %(const exact_integer&, const ratio&) -> ratio;
-
-  /* ---- Ratio ------------------------------------------------------------- */
-
-
-  /* ---- Floating-Point Numbers -------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
-  {                                                                            \
-    return floating_point(lhs SYMBOL to_inexact(rhs));                         \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
-  {                                                                            \
-    return floating_point(lhs SYMBOL to_inexact(rhs));                         \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
+  template <typename T> constexpr auto operator * (floating_point<T> const& a, ratio const& b) { return a *  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator + (floating_point<T> const& a, ratio const& b) { return a +  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator - (floating_point<T> const& a, ratio const& b) { return a -  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator / (floating_point<T> const& a, ratio const& b) { return a /  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator % (floating_point<T> const& a, ratio const& b) { return a %  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator !=(floating_point<T> const& a, ratio const& b) { return a != b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator < (floating_point<T> const& a, ratio const& b) { return a <  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator <=(floating_point<T> const& a, ratio const& b) { return a <= b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator ==(floating_point<T> const& a, ratio const& b) { return a == b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator > (floating_point<T> const& a, ratio const& b) { return a >  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator >=(floating_point<T> const& a, ratio const& b) { return a >= b.as_inexact<T>(); }
 
   /* ---- Arithmetic Operation Dispatcher --------------------------------------
    *
@@ -225,7 +113,7 @@ namespace meevax { inline namespace kernel
       {                                                                        \
         return make(lhs SYMBOL rhs.as<ratio>());                               \
       }                                                                        \
-      if (rhs.is<exact_integer>())                                             \
+      else if (rhs.is<exact_integer>())                                        \
       {                                                                        \
         return make(lhs SYMBOL rhs.as<exact_integer>());                       \
       }                                                                        \
@@ -250,12 +138,6 @@ namespace meevax { inline namespace kernel
 
   #undef BOILERPLATE
 
-  let operator +(const exact_integer&, const object&);
-  let operator -(const exact_integer&, const object&);
-  let operator *(const exact_integer&, const object&);
-  let operator /(const exact_integer&, const object&);
-  let operator %(const exact_integer&, const object&);
-
   /* ---- Arithmetic Comparisons -----------------------------------------------
    *
    * TODO CONSIDER EPSILON
@@ -276,109 +158,7 @@ namespace meevax { inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  /* ---- Multi-Precision Exact-Integer --------------------------------------*/
-
-  auto operator !=(const exact_integer&, ratio&) -> bool;
-  auto operator < (const exact_integer&, ratio&) -> bool;
-  auto operator <=(const exact_integer&, ratio&) -> bool;
-  auto operator ==(const exact_integer&, ratio&) -> bool;
-  auto operator > (const exact_integer&, ratio&) -> bool;
-  auto operator >=(const exact_integer&, ratio&) -> bool;
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
-  {                                                                            \
-    return lhs.value.convert_to<T>() SYMBOL rhs.value;                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
-  /* ---- Ratio ------------------------------------------------------------- */
-
-  auto operator !=(const ratio&, const exact_integer&) -> bool;
-  auto operator < (const ratio&, const exact_integer&) -> bool;
-  auto operator <=(const ratio&, const exact_integer&) -> bool;
-  auto operator ==(const ratio&, const exact_integer&) -> bool;
-  auto operator > (const ratio&, const exact_integer&) -> bool;
-  auto operator >=(const ratio&, const exact_integer&) -> bool;
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const ratio& lhs, const floating_point<T>& rhs)         \
-  {                                                                            \
-    return to_inexact(lhs) SYMBOL rhs;                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
-  /* ---- Floating-Point Number --------------------------------------------- */
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
-  {                                                                            \
-    return lhs.value SYMBOL rhs.value.convert_to<T>();                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
-  {                                                                            \
-    return lhs SYMBOL to_inexact(rhs);                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-
   /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
-
-  auto operator !=(const exact_integer&, const object&) -> bool;
-  auto operator < (const exact_integer&, const object&) -> bool;
-  auto operator <=(const exact_integer&, const object&) -> bool;
-  auto operator ==(const exact_integer&, const object&) -> bool;
-  auto operator > (const exact_integer&, const object&) -> bool;
-  auto operator >=(const exact_integer&, const object&) -> bool;
-
-  auto operator !=(const ratio&, const object&) -> bool;
-  auto operator < (const ratio&, const object&) -> bool;
-  auto operator <=(const ratio&, const object&) -> bool;
-  auto operator ==(const ratio&, const object&) -> bool;
-  auto operator > (const ratio&, const object&) -> bool;
-  auto operator >=(const ratio&, const object&) -> bool;
 
   #define BOILERPLATE(NUMBER, SYMBOL)                                          \
   auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \
@@ -414,6 +194,7 @@ namespace meevax { inline namespace kernel
   template <typename T> BOILERPLATE(floating_point<T>, >=);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP

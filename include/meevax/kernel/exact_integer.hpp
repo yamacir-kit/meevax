@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 #define INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 
+#include <type_traits>
 #ifndef MEEVAX_USE_GMP
 #define MEEVAX_USE_GMP
 #endif
@@ -11,13 +12,13 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #endif
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/algebra.hpp>
+#include <meevax/kernel/port.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ---- Multi-Presition Exact Integer ----------------------------------------
-   *
-   * ------------------------------------------------------------------------ */
+inline namespace kernel
+{
   struct exact_integer
   {
     #ifdef MEEVAX_USE_GMP
@@ -44,42 +45,71 @@ namespace meevax { inline namespace kernel
       return value.convert_to<T>() == number;
     }
 
-    auto as_exact() const -> const auto&
+    auto as_exact() const -> auto const&
     {
       return *this;
+    }
+
+    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    auto as_inexact() const
+    {
+      return floating_point(value.convert_to<T>());
     }
 
     operator value_type() const noexcept { return value; }
     operator value_type()       noexcept { return value; }
   };
 
-  auto operator <<(std::ostream& port, const exact_integer&) -> decltype(port);
+  auto operator <<(output_port & port, exact_integer const&) -> output_port &;
 
-  let operator *(const exact_integer&, const object&);
-  let operator +(const exact_integer&, const object&);
-  let operator -(const exact_integer&, const object&);
-  let operator /(const exact_integer&, const object&);
-  let operator %(const exact_integer&, const object&);
+  auto operator * (exact_integer const&, object const&) -> object;
+  auto operator + (exact_integer const&, object const&) -> object;
+  auto operator - (exact_integer const&, object const&) -> object;
+  auto operator / (exact_integer const&, object const&) -> object;
+  auto operator % (exact_integer const&, object const&) -> object;
+  auto operator ==(exact_integer const&, object const&) -> bool;
+  auto operator !=(exact_integer const&, object const&) -> bool;
+  auto operator < (exact_integer const&, object const&) -> bool;
+  auto operator <=(exact_integer const&, object const&) -> bool;
+  auto operator > (exact_integer const&, object const&) -> bool;
+  auto operator >=(exact_integer const&, object const&) -> bool;
 
-  auto operator ==(const exact_integer&, const object&) -> bool;
-  auto operator !=(const exact_integer&, const object&) -> bool;
-  auto operator < (const exact_integer&, const object&) -> bool;
-  auto operator <=(const exact_integer&, const object&) -> bool;
-  auto operator > (const exact_integer&, const object&) -> bool;
-  auto operator >=(const exact_integer&, const object&) -> bool;
+  auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator !=(exact_integer const&, exact_integer const&) -> bool;
+  auto operator < (exact_integer const&, exact_integer const&) -> bool;
+  auto operator <=(exact_integer const&, exact_integer const&) -> bool;
+  auto operator ==(exact_integer const&, exact_integer const&) -> bool;
+  auto operator > (exact_integer const&, exact_integer const&) -> bool;
+  auto operator >=(exact_integer const&, exact_integer const&) -> bool;
 
-  auto operator * (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator + (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator - (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator / (const exact_integer&, const exact_integer&) -> exact_integer;
-  auto operator % (const exact_integer&, const exact_integer&) -> exact_integer;
+  auto operator * (exact_integer const&, ratio const&) -> ratio;
+  auto operator + (exact_integer const&, ratio const&) -> ratio;
+  auto operator - (exact_integer const&, ratio const&) -> ratio;
+  auto operator / (exact_integer const&, ratio const&) -> ratio;
+  auto operator % (exact_integer const&, ratio const&) -> ratio;
+  auto operator !=(exact_integer const&, ratio const&) -> bool;
+  auto operator < (exact_integer const&, ratio const&) -> bool;
+  auto operator <=(exact_integer const&, ratio const&) -> bool;
+  auto operator ==(exact_integer const&, ratio const&) -> bool;
+  auto operator > (exact_integer const&, ratio const&) -> bool;
+  auto operator >=(exact_integer const&, ratio const&) -> bool;
 
-  auto operator !=(const exact_integer&, const exact_integer&) -> bool;
-  auto operator < (const exact_integer&, const exact_integer&) -> bool;
-  auto operator <=(const exact_integer&, const exact_integer&) -> bool;
-  auto operator ==(const exact_integer&, const exact_integer&) -> bool;
-  auto operator > (const exact_integer&, const exact_integer&) -> bool;
-  auto operator >=(const exact_integer&, const exact_integer&) -> bool;
-}} // namespace meevax::kernel
+  template <typename T> auto operator * (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() *  b; }
+  template <typename T> auto operator + (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() +  b; }
+  template <typename T> auto operator - (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() -  b; }
+  template <typename T> auto operator / (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() /  b; }
+  template <typename T> auto operator % (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() %  b; }
+  template <typename T> auto operator !=(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() != b; }
+  template <typename T> auto operator < (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() <  b; }
+  template <typename T> auto operator <=(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() <= b; }
+  template <typename T> auto operator ==(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() == b; }
+  template <typename T> auto operator > (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() >  b; }
+  template <typename T> auto operator >=(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() >= b; }
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP

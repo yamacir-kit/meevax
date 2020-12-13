@@ -1,13 +1,14 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/algebra.hpp>
+#include <meevax/kernel/port.hpp>
+#include <type_traits>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ---- Floating Point Number ------------------------------------------------
-   *
-   * ------------------------------------------------------------------------ */
+inline namespace kernel
+{
   template <typename T>
   struct floating_point
     : public std::numeric_limits<T>
@@ -35,36 +36,23 @@ namespace meevax { inline namespace kernel
       return value == std::trunc(value);
     }
 
-    auto as_exact() const;
+    auto as_exact() const
+    {
+      return static_cast<exact_integer>(value);
+    }
+
+    template <typename U, typename = typename std::enable_if<std::is_floating_point<U>::value>::type>
+    constexpr auto as_inexact() const noexcept
+    {
+      return floating_point<U>(value);
+    }
 
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }
   };
 
-  template struct floating_point<float>;
-  template struct floating_point<double>;
-  template struct floating_point<long double>;
-
-  using single_float = floating_point<float>;
-  using double_float = floating_point<double>;
-
-  using default_float = floating_point<decltype(0.0)>;
-
-  template <typename T> let operator * (floating_point<T>&, const object&);
-  template <typename T> let operator + (floating_point<T>&, const object&);
-  template <typename T> let operator - (floating_point<T>&, const object&);
-  template <typename T> let operator / (floating_point<T>&, const object&);
-  template <typename T> let operator % (floating_point<T>&, const object&);
-
-  template <typename T> auto operator == (floating_point<T>&, const object&) -> bool;
-  template <typename T> auto operator != (floating_point<T>&, const object&) -> bool;
-  template <typename T> auto operator <  (floating_point<T>&, const object&) -> bool;
-  template <typename T> auto operator <= (floating_point<T>&, const object&) -> bool;
-  template <typename T> auto operator >  (floating_point<T>&, const object&) -> bool;
-  template <typename T> auto operator >= (floating_point<T>&, const object&) -> bool;
-
   template <typename T>
-  auto operator <<(std::ostream& os, const floating_point<T>& rhs) -> decltype(auto)
+  auto operator <<(output_port & os, floating_point<T> const& rhs) -> output_port &
   {
     if (std::isnan(rhs))
     {
@@ -80,36 +68,42 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
-  template <typename T, typename U>                                            \
-  constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
-  {                                                                            \
-    return floating_point(OPERATION(lhs.value, rhs.value));                    \
-  } static_assert(true)
+  template <typename T> auto operator * (floating_point<T>&, object const&) -> object;
+  template <typename T> auto operator + (floating_point<T>&, object const&) -> object;
+  template <typename T> auto operator - (floating_point<T>&, object const&) -> object;
+  template <typename T> auto operator / (floating_point<T>&, object const&) -> object;
+  template <typename T> auto operator % (floating_point<T>&, object const&) -> object;
+  template <typename T> auto operator ==(floating_point<T>&, object const&) -> bool;
+  template <typename T> auto operator !=(floating_point<T>&, object const&) -> bool;
+  template <typename T> auto operator < (floating_point<T>&, object const&) -> bool;
+  template <typename T> auto operator <=(floating_point<T>&, object const&) -> bool;
+  template <typename T> auto operator > (floating_point<T>&, object const&) -> bool;
+  template <typename T> auto operator >=(floating_point<T>&, object const&) -> bool;
 
-  BOILERPLATE(*, std::multiplies<void>());
-  BOILERPLATE(+, std::plus<void>());
-  BOILERPLATE(-, std::minus<void>());
-  BOILERPLATE(/, std::divides<void>());
-  BOILERPLATE(%, std::fmod);
+  template <typename T> constexpr auto operator * (floating_point<T> const& a, exact_integer const& b) { return a *  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator + (floating_point<T> const& a, exact_integer const& b) { return a +  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator - (floating_point<T> const& a, exact_integer const& b) { return a -  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator / (floating_point<T> const& a, exact_integer const& b) { return a /  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator % (floating_point<T> const& a, exact_integer const& b) { return a %  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator !=(floating_point<T> const& a, exact_integer const& b) { return a != b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator < (floating_point<T> const& a, exact_integer const& b) { return a <  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator <=(floating_point<T> const& a, exact_integer const& b) { return a <= b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator ==(floating_point<T> const& a, exact_integer const& b) { return a == b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator > (floating_point<T> const& a, exact_integer const& b) { return a >  b.as_inexact<T>(); }
+  template <typename T> constexpr auto operator >=(floating_point<T> const& a, exact_integer const& b) { return a >= b.as_inexact<T>(); }
 
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T, typename U>                                            \
-  constexpr auto operator SYMBOL(const floating_point<T>& lhs, const floating_point<U>& rhs) \
-  {                                                                            \
-    return lhs.value SYMBOL rhs.value;                                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
-}} // namespace meevax::kernel
+  template <typename T, typename U> constexpr auto operator * (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value * b.value); }
+  template <typename T, typename U> constexpr auto operator + (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value + b.value); }
+  template <typename T, typename U> constexpr auto operator - (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value - b.value); }
+  template <typename T, typename U> constexpr auto operator / (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value / b.value); }
+  template <typename T, typename U> constexpr auto operator % (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(std::fmod(a.value, b.value)); }
+  template <typename T, typename U> constexpr auto operator !=(floating_point<T> const& a, floating_point<U> const& b) { return a.value != b.value; }
+  template <typename T, typename U> constexpr auto operator < (floating_point<T> const& a, floating_point<U> const& b) { return a.value <  b.value; }
+  template <typename T, typename U> constexpr auto operator <=(floating_point<T> const& a, floating_point<U> const& b) { return a.value <= b.value; }
+  template <typename T, typename U> constexpr auto operator ==(floating_point<T> const& a, floating_point<U> const& b) { return a.value == b.value; }
+  template <typename T, typename U> constexpr auto operator > (floating_point<T> const& a, floating_point<U> const& b) { return a.value >  b.value; }
+  template <typename T, typename U> constexpr auto operator >=(floating_point<T> const& a, floating_point<U> const& b) { return a.value >= b.value; }
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP

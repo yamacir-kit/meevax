@@ -1,9 +1,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <meevax/kernel/algebra.hpp>
+#include <meevax/kernel/port.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct ratio
     : public virtual pair
@@ -23,42 +26,62 @@ namespace meevax { inline namespace kernel
       return ratio(denominator(), numerator());
     }
 
-    auto reduce() -> const ratio&;
+    auto reduce() -> ratio const&;
 
     auto reduce() const
     {
       auto copy { *this };
-
       copy.reduce();
-
       return copy;
     }
 
-    auto as_exact() const -> const auto&
+    auto as_exact() const -> auto const&
     {
       return *this;
     }
 
-    // auto operator * (const object&) const -> object;
-    // auto operator + (const object&) const -> object;
-    // auto operator - (const object&) const -> object;
-    // auto operator / (const object&) const -> object;
-    // auto operator % (const object&) const -> object;
+    template <typename T>
+    auto as_inexact() const
+    {
+      return numerator().as<exact_integer>().as_inexact<T>() / denominator().as<exact_integer>().as_inexact<T>();
+    }
   };
 
-  auto operator <<(std::ostream& port, const ratio&) -> decltype(port);
+  auto operator <<(output_port & port, ratio const&) -> output_port &;
 
-  auto operator +(const ratio&, const ratio&) -> ratio;
-  auto operator -(const ratio&, const ratio&) -> ratio;
-  auto operator *(const ratio&, const ratio&) -> ratio;
-  auto operator /(const ratio&, const ratio&) -> ratio;
+  auto operator !=(ratio const&, object const&) -> bool;
+  auto operator < (ratio const&, object const&) -> bool;
+  auto operator <=(ratio const&, object const&) -> bool;
+  auto operator ==(ratio const&, object const&) -> bool;
+  auto operator > (ratio const&, object const&) -> bool;
+  auto operator >=(ratio const&, object const&) -> bool;
 
-  auto operator ==(const ratio&, const ratio&) -> bool;
-  auto operator !=(const ratio&, const ratio&) -> bool;
-  auto operator < (const ratio&, const ratio&) -> bool;
-  auto operator <=(const ratio&, const ratio&) -> bool;
-  auto operator > (const ratio&, const ratio&) -> bool;
-  auto operator >=(const ratio&, const ratio&) -> bool;
-}} // namespace meevax::kernel
+  auto operator !=(ratio const&, exact_integer const&) -> bool;
+  auto operator < (ratio const&, exact_integer const&) -> bool;
+  auto operator <=(ratio const&, exact_integer const&) -> bool;
+  auto operator ==(ratio const&, exact_integer const&) -> bool;
+  auto operator > (ratio const&, exact_integer const&) -> bool;
+  auto operator >=(ratio const&, exact_integer const&) -> bool;
+
+  auto operator * (ratio const&, ratio const&) -> ratio;
+  auto operator + (ratio const&, ratio const&) -> ratio;
+  auto operator - (ratio const&, ratio const&) -> ratio;
+  auto operator / (ratio const&, ratio const&) -> ratio;
+  auto operator % (ratio const&, ratio const&) -> ratio;
+  auto operator ==(ratio const&, ratio const&) -> bool;
+  auto operator !=(ratio const&, ratio const&) -> bool;
+  auto operator < (ratio const&, ratio const&) -> bool;
+  auto operator <=(ratio const&, ratio const&) -> bool;
+  auto operator > (ratio const&, ratio const&) -> bool;
+  auto operator >=(ratio const&, ratio const&) -> bool;
+
+  template <typename T> auto operator !=(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() != b; }
+  template <typename T> auto operator < (ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() <  b; }
+  template <typename T> auto operator <=(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() <= b; }
+  template <typename T> auto operator ==(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() == b; }
+  template <typename T> auto operator > (ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() >  b; }
+  template <typename T> auto operator >=(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() >= b; }
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_RATIO_HPP
