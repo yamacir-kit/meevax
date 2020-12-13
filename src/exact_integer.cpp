@@ -1,5 +1,5 @@
 #include <meevax/kernel/exact_integer.hpp>
-#include <meevax/kernel/port.hpp>
+#include <meevax/kernel/number.hpp>
 #include <meevax/posix/vt102.hpp>
 
 namespace meevax
@@ -23,5 +23,15 @@ inline namespace kernel
   auto operator ==(exact_integer const& a, exact_integer const& b) -> bool { return a.value == b.value; }
   auto operator > (exact_integer const& a, exact_integer const& b) -> bool { return a.value >  b.value; }
   auto operator >=(exact_integer const& a, exact_integer const& b) -> bool { return a.value >= b.value; }
+
+  auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() + b.numerator(), b.denominator()); }
+  auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() - b.numerator(), b.denominator()); }
+  auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.numerator(), b.denominator()); }
+  auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
+
+  auto operator % (exact_integer const&, ratio const& rhs) -> ratio
+  {
+    return rhs; // TODO
+  }
 } // namespace kernel
 } // namespace meevax

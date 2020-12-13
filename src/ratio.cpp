@@ -1,4 +1,4 @@
-#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/ratio.hpp>
 #include <meevax/posix/vt102.hpp>
 

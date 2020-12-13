@@ -79,13 +79,18 @@ inline namespace kernel
   auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
-
   auto operator !=(exact_integer const&, exact_integer const&) -> bool;
   auto operator < (exact_integer const&, exact_integer const&) -> bool;
   auto operator <=(exact_integer const&, exact_integer const&) -> bool;
   auto operator ==(exact_integer const&, exact_integer const&) -> bool;
   auto operator > (exact_integer const&, exact_integer const&) -> bool;
   auto operator >=(exact_integer const&, exact_integer const&) -> bool;
+
+  auto operator * (exact_integer const&, ratio const&) -> ratio;
+  auto operator + (exact_integer const&, ratio const&) -> ratio;
+  auto operator - (exact_integer const&, ratio const&) -> ratio;
+  auto operator / (exact_integer const&, ratio const&) -> ratio;
+  auto operator % (exact_integer const&, ratio const&) -> ratio;
 } // namespace kernel
 } // namespace meevax
 

@@ -12,16 +12,6 @@ inline namespace kernel
     return default_float(datum.value.convert_to<default_float::value_type>());
   }
 
-  auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() + b.numerator(), b.denominator()); }
-  auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() - b.numerator(), b.denominator()); }
-  auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.numerator(), b.denominator()); }
-  auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
-
-  auto operator % (exact_integer const&, ratio const& rhs) -> ratio
-  {
-    return rhs; // TODO
-  }
-
   /* ---- Ratio ------------------------------------------------------------- */
 
   auto to_inexact(const ratio& datum) -> default_float
