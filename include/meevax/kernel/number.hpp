@@ -14,8 +14,10 @@ namespace meevax
 {
 inline namespace kernel
 {
+  [[deprecated]]
   auto to_inexact(const exact_integer&) -> default_float; // TODO use exact_integer::as_inexact
 
+  [[deprecated]]
   auto to_inexact(const ratio&) -> default_float;
 
   template <typename T>
@@ -183,24 +185,6 @@ inline namespace kernel
    * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
    *
    * ------------------------------------------------------------------------ */
-
-  /* ---- Multi-Precision Exact-Integer --------------------------------------*/
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  auto operator SYMBOL(const exact_integer& lhs, const floating_point<T>& rhs) \
-  {                                                                            \
-    return lhs.value.convert_to<T>() SYMBOL rhs.value;                         \
-  } static_assert(true)
-
-  BOILERPLATE(!=);
-  BOILERPLATE(<);
-  BOILERPLATE(<=);
-  BOILERPLATE(==);
-  BOILERPLATE(>);
-  BOILERPLATE(>=);
-
-  #undef BOILERPLATE
 
   /* ---- Ratio ------------------------------------------------------------- */
 
