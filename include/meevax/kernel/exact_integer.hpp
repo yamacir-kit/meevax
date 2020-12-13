@@ -62,12 +62,11 @@ inline namespace kernel
 
   auto operator <<(output_port & port, exact_integer const&) -> output_port &;
 
-  let operator * (exact_integer const&, object const&);
-  let operator + (exact_integer const&, object const&);
-  let operator - (exact_integer const&, object const&);
-  let operator / (exact_integer const&, object const&);
-  let operator % (exact_integer const&, object const&);
-
+  auto operator * (exact_integer const&, object const&) -> object;
+  auto operator + (exact_integer const&, object const&) -> object;
+  auto operator - (exact_integer const&, object const&) -> object;
+  auto operator / (exact_integer const&, object const&) -> object;
+  auto operator % (exact_integer const&, object const&) -> object;
   auto operator ==(exact_integer const&, object const&) -> bool;
   auto operator !=(exact_integer const&, object const&) -> bool;
   auto operator < (exact_integer const&, object const&) -> bool;

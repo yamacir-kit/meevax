@@ -122,21 +122,6 @@ inline namespace kernel
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T>                                                        \
-  auto operator SYMBOL(const floating_point<T>& lhs, const exact_integer& rhs) \
-  {                                                                            \
-    return floating_point(lhs SYMBOL to_inexact(rhs));                         \
-  } static_assert(true)
-
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
-
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
   auto operator SYMBOL(const floating_point<T>& lhs, const ratio& rhs)         \
   {                                                                            \
     return floating_point(lhs SYMBOL to_inexact(rhs));                         \
