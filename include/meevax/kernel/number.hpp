@@ -16,11 +16,7 @@ inline namespace kernel
 {
   auto exact = [](let const& z)
   {
-    static const std::unordered_map<
-      std::type_index,
-      std::function<exact_integer (const object&)>
-    >
-    match
+    static const std::unordered_map<std::type_index, std::function<exact_integer (object const&)>> match
     {
       { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_exact(); } },
       { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_exact(); } },
@@ -33,11 +29,7 @@ inline namespace kernel
 
   auto inexact = [](let const& z)
   {
-    static const std::unordered_map<
-      std::type_index,
-      std::function<default_float (const object&)>
-    >
-    match
+    static const std::unordered_map<std::type_index, std::function<default_float (object const&)>> match
     {
       { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_inexact<decltype(0.0)>(); } },
       { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_inexact<decltype(0.0)>(); } },

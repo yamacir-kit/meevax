@@ -8,7 +8,7 @@ inline namespace kernel
 {
   auto operator <<(output_port & port, exact_integer const& datum) -> output_port &
   {
-    return port << cyan << datum.value.str() << reset;
+    return port << cyan << datum.to_string() << reset;
   }
 
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value * b.value); }

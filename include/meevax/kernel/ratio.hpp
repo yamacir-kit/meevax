@@ -13,9 +13,8 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto numerator() const noexcept -> decltype(auto) { return car(*this); }
-    auto numerator()       noexcept -> decltype(auto) { return car(*this); }
-
+    auto numerator()   const noexcept -> decltype(auto) { return car(*this); }
+    auto numerator()         noexcept -> decltype(auto) { return car(*this); }
     auto denominator() const noexcept -> decltype(auto) { return cdr(*this); }
     auto denominator()       noexcept -> decltype(auto) { return cdr(*this); }
 

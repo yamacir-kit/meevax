@@ -34,18 +34,12 @@ inline namespace kernel
       : value { std::forward<decltype(xs)>(xs)... }
     {}
 
-    auto to_string() const -> std::string
+    auto to_string() const
     {
       return value.str();
     }
 
-    template <typename T>
-    auto is(T&& number) const
-    {
-      return value.convert_to<T>() == number;
-    }
-
-    auto as_exact() const -> auto const&
+    auto as_exact() const -> decltype(auto)
     {
       return *this;
     }
@@ -61,6 +55,13 @@ inline namespace kernel
   };
 
   auto operator <<(output_port & port, exact_integer const&) -> output_port &;
+
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator ==(exact_integer const& a, T&& b) { return a.value == b; }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator !=(exact_integer const& a, T&& b) { return a.value != b; }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator < (exact_integer const& a, T&& b) { return a.value <  b; }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator <=(exact_integer const& a, T&& b) { return a.value <= b; }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator > (exact_integer const& a, T&& b) { return a.value >  b; }
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator >=(exact_integer const& a, T&& b) { return a.value >= b; }
 
   auto operator * (exact_integer const&, object const&) -> object;
   auto operator + (exact_integer const&, object const&) -> object;

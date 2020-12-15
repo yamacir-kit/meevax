@@ -43,19 +43,19 @@ BOOST_AUTO_TEST_CASE(Numbers) // 6.2.
 
   BOOST_CHECK(x1);
   BOOST_CHECK(x1.is<exact_integer>());
-  BOOST_CHECK(x1.as<exact_integer>().is(1));
+  BOOST_CHECK(x1.as<exact_integer>() == 1);
 
   let x2 = root.read("2");
 
   BOOST_CHECK(x2);
   BOOST_CHECK(x2.is<exact_integer>());
-  BOOST_CHECK(x2.as<exact_integer>().is(2));
+  BOOST_CHECK(x2.as<exact_integer>() == 2);
 
   let x3 = x1 + x2;
 
   BOOST_CHECK(x3);
   BOOST_CHECK(x3.is<exact_integer>());
-  BOOST_CHECK(x3.as<exact_integer>().is(3));
+  BOOST_CHECK(x3.as<exact_integer>() == 3);
 }
 
 BOOST_AUTO_TEST_CASE(Booleans) // 6.3.

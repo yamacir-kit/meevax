@@ -8,7 +8,7 @@ inline namespace kernel
 {
   auto ratio::is_integer() const -> bool
   {
-    return denominator().as<exact_integer>().is(1);
+    return cdr(*this).as<exact_integer>() == 1;
   }
 
   auto ratio::reduce() -> ratio const&
@@ -16,10 +16,10 @@ inline namespace kernel
     if (const exact_integer divisor {
           boost::multiprecision::gcd(numerator().as<exact_integer>().value, denominator().as<exact_integer>().value)
         };
-        not divisor.is(1))
+        divisor != 1)
     {
-      numerator() = make(numerator().as<exact_integer>() / divisor);
-      denominator() = make(denominator().as<exact_integer>() / divisor);
+      car(*this) = make(car(*this).as<exact_integer>() / divisor);
+      cdr(*this) = make(cdr(*this).as<exact_integer>() / divisor);
     }
 
     return *this;
