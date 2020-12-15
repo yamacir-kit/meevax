@@ -3,10 +3,10 @@
 
 #include <type_traits>
 
-#define Requires(...) \
+#define REQUIRES(...) \
   typename = typename std::enable_if< \
-                        std::conjunction<__VA_ARGS__>::value \
-                      >::type
+    std::conjunction<__VA_ARGS__>::value \
+  >::type
 
 #endif // INCLUDED_MEEVAX_UTILITY_REQUIRES_HPP
 

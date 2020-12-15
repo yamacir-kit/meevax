@@ -11,7 +11,9 @@
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   using null = std::nullptr_t;
 
@@ -72,13 +74,13 @@ namespace meevax { inline namespace kernel
         return delay<clone>().yield<pointer>(*this, nullptr);
       }
 
-      auto eqv(const pointer& rhs) const -> bool override
+      auto eqv(pointer const& rhs) const -> bool override
       {
         if constexpr (is_equality_comparable<bound>::value)
         {
-          if (const auto rhsp { std::dynamic_pointer_cast<const bound>(rhs) })
+          if (const auto rhsp { std::dynamic_pointer_cast<bound const>(rhs) })
           {
-            return static_cast<const bound&>(*this) == *rhsp;
+            return static_cast<bound const&>(*this) == *rhsp;
           }
           else
           {
@@ -91,17 +93,17 @@ namespace meevax { inline namespace kernel
         }
       }
 
-      auto write_to(std::ostream& port) const -> decltype(port) override
+      auto write_to(std::ostream & port) const -> std::ostream & override
       {
-        return delay<write>().yield<decltype(port)>(port, static_cast<const bound&>(*this));
+        return delay<write>().yield<decltype(port)>(port, static_cast<bound const&>(*this));
       }
 
       /* ---- Numerical operations ------------------------------------------ */
 
       #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                           \
-      auto operator SYMBOL(const pointer& rhs) const -> RESULT override        \
+      auto operator SYMBOL(pointer const& rhs) const -> RESULT override        \
       {                                                                        \
-        return delay<OPERATION>().yield<RESULT>(static_cast<const bound&>(*this), rhs); \
+        return delay<OPERATION>().yield<RESULT>(static_cast<bound const&>(*this), rhs); \
       } static_assert(true)
 
       BOILERPLATE(+, pointer, std::plus<void>);
@@ -137,7 +139,7 @@ namespace meevax { inline namespace kernel
 
     /* ---- Compound Types Binding ------------------------------------------ */
 
-    template <typename Bound, typename... Ts, typename = typename std::enable_if<std::is_compound<Bound>::value>::type>
+    template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto bind(Ts&&... xs) -> pointer
     {
       using binding = binder<Bound>;
@@ -283,7 +285,8 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(>=, greater_equal);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 namespace std
 {

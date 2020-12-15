@@ -41,7 +41,7 @@ inline namespace kernel
       return static_cast<exact_integer>(value);
     }
 
-    template <typename U, typename = typename std::enable_if<std::is_floating_point<U>::value>::type>
+    template <typename U, REQUIRES(std::is_floating_point<U>)>
     constexpr auto as_inexact() const noexcept
     {
       return floating_point<U>(value);

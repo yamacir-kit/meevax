@@ -44,7 +44,7 @@ inline namespace kernel
       return *this;
     }
 
-    template <typename T, typename = typename std::enable_if<std::is_floating_point<T>::value>::type>
+    template <typename T, REQUIRES(std::is_floating_point<T>)>
     auto as_inexact() const
     {
       return floating_point(value.convert_to<T>());
@@ -56,12 +56,12 @@ inline namespace kernel
 
   auto operator <<(output_port & port, exact_integer const&) -> output_port &;
 
-  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator ==(exact_integer const& a, T&& b) { return a.value == b; }
-  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator !=(exact_integer const& a, T&& b) { return a.value != b; }
-  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator < (exact_integer const& a, T&& b) { return a.value <  b; }
-  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator <=(exact_integer const& a, T&& b) { return a.value <= b; }
-  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator > (exact_integer const& a, T&& b) { return a.value >  b; }
-  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type> auto operator >=(exact_integer const& a, T&& b) { return a.value >= b; }
+  template <typename T, REQUIRES(std::is_integral<T>)> auto operator ==(exact_integer const& a, T&& b) { return a.value == b; }
+  template <typename T, REQUIRES(std::is_integral<T>)> auto operator !=(exact_integer const& a, T&& b) { return a.value != b; }
+  template <typename T, REQUIRES(std::is_integral<T>)> auto operator < (exact_integer const& a, T&& b) { return a.value <  b; }
+  template <typename T, REQUIRES(std::is_integral<T>)> auto operator <=(exact_integer const& a, T&& b) { return a.value <= b; }
+  template <typename T, REQUIRES(std::is_integral<T>)> auto operator > (exact_integer const& a, T&& b) { return a.value >  b; }
+  template <typename T, REQUIRES(std::is_integral<T>)> auto operator >=(exact_integer const& a, T&& b) { return a.value >= b; }
 
   auto operator * (exact_integer const&, object const&) -> object;
   auto operator + (exact_integer const&, object const&) -> object;
