@@ -40,23 +40,22 @@ inline namespace kernel
     return match.at(z.type())(z);
   };
 
-  auto is_nan = [](const object& x)
+  auto is_nan = [](object const& x)
   {
-    if (x.is<null>())
+    static std::unordered_map<std::type_index, std::function<bool (object const&)>> const overloads
     {
-      return false;
-    }
-    else if (x.is<single_float>())
+      { typeid(null),         [](let const&  ) { return false; } },
+      { typeid(single_float), [](let const& x) { return std::isnan(x.as<single_float>()); } },
+      { typeid(double_float), [](let const& x) { return std::isnan(x.as<double_float>()); } },
+    };
+
+    if (auto const iter { overloads.find(x.type()) }; iter != std::end(overloads))
     {
-      return std::isnan(x.as<single_float>());
-    }
-    else if (x.is<double_float>())
-    {
-      return std::isnan(x.as<double_float>());
+      return cdr(*iter)(x);
     }
     else
     {
-     return false;
+      return false;
     }
   };
 

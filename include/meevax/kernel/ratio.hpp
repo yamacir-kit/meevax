@@ -34,7 +34,7 @@ inline namespace kernel
       return copy;
     }
 
-    auto as_exact() const -> auto const&
+    auto as_exact() const noexcept -> decltype(auto)
     {
       return *this;
     }
@@ -42,7 +42,8 @@ inline namespace kernel
     template <typename T>
     auto as_inexact() const
     {
-      return numerator().as<exact_integer>().as_inexact<T>() / denominator().as<exact_integer>().as_inexact<T>();
+      return car(*this).as<exact_integer>().as_inexact<T>()
+           / cdr(*this).as<exact_integer>().as_inexact<T>();
     }
   };
 

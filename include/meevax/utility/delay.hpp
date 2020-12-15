@@ -67,7 +67,7 @@ inline namespace utility
   struct clone
   {
     template <typename T, REQUIRES(std::is_copy_constructible<T>)>
-    auto operator ()(const T& origin, std::nullptr_t) const -> decltype(auto)
+    auto operator ()(T const& origin, std::nullptr_t) const -> decltype(auto)
     {
       return std::make_shared<T>(origin);
     }

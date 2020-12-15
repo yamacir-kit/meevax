@@ -34,12 +34,14 @@ inline namespace kernel
       : value { std::forward<decltype(xs)>(xs)... }
     {}
 
+    static constexpr std::true_type is_integer;
+
     auto to_string() const
     {
       return value.str();
     }
 
-    auto as_exact() const -> decltype(auto)
+    auto as_exact() const noexcept -> decltype(auto)
     {
       return *this;
     }

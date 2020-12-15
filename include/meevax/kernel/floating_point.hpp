@@ -26,14 +26,14 @@ inline namespace kernel
       : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    auto to_string() const
-    {
-      return boost::lexical_cast<std::string>(value);
-    }
-
     constexpr auto is_integer() const noexcept
     {
       return value == std::trunc(value);
+    }
+
+    auto to_string() const
+    {
+      return boost::lexical_cast<std::string>(value);
     }
 
     auto as_exact() const
