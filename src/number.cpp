@@ -9,27 +9,27 @@ inline namespace kernel
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value - b.value); }
   auto operator / (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value / b.value); }
   auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value % b.value); } // TODO ratio
-  auto operator !=(exact_integer const& a, exact_integer const& b) -> bool { return a.value != b.value; }
-  auto operator < (exact_integer const& a, exact_integer const& b) -> bool { return a.value <  b.value; }
-  auto operator <=(exact_integer const& a, exact_integer const& b) -> bool { return a.value <= b.value; }
-  auto operator ==(exact_integer const& a, exact_integer const& b) -> bool { return a.value == b.value; }
-  auto operator > (exact_integer const& a, exact_integer const& b) -> bool { return a.value >  b.value; }
-  auto operator >=(exact_integer const& a, exact_integer const& b) -> bool { return a.value >= b.value; }
+  auto operator !=(exact_integer const& a, exact_integer const& b) -> boolean { return a.value != b.value; }
+  auto operator < (exact_integer const& a, exact_integer const& b) -> boolean { return a.value <  b.value; }
+  auto operator <=(exact_integer const& a, exact_integer const& b) -> boolean { return a.value <= b.value; }
+  auto operator ==(exact_integer const& a, exact_integer const& b) -> boolean { return a.value == b.value; }
+  auto operator > (exact_integer const& a, exact_integer const& b) -> boolean { return a.value >  b.value; }
+  auto operator >=(exact_integer const& a, exact_integer const& b) -> boolean { return a.value >= b.value; }
 
   auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() + b.numerator(), b.denominator()); }
   auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.denominator() - b.numerator(), b.denominator()); }
   auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.numerator(), b.denominator()); }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
   auto operator % (exact_integer const&,   ratio const& b) -> ratio { return b; } // TODO
-  auto operator !=(exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a != b.numerator() : false; }
-  auto operator < (exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a <  b.numerator() : false; }
-  auto operator <=(exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a <= b.numerator() : false; }
-  auto operator ==(exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a == b.numerator() : false; }
-  auto operator > (exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a >  b.numerator() : false; }
-  auto operator >=(exact_integer const& a, ratio const& b) -> bool { return b.reduce().is_integer() ? a >= b.numerator() : false; }
+  auto operator !=(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a != b.numerator() : false; }
+  auto operator < (exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a <  b.numerator() : false; }
+  auto operator <=(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a <= b.numerator() : false; }
+  auto operator ==(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a == b.numerator() : false; }
+  auto operator > (exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a >  b.numerator() : false; }
+  auto operator >=(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a >= b.numerator() : false; }
 
   #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(ratio const& lhs, exact_integer const& rhs) -> bool     \
+  auto operator SYMBOL(ratio const& lhs, exact_integer const& rhs) -> boolean  \
   {                                                                            \
     if (auto copy { lhs }; copy.reduce().is_integer())                         \
     {                                                                          \
@@ -55,12 +55,12 @@ inline namespace kernel
   auto operator * (ratio const& a, ratio const& b) -> ratio { return ratio(a.numerator() *                   b.numerator(),                   a.denominator() * b.denominator()); }
   auto operator / (ratio const& a, ratio const& b) -> ratio { return a * b.invert(); }
   auto operator % (ratio const&,   ratio const& b) -> ratio { return b; } // TODO
-  auto operator ==(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() == (b.numerator() * a.denominator()); }
-  auto operator !=(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() != (b.numerator() * a.denominator()); }
-  auto operator < (ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() <  (b.numerator() * a.denominator()); }
-  auto operator <=(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() <= (b.numerator() * a.denominator()); }
-  auto operator > (ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() >  (b.numerator() * a.denominator()); }
-  auto operator >=(ratio const& a, ratio const& b) -> bool { return (a.numerator() * b.denominator()).binding() >= (b.numerator() * a.denominator()); }
+  auto operator ==(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() == (b.numerator() * a.denominator()); }
+  auto operator !=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() != (b.numerator() * a.denominator()); }
+  auto operator < (ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() <  (b.numerator() * a.denominator()); }
+  auto operator <=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() <= (b.numerator() * a.denominator()); }
+  auto operator > (ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() >  (b.numerator() * a.denominator()); }
+  auto operator >=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() >= (b.numerator() * a.denominator()); }
 
   /* ---- Arithmetic Operation Dispatcher ----------------------------------- */
 
