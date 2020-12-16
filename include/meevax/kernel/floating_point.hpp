@@ -66,42 +66,6 @@ inline namespace kernel
       return os << cyan << rhs.value << reset;
     }
   }
-
-  template <typename T> auto operator * (floating_point<T>&, object const&) -> object;
-  template <typename T> auto operator + (floating_point<T>&, object const&) -> object;
-  template <typename T> auto operator - (floating_point<T>&, object const&) -> object;
-  template <typename T> auto operator / (floating_point<T>&, object const&) -> object;
-  template <typename T> auto operator % (floating_point<T>&, object const&) -> object;
-  template <typename T> auto operator ==(floating_point<T>&, object const&) -> bool;
-  template <typename T> auto operator !=(floating_point<T>&, object const&) -> bool;
-  template <typename T> auto operator < (floating_point<T>&, object const&) -> bool;
-  template <typename T> auto operator <=(floating_point<T>&, object const&) -> bool;
-  template <typename T> auto operator > (floating_point<T>&, object const&) -> bool;
-  template <typename T> auto operator >=(floating_point<T>&, object const&) -> bool;
-
-  template <typename T> constexpr auto operator * (floating_point<T> const& a, exact_integer const& b) { return a *  b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator + (floating_point<T> const& a, exact_integer const& b) { return a +  b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator - (floating_point<T> const& a, exact_integer const& b) { return a -  b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator / (floating_point<T> const& a, exact_integer const& b) { return a /  b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator % (floating_point<T> const& a, exact_integer const& b) { return a %  b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator !=(floating_point<T> const& a, exact_integer const& b) { return a != b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator < (floating_point<T> const& a, exact_integer const& b) { return a <  b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator <=(floating_point<T> const& a, exact_integer const& b) { return a <= b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator ==(floating_point<T> const& a, exact_integer const& b) { return a == b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator > (floating_point<T> const& a, exact_integer const& b) { return a >  b.as_inexact<T>(); }
-  template <typename T> constexpr auto operator >=(floating_point<T> const& a, exact_integer const& b) { return a >= b.as_inexact<T>(); }
-
-  template <typename T, typename U> constexpr auto operator * (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value * b.value); }
-  template <typename T, typename U> constexpr auto operator + (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value + b.value); }
-  template <typename T, typename U> constexpr auto operator - (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value - b.value); }
-  template <typename T, typename U> constexpr auto operator / (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value / b.value); }
-  template <typename T, typename U> constexpr auto operator % (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(std::fmod(a.value, b.value)); }
-  template <typename T, typename U> constexpr auto operator !=(floating_point<T> const& a, floating_point<U> const& b) { return a.value != b.value; }
-  template <typename T, typename U> constexpr auto operator < (floating_point<T> const& a, floating_point<U> const& b) { return a.value <  b.value; }
-  template <typename T, typename U> constexpr auto operator <=(floating_point<T> const& a, floating_point<U> const& b) { return a.value <= b.value; }
-  template <typename T, typename U> constexpr auto operator ==(floating_point<T> const& a, floating_point<U> const& b) { return a.value == b.value; }
-  template <typename T, typename U> constexpr auto operator > (floating_point<T> const& a, floating_point<U> const& b) { return a.value >  b.value; }
-  template <typename T, typename U> constexpr auto operator >=(floating_point<T> const& a, floating_point<U> const& b) { return a.value >= b.value; }
 } // namespace kernel
 } // namespace meevax
 

@@ -48,39 +48,6 @@ inline namespace kernel
   };
 
   auto operator <<(output_port & port, ratio const&) -> output_port &;
-
-  auto operator !=(ratio const&, object const&) -> bool;
-  auto operator < (ratio const&, object const&) -> bool;
-  auto operator <=(ratio const&, object const&) -> bool;
-  auto operator ==(ratio const&, object const&) -> bool;
-  auto operator > (ratio const&, object const&) -> bool;
-  auto operator >=(ratio const&, object const&) -> bool;
-
-  auto operator !=(ratio const&, exact_integer const&) -> bool;
-  auto operator < (ratio const&, exact_integer const&) -> bool;
-  auto operator <=(ratio const&, exact_integer const&) -> bool;
-  auto operator ==(ratio const&, exact_integer const&) -> bool;
-  auto operator > (ratio const&, exact_integer const&) -> bool;
-  auto operator >=(ratio const&, exact_integer const&) -> bool;
-
-  auto operator * (ratio const&, ratio const&) -> ratio;
-  auto operator + (ratio const&, ratio const&) -> ratio;
-  auto operator - (ratio const&, ratio const&) -> ratio;
-  auto operator / (ratio const&, ratio const&) -> ratio;
-  auto operator % (ratio const&, ratio const&) -> ratio;
-  auto operator ==(ratio const&, ratio const&) -> bool;
-  auto operator !=(ratio const&, ratio const&) -> bool;
-  auto operator < (ratio const&, ratio const&) -> bool;
-  auto operator <=(ratio const&, ratio const&) -> bool;
-  auto operator > (ratio const&, ratio const&) -> bool;
-  auto operator >=(ratio const&, ratio const&) -> bool;
-
-  template <typename T> auto operator !=(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() != b; }
-  template <typename T> auto operator < (ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() <  b; }
-  template <typename T> auto operator <=(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() <= b; }
-  template <typename T> auto operator ==(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() == b; }
-  template <typename T> auto operator > (ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() >  b; }
-  template <typename T> auto operator >=(ratio const& a, floating_point<T> const& b) { return a.as_inexact<T>() >= b; }
 } // namespace kernel
 } // namespace meevax
 

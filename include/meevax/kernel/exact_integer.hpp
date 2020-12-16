@@ -56,61 +56,6 @@ inline namespace kernel
   };
 
   auto operator <<(output_port & port, exact_integer const&) -> output_port &;
-
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator ==(exact_integer const& a, T&& b) { return a.value == b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator !=(exact_integer const& a, T&& b) { return a.value != b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator < (exact_integer const& a, T&& b) { return a.value <  b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator <=(exact_integer const& a, T&& b) { return a.value <= b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator > (exact_integer const& a, T&& b) { return a.value >  b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator >=(exact_integer const& a, T&& b) { return a.value >= b; }
-
-  auto operator * (exact_integer const&, object const&) -> object;
-  auto operator + (exact_integer const&, object const&) -> object;
-  auto operator - (exact_integer const&, object const&) -> object;
-  auto operator / (exact_integer const&, object const&) -> object;
-  auto operator % (exact_integer const&, object const&) -> object;
-  auto operator ==(exact_integer const&, object const&) -> bool;
-  auto operator !=(exact_integer const&, object const&) -> bool;
-  auto operator < (exact_integer const&, object const&) -> bool;
-  auto operator <=(exact_integer const&, object const&) -> bool;
-  auto operator > (exact_integer const&, object const&) -> bool;
-  auto operator >=(exact_integer const&, object const&) -> bool;
-
-  auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator !=(exact_integer const&, exact_integer const&) -> bool;
-  auto operator < (exact_integer const&, exact_integer const&) -> bool;
-  auto operator <=(exact_integer const&, exact_integer const&) -> bool;
-  auto operator ==(exact_integer const&, exact_integer const&) -> bool;
-  auto operator > (exact_integer const&, exact_integer const&) -> bool;
-  auto operator >=(exact_integer const&, exact_integer const&) -> bool;
-
-  auto operator * (exact_integer const&, ratio const&) -> ratio;
-  auto operator + (exact_integer const&, ratio const&) -> ratio;
-  auto operator - (exact_integer const&, ratio const&) -> ratio;
-  auto operator / (exact_integer const&, ratio const&) -> ratio;
-  auto operator % (exact_integer const&, ratio const&) -> ratio;
-  auto operator !=(exact_integer const&, ratio const&) -> bool;
-  auto operator < (exact_integer const&, ratio const&) -> bool;
-  auto operator <=(exact_integer const&, ratio const&) -> bool;
-  auto operator ==(exact_integer const&, ratio const&) -> bool;
-  auto operator > (exact_integer const&, ratio const&) -> bool;
-  auto operator >=(exact_integer const&, ratio const&) -> bool;
-
-  template <typename T> auto operator * (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() *  b; }
-  template <typename T> auto operator + (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() +  b; }
-  template <typename T> auto operator - (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() -  b; }
-  template <typename T> auto operator / (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() /  b; }
-  template <typename T> auto operator % (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() %  b; }
-  template <typename T> auto operator !=(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() != b; }
-  template <typename T> auto operator < (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() <  b; }
-  template <typename T> auto operator <=(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() <= b; }
-  template <typename T> auto operator ==(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() == b; }
-  template <typename T> auto operator > (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() >  b; }
-  template <typename T> auto operator >=(exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() >= b; }
 } // namespace kernel
 } // namespace meevax
 
