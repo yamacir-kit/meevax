@@ -11,6 +11,24 @@ inline namespace kernel
     return cdr(*this).as<exact_integer>() == 1;
   }
 
+  auto ratio::reduce() const -> ratio
+  {
+    if (const exact_integer divisor {
+          boost::multiprecision::gcd(
+            car(*this).as<exact_integer>().value,
+            cdr(*this).as<exact_integer>().value)
+        }; divisor != 1)
+    {
+      return ratio(
+        make(car(*this).as<exact_integer>() / divisor),
+        make(cdr(*this).as<exact_integer>() / divisor));
+    }
+    else
+    {
+      return *this;
+    }
+  }
+
   auto ratio::reduce() -> ratio const&
   {
     if (const exact_integer divisor {

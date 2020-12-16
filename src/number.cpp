@@ -21,19 +21,19 @@ inline namespace kernel
   auto operator * (exact_integer const& a, ratio const& b) -> ratio { return ratio(a * b.numerator(), b.denominator()); }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
   auto operator % (exact_integer const&,   ratio const& b) -> ratio { return b; } // TODO
-  auto operator !=(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a != b.numerator() : false; }
-  auto operator < (exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a <  b.numerator() : false; }
-  auto operator <=(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a <= b.numerator() : false; }
-  auto operator ==(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a == b.numerator() : false; }
-  auto operator > (exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a >  b.numerator() : false; }
-  auto operator >=(exact_integer const& a, ratio const& b) -> boolean { return b.reduce().is_integer() ? a >= b.numerator() : false; }
+  auto operator !=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a != x.numerator() : false; }
+  auto operator < (exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a <  x.numerator() : false; }
+  auto operator <=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a <= x.numerator() : false; }
+  auto operator ==(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a == x.numerator() : false; }
+  auto operator > (exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a >  x.numerator() : false; }
+  auto operator >=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a >= x.numerator() : false; }
 
   #define BOILERPLATE(SYMBOL)                                                  \
-  auto operator SYMBOL(ratio const& lhs, exact_integer const& rhs) -> boolean  \
+  auto operator SYMBOL(ratio const& a, exact_integer const& b) -> boolean      \
   {                                                                            \
-    if (auto copy { lhs }; copy.reduce().is_integer())                         \
+    if (auto const x { a.reduce() }; x.is_integer())                           \
     {                                                                          \
-      return copy.numerator().as<exact_integer>() SYMBOL rhs;                  \
+      return x.numerator().as<exact_integer>() SYMBOL b;                       \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -42,10 +42,10 @@ inline namespace kernel
   } static_assert(true)
 
   BOILERPLATE(!=);
-  BOILERPLATE(<);
+  BOILERPLATE(< );
   BOILERPLATE(<=);
   BOILERPLATE(==);
-  BOILERPLATE(>);
+  BOILERPLATE(> );
   BOILERPLATE(>=);
 
   #undef BOILERPLATE

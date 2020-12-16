@@ -205,12 +205,11 @@ inline namespace kernel
 
       if (result.length(10) and result.length(11)) // 6, 7, 8, 9, 10, 11
       {
-        ratio value {
-          make_number<R>(result.str(10)),
-          make_number<R>(result.str(11))
-        };
+        auto const value {
+          ratio(make_number<R>(result.str(10)),
+                make_number<R>(result.str(11))).reduce() };
 
-        if (value.reduce().is_integer())
+        if (value.is_integer())
         {
           return value.numerator();
         }

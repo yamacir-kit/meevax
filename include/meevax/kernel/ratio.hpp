@@ -25,14 +25,10 @@ inline namespace kernel
       return ratio(denominator(), numerator());
     }
 
-    auto reduce() -> ratio const&;
+    auto reduce() const -> ratio;
 
-    auto reduce() const
-    {
-      auto copy { *this };
-      copy.reduce();
-      return copy;
-    }
+    [[deprecated]]
+    auto reduce() -> ratio const&;
 
     auto as_exact() const noexcept -> decltype(auto)
     {
