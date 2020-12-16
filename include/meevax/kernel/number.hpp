@@ -14,9 +14,22 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <typename T>
+  T resolve(std::unordered_map<std::type_index, std::function<T (object const&)>> const& overload, object const& x)
+  {
+    if (auto const iter { overload.find(x.type()) }; iter != std::end(overload))
+    {
+      return std::get<1>(*iter)(x);
+    }
+    else
+    {
+      return T(); // NOTE N4296 Section 8.5 (6.1)
+    }
+  }
+
   auto exact = [](let const& z)
   {
-    static const std::unordered_map<std::type_index, std::function<exact_integer (object const&)>> match
+    static const std::unordered_map<std::type_index, std::function<exact_integer (object const&)>> overload
     {
       { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_exact(); } },
       { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_exact(); } },
@@ -24,12 +37,12 @@ inline namespace kernel
       { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_exact(); } },
     };
 
-    return match.at(z.type())(z);
+    return resolve(overload, z);
   };
 
   auto inexact = [](let const& z)
   {
-    static const std::unordered_map<std::type_index, std::function<default_float (object const&)>> match
+    static const std::unordered_map<std::type_index, std::function<default_float (object const&)>> overload
     {
       { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_inexact<decltype(0.0)>(); } },
       { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_inexact<decltype(0.0)>(); } },
@@ -37,26 +50,19 @@ inline namespace kernel
       { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_inexact<decltype(0.0)>(); } },
     };
 
-    return match.at(z.type())(z);
+    return resolve(overload, z);
   };
 
   auto is_nan = [](object const& x)
   {
-    static std::unordered_map<std::type_index, std::function<bool (object const&)>> const overloads
+    static std::unordered_map<std::type_index, std::function<bool (object const&)>> const overload
     {
       { typeid(null),         [](let const&  ) { return false; } },
       { typeid(single_float), [](let const& x) { return std::isnan(x.as<single_float>()); } },
       { typeid(double_float), [](let const& x) { return std::isnan(x.as<double_float>()); } },
     };
 
-    if (auto const iter { overloads.find(x.type()) }; iter != std::end(overloads))
-    {
-      return cdr(*iter)(x);
-    }
-    else
-    {
-      return false;
-    }
+    return resolve(overload, x);
   };
 
   /* ---- Arithmetic Operations ------------------------------------------------
