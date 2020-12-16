@@ -13,34 +13,19 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
+    using boost::multiprecision::gcd;
+
     if (const exact_integer divisor {
-          boost::multiprecision::gcd(
-            car(*this).as<exact_integer>().value,
-            cdr(*this).as<exact_integer>().value)
-        }; divisor != 1)
+          gcd(car(*this).as<exact_integer>().value,
+              cdr(*this).as<exact_integer>().value) }; divisor != 1)
     {
-      return ratio(
-        make(car(*this).as<exact_integer>() / divisor),
-        make(cdr(*this).as<exact_integer>() / divisor));
+      return ratio(make(car(*this).as<exact_integer>() / divisor),
+                   make(cdr(*this).as<exact_integer>() / divisor));
     }
     else
     {
       return *this;
     }
-  }
-
-  auto ratio::reduce() -> ratio const&
-  {
-    if (const exact_integer divisor {
-          boost::multiprecision::gcd(numerator().as<exact_integer>().value, denominator().as<exact_integer>().value)
-        };
-        divisor != 1)
-    {
-      car(*this) = make(car(*this).as<exact_integer>() / divisor);
-      cdr(*this) = make(cdr(*this).as<exact_integer>() / divisor);
-    }
-
-    return *this;
   }
 
   auto operator <<(output_port & port, ratio const& datum) -> output_port &

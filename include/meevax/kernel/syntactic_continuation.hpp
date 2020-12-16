@@ -10,7 +10,9 @@
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- System Layers --------------------------------------------------------
    *
@@ -419,6 +421,7 @@ namespace meevax { inline namespace kernel
       assert(form().is<closure>());
     }
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP

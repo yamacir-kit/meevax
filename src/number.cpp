@@ -74,9 +74,9 @@ inline namespace kernel
     overloads                                                                  \
     {                                                                          \
       {                                                                        \
-        typeid(ratio), [](auto&& lhs, auto&& rhs)                              \
+        typeid(ratio), [](auto&& lhs, let const& rhs)                          \
         {                                                                      \
-          if (auto result { lhs SYMBOL rhs.template as<ratio>() }; result.reduce().is_integer()) \
+          if (auto result = (lhs SYMBOL rhs.as<ratio>()).reduce(); result.is_integer()) \
           {                                                                    \
             return result.numerator();                                         \
           }                                                                    \
