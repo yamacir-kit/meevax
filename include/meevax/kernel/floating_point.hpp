@@ -1,9 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
-#include <meevax/kernel/algebra.hpp>
+#include <meevax/kernel/numerical_types.hpp>
 #include <meevax/kernel/port.hpp>
-#include <type_traits>
 
 namespace meevax
 {
