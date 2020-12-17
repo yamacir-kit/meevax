@@ -172,12 +172,12 @@ inline namespace kernel
 
   auto inexact = [](let const& z)
   {
-    static const std::unordered_map<std::type_index, std::function<default_float (object const&)>> overload
+    static const std::unordered_map<std::type_index, std::function<object (object const&)>> overload
     {
-      { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_inexact<decltype(0.0)>(); } },
-      { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_inexact<decltype(0.0)>(); } },
-      { typeid(ratio),         [](let const& x) { return x.as<ratio>()        .as_inexact<decltype(0.0)>(); } },
-      { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_inexact<decltype(0.0)>(); } },
+      { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_inexact<decltype(0.0)>()); } },
+      { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_inexact<decltype(0.0)>()); } },
+      { typeid(ratio),         [](let const& x) { return make(x.as<ratio>()        .as_inexact<decltype(0.0)>()); } },
+      { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_inexact<decltype(0.0)>()); } },
     };
 
     return resolve(overload, z);

@@ -390,11 +390,13 @@ inline namespace kernel
     DEFINE_ELEMENTARY_FUNCTION("square-root", std::sqrt);
 
 
-    define<procedure>("exponential", [](auto&& xs)
+    define<procedure>("exponential", [](let const& xs)
     {
-      if (const floating_point result { std::pow(inexact(car(xs)), inexact(cadr(xs))) }; result.is_integer())
+      if (const floating_point result {
+            std::pow(inexact( car(xs)).as<default_float>(),
+                     inexact(cadr(xs)).as<default_float>()) }; result.is_integer())
       {
-        return make<exact_integer>(result.value);
+        return make(result.as_exact());
       }
       else
       {
@@ -403,8 +405,8 @@ inline namespace kernel
     });
 
 
-    define<procedure>(  "exact", [](auto&& xs) { return exact(car(xs)); });
-    define<procedure>("inexact", [](auto&& xs) { return make(inexact(car(xs))); });
+    define<procedure>(  "exact", [](auto&& xs) { return   exact(car(xs)); });
+    define<procedure>("inexact", [](auto&& xs) { return inexact(car(xs)); });
 
 
     define<procedure>("number->string", [](auto&& xs)
