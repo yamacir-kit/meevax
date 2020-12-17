@@ -159,12 +159,12 @@ inline namespace kernel
 
   auto exact = [](let const& z)
   {
-    static const std::unordered_map<std::type_index, std::function<exact_integer (object const&)>> overload
+    static const std::unordered_map<std::type_index, std::function<object (object const&)>> overload
     {
-      { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_exact(); } },
-      { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_exact(); } },
-      // TODO ratio
-      { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_exact(); } },
+      { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_exact()); } },
+      { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_exact()); } },
+      { typeid(ratio),         [](let const& x) { return make(x.as<ratio>()        .as_exact()); } },
+      { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_exact()); } },
     };
 
     return resolve(overload, z);

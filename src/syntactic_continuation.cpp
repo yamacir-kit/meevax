@@ -403,15 +403,8 @@ inline namespace kernel
     });
 
 
-    define<procedure>("exact", [](auto&& xs)
-    {
-      return make(exact(car(xs)));
-    });
-
-    define<procedure>("inexact", [](auto&& xs)
-    {
-      return make(inexact(car(xs)));
-    });
+    define<procedure>(  "exact", [](auto&& xs) { return exact(car(xs)); });
+    define<procedure>("inexact", [](auto&& xs) { return make(inexact(car(xs))); });
 
 
     define<procedure>("number->string", [](auto&& xs)

@@ -27,7 +27,7 @@ inline namespace kernel
 
     auto reduce() const -> ratio;
 
-    auto as_exact() const noexcept -> decltype(auto)
+    auto as_exact() const noexcept -> ratio const&
     {
       return *this;
     }
