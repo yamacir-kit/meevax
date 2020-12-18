@@ -3,6 +3,7 @@
 
 #include <boost/math/constants/constants.hpp>
 
+#include <functional>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/exact_integer.hpp>
@@ -159,7 +160,8 @@ inline namespace kernel
 
   auto exact = [](let const& z)
   {
-    static const std::unordered_map<std::type_index, std::function<object (object const&)>> overload
+    static std::unordered_map<
+      std::type_index, std::function<object (object const&)>> const overload
     {
       { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_exact()); } },
       { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_exact()); } },
@@ -172,7 +174,8 @@ inline namespace kernel
 
   auto inexact = [](let const& z)
   {
-    static const std::unordered_map<std::type_index, std::function<object (object const&)>> overload
+    static std::unordered_map<
+      std::type_index, std::function<object (object const&)>> const overload
     {
       { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_inexact<decltype(0.0)>()); } },
       { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_inexact<decltype(0.0)>()); } },
@@ -185,9 +188,9 @@ inline namespace kernel
 
   auto is_nan = [](object const& x)
   {
-    static std::unordered_map<std::type_index, std::function<bool (object const&)>> const overload
+    static std::unordered_map<
+      std::type_index, std::function<bool (object const&)>> const overload
     {
-      { typeid(null),         [](let const&  ) { return false; } },
       { typeid(single_float), [](let const& x) { return std::isnan(x.as<single_float>()); } },
       { typeid(double_float), [](let const& x) { return std::isnan(x.as<double_float>()); } },
     };
@@ -195,45 +198,33 @@ inline namespace kernel
     return resolve(overload, x);
   };
 
-  /* ---- Arithmetic Operation Dispatcher --------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
+  template <typename F, typename T>
+  auto resolve(T const& a, object const& b) -> decltype(auto)
+  {
+    static std::unordered_map<
+      std::type_index, std::function<object (T const&, object const&)>> const overloads
+    {
+      { typeid(single_float),  [](T const& a, let const& b) { return make(std::invoke(F(), a, b.as<single_float> ())); } },
+      { typeid(double_float),  [](T const& a, let const& b) { return make(std::invoke(F(), a, b.as<double_float> ())); } },
+      { typeid(ratio),         [](T const& a, let const& b) { return make(std::invoke(F(), a, b.as<ratio>        ())); } },
+      { typeid(exact_integer), [](T const& a, let const& b) { return make(std::invoke(F(), a, b.as<exact_integer>())); } },
+    };
 
-  #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T>                                                        \
-  let operator SYMBOL(const floating_point<T>& lhs, const object& rhs)         \
-  {                                                                            \
-    if (rhs)                                                                   \
-    {                                                                          \
-      if (rhs.is<ratio>())                                                     \
-      {                                                                        \
-        return make(lhs SYMBOL rhs.as<ratio>());                               \
-      }                                                                        \
-      else if (rhs.is<exact_integer>())                                        \
-      {                                                                        \
-        return make(lhs SYMBOL rhs.as<exact_integer>());                       \
-      }                                                                        \
-      else if (rhs.is<single_float>())                                         \
-      {                                                                        \
-        return make(lhs SYMBOL rhs.as<single_float>());                        \
-      }                                                                        \
-      else if (rhs.is<double_float>())                                         \
-      {                                                                        \
-        return make(lhs SYMBOL rhs.as<double_float>());                        \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs);  \
-  } static_assert(true)
+    if (auto const iter { overloads.find(b.type()) }; iter != std::end(overloads))
+    {
+      return std::get<1>(*iter)(a, b);
+    }
+    else
+    {
+      throw error("no viable operation '", typeid(F).name(), "' with ", a, " and ", b);
+    }
+  }
 
-  BOILERPLATE(*);
-  BOILERPLATE(+);
-  BOILERPLATE(-);
-  BOILERPLATE(/);
-  BOILERPLATE(%);
-
-  #undef BOILERPLATE
+  template <typename T> let operator * (floating_point<T> const& a, object const& b) { return resolve<std::multiplies<void>>(a, b); }
+  template <typename T> let operator + (floating_point<T> const& a, object const& b) { return resolve<std::plus      <void>>(a, b); }
+  template <typename T> let operator - (floating_point<T> const& a, object const& b) { return resolve<std::minus     <void>>(a, b); }
+  template <typename T> let operator / (floating_point<T> const& a, object const& b) { return resolve<std::divides   <void>>(a, b); }
+  template <typename T> let operator % (floating_point<T> const& a, object const& b) { return resolve<std::modulus   <void>>(a, b); }
 
   /* ---- Arithmetic Comparisons -----------------------------------------------
    *
