@@ -4,6 +4,13 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto operator !=(exact_integer const& a, object const& b) -> bool { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, a, b); }
+  auto operator < (exact_integer const& a, object const& b) -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
+  auto operator <=(exact_integer const& a, object const& b) -> bool { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
+  auto operator ==(exact_integer const& a, object const& b) -> bool { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, a, b); }
+  auto operator > (exact_integer const& a, object const& b) -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
+  auto operator >=(exact_integer const& a, object const& b) -> bool { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
+
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value * b.value); }
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value + b.value); }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value - b.value); }
@@ -50,6 +57,13 @@ inline namespace kernel
 
   #undef BOILERPLATE
 
+  auto operator !=(ratio const& a, object const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a != b; }, a, b); }
+  auto operator < (ratio const& a, object const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
+  auto operator <=(ratio const& a, object const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
+  auto operator ==(ratio const& a, object const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a == b; }, a, b); }
+  auto operator > (ratio const& a, object const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
+  auto operator >=(ratio const& a, object const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
+
   auto operator + (ratio const& a, ratio const& b) -> ratio { return ratio(a.numerator() * b.denominator() + b.numerator() * a.denominator(), a.denominator() * b.denominator()); }
   auto operator - (ratio const& a, ratio const& b) -> ratio { return ratio(a.numerator() * b.denominator() - b.numerator() * a.denominator(), a.denominator() * b.denominator()); }
   auto operator * (ratio const& a, ratio const& b) -> ratio { return ratio(a.numerator() *                   b.numerator(),                   a.denominator() * b.denominator()); }
@@ -61,6 +75,7 @@ inline namespace kernel
   auto operator <=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() <= (b.numerator() * a.denominator()); }
   auto operator > (ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() >  (b.numerator() * a.denominator()); }
   auto operator >=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()).binding() >= (b.numerator() * a.denominator()); }
+
 
   /* ---- Arithmetic Operation Dispatcher ----------------------------------- */
 
@@ -121,50 +136,6 @@ inline namespace kernel
   BOILERPLATE(-);
   BOILERPLATE(/);
   BOILERPLATE(%);
-
-  #undef BOILERPLATE
-
-  /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
-
-  #define BOILERPLATE(NUMBER, SYMBOL)                                          \
-  auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \
-  {                                                                            \
-    if (rhs)                                                                   \
-    {                                                                          \
-      if (rhs.is<exact_integer>())                                             \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<exact_integer>();                             \
-      }                                                                        \
-      else if (rhs.is<ratio>())                                                \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<ratio>();                                     \
-      }                                                                        \
-      else if (rhs.is<single_float>())                                         \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<single_float>();                              \
-      }                                                                        \
-      else if (rhs.is<double_float>())                                         \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<double_float>();                              \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs);  \
-  } static_assert(true)
-
-  BOILERPLATE(exact_integer, !=);
-  BOILERPLATE(exact_integer, < );
-  BOILERPLATE(exact_integer, <=);
-  BOILERPLATE(exact_integer, ==);
-  BOILERPLATE(exact_integer, > );
-  BOILERPLATE(exact_integer, >=);
-
-  BOILERPLATE(ratio, !=);
-  BOILERPLATE(ratio, < );
-  BOILERPLATE(ratio, <=);
-  BOILERPLATE(ratio, ==);
-  BOILERPLATE(ratio, > );
-  BOILERPLATE(ratio, >=);
 
   #undef BOILERPLATE
 } // namespace kernel
