@@ -3,7 +3,6 @@
 
 #include <boost/math/constants/constants.hpp>
 
-#include <functional>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/exact_integer.hpp>
@@ -16,16 +15,38 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <typename R, typename F, typename T>
+  auto apply(F&& procedure, T const& a, object const& b) -> decltype(auto)
+  {
+    static std::unordered_map<
+      std::type_index, std::function<R (T const&, object const&)>> const overloads
+    {
+      { typeid(single_float),  [&](T const& a, let const& b) { return procedure(a, b.as<single_float> ()); } },
+      { typeid(double_float),  [&](T const& a, let const& b) { return procedure(a, b.as<double_float> ()); } },
+      { typeid(ratio),         [&](T const& a, let const& b) { return procedure(a, b.as<ratio>        ()); } },
+      { typeid(exact_integer), [&](T const& a, let const& b) { return procedure(a, b.as<exact_integer>()); } },
+    };
+
+    if (auto const iter { overloads.find(b.type()) }; iter != std::end(overloads))
+    {
+      return std::get<1>(*iter)(a, b);
+    }
+    else
+    {
+      throw error("no viable operation '", typeid(F).name(), "' with ", a, " and ", b);
+    }
+  }
+
   template <typename F, typename T>
-  auto apply(F&& f, T const& a, object const& b) -> decltype(auto)
+  auto apply(F&& procedure, T const& a, object const& b) -> decltype(auto)
   {
     static std::unordered_map<
       std::type_index, std::function<object (T const&, object const&)>> const overloads
     {
-      { typeid(single_float),  [&](T const& a, let const& b) { return make(std::invoke(f, a, b.as<single_float> ())); } },
-      { typeid(double_float),  [&](T const& a, let const& b) { return make(std::invoke(f, a, b.as<double_float> ())); } },
-      { typeid(ratio),         [&](T const& a, let const& b) { return make(std::invoke(f, a, b.as<ratio>        ())); } },
-      { typeid(exact_integer), [&](T const& a, let const& b) { return make(std::invoke(f, a, b.as<exact_integer>())); } },
+      { typeid(single_float),  [&](T const& a, let const& b) { return make(procedure(a, b.as<single_float> ())); } },
+      { typeid(double_float),  [&](T const& a, let const& b) { return make(procedure(a, b.as<double_float> ())); } },
+      { typeid(ratio),         [&](T const& a, let const& b) { return make(procedure(a, b.as<ratio>        ())); } },
+      { typeid(exact_integer), [&](T const& a, let const& b) { return make(procedure(a, b.as<exact_integer>())); } },
     };
 
     if (auto const iter { overloads.find(b.type()) }; iter != std::end(overloads))
@@ -74,11 +95,11 @@ inline namespace kernel
   auto operator > (exact_integer const&, ratio const&) -> boolean;
   auto operator >=(exact_integer const&, ratio const&) -> boolean;
 
-  template <typename T> auto operator * (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() *  b; }
-  template <typename T> auto operator + (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() +  b; }
-  template <typename T> auto operator - (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() -  b; }
-  template <typename T> auto operator / (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() /  b; }
-  template <typename T> auto operator % (exact_integer const& a, floating_point<T> const& b) { return a.as_inexact<T>() %  b; }
+  template <typename T> auto operator * (exact_integer const& a, floating_point<T> const& b)            { return a.as_inexact<T>() *  b; }
+  template <typename T> auto operator + (exact_integer const& a, floating_point<T> const& b)            { return a.as_inexact<T>() +  b; }
+  template <typename T> auto operator - (exact_integer const& a, floating_point<T> const& b)            { return a.as_inexact<T>() -  b; }
+  template <typename T> auto operator / (exact_integer const& a, floating_point<T> const& b)            { return a.as_inexact<T>() /  b; }
+  template <typename T> auto operator % (exact_integer const& a, floating_point<T> const& b)            { return a.as_inexact<T>() %  b; }
   template <typename T> auto operator !=(exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() != b; }
   template <typename T> auto operator < (exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() <  b; }
   template <typename T> auto operator <=(exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() <= b; }
@@ -119,17 +140,17 @@ inline namespace kernel
   template <typename T> auto operator > (ratio const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >  b; }
   template <typename T> auto operator >=(ratio const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >= b; }
 
-  template <typename T> auto operator * (floating_point<T> const& a, object const& b) { return apply([](auto&& a, auto&& b) { return a * b; }, a, b); }
-  template <typename T> auto operator + (floating_point<T> const& a, object const& b) { return apply([](auto&& a, auto&& b) { return a + b; }, a, b); }
-  template <typename T> auto operator - (floating_point<T> const& a, object const& b) { return apply([](auto&& a, auto&& b) { return a - b; }, a, b); }
-  template <typename T> auto operator / (floating_point<T> const& a, object const& b) { return apply([](auto&& a, auto&& b) { return a / b; }, a, b); }
-  template <typename T> auto operator % (floating_point<T> const& a, object const& b) { return apply([](auto&& a, auto&& b) { return a % b; }, a, b); }
-  // template <typename T> auto operator ==(floating_point<T> const&,   object const&) -> bool;
-  // template <typename T> auto operator !=(floating_point<T> const&,   object const&) -> bool;
-  // template <typename T> auto operator < (floating_point<T> const&,   object const&) -> bool;
-  // template <typename T> auto operator <=(floating_point<T> const&,   object const&) -> bool;
-  // template <typename T> auto operator > (floating_point<T> const&,   object const&) -> bool;
-  // template <typename T> auto operator >=(floating_point<T> const&,   object const&) -> bool;
+  template <typename T> auto operator * (floating_point<T> const& a, object const& b) { return apply      ([](auto&& a, auto&& b) { return a *  b; }, a, b); }
+  template <typename T> auto operator + (floating_point<T> const& a, object const& b) { return apply      ([](auto&& a, auto&& b) { return a +  b; }, a, b); }
+  template <typename T> auto operator - (floating_point<T> const& a, object const& b) { return apply      ([](auto&& a, auto&& b) { return a -  b; }, a, b); }
+  template <typename T> auto operator / (floating_point<T> const& a, object const& b) { return apply      ([](auto&& a, auto&& b) { return a /  b; }, a, b); }
+  template <typename T> auto operator % (floating_point<T> const& a, object const& b) { return apply      ([](auto&& a, auto&& b) { return a %  b; }, a, b); }
+  template <typename T> auto operator !=(floating_point<T> const& a, object const& b) { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, a, b); }
+  template <typename T> auto operator < (floating_point<T> const& a, object const& b) { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
+  template <typename T> auto operator <=(floating_point<T> const& a, object const& b) { return apply<bool>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
+  template <typename T> auto operator ==(floating_point<T> const& a, object const& b) { return apply<bool>([](auto&& a, auto&& b) { return a == b; }, a, b); }
+  template <typename T> auto operator > (floating_point<T> const& a, object const& b) { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
+  template <typename T> auto operator >=(floating_point<T> const& a, object const& b) { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
 
   template <typename T> auto operator * (floating_point<T> const& a, exact_integer const& b) { return a *  b.as_inexact<T>(); }
   template <typename T> auto operator + (floating_point<T> const& a, exact_integer const& b) { return a +  b.as_inexact<T>(); }
@@ -219,63 +240,6 @@ inline namespace kernel
 
     return resolve(overload, x);
   };
-
-  /* ---- Arithmetic Comparisons -----------------------------------------------
-   *
-   * TODO CONSIDER EPSILON
-   *
-   * ┌─────────┬─────────┬─────────┬─────────┬───────┬─────────┬
-   * │ LHS\RHS │   f32   │   f64   │   big   │ ratio │ complex │
-   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   f32   │    t    │    t    │    t    │   t   │    f    │
-   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   f64   │    t    │    t    │    t    │   t   │    f    │
-   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │   big   │    t    │    t    │    t    │   t   │    f    │
-   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │  ratio  │    f    │    f    │    f    │   f   │    f    │
-   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   * │ complex │    f    │    f    │    f    │   f   │    f    │
-   * ├─────────┼─────────┼─────────┼─────────┼───────┼─────────┼
-   *
-   * ------------------------------------------------------------------------ */
-
-  /* ---- Arithmetic Comparison Dispatcher ---------------------------------- */
-
-  #define BOILERPLATE(NUMBER, SYMBOL)                                          \
-  auto operator SYMBOL(const NUMBER& lhs, const object& rhs) -> bool           \
-  {                                                                            \
-    if (rhs)                                                                   \
-    {                                                                          \
-      if (rhs.is<exact_integer>())                                             \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<exact_integer>();                             \
-      }                                                                        \
-      else if (rhs.is<ratio>())                                                \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<ratio>();                                     \
-      }                                                                        \
-      else if (rhs.is<single_float>())                                         \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<single_float>();                              \
-      }                                                                        \
-      else if (rhs.is<double_float>())                                         \
-      {                                                                        \
-        return lhs SYMBOL rhs.as<double_float>();                              \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    throw error("no viable operation '" #SYMBOL " with ", lhs, " and ", rhs);  \
-  } static_assert(true)
-
-  template <typename T> BOILERPLATE(floating_point<T>, !=);
-  template <typename T> BOILERPLATE(floating_point<T>, < );
-  template <typename T> BOILERPLATE(floating_point<T>, <=);
-  template <typename T> BOILERPLATE(floating_point<T>, ==);
-  template <typename T> BOILERPLATE(floating_point<T>, > );
-  template <typename T> BOILERPLATE(floating_point<T>, >=);
-
-  #undef BOILERPLATE
 } // namespace kernel
 } // namespace meevax
 
