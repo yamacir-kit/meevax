@@ -5,8 +5,11 @@
 #include <type_traits>
 
 #include <meevax/kernel/error.hpp>
+#include <meevax/utility/requires.hpp>
 
-namespace meevax { inline namespace utility
+namespace meevax
+{
+inline namespace utility
 {
   template <typename F>
   struct delay
@@ -63,9 +66,8 @@ namespace meevax { inline namespace utility
 
   struct clone
   {
-    template <typename T,
-              typename = typename std::enable_if<std::is_copy_constructible<T>::value>::type>
-    auto operator ()(const T& origin, std::nullptr_t) const -> decltype(auto)
+    template <typename T, REQUIRES(std::is_copy_constructible<T>)>
+    auto operator ()(T const& origin, std::nullptr_t) const -> decltype(auto)
     {
       return std::make_shared<T>(origin);
     }
@@ -88,6 +90,7 @@ namespace meevax { inline namespace utility
       return (port << ... << xs);
     }
   };
-}} // namespace meevax::utility
+} // namespace utility
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_UTILITY_DELAY_HPP
