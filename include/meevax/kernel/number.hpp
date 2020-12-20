@@ -189,9 +189,9 @@ inline namespace kernel
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >= b.value; } // TODO EPSILON
 
   template <typename T>
-  T resolve(std::unordered_map<std::type_index, std::function<T (object const&)>> const& overload, object const& x)
+  T resolve(std::unordered_map<std::type_index, std::function<T (object const&)>> const& overloads, object const& x)
   {
-    if (auto const iter { overload.find(x.type()) }; iter != std::end(overload))
+    if (auto const iter { overloads.find(x.type()) }; iter != std::end(overloads))
     {
       return std::get<1>(*iter)(x);
     }
@@ -204,7 +204,7 @@ inline namespace kernel
   auto exact = [](let const& z)
   {
     static std::unordered_map<
-      std::type_index, std::function<object (object const&)>> const overload
+      std::type_index, std::function<object (object const&)>> const overloads
     {
       { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_exact()); } },
       { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_exact()); } },
@@ -212,13 +212,13 @@ inline namespace kernel
       { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_exact()); } },
     };
 
-    return resolve(overload, z);
+    return resolve(overloads, z);
   };
 
   auto inexact = [](let const& z)
   {
     static std::unordered_map<
-      std::type_index, std::function<object (object const&)>> const overload
+      std::type_index, std::function<object (object const&)>> const overloads
     {
       { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_inexact<decltype(0.0)>()); } },
       { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_inexact<decltype(0.0)>()); } },
@@ -226,19 +226,19 @@ inline namespace kernel
       { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_inexact<decltype(0.0)>()); } },
     };
 
-    return resolve(overload, z);
+    return resolve(overloads, z);
   };
 
   auto is_nan = [](object const& x)
   {
     static std::unordered_map<
-      std::type_index, std::function<bool (object const&)>> const overload
+      std::type_index, std::function<bool (object const&)>> const overloads
     {
       { typeid(single_float), [](let const& x) { return std::isnan(x.as<single_float>()); } },
       { typeid(double_float), [](let const& x) { return std::isnan(x.as<double_float>()); } },
     };
 
-    return resolve(overload, x);
+    return resolve(overloads, x);
   };
 } // namespace kernel
 } // namespace meevax
