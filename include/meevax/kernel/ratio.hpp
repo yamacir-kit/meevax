@@ -13,16 +13,16 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto numerator()   const noexcept -> decltype(auto) { return car(*this); }
-    auto numerator()         noexcept -> decltype(auto) { return car(*this); }
-    auto denominator() const noexcept -> decltype(auto) { return cdr(*this); }
-    auto denominator()       noexcept -> decltype(auto) { return cdr(*this); }
+    auto numerator() const -> exact_integer const&;
+
+    auto denominator() const -> exact_integer const&;
 
     auto is_integer() const -> bool;
 
     auto invert() const
     {
-      return ratio(denominator(), numerator());
+      return ratio(cdr(*this),
+                   car(*this));
     }
 
     auto reduce() const -> ratio;
@@ -35,8 +35,7 @@ inline namespace kernel
     template <typename T>
     auto as_inexact() const
     {
-      return car(*this).as<exact_integer>().as_inexact<T>()
-           / cdr(*this).as<exact_integer>().as_inexact<T>();
+      return numerator().as_inexact<T>() / denominator().as_inexact<T>();
     }
   };
 

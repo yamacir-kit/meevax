@@ -55,7 +55,6 @@ inline namespace kernel
       }
       else
       {
-        std::cout << "ignore" << std::endl;
         return make(std::forward<decltype(c)>(c));
       }
     };

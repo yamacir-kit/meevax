@@ -211,7 +211,7 @@ inline namespace kernel
 
         if (value.is_integer())
         {
-          return value.numerator();
+          return car(value);
         }
         else
         {

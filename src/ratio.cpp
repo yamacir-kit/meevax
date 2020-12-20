@@ -1,11 +1,20 @@
 #include <meevax/kernel/number.hpp>
-#include <meevax/kernel/ratio.hpp>
 #include <meevax/posix/vt102.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  auto ratio::numerator() const -> exact_integer const&
+  {
+    return std::get<0>(*this).as<exact_integer>();
+  }
+
+  auto ratio::denominator() const -> exact_integer const&
+  {
+    return std::get<1>(*this).as<exact_integer>();
+  }
+
   auto ratio::is_integer() const -> bool
   {
     return cdr(*this).as<exact_integer>() == 1;
