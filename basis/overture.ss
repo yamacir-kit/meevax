@@ -866,7 +866,13 @@
 (define inexact?
   (lambda (z)
     (or (floating-point? z)
-        (not (exact-complex? z)))))
+        (inexact-complex? z))))
+
+(define inexact-complex?
+  (lambda (x)
+    (and (COMPLEX? x)
+         (inexact? (real-part x))
+         (inexact? (imag-part x)))))
 
 (define complex?
   (lambda (x)
