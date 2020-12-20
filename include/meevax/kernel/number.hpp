@@ -44,17 +44,18 @@ inline namespace kernel
     {
       if constexpr (std::is_same<typename std::decay<decltype(c)>::type, ratio>::value)
       {
-        if (auto const x = c.reduce(); c.is_integer())
+        if (auto const x = c.reduce(); x.is_integer())
         {
-          return car(c);
+          return car(x);
         }
         else
         {
-          return make(c);
+          return make(x);
         }
       }
       else
       {
+        std::cout << "ignore" << std::endl;
         return make(std::forward<decltype(c)>(c));
       }
     };
