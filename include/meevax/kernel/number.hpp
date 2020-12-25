@@ -94,7 +94,6 @@ inline namespace kernel
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
-  // auto operator / (exact_integer const&, exact_integer const&) -> ratio;
   auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator !=(exact_integer const&, exact_integer const&) -> boolean;
   auto operator < (exact_integer const&, exact_integer const&) -> boolean;
@@ -127,6 +126,11 @@ inline namespace kernel
   template <typename T> auto operator > (exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >  b; }
   template <typename T> auto operator >=(exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >= b; }
 
+  auto operator * (ratio const&, object const&) -> object;
+  auto operator + (ratio const&, object const&) -> object;
+  auto operator - (ratio const&, object const&) -> object;
+  auto operator / (ratio const&, object const&) -> object;
+  auto operator % (ratio const&, object const&) -> object;
   auto operator !=(ratio const&, object const&) -> boolean;
   auto operator < (ratio const&, object const&) -> boolean;
   auto operator <=(ratio const&, object const&) -> boolean;
@@ -134,6 +138,11 @@ inline namespace kernel
   auto operator > (ratio const&, object const&) -> boolean;
   auto operator >=(ratio const&, object const&) -> boolean;
 
+  auto operator * (ratio const&, exact_integer const&) -> ratio;
+  auto operator + (ratio const&, exact_integer const&) -> ratio;
+  auto operator - (ratio const&, exact_integer const&) -> ratio;
+  auto operator / (ratio const&, exact_integer const&) -> ratio;
+  auto operator % (ratio const&, exact_integer const&) -> ratio;
   auto operator !=(ratio const&, exact_integer const&) -> boolean;
   auto operator < (ratio const&, exact_integer const&) -> boolean;
   auto operator <=(ratio const&, exact_integer const&) -> boolean;

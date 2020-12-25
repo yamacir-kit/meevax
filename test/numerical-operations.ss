@@ -49,6 +49,20 @@
   (check (inexact?  x) => #f)
   )
 
+(let ((x (+ 1/3 1/3 1/3)))
+
+  (check x => 1)
+
+  (check (number?   x) => #t)
+  (check (complex?  x) => #t)
+  (check (real?     x) => #t)
+  (check (rational? x) => #t)
+  (check (integer?  x) => #t)
+
+  (check (exact?    x) => #t)
+  (check (inexact?  x) => #f)
+  )
+
 ; ---- SRFI-78 -----------------------------------------------------------------
 
 (check-report)
