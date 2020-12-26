@@ -947,26 +947,16 @@
   (lambda (n)
     (if (< n 0) (- n) n)))
 
-(define floor-quotient
-  (lambda (x y)
-    (floor (/ x y))))
-
-(define floor-remainder
-  (lambda (x y)
-    (floor (% x y))))
+(define floor-quotient  (lambda (x y) (floor (/ x y))))
+(define floor-remainder (lambda (x y) (floor (% x y))))
 
 (define floor/
   (lambda (x y)
     (values (floor-quotient x y)
             (floor-remainder x y))))
 
-(define truncate-quotient
-  (lambda (x y)
-    (truncate (/ x y))))
-
-(define truncate-remainder
-  (lambda (x y)
-    (truncate (% x y))))
+(define truncate-quotient  (lambda (x y) (truncate (/ x y))))
+(define truncate-remainder (lambda (x y) (truncate (% x y))))
 
 (define truncate/
   (lambda (x y)
