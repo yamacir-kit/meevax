@@ -17,7 +17,7 @@ namespace meevax { inline namespace kernel
     }                                                                          \
                                                                                \
     return port << magenta << ")" << reset;                                    \
-  }
+  } static_assert(true)
 
   BOILERPLATE( input_file_port,  "input-file");
   BOILERPLATE(output_file_port, "output-file");
@@ -36,7 +36,7 @@ namespace meevax { inline namespace kernel
     }                                                                          \
                                                                                \
     return port << magenta << ")" << reset;                                    \
-  }
+  } static_assert(true)
 
   BOILERPLATE( input_string_port,  "input-string");
   BOILERPLATE(output_string_port, "output-string");
