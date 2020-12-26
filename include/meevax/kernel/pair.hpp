@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/object.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- Pair -----------------------------------------------------------------
    *
@@ -46,6 +48,14 @@ namespace meevax { inline namespace kernel
     {
       return std::get<0>(pare.binding());
     }
+    else if constexpr (std::is_base_of<std::reference_wrapper<object>, typename std::decay<decltype(pare)>::type>::value)
+    {
+      return std::get<0>(pare.get().binding());
+    }
+    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(pare)>::type>::value)
+    {
+      return std::get<0>(pare.get().binding());
+    }
     else
     {
       return std::get<0>(std::forward<decltype(pare)>(pare));
@@ -58,12 +68,21 @@ namespace meevax { inline namespace kernel
     {
       return std::get<1>(pare.binding());
     }
+    else if constexpr (std::is_base_of<std::reference_wrapper<object>, typename std::decay<decltype(pare)>::type>::value)
+    {
+      return std::get<1>(pare.get().binding());
+    }
+    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(pare)>::type>::value)
+    {
+      return std::get<1>(pare.get().binding());
+    }
     else
     {
       return std::get<1>(std::forward<decltype(pare)>(pare));
     }
   };
 
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_PAIR_HPP

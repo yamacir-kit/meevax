@@ -830,7 +830,16 @@ inline namespace kernel
 
     define<procedure>("list->vector", [](auto&& xs)
     {
-      return make<vector>(in_range, std::begin(car(xs)), std::end(car(xs)));
+      // return make<vector>(in_range, std::begin(car(xs)), std::end(car(xs)));
+
+      if (let const& x = car(xs); x.is<null>())
+      {
+        return make<vector>();
+      }
+      else
+      {
+        return make<vector>(in_range, std::cbegin(x), std::cend(x));
+      }
     });
 
     // define<procedure>("vector->string", [](auto&& xs)

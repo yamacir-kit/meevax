@@ -224,7 +224,7 @@ namespace meevax { inline namespace kernel
     {
       assert(0 < depth);
 
-      for (auto iter { std::begin(c) }; iter; ++iter)
+      for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
       {
         write_to(standard_debug_port(), "; ");
 
@@ -365,7 +365,7 @@ namespace meevax { inline namespace kernel
         * => (object . S) E                       C  D
         *
         * =================================================================== */
-        if (let const binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
+        if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
         {
           push(s, cadr(binding));
         }
@@ -574,7 +574,7 @@ namespace meevax { inline namespace kernel
         *   (3) Should set with weak reference if right hand side is newer.
         *
         * =================================================================== */
-        if (let const pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
+        if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
           if (let const value { cadr(pare) }; value.template is<null>() or car(s).template is<null>())
           {

@@ -8,12 +8,12 @@ int main(const int argc, char const* const* const argv) try
 {
   using namespace meevax::kernel;
 
-  meevax::kernel::syntactic_continuation root { meevax::kernel::layer<4>() };
+  meevax::syntactic_continuation root { meevax::layer<4>() };
 
   // TODO pass argc and argv to syntactic-continuation's constructor directly.
   root.configure(argc, argv);
 
-  for (const auto& each : root.paths)
+  for (auto const& each : root.paths)
   {
     root.write_to(
       root.standard_debug_port(),
