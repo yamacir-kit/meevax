@@ -1,30 +1,16 @@
 cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 
 # ==============================================================================
-#   Project Version
-# ==============================================================================
-
-set(MAJOR 0)
-set(MAJOR_OFFSET 0)
-
-set(MINOR 2)
-set(MINOR_OFFSET 1000)
-
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  execute_process(
-    COMMAND git rev-list --count --all
-    OUTPUT_VARIABLE REVISION)
-  math(EXPR PATCH "${REVISION} - ${MAJOR_OFFSET} - ${MINOR_OFFSET}")
-else()
-  set(PATCH 0)
-endif()
-
-
-# ==============================================================================
 #   Project Settings
 # ==============================================================================
 
-project(meevax VERSION ${MAJOR}.${MINOR}.${PATCH} LANGUAGES CXX)
+execute_process(
+  COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
+  COMMAND tr -d "\n"
+  OUTPUT_VARIABLE CURRENT_VERSION
+  )
+
+project(meevax VERSION ${CURRENT_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
