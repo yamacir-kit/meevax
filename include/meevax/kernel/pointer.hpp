@@ -259,30 +259,30 @@ inline namespace kernel
     return (rhs.template is<null>() ? port << magenta << "()" : rhs.binding().write_to(port)) << reset;
   }
 
-  #define BOILERPLATE(SYMBOL, OPERATION)                                       \
+  #define BOILERPLATE(SYMBOL)                                                  \
   template <typename T, typename U>                                            \
-  decltype(auto) operator SYMBOL(const pointer<T>& lhs, const pointer<U>& rhs) \
+  decltype(auto) operator SYMBOL(pointer<T> const& a, pointer<U> const& b)     \
   {                                                                            \
-    if (lhs && rhs)                                                            \
+    if (a && b)                                                                \
     {                                                                          \
-      return std::invoke(std::OPERATION<void>(), lhs.binding(), rhs);          \
+      return a.binding() SYMBOL b;                                             \
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      throw error("no viable operation '" #SYMBOL "' with ", lhs, " and ", rhs); \
+      throw error("no viable operation '" #SYMBOL " with ", a, " and ", b);    \
     }                                                                          \
   } static_assert(true)
 
-  BOILERPLATE(*, multiplies);
-  BOILERPLATE(+, plus);
-  BOILERPLATE(-, minus);
-  BOILERPLATE(/, divides);
-  BOILERPLATE(%, modulus);
+  BOILERPLATE(* );
+  BOILERPLATE(+ );
+  BOILERPLATE(- );
+  BOILERPLATE(/ );
+  BOILERPLATE(% );
 
-  BOILERPLATE(<,  less);
-  BOILERPLATE(<=, less_equal);
-  BOILERPLATE(>,  greater);
-  BOILERPLATE(>=, greater_equal);
+  BOILERPLATE(< );
+  BOILERPLATE(<=);
+  BOILERPLATE(> );
+  BOILERPLATE(>=);
 
   #undef BOILERPLATE
 } // namespace kernel

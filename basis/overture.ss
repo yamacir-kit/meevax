@@ -866,7 +866,13 @@
 (define inexact?
   (lambda (z)
     (or (floating-point? z)
-        (not (exact-complex? z)))))
+        (inexact-complex? z))))
+
+(define inexact-complex?
+  (lambda (x)
+    (and (COMPLEX? x)
+         (inexact? (real-part x))
+         (inexact? (imag-part x)))))
 
 (define complex?
   (lambda (x)
@@ -941,26 +947,16 @@
   (lambda (n)
     (if (< n 0) (- n) n)))
 
-(define floor-quotient
-  (lambda (x y)
-    (floor (/ x y))))
-
-(define floor-remainder
-  (lambda (x y)
-    (floor (% x y))))
+(define floor-quotient  (lambda (x y) (floor (/ x y))))
+(define floor-remainder (lambda (x y) (floor (% x y))))
 
 (define floor/
   (lambda (x y)
     (values (floor-quotient x y)
             (floor-remainder x y))))
 
-(define truncate-quotient
-  (lambda (x y)
-    (truncate (/ x y))))
-
-(define truncate-remainder
-  (lambda (x y)
-    (truncate (% x y))))
+(define truncate-quotient  (lambda (x y) (truncate (/ x y))))
+(define truncate-remainder (lambda (x y) (truncate (% x y))))
 
 (define truncate/
   (lambda (x y)

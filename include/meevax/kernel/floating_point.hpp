@@ -51,19 +51,19 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto operator <<(output_port & os, floating_point<T> const& rhs) -> output_port &
+  auto operator <<(output_port & port, floating_point<T> const& rhs) -> output_port &
   {
     if (std::isnan(rhs))
     {
-      return os << cyan << "+nan.0" << reset;
+      return port << cyan << "+nan.0" << reset;
     }
     else if (std::isinf(rhs))
     {
-      return os << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
+      return port << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
     }
     else
     {
-      return os << cyan << rhs.value << reset;
+      return port << cyan << rhs.value << (rhs.is_integer() ? ".0" : "") << reset;
     }
   }
 } // namespace kernel

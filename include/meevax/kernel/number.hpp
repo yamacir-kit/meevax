@@ -40,13 +40,32 @@ inline namespace kernel
   template <typename F, typename T>
   auto apply(F&& procedure, T const& a, object const& b) -> decltype(auto)
   {
+    auto make_reduce = [](auto&& c)
+    {
+      if constexpr (std::is_same<typename std::decay<decltype(c)>::type, ratio>::value)
+      {
+        if (auto const x = c.reduce(); x.is_integer())
+        {
+          return car(x);
+        }
+        else
+        {
+          return make(x);
+        }
+      }
+      else
+      {
+        return make(std::forward<decltype(c)>(c));
+      }
+    };
+
     static std::unordered_map<
       std::type_index, std::function<object (T const&, object const&)>> const overloads
     {
-      { typeid(single_float),  [&](T const& a, let const& b) { return make(procedure(a, b.as<single_float> ())); } },
-      { typeid(double_float),  [&](T const& a, let const& b) { return make(procedure(a, b.as<double_float> ())); } },
-      { typeid(ratio),         [&](T const& a, let const& b) { return make(procedure(a, b.as<ratio>        ())); } },
-      { typeid(exact_integer), [&](T const& a, let const& b) { return make(procedure(a, b.as<exact_integer>())); } },
+      { typeid(single_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<single_float> ())); } },
+      { typeid(double_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<double_float> ())); } },
+      { typeid(ratio),         [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<ratio>        ())); } },
+      { typeid(exact_integer), [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<exact_integer>())); } },
     };
 
     if (auto const iter { overloads.find(b.type()) }; iter != std::end(overloads))
@@ -107,6 +126,11 @@ inline namespace kernel
   template <typename T> auto operator > (exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >  b; }
   template <typename T> auto operator >=(exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >= b; }
 
+  auto operator * (ratio const&, object const&) -> object;
+  auto operator + (ratio const&, object const&) -> object;
+  auto operator - (ratio const&, object const&) -> object;
+  auto operator / (ratio const&, object const&) -> object;
+  auto operator % (ratio const&, object const&) -> object;
   auto operator !=(ratio const&, object const&) -> boolean;
   auto operator < (ratio const&, object const&) -> boolean;
   auto operator <=(ratio const&, object const&) -> boolean;
@@ -114,6 +138,11 @@ inline namespace kernel
   auto operator > (ratio const&, object const&) -> boolean;
   auto operator >=(ratio const&, object const&) -> boolean;
 
+  auto operator * (ratio const&, exact_integer const&) -> ratio;
+  auto operator + (ratio const&, exact_integer const&) -> ratio;
+  auto operator - (ratio const&, exact_integer const&) -> ratio;
+  auto operator / (ratio const&, exact_integer const&) -> ratio;
+  auto operator % (ratio const&, exact_integer const&) -> ratio;
   auto operator !=(ratio const&, exact_integer const&) -> boolean;
   auto operator < (ratio const&, exact_integer const&) -> boolean;
   auto operator <=(ratio const&, exact_integer const&) -> boolean;
@@ -133,6 +162,11 @@ inline namespace kernel
   auto operator > (ratio const&, ratio const&) -> boolean;
   auto operator >=(ratio const&, ratio const&) -> boolean;
 
+  template <typename T> auto operator * (ratio const& a, floating_point<T> const& b)            { return a.as_inexact<T>() *  b; }
+  template <typename T> auto operator + (ratio const& a, floating_point<T> const& b)            { return a.as_inexact<T>() +  b; }
+  template <typename T> auto operator - (ratio const& a, floating_point<T> const& b)            { return a.as_inexact<T>() -  b; }
+  template <typename T> auto operator / (ratio const& a, floating_point<T> const& b)            { return a.as_inexact<T>() /  b; }
+  template <typename T> auto operator % (ratio const& a, floating_point<T> const& b)            { return a.as_inexact<T>() %  b; }
   template <typename T> auto operator !=(ratio const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() != b; }
   template <typename T> auto operator < (ratio const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() <  b; }
   template <typename T> auto operator <=(ratio const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() <= b; }
@@ -152,11 +186,11 @@ inline namespace kernel
   template <typename T> auto operator > (floating_point<T> const& a, object const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
   template <typename T> auto operator >=(floating_point<T> const& a, object const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
 
-  template <typename T> auto operator * (floating_point<T> const& a, exact_integer const& b) { return a *  b.as_inexact<T>(); }
-  template <typename T> auto operator + (floating_point<T> const& a, exact_integer const& b) { return a +  b.as_inexact<T>(); }
-  template <typename T> auto operator - (floating_point<T> const& a, exact_integer const& b) { return a -  b.as_inexact<T>(); }
-  template <typename T> auto operator / (floating_point<T> const& a, exact_integer const& b) { return a /  b.as_inexact<T>(); }
-  template <typename T> auto operator % (floating_point<T> const& a, exact_integer const& b) { return a %  b.as_inexact<T>(); }
+  template <typename T> auto operator * (floating_point<T> const& a, exact_integer const& b)            { return a *  b.as_inexact<T>(); }
+  template <typename T> auto operator + (floating_point<T> const& a, exact_integer const& b)            { return a +  b.as_inexact<T>(); }
+  template <typename T> auto operator - (floating_point<T> const& a, exact_integer const& b)            { return a -  b.as_inexact<T>(); }
+  template <typename T> auto operator / (floating_point<T> const& a, exact_integer const& b)            { return a /  b.as_inexact<T>(); }
+  template <typename T> auto operator % (floating_point<T> const& a, exact_integer const& b)            { return a %  b.as_inexact<T>(); }
   template <typename T> auto operator !=(floating_point<T> const& a, exact_integer const& b) -> boolean { return a != b.as_inexact<T>(); }
   template <typename T> auto operator < (floating_point<T> const& a, exact_integer const& b) -> boolean { return a <  b.as_inexact<T>(); }
   template <typename T> auto operator <=(floating_point<T> const& a, exact_integer const& b) -> boolean { return a <= b.as_inexact<T>(); }
@@ -164,11 +198,11 @@ inline namespace kernel
   template <typename T> auto operator > (floating_point<T> const& a, exact_integer const& b) -> boolean { return a >  b.as_inexact<T>(); }
   template <typename T> auto operator >=(floating_point<T> const& a, exact_integer const& b) -> boolean { return a >= b.as_inexact<T>(); }
 
-  template <typename T> auto operator * (floating_point<T> const& a, ratio const& b) { return a *  b.as_inexact<T>(); }
-  template <typename T> auto operator + (floating_point<T> const& a, ratio const& b) { return a +  b.as_inexact<T>(); }
-  template <typename T> auto operator - (floating_point<T> const& a, ratio const& b) { return a -  b.as_inexact<T>(); }
-  template <typename T> auto operator / (floating_point<T> const& a, ratio const& b) { return a /  b.as_inexact<T>(); }
-  template <typename T> auto operator % (floating_point<T> const& a, ratio const& b) { return a %  b.as_inexact<T>(); }
+  template <typename T> auto operator * (floating_point<T> const& a, ratio const& b)            { return a *  b.as_inexact<T>(); }
+  template <typename T> auto operator + (floating_point<T> const& a, ratio const& b)            { return a +  b.as_inexact<T>(); }
+  template <typename T> auto operator - (floating_point<T> const& a, ratio const& b)            { return a -  b.as_inexact<T>(); }
+  template <typename T> auto operator / (floating_point<T> const& a, ratio const& b)            { return a /  b.as_inexact<T>(); }
+  template <typename T> auto operator % (floating_point<T> const& a, ratio const& b)            { return a %  b.as_inexact<T>(); }
   template <typename T> auto operator !=(floating_point<T> const& a, ratio const& b) -> boolean { return a != b.as_inexact<T>(); }
   template <typename T> auto operator < (floating_point<T> const& a, ratio const& b) -> boolean { return a <  b.as_inexact<T>(); }
   template <typename T> auto operator <=(floating_point<T> const& a, ratio const& b) -> boolean { return a <= b.as_inexact<T>(); }
@@ -176,11 +210,11 @@ inline namespace kernel
   template <typename T> auto operator > (floating_point<T> const& a, ratio const& b) -> boolean { return a >  b.as_inexact<T>(); }
   template <typename T> auto operator >=(floating_point<T> const& a, ratio const& b) -> boolean { return a >= b.as_inexact<T>(); }
 
-  template <typename T, typename U> auto operator * (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value * b.value); }
-  template <typename T, typename U> auto operator + (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value + b.value); }
-  template <typename T, typename U> auto operator - (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value - b.value); }
-  template <typename T, typename U> auto operator / (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value / b.value); }
-  template <typename T, typename U> auto operator % (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(std::fmod(a.value, b.value)); }
+  template <typename T, typename U> auto operator * (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value * b.value); }
+  template <typename T, typename U> auto operator + (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value + b.value); }
+  template <typename T, typename U> auto operator - (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value - b.value); }
+  template <typename T, typename U> auto operator / (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value / b.value); }
+  template <typename T, typename U> auto operator % (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(std::fmod(a.value, b.value)); }
   template <typename T, typename U> auto operator !=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value != b.value; } // TODO EPSILON
   template <typename T, typename U> auto operator < (floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value <  b.value; } // TODO EPSILON
   template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value <= b.value; } // TODO EPSILON
@@ -189,9 +223,9 @@ inline namespace kernel
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >= b.value; } // TODO EPSILON
 
   template <typename T>
-  T resolve(std::unordered_map<std::type_index, std::function<T (object const&)>> const& overload, object const& x)
+  T resolve(std::unordered_map<std::type_index, std::function<T (object const&)>> const& overloads, object const& x)
   {
-    if (auto const iter { overload.find(x.type()) }; iter != std::end(overload))
+    if (auto const iter { overloads.find(x.type()) }; iter != std::end(overloads))
     {
       return std::get<1>(*iter)(x);
     }
@@ -204,7 +238,7 @@ inline namespace kernel
   auto exact = [](let const& z)
   {
     static std::unordered_map<
-      std::type_index, std::function<object (object const&)>> const overload
+      std::type_index, std::function<object (object const&)>> const overloads
     {
       { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_exact()); } },
       { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_exact()); } },
@@ -212,13 +246,13 @@ inline namespace kernel
       { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_exact()); } },
     };
 
-    return resolve(overload, z);
+    return resolve(overloads, z);
   };
 
   auto inexact = [](let const& z)
   {
     static std::unordered_map<
-      std::type_index, std::function<object (object const&)>> const overload
+      std::type_index, std::function<object (object const&)>> const overloads
     {
       { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_inexact<decltype(0.0)>()); } },
       { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_inexact<decltype(0.0)>()); } },
@@ -226,19 +260,19 @@ inline namespace kernel
       { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_inexact<decltype(0.0)>()); } },
     };
 
-    return resolve(overload, z);
+    return resolve(overloads, z);
   };
 
   auto is_nan = [](object const& x)
   {
     static std::unordered_map<
-      std::type_index, std::function<bool (object const&)>> const overload
+      std::type_index, std::function<bool (object const&)>> const overloads
     {
       { typeid(single_float), [](let const& x) { return std::isnan(x.as<single_float>()); } },
       { typeid(double_float), [](let const& x) { return std::isnan(x.as<double_float>()); } },
     };
 
-    return resolve(overload, x);
+    return resolve(overloads, x);
   };
 } // namespace kernel
 } // namespace meevax

@@ -36,7 +36,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O2    -DNDEBUG -flto")
 
 include(GNUInstallDirs)
 
@@ -267,6 +267,12 @@ add_test(
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r7rs.ss)
+
+add_test(
+  NAME numerical-operations
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/numerical-operations.ss)
 
 add_test(
   NAME sicp-1
