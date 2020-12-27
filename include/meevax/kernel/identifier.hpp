@@ -41,9 +41,9 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  auto lookup(let const & x, let const & env)
+  auto lookup(let const& x, let const& env)
   {
-    if (const object binding { assq(x, env) }; not binding.eqv(f))
+    if (let const& binding = assq(x, env); not binding.eqv(f))
     {
       return cadr(binding); // TODO must be cdr(binding)
     }

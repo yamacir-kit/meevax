@@ -44,13 +44,11 @@ namespace meevax { inline namespace kernel
 
   public:
     template <typename... Ts>
-    let define(const object& variable, Ts&&... expression)
+    let define(object const& variable, Ts&&... expression)
     {
       push(
         syntactic_environment(),
-        list( // TODO => cons
-          variable,
-          Perfect_Forward(expression)...));
+        list(variable, std::forward<decltype(expression)>(expression)...));
 
       write_to(standard_debug_port(),
         header("define"),
@@ -62,11 +60,12 @@ namespace meevax { inline namespace kernel
       return unspecified;
     }
 
-    let const& glocal_environment(const object& e)
+    let const& glocal_environment(object const& e)
     {
-      for (const auto& frame : e)
+      for (auto const& frame : e)
       {
-        if (frame and car(frame) and car(frame).is<SK>())
+        // if (frame and car(frame) and car(frame).is<SK>())
+        if (not frame.is<null>() and car(frame).is<SK>())
         {
           return cdar(frame);
         }
@@ -149,10 +148,8 @@ namespace meevax { inline namespace kernel
         {
           debug(expression, faint, " ; is <self-evaluating>");
 
-          return
-            cons(
-              make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-              continuation);
+          return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+                      continuation);
         }
       }
       else // is (application . arguments)
@@ -300,7 +297,7 @@ namespace meevax { inline namespace kernel
         std::cerr << std::endl;
       }
 
-      switch (car(c).template as<instruction>().code)
+      switch (car(c).as<instruction>().code)
       {
       case mnemonic::LOAD_LOCAL: /* ============================================
         *
@@ -315,8 +312,8 @@ namespace meevax { inline namespace kernel
           list_reference(
             list_reference(
               e,
-              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
+              caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
+            cdadr(c).as<exact_integer>().value.convert_to<std::size_t>()));
         pop<2>(c);
         goto dispatch;
 
@@ -333,8 +330,8 @@ namespace meevax { inline namespace kernel
           list_tail(
             list_reference(
               e,
-              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
+              caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
+            cdadr(c).as<exact_integer>().value.convert_to<std::size_t>()));
         pop<2>(c);
         goto dispatch;
 
@@ -438,7 +435,7 @@ namespace meevax { inline namespace kernel
         * where selection = (if test consequent alternate)
         *
         * =================================================================== */
-        c = car(s).template is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
+        c = car(s).is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
@@ -470,7 +467,7 @@ namespace meevax { inline namespace kernel
         goto dispatch;
 
       case mnemonic::CALL:
-        if (let const callee = car(s); callee.is<null>())
+        if (let const& callee = car(s); callee.is<null>())
         {
           throw error("unit is not appliciable");
         }
@@ -576,20 +573,20 @@ namespace meevax { inline namespace kernel
         * =================================================================== */
         if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
-          if (let const value { cadr(pare) }; value.template is<null>() or car(s).template is<null>())
+          if (let const& value = cadr(pare); value.is<null>() or car(s).is<null>())
           {
             cadr(pare) = car(s);
           }
           else if (value.is<SK>() or value.is<syntax>())
           {
             /* ---- From R7RS 5.3.1. Top level definitions ---------------------
-            *
-            * However, if <variable> is not bound, or is a syntactic keyword,
-            * then the definition will bind <variable> to a new location before
-            * performing the assignment, whereas it would be an error to perform
-            * a set! on an unbound variable.
-            *
-            *---------------------------------------------------------------- */
+             *
+             *  However, if <variable> is not bound, or is a syntactic keyword,
+             *  then the definition will bind <variable> to a new location
+             *  before performing the assignment, whereas it would be an error
+             *  to perform a set! on an unbound variable.
+             *
+             * -------------------------------------------------------------- */
             define(cadr(c), car(s));
           }
           else

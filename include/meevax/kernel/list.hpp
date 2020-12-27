@@ -167,7 +167,7 @@ inline namespace kernel
       return x.eqv(y);
     };
 
-    auto equal(const object& x, const object& y) -> bool;
+    auto equal(object const& x, object const& y) -> bool;
 
     template <std::size_t Coarseness = 0>
     struct equivalence_comparator;
@@ -283,9 +283,9 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   inline namespace miscellaneous
   {
-    auto length = [](const auto& x) constexpr
+    auto length = [](auto const& x) constexpr
     {
-      return std::distance(std::begin(x), std::end(x));
+      return std::distance(std::cbegin(x), std::cend(x));
     };
 
     let append(const object& x, const object& y);
@@ -337,7 +337,7 @@ inline namespace kernel
   inline namespace mapping
   {
     template <typename Procedure>
-    object map(Procedure procedure, const object& x)
+    object map(Procedure&& procedure, const object& x)
     {
       if (x.is<null>())
       {
@@ -345,13 +345,7 @@ inline namespace kernel
       }
       else
       {
-        return
-          cons(
-            procedure(
-              car(x)),
-            map(
-              procedure,
-              cdr(x)));
+        return cons(procedure(car(x)), map(procedure, cdr(x)));
       }
     }
   }
