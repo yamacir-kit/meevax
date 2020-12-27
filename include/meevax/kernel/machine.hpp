@@ -67,7 +67,7 @@ inline namespace kernel
       for (auto const& frame : e)
       {
         // if (frame and car(frame) and car(frame).is<SK>())
-        if (not frame.is<null>() and car(frame).is<SK>())
+        if (frame.is<pair>() and car(frame).is<SK>())
         {
           return cdar(frame);
         }
@@ -358,12 +358,12 @@ inline namespace kernel
       //   pop<2>(c);
       //   goto dispatch;
 
-      case mnemonic::LOAD_GLOBAL: /* ===========================================
+      case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
         *              S  E (LOAD-GLOBAL symbol . C) D
         * => (object . S) E                       C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
         {
           push(s, cadr(binding));
@@ -437,7 +437,7 @@ inline namespace kernel
         * where selection = (if test consequent alternate)
         *
         * =================================================================== */
-        c = car(s).is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
+        c = car(s).template is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
@@ -575,7 +575,7 @@ inline namespace kernel
         * =================================================================== */
         if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
-          if (let const& value = cadr(pare); value.template is<null>() or car(s).template is<null>())
+          if (let const& value = cdr(pare); value.template is<null>() or car(s).template is<null>())
           {
             cadr(pare) = car(s);
           }
@@ -617,8 +617,8 @@ inline namespace kernel
             list_tail(
               list_reference(
                 e,
-                caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
-              cdadr(c).as<exact_integer>().value.convert_to<std::size_t>())),
+                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
           car(s));
         pop<2>(c);
         goto dispatch;
@@ -629,8 +629,8 @@ inline namespace kernel
             list_tail(
               list_reference(
                 e,
-                caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
-              cdadr(c).as<exact_integer>().value.convert_to<std::size_t>())),
+                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
           car(s));
         pop<2>(c);
         goto dispatch;

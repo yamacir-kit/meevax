@@ -37,7 +37,7 @@ inline namespace kernel
     *
     * TODO
     *
-    * ---------------------------------------------------------------------- */
+    * ----------------------------------------------------------------------- */
 
     , public reader<syntactic_continuation> /* ---------------------------------
     *
@@ -136,24 +136,18 @@ inline namespace kernel
     template <typename T, typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... xs)
     {
-      return
-        machine<syntactic_continuation>::define(
-          intern(name),
-          make<T>(name, std::forward<decltype(xs)>(xs)...));
+      return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
     decltype(auto) define(const std::string& name, Ts&&... xs)
     {
-      return
-        machine<syntactic_continuation>::define(
-          intern(name),
-          std::forward<decltype(xs)>(xs)...);
+      return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
     std::unordered_map<object, object> renames {};
 
-    auto rename(const object& identifier) -> const auto&
+    auto rename(object const& identifier) -> auto const&
     {
       if (const auto iter { renames.find(identifier) }; iter != std::end(renames))
       {
@@ -199,7 +193,7 @@ inline namespace kernel
 
       c = current_expression();
 
-      const auto result { execute() };
+      auto const& result { execute() };
 
       ++generation;
 

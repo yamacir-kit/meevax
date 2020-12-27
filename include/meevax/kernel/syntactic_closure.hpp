@@ -4,7 +4,9 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct syntactic_closure
     : public virtual pair
@@ -25,12 +27,12 @@ namespace meevax { inline namespace kernel
     auto strip() const
     {
       const auto pare { lookup() };
-      return pare.eqv(f) ? form() : cadr(pare);
+      return pare.eqv(f) ? form() : cadr(pare); // TODO cadr => cdr
     }
 
     auto is_identifier() const
     {
-      return not form().is<null>() and form().is<symbol>();
+      return form().is<symbol>();
     }
 
     auto is_free() const
@@ -48,6 +50,7 @@ namespace meevax { inline namespace kernel
       return port << underline << datum.form() << faint << " #;" << &datum << reset;
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP

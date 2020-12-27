@@ -111,7 +111,7 @@ inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (let const lhs = car(xs), rhs = cadr(xs); eq(lhs, rhs))
+      if (let const& lhs = car(xs), rhs = cadr(xs); eq(lhs, rhs))
       {
         return t;
       }
