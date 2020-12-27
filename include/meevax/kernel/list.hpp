@@ -38,7 +38,9 @@ inline namespace kernel
 
     using std::reference_wrapper<T>::reference_wrapper;
 
-    homoiconic_iterator(T const& x) : std::reference_wrapper<T> { std::cref(x) } {}
+    homoiconic_iterator(T const& x)
+      : std::reference_wrapper<T> { std::cref(x) }
+    {}
 
     operator T&()       noexcept { return std::reference_wrapper<T>::get(); }
     operator T&() const noexcept { return std::reference_wrapper<T>::get(); }
@@ -68,8 +70,8 @@ inline namespace kernel
     homoiconic_iterator begin() const noexcept { return *this; }
     homoiconic_iterator   end() const noexcept { return unit; }
 
-    decltype(auto) operator==(homoiconic_iterator const& rhs) const { return std::reference_wrapper<T>::get() == rhs.get(); }
-    decltype(auto) operator!=(homoiconic_iterator const& rhs) const { return std::reference_wrapper<T>::get() != rhs.get(); }
+    decltype(auto) operator==(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() == rhs.get(); }
+    decltype(auto) operator!=(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() != rhs.get(); }
   };
 } // namespace kernel
 } // namespace meevax
@@ -86,7 +88,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ==== Constructors =========================================================
+  /* ---- Constructors ---------------------------------------------------------
    *
    * From R7RS
    *   - cons                            => cons
@@ -101,7 +103,7 @@ inline namespace kernel
    *   - make-list
    *   - xcons                           => xcons
    *
-   * ======================================================================== */
+   * ------------------------------------------------------------------------ */
   inline namespace constructor
   {
     inline decltype(auto) operator |(const object& lhs, const object& rhs)
@@ -155,12 +157,12 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   inline namespace predicate
   {
-    auto eq = [](auto&& x, auto&& y) constexpr
+    auto eq = [](auto const& x, auto const& y) constexpr
     {
       return x == y;
     };
 
-    auto eqv = [](auto&& x, auto&& y)
+    auto eqv = [](auto const& x, auto const& y)
     {
       return x.eqv(y);
     };
@@ -388,9 +390,9 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](auto const& list, auto&& predicate) constexpr
+    auto find = [](auto const& x, auto&& predicate) constexpr
     {
-      if (let const& result = std::find_if(std::begin(list), std::end(list), predicate); result)
+      if (let const& result = std::find_if(std::cbegin(x), std::cend(x), predicate); result)
       {
         return car(result);
       }
