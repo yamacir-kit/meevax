@@ -11,7 +11,9 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntax.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   template <typename SK>
   class machine // Simple SECD machine.
@@ -297,7 +299,7 @@ namespace meevax { inline namespace kernel
         std::cerr << std::endl;
       }
 
-      switch (car(c).as<instruction>().code)
+      switch (car(c).template as<instruction>().code)
       {
       case mnemonic::LOAD_LOCAL: /* ============================================
         *
@@ -312,8 +314,8 @@ namespace meevax { inline namespace kernel
           list_reference(
             list_reference(
               e,
-              caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
-            cdadr(c).as<exact_integer>().value.convert_to<std::size_t>()));
+              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
         pop<2>(c);
         goto dispatch;
 
@@ -330,8 +332,8 @@ namespace meevax { inline namespace kernel
           list_tail(
             list_reference(
               e,
-              caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
-            cdadr(c).as<exact_integer>().value.convert_to<std::size_t>()));
+              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
+            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
         pop<2>(c);
         goto dispatch;
 
@@ -573,7 +575,7 @@ namespace meevax { inline namespace kernel
         * =================================================================== */
         if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
-          if (let const& value = cadr(pare); value.is<null>() or car(s).is<null>())
+          if (let const& value = cadr(pare); value.template is<null>() or car(s).template is<null>())
           {
             cadr(pare) = car(s);
           }
@@ -615,8 +617,8 @@ namespace meevax { inline namespace kernel
             list_tail(
               list_reference(
                 e,
-                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
+                caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
+              cdadr(c).as<exact_integer>().value.convert_to<std::size_t>())),
           car(s));
         pop<2>(c);
         goto dispatch;
@@ -627,8 +629,8 @@ namespace meevax { inline namespace kernel
             list_tail(
               list_reference(
                 e,
-                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
+                caadr(c).as<exact_integer>().value.convert_to<std::size_t>()),
+              cdadr(c).as<exact_integer>().value.convert_to<std::size_t>())),
           car(s));
         pop<2>(c);
         goto dispatch;
@@ -654,11 +656,11 @@ namespace meevax { inline namespace kernel
       [[maybe_unused]] const object& continuation,                             \
       [[maybe_unused]] const compilation_context in_a = as_is)
 
-    /* ==== Quotation =========================================================
-    *
-    * <quotation> = (quote <datum>)
-    *
-    *======================================================================== */
+    /* ---- Quotation ----------------------------------------------------------
+     *
+     *  <quotation> = (quote <datum>)
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(quotation)
     {
       debug(car(expression), faint, " ; is <datum>");
@@ -669,13 +671,13 @@ namespace meevax { inline namespace kernel
           continuation);
     }
 
-    /* ==== Sequence ==========================================================
-    *
-    * <sequence> = <command>* <expression>
-    *
-    * <command> = <expression>
-    *
-    *======================================================================== */
+    /* ---- Sequence ----------------------------------------------------------
+     *
+     *  <sequence> = <command>* <expression>
+     *
+     *  <command> = <expression>
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(sequence)
     {
       if (in_a.program_declaration)
@@ -820,11 +822,11 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== Lambda Body ========================================================
+    /* ---- Lambda Body --------------------------------------------------------
      *
-     * <body> = <definition>* <sequence>
+     *  <body> = <definition>* <sequence>
      *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(body)
     {
       const auto flag { in_a.program_declaration ? as_program_declaration : as_is };
@@ -846,7 +848,7 @@ namespace meevax { inline namespace kernel
       {
         auto binding_specs { unit };
 
-        for (auto iter { std::begin(form) }; iter != std::end(form); ++iter)
+        for (auto iter = std::cbegin(form); iter != std::cend(form); ++iter)
         {
           if (is_definition(*iter))
           {
@@ -946,14 +948,14 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== Operand ===========================================================
-    *
-    * <operand> = <expression>
-    *
-    *======================================================================== */
+    /* ---- Operand ------------------------------------------------------------
+     *
+     *  <operand> = <expression>
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(operand)
     {
-      if (expression and expression.is<pair>())
+      if (expression.is<pair>())
       {
         return
           operand(
@@ -979,11 +981,11 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== Conditional =======================================================
-    *
-    * <conditional> = (if <test> <consequent> <alternate>)
-    *
-    *======================================================================== */
+    /* ---- Conditional --------------------------------------------------------
+     *
+     *  <conditional> = (if <test> <consequent> <alternate>)
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(conditional)
     {
       debug(car(expression), faint, " ; is <test>");
@@ -1059,11 +1061,11 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== Lambda Expression =================================================
-    *
-    * <lambda expression> = (lambda <formals> <body>)
-    *
-    *======================================================================== */
+    /* ---- Lambda Expression --------------------------------------------------
+     *
+     * <lambda expression> = (lambda <formals> <body>)
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(lambda)
     {
       debug(car(expression), faint, " ; is <formals>");
@@ -1254,6 +1256,7 @@ namespace meevax { inline namespace kernel
       }
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_MACHINE_HPP
