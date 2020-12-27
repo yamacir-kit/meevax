@@ -50,13 +50,13 @@ inline namespace kernel
     {
       push(
         syntactic_environment(),
-        list(variable, std::forward<decltype(expression)>(expression)...));
+        cons(variable, std::forward<decltype(expression)>(expression)...));
 
       write_to(standard_debug_port(),
         header("define"),
         caar(syntactic_environment()),
         faint, " binds ", reset,
-        cadar(syntactic_environment()),
+        cdar(syntactic_environment()),
         "\n");
 
       return unspecified;
@@ -157,7 +157,7 @@ inline namespace kernel
       else // is (application . arguments)
       {
         if (let const applicant = lookup(car(expression), syntactic_environment);
-            not applicant.is<null>() and not de_bruijn_index<default_equivalence_comparator>(car(expression), frames))
+            not applicant.is<null>() and not de_bruijn_index(car(expression), frames))
         {
           if (applicant.is<syntax>())
           {
@@ -366,7 +366,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
         {
-          push(s, cadr(binding));
+          push(s, cdr(binding));
         }
         else // UNBOUND
         {
@@ -577,7 +577,7 @@ inline namespace kernel
         {
           if (let const& value = cdr(pare); value.template is<null>() or car(s).template is<null>())
           {
-            cadr(pare) = car(s);
+            cdr(pare) = car(s);
           }
           else if (value.is<SK>() or value.is<syntax>())
           {
@@ -593,7 +593,7 @@ inline namespace kernel
           }
           else
           {
-            std::atomic_store(&cadr(pare), car(s).copy());
+            std::atomic_store(&cdr(pare), car(s).copy());
           }
         }
         else // UNBOUND

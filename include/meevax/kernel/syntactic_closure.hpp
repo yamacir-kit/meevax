@@ -27,7 +27,7 @@ inline namespace kernel
     auto strip() const
     {
       const auto pare { lookup() };
-      return pare.eqv(f) ? form() : cadr(pare); // TODO cadr => cdr
+      return pare.eqv(f) ? form() : cdr(pare);
     }
 
     auto is_identifier() const
