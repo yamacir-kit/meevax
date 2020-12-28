@@ -175,9 +175,9 @@ inline namespace kernel
     //   return pointer(box(TODO), [](auto*) {});
     // }
 
-    auto binding() const -> decltype(auto)
+    auto binding() const noexcept -> decltype(auto)
     {
-      return std::shared_ptr<T>::operator *();
+      return std::shared_ptr<T>::operator*();
     }
 
     auto type() const -> decltype(auto)
@@ -254,7 +254,7 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto operator <<(std::ostream& port, const pointer<T>& rhs) -> decltype(auto)
+  auto operator <<(std::ostream & port, pointer<T> const& rhs) -> decltype(auto)
   {
     return (rhs.template is<null>() ? port << magenta << "()" : rhs.binding().write_to(port)) << reset;
   }

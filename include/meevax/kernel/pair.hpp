@@ -34,7 +34,7 @@ inline namespace kernel
     virtual ~pair() = default;
   };
 
-  auto operator <<(std::ostream& port, const pair&) -> decltype(port);
+  auto operator<<(std::ostream & port, pair const&) -> decltype(port);
 
   /* ---- Pair Accessor --------------------------------------------------------
    *
@@ -42,43 +42,35 @@ inline namespace kernel
    *  valid operation for everyone except the empty list.
    *
    * ------------------------------------------------------------------------ */
-  auto car = [](auto&& pare) noexcept -> decltype(auto)
+  auto car = [](auto&& x) noexcept -> decltype(auto)
   {
-    if constexpr (std::is_base_of<object, typename std::decay<decltype(pare)>::type>::value)
+    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
     {
-      return std::get<0>(pare.binding());
+      return std::get<0>(x.binding());
     }
-    else if constexpr (std::is_base_of<std::reference_wrapper<object>, typename std::decay<decltype(pare)>::type>::value)
+    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(x)>::type>::value)
     {
-      return std::get<0>(pare.get().binding());
-    }
-    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(pare)>::type>::value)
-    {
-      return std::get<0>(pare.get().binding());
+      return std::get<0>(x.get().binding());
     }
     else
     {
-      return std::get<0>(std::forward<decltype(pare)>(pare));
+      return std::get<0>(std::forward<decltype(x)>(x));
     }
   };
 
-  auto cdr = [](auto&& pare) noexcept -> decltype(auto)
+  auto cdr = [](auto&& x) noexcept -> decltype(auto)
   {
-    if constexpr (std::is_base_of<object, typename std::decay<decltype(pare)>::type>::value)
+    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
     {
-      return std::get<1>(pare.binding());
+      return std::get<1>(x.binding());
     }
-    else if constexpr (std::is_base_of<std::reference_wrapper<object>, typename std::decay<decltype(pare)>::type>::value)
+    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(x)>::type>::value)
     {
-      return std::get<1>(pare.get().binding());
-    }
-    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(pare)>::type>::value)
-    {
-      return std::get<1>(pare.get().binding());
+      return std::get<1>(x.get().binding());
     }
     else
     {
-      return std::get<1>(std::forward<decltype(pare)>(pare));
+      return std::get<1>(std::forward<decltype(x)>(x));
     }
   };
 

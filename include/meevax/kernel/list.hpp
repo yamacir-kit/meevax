@@ -64,16 +64,23 @@ inline namespace kernel
 
     decltype(auto) operator++(int)
     {
-      auto result { *this };
+      auto copy = *this;
       operator ++();
-      return std::move(result);
+      return std::move(copy);
     }
 
-    homoiconic_iterator begin() const noexcept { return *this; }
-    homoiconic_iterator   end() const noexcept { return unit; }
+    homoiconic_iterator cbegin() const noexcept { return *this; }
+    homoiconic_iterator  begin() const noexcept { return *this; }
+    homoiconic_iterator   cend() const noexcept { return unit; }
+    homoiconic_iterator    end() const noexcept { return unit; }
 
     decltype(auto) operator ==(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() == rhs.get(); }
     decltype(auto) operator !=(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() != rhs.get(); }
+
+    operator bool() const
+    {
+      return static_cast<bool>(static_cast<T const&>(*this));
+    }
   };
 } // namespace kernel
 } // namespace meevax
@@ -108,26 +115,28 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   inline namespace constructor
   {
-    inline decltype(auto) operator |(const object& lhs, const object& rhs)
+    template <typename T, typename U>
+    inline decltype(auto) operator|(T&& x, U&& y)
     {
-      return std::make_shared<pair>(lhs, rhs);
+      return std::make_shared<pair>(std::forward<decltype(x)>(x),
+                                    std::forward<decltype(y)>(y));
     }
 
     auto cons = [](auto&&... xs) constexpr
     {
-      return (xs | ...);
+      return (std::forward<decltype(xs)>(xs) | ...);
     };
 
     auto list = [](auto&& ... xs) constexpr
     {
-      return (xs | ... | unit);
+      return (std::forward<decltype(xs)>(xs) | ... | unit);
     };
 
-    auto make_list = [](auto length, const auto& x = unit)
+    auto make_list = [](auto length, auto const& x = unit)
     {
       auto result { unit };
 
-      for (auto i { 0 }; i < length; ++i)
+      for (auto i = 0; i < length; ++i)
       {
         result = cons(x, result);
       }
@@ -137,7 +146,7 @@ inline namespace kernel
 
     auto xcons = [](auto&&... xs) constexpr
     {
-      return (... | xs);
+      return (... | std::forward<decltype(xs)>(xs));
     };
   } // inline namespace constructor
 
@@ -248,9 +257,9 @@ inline namespace kernel
     auto cdddar = functional::compose(cdr, cddar);
     auto cddddr = functional::compose(cdr, cdddr);
 
-    auto list_tail = [](auto&& list, auto&& k) constexpr
+    auto list_tail = [](auto&& x, auto&& k) constexpr
     {
-      return std::next(std::begin(list), k);
+      return std::next(std::cbegin(std::forward<decltype(x)>(x)), k);
     };
 
     auto list_reference = [](auto&&... xs)
@@ -386,11 +395,11 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](auto const& x, auto&& predicate) constexpr
+    auto find = [](auto const& x, auto&& predicate) constexpr -> auto const&
     {
-      if (let const& result = std::find_if(std::cbegin(x), std::cend(x), predicate); result)
+      if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
       {
-        return car(result);
+        return *iter;
       }
       else
       {
