@@ -42,8 +42,10 @@ inline namespace kernel
       : std::reference_wrapper<T> { std::cref(x) }
     {}
 
-    operator T&()       noexcept { return std::reference_wrapper<T>::get(); }
-    operator T&() const noexcept { return std::reference_wrapper<T>::get(); }
+    operator T&() const noexcept
+    {
+      return std::reference_wrapper<T>::get();
+    }
 
     decltype(auto) operator*() const
     {
@@ -70,8 +72,8 @@ inline namespace kernel
     homoiconic_iterator begin() const noexcept { return *this; }
     homoiconic_iterator   end() const noexcept { return unit; }
 
-    decltype(auto) operator==(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() == rhs.get(); }
-    decltype(auto) operator!=(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() != rhs.get(); }
+    decltype(auto) operator ==(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() == rhs.get(); }
+    decltype(auto) operator !=(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() != rhs.get(); }
   };
 } // namespace kernel
 } // namespace meevax

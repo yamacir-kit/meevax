@@ -21,7 +21,7 @@ inline namespace kernel
       : object { lookup(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    const object lookup(const object& value, const object& frames)
+    let lookup(object const& value, object const& frames)
     {
       auto layer {0};
 
@@ -34,16 +34,12 @@ inline namespace kernel
           if (static_cast<object const&>(iter).is<pair>() and compare(*iter, value))
           {
             variadic = false;
-
-            return cons(make<exact_integer>(layer),
-                        make<exact_integer>(index));
+            return cons(make<exact_integer>(layer), make<exact_integer>(index));
           }
           else if (static_cast<object const&>(iter).is<symbol>() and compare(iter, value))
           {
             variadic = true;
-
-            return cons(make<exact_integer>(layer),
-                        make<exact_integer>(index));
+            return cons(make<exact_integer>(layer), make<exact_integer>(index));
           }
 
           ++index;

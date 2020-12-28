@@ -22,7 +22,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g -pg")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -s -DNDEBUG -flto")
 
 include(GNUInstallDirs)
 

@@ -61,7 +61,7 @@ inline namespace kernel
     #define DEFINE_ELEMENTARY_FUNCTION(SYMBOL, FUNCTION)                       \
     define<procedure>(SYMBOL, [&](auto&& xs)                                   \
     {                                                                          \
-      if (let const x = car(xs); x.is<null>())                                 \
+      if (let const& x = car(xs); x.is<null>())                                \
       {                                                                        \
         return f;                                                              \
       }                                                                        \
@@ -174,15 +174,15 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ nan?               │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ =                  │ C++        │ Number::operator ==(const object&) │
+     │ =                  │ C++        │ Number::operator ==(object const&) │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ <                  │ C++        │ Number::operator < (const object&) │
+     │ <                  │ C++        │ Number::operator < (object const&) │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ >                  │ C++        │ Number::operator > (const object&) │
+     │ >                  │ C++        │ Number::operator > (object const&) │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ <=                 │ C++        │ Number::operator <=(const object&) │
+     │ <=                 │ C++        │ Number::operator <=(object const&) │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ >=                 │ C++        │ Number::operator >=(const object&) │
+     │ >=                 │ C++        │ Number::operator >=(object const&) │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ zero?              │ Scheme     │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -414,7 +414,7 @@ inline namespace kernel
       return make_string(boost::lexical_cast<std::string>(car(xs)));
     });
 
-    define<procedure>("string->number", [](let const & xs)
+    define<procedure>("string->number", [](let const& xs)
     {
       return make_number(car(xs).as<string>());
     });
@@ -1206,7 +1206,7 @@ inline namespace kernel
       {
         return make<input_string_port>();
       }
-      else if (let const x = car(xs); x.is<string>())
+      else if (let const& x = car(xs); x.is<string>())
       {
         return make<input_string_port>(x.as<string>());
       }
@@ -1348,7 +1348,7 @@ inline namespace kernel
       return load(car(xs).as<const string>());
     });
 
-    define<procedure>("emergency-exit", [](let const & xs)
+    define<procedure>("emergency-exit", [](let const& xs)
     {
       if (xs.is<null>() or not car(xs).is<exact_integer>())
       {
@@ -1367,9 +1367,9 @@ inline namespace kernel
       return make<linker>(car(xs).template as<const string>());
     });
 
-    define<procedure>("procedure", [](const object& xs)
+    define<procedure>("procedure", [](let const& xs)
     {
-      const std::string name { cadr(xs).as<string>() };
+      std::string const& name = cadr(xs).as<string>();
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
     });
 
@@ -1421,7 +1421,7 @@ inline namespace kernel
   {
     define<procedure>("print", [](auto&& xs)
     {
-      for (let const & x : xs)
+      for (let const& x : xs)
       {
         if (x.template is<string>())
         {
