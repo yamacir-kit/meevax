@@ -66,10 +66,9 @@ inline namespace kernel
     {
       for (auto const& frame : e)
       {
-        // if (frame and car(frame) and car(frame).is<SK>())
         if (frame.is<pair>() and car(frame).is<SK>())
         {
-          return cdar(frame);
+          return cdar(frame); // SAME-AS car(frame).as<SK>().syntactic_environment();
         }
       }
 

@@ -4,6 +4,7 @@
 #include <algorithm> // std::equal
 #include <functional>
 #include <iterator> // std::begin, std::end, std::distance
+#include <memory>
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/kernel/boolean.hpp>
@@ -65,7 +66,7 @@ inline namespace kernel
     decltype(auto) operator++(int)
     {
       auto copy = *this;
-      operator ++();
+      operator++();
       return std::move(copy);
     }
 
@@ -74,8 +75,10 @@ inline namespace kernel
     homoiconic_iterator   cend() const noexcept { return unit; }
     homoiconic_iterator    end() const noexcept { return unit; }
 
-    decltype(auto) operator ==(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() == rhs.get(); }
-    decltype(auto) operator !=(homoiconic_iterator const& rhs) const noexcept { return std::reference_wrapper<T>::get() != rhs.get(); }
+    using std::reference_wrapper<T>::get;
+
+    decltype(auto) operator==(homoiconic_iterator const& rhs) const noexcept { return get() == rhs.get(); }
+    decltype(auto) operator!=(homoiconic_iterator const& rhs) const noexcept { return get() != rhs.get(); }
 
     operator bool() const
     {
@@ -434,9 +437,9 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](auto const& key, auto const& alist, auto&& compare = equivalence_comparator<2>()) constexpr
+    auto assoc = [](auto const& key, auto&& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
-      return find(alist, [&](auto&& each)
+      return find(std::forward<decltype(alist)>(alist), [&](auto&& each)
              {
                return compare(car(each), key);
              });
