@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
+#include <limits>
 #include <typeindex>
 
 #include <boost/math/constants/constants.hpp>
@@ -363,12 +364,26 @@ inline namespace kernel
   template <typename T, typename U> auto operator - (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value - b.value); }
   template <typename T, typename U> auto operator / (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value / b.value); }
   template <typename T, typename U> auto operator % (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(std::remainder(a.value, b.value)); }
-  template <typename T, typename U> auto operator !=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value != b.value; } // TODO EPSILON
-  template <typename T, typename U> auto operator < (floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value <  b.value; } // TODO EPSILON
-  template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value <= b.value; } // TODO EPSILON
-  template <typename T, typename U> auto operator ==(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value == b.value; } // TODO EPSILON
-  template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >  b.value; } // TODO EPSILON
-  template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >= b.value; } // TODO EPSILON
+  template <typename T, typename U> auto operator ==(floating_point<T> const& a, floating_point<U> const& b) -> boolean
+  {
+    if (std::isnan(a.value) and std::isnan(b.value))
+    {
+      return true;
+    }
+    else if (std::isinf(a.value) or std::isinf(b.value))
+    {
+      return a.value == b.value;
+    }
+    else
+    {
+      return std::abs(a.value - b.value) <= std::numeric_limits<decltype(std::declval<T>() - std::declval<U>())>::epsilon();
+    }
+  }
+  template <typename T, typename U> auto operator !=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return not (a == b); }
+  template <typename T, typename U> auto operator < (floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value <  b.value; }
+  template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value <= b.value; }
+  template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >  b.value; }
+  template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >= b.value; }
 
   template <typename T>
   T resolve(std::unordered_map<std::type_index, std::function<T (object const&)>> const& overloads, object const& x)
