@@ -1007,8 +1007,6 @@
         (if (integer? x) 1.0
             (inexact (denominator (exact x))) ))))
 
-; TODO round
-
 (define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm
   (lambda (x e)
     (define sr
@@ -1065,8 +1063,6 @@
 (define square
   (lambda (z)
     (* z z)))
-
-(define sqrt square-root)
 
 ; TODO exact-integer-sqrt
 
