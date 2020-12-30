@@ -46,6 +46,20 @@ inline namespace kernel
     }
   };
 
+  /* ---- Binary Numerical Comparator Overloaings Adapter ----------------------
+   *
+   *  Dispatch static numeric vs. dynamic numerical operations to static
+   *  overloads. If the rvalue type binds a non-numeric type, an exception is
+   *  thrown.
+   *
+   *  Usage:
+   *
+   *    auto operator <(Number const& lhs, object const& rhs)
+   *    {
+   *      return apply<bool>(std::less<void>(), lhs, rhs);
+   *    }
+   *
+   * ------------------------------------------------------------------------ */
   template <typename R, typename F, typename T>
   auto apply(F&& procedure, T const& a, object const& b) -> decltype(auto)
   {
@@ -68,6 +82,20 @@ inline namespace kernel
     }
   }
 
+  /* ---- Binary Numerical Operator Overloaings Adapter ------------------------
+   *
+   *  Dispatch static numeric vs. dynamic numerical operations to static
+   *  overloads. If the rvalue type binds a non-numeric type, an exception is
+   *  thrown.
+   *
+   *  Usage:
+   *
+   *    let operator +(Number const& lhs, object const& rhs)
+   *    {
+   *      return apply(std::plus<void>(), lhs, rhs);
+   *    }
+   *
+   * ------------------------------------------------------------------------ */
   template <typename F, typename T>
   auto apply(F&& procedure, T const& a, object const& b) -> decltype(auto)
   {
@@ -90,27 +118,58 @@ inline namespace kernel
     }
   }
 
-  // template <typename F>
-  // auto apply(F&& f, object const& x) -> decltype(auto)
-  // {
-  //   static std::unordered_map<
-  //     std::type_index, std::function<object (object const&)>> const overloads
-  //   {
-  //     { typeid(single_float),  [&](let const& x) { return make_reduce(f(x.as<single_float>() .as_inexact<decltype(0.0)>())); } },
-  //     { typeid(double_float),  [&](let const& x) { return make_reduce(f(x.as<double_float>() .as_inexact<decltype(0.0)>())); } },
-  //     { typeid(ratio),         [&](let const& x) { return make_reduce(f(x.as<ratio>()        .as_inexact<decltype(0.0)>())); } },
-  //     { typeid(exact_integer), [&](let const& x) { return make_reduce(f(x.as<exact_integer>().as_inexact<decltype(0.0)>())); } },
-  //   };
-  //
-  //   if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
-  //   {
-  //     return std::get<1>(*iter)(x);
-  //   }
-  //   else
-  //   {
-  //     throw error("no viable operation '", typeid(F).name(), "' with ", x);
-  //   }
-  // }
+  /* ---- C Mathematical Functions Adapter -------------------------------------
+   *
+   *  Apply the given unary function to a dynamic numeric type. It is assumed
+   *  that the function is given a C math function, and the numeric type is
+   *  automatically converted to an inaccurate numeric type. An inaccurate
+   *  numeric type is a type that corresponds to a C++ literal "0.0" and is
+   *  either a float or a double. If the object does not bind a numeric type, an
+   *  exception will be thrown.
+   *
+   *  Usage:
+   *
+   *    apply(std::sin, )
+   *
+   * ------------------------------------------------------------------------ */
+  template <typename F>
+  auto apply_unary(F&& cmath, object const& x) -> decltype(auto)
+  {
+    auto aux1 = [&](auto&& x)
+    {
+      return make(floating_point(cmath(x.template as_inexact<decltype(0.0)>())));
+    };
+
+    auto aux2 = [&](auto&& x)
+    {
+      if (floating_point const y { cmath(x.template as_inexact<decltype(0.0)>()) }; y.is_integer())
+      {
+        return make<exact_integer>(y.value);
+      }
+      else
+      {
+        return make(y);
+      }
+    };
+
+    static std::unordered_map<
+      std::type_index, std::function<object (object const&)>> const overloads
+    {
+      { typeid(single_float),  [&](let const& x) { return aux1(x.as<single_float >()); } },
+      { typeid(double_float),  [&](let const& x) { return aux1(x.as<double_float >()); } },
+      { typeid(ratio),         [&](let const& x) { return aux2(x.as<ratio        >()); } },
+      { typeid(exact_integer), [&](let const& x) { return aux2(x.as<exact_integer>()); } },
+    };
+
+    if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
+    {
+      return std::get<1>(*iter)(x);
+    }
+    else
+    {
+      throw error("no viable operation '", typeid(F).name(), "' with ", x);
+    }
+  }
 
   auto operator * (exact_integer const&, object const&) -> object;
   auto operator + (exact_integer const&, object const&) -> object;

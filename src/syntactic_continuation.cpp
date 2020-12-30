@@ -359,8 +359,9 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
+    define<procedure>("floor", [](let const& xs) { return apply_unary([](auto&& x) { return std::floor(x); }, car(xs)); });
 
-    DEFINE_ELEMENTARY_FUNCTION("floor", std::floor); // XXX DIRTY HACK!
+    // DEFINE_ELEMENTARY_FUNCTION("floor", std::floor); // XXX DIRTY HACK!
     DEFINE_ELEMENTARY_FUNCTION("ceiling", std::ceil); // XXX DIRTY HACK!
     DEFINE_ELEMENTARY_FUNCTION("truncate", std::trunc); // XXX DIRTY HACK!
 
