@@ -35,7 +35,7 @@ inline namespace kernel
     template <typename T>
     auto as_inexact() const
     {
-      return numerator().as_inexact<T>() / denominator().as_inexact<T>();
+      return floating_point(numerator().as_inexact<T>() / denominator().as_inexact<T>());
     }
   };
 

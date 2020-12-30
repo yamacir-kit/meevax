@@ -1066,8 +1066,6 @@
 
 ; TODO exact-integer-sqrt
 
-(define expt exponential)
-
 (define make-rectangular
   (lambda (x y)
     (+ x (* y (sqrt -1)))))

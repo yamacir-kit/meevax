@@ -133,7 +133,7 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
   template <typename F>
-  auto apply_unary(F&& cmath, object const& x) -> decltype(auto)
+  auto apply_1(F&& cmath, object const& x) -> decltype(auto)
   {
     auto aux1 = [&](auto&& x)
     {
@@ -168,6 +168,61 @@ inline namespace kernel
     else
     {
       throw error("no viable operation '", typeid(F).name(), "' with ", x);
+    }
+  }
+
+  template <typename F>
+  auto apply_2(F&& cmath, object const& a, object const& b)
+  {
+    auto inexact = [](let const& x)
+    {
+      static std::unordered_map<
+        std::type_index, std::function<decltype(0.0) (object const&)>> const overloads
+      {
+        { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_inexact<decltype(0.0)>().value; } },
+        { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_inexact<decltype(0.0)>().value; } },
+        { typeid(ratio),         [](let const& x) { return x.as<ratio>()        .as_inexact<decltype(0.0)>().value; } },
+        { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_inexact<decltype(0.0)>().value; } },
+      };
+
+      if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
+      {
+        return std::get<1>(*iter)(x);
+      }
+      else
+      {
+        return 0.0;
+      }
+    };
+
+    auto aux1 = [&](auto&& x, auto&& y)
+    {
+      return make(floating_point(cmath(inexact(std::forward<decltype(x)>(x)),
+                                       inexact(std::forward<decltype(y)>(y)))));
+    };
+
+    auto aux2 = [&](auto&& x, auto&& y)
+    {
+      if (floating_point const z {
+            cmath(inexact(std::forward<decltype(x)>(x)),
+                  inexact(std::forward<decltype(y)>(y))) }; z.is_integer())
+      {
+        return make<exact_integer>(z.value);
+      }
+      else
+      {
+        return make(z);
+      }
+    };
+
+    if (a.is<single_float>() or a.is<double_float>() or
+        b.is<single_float>() or b.is<double_float>())
+    {
+      return aux1(a, b);
+    }
+    else
+    {
+      return aux2(a, b);
     }
   }
 
