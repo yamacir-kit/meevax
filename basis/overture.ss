@@ -1035,9 +1035,9 @@
 (define log
   (lambda (z . base)
     (if (pair? base)
-        (/ (ln x)
+        (/ (ln z)
            (ln (car base)))
-        (ln x))))
+        (ln z))))
 
 (define atan
   (lambda (y . x)

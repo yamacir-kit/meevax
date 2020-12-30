@@ -347,17 +347,16 @@ inline namespace kernel
     define<procedure>("atanh"   , [](let const& xs) { return apply_1([](auto&& x) { return std::atanh(x); }, car(xs)); });
     define<procedure>("atan"    , [](let const& xs) { return apply_1([](auto&& x) { return std::atan (x); }, car(xs)); });
 
-    // TODO ln
     // TODO atan & atan2
 
     define<procedure>("sqrt"    , [](let const& xs) { return apply_1([](auto&& x) { return std::sqrt (x); }, car(xs)); });
 
+    define<procedure>("ln"      , [](let const& xs) { return apply_1([](auto&& x) { return std::log  (x); }, car(xs)); });
     define<procedure>("exp"     , [](let const& xs) { return apply_1([](auto&& x)           { return std::exp  (x   ); }, car(xs)          ); });
     define<procedure>("expt"    , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
 
     define<procedure>(  "exact", [](auto&& xs) { return   exact(car(xs)); });
     define<procedure>("inexact", [](auto&& xs) { return inexact(car(xs)); });
-
 
     define<procedure>("number->string", [](auto&& xs)
     {
