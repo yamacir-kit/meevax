@@ -335,16 +335,18 @@ inline namespace kernel
     define<procedure>("exp"     , [](let const& xs) { return apply_unary([](auto&& x) { return std::exp  (x); }, car(xs)); });
 
     define<procedure>( "sin"    , [](let const& xs) { return apply_unary([](auto&& x) { return std:: sin (x); }, car(xs)); });
-    define<procedure>( "cos"    , [](let const& xs) { return apply_unary([](auto&& x) { return std:: cos (x); }, car(xs)); });
-    define<procedure>( "tan"    , [](let const& xs) { return apply_unary([](auto&& x) { return std:: tan (x); }, car(xs)); });
     define<procedure>( "sinh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std:: sinh(x); }, car(xs)); });
-    define<procedure>( "cosh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std:: cosh(x); }, car(xs)); });
-    define<procedure>( "tanh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std:: tanh(x); }, car(xs)); });
     define<procedure>("asinh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std::asinh(x); }, car(xs)); });
-    define<procedure>("acosh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std::acosh(x); }, car(xs)); });
-    define<procedure>("atanh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std::atanh(x); }, car(xs)); });
     define<procedure>("asin"    , [](let const& xs) { return apply_unary([](auto&& x) { return std::asin (x); }, car(xs)); });
+
+    define<procedure>( "cos"    , [](let const& xs) { return apply_unary([](auto&& x) { return std:: cos (x); }, car(xs)); });
+    define<procedure>( "cosh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std:: cosh(x); }, car(xs)); });
+    define<procedure>("acosh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std::acosh(x); }, car(xs)); });
     define<procedure>("acos"    , [](let const& xs) { return apply_unary([](auto&& x) { return std::acos (x); }, car(xs)); });
+
+    define<procedure>( "tan"    , [](let const& xs) { return apply_unary([](auto&& x) { return std:: tan (x); }, car(xs)); });
+    define<procedure>( "tanh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std:: tanh(x); }, car(xs)); });
+    define<procedure>("atanh"   , [](let const& xs) { return apply_unary([](auto&& x) { return std::atanh(x); }, car(xs)); });
     define<procedure>("atan"    , [](let const& xs) { return apply_unary([](auto&& x) { return std::atan (x); }, car(xs)); });
 
     // TODO ln

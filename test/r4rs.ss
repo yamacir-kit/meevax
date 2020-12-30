@@ -608,10 +608,10 @@
 
 (check (list-ref '(a b c d) 2) => c)
 
-; (check
-;   (list-ref '(a b c d)
-;              (exact (round 1.8)))
-;   => c)
+(check
+  (list-ref '(a b c d)
+             (exact (round 1.8)))
+  => c)
 
 ; ---- Procedure (member obj list) ---------------------------------------------
 
@@ -852,22 +852,20 @@
 ; ---- Procedure (floor x) -----------------------------------------------------
 ; ---- Procedure (ceiling x) ---------------------------------------------------
 ; ---- Procedure (truncate x) --------------------------------------------------
+; ---- Procedure (round x) -----------------------------------------------------
 
 (check (floor    -4.3) => -5.0)
 (check (ceiling  -4.3) => -4.0)
 (check (truncate -4.3) => -4.0)
+(check (round    -4.3) => -4.0)
 
-(check (floor    3.5) => 3.0)
-(check (ceiling  3.5) => 4.0)
-(check (truncate 3.5) => 3.0)
+(check (floor     3.5) =>  3.0)
+(check (ceiling   3.5) =>  4.0)
+(check (truncate  3.5) =>  3.0)
+(check (round     3.5) =>  4.0) ; inexact
 
-; ---- Procedure (round x) -----------------------------------------------------
-
-; (check (round -4.3) => -4.0)
-; (check (round 3.5) => 4.0) ; inexact
-
-; (check (round 7/2) => 4) ; exact
-; (check (round 7) => 7)
+(check (round     7/2) =>  4) ; exact
+(check (round     7)   =>  7)
 
 ; ---- Procedure (rationalize x y) ---------------------------------------------
 
