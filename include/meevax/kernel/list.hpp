@@ -2,31 +2,34 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <algorithm> // std::equal
+#include <functional>
 #include <iterator> // std::begin, std::end, std::distance
+#include <memory>
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- Homoiconic Iterator --------------------------------------------------
    *
    * TODO std::empty
    *
    * ------------------------------------------------------------------------ */
+  template <typename T>
   struct homoiconic_iterator
-    : public object
+    : public std::reference_wrapper<T>
   {
     using iterator_category = std::forward_iterator_tag;
 
-    using value_type = object;
+    using value_type = std::reference_wrapper<T>;
 
-    using reference
-      = std::add_lvalue_reference<value_type>::type;
+    using reference = typename std::add_lvalue_reference<value_type>::type;
 
-    using const_reference
-      = std::add_const<reference>::type;
+    using const_reference = typename std::add_const<reference>::type;
 
     using pointer = value_type; // homoiconicity
 
@@ -34,10 +37,16 @@ namespace meevax { inline namespace kernel
 
     using size_type = std::size_t;
 
-    template <typename... Ts>
-    constexpr homoiconic_iterator(Ts&&... xs)
-      : object { std::forward<decltype(xs)>(xs)... }
+    using std::reference_wrapper<T>::reference_wrapper;
+
+    homoiconic_iterator(T const& x)
+      : std::reference_wrapper<T> { std::cref(x) }
     {}
+
+    operator T&() const noexcept
+    {
+      return std::reference_wrapper<T>::get();
+    }
 
     decltype(auto) operator*() const
     {
@@ -54,37 +63,44 @@ namespace meevax { inline namespace kernel
       return *this = cdr(*this);
     }
 
-    value_type operator++(int)
+    decltype(auto) operator++(int)
     {
-      auto result { *this };
-      operator ++();
-      return std::move(result);
+      auto copy = *this;
+      operator++();
+      return std::move(copy);
     }
 
-    decltype(auto) begin() const noexcept
-    {
-      return *this;
-    }
+    homoiconic_iterator cbegin() const noexcept { return *this; }
+    homoiconic_iterator  begin() const noexcept { return *this; }
+    homoiconic_iterator   cend() const noexcept { return unit; }
+    homoiconic_iterator    end() const noexcept { return unit; }
 
-    const homoiconic_iterator end() const noexcept
+    using std::reference_wrapper<T>::get;
+
+    decltype(auto) operator==(homoiconic_iterator const& rhs) const noexcept { return get() == rhs.get(); }
+    decltype(auto) operator!=(homoiconic_iterator const& rhs) const noexcept { return get() != rhs.get(); }
+
+    operator bool() const
     {
-      return unit;
+      return static_cast<bool>(static_cast<T const&>(*this));
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 namespace std
 {
-  auto cbegin(const meevax::kernel::object& x) -> meevax::homoiconic_iterator;
-  auto  begin(const meevax::kernel::object& x) -> meevax::homoiconic_iterator;
-
-  auto cend(const meevax::kernel::object&) -> meevax::homoiconic_iterator;
-  auto  end(const meevax::kernel::object&) -> meevax::homoiconic_iterator;
+  auto cbegin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const>;
+  auto  begin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const>;
+  auto   cend(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const>;
+  auto    end(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const>;
 } // namespace std
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ==== Constructors =========================================================
+inline namespace kernel
+{
+  /* ---- Constructors ---------------------------------------------------------
    *
    * From R7RS
    *   - cons                            => cons
@@ -99,29 +115,31 @@ namespace meevax { inline namespace kernel
    *   - make-list
    *   - xcons                           => xcons
    *
-   * ======================================================================== */
+   * ------------------------------------------------------------------------ */
   inline namespace constructor
   {
-    inline decltype(auto) operator |(const object& lhs, const object& rhs)
+    template <typename T, typename U>
+    inline decltype(auto) operator|(T&& x, U&& y)
     {
-      return std::make_shared<pair>(lhs, rhs);
+      return std::make_shared<pair>(std::forward<decltype(x)>(x),
+                                    std::forward<decltype(y)>(y));
     }
 
     auto cons = [](auto&&... xs) constexpr
     {
-      return (xs | ...);
+      return (std::forward<decltype(xs)>(xs) | ...);
     };
 
     auto list = [](auto&& ... xs) constexpr
     {
-      return (xs | ... | unit);
+      return (std::forward<decltype(xs)>(xs) | ... | unit);
     };
 
-    auto make_list = [](auto length, const auto& x = unit)
+    auto make_list = [](auto length, auto const& x = unit)
     {
       auto result { unit };
 
-      for (auto i { 0 }; i < length; ++i)
+      for (auto i = 0; i < length; ++i)
       {
         result = cons(x, result);
       }
@@ -131,7 +149,7 @@ namespace meevax { inline namespace kernel
 
     auto xcons = [](auto&&... xs) constexpr
     {
-      return (... | xs);
+      return (... | std::forward<decltype(xs)>(xs));
     };
   } // inline namespace constructor
 
@@ -153,17 +171,17 @@ namespace meevax { inline namespace kernel
    * ------------------------------------------------------------------------ */
   inline namespace predicate
   {
-    auto eq = [](auto&& x, auto&& y) constexpr
+    auto eq = [](auto const& x, auto const& y) constexpr
     {
       return x == y;
     };
 
-    auto eqv = [](auto&& x, auto&& y)
+    auto eqv = [](auto const& x, auto const& y)
     {
       return x.eqv(y);
     };
 
-    auto equal(const object& x, const object& y) -> bool;
+    auto equal(object const& x, object const& y) -> bool;
 
     template <std::size_t Coarseness = 0>
     struct equivalence_comparator;
@@ -242,9 +260,9 @@ namespace meevax { inline namespace kernel
     auto cdddar = functional::compose(cdr, cddar);
     auto cddddr = functional::compose(cdr, cdddr);
 
-    auto list_tail = [](auto&& list, auto&& k) constexpr
+    auto list_tail = [](auto&& x, auto&& k) constexpr
     {
-      return std::next(std::begin(list), k);
+      return std::next(std::cbegin(std::forward<decltype(x)>(x)), k);
     };
 
     auto list_reference = [](auto&&... xs)
@@ -279,9 +297,9 @@ namespace meevax { inline namespace kernel
    * ------------------------------------------------------------------------ */
   inline namespace miscellaneous
   {
-    auto length = [](const auto& x) constexpr
+    auto length = [](auto const& x) constexpr
     {
-      return std::distance(std::begin(x), std::end(x));
+      return std::distance(std::cbegin(x), std::cend(x));
     };
 
     let append(const object& x, const object& y);
@@ -333,7 +351,7 @@ namespace meevax { inline namespace kernel
   inline namespace mapping
   {
     template <typename Procedure>
-    object map(Procedure procedure, const object& x)
+    object map(Procedure&& procedure, const object& x)
     {
       if (x.is<null>())
       {
@@ -341,13 +359,7 @@ namespace meevax { inline namespace kernel
       }
       else
       {
-        return
-          cons(
-            procedure(
-              car(x)),
-            map(
-              procedure,
-              cdr(x)));
+        return cons(procedure(car(x)), map(procedure, cdr(x)));
       }
     }
   }
@@ -386,10 +398,16 @@ namespace meevax { inline namespace kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](const auto& list, auto&& predicate) constexpr
+    auto find = [](auto const& x, auto&& predicate) constexpr -> auto const&
     {
-      const auto result { std::find_if(std::begin(list), std::end(list), predicate) };
-      return result ? car(result) : f;
+      if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
+      {
+        return *iter;
+      }
+      else
+      {
+        return f;
+      }
     };
   }
 
@@ -419,9 +437,12 @@ namespace meevax { inline namespace kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](const auto& key, const auto& alist, auto&& compare = equivalence_comparator<2>()) constexpr
+    auto assoc = [](auto const& key, auto&& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
-      return find(alist, [&](auto&& each) { return compare(car(each), key); });
+      return find(std::forward<decltype(alist)>(alist), [&](auto&& each)
+             {
+               return compare(car(each), key);
+             });
     };
 
     auto assv = [](auto&&... xs) constexpr
@@ -467,7 +488,8 @@ namespace meevax { inline namespace kernel
    *   - set-cdr!                         ... TODO
    *
    * ======================================================================== */
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP
 

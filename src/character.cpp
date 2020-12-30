@@ -40,9 +40,9 @@ inline namespace kernel
     else
     {
       sequence[3] = '\0';
-      sequence[2] = 0xEF;
-      sequence[1] = 0xBF;
-      sequence[0] = 0xBD;
+      sequence[2] = static_cast<char>(0xEF);
+      sequence[1] = static_cast<char>(0xBF);
+      sequence[0] = static_cast<char>(0xBD);
     }
 
     return sequence;

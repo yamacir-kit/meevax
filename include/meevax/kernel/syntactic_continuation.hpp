@@ -37,7 +37,7 @@ inline namespace kernel
     *
     * TODO
     *
-    * ---------------------------------------------------------------------- */
+    * ----------------------------------------------------------------------- */
 
     , public reader<syntactic_continuation> /* ---------------------------------
     *
@@ -112,8 +112,8 @@ inline namespace kernel
     {}
 
   public:
-    auto current_expression() const -> const auto& { return car(form()); }
-    auto scope()              const -> const auto& { return cdr(form()); }
+    auto current_expression() const -> auto const& { return car(form()); }
+    auto scope()              const -> auto const& { return cdr(form()); }
 
     const auto& intern(const std::string& s)
     {
@@ -134,28 +134,22 @@ inline namespace kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(const std::string& name, Ts&&... xs)
+    decltype(auto) define(std::string const& name, Ts&&... xs)
     {
-      return
-        machine<syntactic_continuation>::define(
-          intern(name),
-          make<T>(name, std::forward<decltype(xs)>(xs)...));
+      return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) define(const std::string& name, Ts&&... xs)
+    decltype(auto) define(std::string const& name, Ts&&... xs)
     {
-      return
-        machine<syntactic_continuation>::define(
-          intern(name),
-          std::forward<decltype(xs)>(xs)...);
+      return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
     std::unordered_map<object, object> renames {};
 
-    auto rename(const object& identifier) -> const auto&
+    auto rename(object const& identifier) -> auto const&
     {
-      if (const auto iter { renames.find(identifier) }; iter != std::end(renames))
+      if (const auto iter = renames.find(identifier); iter != std::end(renames))
       {
         return cdr(*iter);
       }
@@ -166,7 +160,7 @@ inline namespace kernel
       }
     }
 
-    auto expand(const object& identifier, const object& form)
+    auto expand(object const& identifier, object const& form)
     {
       renames.emplace(car(form), identifier); // set itself to current-renamer
 
@@ -199,14 +193,14 @@ inline namespace kernel
 
       c = current_expression();
 
-      const auto result { execute() };
+      auto const& result = execute();
 
       ++generation;
 
       return result;
     }
 
-    decltype(auto) evaluate(const object& expression)
+    decltype(auto) evaluate(object const& expression)
     {
       push(d,
         std::atomic_exchange(&s, unit),
@@ -226,7 +220,7 @@ inline namespace kernel
       return result;
     }
 
-    auto load(const path& name) -> const auto&
+    auto load(path const& name) -> auto const&
     {
       write_to(standard_debug_port(),
         header("loader"), "open ", name, " => ");
@@ -262,7 +256,7 @@ inline namespace kernel
     }
 
     // XXX DIRTY HACK
-    decltype(auto) load(const std::string& name)
+    decltype(auto) load(std::string const& name)
     {
       return load(path(name));
     }
@@ -280,9 +274,9 @@ inline namespace kernel
         << reset << std::endl;
       }
 
-      auto exportation = [this](const object& xs)
+      auto exportation = [this](let const& xs)
       {
-        for (const auto& each : xs)
+        for (auto const& each : xs)
         {
           std::cerr << ";\t\t; staging " << each << std::endl;
 
@@ -341,7 +335,7 @@ inline namespace kernel
     }
 
   public:
-    friend auto operator<<(std::ostream& os, const syntactic_continuation& sc) -> decltype(auto)
+    friend auto operator<<(std::ostream & os, syntactic_continuation const& sc) -> decltype(auto)
     {
       return os << magenta << "#,("
                 << green << "syntactic-continuation" << reset

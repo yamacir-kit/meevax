@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
+#include <typeindex>
+
 #include <boost/math/constants/constants.hpp>
 
 #include <meevax/kernel/boolean.hpp>
@@ -8,8 +10,6 @@
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/floating_point.hpp>
 #include <meevax/kernel/ratio.hpp>
-
-#include <typeindex>
 
 namespace meevax
 {

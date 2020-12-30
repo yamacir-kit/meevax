@@ -11,7 +11,9 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntax.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   template <typename SK>
   class machine // Simple SECD machine.
@@ -44,31 +46,29 @@ namespace meevax { inline namespace kernel
 
   public:
     template <typename... Ts>
-    let define(const object& variable, Ts&&... expression)
+    let const& define(object const& variable, Ts&&... expression)
     {
       push(
         syntactic_environment(),
-        list( // TODO => cons
-          variable,
-          Perfect_Forward(expression)...));
+        cons(variable, std::forward<decltype(expression)>(expression)...));
 
       write_to(standard_debug_port(),
         header("define"),
         caar(syntactic_environment()),
         faint, " binds ", reset,
-        cadar(syntactic_environment()),
+        cdar(syntactic_environment()),
         "\n");
 
       return unspecified;
     }
 
-    let const& glocal_environment(const object& e)
+    let const& glocal_environment(object const& e)
     {
-      for (const auto& frame : e)
+      for (auto const& frame : e)
       {
-        if (frame and car(frame) and car(frame).is<SK>())
+        if (frame.is<pair>() and car(frame).is<SK>())
         {
-          return cdar(frame);
+          return cdar(frame); // SAME-AS car(frame).as<SK>().syntactic_environment();
         }
       }
 
@@ -87,11 +87,11 @@ namespace meevax { inline namespace kernel
     *
     *----------------------------------------------------------------------- */
     let compile(
-      const object& expression,
-      const object& syntactic_environment,
-      const object& frames = unit,
-      const object& continuation = list(make<instruction>(mnemonic::STOP)),
-      const compilation_context in_a = as_is)
+      object const& expression,
+      object const& syntactic_environment,
+      object const& frames = unit,
+      object const& continuation = list(make<instruction>(mnemonic::STOP)),
+      compilation_context const in_a = as_is)
     {
       if (expression.is<null>())
       {
@@ -110,62 +110,39 @@ namespace meevax { inline namespace kernel
             if (index.is_variadic())
             {
               debug(expression, faint, " ; is a <variadic bound variable> references ", reset, index);
-
-              return
-                cons(
-                  make<instruction>(mnemonic::LOAD_VARIADIC), index,
-                  continuation);
+              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), index, continuation);
             }
             else
             {
               debug(expression, faint, " ; is a <bound variable> references ", reset, index);
-
-              return
-                cons(
-                  make<instruction>(mnemonic::LOAD_LOCAL), index,
-                  continuation);
+              return cons(make<instruction>(mnemonic::LOAD_LOCAL), index, continuation);
             }
           }
           else if (expression.is<syntactic_closure>())
           {
             debug(expression, faint, " ; is <alias>");
-
-            return
-              cons(
-                make<instruction>(mnemonic::STRIP), expression,
-                continuation);
+            return cons(make<instruction>(mnemonic::STRIP), expression, continuation);
           }
           else
           {
             debug(expression, faint, " ; is a <glocal variable>");
-
-            return
-              cons(
-                make<instruction>(mnemonic::LOAD_GLOBAL), expression,
-                continuation);
+            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), expression, continuation);
           }
         }
         else // is <self-evaluating>
         {
           debug(expression, faint, " ; is <self-evaluating>");
-
-          return
-            cons(
-              make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-              continuation);
+          return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression, continuation);
         }
       }
       else // is (application . arguments)
       {
-        if (let const applicant = lookup(car(expression), syntactic_environment);
-            not applicant.is<null>() and not de_bruijn_index<default_equivalence_comparator>(car(expression), frames))
+        if (let const& applicant = lookup(car(expression), syntactic_environment);
+            not applicant.is<null>() and not de_bruijn_index(car(expression), frames))
         {
           if (applicant.is<syntax>())
           {
-            debug(
-              magenta, "(",
-              reset, car(expression),
-              faint, " ; is <primitive expression>");
+            debug(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>");
 
             indent() >> shift();
 
@@ -200,17 +177,14 @@ namespace meevax { inline namespace kernel
 
         auto result
         {
-          operand(
-            cdr(expression),
-            syntactic_environment,
-            frames,
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(in_a.tail_expression ? mnemonic::TAIL_CALL : mnemonic::CALL),
-                continuation)))
+          operand(cdr(expression),
+                  syntactic_environment,
+                  frames,
+                  compile(car(expression),
+                          syntactic_environment,
+                          frames,
+                          cons(make<instruction>(in_a.tail_expression ? mnemonic::TAIL_CALL
+                                                                      : mnemonic::     CALL), continuation)))
         };
 
         debug(magenta, ")");
@@ -224,14 +198,13 @@ namespace meevax { inline namespace kernel
     {
       assert(0 < depth);
 
-      for (auto iter { std::begin(c) }; iter; ++iter)
+      for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
       {
         write_to(standard_debug_port(), "; ");
 
         if (iter == c)
         {
-          write_to(standard_debug_port(),
-            std::string(4 * (depth - 1), ' '), magenta, "(   ");
+          write_to(standard_debug_port(), std::string(4 * (depth - 1), ' '), magenta, "(   ");
         }
         else
         {
@@ -359,15 +332,15 @@ namespace meevax { inline namespace kernel
       //   pop<2>(c);
       //   goto dispatch;
 
-      case mnemonic::LOAD_GLOBAL: /* ===========================================
+      case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
         *              S  E (LOAD-GLOBAL symbol . C) D
         * => (object . S) E                       C  D
         *
-        * =================================================================== */
-        if (let const binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
+        * ------------------------------------------------------------------- */
+        if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
         {
-          push(s, cadr(binding));
+          push(s, cdr(binding));
         }
         else // UNBOUND
         {
@@ -412,10 +385,8 @@ namespace meevax { inline namespace kernel
         * => (subprogram . S) E             C  D
         *
         * =================================================================== */
-        push(s,
-          make<SK>(
-            cons(s, e, cadr(c), d), // current-syntactic-continuation
-            syntactic_environment()));
+        push(s, make<SK>(cons(s, e, cadr(c), d), // current-syntactic-continuation
+                         syntactic_environment()));
         pop<2>(c);
         goto dispatch;
 
@@ -458,11 +429,7 @@ namespace meevax { inline namespace kernel
         *   => (identifier . S) E                      C  D
         *
         * =================================================================== */
-        if (0 < static_cast<SK&>(*this).generation)
-        {
-          // std::cerr << "; define\t; redefinition of " << cadr(c) << " is ignored" << std::endl;
-        }
-        else
+        if (static_cast<SK&>(*this).generation == 0)
         {
           car(s) = define(cadr(c), car(s));
         }
@@ -470,7 +437,7 @@ namespace meevax { inline namespace kernel
         goto dispatch;
 
       case mnemonic::CALL:
-        if (let const callee = car(s); callee.is<null>())
+        if (let const& callee = car(s); callee.is<null>())
         {
           throw error("unit is not appliciable");
         }
@@ -488,9 +455,8 @@ namespace meevax { inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(
-                caadr(s),
-                car(callee));
+          s = cons(caadr(s),
+                   car(callee));
           e =  cadr(callee);
           c = caddr(callee);
           d = cdddr(callee);
@@ -502,7 +468,7 @@ namespace meevax { inline namespace kernel
         goto dispatch;
 
       case mnemonic::TAIL_CALL:
-        if (let const callee = car(s); callee.is<null>())
+        if (let const& callee = car(s); callee.is<null>())
         {
           throw error("unit is not appliciable");
         }
@@ -519,8 +485,7 @@ namespace meevax { inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(
-                caadr(s),
+          s = cons(caadr(s),
                 car(callee));
           e =  cadr(callee);
           c = caddr(callee);
@@ -574,27 +539,27 @@ namespace meevax { inline namespace kernel
         *   (3) Should set with weak reference if right hand side is newer.
         *
         * =================================================================== */
-        if (let const pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
+        if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
-          if (let const value { cadr(pare) }; value.template is<null>() or car(s).template is<null>())
+          if (let const& value = cdr(pare); value.template is<null>() or car(s).template is<null>())
           {
-            cadr(pare) = car(s);
+            cdr(pare) = car(s);
           }
           else if (value.is<SK>() or value.is<syntax>())
           {
             /* ---- From R7RS 5.3.1. Top level definitions ---------------------
-            *
-            * However, if <variable> is not bound, or is a syntactic keyword,
-            * then the definition will bind <variable> to a new location before
-            * performing the assignment, whereas it would be an error to perform
-            * a set! on an unbound variable.
-            *
-            *---------------------------------------------------------------- */
+             *
+             *  However, if <variable> is not bound, or is a syntactic keyword,
+             *  then the definition will bind <variable> to a new location
+             *  before performing the assignment, whereas it would be an error
+             *  to perform a set! on an unbound variable.
+             *
+             * -------------------------------------------------------------- */
             define(cadr(c), car(s));
           }
           else
           {
-            std::atomic_store(&cadr(pare), car(s).copy());
+            std::atomic_store(&cdr(pare), car(s).copy());
           }
         }
         else // UNBOUND
@@ -657,85 +622,69 @@ namespace meevax { inline namespace kernel
       [[maybe_unused]] const object& continuation,                             \
       [[maybe_unused]] const compilation_context in_a = as_is)
 
-    /* ==== Quotation =========================================================
-    *
-    * <quotation> = (quote <datum>)
-    *
-    *======================================================================== */
+    /* ---- Quotation ----------------------------------------------------------
+     *
+     *  <quotation> = (quote <datum>)
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(quotation)
     {
       debug(car(expression), faint, " ; is <datum>");
-
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
-          continuation);
+      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
     }
 
-    /* ==== Sequence ==========================================================
-    *
-    * <sequence> = <command>* <expression>
-    *
-    * <command> = <expression>
-    *
-    *======================================================================== */
+    /* ---- Sequence ----------------------------------------------------------
+     *
+     *  <sequence> = <command>* <expression>
+     *
+     *  <command> = <expression>
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(sequence)
     {
       if (in_a.program_declaration)
       {
         if (cdr(expression).is<null>())
         {
-          return
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              continuation,
-              as_program_declaration);
+          return compile(car(expression),
+                         syntactic_environment,
+                         frames,
+                         continuation,
+                         as_program_declaration);
         }
         else
         {
-          return
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::DROP),
-                sequence(
-                  cdr(expression),
-                  syntactic_environment,
-                  frames,
-                  continuation,
-                  as_program_declaration)),
-              as_program_declaration);
+          return compile(car(expression),
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::DROP),
+                              sequence(cdr(expression),
+                                       syntactic_environment,
+                                       frames,
+                                       continuation,
+                                       as_program_declaration)),
+                         as_program_declaration);
         }
       }
       else
       {
         if (cdr(expression).is<null>()) // is tail sequence
         {
-          return
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              continuation);
+          return compile(car(expression),
+                         syntactic_environment,
+                         frames,
+                         continuation);
         }
         else
         {
-          return
-            compile(
-              car(expression), // head expression
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::DROP), // pop result of head expression
-                sequence(
-                  cdr(expression), // rest expressions
-                  syntactic_environment,
-                  frames,
-                  continuation)));
+          return compile(car(expression), // head expression
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::DROP), // pop result of head expression
+                              sequence(cdr(expression), // rest expressions
+                                       syntactic_environment,
+                                       frames,
+                                       continuation)));
         }
       }
     }
@@ -795,25 +744,19 @@ namespace meevax { inline namespace kernel
           // cdar(form) = <formals>
           //  cdr(form) = <body>
 
-          return
-            compile(
-              cons(intern("lambda"), cdar(expression), cdr(expression)),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::DEFINE), caar(expression),
-                continuation));
+          return compile(cons(intern("lambda"), cdar(expression), cdr(expression)),
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::DEFINE), caar(expression),
+                              continuation));
         }
         else // (define x ...)
         {
-          return
-            compile(
-              cdr(expression) ? cadr(expression) : unspecified,
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::DEFINE), car(expression),
-                continuation));
+          return compile(cdr(expression) ? cadr(expression) : unspecified,
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::DEFINE), car(expression),
+                              continuation));
         }
       }
       else
@@ -823,16 +766,16 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== Lambda Body ========================================================
+    /* ---- Lambda Body --------------------------------------------------------
      *
-     * <body> = <definition>* <sequence>
+     *  <body> = <definition>* <sequence>
      *
-     * ====================================================================== */
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(body)
     {
       const auto flag { in_a.program_declaration ? as_program_declaration : as_is };
 
-      auto is_definition = [&](const auto& form)
+      auto is_definition = [&](auto const& form)
       {
         try
         {
@@ -845,11 +788,11 @@ namespace meevax { inline namespace kernel
         }
       };
 
-      auto sweep = [&](const auto& form)
+      auto sweep = [&](auto const& form)
       {
         auto binding_specs { unit };
 
-        for (auto iter { std::begin(form) }; iter != std::end(form); ++iter)
+        for (auto iter = std::cbegin(form); iter != std::cend(form); ++iter)
         {
           if (is_definition(*iter))
           {
@@ -949,44 +892,37 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== Operand ===========================================================
-    *
-    * <operand> = <expression>
-    *
-    *======================================================================== */
+    /* ---- Operand ------------------------------------------------------------
+     *
+     *  <operand> = <expression>
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(operand)
     {
-      if (expression and expression.is<pair>())
+      if (expression.is<pair>())
       {
-        return
-          operand(
-            cdr(expression),
-            syntactic_environment,
-            frames,
-            compile(
-              car(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::CONS),
-                continuation)));
+        return operand(cdr(expression),
+                       syntactic_environment,
+                       frames,
+                       compile(car(expression),
+                               syntactic_environment,
+                               frames,
+                               cons(make<instruction>(mnemonic::CONS), continuation)));
       }
       else
       {
-        return
-          compile(
-            expression,
-            syntactic_environment,
-            frames,
-            continuation);
+        return compile(expression,
+                       syntactic_environment,
+                       frames,
+                       continuation);
       }
     }
 
-    /* ==== Conditional =======================================================
-    *
-    * <conditional> = (if <test> <consequent> <alternate>)
-    *
-    *======================================================================== */
+    /* ---- Conditional --------------------------------------------------------
+     *
+     *  <conditional> = (if <test> <consequent> <alternate>)
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(conditional)
     {
       debug(car(expression), faint, " ; is <test>");
@@ -1062,45 +998,35 @@ namespace meevax { inline namespace kernel
       }
     }
 
-    /* ==== Lambda Expression =================================================
-    *
-    * <lambda expression> = (lambda <formals> <body>)
-    *
-    *======================================================================== */
+    /* ---- Lambda Expression --------------------------------------------------
+     *
+     * <lambda expression> = (lambda <formals> <body>)
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(lambda)
     {
       debug(car(expression), faint, " ; is <formals>");
 
       if (in_a.program_declaration)
       {
-        return
-          cons(
-            make<instruction>(mnemonic::LOAD_CLOSURE),
-            body(
-              cdr(expression),
-              syntactic_environment,
-              cons(
-                car(expression), // <formals>
-                frames),
-              list(
-                make<instruction>(mnemonic::RETURN)),
-              as_program_declaration),
-            continuation);
+        return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
+                    body(cdr(expression),
+                         syntactic_environment,
+                         cons(car(expression), // <formals>
+                              frames),
+                         list(make<instruction>(mnemonic::RETURN)),
+                         as_program_declaration),
+                    continuation);
       }
       else
       {
-        return
-          cons(
-            make<instruction>(mnemonic::LOAD_CLOSURE),
-            body(
-              cdr(expression),
-              syntactic_environment,
-              cons(
-                car(expression), // <formals>
-                frames),
-              list(
-                make<instruction>(mnemonic::RETURN))),
-            continuation);
+        return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
+                    body(cdr(expression),
+                         syntactic_environment,
+                         cons(car(expression), // <formals>
+                              frames),
+                         list(make<instruction>(mnemonic::RETURN))),
+                    continuation);
       }
     }
 
@@ -1113,17 +1039,12 @@ namespace meevax { inline namespace kernel
     {
       debug(car(expression), faint, " ; is <procedure>");
 
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_CONTINUATION),
-          continuation,
-          compile(
-            car(expression),
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::CALL),
-              continuation)));
+      return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
+                  continuation,
+                  compile(car(expression),
+                          syntactic_environment,
+                          frames,
+                          cons(make<instruction>(mnemonic::CALL), continuation)));
     }
 
     /* ==== Fork ===============================================================
@@ -1135,10 +1056,7 @@ namespace meevax { inline namespace kernel
     {
       debug(car(expression), faint, " ; is <subprogram>");
 
-      return
-        cons(
-          make<instruction>(mnemonic::FORK), cons(car(expression), frames),
-          continuation);
+      return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
 
       // return
       //   compile(
@@ -1168,41 +1086,29 @@ namespace meevax { inline namespace kernel
         {
           debug(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
 
-          return
-            compile(
-              cadr(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::STORE_VARIADIC), index,
-                continuation));
+          return compile(cadr(expression),
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::STORE_VARIADIC), index, continuation));
         }
         else
         {
           debug(car(expression), faint, "; is a <bound variable> references ", reset, index);
 
-          return
-            compile(
-              cadr(expression),
-              syntactic_environment,
-              frames,
-              cons(
-                make<instruction>(mnemonic::STORE_LOCAL), index,
-                continuation));
+          return compile(cadr(expression),
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::STORE_LOCAL), index, continuation));
         }
       }
       else
       {
         debug(car(expression), faint, "; is a <glocal variable>");
 
-        return
-          compile(
-            cadr(expression),
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::STORE_GLOBAL), car(expression),
-              continuation));
+        return compile(cadr(expression),
+                       syntactic_environment,
+                       frames,
+                       cons(make<instruction>(mnemonic::STORE_GLOBAL), car(expression), continuation));
       }
     }
 
@@ -1217,46 +1123,29 @@ namespace meevax { inline namespace kernel
       if (expression.is<null>())
       {
         debug(car(expression), faint, " ; is <identifier> of itself");
-
         return unit;
       }
-      else if (de_bruijn_index<
-                 equivalence_comparator<2>
-               > variable {
-                 car(expression),
-                 frames
-               }; variable)
+      else if (de_bruijn_index<equivalence_comparator<2>> variable { car(expression), frames }; variable)
       {
         if (variable.is_variadic())
         {
           debug(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable);
-
-          return
-            cons(
-              make<instruction>(mnemonic::LOAD_VARIADIC), variable,
-              continuation);
+          return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable, continuation);
         }
         else
         {
           debug(car(expression), faint, " ; is <identifier> of local ", reset, variable);
-
-          return
-            cons(
-              make<instruction>(mnemonic::LOAD_LOCAL), variable,
-              continuation);
+          return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable, continuation);
         }
       }
       else
       {
         debug(car(expression), faint, " ; is <identifier> of glocal variable");
-
-        return
-          cons(
-            make<instruction>(mnemonic::LOAD_GLOBAL), car(expression),
-            continuation);
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), car(expression), continuation);
       }
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_MACHINE_HPP

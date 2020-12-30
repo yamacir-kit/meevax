@@ -2,28 +2,16 @@
 
 namespace std
 {
-  auto cbegin(const meevax::kernel::object& x) -> meevax::homoiconic_iterator
-  {
-    return x;
-  }
-
-  auto begin(const meevax::kernel::object& x) -> meevax::homoiconic_iterator
-  {
-    return x;
-  }
-
-  auto cend(const meevax::kernel::object&) -> meevax::homoiconic_iterator
-  {
-    return meevax::unit;
-  }
-
-  auto end(const meevax::kernel::object&) -> meevax::homoiconic_iterator
-  {
-    return meevax::unit;
-  }
+  auto cbegin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const> { return x; }
+  auto  begin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const> { return x; }
+  // auto  begin(meevax::object      & x) -> meevax::homoiconic_iterator<meevax::object      > { return x; }
+  auto   cend(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const> { return meevax::unit; }
+  auto    end(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const> { return meevax::unit; }
 } // namespace std
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   inline namespace predicate
   {
@@ -94,4 +82,5 @@ namespace meevax { inline namespace kernel
       }
     }
   } // namespace miscellaneous
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

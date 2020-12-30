@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/list.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   template <typename Comparator = default_equivalence_comparator>
   class de_bruijn_index
@@ -19,7 +21,7 @@ namespace meevax { inline namespace kernel
       : object { lookup(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    const object lookup(const object& value, const object& frames)
+    let lookup(object const& value, object const& frames)
     {
       auto layer {0};
 
@@ -29,23 +31,15 @@ namespace meevax { inline namespace kernel
 
         for (auto iter { std::begin(frame) }; iter != std::end(frame); ++iter)
         {
-          if (iter.is<pair>() and compare(*iter, value))
+          if (static_cast<object const&>(iter).is<pair>() and compare(*iter, value))
           {
             variadic = false;
-
-            return
-              cons(
-                make<exact_integer>(layer),
-                make<exact_integer>(index));
+            return cons(make<exact_integer>(layer), make<exact_integer>(index));
           }
-          else if (iter.is<symbol>() and compare(iter, value))
+          else if (static_cast<object const&>(iter).is<symbol>() and compare(iter, value))
           {
             variadic = true;
-
-            return
-              cons(
-                make<exact_integer>(layer),
-                make<exact_integer>(index));
+            return cons(make<exact_integer>(layer), make<exact_integer>(index));
           }
 
           ++index;
@@ -62,6 +56,7 @@ namespace meevax { inline namespace kernel
       return variadic;
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_DE_BRUJIN_INDEX_HPP

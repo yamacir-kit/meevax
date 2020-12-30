@@ -37,7 +37,7 @@ inline namespace kernel
 
   let read_string(std::istream& port);
 
-  let make_string(const std::string&);
+  let make_string(std::string const&);
 
   /* ---- Number Constructor ---------------------------------------------------
    *
@@ -55,7 +55,7 @@ inline namespace kernel
     template <> auto digit<16>() -> std::string;
 
     template <std::size_t R>
-    auto digits(const std::string& quantifier)
+    auto digits(std::string const& quantifier)
     {
       return digit<R>() + quantifier;
     }
@@ -138,7 +138,7 @@ inline namespace kernel
   } // inline namespace lexical_structure
 
   template <std::size_t R = 10>
-  auto is_number(const std::string& token)
+  auto is_number(std::string const& token)
   {
     static const std::regex pattern { number<R>() };
     std::smatch result {};
@@ -146,7 +146,7 @@ inline namespace kernel
   }
 
   template <std::size_t R = 10>
-  let make_number(const std::string& token)
+  let make_number(std::string const& token)
   {
     static const std::unordered_map<std::string, object> srfi_144
     {
@@ -339,13 +339,9 @@ inline namespace kernel
       return eof_object;
     }
 
-    auto read(const object& x) -> decltype(auto)
+    auto read(object const& x) -> decltype(auto)
     {
-      if (x.is<null>())
-      {
-        throw read_error<void>(__FILE__, ":", __LINE__);
-      }
-      else if (x.is_polymorphically<input_port>())
+      if (x.is_polymorphically<input_port>())
       {
         return read(x.as<input_port>());
       }

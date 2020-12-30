@@ -31,7 +31,7 @@ namespace meevax { inline namespace kernel
 
   auto strip(let const & id)
   {
-    if (not id.is<null>() and id.is<syntactic_closure>())
+    if (id.is<syntactic_closure>())
     {
       return id.as<syntactic_closure>().strip();
     }
@@ -41,11 +41,11 @@ namespace meevax { inline namespace kernel
     }
   }
 
-  auto lookup(let const & x, let const & env)
+  auto lookup(let const& x, let const& env)
   {
-    if (const object binding { assq(x, env) }; not binding.eqv(f))
+    if (let const& binding = assq(x, env); not binding.eqv(f))
     {
-      return cadr(binding); // TODO must be cdr(binding)
+      return cdr(binding);
     }
     else
     {
