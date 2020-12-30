@@ -635,8 +635,7 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        return make<character>(
-          x.as<exact_integer>().value.convert_to<std::uint32_t>());
+        return make<character>(x.as<exact_integer>().to<std::uint32_t>());
       }
       else
       {
@@ -1356,7 +1355,7 @@ inline namespace kernel
       }
       else
       {
-        std::exit(car(xs).as<exact_integer>().value.convert_to<int>());
+        std::exit(car(xs).as<exact_integer>().to<int>());
       }
 
       return unspecified;

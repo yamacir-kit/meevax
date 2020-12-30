@@ -19,10 +19,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g -pg")
+set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g -pg")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -s -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -flto")
 
 include(GNUInstallDirs)
 
@@ -30,7 +30,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_L
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
 find_package(Boost REQUIRED)
-find_package(Threads REQUIRED)
+# find_package(Threads REQUIRED)
 
 
 # ==============================================================================
@@ -136,7 +136,8 @@ target_include_directories(kernel PUBLIC
 
 target_link_libraries(kernel PRIVATE
   Boost::boost
-  Threads::Threads)
+  # Threads::Threads
+  )
 
 target_link_libraries(kernel PUBLIC
   ${CMAKE_DL_LIBS}
