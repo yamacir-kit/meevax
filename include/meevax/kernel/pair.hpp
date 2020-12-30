@@ -73,7 +73,6 @@ inline namespace kernel
       return std::get<1>(std::forward<decltype(x)>(x));
     }
   };
-
 } // namespace kernel
 } // namespace meevax
 

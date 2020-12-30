@@ -15,6 +15,37 @@ namespace meevax
 {
 inline namespace kernel
 {
+  // TODO RENAME TO make_number (current make_number => read_number)
+  auto make_reduce = [](auto&& z)
+  {
+    if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)
+    {
+      if (auto const x = z.reduce(); x.is_integer())
+      {
+        return car(x);
+      }
+      else
+      {
+        return make(x);
+      }
+    }
+    // else if constexpr (std::is_same<typename std::decay<decltype(z)>::type, floating_point<double>>::value)
+    // {
+    //   if (z.is_integer())
+    //   {
+    //     return make<exact_integer>(z.value);
+    //   }
+    //   else
+    //   {
+    //     return make(z);
+    //   }
+    // }
+    else
+    {
+      return make(std::forward<decltype(z)>(z));
+    }
+  };
+
   template <typename R, typename F, typename T>
   auto apply(F&& procedure, T const& a, object const& b) -> decltype(auto)
   {
@@ -40,25 +71,6 @@ inline namespace kernel
   template <typename F, typename T>
   auto apply(F&& procedure, T const& a, object const& b) -> decltype(auto)
   {
-    auto make_reduce = [](auto&& c)
-    {
-      if constexpr (std::is_same<typename std::decay<decltype(c)>::type, ratio>::value)
-      {
-        if (auto const x = c.reduce(); x.is_integer())
-        {
-          return car(x);
-        }
-        else
-        {
-          return make(x);
-        }
-      }
-      else
-      {
-        return make(std::forward<decltype(c)>(c));
-      }
-    };
-
     static std::unordered_map<
       std::type_index, std::function<object (T const&, object const&)>> const overloads
     {
@@ -77,6 +89,28 @@ inline namespace kernel
       throw error("no viable operation '", typeid(F).name(), "' with ", a, " and ", b);
     }
   }
+
+  // template <typename F>
+  // auto apply(F&& f, object const& x) -> decltype(auto)
+  // {
+  //   static std::unordered_map<
+  //     std::type_index, std::function<object (object const&)>> const overloads
+  //   {
+  //     { typeid(single_float),  [&](let const& x) { return make_reduce(f(x.as<single_float>() .as_inexact<decltype(0.0)>())); } },
+  //     { typeid(double_float),  [&](let const& x) { return make_reduce(f(x.as<double_float>() .as_inexact<decltype(0.0)>())); } },
+  //     { typeid(ratio),         [&](let const& x) { return make_reduce(f(x.as<ratio>()        .as_inexact<decltype(0.0)>())); } },
+  //     { typeid(exact_integer), [&](let const& x) { return make_reduce(f(x.as<exact_integer>().as_inexact<decltype(0.0)>())); } },
+  //   };
+  //
+  //   if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
+  //   {
+  //     return std::get<1>(*iter)(x);
+  //   }
+  //   else
+  //   {
+  //     throw error("no viable operation '", typeid(F).name(), "' with ", x);
+  //   }
+  // }
 
   auto operator * (exact_integer const&, object const&) -> object;
   auto operator + (exact_integer const&, object const&) -> object;
