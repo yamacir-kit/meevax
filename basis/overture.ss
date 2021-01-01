@@ -1007,8 +1007,6 @@
         (if (integer? x) 1.0
             (inexact (denominator (exact x))) ))))
 
-; TODO round
-
 (define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm
   (lambda (x e)
     (define sr
@@ -1037,40 +1035,21 @@
 (define log
   (lambda (z . base)
     (if (pair? base)
-        (/ (ln x)
+        (/ (ln z)
            (ln (car base)))
-        (ln x))))
+        (ln z))))
 
 (define atan
-  (lambda (y . x)
-    (if (not (pair? x))
-        (atan-1 y)
-        (let ((x (inexact (car x))))
-          (if (and (infinite? x)
-                   (infinite? y))
-              (* 0.7853981633974483
-                 (if (< y 0) -1 1)
-                 (if (= x -inf.0) 3 1))
-              (if (negative? x)
-                  (if (or (negative? y)
-                          (= y -0.0))
-                      (- (atan-1 (/ y x)) pi)
-                      (- pi (atan-1 (/ y (- x)))))
-                  (if (and (zero? x)
-                           (zero? y))
-                      (* (if (= y -0.0) -1 1)
-                         (if (= x -0.0) pi x))
-                      (atan-1 (/ y x)) )))))))
+  (lambda (y . o)
+    (if (pair? o)
+        (atan-2 y (car o))
+        (atan-1 y))))
 
 (define square
   (lambda (z)
     (* z z)))
 
-(define sqrt square-root)
-
 ; TODO exact-integer-sqrt
-
-(define expt exponential)
 
 (define make-rectangular
   (lambda (x y)

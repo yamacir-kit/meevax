@@ -58,38 +58,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<2>)
   {
-    #define DEFINE_ELEMENTARY_FUNCTION(SYMBOL, FUNCTION)                       \
-    define<procedure>(SYMBOL, [&](auto&& xs)                                   \
-    {                                                                          \
-      if (let const& x = car(xs); x.is<null>())                                \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-      else if (x.is<exact_integer>())                                          \
-      {                                                                        \
-        if (const floating_point result { FUNCTION(x.as<exact_integer>().as_inexact<decltype(0.0)>()) }; result.is_integer()) \
-        {                                                                      \
-          return make<exact_integer>(result.to_string());                      \
-        }                                                                      \
-        else                                                                   \
-        {                                                                      \
-          return make(result);                                                 \
-        }                                                                      \
-      }                                                                        \
-      else if (x.is<single_float>())                                           \
-      {                                                                        \
-        return make(floating_point(FUNCTION(x.as<single_float>())));           \
-      }                                                                        \
-      else if (x.is<double_float>())                                           \
-      {                                                                        \
-        return make(floating_point(FUNCTION(x.as<double_float>())));           \
-      }                                                                        \
-      else                                                                     \
-      {                                                                        \
-        return f;                                                              \
-      }                                                                        \
-    })
-
   /* ---- R7RS 6.1. Equivalence predicates -------------------------------------
 
       ┌────────────────────┬────────────┬────────────────────────────────────┐
@@ -240,7 +208,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ truncate           │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ round              │ TODO       │                                    │
+     │ round              │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ rationalize        │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -262,11 +230,11 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ square             │ Scheme     │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ square-root        │ C++        │ sqrt                               │
+     │ sqrt               │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ exact-integer-sqrt │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ exponential        │ TODO       │ expt                               │
+     │ expt               │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ make-rectangular   │ Scheme     │ complex library procedure          │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -359,55 +327,35 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
+    define<procedure>("floor"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::floor(x   ); }, car(xs)          ); });
+    define<procedure>("ceiling" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::ceil (x   ); }, car(xs)          ); });
+    define<procedure>("truncate", [](let const& xs) { return apply_1([](auto&& x          ) { return std::trunc(x   ); }, car(xs)          ); });
+    define<procedure>("round"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::round(x   ); }, car(xs)          ); });
 
-    DEFINE_ELEMENTARY_FUNCTION("floor", std::floor); // XXX DIRTY HACK!
-    DEFINE_ELEMENTARY_FUNCTION("ceiling", std::ceil); // XXX DIRTY HACK!
-    DEFINE_ELEMENTARY_FUNCTION("truncate", std::trunc); // XXX DIRTY HACK!
+    define<procedure>( "sin"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
+    define<procedure>( "sinh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
+    define<procedure>("asinh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asinh(x   ); }, car(xs)          ); });
+    define<procedure>("asin"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asin (x   ); }, car(xs)          ); });
 
+    define<procedure>( "cos"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cos (x   ); }, car(xs)          ); });
+    define<procedure>( "cosh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cosh(x   ); }, car(xs)          ); });
+    define<procedure>("acosh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acosh(x   ); }, car(xs)          ); });
+    define<procedure>("acos"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acos (x   ); }, car(xs)          ); });
 
-    DEFINE_ELEMENTARY_FUNCTION("exp", std::exp); // natural exponential
+    define<procedure>( "tan"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tan (x   ); }, car(xs)          ); });
+    define<procedure>( "tanh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tanh(x   ); }, car(xs)          ); });
+    define<procedure>("atanh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atanh(x   ); }, car(xs)          ); });
+    define<procedure>("atan-1"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atan (x   ); }, car(xs)          ); });
+    define<procedure>("atan-2"  , [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
 
-    DEFINE_ELEMENTARY_FUNCTION("sin", std::sin);
-    DEFINE_ELEMENTARY_FUNCTION("cos", std::cos);
-    DEFINE_ELEMENTARY_FUNCTION("tan", std::tan);
+    define<procedure>("sqrt"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::sqrt (x   ); }, car(xs)          ); });
 
-    DEFINE_ELEMENTARY_FUNCTION("asin", std::asin);
-    DEFINE_ELEMENTARY_FUNCTION("acos", std::acos);
-    DEFINE_ELEMENTARY_FUNCTION("atan", std::atan);
-
-    DEFINE_ELEMENTARY_FUNCTION("sinh", std::sinh);
-    DEFINE_ELEMENTARY_FUNCTION("cosh", std::cosh);
-    DEFINE_ELEMENTARY_FUNCTION("tanh", std::tanh);
-
-    DEFINE_ELEMENTARY_FUNCTION("asinh", std::asinh);
-    DEFINE_ELEMENTARY_FUNCTION("acosh", std::acosh);
-    DEFINE_ELEMENTARY_FUNCTION("atanh", std::atanh);
-
-    // TODO ln
-    // TODO atan & atan2
-
-
-    DEFINE_ELEMENTARY_FUNCTION("square-root", std::sqrt);
-
-
-    define<procedure>("exponential", [](let const& xs)
-    {
-      if (const floating_point result {
-            std::pow(inexact( car(xs)).as<default_float>(),
-                     inexact(cadr(xs)).as<default_float>()) }; result.is_integer())
-      {
-        return make(result.as_exact());
-      }
-      else
-      {
-        return make(result);
-      }
-    });
-
+    define<procedure>("ln"      , [](let const& xs) { return apply_1([](auto&& x          ) { return std::log  (x   ); }, car(xs)          ); });
+    define<procedure>("exp"     , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
+    define<procedure>("expt"    , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
 
     define<procedure>(  "exact", [](auto&& xs) { return   exact(car(xs)); });
     define<procedure>("inexact", [](auto&& xs) { return inexact(car(xs)); });
-
 
     define<procedure>("number->string", [](auto&& xs)
     {
@@ -635,8 +583,7 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        return make<character>(
-          x.as<exact_integer>().value.convert_to<std::uint32_t>());
+        return make<character>(x.as<exact_integer>().to<std::uint32_t>());
       }
       else
       {
@@ -1356,7 +1303,7 @@ inline namespace kernel
       }
       else
       {
-        std::exit(car(xs).as<exact_integer>().value.convert_to<int>());
+        std::exit(car(xs).as<exact_integer>().to<int>());
       }
 
       return unspecified;

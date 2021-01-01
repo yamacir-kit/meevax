@@ -8,6 +8,7 @@
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax
@@ -208,7 +209,7 @@ inline namespace kernel
    *   - car                              => car
    *   - cdr                              => cdr
    *   - cxr
-   *   - list-ref                         => list_reference
+   *   - list-ref                         => list_ref
    *   - list-tail                        => list_tail
    *
    * Selectors
@@ -260,15 +261,23 @@ inline namespace kernel
     auto cdddar = functional::compose(cdr, cddar);
     auto cddddr = functional::compose(cdr, cdddr);
 
-    auto list_tail = [](auto&& x, auto&& k) constexpr
+    template <typename T>
+    constexpr decltype(auto) list_tail(T&& x, std::size_t k)
     {
       return std::next(std::cbegin(std::forward<decltype(x)>(x)), k);
-    };
+    }
 
-    auto list_reference = [](auto&&... xs)
+    template <typename T>
+    decltype(auto) list_tail(T&& x, object const& k)
+    {
+      return list_tail(std::forward<decltype(x)>(x), k.as<exact_integer>().to<std::size_t>());
+    }
+
+    template <typename... Ts>
+    constexpr decltype(auto) list_ref(Ts&&... xs)
     {
       return car(list_tail(std::forward<decltype(xs)>(xs)...));
-    };
+    }
 
     let take(const object& exp, std::size_t size);
   }

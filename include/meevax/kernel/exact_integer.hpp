@@ -35,6 +35,12 @@ inline namespace kernel
 
     static constexpr std::true_type is_integer {};
 
+    template <typename T>
+    auto to() const
+    {
+      return value.convert_to<T>();
+    }
+
     auto to_string() const
     {
       return value.str();
@@ -48,7 +54,7 @@ inline namespace kernel
     template <typename T, REQUIRES(std::is_floating_point<T>)>
     auto as_inexact() const
     {
-      return floating_point(value.convert_to<T>());
+      return floating_point(to<T>());
     }
 
     operator value_type() const noexcept { return value; }

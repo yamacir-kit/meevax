@@ -247,7 +247,7 @@ inline namespace kernel
       return binding().copy();
     }
 
-    bool eqv(const pointer& rhs) const
+    bool eqv(pointer const& rhs) const
     {
       return type() != rhs.type() ? false : binding().eqv(rhs);
     }

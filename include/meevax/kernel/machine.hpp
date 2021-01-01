@@ -275,39 +275,27 @@ inline namespace kernel
 
       switch (car(c).template as<instruction>().code)
       {
-      case mnemonic::LOAD_LOCAL: /* ============================================
+      case mnemonic::LOAD_LOCAL: /* --------------------------------------------
         *
         *              S  E (LOAD-LOCAL (i . j) . C) D
         * => (result . S) E                       C  D
         *
         * where result = (list-ref (list-ref E i) j)
         *
-        * =================================================================== */
-        push(
-          s,
-          list_reference(
-            list_reference(
-              e,
-              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
+        * ------------------------------------------------------------------- */
+        push(s, list_ref(list_ref(e, caadr(c)), cdadr(c)));
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_VARIADIC: /* =========================================
+      case mnemonic::LOAD_VARIADIC: /* -----------------------------------------
         *
         *              S  E (LOAD-VARIADIC (i . j) . C) D
         * => (result . S) E                          C  D
         *
         * where result = (list-tail (list-ref E i) j)
         *
-        * =================================================================== */
-        push(
-          s,
-          list_tail(
-            list_reference(
-              e,
-              caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-            cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()));
+        * ------------------------------------------------------------------- */
+        push(s, list_tail(list_ref(e, caadr(c)), cdadr(c)));
         pop<2>(c);
         goto dispatch;
 
@@ -359,22 +347,22 @@ inline namespace kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_CLOSURE: /* ==========================================
+      case mnemonic::LOAD_CLOSURE: /* ------------------------------------------
         *
         *               S  E (LOAD-CLOSURE body . C) D
         * => (closure . S) E                      C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         push(s, make<closure>(cadr(c), e));
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_CONTINUATION: /* =====================================
+      case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
         *
         *                      S  E (LDK cc . C) D
         * => ((continuation) . S) E           C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         push(s, list(make<continuation>(s, cons(e, cadr(c), d))));
         pop<2>(c);
         goto dispatch;
@@ -390,14 +378,14 @@ inline namespace kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::SELECT: /* ================================================
+      case mnemonic::SELECT: /* ------------------------------------------------
         *
         *    (test . S) E (SELECT consequent alternate . C)  D
         * =>         S  E         selection             (C . D)
         *
         * where selection = (if test consequent alternate)
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         push(d, cdddr(c));
         [[fallthrough]];
 
@@ -455,8 +443,9 @@ inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(caadr(s),
-                   car(callee));
+          s = cons(
+                caadr(s),
+                car(callee));
           e =  cadr(callee);
           c = caddr(callee);
           d = cdddr(callee);
@@ -497,33 +486,33 @@ inline namespace kernel
         }
         goto dispatch;
 
-      case mnemonic::RETURN: /* ================================================
+      case mnemonic::RETURN: /* ------------------------------------------------
         *
         *      (result . S)  E (RETURN . C) (S' E' C' . D)
         *   => (result . S') E'          C'             D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         s = cons(car(s), pop(d));
         e = pop(d);
         c = pop(d);
         goto dispatch;
 
-      case mnemonic::CONS: /* ==================================================
+      case mnemonic::CONS: /* --------------------------------------------------
         *
         *      ( X   Y  . S) E (CONS . C) D
         *   => ((X . Y) . S) E         C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         s = cons(cons(car(s), cadr(s)), cddr(s));
         pop<1>(c);
         goto dispatch;
 
-      case mnemonic::DROP: /* ==================================================
+      case mnemonic::DROP: /* --------------------------------------------------
         *
         *     (result . S) E (DROP . C) D
         *   =>          S  E         C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         pop<1>(s);
         pop<1>(c);
         goto dispatch;
@@ -572,32 +561,18 @@ inline namespace kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::STORE_LOCAL: /* ===========================================
+      case mnemonic::STORE_LOCAL: /* -------------------------------------------
         *
         *      (value . S) E (STORE-LOCAL (i . j) . C) D
         *   => (value . S) E                        C  D
         *
-        * =================================================================== */
-        std::atomic_store(&
-          car(
-            list_tail(
-              list_reference(
-                e,
-                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
-          car(s));
+        * ------------------------------------------------------------------- */
+        std::atomic_store(&car(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
         pop<2>(c);
         goto dispatch;
 
       case mnemonic::STORE_VARIADIC:
-        std::atomic_store(&
-          cdr(
-            list_tail(
-              list_reference(
-                e,
-                caadr(c).template as<exact_integer>().value.template convert_to<std::size_t>()),
-              cdadr(c).template as<exact_integer>().value.template convert_to<std::size_t>())),
-          car(s));
+        std::atomic_store(&cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
         pop<2>(c);
         goto dispatch;
 
