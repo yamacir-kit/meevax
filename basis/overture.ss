@@ -996,39 +996,14 @@
     (if (ratio? x)
         (car x)
         (if (exact? x) x
-            (inexact (numerator (exact x))) ))))
+            (inexact (numerator (exact x)))))))
 
 (define denominator
   (lambda (x)
     (if (exact? x)
         (if (ratio? x) (cdr x) 1)
         (if (integer? x) 1.0
-            (inexact (denominator (exact x))) ))))
-
-(define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm
-  (lambda (x e)
-    (define sr
-      (lambda (x y return)
-        (let ((fx (floor x))
-              (fy (floor y)))
-          (cond
-            ((>= fx x)
-             (return fx 1))
-            ((= fx fy)
-             (sr (/ (- y fy))
-                 (/ (- x fx))
-                 (lambda (n d)
-                   (return (+ d (* fx n)) n))))
-            (else
-              (return (+ fx 1) 1))))))
-    (let ((return (if (not (negative? x)) /
-                      (lambda (num den)
-                        (/ (- num) den))))
-          (x (abs x))
-          (e (abs e)))
-      (sr (- x e)
-          (+ x e)
-          return))))
+            (inexact (denominator (exact x)))))))
 
 (define log
   (lambda (z . base)

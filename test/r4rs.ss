@@ -838,16 +838,15 @@
 
 ; ---- Procedure (numerator q) -------------------------------------------------
 
-; (check (numerator (/ 6 4)) => 3)
+(check (numerator (/ 6 4)) => 3)
 
 ; ---- Procedure (denominator q) -----------------------------------------------
 
-; (check (denominator (/ 6 4)) => 2)
+(check (denominator (/ 6 4)) => 2)
 
-; (check
-;   (denominator
-;     (exact->inexact (/ 6 4)))
-;   => 2.0)
+(check
+  (denominator
+    (inexact (/ 6 4))) => 2.0)
 
 ; ---- Procedure (floor x) -----------------------------------------------------
 ; ---- Procedure (ceiling x) ---------------------------------------------------

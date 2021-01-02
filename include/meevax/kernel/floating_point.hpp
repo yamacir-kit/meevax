@@ -35,9 +35,19 @@ inline namespace kernel
       return boost::lexical_cast<std::string>(value);
     }
 
-    auto as_exact() const
+    auto as_exact() const -> decltype(auto)
     {
-      return static_cast<exact_integer>(value);
+      /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
+       *
+       *  The procedure exact returns an exact representation of z. The value
+       *  returned is the exact number that is numerically closest to the
+       *  argument. For exact arguments, the result is the same as the argument.
+       *  For inexact non-integral real arguments, the implementation may return
+       *  a rational approximation, or may report an implementation
+       *
+       * -------------------------------------------------------------------- */
+
+      return ratio(value);
     }
 
     template <typename U, REQUIRES(std::is_floating_point<U>)>

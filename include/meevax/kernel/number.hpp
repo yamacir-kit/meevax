@@ -377,7 +377,7 @@ inline namespace kernel
   template <typename T>
   T resolve(std::unordered_map<std::type_index, std::function<T (object const&)>> const& overloads, object const& x)
   {
-    if (auto const iter { overloads.find(x.type()) }; iter != std::end(overloads))
+    if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
     {
       return std::get<1>(*iter)(x);
     }
@@ -392,10 +392,10 @@ inline namespace kernel
     static std::unordered_map<
       std::type_index, std::function<object (object const&)>> const overloads
     {
-      { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_exact()); } },
-      { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_exact()); } },
-      { typeid(ratio),         [](let const& x) { return make(x.as<ratio>()        .as_exact()); } },
-      { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_exact()); } },
+      { typeid(single_float),  [](let const& x) { return make_reduce(x.as<single_float >().as_exact()); } },
+      { typeid(double_float),  [](let const& x) { return make_reduce(x.as<double_float >().as_exact()); } },
+      { typeid(ratio),         [](let const& x) { return make_reduce(x.as<ratio        >().as_exact()); } },
+      { typeid(exact_integer), [](let const& x) { return make_reduce(x.as<exact_integer>().as_exact()); } },
     };
 
     return resolve(overloads, z);
@@ -406,9 +406,9 @@ inline namespace kernel
     static std::unordered_map<
       std::type_index, std::function<object (object const&)>> const overloads
     {
-      { typeid(single_float),  [](let const& x) { return make(x.as<single_float>() .as_inexact<decltype(0.0)>()); } },
-      { typeid(double_float),  [](let const& x) { return make(x.as<double_float>() .as_inexact<decltype(0.0)>()); } },
-      { typeid(ratio),         [](let const& x) { return make(x.as<ratio>()        .as_inexact<decltype(0.0)>()); } },
+      { typeid(single_float),  [](let const& x) { return make(x.as<single_float >().as_inexact<decltype(0.0)>()); } },
+      { typeid(double_float),  [](let const& x) { return make(x.as<double_float >().as_inexact<decltype(0.0)>()); } },
+      { typeid(ratio),         [](let const& x) { return make(x.as<ratio        >().as_inexact<decltype(0.0)>()); } },
       { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_inexact<decltype(0.0)>()); } },
     };
 
