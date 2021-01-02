@@ -231,7 +231,7 @@ inline namespace kernel
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator - (exact_integer const&, exact_integer const&) -> exact_integer;
-  auto operator / (exact_integer const&, exact_integer const&) -> exact_integer;
+  auto operator / (exact_integer const&, exact_integer const&) -> ratio;
   auto operator % (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator !=(exact_integer const&, exact_integer const&) -> boolean;
   auto operator < (exact_integer const&, exact_integer const&) -> boolean;
