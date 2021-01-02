@@ -30,17 +30,6 @@ inline namespace kernel
         return make(x);
       }
     }
-    // else if constexpr (std::is_same<typename std::decay<decltype(z)>::type, floating_point<double>>::value)
-    // {
-    //   if (z.is_integer())
-    //   {
-    //     return make<exact_integer>(z.value);
-    //   }
-    //   else
-    //   {
-    //     return make(z);
-    //   }
-    // }
     else
     {
       return make(std::forward<decltype(z)>(z));
@@ -103,13 +92,13 @@ inline namespace kernel
     static std::unordered_map<
       std::type_index, std::function<object (T const&, object const&)>> const overloads
     {
-      { typeid(single_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<single_float> ())); } },
-      { typeid(double_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<double_float> ())); } },
-      { typeid(ratio),         [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<ratio>        ())); } },
+      { typeid(single_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<single_float >())); } },
+      { typeid(double_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<double_float >())); } },
+      { typeid(ratio),         [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<ratio        >())); } },
       { typeid(exact_integer), [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<exact_integer>())); } },
     };
 
-    if (auto const iter { overloads.find(b.type()) }; iter != std::end(overloads))
+    if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
     {
       return std::get<1>(*iter)(a, b);
     }
@@ -130,7 +119,7 @@ inline namespace kernel
    *
    *  Usage:
    *
-   *    apply(std::sin, )
+   *    apply(std::sin, make<double_float>(1.0));
    *
    * ------------------------------------------------------------------------ */
   template <typename F>
