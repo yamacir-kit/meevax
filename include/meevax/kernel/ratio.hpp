@@ -48,7 +48,7 @@ inline namespace kernel
         x_n = a_n - static_cast<int>(a_n);
 
         auto old_1 = v1;
-        v1 = static_cast<int>(a_n) * v1 + v2;
+        v1 = static_cast<T>(static_cast<int>(a_n)) * v1 + v2;
         v2 = old_1;
       }
 
