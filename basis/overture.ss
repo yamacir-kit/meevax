@@ -963,13 +963,11 @@
     (values (truncate-quotient x y)
             (truncate-remainder x y))))
 
-(define quotient truncate-quotient) ; for backward compatibility
-
+(define quotient  truncate-quotient)  ; for backward compatibility
 (define remainder truncate-remainder) ; for backward compatibility
+(define modulo       floor-remainder) ; for backward compatibility
 
-(define modulo floor-remainder) ; for backward compatibility
-
-(define gcd
+(define gcd ; from Chibi-Scheme lib/init7.scm
   (lambda xs
     (define gcd-2
       (lambda (a b)
@@ -982,16 +980,16 @@
           (if (null? ns) n
               (rec (gcd-2 n (car ns)) (cdr ns)) )))))
 
-(define lcm
+(define lcm ; from Chibi-Scheme lib/init7.scm
   (lambda xs
     (define lcm-2
       (lambda (a b)
         (abs (quotient (* a b) (gcd a b)))))
     (if (null? xs) 1
         (let rec ((n  (car xs))
-                  (ns (cdr ns)))
+                  (ns (cdr xs)))
           (if (null? ns) n
-              (rec (lcm-2 n (car ns)) (cdr ns)) )))))
+              (rec (lcm-2 n (car ns)) (cdr ns)))))))
 
 (define numerator
   (lambda (x)
