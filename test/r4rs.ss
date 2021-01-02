@@ -915,6 +915,8 @@
 ; ---- Procedure (exact->inexact z) --------------------------------------------
 ; ---- Procedure (inexact->exact z) --------------------------------------------
 
+(check (exact 0.333333333333) => 1/3)
+
 ; ---- 6.5.6. Numerical input and output ---------------------------------------
 
 (check (string->number "100") => 100)

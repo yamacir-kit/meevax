@@ -19,12 +19,12 @@ inline namespace kernel
     template <typename T, REQUIRES(std::is_floating_point<T>)>
     auto rationalize(T x, T const e = std::numeric_limits<double>::epsilon())
     {
-      auto sign = x > 0 ? 1 : -1;
+      int sign  = x > 0 ? 1 : -1;
 
       x = std::abs(x);
 
-      std::valarray<T> vec_1 { std::floor(x), 1 },
-                       vec_2 { 1, 0 };
+      std::valarray<T> v1 { static_cast<T>(static_cast<int>(x)), 1 },
+                       v2 { 1, 0 };
 
       /* ---- Continued Fraction Expantion -------------------------------------
        *
@@ -39,23 +39,21 @@ inline namespace kernel
        *                               e
        *
        * -------------------------------------------------------------------- */
-      for (auto rest =  x - std::floor(x); e < rest; )
+      auto x_n = x - static_cast<int>(x);
+
+      while (e < x_n)
       {
-        auto a_n = 1 / rest;
+        auto a_n = 1 / x_n;
 
-        auto whole_part = std::floor(a_n);
+        x_n = a_n - static_cast<int>(a_n);
 
-        auto new_v = whole_part * vec_1 + vec_2;
-        auto old_v = vec_1;
-
-        vec_1 = new_v;
-        vec_2 = old_v;
-
-        rest = a_n - whole_part;
+        auto old_1 = v1;
+        v1 = static_cast<int>(a_n) * v1 + v2;
+        v2 = old_1;
       }
 
-      return pair(make<exact_integer>(sign * vec_1[0]),
-                  make<exact_integer>(       vec_1[1]));
+      return pair(make<exact_integer>(sign * v1[0]),
+                  make<exact_integer>(       v1[1]));
     }
 
     template <typename... Ts>
