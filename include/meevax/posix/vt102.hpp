@@ -3,7 +3,9 @@
 
 #include <meevax/posix/is_tty.hpp>
 
-namespace meevax { inline namespace posix
+namespace meevax
+{
+inline namespace posix
 {
   constexpr auto csi { "\x1b[" }; // control seqeunce introducer
 
@@ -84,6 +86,7 @@ namespace meevax { inline namespace posix
   DEFINE_ESCAPE_SEQUENCE("?25l", hide_cursor);
 
   #undef DEFINE_ESCAPE_SEQUENCE
-}} // namespace meevax::terminal
+} // namespace posix
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_POSIX_VT102_HPP

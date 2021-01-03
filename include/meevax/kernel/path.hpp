@@ -9,7 +9,9 @@
   #define STD_FILESYSTEM_PATH std::experimental::filesystem::path
 #endif
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct path
     : public STD_FILESYSTEM_PATH
@@ -23,6 +25,7 @@ namespace meevax { inline namespace kernel
 
     friend auto operator<<(std::ostream& port, const path&) -> decltype(port);
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_PATH_HPP

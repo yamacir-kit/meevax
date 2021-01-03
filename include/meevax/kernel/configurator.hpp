@@ -9,7 +9,9 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/version.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   template <typename SK>
   class configurator
@@ -352,6 +354,7 @@ namespace meevax { inline namespace kernel
       }
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP

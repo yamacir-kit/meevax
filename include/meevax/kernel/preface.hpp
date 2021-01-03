@@ -1,7 +1,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   template <typename T>
   class pointer;
@@ -11,6 +13,7 @@ namespace meevax { inline namespace kernel
   using object = pointer<pair>;
 
   using let = object;
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_PREFACE_HPP

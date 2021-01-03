@@ -11,7 +11,9 @@
     const meevax::kernel::object&,                                             \
     const compilation_context)
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct compilation_context // TODO rename
   {
@@ -32,9 +34,9 @@ namespace meevax { inline namespace kernel
     const std::string name;
 
     template <typename... Ts>
-    syntax(const std::string& name, Ts&&... xs)
+    explicit syntax(std::string const& name, Ts&&... xs)
       : std::function<SYNTAX()> { std::forward<decltype(xs)>(xs)...  }
-      , name {name}
+      , name { name }
     {}
 
     friend auto operator <<(std::ostream& os, const syntax& syntax) -> decltype(auto)
@@ -42,6 +44,7 @@ namespace meevax { inline namespace kernel
       return os << magenta << "#,(" << green << "syntax" << reset << " " << syntax.name << faint << " #;" << &syntax << reset << magenta << ")" << reset;
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP

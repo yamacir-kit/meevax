@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/syntactic_closure.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ==== Identifier? ==========================================================
    *
@@ -52,6 +54,7 @@ namespace meevax { inline namespace kernel
       return strip(x);
     }
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP

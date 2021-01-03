@@ -13,7 +13,10 @@ extern const char _binary_overture_ss_start;
 extern const char _binary_overture_ss_end;
 extern const char _binary_overture_ss_size;
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  const string_view overture { &_binary_overture_ss_start, reinterpret_cast<std::size_t>(&_binary_overture_ss_size) };
-}} // namespace meevax::kernel
+inline namespace kernel
+{
+  string_view const overture { &_binary_overture_ss_start, reinterpret_cast<std::size_t>(&_binary_overture_ss_size) };
+} // namespace kernel
+} // namespace meevax

@@ -1,6 +1,8 @@
 #include <meevax/kernel/ghost.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   auto operator <<(std::ostream& port, const unspecified_t&) -> decltype(port)
   {
@@ -15,4 +17,5 @@ namespace meevax { inline namespace kernel
   }
 
   let const undefined = make<undefined_t>();
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

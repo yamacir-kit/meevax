@@ -1,14 +1,15 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
 #include <typeinfo>
 
-#include <meevax/numerical/exact.hpp>
-
-namespace meevax { inline namespace memory
+namespace meevax
+{
+inline namespace memory
 {
   /* ---- Tagged Pointers --------------------------------------------------- */
 
@@ -85,6 +86,7 @@ namespace meevax { inline namespace memory
   //     throw std::logic_error { "unexpected immediate value" };
   //   }
   // }
-}} // namespace meevax::memory
+} // namespace memory
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_MEMORY_TAGGED_POINTER_HPP

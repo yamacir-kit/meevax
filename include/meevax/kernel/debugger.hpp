@@ -3,7 +3,9 @@
 
 #include <ostream>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   template <typename SK>
   class debugger
@@ -91,6 +93,7 @@ namespace meevax { inline namespace kernel
       }
     };
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_DEBUGGER_HPP

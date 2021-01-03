@@ -4,7 +4,9 @@
 #include <meevax/kernel/reader.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
   auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
@@ -42,4 +44,5 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(output_string_port, "output-string");
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

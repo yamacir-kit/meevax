@@ -3,7 +3,9 @@
 
 #include <sstream>
 
-namespace meevax { inline namespace string
+namespace meevax
+{
+inline namespace string
 {
   template <typename... Ts>
   auto cat(Ts&&... xs)
@@ -12,6 +14,7 @@ namespace meevax { inline namespace string
     (port << ... << xs);
     return port.str();
   }
-}} // namespace meevax::string
+} // namespace string
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STRING_CAT_HPP

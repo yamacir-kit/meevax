@@ -6,7 +6,9 @@
 
 #include <meevax/kernel/object.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   template <typename SK>
   class writer
@@ -88,6 +90,7 @@ namespace meevax { inline namespace kernel
       return in_interactive_mode() ? standard_output_port() : standard_null_port();
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_WRITER_HPP

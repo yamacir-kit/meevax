@@ -3,7 +3,9 @@
 
 #include <string_view>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   #if __cpp_lib_string_view
   using string_view = std::string_view;
@@ -12,6 +14,7 @@ namespace meevax { inline namespace kernel
   #endif
 
   extern const string_view overture;
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIBRARY_HPP

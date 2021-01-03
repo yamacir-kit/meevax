@@ -5,13 +5,15 @@
 
 #include <meevax/kernel/error.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
 {
-  /* ===========================================================================
-  *
-  * A toy dynamic-linker provides interface for "dlopen" and "dlsym".
-  *
-  *========================================================================== */
+inline namespace kernel
+{
+  /* ---------------------------------------------------------------------------
+   *
+   * A toy dynamic-linker provides interface for "dlopen" and "dlsym".
+   *
+   * ------------------------------------------------------------------------ */
   class linker
   {
     /* ==== Close ==============================================================
@@ -94,6 +96,7 @@ namespace meevax { inline namespace kernel
       }
     }
   };
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_LINKER_HPP

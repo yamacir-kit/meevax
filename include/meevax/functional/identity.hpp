@@ -3,7 +3,9 @@
 
 #include <type_traits>
 
-namespace meevax { inline namespace functional
+namespace meevax
+{
+inline namespace functional
 {
   template <typename T>
   struct identity
@@ -17,6 +19,7 @@ namespace meevax { inline namespace functional
       return std::forward<decltype(x)>(x);
     }
   };
-}} // namespace meevax::functional
+} // namespace functional
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_FUNCTIONAL_IDENTITY_HPP

@@ -1,7 +1,9 @@
 #include <meevax/kernel/vector.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   auto operator ==(const vector& lhs, const vector& rhs) -> bool
   {
@@ -19,4 +21,5 @@ namespace meevax { inline namespace kernel
 
     return port << magenta << ")" << reset;
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
