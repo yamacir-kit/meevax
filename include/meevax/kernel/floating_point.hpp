@@ -1,6 +1,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
+#include <limits>
+#include <valarray>
+
 #include <meevax/kernel/numerical_types.hpp>
 #include <meevax/kernel/port.hpp>
 
@@ -8,6 +11,46 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <typename T, REQUIRES(std::is_floating_point<T>)>
+  auto rationalize(T x, T const e = std::numeric_limits<double>::epsilon())
+  {
+    int sign  = x > 0 ? 1 : -1;
+
+    x = std::abs(x);
+
+    std::valarray<T> v1 { static_cast<T>(static_cast<int>(x)), 1 },
+                     v2 { 1, 0 };
+
+    /* ---- Continued Fraction Expantion -------------------------------------
+     *
+     *                      1
+     *  x = a_0 + ---------------------
+     *                         1
+     *            a_1 + ---------------
+     *                            1
+     *                  a_2 + ---------
+     *                               1
+     *                        a_n + ---
+     *                               e
+     *
+     * -------------------------------------------------------------------- */
+    auto x_n = x - static_cast<int>(x);
+
+    while (e < x_n)
+    {
+      auto a_n = 1 / x_n;
+
+      x_n = a_n - static_cast<int>(a_n);
+
+      auto old_1 = v1;
+      v1 = static_cast<T>(static_cast<int>(a_n)) * v1 + v2;
+      v2 = old_1;
+    }
+
+    return ratio(make<exact_integer>(sign * v1[0]),
+                 make<exact_integer>(       v1[1]));
+  }
+
   template <typename T>
   struct floating_point
     : public std::numeric_limits<T>
@@ -35,7 +78,8 @@ inline namespace kernel
       return boost::lexical_cast<std::string>(value);
     }
 
-    auto as_exact() const -> decltype(auto)
+    template <typename... Ts>
+    auto as_exact(Ts&&... xs) const -> decltype(auto)
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *
@@ -47,7 +91,7 @@ inline namespace kernel
        *
        * -------------------------------------------------------------------- */
 
-      return ratio(value);
+      return rationalize(value, std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename U, REQUIRES(std::is_floating_point<U>)>
