@@ -209,7 +209,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ round              │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ rationalize        │ TODO       │                                    │
+     │ rationalize        │ Scheme     │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ exp                │ C++        │ inexact library procedure          │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -754,19 +754,15 @@ inline namespace kernel
 
     define<procedure>("vector-ref", [](let const& xs)
     {
-      return
-        car(xs).as<vector>().at(
-          static_cast<vector::size_type>(
-            cadr(xs).as<exact_integer>().value));
+      return car(xs).as<vector>().at(
+               cadr(xs).as<exact_integer>().to<vector::size_type>());
     });
 
     define<procedure>("vector-set!", [](let const& xs)
     {
-      return
-        car(xs).as<vector>().at(
-          static_cast<vector::size_type>(
-            cadr(xs).as<exact_integer>().value))
-        = caddr(xs);
+      return car(xs).as<vector>().at(
+               cadr(xs).as<exact_integer>().to<vector::size_type>())
+             = caddr(xs);
     });
 
     define<procedure>("vector->list", [](let const& xs)

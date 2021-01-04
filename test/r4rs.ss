@@ -868,8 +868,8 @@
 
 ; ---- Procedure (rationalize x y) ---------------------------------------------
 
-; (check (rationalize (inexact->exact .3) 1/10) => 1/3) ; exact
-; (check (rationalize .3 1/10) => #i1/3) ; inexact
+(check (rationalize (exact .3) 1/10) => 1/3) ;   exact
+(check (rationalize        .3  1/10) => #,(/ 1.0 3.0)) ; inexact
 
 ; ---- Procedure (exp z) -------------------------------------------------------
 ; ---- Procedure (log z) -------------------------------------------------------

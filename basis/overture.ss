@@ -830,6 +830,9 @@
     (or (ratio? x)
         (integer? x))))
 
+(define irrational?
+  (lambda (x) #f))
+
 (define almost-exact-floating-point?
   (lambda (x)
     (and (floating-point? x)
@@ -1004,6 +1007,30 @@
         (if (ratio? x) (cdr x) 1)
         (if (integer? x) 1.0
             (inexact (denominator (exact x)))))))
+
+(define rationalize ; from Chibi-Scheme lib/scheme/extras.scm
+  (lambda (x e)
+
+    (define sr
+      (lambda (x y return)
+        (let ((fx (floor x))
+              (fy (floor y)))
+          (cond ((>= fx x)
+                 (return fx 1))
+                ((= fx fy)
+                 (sr (/ (- y fy))
+                     (/ (- x fx))
+                     (lambda (n d)
+                       (return (+ d (* fx n)) n))))
+                (else (return (+ fx 1) 1))))))
+
+    (let ((return (if (negative? x)
+                      (lambda (num den)
+                        (/ (- num) den))
+                      /))
+          (x (abs x))
+          (e (abs e)))
+      (sr (- x e) (+ x e) return))))
 
 (define log
   (lambda (z . base)
