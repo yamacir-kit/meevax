@@ -19,7 +19,9 @@
  *
  * -------------------------------------------------------------------------- */
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct error
     : public std::runtime_error
@@ -70,6 +72,7 @@ namespace meevax { inline namespace kernel
   BOILERPLATE(syntax);
 
   #undef BOILERPLATE
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_ERROR_HPP

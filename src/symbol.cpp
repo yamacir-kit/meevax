@@ -1,7 +1,9 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   auto operator <<(std::ostream& port, const symbol& datum) -> decltype(port)
   {
@@ -20,4 +22,5 @@ namespace meevax { inline namespace kernel
       return port << static_cast<const std::string&>(datum);
     }
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

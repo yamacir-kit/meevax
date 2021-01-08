@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct complex
     : public virtual pair
@@ -37,6 +39,7 @@ namespace meevax { inline namespace kernel
     }
   };
 
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_COMPLEX_HPP

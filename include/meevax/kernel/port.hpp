@@ -6,7 +6,9 @@
 
 #include <meevax/kernel/path.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   /* ---- Ports ----------------------------------------------------------------
    *
@@ -59,6 +61,7 @@ namespace meevax { inline namespace kernel
   };
 
   auto operator <<(std::ostream& port, const output_string_port&) -> decltype(port);
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_PORT_HPP

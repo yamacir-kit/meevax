@@ -5,7 +5,9 @@
 
 #include <unistd.h>
 
-namespace meevax { inline namespace posix
+namespace meevax
+{
+inline namespace posix
 {
   auto is_tty = [](std::ostream& os)
   {
@@ -24,6 +26,7 @@ namespace meevax { inline namespace posix
       return false;
     }
   };
-}} // namespace meevax::posix
+} // namespace posix
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_POSIX_IS_TTY_HPP

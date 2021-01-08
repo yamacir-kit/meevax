@@ -5,7 +5,9 @@
 
 #include <utility>
 
-namespace meevax { inline namespace lambda
+namespace meevax
+{
+inline namespace utility
 {
   #define FORWARD(...) \
     std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
@@ -33,6 +35,7 @@ namespace meevax { inline namespace lambda
   {
     return std::get<0>(FORWARD(x));
   }
-}} // namespace meevax::lambda
+} // namespace utility
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_UTILITY_FORWARD_HPP

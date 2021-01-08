@@ -19,11 +19,7 @@ inline namespace kernel
 
     auto is_integer() const -> bool;
 
-    auto invert() const
-    {
-      return ratio(cdr(*this),
-                   car(*this));
-    }
+    auto invert() const -> ratio;
 
     auto reduce() const -> ratio;
 

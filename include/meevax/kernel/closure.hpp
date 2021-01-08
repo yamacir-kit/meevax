@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct closure
     : public virtual pair
@@ -12,6 +14,7 @@ namespace meevax { inline namespace kernel
   };
 
   auto operator <<(std::ostream& port, const closure& datum) -> decltype(port);
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_CLOSURE_HPP

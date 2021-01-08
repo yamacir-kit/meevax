@@ -64,7 +64,7 @@ inline namespace kernel
       virtual ~binder() = default;
 
     private:
-      auto type() const noexcept -> const std::type_info& override
+      auto type() const noexcept -> std::type_info const& override
       {
         return typeid(bound);
       }

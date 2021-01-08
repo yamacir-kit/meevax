@@ -830,6 +830,9 @@
     (or (ratio? x)
         (integer? x))))
 
+(define irrational?
+  (lambda (x) #f))
+
 (define almost-exact-floating-point?
   (lambda (x)
     (and (floating-point? x)
@@ -963,13 +966,11 @@
     (values (truncate-quotient x y)
             (truncate-remainder x y))))
 
-(define quotient truncate-quotient) ; for backward compatibility
-
+(define quotient  truncate-quotient)  ; for backward compatibility
 (define remainder truncate-remainder) ; for backward compatibility
+(define modulo       floor-remainder) ; for backward compatibility
 
-(define modulo floor-remainder) ; for backward compatibility
-
-(define gcd
+(define gcd ; from Chibi-Scheme lib/init7.scm
   (lambda xs
     (define gcd-2
       (lambda (a b)
@@ -982,55 +983,54 @@
           (if (null? ns) n
               (rec (gcd-2 n (car ns)) (cdr ns)) )))))
 
-(define lcm
+(define lcm ; from Chibi-Scheme lib/init7.scm
   (lambda xs
     (define lcm-2
       (lambda (a b)
         (abs (quotient (* a b) (gcd a b)))))
     (if (null? xs) 1
         (let rec ((n  (car xs))
-                  (ns (cdr ns)))
+                  (ns (cdr xs)))
           (if (null? ns) n
-              (rec (lcm-2 n (car ns)) (cdr ns)) )))))
+              (rec (lcm-2 n (car ns)) (cdr ns)))))))
 
 (define numerator
   (lambda (x)
     (if (ratio? x)
         (car x)
         (if (exact? x) x
-            (inexact (numerator (exact x))) ))))
+            (inexact (numerator (exact x)))))))
 
 (define denominator
   (lambda (x)
     (if (exact? x)
         (if (ratio? x) (cdr x) 1)
         (if (integer? x) 1.0
-            (inexact (denominator (exact x))) ))))
+            (inexact (denominator (exact x)))))))
 
-(define rationalize ; from Chibi-Scheme's lib/scheme/extras.scm
+(define rationalize ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
   (lambda (x e)
+
     (define sr
       (lambda (x y return)
         (let ((fx (floor x))
               (fy (floor y)))
-          (cond
-            ((>= fx x)
-             (return fx 1))
-            ((= fx fy)
-             (sr (/ (- y fy))
-                 (/ (- x fx))
-                 (lambda (n d)
-                   (return (+ d (* fx n)) n))))
-            (else
-              (return (+ fx 1) 1))))))
-    (let ((return (if (not (negative? x)) /
+          (cond ((>= fx x)
+                 (return fx 1))
+                ((= fx fy)
+                 (sr (/ (- y fy))
+                     (/ (- x fx))
+                     (lambda (n d)
+                       (return (+ d (* fx n)) n))))
+                (else (return (+ fx 1) 1))))))
+
+    (let ((return (if (negative? x)
                       (lambda (num den)
-                        (/ (- num) den))))
+                        (/ (- num) den))
+                      /))
           (x (abs x))
           (e (abs e)))
-      (sr (- x e)
-          (+ x e)
-          return))))
+      (sr (- x e) (+ x e) return))))
 
 (define log
   (lambda (z . base)

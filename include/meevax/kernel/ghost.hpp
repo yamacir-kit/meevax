@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct unspecified_t
   {};
@@ -18,6 +20,7 @@ namespace meevax { inline namespace kernel
   auto operator <<(std::ostream& port, const undefined_t&) -> decltype(port);
 
   extern let const undefined;
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_GHOST_HPP

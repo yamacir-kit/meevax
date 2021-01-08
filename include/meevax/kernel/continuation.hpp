@@ -3,7 +3,9 @@
 
 #include <meevax/kernel/pair.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct continuation
     : public virtual pair
@@ -11,7 +13,8 @@ namespace meevax { inline namespace kernel
     using pair::pair;
   };
 
-  auto operator <<(std::ostream& port, const continuation&) -> decltype(port);
-}} // namespace meevax::kernel
+  auto operator <<(std::ostream & port, continuation const&) -> decltype(port);
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_CONTINUATION_HPP

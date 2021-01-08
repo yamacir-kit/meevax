@@ -116,7 +116,6 @@ inline namespace kernel
 
       6.2.6. Numerical operations
      -----------------------------
-
      ┌────────────────────┬────────────┬────────────────────────────────────┐
      │ Symbol             │ Written in │ Note                               │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -210,7 +209,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ round              │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ rationalize        │ TODO       │                                    │
+     │ rationalize        │ Scheme     │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ exp                │ C++        │ inexact library procedure          │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -288,12 +287,11 @@ inline namespace kernel
       return std::adjacent_find(std::begin(xs), std::end(xs), std::not_fn(COMPARE)) == std::end(xs) ? t : f; \
     })
 
-    DEFINE_TRANSITIVE_COMPARISON(=,  [](auto&& lhs, auto&& rhs) { return lhs.binding() == rhs; });
-    DEFINE_TRANSITIVE_COMPARISON(<,  std::less<void>());
-    DEFINE_TRANSITIVE_COMPARISON(<=, std::less_equal<void>());
-    DEFINE_TRANSITIVE_COMPARISON(>,  std::greater<void>());
-    DEFINE_TRANSITIVE_COMPARISON(>=, std::greater_equal<void>());
-
+    DEFINE_TRANSITIVE_COMPARISON(= , [](auto&& a, auto&& b) { return a.binding() == b; });
+    DEFINE_TRANSITIVE_COMPARISON(< , [](auto&& a, auto&& b) { return a.binding() <  b; });
+    DEFINE_TRANSITIVE_COMPARISON(<=, [](auto&& a, auto&& b) { return a.binding() <= b; });
+    DEFINE_TRANSITIVE_COMPARISON(> , [](auto&& a, auto&& b) { return a.binding() >  b; });
+    DEFINE_TRANSITIVE_COMPARISON(>=, [](auto&& a, auto&& b) { return a.binding() >= b; });
 
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
@@ -306,18 +304,28 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
-
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
       if (length(xs) < 2)                                                      \
       {                                                                        \
-        return std::accumulate(std::begin(xs), std::end(xs), make<exact_integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+        let const basis = make<exact_integer>(BASIS);                          \
+                                                                               \
+        return std::accumulate(                                                \
+                 std::begin(xs), std::end(xs), basis, [](auto&& x, auto&& y)   \
+                 {                                                             \
+                   return x SYMBOL y;                                          \
+                 });                                                           \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        const auto basis { std::begin(xs) };                                   \
-        return std::accumulate(std::next(basis), std::end(xs), *basis, [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+        auto const head = std::cbegin(xs);                                     \
+                                                                               \
+        return std::accumulate(                                                \
+                 std::next(head), std::cend(xs), *head, [](auto&& x, auto&& y) \
+                 {                                                             \
+                   return x SYMBOL y;                                          \
+                 });                                                           \
       }                                                                        \
     })
 
@@ -746,19 +754,15 @@ inline namespace kernel
 
     define<procedure>("vector-ref", [](let const& xs)
     {
-      return
-        car(xs).as<vector>().at(
-          static_cast<vector::size_type>(
-            cadr(xs).as<exact_integer>().value));
+      return car(xs).as<vector>().at(
+               cadr(xs).as<exact_integer>().to<vector::size_type>());
     });
 
     define<procedure>("vector-set!", [](let const& xs)
     {
-      return
-        car(xs).as<vector>().at(
-          static_cast<vector::size_type>(
-            cadr(xs).as<exact_integer>().value))
-        = caddr(xs);
+      return car(xs).as<vector>().at(
+               cadr(xs).as<exact_integer>().to<vector::size_type>())
+             = caddr(xs);
     });
 
     define<procedure>("vector->list", [](let const& xs)

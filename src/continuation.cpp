@@ -1,7 +1,9 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/posix/vt102.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   auto operator <<(std::ostream& port, const continuation& datum) -> decltype(port)
   {
@@ -10,4 +12,5 @@ namespace meevax { inline namespace kernel
                 << faint << " ;#" << &datum << reset
                 << magenta << ")" << reset;
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

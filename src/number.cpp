@@ -19,8 +19,8 @@ inline namespace kernel
   auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value *  b.value); }
   auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value +  b.value); }
   auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value -  b.value); }
-  auto operator / (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value /  b.value); }
-  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value %  b.value); } // TODO ratio
+  auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(make(a), make(b)); }
+  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return static_cast<exact_integer>(a.value %  b.value); }
   auto operator !=(exact_integer const& a, exact_integer const& b) -> boolean       { return                            a.value != b.value ; }
   auto operator < (exact_integer const& a, exact_integer const& b) -> boolean       { return                            a.value <  b.value ; }
   auto operator <=(exact_integer const& a, exact_integer const& b) -> boolean       { return                            a.value <= b.value ; }
@@ -55,7 +55,7 @@ inline namespace kernel
   auto operator * (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() * b), cdr(a)); }
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() + a.denominator() * b), cdr(a)); }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() - a.denominator() * b), cdr(a)); }
-  auto operator / (ratio const& a, exact_integer const& b) -> ratio { return a.invert() * b; }
+  auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(car(a), make(a.denominator() * b)); }
   auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(__FILE__, ":", __LINE__); }
   auto operator !=(ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() != b : boolean(false); }
   auto operator < (ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() <  b : boolean(false); }

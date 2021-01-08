@@ -3,7 +3,9 @@
 
 #include <string>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   struct symbol
     : public std::string
@@ -15,6 +17,7 @@ namespace meevax { inline namespace kernel
   };
 
   auto operator <<(std::ostream& port, const symbol&) -> decltype(port);
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP

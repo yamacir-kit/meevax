@@ -737,8 +737,8 @@
 ; ---- Procedure (min? x1 x2 ...) ----------------------------------------------
 ; ---- Procedure (max? x1 x2 ...) ----------------------------------------------
 
-; (check (max 3 4) => 4) ; exact
-; (check (max 3.9 4) => 4.0) ; inexact
+(check (max 3   4) => 4) ; exact
+(check (max 3.9 4) => 4.0) ; inexact
 
 ; ---- Procedure (+ z1 ...) ----------------------------------------------------
 
@@ -752,8 +752,8 @@
 (check (+ 1   1/2) => 3/2)
 (check (+ 1.0 1/2) => 1.5)
 
-; (check (+ 1/2 1) => 3/2)
-; (check (+ 1/2 1.0) => 1.5)
+(check (+ 1/2 1  ) => 3/2)
+(check (+ 1/2 1.0) => 1.5)
 
 ; ---- Procedure (* z1 ...) ----------------------------------------------------
 
@@ -777,12 +777,12 @@
 
 ; ---- Procedure (/ z) ---------------------------------------------------------
 
-; (check (/ 3) => 1/3)
+(check (/ 3) => 1/3)
 
 ; ---- Procedure (/ z1 z2) -----------------------------------------------------
 ; ---- Procedure (/ z1 z2 ...) -------------------------------------------------
 
-; (check (/ 3 4 5) => 3/20)
+(check (/ 3 4 5) => 3/20)
 
 ; ---- Procedure (abs x) -------------------------------------------------------
 
@@ -793,8 +793,8 @@
 ; ---- Procedure (modulo n1 n2) ------------------------------------------------
 
 (check (floor-quotient  5  2) =>  2)
-; (check (floor-quotient -5  2) => -3) ; REQUIRES RATIO
-; (check (floor-quotient  5 -2) => -3) ; REQUIRES RATIO
+(check (floor-quotient -5  2) => -3)
+(check (floor-quotient  5 -2) => -3)
 (check (floor-quotient -5 -2) =>  2)
 
 (check (floor-remainder  5  2) =>  1)
@@ -827,27 +827,26 @@
 
 ; ---- Procedure (gcd n1 ...) --------------------------------------------------
 
-; (check (gcd 32 -36) => 4)
+(check (gcd 32 -36) => 4)
 (check (gcd) => 0)
 
 ; ---- Procedure (lcm n1 ...) --------------------------------------------------
 
-; (check (lcm 32 -36) => 288)
-; (check (lcm 32.0 -36) => 288.0) ; inexact
+(check (lcm 32   -36) => 288)
+(check (lcm 32.0 -36) => 288.0) ; inexact
 (check (lcm) => 1)
 
 ; ---- Procedure (numerator q) -------------------------------------------------
 
-; (check (numerator (/ 6 4)) => 3)
+(check (numerator (/ 6 4)) => 3)
 
 ; ---- Procedure (denominator q) -----------------------------------------------
 
-; (check (denominator (/ 6 4)) => 2)
+(check (denominator (/ 6 4)) => 2)
 
-; (check
-;   (denominator
-;     (exact->inexact (/ 6 4)))
-;   => 2.0)
+(check
+  (denominator
+    (inexact (/ 6 4))) => 2.0)
 
 ; ---- Procedure (floor x) -----------------------------------------------------
 ; ---- Procedure (ceiling x) ---------------------------------------------------
@@ -869,8 +868,8 @@
 
 ; ---- Procedure (rationalize x y) ---------------------------------------------
 
-; (check (rationalize (inexact->exact .3) 1/10) => 1/3) ; exact
-; (check (rationalize .3 1/10) => #i1/3) ; inexact
+(check (rationalize (exact .3) 1/10) => 1/3) ;   exact
+(check (rationalize        .3  1/10) => #,(/ 1.0 3.0)) ; inexact
 
 ; ---- Procedure (exp z) -------------------------------------------------------
 ; ---- Procedure (log z) -------------------------------------------------------
@@ -915,6 +914,8 @@
 
 ; ---- Procedure (exact->inexact z) --------------------------------------------
 ; ---- Procedure (inexact->exact z) --------------------------------------------
+
+(check (exact 0.333333333333) => 1/3)
 
 ; ---- 6.5.6. Numerical input and output ---------------------------------------
 

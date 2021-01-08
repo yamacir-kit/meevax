@@ -1,6 +1,8 @@
 #include <meevax/kernel/error.hpp>
 
-namespace meevax { inline namespace kernel
+namespace meevax
+{
+inline namespace kernel
 {
   auto operator <<(std::ostream& port, const error& datum) -> std::ostream&
   {
@@ -10,4 +12,5 @@ namespace meevax { inline namespace kernel
                 << magenta << ")"
                 << reset;
   }
-}} // namespace meevax::kernel
+} // namespace kernel
+} // namespace meevax

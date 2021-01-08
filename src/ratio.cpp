@@ -20,6 +20,12 @@ inline namespace kernel
     return cdr(*this).as<exact_integer>() == 1;
   }
 
+  auto ratio::invert() const -> ratio
+  {
+    return ratio(cdr(*this),
+                 car(*this));
+  }
+
   auto ratio::reduce() const -> ratio
   {
     using boost::multiprecision::gcd;
@@ -28,8 +34,8 @@ inline namespace kernel
           gcd(car(*this).as<exact_integer>().value,
               cdr(*this).as<exact_integer>().value) }; divisor != 1)
     {
-      return ratio(make(car(*this).as<exact_integer>() / divisor),
-                   make(cdr(*this).as<exact_integer>() / divisor));
+      return ratio(make<exact_integer>(car(*this).as<exact_integer>().value / divisor.value),
+                   make<exact_integer>(cdr(*this).as<exact_integer>().value / divisor.value));
     }
     else
     {
