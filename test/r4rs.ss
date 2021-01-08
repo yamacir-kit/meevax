@@ -793,8 +793,8 @@
 ; ---- Procedure (modulo n1 n2) ------------------------------------------------
 
 (check (floor-quotient  5  2) =>  2)
-; (check (floor-quotient -5  2) => -3) ; REQUIRES RATIO
-; (check (floor-quotient  5 -2) => -3) ; REQUIRES RATIO
+(check (floor-quotient -5  2) => -3)
+(check (floor-quotient  5 -2) => -3)
 (check (floor-quotient -5 -2) =>  2)
 
 (check (floor-remainder  5  2) =>  1)

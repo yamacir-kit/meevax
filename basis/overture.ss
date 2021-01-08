@@ -1008,7 +1008,7 @@
         (if (integer? x) 1.0
             (inexact (denominator (exact x)))))))
 
-(define rationalize ; from Chibi-Scheme lib/scheme/extras.scm
+(define rationalize ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
   (lambda (x e)
 
     (define sr
