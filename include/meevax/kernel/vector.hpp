@@ -25,9 +25,14 @@ inline namespace kernel
       : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
     {}
 
-    let to_list() const;
+    let to_list(size_type, size_type) const;
 
-    // auto to_string() const;
+    decltype(auto) to_list(size_type from = 0) const
+    {
+      return to_list(from, size());
+    }
+
+    // let to_string() const;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

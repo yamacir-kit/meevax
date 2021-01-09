@@ -742,7 +742,23 @@ inline namespace kernel
 
     define<procedure>("vector->list", [](let const& xs)
     {
-      return car(xs).as<vector>().to_list();
+      // return car(xs).as<vector>().to_list();
+
+      if (let const& v = car(xs); cdr(xs).is<null>())
+      {
+        return v.as<vector>().to_list();
+      }
+      else if (let const& a = cadr(xs); cddr(xs).is<null>())
+      {
+        return v.as<vector>().to_list(a.as<exact_integer>().to<vector::size_type>());
+      }
+      else
+      {
+        let const& b = caddr(xs);
+
+        return v.as<vector>().to_list(a.as<exact_integer>().to<vector::size_type>(),
+                                      b.as<exact_integer>().to<vector::size_type>());
+      }
     });
 
     define<procedure>("list->vector", [](let const& xs)
