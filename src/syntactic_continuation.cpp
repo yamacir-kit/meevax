@@ -694,7 +694,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ list->vector       │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector->string     │ TODO       │                                    │
+     │ vector->string     │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ string->vector     │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -704,7 +704,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ vector-append      │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-fill!       │ TODO       │                                    │
+     │ vector-fill!       │ C++        │                                    │
      └────────────────────┴────────────┴────────────────────────────────────┘
 
     ------------------------------------------------------------------------- */
@@ -797,10 +797,21 @@ inline namespace kernel
     //   return unspecified;
     // });
 
-    // define<procedure>("vector-fill!", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
+    define<procedure>("vector-fill!", [](let const& xs)
+    {
+      if (let const& v = car(xs), value = cadr(xs); cddr(xs).is<null>())
+      {
+        return v.as<vector>().fill(value);
+      }
+      else if (let const& from = caddr(xs); cdddr(xs).is<null>())
+      {
+        return v.as<vector>().fill(value, from);
+      }
+      else
+      {
+        return v.as<vector>().fill(value, from, cadddr(xs));
+      }
+    });
 
 
   /* ---- R7RS 6.10. Control features ------------------------------------------

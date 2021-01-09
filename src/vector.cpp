@@ -9,6 +9,18 @@ namespace meevax
 {
 inline namespace kernel
 {
+  let vector::fill(let const& value, vector::size_type from, vector::size_type to)
+  {
+    using boost::adaptors::sliced;
+
+    for (auto&& each : *this | sliced(from, to))
+    {
+      each = value;
+    }
+
+    return value;
+  }
+
   let vector::to_list(vector::size_type from, vector::size_type to) const
   {
     using boost::adaptors::reversed;

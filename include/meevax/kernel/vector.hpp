@@ -25,41 +25,51 @@ inline namespace kernel
       : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
     {}
 
+    let fill(let const& value, size_type, size_type);
+
+    decltype(auto) fill(let const& value, size_type from = 0)
+    {
+      return fill(value, from, size());
+    }
+
+    decltype(auto) fill(let const& value, let const& from)
+    {
+      return fill(value, from.as<exact_integer>().to<size_type>());
+    }
+
+    decltype(auto) fill(let const& value, let const& from, let const& to)
+    {
+      return fill(value, from.as<exact_integer>().to<size_type>(),
+                         to  .as<exact_integer>().to<size_type>());
+    }
+
     let to_list(size_type, size_type) const;
-
-    decltype(auto) to_list(size_type from = 0) const
-    {
-      return to_list(from, size());
-    }
-
-    decltype(auto) to_list(let const& from) const
-    {
-      return to_list(from.as<exact_integer>().to<size_type>());
-    }
-
-    decltype(auto) to_list(let const& from, let const& to) const
-    {
-      return to_list(from.as<exact_integer>().to<size_type>(),
-                     to  .as<exact_integer>().to<size_type>());
-    }
 
     let to_string(size_type, size_type) const;
 
-    decltype(auto) to_string(size_type from = 0) const
-    {
-      return to_string(from, size());
-    }
+    #define DEFINE_RANGE_OVERLOADS_FOR(NAME)                                   \
+    decltype(auto) NAME(size_type from = 0)                                    \
+    {                                                                          \
+      return NAME(from, size());                                               \
+    }                                                                          \
+                                                                               \
+    decltype(auto) NAME(let const& from)                                       \
+    {                                                                          \
+      return NAME(from.as<exact_integer>().to<size_type>());                   \
+    }                                                                          \
+                                                                               \
+    decltype(auto) NAME(let const& from, let const& to)                        \
+    {                                                                          \
+      return NAME(from.as<exact_integer>().to<size_type>(),                    \
+                  to  .as<exact_integer>().to<size_type>());                   \
+    }                                                                          \
+                                                                               \
+    static_assert(true)
 
-    decltype(auto) to_string(let const& from) const
-    {
-      return to_string(from.as<exact_integer>().to<size_type>());
-    }
+    DEFINE_RANGE_OVERLOADS_FOR(to_list);
+    DEFINE_RANGE_OVERLOADS_FOR(to_string);
 
-    decltype(auto) to_string(let const& from, let const& to) const
-    {
-      return to_string(from.as<exact_integer>().to<size_type>(),
-                       to  .as<exact_integer>().to<size_type>());
-    }
+    #undef DEFINE_RANGE_OVERLOADS_FOR
   };
 
   auto operator ==(vector const&, vector const&) -> bool;
