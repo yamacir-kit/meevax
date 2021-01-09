@@ -25,8 +25,8 @@ inline namespace kernel
       : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
     {}
 
-    // auto to_list() const;
-    //
+    let to_list() const;
+
     // auto to_string() const;
   };
 

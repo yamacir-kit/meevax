@@ -717,9 +717,9 @@ inline namespace kernel
                           cdr(xs).is<null>() ? unspecified : cadr(xs));
     });
 
-    define<procedure>("vector", [](auto&& xs)
+    define<procedure>("vector", [](auto&&... xs)
     {
-      return make<vector>(for_each_in, xs);
+      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
     });
 
     define<procedure>("vector-length", [](let const& xs)
@@ -742,16 +742,7 @@ inline namespace kernel
 
     define<procedure>("vector->list", [](let const& xs)
     {
-      let result = unit;
-
-      auto const& v = car(xs).as<vector>();
-
-      std::for_each(std::rbegin(v), std::rend(v), [&](auto&& each)
-      {
-        return result = cons(each, result);
-      });
-
-      return result;
+      return car(xs).as<vector>().to_list();
     });
 
     define<procedure>("list->vector", [](let const& xs)

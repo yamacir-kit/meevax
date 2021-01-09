@@ -10,8 +10,7 @@ inline namespace kernel
   template <typename T, typename... Ts>
   inline decltype(auto) push(T&& stack, Ts&&... xs)
   {
-    const auto buffer { cons(std::forward<decltype(xs)>(xs)..., stack) };
-    return stack = buffer;
+    return stack = cons(std::forward<decltype(xs)>(xs)..., stack);
   }
 
   template <std::size_t N, typename T>
