@@ -81,53 +81,60 @@ An subset of R7RS-small.
 
 ### Tools
 
--   Compiler supports C++17 (GCC >= 7.5.0, Clang >= 6.0.0)
+-   Compiler with C++17 support (GCC >= 7.5.0, Clang >= 6.0.0)
 -   CMake (>= ${CMAKE_VERSION})
 -   GNU Make
 -   GNU Binutils
--   [**Boost C++ Libraries**](https://www.boost.org/) (1.65.1 or later)
-    - [Boost.Multiprecision](https://www.boost.org/doc/libs/release/libs/multiprecision/)
-    - [Boost.IOStreams](https://www.boost.org/doc/libs/release/libs/iostreams/)
 -   [**GNU Multiple Precision Arithmetic Library** (GMP)](https://gmplib.org/)
+-   [**Boost C++ Libraries**](https://www.boost.org/) (1.65.1 or later)
 
 <br/>
 
 
 ## Installation
 
-
-### 1. Setup
-
-Valgrind is used for testing to check for memory leaks.
-If you do not run `make test`, which will be described later, you do not need to install it.
-
-``` bash
-sudo apt update
-sudo apt install libboost-all-dev libgmp-dev valgrind
-```
-
-### 2. Clone
+### 0. Clone
 
 ``` bash
 git clone https://github.com/yamacir-kit/meevax.git
 cd meevax
 ```
 
-### 3. Configure
+### 1. Setup
+
+``` bash
+sudo apt update
+sudo apt install libboost-all-dev \
+                 libgmp-dev
+```
+
+### 2. Configure
 
 ``` bash
 mkdir -p build && cd $_
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
-### 4. Make
+### 3. Make
 
-| Command          | Description |
-|:-----------------|:--|
-| `make`           |
-| `make install`   | Don't forget to run `sudo ldconfig`.
-| `make test`      |
-| `make uninstall` |
+``` bash
+make
+```
+
+### 4. Install
+
+``` bash
+sudo make install
+sudo ldconfig
+```
+
+### 5. Test (Optional)
+
+``` bash
+sudo apt install valgrind
+make test
+```
+
 
 <br/>
 
