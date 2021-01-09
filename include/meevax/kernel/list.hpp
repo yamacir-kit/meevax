@@ -10,6 +10,7 @@
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/pair.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -119,7 +120,9 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   inline namespace constructor
   {
-    template <typename T, typename U>
+    template <typename T, typename U,
+              REQUIRES(std::is_convertible<T, object>,
+                       std::is_convertible<U, object>)>
     inline decltype(auto) operator|(T&& x, U&& y)
     {
       return std::make_shared<pair>(std::forward<decltype(x)>(x),

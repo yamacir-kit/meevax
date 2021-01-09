@@ -32,7 +32,34 @@ inline namespace kernel
       return to_list(from, size());
     }
 
-    // let to_string() const;
+    decltype(auto) to_list(let const& from) const
+    {
+      return to_list(from.as<exact_integer>().to<size_type>());
+    }
+
+    decltype(auto) to_list(let const& from, let const& to) const
+    {
+      return to_list(from.as<exact_integer>().to<size_type>(),
+                     to  .as<exact_integer>().to<size_type>());
+    }
+
+    let to_string(size_type, size_type) const;
+
+    decltype(auto) to_string(size_type from = 0) const
+    {
+      return to_string(from, size());
+    }
+
+    decltype(auto) to_string(let const& from) const
+    {
+      return to_string(from.as<exact_integer>().to<size_type>());
+    }
+
+    decltype(auto) to_string(let const& from, let const& to) const
+    {
+      return to_string(from.as<exact_integer>().to<size_type>(),
+                       to  .as<exact_integer>().to<size_type>());
+    }
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

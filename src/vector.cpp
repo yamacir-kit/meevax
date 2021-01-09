@@ -1,6 +1,7 @@
 #include <boost/range/adaptors.hpp>
 #include <meevax/algorithm/for_each.hpp>
 #include <meevax/kernel/stack.hpp>
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
 #include <meevax/posix/vt102.hpp>
 
@@ -10,12 +11,12 @@ inline namespace kernel
 {
   let vector::to_list(vector::size_type from, vector::size_type to) const
   {
-    using boost::adaptors::reverse;
-    using boost::adaptors::slice;
+    using boost::adaptors::reversed;
+    using boost::adaptors::sliced;
 
     let x = unit;
 
-    for (auto const& each : reverse(slice(*this, from, to)))
+    for (let const& each : *this | sliced(from, to) | reversed)
     {
       push(x, each);
     }
@@ -23,15 +24,27 @@ inline namespace kernel
     return x;
   }
 
-  // let vector::to_string()
-  // {
-  //   let s = unit;
-  //
-  //   for (auto const& each : boost::adapters::reverse(*this))
-  //   {
-  //     s = make<string>()
-  //   }
-  // }
+  let vector::to_string(vector::size_type from, vector::size_type to) const
+  {
+    using boost::adaptors::reversed;
+    using boost::adaptors::sliced;
+
+    let s = unit;
+
+    for (let const& each : *this | sliced(from, to) | reversed)
+    {
+      if (each.is<character>())
+      {
+        s = make<string>(each, s);
+      }
+      else
+      {
+        throw error("It is an error if any element of vector between start and end is not a character.");
+      }
+    }
+
+    return s;
+  }
 
   auto operator ==(vector const& lhs, vector const& rhs) -> bool
   {

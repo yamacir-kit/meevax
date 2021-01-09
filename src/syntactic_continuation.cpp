@@ -742,22 +742,17 @@ inline namespace kernel
 
     define<procedure>("vector->list", [](let const& xs)
     {
-      // return car(xs).as<vector>().to_list();
-
       if (let const& v = car(xs); cdr(xs).is<null>())
       {
         return v.as<vector>().to_list();
       }
-      else if (let const& a = cadr(xs); cddr(xs).is<null>())
+      else if (let const& from = cadr(xs); cddr(xs).is<null>())
       {
-        return v.as<vector>().to_list(a.as<exact_integer>().to<vector::size_type>());
+        return v.as<vector>().to_list(from);
       }
       else
       {
-        let const& b = caddr(xs);
-
-        return v.as<vector>().to_list(a.as<exact_integer>().to<vector::size_type>(),
-                                      b.as<exact_integer>().to<vector::size_type>());
+        return v.as<vector>().to_list(from, caddr(xs));
       }
     });
 
@@ -766,10 +761,21 @@ inline namespace kernel
       return make<vector>(for_each_in, car(xs));
     });
 
-    // define<procedure>("vector->string", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
+    define<procedure>("vector->string", [](let const& xs)
+    {
+      if (let const& v = car(xs); cdr(xs).is<null>())
+      {
+        return v.as<vector>().to_string();
+      }
+      else if (let const& from = cadr(xs); cddr(xs).is<null>())
+      {
+        return v.as<vector>().to_string(from);
+      }
+      else
+      {
+        return v.as<vector>().to_string(from, caddr(xs));
+      }
+    });
 
     // define<procedure>("string->vector", [](auto&& xs)
     // {
