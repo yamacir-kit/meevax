@@ -12,10 +12,7 @@ inline namespace kernel
   struct vector
     : public std::vector<object>
   {
-    template <typename... Ts>
-    explicit vector(Ts&&... xs)
-      : std::vector<object> { std::forward<decltype(xs)>(xs)... }
-    {}
+    using std::vector<object>::vector;
 
     template <typename InputIterator>
     explicit vector(for_each_in_tag, InputIterator&& begin, InputIterator&& end)
@@ -27,6 +24,10 @@ inline namespace kernel
     explicit vector(for_each_in_tag, value_type const& xs)
       : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
     {}
+
+    // auto to_list() const;
+    //
+    // auto to_string() const;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

@@ -759,16 +759,9 @@ inline namespace kernel
       return result;
     });
 
-    define<procedure>("list->vector", [](auto&& xs)
+    define<procedure>("list->vector", [](let const& xs)
     {
-      if (let const& x = car(xs); x.is<null>())
-      {
-        return make<vector>();
-      }
-      else
-      {
-        return make<vector>(for_each_in, x);
-      }
+      return make<vector>(for_each_in, car(xs));
     });
 
     // define<procedure>("vector->string", [](auto&& xs)
