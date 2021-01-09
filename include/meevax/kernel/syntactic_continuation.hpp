@@ -111,8 +111,8 @@ inline namespace kernel
     {}
 
   public:
-    auto current_expression() const -> auto const& { return car(form()); }
-    auto scope()              const -> auto const& { return cdr(form()); }
+    decltype(auto) current_expression() const { return car(form()); }
+    decltype(auto) scope()              const { return cdr(form()); }
 
     const auto& intern(const std::string& s)
     {

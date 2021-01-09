@@ -141,7 +141,7 @@ make test
 
 ## Liscence
 
-***TODO: Meevax license notation (probably Apache License 2.0 will be set)***
+See [LICENSE](./LICENSE)
 
 | Name                | License                                  |
 |:--------------------|:-----------------------------------------|
