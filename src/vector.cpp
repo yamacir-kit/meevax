@@ -6,9 +6,10 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator ==(const vector& lhs, const vector& rhs) -> bool
+  auto operator ==(vector const& lhs, vector const& rhs) -> bool
   {
-    return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs), std::end(rhs), equal);
+    return std::equal(std::begin(lhs), std::end(lhs),
+                      std::begin(rhs), std::end(rhs), equal);
   }
 
   auto operator <<(std::ostream & port, vector const& datum) -> decltype(port)

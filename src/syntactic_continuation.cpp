@@ -713,13 +713,8 @@ inline namespace kernel
 
     define<procedure>("make-vector", [](let const& xs)
     {
-      let v = make<vector>();
-
-      v.as<vector>().resize(
-        static_cast<vector::size_type>(
-          car(xs).as<exact_integer>().value));
-
-      return v;
+      return make<vector>(car(xs).as<exact_integer>().to<vector::size_type>(),
+                          cdr(xs).is<null>() ? unspecified : cadr(xs));
     });
 
     define<procedure>("vector", [](auto&& xs)
