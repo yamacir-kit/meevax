@@ -590,12 +590,12 @@ inline namespace kernel
 
   protected: // Primitive Expression Types
     #define DEFINE_PRIMITIVE_EXPRESSION(NAME)                                  \
-    const object NAME(                                                         \
-      [[maybe_unused]] const object& expression,                               \
-      [[maybe_unused]] const object& syntactic_environment,                    \
-      [[maybe_unused]] const object& frames,                                   \
-      [[maybe_unused]] const object& continuation,                             \
-      [[maybe_unused]] const compilation_context in_a = as_is)
+    let const NAME(                                                            \
+      [[maybe_unused]] object const& expression,                               \
+      [[maybe_unused]] object const& syntactic_environment,                    \
+      [[maybe_unused]] object const& frames,                                   \
+      [[maybe_unused]] object const& continuation,                             \
+      [[maybe_unused]] compilation_context const in_a = as_is)
 
     /* ---- Quotation ----------------------------------------------------------
      *
@@ -608,11 +608,13 @@ inline namespace kernel
       return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
     }
 
-    /* ---- Sequence ----------------------------------------------------------
+    /* ---- Sequence -----------------------------------------------------------
      *
      *  <sequence> = <command>* <expression>
      *
      *  <command> = <expression>
+     *
+     *  Note: The return value of <Command> is discarded.
      *
      * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(sequence)
@@ -1087,12 +1089,12 @@ inline namespace kernel
       }
     }
 
-    /* ==== Explicit Variable Reference =======================================
-    *
-    * TODO DEPRECATED
-    * TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
-    *
-    *======================================================================== */
+    /* ---- Explicit Variable Reference ----------------------------------------
+     *
+     *  TODO DEPRECATED
+     *  TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(reference)
     {
       if (expression.is<null>())
@@ -1118,6 +1120,27 @@ inline namespace kernel
         debug(car(expression), faint, " ; is <identifier> of glocal variable");
         return cons(make<instruction>(mnemonic::LOAD_GLOBAL), car(expression), continuation);
       }
+    }
+
+    /* ---- Construct ----------------------------------------------------------
+     *
+     *  This primitive expression type is not currently in use. The procedure
+     *  cons is not a primitive expression type and must be redefined as
+     *
+     *    (define cons
+     *      (lambda (a b)
+     *        (cons a b)))
+     *
+     * ---------------------------------------------------------------------- */
+    DEFINE_PRIMITIVE_EXPRESSION(construct)
+    {
+      return compile(cadr(expression),
+                     syntactic_environment,
+                     frames,
+                     compile(car(expression),
+                             syntactic_environment,
+                             frames,
+                             cons(make<instruction>(mnemonic::CONS), continuation)));
     }
   };
 } // namespace kernel

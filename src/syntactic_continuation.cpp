@@ -25,6 +25,7 @@ inline namespace kernel
   {
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
+    // DEFINE_SYNTAX("cons", construct);
     DEFINE_SYNTAX("define", definition);
     DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork);
     DEFINE_SYNTAX("if", conditional);
@@ -32,27 +33,6 @@ inline namespace kernel
     DEFINE_SYNTAX("quote", quotation);
     DEFINE_SYNTAX("reference", reference);
     DEFINE_SYNTAX("set!", assignment);
-
-    // define<syntax>("cons", [this](
-    //   auto&& expression,
-    //   auto&& syntactic_environment,
-    //   auto&& frames,
-    //   auto&& continuation,
-    //   auto&&)
-    // {
-    //   return
-    //     compile(
-    //       cadr(expression),
-    //       syntactic_environment,
-    //       frames,
-    //       compile(
-    //         car(expression),
-    //         syntactic_environment,
-    //         frames,
-    //         cons(
-    //           make<instruction>(mnemonic::CONS),
-    //           continuation)));
-    // });
   }
 
   template <>
