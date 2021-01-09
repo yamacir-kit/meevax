@@ -7,7 +7,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class in_range_tag {} static constexpr in_range {};
+  enum class for_each_in_tag {} constexpr for_each_in {};
 
   struct vector
     : public std::vector<object>
@@ -18,18 +18,15 @@ inline namespace kernel
     {}
 
     template <typename InputIterator>
-    explicit vector(in_range_tag, InputIterator&& begin,
-                                  InputIterator&& end)
+    explicit vector(for_each_in_tag, InputIterator&& begin, InputIterator&& end)
       : std::vector<object> {}
     {
       std::copy(begin, end, std::back_inserter(*this));
     }
 
-    explicit vector(in_range_tag, value_type const& xs)
-      : std::vector<object> {}
-    {
-      std::copy(std::cbegin(xs), std::cend(xs), std::back_inserter(*this));
-    }
+    explicit vector(for_each_in_tag, value_type const& xs)
+      : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
+    {}
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

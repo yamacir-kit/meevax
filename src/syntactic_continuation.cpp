@@ -724,7 +724,7 @@ inline namespace kernel
 
     define<procedure>("vector", [](auto&& xs)
     {
-      return make<vector>(in_range, std::forward<decltype(xs)>(xs));
+      return make<vector>(for_each_in, xs);
     });
 
     define<procedure>("vector-length", [](let const& xs)
@@ -749,7 +749,7 @@ inline namespace kernel
     {
       let result = unit;
 
-      auto& v { car(xs).as<vector>() };
+      auto const& v = car(xs).as<vector>();
 
       std::for_each(std::rbegin(v), std::rend(v), [&](auto&& each)
       {
@@ -761,15 +761,13 @@ inline namespace kernel
 
     define<procedure>("list->vector", [](auto&& xs)
     {
-      // return make<vector>(in_range, std::begin(car(xs)), std::end(car(xs)));
-
       if (let const& x = car(xs); x.is<null>())
       {
         return make<vector>();
       }
       else
       {
-        return make<vector>(in_range, std::cbegin(x), std::cend(x));
+        return make<vector>(for_each_in, x);
       }
     });
 

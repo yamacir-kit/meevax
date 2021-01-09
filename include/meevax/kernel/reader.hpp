@@ -452,13 +452,13 @@ inline namespace kernel
         return make<exact_integer>("0x" + read_token(is));
 
       case '(':
-        if (let const xs { read(is) }; xs.is<null>())
+        if (let const xs = read(is); xs.is<null>())
         {
           return make<vector>();
         }
         else
         {
-          return make<vector>(in_range, xs);
+          return make<vector>(for_each_in, xs);
         }
 
       case '\\':
