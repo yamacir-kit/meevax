@@ -26,46 +26,45 @@ inline namespace kernel
   template <std::size_t N>
   using layer = std::integral_constant<decltype(N), N>;
 
-  /* ---- Syntactic Continuation (SK) ------------------------------------------
-   *
-   * TODO
-   *
-   * ------------------------------------------------------------------------ */
-  class syntactic_continuation
+  class syntactic_continuation /* ----------------------------------------------
+  *
+  *  (<program> . <syntactic environment>)
+  *
+  * ------------------------------------------------------------------------- */
 
     : public syntactic_closure /* ----------------------------------------------
     *
-    * TODO
+    *  (<closure> . <lexical environment>)
     *
     * ----------------------------------------------------------------------- */
 
     , public reader<syntactic_continuation> /* ---------------------------------
     *
-    * TODO
+    *  TODO
     *
     * ----------------------------------------------------------------------- */
 
     , public writer<syntactic_continuation> /* ---------------------------------
     *
-    * TODO
+    *  TODO
     *
     * ----------------------------------------------------------------------- */
 
     , public machine<syntactic_continuation> /* --------------------------------
     *
-    * Each syntactic-continuation has a virtual machine and a compiler.
+    *  TR-SECD virtual machine and it's compiler.
     *
     * ----------------------------------------------------------------------- */
 
     , public debugger<syntactic_continuation> /* -------------------------------
     *
-    * TODO
+    *  TODO
     *
     * ----------------------------------------------------------------------- */
 
     , public configurator<syntactic_continuation> /* ---------------------------
     *
-    * TODO
+    *  TODO
     *
     * ----------------------------------------------------------------------- */
   {
@@ -112,8 +111,8 @@ inline namespace kernel
     {}
 
   public:
-    auto current_expression() const -> auto const& { return car(form()); }
-    auto scope()              const -> auto const& { return cdr(form()); }
+    decltype(auto) current_expression() const { return car(form()); }
+    decltype(auto) scope()              const { return cdr(form()); }
 
     const auto& intern(const std::string& s)
     {

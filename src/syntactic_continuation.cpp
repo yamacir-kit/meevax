@@ -25,6 +25,7 @@ inline namespace kernel
   {
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
+    // DEFINE_SYNTAX("cons", construct);
     DEFINE_SYNTAX("define", definition);
     DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork);
     DEFINE_SYNTAX("if", conditional);
@@ -32,27 +33,6 @@ inline namespace kernel
     DEFINE_SYNTAX("quote", quotation);
     DEFINE_SYNTAX("reference", reference);
     DEFINE_SYNTAX("set!", assignment);
-
-    // define<syntax>("cons", [this](
-    //   auto&& expression,
-    //   auto&& syntactic_environment,
-    //   auto&& frames,
-    //   auto&& continuation,
-    //   auto&&)
-    // {
-    //   return
-    //     compile(
-    //       cadr(expression),
-    //       syntactic_environment,
-    //       frames,
-    //       compile(
-    //         car(expression),
-    //         syntactic_environment,
-    //         frames,
-    //         cons(
-    //           make<instruction>(mnemonic::CONS),
-    //           continuation)));
-    // });
   }
 
   template <>
@@ -714,7 +694,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ list->vector       │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector->string     │ TODO       │                                    │
+     │ vector->string     │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ string->vector     │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -724,7 +704,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ vector-append      │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-fill!       │ TODO       │                                    │
+     │ vector-fill!       │ C++        │                                    │
      └────────────────────┴────────────┴────────────────────────────────────┘
 
     ------------------------------------------------------------------------- */
@@ -733,18 +713,13 @@ inline namespace kernel
 
     define<procedure>("make-vector", [](let const& xs)
     {
-      let v = make<vector>();
-
-      v.as<vector>().resize(
-        static_cast<vector::size_type>(
-          car(xs).as<exact_integer>().value));
-
-      return v;
+      return make<vector>(car(xs).as<exact_integer>().to<vector::size_type>(),
+                          cdr(xs).is<null>() ? unspecified : cadr(xs));
     });
 
-    define<procedure>("vector", [](auto&& xs)
+    define<procedure>("vector", [](auto&&... xs)
     {
-      return make<vector>(in_range, std::forward<decltype(xs)>(xs));
+      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
     });
 
     define<procedure>("vector-length", [](let const& xs)
@@ -767,36 +742,40 @@ inline namespace kernel
 
     define<procedure>("vector->list", [](let const& xs)
     {
-      let result = unit;
-
-      auto& v { car(xs).as<vector>() };
-
-      std::for_each(std::rbegin(v), std::rend(v), [&](auto&& each)
+      if (let const& v = car(xs); cdr(xs).is<null>())
       {
-        return result = cons(each, result);
-      });
-
-      return result;
-    });
-
-    define<procedure>("list->vector", [](auto&& xs)
-    {
-      // return make<vector>(in_range, std::begin(car(xs)), std::end(car(xs)));
-
-      if (let const& x = car(xs); x.is<null>())
+        return v.as<vector>().to_list();
+      }
+      else if (let const& from = cadr(xs); cddr(xs).is<null>())
       {
-        return make<vector>();
+        return v.as<vector>().to_list(from);
       }
       else
       {
-        return make<vector>(in_range, std::cbegin(x), std::cend(x));
+        return v.as<vector>().to_list(from, caddr(xs));
       }
     });
 
-    // define<procedure>("vector->string", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
+    define<procedure>("list->vector", [](let const& xs)
+    {
+      return make<vector>(for_each_in, car(xs));
+    });
+
+    define<procedure>("vector->string", [](let const& xs)
+    {
+      if (let const& v = car(xs); cdr(xs).is<null>())
+      {
+        return v.as<vector>().to_string();
+      }
+      else if (let const& from = cadr(xs); cddr(xs).is<null>())
+      {
+        return v.as<vector>().to_string(from);
+      }
+      else
+      {
+        return v.as<vector>().to_string(from, caddr(xs));
+      }
+    });
 
     // define<procedure>("string->vector", [](auto&& xs)
     // {
@@ -818,10 +797,21 @@ inline namespace kernel
     //   return unspecified;
     // });
 
-    // define<procedure>("vector-fill!", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
+    define<procedure>("vector-fill!", [](let const& xs)
+    {
+      if (let const& v = car(xs), value = cadr(xs); cddr(xs).is<null>())
+      {
+        return v.as<vector>().fill(value);
+      }
+      else if (let const& from = caddr(xs); cdddr(xs).is<null>())
+      {
+        return v.as<vector>().fill(value, from);
+      }
+      else
+      {
+        return v.as<vector>().fill(value, from, cadddr(xs));
+      }
+    });
 
 
   /* ---- R7RS 6.10. Control features ------------------------------------------
