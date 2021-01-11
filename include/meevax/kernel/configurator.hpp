@@ -178,7 +178,7 @@ inline namespace kernel
       {
         if (s.is<symbol>())
         {
-          return paths = cons(make<path>(s.as<const std::string>()), paths);
+          return paths = cons(make<path>(s.as<bytestring const>()), paths);
         }
         else
         {
@@ -187,7 +187,7 @@ inline namespace kernel
       }),
     };
 
-    const dispatcher<std::string> long_options
+    const dispatcher<bytestring> long_options
     {
       std::make_pair("batch", [this](auto&&...)
       {
@@ -230,7 +230,7 @@ inline namespace kernel
       }),
     };
 
-    const dispatcher<std::string> long_options_
+    const dispatcher<bytestring> long_options_
     {
       std::make_pair("echo", [&](const auto& xs)
       {
@@ -248,7 +248,7 @@ inline namespace kernel
       {
         if (s.is<symbol>())
         {
-          return paths = cons(make<path>(s.as<const std::string>()), paths);
+          return paths = cons(make<path>(s.as<bytestring const>()), paths);
         }
         else
         {
@@ -266,12 +266,12 @@ inline namespace kernel
   public:
     auto configure(const int argc, char const* const* const argv) -> decltype(auto)
     {
-      const std::vector<std::string> options {argv + 1, argv + argc};
+      const std::vector<bytestring> options {argv + 1, argv + argc};
 
       return configure(options);
     }
 
-    void configure(const std::vector<std::string>& args)
+    void configure(std::vector<bytestring> const& args)
     {
       static const std::regex pattern { "--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)" };
 
@@ -287,7 +287,7 @@ inline namespace kernel
           {
             if (auto callee { short_options_.find(*so) }; callee != std::end(short_options_))
             {
-              if (const std::string rest { std::next(so), std::end(sos) }; rest.length())
+              if (bytestring const rest { std::next(so), std::end(sos) }; rest.length())
               {
                 return std::invoke(cdr(*callee), read(*option));
               }

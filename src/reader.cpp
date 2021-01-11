@@ -4,16 +4,16 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(input_port & port) -> std::string
+  auto read_token(input_port & port) -> bytestring
   {
-    std::string result {};
+    bytestring token {};
 
-    for (auto c { port.peek() }; not is_end_of_token(c); c = port.peek())
+    for (auto c = port.peek(); not is_end_of_token(c); c = port.peek())
     {
-      result.push_back(port.get());
+      token.push_back(port.get());
     }
 
-    return result;
+    return token;
   }
 
   let read_char(input_port & port)
@@ -25,7 +25,7 @@ inline namespace kernel
       name.push_back(port.get());
     }
 
-    static const std::unordered_map<std::string, char> names
+    static const std::unordered_map<bytestring, char> names
     {
       { "alarm"    , 0x07 },
       { "backspace", 0x08 },
@@ -84,41 +84,41 @@ inline namespace kernel
     }
   }
 
-  let make_string(const std::string& code)
+  let make_string(bytestring const& text)
   {
     std::stringstream port {};
-    port << code << "\"";
+    port << text << "\"";
     return read_string(port);
   }
 
   inline namespace lexical_structure
   {
-    template <> auto digit< 2>() -> std::string { return "[01]"; }
-    template <> auto digit< 8>() -> std::string { return "[01234567]"; }
-    template <> auto digit<10>() -> std::string { return "\\d"; }
-    template <> auto digit<16>() -> std::string { return "[" + digit<10>() + "abcdef]"; }
+    template <> auto digit< 2>() -> bytestring { return "[01]"; }
+    template <> auto digit< 8>() -> bytestring { return "[01234567]"; }
+    template <> auto digit<10>() -> bytestring { return "\\d"; }
+    template <> auto digit<16>() -> bytestring { return "[" + digit<10>() + "abcdef]"; }
 
-    template <> auto radix< 2>() -> std::string { return  "#b";   }
-    template <> auto radix< 8>() -> std::string { return  "#o";   }
-    template <> auto radix<10>() -> std::string { return "(#d)?"; }
-    template <> auto radix<16>() -> std::string { return  "#x";   }
+    template <> auto radix< 2>() -> bytestring { return  "#b";   }
+    template <> auto radix< 8>() -> bytestring { return  "#o";   }
+    template <> auto radix<10>() -> bytestring { return "(#d)?"; }
+    template <> auto radix<16>() -> bytestring { return  "#x";   }
 
-    auto exactness() -> std::string
+    auto exactness() -> bytestring
     {
       return "(#e|#i)?";
     }
 
-    auto sign() -> std::string
+    auto sign() -> bytestring
     {
       return "[\\+-]?";
     }
 
-    auto infnan() -> std::string
+    auto infnan() -> bytestring
     {
       return "[\\+-](inf|nan)\\.0";
     }
 
-    auto suffix() -> std::string
+    auto suffix() -> bytestring
     {
       return "(e" + sign() + digits<10>("+") + ")?";
     }

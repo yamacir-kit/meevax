@@ -27,9 +27,9 @@ inline namespace kernel
       return default_shift;
     }
 
-    auto header(const std::string& title = "compiler") const -> std::string
+    auto header(bytestring const& title = "compiler") const -> bytestring
     {
-      std::string s {"; "};
+      bytestring s {"; "};
 
       if (not depth)
       {
@@ -57,15 +57,15 @@ inline namespace kernel
 
     struct indentation
     {
-      operator std::string() const
+      operator bytestring() const
       {
-        return std::string(depth, ' ');
+        return bytestring(depth, ' ');
       }
 
       friend auto operator <<(std::ostream& os, const indentation& indent)
         -> decltype(os)
       {
-        return os << static_cast<std::string>(indent);
+        return os << static_cast<bytestring>(indent);
       }
 
       friend auto& operator >>(indentation& indent, std::size_t width)

@@ -12,13 +12,13 @@ inline namespace kernel
   struct string
     : public virtual pair
   {
-    auto write_string() const -> std::string;
+    auto write_string() const -> bytestring;
 
     auto write_string(output_port&) const -> output_port &;
 
     auto write_string(let const&) const -> output_port &;
 
-    operator std::string() const
+    operator bytestring() const
     {
       return write_string();
     }
@@ -26,7 +26,7 @@ inline namespace kernel
 
   bool operator ==(string const&, string const&);
 
-  auto operator <<(output_port&, const string&) -> output_port &;
+  auto operator <<(output_port &, string const&) -> output_port &;
 } // namespace kernel
 } // namespace meevax
 

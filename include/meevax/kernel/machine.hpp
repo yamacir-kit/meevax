@@ -204,11 +204,11 @@ inline namespace kernel
 
         if (iter == c)
         {
-          write_to(standard_debug_port(), std::string(4 * (depth - 1), ' '), magenta, "(   ");
+          write_to(standard_debug_port(), bytestring(4 * (depth - 1), ' '), magenta, "(   ");
         }
         else
         {
-          write_to(standard_debug_port(), std::string(4 * depth, ' '));
+          write_to(standard_debug_port(), bytestring(4 * depth, ' '));
         }
 
         switch ((*iter).as<instruction>().code)

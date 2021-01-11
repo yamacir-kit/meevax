@@ -23,7 +23,7 @@ inline namespace kernel
     *======================================================================== */
     struct close
     {
-      const std::string name;
+      bytestring const name;
 
       void operator()(void* handle) noexcept
       {
@@ -34,12 +34,12 @@ inline namespace kernel
       }
     };
 
-    std::string name;
+    bytestring name;
 
     std::unique_ptr<void, close> handle;
 
   public:
-    auto open(const std::string& name = "")
+    auto open(bytestring const& name = "")
     {
       dlerror(); // clear
 
@@ -60,7 +60,7 @@ inline namespace kernel
       return result;
     }
 
-    linker(const std::string& name = "")
+    linker(bytestring const& name = "")
       : name {name}
       , handle {open(name)}
     {}
@@ -71,7 +71,7 @@ inline namespace kernel
     }
 
     template <typename Signature>
-    Signature link(const std::string& symbol) const
+    Signature link(bytestring const& symbol) const
     {
       if (handle)
       {

@@ -23,10 +23,10 @@ inline namespace kernel
   {
     using signature = PROCEDURE((*));
 
-    const std::string name;
+    bytestring const name;
 
     template <typename... Ts>
-    explicit procedure(const std::string& name, Ts&&... xs)
+    explicit procedure(bytestring const& name, Ts&&... xs)
       : std::function<PROCEDURE()> { std::forward<decltype(xs)>(xs)...  }
       , name { name }
     {}
