@@ -952,7 +952,10 @@
   (lambda (n)
     (if (< n 0) (- n) n)))
 
-(define floor-quotient  (lambda (x y) (floor (/ x y))))
+(define floor-quotient
+  (lambda (x y)
+    (floor (/ x y))))
+
 (define floor-remainder
   (lambda (a b)
     (% (+ b (% a b)) b)))
@@ -962,7 +965,10 @@
     (values (floor-quotient x y)
             (floor-remainder x y))))
 
-(define truncate-quotient  (lambda (x y) (truncate (/ x y))))
+(define truncate-quotient
+  (lambda (x y)
+    (truncate (/ x y))))
+
 (define truncate-remainder %)
 
 (define truncate/
@@ -970,9 +976,9 @@
     (values (truncate-quotient x y)
             (truncate-remainder x y))))
 
-(define quotient  truncate-quotient)  ; for backward compatibility
-(define remainder truncate-remainder) ; for backward compatibility
-(define modulo       floor-remainder) ; for backward compatibility
+(define quotient truncate-quotient)
+(define remainder truncate-remainder)
+(define modulo floor-remainder)
 
 (define gcd ; from Chibi-Scheme lib/init7.scm
   (lambda xs
