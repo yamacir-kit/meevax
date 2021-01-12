@@ -249,14 +249,16 @@
                     (list (rename 'quote) 'quasiquote)
                     (qq (cadr x) (+ d 1))))
 
-             ((and (<= d 0) (pair? (car x))
+             ((and (<= d 0)
+                   (pair? (car x))
                    (compare (rename 'unquote-splicing) (caar x)))
               (if (null? (cdr x))
                   (cadr (car x))
                   (list (rename 'append) (cadr (car x)) (qq (cdr x) d))))
 
-             (else
-               (list (rename 'cons) (qq (car x) d) (qq (cdr x) d)))))
+             (else (list (rename 'cons)
+                         (qq (car x) d)
+                         (qq (cdr x) d)))))
 
           ((vector? x)
            (list (rename 'list->vector)
@@ -951,7 +953,9 @@
     (if (< n 0) (- n) n)))
 
 (define floor-quotient  (lambda (x y) (floor (/ x y))))
-(define floor-remainder (lambda (x y) (floor (% x y))))
+(define floor-remainder
+  (lambda (a b)
+    (% (+ b (% a b)) b)))
 
 (define floor/
   (lambda (x y)
@@ -959,7 +963,7 @@
             (floor-remainder x y))))
 
 (define truncate-quotient  (lambda (x y) (truncate (/ x y))))
-(define truncate-remainder (lambda (x y) (truncate (% x y))))
+(define truncate-remainder %)
 
 (define truncate/
   (lambda (x y)

@@ -387,7 +387,7 @@
              (lambda (x) x))           => #f) ; unspecified
 (check (eqv? (lambda (x) x)
              (lambda (y) y))           => #f) ; unspecified
-; (check (eqv? 1.0e0 1.0e0)            => TODO) ; unspecified
+; (check (eqv? 1.0e0 1.0f0)            => TODO) ; unspecified
 (check (eqv? +nan.0 +nan.0)            => #t) ; unspecified
 
 (define generate-counter
@@ -798,8 +798,8 @@
 (check (floor-quotient -5 -2) =>  2)
 
 (check (floor-remainder  5  2) =>  1)
-; (check (floor-remainder -5  2) =>  1) ; REQUIRES RATIO
-; (check (floor-remainder  5 -2) => -1) ; REQUIRES RATIO
+(check (floor-remainder -5  2) =>  1)
+(check (floor-remainder  5 -2) => -1)
 (check (floor-remainder -5 -2) => -1)
 
 (check (truncate-quotient  5    2) =>  2)
@@ -815,8 +815,8 @@
 (check (truncate-remainder -5.0 -2) => -1.0)
 
 (check (modulo  13  4) =>  1)
-; (check (modulo -13  4) =>  3)
-; (check (modulo  13 -4) => -3)
+(check (modulo -13  4) =>  3)
+(check (modulo  13 -4) => -3)
 (check (modulo -13 -4) => -1)
 
 (check (remainder  13  4)   =>  1)

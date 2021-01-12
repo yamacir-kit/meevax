@@ -166,7 +166,10 @@ inline namespace kernel
               applicant.as<SK>().expand(applicant, expression)
             };
 
-            debug(expanded);
+            // debug(expanded);
+
+            write_to(standard_debug_port(),
+              header("macroexpand-1"), indent(), expanded, "\n");
 
             return compile(expanded, syntactic_environment, frames, continuation);
           }
