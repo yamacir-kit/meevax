@@ -249,14 +249,16 @@
                     (list (rename 'quote) 'quasiquote)
                     (qq (cadr x) (+ d 1))))
 
-             ((and (<= d 0) (pair? (car x))
+             ((and (<= d 0)
+                   (pair? (car x))
                    (compare (rename 'unquote-splicing) (caar x)))
               (if (null? (cdr x))
                   (cadr (car x))
                   (list (rename 'append) (cadr (car x)) (qq (cdr x) d))))
 
-             (else
-               (list (rename 'cons) (qq (car x) d) (qq (cdr x) d)))))
+             (else (list (rename 'cons)
+                         (qq (car x) d)
+                         (qq (cdr x) d)))))
 
           ((vector? x)
            (list (rename 'list->vector)
@@ -773,17 +775,55 @@
          `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
 ; ------------------------------------------------------------------------------
-;  4.2.5 Standard Delayed Evaluation Library (Part 1 of 2)
+;  4.2.5 Delayed Evaluation
 ; ------------------------------------------------------------------------------
 
-(define-syntax (delay-force expression)
- `(,promise #f (,lambda () ,expression)))
+(define <promise> (list 'promise))
 
-(define-syntax (delay expression)
- `(,delay-force (,promise #t expression)))
+(define promise ; ((#false . #,(closure ...)) promise)
+  (lambda (forced? closure)
+    (cons (cons forced? closure) <promise>)))
 
-; TODO promise?
-; TODO make-promise?
+(define promise?
+  (lambda (x)
+    (and (pair? x)
+         (eq? <promise> (cdr x)))))
+
+(define force
+  (lambda (promise)
+
+    (define done? caar)
+
+    (define cache cdar)
+
+    (define update!
+      (lambda (new old)
+        (set-car! (car old) (done? new))
+        (set-cdr! (car old) (cache new))
+        (set-car! new (car old))))
+
+    (if (done? promise)
+        (cache promise)
+        (let ((new ((cache promise))))
+          (unless (done? promise)
+                  (update! new promise))
+          (force promise)))))
+
+(define-syntax delay-force
+  (er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'promise) #f (,(rename 'lambda) () ,(cadr form))))))
+
+(define-syntax delay
+  (er-macro-transformer
+    (lambda (form rename compare)
+      `(,(rename 'delay-force)
+         (,(rename 'promise) #t ,(cadr form))))))
+
+(define make-promise
+  (lambda (x)
+    (if (promise? x) x
+        (delay x))))
 
 ; ------------------------------------------------------------------------------
 ;  6.1 Standard Equivalence Predicates Library (Part 2 of 2)
@@ -950,25 +990,33 @@
   (lambda (n)
     (if (< n 0) (- n) n)))
 
-(define floor-quotient  (lambda (x y) (floor (/ x y))))
-(define floor-remainder (lambda (x y) (floor (% x y))))
+(define floor-quotient
+  (lambda (x y)
+    (floor (/ x y))))
+
+(define floor-remainder
+  (lambda (a b)
+    (% (+ b (% a b)) b)))
 
 (define floor/
   (lambda (x y)
     (values (floor-quotient x y)
             (floor-remainder x y))))
 
-(define truncate-quotient  (lambda (x y) (truncate (/ x y))))
-(define truncate-remainder (lambda (x y) (truncate (% x y))))
+(define truncate-quotient
+  (lambda (x y)
+    (truncate (/ x y))))
+
+(define truncate-remainder %)
 
 (define truncate/
   (lambda (x y)
     (values (truncate-quotient x y)
             (truncate-remainder x y))))
 
-(define quotient  truncate-quotient)  ; for backward compatibility
-(define remainder truncate-remainder) ; for backward compatibility
-(define modulo       floor-remainder) ; for backward compatibility
+(define quotient truncate-quotient)
+(define remainder truncate-remainder)
+(define modulo floor-remainder)
 
 (define gcd ; from Chibi-Scheme lib/init7.scm
   (lambda xs

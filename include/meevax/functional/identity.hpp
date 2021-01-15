@@ -7,17 +7,22 @@ namespace meevax
 {
 inline namespace functional
 {
-  template <typename T>
-  struct identity
+  // template <typename T>
+  // struct identity
+  // {
+  //   using type = T;
+  //
+  //   using is_transparent = std::true_type;
+  //
+  //   constexpr decltype(auto) operator ()(T&& x) const noexcept
+  //   {
+  //     return std::forward<decltype(x)>(x);
+  //   }
+  // };
+
+  auto identity = [](auto&&... xs) constexpr -> decltype(auto)
   {
-    using type = T;
-
-    using is_transparent = std::true_type;
-
-    constexpr decltype(auto) operator ()(T&& x) const noexcept
-    {
-      return std::forward<decltype(x)>(x);
-    }
+    return std::forward<decltype(xs)>(xs)...;
   };
 } // namespace functional
 } // namespace meevax

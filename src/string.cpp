@@ -7,13 +7,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto string::write_string() const -> std::string
+  auto string::write_string() const -> bytestring
   {
     output_string_port port {};
 
     car(*this).as<character>().write_char(port);
 
-    for (const auto& each : cdr(*this))
+    for (auto const& each : cdr(*this))
     {
       each.as<character>().write_char(port);
     }

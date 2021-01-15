@@ -13,6 +13,8 @@ inline namespace kernel
   using object = pointer<pair>;
 
   using let = object;
+
+  using bytestring = std::string;
 } // namespace kernel
 } // namespace meevax
 

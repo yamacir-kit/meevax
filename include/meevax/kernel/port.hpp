@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include <meevax/kernel/path.hpp>
+#include <meevax/kernel/preface.hpp>
 
 namespace meevax
 {
@@ -24,12 +25,12 @@ inline namespace kernel
   {                                                                            \
     const path name;                                                           \
                                                                                \
-    explicit TYPENAME(const std::string& name)                                 \
+    explicit TYPENAME(bytestring const& name)                                  \
       : std::STREAM { name }                                                   \
       , name { name }                                                          \
     {}                                                                         \
                                                                                \
-    explicit TYPENAME(const std::string& name, const std::ios& ios)            \
+    explicit TYPENAME(bytestring const& name, std::ios const& ios)             \
       : std::STREAM { name }                                                   \
       , name { name }                                                          \
     {                                                                          \

@@ -26,7 +26,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(input_port & port) -> std::string;
+  auto read_token(input_port & port) -> bytestring;
 
   let read_char(input_port &);
 
@@ -37,7 +37,7 @@ inline namespace kernel
 
   let read_string(std::istream& port);
 
-  let make_string(std::string const&);
+  let make_string(bytestring const&);
 
   /* ---- Number Constructor ---------------------------------------------------
    *
@@ -47,55 +47,55 @@ inline namespace kernel
   inline namespace lexical_structure
   {
     template <std::size_t R>
-    auto digit() -> std::string;
+    auto digit() -> bytestring;
 
-    template <> auto digit< 2>() -> std::string;
-    template <> auto digit< 8>() -> std::string;
-    template <> auto digit<10>() -> std::string;
-    template <> auto digit<16>() -> std::string;
+    template <> auto digit< 2>() -> bytestring;
+    template <> auto digit< 8>() -> bytestring;
+    template <> auto digit<10>() -> bytestring;
+    template <> auto digit<16>() -> bytestring;
 
     template <std::size_t R>
-    auto digits(std::string const& quantifier)
+    auto digits(bytestring const& quantifier)
     {
       return digit<R>() + quantifier;
     }
 
     template <std::size_t R>
-    auto radix() -> std::string;
+    auto radix() -> bytestring;
 
-    template <> auto radix< 2>() -> std::string;
-    template <> auto radix< 8>() -> std::string;
-    template <> auto radix<10>() -> std::string;
-    template <> auto radix<16>() -> std::string;
+    template <> auto radix< 2>() -> bytestring;
+    template <> auto radix< 8>() -> bytestring;
+    template <> auto radix<10>() -> bytestring;
+    template <> auto radix<16>() -> bytestring;
 
-    auto exactness() -> std::string;
+    auto exactness() -> bytestring;
 
-    auto sign() -> std::string;
+    auto sign() -> bytestring;
 
-    auto infnan() -> std::string;
+    auto infnan() -> bytestring;
 
-    auto suffix() -> std::string;
+    auto suffix() -> bytestring;
 
     template <std::size_t R = 10>
-    auto prefix() -> const std::string
+    auto prefix() -> const bytestring
     {
       return "(" + radix<R>() + exactness() + "|" + exactness() + radix<R>() + ")";
     }
 
     template <std::size_t R = 10>
-    auto unsigned_integer() -> const std::string
+    auto unsigned_integer() -> const bytestring
     {
       return digits<R>("+");
     }
 
     template <std::size_t R = 10>
-    auto signed_integer() -> const std::string
+    auto signed_integer() -> const bytestring
     {
       return sign() + unsigned_integer<R>();
     }
 
     template <std::size_t R = 10>
-    auto decimal() -> const std::string
+    auto decimal() -> const bytestring
     {
       return "(" + unsigned_integer<R>()                   + suffix() +
              "|"                    "\\." + digits<R>("+") + suffix() +
@@ -103,7 +103,7 @@ inline namespace kernel
     }
 
     template <std::size_t R>
-    auto unsigned_real() -> const std::string
+    auto unsigned_real() -> const bytestring
     {
       return "("  + unsigned_integer<R>()                                 +
              "|(" + unsigned_integer<R>() + ")/(" + unsigned_integer<R>() + ")" +
@@ -111,13 +111,13 @@ inline namespace kernel
     }
 
     template <std::size_t R = 10>
-    auto signed_real() -> const std::string
+    auto signed_real() -> const bytestring
     {
       return "(" + sign() + unsigned_real<R>() + "|" + infnan() + ")";
     }
 
     template <std::size_t R = 10>
-    auto signed_complex() -> const std::string
+    auto signed_complex() -> const bytestring
     {
       return "(" "(" + signed_real<R>() +                                       ")"
              "|" "(" + signed_real<R>() +       "@" +   signed_real<R>() +      ")"
@@ -131,14 +131,14 @@ inline namespace kernel
     }
 
     template <std::size_t R = 10>
-    auto number() -> const std::string
+    auto number() -> const bytestring
     {
       return prefix<R>() + signed_complex<R>();
     }
   } // inline namespace lexical_structure
 
   template <std::size_t R = 10>
-  auto is_number(std::string const& token)
+  auto is_number(bytestring const& token)
   {
     static const std::regex pattern { number<R>() };
     std::smatch result {};
@@ -146,9 +146,9 @@ inline namespace kernel
   }
 
   template <std::size_t R = 10>
-  let make_number(std::string const& token)
+  let make_number(bytestring const& token)
   {
-    static const std::unordered_map<std::string, object> srfi_144
+    static const std::unordered_map<bytestring, object> srfi_144
     {
       std::make_pair("fl-pi", make<default_float>(boost::math::constants::pi<default_float::value_type>())),
     };
@@ -187,7 +187,7 @@ inline namespace kernel
 
       if (result.length(16)) // 6, 7, 8, 16
       {
-        static const std::unordered_map<std::string, object> infnan
+        static const std::unordered_map<bytestring, object> infnan
         {
           std::make_pair("+inf.0", make<default_float>(+default_float::infinity())),
           std::make_pair("-inf.0", make<default_float>(-default_float::infinity())),
@@ -261,7 +261,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let const read(std::istream& port)
     {
-      std::string token {};
+      bytestring token {};
 
       for (seeker head { port }; head != seeker {}; ++head) switch (*head)
       {
@@ -356,7 +356,7 @@ inline namespace kernel
       return read(standard_input_port());
     }
 
-    auto read(const std::string& s) -> decltype(auto)
+    auto read(const bytestring& s) -> decltype(auto)
     {
       std::stringstream ss { s };
       return read(ss);

@@ -387,7 +387,7 @@
              (lambda (x) x))           => #f) ; unspecified
 (check (eqv? (lambda (x) x)
              (lambda (y) y))           => #f) ; unspecified
-; (check (eqv? 1.0e0 1.0e0)            => TODO) ; unspecified
+; (check (eqv? 1.0e0 1.0f0)            => TODO) ; unspecified
 (check (eqv? +nan.0 +nan.0)            => #t) ; unspecified
 
 (define generate-counter
@@ -798,8 +798,8 @@
 (check (floor-quotient -5 -2) =>  2)
 
 (check (floor-remainder  5  2) =>  1)
-; (check (floor-remainder -5  2) =>  1) ; REQUIRES RATIO
-; (check (floor-remainder  5 -2) => -1) ; REQUIRES RATIO
+(check (floor-remainder -5  2) =>  1)
+(check (floor-remainder  5 -2) => -1)
 (check (floor-remainder -5 -2) => -1)
 
 (check (truncate-quotient  5    2) =>  2)
@@ -815,8 +815,8 @@
 (check (truncate-remainder -5.0 -2) => -1.0)
 
 (check (modulo  13  4) =>  1)
-; (check (modulo -13  4) =>  3)
-; (check (modulo  13 -4) => -3)
+(check (modulo -13  4) =>  3)
+(check (modulo  13 -4) => -3)
 (check (modulo -13 -4) => -1)
 
 (check (remainder  13  4)   =>  1)
@@ -879,11 +879,11 @@
 ; ---- Procedure (sin z) -------------------------------------------------------
 
 (check (sin          0)  (=> =) 0)
-; (check (sin (/ fl-pi 6)) (=> =) 0.5)
+(check (sin (/ fl-pi 6)) (=> =) 0.5)
 ; (check (sin (/ fl-pi 4)) (=> =) 0.707107)
 ; (check (sin (/ fl-pi 3)) (=> =) 0.866025)
-; (check (sin (/ fl-pi 2)) (=> =) 1)
-; (check (sin    fl-pi)    (=> =) 0)
+(check (sin (/ fl-pi 2)) (=> =) 1)
+(check (sin    fl-pi)    (=> =) 0)
 
 ; ---- Procedure (cos z) -------------------------------------------------------
 ; ---- Procedure (tan z) -------------------------------------------------------
@@ -1114,62 +1114,56 @@
 
 ; ---- Procedure (force promise) -----------------------------------------------
 
-; (check (force (delay (+ 1 2))) => 3)
+(check (force (delay (+ 1 2))) => 3)
 
-; (check
-;   (let ((p (delay (+ 1 2))))
-;     (list (force p)
-;           (force p)))
-;   => (3 3))
+(check
+  (let ((p (delay (+ 1 2))))
+    (list (force p)
+          (force p))) => (3 3))
 
-; (define a-stream
-;   (letrec ((next
-;              (lambda (n)
-;                (cons n (delay (next (+ n 1)))))))
-;     (next 0)))
+(define integers
+  (letrec ((next
+             (lambda (n)
+               (delay (cons n (next (+ n 1)))))))
+    (next 0)))
 
-; (define head car)
-; (define tail
-;   (lambda (stream)
-;     (force (cdr stream))))
+(define head (lambda (stream) (car (force stream))))
+(define tail (lambda (stream) (cdr (force stream))))
 
-; (check (head (tail (tail a-stream))) => 2)
+(check (head (tail (tail integers))) => 2)
 
-(define count)
+(define (stream-filter p? s)
+  (delay-force
+    (if (null? (force s))
+        (delay '())
+        (let ((h (car (force s)))
+              (t (cdr (force s))))
+          (if (p? h)
+              (delay (cons h (stream-filter p? t)))
+              (stream-filter p? t))))))
 
-; (define p
-;   (delay (begin (set! count (+ count 1))
-;                 (if (< x count)
-;                     count
-;                     (force p)))))
+(check (head (tail (tail (stream-filter odd? integers)))) => 5)
+
+(define count 0)
+
+(define p
+  (delay (begin (set! count (+ count 1))
+                (if (< x count)
+                    count
+                    (force p)))))
 
 (define x 5)
 
-; (check (promise? p) => #t)
-; (check (force p) => 6)
-; (check (promise? p) => #t)
-; (check
-;   (begin (set! x 10)
-;          (force p))
-;   => 6)
+(check (promise? p) => #t)
 
-(define force
-  (lambda (object)
-    (object)))
+(check (force p) => 6)
 
-(define make-promise
-  (lambda (proc)
-    (let ((result-ready? #f)
-          (result #f))
-      (lambda ()
-        (if result-ready?
-            result
-            (let ((x (proc)))
-              (if result-ready?
-                  result
-                  (begin (set! result-ready? #t)
-                         (set! result x)
-                         result))))))))
+(check (promise? p) => #t)
+
+(check
+  (begin (set! x 10)
+         (force p))
+  => 6)
 
 ; ---- Procedure (call-with-current-continuation proc) -------------------------
 

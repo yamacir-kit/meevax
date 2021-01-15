@@ -69,8 +69,8 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
   {
   public:
-    std::unordered_map<std::string, object> symbols;
-    std::unordered_map<std::string, object> external_symbols; // TODO REMOVE
+    std::unordered_map<bytestring, object> symbols;
+    std::unordered_map<bytestring, object> external_symbols; // TODO REMOVE
 
     std::size_t generation {0};
 
@@ -114,7 +114,7 @@ inline namespace kernel
     decltype(auto) current_expression() const { return car(form()); }
     decltype(auto) scope()              const { return cdr(form()); }
 
-    const auto& intern(const std::string& s)
+    const auto& intern(bytestring const& s)
     {
       if (auto iter { symbols.find(s) }; iter != std::end(symbols))
       {
@@ -133,13 +133,13 @@ inline namespace kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    decltype(auto) define(bytestring const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    decltype(auto) define(bytestring const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
@@ -206,9 +206,9 @@ inline namespace kernel
         std::atomic_exchange(&e, unit),
         std::atomic_exchange(&c, compile(expression, syntactic_environment())));
 
-      write_to(standard_debug_port(), "; ", std::string(78, '-'), "\n");
+      write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
       disassemble(c);
-      write_to(standard_debug_port(), "; ", std::string(78, '-'), "\n");
+      write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
 
       decltype(auto) result { execute() };
 
@@ -255,7 +255,7 @@ inline namespace kernel
     }
 
     // XXX DIRTY HACK
-    decltype(auto) load(std::string const& name)
+    decltype(auto) load(bytestring const& name)
     {
       return load(path(name));
     }
@@ -267,7 +267,7 @@ inline namespace kernel
       {
         std::cerr
         << (not depth ? "; compile\t; " : ";\t\t; ")
-        << std::string(depth * 2, ' ')
+        << bytestring(depth * 2, ' ')
         << expression
         << faint << " is <export specs>"
         << reset << std::endl;
@@ -280,7 +280,7 @@ inline namespace kernel
           std::cerr << ";\t\t; staging " << each << std::endl;
 
           external_symbols.emplace(
-            boost::lexical_cast<std::string>(each),
+            boost::lexical_cast<bytestring>(each),
             each);
         }
 

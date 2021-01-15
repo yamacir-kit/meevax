@@ -1,4 +1,3 @@
-#include <iterator>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/posix/vt102.hpp>
@@ -213,7 +212,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ exact-integer-sqrt │ TODO       │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ expt               │ TODO       │                                    │
+     │ expt               │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ make-rectangular   │ Scheme     │ complex library procedure          │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -347,7 +346,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make_string(boost::lexical_cast<std::string>(car(xs)));
+      return make_string(boost::lexical_cast<bytestring>(car(xs)));
     });
 
     define<procedure>("string->number", [](let const& xs)
@@ -654,7 +653,7 @@ inline namespace kernel
       {
         return
           make_string(
-            boost::lexical_cast<std::string>(
+            boost::lexical_cast<bytestring>(
               car(xs).as<double_float>()));
       }
       else if (car(xs).is<exact_integer>())
@@ -1310,7 +1309,7 @@ inline namespace kernel
 
     define<procedure>("procedure", [](let const& xs)
     {
-      std::string const& name = cadr(xs).as<string>();
+      bytestring const& name = cadr(xs).as<string>();
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
     });
 
@@ -1366,7 +1365,7 @@ inline namespace kernel
       {
         if (x.template is<string>())
         {
-          std::cout << static_cast<std::string>(x.template as<string>());
+          std::cout << static_cast<bytestring>(x.template as<string>());
         }
         else
         {

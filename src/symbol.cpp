@@ -5,7 +5,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream& port, const symbol& datum) -> decltype(port)
+  auto operator <<(std::ostream & port, symbol const& datum) -> decltype(port)
   {
     if (std::empty(datum))
     {
@@ -19,7 +19,7 @@ inline namespace kernel
     }
     else
     {
-      return port << static_cast<const std::string&>(datum);
+      return port << static_cast<bytestring const&>(datum);
     }
   }
 } // namespace kernel

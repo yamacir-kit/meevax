@@ -21,16 +21,16 @@ namespace meevax
 {
 inline namespace kernel
 {
-  constexpr auto boost_version = []() -> std::string
+  constexpr auto boost_version = []() -> bytestring
   {
     static constexpr std::size_t major { BOOST_VERSION / 100000 };
     static constexpr std::size_t minor { BOOST_VERSION / 100 % 1000 };
     static constexpr std::size_t patch { BOOST_VERSION % 100 };
 
     static const auto semantic {
-      boost::lexical_cast<std::string>(major) + "." +
-      boost::lexical_cast<std::string>(minor) + "." +
-      boost::lexical_cast<std::string>(patch)
+      boost::lexical_cast<bytestring>(major) + "." +
+      boost::lexical_cast<bytestring>(minor) + "." +
+      boost::lexical_cast<bytestring>(patch)
     };
 
     return semantic;

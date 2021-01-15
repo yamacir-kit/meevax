@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
+#include <iomanip>
 #include <memory>
 #include <type_traits>
 
@@ -63,7 +64,11 @@ inline namespace utility
     }
   };
 
-  /* ---- Miscellaneous ----------------------------------------------------- */
+  /* ---- Miscellaneous --------------------------------------------------------
+   *
+   *  Temporary
+   *
+   * ------------------------------------------------------------------------ */
 
   struct clone
   {
@@ -89,6 +94,12 @@ inline namespace utility
     constexpr auto operator ()(Port&& port, Ts&&... xs) const -> decltype(auto)
     {
       return (port << ... << xs);
+    }
+
+    template <typename Port>
+    decltype(auto) operator ()(Port&& port, std::string const& datum) const
+    {
+      return port << "#" << std::quoted(datum);
     }
   };
 } // namespace utility

@@ -166,7 +166,10 @@ inline namespace kernel
               applicant.as<SK>().expand(applicant, expression)
             };
 
-            debug(expanded);
+            // debug(expanded);
+
+            write_to(standard_debug_port(),
+              header("macroexpand-1"), indent(), expanded, "\n");
 
             return compile(expanded, syntactic_environment, frames, continuation);
           }
@@ -204,11 +207,11 @@ inline namespace kernel
 
         if (iter == c)
         {
-          write_to(standard_debug_port(), std::string(4 * (depth - 1), ' '), magenta, "(   ");
+          write_to(standard_debug_port(), bytestring(4 * (depth - 1), ' '), magenta, "(   ");
         }
         else
         {
-          write_to(standard_debug_port(), std::string(4 * depth, ' '));
+          write_to(standard_debug_port(), bytestring(4 * depth, ' '));
         }
 
         switch ((*iter).as<instruction>().code)
