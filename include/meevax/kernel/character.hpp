@@ -7,6 +7,7 @@
 #include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/kernel/object.hpp>
 #include <meevax/kernel/port.hpp>
+#include <meevax/string/unicode.hpp>
 
 namespace meevax
 {
@@ -14,7 +15,7 @@ inline namespace kernel
 {
   /* ---- Character --------------------------------------------------------- */
 
-  auto codepoint_to_codeunit(std::uint_least32_t) -> bytestring;
+  // auto codepoint_to_codeunit(std::uint_least32_t) -> bytestring;
 
   auto codeunit_to_codepoint(bytestring const&) -> std::uint_least32_t;
 

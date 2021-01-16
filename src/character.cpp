@@ -7,47 +7,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto codepoint_to_codeunit(std::uint_least32_t codepoint) -> bytestring
-  {
-    char sequence[5] = {};
-
-    if (codepoint <= 0x7F)
-    {
-      sequence[1] = '\0';
-      sequence[0] = (codepoint & 0x7F);
-    }
-    else if (codepoint <= 0x7FF)
-    {
-      sequence[2] = '\0';
-      sequence[1] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
-      sequence[0] = 0xC0 | (codepoint & 0x1F);
-    }
-    else if (codepoint <= 0xFFFF)
-    {
-      sequence[3] = '\0';
-      sequence[2] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
-      sequence[1] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
-      sequence[0] = 0xE0 | (codepoint & 0x0F);
-    }
-    else if (codepoint <= 0x10FFFF)
-    {
-      sequence[4] = '\0';
-      sequence[3] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
-      sequence[2] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
-      sequence[1] = 0x80 | (codepoint & 0x3F); codepoint >>= 6;
-      sequence[0] = 0xF0 | (codepoint & 0x07);
-    }
-    else
-    {
-      sequence[3] = '\0';
-      sequence[2] = static_cast<char>(0xEF);
-      sequence[1] = static_cast<char>(0xBF);
-      sequence[0] = static_cast<char>(0xBD);
-    }
-
-    return sequence;
-  }
-
   auto codeunit_to_codepoint(bytestring const& code) -> std::uint_least32_t
   {
     std::uint_least32_t codepoint {};

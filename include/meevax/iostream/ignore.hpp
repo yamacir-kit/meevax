@@ -5,7 +5,7 @@
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace iostream
 {
   // TODO UNICODE SUPPORT
   template <typename F>
@@ -18,7 +18,7 @@ inline namespace kernel
 
     return is;
   }
-} // namespace kernel
+} // namespace iostream
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_IOSTREAM_IGNORE_HPP
