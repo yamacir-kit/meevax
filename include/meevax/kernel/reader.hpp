@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <istream>
 #include <limits> // std::numeric_limits<std::streamsize>
 #include <regex>
 #include <sstream>
@@ -10,6 +9,7 @@
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 
+#include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
@@ -375,17 +375,6 @@ inline namespace kernel
     }
 
   private:
-    template <typename F>
-    auto& ignore(std::istream& port, F&& predicate)
-    {
-      while (predicate(port.peek()))
-      {
-        port.ignore(1);
-      }
-
-      return port;
-    }
-
     let discriminate(input_port & is)
     {
       switch (is.peek())
