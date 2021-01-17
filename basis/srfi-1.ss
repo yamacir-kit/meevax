@@ -25,6 +25,10 @@
 ; make-list
 ; list-tabulate
 
+(define list-ref
+  (lambda (x k)
+    (car (drop x k))))
+
 (define list-copy
   (lambda (x)
     (define list-copy
@@ -123,10 +127,6 @@
 (define ninth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x)))))))))))
 (define tenth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x))))))))))))
 
-(define list-ref
-  (lambda (x k)
-    (car (drop x k))))
-
 ; car+cdr
 
 (define take
@@ -202,11 +202,53 @@
 ; append-map append-map!
 ; map! pair-for-each filter-map map-in-order
 
-; filter  partition  remove
-; filter! partition! remove!
+(define filter
+  (lambda (pred x)
+    (define filter
+      (lambda (x)
+        (if (not-pair? x) x
+            ((lambda (head tail)
+               (if (pred head)
+                   ((lambda (new-tail)
+                      (if (eq? tail new-tail) x
+                          (cons head new-tail)))
+                    (filter tail))
+                   (filter tail)))
+             (car x)
+             (cdr x)))))
+    (filter x)))
+
+; partition
+; filter! partition!
+
+(define remove
+  (lambda (pred x)
+    (filter (lambda (y)
+              (not (pred y)))
+            x)))
+
+(define remove!
+  (lambda (pred x)
+    (filter! (lambda (y)
+               (not (pred y)))
+             x)))
+
+(define find
+  (lambda (compare x)
+    ((lambda (result)
+       (if result (car result) #f))
+     (find-tail compare x))))
+
+(define find-tail
+  (lambda (compare x)
+    (define find-tail
+      (lambda (x)
+        (if (null-list? x) #f
+            (if (compare (car x)) x
+                (find-tail (cdr x))))))
+    (find-tail x)))
 
 ; member memq memv
-; find find-tail
 ; any every
 ; list-index
 ; take-while drop-while take-while!
@@ -215,9 +257,48 @@
 ; delete  delete-duplicates
 ; delete! delete-duplicates!
 
-; assoc assq assv
-; alist-cons alist-copy
-; alist-delete alist-delete!
+(define assoc
+  (lambda (key alist . compare)
+    ((lambda (compare)
+       (find (lambda (each)
+               (compare key (car each)))
+             alist))
+     (if (pair? compare) (car compare) equal?))))
+
+(define assq
+  (lambda (key alist)
+    (assoc key alist eq?)))
+
+(define assv
+  (lambda (key alist)
+    (assoc key alist eqv?)))
+
+(define alist-cons
+  (lambda (key datum alist)
+    (cons (cons key datum) alist)))
+
+(define alist-copy
+  (lambda (alist)
+    (map (lambda (each)
+           (cons (car each)
+                 (cdr each)))
+         alist)))
+
+(define alist-dalete
+  (lambda (key alist . compare)
+    ((lambda (compare)
+       (filter (lambda (each)
+                 (not (compare key (car each))))
+               alist))
+     (if (pair? compare) (car compare) equal?))))
+
+(define alist-dalete!
+  (lambda (key alist . compare)
+    ((lambda (compare)
+       (filter! (lambda (each)
+                  (not (compare key (car each))))
+                alist))
+     (if (pair? compare) (car compare) equal?))))
 
 ; lset<= lset= lset-adjoin
 ; lset-union      lset-union!

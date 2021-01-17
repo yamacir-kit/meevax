@@ -578,23 +578,6 @@
   (lambda (o x)
     (member o x eqv?) ))
 
-(define assoc
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let assoc ((x x))
-        (if (null? x) #false
-            (if (compare o (caar x))
-                (car x)
-                (assoc (cdr x)) ))))))
-
-(define assq
-  (lambda (o x)
-    (assoc o x eq?) ))
-
-(define assv
-  (lambda (o x)
-    (assoc o x eqv?) ))
-
 ; (define shallow-copy
 ;   (lambda (x)
 ;     (if (not (pair? x)) x
