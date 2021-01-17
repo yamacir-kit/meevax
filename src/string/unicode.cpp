@@ -1,4 +1,5 @@
 #include <array>
+#include <stdexcept>
 
 #include <meevax/string/unicode.hpp>
 
@@ -45,6 +46,50 @@ inline namespace string
     }
 
     return cu.data();
+  }
+
+  auto codeunit_to_codepoint(codeunit const& cu) -> codepoint
+  {
+    codepoint cp {};
+
+    /* -------------------------------------------------------------------------
+     *
+     *  00000000 -- 0000007F: 0xxxxxxx
+     *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
+     *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+     *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     *
+     * ---------------------------------------------------------------------- */
+
+    switch (std::size(cu))
+    {
+    case 1:
+      cp |= cu[0] & 0b0111'1111;
+      break;
+
+    case 2:
+      cp |= cu[0] & 0b0001'1111; cp <<= 6;
+      cp |= cu[1] & 0b0011'1111;
+      break;
+
+    case 3:
+      cp |= cu[0] & 0b0000'1111; cp <<= 6;
+      cp |= cu[1] & 0b0011'1111; cp <<= 6;
+      cp |= cu[2] & 0b0011'1111;
+      break;
+
+    case 4:
+      cp |= cu[0] & 0b0000'0111; cp <<= 6;
+      cp |= cu[1] & 0b0011'1111; cp <<= 6;
+      cp |= cu[2] & 0b0011'1111; cp <<= 6;
+      cp |= cu[3] & 0b0011'1111;
+      break;
+
+    default:
+      throw std::runtime_error("Malformed character.");
+    }
+
+    return cp;
   }
 } // namespace string
 } // namespace meevax

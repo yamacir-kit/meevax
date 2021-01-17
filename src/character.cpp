@@ -7,50 +7,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto codeunit_to_codepoint(bytestring const& code) -> std::uint_least32_t
-  {
-    std::uint_least32_t codepoint {};
-
-    /* -------------------------------------------------------------------------
-     *
-     *  00000000 -- 0000007F: 0xxxxxxx
-     *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
-     *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
-     *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-     *
-     * ---------------------------------------------------------------------- */
-
-    switch (std::size(code))
-    {
-    case 1:
-      codepoint |= code[0] & 0b0111'1111;
-      break;
-
-    case 2:
-      codepoint |= code[0] & 0b0001'1111; codepoint <<= 6;
-      codepoint |= code[1] & 0b0011'1111;
-      break;
-
-    case 3:
-      codepoint |= code[0] & 0b0000'1111; codepoint <<= 6;
-      codepoint |= code[1] & 0b0011'1111; codepoint <<= 6;
-      codepoint |= code[2] & 0b0011'1111;
-      break;
-
-    case 4:
-      codepoint |= code[0] & 0b0000'0111; codepoint <<= 6;
-      codepoint |= code[1] & 0b0011'1111; codepoint <<= 6;
-      codepoint |= code[2] & 0b0011'1111; codepoint <<= 6;
-      codepoint |= code[3] & 0b0011'1111;
-      break;
-
-    default:
-      throw error("Malformed character.");
-    }
-
-    return codepoint;
-  }
-
   auto read_codeunit(input_port & port) -> bytestring
   {
     bytestring codeunit {};

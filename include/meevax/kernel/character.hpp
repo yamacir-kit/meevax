@@ -15,15 +15,11 @@ inline namespace kernel
 {
   /* ---- Character --------------------------------------------------------- */
 
-  // auto codepoint_to_codeunit(std::uint_least32_t) -> bytestring;
-
-  auto codeunit_to_codepoint(bytestring const&) -> std::uint_least32_t;
-
   auto read_codeunit(input_port &) -> bytestring;
   auto peek_codeunit(input_port &) -> bytestring;
 
   struct character
-    : public bytestring
+    : public codeunit
   {
     explicit character(char ascii)
       : bytestring(1, ascii)

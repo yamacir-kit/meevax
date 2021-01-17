@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_STRING_UNICODE_HPP
 #define INCLUDED_MEEVAX_STRING_UNICODE_HPP
 
-#include <array>
 #include <cstdint>
 #include <string>
 
@@ -13,7 +12,9 @@ inline namespace string
 
   using codeunit = std::string;
 
-  auto codepoint_to_codeunit(codepoint cp) -> codeunit;
+  auto codepoint_to_codeunit(codepoint) -> codeunit;
+
+  auto codeunit_to_codepoint(codeunit const&) -> codepoint;
 } // namespace string
 } // namespace meevax
 
