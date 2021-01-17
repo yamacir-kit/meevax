@@ -22,7 +22,16 @@
     (cons y x)))
 
 ; cons* make-list list-tabulate
-; list-copy
+
+(define list-copy
+  (lambda (x)
+    (define list-copy
+      (lambda (x)
+        (if (pair? x)
+            (cons (car x)
+                  (list-copy (cdr x)))
+            x)))
+    (list-copy x)))
 
 (define circular-list
   (lambda (x . xs)
@@ -40,7 +49,17 @@
     (eqv? x '())))
 
 ; proper-list? circular-list? dotted-list?
-; not-pair? null-list?
+
+(define not-pair?
+  (lambda (x)
+    (not (pair? x))))
+
+(define null-list?
+  (lambda (x)
+    (if (pair? x) #f
+        (if (null? x) #t
+            (error "null-list?: argument out of domain" x)))))
+
 ; list=
 
 (define caar (lambda (x) (car (car x))))
@@ -87,9 +106,33 @@
 
 ; list-ref
 ; car+cdr
-; take       drop
+
+(define take
+  (lambda (x k)
+    (define take
+      (lambda (x k)
+        (if (zero? k) '()
+            (cons (car x)
+                  (take (cdr x)
+                        (- k 1))))))
+    (take x k)))
+
+(define take!
+  (lambda (x k)
+    (if (zero? k)
+        (begin (set-cdr! (drop x (- k 1)) '()) x))))
+
+(define drop
+  (lambda (x k)
+    (define drop
+      (lambda (x k)
+        (if (zero? k) x
+            (drop (cdr x)
+                  (- k 1)))))
+    (drop x k)))
+
 ; take-right drop-right
-; take!      drop-right!
+; drop-right!
 ; split-at   split-at!
 ; last last-pair
 
@@ -117,11 +160,21 @@
     (reduce-right append! '() xs)))
 
 ; append-reverse append-reverse!
-; zip unzip1 unzip2 unzip3 unzip4 unzip5
+
+(define zip
+  (lambda (x . xs)
+    (apply map list x xs)))
+
+(define unzip1
+  (lambda (x)
+    (map car x)))
+
+; unzip2 unzip3 unzip4 unzip5
 ; count
 
 ; map for-each
-; fold       unfold       pair-fold       reduce
+
+; unfold       pair-fold       reduce
 
 ; unfold-right pair-fold-right reduce-right
 ; append-map append-map!

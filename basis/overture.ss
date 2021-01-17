@@ -571,10 +571,7 @@
                   (+ 2 result) ))
             (else (if (pair? precede) (+ 1 result) result)) )))))
 
-(define list-tail
-  (lambda (x k)
-    (if (zero? k) x
-        (list-tail (cdr x) (- k 1)) )))
+(define list-tail drop) ; SRFI-1
 
 (define list-ref
   (lambda (x k)
@@ -616,15 +613,6 @@
   (lambda (o x)
     (assoc o x eqv?) ))
 
-(define list-copy
-  (lambda (x)
-    (let rec ((x x)
-              (result '()))
-      (if (pair? x)
-          (rec (cdr x)
-               (cons (car x) result))
-          (append (reverse result) x) ))))
-
 ; (define shallow-copy
 ;   (lambda (x)
 ;     (if (not (pair? x)) x
@@ -636,27 +624,6 @@
 ;     (if (not (pair? x)) x
 ;         (cons (deep-copy (car x))
 ;               (deep-copy (cdr x))))))
-
-(define take
-  (lambda (x k)
-    (let rec ((x x)
-              (k k))
-      (if (zero? k) '()
-          (cons (car x)
-                (rec (cdr x) (- k 1)))))))
-
-(define take!
-  (lambda (x k)
-    (if (zero? k)
-        (begin (set-cdr! (drop x (- k 1)) '()) x))))
-
-(define drop
-  (lambda (x k)
-    (let rec ((x x)
-              (k k))
-      (if (zero? k) x
-          (rec (cdr x) (- k 1))))))
-
 
 ; ------------------------------------------------------------------------------
 ;  4.2.1 Conditionals (Part 2 of 2)
@@ -1777,14 +1744,6 @@
       (and (not (null-list? list))
            (if (predicate (car list)) list
                (rec (cdr list)) )))))
-
-(define null-list?
-  (lambda (list)
-    (cond
-      ((pair? list) #false)
-      ((null? list) #true)
-      (else
-       (error "null-list?: argument out of domain" list) ))))
 
 ; ------------------------------------------------------------------------------
 ;  Miscellaneous
