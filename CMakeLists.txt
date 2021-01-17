@@ -125,6 +125,7 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ratio.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/reader.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/string.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/string/unicode.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/symbol.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/syntactic_continuation.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/vector.cpp
