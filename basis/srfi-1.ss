@@ -173,20 +173,20 @@
 
 ; length+
 
-; (define append
-;   (lambda xs
-;     (define append
-;       (lambda (x xs)
-;         (if (pair? xs)
-;             ((lambda (xs)
-;                (fold-right cons xs x))
-;              (append (car xs)
-;                      (cdr xs)))
-;             x)))
-;     (if (pair? xs)
-;         (append (car xs)
-;                 (cdr xs))
-;         '())))
+(define append
+  (lambda xs
+    (define append
+      (lambda (x xs)
+        (if (pair? xs)
+            ((lambda (xs)
+               (fold-right cons xs x))
+             (append (car xs)
+                     (cdr xs)))
+            x)))
+    (if (pair? xs)
+        (append (car xs)
+                (cdr xs))
+        '())))
 
 ; append!
 
@@ -393,7 +393,6 @@
                  (car x))
                 '())))
         (cdrs x)))))
-
 
 (define %cars+
   (lambda (x y) ; (append! (map car x) (list y))
