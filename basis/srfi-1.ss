@@ -21,7 +21,9 @@
   (lambda (x y)
     (cons y x)))
 
-; cons* make-list list-tabulate
+; cons*
+; make-list
+; list-tabulate
 
 (define list-copy
   (lambda (x)
@@ -48,7 +50,24 @@
   (lambda (x)
     (eqv? x '())))
 
-; proper-list? circular-list? dotted-list?
+(define proper-list?
+  (lambda (x)
+    (define lp
+      (lambda (x lag)
+        (if (pair? x)
+            ((lambda (x)
+               (if (pair? x)
+                   ((lambda (x lag)
+                      (if (eq? x lag) #f
+                          (lp x lag)))
+                     (cdr x)
+                     (cdr lag))
+                   (null? x)))
+             (cdr x))
+            (null? x))))
+    (lp x x)))
+
+; circular-list? dotted-list?
 
 (define not-pair?
   (lambda (x)
@@ -104,7 +123,10 @@
 (define ninth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x)))))))))))
 (define tenth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x))))))))))))
 
-; list-ref
+(define list-ref
+  (lambda (x k)
+    (car (drop x k))))
+
 ; car+cdr
 
 (define take

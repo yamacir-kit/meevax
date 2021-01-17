@@ -487,20 +487,6 @@
 ;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-(define proper-list?
-  (lambda (x)
-    (let rec ((x x)
-              (y x))
-      (if (pair? x)
-          (let ((x (cdr x)))
-            (if (pair? x)
-                (let ((x (cdr x))
-                      (y (cdr y)))
-                  (and (not (eq? x y))
-                       (rec x y)))
-                (null? x)))
-          (null? x)))))
-
 (define list? proper-list?)
 
 (define dotted-list?
@@ -572,10 +558,6 @@
             (else (if (pair? precede) (+ 1 result) result)) )))))
 
 (define list-tail drop) ; SRFI-1
-
-(define list-ref
-  (lambda (x k)
-    (car (list-tail x k)) ))
 
 (define (list-set! x k object)
   (set-car! (list-tail x k) object))
