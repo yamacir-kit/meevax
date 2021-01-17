@@ -7,7 +7,7 @@
 ;  hold me liable for its use. Please send bug reports to shivers@ai.mit.edu.
 ;      -Olin
 ;
-;  TWEAKS:
+;  Tweaks:
 ;    * Strip derived expression types into primitive expression types.
 ;
 ; ------------------------------------------------------------------------------
@@ -127,7 +127,10 @@
 (define ninth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x)))))))))))
 (define tenth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x))))))))))))
 
-; car+cdr
+(define car+cdr
+  (lambda (pair)
+    (values (car pair)
+            (cdr pair))))
 
 (define take
   (lambda (x k)
@@ -170,8 +173,37 @@
 
 ; length+
 
-; append  reverse
-; append! reverse!
+; (define append
+;   (lambda xs
+;     (define append
+;       (lambda (x xs)
+;         (if (pair? xs)
+;             ((lambda (xs)
+;                (fold-right cons xs x))
+;              (append (car xs)
+;                      (cdr xs)))
+;             x)))
+;     (if (pair? xs)
+;         (append (car xs)
+;                 (cdr xs))
+;         '())))
+
+; append!
+
+; (define reverse
+;   (lambda (x)
+;     (fold cons '() x)))
+
+(define reverse!
+  (lambda (x)
+    (define reverse!
+      (lambda (x result)
+        (if (null-list? x) result
+            ((lambda (tail)
+               (set-cdr! x result)
+               (reverse! tail x))
+             (cdr x)))))
+    (reverse! x '())))
 
 (define concatenate
   (lambda (xs)
@@ -196,9 +228,26 @@
 
 ; map for-each
 
-; unfold       pair-fold       reduce
+(define fold-right
+  (lambda (kons knil x . xs)
+    (define fold-right-n
+      (lambda (xs)
+        ((lambda (cdrs)
+           (if (null? cdrs) knil
+               (apply kons (%cars+ xs (fold-right-n cdrs)))))
+         (%cdrs xs))))
+    (define fold-right-1
+      (lambda (x)
+        (if (null-list? x) knil
+            ((lambda (head)
+               (kons head (fold-right-1 (cdr x))))
+             (car x)))))
+    (if (pair? xs)
+        (fold-right-n (cons x xs))
+        (fold-right-1 x))))
 
-; unfold-right pair-fold-right reduce-right
+; fold       unfold       pair-fold       reduce
+; fold-right unfold-right pair-fold-right reduce-right
 ; append-map append-map!
 ; map! pair-for-each filter-map map-in-order
 
@@ -252,7 +301,19 @@
 ; any every
 ; list-index
 ; take-while drop-while take-while!
-; span break span! break!
+; span span!
+
+(define break
+  (lambda (break? x)
+    (span (lambda (x)
+            (not (break? x)))
+          x)))
+
+(define break!
+  (lambda (break? x)
+    (span! (lambda (x)
+             (not (break? x)))
+           x)))
 
 ; delete  delete-duplicates
 ; delete! delete-duplicates!
@@ -300,12 +361,46 @@
                 alist))
      (if (pair? compare) (car compare) equal?))))
 
-; lset<= lset= lset-adjoin
-; lset-union      lset-union!
-; lset-intersection    lset-intersection!
-; lset-difference            lset-difference!
-; lset-xor      lset-xor!
-; lset-diff+intersection          lset-diff+intersection!
+; lset<=
+; lset=
+; lset-adjoin
+; lset-union
+; lset-union!
+; lset-intersection
+; lset-intersection!
+; lset-difference
+; lset-difference!
+; lset-xor
+; lset-xor!
+; lset-diff+intersection
+; lset-diff+intersection!
 
 ; set-car!
 ; set-cdr!
+
+(define %cdrs ; (map cdr x)
+  (lambda (x)
+    (call-with-current-continuation
+      (lambda (abort)
+        (define cdrs
+          (lambda (x)
+            (if (pair? x)
+                ((lambda (each)
+                  (if (null-list? each)
+                      (abort '())
+                      (cons (cdr each)
+                            (iterate (cdr x)))))
+                 (car x))
+                '())))
+        (cdrs x)))))
+
+
+(define %cars+
+  (lambda (x y) ; (append! (map car x) (list y))
+    (define cars+
+      (lambda (x)
+        (if (pair? x)
+            (cons (caar x)
+                  (cars+ (cdr x)))
+            (list y))))
+    (cars+ x)))
