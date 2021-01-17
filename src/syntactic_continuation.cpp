@@ -1339,21 +1339,18 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    std::stringstream port { overture.data() };
+    std::vector<std::stringstream> ports {};
 
-    // std::size_t counts {0};
+    ports.emplace_back(srfi_1  .data());
+    ports.emplace_back(overture.data());
 
-    for (let e = read(port); e != eof_object; e = read(port))
+    for (auto & port : ports)
     {
-      // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-      // write_to(standard_debug_port(),
-      //   "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
-
-      evaluate(e);
+      for (let e = read(port); e != eof_object; e = read(port))
+      {
+        evaluate(e);
+      }
     }
-
-    // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-    // write_to(standard_debug_port(), "\n\n");
   }
 
   template <>

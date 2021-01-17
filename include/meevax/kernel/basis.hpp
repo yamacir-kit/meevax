@@ -13,7 +13,9 @@ inline namespace kernel
   using string_view = std::experimental::string_view;
   #endif
 
-  extern const string_view overture;
+  extern string_view const srfi_1;
+
+  extern string_view const overture;
 } // namespace kernel
 } // namespace meevax
 

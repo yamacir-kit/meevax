@@ -1819,10 +1819,6 @@
 ;  SRFI 1 Extended Pairs and Lists Library
 ; ------------------------------------------------------------------------------
 
-(define xcons
-  (lambda (x y)
-    (cons y x)))
-
 (define find
   (lambda (predicate list)
     (cond
