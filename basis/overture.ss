@@ -1679,24 +1679,6 @@
 ; TODO jiffies-per-second
 
 ; ------------------------------------------------------------------------------
-;  SRFI 1 Extended Pairs and Lists Library
-; ------------------------------------------------------------------------------
-
-(define find
-  (lambda (predicate list)
-    (cond
-      ((find-tail predicate list)
-       => car)
-      (else #false) )))
-
-(define find-tail
-  (lambda (predicate list)
-    (let rec ((list list))
-      (and (not (null-list? list))
-           (if (predicate (car list)) list
-               (rec (cdr list)) )))))
-
-; ------------------------------------------------------------------------------
 ;  Miscellaneous
 ; ------------------------------------------------------------------------------
 
@@ -2238,3 +2220,6 @@
 ;     (let ((x 'inner))
 ;       (m))))
 
+(define-syntax (increment x . n)
+  (let ((n (if (pair? n) (car n) 1)))
+    `(,begin (,set! ,x (,+ ,x ,n)) ,x)))

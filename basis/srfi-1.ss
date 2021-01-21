@@ -246,10 +246,20 @@
         (fold-right-n (cons x xs))
         (fold-right-1 x))))
 
-; fold       unfold       pair-fold       reduce
-; fold-right unfold-right pair-fold-right reduce-right
-; append-map append-map!
-; map! pair-for-each filter-map map-in-order
+; fold
+; fold-right
+; unfold
+; unfold-right
+; pair-fold
+; pair-fold-right
+; reduce
+; reduce-right
+; append-map
+; append-map!
+; map!
+; pair-for-each
+; filter-map
+; map-in-order
 
 (define filter
   (lambda (pred x)
