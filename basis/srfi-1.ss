@@ -148,6 +148,16 @@
     (if (zero? k)
         (begin (set-cdr! (drop x (- k 1)) '()) x))))
 
+(define take-right
+  (lambda (x k)
+    (define take-right
+      (lambda (a b)
+        (if (pair? b)
+            (lp (cdr a)
+                (cdr b))
+            a)))
+    (take-right x (drop x k))))
+
 (define drop
   (lambda (x k)
     (define drop
@@ -157,10 +167,21 @@
                   (- k 1)))))
     (drop x k)))
 
-; take-right drop-right
+(define drop!
+  (lambda (x k)
+    (if (negative? k)
+        ((lambda (nelts)
+           (if (zero? nelts) '()
+               (begin (set-cdr! (xt-tail x (- nelts 1)) '()) x)))
+          (+ k (length x)))
+        (xt-tail x k))))
+
+; drop-right
 ; drop-right!
-; split-at   split-at!
-; last last-pair
+; split-at
+; split-at!
+; last
+; last-pair
 
 (define length
   (lambda (x)
@@ -240,6 +261,7 @@
 ; count
 
 ; map
+; map!
 ; for-each
 
 (define fold-right
@@ -270,7 +292,6 @@
 ; reduce-right
 ; append-map
 ; append-map!
-; map!
 ; pair-for-each
 ; filter-map
 ; map-in-order
@@ -322,10 +343,24 @@
                 (find-tail (cdr x))))))
     (find-tail x)))
 
-; member
-; memq
-; memv
-; any every
+(define member
+  (lambda (key x . compare)
+    ((lambda (compare)
+       (find-tail (lambda (x[i])
+                    (compare key x[i]))
+                  x))
+     (if (pair? compare) (car compare) equal?))))
+
+(define memq
+  (lambda (key x)
+    (member key x eq?)))
+
+(define memv
+  (lambda (key x)
+    (member key x eqv?)))
+
+; any
+; every
 ; list-index
 ; take-while
 ; take-while!
@@ -345,8 +380,22 @@
              (not (break? x)))
            x)))
 
-; delete
-; delete!
+(define delete
+  (lambda (key x . compare)
+    ((lambda (compare)
+       (filter (lambda (x[i])
+                 (not (compare key x[i])))
+               x))
+     (if (pair? compare) (car compare) equal?))))
+
+(define delete
+  (lambda (key x . compare)
+    ((lambda (compare)
+       (filter! (lambda (x[i])
+                  (not (compare key x[i])))
+                x))
+     (if (pair? compare) (car compare) equal?))))
+
 ; delete-duplicates
 ; delete-duplicates!
 

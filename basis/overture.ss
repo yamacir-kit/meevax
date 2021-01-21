@@ -548,22 +548,6 @@
 (define (list-set! x k object)
   (set-car! (list-tail x k) object))
 
-(define member
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let rec ((x x))
-        (and (pair? x)
-             (if (compare o (car x)) x
-                 (rec (cdr x)) ))))))
-
-(define memq
-  (lambda (o x)
-    (member o x eq?) ))
-
-(define memv
-  (lambda (o x)
-    (member o x eqv?) ))
-
 ; (define shallow-copy
 ;   (lambda (x)
 ;     (if (not (pair? x)) x
