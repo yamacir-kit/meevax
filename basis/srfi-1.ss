@@ -456,8 +456,8 @@
 ; lset-diff+intersection
 ; lset-diff+intersection!
 
-; set-car!
-; set-cdr!
+; set-car! (NOTE: SRFI-17)
+; set-cdr! (NOTE: SRFI-17)
 
 (define %cdrs ; (map cdr x)
   (lambda (x)

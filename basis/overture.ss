@@ -1443,12 +1443,19 @@
          (,(rename 'lambda) ,(cadr form) ,@(cdddr form))))))
 
 ; TODO with-exception-handler
-; TODO raise
+; TODO raise ; SRFI-18
 ; TODO raise-continuable
 
-(define error
+(define error ; SRFI-23
   (lambda (message . irritants)
-    (display message)))
+    (display "error: ")
+    (display message)
+    (for-each (lambda (each)
+                (display " ")
+                (write each))
+              irritants)
+    (newline)
+    (exit 1)))
 
 (define error-object?
   (lambda (x) #false) )
