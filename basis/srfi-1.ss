@@ -71,7 +71,8 @@
             (null? x))))
     (lp x x)))
 
-; circular-list? dotted-list?
+; circular-list?
+; dotted-list?
 
 (define not-pair?
   (lambda (x)
@@ -213,7 +214,16 @@
   (lambda (xs)
     (reduce-right append! '() xs)))
 
-; append-reverse append-reverse!
+(define append-reverse
+  (lambda (head tail)
+    (fold cons tail head)))
+
+(define append-reverse!
+  (lambda (head tail)
+    (pair-fold (lambda (pair tail)
+                 (set-cdr! pair tail) pair)
+               tail
+               head)))
 
 (define zip
   (lambda (x . xs)
@@ -223,10 +233,14 @@
   (lambda (x)
     (map car x)))
 
-; unzip2 unzip3 unzip4 unzip5
+; unzip2
+; unzip3
+; unzip4
+; unzip5
 ; count
 
-; map for-each
+; map
+; for-each
 
 (define fold-right
   (lambda (kons knil x . xs)
@@ -277,8 +291,9 @@
              (cdr x)))))
     (filter x)))
 
+; filter!
 ; partition
-; filter! partition!
+; partition!
 
 (define remove
   (lambda (pred x)
@@ -307,11 +322,16 @@
                 (find-tail (cdr x))))))
     (find-tail x)))
 
-; member memq memv
+; member
+; memq
+; memv
 ; any every
 ; list-index
-; take-while drop-while take-while!
-; span span!
+; take-while
+; take-while!
+; drop-while
+; span
+; span!
 
 (define break
   (lambda (break? x)
@@ -325,8 +345,10 @@
              (not (break? x)))
            x)))
 
-; delete  delete-duplicates
-; delete! delete-duplicates!
+; delete
+; delete!
+; delete-duplicates
+; delete-duplicates!
 
 (define assoc
   (lambda (key alist . compare)
