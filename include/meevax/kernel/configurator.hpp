@@ -31,9 +31,9 @@ inline namespace kernel
     Import_Const(SK, write_line);
 
     object batch_mode       { f };
-    object debug_mode       { t };
+    object debug_mode       { f };
     object interactive_mode { f };
-    object trace_mode       { t };
+    object trace_mode       { f };
     object verbose_mode     { f };
 
   public:

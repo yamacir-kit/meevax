@@ -34,9 +34,9 @@ inline namespace kernel
       : std::STREAM { name }                                                   \
       , name { name }                                                          \
     {                                                                          \
-      copyfmt(ios);                                                            \
-      clear(ios.rdstate());                                                    \
-      static_cast<std::ios&>(*this).rdbuf(ios.rdbuf());                        \
+      std::ios::copyfmt(ios);                                                  \
+      std::ios::clear(ios.rdstate());                                          \
+      std::ios::rdbuf(ios.rdbuf());                                            \
     }                                                                          \
   };                                                                           \
                                                                                \
