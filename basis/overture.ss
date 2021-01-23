@@ -1321,7 +1321,7 @@
 
 (define procedure?
   (lambda (x)
-    (or (native-procedure? x)
+    (or (native-procedure? x) ; TODO RENAME TO primitive?
         (closure? x)
         (continuation? x) )))
 
@@ -1358,31 +1358,31 @@
 ; (define values
 ;   (lambda xs
 ;     (call-with-current-continuation
-;       (lambda (continuation)
-;         (apply continuation xs)))))
+;       (lambda (cc)
+;         (apply cc xs)))))
 
 ; Magic Token Trick
 ; https://stackoverflow.com/questions/16674214/how-to-implement-call-with-values-to-match-the-values-example-in-r5rs
-(define values-magic-token (list 'values))
+(define <values> (list 'values))
 
-(define values-magic-token?
+(define values?
   (lambda (x)
     (and (pair? x)
-         (eq? (car x) values-magic-token) )))
+         (eq? (car x) <values>))))
 
 (define values
   (lambda xs
     (if (and (not (null? xs))
-             (null? (cdr xs)) )
+             (null? (cdr xs)))
         (car xs)
-        (cons values-magic-token xs) )))
+        (cons <values> xs))))
 
 (define call-with-values
   (lambda (producer consumer)
     (let ((result (producer)))
-      (if (values-magic-token? result)
+      (if (values? result)
           (apply consumer (cdr result))
-          (consumer result) ))))
+          (consumer result)))))
 
 ; ---- dynamic-wind ------------------------------------------------------------
 
