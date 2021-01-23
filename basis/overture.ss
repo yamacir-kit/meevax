@@ -1488,6 +1488,19 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
+(define standard-input-port?
+  (lambda (x)
+    (eq? x (standard-input-port))))
+
+(define standard-output-port?
+  (lambda (x)
+    (eq? x (standard-output-port))))
+
+(define standard-error-port?
+  (lambda (x)
+    (eq? x (standard-error-port))))
+
+
 (define call-with-port
   (lambda (port procedure)
     (procedure port)))
@@ -1504,19 +1517,24 @@
 (define input-port?
   (lambda (x)
     (or (input-file-port? x)
-        (input-string-port? x))))
+        (input-string-port? x)
+        (standard-input-port? x))))
 
 (define output-port?
   (lambda (x)
     (or (output-file-port? x)
-        (output-string-port? x))))
+        (output-string-port? x)
+        (standard-output-port? x))))
 
 (define textual-port?
   (lambda (x)
-    (or ( input-file-port? x)
+    (or (input-file-port? x)
         (output-file-port? x)
-        ( input-string-port? x)
-        (output-string-port? x))))
+        (input-string-port? x)
+        (output-string-port? x)
+        (standard-input-port? x)
+        (standard-output-port? x)
+        (standard-error-port? x))))
 
 (define binary-port?
   (lambda (x) #f))
@@ -1528,17 +1546,20 @@
 
 
 (define input-port-open?
-  (lambda (port)
-    (cond ((input-file-port? port)
-           (input-file-port-open? port))
-          ((input-string-port? port) #t)
+  (lambda (x)
+    (cond ((input-file-port? x)
+           (input-file-port-open? x))
+          ((input-string-port? x) #t)
+          ((standard-input-port? x) #t)
           (else #f))))
 
 (define output-port-open?
-  (lambda (port)
-    (cond ((output-file-port? port)
-           (output-file-port-open? port))
-          ((output-string-port? port) #t)
+  (lambda (x)
+    (cond ((output-file-port? x)
+           (output-file-port-open? x))
+          ((output-string-port? x) #t)
+          ((standard-output-port? x) #t)
+          ((standard-error-port? x) #t)
           (else #f))))
 
 
