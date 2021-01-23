@@ -8,6 +8,21 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto operator <<(output_port & port, standard_input const&) -> output_port &
+  {
+    return port << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
+  }
+
+  auto operator <<(output_port & port, standard_output const&) -> output_port &
+  {
+    return port << magenta << "#,(" << reset << "standard-output-port" << magenta << ")" << reset;
+  }
+
+  auto operator <<(output_port & port, standard_error const&) -> output_port &
+  {
+    return port << magenta << "#,(" << reset << "standard-error-port" << magenta << ")" << reset;
+  }
+
   #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
   auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
   {                                                                            \

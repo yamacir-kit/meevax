@@ -1,7 +1,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
+#include <unistd.h>
+
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 #include <meevax/kernel/path.hpp>
@@ -11,14 +14,53 @@ namespace meevax
 {
 inline namespace kernel
 {
+  using  input_port = std::istream;
+  using output_port = std::ostream;
+
+  /* ---- Standard Input Ports -------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+  struct standard_input
+  {
+    static constexpr auto fd = STDIN_FILENO;
+
+    constexpr operator input_port &()
+    {
+      return std::cin;
+    }
+  };
+
+  struct standard_output
+  {
+    static constexpr auto fd = STDOUT_FILENO;
+
+    constexpr operator output_port &()
+    {
+      return std::cout;
+    }
+  };
+
+  struct standard_error
+  {
+    static constexpr auto fd = STDERR_FILENO;
+
+    constexpr operator output_port &()
+    {
+      return std::cerr;
+    }
+  };
+
+  auto operator <<(output_port &, standard_input const&) -> output_port &;
+
+  auto operator <<(output_port &, standard_output const&) -> output_port &;
+
+  auto operator <<(output_port &, standard_error const&) -> output_port &;
+
   /* ---- Ports ----------------------------------------------------------------
    *
    *
    * ------------------------------------------------------------------------ */
-
-  using  input_port = std::istream;
-  using output_port = std::ostream;
-
   #define BOILERPLATE(TYPENAME, STREAM)                                        \
   struct TYPENAME                                                              \
     : public std::STREAM                                                       \
