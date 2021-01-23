@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.2.1005.
+Development HEAD: 0.2.1007.
 
 ### Characteristic Features
 
@@ -71,6 +71,7 @@ An subset of R7RS-small.
 |  [ 6](https://srfi.schemers.org/srfi-6/srfi-6.html)   | Basic string ports                                       | Built-in       | R7RS 6.13  |
 |  [10](https://srfi.schemers.org/srfi-10/srfi-10.html) | Sharp-comma external form                                | Built-in
 |  [62](https://srfi.schemers.org/srfi-62/srfi-62.html) | S-expression comments                                    | Built-in       | R7RS 2.2   |
+|  [87](https://srfi.schemers.org/srfi-87/srfi-87.html) | => in case clauses                                       | Built-in       | R7RS 4.2.1 |
 
 <br/>
 

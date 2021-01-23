@@ -23,14 +23,13 @@
 ;  6.4 Pairs and Lists (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define append-2 ; from SICP
-  (lambda (x y)
-    (if (null? x) y
-        (cons (car x)
-              (append-2 (cdr x) y)))))
-
 (define reverse ; simple but slow
   (lambda (x)
+    (define append-2 ; from SICP
+      (lambda (x y)
+        (if (null? x) y
+            (cons (car x)
+                  (append-2 (cdr x) y)))))
     (if (null? x) '()
         (append-2 (reverse (cdr x))
                   (list (car x))))))
@@ -270,15 +269,21 @@
 
     (define apply-1
       (lambda (procedure xs)
-        (procedure . xs) ))
+        (procedure . xs)))
+
+    (define append-2 ; from SICP
+      (lambda (x y)
+        (if (null? x) y
+            (cons (car x)
+                  (append-2 (cdr x) y)))))
 
     (if (null? xs)
         (apply-1 procedure x)
         ((lambda (rxs)
            (apply-1 procedure
                     (append-2 (reverse (cdr rxs))
-                              (car rxs) )))
-         (reverse (cons x xs)) ))))
+                              (car rxs))))
+         (reverse (cons x xs))))))
 
 (define map
   (lambda (procedure x . xs)
