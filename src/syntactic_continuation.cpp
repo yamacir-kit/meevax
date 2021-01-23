@@ -1005,11 +1005,11 @@ inline namespace kernel
       ├─────────────────────────┼────────────┼───────────────────────────────┤
       │ close-output-port       │ Scheme     │                               │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-string       │ C++        │ SRFI-8                        │
+      │ open-input-string       │ C++        │ SRFI-6                        │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-string      │ C++        │ SRFI-8                        │
+      │ open-output-string      │ C++        │ SRFI-6                        │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ get-output-string       │ C++        │ SRFI-8                        │
+      │ get-output-string       │ C++        │ SRFI-6                        │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
       │ open-input-bytevector   │ TODO       │                               │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -1080,17 +1080,17 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("standard-input-port", [this](auto&&)
+    define<procedure>("input-standard-port", [this](auto&&)
     {
       return standard_input_port();
     });
 
-    define<procedure>("standard-output-port", [this](auto&&)
+    define<procedure>("output-standard-port", [this](auto&&)
     {
       return standard_output_port();
     });
 
-    define<procedure>("standard-error-port", [this](auto&&)
+    define<procedure>("error-standard-port", [this](auto&&)
     {
       return standard_error_port();
     });
