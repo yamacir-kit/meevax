@@ -1488,35 +1488,46 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
+(define  input-standard-port? (lambda (x) (eq? x ( input-standard-port))))
+(define output-standard-port? (lambda (x) (eq? x (output-standard-port))))
+(define  error-standard-port? (lambda (x) (eq? x ( error-standard-port))))
+
+
 (define call-with-port
   (lambda (port procedure)
     (procedure port)))
 
 (define call-with-input-file
-  (lambda (string procedure)
-    (call-with-port (open-input-file string) procedure)))
+  (lambda (path procedure)
+    (call-with-port (open-input-file path) procedure)))
 
 (define call-with-output-file
-  (lambda (string procedure)
-    (call-with-port (open-output-file string) procedure)))
+  (lambda (path procedure)
+    (call-with-port (open-output-file path) procedure)))
 
 
 (define input-port?
   (lambda (x)
     (or (input-file-port? x)
-        (input-string-port? x))))
+        (input-string-port? x)
+        (input-standard-port? x))))
 
 (define output-port?
   (lambda (x)
     (or (output-file-port? x)
-        (output-string-port? x))))
+        (output-string-port? x)
+        (output-standard-port? x)
+        (error-standard-port? x))))
 
 (define textual-port?
   (lambda (x)
-    (or ( input-file-port? x)
+    (or (input-file-port? x)
+        (input-string-port? x)
+        (input-standard-port? x)
         (output-file-port? x)
-        ( input-string-port? x)
-        (output-string-port? x))))
+        (output-string-port? x)
+        (output-standard-port? x)
+        (error-standard-port? x))))
 
 (define binary-port?
   (lambda (x) #f))
@@ -1528,22 +1539,25 @@
 
 
 (define input-port-open?
-  (lambda (port)
-    (cond ((input-file-port? port)
-           (input-file-port-open? port))
-          ((input-string-port? port) #t)
+  (lambda (x)
+    (cond ((input-file-port? x)
+           (input-file-port-open? x))
+          ((input-string-port? x) #t)
+          ((input-standard-port? x) #t)
           (else #f))))
 
 (define output-port-open?
-  (lambda (port)
-    (cond ((output-file-port? port)
-           (output-file-port-open? port))
-          ((output-string-port? port) #t)
+  (lambda (x)
+    (cond ((output-file-port? x)
+           (output-file-port-open? x))
+          ((output-string-port? x) #t)
+          ((output-standard-port? x) #t)
+          ((error-standard-port? x) #t)
           (else #f))))
 
 
 (define current-input-port
-  (make-parameter (standard-input-port)
+  (make-parameter (input-standard-port)
     (lambda (x)
       (cond ((not (input-port? x))
              (error "current-input-port: not input-port" x))
@@ -1552,7 +1566,7 @@
             (else x)))))
 
 (define current-output-port
-  (make-parameter (standard-output-port)
+  (make-parameter (output-standard-port)
     (lambda (x)
       (cond ((not (output-port? x))
              (error "current-output-port: not output-port" x))
@@ -1561,7 +1575,7 @@
             (else x)))))
 
 (define current-error-port
-  (make-parameter (standard-error-port)
+  (make-parameter (error-standard-port)
     (lambda (x)
       (cond ((not (output-port? x))
              (error "current-error-port: not output-port" x))
