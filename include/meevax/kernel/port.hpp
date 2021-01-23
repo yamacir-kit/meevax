@@ -1,8 +1,10 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
+#include <ios>
 #include <unistd.h>
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -61,33 +63,32 @@ inline namespace kernel
    *
    *
    * ------------------------------------------------------------------------ */
-  #define BOILERPLATE(TYPENAME, STREAM)                                        \
-  struct TYPENAME                                                              \
-    : public std::STREAM                                                       \
-  {                                                                            \
-    const path name;                                                           \
-                                                                               \
-    explicit TYPENAME(bytestring const& name)                                  \
-      : std::STREAM { name }                                                   \
-      , name { name }                                                          \
-    {}                                                                         \
-                                                                               \
-    explicit TYPENAME(bytestring const& name, std::ios const& ios)             \
-      : std::STREAM { name }                                                   \
-      , name { name }                                                          \
-    {                                                                          \
-      std::ios::copyfmt(ios);                                                  \
-      std::ios::clear(ios.rdstate());                                          \
-      std::ios::rdbuf(ios.rdbuf());                                            \
-    }                                                                          \
-  };                                                                           \
-                                                                               \
-  auto operator <<(std::ostream& port, const TYPENAME&) -> decltype(port)
+  template <typename T>
+  struct file_port
+    : public T
+  {
+    const path name;
 
-  BOILERPLATE( input_file_port, ifstream);
-  BOILERPLATE(output_file_port, ofstream);
+    explicit file_port(bytestring const& name)
+      : T    { name }
+      , name { name }
+    {}
 
-  #undef BOILERPLATE
+    explicit file_port(bytestring const& name, std::ios const& ios)
+      : T    { name }
+      , name { name }
+    {
+      std::ios::copyfmt(ios);
+      std::ios::clear(ios.rdstate());
+      std::ios::rdbuf(ios.rdbuf()); // NOTE: A very unstable and dirty hack.
+    }
+  };
+
+  using input_file_port = file_port<std::ifstream>;
+  using output_file_port = file_port<std::ofstream>;
+
+  auto operator <<(output_port &, const input_file_port&) -> output_port &;
+  auto operator <<(output_port &, const output_file_port&) -> output_port &;
 
   struct input_string_port
     : public std::istringstream
