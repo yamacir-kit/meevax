@@ -365,7 +365,7 @@ inline namespace kernel
   public:
     let standard_input_port() const noexcept
     {
-      let static port = make<input_file_port>("/dev/stdin", std::cin);
+      let static port = make<standard_input>();
       return port;
     }
 

@@ -7,6 +7,7 @@
 #include <meevax/memory/tagged_pointer.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
+#include <meevax/utility/demangle.hpp>
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
@@ -231,7 +232,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("no viable conversion from ", binding().type().name(), " to ", typeid(U).name());
+        throw error("no viable conversion from ", demangle(binding().type()), " to ", demangle(typeid(U)));
       }
     }
 

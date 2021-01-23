@@ -24,32 +24,35 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
   struct standard_input
+    : public input_port
   {
-    static constexpr auto fd = STDIN_FILENO;
-
-    constexpr operator input_port &()
+    explicit standard_input()
     {
-      return std::cin;
+      copyfmt(std::cin);
+      clear(std::cin.rdstate());
+      rdbuf(std::cin.rdbuf());
     }
   };
 
   struct standard_output
+    : public output_port
   {
-    static constexpr auto fd = STDOUT_FILENO;
-
-    constexpr operator output_port &()
+    explicit standard_output()
     {
-      return std::cout;
+      copyfmt(std::cout);
+      clear(std::cout.rdstate());
+      rdbuf(std::cout.rdbuf());
     }
   };
 
   struct standard_error
+    : public output_port
   {
-    static constexpr auto fd = STDERR_FILENO;
-
-    constexpr operator output_port &()
+    explicit standard_error()
     {
-      return std::cerr;
+      copyfmt(std::cerr);
+      clear(std::cerr.rdstate());
+      rdbuf(std::cerr.rdbuf());
     }
   };
 
@@ -74,14 +77,14 @@ inline namespace kernel
       , name { name }
     {}
 
-    explicit file_port(bytestring const& name, std::ios const& ios)
-      : T    { name }
-      , name { name }
-    {
-      std::ios::copyfmt(ios);
-      std::ios::clear(ios.rdstate());
-      std::ios::rdbuf(ios.rdbuf()); // NOTE: A very unstable and dirty hack.
-    }
+    // explicit file_port(bytestring const& name, std::ios const& ios)
+    //   : T    { name }
+    //   , name { name }
+    // {
+    //   std::ios::copyfmt(ios);
+    //   std::ios::clear(ios.rdstate());
+    //   std::ios::rdbuf(ios.rdbuf()); // NOTE: A very unstable and dirty hack.
+    // }
   };
 
   using input_file_port = file_port<std::ifstream>;

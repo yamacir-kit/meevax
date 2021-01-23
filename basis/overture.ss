@@ -1488,17 +1488,9 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
-(define input-standard-port?
-  (lambda (x)
-    (eq? x (input-standard-port))))
-
-(define output-standard-port?
-  (lambda (x)
-    (eq? x (output-standard-port))))
-
-(define error-standard-port?
-  (lambda (x)
-    (eq? x (error-standard-port))))
+(define  input-standard-port? (lambda (x) (eq? x ( input-standard-port))))
+(define output-standard-port? (lambda (x) (eq? x (output-standard-port))))
+(define  error-standard-port? (lambda (x) (eq? x ( error-standard-port))))
 
 
 (define call-with-port
@@ -1524,7 +1516,8 @@
   (lambda (x)
     (or (output-file-port? x)
         (output-string-port? x)
-        (output-standard-port? x))))
+        (output-standard-port? x)
+        (error-standard-port? x))))
 
 (define textual-port?
   (lambda (x)
