@@ -19,8 +19,8 @@ inline namespace kernel
     Import_Const(SK, standard_debug_port);
 
   public:
-    static inline           std::size_t depth {0};
-    static inline constexpr std::size_t default_shift {2};
+    static inline           std::size_t depth         = 0;
+    static inline constexpr std::size_t default_shift = 2;
 
     auto shift() const noexcept
     {
@@ -50,9 +50,8 @@ inline namespace kernel
     template <typename... Ts>
     auto debug(Ts&&... xs) -> decltype(auto)
     {
-      return
-        write_to(standard_debug_port(),
-          header(), indent(), std::forward<decltype(xs)>(xs)..., "\n");
+      return write_to(standard_debug_port(),
+                      header(), indent(), std::forward<decltype(xs)>(xs)..., "\n");
     }
 
     struct indentation
@@ -62,8 +61,7 @@ inline namespace kernel
         return bytestring(depth, ' ');
       }
 
-      friend auto operator <<(std::ostream& os, const indentation& indent)
-        -> decltype(os)
+      friend auto operator <<(std::ostream& os, const indentation& indent) -> decltype(os)
       {
         return os << static_cast<bytestring>(indent);
       }

@@ -114,21 +114,19 @@ inline namespace kernel
     decltype(auto) current_expression() const { return car(form()); }
     decltype(auto) scope()              const { return cdr(form()); }
 
-    const auto& intern(bytestring const& s)
+    auto const& intern(bytestring const& s)
     {
-      if (auto iter { symbols.find(s) }; iter != std::end(symbols))
+      if (auto iter = symbols.find(s); iter != std::end(symbols))
       {
         return cdr(*iter);
       }
-      else if (const auto [position, success] { symbols.emplace(s, make<symbol>(s)) }; success)
+      else if (const auto [position, success] = symbols.emplace(s, make<symbol>(s)); success)
       {
         return cdr(*position);
       }
       else
       {
-        std::stringstream port {};
-        port << __FILE__ << ":" << __LINE__;
-        throw std::runtime_error { port.str() };
+        throw error(__FILE__, ":", __LINE__);
       }
     }
 
@@ -156,6 +154,20 @@ inline namespace kernel
       {
         renames.emplace(identifier, make<syntactic_closure>(identifier, syntactic_environment()));
         return renames.at(identifier);
+      }
+    }
+
+    decltype(auto) execute()
+    {
+      static constexpr auto trace = true;
+
+      if (in_trace_mode())
+      {
+        return machine::execute<trace>();
+      }
+      else
+      {
+        return machine::execute();
       }
     }
 
@@ -192,7 +204,7 @@ inline namespace kernel
 
       c = current_expression();
 
-      auto const& result = execute();
+      decltype(auto) result = execute();
 
       ++generation;
 
@@ -204,13 +216,13 @@ inline namespace kernel
       push(d,
         std::atomic_exchange(&s, unit),
         std::atomic_exchange(&e, unit),
-        std::atomic_exchange(&c, compile(expression, syntactic_environment())));
+        std::atomic_exchange(&c, compile(in_context_free, expression, syntactic_environment())));
 
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
-      disassemble(c);
+      disassemble(standard_debug_port().as<output_port>(), c);
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
 
-      decltype(auto) result { execute() };
+      decltype(auto) result = execute();
 
       s = pop(d);
       e = pop(d);
@@ -261,16 +273,15 @@ inline namespace kernel
     }
 
   public: // Primitive Expression Types
-    DEFINE_PRIMITIVE_EXPRESSION(exportation)
+    SYNTAX(exportation)
     {
       if (verbose_mode.eqv(t))
       {
-        std::cerr
-        << (not depth ? "; compile\t; " : ";\t\t; ")
-        << bytestring(depth * 2, ' ')
-        << expression
-        << faint << " is <export specs>"
-        << reset << std::endl;
+        std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")
+                  << bytestring(depth * 2, ' ')
+                  << expression
+                  << faint << " is <export specs>"
+                  << reset << std::endl;
       }
 
       auto exportation = [this](let const& xs)
@@ -278,10 +289,7 @@ inline namespace kernel
         for (auto const& each : xs)
         {
           std::cerr << ";\t\t; staging " << each << std::endl;
-
-          external_symbols.emplace(
-            boost::lexical_cast<bytestring>(each),
-            each);
+          external_symbols.emplace(boost::lexical_cast<bytestring>(each), each);
         }
 
         // std::cerr << ";\t\t; exported identifiers are" << std::endl;
@@ -294,15 +302,13 @@ inline namespace kernel
         return unspecified;
       };
 
-      return
-        cons(
-          make<instruction>(mnemonic::LOAD_CONSTANT), expression,
-          make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("exportation", exportation),
-          make<instruction>(mnemonic::CALL),
-          continuation);
+      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression,
+                  make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("exportation", exportation),
+                  make<instruction>(mnemonic::CALL),
+                  continuation);
     }
 
-    DEFINE_PRIMITIVE_EXPRESSION(importation)
+    SYNTAX(importation)
     {
       auto importation = [&](const object& xs)
       {
@@ -322,15 +328,14 @@ inline namespace kernel
         return unspecified;
       };
 
-      return
-        reference( // XXX DIRTY HACK
-          expression,
-          syntactic_environment,
-          frames,
-          cons(
-            make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-            make<instruction>(mnemonic::CALL),
-            continuation));
+      // XXX DIRTY HACK
+      return reference(in_context_free,
+                       expression,
+                       syntactic_environment,
+                       frames,
+                       cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
+                            make<instruction>(mnemonic::CALL),
+                            continuation));
     }
 
   public:
@@ -402,12 +407,11 @@ inline namespace kernel
       c = unit;
       d = cdddr(first);
 
-      c = compile( // subprogram
-            caaddr(first),
-            syntactic_environment(),
-            cdaddr(first),
-            list(make<instruction>(mnemonic::STOP)),
-            as_program_declaration);
+      c = compile(at_the_top_level,
+                  caaddr(first),
+                  syntactic_environment(),
+                  cdaddr(first),
+                  list(make<instruction>(mnemonic::STOP)));
 
       form() = execute();
 
