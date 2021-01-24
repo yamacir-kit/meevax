@@ -87,11 +87,11 @@ inline namespace kernel
     *
     *----------------------------------------------------------------------- */
     let compile(
+      syntactic_contexts const& the_expression_is,
       object const& expression,
       object const& syntactic_environment,
       object const& frames = unit,
-      object const& continuation = list(make<instruction>(mnemonic::STOP)),
-      compilation_context const in_a = as_is)
+      object const& continuation = list(make<instruction>(mnemonic::STOP)))
     {
       if (expression.is<null>())
       {
@@ -131,7 +131,7 @@ inline namespace kernel
           return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression, continuation);
         }
       }
-      else // is (application . arguments)
+      else // is (applicant . arguments)
       {
         if (let const& applicant = lookup(car(expression), syntactic_environment);
             not applicant.is<null>() and not de_bruijn_index(car(expression), frames))
@@ -142,10 +142,9 @@ inline namespace kernel
 
             indent() >> shift();
 
-            auto result {
-              std::invoke(applicant.as<syntax>(),
-                cdr(expression), syntactic_environment, frames, continuation, in_a)
-            };
+            decltype(auto) result =
+              applicant.as<syntax>().compile(the_expression_is,
+                cdr(expression), syntactic_environment, frames, continuation);
 
             debug(magenta, ")");
 
@@ -167,24 +166,25 @@ inline namespace kernel
             write_to(standard_debug_port(),
               header("macroexpand-1"), indent(), expanded, "\n");
 
-            return compile(expanded, syntactic_environment, frames, continuation);
+            return compile(the_expression_is, expanded, syntactic_environment, frames, continuation);
           }
         }
 
         debug(magenta, "(", reset, faint, " ; is <procedure call>");
         indent() >> shift();
 
-        auto result
-        {
-          operand(cdr(expression),
+        decltype(auto) result =
+          operand(in_context_free,
+                  cdr(expression),
                   syntactic_environment,
                   frames,
-                  compile(car(expression),
+                  compile(in_context_free,
+                          car(expression),
                           syntactic_environment,
                           frames,
-                          cons(make<instruction>(in_a.tail_expression ? mnemonic::TAIL_CALL
-                                                                      : mnemonic::     CALL), continuation)))
-        };
+                          cons(make<instruction>(the_expression_is.tail_expression ? mnemonic::TAIL_CALL
+                                                                                   : mnemonic::     CALL),
+                               continuation)));
 
         debug(magenta, ")");
         indent() << shift();
@@ -195,18 +195,17 @@ inline namespace kernel
 
     template
     <
-      auto Trace = false
+      bool Trace = false
     >
     let execute()
     {
     dispatch:
       if constexpr (Trace)
       {
-        std::cerr << "; trace s\t; " <<  s << std::endl;
-        std::cerr << ";       e\t; " <<  e << std::endl;
-        std::cerr << ";       c\t; " <<  c << std::endl;
-        std::cerr << ";       d\t; " <<  d << std::endl;
-        std::cerr << std::endl;
+        std::cerr << "; trace s\t; " <<  s << "\n"
+                  << ";       e\t; " <<  e << "\n"
+                  << ";       c\t; " <<  c << "\n"
+                  << ";       d\t; " <<  d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().code)
@@ -523,20 +522,12 @@ inline namespace kernel
     }
 
   protected: // Primitive Expression Types
-    #define DEFINE_PRIMITIVE_EXPRESSION(NAME)                                  \
-    let const NAME(                                                            \
-      [[maybe_unused]] object const& expression,                               \
-      [[maybe_unused]] object const& syntactic_environment,                    \
-      [[maybe_unused]] object const& frames,                                   \
-      [[maybe_unused]] object const& continuation,                             \
-      [[maybe_unused]] compilation_context const in_a = as_is)
-
     /* ---- Quotation ----------------------------------------------------------
      *
      *  <quotation> = (quote <datum>)
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(quotation)
+    SYNTAX(quotation)
     {
       debug(car(expression), faint, " ; is <datum>");
       return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
@@ -551,48 +542,51 @@ inline namespace kernel
      *  Note: The return value of <Command> is discarded.
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(sequence)
+    SYNTAX(sequence)
     {
-      if (in_a.program_declaration)
+      if (the_expression_is.program_declaration)
       {
         if (cdr(expression).is<null>())
         {
-          return compile(car(expression),
-                         syntactic_environment,
-                         frames,
-                         continuation,
-                         as_program_declaration);
-        }
-        else
-        {
-          return compile(car(expression),
-                         syntactic_environment,
-                         frames,
-                         cons(make<instruction>(mnemonic::DROP),
-                              sequence(cdr(expression),
-                                       syntactic_environment,
-                                       frames,
-                                       continuation,
-                                       as_program_declaration)),
-                         as_program_declaration);
-        }
-      }
-      else
-      {
-        if (cdr(expression).is<null>()) // is tail sequence
-        {
-          return compile(car(expression),
+          return compile(as_program_declaration,
+                         car(expression),
                          syntactic_environment,
                          frames,
                          continuation);
         }
         else
         {
-          return compile(car(expression), // head expression
+          return compile(as_program_declaration,
+                         car(expression),
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::DROP),
+                              sequence(as_program_declaration,
+                                       cdr(expression),
+                                       syntactic_environment,
+                                       frames,
+                                       continuation)));
+        }
+      }
+      else
+      {
+        if (cdr(expression).is<null>()) // is tail sequence
+        {
+          return compile(in_context_free,
+                         car(expression),
+                         syntactic_environment,
+                         frames,
+                         continuation);
+        }
+        else
+        {
+          return compile(in_context_free,
+                         car(expression), // head expression
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::DROP), // pop result of head expression
-                              sequence(cdr(expression), // rest expressions
+                              sequence(in_context_free,
+                                       cdr(expression), // rest expressions
                                        syntactic_environment,
                                        frames,
                                        continuation)));
@@ -602,7 +596,7 @@ inline namespace kernel
 
     enum class internal_definition_tag {};
 
-    DEFINE_PRIMITIVE_EXPRESSION(definition) /* ---------------------------------
+    SYNTAX(definition) /* ------------------------------------------------------
     *
     *  <definition> = (define <identifier> <expression>)
     *
@@ -610,7 +604,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or in_a.program_declaration)
+      if (frames.is<null>() or the_expression_is.program_declaration)
       {
         debug(car(expression), faint, " ; is <variable>");
 
@@ -620,7 +614,8 @@ inline namespace kernel
           // cdar(form) = <formals>
           //  cdr(form) = <body>
 
-          return compile(cons(intern("lambda"), cdar(expression), cdr(expression)),
+          return compile(in_context_free,
+                         cons(intern("lambda"), cdar(expression), cdr(expression)),
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), caar(expression),
@@ -628,7 +623,8 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(cdr(expression) ? cadr(expression) : unspecified,
+          return compile(in_context_free,
+                         cdr(expression) ? cadr(expression) : unspecified,
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), car(expression),
@@ -647,15 +643,16 @@ inline namespace kernel
      *  <body> = <definition>* <sequence>
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(body)
+    SYNTAX(body)
     {
-      const auto flag { in_a.program_declaration ? as_program_declaration : as_is };
+      // XXX ????
+      auto const flag = the_expression_is.program_declaration ? as_program_declaration : as_is;
 
       auto is_definition = [&](auto const& form)
       {
         try
         {
-          compile(form, syntactic_environment, frames, continuation, flag);
+          compile(flag, form, syntactic_environment, frames, continuation);
           return false;
         }
         catch (const syntax_error<internal_definition_tag>&)
@@ -700,22 +697,20 @@ inline namespace kernel
         let const inits = make_list(length(variables), undefined);
         // std::cout << ";\t\t; inits = " << inits << std::endl;
 
-        let const head_body
-          = map([this](auto&& x)
+        let const head_body =
+          map([this](auto&& x)
+          {
+            if (car(x).template is<pair>())
             {
-              if (car(x).template is<pair>())
-              {
-                return
-                  list(
-                    intern("set!"),
-                    caar(x),
-                    cons(intern("lambda"), cdar(x), cdr(x)));
-              }
-              else
-              {
-                return cons(intern("set!"), x);
-              }
-            }, binding_specs);
+              return list(intern("set!"),
+                          caar(x),
+                          cons(intern("lambda"), cdar(x), cdr(x)));
+            }
+            else
+            {
+              return cons(intern("set!"), x);
+            }
+          }, binding_specs);
 
         // std::cout << ";\t\t; head_body length is " << length(head_body) << std::endl;
         //
@@ -724,13 +719,10 @@ inline namespace kernel
         //   std::cout << ";\t\t; " << each << std::endl;
         // }
 
-        let const result
-          = cons(
-              cons(
-                intern("lambda"), // XXX NOT HYGIENIC!!!
-                variables,
-                append(head_body, tail_body)),
-              inits);
+        let const result = cons(cons(intern("lambda"), // XXX NOT HYGIENIC!!!
+                                     variables,
+                                     append(head_body, tail_body)),
+                                inits);
 
         // std::cout << "\t\t; result = " << result << std::endl;
 
@@ -739,32 +731,31 @@ inline namespace kernel
 
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return
-          compile(
-            car(expression), syntactic_environment, frames, continuation,
-            in_a.program_declaration ? as_tail_expression_of_program_declaration
-                                     : as_tail_expression);
+        return compile(
+                 the_expression_is.program_declaration ? as_tail_expression_of_program_declaration
+                                                       : as_tail_expression,
+                 car(expression), syntactic_environment, frames, continuation);
       }
-      else if (const auto [binding_specs, tail_body] { sweep(expression) }; binding_specs)
+      else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
       {
-        return
-          compile(
-            letrec(binding_specs, tail_body),
-            syntactic_environment,
-            frames,
-            continuation,
-            flag);
+        return compile(flag,
+                       letrec(binding_specs, tail_body),
+                       syntactic_environment,
+                       frames,
+                       continuation);
       }
       else
       {
-        return
-          compile(
-            car(expression), syntactic_environment, frames,
-            cons(
-              make<instruction>(mnemonic::DROP),
-              sequence(
-                cdr(expression), syntactic_environment, frames, continuation, flag)),
-            flag);
+        return compile(flag,
+                       car(expression),
+                       syntactic_environment,
+                       frames,
+                       cons(make<instruction>(mnemonic::DROP),
+                            sequence(flag,
+                                     cdr(expression),
+                                     syntactic_environment,
+                                     frames,
+                                     continuation)));
       }
     }
 
@@ -773,21 +764,24 @@ inline namespace kernel
      *  <operand> = <expression>
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(operand)
+    SYNTAX(operand)
     {
       if (expression.is<pair>())
       {
-        return operand(cdr(expression),
+        return operand(in_context_free,
+                       cdr(expression),
                        syntactic_environment,
                        frames,
-                       compile(car(expression),
+                       compile(in_context_free,
+                               car(expression),
                                syntactic_environment,
                                frames,
                                cons(make<instruction>(mnemonic::CONS), continuation)));
       }
       else
       {
-        return compile(expression,
+        return compile(in_context_free,
+                       expression,
                        syntactic_environment,
                        frames,
                        continuation);
@@ -799,30 +793,31 @@ inline namespace kernel
      *  <conditional> = (if <test> <consequent> <alternate>)
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(conditional)
+    SYNTAX(conditional)
     {
       debug(car(expression), faint, " ; is <test>");
 
-      if (in_a.tail_expression)
+      if (the_expression_is.tail_expression)
       {
         const auto consequent {
-          compile(cadr(expression),
+          compile(as_tail_expression,
+                  cadr(expression),
                   syntactic_environment,
                   frames,
-                  list(make<instruction>(mnemonic::RETURN)),
-                  as_tail_expression) };
+                  list(make<instruction>(mnemonic::RETURN))) };
 
         const auto alternate {
           cddr(expression)
-            ? compile(caddr(expression),
+            ? compile(as_tail_expression,
+                      caddr(expression),
                       syntactic_environment,
                       frames,
-                      list(make<instruction>(mnemonic::RETURN)),
-                      as_tail_expression)
+                      list(make<instruction>(mnemonic::RETURN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::RETURN)) };
 
-        return compile(car(expression), // <test>
+        return compile(in_context_free,
+                       car(expression), // <test>
                        syntactic_environment,
                        frames,
                        cons(make<instruction>(mnemonic::TAIL_SELECT),
@@ -833,21 +828,24 @@ inline namespace kernel
       else
       {
         const auto consequent {
-          compile(cadr(expression),
+          compile(in_context_free,
+                  cadr(expression),
                   syntactic_environment,
                   frames,
                   list(make<instruction>(mnemonic::JOIN))) };
 
         const auto alternate {
           cddr(expression)
-            ? compile(caddr(expression),
+            ? compile(in_context_free,
+                      caddr(expression),
                       syntactic_environment,
                       frames,
                       list(make<instruction>(mnemonic::JOIN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::JOIN)) };
 
-        return compile(car(expression), // <test>
+        return compile(in_context_free,
+                       car(expression), // <test>
                        syntactic_environment,
                        frames,
                        cons(make<instruction>(mnemonic::SELECT), consequent, alternate,
@@ -860,25 +858,26 @@ inline namespace kernel
      * <lambda expression> = (lambda <formals> <body>)
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(lambda)
+    SYNTAX(lambda)
     {
       debug(car(expression), faint, " ; is <formals>");
 
-      if (in_a.program_declaration)
+      if (the_expression_is.program_declaration)
       {
         return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
-                    body(cdr(expression),
+                    body(as_program_declaration,
+                         cdr(expression),
                          syntactic_environment,
                          cons(car(expression), // <formals>
                               frames),
-                         list(make<instruction>(mnemonic::RETURN)),
-                         as_program_declaration),
+                         list(make<instruction>(mnemonic::RETURN))),
                     continuation);
       }
       else
       {
         return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
-                    body(cdr(expression),
+                    body(in_context_free,
+                         cdr(expression),
                          syntactic_environment,
                          cons(car(expression), // <formals>
                               frames),
@@ -892,46 +891,36 @@ inline namespace kernel
      *  TODO documentation
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(call_cc)
+    SYNTAX(call_cc)
     {
       debug(car(expression), faint, " ; is <procedure>");
 
       return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
                   continuation,
-                  compile(car(expression),
+                  compile(in_context_free,
+                          car(expression),
                           syntactic_environment,
                           frames,
                           cons(make<instruction>(mnemonic::CALL), continuation)));
     }
 
-    /* ==== Fork ===============================================================
-    *
-    * TODO documentation
-    *
-    *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(fork)
+    /* ---- Fork ---------------------------------------------------------------
+     *
+     *  TODO documentation
+     *
+     * ---------------------------------------------------------------------- */
+    SYNTAX(fork)
     {
       debug(car(expression), faint, " ; is <subprogram>");
-
       return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
-
-      // return
-      //   compile(
-      //     car(expression),
-      //     syntactic_environment,
-      //     frames,
-      //     cons(
-      //       make<instruction>(mnemonic::FORK),
-      //       continuation),
-      //     as_program_declaration);
     }
 
-    /* ==== Assignment ========================================================
-    *
-    * TODO documentation
-    *
-    *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(assignment)
+    /* ---- Assignment ---------------------------------------------------------
+     *
+     *  TODO documentation
+     *
+     * ---------------------------------------------------------------------- */
+    SYNTAX(assignment)
     {
       if (expression.is<null>())
       {
@@ -943,7 +932,8 @@ inline namespace kernel
         {
           debug(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
 
-          return compile(cadr(expression),
+          return compile(in_context_free,
+                         cadr(expression),
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::STORE_VARIADIC), index, continuation));
@@ -952,7 +942,8 @@ inline namespace kernel
         {
           debug(car(expression), faint, "; is a <bound variable> references ", reset, index);
 
-          return compile(cadr(expression),
+          return compile(in_context_free,
+                         cadr(expression),
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::STORE_LOCAL), index, continuation));
@@ -962,7 +953,8 @@ inline namespace kernel
       {
         debug(car(expression), faint, "; is a <glocal variable>");
 
-        return compile(cadr(expression),
+        return compile(in_context_free,
+                       cadr(expression),
                        syntactic_environment,
                        frames,
                        cons(make<instruction>(mnemonic::STORE_GLOBAL), car(expression), continuation));
@@ -975,7 +967,7 @@ inline namespace kernel
      *  TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(reference)
+    SYNTAX(reference)
     {
       if (expression.is<null>())
       {
@@ -1012,7 +1004,7 @@ inline namespace kernel
      *        (cons a b)))
      *
      * ---------------------------------------------------------------------- */
-    DEFINE_PRIMITIVE_EXPRESSION(construct)
+    SYNTAX(construct)
     {
       return compile(cadr(expression),
                      syntactic_environment,
