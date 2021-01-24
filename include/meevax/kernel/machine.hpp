@@ -548,7 +548,7 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>())
         {
-          return compile(as_program_declaration,
+          return compile(at_the_top_level.take_over(the_expression_is),
                          car(expression),
                          syntactic_environment,
                          frames,
@@ -556,12 +556,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(as_program_declaration,
+          return compile(at_the_top_level.take_over(the_expression_is),
                          car(expression),
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
-                              sequence(as_program_declaration,
+                              sequence(at_the_top_level.take_over(the_expression_is),
                                        cdr(expression),
                                        syntactic_environment,
                                        frames,
@@ -572,7 +572,7 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>()) // is tail sequence
         {
-          return compile(in_context_free,
+          return compile(the_expression_is,
                          car(expression),
                          syntactic_environment,
                          frames,
@@ -580,7 +580,7 @@ inline namespace kernel
         }
         else
         {
-          return compile(in_context_free,
+          return compile(the_expression_is, // XXX ???
                          car(expression), // head expression
                          syntactic_environment,
                          frames,
@@ -647,7 +647,7 @@ inline namespace kernel
     {
       // XXX ????
       [[deprecated]] auto const flag =
-        the_expression_is.at_the_top_level() ? as_program_declaration
+        the_expression_is.at_the_top_level() ? at_the_top_level
                                              : in_context_free;
 
       auto is_definition = [&](auto const& form)
@@ -733,10 +733,11 @@ inline namespace kernel
 
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return compile(
-                 the_expression_is.at_the_top_level() ? as_tail_expression_of_program_declaration
-                                                      : as_tail_expression,
-                 car(expression), syntactic_environment, frames, continuation);
+        return compile(in_a_tail_context.take_over(the_expression_is),
+                       car(expression),
+                       syntactic_environment,
+                       frames,
+                       continuation);
       }
       else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
       {
@@ -802,7 +803,7 @@ inline namespace kernel
       if (the_expression_is.in_a_tail_context())
       {
         const auto consequent {
-          compile(as_tail_expression,
+          compile(in_a_tail_context,
                   cadr(expression),
                   syntactic_environment,
                   frames,
@@ -810,7 +811,7 @@ inline namespace kernel
 
         const auto alternate {
           cddr(expression)
-            ? compile(as_tail_expression,
+            ? compile(in_a_tail_context,
                       caddr(expression),
                       syntactic_environment,
                       frames,
@@ -864,28 +865,14 @@ inline namespace kernel
     {
       debug(car(expression), faint, " ; is <formals>");
 
-      if (the_expression_is.at_the_top_level())
-      {
-        return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
-                    body(as_program_declaration,
-                         cdr(expression),
-                         syntactic_environment,
-                         cons(car(expression), // <formals>
-                              frames),
-                         list(make<instruction>(mnemonic::RETURN))),
-                    continuation);
-      }
-      else
-      {
-        return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
-                    body(in_context_free,
-                         cdr(expression),
-                         syntactic_environment,
-                         cons(car(expression), // <formals>
-                              frames),
-                         list(make<instruction>(mnemonic::RETURN))),
-                    continuation);
-      }
+      return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
+                  body(the_expression_is,
+                       cdr(expression),
+                       syntactic_environment,
+                       cons(car(expression), // <formals>
+                            frames),
+                       list(make<instruction>(mnemonic::RETURN))),
+                  continuation);
     }
 
     /* ---- Call-With-Current-Continuation -------------------------------------
@@ -899,7 +886,7 @@ inline namespace kernel
 
       return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
                   continuation,
-                  compile(in_context_free,
+                  compile(the_expression_is,
                           car(expression),
                           syntactic_environment,
                           frames,

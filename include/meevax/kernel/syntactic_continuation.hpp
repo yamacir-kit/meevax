@@ -407,7 +407,7 @@ inline namespace kernel
       c = unit;
       d = cdddr(first);
 
-      c = compile(as_program_declaration,
+      c = compile(at_the_top_level,
                   caaddr(first),
                   syntactic_environment(),
                   cdaddr(first),

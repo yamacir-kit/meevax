@@ -3,6 +3,7 @@
 
 #include <bitset>
 
+#include <cstdint>
 #include <meevax/kernel/object.hpp>
 
 #define SYNTAX(NAME)                                                           \
@@ -26,12 +27,12 @@ inline namespace kernel
       : data { std::forward<decltype(xs)>(xs)... }
     {}
 
-    constexpr decltype(auto) at_the_top_level() const
+    decltype(auto) at_the_top_level() const
     {
       return data.test(0);
     }
 
-    constexpr decltype(auto) in_a_tail_context() const
+    decltype(auto) in_a_tail_context() const
     {
       return data.test(1);
     }
@@ -51,9 +52,8 @@ inline namespace kernel
 
   constexpr syntactic_contexts in_context_free {};
 
-  [[deprecated]] constexpr syntactic_contexts as_program_declaration { 0b01uL };
-  [[deprecated]] constexpr syntactic_contexts as_tail_expression { 0b10uL };
-  [[deprecated]] constexpr syntactic_contexts as_tail_expression_of_program_declaration { 0b11uL };
+  constexpr syntactic_contexts at_the_top_level  { static_cast<std::uint64_t>(0b01) };
+  constexpr syntactic_contexts in_a_tail_context { static_cast<std::uint64_t>(0b10) };
 
   struct syntax
     : public std::function<SYNTAX()>
