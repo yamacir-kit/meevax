@@ -52,7 +52,8 @@ inline namespace kernel
 
   constexpr syntactic_contexts in_context_free {};
 
-  constexpr syntactic_contexts at_the_top_level  { static_cast<std::uint64_t>(0b01) };
+  constexpr syntactic_contexts at_the_top_level { static_cast<std::uint64_t>(0b01) };
+
   constexpr syntactic_contexts in_a_tail_context { static_cast<std::uint64_t>(0b10) };
 
   struct syntax

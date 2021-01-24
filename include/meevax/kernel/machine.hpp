@@ -217,9 +217,12 @@ inline namespace kernel
         *
         *  where result = (list-ref (list-ref E i) j)
         *
+        *  i = (caadr c)
+        *  j = (cdadr c)
+        *
         * ------------------------------------------------------------------- */
         push(s, list_ref(list_ref(e, caadr(c)), cdadr(c)));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::LOAD_VARIADIC: /* -----------------------------------------
@@ -231,7 +234,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         push(s, list_tail(list_ref(e, caadr(c)), cdadr(c)));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::LOAD_CONSTANT: /* -----------------------------------------
@@ -242,7 +245,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         // push(s, strip(cadr(c)));
         push(s, cadr(c));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       // case mnemonic::LOAD_SYNTAX: /* -------------------------------------------
@@ -269,7 +272,7 @@ inline namespace kernel
         {
           push(s, rename(cadr(c)));
         }
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::STRIP: /* -------------------------------------------------
@@ -279,7 +282,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         push(s, cadr(c).template as<syntactic_closure>().strip());
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::LOAD_CLOSURE: /* ------------------------------------------
@@ -289,7 +292,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         push(s, make<closure>(cadr(c), e));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
@@ -299,7 +302,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         push(s, list(make<continuation>(s, cons(e, cadr(c), d))));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::FORK: /* --------------------------------------------------
@@ -310,7 +313,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         push(s, make<SK>(cons(s, e, cadr(c), d), // current-syntactic-continuation
                          syntactic_environment()));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::SELECT: /* ------------------------------------------------
@@ -333,7 +336,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         c = car(s).template is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
-        pop<1>(s);
+        s = cdr(s);
         goto dispatch;
 
       case mnemonic::JOIN: /* --------------------------------------------------
@@ -343,7 +346,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         c = car(d);
-        pop<1>(d);
+        d = cdr(d);
         goto dispatch;
 
       case mnemonic::DEFINE: /* ------------------------------------------------
@@ -356,7 +359,7 @@ inline namespace kernel
         {
           car(s) = define(cadr(c), car(s));
         }
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::CALL: /* --------------------------------------------------
@@ -373,7 +376,7 @@ inline namespace kernel
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
-          pop<1>(c);
+          c = cdr(c);
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
@@ -403,7 +406,7 @@ inline namespace kernel
         else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
-          pop<1>(c);
+          c = cdr(c);
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
@@ -437,7 +440,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(cons(car(s), cadr(s)), cddr(s));
-        pop<1>(c);
+        c = cdr(c);
         goto dispatch;
 
       case mnemonic::DROP: /* --------------------------------------------------
@@ -446,8 +449,8 @@ inline namespace kernel
         *   =>          S  E         C  D
         *
         * ------------------------------------------------------------------- */
-        pop<1>(s);
-        pop<1>(c);
+        s = cdr(s);
+        c = cdr(c);
         goto dispatch;
 
       case mnemonic::STORE_GLOBAL: /* ------------------------------------------
@@ -491,7 +494,7 @@ inline namespace kernel
           throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
         }
         // car(s) = unspecified;
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::STORE_LOCAL: /* -------------------------------------------
@@ -501,12 +504,12 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         std::atomic_store(&car(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::STORE_VARIADIC:
         std::atomic_store(&cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
-        pop<2>(c);
+        c = cddr(c);
         goto dispatch;
 
       default: // ERROR
@@ -516,7 +519,7 @@ inline namespace kernel
         * = >           S  E         C  D
         *
         * ------------------------------------------------------------------- */
-        pop<1>(c);
+        c = cdr(c);
         return pop(s); // return car(s);
       }
     }
@@ -645,16 +648,11 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     SYNTAX(body)
     {
-      // XXX ????
-      [[deprecated]] auto const flag =
-        the_expression_is.at_the_top_level() ? at_the_top_level
-                                             : in_context_free;
-
       auto is_definition = [&](auto const& form)
       {
         try
         {
-          compile(flag, form, syntactic_environment, frames, continuation);
+          compile(the_expression_is, form, syntactic_environment, frames, continuation);
           return false;
         }
         catch (const syntax_error<internal_definition_tag>&)
@@ -682,25 +680,25 @@ inline namespace kernel
         return std::make_pair(reverse(binding_specs), std::end(form));
       };
 
-      auto letrec = [&](const auto& binding_specs, const auto& tail_body)
+      auto letrec = [&](auto const& binding_specs, auto const& tail_body)
       {
         // std::cout << "\n"
         //           << "; compiler\t; letrec\n"
         //           << ";\t\t; binding-specs = " << binding_specs << "\n"
         //           << ";\t\t; tail-body = " << tail_body << std::endl;
 
-        let const variables
-          = map([](auto&& x)
-            {
-              return car(x).template is<pair>() ? caar(x) : car(x);
-            }, binding_specs);
+        let const variables = map(
+          [](let const& x)
+          {
+            return car(x).is<pair>() ? caar(x) : car(x);
+          }, binding_specs);
         // std::cout << ";\t\t; variables = " << variables << std::endl;
 
         let const inits = make_list(length(variables), undefined);
         // std::cout << ";\t\t; inits = " << inits << std::endl;
 
-        let const head_body =
-          map([this](auto&& x)
+        let const head_body = map(
+          [this](auto&& x)
           {
             if (car(x).template is<pair>())
             {
@@ -741,7 +739,7 @@ inline namespace kernel
       }
       else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
       {
-        return compile(flag,
+        return compile(the_expression_is,
                        letrec(binding_specs, tail_body),
                        syntactic_environment,
                        frames,
@@ -749,12 +747,12 @@ inline namespace kernel
       }
       else
       {
-        return compile(flag,
+        return compile(the_expression_is,
                        car(expression),
                        syntactic_environment,
                        frames,
                        cons(make<instruction>(mnemonic::DROP),
-                            sequence(flag,
+                            sequence(the_expression_is,
                                      cdr(expression),
                                      syntactic_environment,
                                      frames,
