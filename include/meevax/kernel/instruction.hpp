@@ -36,8 +36,7 @@ inline namespace kernel
     (TAIL_CALL)                                                                \
     (TAIL_SELECT)                                                              \
 
-  enum class mnemonic
-    : std::int8_t
+  enum class mnemonic : std::uint8_t
   {
     BOOST_PP_SEQ_ENUM(MNEMONICS)
   };
@@ -60,6 +59,8 @@ inline namespace kernel
   };
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
+
+  auto disassemble(std::ostream &, let const&, std::size_t = 1) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

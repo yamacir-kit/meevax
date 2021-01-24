@@ -207,10 +207,10 @@ inline namespace kernel
         std::atomic_exchange(&c, compile(expression, syntactic_environment())));
 
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
-      disassemble(c);
+      disassemble(standard_debug_port().as<output_port>(), c);
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
 
-      decltype(auto) result { execute() };
+      decltype(auto) result = execute();
 
       s = pop(d);
       e = pop(d);
