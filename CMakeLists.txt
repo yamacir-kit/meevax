@@ -128,6 +128,7 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/string/unicode.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/symbol.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/syntactic_continuation.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/utility/demangle.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/vector.cpp
   )
 
@@ -186,12 +187,10 @@ install(
 
 
 # ==============================================================================
-#   Meevax Basis Library
+#   Meevax Basis Library (DEPRECATED)
 # ==============================================================================
 
-file(GLOB
-  ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.cpp)
+file(GLOB ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.cpp)
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
@@ -202,7 +201,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR})
 
-  target_link_libraries(${TARGET_NAME} PUBLIC Meevax::kernel)
+  target_link_libraries(${TARGET_NAME} PUBLIC kernel)
 
   install(
     TARGETS ${TARGET_NAME}

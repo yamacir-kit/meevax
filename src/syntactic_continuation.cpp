@@ -387,49 +387,49 @@ inline namespace kernel
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ set-cdr!           │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ caar               │ Scheme     │                                    │
+      │ caar               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cadr               │ Scheme     │                                    │
+      │ cadr               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cdar               │ Scheme     │                                    │
+      │ cdar               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cddr               │ Scheme     │                                    │
+      │ cddr               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ caaar ... cddddr   │ Scheme     │ (scheme cxr) library               │
+      │ caaar ... cddddr   │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ null?              │ Scheme     │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list?              │ Scheme     │                                    │
+      │ list?              │ Scheme     │ SRFI-1 (proper-list?)              │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ make-list          │ Scheme     │                                    │
+      │ make-list          │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list               │ Scheme     │                                    │
+      │ list               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ length             │ Scheme     │                                    │
+      │ length             │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ append             │ Scheme     │                                    │
+      │ append             │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ reverse            │ Scheme     │                                    │
+      │ reverse            │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list-tail          │ Scheme     │                                    │
+      │ list-tail          │ Scheme     │ SRFI-1 (drop)                      │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list-ref           │ Scheme     │                                    │
+      │ list-ref           │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ list-set!          │ Scheme     │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ memq               │ Scheme     │                                    │
+      │ memq               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ memv               │ Scheme     │                                    │
+      │ memv               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ member             │ Scheme     │                                    │
+      │ member             │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ assq               │ Scheme     │                                    │
+      │ assq               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ assv               │ Scheme     │                                    │
+      │ assv               │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ assoc              │ Scheme     │                                    │
+      │ assoc              │ Scheme     │ SRFI-1                             │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list-copy          │ Scheme     │                                    │
+      │ list-copy          │ Scheme     │ SRFI-1                             │
       └────────────────────┴────────────┴────────────────────────────────────┘
 
     ------------------------------------------------------------------------- */
@@ -882,7 +882,7 @@ inline namespace kernel
      ├────────────────────────┼────────────┼──────────────────────────────────┤
      │ raise-continuable      │ TODO       │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error                  │ TODO       │                                  │
+     │ error                  │ TODO       │ SRFI-23                          │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
      │ error-object?          │ TODO       │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
@@ -1005,11 +1005,11 @@ inline namespace kernel
       ├─────────────────────────┼────────────┼───────────────────────────────┤
       │ close-output-port       │ Scheme     │                               │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-string       │ C++        │                               │
+      │ open-input-string       │ C++        │ SRFI-6                        │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-string      │ C++        │                               │
+      │ open-output-string      │ C++        │ SRFI-6                        │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ get-output-string       │ C++        │                               │
+      │ get-output-string       │ C++        │ SRFI-6                        │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
       │ open-input-bytevector   │ TODO       │                               │
       ├─────────────────────────┼────────────┼───────────────────────────────┤
@@ -1080,17 +1080,17 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("standard-input-port", [this](auto&&)
+    define<procedure>("input-standard-port", [this](auto&&)
     {
       return standard_input_port();
     });
 
-    define<procedure>("standard-output-port", [this](auto&&)
+    define<procedure>("output-standard-port", [this](auto&&)
     {
       return standard_output_port();
     });
 
-    define<procedure>("standard-error-port", [this](auto&&)
+    define<procedure>("error-standard-port", [this](auto&&)
     {
       return standard_error_port();
     });
@@ -1339,21 +1339,18 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    std::stringstream port { overture.data() };
+    std::vector<std::stringstream> ports {};
 
-    // std::size_t counts {0};
+    ports.emplace_back(srfi_1  .data());
+    ports.emplace_back(overture.data());
 
-    for (let e = read(port); e != eof_object; e = read(port))
+    for (auto & port : ports)
     {
-      // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-      // write_to(standard_debug_port(),
-      //   "\r\x1B[K", header("overture"), counts++, ": ", car(syntactic_environment()));
-
-      evaluate(e);
+      for (let e = read(port); e != eof_object; e = read(port))
+      {
+        evaluate(e);
+      }
     }
-
-    // NOTE: THIS WILL NEVER SHOWN (OVERTURE LAYER BOOTS BEFORE CONFIGURATION)
-    // write_to(standard_debug_port(), "\n\n");
   }
 
   template <>

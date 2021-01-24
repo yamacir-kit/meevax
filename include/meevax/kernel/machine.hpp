@@ -101,11 +101,7 @@ inline namespace kernel
       {
         if (is_identifier(expression))
         {
-          #if __cpp_deduction_guides
-          if (de_bruijn_index index {expression, frames}; index)
-          #else
-          if (de_bruijn_index<default_equivalence_comparator> index {expression, frames}; index)
-          #endif
+          if (de_bruijn_index index { expression, frames }; index)
           {
             if (index.is_variadic())
             {
@@ -428,11 +424,7 @@ inline namespace kernel
         goto dispatch;
 
       case mnemonic::CALL:
-        if (let const& callee = car(s); callee.is<null>())
-        {
-          throw error("unit is not appliciable");
-        }
-        else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
+        if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           push(d, cddr(s), e, cdr(c));
           c = car(callee);
@@ -460,11 +452,7 @@ inline namespace kernel
         goto dispatch;
 
       case mnemonic::TAIL_CALL:
-        if (let const& callee = car(s); callee.is<null>())
-        {
-          throw error("unit is not appliciable");
-        }
-        else if (callee.is<closure>()) // (closure operands . S) E (CALL . C) D
+        if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
@@ -910,71 +898,52 @@ inline namespace kernel
       if (in_a.tail_expression)
       {
         const auto consequent {
-          compile(
-            cadr(expression),
-            syntactic_environment,
-            frames,
-            list(
-              make<instruction>(mnemonic::RETURN)),
-            as_tail_expression)
-        };
+          compile(cadr(expression),
+                  syntactic_environment,
+                  frames,
+                  list(make<instruction>(mnemonic::RETURN)),
+                  as_tail_expression) };
 
         const auto alternate {
           cddr(expression)
-            ? compile(
-                caddr(expression),
-                syntactic_environment,
-                frames,
-                list(
-                  make<instruction>(mnemonic::RETURN)),
-                as_tail_expression)
-            : list(
-                make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                make<instruction>(mnemonic::RETURN))
-        };
+            ? compile(caddr(expression),
+                      syntactic_environment,
+                      frames,
+                      list(make<instruction>(mnemonic::RETURN)),
+                      as_tail_expression)
+            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
+                   make<instruction>(mnemonic::RETURN)) };
 
-        return
-          compile(
-            car(expression), // <test>
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::TAIL_SELECT),
-              consequent,
-              alternate,
-              cdr(continuation)));
+        return compile(car(expression), // <test>
+                       syntactic_environment,
+                       frames,
+                       cons(make<instruction>(mnemonic::TAIL_SELECT),
+                            consequent,
+                            alternate,
+                            cdr(continuation)));
       }
       else
       {
         const auto consequent {
-          compile(
-            cadr(expression),
-            syntactic_environment,
-            frames,
-            list(make<instruction>(mnemonic::JOIN)))
-        };
+          compile(cadr(expression),
+                  syntactic_environment,
+                  frames,
+                  list(make<instruction>(mnemonic::JOIN))) };
 
         const auto alternate {
           cddr(expression)
-            ? compile(
-                caddr(expression),
-                syntactic_environment,
-                frames,
-                list(
-                  make<instruction>(mnemonic::JOIN)))
-            : list(
-                make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                make<instruction>(mnemonic::JOIN))
-        };
+            ? compile(caddr(expression),
+                      syntactic_environment,
+                      frames,
+                      list(make<instruction>(mnemonic::JOIN)))
+            : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
+                   make<instruction>(mnemonic::JOIN)) };
 
-        return
-          compile(
-            car(expression), // <test>
-            syntactic_environment,
-            frames,
-            cons(
-              make<instruction>(mnemonic::SELECT), consequent, alternate,
-              continuation));
+        return compile(car(expression), // <test>
+                       syntactic_environment,
+                       frames,
+                       cons(make<instruction>(mnemonic::SELECT), consequent, alternate,
+                            continuation));
       }
     }
 
@@ -1010,11 +979,11 @@ inline namespace kernel
       }
     }
 
-    /* ==== Call-With-Current-Continuation ====================================
-    *
-    * TODO documentation
-    *
-    *======================================================================== */
+    /* ---- Call-With-Current-Continuation -------------------------------------
+     *
+     *  TODO documentation
+     *
+     * ---------------------------------------------------------------------- */
     DEFINE_PRIMITIVE_EXPRESSION(call_cc)
     {
       debug(car(expression), faint, " ; is <procedure>");

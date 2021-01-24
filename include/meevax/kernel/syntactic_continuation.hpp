@@ -19,7 +19,7 @@ inline namespace kernel
    * Layer 0 - Module System (Program Structures)
    * Layer 1 - R7RS Primitive Expression Types
    * Layer 2 - R7RS Standard Procedures
-   * Layer 3 - R7RS Derived Expression Types
+   * Layer 3 - Basis Library
    * Layer 4 - Experimental Procedures
    *
    * ------------------------------------------------------------------------ */

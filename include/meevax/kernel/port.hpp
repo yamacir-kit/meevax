@@ -1,7 +1,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
+#include <ios>
+#include <unistd.h>
+
+#include <cassert>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 #include <meevax/kernel/path.hpp>
@@ -11,41 +16,82 @@ namespace meevax
 {
 inline namespace kernel
 {
+  using  input_port = std::istream;
+  using output_port = std::ostream;
+
+  /* ---- Standard Input Ports -------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+  struct standard_input
+    : public input_port
+  {
+    explicit standard_input()
+    {
+      copyfmt(std::cin);
+      clear(std::cin.rdstate());
+      rdbuf(std::cin.rdbuf());
+    }
+  };
+
+  struct standard_output
+    : public output_port
+  {
+    explicit standard_output()
+    {
+      copyfmt(std::cout);
+      clear(std::cout.rdstate());
+      rdbuf(std::cout.rdbuf());
+    }
+  };
+
+  struct standard_error
+    : public output_port
+  {
+    explicit standard_error()
+    {
+      copyfmt(std::cerr);
+      clear(std::cerr.rdstate());
+      rdbuf(std::cerr.rdbuf());
+    }
+  };
+
+  auto operator <<(output_port &, standard_input const&) -> output_port &;
+
+  auto operator <<(output_port &, standard_output const&) -> output_port &;
+
+  auto operator <<(output_port &, standard_error const&) -> output_port &;
+
   /* ---- Ports ----------------------------------------------------------------
    *
    *
    * ------------------------------------------------------------------------ */
+  template <typename T>
+  struct file_port
+    : public T
+  {
+    const path name;
 
-  using  input_port = std::istream;
-  using output_port = std::ostream;
+    explicit file_port(bytestring const& name)
+      : T    { name }
+      , name { name }
+    {}
 
-  #define BOILERPLATE(TYPENAME, STREAM)                                        \
-  struct TYPENAME                                                              \
-    : public std::STREAM                                                       \
-  {                                                                            \
-    const path name;                                                           \
-                                                                               \
-    explicit TYPENAME(bytestring const& name)                                  \
-      : std::STREAM { name }                                                   \
-      , name { name }                                                          \
-    {}                                                                         \
-                                                                               \
-    explicit TYPENAME(bytestring const& name, std::ios const& ios)             \
-      : std::STREAM { name }                                                   \
-      , name { name }                                                          \
-    {                                                                          \
-      copyfmt(ios);                                                            \
-      clear(ios.rdstate());                                                    \
-      static_cast<std::ios&>(*this).rdbuf(ios.rdbuf());                        \
-    }                                                                          \
-  };                                                                           \
-                                                                               \
-  auto operator <<(std::ostream& port, const TYPENAME&) -> decltype(port)
+    // explicit file_port(bytestring const& name, std::ios const& ios)
+    //   : T    { name }
+    //   , name { name }
+    // {
+    //   std::ios::copyfmt(ios);
+    //   std::ios::clear(ios.rdstate());
+    //   std::ios::rdbuf(ios.rdbuf()); // NOTE: A very unstable and dirty hack.
+    // }
+  };
 
-  BOILERPLATE( input_file_port, ifstream);
-  BOILERPLATE(output_file_port, ofstream);
+  using input_file_port = file_port<std::ifstream>;
+  using output_file_port = file_port<std::ofstream>;
 
-  #undef BOILERPLATE
+  auto operator <<(output_port &, const input_file_port&) -> output_port &;
+  auto operator <<(output_port &, const output_file_port&) -> output_port &;
 
   struct input_string_port
     : public std::istringstream

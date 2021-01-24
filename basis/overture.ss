@@ -23,69 +23,16 @@
 ;  6.4 Pairs and Lists (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define caar (lambda (x) (car (car x) )))
-(define cadr (lambda (x) (car (cdr x) )))
-(define cdar (lambda (x) (cdr (car x) )))
-(define cddr (lambda (x) (cdr (cdr x) )))
-
-(define caaar (lambda (x) (car (car (car x) ))))
-(define caadr (lambda (x) (car (car (cdr x) ))))
-(define cadar (lambda (x) (car (cdr (car x) ))))
-(define caddr (lambda (x) (car (cdr (cdr x) ))))
-(define cdaar (lambda (x) (cdr (car (car x) ))))
-(define cdadr (lambda (x) (cdr (car (cdr x) ))))
-(define cddar (lambda (x) (cdr (cdr (car x) ))))
-(define cdddr (lambda (x) (cdr (cdr (cdr x) ))))
-
-(define caaaar (lambda (x) (car (car (car (car x) )))))
-(define caaadr (lambda (x) (car (car (car (cdr x) )))))
-(define caadar (lambda (x) (car (car (cdr (car x) )))))
-(define caaddr (lambda (x) (car (car (cdr (cdr x) )))))
-(define cadaar (lambda (x) (car (cdr (car (car x) )))))
-(define cadadr (lambda (x) (car (cdr (car (cdr x) )))))
-(define caddar (lambda (x) (car (cdr (cdr (car x) )))))
-(define cadddr (lambda (x) (car (cdr (cdr (cdr x) )))))
-(define cdaaar (lambda (x) (cdr (car (car (car x) )))))
-(define cdaadr (lambda (x) (cdr (car (car (cdr x) )))))
-(define cdadar (lambda (x) (cdr (car (cdr (car x) )))))
-(define cdaddr (lambda (x) (cdr (car (cdr (cdr x) )))))
-(define cddaar (lambda (x) (cdr (cdr (car (car x) )))))
-(define cddadr (lambda (x) (cdr (cdr (car (cdr x) )))))
-(define cdddar (lambda (x) (cdr (cdr (cdr (car x) )))))
-(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x) )))))
-
-(define null?
-  (lambda (x)
-    (eqv? x '())))
-
-(define list
-  (lambda x x))
-
-(define append-2
-  (lambda (x y)
-    (if (null? x) y
-        (cons (car x)
-              (append-2 (cdr x) y)))))
-
 (define reverse ; simple but slow
   (lambda (x)
+    (define append-2 ; from SICP
+      (lambda (x y)
+        (if (null? x) y
+            (cons (car x)
+                  (append-2 (cdr x) y)))))
     (if (null? x) '()
         (append-2 (reverse (cdr x))
                   (list (car x))))))
-
-(define append
-  (lambda x
-
-    (define (append-aux x y)
-      (if (null? x) y
-          (append-aux (cdr x)
-                      (append-2 (car x) y))))
-
-    (if (null? x) '()
-        ((lambda (reversed)
-           (append-aux (cdr reversed)
-                       (car reversed)))
-         (reverse x)))))
 
 ; ==== Low-Level Macro Facility ================================================
 
@@ -322,15 +269,21 @@
 
     (define apply-1
       (lambda (procedure xs)
-        (procedure . xs) ))
+        (procedure . xs)))
+
+    (define append-2 ; from SICP
+      (lambda (x y)
+        (if (null? x) y
+            (cons (car x)
+                  (append-2 (cdr x) y)))))
 
     (if (null? xs)
         (apply-1 procedure x)
         ((lambda (rxs)
            (apply-1 procedure
                     (append-2 (reverse (cdr rxs))
-                              (car rxs) )))
-         (reverse (cons x xs)) ))))
+                              (car rxs))))
+         (reverse (cons x xs))))))
 
 (define map
   (lambda (procedure x . xs)
@@ -525,20 +478,6 @@
 ;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-(define proper-list?
-  (lambda (x)
-    (let rec ((x x)
-              (y x))
-      (if (pair? x)
-          (let ((x (cdr x)))
-            (if (pair? x)
-                (let ((x (cdr x))
-                      (y (cdr y)))
-                  (and (not (eq? x y))
-                       (rec x y)))
-                (null? x)))
-          (null? x)))))
-
 (define list? proper-list?)
 
 (define dotted-list?
@@ -583,23 +522,6 @@
             (rec (- k 1)
                  (cons default result) ))))))
 
-(define length
-  (lambda (x)
-    (let rec ((x x)
-              (lag x)
-              (result 0))
-      (if (pair? x)
-          (let ((x (cdr x))
-                (result (+ result 1)))
-            (if (pair? x)
-                (let ((x (cdr x))
-                      (lag (cdr lag))
-                      (result (+ result 1)))
-                  (and (not (eq? x lag))
-                       (rec x lag result) ))
-                result))
-          result ))))
-
 ; (define length*
 ;   (lambda (x)
 ;     (let ((length (length x)))
@@ -626,59 +548,10 @@
                   (+ 2 result) ))
             (else (if (pair? precede) (+ 1 result) result)) )))))
 
-(define list-tail
-  (lambda (x k)
-    (if (zero? k) x
-        (list-tail (cdr x) (- k 1)) )))
-
-(define list-ref
-  (lambda (x k)
-    (car (list-tail x k)) ))
+(define list-tail drop) ; SRFI-1
 
 (define (list-set! x k object)
   (set-car! (list-tail x k) object))
-
-(define member
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let rec ((x x))
-        (and (pair? x)
-             (if (compare o (car x)) x
-                 (rec (cdr x)) ))))))
-
-(define memq
-  (lambda (o x)
-    (member o x eq?) ))
-
-(define memv
-  (lambda (o x)
-    (member o x eqv?) ))
-
-(define assoc
-  (lambda (o x . c)
-    (let ((compare (if (pair? c) (car c) equal?)))
-      (let assoc ((x x))
-        (if (null? x) #false
-            (if (compare o (caar x))
-                (car x)
-                (assoc (cdr x)) ))))))
-
-(define assq
-  (lambda (o x)
-    (assoc o x eq?) ))
-
-(define assv
-  (lambda (o x)
-    (assoc o x eqv?) ))
-
-(define list-copy
-  (lambda (x)
-    (let rec ((x x)
-              (result '()))
-      (if (pair? x)
-          (rec (cdr x)
-               (cons (car x) result))
-          (append (reverse result) x) ))))
 
 ; (define shallow-copy
 ;   (lambda (x)
@@ -691,27 +564,6 @@
 ;     (if (not (pair? x)) x
 ;         (cons (deep-copy (car x))
 ;               (deep-copy (cdr x))))))
-
-(define take
-  (lambda (x k)
-    (let rec ((x x)
-              (k k))
-      (if (zero? k) '()
-          (cons (car x)
-                (rec (cdr x) (- k 1)))))))
-
-(define take!
-  (lambda (x k)
-    (if (zero? k)
-        (begin (set-cdr! (drop x (- k 1)) '()) x))))
-
-(define drop
-  (lambda (x k)
-    (let rec ((x x)
-              (k k))
-      (if (zero? k) x
-          (rec (cdr x) (- k 1))))))
-
 
 ; ------------------------------------------------------------------------------
 ;  4.2.1 Conditionals (Part 2 of 2)
@@ -1469,7 +1321,7 @@
 
 (define procedure?
   (lambda (x)
-    (or (native-procedure? x)
+    (or (native-procedure? x) ; TODO RENAME TO primitive?
         (closure? x)
         (continuation? x) )))
 
@@ -1506,31 +1358,31 @@
 ; (define values
 ;   (lambda xs
 ;     (call-with-current-continuation
-;       (lambda (continuation)
-;         (apply continuation xs)))))
+;       (lambda (cc)
+;         (apply cc xs)))))
 
 ; Magic Token Trick
 ; https://stackoverflow.com/questions/16674214/how-to-implement-call-with-values-to-match-the-values-example-in-r5rs
-(define values-magic-token (list 'values))
+(define <values> (list 'values))
 
-(define values-magic-token?
+(define values?
   (lambda (x)
     (and (pair? x)
-         (eq? (car x) values-magic-token) )))
+         (eq? (car x) <values>))))
 
 (define values
   (lambda xs
     (if (and (not (null? xs))
-             (null? (cdr xs)) )
+             (null? (cdr xs)))
         (car xs)
-        (cons values-magic-token xs) )))
+        (cons <values> xs))))
 
 (define call-with-values
   (lambda (producer consumer)
     (let ((result (producer)))
-      (if (values-magic-token? result)
+      (if (values? result)
           (apply consumer (cdr result))
-          (consumer result) ))))
+          (consumer result)))))
 
 ; ---- dynamic-wind ------------------------------------------------------------
 
@@ -1596,12 +1448,19 @@
          (,(rename 'lambda) ,(cadr form) ,@(cdddr form))))))
 
 ; TODO with-exception-handler
-; TODO raise
+; TODO raise ; SRFI-18
 ; TODO raise-continuable
 
-(define error
+(define error ; SRFI-23
   (lambda (message . irritants)
-    (display message)))
+    (display "error: ")
+    (display message)
+    (for-each (lambda (each)
+                (display " ")
+                (write each))
+              irritants)
+    (newline)
+    (exit 1)))
 
 (define error-object?
   (lambda (x) #false) )
@@ -1634,35 +1493,46 @@
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
+(define  input-standard-port? (lambda (x) (eq? x ( input-standard-port))))
+(define output-standard-port? (lambda (x) (eq? x (output-standard-port))))
+(define  error-standard-port? (lambda (x) (eq? x ( error-standard-port))))
+
+
 (define call-with-port
   (lambda (port procedure)
     (procedure port)))
 
 (define call-with-input-file
-  (lambda (string procedure)
-    (call-with-port (open-input-file string) procedure)))
+  (lambda (path procedure)
+    (call-with-port (open-input-file path) procedure)))
 
 (define call-with-output-file
-  (lambda (string procedure)
-    (call-with-port (open-output-file string) procedure)))
+  (lambda (path procedure)
+    (call-with-port (open-output-file path) procedure)))
 
 
 (define input-port?
   (lambda (x)
     (or (input-file-port? x)
-        (input-string-port? x))))
+        (input-string-port? x)
+        (input-standard-port? x))))
 
 (define output-port?
   (lambda (x)
     (or (output-file-port? x)
-        (output-string-port? x))))
+        (output-string-port? x)
+        (output-standard-port? x)
+        (error-standard-port? x))))
 
 (define textual-port?
   (lambda (x)
-    (or ( input-file-port? x)
+    (or (input-file-port? x)
+        (input-string-port? x)
+        (input-standard-port? x)
         (output-file-port? x)
-        ( input-string-port? x)
-        (output-string-port? x))))
+        (output-string-port? x)
+        (output-standard-port? x)
+        (error-standard-port? x))))
 
 (define binary-port?
   (lambda (x) #f))
@@ -1674,22 +1544,25 @@
 
 
 (define input-port-open?
-  (lambda (port)
-    (cond ((input-file-port? port)
-           (input-file-port-open? port))
-          ((input-string-port? port) #t)
+  (lambda (x)
+    (cond ((input-file-port? x)
+           (input-file-port-open? x))
+          ((input-string-port? x) #t)
+          ((input-standard-port? x) #t)
           (else #f))))
 
 (define output-port-open?
-  (lambda (port)
-    (cond ((output-file-port? port)
-           (output-file-port-open? port))
-          ((output-string-port? port) #t)
+  (lambda (x)
+    (cond ((output-file-port? x)
+           (output-file-port-open? x))
+          ((output-string-port? x) #t)
+          ((output-standard-port? x) #t)
+          ((error-standard-port? x) #t)
           (else #f))))
 
 
 (define current-input-port
-  (make-parameter (standard-input-port)
+  (make-parameter (input-standard-port)
     (lambda (x)
       (cond ((not (input-port? x))
              (error "current-input-port: not input-port" x))
@@ -1698,7 +1571,7 @@
             (else x)))))
 
 (define current-output-port
-  (make-parameter (standard-output-port)
+  (make-parameter (output-standard-port)
     (lambda (x)
       (cond ((not (output-port? x))
              (error "current-output-port: not output-port" x))
@@ -1707,7 +1580,7 @@
             (else x)))))
 
 (define current-error-port
-  (make-parameter (standard-error-port)
+  (make-parameter (error-standard-port)
     (lambda (x)
       (cond ((not (output-port? x))
              (error "current-error-port: not output-port" x))
@@ -1814,36 +1687,6 @@
 ; TODO current-second
 ; TODO current-jiffy
 ; TODO jiffies-per-second
-
-; ------------------------------------------------------------------------------
-;  SRFI 1 Extended Pairs and Lists Library
-; ------------------------------------------------------------------------------
-
-(define xcons
-  (lambda (x y)
-    (cons y x)))
-
-(define find
-  (lambda (predicate list)
-    (cond
-      ((find-tail predicate list)
-       => car)
-      (else #false) )))
-
-(define find-tail
-  (lambda (predicate list)
-    (let rec ((list list))
-      (and (not (null-list? list))
-           (if (predicate (car list)) list
-               (rec (cdr list)) )))))
-
-(define null-list?
-  (lambda (list)
-    (cond
-      ((pair? list) #false)
-      ((null? list) #true)
-      (else
-       (error "null-list?: argument out of domain" list) ))))
 
 ; ------------------------------------------------------------------------------
 ;  Miscellaneous
@@ -2387,3 +2230,6 @@
 ;     (let ((x 'inner))
 ;       (m))))
 
+(define-syntax (increment x . n)
+  (let ((n (if (pair? n) (car n) 1)))
+    `(,begin (,set! ,x (,+ ,x ,n)) ,x)))
