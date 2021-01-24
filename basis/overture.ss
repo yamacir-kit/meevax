@@ -1387,6 +1387,7 @@
 ; ---- dynamic-wind ------------------------------------------------------------
 
 ; from SRFI-39
+; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
 (define dynamic-extents '())
 

@@ -44,8 +44,6 @@ inline namespace kernel
 
   struct instruction
   {
-    using identity = instruction;
-
     const mnemonic code;
 
     template <typename... Ts>
@@ -53,30 +51,15 @@ inline namespace kernel
       : code { std::forward<decltype(xs)>(xs)... }
     {}
 
-    int value() const noexcept
+    using value_type = typename std::underlying_type<mnemonic>::type;
+
+    constexpr auto value() const noexcept -> value_type
     {
-      return static_cast<typename std::underlying_type<mnemonic>::type>(code);
-    }
-
-    friend auto operator<<(std::ostream & os, identity const& i) -> decltype(auto)
-    {
-      os << underline;
-
-      switch (i.code)
-      {
-      #define MNEMONIC_CASE(_, AUX, EACH)                                      \
-      case mnemonic::EACH:                                                     \
-        os << BOOST_PP_STRINGIZE(EACH);                                        \
-        break;
-
-        BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
-      }
-
-      // os << "#" << std::hex << std::setw(2) << std::setfill('0') << i.value();
-
-      return os << reset;
+      return static_cast<value_type>(code);
     }
   };
+
+  auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

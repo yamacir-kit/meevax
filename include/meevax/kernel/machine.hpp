@@ -16,7 +16,7 @@ namespace meevax
 inline namespace kernel
 {
   template <typename SK>
-  class machine // Simple SECD machine.
+  class machine // TR-SECD machine.
   {
     friend SK;
 

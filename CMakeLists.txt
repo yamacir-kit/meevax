@@ -115,6 +115,7 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/error.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/exact_integer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ghost.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/instruction.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/list.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/miscellaneous.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/number.cpp
