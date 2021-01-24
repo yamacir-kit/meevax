@@ -114,21 +114,19 @@ inline namespace kernel
     decltype(auto) current_expression() const { return car(form()); }
     decltype(auto) scope()              const { return cdr(form()); }
 
-    const auto& intern(bytestring const& s)
+    auto const& intern(bytestring const& s)
     {
-      if (auto iter { symbols.find(s) }; iter != std::end(symbols))
+      if (auto iter = symbols.find(s); iter != std::end(symbols))
       {
         return cdr(*iter);
       }
-      else if (const auto [position, success] { symbols.emplace(s, make<symbol>(s)) }; success)
+      else if (const auto [position, success] = symbols.emplace(s, make<symbol>(s)); success)
       {
         return cdr(*position);
       }
       else
       {
-        std::stringstream port {};
-        port << __FILE__ << ":" << __LINE__;
-        throw std::runtime_error { port.str() };
+        throw error(__FILE__, ":", __LINE__);
       }
     }
 
@@ -156,6 +154,20 @@ inline namespace kernel
       {
         renames.emplace(identifier, make<syntactic_closure>(identifier, syntactic_environment()));
         return renames.at(identifier);
+      }
+    }
+
+    decltype(auto) execute()
+    {
+      static constexpr auto trace = true;
+
+      if (in_trace_mode())
+      {
+        return machine::execute<trace>();
+      }
+      else
+      {
+        return machine::execute();
       }
     }
 

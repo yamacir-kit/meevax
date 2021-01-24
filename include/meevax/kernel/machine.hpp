@@ -193,10 +193,14 @@ inline namespace kernel
       }
     }
 
+    template
+    <
+      auto Trace = false
+    >
     let execute()
     {
     dispatch:
-      if (in_trace_mode())
+      if constexpr (Trace)
       {
         std::cerr << "; trace s\t; " <<  s << std::endl;
         std::cerr << ";       e\t; " <<  e << std::endl;
@@ -209,10 +213,10 @@ inline namespace kernel
       {
       case mnemonic::LOAD_LOCAL: /* --------------------------------------------
         *
-        *              S  E (LOAD-LOCAL (i . j) . C) D
-        * => (result . S) E                       C  D
+        *               S  E (LOAD-LOCAL (i . j) . C) D
+        *  => (result . S) E                       C  D
         *
-        * where result = (list-ref (list-ref E i) j)
+        *  where result = (list-ref (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
         push(s, list_ref(list_ref(e, caadr(c)), cdadr(c)));
@@ -221,41 +225,41 @@ inline namespace kernel
 
       case mnemonic::LOAD_VARIADIC: /* -----------------------------------------
         *
-        *              S  E (LOAD-VARIADIC (i . j) . C) D
-        * => (result . S) E                          C  D
+        *               S  E (LOAD-VARIADIC (i . j) . C) D
+        *  => (result . S) E                          C  D
         *
-        * where result = (list-tail (list-ref E i) j)
+        *  where result = (list-tail (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
         push(s, list_tail(list_ref(e, caadr(c)), cdadr(c)));
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::LOAD_CONSTANT: /* =========================================
+      case mnemonic::LOAD_CONSTANT: /* -----------------------------------------
         *
-        *                S  E (LOAD-CONSTANT constant . C) D
-        * => (constant . S) E                           C  D
+        *                 S  E (LOAD-CONSTANT constant . C) D
+        *  => (constant . S) E                           C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         // push(s, strip(cadr(c)));
         push(s, cadr(c));
         pop<2>(c);
         goto dispatch;
 
-      // case mnemonic::LOAD_SYNTAX: /* ===========================================
+      // case mnemonic::LOAD_SYNTAX: /* -------------------------------------------
       //   *
-      //   *                S  E (LOAD-CONSTANT syntax . C) D
-      //   * => (constant . S) E                         C  D
+      //   *                 S  E (LOAD-CONSTANT syntax . C) D
+      //   *  => (constant . S) E                         C  D
       //   *
-      //   * =================================================================== */
+      //   * ------------------------------------------------------------------- */
       //   push(s, cadr(c));
       //   pop<2>(c);
       //   goto dispatch;
 
       case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
-        *              S  E (LOAD-GLOBAL symbol . C) D
-        * => (object . S) E                       C  D
+        *               S  E (LOAD-GLOBAL symbol . C) D
+        *  => (object . S) E                       C  D
         *
         * ------------------------------------------------------------------- */
         if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
@@ -269,20 +273,20 @@ inline namespace kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::STRIP: /* =================================================
+      case mnemonic::STRIP: /* -------------------------------------------------
         *
-        *            S  E (STRIP syntactic-closure . C) D
-        * => (form . S) E                            C  D
+        *             S  E (STRIP syntactic-closure . C) D
+        *  => (form . S) E                            C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         push(s, cadr(c).template as<syntactic_closure>().strip());
         pop<2>(c);
         goto dispatch;
 
       case mnemonic::LOAD_CLOSURE: /* ------------------------------------------
         *
-        *               S  E (LOAD-CLOSURE body . C) D
-        * => (closure . S) E                      C  D
+        *                S  E (LOAD-CLOSURE body . C) D
+        *  => (closure . S) E                      C  D
         *
         * ------------------------------------------------------------------- */
         push(s, make<closure>(cadr(c), e));
@@ -291,20 +295,20 @@ inline namespace kernel
 
       case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
         *
-        *                      S  E (LDK cc . C) D
-        * => ((continuation) . S) E           C  D
+        *                       S  E (LDK cc . C) D
+        *  => ((continuation) . S) E           C  D
         *
         * ------------------------------------------------------------------- */
         push(s, list(make<continuation>(s, cons(e, cadr(c), d))));
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::FORK: /* ==================================================
+      case mnemonic::FORK: /* --------------------------------------------------
         *
-        *                  S  E (FORK csc . C) D
-        * => (subprogram . S) E             C  D
+        *                   S  E (FORK csc . C) D
+        *  => (subprogram . S) E             C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         push(s, make<SK>(cons(s, e, cadr(c), d), // current-syntactic-continuation
                          syntactic_environment()));
         pop<2>(c);
@@ -312,43 +316,43 @@ inline namespace kernel
 
       case mnemonic::SELECT: /* ------------------------------------------------
         *
-        *    (test . S) E (SELECT consequent alternate . C)  D
-        * =>         S  E         selection             (C . D)
+        *     (test . S) E (SELECT consequent alternate . C)  D
+        *  =>         S  E         selection             (C . D)
         *
-        * where selection = (if test consequent alternate)
+        *  where selection = (if test consequent alternate)
         *
         * ------------------------------------------------------------------- */
         push(d, cdddr(c));
         [[fallthrough]];
 
-      case mnemonic::TAIL_SELECT: /* ===========================================
+      case mnemonic::TAIL_SELECT: /* -------------------------------------------
         *
-        *    (test . S) E (SELECT consequent alternate . C)  D
-        * =>         S  E         selection                  D
+        *     (test . S) E (SELECT consequent alternate . C)  D
+        *  =>         S  E         selection                  D
         *
-        * where selection = (if test consequent alternate)
+        *  where selection = (if test consequent alternate)
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         c = car(s).template is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
         pop<1>(s);
         goto dispatch;
 
-      case mnemonic::JOIN: /* ==================================================
+      case mnemonic::JOIN: /* --------------------------------------------------
         *
-        *      S E (JOIN) (C . D)
-        *   => S E         C   D
+        *     S E (JOIN) (C . D)
+        *  => S E         C   D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         c = car(d);
         pop<1>(d);
         goto dispatch;
 
-      case mnemonic::DEFINE: /* ================================================
+      case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *          (object . S) E (DEFINE identifier . C) D
-        *   => (identifier . S) E                      C  D
+        *         (object . S) E (DEFINE identifier . C) D
+        *  => (identifier . S) E                      C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         if (static_cast<SK&>(*this).generation == 0)
         {
           car(s) = define(cadr(c), car(s));
@@ -356,7 +360,10 @@ inline namespace kernel
         pop<2>(c);
         goto dispatch;
 
-      case mnemonic::CALL:
+      case mnemonic::CALL: /* --------------------------------------------------
+        *
+        *
+        * ------------------------------------------------------------------- */
         if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           push(d, cddr(s), e, cdr(c));
@@ -384,7 +391,10 @@ inline namespace kernel
         }
         goto dispatch;
 
-      case mnemonic::TAIL_CALL:
+      case mnemonic::TAIL_CALL: /* ---------------------------------------------
+        *
+        *
+        * ------------------------------------------------------------------- */
         if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           c = car(callee);
@@ -412,8 +422,8 @@ inline namespace kernel
 
       case mnemonic::RETURN: /* ------------------------------------------------
         *
-        *      (result . S)  E (RETURN . C) (S' E' C' . D)
-        *   => (result . S') E'          C'             D
+        *     (result . S)  E (RETURN . C) (S' E' C' . D)
+        *  => (result . S') E'          C'             D
         *
         * ------------------------------------------------------------------- */
         s = cons(car(s), pop(d));
@@ -423,8 +433,8 @@ inline namespace kernel
 
       case mnemonic::CONS: /* --------------------------------------------------
         *
-        *      ( X   Y  . S) E (CONS . C) D
-        *   => ((X . Y) . S) E         C  D
+        *     ( X   Y  . S) E (CONS . C) D
+        *  => ((X . Y) . S) E         C  D
         *
         * ------------------------------------------------------------------- */
         s = cons(cons(car(s), cadr(s)), cddr(s));
@@ -441,17 +451,17 @@ inline namespace kernel
         pop<1>(c);
         goto dispatch;
 
-      case mnemonic::STORE_GLOBAL: /* ==========================================
+      case mnemonic::STORE_GLOBAL: /* ------------------------------------------
         *
-        *      (value . S) E (STORE-GLOBAL identifier . C) D
-        *   => (value . S) E                            C  D
+        *     (value . S) E (STORE-GLOBAL identifier . C) D
+        *  => (value . S) E                            C  D
         *
-        * TODO
-        *   (1) There is no need to make copy if right hand side is unique.
-        *   (2) There is no matter overwrite if left hand side is unique.
-        *   (3) Should set with weak reference if right hand side is newer.
+        *  TODO
+        *    (1) There is no need to make copy if right hand side is unique.
+        *    (2) There is no matter overwrite if left hand side is unique.
+        *    (3) Should set with weak reference if right hand side is newer.
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
         {
           if (let const& value = cdr(pare); value.template is<null>() or car(s).template is<null>())
@@ -501,12 +511,12 @@ inline namespace kernel
         goto dispatch;
 
       default: // ERROR
-      case mnemonic::STOP: /* ==================================================
+      case mnemonic::STOP: /* --------------------------------------------------
         *
-        *    (result . S) E (STOP . C) D
-        * =>           S  E         C  D
+        *     (result . S) E (STOP . C) D
+        * = >           S  E         C  D
         *
-        * =================================================================== */
+        * ------------------------------------------------------------------- */
         pop<1>(c);
         return pop(s); // return car(s);
       }
@@ -592,52 +602,17 @@ inline namespace kernel
 
     enum class internal_definition_tag {};
 
-    /* ==== Definition ========================================================
+    DEFINE_PRIMITIVE_EXPRESSION(definition) /* ---------------------------------
     *
-    * <definition> = (define <identifier> <expression>)
+    *  <definition> = (define <identifier> <expression>)
     *
-    * TODO MOVE INTO SYNTACTIC_CONTINUATION
+    *  TODO MOVE INTO SYNTACTIC_CONTINUATION
     *
-    *======================================================================== */
-    DEFINE_PRIMITIVE_EXPRESSION(definition)
+    * ----------------------------------------------------------------------- */
     {
       if (frames.is<null>() or in_a.program_declaration)
       {
         debug(car(expression), faint, " ; is <variable>");
-
-        // const auto definition {compile(
-        //   cdr(expression) ? cadr(expression) : unspecified,
-        //   syntactic_environment,
-        //   frames,
-        //   list(
-        //     make<instruction>(mnemonic::DEFINE), car(expression),
-        //     make<instruction>(mnemonic::STOP))
-        // )};
-        //
-        // object result {unit};
-        //
-        // if (in_a.program_declaration)
-        // {
-        //   c = definition;
-        //
-        //   // std::cerr << ";\t\t; s = " << s << std::endl;
-        //   // std::cerr << ";\t\t; e = " << e << std::endl;
-        //   // std::cerr << ";\t\t; c = " << c << std::endl;
-        //   // std::cerr << ";\t\t; d = " << d << std::endl;
-        //
-        //   result = execute();
-        // }
-        // else
-        // {
-        //   result = execute_interrupt(definition);
-        // }
-        //
-        // return
-        //   cons(
-        //     make<instruction>(mnemonic::LOAD_CONSTANT), result,
-        //     continuation);
-
-        // (define ...)
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
@@ -691,7 +666,7 @@ inline namespace kernel
 
       auto sweep = [&](auto const& form)
       {
-        auto binding_specs { unit };
+        let binding_specs = unit;
 
         for (auto iter = std::cbegin(form); iter != std::cend(form); ++iter)
         {
