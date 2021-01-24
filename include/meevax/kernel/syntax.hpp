@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
+#include <bitset>
+
 #include <meevax/kernel/object.hpp>
 
 #define SYNTAX(NAME)                                                           \
@@ -11,26 +13,47 @@
     [[maybe_unused]] let const& frames,                                        \
     [[maybe_unused]] let const& continuation)
 
-// expressions_is
-//   .in_a_tail_context
-//   .at_the_top_level
-
 namespace meevax
 {
 inline namespace kernel
 {
   struct syntactic_contexts
   {
-    bool tail_expression;
-    bool program_declaration;
-  }
-  constexpr in_context_free {};
+    std::bitset<2> data;
 
+    template <typename... Ts>
+    explicit constexpr syntactic_contexts(Ts&&... xs)
+      : data { std::forward<decltype(xs)>(xs)... }
+    {}
 
-  constexpr syntactic_contexts as_is { false, false };
-  constexpr syntactic_contexts as_tail_expression { true, false };
-  constexpr syntactic_contexts as_program_declaration { false, true };
-  constexpr syntactic_contexts as_tail_expression_of_program_declaration { true, true };
+    constexpr decltype(auto) at_the_top_level() const
+    {
+      return data.test(0);
+    }
+
+    constexpr decltype(auto) in_a_tail_context() const
+    {
+      return data.test(1);
+    }
+
+    decltype(auto) take_over(syntactic_contexts const& contexts)
+    {
+      data |= contexts.data;
+      return *this;
+    }
+
+    auto take_over(syntactic_contexts const& contexts) const
+    {
+      syntactic_contexts result { data | contexts.data };
+      return result;
+    }
+  };
+
+  constexpr syntactic_contexts in_context_free {};
+
+  [[deprecated]] constexpr syntactic_contexts as_program_declaration { 0b01uL };
+  [[deprecated]] constexpr syntactic_contexts as_tail_expression { 0b10uL };
+  [[deprecated]] constexpr syntactic_contexts as_tail_expression_of_program_declaration { 0b11uL };
 
   struct syntax
     : public std::function<SYNTAX()>

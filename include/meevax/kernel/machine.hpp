@@ -182,8 +182,8 @@ inline namespace kernel
                           car(expression),
                           syntactic_environment,
                           frames,
-                          cons(make<instruction>(the_expression_is.tail_expression ? mnemonic::TAIL_CALL
-                                                                                   : mnemonic::     CALL),
+                          cons(make<instruction>(the_expression_is.in_a_tail_context() ? mnemonic::TAIL_CALL
+                                                                                       : mnemonic::     CALL),
                                continuation)));
 
         debug(magenta, ")");
@@ -544,7 +544,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     SYNTAX(sequence)
     {
-      if (the_expression_is.program_declaration)
+      if (the_expression_is.at_the_top_level())
       {
         if (cdr(expression).is<null>())
         {
@@ -604,7 +604,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or the_expression_is.program_declaration)
+      if (frames.is<null>() or the_expression_is.at_the_top_level())
       {
         debug(car(expression), faint, " ; is <variable>");
 
@@ -646,7 +646,9 @@ inline namespace kernel
     SYNTAX(body)
     {
       // XXX ????
-      auto const flag = the_expression_is.program_declaration ? as_program_declaration : as_is;
+      [[deprecated]] auto const flag =
+        the_expression_is.at_the_top_level() ? as_program_declaration
+                                             : in_context_free;
 
       auto is_definition = [&](auto const& form)
       {
@@ -732,8 +734,8 @@ inline namespace kernel
       if (cdr(expression).is<null>()) // is tail-sequence
       {
         return compile(
-                 the_expression_is.program_declaration ? as_tail_expression_of_program_declaration
-                                                       : as_tail_expression,
+                 the_expression_is.at_the_top_level() ? as_tail_expression_of_program_declaration
+                                                      : as_tail_expression,
                  car(expression), syntactic_environment, frames, continuation);
       }
       else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
@@ -797,7 +799,7 @@ inline namespace kernel
     {
       debug(car(expression), faint, " ; is <test>");
 
-      if (the_expression_is.tail_expression)
+      if (the_expression_is.in_a_tail_context())
       {
         const auto consequent {
           compile(as_tail_expression,
@@ -862,7 +864,7 @@ inline namespace kernel
     {
       debug(car(expression), faint, " ; is <formals>");
 
-      if (the_expression_is.program_declaration)
+      if (the_expression_is.at_the_top_level())
       {
         return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
                     body(as_program_declaration,
