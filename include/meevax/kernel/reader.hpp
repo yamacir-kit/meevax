@@ -244,8 +244,8 @@ inline namespace kernel
     explicit reader()
     {}
 
-    Import(SK, evaluate);
-    Import(SK, intern);
+    IMPORT(SK, evaluate,);
+    IMPORT(SK, intern,);
 
     using seeker = std::istream_iterator<std::istream::char_type>;
 

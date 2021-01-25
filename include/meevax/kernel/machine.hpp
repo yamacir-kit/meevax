@@ -23,20 +23,19 @@ inline namespace kernel
     machine()
     {}
 
-    Import(SK, debug);
-    Import(SK, evaluate);
-    Import(SK, indent);
-    Import(SK, intern);
-    Import(SK, rename);
-    Import(SK, syntactic_environment);
-
-    Import_Const(SK, header);
-    Import_Const(SK, in_trace_mode);
-    Import_Const(SK, shift);
-    Import_Const(SK, standard_debug_port);
-    Import_Const(SK, standard_error_port);
-    Import_Const(SK, standard_output_port);
-    Import_Const(SK, write_to);
+    IMPORT(SK, debug,);
+    IMPORT(SK, evaluate,);
+    IMPORT(SK, header, const);
+    IMPORT(SK, in_trace_mode, const);
+    IMPORT(SK, indent,);
+    IMPORT(SK, intern,);
+    IMPORT(SK, rename,);
+    IMPORT(SK, shift, const);
+    IMPORT(SK, standard_debug_port, const);
+    IMPORT(SK, standard_error_port, const);
+    IMPORT(SK, standard_output_port, const);
+    IMPORT(SK, syntactic_environment,);
+    IMPORT(SK, write_to, const);
 
   protected:
     let s, // Stack (holding intermediate results and return address)

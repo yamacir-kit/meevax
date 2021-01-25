@@ -21,14 +21,13 @@ inline namespace kernel
     explicit configurator()
     {}
 
-    Import(SK, evaluate);
-    Import(SK, read);
-
-    Import_Const(SK, standard_verbose_port);
-    Import_Const(SK, newline);
-    Import_Const(SK, write);
-    Import_Const(SK, write_to);
-    Import_Const(SK, write_line);
+    IMPORT(SK, evaluate,);
+    IMPORT(SK, newline, const);
+    IMPORT(SK, read,);
+    IMPORT(SK, standard_verbose_port, const);
+    IMPORT(SK, write, const);
+    IMPORT(SK, write_line, const);
+    IMPORT(SK, write_to, const);
 
     object batch_mode       { f };
     object debug_mode       { f };

@@ -18,10 +18,10 @@ inline namespace kernel
     explicit writer()
     {}
 
-    Import_Const(SK, in_batch_mode);
-    Import_Const(SK, in_debug_mode);
-    Import_Const(SK, in_interactive_mode);
-    Import_Const(SK, in_verbose_mode);
+    IMPORT(SK, in_batch_mode, const);
+    IMPORT(SK, in_debug_mode, const);
+    IMPORT(SK, in_interactive_mode, const);
+    IMPORT(SK, in_verbose_mode, const);
 
   public:
     template <typename... Ts>
