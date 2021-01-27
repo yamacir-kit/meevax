@@ -76,7 +76,7 @@ inline namespace kernel
       }
       else // unbound
       {
-        return global(x, push(syntactic_environment, cons(x, x)));
+        return global(x, push(syntactic_environment, cons(x, make<syntactic_closure>(x, syntactic_environment))));
       }
     }
 
@@ -140,7 +140,7 @@ inline namespace kernel
           else
           {
             debug(expression, faint, " ; is a <glocal variable>");
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), expression, continuation);
+            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(expression, syntactic_environment), continuation);
           }
         }
         else // is <self-evaluating>
@@ -278,18 +278,19 @@ inline namespace kernel
 
       case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
-        *               S  E (LOAD-GLOBAL symbol . C) D
-        *  => (object . S) E                       C  D
+        *               S  E (LOAD-GLOBAL cell . C) D
+        *  => (object . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
-        {
-          push(s, cdr(binding));
-        }
-        else // UNBOUND
-        {
-          push(s, rename(cadr(c)));
-        }
+        push(s, cdadr(c));
+        // if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
+        // {
+        //   push(s, cdr(binding));
+        // }
+        // else // UNBOUND
+        // {
+        //   push(s, rename(cadr(c)));
+        // }
         c = cddr(c);
         goto dispatch;
 
@@ -377,9 +378,8 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         if (static_cast<SK&>(*this).generation == 0)
         {
-          // car(s) = define(cadr(c), car(s));
           cdadr(c) = car(s);
-          car(s) = caadr(c);
+          // car(s) = caadr(c);
         }
         c = cddr(c);
         goto dispatch;
@@ -997,7 +997,7 @@ inline namespace kernel
       else
       {
         debug(car(expression), faint, " ; is <identifier> of glocal variable");
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), car(expression), continuation);
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(car(expression), syntactic_environment), continuation);
       }
     }
 

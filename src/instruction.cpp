@@ -59,7 +59,6 @@ inline namespace kernel
 
       case mnemonic::FORK:
       case mnemonic::LOAD_CONSTANT:
-      case mnemonic::LOAD_GLOBAL:
       case mnemonic::LOAD_LOCAL:
       case mnemonic::LOAD_VARIADIC:
       case mnemonic::STORE_GLOBAL:
@@ -70,6 +69,7 @@ inline namespace kernel
         break;
 
       case mnemonic::DEFINE:
+      case mnemonic::LOAD_GLOBAL:
         os << *iter << " " << car(*++iter) << "\n";
         break;
 
