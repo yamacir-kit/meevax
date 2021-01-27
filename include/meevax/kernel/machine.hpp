@@ -61,6 +61,21 @@ inline namespace kernel
       return unspecified;
     }
 
+    /* ---- Auxiliary Syntax 'global' ------------------------------------------
+     *
+     * ---------------------------------------------------------------------- */
+    let const& global(let const& x)
+    {
+      if (let const& binding = assq(x, syntactic_environment()); not eq(binding, f))
+      {
+        return std::forward<decltype(binding)>(binding);
+      }
+      else // unbound
+      {
+        return global(x, push(syntactic_environment(), cons(x, x)));
+      }
+    }
+
     let const& glocal_environment(object const& e)
     {
       for (auto const& frame : e)
@@ -87,10 +102,10 @@ inline namespace kernel
     *----------------------------------------------------------------------- */
     let compile(
       syntactic_contexts const& the_expression_is,
-      object const& expression,
-      object const& syntactic_environment,
-      object const& frames = unit,
-      object const& continuation = list(make<instruction>(mnemonic::STOP)))
+      let const& expression,
+      let const& syntactic_environment,
+      let const& frames = unit,
+      let const& continuation = list(make<instruction>(mnemonic::STOP)))
     {
       if (expression.is<null>())
       {
@@ -350,8 +365,10 @@ inline namespace kernel
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *         (object . S) E (DEFINE identifier . C) D
-        *  => (identifier . S) E                      C  D
+        *     (object . S) E (DEFINE cell . C) D
+        *  => (object . S) E                C  D
+        *
+        *  where cell = (identifier . identifier)
         *
         * ------------------------------------------------------------------- */
         if (static_cast<SK&>(*this).generation == 0)
@@ -602,8 +619,6 @@ inline namespace kernel
     *
     *  <definition> = (define <identifier> <expression>)
     *
-    *  TODO MOVE INTO SYNTACTIC_CONTINUATION
-    *
     * ----------------------------------------------------------------------- */
     {
       if (frames.is<null>() or the_expression_is.at_the_top_level())
@@ -612,10 +627,6 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          // caar(form) = f
-          // cdar(form) = <formals>
-          //  cdr(form) = <body>
-
           return compile(in_context_free,
                          cons(intern("lambda"), cdar(expression), cdr(expression)),
                          syntactic_environment,
@@ -866,8 +877,7 @@ inline namespace kernel
                   body(the_expression_is,
                        cdr(expression),
                        syntactic_environment,
-                       cons(car(expression), // <formals>
-                            frames),
+                       cons(car(expression), frames),
                        list(make<instruction>(mnemonic::RETURN))),
                   continuation);
     }
