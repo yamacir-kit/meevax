@@ -37,6 +37,8 @@ inline namespace kernel
     IMPORT(SK, syntactic_environment,);
     IMPORT(SK, write_to, const);
 
+    using keyword = SK;
+
   protected:
     let s, // Stack (holding intermediate results and return address)
         e, // Environment (giving values to symbols)
@@ -283,14 +285,6 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         push(s, cdadr(c));
-        // if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
-        // {
-        //   push(s, cdr(binding));
-        // }
-        // else // UNBOUND
-        // {
-        //   push(s, rename(cadr(c)));
-        // }
         c = cddr(c);
         goto dispatch;
 
@@ -330,8 +324,7 @@ inline namespace kernel
         *  => (subprogram . S) E             C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, make<SK>(cons(s, e, cadr(c), d), // current-syntactic-continuation
-                         syntactic_environment()));
+        push(s, make<SK>(cons(s, e, cadr(c), d), syntactic_environment()));
         c = cddr(c);
         goto dispatch;
 
@@ -477,45 +470,32 @@ inline namespace kernel
 
       case mnemonic::STORE_GLOBAL: /* ------------------------------------------
         *
-        *     (value . S) E (STORE-GLOBAL identifier . C) D
-        *  => (value . S) E                            C  D
+        *     (value . S) E (STORE-GLOBAL cell . C) D
+        *  => (value . S) E                      C  D
         *
-        *  TODO
-        *    (1) There is no need to make copy if right hand side is unique.
-        *    (2) There is no matter overwrite if left hand side is unique.
-        *    (3) Should set with weak reference if right hand side is newer.
+        *  where cell = (identifier . x)
         *
         * ------------------------------------------------------------------- */
-        if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
+        if (let const& binding = cadr(c); cdr(binding).is<null>() or car(s).template is<null>())
         {
-          if (let const& value = cdr(pare); value.template is<null>() or car(s).template is<null>())
-          {
-            cdr(pare) = car(s);
-          }
-          else if (value.is<SK>() or value.is<syntax>())
-          {
-            /* ---- From R7RS 5.3.1. Top level definitions ---------------------
-             *
-             *  However, if <variable> is not bound, or is a syntactic keyword,
-             *  then the definition will bind <variable> to a new location
-             *  before performing the assignment, whereas it would be an error
-             *  to perform a set! on an unbound variable.
-             *
-             * -------------------------------------------------------------- */
-            define(cadr(c), car(s));
-          }
-          else
-          {
-            std::atomic_store(&cdr(pare), car(s).copy());
-          }
+          cdr(binding) = car(s);
         }
-        else // UNBOUND
+        else if (cdr(binding).is<keyword>() or cdr(binding).is<syntax>())
         {
-          // TODO IF TOPLELVEL, SET ON UNBOUND VARIABLE => DEFINE
-
-          throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
+          /* ---- From R7RS 5.3.1. Top level definitions ---------------------
+           *
+           *  However, if <variable> is not bound, or is a syntactic keyword,
+           *  then the definition will bind <variable> to a new location
+           *  before performing the assignment, whereas it would be an error
+           *  to perform a set! on an unbound variable.
+           *
+           * -------------------------------------------------------------- */
+          define(cadr(c), car(s));
         }
-        // car(s) = unspecified;
+        else
+        {
+          std::atomic_store(&cdr(binding), car(s).copy());
+        }
         c = cddr(c);
         goto dispatch;
 
@@ -960,11 +940,17 @@ inline namespace kernel
       {
         debug(car(expression), faint, "; is a <glocal variable>");
 
+        // TODO if (the_expression_is.at_the_top_level) => compile to DEFINE
+        //
+        // TODO if unbound variable => throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
+
+        let const g = global(car(expression), syntactic_environment);
+
         return compile(in_context_free,
                        cadr(expression),
                        syntactic_environment,
                        frames,
-                       cons(make<instruction>(mnemonic::STORE_GLOBAL), car(expression), continuation));
+                       cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
       }
     }
 
