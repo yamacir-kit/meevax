@@ -567,7 +567,7 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>())
         {
-          return compile(at_the_top_level.take_over(the_expression_is),
+          return compile(at_the_top_level,
                          car(expression),
                          syntactic_environment,
                          frames,
@@ -575,7 +575,7 @@ inline namespace kernel
         }
         else
         {
-          return compile(at_the_top_level.take_over(the_expression_is),
+          return compile(at_the_top_level,
                          car(expression),
                          syntactic_environment,
                          frames,
@@ -810,14 +810,14 @@ inline namespace kernel
 
       if (the_expression_is.in_a_tail_context())
       {
-        const auto consequent {
+        auto&& consequent =
           compile(in_a_tail_context,
                   cadr(expression),
                   syntactic_environment,
                   frames,
-                  list(make<instruction>(mnemonic::RETURN))) };
+                  list(make<instruction>(mnemonic::RETURN)));
 
-        const auto alternate {
+        auto&& alternate =
           cddr(expression)
             ? compile(in_a_tail_context,
                       caddr(expression),
@@ -825,27 +825,27 @@ inline namespace kernel
                       frames,
                       list(make<instruction>(mnemonic::RETURN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                   make<instruction>(mnemonic::RETURN)) };
+                   make<instruction>(mnemonic::RETURN));
 
         return compile(in_context_free,
                        car(expression), // <test>
                        syntactic_environment,
                        frames,
                        cons(make<instruction>(mnemonic::TAIL_SELECT),
-                            consequent,
-                            alternate,
+                            std::move(consequent),
+                            std::move(alternate),
                             cdr(continuation)));
       }
       else
       {
-        const auto consequent {
+        auto&& consequent =
           compile(in_context_free,
                   cadr(expression),
                   syntactic_environment,
                   frames,
-                  list(make<instruction>(mnemonic::JOIN))) };
+                  list(make<instruction>(mnemonic::JOIN)));
 
-        const auto alternate {
+        auto&& alternate =
           cddr(expression)
             ? compile(in_context_free,
                       caddr(expression),
@@ -853,13 +853,14 @@ inline namespace kernel
                       frames,
                       list(make<instruction>(mnemonic::JOIN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                   make<instruction>(mnemonic::JOIN)) };
+                   make<instruction>(mnemonic::JOIN));
 
         return compile(in_context_free,
                        car(expression), // <test>
                        syntactic_environment,
                        frames,
-                       cons(make<instruction>(mnemonic::SELECT), consequent, alternate,
+                       cons(make<instruction>(mnemonic::SELECT), std::move(consequent),
+                                                                 std::move(alternate),
                             continuation));
       }
     }

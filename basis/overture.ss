@@ -426,11 +426,11 @@
 (define dynamic-environment '())
 
 (define make-parameter
-  (lambda (init . maybe-converter)
+  (lambda (init . converter)
     (let* ((convert
-             (if (null? maybe-converter)
+             (if (null? converter)
                  (lambda (x) x)
-                 (car maybe-converter)))
+                 (car converter)))
            (global-dynamic-environment
              (cons #f (convert init))))
 
@@ -439,14 +439,14 @@
           (or (assq parameter dynamic-environment) global-dynamic-environment)))
 
       (define parameter
-        (lambda maybe-value
+        (lambda value
           (let ((binding
                   (dynamic-lookup parameter global-dynamic-environment)))
-            (cond ((null? maybe-value)
+            (cond ((null? value)
                    (cdr binding))
-                  ((null? (cdr maybe-value))
-                   (set-cdr! binding (convert (car maybe-value))))
-                  (else (convert (car maybe-value)))))))
+                  ((null? (cdr value))
+                   (set-cdr! binding (convert (car value))))
+                  (else (convert (car value)))))))
 
       (set-car! global-dynamic-environment parameter)
       parameter)))
@@ -1631,28 +1631,28 @@
 (define char-ready? (lambda x (::char-ready? (if (pair? x) (car x) (current-input-port)))))
 
 (define write-simple
-  (lambda (datum . maybe-port)
-    (let ((port (if (pair? maybe-port)
-                    (car maybe-port)
+  (lambda (datum . port)
+    (let ((port (if (pair? port)
+                    (car port)
                     (current-output-port))))
       (::write-simple datum port))))
 
 (define write write-simple)
 
 (define display
-  (lambda (datum . maybe-port)
-    (cond ((char?   datum) (apply write-char    datum maybe-port))
-          ((string? datum) (apply write-string  datum maybe-port))
-          (else            (apply write         datum maybe-port)))))
+  (lambda (datum . port)
+    (cond ((char?   datum) (apply write-char    datum port))
+          ((string? datum) (apply write-string  datum port))
+          (else            (apply write         datum port)))))
 
 (define newline
   (lambda xs
     (apply write-char #\newline xs)))
 
 (define write-char
-  (lambda (char . maybe-port)
-    (::write-char char (if (pair? maybe-port)
-                           (car maybe-port)
+  (lambda (char . port)
+    (::write-char char (if (pair? port)
+                           (car port)
                            (current-output-port)))))
 
 (define write-string
@@ -1666,9 +1666,9 @@
 ; TODO write-bytevector
 
 (define flush-output-port
-  (lambda maybe-port
-    (::flush-output-port (if (pair? maybe-port)
-                             (car maybe-port)
+  (lambda port
+    (::flush-output-port (if (pair? port)
+                             (car port)
                              (current-output-port)))))
 
 
