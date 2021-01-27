@@ -180,7 +180,7 @@ inline namespace kernel
             write_to(standard_debug_port(),
               header("macroexpand-1"), indent(), expanded, "\n");
 
-            return compile(the_expression_is, expanded, syntactic_environment, frames, continuation);
+            return compile(in_context_free, expanded, syntactic_environment, frames, continuation);
           }
         }
 
@@ -580,7 +580,7 @@ inline namespace kernel
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
-                              sequence(at_the_top_level.take_over(the_expression_is),
+                              sequence(at_the_top_level,
                                        cdr(expression),
                                        syntactic_environment,
                                        frames,
@@ -599,7 +599,7 @@ inline namespace kernel
         }
         else
         {
-          return compile(the_expression_is, // XXX ???
+          return compile(in_context_free,
                          car(expression), // head expression
                          syntactic_environment,
                          frames,
