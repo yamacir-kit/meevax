@@ -63,16 +63,20 @@ inline namespace kernel
 
     /* ---- Auxiliary Syntax 'global' ------------------------------------------
      *
+     *  Note: This function extends the given syntax environment. Since the
+     *  order of operand evaluation in C ++ is undefined, be aware of the
+     *  execution timing of side effects of this function.
+     *
      * ---------------------------------------------------------------------- */
-    let const& global(let const& x)
+    let const global(let const& x, let & syntactic_environment)
     {
-      if (let const& binding = assq(x, syntactic_environment()); not eq(binding, f))
+      if (let const binding = assq(x, syntactic_environment); not eq(binding, f))
       {
-        return std::forward<decltype(binding)>(binding);
+        return binding;
       }
       else // unbound
       {
-        return global(x, push(syntactic_environment(), cons(x, x)));
+        return global(x, push(syntactic_environment, cons(x, x)));
       }
     }
 
@@ -103,7 +107,7 @@ inline namespace kernel
     let compile(
       syntactic_contexts const& the_expression_is,
       let const& expression,
-      let const& syntactic_environment,
+      let      & syntactic_environment,
       let const& frames = unit,
       let const& continuation = list(make<instruction>(mnemonic::STOP)))
     {
@@ -365,15 +369,17 @@ inline namespace kernel
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *     (object . S) E (DEFINE cell . C) D
-        *  => (object . S) E                C  D
+        *         (object . S) E (DEFINE cell . C) D
+        *  => (identifier . S) E                C  D
         *
         *  where cell = (identifier . identifier)
         *
         * ------------------------------------------------------------------- */
         if (static_cast<SK&>(*this).generation == 0)
         {
-          car(s) = define(cadr(c), car(s));
+          // car(s) = define(cadr(c), car(s));
+          cdadr(c) = car(s);
+          car(s) = caadr(c);
         }
         c = cddr(c);
         goto dispatch;
@@ -627,20 +633,24 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
+          let const g = global(caar(expression), syntactic_environment);
+
           return compile(in_context_free,
                          cons(intern("lambda"), cdar(expression), cdr(expression)),
                          syntactic_environment,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), caar(expression),
+                         cons(make<instruction>(mnemonic::DEFINE), g,
                               continuation));
         }
         else // (define x ...)
         {
+          let const g = global(car(expression), syntactic_environment);
+
           return compile(in_context_free,
                          cdr(expression) ? cadr(expression) : unspecified,
                          syntactic_environment,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), car(expression),
+                         cons(make<instruction>(mnemonic::DEFINE), g,
                               continuation));
         }
       }

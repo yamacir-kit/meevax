@@ -57,7 +57,6 @@ inline namespace kernel
         os << *iter << magenta << "\t)\n" << reset;
         break;
 
-      case mnemonic::DEFINE:
       case mnemonic::FORK:
       case mnemonic::LOAD_CONSTANT:
       case mnemonic::LOAD_GLOBAL:
@@ -68,6 +67,10 @@ inline namespace kernel
       case mnemonic::STORE_VARIADIC:
       case mnemonic::STRIP:
         os << *iter << " " << *++iter << "\n";
+        break;
+
+      case mnemonic::DEFINE:
+        os << *iter << " " << car(*++iter) << "\n";
         break;
 
       case mnemonic::LOAD_CLOSURE:
