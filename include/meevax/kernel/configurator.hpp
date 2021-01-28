@@ -78,7 +78,7 @@ inline namespace kernel
       return unspecified;
     }
 
-    auto display_help() const -> decltype(auto)
+    decltype(auto) display_help() const
     {
       display_version();
       newline();
