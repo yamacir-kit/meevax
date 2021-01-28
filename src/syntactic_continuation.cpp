@@ -1,4 +1,5 @@
 #include <meevax/kernel/basis.hpp>
+#include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 #include <meevax/posix/vt102.hpp>
 
@@ -1319,9 +1320,9 @@ inline namespace kernel
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
     });
 
-    define<procedure>("features", [&](auto&&...)                // (scheme base)
+    define<procedure>("features", [](auto&&...)
     {
-      return current_feature;
+      return features();
     });
 
 

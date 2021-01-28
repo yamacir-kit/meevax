@@ -4,9 +4,9 @@
 #include <regex>
 #include <unordered_map>
 
-#include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax
@@ -18,9 +18,6 @@ inline namespace kernel
   {
     friend SK;
 
-    explicit configurator()
-    {}
-
     IMPORT(SK, evaluate,);
     IMPORT(SK, newline, const);
     IMPORT(SK, read,);
@@ -29,23 +26,21 @@ inline namespace kernel
     IMPORT(SK, write_line, const);
     IMPORT(SK, write_to, const);
 
-    object batch_mode       { f };
-    object debug_mode       { f };
-    object interactive_mode { f };
-    object trace_mode       { f };
-    object verbose_mode     { f };
+    let batch_mode       = f;
+    let debug_mode       = f;
+    let interactive_mode = f;
+    let trace_mode       = f;
+    let verbose_mode     = f;
 
   public:
-    static inline const version current_version {};
-    static inline const feature current_feature {};
+    let paths = unit;
 
-    object paths    { unit };
-    object variable { unit };
+    let variable = unit;
 
     #define BOILERPLATE(MODE)                                                  \
     auto in_##MODE() const                                                     \
     {                                                                          \
-      return MODE.is<boolean>() and MODE.as<boolean>();                        \
+      return not eq(MODE, f);                                                  \
     } static_assert(true)
 
     BOILERPLATE(batch_mode);
@@ -59,7 +54,7 @@ inline namespace kernel
   public:
     let display_version() const
     {
-      write_line("Meevax Lisp System, version ", current_version.semantic());
+      write_line("Meevax Lisp System, version ", version());
       return unspecified;
     }
 
@@ -83,7 +78,7 @@ inline namespace kernel
       return unspecified;
     }
 
-    auto display_help() const -> decltype(auto)
+    decltype(auto) display_help() const
     {
       display_version();
       newline();
@@ -125,13 +120,21 @@ inline namespace kernel
       #undef UNDERLINE
     }
 
+    let const& append_path(let const& x)
+    {
+      if (x.is<symbol>())
+      {
+        return push(paths, make<path>(x.as<bytestring>()));
+      }
+      else
+      {
+        return unspecified;
+      }
+    }
+
   public:
     template <typename T>
     using dispatcher = std::unordered_map<T, std::function<PROCEDURE()>>;
-
-    // NOTE
-    //   --from=FILE --to=FILE
-    //   --input=FILE --output=FILE
 
     const dispatcher<char> short_options
     {
@@ -173,16 +176,9 @@ inline namespace kernel
         return unspecified;
       }),
 
-      std::make_pair('l', [this](const object& s)
+      std::make_pair('l', [this](auto&&... xs)
       {
-        if (s.is<symbol>())
-        {
-          return paths = cons(make<path>(s.as<bytestring const>()), paths);
-        }
-        else
-        {
-          return unspecified;
-        }
+        return append_path(std::forward<decltype(xs)>(xs)...);
       }),
     };
 
@@ -243,16 +239,9 @@ inline namespace kernel
         return unspecified;
       }),
 
-      std::make_pair("load", [this](const object& s)
+      std::make_pair("load", [this](auto&&... xs)
       {
-        if (s.is<symbol>())
-        {
-          return paths = cons(make<path>(s.as<bytestring const>()), paths);
-        }
-        else
-        {
-          return unspecified;
-        }
+        return append_path(std::forward<decltype(xs)>(xs)...);
       }),
 
       std::make_pair("variable", [this](const auto& xs)
@@ -345,9 +334,7 @@ inline namespace kernel
 
       paths = reverse(paths);
 
-      static const auto rc { path(::getenv("HOME")) / ".meevaxrc" };
-
-      if (in_interactive_mode() and std::experimental::filesystem::exists(rc))
+      if (auto const rc = path(::getenv("HOME")) / ".meevaxrc"; in_interactive_mode() and std::experimental::filesystem::exists(rc))
       {
         paths = cons(make<path>(rc), paths);
       }
