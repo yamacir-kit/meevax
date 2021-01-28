@@ -107,7 +107,7 @@ inline namespace kernel
     *
     *----------------------------------------------------------------------- */
     let compile(
-      syntactic_contexts const& the_expression_is,
+      syntactic_context const& the_expression_is,
       let const& expression,
       let      & syntactic_environment,
       let const& frames = unit,
