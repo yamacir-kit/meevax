@@ -7,68 +7,57 @@
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/symbol.hpp>
-#include <meevax/utility/construct_on_first_use.hpp>
-
-#ifdef major // NOTE: Maybe defined by <sys/sysmacros.h> when _GNU_SOURCE.
-#undef major
-#endif
-
-#ifdef minor // NOTE: Maybe defined by <sys/sysmacros.h> when _GNU_SOURCE.
-#undef minor
-#endif
 
 namespace meevax
 {
 inline namespace kernel
 {
-  constexpr auto boost_version = []() -> bytestring
+  let const& boost_version()
   {
-    static constexpr std::size_t major { BOOST_VERSION / 100000 };
-    static constexpr std::size_t minor { BOOST_VERSION / 100 % 1000 };
-    static constexpr std::size_t patch { BOOST_VERSION % 100 };
+    static constexpr std::size_t major = BOOST_VERSION / 100000;
+    static constexpr std::size_t minor = BOOST_VERSION / 100 % 1000;
+    static constexpr std::size_t patch = BOOST_VERSION % 100;
 
-    static const auto semantic {
-      boost::lexical_cast<bytestring>(major) + "." +
-      boost::lexical_cast<bytestring>(minor) + "." +
-      boost::lexical_cast<bytestring>(patch)
-    };
+    let static const version = make<symbol>(boost::lexical_cast<bytestring>(major) + "." +
+                                            boost::lexical_cast<bytestring>(minor) + "." +
+                                            boost::lexical_cast<bytestring>(patch));
+    return version;
+  }
 
-    return semantic;
-  };
-
-  struct version
-    : public object
+  let const& gmp_version()
   {
-    #define boilerplate(NAME, ...) \
-    auto NAME() const -> decltype(auto) \
-    { \
-      static const auto x { __VA_ARGS__ }; \
-      return x; \
-    } static_assert(true)
+    let static const version = make<symbol>(::gmp_version);
 
-    boilerplate(major, make<exact_integer>("${PROJECT_VERSION_MAJOR}"));
-    boilerplate(minor, make<exact_integer>("${PROJECT_VERSION_MINOR}"));
-    boilerplate(patch, make<exact_integer>("${PROJECT_VERSION_PATCH}"));
+    return version;
+  }
 
-    boilerplate(semantic, make<symbol>("${PROJECT_VERSION}"));
+  let const& major_version()
+  {
+    let static const major = make<exact_integer>("${PROJECT_VERSION_MAJOR}");
 
-    boilerplate(libraries,
-      static_cast<object>(
-        list(
-          cons(
-            make<symbol>("boost"),
-            make<symbol>(boost_version())),
-          cons(
-            make<symbol>("gmp"),
-            make<symbol>(gmp_version))
-          )));
+    return major;
+  }
 
-    #undef boilerplate
+  let const& minor_version()
+  {
+    let static const minor = make<exact_integer>("${PROJECT_VERSION_MINOR}");
 
-    explicit version()
-      : object { list(major(), minor(), patch()) }
-    {}
-  };
+    return minor;
+  }
+
+  let const& patch_version()
+  {
+    let static const patch = make<exact_integer>("${PROJECT_VERSION_PATCH}");
+
+    return patch;
+  }
+
+  let const& version()
+  {
+    let static const version = make<symbol>("${PROJECT_VERSION}");
+
+    return version;
+  }
 } // namespace kernel
 } // namespace meevax
 

@@ -34,7 +34,6 @@ inline namespace kernel
     object verbose_mode     = f;
 
   public:
-    const version current_version {};
     const feature current_feature {};
 
     let paths = unit;
@@ -59,7 +58,7 @@ inline namespace kernel
   public:
     let display_version() const
     {
-      write_line("Meevax Lisp System, version ", current_version.semantic());
+      write_line("Meevax Lisp System, version ", version());
       return unspecified;
     }
 
@@ -175,7 +174,7 @@ inline namespace kernel
 
     const dispatcher<char> short_options_
     {
-      std::make_pair('e', [this](auto&&... xs)
+      std::make_pair('e', [&](auto&&... xs)
       {
         std::cout << evaluate(std::forward<decltype(xs)>(xs)...) << std::endl;
         return unspecified;
