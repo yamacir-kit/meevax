@@ -7,6 +7,7 @@
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax
@@ -18,9 +19,6 @@ inline namespace kernel
   {
     friend SK;
 
-    explicit configurator()
-    {}
-
     IMPORT(SK, evaluate,);
     IMPORT(SK, newline, const);
     IMPORT(SK, read,);
@@ -29,19 +27,21 @@ inline namespace kernel
     IMPORT(SK, write_line, const);
     IMPORT(SK, write_to, const);
 
-    object batch_mode       { f };
-    object debug_mode       { f };
-    object interactive_mode { f };
-    object trace_mode       { f };
-    object verbose_mode     { f };
+    object batch_mode       = f;
+    object debug_mode       = f;
+    object interactive_mode = f;
+    object trace_mode       = f;
+    object verbose_mode     = f;
 
   public:
-    static inline const version current_version {};
-    static inline const feature current_feature {};
+    const version current_version {};
+    const feature current_feature {};
 
-    object paths    { unit };
-    object variable { unit };
+    let paths = unit;
 
+    let variable = unit;
+
+    // TODO not eq(f);
     #define BOILERPLATE(MODE)                                                  \
     auto in_##MODE() const                                                     \
     {                                                                          \
@@ -125,13 +125,21 @@ inline namespace kernel
       #undef UNDERLINE
     }
 
+    let append_path(let const& x)
+    {
+      if (x.is<symbol>())
+      {
+        return push(paths, make<path>(x.as<bytestring>()));
+      }
+      else
+      {
+        return unspecified;
+      }
+    }
+
   public:
     template <typename T>
     using dispatcher = std::unordered_map<T, std::function<PROCEDURE()>>;
-
-    // NOTE
-    //   --from=FILE --to=FILE
-    //   --input=FILE --output=FILE
 
     const dispatcher<char> short_options
     {
@@ -167,22 +175,15 @@ inline namespace kernel
 
     const dispatcher<char> short_options_
     {
-      std::make_pair('e', [&](auto&&... xs)
+      std::make_pair('e', [this](auto&&... xs)
       {
         std::cout << evaluate(std::forward<decltype(xs)>(xs)...) << std::endl;
         return unspecified;
       }),
 
-      std::make_pair('l', [this](const object& s)
+      std::make_pair('l', [this](auto&&... xs)
       {
-        if (s.is<symbol>())
-        {
-          return paths = cons(make<path>(s.as<bytestring const>()), paths);
-        }
-        else
-        {
-          return unspecified;
-        }
+        return append_path(std::forward<decltype(xs)>(xs)...);
       }),
     };
 
@@ -243,16 +244,9 @@ inline namespace kernel
         return unspecified;
       }),
 
-      std::make_pair("load", [this](const object& s)
+      std::make_pair("load", [this](auto&&... xs)
       {
-        if (s.is<symbol>())
-        {
-          return paths = cons(make<path>(s.as<bytestring const>()), paths);
-        }
-        else
-        {
-          return unspecified;
-        }
+        return append_path(std::forward<decltype(xs)>(xs)...);
       }),
 
       std::make_pair("variable", [this](const auto& xs)
