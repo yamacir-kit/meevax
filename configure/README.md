@@ -107,8 +107,7 @@ cd meevax
 
 ``` bash
 sudo apt update
-sudo apt install libboost-all-dev \
-                 libgmp-dev
+sudo apt install libboost-all-dev libgmp-dev
 ```
 
 ### 2. Configure

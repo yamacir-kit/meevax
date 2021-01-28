@@ -1,16 +1,16 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
-#include <bitset>
-
 #include <cstdint>
+
 #include <meevax/kernel/object.hpp>
+#include <meevax/kernel/syntactic_context.hpp>
 
 #define SYNTAX(NAME)                                                           \
   let const NAME(                                                              \
-    [[maybe_unused]] syntactic_contexts const& the_expression_is,              \
+    [[maybe_unused]] syntactic_context const& the_expression_is,               \
     [[maybe_unused]] let const& expression,                                    \
-    [[maybe_unused]] let const& syntactic_environment,                         \
+    [[maybe_unused]] let      & syntactic_environment,                         \
     [[maybe_unused]] let const& frames,                                        \
     [[maybe_unused]] let const& continuation)
 
@@ -18,44 +18,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_contexts
-  {
-    std::bitset<2> data;
-
-    template <typename... Ts>
-    explicit constexpr syntactic_contexts(Ts&&... xs)
-      : data { std::forward<decltype(xs)>(xs)... }
-    {}
-
-    decltype(auto) at_the_top_level() const
-    {
-      return data.test(0);
-    }
-
-    decltype(auto) in_a_tail_context() const
-    {
-      return data.test(1);
-    }
-
-    decltype(auto) take_over(syntactic_contexts const& contexts)
-    {
-      data |= contexts.data;
-      return *this;
-    }
-
-    auto take_over(syntactic_contexts const& contexts) const
-    {
-      syntactic_contexts result { data | contexts.data };
-      return result;
-    }
-  };
-
-  constexpr syntactic_contexts in_context_free {};
-
-  constexpr syntactic_contexts at_the_top_level { static_cast<std::uint64_t>(0b01) };
-
-  constexpr syntactic_contexts in_a_tail_context { static_cast<std::uint64_t>(0b10) };
-
   struct syntax
     : public std::function<SYNTAX()>
   {

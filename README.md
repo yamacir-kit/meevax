@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.2.1016.
+Development HEAD: 0.2.1034.
 
 ### Characteristic Features
 
@@ -107,8 +107,7 @@ cd meevax
 
 ``` bash
 sudo apt update
-sudo apt install libboost-all-dev \
-                 libgmp-dev
+sudo apt install libboost-all-dev libgmp-dev
 ```
 
 ### 2. Configure

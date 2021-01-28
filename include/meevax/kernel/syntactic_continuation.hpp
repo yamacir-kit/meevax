@@ -144,18 +144,19 @@ inline namespace kernel
 
     std::unordered_map<object, object> renames {};
 
-    auto rename(object const& identifier) -> auto const&
-    {
-      if (const auto iter = renames.find(identifier); iter != std::end(renames))
-      {
-        return cdr(*iter);
-      }
-      else
-      {
-        renames.emplace(identifier, make<syntactic_closure>(identifier, syntactic_environment()));
-        return renames.at(identifier);
-      }
-    }
+    // [[deprecated]]
+    // auto rename(object const& identifier) -> auto const&
+    // {
+    //   if (const auto iter = renames.find(identifier); iter != std::end(renames))
+    //   {
+    //     return cdr(*iter);
+    //   }
+    //   else
+    //   {
+    //     renames.emplace(identifier, make<syntactic_closure>(identifier, syntactic_environment()));
+    //     return renames.at(identifier);
+    //   }
+    // }
 
     decltype(auto) execute()
     {
@@ -375,6 +376,12 @@ inline namespace kernel
       return sk.write_to(os, "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
     }
   };
+
+  extern template class configurator<syntactic_continuation>;
+  extern template class debugger<syntactic_continuation>;
+  extern template class machine<syntactic_continuation>;
+  extern template class reader<syntactic_continuation>;
+  extern template class writer<syntactic_continuation>;
 
   template <> void syntactic_continuation::boot(layer<0>);
   template <> void syntactic_continuation::boot(layer<1>);

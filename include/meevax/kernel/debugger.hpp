@@ -15,8 +15,8 @@ inline namespace kernel
     debugger()
     {}
 
-    Import(SK, write_to);
-    Import_Const(SK, standard_debug_port);
+    IMPORT(SK, standard_debug_port, const);
+    IMPORT(SK, write_to,);
 
   public:
     static inline           std::size_t depth         = 0;

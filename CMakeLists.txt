@@ -22,7 +22,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g -pg")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -flto -pipe") # Note: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
 
 include(GNUInstallDirs)
 
@@ -202,7 +202,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR})
 
-  target_link_libraries(${TARGET_NAME} PUBLIC kernel)
+  target_link_libraries(${TARGET_NAME} PUBLIC Meevax::kernel)
 
   install(
     TARGETS ${TARGET_NAME}

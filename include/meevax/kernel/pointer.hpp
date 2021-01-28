@@ -185,10 +185,10 @@ inline namespace kernel
     {
       if (*this)
       {
-        switch (auto* data { std::shared_ptr<T>::get() }; tag_of(data))
+        switch (auto const* data = std::shared_ptr<T>::get(); tag_of(data))
         {
         case 0:
-          return binding().type();
+          return (*data).type();
 
         default:
           return type_of(data);

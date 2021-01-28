@@ -23,20 +23,21 @@ inline namespace kernel
     machine()
     {}
 
-    Import(SK, debug);
-    Import(SK, evaluate);
-    Import(SK, indent);
-    Import(SK, intern);
-    Import(SK, rename);
-    Import(SK, syntactic_environment);
+    IMPORT(SK, debug,);
+    IMPORT(SK, evaluate,);
+    IMPORT(SK, header, const);
+    IMPORT(SK, in_trace_mode, const);
+    IMPORT(SK, indent,);
+    IMPORT(SK, intern,);
+    IMPORT(SK, rename,);
+    IMPORT(SK, shift, const);
+    IMPORT(SK, standard_debug_port, const);
+    IMPORT(SK, standard_error_port, const);
+    IMPORT(SK, standard_output_port, const);
+    IMPORT(SK, syntactic_environment,);
+    IMPORT(SK, write_to, const);
 
-    Import_Const(SK, header);
-    Import_Const(SK, in_trace_mode);
-    Import_Const(SK, shift);
-    Import_Const(SK, standard_debug_port);
-    Import_Const(SK, standard_error_port);
-    Import_Const(SK, standard_output_port);
-    Import_Const(SK, write_to);
+    using keyword = SK;
 
   protected:
     let s, // Stack (holding intermediate results and return address)
@@ -45,6 +46,7 @@ inline namespace kernel
         d; // Dump (S.E.C)
 
   public:
+    // TODO MOVE INTO SK
     template <typename... Ts>
     let const& define(object const& variable, Ts&&... expression)
     {
@@ -62,17 +64,23 @@ inline namespace kernel
       return unspecified;
     }
 
-    let const& glocal_environment(object const& e)
+    /* ---- Auxiliary Syntax 'global' ------------------------------------------
+     *
+     *  Note: This function extends the given syntax environment. Since the
+     *  order of operand evaluation in C ++ is undefined, be aware of the
+     *  execution timing of side effects of this function.
+     *
+     * ---------------------------------------------------------------------- */
+    let const global(let const& x, let & syntactic_environment)
     {
-      for (auto const& frame : e)
+      if (let const binding = assq(x, syntactic_environment); not eq(binding, f))
       {
-        if (frame.is<pair>() and car(frame).is<SK>())
-        {
-          return cdar(frame); // SAME-AS car(frame).as<SK>().syntactic_environment();
-        }
+        return binding;
       }
-
-      return syntactic_environment();
+      else // unbound
+      {
+        return global(x, push(syntactic_environment, cons(x, make<syntactic_closure>(x, syntactic_environment))));
+      }
     }
 
     /* ------------------------------------------------------------------------
@@ -87,11 +95,11 @@ inline namespace kernel
     *
     *----------------------------------------------------------------------- */
     let compile(
-      syntactic_contexts const& the_expression_is,
-      object const& expression,
-      object const& syntactic_environment,
-      object const& frames = unit,
-      object const& continuation = list(make<instruction>(mnemonic::STOP)))
+      syntactic_context const& the_expression_is,
+      let const& expression,
+      let      & syntactic_environment,
+      let const& frames = unit,
+      let const& continuation = list(make<instruction>(mnemonic::STOP)))
     {
       if (expression.is<null>())
       {
@@ -121,8 +129,8 @@ inline namespace kernel
           }
           else
           {
-            debug(expression, faint, " ; is a <glocal variable>");
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), expression, continuation);
+            debug(expression, faint, " ; is a <free variable>");
+            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(expression, syntactic_environment), continuation);
           }
         }
         else // is <self-evaluating>
@@ -166,7 +174,7 @@ inline namespace kernel
             write_to(standard_debug_port(),
               header("macroexpand-1"), indent(), expanded, "\n");
 
-            return compile(the_expression_is, expanded, syntactic_environment, frames, continuation);
+            return compile(in_context_free, expanded, syntactic_environment, frames, continuation);
           }
         }
 
@@ -260,18 +268,11 @@ inline namespace kernel
 
       case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
-        *               S  E (LOAD-GLOBAL symbol . C) D
-        *  => (object . S) E                       C  D
+        *               S  E (LOAD-GLOBAL cell . C) D
+        *  => (object . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        if (let const& binding = assq(cadr(c), glocal_environment(e)); not binding.eqv(f))
-        {
-          push(s, cdr(binding));
-        }
-        else // UNBOUND
-        {
-          push(s, rename(cadr(c)));
-        }
+        push(s, cdadr(c));
         c = cddr(c);
         goto dispatch;
 
@@ -311,8 +312,7 @@ inline namespace kernel
         *  => (subprogram . S) E             C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, make<SK>(cons(s, e, cadr(c), d), // current-syntactic-continuation
-                         syntactic_environment()));
+        push(s, make<SK>(cons(s, e, cadr(c), d), syntactic_environment()));
         c = cddr(c);
         goto dispatch;
 
@@ -351,13 +351,16 @@ inline namespace kernel
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *         (object . S) E (DEFINE identifier . C) D
-        *  => (identifier . S) E                      C  D
+        *         (object . S) E (DEFINE cell . C) D
+        *  => (identifier . S) E                C  D
+        *
+        *  where cell = (identifier . identifier)
         *
         * ------------------------------------------------------------------- */
         if (static_cast<SK&>(*this).generation == 0)
         {
-          car(s) = define(cadr(c), car(s));
+          cdadr(c) = car(s);
+          // car(s) = caadr(c);
         }
         c = cddr(c);
         goto dispatch;
@@ -455,45 +458,32 @@ inline namespace kernel
 
       case mnemonic::STORE_GLOBAL: /* ------------------------------------------
         *
-        *     (value . S) E (STORE-GLOBAL identifier . C) D
-        *  => (value . S) E                            C  D
+        *     (value . S) E (STORE-GLOBAL cell . C) D
+        *  => (value . S) E                      C  D
         *
-        *  TODO
-        *    (1) There is no need to make copy if right hand side is unique.
-        *    (2) There is no matter overwrite if left hand side is unique.
-        *    (3) Should set with weak reference if right hand side is newer.
+        *  where cell = (identifier . x)
         *
         * ------------------------------------------------------------------- */
-        if (let const& pare = assq(cadr(c), glocal_environment(e)); not pare.eqv(f))
+        if (let const& binding = cadr(c); cdr(binding).is<null>() or car(s).template is<null>())
         {
-          if (let const& value = cdr(pare); value.template is<null>() or car(s).template is<null>())
-          {
-            cdr(pare) = car(s);
-          }
-          else if (value.is<SK>() or value.is<syntax>())
-          {
-            /* ---- From R7RS 5.3.1. Top level definitions ---------------------
-             *
-             *  However, if <variable> is not bound, or is a syntactic keyword,
-             *  then the definition will bind <variable> to a new location
-             *  before performing the assignment, whereas it would be an error
-             *  to perform a set! on an unbound variable.
-             *
-             * -------------------------------------------------------------- */
-            define(cadr(c), car(s));
-          }
-          else
-          {
-            std::atomic_store(&cdr(pare), car(s).copy());
-          }
+          cdr(binding) = car(s);
         }
-        else // UNBOUND
+        else if (cdr(binding).is<keyword>() or cdr(binding).is<syntax>())
         {
-          // TODO IF TOPLELVEL, SET ON UNBOUND VARIABLE => DEFINE
-
-          throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
+          /* ---- From R7RS 5.3.1. Top level definitions ---------------------
+           *
+           *  However, if <variable> is not bound, or is a syntactic keyword,
+           *  then the definition will bind <variable> to a new location
+           *  before performing the assignment, whereas it would be an error
+           *  to perform a set! on an unbound variable.
+           *
+           * -------------------------------------------------------------- */
+          define(cadr(c), car(s));
         }
-        // car(s) = unspecified;
+        else
+        {
+          std::atomic_store(&cdr(binding), car(s).copy());
+        }
         c = cddr(c);
         goto dispatch;
 
@@ -551,7 +541,7 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>())
         {
-          return compile(at_the_top_level.take_over(the_expression_is),
+          return compile(at_the_top_level,
                          car(expression),
                          syntactic_environment,
                          frames,
@@ -559,12 +549,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(at_the_top_level.take_over(the_expression_is),
+          return compile(at_the_top_level,
                          car(expression),
                          syntactic_environment,
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
-                              sequence(at_the_top_level.take_over(the_expression_is),
+                              sequence(at_the_top_level,
                                        cdr(expression),
                                        syntactic_environment,
                                        frames,
@@ -583,7 +573,7 @@ inline namespace kernel
         }
         else
         {
-          return compile(the_expression_is, // XXX ???
+          return compile(in_context_free,
                          car(expression), // head expression
                          syntactic_environment,
                          frames,
@@ -603,8 +593,6 @@ inline namespace kernel
     *
     *  <definition> = (define <identifier> <expression>)
     *
-    *  TODO MOVE INTO SYNTACTIC_CONTINUATION
-    *
     * ----------------------------------------------------------------------- */
     {
       if (frames.is<null>() or the_expression_is.at_the_top_level())
@@ -613,24 +601,24 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          // caar(form) = f
-          // cdar(form) = <formals>
-          //  cdr(form) = <body>
+          let const g = global(caar(expression), syntactic_environment);
 
           return compile(in_context_free,
                          cons(intern("lambda"), cdar(expression), cdr(expression)),
                          syntactic_environment,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), caar(expression),
+                         cons(make<instruction>(mnemonic::DEFINE), g,
                               continuation));
         }
         else // (define x ...)
         {
+          let const g = global(car(expression), syntactic_environment);
+
           return compile(in_context_free,
                          cdr(expression) ? cadr(expression) : unspecified,
                          syntactic_environment,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), car(expression),
+                         cons(make<instruction>(mnemonic::DEFINE), g,
                               continuation));
         }
       }
@@ -800,14 +788,14 @@ inline namespace kernel
 
       if (the_expression_is.in_a_tail_context())
       {
-        const auto consequent {
+        auto&& consequent =
           compile(in_a_tail_context,
                   cadr(expression),
                   syntactic_environment,
                   frames,
-                  list(make<instruction>(mnemonic::RETURN))) };
+                  list(make<instruction>(mnemonic::RETURN)));
 
-        const auto alternate {
+        auto&& alternate =
           cddr(expression)
             ? compile(in_a_tail_context,
                       caddr(expression),
@@ -815,27 +803,27 @@ inline namespace kernel
                       frames,
                       list(make<instruction>(mnemonic::RETURN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                   make<instruction>(mnemonic::RETURN)) };
+                   make<instruction>(mnemonic::RETURN));
 
         return compile(in_context_free,
                        car(expression), // <test>
                        syntactic_environment,
                        frames,
                        cons(make<instruction>(mnemonic::TAIL_SELECT),
-                            consequent,
-                            alternate,
+                            std::move(consequent),
+                            std::move(alternate),
                             cdr(continuation)));
       }
       else
       {
-        const auto consequent {
+        auto&& consequent =
           compile(in_context_free,
                   cadr(expression),
                   syntactic_environment,
                   frames,
-                  list(make<instruction>(mnemonic::JOIN))) };
+                  list(make<instruction>(mnemonic::JOIN)));
 
-        const auto alternate {
+        auto&& alternate =
           cddr(expression)
             ? compile(in_context_free,
                       caddr(expression),
@@ -843,13 +831,14 @@ inline namespace kernel
                       frames,
                       list(make<instruction>(mnemonic::JOIN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
-                   make<instruction>(mnemonic::JOIN)) };
+                   make<instruction>(mnemonic::JOIN));
 
         return compile(in_context_free,
                        car(expression), // <test>
                        syntactic_environment,
                        frames,
-                       cons(make<instruction>(mnemonic::SELECT), consequent, alternate,
+                       cons(make<instruction>(mnemonic::SELECT), std::move(consequent),
+                                                                 std::move(alternate),
                             continuation));
       }
     }
@@ -867,8 +856,7 @@ inline namespace kernel
                   body(the_expression_is,
                        cdr(expression),
                        syntactic_environment,
-                       cons(car(expression), // <formals>
-                            frames),
+                       cons(car(expression), frames),
                        list(make<instruction>(mnemonic::RETURN))),
                   continuation);
     }
@@ -938,13 +926,19 @@ inline namespace kernel
       }
       else
       {
-        debug(car(expression), faint, "; is a <glocal variable>");
+        debug(car(expression), faint, "; is a <free variable>");
+
+        // TODO if (the_expression_is.at_the_top_level) => compile to DEFINE
+        //
+        // TODO if unbound variable => throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
+
+        let const g = global(car(expression), syntactic_environment);
 
         return compile(in_context_free,
                        cadr(expression),
                        syntactic_environment,
                        frames,
-                       cons(make<instruction>(mnemonic::STORE_GLOBAL), car(expression), continuation));
+                       cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
       }
     }
 
@@ -976,8 +970,8 @@ inline namespace kernel
       }
       else
       {
-        debug(car(expression), faint, " ; is <identifier> of glocal variable");
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), car(expression), continuation);
+        debug(car(expression), faint, " ; is <identifier> of free variable");
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(car(expression), syntactic_environment), continuation);
       }
     }
 
@@ -993,10 +987,12 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     SYNTAX(construct)
     {
-      return compile(cadr(expression),
+      return compile(in_context_free,
+                     cadr(expression),
                      syntactic_environment,
                      frames,
-                     compile(car(expression),
+                     compile(in_context_free,
+                             car(expression),
                              syntactic_environment,
                              frames,
                              cons(make<instruction>(mnemonic::CONS), continuation)));
