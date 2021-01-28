@@ -9,10 +9,10 @@ cd "$root/build"
 make clean
 make uninstall
 
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
 
 make -j
 
-sudo make install
+sudo make -j install
 
 make test -j

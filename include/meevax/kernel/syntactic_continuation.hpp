@@ -377,6 +377,12 @@ inline namespace kernel
     }
   };
 
+  extern template class configurator<syntactic_continuation>;
+  extern template class debugger<syntactic_continuation>;
+  extern template class machine<syntactic_continuation>;
+  extern template class reader<syntactic_continuation>;
+  extern template class writer<syntactic_continuation>;
+
   template <> void syntactic_continuation::boot(layer<0>);
   template <> void syntactic_continuation::boot(layer<1>);
   template <> void syntactic_continuation::boot(layer<2>);

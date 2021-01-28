@@ -6,6 +6,12 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template class configurator<syntactic_continuation>;
+  template class debugger<syntactic_continuation>;
+  template class machine<syntactic_continuation>;
+  template class reader<syntactic_continuation>;
+  template class writer<syntactic_continuation>;
+
   #define DEFINE_SYNTAX(IDENTIFIER, TRANSFORMER_SPEC)                          \
   define<syntax>(IDENTIFIER, [this](auto&&... xs)                              \
   {                                                                            \

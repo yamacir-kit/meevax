@@ -999,10 +999,12 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     SYNTAX(construct)
     {
-      return compile(cadr(expression),
+      return compile(in_context_free,
+                     cadr(expression),
                      syntactic_environment,
                      frames,
-                     compile(car(expression),
+                     compile(in_context_free,
+                             car(expression),
                              syntactic_environment,
                              frames,
                              cons(make<instruction>(mnemonic::CONS), continuation)));
