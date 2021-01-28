@@ -4,7 +4,6 @@
 #include <regex>
 #include <unordered_map>
 
-#include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
@@ -27,24 +26,21 @@ inline namespace kernel
     IMPORT(SK, write_line, const);
     IMPORT(SK, write_to, const);
 
-    object batch_mode       = f;
-    object debug_mode       = f;
-    object interactive_mode = f;
-    object trace_mode       = f;
-    object verbose_mode     = f;
+    let batch_mode       = f;
+    let debug_mode       = f;
+    let interactive_mode = f;
+    let trace_mode       = f;
+    let verbose_mode     = f;
 
   public:
-    const feature current_feature {};
-
     let paths = unit;
 
     let variable = unit;
 
-    // TODO not eq(f);
     #define BOILERPLATE(MODE)                                                  \
     auto in_##MODE() const                                                     \
     {                                                                          \
-      return MODE.is<boolean>() and MODE.as<boolean>();                        \
+      return not eq(MODE, f);                                                  \
     } static_assert(true)
 
     BOILERPLATE(batch_mode);
@@ -124,7 +120,7 @@ inline namespace kernel
       #undef UNDERLINE
     }
 
-    let append_path(let const& x)
+    let const& append_path(let const& x)
     {
       if (x.is<symbol>())
       {
