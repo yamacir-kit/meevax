@@ -1,4 +1,4 @@
-name: "CI"
+# name: "CI"
 
 on: push
 # on:
@@ -13,8 +13,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04 ]
-        compiler: [ g++-7, g++-9, clang++-6.0, clang++-9 ]
+        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        compiler: [ g++, clang++ ]
         configuration: [ Debug, Release ]
 
     runs-on: ${{ matrix.os }}
@@ -48,5 +48,4 @@ jobs:
         working-directory: build
         run: |
           sudo apt install valgrind
-          ctest -V -R example
           make test

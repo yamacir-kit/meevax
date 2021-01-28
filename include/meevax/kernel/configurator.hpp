@@ -334,9 +334,7 @@ inline namespace kernel
 
       paths = reverse(paths);
 
-      static const auto rc { path(::getenv("HOME")) / ".meevaxrc" };
-
-      if (in_interactive_mode() and std::experimental::filesystem::exists(rc))
+      if (auto const rc = path(::getenv("HOME")) / ".meevaxrc"; in_interactive_mode() and std::experimental::filesystem::exists(rc))
       {
         paths = cons(make<path>(rc), paths);
       }
