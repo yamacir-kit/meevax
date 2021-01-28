@@ -46,6 +46,7 @@ inline namespace kernel
         d; // Dump (S.E.C)
 
   public:
+    // TODO MOVE INTO SK
     template <typename... Ts>
     let const& define(object const& variable, Ts&&... expression)
     {
@@ -80,19 +81,6 @@ inline namespace kernel
       {
         return global(x, push(syntactic_environment, cons(x, make<syntactic_closure>(x, syntactic_environment))));
       }
-    }
-
-    let const& glocal_environment(object const& e)
-    {
-      for (auto const& frame : e)
-      {
-        if (frame.is<pair>() and car(frame).is<SK>())
-        {
-          return cdar(frame); // SAME-AS car(frame).as<SK>().syntactic_environment();
-        }
-      }
-
-      return syntactic_environment();
     }
 
     /* ------------------------------------------------------------------------
@@ -141,7 +129,7 @@ inline namespace kernel
           }
           else
           {
-            debug(expression, faint, " ; is a <glocal variable>");
+            debug(expression, faint, " ; is a <free variable>");
             return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(expression, syntactic_environment), continuation);
           }
         }
@@ -938,7 +926,7 @@ inline namespace kernel
       }
       else
       {
-        debug(car(expression), faint, "; is a <glocal variable>");
+        debug(car(expression), faint, "; is a <free variable>");
 
         // TODO if (the_expression_is.at_the_top_level) => compile to DEFINE
         //
@@ -982,7 +970,7 @@ inline namespace kernel
       }
       else
       {
-        debug(car(expression), faint, " ; is <identifier> of glocal variable");
+        debug(car(expression), faint, " ; is <identifier> of free variable");
         return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(car(expression), syntactic_environment), continuation);
       }
     }
