@@ -48,38 +48,53 @@ inline namespace kernel
   public:
     // TODO MOVE INTO SK
     template <typename... Ts>
-    let const& define(object const& variable, Ts&&... expression)
+    let const& define(let const& variable, Ts&&... expression)
     {
-      push(
-        syntactic_environment(),
-        cons(variable, std::forward<decltype(expression)>(expression)...));
+      push(syntactic_environment(),
+           cons(variable, std::forward<decltype(expression)>(expression)...));
 
       write_to(standard_debug_port(),
-        header("define"),
-        caar(syntactic_environment()),
-        faint, " binds ", reset,
-        cdar(syntactic_environment()),
-        "\n");
+               header("define"),
+               caar(syntactic_environment()),
+               faint, " binds ", reset,
+               cdar(syntactic_environment()), "\n");
 
       return unspecified;
     }
 
     /* ---- Auxiliary Syntax 'global' ------------------------------------------
      *
-     *  Note: This function extends the given syntax environment. Since the
+     *  Note: This function extends the given syntax environment 'g'. Since the
      *  order of operand evaluation in C ++ is undefined, be aware of the
      *  execution timing of side effects of this function.
      *
      * ---------------------------------------------------------------------- */
-    let const global(let const& x, let & syntactic_environment)
+    let const global(let const& x, let & g)
     {
-      if (let const binding = assq(x, syntactic_environment); not eq(binding, f))
+      if (let const binding = assq(x, g); eq(binding, f) /* or cdr(binding).is<keyword>() */)
+      {
+        /* ---- R7RS 5.3.1. Top level definitions ------------------------------
+         *
+         *  At the outermost level of a program, a definition
+         *
+         *      (define <variable> <expression>)
+         *
+         *  has essentially the same effect as the assignment expression
+         *
+         *      (set! <variable> <expression>)
+         *
+         *  if <variable> is bound to a non-syntax value. However, if
+         *  <variable> is not bound, or is a syntactic keyword, then the
+         *  definition will bind <variable> to a new location before performing
+         *  the assignment, whereas it would be an error to perform a set! on
+         *  an unbound variable.
+         *
+         * ------------------------------------------------------------------ */
+        return global(x, push(g, cons(x, make<syntactic_closure>(x, g))));
+      }
+      else
       {
         return binding;
-      }
-      else // unbound
-      {
-        return global(x, push(syntactic_environment, cons(x, make<syntactic_closure>(x, syntactic_environment))));
       }
     }
 
@@ -252,8 +267,8 @@ inline namespace kernel
 
       // case mnemonic::LOAD_SYNTAX: /* -------------------------------------------
       //   *
-      //   *                 S  E (LOAD-CONSTANT syntax . C) D
-      //   *  => (constant . S) E                         C  D
+      //   *                 S  E (LOAD-SYNTAX syntax . C) D
+      //   *  => (constant . S) E                       C  D
       //   *
       //   * ------------------------------------------------------------------- */
       //   push(s, cadr(c));
@@ -345,16 +360,15 @@ inline namespace kernel
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *         (object . S) E (DEFINE cell . C) D
-        *  => (identifier . S) E                C  D
+        *     (x . S) E (DEFINE cell . C) D
+        *  => (x . S) E                C  D
         *
-        *  where cell = (identifier . identifier)
+        *  where cell = (identifier . <unknown>)
         *
         * ------------------------------------------------------------------- */
         if (static_cast<SK&>(*this).generation == 0)
         {
           cdadr(c) = car(s);
-          // car(s) = caadr(c);
         }
         c = cddr(c);
         goto dispatch;
@@ -458,21 +472,9 @@ inline namespace kernel
         *  where cell = (identifier . x)
         *
         * ------------------------------------------------------------------- */
-        if (let const& binding = cadr(c); cdr(binding).is<null>() or car(s).template is<null>())
+        if (let const& binding = cadr(c); cdr(binding).is<null>())
         {
           cdr(binding) = car(s);
-        }
-        else if (cdr(binding).is<keyword>() or cdr(binding).is<syntax>())
-        {
-          /* ---- From R7RS 5.3.1. Top level definitions ---------------------
-           *
-           *  However, if <variable> is not bound, or is a syntactic keyword,
-           *  then the definition will bind <variable> to a new location
-           *  before performing the assignment, whereas it would be an error
-           *  to perform a set! on an unbound variable.
-           *
-           * -------------------------------------------------------------- */
-          define(cadr(c), car(s));
         }
         else
         {
@@ -884,12 +886,17 @@ inline namespace kernel
       return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
     }
 
-    /* ---- Assignment ---------------------------------------------------------
-     *
-     *  TODO documentation
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(assignment)
+    SYNTAX(assignment) /* ------------------------------------------------------
+    *
+    *  (set! <variable> <expression>)                                    syntax
+    *
+    *  Semantics: <Expression> is evaluated, and the resulting value is stored
+    *  in the location to which <variable> is bound. It is an error if
+    *  <variable> is not bound either in some region enclosing the set!
+    *  expression or else globally. The result of the set! expression is
+    *  unspecified.
+    *
+    * ----------------------------------------------------------------------- */
     {
       if (expression.is<null>())
       {
@@ -922,17 +929,20 @@ inline namespace kernel
       {
         debug(car(expression), faint, "; is a <free variable>");
 
-        // TODO if (the_expression_is.at_the_top_level) => compile to DEFINE
-        //
-        // TODO if unbound variable => throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
-
         let const g = global(car(expression), syntactic_environment);
 
-        return compile(in_context_free,
-                       cadr(expression),
-                       syntactic_environment,
-                       frames,
-                       cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
+        if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_closure>())
+        {
+          throw syntax_error<void>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)");
+        }
+        else
+        {
+          return compile(in_context_free,
+                         cadr(expression),
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
+        }
       }
     }
 
