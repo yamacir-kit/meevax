@@ -9,7 +9,7 @@ find_package(Meevax REQUIRED)
 
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(${PROJECT_NAME} Boost::boost Meevax::kernel)
+target_link_libraries(${PROJECT_NAME} Boost::boost Meevax::Kernel)
 
 # enable_testing()
 #
