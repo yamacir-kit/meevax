@@ -81,7 +81,6 @@ inline namespace kernel
     using writer::newline;
     using writer::standard_debug_port;
     using writer::standard_error_port;
-    using writer::standard_interaction_port;
     using writer::standard_output_port;
     using writer::standard_verbose_port;
     using writer::write;
@@ -142,22 +141,6 @@ inline namespace kernel
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
-    std::unordered_map<object, object> renames {};
-
-    // [[deprecated]]
-    // auto rename(object const& identifier) -> auto const&
-    // {
-    //   if (const auto iter = renames.find(identifier); iter != std::end(renames))
-    //   {
-    //     return cdr(*iter);
-    //   }
-    //   else
-    //   {
-    //     renames.emplace(identifier, make<syntactic_closure>(identifier, syntactic_environment()));
-    //     return renames.at(identifier);
-    //   }
-    // }
-
     decltype(auto) execute()
     {
       static constexpr auto trace = true;
@@ -172,10 +155,8 @@ inline namespace kernel
       }
     }
 
-    auto expand(object const& identifier, object const& form)
+    auto macroexpand(let const& keyword, let const& form)
     {
-      renames.emplace(car(form), identifier); // set itself to current-renamer
-
       // XXX ???
       push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 
@@ -191,7 +172,7 @@ inline namespace kernel
 
       e = cons(
             // form, // <lambda> parameters
-            cons(identifier, cdr(form)),
+            cons(keyword, cdr(form)),
             scope()); // static environment
       // TODO (4)
       // => e = cons(
@@ -209,7 +190,7 @@ inline namespace kernel
 
       ++generation;
 
-      return result;
+      return std::forward<decltype(result)>(result);
     }
 
     decltype(auto) evaluate(object const& expression)
@@ -318,7 +299,7 @@ inline namespace kernel
         if (xs.as<syntactic_continuation>().external_symbols.empty())
         {
           std::cerr << "; import\t; " << xs << " is virgin => expand" << std::endl;
-          xs.as<syntactic_continuation>().expand(xs, cons(xs, unit));
+          xs.as<syntactic_continuation>().macroexpand(xs, cons(xs, unit));
         }
 
         // for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)

@@ -83,17 +83,17 @@ inline namespace kernel
       }
     }
 
-    /* ------------------------------------------------------------------------
-    *
-    * <expression> = <identifier>
-    *              | <literal>
-    *              | <procedure call>
-    *              | <lambda expression>
-    *              | <conditional>
-    *              | <assignment>
-    *              | <derived expression>
-    *
-    *----------------------------------------------------------------------- */
+    /* ---- Compiler -----------------------------------------------------------
+     *
+     *  <expression> = <identifier>
+     *               | <literal>
+     *               | <procedure call>
+     *               | <lambda expression>
+     *               | <conditional>
+     *               | <assignment>
+     *               | <derived expression>
+     *
+     * ---------------------------------------------------------------------- */
     let compile(
       syntactic_context const& the_expression_is,
       let const& expression,
@@ -141,8 +141,7 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = lookup(car(expression), syntactic_environment);
-            not applicant.is<null>() and not de_bruijn_index(car(expression), frames))
+        if (let const& applicant = lookup(car(expression), syntactic_environment); not de_bruijn_index(car(expression), frames))
         {
           if (applicant.is<syntax>())
           {
@@ -164,12 +163,7 @@ inline namespace kernel
           {
             debug(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
-            const auto expanded {
-              // applicant.as<SK>().expand(cons(applicant, cdr(expression)))
-              applicant.as<SK>().expand(applicant, expression)
-            };
-
-            // debug(expanded);
+            const auto expanded = applicant.as<SK>().macroexpand(applicant, expression);
 
             write_to(standard_debug_port(),
               header("macroexpand-1"), indent(), expanded, "\n");
