@@ -53,7 +53,7 @@ inline namespace kernel
 
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
-        : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
+        : std::conditional< // Transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<top, bound>::value, top, bound
           >::type { std::forward<decltype(xs)>(xs)... }
       {}
@@ -178,7 +178,7 @@ inline namespace kernel
 
     auto binding() const noexcept -> decltype(auto)
     {
-      return std::shared_ptr<T>::operator*();
+      return std::shared_ptr<T>::operator *();
     }
 
     auto type() const -> decltype(auto)

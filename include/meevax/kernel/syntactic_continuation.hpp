@@ -215,17 +215,16 @@ inline namespace kernel
 
     auto load(path const& name) -> auto const&
     {
-      write_to(standard_debug_port(),
-        header("loader"), "open ", name, " => ");
+      write_to(standard_debug_port(), header("loader"), "open ", name, " => ");
 
       if (let port = make<input_file_port>(name.c_str()); port)
       {
         write_to(standard_debug_port(), t, "\n");
 
-        push(d,
-          std::atomic_exchange(&s, unit),
-          std::atomic_exchange(&e, unit),
-          std::atomic_exchange(&c, unit));
+        // push(d,
+        //   std::atomic_exchange(&s, unit),
+        //   std::atomic_exchange(&e, unit),
+        //   std::atomic_exchange(&c, unit));
 
         for (let expression = read(port); expression != eof_object; expression = read(port))
         {
@@ -234,9 +233,9 @@ inline namespace kernel
           evaluate(expression);
         }
 
-        s = pop(d);
-        e = pop(d);
-        c = pop(d);
+        // s = pop(d);
+        // e = pop(d);
+        // c = pop(d);
 
         return unspecified;
       }
@@ -319,44 +318,11 @@ inline namespace kernel
                             make<instruction>(mnemonic::CALL),
                             continuation));
     }
-
-  public:
-    friend auto operator<<(std::ostream & os, syntactic_continuation const& sc) -> decltype(auto)
-    {
-      return os << magenta << "#,("
-                << green << "syntactic-continuation" << reset
-                << faint << " #;" << &sc << reset
-                << magenta << ")" << reset;
-    }
-
-    friend auto operator >>(std::istream& is, syntactic_continuation& sk)
-      -> decltype(is)
-    {
-      sk.write_to(sk.standard_output_port(),
-        "syntactic_continuation::operator >>(std::istream&, syntactic_continuation&)\n");
-
-      sk.write_to(sk.standard_output_port(),
-        "read new expression => ", sk.read(is), "\n");
-
-      // sk.write_to(sk.standard_output_port(),
-      //   "program == ", sk.program(),
-      //   "current_expression is ", sk.current_expression());
-      //
-      // NOTE
-      // Store the expression new read to 'current_expression'.
-      // But, currently above comments cause SEGV.
-
-      return is;
-    }
-
-    friend auto operator <<(std::ostream& os, syntactic_continuation& sk) -> decltype(auto)
-    {
-      // TODO
-      // Evaluate current_expression, and write the evaluation to ostream.
-
-      return sk.write_to(os, "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
-    }
   };
+
+  auto operator >>(std::istream &, syntactic_continuation      &) -> std::istream &;
+  auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;
+  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
   extern template class configurator<syntactic_continuation>;
   extern template class debugger<syntactic_continuation>;
