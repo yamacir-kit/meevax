@@ -196,9 +196,9 @@ inline namespace kernel
     decltype(auto) evaluate(object const& expression)
     {
       push(d,
-        std::atomic_exchange(&s, unit),
-        std::atomic_exchange(&e, unit),
-        std::atomic_exchange(&c, compile(in_context_free, expression, syntactic_environment())));
+        s.exchange(unit),
+        e.exchange(unit),
+        c.exchange(compile(in_context_free, expression, syntactic_environment())));
 
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
       disassemble(standard_debug_port().as<output_port>(), c);
@@ -336,6 +336,11 @@ inline namespace kernel
   template <> void syntactic_continuation::boot(layer<3>);
   template <> void syntactic_continuation::boot(layer<4>);
 
+  auto decrement = [](auto&& x) constexpr
+  {
+    return --x;
+  };
+
   template <>
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
@@ -343,7 +348,7 @@ inline namespace kernel
 
   template <std::size_t N>
   syntactic_continuation::syntactic_continuation(layer<N>)
-    : syntactic_continuation::syntactic_continuation { layer<N - 1>() }
+    : syntactic_continuation::syntactic_continuation { layer<decrement(N)>() }
   {
     boot(layer<N>());
   }

@@ -476,7 +476,7 @@ inline namespace kernel
         }
         else
         {
-          std::atomic_store(&cdr(binding), car(s).copy());
+          cdr(binding).store(car(s));
         }
         c = cddr(c);
         goto dispatch;
@@ -487,12 +487,12 @@ inline namespace kernel
         *   => (value . S) E                        C  D
         *
         * ------------------------------------------------------------------- */
-        std::atomic_store(&car(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
+        car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
         c = cddr(c);
         goto dispatch;
 
       case mnemonic::STORE_VARIADIC:
-        std::atomic_store(&cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
+        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
         c = cddr(c);
         goto dispatch;
 
