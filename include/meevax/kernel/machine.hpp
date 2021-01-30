@@ -122,7 +122,7 @@ inline namespace kernel
     let compile(
       syntactic_context const& the_expression_is,
       let const& expression,
-      let      & syntactic_environment,
+      let      & syntactic_environment = syntactic_environment(),
       let const& frames = unit,
       let const& continuation = list(make<instruction>(mnemonic::STOP)))
     {
@@ -384,11 +384,18 @@ inline namespace kernel
 
       case mnemonic::FORK: /* --------------------------------------------------
         *
-        *                   S  E (FORK csc . C) D
-        *  => (subprogram . S) E             C  D
+        *          s  e (FORK k . c) d
+        *  => (p . s) e           c  d
+        *
+        *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<SK>(cons(s, e, cadr(c), d), syntactic_environment()));
+        push(s, make<keyword>(cons(s, e, cadr(c), d), syntactic_environment()));
+        // push(s, make<keyword>(static_cast<keyword const&>(*this),
+        //                       caadr(c),
+        //                       cdadr(c)
+        //                       )
+        //      );
         c = cddr(c);
         goto dispatch;
 
@@ -956,12 +963,15 @@ inline namespace kernel
                           cons(make<instruction>(mnemonic::CALL), continuation)));
     }
 
-    /* ---- Fork ---------------------------------------------------------------
-     *
-     *  TODO documentation
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(fork)
+    SYNTAX(fork) /* ------------------------------------------------------------
+    *
+    *  (fork-with-current-syntactic-continuation <program>)              syntax
+    *
+    *  Semantics: The syntax fork-with-current-syntactic-continuation packages
+    *  the given <program> definition and the continuation of the current
+    *  compilation as a "subprogram".
+    *
+    * ----------------------------------------------------------------------- */
     {
       debug(car(expression), faint, " ; is <subprogram>");
       return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
