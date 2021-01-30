@@ -391,11 +391,6 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         push(s, make<keyword>(cons(s, e, cadr(c), d), syntactic_environment()));
-        // push(s, make<keyword>(static_cast<keyword const&>(*this),
-        //                       caadr(c),
-        //                       cdadr(c)
-        //                       )
-        //      );
         c = cddr(c);
         goto dispatch;
 

@@ -359,36 +359,18 @@ inline namespace kernel
   {
     boot(layer<0>());
 
-    if (first)
+    if (form()) // If called from FORK instruction.
     {
-      s = car(first);
-      e = cadr(first);
-      c = compile(at_the_top_level,
-                  caaddr(first),
-                  syntactic_environment(),
-                  cdaddr(first));
-      d = cdddr(first);
+      s = car(form());
+      e = cadr(form());
+      c = compile(at_the_top_level, caaddr(form()), syntactic_environment(), cdaddr(form()));
+      d = cdddr(form());
 
       form() = execute();
 
       assert(form().is<closure>());
     }
   }
-
-  // template <typename... Ts>
-  // syntactic_continuation::syntactic_continuation(syntactic_continuation const& origin, Ts&&... xs)
-  //   : syntactic_closure { unit, origin.syntactic_environment() }
-  //   , machine<syntactic_continuation> {
-  //       origin.s,
-  //         origin.e,
-  //         compile(at_the_top_level,
-  //                 syntactic_environment(),
-  //                 std::forward<decltype(xs)>(xs)...),
-  //         origin.d
-  //     }
-  // {
-  //   form() = execute();
-  // }
 } // namespace kernel
 } // namespace meevax
 
