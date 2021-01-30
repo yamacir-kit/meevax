@@ -2,7 +2,7 @@
 
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/reader.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {

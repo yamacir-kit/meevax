@@ -1,6 +1,6 @@
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {

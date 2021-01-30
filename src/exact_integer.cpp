@@ -1,6 +1,6 @@
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/number.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {

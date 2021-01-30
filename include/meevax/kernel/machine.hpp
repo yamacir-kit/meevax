@@ -122,7 +122,7 @@ inline namespace kernel
     let compile(
       syntactic_context const& the_expression_is,
       let const& expression,
-      let      & syntactic_environment = syntactic_environment(),
+      let      & syntactic_environment,
       let const& frames = unit,
       let const& continuation = list(make<instruction>(mnemonic::STOP)))
     {

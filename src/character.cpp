@@ -1,7 +1,7 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/parser.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -67,7 +67,7 @@ inline namespace kernel
     return write_char(maybe_port.as<output_port>());
   }
 
-  auto operator <<(std::ostream& port, character const& datum) -> decltype(port)
+  auto operator <<(std::ostream & port, character const& datum) -> std::ostream &
   {
     port << cyan << "#\\";
 

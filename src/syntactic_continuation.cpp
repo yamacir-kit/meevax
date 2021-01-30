@@ -1,7 +1,7 @@
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
