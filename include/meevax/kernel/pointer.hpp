@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
+#include <atomic>
 #include <cassert>
 #include <cmath>
 
@@ -11,6 +12,7 @@
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 #include <meevax/utility/requires.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -53,7 +55,7 @@ inline namespace kernel
 
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
-        : std::conditional< // transfers all arguments if Bound Type inherits Top Type virtually.
+        : std::conditional< // Transfers all arguments if Bound Type inherits Top Type virtually.
             std::is_base_of<top, bound>::value, top, bound
           >::type { std::forward<decltype(xs)>(xs)... }
       {}
@@ -178,7 +180,7 @@ inline namespace kernel
 
     auto binding() const noexcept -> decltype(auto)
     {
-      return std::shared_ptr<T>::operator*();
+      return std::shared_ptr<T>::operator *();
     }
 
     auto type() const -> decltype(auto)
@@ -208,12 +210,6 @@ inline namespace kernel
       return type() == typeid(typename std::decay<U>::type);
     }
 
-    template <typename U>
-    auto is_polymorphically() const
-    {
-      return std::dynamic_pointer_cast<U>(*this).operator bool();
-    }
-
     template <typename U,
               typename std::enable_if<
                 std::is_null_pointer<typename std::decay<U>::type>::value
@@ -224,9 +220,17 @@ inline namespace kernel
     }
 
     template <typename U>
-    U& as() const
+    auto is_polymorphically() const
     {
-      if (auto bound { std::dynamic_pointer_cast<U>(*this) }; bound)
+      return std::dynamic_pointer_cast<U>(*this).operator bool();
+    }
+
+    /* ---- Accessors ------------------------------------------------------- */
+
+    template <typename U>
+    auto as() const -> typename std::add_lvalue_reference<U>::type
+    {
+      if (auto bound = std::dynamic_pointer_cast<U>(*this); bound)
       {
         return *bound;
       }
@@ -236,7 +240,8 @@ inline namespace kernel
       }
     }
 
-    template <typename U, typename std::enable_if<is_immediate<U>::value>::type = 0>
+    template <typename U,
+              typename std::enable_if<is_immediate<U>::value>::type = 0>
     auto as() const -> typename std::decay<U>::type
     {
       // return unbox(std::shared_ptr<T>::get());
@@ -251,6 +256,24 @@ inline namespace kernel
     bool eqv(pointer const& rhs) const
     {
       return type() != rhs.type() ? false : binding().eqv(rhs);
+    }
+
+    template <typename... Ts>
+    decltype(auto) load(Ts&&...)
+    {
+      return std::atomic_load(this);
+    }
+
+    template <typename... Ts>
+    decltype(auto) store(Ts&&... xs)
+    {
+      return std::atomic_store(this, std::forward<decltype(xs)>(xs)...);
+    }
+
+    template <typename... Ts>
+    decltype(auto) exchange(Ts&&... xs)
+    {
+      return std::atomic_exchange(this, std::forward<decltype(xs)>(xs)...);
     }
   };
 

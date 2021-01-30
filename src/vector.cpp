@@ -3,7 +3,7 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
@@ -64,7 +64,7 @@ inline namespace kernel
                       std::begin(rhs), std::end(rhs), equal);
   }
 
-  auto operator <<(std::ostream & port, vector const& datum) -> decltype(port)
+  auto operator <<(std::ostream & port, vector const& datum) -> std::ostream &
   {
     return port << magenta << "#(" << reset << for_each(datum) << magenta << ")" << reset;
   }

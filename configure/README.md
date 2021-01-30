@@ -85,7 +85,7 @@ An subset of R7RS-small.
 ### Tools
 
 -   Compiler with C++17 support (GCC >= 7.5.0, Clang >= 6.0.0)
--   CMake (>= ${CMAKE_VERSION})
+-   CMake (>= 3.10.2) <!-- Ubuntu 18.04 LTS default CMake version -->
 -   GNU Make
 -   GNU Binutils
 -   [**GNU Multiple Precision Arithmetic Library** (GMP)](https://gmplib.org/)

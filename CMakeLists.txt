@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 
-# ==============================================================================
-#   Project Settings
-# ==============================================================================
+include(GNUInstallDirs)
+
+# ------------------------------------------------------------------------------
+#  Project Settings
+# ------------------------------------------------------------------------------
 
 execute_process(
   COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
   COMMAND tr -d "\n"
-  OUTPUT_VARIABLE CURRENT_VERSION
-  )
+  OUTPUT_VARIABLE CURRENT_VERSION)
 
 project(meevax VERSION ${CURRENT_VERSION} LANGUAGES CXX)
 
@@ -24,7 +25,9 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -flto -pipe") # Note: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
 
-include(GNUInstallDirs)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
+endif()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
@@ -33,9 +36,9 @@ find_package(Boost REQUIRED)
 # find_package(Threads REQUIRED)
 
 
-# ==============================================================================
-#   Configure README
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  Configure README
+# ------------------------------------------------------------------------------
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
   configure_file(
@@ -44,9 +47,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
 endif()
 
 
-# ==============================================================================
-#   Configure Headers
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  Configure Headers
+# ------------------------------------------------------------------------------
 
 string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
@@ -72,9 +75,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
 endif()
 
 
-# ==============================================================================
-#   Convert Scripts to ELF Binary
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  Convert Scheme Codes to ELF Binary
+# ------------------------------------------------------------------------------
 
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 
@@ -98,14 +101,14 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
 endforeach()
 
 
-# ==============================================================================
-#   Meevax Kernel
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  Meevax Kernel
+# ------------------------------------------------------------------------------
 
-add_library(kernel SHARED "")
-add_library(Meevax::kernel ALIAS kernel)
+add_library(Kernel SHARED "")
+add_library(Meevax::Kernel ALIAS Kernel)
 
-target_sources(kernel PRIVATE
+target_sources(Kernel PRIVATE
   ${${PROJECT_NAME}_BASIS}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/basis.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/boolean.cpp
@@ -133,27 +136,27 @@ target_sources(kernel PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/vector.cpp
   )
 
-target_include_directories(kernel PUBLIC
+target_include_directories(Kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE
+target_link_libraries(Kernel PRIVATE
   Boost::boost
   # Threads::Threads
   )
 
-target_link_libraries(kernel PUBLIC
+target_link_libraries(Kernel PUBLIC
   ${CMAKE_DL_LIBS}
   gmp
   stdc++fs)
 
-set_target_properties(kernel PROPERTIES
+set_target_properties(Kernel PROPERTIES
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
   OUTPUT_NAME ${PROJECT_NAME})
 
 install(
-  TARGETS kernel
+  TARGETS Kernel
   EXPORT ${PROJECT_NAME}-config # Generate Configuration
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -169,27 +172,25 @@ install(
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 
-# ==============================================================================
-#   Meevax Evaluator
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#   Meevax REPL
+# ------------------------------------------------------------------------------
 
-add_executable(evaluator
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+add_executable(REPL ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(evaluator
-  PRIVATE Meevax::kernel)
+target_link_libraries(REPL PRIVATE Meevax::Kernel)
 
-set_target_properties(evaluator PROPERTIES
+set_target_properties(REPL PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME})
 
 install(
-  TARGETS evaluator
+  TARGETS REPL
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 
-# ==============================================================================
-#   Meevax Basis Library (DEPRECATED)
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  Meevax Native Library (DEPRECATED)
+# ------------------------------------------------------------------------------
 
 file(GLOB ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.cpp)
 
@@ -202,7 +203,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR})
 
-  target_link_libraries(${TARGET_NAME} PUBLIC Meevax::kernel)
+  target_link_libraries(${TARGET_NAME} PUBLIC Meevax::Kernel)
 
   install(
     TARGETS ${TARGET_NAME}
@@ -211,9 +212,9 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
 endforeach()
 
 
-# ==============================================================================
-#   Package Version
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  Package Version
+# ------------------------------------------------------------------------------
 
 include(CMakePackageConfigHelpers)
 
@@ -226,9 +227,9 @@ install( # Install Package Version File
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
 
-# ==============================================================================
-#   make uninstall
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  make uninstall
+# ------------------------------------------------------------------------------
 
 add_custom_target(uninstall
   # COMMAND xargs sudo rm -rfv < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
@@ -238,9 +239,9 @@ add_custom_target(uninstall
   COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
 
-# ==============================================================================
-#   make test
-# ==============================================================================
+# ------------------------------------------------------------------------------
+#  make test
+# ------------------------------------------------------------------------------
 
 enable_testing()
 

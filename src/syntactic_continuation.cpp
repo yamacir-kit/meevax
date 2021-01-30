@@ -1,12 +1,43 @@
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
+  {
+    datum.write_to(datum.standard_output_port(),
+      "syntactic_continuation::operator >>(std::istream &, syntactic_continuation &)\n");
+
+    datum.write_to(datum.standard_output_port(),
+      "read new expression => ", datum.read(is), "\n");
+
+    // sk.write_to(sk.standard_output_port(),
+    //   "program == ", sk.program(),
+    //   "current_expression is ", sk.current_expression());
+
+    return is;
+  }
+
+  auto operator <<(std::ostream & os, syntactic_continuation & datum) -> std::ostream &
+  {
+    // TODO
+    // Evaluate current_expression, and write the evaluation to ostream.
+
+    return datum.write_to(os, "syntactic_continuation::operator <<(std::ostream &, syntactic_continuation &)\n");
+  }
+
+  auto operator <<(std::ostream & os, syntactic_continuation const& datum) -> std::ostream &
+  {
+    return os << magenta << "#,("
+              << green << "syntactic-continuation" << reset
+              << faint << " #;" << &datum << reset
+              << magenta << ")" << reset;
+  }
+
   template class configurator<syntactic_continuation>;
   template class debugger<syntactic_continuation>;
   template class machine<syntactic_continuation>;

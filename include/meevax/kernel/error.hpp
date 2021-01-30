@@ -6,7 +6,7 @@
 #include <utility>
 
 #include <meevax/kernel/preface.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 #include <meevax/string/cat.hpp>
 #include <meevax/utility/hexdump.hpp>
 

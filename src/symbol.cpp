@@ -1,11 +1,11 @@
 #include <meevax/kernel/symbol.hpp>
-#include <meevax/posix/vt102.hpp>
+#include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & port, symbol const& datum) -> decltype(port)
+  auto operator <<(std::ostream & port, symbol const& datum) -> std::ostream &
   {
     if (std::empty(datum))
     {

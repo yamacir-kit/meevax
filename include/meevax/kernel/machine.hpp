@@ -48,52 +48,77 @@ inline namespace kernel
   public:
     // TODO MOVE INTO SK
     template <typename... Ts>
-    let const& define(object const& variable, Ts&&... expression)
+    let const& define(let const& variable, Ts&&... expression)
     {
-      push(
-        syntactic_environment(),
-        cons(variable, std::forward<decltype(expression)>(expression)...));
+      push(syntactic_environment(),
+           cons(variable, std::forward<decltype(expression)>(expression)...));
 
       write_to(standard_debug_port(),
-        header("define"),
-        caar(syntactic_environment()),
-        faint, " binds ", reset,
-        cdar(syntactic_environment()),
-        "\n");
+               header("define"),
+               caar(syntactic_environment()),
+               faint, " binds ", reset,
+               cdar(syntactic_environment()), "\n");
 
       return unspecified;
     }
 
     /* ---- Auxiliary Syntax 'global' ------------------------------------------
      *
-     *  Note: This function extends the given syntax environment. Since the
+     *  Note: This function extends the given syntax environment 'g'. Since the
      *  order of operand evaluation in C ++ is undefined, be aware of the
      *  execution timing of side effects of this function.
      *
      * ---------------------------------------------------------------------- */
-    let const global(let const& x, let & syntactic_environment)
+    let const global(let const& x, let & g)
     {
-      if (let const binding = assq(x, syntactic_environment); not eq(binding, f))
+      if (let const binding = assq(x, g); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
+      {
+        /* ---- R7RS 5.3.1. Top level definitions ------------------------------
+         *
+         *  At the outermost level of a program, a definition
+         *
+         *      (define <variable> <expression>)
+         *
+         *  has essentially the same effect as the assignment expression
+         *
+         *      (set! <variable> <expression>)
+         *
+         *  if <variable> is bound to a non-syntax value. However, if
+         *  <variable> is not bound, or is a syntactic keyword, then the
+         *  definition will bind <variable> to a new location before performing
+         *  the assignment, whereas it would be an error to perform a set! on
+         *  an unbound variable.
+         *
+         * ------------------------------------------------------------------ */
+        return global(x, push(g, cons(x, make<syntactic_closure>(x, g))));
+      }
+      else
       {
         return binding;
       }
-      else // unbound
-      {
-        return global(x, push(syntactic_environment, cons(x, make<syntactic_closure>(x, syntactic_environment))));
-      }
     }
 
-    /* ------------------------------------------------------------------------
-    *
-    * <expression> = <identifier>
-    *              | <literal>
-    *              | <procedure call>
-    *              | <lambda expression>
-    *              | <conditional>
-    *              | <assignment>
-    *              | <derived expression>
-    *
-    *----------------------------------------------------------------------- */
+    /* ---- R7RS 4. Expressions ------------------------------------------------
+     *
+     *  <expression> = <identifier>
+     *               | <literal>
+     *               | <procedure call>
+     *               | <lambda expression>
+     *               | <conditional>
+     *               | <assignment>
+     *               | <derived expression>
+     *
+     *  Expression types are categorized as primitive or derived. Primitive
+     *  expression types include variables and procedure calls. Derived
+     *  expression types are not semantically primitive, but can instead be
+     *  defined as macros. Suitable syntax definitions of some of the derived
+     *  expressions are given in section 7.3.
+     *
+     *  The procedures force, promise?, make-promise, and make-parameter are
+     *  also described in this chapter because they are intimately associated
+     *  with the delay, delay-force, and parameterize expression types.
+     *
+     * ---------------------------------------------------------------------- */
     let compile(
       syntactic_context const& the_expression_is,
       let const& expression,
@@ -103,12 +128,30 @@ inline namespace kernel
     {
       if (expression.is<null>())
       {
+        /* ---- R7RS 4.1.3. Procedure calls ------------------------------------
+         *
+         *  (<operator> <operand 1> ...)                                 syntax
+         *
+         *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+         *  expression evaluating to itself. In Scheme, it is an error.
+         *
+         * ------------------------------------------------------------------ */
         return cons(make<instruction>(mnemonic::LOAD_CONSTANT), unit, continuation);
       }
       else if (not expression.is<pair>()) // is <identifier>
       {
         if (is_identifier(expression))
         {
+          /* ---- R7RS 4.1.1. Variable references ------------------------------
+           *
+           *  <variable>                                                 syntax
+           *
+           *  An expression consisting of a variable (section 3.1) is a
+           *  variable reference. The value of the variable reference is the
+           *  value stored in the location to which the variable is bound. It
+           *  is an error to reference an unbound variable.
+           *
+           * ------------------------------------------------------------------ */
           if (de_bruijn_index index { expression, frames }; index)
           {
             if (index.is_variadic())
@@ -141,8 +184,7 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = lookup(car(expression), syntactic_environment);
-            not applicant.is<null>() and not de_bruijn_index(car(expression), frames))
+        if (let const& applicant = lookup(car(expression), syntactic_environment); not de_bruijn_index(car(expression), frames))
         {
           if (applicant.is<syntax>())
           {
@@ -164,12 +206,7 @@ inline namespace kernel
           {
             debug(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
-            const auto expanded {
-              // applicant.as<SK>().expand(cons(applicant, cdr(expression)))
-              applicant.as<SK>().expand(applicant, expression)
-            };
-
-            // debug(expanded);
+            const auto expanded = applicant.as<SK>().macroexpand(applicant, expression);
 
             write_to(standard_debug_port(),
               header("macroexpand-1"), indent(), expanded, "\n");
@@ -177,6 +214,45 @@ inline namespace kernel
             return compile(in_context_free, expanded, syntactic_environment, frames, continuation);
           }
         }
+
+        /* ---- R7RS 4.1.3. Procedure calls ------------------------------------
+         *
+         *  (<operator> <operand 1> ...)                                 syntax
+         *
+         *  A procedure call is written by enclosing in parentheses an
+         *  expression for the procedure to be called followed by expressions
+         *  for the arguments to be passed to it. The operator and operand
+         *  expressions are evaluated (in an unspecified order) and the
+         *  resulting procedure is passed the resulting arguments.
+         *
+         *  The procedures in this document are available as the values of
+         *  variables exported by the standard libraries. For example, the
+         *  addition and multiplication procedures in the above examples are
+         *  the values of the variables + and * in the base library. New
+         *  procedures are created by evaluating lambda expressions (see
+         *  section 4.1.4).
+         *
+         *  Procedure calls can return any number of values (see values in
+         *  section 6.10). Most of the procedures defined in this report return
+         *  one value or, for procedures such as apply, pass on the values
+         *  returned by a call to one of their arguments. Exceptions are noted
+         *  in the individual descriptions.
+         *
+         *  Note: In contrast to other dialects of Lisp, the order of
+         *  evaluation is unspecified, and the operator expression and the
+         *  operand expressions are always evaluated with the same evaluation
+         *  rules.
+         *
+         *  Note: Although the order of evaluation is otherwise unspecified,
+         *  the effect of any concurrent evaluation of the operator and operand
+         *  expressions is constrained to be consistent with some sequential
+         *  order of evaluation. The order of evaluation may be chosen
+         *  differently for each procedure call.
+         *
+         *  Note: In many dialects of Lisp, the empty list, (), is a legitimate
+         *  expression evaluating to itself. In Scheme, it is an error.
+         *
+         * ------------------------------------------------------------------ */
 
         debug(magenta, "(", reset, faint, " ; is <procedure call>");
         indent() >> shift();
@@ -258,8 +334,8 @@ inline namespace kernel
 
       // case mnemonic::LOAD_SYNTAX: /* -------------------------------------------
       //   *
-      //   *                 S  E (LOAD-CONSTANT syntax . C) D
-      //   *  => (constant . S) E                         C  D
+      //   *                 S  E (LOAD-SYNTAX syntax . C) D
+      //   *  => (constant . S) E                       C  D
       //   *
       //   * ------------------------------------------------------------------- */
       //   push(s, cadr(c));
@@ -308,11 +384,13 @@ inline namespace kernel
 
       case mnemonic::FORK: /* --------------------------------------------------
         *
-        *                   S  E (FORK csc . C) D
-        *  => (subprogram . S) E             C  D
+        *          s  e (FORK k . c) d
+        *  => (p . s) e           c  d
+        *
+        *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<SK>(cons(s, e, cadr(c), d), syntactic_environment()));
+        push(s, make<keyword>(cons(s, e, cadr(c), d), syntactic_environment()));
         c = cddr(c);
         goto dispatch;
 
@@ -351,16 +429,15 @@ inline namespace kernel
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *         (object . S) E (DEFINE cell . C) D
-        *  => (identifier . S) E                C  D
+        *     (x . S) E (DEFINE cell . C) D
+        *  => (x . S) E                C  D
         *
-        *  where cell = (identifier . identifier)
+        *  where cell = (identifier . <unknown>)
         *
         * ------------------------------------------------------------------- */
         if (static_cast<SK&>(*this).generation == 0)
         {
           cdadr(c) = car(s);
-          // car(s) = caadr(c);
         }
         c = cddr(c);
         goto dispatch;
@@ -464,25 +541,13 @@ inline namespace kernel
         *  where cell = (identifier . x)
         *
         * ------------------------------------------------------------------- */
-        if (let const& binding = cadr(c); cdr(binding).is<null>() or car(s).template is<null>())
+        if (let const& binding = cadr(c); cdr(binding).is<null>())
         {
           cdr(binding) = car(s);
         }
-        else if (cdr(binding).is<keyword>() or cdr(binding).is<syntax>())
-        {
-          /* ---- From R7RS 5.3.1. Top level definitions ---------------------
-           *
-           *  However, if <variable> is not bound, or is a syntactic keyword,
-           *  then the definition will bind <variable> to a new location
-           *  before performing the assignment, whereas it would be an error
-           *  to perform a set! on an unbound variable.
-           *
-           * -------------------------------------------------------------- */
-          define(cadr(c), car(s));
-        }
         else
         {
-          std::atomic_store(&cdr(binding), car(s).copy());
+          cdr(binding).store(car(s));
         }
         c = cddr(c);
         goto dispatch;
@@ -493,12 +558,12 @@ inline namespace kernel
         *   => (value . S) E                        C  D
         *
         * ------------------------------------------------------------------- */
-        std::atomic_store(&car(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
+        car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
         c = cddr(c);
         goto dispatch;
 
       case mnemonic::STORE_VARIADIC:
-        std::atomic_store(&cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))), car(s));
+        cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
         c = cddr(c);
         goto dispatch;
 
@@ -515,12 +580,26 @@ inline namespace kernel
     }
 
   protected: // Primitive Expression Types
-    /* ---- Quotation ----------------------------------------------------------
-     *
-     *  <quotation> = (quote <datum>)
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(quotation)
+    SYNTAX(quotation) /* -------------------------------------------------------
+    *
+    *  (quote <datum>)                                                   syntax
+    *
+    *  (quote <datum>) evaluates to <datum>. <Datum> can be any external
+    *  representation of a Scheme object (see section 3.3). This notation is
+    *  used to include literal constants in Scheme code.
+    *
+    *  (quote <datum>) can be abbreviated as '<datum>. The two notations are
+    *  equivalent in all respects.
+    *
+    *  Numerical constants, string constants, character constants, vector
+    *  constants, bytevector constants, and boolean constants evaluate to
+    *  themselves; they need not be quoted.
+    *
+    *  As noted in section 3.4, it is an error to attempt to alter a constant
+    *  (i.e. the value of a literal expression) using a mutation procedure like
+    *  set-car! or string-set!.
+    *
+    * ----------------------------------------------------------------------- */
     {
       debug(car(expression), faint, " ; is <datum>");
       return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
@@ -879,23 +958,31 @@ inline namespace kernel
                           cons(make<instruction>(mnemonic::CALL), continuation)));
     }
 
-    /* ---- Fork ---------------------------------------------------------------
-     *
-     *  TODO documentation
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(fork)
+    SYNTAX(fork) /* ------------------------------------------------------------
+    *
+    *  (fork-with-current-syntactic-continuation <program>)              syntax
+    *
+    *  Semantics: The syntax fork-with-current-syntactic-continuation packages
+    *  the given <program> definition and the continuation of the current
+    *  compilation as a "subprogram".
+    *
+    * ----------------------------------------------------------------------- */
     {
       debug(car(expression), faint, " ; is <subprogram>");
       return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
     }
 
-    /* ---- Assignment ---------------------------------------------------------
-     *
-     *  TODO documentation
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(assignment)
+    SYNTAX(assignment) /* ------------------------------------------------------
+    *
+    *  (set! <variable> <expression>)                                    syntax
+    *
+    *  Semantics: <Expression> is evaluated, and the resulting value is stored
+    *  in the location to which <variable> is bound. It is an error if
+    *  <variable> is not bound either in some region enclosing the set!
+    *  expression or else globally. The result of the set! expression is
+    *  unspecified.
+    *
+    * ----------------------------------------------------------------------- */
     {
       if (expression.is<null>())
       {
@@ -928,17 +1015,20 @@ inline namespace kernel
       {
         debug(car(expression), faint, "; is a <free variable>");
 
-        // TODO if (the_expression_is.at_the_top_level) => compile to DEFINE
-        //
-        // TODO if unbound variable => throw error("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1. Top level definitions)");
-
         let const g = global(car(expression), syntactic_environment);
 
-        return compile(in_context_free,
-                       cadr(expression),
-                       syntactic_environment,
-                       frames,
-                       cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
+        if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_closure>())
+        {
+          throw syntax_error<void>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)");
+        }
+        else
+        {
+          return compile(in_context_free,
+                         cadr(expression),
+                         syntactic_environment,
+                         frames,
+                         cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
+        }
       }
     }
 

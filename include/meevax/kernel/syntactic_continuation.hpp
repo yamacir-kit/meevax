@@ -81,7 +81,6 @@ inline namespace kernel
     using writer::newline;
     using writer::standard_debug_port;
     using writer::standard_error_port;
-    using writer::standard_interaction_port;
     using writer::standard_output_port;
     using writer::standard_verbose_port;
     using writer::write;
@@ -142,22 +141,6 @@ inline namespace kernel
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
-    std::unordered_map<object, object> renames {};
-
-    // [[deprecated]]
-    // auto rename(object const& identifier) -> auto const&
-    // {
-    //   if (const auto iter = renames.find(identifier); iter != std::end(renames))
-    //   {
-    //     return cdr(*iter);
-    //   }
-    //   else
-    //   {
-    //     renames.emplace(identifier, make<syntactic_closure>(identifier, syntactic_environment()));
-    //     return renames.at(identifier);
-    //   }
-    // }
-
     decltype(auto) execute()
     {
       static constexpr auto trace = true;
@@ -172,10 +155,8 @@ inline namespace kernel
       }
     }
 
-    auto expand(object const& identifier, object const& form)
+    auto macroexpand(let const& keyword, let const& form)
     {
-      renames.emplace(car(form), identifier); // set itself to current-renamer
-
       // XXX ???
       push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 
@@ -191,7 +172,7 @@ inline namespace kernel
 
       e = cons(
             // form, // <lambda> parameters
-            cons(identifier, cdr(form)),
+            cons(keyword, cdr(form)),
             scope()); // static environment
       // TODO (4)
       // => e = cons(
@@ -209,15 +190,15 @@ inline namespace kernel
 
       ++generation;
 
-      return result;
+      return std::forward<decltype(result)>(result);
     }
 
     decltype(auto) evaluate(object const& expression)
     {
       push(d,
-        std::atomic_exchange(&s, unit),
-        std::atomic_exchange(&e, unit),
-        std::atomic_exchange(&c, compile(in_context_free, expression, syntactic_environment())));
+        s.exchange(unit),
+        e.exchange(unit),
+        c.exchange(compile(in_context_free, expression, syntactic_environment())));
 
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
       disassemble(standard_debug_port().as<output_port>(), c);
@@ -234,17 +215,16 @@ inline namespace kernel
 
     auto load(path const& name) -> auto const&
     {
-      write_to(standard_debug_port(),
-        header("loader"), "open ", name, " => ");
+      write_to(standard_debug_port(), header("loader"), "open ", name, " => ");
 
       if (let port = make<input_file_port>(name.c_str()); port)
       {
         write_to(standard_debug_port(), t, "\n");
 
-        push(d,
-          std::atomic_exchange(&s, unit),
-          std::atomic_exchange(&e, unit),
-          std::atomic_exchange(&c, unit));
+        // push(d,
+        //   std::atomic_exchange(&s, unit),
+        //   std::atomic_exchange(&e, unit),
+        //   std::atomic_exchange(&c, unit));
 
         for (let expression = read(port); expression != eof_object; expression = read(port))
         {
@@ -253,9 +233,9 @@ inline namespace kernel
           evaluate(expression);
         }
 
-        s = pop(d);
-        e = pop(d);
-        c = pop(d);
+        // s = pop(d);
+        // e = pop(d);
+        // c = pop(d);
 
         return unspecified;
       }
@@ -318,7 +298,7 @@ inline namespace kernel
         if (xs.as<syntactic_continuation>().external_symbols.empty())
         {
           std::cerr << "; import\t; " << xs << " is virgin => expand" << std::endl;
-          xs.as<syntactic_continuation>().expand(xs, cons(xs, unit));
+          xs.as<syntactic_continuation>().macroexpand(xs, cons(xs, unit));
         }
 
         // for ([[maybe_unused]] const auto& [key, value] : xs.as<syntactic_continuation>().external_symbols)
@@ -338,44 +318,11 @@ inline namespace kernel
                             make<instruction>(mnemonic::CALL),
                             continuation));
     }
-
-  public:
-    friend auto operator<<(std::ostream & os, syntactic_continuation const& sc) -> decltype(auto)
-    {
-      return os << magenta << "#,("
-                << green << "syntactic-continuation" << reset
-                << faint << " #;" << &sc << reset
-                << magenta << ")" << reset;
-    }
-
-    friend auto operator >>(std::istream& is, syntactic_continuation& sk)
-      -> decltype(is)
-    {
-      sk.write_to(sk.standard_output_port(),
-        "syntactic_continuation::operator >>(std::istream&, syntactic_continuation&)\n");
-
-      sk.write_to(sk.standard_output_port(),
-        "read new expression => ", sk.read(is), "\n");
-
-      // sk.write_to(sk.standard_output_port(),
-      //   "program == ", sk.program(),
-      //   "current_expression is ", sk.current_expression());
-      //
-      // NOTE
-      // Store the expression new read to 'current_expression'.
-      // But, currently above comments cause SEGV.
-
-      return is;
-    }
-
-    friend auto operator <<(std::ostream& os, syntactic_continuation& sk) -> decltype(auto)
-    {
-      // TODO
-      // Evaluate current_expression, and write the evaluation to ostream.
-
-      return sk.write_to(os, "syntactic_continuation::operator <<(std::ostream&, syntactic_continuation&)\n");
-    }
   };
+
+  auto operator >>(std::istream &, syntactic_continuation      &) -> std::istream &;
+  auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;
+  auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
   extern template class configurator<syntactic_continuation>;
   extern template class debugger<syntactic_continuation>;
@@ -389,6 +336,11 @@ inline namespace kernel
   template <> void syntactic_continuation::boot(layer<3>);
   template <> void syntactic_continuation::boot(layer<4>);
 
+  auto decrement = [](auto&& x) constexpr
+  {
+    return --x;
+  };
+
   template <>
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
@@ -396,7 +348,7 @@ inline namespace kernel
 
   template <std::size_t N>
   syntactic_continuation::syntactic_continuation(layer<N>)
-    : syntactic_continuation::syntactic_continuation { layer<N - 1>() }
+    : syntactic_continuation::syntactic_continuation { layer<decrement(N)>() }
   {
     boot(layer<N>());
   }
@@ -407,18 +359,12 @@ inline namespace kernel
   {
     boot(layer<0>());
 
-    if (first)
+    if (form()) // If called from FORK instruction.
     {
-      s = car(first);
-      e = cadr(first);
-      c = unit;
-      d = cdddr(first);
-
-      c = compile(at_the_top_level,
-                  caaddr(first),
-                  syntactic_environment(),
-                  cdaddr(first),
-                  list(make<instruction>(mnemonic::STOP)));
+      s = car(form());
+      e = cadr(form());
+      c = compile(at_the_top_level, caaddr(form()), syntactic_environment(), cdaddr(form()));
+      d = cdddr(form());
 
       form() = execute();
 
