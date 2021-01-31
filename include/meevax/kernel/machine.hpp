@@ -27,10 +27,8 @@ inline namespace kernel
     IMPORT(SK, evaluate,);
     IMPORT(SK, header, const);
     IMPORT(SK, in_trace_mode, const);
-    IMPORT(SK, indent,);
     IMPORT(SK, intern,);
     IMPORT(SK, rename,);
-    IMPORT(SK, shift, const);
     IMPORT(SK, standard_debug_port, const);
     IMPORT(SK, standard_error_port, const);
     IMPORT(SK, standard_output_port, const);
@@ -189,7 +187,7 @@ inline namespace kernel
           {
             debug(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>");
 
-            indent() >> shift();
+            indent() >> indent::width;
 
             decltype(auto) result =
               applicant.as<syntax>().compile(
@@ -197,7 +195,7 @@ inline namespace kernel
 
             debug(magenta, ")");
 
-            indent() << shift();
+            indent() << indent::width;
 
             return result;
           }
@@ -254,7 +252,7 @@ inline namespace kernel
          * ------------------------------------------------------------------ */
 
         debug(magenta, "(", reset, faint, " ; is <procedure call>");
-        indent() >> shift();
+        indent() >> indent::width;
 
         decltype(auto) result =
           operand(in_context_free,
@@ -270,7 +268,7 @@ inline namespace kernel
                                continuation)));
 
         debug(magenta, ")");
-        indent() << shift();
+        indent() << indent::width;
 
         return result;
       }
@@ -702,7 +700,7 @@ inline namespace kernel
       }
       else
       {
-        indent() << shift(); // XXX DIRTY HACK!
+        indent() << indent::width; // XXX DIRTY HACK!
         throw syntax_error<internal_definition_tag>("definition cannot appear in this context");
       }
     }

@@ -94,8 +94,6 @@ inline namespace kernel
 
     using debugger::debug;
     using debugger::header;
-    using debugger::indent;
-    using debugger::shift;
 
     using configurator::in_batch_mode;
     using configurator::in_debug_mode;
@@ -277,8 +275,8 @@ inline namespace kernel
     {
       if (verbose_mode.eqv(t))
       {
-        std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")
-                  << bytestring(depth * 2, ' ')
+        std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
+                  << indent()
                   << expression
                   << faint << " is <export specs>"
                   << reset << std::endl;
