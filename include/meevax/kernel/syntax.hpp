@@ -7,8 +7,8 @@
 #define SYNTAX(NAME)                                                           \
   let const NAME(                                                              \
     [[maybe_unused]] syntactic_context const& the_expression_is,               \
-    [[maybe_unused]] let const& expression,                                    \
     [[maybe_unused]] let      & syntactic_environment,                         \
+    [[maybe_unused]] let const& expression,                                    \
     [[maybe_unused]] let const& frames,                                        \
     [[maybe_unused]] let const& continuation)
 

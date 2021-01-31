@@ -14,6 +14,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto decrement = [](auto&& x) constexpr
+  {
+    return --x;
+  };
+
   /* ---- System Layers --------------------------------------------------------
    *
    * Layer 0 - Module System (Program Structures)
@@ -103,7 +108,11 @@ inline namespace kernel
     explicit syntactic_continuation(Ts&&...);
 
     template <std::size_t N>
-    explicit syntactic_continuation(layer<N>);
+    explicit syntactic_continuation(layer<N>)
+      : syntactic_continuation { layer<decrement(N)>() }
+    {
+      boot(layer<N>());
+    }
 
     template <std::size_t N>
     void boot(layer<N>)
@@ -198,7 +207,7 @@ inline namespace kernel
       push(d,
         s.exchange(unit),
         e.exchange(unit),
-        c.exchange(compile(in_context_free, expression, syntactic_environment())));
+        c.exchange(compile(in_context_free, syntactic_environment(), expression)));
 
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
       disassemble(standard_debug_port().as<output_port>(), c);
@@ -311,8 +320,8 @@ inline namespace kernel
 
       // XXX DIRTY HACK
       return reference(in_context_free,
-                       expression,
                        syntactic_environment,
+                       expression,
                        frames,
                        cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
                             make<instruction>(mnemonic::CALL),
@@ -336,22 +345,10 @@ inline namespace kernel
   template <> void syntactic_continuation::boot(layer<3>);
   template <> void syntactic_continuation::boot(layer<4>);
 
-  auto decrement = [](auto&& x) constexpr
-  {
-    return --x;
-  };
-
   template <>
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
   {}
-
-  template <std::size_t N>
-  syntactic_continuation::syntactic_continuation(layer<N>)
-    : syntactic_continuation::syntactic_continuation { layer<decrement(N)>() }
-  {
-    boot(layer<N>());
-  }
 
   template <typename... Ts>
   syntactic_continuation::syntactic_continuation(Ts&&... xs)
@@ -363,7 +360,10 @@ inline namespace kernel
     {
       s = car(form());
       e = cadr(form());
-      c = compile(at_the_top_level, caaddr(form()), syntactic_environment(), cdaddr(form()));
+      c = compile(at_the_top_level,
+                  syntactic_environment(),
+                  caaddr(form()),
+                  cdaddr(form()));
       d = cdddr(form());
 
       form() = execute();
