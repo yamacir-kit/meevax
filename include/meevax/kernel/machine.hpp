@@ -432,10 +432,7 @@ inline namespace kernel
         *  where cell = (identifier . <unknown>)
         *
         * ------------------------------------------------------------------- */
-        if (static_cast<SK&>(*this).generation == 0)
-        {
-          cdadr(c) = car(s);
-        }
+        cdadr(c) = car(s);
         c = cddr(c);
         goto dispatch;
 

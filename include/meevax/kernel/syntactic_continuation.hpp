@@ -77,7 +77,7 @@ inline namespace kernel
     std::unordered_map<bytestring, object> symbols;
     std::unordered_map<bytestring, object> external_symbols; // TODO REMOVE
 
-    std::size_t generation {0};
+    std::size_t generation = 0;
 
     using syntactic_closure::syntactic_environment;
 
@@ -117,8 +117,15 @@ inline namespace kernel
     {}
 
   public:
-    decltype(auto) current_expression() const { return car(form()); }
-    decltype(auto) scope()              const { return cdr(form()); }
+    decltype(auto) current_expression() const
+    {
+      return car(form());
+    }
+
+    decltype(auto) dynamic_environment() const
+    {
+      return cdr(form());
+    }
 
     auto const& intern(bytestring const& s)
     {
@@ -162,8 +169,10 @@ inline namespace kernel
       }
     }
 
-    let const macroexpand(let const& keyword, let const& form)
+    decltype(auto) macroexpand(let const& keyword, let const& form)
     {
+      ++generation;
+
       // XXX ???
       push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 
@@ -180,7 +189,7 @@ inline namespace kernel
       e = cons(
             // form, // <lambda> parameters
             cons(keyword, cdr(form)),
-            scope()); // static environment
+            dynamic_environment());
       // TODO (4)
       // => e = cons(
       //          list(
@@ -188,16 +197,12 @@ inline namespace kernel
       //            make<procedure>("rename", [this](auto&& xs) { ... }),
       //            make<procedure>("compare", [this](auto&& xs) { ... })
       //            ),
-      //          scope()
+      //          dynamic_environment()
       //          );
 
       c = current_expression();
 
-      decltype(auto) result = execute();
-
-      ++generation;
-
-      return std::forward<decltype(result)>(result);
+      return execute();
     }
 
     let const evaluate(object const& expression)
