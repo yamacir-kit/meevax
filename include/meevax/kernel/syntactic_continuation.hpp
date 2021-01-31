@@ -164,7 +164,7 @@ inline namespace kernel
       }
     }
 
-    auto macroexpand(let const& keyword, let const& form)
+    let const macroexpand(let const& keyword, let const& form)
     {
       // XXX ???
       push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
@@ -202,7 +202,7 @@ inline namespace kernel
       return std::forward<decltype(result)>(result);
     }
 
-    decltype(auto) evaluate(object const& expression)
+    let const evaluate(object const& expression)
     {
       push(d,
         s.exchange(unit),
@@ -260,6 +260,16 @@ inline namespace kernel
     decltype(auto) load(bytestring const& name)
     {
       return load(path(name));
+    }
+
+    let const& operator [](let const& name)
+    {
+      return cdr(machine::global(name, syntactic_environment()));
+    }
+
+    decltype(auto) operator [](bytestring const& name)
+    {
+      return (*this)[intern(name)];
     }
 
   public: // Primitive Expression Types
