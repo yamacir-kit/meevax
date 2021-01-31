@@ -108,32 +108,12 @@ endforeach()
 add_library(Kernel SHARED "")
 add_library(Meevax::Kernel ALIAS Kernel)
 
+file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+list(REMOVE_ITEM ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+
 target_sources(Kernel PRIVATE
   ${${PROJECT_NAME}_BASIS}
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/basis.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/boolean.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/character.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/closure.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/continuation.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/error.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/exact_integer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/ghost.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/instruction.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/list.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/miscellaneous.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/number.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/object.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/pair.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/path.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/port.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/ratio.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/reader.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/string.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/string/unicode.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/symbol.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/syntactic_continuation.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/utility/demangle.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/vector.cpp
+  ${${PROJECT_NAME}_KERNEL_SOURCES}
   )
 
 target_include_directories(Kernel PUBLIC

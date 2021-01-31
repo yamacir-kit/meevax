@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
-#include <cstdint>
-
 #include <meevax/kernel/object.hpp>
 #include <meevax/kernel/syntactic_context.hpp>
 
@@ -36,12 +34,9 @@ inline namespace kernel
     {
       return (*this)(std::forward<decltype(xs)>(xs)...);
     }
-
-    friend auto operator <<(std::ostream& os, const syntax& syntax) -> decltype(auto)
-    {
-      return os << magenta << "#,(" << green << "syntax" << reset << " " << syntax.name << faint << " #;" << &syntax << reset << magenta << ")" << reset;
-    }
   };
+
+  auto operator <<(output_port &, syntax const&) -> output_port &;
 } // namespace kernel
 } // namespace meevax
 
