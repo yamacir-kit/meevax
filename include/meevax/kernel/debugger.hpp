@@ -33,13 +33,6 @@ inline namespace kernel
 
       return s;
     }
-
-    template <typename... Ts>
-    [[deprecated]]
-    decltype(auto) debug(Ts&&... xs)
-    {
-      return write_to(standard_debug_port(), header(), indent(), std::forward<decltype(xs)>(xs)..., "\n");
-    }
   };
 } // namespace kernel
 } // namespace meevax

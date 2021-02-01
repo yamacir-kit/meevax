@@ -92,7 +92,6 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    using debugger::debug;
     using debugger::header;
 
     using configurator::in_batch_mode;
@@ -103,7 +102,26 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    explicit syntactic_continuation(Ts&&...);
+    explicit syntactic_continuation(Ts &&... xs)
+      : pair { std::forward<decltype(xs)>(xs)... }
+    {
+      boot(layer<0>());
+
+      if (form()) // If called from FORK instruction.
+      {
+        s = car(form());
+        e = cadr(form());
+        c = compile(at_the_top_level,
+                    syntactic_environment(),
+                    caaddr(form()),
+                    cdaddr(form()));
+        d = cdddr(form());
+
+        form() = execute();
+
+        assert(form().is<closure>());
+      }
+    }
 
     template <std::size_t N>
     explicit syntactic_continuation(layer<N>)
@@ -362,28 +380,6 @@ inline namespace kernel
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
   {}
-
-  template <typename... Ts>
-  syntactic_continuation::syntactic_continuation(Ts&&... xs)
-    : pair { std::forward<decltype(xs)>(xs)... }
-  {
-    boot(layer<0>());
-
-    if (form()) // If called from FORK instruction.
-    {
-      s = car(form());
-      e = cadr(form());
-      c = compile(at_the_top_level,
-                  syntactic_environment(),
-                  caaddr(form()),
-                  cdaddr(form()));
-      d = cdddr(form());
-
-      form() = execute();
-
-      assert(form().is<closure>());
-    }
-  }
 } // namespace kernel
 } // namespace meevax
 
