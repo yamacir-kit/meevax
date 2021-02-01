@@ -1,10 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
-#include <fstream>
-#include <ostream>
-
 #include <meevax/kernel/object.hpp>
+#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {
@@ -25,13 +23,13 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(std::ostream& port, Ts&&... xs) const -> decltype(auto)
+    auto write_to(std::ostream & port, Ts&&... xs) const -> decltype(auto)
     {
       return (port << ... << xs) << reset;
     }
 
     template <typename... Ts>
-    auto write_to(const object& x, Ts&&... xs) const -> decltype(auto)
+    auto write_to(let const& x, Ts&&... xs) const -> decltype(auto)
     {
       return write_to(x.as<output_port>(), std::forward<decltype(xs)>(xs)...);
     }
