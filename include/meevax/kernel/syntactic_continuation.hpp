@@ -14,6 +14,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto decrement = [](auto&& x) constexpr
+  {
+    return --x;
+  };
+
   /* ---- System Layers --------------------------------------------------------
    *
    * Layer 0 - Module System (Program Structures)
@@ -72,7 +77,7 @@ inline namespace kernel
     std::unordered_map<bytestring, object> symbols;
     std::unordered_map<bytestring, object> external_symbols; // TODO REMOVE
 
-    std::size_t generation {0};
+    std::size_t generation = 0;
 
     using syntactic_closure::syntactic_environment;
 
@@ -87,10 +92,7 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    using debugger::debug;
     using debugger::header;
-    using debugger::indent;
-    using debugger::shift;
 
     using configurator::in_batch_mode;
     using configurator::in_debug_mode;
@@ -99,19 +101,15 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    template <typename... Ts>
-    explicit syntactic_continuation(Ts&&...);
+    decltype(auto) current_expression() const
+    {
+      return car(form());
+    }
 
-    template <std::size_t N>
-    explicit syntactic_continuation(layer<N>);
-
-    template <std::size_t N>
-    void boot(layer<N>)
-    {}
-
-  public:
-    decltype(auto) current_expression() const { return car(form()); }
-    decltype(auto) scope()              const { return cdr(form()); }
+    decltype(auto) dynamic_environment() const
+    {
+      return cdr(form());
+    }
 
     auto const& intern(bytestring const& s)
     {
@@ -155,8 +153,10 @@ inline namespace kernel
       }
     }
 
-    auto macroexpand(let const& keyword, let const& form)
+    decltype(auto) macroexpand(let const& keyword, let const& form)
     {
+      ++generation;
+
       // XXX ???
       push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
 
@@ -173,7 +173,7 @@ inline namespace kernel
       e = cons(
             // form, // <lambda> parameters
             cons(keyword, cdr(form)),
-            scope()); // static environment
+            dynamic_environment());
       // TODO (4)
       // => e = cons(
       //          list(
@@ -181,24 +181,20 @@ inline namespace kernel
       //            make<procedure>("rename", [this](auto&& xs) { ... }),
       //            make<procedure>("compare", [this](auto&& xs) { ... })
       //            ),
-      //          scope()
+      //          dynamic_environment()
       //          );
 
       c = current_expression();
 
-      decltype(auto) result = execute();
-
-      ++generation;
-
-      return std::forward<decltype(result)>(result);
+      return execute();
     }
 
-    decltype(auto) evaluate(object const& expression)
+    let const evaluate(object const& expression)
     {
       push(d,
         s.exchange(unit),
         e.exchange(unit),
-        c.exchange(compile(in_context_free, expression, syntactic_environment())));
+        c.exchange(compile(in_context_free, syntactic_environment(), expression)));
 
       write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
       disassemble(standard_debug_port().as<output_port>(), c);
@@ -253,13 +249,57 @@ inline namespace kernel
       return load(path(name));
     }
 
+    let const& operator [](let const& name)
+    {
+      return cdr(machine::global(name, syntactic_environment()));
+    }
+
+    decltype(auto) operator [](bytestring const& name)
+    {
+      return (*this)[intern(name)];
+    }
+
+  public:
+    template <typename... Ts>
+    explicit syntactic_continuation(Ts &&... xs)
+      : pair { std::forward<decltype(xs)>(xs)... }
+    {
+      boot(layer<0>());
+
+      if (form()) // If called from FORK instruction.
+      {
+        s = car(form());
+        e = cadr(form());
+        c = compile(at_the_top_level,
+                    syntactic_environment(),
+                    caaddr(form()),
+                    cdaddr(form()));
+        d = cdddr(form());
+
+        form() = execute();
+
+        assert(form().is<closure>());
+      }
+    }
+
+    template <std::size_t N>
+    explicit syntactic_continuation(layer<N>)
+      : syntactic_continuation { layer<decrement(N)>() }
+    {
+      boot(layer<N>());
+    }
+
+    template <std::size_t N>
+    void boot(layer<N>)
+    {}
+
   public: // Primitive Expression Types
     SYNTAX(exportation)
     {
       if (verbose_mode.eqv(t))
       {
-        std::cerr << (not depth ? "; compile\t; " : ";\t\t; ")
-                  << bytestring(depth * 2, ' ')
+        std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
+                  << indent()
                   << expression
                   << faint << " is <export specs>"
                   << reset << std::endl;
@@ -311,8 +351,8 @@ inline namespace kernel
 
       // XXX DIRTY HACK
       return reference(in_context_free,
-                       expression,
                        syntactic_environment,
+                       expression,
                        frames,
                        cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
                             make<instruction>(mnemonic::CALL),
@@ -336,41 +376,10 @@ inline namespace kernel
   template <> void syntactic_continuation::boot(layer<3>);
   template <> void syntactic_continuation::boot(layer<4>);
 
-  auto decrement = [](auto&& x) constexpr
-  {
-    return --x;
-  };
-
   template <>
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
   {}
-
-  template <std::size_t N>
-  syntactic_continuation::syntactic_continuation(layer<N>)
-    : syntactic_continuation::syntactic_continuation { layer<decrement(N)>() }
-  {
-    boot(layer<N>());
-  }
-
-  template <typename... Ts>
-  syntactic_continuation::syntactic_continuation(Ts&&... xs)
-    : pair { std::forward<decltype(xs)>(xs)... }
-  {
-    boot(layer<0>());
-
-    if (form()) // If called from FORK instruction.
-    {
-      s = car(form());
-      e = cadr(form());
-      c = compile(at_the_top_level, caaddr(form()), syntactic_environment(), cdaddr(form()));
-      d = cdddr(form());
-
-      form() = execute();
-
-      assert(form().is<closure>());
-    }
-  }
 } // namespace kernel
 } // namespace meevax
 

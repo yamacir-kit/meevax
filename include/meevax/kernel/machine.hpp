@@ -15,6 +15,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  #define WRITE_DEBUG(...)                                                     \
+  if (in_debug_mode())                                                         \
+  {                                                                            \
+    write_to(standard_debug_port(), header(), indent(), __VA_ARGS__);          \
+  }                                                                            \
+  static_assert(true)
+  // TODO static_assert() => indent()
+
   template <typename SK>
   class machine // TR-SECD machine.
   {
@@ -26,11 +34,9 @@ inline namespace kernel
     IMPORT(SK, debug,);
     IMPORT(SK, evaluate,);
     IMPORT(SK, header, const);
+    IMPORT(SK, in_debug_mode, const);
     IMPORT(SK, in_trace_mode, const);
-    IMPORT(SK, indent,);
     IMPORT(SK, intern,);
-    IMPORT(SK, rename,);
-    IMPORT(SK, shift, const);
     IMPORT(SK, standard_debug_port, const);
     IMPORT(SK, standard_error_port, const);
     IMPORT(SK, standard_output_port, const);
@@ -50,8 +56,7 @@ inline namespace kernel
     template <typename... Ts>
     let const& define(let const& variable, Ts&&... expression)
     {
-      push(syntactic_environment(),
-           cons(variable, std::forward<decltype(expression)>(expression)...));
+      push(syntactic_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
 
       write_to(standard_debug_port(),
                header("define"),
@@ -121,8 +126,8 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let compile(
       syntactic_context const& the_expression_is,
-      let const& expression,
       let      & syntactic_environment,
+      let const& expression,
       let const& frames = unit,
       let const& continuation = list(make<instruction>(mnemonic::STOP)))
     {
@@ -156,29 +161,29 @@ inline namespace kernel
           {
             if (index.is_variadic())
             {
-              debug(expression, faint, " ; is a <variadic bound variable> references ", reset, index);
+              WRITE_DEBUG(expression, faint, " ; is a <variadic bound variable> references ", reset, index);
               return cons(make<instruction>(mnemonic::LOAD_VARIADIC), index, continuation);
             }
             else
             {
-              debug(expression, faint, " ; is a <bound variable> references ", reset, index);
+              WRITE_DEBUG(expression, faint, " ; is a <bound variable> references ", reset, index);
               return cons(make<instruction>(mnemonic::LOAD_LOCAL), index, continuation);
             }
           }
           else if (expression.is<syntactic_closure>())
           {
-            debug(expression, faint, " ; is <alias>");
+            WRITE_DEBUG(expression, faint, " ; is <alias>");
             return cons(make<instruction>(mnemonic::STRIP), expression, continuation);
           }
           else
           {
-            debug(expression, faint, " ; is a <free variable>");
+            WRITE_DEBUG(expression, faint, " ; is a <free variable>");
             return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(expression, syntactic_environment), continuation);
           }
         }
         else // is <self-evaluating>
         {
-          debug(expression, faint, " ; is <self-evaluating>");
+          WRITE_DEBUG(expression, faint, " ; is <self-evaluating>");
           return cons(make<instruction>(mnemonic::LOAD_CONSTANT), expression, continuation);
         }
       }
@@ -188,30 +193,32 @@ inline namespace kernel
         {
           if (applicant.is<syntax>())
           {
-            debug(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>");
+            WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>");
 
-            indent() >> shift();
+            indent() >> indent::width;
 
             decltype(auto) result =
-              applicant.as<syntax>().compile(the_expression_is,
-                cdr(expression), syntactic_environment, frames, continuation);
+              applicant.as<syntax>().compile(
+                the_expression_is,syntactic_environment, cdr(expression), frames, continuation);
 
-            debug(magenta, ")");
+            WRITE_DEBUG(magenta, ")");
 
-            indent() << shift();
+            indent() << indent::width;
 
             return result;
           }
           else if (applicant.is<SK>())
           {
-            debug(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
+            WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
             const auto expanded = applicant.as<SK>().macroexpand(applicant, expression);
 
-            write_to(standard_debug_port(),
-              header("macroexpand-1"), indent(), expanded, "\n");
+            if (in_debug_mode())
+            {
+              write_to(standard_debug_port(), header("macroexpand-1"), indent(), expanded, "\n");
+            }
 
-            return compile(in_context_free, expanded, syntactic_environment, frames, continuation);
+            return compile(in_context_free, syntactic_environment, expanded, frames, continuation);
           }
         }
 
@@ -254,24 +261,24 @@ inline namespace kernel
          *
          * ------------------------------------------------------------------ */
 
-        debug(magenta, "(", reset, faint, " ; is <procedure call>");
-        indent() >> shift();
+        WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>");
+        indent() >> indent::width;
 
         decltype(auto) result =
           operand(in_context_free,
-                  cdr(expression),
                   syntactic_environment,
+                  cdr(expression),
                   frames,
                   compile(in_context_free,
-                          car(expression),
                           syntactic_environment,
+                          car(expression),
                           frames,
                           cons(make<instruction>(the_expression_is.in_a_tail_context() ? mnemonic::TAIL_CALL
                                                                                        : mnemonic::     CALL),
                                continuation)));
 
-        debug(magenta, ")");
-        indent() << shift();
+        WRITE_DEBUG(magenta, ")");
+        indent() << indent::width;
 
         return result;
       }
@@ -435,10 +442,7 @@ inline namespace kernel
         *  where cell = (identifier . <unknown>)
         *
         * ------------------------------------------------------------------- */
-        if (static_cast<SK&>(*this).generation == 0)
-        {
-          cdadr(c) = car(s);
-        }
+        cdadr(c) = car(s);
         c = cddr(c);
         goto dispatch;
 
@@ -601,7 +605,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      debug(car(expression), faint, " ; is <datum>");
+      WRITE_DEBUG(car(expression), faint, " ; is <datum>");
       return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
     }
 
@@ -621,21 +625,21 @@ inline namespace kernel
         if (cdr(expression).is<null>())
         {
           return compile(at_the_top_level,
-                         car(expression),
                          syntactic_environment,
+                         car(expression),
                          frames,
                          continuation);
         }
         else
         {
           return compile(at_the_top_level,
-                         car(expression),
                          syntactic_environment,
+                         car(expression),
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
                               sequence(at_the_top_level,
-                                       cdr(expression),
                                        syntactic_environment,
+                                       cdr(expression),
                                        frames,
                                        continuation)));
         }
@@ -645,21 +649,21 @@ inline namespace kernel
         if (cdr(expression).is<null>()) // is tail sequence
         {
           return compile(the_expression_is,
-                         car(expression),
                          syntactic_environment,
+                         car(expression),
                          frames,
                          continuation);
         }
         else
         {
           return compile(in_context_free,
-                         car(expression), // head expression
                          syntactic_environment,
+                         car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::DROP), // pop result of head expression
                               sequence(in_context_free,
-                                       cdr(expression), // rest expressions
                                        syntactic_environment,
+                                       cdr(expression), // rest expressions
                                        frames,
                                        continuation)));
         }
@@ -676,15 +680,15 @@ inline namespace kernel
     {
       if (frames.is<null>() or the_expression_is.at_the_top_level())
       {
-        debug(car(expression), faint, " ; is <variable>");
+        WRITE_DEBUG(car(expression), faint, " ; is <variable>");
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
           let const g = global(caar(expression), syntactic_environment);
 
           return compile(in_context_free,
-                         cons(intern("lambda"), cdar(expression), cdr(expression)),
                          syntactic_environment,
+                         cons(intern("lambda"), cdar(expression), cdr(expression)),
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), g,
                               continuation));
@@ -694,8 +698,8 @@ inline namespace kernel
           let const g = global(car(expression), syntactic_environment);
 
           return compile(in_context_free,
-                         cdr(expression) ? cadr(expression) : unspecified,
                          syntactic_environment,
+                         cdr(expression) ? cadr(expression) : unspecified,
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), g,
                               continuation));
@@ -703,7 +707,7 @@ inline namespace kernel
       }
       else
       {
-        indent() << shift(); // XXX DIRTY HACK!
+        indent() << indent::width; // XXX DIRTY HACK!
         throw syntax_error<internal_definition_tag>("definition cannot appear in this context");
       }
     }
@@ -719,7 +723,7 @@ inline namespace kernel
       {
         try
         {
-          compile(the_expression_is, form, syntactic_environment, frames, continuation);
+          compile(the_expression_is, syntactic_environment, form, frames, continuation);
           return false;
         }
         catch (const syntax_error<internal_definition_tag>&)
@@ -799,29 +803,29 @@ inline namespace kernel
       if (cdr(expression).is<null>()) // is tail-sequence
       {
         return compile(in_a_tail_context.take_over(the_expression_is),
-                       car(expression),
                        syntactic_environment,
+                       car(expression),
                        frames,
                        continuation);
       }
       else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
       {
         return compile(the_expression_is,
-                       letrec(binding_specs, tail_body),
                        syntactic_environment,
+                       letrec(binding_specs, tail_body),
                        frames,
                        continuation);
       }
       else
       {
         return compile(the_expression_is,
-                       car(expression),
                        syntactic_environment,
+                       car(expression),
                        frames,
                        cons(make<instruction>(mnemonic::DROP),
                             sequence(the_expression_is,
-                                     cdr(expression),
                                      syntactic_environment,
+                                     cdr(expression),
                                      frames,
                                      continuation)));
       }
@@ -837,20 +841,20 @@ inline namespace kernel
       if (expression.is<pair>())
       {
         return operand(in_context_free,
-                       cdr(expression),
                        syntactic_environment,
+                       cdr(expression),
                        frames,
                        compile(in_context_free,
-                               car(expression),
                                syntactic_environment,
+                               car(expression),
                                frames,
                                cons(make<instruction>(mnemonic::CONS), continuation)));
       }
       else
       {
         return compile(in_context_free,
-                       expression,
                        syntactic_environment,
+                       expression,
                        frames,
                        continuation);
       }
@@ -863,30 +867,30 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     SYNTAX(conditional)
     {
-      debug(car(expression), faint, " ; is <test>");
+      WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
       if (the_expression_is.in_a_tail_context())
       {
         auto&& consequent =
           compile(in_a_tail_context,
-                  cadr(expression),
                   syntactic_environment,
+                  cadr(expression),
                   frames,
                   list(make<instruction>(mnemonic::RETURN)));
 
         auto&& alternate =
           cddr(expression)
             ? compile(in_a_tail_context,
-                      caddr(expression),
                       syntactic_environment,
+                      caddr(expression),
                       frames,
                       list(make<instruction>(mnemonic::RETURN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::RETURN));
 
         return compile(in_context_free,
-                       car(expression), // <test>
                        syntactic_environment,
+                       car(expression), // <test>
                        frames,
                        cons(make<instruction>(mnemonic::TAIL_SELECT),
                             std::move(consequent),
@@ -897,24 +901,24 @@ inline namespace kernel
       {
         auto&& consequent =
           compile(in_context_free,
-                  cadr(expression),
                   syntactic_environment,
+                  cadr(expression),
                   frames,
                   list(make<instruction>(mnemonic::JOIN)));
 
         auto&& alternate =
           cddr(expression)
             ? compile(in_context_free,
-                      caddr(expression),
                       syntactic_environment,
+                      caddr(expression),
                       frames,
                       list(make<instruction>(mnemonic::JOIN)))
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::JOIN));
 
         return compile(in_context_free,
-                       car(expression), // <test>
                        syntactic_environment,
+                       car(expression), // <test>
                        frames,
                        cons(make<instruction>(mnemonic::SELECT), std::move(consequent),
                                                                  std::move(alternate),
@@ -929,12 +933,12 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     SYNTAX(lambda)
     {
-      debug(car(expression), faint, " ; is <formals>");
+      WRITE_DEBUG(car(expression), faint, " ; is <formals>");
 
       return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
                   body(the_expression_is,
-                       cdr(expression),
                        syntactic_environment,
+                       cdr(expression),
                        cons(car(expression), frames),
                        list(make<instruction>(mnemonic::RETURN))),
                   continuation);
@@ -947,13 +951,13 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     SYNTAX(call_cc)
     {
-      debug(car(expression), faint, " ; is <procedure>");
+      WRITE_DEBUG(car(expression), faint, " ; is <procedure>");
 
       return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
                   continuation,
                   compile(the_expression_is,
-                          car(expression),
                           syntactic_environment,
+                          car(expression),
                           frames,
                           cons(make<instruction>(mnemonic::CALL), continuation)));
     }
@@ -968,7 +972,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      debug(car(expression), faint, " ; is <subprogram>");
+      WRITE_DEBUG(car(expression), faint, " ; is <subprogram>");
       return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
     }
 
@@ -992,28 +996,28 @@ inline namespace kernel
       {
         if (index.is_variadic())
         {
-          debug(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
+          WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
 
           return compile(in_context_free,
-                         cadr(expression),
                          syntactic_environment,
+                         cadr(expression),
                          frames,
                          cons(make<instruction>(mnemonic::STORE_VARIADIC), index, continuation));
         }
         else
         {
-          debug(car(expression), faint, "; is a <bound variable> references ", reset, index);
+          WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, index);
 
           return compile(in_context_free,
-                         cadr(expression),
                          syntactic_environment,
+                         cadr(expression),
                          frames,
                          cons(make<instruction>(mnemonic::STORE_LOCAL), index, continuation));
         }
       }
       else
       {
-        debug(car(expression), faint, "; is a <free variable>");
+        WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
         let const g = global(car(expression), syntactic_environment);
 
@@ -1024,8 +1028,8 @@ inline namespace kernel
         else
         {
           return compile(in_context_free,
-                         cadr(expression),
                          syntactic_environment,
+                         cadr(expression),
                          frames,
                          cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
         }
@@ -1042,25 +1046,25 @@ inline namespace kernel
     {
       if (expression.is<null>())
       {
-        debug(car(expression), faint, " ; is <identifier> of itself");
+        WRITE_DEBUG(car(expression), faint, " ; is <identifier> of itself");
         return unit;
       }
       else if (de_bruijn_index<equivalence_comparator<2>> variable { car(expression), frames }; variable)
       {
         if (variable.is_variadic())
         {
-          debug(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable);
+          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable);
           return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable, continuation);
         }
         else
         {
-          debug(car(expression), faint, " ; is <identifier> of local ", reset, variable);
+          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local ", reset, variable);
           return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable, continuation);
         }
       }
       else
       {
-        debug(car(expression), faint, " ; is <identifier> of free variable");
+        WRITE_DEBUG(car(expression), faint, " ; is <identifier> of free variable");
         return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(car(expression), syntactic_environment), continuation);
       }
     }
@@ -1078,12 +1082,12 @@ inline namespace kernel
     SYNTAX(construct)
     {
       return compile(in_context_free,
-                     cadr(expression),
                      syntactic_environment,
+                     cadr(expression),
                      frames,
                      compile(in_context_free,
-                             car(expression),
                              syntactic_environment,
+                             car(expression),
                              frames,
                              cons(make<instruction>(mnemonic::CONS), continuation)));
     }

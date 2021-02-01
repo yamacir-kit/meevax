@@ -44,8 +44,8 @@ inline namespace kernel
   template class reader<syntactic_continuation>;
   template class writer<syntactic_continuation>;
 
-  #define DEFINE_SYNTAX(IDENTIFIER, TRANSFORMER_SPEC)                          \
-  define<syntax>(IDENTIFIER, [this](auto&&... xs)                              \
+  #define DEFINE_SYNTAX(KEYWORD, TRANSFORMER_SPEC)                             \
+  define<syntax>(KEYWORD, [this](auto&&... xs)                                 \
   {                                                                            \
     return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
   })
