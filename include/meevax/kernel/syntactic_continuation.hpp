@@ -101,40 +101,6 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    template <typename... Ts>
-    explicit syntactic_continuation(Ts &&... xs)
-      : pair { std::forward<decltype(xs)>(xs)... }
-    {
-      boot(layer<0>());
-
-      if (form()) // If called from FORK instruction.
-      {
-        s = car(form());
-        e = cadr(form());
-        c = compile(at_the_top_level,
-                    syntactic_environment(),
-                    caaddr(form()),
-                    cdaddr(form()));
-        d = cdddr(form());
-
-        form() = execute();
-
-        assert(form().is<closure>());
-      }
-    }
-
-    template <std::size_t N>
-    explicit syntactic_continuation(layer<N>)
-      : syntactic_continuation { layer<decrement(N)>() }
-    {
-      boot(layer<N>());
-    }
-
-    template <std::size_t N>
-    void boot(layer<N>)
-    {}
-
-  public:
     decltype(auto) current_expression() const
     {
       return car(form());
@@ -292,6 +258,40 @@ inline namespace kernel
     {
       return (*this)[intern(name)];
     }
+
+  public:
+    template <typename... Ts>
+    explicit syntactic_continuation(Ts &&... xs)
+      : pair { std::forward<decltype(xs)>(xs)... }
+    {
+      boot(layer<0>());
+
+      if (form()) // If called from FORK instruction.
+      {
+        s = car(form());
+        e = cadr(form());
+        c = compile(at_the_top_level,
+                    syntactic_environment(),
+                    caaddr(form()),
+                    cdaddr(form()));
+        d = cdddr(form());
+
+        form() = execute();
+
+        assert(form().is<closure>());
+      }
+    }
+
+    template <std::size_t N>
+    explicit syntactic_continuation(layer<N>)
+      : syntactic_continuation { layer<decrement(N)>() }
+    {
+      boot(layer<N>());
+    }
+
+    template <std::size_t N>
+    void boot(layer<N>)
+    {}
 
   public: // Primitive Expression Types
     SYNTAX(exportation)
