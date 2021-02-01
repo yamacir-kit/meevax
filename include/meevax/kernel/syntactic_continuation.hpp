@@ -189,24 +189,18 @@ inline namespace kernel
       return execute();
     }
 
-    let const evaluate(object const& expression)
+    let const evaluate(let const& expression)
     {
-      push(d,
-        s.exchange(unit),
-        e.exchange(unit),
-        c.exchange(compile(in_context_free, syntactic_environment(), expression)));
+      c = compile(in_context_free, syntactic_environment(), expression);
 
-      write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
-      disassemble(standard_debug_port().as<output_port>(), c);
-      write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
+      if (in_debug_mode())
+      {
+        write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
+        disassemble(standard_debug_port().as<output_port>(), c);
+        write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
+      }
 
-      decltype(auto) result = execute();
-
-      s = pop(d);
-      e = pop(d);
-      c = pop(d);
-
-      return result;
+      return execute();
     }
 
     auto load(path const& name) -> auto const&
@@ -217,21 +211,12 @@ inline namespace kernel
       {
         write_to(standard_debug_port(), t, "\n");
 
-        // push(d,
-        //   std::atomic_exchange(&s, unit),
-        //   std::atomic_exchange(&e, unit),
-        //   std::atomic_exchange(&c, unit));
-
         for (let expression = read(port); expression != eof_object; expression = read(port))
         {
           write_to(standard_debug_port(), header("loader"), expression, "\n");
 
           evaluate(expression);
         }
-
-        // s = pop(d);
-        // e = pop(d);
-        // c = pop(d);
 
         return unspecified;
       }
