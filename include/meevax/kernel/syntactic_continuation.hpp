@@ -92,8 +92,6 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    using debugger::header;
-
     using configurator::in_batch_mode;
     using configurator::in_debug_mode;
     using configurator::in_interactive_mode;
@@ -205,7 +203,7 @@ inline namespace kernel
 
     auto load(path const& name) -> auto const&
     {
-      write_to(standard_debug_port(), header("loader"), "open ", name, " => ");
+      write_to(standard_debug_port(), header(__func__), "open ", name, " => ");
 
       if (let port = make<input_file_port>(name.c_str()); port)
       {
@@ -213,7 +211,7 @@ inline namespace kernel
 
         for (let expression = read(port); expression != eof_object; expression = read(port))
         {
-          write_to(standard_debug_port(), header("loader"), expression, "\n");
+          WRITE_DEBUG(expression);
 
           evaluate(expression);
         }
@@ -281,7 +279,7 @@ inline namespace kernel
   public: // Primitive Expression Types
     SYNTAX(exportation)
     {
-      if (verbose_mode.eqv(t))
+      if (in_verbose_mode())
       {
         std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
                   << indent()

@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_STRING_INDENT_HPP
 #define INCLUDED_MEEVAX_STRING_INDENT_HPP
 
-#include <bits/c++config.h>
 #include <ostream>
 #include <string>
 

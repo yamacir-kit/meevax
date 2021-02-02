@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_DEBUGGER_HPP
 #define INCLUDED_MEEVAX_KERNEL_DEBUGGER_HPP
 
-#include <meevax/string/indent.hpp>
 
 namespace meevax
 {
@@ -15,24 +14,7 @@ inline namespace kernel
     debugger()
     {}
 
-    IMPORT(SK, standard_debug_port, const);
-    IMPORT(SK, write_to,);
-
   public:
-    auto header(bytestring const& title = "compiler") const -> bytestring
-    {
-      bytestring s {"; "};
-
-      if (not indent::depth)
-      {
-        s.append(title);
-      }
-
-      s.resize(18, ' ');
-      s.replace(s.size() - 3, 3, " ; ");
-
-      return s;
-    }
   };
 } // namespace kernel
 } // namespace meevax
