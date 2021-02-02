@@ -280,10 +280,10 @@ inline namespace kernel
     dispatch:
       if constexpr (Trace)
       {
-        std::cerr << header("trace s") <<  s << "\n"
-                  << header("      e") <<  e << "\n"
-                  << header("      c") <<  c << "\n"
-                  << header("      d") <<  d << "\n" << std::endl;
+        std::cerr << faint << header("trace s") << reset <<  s << "\n"
+                  << faint << header("      e") << reset <<  e << "\n"
+                  << faint << header("      c") << reset <<  c << "\n"
+                  << faint << header("      d") << reset <<  d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().code)
