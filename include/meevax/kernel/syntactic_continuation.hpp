@@ -193,9 +193,9 @@ inline namespace kernel
 
       if (in_debug_mode())
       {
-        write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
+        write_to(standard_debug_port(), "\n");
         disassemble(standard_debug_port().as<output_port>(), c);
-        write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
+        write_to(standard_debug_port(), "\n");
       }
 
       return execute();

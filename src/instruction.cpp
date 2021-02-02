@@ -1,6 +1,8 @@
+#include <boost/lexical_cast.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/posix/vt10x.hpp>
+#include <meevax/string/header.hpp>
 
 namespace meevax
 {
@@ -31,7 +33,7 @@ inline namespace kernel
 
     for (auto iter = std::cbegin(c); iter != std::cend(c); ++iter)
     {
-      os << "; ";
+      os << header(boost::lexical_cast<std::string>(&(*iter).as<instruction>()));
 
       if (iter == c)
       {

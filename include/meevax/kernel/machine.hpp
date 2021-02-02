@@ -252,7 +252,7 @@ inline namespace kernel
 
         WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>") >> indent::width;
 
-        decltype(auto) result =
+        let const result =
           operand(in_context_free,
                   syntactic_environment,
                   cdr(expression),
@@ -280,10 +280,10 @@ inline namespace kernel
     dispatch:
       if constexpr (Trace)
       {
-        std::cerr << "; trace s\t; " <<  s << "\n"
-                  << ";       e\t; " <<  e << "\n"
-                  << ";       c\t; " <<  c << "\n"
-                  << ";       d\t; " <<  d << "\n" << std::endl;
+        std::cerr << header("trace s") <<  s << "\n"
+                  << header("      e") <<  e << "\n"
+                  << header("      c") <<  c << "\n"
+                  << header("      d") <<  d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().code)
