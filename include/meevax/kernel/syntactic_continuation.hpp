@@ -189,13 +189,17 @@ inline namespace kernel
 
     let const evaluate(let const& expression)
     {
+      if (in_debug_mode())
+      {
+        write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
+      }
+
       c = compile(in_context_free, syntactic_environment(), expression);
 
       if (in_debug_mode())
       {
         write_to(standard_debug_port(), "\n");
         disassemble(standard_debug_port().as<output_port>(), c);
-        write_to(standard_debug_port(), "\n");
       }
 
       return execute();
