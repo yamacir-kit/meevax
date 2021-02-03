@@ -97,6 +97,9 @@ inline namespace kernel
   // #endif // __cpp_lib_memory_resource
 
   let extern const unit;
+
+  template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
+  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<object const>, typename std::decay<T>::type>;
 } // namespace kernel
 } // namespace meevax
 

@@ -44,11 +44,11 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   auto car = [](auto&& x) noexcept -> decltype(auto)
   {
-    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
+    if constexpr (is_object<decltype(x)>::value)
     {
       return std::get<0>(x.binding());
     }
-    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(x)>::type>::value)
+    else if constexpr (is_reference<decltype(x)>::value)
     {
       return std::get<0>(x.get().binding());
     }
@@ -60,11 +60,11 @@ inline namespace kernel
 
   auto cdr = [](auto&& x) noexcept -> decltype(auto)
   {
-    if constexpr (std::is_base_of<object, typename std::decay<decltype(x)>::type>::value)
+    if constexpr (is_object<decltype(x)>::value)
     {
       return std::get<1>(x.binding());
     }
-    else if constexpr (std::is_base_of<std::reference_wrapper<object const>, typename std::decay<decltype(x)>::type>::value)
+    else if constexpr (is_reference<decltype(x)>::value)
     {
       return std::get<1>(x.get().binding());
     }
