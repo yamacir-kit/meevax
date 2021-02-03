@@ -53,13 +53,6 @@ inline namespace kernel
 
   public:
     // TODO MOVE INTO writer.cpp
-    let standard_null_port() const
-    {
-      let static port = make<output_file_port>("/dev/null");
-      return port;
-    }
-
-    // TODO MOVE INTO writer.cpp
     let standard_output_port() const
     {
       let static port = make<standard_output>();
@@ -71,6 +64,13 @@ inline namespace kernel
     {
       let static port = make<standard_error>();
       return in_batch_mode() ? standard_null_port() : port;
+    }
+
+    // TODO MOVE INTO writer.cpp
+    let standard_null_port() const
+    {
+      let static port = make<output_file_port>("/dev/null");
+      return port;
     }
 
     auto standard_verbose_port() const -> decltype(auto)
