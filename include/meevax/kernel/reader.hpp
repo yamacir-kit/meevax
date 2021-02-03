@@ -245,10 +245,10 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(SK, evaluate,);
-    IMPORT(SK, intern,);
-    IMPORT(SK, standard_debug_port,);
-    IMPORT(SK, write_to,);
+    IMPORT(SK, evaluate, NIL);
+    IMPORT(SK, intern, NIL);
+    IMPORT(SK, standard_debug_port, NIL);
+    IMPORT(SK, write_to, NIL);
 
     using seeker = std::istream_iterator<std::istream::char_type>;
 

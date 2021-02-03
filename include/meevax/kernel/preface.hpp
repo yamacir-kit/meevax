@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 
+#define NIL /* nothing */
+
 namespace meevax
 {
 inline namespace kernel

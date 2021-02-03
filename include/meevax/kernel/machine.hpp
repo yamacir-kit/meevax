@@ -31,14 +31,14 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(SK, evaluate,);
+    IMPORT(SK, evaluate, NIL);
     IMPORT(SK, in_debug_mode, const);
     IMPORT(SK, in_trace_mode, const);
-    IMPORT(SK, intern,);
+    IMPORT(SK, intern, NIL);
     IMPORT(SK, standard_debug_port, const);
     IMPORT(SK, standard_error_port, const);
     IMPORT(SK, standard_output_port, const);
-    IMPORT(SK, syntactic_environment,);
+    IMPORT(SK, syntactic_environment, NIL);
     IMPORT(SK, write_to, const);
 
     using keyword = SK;
