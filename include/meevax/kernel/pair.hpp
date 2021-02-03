@@ -27,10 +27,6 @@ inline namespace kernel
   {
     using std::pair<object, object>::pair;
 
-    explicit pair()
-      : std::pair<object, object> { unit, unit }
-    {}
-
     virtual ~pair() = default;
   };
 
@@ -42,37 +38,8 @@ inline namespace kernel
    *  valid operation for everyone except the empty list.
    *
    * ------------------------------------------------------------------------ */
-  auto car = [](auto&& x) noexcept -> decltype(auto)
-  {
-    if constexpr (is_object<decltype(x)>::value)
-    {
-      return std::get<0>(x.binding());
-    }
-    else if constexpr (is_reference<decltype(x)>::value)
-    {
-      return std::get<0>(x.get().binding());
-    }
-    else
-    {
-      return std::get<0>(std::forward<decltype(x)>(x));
-    }
-  };
-
-  auto cdr = [](auto&& x) noexcept -> decltype(auto)
-  {
-    if constexpr (is_object<decltype(x)>::value)
-    {
-      return std::get<1>(x.binding());
-    }
-    else if constexpr (is_reference<decltype(x)>::value)
-    {
-      return std::get<1>(x.get().binding());
-    }
-    else
-    {
-      return std::get<1>(std::forward<decltype(x)>(x));
-    }
-  };
+  auto car = [](auto&& x) noexcept -> decltype(auto) { return std::get<0>(unwrap(std::forward<decltype(x)>(x))); };
+  auto cdr = [](auto&& x) noexcept -> decltype(auto) { return std::get<1>(unwrap(std::forward<decltype(x)>(x))); };
 } // namespace kernel
 } // namespace meevax
 

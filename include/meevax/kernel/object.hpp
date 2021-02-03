@@ -100,6 +100,22 @@ inline namespace kernel
 
   template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
   template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<object const>, typename std::decay<T>::type>;
+
+  auto unwrap = [](auto&& x) -> decltype(auto)
+  {
+    if constexpr (is_object<decltype(x)>::value)
+    {
+      return x.binding();
+    }
+    else if constexpr (is_reference<decltype(x)>::value)
+    {
+      return x.get().binding();
+    }
+    else
+    {
+      return std::forward<decltype(x)>(x);
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 
