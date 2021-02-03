@@ -2,8 +2,6 @@
 
 namespace meevax
 {
-inline namespace string
-{
   auto header(std::string const& from, std::size_t size) -> std::string
   {
     std::string s = "; ";
@@ -19,5 +17,4 @@ inline namespace string
 
     return s;
   }
-} // namespace string
 } // namespace meevax

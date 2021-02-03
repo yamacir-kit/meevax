@@ -6,8 +6,6 @@
 
 namespace meevax
 {
-inline namespace string
-{
   struct indent
   {
     static inline           std::size_t depth         = 0;
@@ -28,7 +26,6 @@ inline namespace string
   auto operator <<(indent && datum, std::size_t width) -> indent &;
   auto operator >>(indent &  datum, std::size_t width) -> indent &;
   auto operator >>(indent && datum, std::size_t width) -> indent &;
-} // namespace string
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STRING_INDENT_HPP
