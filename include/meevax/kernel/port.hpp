@@ -16,9 +16,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  using  input_port = std::istream;
-  using output_port = std::ostream;
-
   /* ---- Standard I/O ---------------------------------------------------------
    *
    *

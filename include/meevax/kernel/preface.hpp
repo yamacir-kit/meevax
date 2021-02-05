@@ -17,6 +17,9 @@ inline namespace kernel
   using let = object;
 
   using bytestring = std::string;
+
+  using  input_port = std::istream;
+  using output_port = std::ostream;
 } // namespace kernel
 } // namespace meevax
 
