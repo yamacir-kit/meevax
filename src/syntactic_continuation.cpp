@@ -1279,6 +1279,15 @@ inline namespace kernel
     });
 
 
+    define<procedure>("path?", make_predicate<path>());
+
+    define<procedure>("::write-path", [](let const& xs)
+    {
+      cadr(xs).as<output_port>() << car(xs).as<path>().c_str();
+      return unspecified;
+    });
+
+
     define<procedure>("::flush-output-port", [](let const& xs)
     {
       car(xs).as<output_port>() << std::flush;
@@ -1394,11 +1403,11 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<4>)
   {
-    define<procedure>("print", [](auto&& xs)
+    define<procedure>("print", [](let const& xs)
     {
       for (let const& x : xs)
       {
-        if (x.template is<string>())
+        if (x.is<string>())
         {
           std::cout << static_cast<bytestring>(x.template as<string>());
         }
