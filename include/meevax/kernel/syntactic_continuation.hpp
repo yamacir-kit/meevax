@@ -92,8 +92,6 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    using debugger::header;
-
     using configurator::in_batch_mode;
     using configurator::in_debug_mode;
     using configurator::in_interactive_mode;
@@ -189,49 +187,38 @@ inline namespace kernel
       return execute();
     }
 
-    let const evaluate(object const& expression)
+    let const evaluate(let const& expression)
     {
-      push(d,
-        s.exchange(unit),
-        e.exchange(unit),
-        c.exchange(compile(in_context_free, syntactic_environment(), expression)));
+      if (in_debug_mode())
+      {
+        write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
+      }
 
-      write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
-      disassemble(standard_debug_port().as<output_port>(), c);
-      write_to(standard_debug_port(), "; ", bytestring(78, '-'), "\n");
+      c = compile(in_context_free, syntactic_environment(), expression);
 
-      decltype(auto) result = execute();
+      if (in_debug_mode())
+      {
+        write_to(standard_debug_port(), "\n");
+        disassemble(standard_debug_port().as<output_port>(), c);
+      }
 
-      s = pop(d);
-      e = pop(d);
-      c = pop(d);
-
-      return result;
+      return execute();
     }
 
     auto load(path const& name) -> auto const&
     {
-      write_to(standard_debug_port(), header("loader"), "open ", name, " => ");
+      write_to(standard_debug_port(), header(__func__), "open ", name, " => ");
 
       if (let port = make<input_file_port>(name.c_str()); port)
       {
         write_to(standard_debug_port(), t, "\n");
 
-        // push(d,
-        //   std::atomic_exchange(&s, unit),
-        //   std::atomic_exchange(&e, unit),
-        //   std::atomic_exchange(&c, unit));
-
         for (let expression = read(port); expression != eof_object; expression = read(port))
         {
-          write_to(standard_debug_port(), header("loader"), expression, "\n");
+          WRITE_DEBUG(expression);
 
           evaluate(expression);
         }
-
-        // s = pop(d);
-        // e = pop(d);
-        // c = pop(d);
 
         return unspecified;
       }
@@ -296,7 +283,7 @@ inline namespace kernel
   public: // Primitive Expression Types
     SYNTAX(exportation)
     {
-      if (verbose_mode.eqv(t))
+      if (in_verbose_mode())
       {
         std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
                   << indent()

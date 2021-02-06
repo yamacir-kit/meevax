@@ -8,6 +8,13 @@ namespace meevax
 {
 inline namespace kernel
 {
+  void copy_ios(std::ios & from, std::ios & to)
+  {
+    to.copyfmt(from);
+    to.clear(from.rdstate());
+    to.rdbuf(from.rdbuf());
+  }
+
   auto operator <<(output_port & port, standard_input const&) -> output_port &
   {
     return port << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
@@ -24,7 +31,7 @@ inline namespace kernel
   }
 
   #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
-  auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
+  auto operator <<(output_port & port, TYPENAME const& datum) -> output_port & \
   {                                                                            \
     port << magenta << "#,(" << green << "open-" PORTTYPE << " " << datum.name << reset; \
                                                                                \
@@ -41,13 +48,12 @@ inline namespace kernel
 
   #undef BOILERPLATE
 
-
   #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
-  auto operator<<(std::ostream& port, const TYPENAME& datum) -> decltype(port) \
+  auto operator <<(output_port & port, TYPENAME const& datum) -> output_port & \
   {                                                                            \
     port << magenta << "#,(" << green << "open-" PORTTYPE;                     \
                                                                                \
-    if (const auto s { datum.str() }; not std::empty(s))                       \
+    if (auto const s = datum.str(); not std::empty(s))                         \
     {                                                                          \
       port << " " << cyan << make_string(s);                                   \
     }                                                                          \

@@ -5,8 +5,6 @@
 
 namespace meevax
 {
-inline namespace string
-{
   template <typename... Ts>
   auto cat(Ts&&... xs)
   {
@@ -14,7 +12,6 @@ inline namespace string
     (port << ... << xs);
     return port.str();
   }
-} // namespace string
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STRING_CAT_HPP

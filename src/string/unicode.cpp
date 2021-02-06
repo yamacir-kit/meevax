@@ -5,8 +5,6 @@
 
 namespace meevax
 {
-inline namespace string
-{
   auto codepoint_to_codeunit(codepoint cp) -> codeunit
   {
     std::array<codeunit::value_type, 5> cu = {};
@@ -91,5 +89,4 @@ inline namespace string
 
     return cp;
   }
-} // namespace string
 } // namespace meevax

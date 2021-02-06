@@ -2,8 +2,6 @@
 
 namespace meevax
 {
-inline namespace string
-{
   auto operator <<(std::ostream & os, indent const& datum) -> std::ostream &
   {
     return os << static_cast<std::string>(datum);
@@ -32,5 +30,4 @@ inline namespace string
     indent::depth += width;
     return datum;
   }
-} // namespace string
 } // namespace meevax

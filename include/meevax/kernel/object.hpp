@@ -10,25 +10,25 @@ inline namespace kernel
   /* ---- Identity ---------------------------------------------------------- */
 
   template <typename T>
-  struct alignas(sizeof(word)) identity
+  struct alignas(sizeof(word)) top
   {
-    virtual auto type() const noexcept -> const std::type_info&
+    virtual auto type() const noexcept -> std::type_info const&
     {
       return typeid(T);
     }
 
     virtual auto copy() const -> pointer<T>
     {
-      return delay<clone>().yield<pointer<T>>(static_cast<const T&>(*this), nullptr);
+      return delay<clone>().yield<pointer<T>>(static_cast<T const&>(*this), nullptr);
     }
 
-    virtual bool eqv(const pointer<T>& rhs) const
+    virtual bool eqv(pointer<T> const& rhs) const
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        if (const auto rhsp { std::dynamic_pointer_cast<const T>(rhs) })
+        if (auto const rhsp = std::dynamic_pointer_cast<T const>(rhs))
         {
-          return static_cast<const T&>(*this) == *rhsp;
+          return static_cast<T const&>(*this) == *rhsp;
         }
         else
         {
@@ -41,15 +41,15 @@ inline namespace kernel
       }
     }
 
-    virtual auto write_to(std::ostream& port) const -> decltype(port)
+    virtual auto write_to(output_port & port) const -> output_port &
     {
-      return delay<write>().yield<decltype(port)>(port, static_cast<const T&>(*this));
+      return delay<write>().yield<output_port &>(port, static_cast<T const&>(*this));
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                             \
-    virtual auto operator SYMBOL(const pointer<T>& rhs) const -> RESULT        \
+    virtual auto operator SYMBOL(pointer<T> const& x) const -> RESULT          \
     {                                                                          \
-      return delay<OPERATION>().yield<RESULT>(static_cast<const T&>(*this), rhs); \
+      return delay<OPERATION>().yield<RESULT>(static_cast<T const&>(*this), x); \
     } static_assert(true)
 
     BOILERPLATE(+, pointer<T>, std::plus<void>);
@@ -97,6 +97,25 @@ inline namespace kernel
   // #endif // __cpp_lib_memory_resource
 
   let extern const unit;
+
+  template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
+  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<object const>, typename std::decay<T>::type>;
+
+  auto unwrap = [](auto&& x) -> decltype(auto)
+  {
+    if constexpr (is_object<decltype(x)>::value)
+    {
+      return x.binding();
+    }
+    else if constexpr (is_reference<decltype(x)>::value)
+    {
+      return x.get().binding();
+    }
+    else
+    {
+      return std::forward<decltype(x)>(x);
+    }
+  };
 } // namespace kernel
 } // namespace meevax
 

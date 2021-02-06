@@ -18,9 +18,9 @@ inline namespace kernel
   {
     friend SK;
 
-    IMPORT(SK, evaluate,);
+    IMPORT(SK, evaluate, NIL);
     IMPORT(SK, newline, const);
-    IMPORT(SK, read,);
+    IMPORT(SK, read, NIL);
     IMPORT(SK, standard_verbose_port, const);
     IMPORT(SK, write, const);
     IMPORT(SK, write_line, const);

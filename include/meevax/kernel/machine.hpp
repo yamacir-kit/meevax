@@ -10,6 +10,8 @@
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntax.hpp>
+#include <meevax/string/header.hpp>
+#include <meevax/string/indent.hpp>
 
 namespace meevax
 {
@@ -18,10 +20,8 @@ inline namespace kernel
   #define WRITE_DEBUG(...)                                                     \
   if (in_debug_mode())                                                         \
   {                                                                            \
-    write_to(standard_debug_port(), header(), indent(), __VA_ARGS__);          \
-  }                                                                            \
-  static_assert(true)
-  // TODO static_assert() => indent()
+    write_to(standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
+  } indent()
 
   template <typename SK>
   class machine // TR-SECD machine.
@@ -31,16 +31,14 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(SK, debug,);
-    IMPORT(SK, evaluate,);
-    IMPORT(SK, header, const);
+    IMPORT(SK, evaluate, NIL);
     IMPORT(SK, in_debug_mode, const);
     IMPORT(SK, in_trace_mode, const);
-    IMPORT(SK, intern,);
+    IMPORT(SK, intern, NIL);
     IMPORT(SK, standard_debug_port, const);
     IMPORT(SK, standard_error_port, const);
     IMPORT(SK, standard_output_port, const);
-    IMPORT(SK, syntactic_environment,);
+    IMPORT(SK, syntactic_environment, NIL);
     IMPORT(SK, write_to, const);
 
     using keyword = SK;
@@ -58,11 +56,9 @@ inline namespace kernel
     {
       push(syntactic_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
 
-      write_to(standard_debug_port(),
-               header("define"),
-               caar(syntactic_environment()),
-               faint, " binds ", reset,
-               cdar(syntactic_environment()), "\n");
+      WRITE_DEBUG(
+        caar(syntactic_environment()), faint, " binds ", reset,
+        cdar(syntactic_environment()));
 
       return unspecified;
     }
@@ -193,17 +189,13 @@ inline namespace kernel
         {
           if (applicant.is<syntax>())
           {
-            WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>");
-
-            indent() >> indent::width;
+            WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>") >> indent::width;
 
             decltype(auto) result =
               applicant.as<syntax>().compile(
                 the_expression_is,syntactic_environment, cdr(expression), frames, continuation);
 
-            WRITE_DEBUG(magenta, ")");
-
-            indent() << indent::width;
+            WRITE_DEBUG(magenta, ")") << indent::width;
 
             return result;
           }
@@ -211,14 +203,11 @@ inline namespace kernel
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
-            const auto expanded = applicant.as<SK>().macroexpand(applicant, expression);
+            let const result = applicant.as<SK>().macroexpand(applicant, expression);
 
-            if (in_debug_mode())
-            {
-              write_to(standard_debug_port(), header("macroexpand-1"), indent(), expanded, "\n");
-            }
+            WRITE_DEBUG(result);
 
-            return compile(in_context_free, syntactic_environment, expanded, frames, continuation);
+            return compile(in_context_free, syntactic_environment, result, frames, continuation);
           }
         }
 
@@ -261,10 +250,9 @@ inline namespace kernel
          *
          * ------------------------------------------------------------------ */
 
-        WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>");
-        indent() >> indent::width;
+        WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>") >> indent::width;
 
-        decltype(auto) result =
+        let const result =
           operand(in_context_free,
                   syntactic_environment,
                   cdr(expression),
@@ -277,8 +265,7 @@ inline namespace kernel
                                                                                        : mnemonic::     CALL),
                                continuation)));
 
-        WRITE_DEBUG(magenta, ")");
-        indent() << indent::width;
+        WRITE_DEBUG(magenta, ")") << indent::width;
 
         return result;
       }
@@ -293,10 +280,10 @@ inline namespace kernel
     dispatch:
       if constexpr (Trace)
       {
-        std::cerr << "; trace s\t; " <<  s << "\n"
-                  << ";       e\t; " <<  e << "\n"
-                  << ";       c\t; " <<  c << "\n"
-                  << ";       d\t; " <<  d << "\n" << std::endl;
+        std::cerr << faint << header("trace s") << reset <<  s << "\n"
+                  << faint << header("      e") << reset <<  e << "\n"
+                  << faint << header("      c") << reset <<  c << "\n"
+                  << faint << header("      d") << reset <<  d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().code)

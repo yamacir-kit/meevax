@@ -16,98 +16,78 @@ namespace meevax
 {
 inline namespace kernel
 {
-  using  input_port = std::istream;
-  using output_port = std::ostream;
-
-  /* ---- Standard Input Ports -------------------------------------------------
+  /* ---- Standard I/O ---------------------------------------------------------
    *
    *
    * ------------------------------------------------------------------------ */
-  struct standard_input
-    : public input_port
+  void copy_ios(std::ios & from, std::ios & to);
+
+  struct standard_input : public input_port
   {
     explicit standard_input()
     {
-      copyfmt(std::cin);
-      clear(std::cin.rdstate());
-      rdbuf(std::cin.rdbuf());
+      copy_ios(std::cin, *this);
     }
   };
 
-  struct standard_output
-    : public output_port
+  struct standard_output : public output_port
   {
     explicit standard_output()
     {
-      copyfmt(std::cout);
-      clear(std::cout.rdstate());
-      rdbuf(std::cout.rdbuf());
+      copy_ios(std::cout, *this);
     }
   };
 
-  struct standard_error
-    : public output_port
+  struct standard_error : public output_port
   {
     explicit standard_error()
     {
-      copyfmt(std::cerr);
-      clear(std::cerr.rdstate());
-      rdbuf(std::cerr.rdbuf());
+      copy_ios(std::cerr, *this);
     }
   };
 
-  auto operator <<(output_port &, standard_input const&) -> output_port &;
-
+  auto operator <<(output_port &, standard_input  const&) -> output_port &;
   auto operator <<(output_port &, standard_output const&) -> output_port &;
+  auto operator <<(output_port &, standard_error  const&) -> output_port &;
 
-  auto operator <<(output_port &, standard_error const&) -> output_port &;
-
-  /* ---- Ports ----------------------------------------------------------------
+  /* ---- File Ports -----------------------------------------------------------
    *
    *
    * ------------------------------------------------------------------------ */
   template <typename T>
-  struct file_port
-    : public T
+  struct file_port : public T
   {
-    const path name;
+    path const name;
 
     explicit file_port(bytestring const& name)
       : T    { name }
       , name { name }
     {}
-
-    // explicit file_port(bytestring const& name, std::ios const& ios)
-    //   : T    { name }
-    //   , name { name }
-    // {
-    //   std::ios::copyfmt(ios);
-    //   std::ios::clear(ios.rdstate());
-    //   std::ios::rdbuf(ios.rdbuf()); // NOTE: A very unstable and dirty hack.
-    // }
   };
 
-  using input_file_port = file_port<std::ifstream>;
+  using  input_file_port = file_port<std::ifstream>;
   using output_file_port = file_port<std::ofstream>;
 
-  auto operator <<(output_port &, const input_file_port&) -> output_port &;
-  auto operator <<(output_port &, const output_file_port&) -> output_port &;
+  auto operator <<(output_port &,  input_file_port const&) -> output_port &;
+  auto operator <<(output_port &, output_file_port const&) -> output_port &;
 
-  struct input_string_port
-    : public std::istringstream
+  /* ---- String Ports ---------------------------------------------------------
+   *
+   *  SRFI-6
+   *
+   * ------------------------------------------------------------------------ */
+  struct input_string_port : public std::istringstream
   {
     using std::istringstream::istringstream;
   };
 
-  auto operator <<(std::ostream& port, const input_string_port&) -> decltype(port);
-
-  struct output_string_port
-    : public std::ostringstream
+  struct output_string_port : public std::ostringstream
   {
     using std::ostringstream::ostringstream;
   };
 
-  auto operator <<(std::ostream& port, const output_string_port&) -> decltype(port);
+  auto operator <<(output_port & port,  input_string_port const&) -> output_port &;
+  auto operator <<(output_port & port, output_string_port const&) -> output_port &;
 } // namespace kernel
 } // namespace meevax
 

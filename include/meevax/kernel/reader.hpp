@@ -21,6 +21,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
+#include <meevax/string/header.hpp>
 
 namespace meevax
 {
@@ -244,8 +245,10 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(SK, evaluate,);
-    IMPORT(SK, intern,);
+    IMPORT(SK, evaluate, NIL);
+    IMPORT(SK, intern, NIL);
+    IMPORT(SK, standard_debug_port, NIL);
+    IMPORT(SK, write_to, NIL);
 
     using seeker = std::istream_iterator<std::istream::char_type>;
 
@@ -351,9 +354,13 @@ inline namespace kernel
       }
     }
 
-    auto read() -> decltype(auto)
+    let const read()
     {
-      return read(standard_input_port());
+      let const result = read(standard_input_port());
+
+      write_to(standard_debug_port(), "\n", header(__func__), result, "\n");
+
+      return result;
     }
 
     auto read(const bytestring& s) -> decltype(auto)

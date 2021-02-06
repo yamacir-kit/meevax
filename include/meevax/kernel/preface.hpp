@@ -1,6 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 
+#define NIL /* nothing */
+
 namespace meevax
 {
 inline namespace kernel
@@ -15,6 +17,9 @@ inline namespace kernel
   using let = object;
 
   using bytestring = std::string;
+
+  using  input_port = std::istream;
+  using output_port = std::ostream;
 } // namespace kernel
 } // namespace meevax
 

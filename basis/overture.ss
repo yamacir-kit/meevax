@@ -1643,6 +1643,7 @@
   (lambda (datum . port)
     (cond ((char?   datum) (apply write-char    datum port))
           ((string? datum) (apply write-string  datum port))
+          ((path?   datum) (apply write-path    datum port))
           (else            (apply write         datum port)))))
 
 (define newline
@@ -1661,6 +1662,12 @@
       ((0)  (::write-string string (current-output-port)))
       ((1)  (::write-string string (car xs)))
       (else (::write-string (apply string-copy string (cadr xs)) (car xs))))))
+
+(define write-path
+  (lambda (path . x)
+    (::write-path path (if (pair? x)
+                           (car x)
+                           (current-output-port)))))
 
 ; TODO write-u8
 ; TODO write-bytevector
