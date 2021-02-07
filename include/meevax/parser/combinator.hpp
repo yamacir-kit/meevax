@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <iostream>
+#include <type_traits>
 
 #include <meevax/parser/class.hpp>
 #include <meevax/string/unicode.hpp>
@@ -11,8 +12,8 @@
 
 namespace meevax
 {
-  template <typename T>
-  using parser = std::function<T (input_port &)>;
+  template <typename R>
+  using parser = std::function<R (input_port &)>;
 
   auto get_char = [](auto&& port = std::cin)
   {
@@ -71,9 +72,9 @@ namespace meevax
     return true;
   });
 
-  auto char1 = [](auto&& c)
+  auto char1 = [](codeunit const& c)
   {
-    return satisfy([=](char&& x)
+    return satisfy([=](codeunit const& x)
     {
       return c == x;
     });
@@ -84,6 +85,126 @@ namespace meevax
   auto upper     = satisfy(is_upper);
   auto lower     = satisfy(is_lower);
   auto letter    = satisfy(is_letter);
+
+  template <typename F,
+            typename G,
+            REQUIRES(std::is_invocable<F, input_port &>),
+            REQUIRES(std::is_invocable<G, input_port &>)>
+  auto operator +(F&& f, G&& g)
+  {
+    return [=](input_port & port)
+    {
+      codeunits result {};
+
+      result += f(port);
+      result += g(port);
+
+      return result;
+    };
+  }
+
+  auto hoge = char1("x") + digit;
+
+  template <typename F, REQUIRES(std::is_invocable<F, input_port &>)>
+  auto operator *(F&& f, int k)
+  {
+    return [=](input_port & port)
+    {
+      codeunits result {};
+
+      for (auto i = 0; i < k; ++i)
+      {
+        result += f(port);
+      }
+
+      return result;
+    };
+  }
+
+  template <typename F, REQUIRES(std::is_invocable<F, input_port &>)>
+  auto operator *(int k, F&& f)
+  {
+    return f * k;
+  }
+
+  auto fuga = letter * 2 + digit;
+
+  auto many = [](auto&& parse)
+  {
+    return [=](input_port & port)
+    {
+      codeunits result;
+
+      try
+      {
+        while (true)
+        {
+          result += parse(port);
+        }
+      }
+      catch (...)
+      {}
+
+      return unit;
+    };
+  };
+
+  template <typename F,
+            typename G,
+            REQUIRES(std::is_invocable<F, input_port &>),
+            REQUIRES(std::is_invocable<G, input_port &>)>
+  auto operator |(F&& f, G&& g)
+  {
+    return [=](input_port & port)
+    {
+      codeunits result;
+
+      auto const backtrack = port.tellg();
+
+      try
+      {
+        result = f(port);
+      }
+      catch (...)
+      {
+        port.seekg(backtrack);
+        result = g(port);
+      }
+
+      return result;
+    };
+  }
+
+  auto backtrack = [](auto&& parse)
+  {
+    return [=](input_port & port)
+    {
+      auto const g = port.tellg();
+
+      try
+      {
+        return parse(port);
+      }
+      catch (...)
+      {
+        port.seekg(g);
+        throw;
+      }
+    };
+  };
+
+  auto string1 = [](std::string const& s)
+  {
+    return [=](input_port & port)
+    {
+      for (auto const& c : s)
+      {
+        char1(codeunit(c, 1))(port);
+      }
+
+      return s;
+    };
+  };
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_PARSER_COMBINATOR_HPP
