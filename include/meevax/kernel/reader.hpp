@@ -201,7 +201,7 @@ inline namespace kernel
         return read(is), read(is);
 
       case 'b': // (string->number (read) 2)
-        return make_number(boost::lexical_cast<bytestring>(read(is)), 2);
+        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 2);
 
       case 'c': // from Common Lisp
         if (let const xs = read(is); not xs.is<pair>())
@@ -218,7 +218,7 @@ inline namespace kernel
         }
 
       case 'd':
-        return make_number(boost::lexical_cast<bytestring>(read(is)), 10);
+        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 10);
 
       case 'e':
         return exact(read(is));
@@ -231,7 +231,7 @@ inline namespace kernel
         return inexact(read(is));
 
       case 'o':
-        return make_number(boost::lexical_cast<bytestring>(read(is)), 8);
+        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 8);
 
       case 'p':
         switch (is.peek())
@@ -249,7 +249,7 @@ inline namespace kernel
         return t;
 
       case 'x':
-        return make_number(boost::lexical_cast<bytestring>(read(is)), 16);
+        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 16);
 
       case '(':
         is.putback('(');

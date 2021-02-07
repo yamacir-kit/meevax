@@ -922,9 +922,8 @@
 ; ---- 6.5.6. Numerical input and output ---------------------------------------
 
 (check (string->number "100") => 100)
-; (check (string->number "100" 16) => 256)
+(check (string->number "100" 16) => 256)
 ; (check (string->number "1e2") => 100.0)
-; (check (string->number "15##") => 1500.0)
 
 
 ; ==== 6.6. Characters =========================================================

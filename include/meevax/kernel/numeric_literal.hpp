@@ -40,7 +40,7 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   auto make_integer = [](bytestring const& token, auto radix = 10)
   {
-    std::regex static const pattern { "[+-]?[\\dabcdef]+" };
+    std::regex static const pattern { "[+-]?[\\dABCDEFabcdef]+" }; // XXX DIRTY HACK
 
     if (std::smatch result; std::regex_match(token, result, pattern))
     {
