@@ -21,6 +21,7 @@
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
+#include <meevax/parser/combinator.hpp>
 #include <meevax/string/header.hpp>
 
 namespace meevax
@@ -369,7 +370,6 @@ inline namespace kernel
       return read(ss);
     }
 
-  public:
     let standard_input_port() const noexcept
     {
       let static port = make<standard_input>();
