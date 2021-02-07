@@ -14,14 +14,13 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/miscellaneous.hpp>
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/parser.hpp>
+#include <meevax/kernel/numeric_literal.hpp>
+#include <meevax/kernel/parser.hpp> // DEPRECATED
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
-#include <meevax/parser/combinator.hpp>
 #include <meevax/string/header.hpp>
 
 namespace meevax
@@ -140,7 +139,7 @@ inline namespace kernel
   } // inline namespace lexical_structure
 
   template <std::size_t R = 10>
-  auto is_number(bytestring const& token)
+  auto is_numeric_literal(bytestring const& token)
   {
     static const std::regex pattern { number<R>() };
     std::smatch result {};
@@ -259,15 +258,13 @@ inline namespace kernel
   public:
     /* ---- Read ---------------------------------------------------------------
      *
-     *  TODO
-     *    Rename read(std::istream&) => read_from
      *
      * ---------------------------------------------------------------------- */
-    let const read(std::istream& port)
+    let const read(input_port & port)
     {
       bytestring token {};
 
-      for (seeker head { port }; head != seeker {}; ++head) switch (*head)
+      for (seeker head = port; head != seeker {}; ++head) switch (*head)
       {
       case ';':
         port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -279,7 +276,7 @@ inline namespace kernel
       case '(':
         try
         {
-          auto expression {read(port)};
+          let const expression = read(port);
           port.putback('(');
           return cons(expression, read(port));
         }
@@ -289,9 +286,9 @@ inline namespace kernel
         }
         catch (read_error<improper_list_tag> const&)
         {
-          let y = read(port);
+          let kdr = read(port);
           port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-          return y;
+          return kdr;
         }
 
       case ')':
@@ -323,7 +320,7 @@ inline namespace kernel
       default:
         token.push_back(*head);
 
-        if (auto c { port.peek() }; is_end_of_token(c))
+        if (auto const c = port.peek(); is_end_of_token(c))
         {
           if (token == ".")
           {
@@ -390,22 +387,22 @@ inline namespace kernel
         is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return read(is);
 
-      case ',': // SRFI-10
+      case ',': // from SRFI-10
         is.ignore(1);
         return evaluate(read(is));
 
-      case ';': // SRFI-62
+      case ';': // from SRFI-62
         is.ignore(1);
         return read(is), read(is);
 
-      case 'c': // Common Lisp
+      case 'c': // from Common Lisp
         is.ignore(1);
 
-        if (let const xs { read(is) }; xs.is<null>() or not xs.is<pair>())
+        if (let const xs = read(is); not xs.is<pair>())
         {
           return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
         }
-        else if (cdr(xs).is<null>() or not cdr(xs).is<pair>())
+        else if (not cdr(xs).is<pair>())
         {
           return make<complex>(car(xs), make<exact_integer>(0));
         }
@@ -418,9 +415,17 @@ inline namespace kernel
         is.ignore(1);
         return make<exact_integer>(read_token(is));
 
+      case 'e':
+        is.ignore(1);
+        return exact(read(is));
+
       case 'f':
         ignore(is, [](auto&& x) { return not is_end_of_token(x); });
         return f;
+
+      case 'i':
+        is.ignore(1);
+        return inexact(read(is));
 
       case 'o':
         is.ignore(1);

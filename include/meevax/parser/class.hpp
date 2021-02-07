@@ -14,16 +14,6 @@ namespace meevax
     return character::eq_int_type(character::to_int_type(c), character::eof());
   };
 
-  auto is_digit = [](codeunit const& c)
-  {
-    return '0' <= c[0] and c[0] <= '9';
-  };
-
-  auto is_hex_digit = [](codeunit const& c)
-  {
-    return is_digit(c) or ('a' <= c[0] and c[0] <= 'f');
-  };
-
   auto is_upper = [](codeunit const& c)
   {
     return 'A' <= c[0] and c[0] <= 'Z';
@@ -38,7 +28,6 @@ namespace meevax
   {
     return is_upper(c) or is_lower(c);
   };
-
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_PARSER_CLASS_HPP

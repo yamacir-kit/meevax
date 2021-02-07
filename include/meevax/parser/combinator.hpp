@@ -72,20 +72,6 @@ namespace meevax
     return true;
   });
 
-  auto char1 = [](codeunit const& c)
-  {
-    return satisfy([=](codeunit const& x)
-    {
-      return c == x;
-    });
-  };
-
-  auto digit     = satisfy(is_digit);
-  auto hex_digit = satisfy(is_hex_digit);
-  auto upper     = satisfy(is_upper);
-  auto lower     = satisfy(is_lower);
-  auto letter    = satisfy(is_letter);
-
   template <typename F,
             typename G,
             REQUIRES(std::is_invocable<F, input_port &>),
@@ -102,8 +88,6 @@ namespace meevax
       return result;
     };
   }
-
-  auto hoge = char1("x") + digit;
 
   template <typename F, REQUIRES(std::is_invocable<F, input_port &>)>
   auto operator *(F&& f, int k)
@@ -126,8 +110,6 @@ namespace meevax
   {
     return f * k;
   }
-
-  auto fuga = letter * 2 + digit;
 
   auto many = [](auto&& parse)
   {
@@ -193,7 +175,15 @@ namespace meevax
     };
   };
 
-  auto string1 = [](std::string const& s)
+  auto char1 = [](codeunit const& c)
+  {
+    return satisfy([=](codeunit const& x)
+    {
+      return c == x;
+    });
+  };
+
+  auto string1 = [](codeunits const& s)
   {
     return [=](input_port & port)
     {
@@ -205,6 +195,32 @@ namespace meevax
       return s;
     };
   };
+
+  template <typename F,
+            typename G,
+            REQUIRES(std::is_invocable<F, input_port &>),
+            REQUIRES(std::is_invocable<G, input_port &>)>
+  auto operator <<(F&& f, G&& g)
+  {
+    return [=](input_port & port)
+    {
+      auto const result = f(port);
+      g(port);
+      return result;
+    };
+  }
+
+  template <typename F,
+            typename G,
+            REQUIRES(std::is_invocable<F, input_port &>),
+            REQUIRES(std::is_invocable<G, input_port &>)>
+  auto operator >>(F&& f, G&& g)
+  {
+    return [=](input_port & port)
+    {
+      return f(port), g(port);
+    };
+  }
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_PARSER_COMBINATOR_HPP
