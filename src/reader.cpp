@@ -90,38 +90,5 @@ inline namespace kernel
     port << text << "\"";
     return read_string(port);
   }
-
-  inline namespace lexical_structure
-  {
-    template <> auto digit< 2>() -> bytestring { return "[01]"; }
-    template <> auto digit< 8>() -> bytestring { return "[01234567]"; }
-    template <> auto digit<10>() -> bytestring { return "\\d"; }
-    template <> auto digit<16>() -> bytestring { return "[" + digit<10>() + "abcdef]"; }
-
-    template <> auto radix< 2>() -> bytestring { return  "#b";   }
-    template <> auto radix< 8>() -> bytestring { return  "#o";   }
-    template <> auto radix<10>() -> bytestring { return "(#d)?"; }
-    template <> auto radix<16>() -> bytestring { return  "#x";   }
-
-    auto exactness() -> bytestring
-    {
-      return "(#e|#i)?";
-    }
-
-    auto sign() -> bytestring
-    {
-      return "[\\+-]?";
-    }
-
-    auto infnan() -> bytestring
-    {
-      return "[\\+-](inf|nan)\\.0";
-    }
-
-    auto suffix() -> bytestring
-    {
-      return "(e" + sign() + digits<10>("+") + ")?";
-    }
-  }
 } // namespace kernel
 } // namespace meevax

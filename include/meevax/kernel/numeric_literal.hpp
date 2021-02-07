@@ -40,25 +40,32 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   auto make_integer = [](bytestring const& token, auto radix = 10)
   {
-    switch (radix)
-    {
-    case  2: return make<exact_integer>("0b" + token.substr(token[0] == '+' ? 1 : 0));
-    case  8: return make<exact_integer>("0"  + token.substr(token[0] == '+' ? 1 : 0));
-    case 10: return make<exact_integer>(       token.substr(token[0] == '+' ? 1 : 0));
-    case 16: return make<exact_integer>("0x" + token.substr(token[0] == '+' ? 1 : 0));
+    std::regex static const pattern { "[+-]?[\\dabcdef]+" };
 
-    default:
-      throw read_error<void>(__FILE__, ":", __LINE__);
+    if (std::smatch result; std::regex_match(token, result, pattern))
+    {
+      switch (radix)
+      {
+      case  2: return make<exact_integer>("0b" + token.substr(token[0] == '+' ? 1 : 0));
+      case  8: return make<exact_integer>("0"  + token.substr(token[0] == '+' ? 1 : 0));
+      case 10: return make<exact_integer>(       token.substr(token[0] == '+' ? 1 : 0));
+      case 16: return make<exact_integer>("0x" + token.substr(token[0] == '+' ? 1 : 0));
+
+      default:
+        throw read_error<exact_integer>(token, " is not an integer's external representation");
+      }
+    }
+    else
+    {
+      throw read_error<exact_integer>(token, " is not an integer's external representation");
     }
   };
 
   auto make_ratio = [](bytestring const& token, auto radix = 10)
   {
-    std::regex static const pattern { "([\\dabcdef]+)/([\\dabcdef]+)" };
+    std::regex static const pattern { "([+-]?[\\dabcdef]+)/([\\dabcdef]+)" };
 
-    auto const s = token.substr(token[0] == '+' ? 1 : 0);
-
-    if (std::smatch result; std::regex_match(s, result, pattern))
+    if (std::smatch result; std::regex_match(token, result, pattern))
     {
       if (auto const value =
             ratio(make_integer(result.str(1), radix),
@@ -106,19 +113,40 @@ inline namespace kernel
    *  <exponent marker> = e
    *
    * ------------------------------------------------------------------------ */
-  auto make_decimal = [](bytestring const& token, auto radix = 10)
+  auto make_decimal = [](bytestring const& token, auto radix = 10) // <sign> <decimal 10>
   {
-    switch (radix)
-    {
-    case 10:
-      return make<default_float>(token.substr(token[0] == '+' ? 1 : 0));
+    std::regex static const p2 { "[+-]?.\\d+" };
+    std::regex static const p3 { "[+-]?\\d+.\\d*" };
 
-    default:
-      throw read_error<void>(
-        "There are no rules for <decimal 2>, <decimal 8>, and <decimal 16>, "
-        "which means that numbers containing decimal points or exponents are "
-        "always in decimal radix.");
+    if (std::smatch result; std::regex_match(token, result, p2) or
+                            std::regex_match(token, result, p3))
+    {
+      switch (radix)
+      {
+      case 10:
+        return make<default_float>(token.substr(token[0] == '+' ? 1 : 0));
+
+      default:
+        throw read_error<void>(
+          "There are no rules for <decimal 2>, <decimal 8>, and <decimal 16>, "
+          "which means that numbers containing decimal points or exponents are "
+          "always in decimal radix.");
+      }
     }
+    else
+    {
+      throw read_error<exact_integer>(token, " is not a decimal's external representation");
+    }
+  };
+
+  auto make_srfi_144 = [](bytestring const& token, auto = 10)
+  {
+    static const std::unordered_map<bytestring, object> srfi_144
+    {
+      std::make_pair("fl-pi", make<default_float>(boost::math::constants::pi<default_float::value_type>())),
+    };
+
+    return srfi_144.at(token);
   };
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
@@ -135,7 +163,8 @@ inline namespace kernel
   auto make_real = make_integer // <sign> <uinteger R>
                  | make_ratio // <sign> <uinteger R> / <uinteger R>
                  | make_decimal // <sign> <decimal R>
-                 | make_infnan;
+                 | make_infnan
+                 | make_srfi_144;
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
