@@ -1,8 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
+#include <boost/lexical_cast.hpp>
 #include <limits> // std::numeric_limits<std::streamsize>
-#include <regex>
 #include <sstream>
 #include <stack>
 
@@ -14,7 +14,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/miscellaneous.hpp>
-#include <meevax/kernel/numeric_literal.hpp>
+// #include <meevax/kernel/numeric_literal.hpp>
 #include <meevax/kernel/parser.hpp> // DEPRECATED
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/port.hpp>
@@ -22,6 +22,9 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 #include <meevax/string/header.hpp>
+
+#include <regex>
+#include <meevax/kernel/number.hpp>
 
 namespace meevax
 {
@@ -147,7 +150,7 @@ inline namespace kernel
   }
 
   template <std::size_t R = 10>
-  let make_number(bytestring const& token)
+  let make_number(bytestring const& token, int = R)
   {
     static const std::unordered_map<bytestring, object> srfi_144
     {
@@ -328,7 +331,7 @@ inline namespace kernel
           }
           else try
           {
-            return make_number(token);
+            return make_number(token, 10);
           }
           catch (...)
           {
@@ -381,23 +384,22 @@ inline namespace kernel
   private:
     let discriminate(input_port & is)
     {
-      switch (is.peek())
+      switch (is.get())
       {
       case '!':
         is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return read(is);
 
       case ',': // from SRFI-10
-        is.ignore(1);
         return evaluate(read(is));
 
       case ';': // from SRFI-62
-        is.ignore(1);
         return read(is), read(is);
 
-      case 'c': // from Common Lisp
-        is.ignore(1);
+      case 'b': // (string->number (read) 2)
+        return make_number(boost::lexical_cast<bytestring>(read(is)), 2);
 
+      case 'c': // from Common Lisp
         if (let const xs = read(is); not xs.is<pair>())
         {
           return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
@@ -412,11 +414,9 @@ inline namespace kernel
         }
 
       case 'd':
-        is.ignore(1);
-        return make<exact_integer>(read_token(is));
+        return make_number(boost::lexical_cast<bytestring>(read(is)), 10);
 
       case 'e':
-        is.ignore(1);
         return exact(read(is));
 
       case 'f':
@@ -424,16 +424,12 @@ inline namespace kernel
         return f;
 
       case 'i':
-        is.ignore(1);
         return inexact(read(is));
 
       case 'o':
-        is.ignore(1);
-        return make<exact_integer>("0" + read_token(is));
+        return make_number(boost::lexical_cast<bytestring>(read(is)), 8);
 
       case 'p':
-        is.ignore(1);
-
         switch (is.peek())
         {
         case '"':
@@ -449,18 +445,16 @@ inline namespace kernel
         return t;
 
       case 'x':
-        is.ignore(1);
-        return make<exact_integer>("0x" + read_token(is));
+        return make_number(boost::lexical_cast<bytestring>(read(is)), 16);
 
       case '(':
+        is.putback('(');
         return make<vector>(for_each_in, read(is));
 
       case '\\':
-        is.ignore(1);
         return read_char(is);
 
       default:
-        is.ignore(1);
         return unspecified; // XXX
       }
     }

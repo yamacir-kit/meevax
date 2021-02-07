@@ -26,6 +26,7 @@ inline namespace kernel
     IMPORT(SK, write_line, const);
     IMPORT(SK, write_to, const);
 
+  protected:
     let batch_mode       = f;
     let debug_mode       = f;
     let interactive_mode = f;

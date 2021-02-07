@@ -139,21 +139,17 @@ namespace meevax
   {
     return [=](input_port & port)
     {
-      codeunits result;
-
       auto const backtrack = port.tellg();
 
       try
       {
-        result = f(port);
+        return f(port);
       }
       catch (...)
       {
         port.seekg(backtrack);
-        result = g(port);
+        return g(port);
       }
-
-      return result;
     };
   }
 
