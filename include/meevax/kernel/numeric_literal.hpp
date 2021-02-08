@@ -52,12 +52,12 @@ inline namespace kernel
       case 16: return make<exact_integer>("0x" + token.substr(token[0] == '+' ? 1 : 0));
 
       default:
-        throw read_error<exact_integer>(token, " is not an integer's external representation");
+        throw read_error<exact_integer>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
       }
     }
     else
     {
-      throw read_error<exact_integer>(token, " is not an integer's external representation");
+      throw read_error<exact_integer>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
     }
   };
 
@@ -80,26 +80,8 @@ inline namespace kernel
     }
     else
     {
-      throw read_error<void>(__FILE__, ":", __LINE__);
+      throw read_error<ratio>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
     }
-  };
-
-  /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
-   *
-   *  <infnan> = +inf.0 | -inf.0 | +nan.0 | -nan.0
-   *
-   * ------------------------------------------------------------------------ */
-  auto make_infnan = [](bytestring const& token, auto)
-  {
-    std::unordered_map<bytestring, object> static const infnan
-    {
-      std::make_pair("+inf.0", make<default_float>(+default_float::infinity())),
-      std::make_pair("-inf.0", make<default_float>(-default_float::infinity())),
-      std::make_pair("+nan.0", make<default_float>(+default_float::quiet_NaN())),
-      std::make_pair("-nan.0", make<default_float>(-default_float::quiet_NaN()))
-    };
-
-    return infnan.at(token);
   };
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
@@ -127,26 +109,55 @@ inline namespace kernel
         return make<default_float>(token.substr(token[0] == '+' ? 1 : 0));
 
       default:
-        throw read_error<void>(
-          "There are no rules for <decimal 2>, <decimal 8>, and <decimal 16>, "
-          "which means that numbers containing decimal points or exponents are "
-          "always in decimal radix.");
+        throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
       }
     }
     else
     {
-      throw read_error<exact_integer>(token, " is not a decimal's external representation");
+      throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
     }
   };
 
-  auto make_srfi_144 = [](bytestring const& token, auto = 10)
+  /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
+   *
+   *  <infnan> = +inf.0 | -inf.0 | +nan.0 | -nan.0
+   *
+   * ------------------------------------------------------------------------ */
+  auto make_infnan = [](bytestring const& token, auto radix = 10)
   {
-    static const std::unordered_map<bytestring, object> srfi_144
+    std::unordered_map<bytestring, object> static const infnan
+    {
+      std::make_pair("+inf.0", make<default_float>(+default_float::infinity())),
+      std::make_pair("-inf.0", make<default_float>(-default_float::infinity())),
+      std::make_pair("+nan.0", make<default_float>(+default_float::quiet_NaN())),
+      std::make_pair("-nan.0", make<default_float>(-default_float::quiet_NaN()))
+    };
+
+    if (auto iter = infnan.find(token); iter != std::end(infnan))
+    {
+      return std::get<1>(*iter);
+    }
+    else
+    {
+      throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+    }
+  };
+
+  auto make_constant = [](bytestring const& token, auto radix = 10) // SRFI-144
+  {
+    static const std::unordered_map<bytestring, object> constants
     {
       std::make_pair("fl-pi", make<default_float>(boost::math::constants::pi<default_float::value_type>())),
     };
 
-    return srfi_144.at(token);
+    if (auto iter = constants.find(token); iter != std::end(constants))
+    {
+      return std::get<1>(*iter);
+    }
+    else
+    {
+      throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+    }
   };
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
@@ -161,10 +172,10 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
   auto make_real = make_integer // <sign> <uinteger R>
-                 | make_ratio // <sign> <uinteger R> / <uinteger R>
+                 | make_ratio   // <sign> <uinteger R> / <uinteger R>
                  | make_decimal // <sign> <decimal R>
                  | make_infnan
-                 | make_srfi_144;
+                 | make_constant; // SRFI-144
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
