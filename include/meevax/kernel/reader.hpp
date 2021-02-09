@@ -36,7 +36,7 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
 
-  let read_string(std::istream& port);
+  let read_string(input_port &);
 
   let make_string(bytestring const&);
 
@@ -57,7 +57,7 @@ inline namespace kernel
     IMPORT(SK, standard_debug_port, NIL);
     IMPORT(SK, write_to, NIL);
 
-    using seeker = std::istream_iterator<std::istream::char_type>;
+    using seeker = std::istream_iterator<input_port::char_type>;
 
     enum class   proper_list_tag {};
     enum class improper_list_tag {};
@@ -135,7 +135,7 @@ inline namespace kernel
           }
           else try
           {
-            return make_number(token, 10);
+            return to_number(token, 10);
           }
           catch (...)
           {
@@ -201,7 +201,7 @@ inline namespace kernel
         return read(is), read(is);
 
       case 'b': // (string->number (read) 2)
-        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 2);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 2);
 
       case 'c': // from Common Lisp
         if (let const xs = read(is); not xs.is<pair>())
@@ -218,20 +218,20 @@ inline namespace kernel
         }
 
       case 'd':
-        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 10);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 10);
 
       case 'e':
-        return exact(read(is));
+        return exact(read(is)); // NOTE: Same as #,(exact (read))
 
       case 'f':
         ignore(is, [](auto&& x) { return not is_end_of_token(x); });
         return f;
 
       case 'i':
-        return inexact(read(is));
+        return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
       case 'o':
-        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 8);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 8);
 
       case 'p':
         switch (is.peek())
@@ -249,7 +249,7 @@ inline namespace kernel
         return t;
 
       case 'x':
-        return make_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 16);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 16);
 
       case '(':
         is.putback('(');

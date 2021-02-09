@@ -389,8 +389,7 @@ inline namespace kernel
 
     define<procedure>("string->number", [](let const& xs)
     {
-      return make_number(car(xs).as<string>(),
-                         cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>().to<int>() : 10);
+      return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>().to<int>() : 10);
     });
 
 

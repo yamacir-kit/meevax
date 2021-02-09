@@ -700,7 +700,7 @@
 
 (check (real? 3) => #t)
 ; (check (real? -2.5+0.0i) => #t)
-; (check (real? #e1e10) => #t)
+; (check (real? #e1e10) => #t) ; TODO floating_point.hpp's rationalize
 
 ; ---- Procedure (rational? obj) -----------------------------------------------
 
@@ -923,7 +923,7 @@
 
 (check (string->number "100") => 100)
 (check (string->number "100" 16) => 256)
-; (check (string->number "1e2") => 100.0)
+(check (string->number "1e2") => 100.0)
 
 
 ; ==== 6.6. Characters =========================================================

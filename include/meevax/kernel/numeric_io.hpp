@@ -38,7 +38,7 @@ inline namespace kernel
    *  <digit 16> = <digit 10> | a | b | c | d | e | f
    *
    * ------------------------------------------------------------------------ */
-  auto make_integer = [](bytestring const& token, auto radix = 10)
+  auto to_integer = [](bytestring const& token, auto radix = 10)
   {
     std::regex static const pattern { "[+-]?[\\dABCDEFabcdef]+" }; // XXX DIRTY HACK
 
@@ -49,7 +49,7 @@ inline namespace kernel
 
     switch (radix)
     {
-    case  2:
+    case 2:
       if (std::regex static const r2 { "[+-]?[01]+" }; std::regex_match(token, r2))
       {
         return make<exact_integer>("0b" + token.substr(token[0] == '+' ? 1 : 0));
@@ -59,7 +59,7 @@ inline namespace kernel
         throw error();
       }
 
-    case  8:
+    case 8:
       if (std::regex static const r8 { "[+-]?[0-7]+" }; std::regex_match(token, r8))
       {
         return make<exact_integer>("0" + token.substr(token[0] == '+' ? 1 : 0));
@@ -94,15 +94,15 @@ inline namespace kernel
     }
   };
 
-  auto make_ratio = [](bytestring const& token, auto radix = 10)
+  auto to_ratio = [](bytestring const& token, auto radix = 10)
   {
     std::regex static const pattern { "([+-]?[\\dabcdef]+)/([\\dabcdef]+)" };
 
     if (std::smatch result; std::regex_match(token, result, pattern))
     {
       if (auto const value =
-            ratio(make_integer(result.str(1), radix),
-                  make_integer(result.str(2), radix)).reduce(); value.is_integer())
+            ratio(to_integer(result.str(1), radix),
+                  to_integer(result.str(2), radix)).reduce(); value.is_integer())
       {
         return car(value);
       }
@@ -128,7 +128,7 @@ inline namespace kernel
    *  <exponent marker> = e
    *
    * ------------------------------------------------------------------------ */
-  auto make_decimal = [](bytestring const& token, auto radix = 10) // <sign> <decimal 10>
+  auto to_decimal = [](bytestring const& token, auto radix = 10) // <sign> <decimal 10>
   {
     switch (radix)
     {
@@ -154,7 +154,7 @@ inline namespace kernel
    *  <infnan> = +inf.0 | -inf.0 | +nan.0 | -nan.0
    *
    * ------------------------------------------------------------------------ */
-  auto make_infnan = [](bytestring const& token, auto radix = 10)
+  auto to_infnan = [](bytestring const& token, auto radix = 10)
   {
     std::unordered_map<bytestring, object> static const infnan
     {
@@ -174,7 +174,11 @@ inline namespace kernel
     }
   };
 
-  auto make_constant = [](bytestring const& token, auto radix = 10) // SRFI-144
+  /* ---- SRFI-144 -------------------------------------------------------------
+   *
+   *
+   * ------------------------------------------------------------------------ */
+  auto to_constant = [](bytestring const& token, auto radix = 10)
   {
     static const std::unordered_map<bytestring, object> constants
     {
@@ -202,11 +206,11 @@ inline namespace kernel
    *            | <decimal R>
    *
    * ------------------------------------------------------------------------ */
-  auto make_real = make_integer // <sign> <uinteger R>
-                 | make_ratio   // <sign> <uinteger R> / <uinteger R>
-                 | make_decimal // <sign> <decimal R>
-                 | make_infnan
-                 | make_constant; // SRFI-144
+  auto to_real = to_integer // <sign> <uinteger R>
+               | to_ratio   // <sign> <uinteger R> / <uinteger R>
+               | to_decimal // <sign> <decimal R>
+               | to_infnan
+               | to_constant; // SRFI-144
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -224,7 +228,7 @@ inline namespace kernel
    *              |          -           i                                 TODO
    *
    * ------------------------------------------------------------------------ */
-  auto make_complex = make_real;
+  auto to_complex = to_real;
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -244,7 +248,7 @@ inline namespace kernel
    *  NOTE: <Prefix R> is parsed with 'read'.
    *
    * ------------------------------------------------------------------------ */
-  auto make_number = make_complex;
+  auto to_number = to_complex;
 } // namespace kernel
 } // namespace meevax
 
