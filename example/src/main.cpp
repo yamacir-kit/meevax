@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(Numbers) // 6.2.
 {
   using meevax::exact_integer;
   using meevax::ratio;
-  using meevax::default_float;
+  using meevax::system_float;
 
   let x1 = make<exact_integer>(1);
 

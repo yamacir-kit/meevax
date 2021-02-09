@@ -140,12 +140,12 @@ inline namespace kernel
           std::regex_match(token, r2) or
           std::regex_match(token, r3))
       {
-        return make<default_float>(token.substr(token[0] == '+' ? 1 : 0));
+        return make<system_float>(token.substr(token[0] == '+' ? 1 : 0));
       }
       [[fallthrough]];
 
     default:
-      throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      throw read_error<system_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
     }
   };
 
@@ -158,10 +158,10 @@ inline namespace kernel
   {
     std::unordered_map<bytestring, object> static const infnan
     {
-      std::make_pair("+inf.0", make<default_float>(+default_float::infinity())),
-      std::make_pair("-inf.0", make<default_float>(-default_float::infinity())),
-      std::make_pair("+nan.0", make<default_float>(+default_float::quiet_NaN())),
-      std::make_pair("-nan.0", make<default_float>(-default_float::quiet_NaN()))
+      std::make_pair("+inf.0", make<system_float>(+system_float::infinity())),
+      std::make_pair("-inf.0", make<system_float>(-system_float::infinity())),
+      std::make_pair("+nan.0", make<system_float>(+system_float::quiet_NaN())),
+      std::make_pair("-nan.0", make<system_float>(-system_float::quiet_NaN()))
     };
 
     if (auto iter = infnan.find(token); iter != std::end(infnan))
@@ -170,7 +170,7 @@ inline namespace kernel
     }
     else
     {
-      throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      throw read_error<system_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
     }
   };
 
@@ -182,7 +182,7 @@ inline namespace kernel
   {
     static const std::unordered_map<bytestring, object> constants
     {
-      std::make_pair("fl-pi", make<default_float>(boost::math::constants::pi<default_float::value_type>())),
+      std::make_pair("fl-pi", make<system_float>(boost::math::constants::pi<system_float::value_type>())),
     };
 
     if (auto iter = constants.find(token); iter != std::end(constants))
@@ -191,7 +191,7 @@ inline namespace kernel
     }
     else
     {
-      throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      throw read_error<system_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
     }
   };
 

@@ -35,8 +35,7 @@ inline namespace kernel
 
   using single_float = floating_point<float>;
   using double_float = floating_point<double>;
-
-  using default_float = floating_point<decltype(0.0)>;
+  using system_float = floating_point<decltype(0.0)>;
 
   struct ratio;
 
