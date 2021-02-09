@@ -62,7 +62,7 @@ inline namespace kernel
     case  8:
       if (std::regex static const r8 { "[+-]?[0-7]+" }; std::regex_match(token, r8))
       {
-        return make<exact_integer>("0"  + token.substr(token[0] == '+' ? 1 : 0));
+        return make<exact_integer>("0" + token.substr(token[0] == '+' ? 1 : 0));
       }
       else
       {
@@ -130,23 +130,21 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   auto make_decimal = [](bytestring const& token, auto radix = 10) // <sign> <decimal 10>
   {
-    std::regex static const p2 { "[+-]?.\\d+" };
-    std::regex static const p3 { "[+-]?\\d+.\\d*" };
-
-    if (std::smatch result; std::regex_match(token, result, p2) or
-                            std::regex_match(token, result, p3))
+    switch (radix)
     {
-      switch (radix)
+    case 10:
+      if (std::regex static const r1 { "[+-]?\\d+e[+-]?\\d+" },
+                                  r2 { "[+-]?.\\d+" },
+                                  r3 { "[+-]?\\d+.\\d*" };
+          std::regex_match(token, r1) or
+          std::regex_match(token, r2) or
+          std::regex_match(token, r3))
       {
-      case 10:
         return make<default_float>(token.substr(token[0] == '+' ? 1 : 0));
-
-      default:
-        throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
       }
-    }
-    else
-    {
+      [[fallthrough]];
+
+    default:
       throw read_error<default_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
     }
   };
@@ -216,14 +214,14 @@ inline namespace kernel
    *              | <real R> @ <real R>                                    TODO
    *              | <real R> + <ureal R> i                                 TODO
    *              | <real R> - <ureal R> i                                 TODO
-   *              | <real R> + i                                           TODO
-   *              | <real R> - i                                           TODO
-   *              | <real R> <infnan> i                                    TODO
-   *              | + <ureal R> i                                          TODO
-   *              | - <ureal R> i                                          TODO
-   *              | <infnan> i                                             TODO
-   *              | + i                                                    TODO
-   *              | - i                                                    TODO
+   *              | <real R> +           i                                 TODO
+   *              | <real R> -           i                                 TODO
+   *              | <real R>    <infnan> i                                 TODO
+   *              |             <infnan> i                                 TODO
+   *              |          + <ureal R> i                                 TODO
+   *              |          - <ureal R> i                                 TODO
+   *              |          +           i                                 TODO
+   *              |          -           i                                 TODO
    *
    * ------------------------------------------------------------------------ */
   auto make_complex = make_real;
