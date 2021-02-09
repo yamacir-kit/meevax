@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <limits>
+#include <limits> // for epsilon
 #include <typeindex>
 
 #include <boost/math/constants/constants.hpp>
@@ -16,8 +16,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  // TODO RENAME TO make_number (current make_number => read_number)
-  auto make_reduce = [](auto&& z)
+  auto make_number = [](auto&& z)
   {
     if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)
     {
@@ -92,10 +91,10 @@ inline namespace kernel
     static std::unordered_map<
       std::type_index, std::function<object (T const&, object const&)>> const overloads
     {
-      { typeid(single_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<single_float >())); } },
-      { typeid(double_float),  [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<double_float >())); } },
-      { typeid(ratio),         [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<ratio        >())); } },
-      { typeid(exact_integer), [&](T const& a, let const& b) { return make_reduce(procedure(a, b.as<exact_integer>())); } },
+      { typeid(single_float),  [&](T const& a, let const& b) { return make_number(procedure(a, b.as<single_float >())); } },
+      { typeid(double_float),  [&](T const& a, let const& b) { return make_number(procedure(a, b.as<double_float >())); } },
+      { typeid(ratio),         [&](T const& a, let const& b) { return make_number(procedure(a, b.as<ratio        >())); } },
+      { typeid(exact_integer), [&](T const& a, let const& b) { return make_number(procedure(a, b.as<exact_integer>())); } },
     };
 
     if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
@@ -392,10 +391,10 @@ inline namespace kernel
     static std::unordered_map<
       std::type_index, std::function<object (object const&)>> const overloads
     {
-      { typeid(single_float),  [](let const& x) { return make_reduce(x.as<single_float >().as_exact()); } },
-      { typeid(double_float),  [](let const& x) { return make_reduce(x.as<double_float >().as_exact()); } },
-      { typeid(ratio),         [](let const& x) { return make_reduce(x.as<ratio        >().as_exact()); } },
-      { typeid(exact_integer), [](let const& x) { return make_reduce(x.as<exact_integer>().as_exact()); } },
+      { typeid(single_float),  [](let const& x) { return make_number(x.as<single_float >().as_exact()); } },
+      { typeid(double_float),  [](let const& x) { return make_number(x.as<double_float >().as_exact()); } },
+      { typeid(ratio),         [](let const& x) { return make_number(x.as<ratio        >().as_exact()); } },
+      { typeid(exact_integer), [](let const& x) { return make_number(x.as<exact_integer>().as_exact()); } },
     };
 
     return resolve(overloads, z);

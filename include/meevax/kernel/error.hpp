@@ -23,11 +23,8 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct error
-    : public std::runtime_error
+  struct error : public std::runtime_error
   {
-    using std::runtime_error::runtime_error;
-
     template <typename... Ts>
     explicit error(Ts&&... xs)
       : std::runtime_error { cat(std::forward<decltype(xs)>(xs)...) }
@@ -41,12 +38,11 @@ inline namespace kernel
     }
   };
 
-  auto operator <<(std::ostream&, const error&) -> std::ostream&;
+  auto operator <<(output_port &, error const&) -> output_port &;
 
   #define BOILERPLATE(CATEGORY)                                                \
   template <typename Tag>                                                      \
-  struct CATEGORY##_error                                                      \
-    : public error                                                             \
+  struct CATEGORY##_error : public error                                       \
   {                                                                            \
     using error::error;                                                        \
                                                                                \
@@ -57,10 +53,10 @@ inline namespace kernel
   };                                                                           \
                                                                                \
   template <typename Tag>                                                      \
-  auto operator <<(std::ostream& port, const CATEGORY##_error<Tag>& datum)     \
-    -> decltype(auto)                                                          \
+  auto operator <<(output_port & port, CATEGORY##_error<Tag> const& datum)     \
+    -> output_port &                                                           \
   {                                                                            \
-    return port << magenta << "#("                                             \
+    return port << magenta << "#,("                                            \
                 << green << #CATEGORY "-error "                                \
                 << cyan << std::quoted(datum.what())                           \
                 << magenta << ")"                                              \

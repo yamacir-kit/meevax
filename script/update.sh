@@ -4,15 +4,13 @@ root="$(git rev-parse --show-toplevel)"
 
 "$root/script/version.sh"
 
+rm -rf "$root/build"
+
+cmake -B "$root/build" -S "$root" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+
 cd "$root/build"
 
-make clean
 make uninstall
-
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
-
-make -j
-
-sudo make -j install
-
-make test -j
+make -j"$(nproc)"
+sudo make install -j"$(nproc)"
+make test -j"$(nproc)"

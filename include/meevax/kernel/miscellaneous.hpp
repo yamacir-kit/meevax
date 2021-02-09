@@ -14,7 +14,7 @@ inline namespace kernel
 
   let extern const eof_object;
 
-  auto operator <<(output_port & port, eof const&) -> decltype(port);
+  auto operator <<(output_port & port, eof const&) -> output_port &;
 
   /* ---- End-of-String ----------------------------------------------------- */
 
@@ -22,7 +22,7 @@ inline namespace kernel
 
   let extern const eos_object;
 
-  auto operator <<(output_port & port, eos const&) -> decltype(port);
+  auto operator <<(output_port & port, eos const&) -> output_port &;
 } // namespace kernel
 } // namespace meevax
 

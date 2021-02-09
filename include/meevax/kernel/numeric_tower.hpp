@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_TYPES_HPP
-#define INCLUDED_MEEVAX_KERNEL_NUMERICAL_TYPES_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP
+#define INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP
 
 #include <meevax/kernel/pair.hpp>
 
@@ -35,8 +35,7 @@ inline namespace kernel
 
   using single_float = floating_point<float>;
   using double_float = floating_point<double>;
-
-  using default_float = floating_point<decltype(0.0)>;
+  using system_float = floating_point<decltype(0.0)>;
 
   struct ratio;
 
@@ -44,4 +43,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_TYPES_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP

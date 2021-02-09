@@ -4,7 +4,7 @@
 #include <limits>
 #include <valarray>
 
-#include <meevax/kernel/numerical_types.hpp>
+#include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/port.hpp>
 
 namespace meevax
@@ -117,7 +117,7 @@ inline namespace kernel
     }
     else
     {
-      return port << cyan << rhs.value << (rhs.is_integer() ? ".0" : "") << reset;
+      return port << cyan << std::fixed << rhs.value << reset;
     }
   }
 } // namespace kernel
