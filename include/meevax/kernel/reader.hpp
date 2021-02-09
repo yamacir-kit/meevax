@@ -14,7 +14,7 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/miscellaneous.hpp>
-#include <meevax/kernel/numeric_literal.hpp>
+#include <meevax/kernel/numeric_io.hpp>
 #include <meevax/kernel/parser.hpp> // DEPRECATED
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/port.hpp>

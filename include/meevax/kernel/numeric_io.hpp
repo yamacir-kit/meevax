@@ -42,22 +42,55 @@ inline namespace kernel
   {
     std::regex static const pattern { "[+-]?[\\dABCDEFabcdef]+" }; // XXX DIRTY HACK
 
-    if (std::smatch result; std::regex_match(token, result, pattern))
+    auto error = [&]()
     {
-      switch (radix)
-      {
-      case  2: return make<exact_integer>("0b" + token.substr(token[0] == '+' ? 1 : 0));
-      case  8: return make<exact_integer>("0"  + token.substr(token[0] == '+' ? 1 : 0));
-      case 10: return make<exact_integer>(       token.substr(token[0] == '+' ? 1 : 0));
-      case 16: return make<exact_integer>("0x" + token.substr(token[0] == '+' ? 1 : 0));
+      return read_error<exact_integer>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+    };
 
-      default:
-        throw read_error<exact_integer>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
-      }
-    }
-    else
+    switch (radix)
     {
-      throw read_error<exact_integer>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+    case  2:
+      if (std::regex static const r2 { "[+-]?[01]+" }; std::regex_match(token, r2))
+      {
+        return make<exact_integer>("0b" + token.substr(token[0] == '+' ? 1 : 0));
+      }
+      else
+      {
+        throw error();
+      }
+
+    case  8:
+      if (std::regex static const r8 { "[+-]?[0-7]+" }; std::regex_match(token, r8))
+      {
+        return make<exact_integer>("0"  + token.substr(token[0] == '+' ? 1 : 0));
+      }
+      else
+      {
+        throw error();
+      }
+
+    case 10:
+      if (std::regex static const r10 { "[+-]?\\d+" }; std::regex_match(token, r10))
+      {
+        return make<exact_integer>(token.substr(token[-1] == '+' ? 1 : 0));
+      }
+      else
+      {
+        throw error();
+      }
+
+    case 16:
+      if (std::regex static const r16 { "[+-]?[\\dA-Fa-f]+" }; std::regex_match(token, r16))
+      {
+        return make<exact_integer>("0x" + token.substr(token[0] == '+' ? 1 : 0));
+      }
+      else
+      {
+        throw error();
+      }
+
+    default:
+      throw error();
     }
   };
 
