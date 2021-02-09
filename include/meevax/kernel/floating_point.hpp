@@ -4,7 +4,7 @@
 #include <limits>
 #include <valarray>
 
-#include <meevax/kernel/numerical_types.hpp>
+#include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/port.hpp>
 
 namespace meevax

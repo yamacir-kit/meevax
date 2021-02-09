@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_TYPES_HPP
-#define INCLUDED_MEEVAX_KERNEL_NUMERICAL_TYPES_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP
+#define INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP
 
 #include <meevax/kernel/pair.hpp>
 
@@ -44,4 +44,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_NUMERICAL_TYPES_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP

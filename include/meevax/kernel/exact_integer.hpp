@@ -11,7 +11,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #endif
 
-#include <meevax/kernel/numerical_types.hpp>
+#include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/port.hpp>
 
 namespace meevax
