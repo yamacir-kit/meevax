@@ -55,6 +55,11 @@ inline namespace kernel
   {
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
+
+    define<procedure>("set-trace!", [this](auto&& xs)
+    {
+      return trace_mode = car(xs);
+    });
   }
 
   template <>
@@ -1405,11 +1410,6 @@ inline namespace kernel
     {
       std::cout << car(xs).type().name() << std::endl;
       return unspecified;
-    });
-
-    define<procedure>("set-trace!", [this](auto&& xs)
-    {
-      return trace_mode = car(xs);
     });
   }
 } // namespace kernel
