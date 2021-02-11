@@ -16,16 +16,28 @@ inline namespace kernel
     return token;
   }
 
+  /* ---- R7RS 7.1.1. Lexical structure ----------------------------------------
+   *
+   *  <character> = #\ <any character>
+   *              | #\ <character name>
+   *              | #\x <hex scalar value>
+   *
+   *  <character name> = alarm
+   *                   | backspace
+   *                   | delete
+   *                   | escape
+   *                   | newline
+   *                   | null
+   *                   | return
+   *                   | space
+   *                   | tab
+   *
+   * ------------------------------------------------------------------------ */
   let read_char(input_port & port)
   {
-    auto name { read_token(port) };
+    auto const token = read_token(port);
 
-    if (name.empty())
-    {
-      name.push_back(port.get());
-    }
-
-    static const std::unordered_map<bytestring, char> names
+    std::unordered_map<bytestring, char> static const names
     {
       { "alarm"    , 0x07 },
       { "backspace", 0x08 },
@@ -38,13 +50,13 @@ inline namespace kernel
       { "tab"      , 0x09 },
     };
 
-    if (const auto iter { names.find(name) }; iter != std::end(names))
+    if (auto const iter = names.find(token); iter != std::end(names))
     {
-      return make<character>(cdr(*iter));
+      return make<character>(std::get<1>(*iter));
     }
     else
     {
-      return make<character>(name);
+      return make<character>(token);
     }
   }
 

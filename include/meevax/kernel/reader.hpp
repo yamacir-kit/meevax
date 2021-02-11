@@ -29,6 +29,16 @@ inline namespace kernel
 {
   auto read_token(input_port & port) -> bytestring;
 
+  /* ---- R7RS 6.13.2 Input ----------------------------------------------------
+   *
+   *  (read-char)                                                     procedure
+   *  (read-char port)                                                procedure
+   *
+   *  Returns the next character available from the textual input port,
+   *  updating the port to point to the following character. If no more
+   *  characters are available, an end-of-file object is returned.
+   *
+   * ------------------------------------------------------------------------ */
   let read_char(input_port &);
 
   let read_string(input_port &);
@@ -47,10 +57,10 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(SK, evaluate, NIL);
-    IMPORT(SK, intern, NIL);
+    IMPORT(SK, evaluate,            NIL);
+    IMPORT(SK, intern,              NIL);
     IMPORT(SK, standard_debug_port, NIL);
-    IMPORT(SK, write_to, NIL);
+    IMPORT(SK, write_to,            NIL);
 
     using seeker = std::istream_iterator<input_port::char_type>;
 
@@ -166,7 +176,7 @@ inline namespace kernel
       return result;
     }
 
-    auto read(bytestring const& s) -> decltype(auto)
+    decltype(auto) read(bytestring const& s)
     {
       std::stringstream ss { s };
       return read(ss);
@@ -234,7 +244,7 @@ inline namespace kernel
       case 'p':
         assert(is.get() == '"');
         is.ignore(1);
-        return make<path>(read_string(is).as<string>());
+        return make<path>(read_string(is).template as<string>());
 
       case 't':
         ignore(is, [](auto&& x) { return not is_end_of_token(x); });
