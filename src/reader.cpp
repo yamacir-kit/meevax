@@ -4,9 +4,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(input_port & port) -> bytestring
+  auto read_token(input_port & port) -> std::string
   {
-    bytestring token {};
+    std::string token {};
 
     for (auto c = port.peek(); not is_end_of_token(c); c = port.peek())
     {
@@ -37,7 +37,7 @@ inline namespace kernel
   {
     auto const token = read_token(port);
 
-    std::unordered_map<bytestring, char> static const names
+    std::unordered_map<std::string, char> static const names
     {
       { "alarm"    , 0x07 },
       { "backspace", 0x08 },
@@ -60,15 +60,15 @@ inline namespace kernel
     }
   }
 
-  let read_string(std::istream& port)
+  let read_string(input_port & port)
   {
-    switch (auto c { port.narrow(port.get(), '\0') }; c)
+    switch (auto c = port.narrow(port.get(), '\0'); c)
     {
     case '"': // Right Double Quotation
       return unit;
 
     case '\\': // Escape Sequences
-      switch (auto c { port.narrow(port.get(), '\0') }; c)
+      switch (auto c = port.narrow(port.get(), '\0'); c)
       {
       case 'a':  return make<string>(make<character>('\a'), read_string(port));
       case 'b':  return make<string>(make<character>('\b'), read_string(port));
@@ -96,7 +96,7 @@ inline namespace kernel
     }
   }
 
-  let make_string(bytestring const& text)
+  let make_string(std::string const& text)
   {
     std::stringstream port {};
     port << text << "\"";

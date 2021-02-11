@@ -7,9 +7,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_codeunit(input_port & port) -> bytestring
+  auto read_codeunit(input_port & port) -> std::string
   {
-    bytestring codeunit {};
+    std::string codeunit {};
 
     if (const auto c { port.peek() }; is_end_of_file(c))
     {
@@ -41,7 +41,7 @@ inline namespace kernel
     return codeunit;
   }
 
-  auto peek_codeunit(input_port & port) -> bytestring
+  auto peek_codeunit(input_port & port) -> std::string
   {
     const auto position { port.tellg() };
 
@@ -52,9 +52,9 @@ inline namespace kernel
     return codeunit;
   }
 
-  auto character::write_char() const -> bytestring const&
+  auto character::write_char() const -> std::string const&
   {
-    return static_cast<bytestring const&>(*this);
+    return static_cast<std::string const&>(*this);
   }
 
   auto character::write_char(std::ostream & port) const -> decltype(port)

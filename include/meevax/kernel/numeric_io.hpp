@@ -11,11 +11,11 @@ inline namespace kernel
 {
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, bytestring const&, int>),
-            REQUIRES(std::is_invocable<G, bytestring const&, int>)>
+            REQUIRES(std::is_invocable<F, std::string const&, int>),
+            REQUIRES(std::is_invocable<G, std::string const&, int>)>
   auto operator |(F&& f, G&& g)
   {
-    return [=](bytestring const& token, auto radix = 10)
+    return [=](std::string const& token, auto radix = 10)
     {
       try
       {
@@ -38,7 +38,7 @@ inline namespace kernel
    *  <digit 16> = <digit 10> | a | b | c | d | e | f
    *
    * ------------------------------------------------------------------------ */
-  auto to_integer = [](bytestring const& token, auto radix = 10)
+  auto to_integer = [](std::string const& token, auto radix = 10)
   {
     std::regex static const pattern { "[+-]?[\\dABCDEFabcdef]+" }; // XXX DIRTY HACK
 
@@ -94,7 +94,7 @@ inline namespace kernel
     }
   };
 
-  auto to_ratio = [](bytestring const& token, auto radix = 10)
+  auto to_ratio = [](std::string const& token, auto radix = 10)
   {
     std::regex static const pattern { "([+-]?[\\dabcdef]+)/([\\dabcdef]+)" };
 
@@ -128,7 +128,7 @@ inline namespace kernel
    *  <exponent marker> = e
    *
    * ------------------------------------------------------------------------ */
-  auto to_decimal = [](bytestring const& token, auto radix = 10) // <sign> <decimal 10>
+  auto to_decimal = [](std::string const& token, auto radix = 10) // <sign> <decimal 10>
   {
     switch (radix)
     {
@@ -154,9 +154,9 @@ inline namespace kernel
    *  <infnan> = +inf.0 | -inf.0 | +nan.0 | -nan.0
    *
    * ------------------------------------------------------------------------ */
-  auto to_infnan = [](bytestring const& token, auto radix = 10)
+  auto to_infnan = [](std::string const& token, auto radix = 10)
   {
-    std::unordered_map<bytestring, object> static const infnan
+    std::unordered_map<std::string, object> static const infnan
     {
       std::make_pair("+inf.0", make<system_float>(+system_float::infinity())),
       std::make_pair("-inf.0", make<system_float>(-system_float::infinity())),
@@ -178,9 +178,9 @@ inline namespace kernel
    *
    *
    * ------------------------------------------------------------------------ */
-  auto to_constant = [](bytestring const& token, auto radix = 10)
+  auto to_constant = [](std::string const& token, auto radix = 10)
   {
-    static const std::unordered_map<bytestring, object> constants
+    static const std::unordered_map<std::string, object> constants
     {
       std::make_pair("fl-pi", make<system_float>(boost::math::constants::pi<system_float::value_type>())),
     };

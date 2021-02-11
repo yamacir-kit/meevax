@@ -15,27 +15,27 @@ inline namespace kernel
 {
   /* ---- Character --------------------------------------------------------- */
 
-  auto read_codeunit(input_port &) -> bytestring;
-  auto peek_codeunit(input_port &) -> bytestring;
+  auto read_codeunit(input_port &) -> std::string;
+  auto peek_codeunit(input_port &) -> std::string;
 
   struct character
     : public codeunit
   {
     explicit character(char ascii)
-      : bytestring(1, ascii)
+      : std::string(1, ascii)
     {}
 
     explicit character(std::uint32_t codepoint) // R7RS integer->char
-      : bytestring { codepoint_to_codeunit(codepoint) }
+      : std::string { codepoint_to_codeunit(codepoint) }
     {}
 
     explicit character(input_port & port) // R7RS read-char
-      : bytestring { read_codeunit(port) }
+      : std::string { read_codeunit(port) }
     {}
 
     template <typename... Ts>
     explicit constexpr character(Ts&&... xs)
-      : bytestring { std::forward<decltype(xs)>(xs)... }
+      : std::string { std::forward<decltype(xs)>(xs)... }
     {}
 
     virtual ~character() = default;
@@ -47,7 +47,7 @@ inline namespace kernel
 
     /* ---- R7RS write-char ------------------------------------------------- */
 
-    auto write_char() const -> bytestring const&;
+    auto write_char() const -> std::string const&;
 
     auto write_char(output_port &) const -> output_port &;
 

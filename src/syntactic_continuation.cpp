@@ -389,7 +389,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make_string(boost::lexical_cast<bytestring>(car(xs)));
+      return make_string(boost::lexical_cast<std::string>(car(xs)));
     });
 
     define<procedure>("string->number", [](let const& xs)
@@ -1337,7 +1337,7 @@ inline namespace kernel
 
     define<procedure>("procedure", [](let const& xs)
     {
-      bytestring const& name = cadr(xs).as<string>();
+      std::string const& name = cadr(xs).as<string>();
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
     });
 
@@ -1390,7 +1390,7 @@ inline namespace kernel
       {
         if (x.is<string>())
         {
-          std::cout << static_cast<bytestring>(x.template as<string>());
+          std::cout << static_cast<std::string>(x.template as<string>());
         }
         else
         {

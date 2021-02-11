@@ -27,9 +27,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(input_port & port) -> bytestring;
+  auto read_token(input_port & port) -> std::string;
 
-  /* ---- R7RS 6.13.2 Input ----------------------------------------------------
+  /* ---- R7RS 6.13.2. Input ---------------------------------------------------
    *
    *  (read-char)                                                     procedure
    *  (read-char port)                                                procedure
@@ -41,9 +41,20 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   let read_char(input_port &);
 
+  /* ---- R7RS 6.13.2. Input ---------------------------------------------------
+   *
+   *  (read-string k)                                                 procedure
+   *  (read-string k port)                                            procedure
+   *
+   *  Reads the next k characters, or as many as are available before the end
+   *  of file, from the textual input port into a newly allocated string in
+   *  left-to-right order and returns the string. If no characters are
+   *  available before the end of file, an end-of-file object is returned.
+   *
+   * ------------------------------------------------------------------------ */
   let read_string(input_port &);
 
-  let make_string(bytestring const&);
+  let make_string(std::string const&);
 
   /* ---- Reader ---------------------------------------------------------------
    *
@@ -74,7 +85,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let const read(input_port & port)
     {
-      bytestring token {};
+      std::string token {};
 
       for (seeker head = port; head != seeker(); ++head)
       {
@@ -176,7 +187,7 @@ inline namespace kernel
       return result;
     }
 
-    decltype(auto) read(bytestring const& s)
+    decltype(auto) read(std::string const& s)
     {
       std::stringstream ss { s };
       return read(ss);
@@ -209,7 +220,7 @@ inline namespace kernel
         return read(is), read(is);
 
       case 'b': // (string->number (read) 2)
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 2);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 2);
 
       case 'c': // from Common Lisp
         if (let const xs = read(is); not xs.is<pair>())
@@ -226,7 +237,7 @@ inline namespace kernel
         }
 
       case 'd':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 10);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 10);
 
       case 'e':
         return exact(read(is)); // NOTE: Same as #,(exact (read))
@@ -239,7 +250,7 @@ inline namespace kernel
         return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
       case 'o':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 8);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 8);
 
       case 'p':
         assert(is.get() == '"');
@@ -251,7 +262,7 @@ inline namespace kernel
         return t;
 
       case 'x':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 16);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 16);
 
       case '(':
         is.putback(discriminator);

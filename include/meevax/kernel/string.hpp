@@ -12,13 +12,13 @@ inline namespace kernel
   struct string
     : public virtual pair
   {
-    auto write_string() const -> bytestring;
+    auto write_string() const -> std::string;
 
     auto write_string(output_port&) const -> output_port &;
 
     auto write_string(let const&) const -> output_port &;
 
-    operator bytestring() const
+    operator std::string() const
     {
       return write_string();
     }

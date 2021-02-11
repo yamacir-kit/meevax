@@ -7,7 +7,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto string::write_string() const -> bytestring
+  auto string::write_string() const -> std::string
   {
     output_string_port port {};
 
