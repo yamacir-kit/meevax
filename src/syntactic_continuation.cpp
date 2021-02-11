@@ -1382,6 +1382,7 @@ inline namespace kernel
       boost::iostreams::stream<boost::iostreams::basic_array_source<char>> port {
         code.begin(), code.size()
       };
+      std::cout << "size: " << code.size() << std::endl;
 
       for (let e = read(port); e != eof_object; e = read(port))
       {
