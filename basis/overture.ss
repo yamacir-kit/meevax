@@ -1384,50 +1384,6 @@
           (apply consumer (cdr result))
           (consumer result)))))
 
-; ---- dynamic-wind ------------------------------------------------------------
-
-; from SRFI-39
-; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
-
-(define dynamic-extents '())
-
-(define dynamic-wind
-  (lambda (before body after)
-    (before)
-    (set! dynamic-extents (cons (cons before after) dynamic-extents))
-    (let ((result (body)))
-      (set! dynamic-extents (cdr dynamic-extents))
-      (after)
-      result)))
-
-(define call-with-current-continuation
-  (let ((call/cc
-          (lambda (procedure)
-            (call-with-current-continuation procedure)))) ; Original call/cc is syntax
-    (lambda (proc)
-
-      (define windup!
-        (lambda (from to)
-          (set! dynamic-extents from)
-          (cond ((eq? from to))
-                ((null? from)
-                 (windup! from (cdr to))
-                 ((caar to)))
-                ((null? to)
-                 ((cdar from))
-                 (windup! (cdr from) to))
-                (else ((cdar from))
-                      (windup! (cdr from) (cdr to))
-                      ((caar to))))
-          (set! dynamic-extents to)))
-
-      (let ((winds dynamic-extents))
-        (call/cc
-          (lambda (k1)
-            (proc (lambda (k2)
-                    (windup! dynamic-extents winds)
-                    (k1 k2)))))))))
-
 (define call/cc call-with-current-continuation)
 
 ; ------------------------------------------------------------------------------

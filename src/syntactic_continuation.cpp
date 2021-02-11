@@ -1,3 +1,6 @@
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream.hpp>
+
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -1367,13 +1370,19 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    std::vector<std::stringstream> ports {};
+    std::vector<string_view> codes {
+      // values, TODO
+      dynamic_wind, // TODO dynamic-wind depends let-values
+      srfi_1, // SRFI-1 depends call/cc
+      overture // Derived expression types depends SRFI-1
+    };
 
-    ports.emplace_back(srfi_1  .data());
-    ports.emplace_back(overture.data());
-
-    for (auto & port : ports)
+    for (auto const& code : codes)
     {
+      boost::iostreams::stream<boost::iostreams::basic_array_source<char>> port {
+        code.begin(), code.size()
+      };
+
       for (let e = read(port); e != eof_object; e = read(port))
       {
         evaluate(e);

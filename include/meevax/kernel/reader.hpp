@@ -6,8 +6,8 @@
 #include <sstream>
 #include <stack>
 
-#include <boost/iostreams/device/null.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
+// #include <boost/iostreams/device/null.hpp>
+// #include <boost/iostreams/stream_buffer.hpp>
 
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/boolean.hpp>
