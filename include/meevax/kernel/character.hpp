@@ -16,7 +16,6 @@ inline namespace kernel
   /* ---- Character --------------------------------------------------------- */
 
   auto read_codeunit(input_port &) -> std::string;
-  auto peek_codeunit(input_port &) -> std::string;
 
   struct character
     : public codeunit

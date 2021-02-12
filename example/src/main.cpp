@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(Characters) // 6.6.
 {
   using meevax::character;
 
-  let c = make<character>("c");
+  let c = make<character>('c');
 
   BOOST_CHECK(c);
   BOOST_CHECK(c.is<character>());

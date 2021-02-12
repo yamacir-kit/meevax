@@ -1219,12 +1219,17 @@ inline namespace kernel
 
     define<procedure>("::peek-char", [](let const& xs)
     {
+      auto const g = car(xs).as<input_port>().tellg();
+
       try
       {
-        return make<character>(peek_codeunit(car(xs).as<input_port>()));
+        let const c = make<character>(car(xs).as<input_port>());
+        car(xs).as<input_port>().seekg(g);
+        return c;
       }
       catch (read_error<eof> const&)
       {
+        car(xs).as<input_port>().seekg(g);
         return eof_object;
       }
     });
@@ -1382,7 +1387,7 @@ inline namespace kernel
       boost::iostreams::stream<boost::iostreams::basic_array_source<char>> port {
         code.begin(), code.size()
       };
-      std::cout << "size: " << code.size() << std::endl;
+      // std::cout << "size: " << code.size() << std::endl;
 
       for (let e = read(port); e != eof_object; e = read(port))
       {
