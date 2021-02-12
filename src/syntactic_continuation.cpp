@@ -598,7 +598,7 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<character>())
       {
-        return make<exact_integer>(x.as<character>().codepoint());
+        return make<exact_integer>(static_cast<codepoint>(x.as<character>()));
       }
       else
       {
@@ -616,7 +616,7 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        return make<character>(x.as<exact_integer>().to<std::uint32_t>());
+        return make<character>(x.as<exact_integer>().to<codepoint>());
       }
       else
       {
@@ -1219,17 +1219,15 @@ inline namespace kernel
 
     define<procedure>("::peek-char", [](let const& xs)
     {
-      auto const g = car(xs).as<input_port>().tellg();
-
       try
       {
+        auto const g = car(xs).as<input_port>().tellg();
         let const c = make<character>(car(xs).as<input_port>());
         car(xs).as<input_port>().seekg(g);
         return c;
       }
       catch (read_error<eof> const&)
       {
-        car(xs).as<input_port>().seekg(g);
         return eof_object;
       }
     });
@@ -1257,7 +1255,7 @@ inline namespace kernel
 
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write_char(cadr(xs));
+      car(xs).as<character>().write_char(cadr(xs).as<output_port>());
       return unspecified;
     });
 

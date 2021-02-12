@@ -59,7 +59,7 @@ inline namespace kernel
         }
 
       default:
-        return port << red << "\\x" << std::hex << std::uppercase << code.codepoint() << ";";
+        return port << red << "\\x" << std::hex << std::uppercase << static_cast<codepoint>(code) << ";";
       }
     };
 

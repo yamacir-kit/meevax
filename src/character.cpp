@@ -7,11 +7,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_codeunit(input_port & port) -> std::string
+  auto character::read_codeunit(input_port & port) const -> std::string
   {
     std::string codeunit {};
 
-    if (const auto c { port.peek() }; is_end_of_file(c))
+    if (auto const c = port.peek(); is_end_of_file(c))
     {
       throw read_error<eof>("exhausted input-port");
     }
@@ -49,11 +49,6 @@ inline namespace kernel
   auto character::write_char(std::ostream & port) const -> decltype(port)
   {
     return port << write_char();
-  }
-
-  auto character::write_char(let const& maybe_port) const -> std::ostream&
-  {
-    return write_char(maybe_port.as<output_port>());
   }
 
   auto operator <<(std::ostream & port, character const& datum) -> std::ostream &
