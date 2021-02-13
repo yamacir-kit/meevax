@@ -15,7 +15,7 @@ inline namespace kernel
             REQUIRES(std::is_invocable<G, std::string const&, int>)>
   auto operator |(F&& f, G&& g)
   {
-    return [&](std::string const& token, auto radix = 10)
+    return [=](std::string const& token, auto radix = 10)
     {
       try
       {
