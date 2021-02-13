@@ -7,19 +7,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto is_eof = [](auto c) constexpr
-  {
-    using character = typename std::char_traits<decltype(c)>;
-
-    return character::eq_int_type(character::to_int_type(c),
-                                  character::eof());
-  };
-
   auto character::read_codeunit(input_port & port) const -> codeunit
   {
     codeunit cu {};
 
-    if (auto const c = port.peek(); is_end_of_file(c))
+    if (auto const c = port.peek(); is_eof(c))
     {
       throw read_error<eof>("exhausted input-port");
     }

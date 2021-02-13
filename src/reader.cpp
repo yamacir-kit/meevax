@@ -6,7 +6,7 @@ inline namespace kernel
 {
   auto read_token(input_port & port) -> std::string
   {
-    std::string token {};
+    std::string token;
 
     for (auto c = port.peek(); not is_end_of_token(c); c = port.peek())
     {

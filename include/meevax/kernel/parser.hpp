@@ -32,16 +32,17 @@ inline namespace kernel
     return char_compare(c, u8'\n', u8'\r');
   };
 
-  auto is_end_of_file = [](auto c) constexpr
+  auto is_eof = [](auto c) constexpr
   {
-    using traits = typename std::char_traits<decltype(c)>;
+    using character = typename std::char_traits<decltype(c)>;
 
-    return traits::eq_int_type(traits::to_int_type(c), traits::eof());
+    return character::eq_int_type(character::to_int_type(c),
+                                  character::eof());
   };
 
   auto is_whitespace = [](auto c) constexpr
   {
-    return is_intraline_whitespace(c) or is_end_of_line(c) or is_end_of_file(c);
+    return is_intraline_whitespace(c) or is_end_of_line(c) or is_eof(c);
   };
 
   /* ---- Delimiter ------------------------------------------------------------
