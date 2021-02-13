@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_NUMERIC_LITERAL_HPP
 
 #include <regex>
+#include <tuple>
 
 #include <meevax/kernel/number.hpp>
 
@@ -15,15 +16,15 @@ inline namespace kernel
             REQUIRES(std::is_invocable<G, std::string const&, int>)>
   auto operator |(F&& f, G&& g)
   {
-    return [=](std::string const& token, auto radix = 10)
+    return [fs = std::forward_as_tuple(f, g)](std::string const& token, auto radix = 10) -> decltype(auto)
     {
       try
       {
-        return f(token, radix);
+        return std::get<0>(fs)(token, radix);
       }
       catch (...)
       {
-        return g(token, radix);
+        return std::get<1>(fs)(token, radix);
       }
     };
   }
