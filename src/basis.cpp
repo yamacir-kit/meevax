@@ -4,8 +4,7 @@
  *
  *  basis/hoge.ss
  *
- *  NOTE:
- *    readelf -a hoge.ss.o
+ *  NOTE: readelf -a hoge.ss.o
  *
  * -------------------------------------------------------------------------- */
 

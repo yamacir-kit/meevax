@@ -182,6 +182,11 @@ inline namespace kernel
       //          dynamic_environment()
       //          );
 
+      // for (auto const& each : syntactic_environment())
+      // {
+      //   std::cout << "  " << each << std::endl;
+      // }
+
       c = current_expression();
 
       return execute();
