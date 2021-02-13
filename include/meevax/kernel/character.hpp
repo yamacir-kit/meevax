@@ -26,7 +26,10 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   class character : public codeunit
   {
+    [[deprecated]]
     auto read_codeunit(input_port &) const -> codeunit;
+
+    auto read_char(input_port &) const -> codepoint;
 
   public:
     /* ---- R7RS 6.6. Characters -----------------------------------------------

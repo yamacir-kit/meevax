@@ -7,6 +7,14 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto is_eof = [](auto c) constexpr
+  {
+    using character = typename std::char_traits<decltype(c)>;
+
+    return character::eq_int_type(character::to_int_type(c),
+                                  character::eof());
+  };
+
   auto character::read_codeunit(input_port & port) const -> codeunit
   {
     codeunit cu {};
@@ -39,6 +47,49 @@ inline namespace kernel
     }
 
     return cu;
+  }
+
+  auto character::read_char(input_port & port) const -> codepoint
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  00000000 -- 0000007F: 0xxxxxxx
+     *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
+     *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+     *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     *
+     * ---------------------------------------------------------------------- */
+
+    codepoint point = 0;
+
+    if (auto const c = port.peek(); is_eof(c))
+    {
+      throw read_error<eof>("no more characters are available");
+    }
+    else if (0b1111'0000 < c)
+    {
+      point |= port.get() & 0b0000'0111; point <<= 6;
+      point |= port.get() & 0b0011'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111;
+    }
+    else if (0b1110'0000 < c)
+    {
+      point |= port.get() & 0b0000'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111;
+    }
+    else if (0b1100'0000 < c)
+    {
+      point |= port.get() & 0b0001'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111;
+    }
+    else // is ascii
+    {
+      point |= port.get() & 0b0111'1111;
+    }
+
+    return point;
   }
 
   auto character::write_char(output_port & port) const -> output_port &
