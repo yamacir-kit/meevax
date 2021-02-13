@@ -7,88 +7,103 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_codeunit(input_port & port) -> std::string
+  auto character::read_codeunit(input_port & port) const -> codeunit
   {
-    std::string codeunit {};
+    codeunit cu {};
 
-    if (const auto c { port.peek() }; is_end_of_file(c))
+    if (auto const c = port.peek(); is_eof(c))
     {
       throw read_error<eof>("exhausted input-port");
     }
     else if (0b1111'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
-      codeunit.push_back(port.narrow(port.get(), 'B'));
-      codeunit.push_back(port.narrow(port.get(), 'C'));
-      codeunit.push_back(port.narrow(port.get(), 'D'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
     else if (0b1110'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
-      codeunit.push_back(port.narrow(port.get(), 'B'));
-      codeunit.push_back(port.narrow(port.get(), 'C'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
     else if (0b1100'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
-      codeunit.push_back(port.narrow(port.get(), 'B'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
     else
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
 
-    return codeunit;
+    return cu;
   }
 
-  auto peek_codeunit(input_port & port) -> std::string
+  auto character::read(input_port & port) const -> codepoint
   {
-    const auto position { port.tellg() };
+    /* -------------------------------------------------------------------------
+     *
+     *  00000000 -- 0000007F: 0xxxxxxx
+     *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
+     *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+     *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     *
+     * ---------------------------------------------------------------------- */
 
-    const auto codeunit { read_codeunit(port) };
+    codepoint point = 0;
 
-    port.seekg(position);
+    if (auto const c = port.peek(); is_eof(c))
+    {
+      throw read_error<eof>("no more characters are available");
+    }
+    else if (0b1111'0000 < c)
+    {
+      point |= port.get() & 0b0000'0111; point <<= 6;
+      point |= port.get() & 0b0011'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111;
+    }
+    else if (0b1110'0000 < c)
+    {
+      point |= port.get() & 0b0000'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111;
+    }
+    else if (0b1100'0000 < c)
+    {
+      point |= port.get() & 0b0001'1111; point <<= 6;
+      point |= port.get() & 0b0011'1111;
+    }
+    else // is ascii
+    {
+      point |= port.get() & 0b0111'1111;
+    }
 
-    return codeunit;
+    return point;
   }
 
-  auto character::write_char() const -> std::string const&
+  auto character::write_char(output_port & port) const -> output_port &
   {
-    return static_cast<std::string const&>(*this);
+    return port << static_cast<codeunit const&>(*this);
   }
 
-  auto character::write_char(std::ostream & port) const -> decltype(port)
-  {
-    return port << write_char();
-  }
-
-  auto character::write_char(let const& maybe_port) const -> std::ostream&
-  {
-    return write_char(maybe_port.as<output_port>());
-  }
-
-  auto operator <<(std::ostream & port, character const& datum) -> std::ostream &
+  auto operator <<(output_port & port, character const& datum) -> output_port &
   {
     port << cyan << "#\\";
 
-    switch (std::size(datum))
+    switch (datum.value)
     {
-    case 1:
-      switch (datum[0])
-      {
-      case 0x00: return port << "null"      << reset;
-      case 0x07: return port << "alarm"     << reset;
-      case 0x08: return port << "backspace" << reset;
-      case 0x09: return port << "tab"       << reset;
-      case 0x0A: return port << "newline"   << reset;
-      case 0x0D: return port << "return"    << reset;
-      case 0x1B: return port << "escape"    << reset;
-      case 0x20: return port << "space"     << reset;
-      case 0x7F: return port << "delete"    << reset;
-
-      default:
-        return datum.write_char(port) << reset;
-      }
+    case 0x00: return port << "null"      << reset;
+    case 0x07: return port << "alarm"     << reset;
+    case 0x08: return port << "backspace" << reset;
+    case 0x09: return port << "tab"       << reset;
+    case 0x0A: return port << "newline"   << reset;
+    case 0x0D: return port << "return"    << reset;
+    case 0x1B: return port << "escape"    << reset;
+    case 0x20: return port << "space"     << reset;
+    case 0x7F: return port << "delete"    << reset;
 
     default:
       return datum.write_char(port) << reset;

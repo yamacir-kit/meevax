@@ -29,29 +29,10 @@ inline namespace kernel
 {
   auto read_token(input_port & port) -> std::string;
 
-  /* ---- R7RS 6.13.2. Input ---------------------------------------------------
-   *
-   *  (read-char)                                                     procedure
-   *  (read-char port)                                                procedure
-   *
-   *  Returns the next character available from the textual input port,
-   *  updating the port to point to the following character. If no more
-   *  characters are available, an end-of-file object is returned.
-   *
-   * ------------------------------------------------------------------------ */
+  // TODO Move into reader class private
   let read_char(input_port &);
 
-  /* ---- R7RS 6.13.2. Input ---------------------------------------------------
-   *
-   *  (read-string k)                                                 procedure
-   *  (read-string k port)                                            procedure
-   *
-   *  Reads the next k characters, or as many as are available before the end
-   *  of file, from the textual input port into a newly allocated string in
-   *  left-to-right order and returns the string. If no characters are
-   *  available before the end of file, an end-of-file object is returned.
-   *
-   * ------------------------------------------------------------------------ */
+  // TODO Move into reader class private
   let read_string(input_port &);
 
   let make_string(std::string const&);

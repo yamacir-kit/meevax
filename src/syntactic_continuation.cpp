@@ -581,7 +581,7 @@ inline namespace kernel
     {
       try
       {
-        return make<exact_integer>(car(xs).as<character>().write_char());
+        return make<exact_integer>(static_cast<codeunit const&>(car(xs).as<character>()));
       }
       catch (std::runtime_error&)
       {
@@ -598,12 +598,11 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<character>())
       {
-        return make<exact_integer>(x.as<character>().codepoint());
+        return make<exact_integer>(static_cast<codepoint>(x.as<character>()));
       }
       else
       {
-        throw error(
-          cat("Procedure char-integer got ", xs));
+        throw error(cat("Procedure char-integer got ", xs));
       }
     });
 
@@ -611,17 +610,15 @@ inline namespace kernel
     {
       if (xs.is<null>())
       {
-        throw error(
-          cat("Procedure integer->char got ", xs));
+        throw error(cat("Procedure integer->char got ", xs));
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        return make<character>(x.as<exact_integer>().to<std::uint32_t>());
+        return make<character>(x.as<exact_integer>().to<codepoint>());
       }
       else
       {
-        throw error(
-          cat("Procedure integer->char got ", xs));
+        throw error(cat("Procedure integer->char got ", xs));
       }
     });
 
@@ -1221,7 +1218,10 @@ inline namespace kernel
     {
       try
       {
-        return make<character>(peek_codeunit(car(xs).as<input_port>()));
+        auto const g = car(xs).as<input_port>().tellg();
+        let const c = make<character>(car(xs).as<input_port>());
+        car(xs).as<input_port>().seekg(g);
+        return c;
       }
       catch (read_error<eof> const&)
       {
@@ -1252,7 +1252,7 @@ inline namespace kernel
 
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write_char(cadr(xs));
+      car(xs).as<character>().write_char(cadr(xs).as<output_port>());
       return unspecified;
     });
 
@@ -1382,7 +1382,7 @@ inline namespace kernel
       boost::iostreams::stream<boost::iostreams::basic_array_source<char>> port {
         code.begin(), code.size()
       };
-      std::cout << "size: " << code.size() << std::endl;
+      // std::cout << "size: " << code.size() << std::endl;
 
       for (let e = read(port); e != eof_object; e = read(port))
       {

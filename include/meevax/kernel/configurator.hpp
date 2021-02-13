@@ -98,19 +98,19 @@ inline namespace kernel
       write_line("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
       write_line("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
       write_line("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
-      write_line("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display version information and exit.");
+      write_line("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display this help text and exit.");
       write_line("  ", BOLD("-i"), ", ", BOLD("--interactive"), "          Interactive mode: Take over control of root syntactic-continuation.");
       write_line("  ", BOLD("-l"), ", ", BOLD("--load"), "=", UNDERLINE("file"), "            Load ", UNDERLINE("file"), " before main session.");
       write_line("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
       write_line("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
-      write_line("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display this help text and exit.");
+      write_line("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display version information and exit.");
       write_line("  ", BOLD("  "), "  ", BOLD("--verbose"), "              Verbose mode: Display detailed informations.");
       newline();
 
       SECTION("Sequence:");
       write_line("  1. ", BOLD("Configure"));
-      write_line("  2. ", BOLD("Batch operation"), " (for each ", UNDERLINE("file"), " specified)");
-      write_line("  3. ", BOLD("Interactive operation"), " (when --interactive specified)");
+      write_line("  2. ", BOLD("Load"), " (for each ", UNDERLINE("file"), " specified)");
+      write_line("  3. ", BOLD("REPL"), " (when --interactive specified)");
       newline();
 
       SECTION("Examples:");

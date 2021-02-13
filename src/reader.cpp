@@ -6,7 +6,7 @@ inline namespace kernel
 {
   auto read_token(input_port & port) -> std::string
   {
-    std::string token {};
+    std::string token;
 
     for (auto c = port.peek(); not is_end_of_token(c); c = port.peek())
     {
@@ -35,29 +35,63 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   let read_char(input_port & port)
   {
-    auto const token = read_token(port);
-
-    std::unordered_map<std::string, char> static const names
+    auto any_character = [&](auto const& token, auto)
     {
-      { "alarm"    , 0x07 },
-      { "backspace", 0x08 },
-      { "delete"   , 0x7F },
-      { "escape"   , 0x1B },
-      { "newline"  , 0x0A },
-      { "null"     , 0x00 },
-      { "return"   , 0x0D },
-      { "space"    , 0x20 },
-      { "tab"      , 0x09 },
+      switch (token.size())
+      {
+      case 0:
+        return make<character>(port.get());
+
+      case 1:
+        return make<character>(token.front());
+
+      default:
+        throw read_error<character>(
+          "If <character> in #\\<character> is alphabetic, then any character "
+          "immediately following <character> cannot be one that can appear in "
+          "an identifier");
+      }
     };
 
-    if (auto const iter = names.find(token); iter != std::end(names))
+    auto character_name = [](auto const& token, auto)
     {
-      return make<character>(std::get<1>(*iter));
-    }
-    else
+      std::unordered_map<std::string, char> static const names
+      {
+        { "alarm"    , 0x07 },
+        { "backspace", 0x08 },
+        { "delete"   , 0x7F },
+        { "escape"   , 0x1B },
+        { "newline"  , 0x0A },
+        { "null"     , 0x00 },
+        { "return"   , 0x0D },
+        { "space"    , 0x20 },
+        { "tab"      , 0x09 },
+      };
+
+      return make<character>(names.at(token));
+    };
+
+    auto hex_scalar_value = [](auto const& token, auto = 16)
     {
-      return make<character>(token);
-    }
+      if (token.front() == 'x' and 1 < token.size())
+      {
+        std::stringstream ss;
+        ss << std::hex << token.substr(1);
+
+        codepoint value = 0;
+        ss >> value;
+
+        return make<character>(value);
+      }
+      else
+      {
+        throw read_error<character>("invalid character literal: #\\", token);
+      }
+    };
+
+    auto to_character = hex_scalar_value | character_name | any_character;
+
+    return to_character(read_token(port), 16);
   }
 
   let read_string(input_port & port)
