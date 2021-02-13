@@ -22,10 +22,7 @@ inline namespace kernel
 
   /* ---- Heterogenous Shared Pointer ------------------------------------------
    *
-   * TODO Documentation
-   * TODO Rename to 'garbage_collector'
-   *
-   * This type requires to the template parameter T inherits objective facade.
+   *  This type requires to the template parameter T inherits top type.
    *
    * ------------------------------------------------------------------------ */
   template <typename T>

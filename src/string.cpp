@@ -38,12 +38,11 @@ inline namespace kernel
 
   auto operator <<(output_port& port, const string& datum) -> output_port &
   {
-    auto print = [&](const character& code) -> decltype(auto)
+    auto print = [&](character const& c) -> decltype(auto)
     {
-      switch (std::size(code))
+      if (c.value < 0x80)
       {
-      case 1:
-        switch (code[0])
+        switch (c.value)
         {
         case '\a': return port << red << "\\a";
         case '\b': return port << red << "\\b";
@@ -55,11 +54,12 @@ inline namespace kernel
         case '|':  return port << red << "\\|";
 
         default:
-          return port << cyan << static_cast<codeunit const&>(code);
+          return port << cyan << static_cast<char>(c.value);
         }
-
-      default:
-        return port << red << "\\x" << std::hex << std::uppercase << static_cast<codepoint>(code) << ";";
+      }
+      else
+      {
+        return port << red << "\\x" << std::hex << std::uppercase << c.value << ";";
       }
     };
 

@@ -49,7 +49,7 @@ inline namespace kernel
     return cu;
   }
 
-  auto character::read_char(input_port & port) const -> codepoint
+  auto character::read(input_port & port) const -> codepoint
   {
     /* -------------------------------------------------------------------------
      *
@@ -101,24 +101,17 @@ inline namespace kernel
   {
     port << cyan << "#\\";
 
-    switch (std::size(datum))
+    switch (datum.value)
     {
-    case 1:
-      switch (datum[0])
-      {
-      case 0x00: return port << "null"      << reset;
-      case 0x07: return port << "alarm"     << reset;
-      case 0x08: return port << "backspace" << reset;
-      case 0x09: return port << "tab"       << reset;
-      case 0x0A: return port << "newline"   << reset;
-      case 0x0D: return port << "return"    << reset;
-      case 0x1B: return port << "escape"    << reset;
-      case 0x20: return port << "space"     << reset;
-      case 0x7F: return port << "delete"    << reset;
-
-      default:
-        return datum.write_char(port) << reset;
-      }
+    case 0x00: return port << "null"      << reset;
+    case 0x07: return port << "alarm"     << reset;
+    case 0x08: return port << "backspace" << reset;
+    case 0x09: return port << "tab"       << reset;
+    case 0x0A: return port << "newline"   << reset;
+    case 0x0D: return port << "return"    << reset;
+    case 0x1B: return port << "escape"    << reset;
+    case 0x20: return port << "space"     << reset;
+    case 0x7F: return port << "delete"    << reset;
 
     default:
       return datum.write_char(port) << reset;

@@ -24,14 +24,15 @@ inline namespace kernel
    *  non-Unicode character is implementation-dependent.
    *
    * ------------------------------------------------------------------------ */
-  class character : public codeunit
+  struct character
   {
+    codepoint const value;
+
     [[deprecated]]
     auto read_codeunit(input_port &) const -> codeunit;
 
-    auto read_char(input_port &) const -> codepoint;
+    auto read(input_port &) const -> codepoint;
 
-  public:
     /* ---- R7RS 6.6. Characters -----------------------------------------------
      *
      *  (char->integer char)                                          procedure
@@ -50,8 +51,8 @@ inline namespace kernel
      *  NOTE: codepoint type is std::char_traits<char>::int_type
      *
      * ---------------------------------------------------------------------- */
-    explicit character(codepoint const value)
-      : codeunit { codepoint_to_codeunit(value) }
+    explicit constexpr character(codepoint const value)
+      : value { value }
     {}
 
     /* ---- R7RS 6.13.2. Input -------------------------------------------------
@@ -65,15 +66,8 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     explicit character(input_port & port)
-      : codeunit { read_codeunit(port) }
+      : value { read(port) }
     {}
-
-    template <typename... Ts>
-    explicit constexpr character(Ts&&... xs)
-      : codeunit { std::forward<decltype(xs)>(xs)... }
-    {}
-
-    virtual ~character() = default;
 
     /* ---- R7RS 6.6. Characters -----------------------------------------------
      *
@@ -93,9 +87,14 @@ inline namespace kernel
      *  NOTE: codepoint type is std::char_traits<char>::int_type
      *
      * ---------------------------------------------------------------------- */
-    operator codepoint() const
+    constexpr operator codepoint() const
     {
-      return codeunit_to_codepoint(*this);
+      return value;
+    }
+
+    operator codeunit() const
+    {
+      return codepoint_to_codeunit(value);
     }
 
     /* ---- R7RS 6.13.3. Output ------------------------------------------------
