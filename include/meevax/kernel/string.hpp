@@ -12,6 +12,19 @@ inline namespace kernel
   struct string
     : public virtual pair
   {
+    /* ---- R7RS 6.13.2. Input -------------------------------------------------
+     *
+     *  (read-string k)                                               procedure
+     *  (read-string k port)                                          procedure
+     *
+     *  Reads the next k characters, or as many as are available before the end
+     *  of file, from the textual input port into a newly allocated string in
+     *  left-to-right order and returns the string. If no characters are
+     *  available before the end of file, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+    // TODO string(input_port &);
+
     auto write_string() const -> std::string;
 
     auto write_string(output_port&) const -> output_port &;

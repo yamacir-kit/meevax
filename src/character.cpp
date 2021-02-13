@@ -46,7 +46,7 @@ inline namespace kernel
     return port << static_cast<codeunit const&>(*this);
   }
 
-  auto operator <<(std::ostream & port, character const& datum) -> std::ostream &
+  auto operator <<(output_port & port, character const& datum) -> output_port &
   {
     port << cyan << "#\\";
 
