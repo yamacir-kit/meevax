@@ -55,7 +55,7 @@ inline namespace kernel
         case '|':  return port << red << "\\|";
 
         default:
-          return port << cyan << code.write_char();
+          return port << cyan << static_cast<codeunit const&>(code);
         }
 
       default:

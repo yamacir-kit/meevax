@@ -581,7 +581,7 @@ inline namespace kernel
     {
       try
       {
-        return make<exact_integer>(car(xs).as<character>().write_char());
+        return make<exact_integer>(static_cast<codeunit const&>(car(xs).as<character>()));
       }
       catch (std::runtime_error&)
       {
@@ -602,8 +602,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(
-          cat("Procedure char-integer got ", xs));
+        throw error(cat("Procedure char-integer got ", xs));
       }
     });
 
@@ -611,8 +610,7 @@ inline namespace kernel
     {
       if (xs.is<null>())
       {
-        throw error(
-          cat("Procedure integer->char got ", xs));
+        throw error(cat("Procedure integer->char got ", xs));
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
@@ -620,8 +618,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(
-          cat("Procedure integer->char got ", xs));
+        throw error(cat("Procedure integer->char got ", xs));
       }
     });
 

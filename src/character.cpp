@@ -7,9 +7,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto character::read_codeunit(input_port & port) const -> std::string
+  auto character::read_codeunit(input_port & port) const -> codeunit
   {
-    std::string codeunit {};
+    codeunit cu {};
 
     if (auto const c = port.peek(); is_end_of_file(c))
     {
@@ -17,38 +17,33 @@ inline namespace kernel
     }
     else if (0b1111'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
-      codeunit.push_back(port.narrow(port.get(), 'B'));
-      codeunit.push_back(port.narrow(port.get(), 'C'));
-      codeunit.push_back(port.narrow(port.get(), 'D'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
     else if (0b1110'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
-      codeunit.push_back(port.narrow(port.get(), 'B'));
-      codeunit.push_back(port.narrow(port.get(), 'C'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
     else if (0b1100'0000 < c)
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
-      codeunit.push_back(port.narrow(port.get(), 'B'));
+      cu.push_back(port.narrow(port.get(), '\0'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
     else
     {
-      codeunit.push_back(port.narrow(port.get(), 'A'));
+      cu.push_back(port.narrow(port.get(), '\0'));
     }
 
-    return codeunit;
+    return cu;
   }
 
-  auto character::write_char() const -> std::string const&
+  auto character::write_char(output_port & port) const -> output_port &
   {
-    return static_cast<std::string const&>(*this);
-  }
-
-  auto character::write_char(std::ostream & port) const -> decltype(port)
-  {
-    return port << write_char();
+    return port << static_cast<codeunit const&>(*this);
   }
 
   auto operator <<(std::ostream & port, character const& datum) -> std::ostream &

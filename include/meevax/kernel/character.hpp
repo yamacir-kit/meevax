@@ -18,7 +18,7 @@ inline namespace kernel
   class character
     : public codeunit
   {
-    auto read_codeunit(input_port &) const -> std::string;
+    auto read_codeunit(input_port &) const -> codeunit;
 
   public:
     /* ---- R7RS 6.6. Characters -----------------------------------------------
@@ -37,10 +37,6 @@ inline namespace kernel
      *  char->integer is applied to it, integer->char returns that character.
      *
      * ---------------------------------------------------------------------- */
-    explicit character(char ascii)
-      : codeunit(1, ascii)
-    {}
-
     explicit character(codepoint const value)
       : codeunit { codepoint_to_codeunit(value) }
     {}
@@ -97,8 +93,6 @@ inline namespace kernel
      *  value.
      *
      * --------------------------------------------------------------------- */
-    auto write_char() const -> std::string const&;
-
     auto write_char(output_port &) const -> output_port &;
   };
 
