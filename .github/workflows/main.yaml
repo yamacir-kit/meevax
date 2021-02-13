@@ -47,6 +47,5 @@ jobs:
       - name: 5. Test
         working-directory: build
         run: |
-          meevax -d ../basis/experimental/srfi-78.ss ../test/r4rs.ss
           sudo apt install valgrind
           make test
