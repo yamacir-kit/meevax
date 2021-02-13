@@ -11,11 +11,11 @@ inline namespace kernel
   {
     output_string_port port {};
 
-    car(*this).as<character>().write_char(port);
+    car(*this).as<character>().write(port);
 
     for (auto const& each : cdr(*this))
     {
-      each.as<character>().write_char(port);
+      each.as<character>().write(port);
     }
 
     return port.str();

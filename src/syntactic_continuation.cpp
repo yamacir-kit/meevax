@@ -1252,7 +1252,7 @@ inline namespace kernel
 
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write_char(cadr(xs).as<output_port>());
+      car(xs).as<character>().write(cadr(xs).as<output_port>());
       return unspecified;
     });
 
