@@ -6,7 +6,7 @@ root="$(git rev-parse --show-toplevel)"
 
 rm -rf "$root/build"
 
-cmake -B "$root/build" -S "$root" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+cmake -B "$root/build" -S "$root" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++
 
 cd "$root/build"
 

@@ -14,17 +14,17 @@ inline namespace kernel
             typename G,
             REQUIRES(std::is_invocable<F, std::string const&, int>),
             REQUIRES(std::is_invocable<G, std::string const&, int>)>
-  auto operator |(F&& f, G&& g)
+  constexpr auto operator |(F&& f, G&& g)
   {
-    return [fs = std::forward_as_tuple(f, g)](std::string const& token, auto radix = 10) -> decltype(auto)
+    return [=](std::string const& token, auto radix = 10) -> decltype(auto)
     {
       try
       {
-        return std::get<0>(fs)(token, radix);
+        return f(token, radix);
       }
       catch (...)
       {
-        return std::get<1>(fs)(token, radix);
+        return g(token, radix);
       }
     };
   }
@@ -39,7 +39,7 @@ inline namespace kernel
    *  <digit 16> = <digit 10> | a | b | c | d | e | f
    *
    * ------------------------------------------------------------------------ */
-  auto to_integer = [](std::string const& token, auto radix = 10)
+  constexpr auto to_integer = [](std::string const& token, auto radix = 10)
   {
     std::regex static const pattern { "[+-]?[\\dABCDEFabcdef]+" }; // XXX DIRTY HACK
 
@@ -95,7 +95,7 @@ inline namespace kernel
     }
   };
 
-  auto to_ratio = [](std::string const& token, auto radix = 10)
+  constexpr auto to_ratio = [](std::string const& token, auto radix = 10)
   {
     std::regex static const pattern { "([+-]?[\\dabcdef]+)/([\\dabcdef]+)" };
 
@@ -129,7 +129,7 @@ inline namespace kernel
    *  <exponent marker> = e
    *
    * ------------------------------------------------------------------------ */
-  auto to_decimal = [](std::string const& token, auto radix = 10) // <sign> <decimal 10>
+  constexpr auto to_decimal = [](std::string const& token, auto radix = 10) // <sign> <decimal 10>
   {
     switch (radix)
     {
@@ -155,7 +155,7 @@ inline namespace kernel
    *  <infnan> = +inf.0 | -inf.0 | +nan.0 | -nan.0
    *
    * ------------------------------------------------------------------------ */
-  auto to_infnan = [](std::string const& token, auto radix = 10)
+  constexpr auto to_infnan = [](std::string const& token, auto radix = 10)
   {
     std::unordered_map<std::string, object> static const infnan
     {
@@ -179,7 +179,7 @@ inline namespace kernel
    *
    *
    * ------------------------------------------------------------------------ */
-  auto to_constant = [](std::string const& token, auto radix = 10)
+  constexpr auto to_constant = [](std::string const& token, auto radix = 10)
   {
     static const std::unordered_map<std::string, object> constants
     {
@@ -207,11 +207,11 @@ inline namespace kernel
    *            | <decimal R>
    *
    * ------------------------------------------------------------------------ */
-  auto to_real = to_integer // <sign> <uinteger R>
-               | to_ratio   // <sign> <uinteger R> / <uinteger R>
-               | to_decimal // <sign> <decimal R>
-               | to_infnan
-               | to_constant; // SRFI-144
+  constexpr auto to_real = to_integer // <sign> <uinteger R>
+                         | to_ratio   // <sign> <uinteger R> / <uinteger R>
+                         | to_decimal // <sign> <decimal R>
+                         | to_infnan
+                         | to_constant; // SRFI-144
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -229,7 +229,7 @@ inline namespace kernel
    *              |          -           i                                 TODO
    *
    * ------------------------------------------------------------------------ */
-  auto to_complex = to_real;
+  constexpr auto to_complex = to_real;
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -249,7 +249,7 @@ inline namespace kernel
    *  NOTE: <Prefix R> is parsed with 'read'.
    *
    * ------------------------------------------------------------------------ */
-  auto to_number = to_complex;
+  constexpr auto to_number = to_complex;
 } // namespace kernel
 } // namespace meevax
 
