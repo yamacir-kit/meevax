@@ -681,7 +681,7 @@ inline namespace kernel
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ string-copy!       │ TODO       │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-fill!       │ TODO       │                                    │
+      │ string-fill!       │ Scheme     │                                    │
       └────────────────────┴────────────┴────────────────────────────────────┘
 
     ------------------------------------------------------------------------- */
@@ -909,32 +909,18 @@ inline namespace kernel
       using boost::adaptors::reverse;
       using boost::adaptors::slice;
 
-      if (cdr(xs).is<null>())
-      {
-        for (auto const& each : reverse(car(xs).as<const string>()))
-        {
-          x = cons(make(each), x);
-        }
-      }
-      else if (cddr(xs).is<null>())
-      {
-        for (auto const& each : reverse(slice(car(xs).as<const string>(),
-                                              cadr(xs).as<exact_integer>().to<string::size_type>(),
-                                              car(xs).as<const string>().size())))
-        {
-          x = cons(make(each), x);
-        }
-      }
-      else
-      {
-        for (auto const& each : reverse(slice(car(xs).as<const string>(),
-                                              cadr(xs).as<exact_integer>().to<string::size_type>(),
-                                              caddr(xs).as<exact_integer>().to<string::size_type>())))
-        {
-          x = cons(make(each), x);
-        }
-      }
+      auto start =
+        1 < length(xs) ? cadr(xs).as<exact_integer>().to<string::size_type>()
+                       : 0;
 
+      auto end =
+        2 < length(xs) ? caddr(xs).as<exact_integer>().to<string::size_type>()
+                       : car(xs).as<const string>().size();
+
+      for (auto const& each : reverse(slice(car(xs).as<const string>(), start, end)))
+      {
+        x = cons(make(each), x);
+      }
 
       return x;
     });
