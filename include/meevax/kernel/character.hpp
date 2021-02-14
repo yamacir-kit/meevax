@@ -27,14 +27,14 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   struct character
   {
-    codepoint const value;
+    codepoint value;
 
     [[deprecated]]
     auto read_codeunit(input_port &) const -> codeunit;
 
     auto read(input_port &) const -> codepoint;
 
-    explicit constexpr character() = default;
+    explicit character() = default;
 
     /* ---- R7RS 6.6. Characters -----------------------------------------------
      *

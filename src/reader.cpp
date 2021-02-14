@@ -21,6 +21,7 @@ inline namespace kernel
    *  <character> = #\ <any character>
    *              | #\ <character name>
    *              | #\x <hex scalar value>
+   *              | #\U+ <hex scalar value> TODO
    *
    *  <character name> = alarm
    *                   | backspace

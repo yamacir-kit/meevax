@@ -683,12 +683,30 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("string?", make_predicate<string>());
-
     define<procedure>("char-cons", [](let const& xs)
     {
       return make<string>(car(xs), cadr(xs));
     });
+
+    /* ---- R7RS 6.7. Strings --------------------------------------------------
+     *
+     *  (string? obj)                                                 procedure
+     *
+     *  Returns #t if obj is a string, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+    define<procedure>("string?", make_predicate<string>());
+
+    /* ---- R7RS 6.7. Strings --------------------------------------------------
+     *
+     *  (make-string k)                                               procedure
+     *  (make-string k char)                                          procedure
+     *
+     *  The make-string procedure returns a newly allocated string of length k.
+     *  If char is given, then all the characters of the string are initialized
+     *  to char , otherwise the contents of the string are unspecified.
+     *
+     * ---------------------------------------------------------------------- */
 
 
   /* ---- R7RS 6.8. Vectors ----------------------------------------------------
