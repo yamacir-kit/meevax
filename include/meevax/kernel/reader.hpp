@@ -33,9 +33,8 @@ inline namespace kernel
   let read_char(input_port &);
 
   // TODO Move into reader class private
-  let read_string(input_port &);
-
-  let make_string(std::string const&);
+  // [[deprecated]]
+  // let read_string(input_port &);
 
   /* ---- Reader ---------------------------------------------------------------
    *
@@ -92,7 +91,7 @@ inline namespace kernel
           }
           catch (read_error<improper_list_tag> const&)
           {
-            let kdr = read(port);
+            let const kdr = read(port);
             port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
             return kdr;
           }
@@ -104,7 +103,7 @@ inline namespace kernel
           return discriminate(port);
 
         case '"':
-          return read_string(port);
+          return make<string>(port);
 
         case '\'':
           return list(intern("quote"), read(port));
@@ -236,7 +235,7 @@ inline namespace kernel
       case 'p':
         assert(is.get() == '"');
         is.ignore(1);
-        return make<path>(read_string(is).template as<string>());
+        return make<path>(string(is));
 
       case 't':
         ignore(is, [](auto&& x) { return not is_end_of_token(x); });

@@ -71,36 +71,12 @@ inline namespace kernel
     throw read_error<string>("unterminated string");
   }
 
-  auto string::write_string() const -> std::string
+  auto string::write_string(output_port & port) const -> output_port &
   {
-    output_string_port port {};
-
-    car(*this).as<character>().write(port);
-
-    for (auto const& each : cdr(*this))
-    {
-      each.as<character>().write(port);
-    }
-
-    return port.str();
+    return port << static_cast<codeunits const&>(*this);
   }
 
-  auto string::write_string(output_port& port) const -> output_port &
-  {
-    return port << write_string();
-  }
-
-  auto string::write_string(let const& x) const -> output_port &
-  {
-    return write_string(x.as<output_port>());
-  }
-
-  bool operator==(const string& lhs, const string& rhs)
-  {
-    return lhs.write_string() == rhs.write_string();
-  }
-
-  auto operator <<(output_port& port, const string& datum) -> output_port &
+  auto operator <<(output_port & port, string const& datum) -> output_port &
   {
     auto print = [&](character const& c) -> decltype(auto)
     {
@@ -129,11 +105,9 @@ inline namespace kernel
 
     port << cyan << "\"";
 
-    print(car(datum).as<character>());
-
-    for (let const& each : cdr(datum))
+    for (auto const& each : datum)
     {
-      print(each.as<character>());
+      print(each);
     }
 
     return port << cyan << "\"" << reset;

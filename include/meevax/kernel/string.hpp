@@ -9,6 +9,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  using characters = std::vector<character>;
+
   /* ---- R7RS 6.7. Strings ----------------------------------------------------
    *
    *  Strings are sequences of characters. Strings are written as sequences of
@@ -68,14 +70,31 @@ inline namespace kernel
    *  (see section 6.13.2) to attempt to read one.
    *
    * ------------------------------------------------------------------------ */
-  struct string // : private std::vector<character>
-    : public virtual pair
+  struct string : public characters // TODO PRIVATE u32vector
   {
-    using characters = std::vector<character>;
-
-    // using characters::size_type;
-
     auto read(input_port &) const -> characters;
+
+    explicit string() = default;
+
+    explicit string(input_port & port)
+      : characters { read(port) }
+    {}
+
+    explicit string(std::string const& cxx_string)
+    {
+      std::stringstream ss;
+      ss << cxx_string << "\""; // XXX HACK
+      static_cast<characters &>(*this) = read(ss);
+    }
+
+    explicit string(size_type size, character const& c)
+      : characters { size, c }
+    {}
+
+    template <typename InputIterator>
+    explicit string(InputIterator begin, InputIterator end)
+      : characters { begin, end }
+    {}
 
     /* ---- R7RS 6.13.2. Input -------------------------------------------------
      *
@@ -90,19 +109,20 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     // TODO string(input_port &, size_type k);
 
-    auto write_string() const -> std::string;
+    operator codeunits() const // NOTE: codeunits = std::string
+    {
+      codeunits result;
+
+      for (auto const& each : *this)
+      {
+        result.push_back(each); // NOTE: Character's implicit codepoint->codeunit conversion.
+      }
+
+      return result;
+    }
 
     auto write_string(output_port &) const -> output_port &;
-
-    auto write_string(let const&) const -> output_port &;
-
-    operator std::string() const
-    {
-      return write_string();
-    }
   };
-
-  bool operator ==(string const&, string const&);
 
   auto operator <<(output_port &, string const&) -> output_port &;
 } // namespace kernel

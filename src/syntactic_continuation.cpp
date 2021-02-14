@@ -1,6 +1,9 @@
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <boost/range/adaptor/reversed.hpp>
+#include <boost/range/adaptors.hpp>
 
+#include <iterator>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -392,7 +395,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make_string(boost::lexical_cast<std::string>(car(xs)));
+      return make<string>(boost::lexical_cast<std::string>(car(xs)));
     });
 
     define<procedure>("string->number", [](let const& xs)
@@ -514,7 +517,7 @@ inline namespace kernel
 
     define<procedure>("symbol->string", [](let const& xs)
     {
-      return make_string(car(xs).as<symbol>());
+      return make<string>(car(xs).as<symbol>());
     });
 
     define<procedure>("string->symbol", [](let const& xs)
@@ -630,25 +633,25 @@ inline namespace kernel
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ string?            │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ make-string        │ Scheme     │                                    │
+      │ make-string        │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ string             │ Scheme     │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-length      │ Scheme     │                                    │
+      │ string-length      │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ref         │ Scheme     │                                    │
+      │ string-ref         │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-set!        │ Scheme     │                                    │
+      │ string-set!        │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string=?           │ Scheme     │                                    │
+      │ string=?           │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string<?           │ Scheme     │                                    │
+      │ string<?           │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string>?           │ Scheme     │                                    │
+      │ string>?           │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string<=?          │ Scheme     │                                    │
+      │ string<=?          │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string>=?          │ Scheme     │                                    │
+      │ string>=?          │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ string-ci=?        │ Scheme     │ (scheme char) library              │
       ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -668,36 +671,39 @@ inline namespace kernel
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ substring          │ Scheme     │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-append      │ Scheme     │                                    │
+      │ string-append      │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string->list       │ Scheme     │                                    │
+      │ string->list       │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list->string       │ Scheme     │                                    │
+      │ list->string       │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-copy        │ Scheme     │                                    │
+      │ string-copy        │ C++        │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
       │ string-copy!       │ TODO       │                                    │
       ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-fill!       │ Scheme     │                                    │
+      │ string-fill!       │ TODO       │                                    │
       └────────────────────┴────────────┴────────────────────────────────────┘
 
     ------------------------------------------------------------------------- */
 
+    // TODO REMOVE
     define<procedure>("char-cons", [](let const& xs)
     {
-      return make<string>(car(xs), cadr(xs));
+      // return make<string>(car(xs), cadr(xs));
+      return unspecified;
     });
 
-    /* ---- R7RS 6.7. Strings --------------------------------------------------
+    /* -------------------------------------------------------------------------
      *
      *  (string? obj)                                                 procedure
      *
      *  Returns #t if obj is a string, otherwise returns #f.
      *
      * ---------------------------------------------------------------------- */
+
     define<procedure>("string?", make_predicate<string>());
 
-    /* ---- R7RS 6.7. Strings --------------------------------------------------
+    /* -------------------------------------------------------------------------
      *
      *  (make-string k)                                               procedure
      *  (make-string k char)                                          procedure
@@ -708,6 +714,271 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
+    define<procedure>("make-string", [](let const& xs)
+    {
+      return make<string>(car(xs).as<exact_integer>().to<std::size_t>(),
+                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character(' '));
+    });
+
+    // NOTE: (string char ...) defined in overture.ss
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string-length string)                                        procedure
+     *
+     *  Returns the number of characters in the given string.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string-length", [](let const& xs)
+    {
+      return make<exact_integer>(car(xs).as<string const>().size());
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string-ref string k)                                         procedure
+     *
+     *  It is an error if k is not a valid index of string. The string-ref
+     *  procedure returns character k of string using zero-origin indexing.
+     *  There is no requirement for this procedure to execute in constant time.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string-ref", [](let const& xs)
+    {
+      return make(car(xs).as<string const>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string-set! string k char)                                   procedure
+     *
+     *  It is an error if k is not a valid index of string. The string-set!
+     *  procedure stores char in element k of string. There is no requirement
+     *  for this procedure to execute in constant time.
+     *
+     *    (define (f) (make-string 3 #\*))
+     *    (define (g) "***")
+     *
+     *    (string-set! (f) 0 #\?) => unspecified
+     *    (string-set! (g) 0 #\?) => error
+     *
+     *    (string-set! (symbol->string 'immutable) 0 #\?) => error
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string-set!", [](let const& xs)
+    {
+      car(xs).as<string>().at(
+        cadr(xs).as<exact_integer>().to<string::size_type>())
+      = caddr(xs).as<const character>();
+
+      return unspecified;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string=? string1 string2 string3 ...)                       procedure
+     *
+     *  Returns #t if all the strings are the same length and contain exactly
+     *  the same characters in the same positions, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    #define STRING_COMPARE(OPERATOR)                                           \
+    [](let const& xs)                                                          \
+    {                                                                          \
+      for (let const& each : cdr(xs))                                          \
+      {                                                                        \
+        if (car(xs).as<const string>() OPERATOR each.as<const string>())       \
+        {                                                                      \
+          continue;                                                            \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+          return f;                                                            \
+        }                                                                      \
+      }                                                                        \
+                                                                               \
+      return t;                                                                \
+    }
+
+    define<procedure>("string=?", STRING_COMPARE(==));
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string-ci=? string1 string2 string3 ...)        char library procedure
+     *
+     *  Returns #t if, after case-folding, all the strings are the same length
+     *  and contain the same characters in the same positions, otherwise
+     *  returns #f. Specifically, these procedures behave as if string-foldcase
+     *  were applied to their arguments before comparing them.
+     *
+     * ---------------------------------------------------------------------- */
+    // TODO
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string<? string1 string2 string3 ...)                        procedure
+     *  (string-ci<? string1 string2 string3 ...)        char library procedure
+     *
+     *  (string>? string1 string2 string3 ...)                        procedure
+     *  (string-ci>? string1 string2 string3 ...)        char library procedure
+     *
+     *  (string<=? string1 string2 string3 ...)                       procedure
+     *  (string-ci<=? string1 string2 string3 ...)       char library procedure
+     *
+     *  (string>=? string1 string2 string3 ...)                       procedure
+     *  (string-ci>=? string1 string2 string3 ...)       char library procedure
+     *
+     *  These procedures return #t if their arguments are (respectively):
+     *  monotonically increasing, monotonically decreasing, monotonically
+     *  non-decreasing, or monotonically nonincreasing. These predicates are
+     *  required to be transitive. These procedures compare strings in an
+     *  implementation-defined way. One approach is to make them the
+     *  lexicographic extensions to strings of the corresponding orderings on
+     *  characters. In that case, string<? would be the lexicographic ordering
+     *  on strings induced by the ordering char<? on characters, and if the two
+     *  strings differ in length but are the same up to the length of the
+     *  shorter string, the shorter string would be considered to be
+     *  lexicographically less than the longer string. However, it is also
+     *  permitted to use the natural ordering imposed by the implementation’s
+     *  internal representation of strings, or a more complex locale-specific
+     *  ordering.
+     *
+     *  In all cases, a pair of strings must satisfy exactly one of string<?,
+     *  string=?, and string>?, and must satisfy string<=? if and only if they
+     *  do not satisfy string>? and string>=? if and only if they do not
+     *  satisfy string<?.
+     *
+     *  The "-ci" procedures behave as if they applied string-foldcase to their
+     *  arguments before invoking the corresponding procedures without "-ci".
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string<?",  STRING_COMPARE(<));
+    define<procedure>("string>?",  STRING_COMPARE(>));
+    define<procedure>("string<=?", STRING_COMPARE(<=));
+    define<procedure>("string>=?", STRING_COMPARE(>=));
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string-append string ...)                                    procedure
+     *
+     *  Returns a newly allocated string whose characters are the concatenation
+     *  of the characters in the given strings.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string-append", [](let const& xs)
+    {
+      string s;
+
+      for (let const& x : xs)
+      {
+        std::copy(x.as<const string>().begin(),
+                  x.as<const string>().end(),
+                  std::back_inserter(s));
+      }
+
+      return make(s);
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string->list string)                                         procedure
+     *  (string->list string start)                                   procedure
+     *  (string->list string start end)                               procedure
+     *
+     *  (list->string list)                                           procedure
+     *
+     *  It is an error if any element of list is not a character. The
+     *  string->list procedure returns a newly allocated list of the characters
+     *  of string between start and end. list->string returns a newly allocated
+     *  string formed from the elements in the list list. In both procedures,
+     *  order is preserved. string->list and list->string are inverses so far
+     *  as equal? is concerned.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string->list", [](let const& xs)
+    {
+      let x = unit;
+
+      using boost::adaptors::reverse;
+      using boost::adaptors::slice;
+
+      if (cdr(xs).is<null>())
+      {
+        for (auto const& each : reverse(car(xs).as<const string>()))
+        {
+          x = cons(make(each), x);
+        }
+      }
+      else if (cddr(xs).is<null>())
+      {
+        for (auto const& each : reverse(slice(car(xs).as<const string>(),
+                                              cadr(xs).as<exact_integer>().to<string::size_type>(),
+                                              car(xs).as<const string>().size())))
+        {
+          x = cons(make(each), x);
+        }
+      }
+      else
+      {
+        for (auto const& each : reverse(slice(car(xs).as<const string>(),
+                                              cadr(xs).as<exact_integer>().to<string::size_type>(),
+                                              caddr(xs).as<exact_integer>().to<string::size_type>())))
+        {
+          x = cons(make(each), x);
+        }
+      }
+
+
+      return x;
+    });
+
+    define<procedure>("list->string", [](let const& xs)
+    {
+      string s;
+
+      for (let const& x : car(xs))
+      {
+        s.push_back(x.as<const character>());
+      }
+
+      return make(std::move(s));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string-copy string)                                          procedure
+     *  (string-copy string start)                                    procedure
+     *  (string-copy string start end)                                procedure
+     *
+     *  Returns a newly allocated copy of the part of the given string between
+     *  start and end.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("string-copy", [](let const& xs)
+    {
+      if (cdr(xs).is<null>())
+      {
+        return make<string>(car(xs).as<string>());
+      }
+      else if (cddr(xs).is<null>())
+      {
+        return make<string>(car(xs).as<string>().begin() + cadr(xs).as<exact_integer>().to<string::size_type>(),
+                            car(xs).as<string>().end());
+      }
+      else
+      {
+        return make<string>(car(xs).as<string>().begin() +  cadr(xs).as<exact_integer>().to<string::size_type>(),
+                            car(xs).as<string>().begin() + caddr(xs).as<exact_integer>().to<string::size_type>());
+      }
+    });
 
   /* ---- R7RS 6.8. Vectors ----------------------------------------------------
 
@@ -1211,7 +1482,7 @@ inline namespace kernel
 
     define<procedure>("get-output-string", [](let const& xs)
     {
-      return make_string(car(xs).as<output_string_port>().str());
+      return make<string>(car(xs).as<output_string_port>().str());
     });
 
 
@@ -1276,7 +1547,7 @@ inline namespace kernel
 
     define<procedure>("::write-string", [](let const& xs)
     {
-      car(xs).as<string>().write_string(cadr(xs));
+      car(xs).as<string>().write_string(cadr(xs).as<output_port>());
       return unspecified;
     });
 

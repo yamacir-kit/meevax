@@ -38,16 +38,15 @@ inline namespace kernel
 
   let vector::to_string(vector::size_type from, vector::size_type to) const
   {
-    using boost::adaptors::reversed;
     using boost::adaptors::sliced;
 
-    let s = unit;
+    string s;
 
-    for (let const& each : *this | sliced(from, to) | reversed)
+    for (let const& each : *this | sliced(from, to))
     {
       if (each.is<character>())
       {
-        s = make<string>(each, s);
+        s.push_back(each.as<character>());
       }
       else
       {
@@ -55,7 +54,7 @@ inline namespace kernel
       }
     }
 
-    return s;
+    return make(s);
   }
 
   auto operator ==(vector const& lhs, vector const& rhs) -> bool
