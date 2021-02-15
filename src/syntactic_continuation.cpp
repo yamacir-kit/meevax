@@ -1639,6 +1639,7 @@ inline namespace kernel
     std::vector<string_view> codes {
       values,
       dynamic_wind, // TODO dynamic-wind depends let-values
+      srfi_8,
       srfi_1, // SRFI-1 depends SRFI-8 (receive)
       overture // Derived expression types depends SRFI-1
     };

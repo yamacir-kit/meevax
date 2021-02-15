@@ -4,20 +4,15 @@
 
 (define fork/csc fork-with-current-syntactic-continuation)
 
-(define identity
-  (lambda (x) x))
+(define (identity x) x)
 
-(define unspecified
-  (lambda ()
-    (if #false #false #;unspecified)))
+(define (unspecified) (if #f #f))
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Booleans (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define not
-  (lambda (x)
-    (if x #f #t)))
+(define (not x) (if x #f #t))
 
 ; ------------------------------------------------------------------------------
 ;  6.4 Pairs and Lists (Part 1 of 2)
@@ -1166,20 +1161,6 @@
 ;  6.11 Standard Exceptions Library
 ; ------------------------------------------------------------------------------
 
-; (define-syntax receive
-;   (syntax-rules ()
-;     ((receive parameters expression . body)
-;      (call-with-values
-;        (lambda () expression)
-;        (lambda parameters . body)))))
-
-(define-syntax receive ; (receive parameters expression . body)
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(call-with-values
-         (,(rename 'lambda) () ,(caddr form))
-         (,(rename 'lambda) ,(cadr form) ,@(cdddr form))))))
-
 ; TODO with-exception-handler
 ; TODO raise ; SRFI-18
 ; TODO raise-continuable
@@ -1195,8 +1176,7 @@
     (newline)
     (exit 1)))
 
-(define error-object?
-  (lambda (x) #false) )
+(define (error-object? x) #false)
 
 ; TODO error-object-message
 ; TODO error-object-irritants
