@@ -32,6 +32,7 @@ inline namespace kernel
 
       make<symbol>("srfi-5"),
       make<symbol>("srfi-6"),
+      make<symbol>("srfi-8"),
       make<symbol>("srfi-10"),
       make<symbol>("srfi-62"),
       make<symbol>("srfi-87")
