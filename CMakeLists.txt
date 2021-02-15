@@ -108,13 +108,11 @@ endforeach()
 add_library(Kernel SHARED "")
 add_library(Meevax::Kernel ALIAS Kernel)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
 target_sources(Kernel PRIVATE
   ${${PROJECT_NAME}_BASIS}
-  ${${PROJECT_NAME}_KERNEL_SOURCES}
-  )
+  ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(Kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
