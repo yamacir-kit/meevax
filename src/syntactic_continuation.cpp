@@ -686,13 +686,6 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    // TODO REMOVE
-    define<procedure>("char-cons", [](let const& xs)
-    {
-      // return make<string>(car(xs), cadr(xs));
-      return unspecified;
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (string? obj)                                                 procedure
@@ -774,7 +767,7 @@ inline namespace kernel
         cadr(xs).as<exact_integer>().to<string::size_type>())
       = caddr(xs).as<const character>();
 
-      return unspecified;
+      return car(xs);
     });
 
     /* -------------------------------------------------------------------------
@@ -877,9 +870,7 @@ inline namespace kernel
 
       for (let const& x : xs)
       {
-        std::copy(x.as<const string>().begin(),
-                  x.as<const string>().end(),
-                  std::back_inserter(s));
+        std::copy(x.as<const string>().begin(), x.as<const string>().end(), std::back_inserter(s));
       }
 
       return make(s);
@@ -902,7 +893,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string->list", [](let const& xs)
+    define<procedure>("string->list", [](let const& xs) // TODO MOVE INTO overture.ss
     {
       let x = unit;
 
