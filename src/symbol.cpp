@@ -19,7 +19,7 @@ inline namespace kernel
     }
     else
     {
-      return port << static_cast<bytestring const&>(datum);
+      return port << static_cast<std::string const&>(datum);
     }
   }
 } // namespace kernel

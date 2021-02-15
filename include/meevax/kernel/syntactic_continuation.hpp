@@ -74,8 +74,8 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
   {
   public:
-    std::unordered_map<bytestring, object> symbols;
-    std::unordered_map<bytestring, object> external_symbols; // TODO REMOVE
+    std::unordered_map<std::string, object> symbols;
+    std::unordered_map<std::string, object> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 
@@ -109,7 +109,7 @@ inline namespace kernel
       return cdr(form());
     }
 
-    auto const& intern(bytestring const& s)
+    auto const& intern(std::string const& s)
     {
       if (auto iter = symbols.find(s); iter != std::end(symbols))
       {
@@ -126,13 +126,13 @@ inline namespace kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(bytestring const& name, Ts&&... xs)
+    decltype(auto) define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) define(bytestring const& name, Ts&&... xs)
+    decltype(auto) define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
@@ -181,6 +181,11 @@ inline namespace kernel
       //            ),
       //          dynamic_environment()
       //          );
+
+      // for (auto const& each : syntactic_environment())
+      // {
+      //   std::cout << "  " << each << std::endl;
+      // }
 
       c = current_expression();
 
@@ -231,7 +236,7 @@ inline namespace kernel
     }
 
     // XXX DIRTY HACK
-    decltype(auto) load(bytestring const& name)
+    decltype(auto) load(std::string const& name)
     {
       return load(path(name));
     }
@@ -241,7 +246,7 @@ inline namespace kernel
       return cdr(machine::global(name, syntactic_environment()));
     }
 
-    decltype(auto) operator [](bytestring const& name)
+    decltype(auto) operator [](std::string const& name)
     {
       return (*this)[intern(name)];
     }
@@ -297,7 +302,7 @@ inline namespace kernel
         for (auto const& each : xs)
         {
           std::cerr << ";\t\t; staging " << each << std::endl;
-          external_symbols.emplace(boost::lexical_cast<bytestring>(each), each);
+          external_symbols.emplace(boost::lexical_cast<std::string>(each), each);
         }
 
         // std::cerr << ";\t\t; exported identifiers are" << std::endl;

@@ -18,9 +18,9 @@ inline namespace kernel
     static constexpr std::size_t minor = BOOST_VERSION / 100 % 1000;
     static constexpr std::size_t patch = BOOST_VERSION % 100;
 
-    let static const version = make<symbol>(boost::lexical_cast<bytestring>(major) + "." +
-                                            boost::lexical_cast<bytestring>(minor) + "." +
-                                            boost::lexical_cast<bytestring>(patch));
+    let static const version = make<symbol>(boost::lexical_cast<std::string>(major) + "." +
+                                            boost::lexical_cast<std::string>(minor) + "." +
+                                            boost::lexical_cast<std::string>(patch));
     return version;
   }
 

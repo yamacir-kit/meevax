@@ -1091,204 +1091,19 @@
 ;  6.7 Strings
 ; ------------------------------------------------------------------------------
 
-(define (make-string k . c)
-  (let ((c (if (pair? c) (car c) #\space)))
-    (let rec ((k k)
-              (result '()))
-      (if (<= k 0) result
-          (rec (- k 1)
-               (char-cons c result))))))
-
 (define (string . xs) (list->string xs))
 
-(define (string-length s)
-  (let rec ((s s)
-            (k 0))
-    (if (null? s) k
-        (rec (cdr s)
-             (+ k 1)))))
+(define (string-ci=?  . xs) (apply string=?  (map string-foldcase xs)))
+(define (string-ci<?  . xs) (apply string<?  (map string-foldcase xs)))
+(define (string-ci>?  . xs) (apply string>?  (map string-foldcase xs)))
+(define (string-ci<=? . xs) (apply string<=? (map string-foldcase xs)))
+(define (string-ci>=? . xs) (apply string>=? (map string-foldcase xs)))
 
-(define string-ref list-ref)
-
-(define string-set! list-set!)
-
-(define lexicographical-compare
-  (lambda (x xs . compare)
-
-    (define distance
-      (lambda (x y)
-        (if (or (null? x)
-                (null? y))
-            (- (string-length y)
-               (string-length x))
-            (let ((d (- (char->integer (car y))
-                     (char->integer (car x)))))
-              (if (zero? d)
-                  (distance (cdr x)
-                            (cdr y))
-                  d)))))
-
-    (let ((compare (if (pair? compare) (car compare) =)))
-      (if (null? xs) #t
-          (and (compare 0 (distance x (car xs)))
-               (lexicographical-compare (car xs)
-                                        (cdr xs)
-                                        compare))))))
-
-(define string=?
-  (lambda (x . xs)
-    (lexicographical-compare x xs =)))
-
-(define string<?
-  (lambda (x . xs)
-    (lexicographical-compare x xs <)))
-
-(define string>?
-  (lambda (x . xs)
-    (lexicographical-compare x xs >)))
-
-(define string<=?
-  (lambda (x . xs)
-    (lexicographical-compare x xs <=)))
-
-(define string>=?
-  (lambda (x . xs)
-    (lexicographical-compare x xs >=)))
-
-(define lexicographical-ci-compare
-  (lambda (x xs . compare)
-
-    (define distance
-      (lambda (x y)
-        (if (or (null? x)
-                (null? y))
-            (- (string-length y)
-               (string-length x))
-            (let ((d (- (char->integer (char-downcase (car y)))
-                        (char->integer (char-downcase (car x))))))
-              (if (zero? d)
-                  (distance (cdr x)
-                            (cdr y))
-                  d)))))
-
-    (let ((compare (if (pair? compare) (car compare) =)))
-      (if (null? xs) #t
-          (and (compare 0 (distance x (car xs)))
-               (lexicographical-ci-compare (car xs)
-                                           (cdr xs)
-                                           compare))))))
-
-(define string-ci=?
-  (lambda (x . xs)
-    (lexicographical-ci-compare x xs =)))
-
-(define string-ci<?
-  (lambda (x . xs)
-    (lexicographical-ci-compare x xs <)))
-
-(define string-ci>?
-  (lambda (x . xs)
-    (lexicographical-ci-compare x xs >)))
-
-(define string-ci<=?
-  (lambda (x . xs)
-    (lexicographical-ci-compare x xs <=)))
-
-(define string-ci>=?
-  (lambda (x . xs)
-    (lexicographical-ci-compare x xs >=)))
-
-(define string-upcase ; Toy implementaion
-  (lambda (s)
-    (string-map char-upcase s)))
-
-(define string-downcase ; Toy implementaion
-  (lambda (s)
-    (string-map char-downcase s)))
-
-(define string-foldcase
-  (lambda (s)
-    (string-map char-foldcase s)))
-
-(define string-take
-  (lambda (x k)
-    (let rec ((x x)
-              (k k))
-      (if (zero? k) '()
-          (char-cons (car x)
-                     (rec (cdr x) (- k 1)))))))
-
-(define string-drop drop)
-
-(define string-copy
-  (lambda (s . o)
-
-    (define start
-      (if (and (pair? o)
-               (exact-integer? (car o)))
-          (car o)
-          0))
-
-    (define end
-      (if (and (pair? o)
-               (pair? (cdr o))
-               (exact-integer? (cadr o)))
-          (cadr o)
-          (string-length s)))
-
-    (string-take (string-drop s start) (- end start))))
+(define (string-upcase   x) (string-map char-upcase   x))
+(define (string-downcase x) (string-map char-downcase x))
+(define (string-foldcase x) (string-map char-foldcase x))
 
 (define substring string-copy)
-
-(define string-append-2
-  (lambda (x y)
-    (if (null? x) y
-        (char-cons (car x)
-                   (string-append-2 (cdr x) y) ))))
-
-(define string-reverse
-  (lambda (x)
-    (if (null? x) ""
-        (string-append-2 (string-reverse (cdr x))
-                         (string (car x))))))
-
-(define string-append
-  (lambda x
-    (define string-append-aux
-      (lambda (x y)
-        (if (null? x) y
-            (string-append-aux (cdr x)
-                               (string-append-2 (car x) y) ))))
-    (if (null? x) ""
-        (let ((rx (string-reverse x)))
-          (string-append-aux (cdr rx)
-                             (car rx))))))
-
-(define string->list
-  (lambda (s . o)
-
-    (define start
-      (if (and (pair? o)
-               (exact-integer? (car o)))
-          (car o)
-          0))
-
-    (define end
-      (if (and (pair? o)
-               (pair? (cdr o))
-               (exact-integer? (cadr o)))
-          (cadr o)
-          (string-length s)))
-
-    (take (drop s start) (- end start))))
-
-(define (list->string x)
-  (let rec ((x x))
-    (cond ((null? x) '())
-          ((pair? x)
-           (char-cons (car x)
-                      (rec (cdr x))))
-          (else (char-cons x '())))))
 
 ; string-copy!
 
@@ -1325,30 +1140,20 @@
         (closure? x)
         (continuation? x) )))
 
-(define string-map
-  (lambda (f x . xs)
+(define (string-map f x . xs)
 
-    (define map-1
-      (lambda (f x result)
-        (if (string? x)
-            (map-1 f
-                   (cdr x)
-                   (char-cons (f (car x))
-                              result))
-            (string-reverse result))))
+  (define (string-map-1 x)
+    (list->string
+      (map f (string->list x))))
 
-    (define map-n
-      (lambda (f xs result)
-        (if (every string? xs)
-            (map-n f
-                   (map-1 cdr xs '())
-                   (char-cons (apply f (map-1 car xs '()))
-                              result))
-            (string-reverse result))))
+  (define (string-map-n xs)
+    (map list->string
+         (map (lambda (c) (map f c))
+              (map string->list xs))))
 
-    (if (null? xs)
-        (map-1 f x '())
-        (map-n f (char-cons x xs) '()))))
+  (if (null? xs)
+      (string-map-1 x)
+      (string-map-n (cons x xs))))
 
 ; TODO vector-map
 
@@ -1383,50 +1188,6 @@
       (if (values? result)
           (apply consumer (cdr result))
           (consumer result)))))
-
-; ---- dynamic-wind ------------------------------------------------------------
-
-; from SRFI-39
-; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
-
-(define dynamic-extents '())
-
-(define dynamic-wind
-  (lambda (before body after)
-    (before)
-    (set! dynamic-extents (cons (cons before after) dynamic-extents))
-    (let ((result (body)))
-      (set! dynamic-extents (cdr dynamic-extents))
-      (after)
-      result)))
-
-(define call-with-current-continuation
-  (let ((call/cc
-          (lambda (procedure)
-            (call-with-current-continuation procedure)))) ; Original call/cc is syntax
-    (lambda (proc)
-
-      (define windup!
-        (lambda (from to)
-          (set! dynamic-extents from)
-          (cond ((eq? from to))
-                ((null? from)
-                 (windup! from (cdr to))
-                 ((caar to)))
-                ((null? to)
-                 ((cdar from))
-                 (windup! (cdr from) to))
-                (else ((cdar from))
-                      (windup! (cdr from) (cdr to))
-                      ((caar to))))
-          (set! dynamic-extents to)))
-
-      (let ((winds dynamic-extents))
-        (call/cc
-          (lambda (k1)
-            (proc (lambda (k2)
-                    (windup! dynamic-extents winds)
-                    (k1 k2)))))))))
 
 (define call/cc call-with-current-continuation)
 

@@ -172,9 +172,9 @@
     (if (negative? k)
         ((lambda (nelts)
            (if (zero? nelts) '()
-               (begin (set-cdr! (xt-tail x (- nelts 1)) '()) x)))
+               (begin (set-cdr! (list-tail x (- nelts 1)) '()) x)))
           (+ k (length x)))
-        (xt-tail x k))))
+        (list-tail x k))))
 
 ; drop-right
 ; drop-right!

@@ -21,10 +21,10 @@ inline namespace kernel
   {
     using signature = SYNTAX((*));
 
-    bytestring const name;
+    std::string const name;
 
     template <typename... Ts>
-    explicit syntax(bytestring const& name, Ts&&... xs)
+    explicit syntax(std::string const& name, Ts&&... xs)
       : std::function<SYNTAX()> { std::forward<decltype(xs)>(xs)...  }
       , name { name }
     {}

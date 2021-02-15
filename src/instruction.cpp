@@ -42,11 +42,11 @@ inline namespace kernel
 
       if (iter == c)
       {
-        os << bytestring(4 * (depth - 1), ' ') << magenta << "(   " << reset;
+        os << std::string(4 * (depth - 1), ' ') << magenta << "(   " << reset;
       }
       else
       {
-        os << bytestring(4 * depth, ' ');
+        os << std::string(4 * depth, ' ');
       }
 
       switch ((*iter).as<instruction>().code)

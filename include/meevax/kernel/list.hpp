@@ -233,36 +233,36 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   inline namespace selector
   {
-    auto caar = functional::compose(car, car);
-    auto cadr = functional::compose(car, cdr);
-    auto cdar = functional::compose(cdr, car);
-    auto cddr = functional::compose(cdr, cdr);
+    constexpr auto caar = compose(car, car);
+    constexpr auto cadr = compose(car, cdr);
+    constexpr auto cdar = compose(cdr, car);
+    constexpr auto cddr = compose(cdr, cdr);
 
-    auto caaar = functional::compose(car, caar);
-    auto caadr = functional::compose(car, cadr);
-    auto cadar = functional::compose(car, cdar);
-    auto caddr = functional::compose(car, cddr);
-    auto cdaar = functional::compose(cdr, caar);
-    auto cdadr = functional::compose(cdr, cadr);
-    auto cddar = functional::compose(cdr, cdar);
-    auto cdddr = functional::compose(cdr, cddr);
+    constexpr auto caaar = compose(car, caar);
+    constexpr auto caadr = compose(car, cadr);
+    constexpr auto cadar = compose(car, cdar);
+    constexpr auto caddr = compose(car, cddr);
+    constexpr auto cdaar = compose(cdr, caar);
+    constexpr auto cdadr = compose(cdr, cadr);
+    constexpr auto cddar = compose(cdr, cdar);
+    constexpr auto cdddr = compose(cdr, cddr);
 
-    auto caaaar = functional::compose(car, caaar);
-    auto caaadr = functional::compose(car, caadr);
-    auto caadar = functional::compose(car, cadar);
-    auto caaddr = functional::compose(car, caddr);
-    auto cadaar = functional::compose(car, cdaar);
-    auto cadadr = functional::compose(car, cdadr);
-    auto caddar = functional::compose(car, cddar);
-    auto cadddr = functional::compose(car, cdddr);
-    auto cdaaar = functional::compose(cdr, caaar);
-    auto cdaadr = functional::compose(cdr, caadr);
-    auto cdadar = functional::compose(cdr, cadar);
-    auto cdaddr = functional::compose(cdr, caddr);
-    auto cddaar = functional::compose(cdr, cdaar);
-    auto cddadr = functional::compose(cdr, cdadr);
-    auto cdddar = functional::compose(cdr, cddar);
-    auto cddddr = functional::compose(cdr, cdddr);
+    constexpr auto caaaar = compose(car, caaar);
+    constexpr auto caaadr = compose(car, caadr);
+    constexpr auto caadar = compose(car, cadar);
+    constexpr auto caaddr = compose(car, caddr);
+    constexpr auto cadaar = compose(car, cdaar);
+    constexpr auto cadadr = compose(car, cdadr);
+    constexpr auto caddar = compose(car, cddar);
+    constexpr auto cadddr = compose(car, cdddr);
+    constexpr auto cdaaar = compose(cdr, caaar);
+    constexpr auto cdaadr = compose(cdr, caadr);
+    constexpr auto cdadar = compose(cdr, cadar);
+    constexpr auto cdaddr = compose(cdr, caddr);
+    constexpr auto cddaar = compose(cdr, cdaar);
+    constexpr auto cddadr = compose(cdr, cdadr);
+    constexpr auto cdddar = compose(cdr, cddar);
+    constexpr auto cddddr = compose(cdr, cdddr);
 
     template <typename T>
     constexpr decltype(auto) list_tail(T&& x, std::size_t k)

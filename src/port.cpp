@@ -55,7 +55,7 @@ inline namespace kernel
                                                                                \
     if (auto const s = datum.str(); not std::empty(s))                         \
     {                                                                          \
-      port << " " << cyan << make_string(s);                                   \
+      port << " " << cyan << make<string>(s);                                  \
     }                                                                          \
                                                                                \
     return port << magenta << ")" << reset;                                    \

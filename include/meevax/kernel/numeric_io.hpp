@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_NUMERIC_LITERAL_HPP
 
 #include <regex>
+#include <tuple>
 
 #include <meevax/kernel/number.hpp>
 
@@ -11,11 +12,11 @@ inline namespace kernel
 {
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, bytestring const&, int>),
-            REQUIRES(std::is_invocable<G, bytestring const&, int>)>
-  auto operator |(F&& f, G&& g)
+            REQUIRES(std::is_invocable<F, std::string const&, int>),
+            REQUIRES(std::is_invocable<G, std::string const&, int>)>
+  constexpr auto operator |(F&& f, G&& g)
   {
-    return [=](bytestring const& token, auto radix = 10)
+    return [=](std::string const& token, auto radix = 10) -> decltype(auto)
     {
       try
       {
@@ -38,7 +39,7 @@ inline namespace kernel
    *  <digit 16> = <digit 10> | a | b | c | d | e | f
    *
    * ------------------------------------------------------------------------ */
-  auto to_integer = [](bytestring const& token, auto radix = 10)
+  constexpr auto to_integer = [](std::string const& token, auto radix = 10)
   {
     std::regex static const pattern { "[+-]?[\\dABCDEFabcdef]+" }; // XXX DIRTY HACK
 
@@ -94,7 +95,7 @@ inline namespace kernel
     }
   };
 
-  auto to_ratio = [](bytestring const& token, auto radix = 10)
+  constexpr auto to_ratio = [](std::string const& token, auto radix = 10)
   {
     std::regex static const pattern { "([+-]?[\\dabcdef]+)/([\\dabcdef]+)" };
 
@@ -128,7 +129,7 @@ inline namespace kernel
    *  <exponent marker> = e
    *
    * ------------------------------------------------------------------------ */
-  auto to_decimal = [](bytestring const& token, auto radix = 10) // <sign> <decimal 10>
+  constexpr auto to_decimal = [](std::string const& token, auto radix = 10) // <sign> <decimal 10>
   {
     switch (radix)
     {
@@ -154,9 +155,9 @@ inline namespace kernel
    *  <infnan> = +inf.0 | -inf.0 | +nan.0 | -nan.0
    *
    * ------------------------------------------------------------------------ */
-  auto to_infnan = [](bytestring const& token, auto radix = 10)
+  constexpr auto to_infnan = [](std::string const& token, auto radix = 10)
   {
-    std::unordered_map<bytestring, object> static const infnan
+    std::unordered_map<std::string, object> static const infnan
     {
       std::make_pair("+inf.0", make<system_float>(+system_float::infinity())),
       std::make_pair("-inf.0", make<system_float>(-system_float::infinity())),
@@ -178,9 +179,9 @@ inline namespace kernel
    *
    *
    * ------------------------------------------------------------------------ */
-  auto to_constant = [](bytestring const& token, auto radix = 10)
+  constexpr auto to_constant = [](std::string const& token, auto radix = 10)
   {
-    static const std::unordered_map<bytestring, object> constants
+    static const std::unordered_map<std::string, object> constants
     {
       std::make_pair("fl-pi", make<system_float>(boost::math::constants::pi<system_float::value_type>())),
     };
@@ -206,11 +207,11 @@ inline namespace kernel
    *            | <decimal R>
    *
    * ------------------------------------------------------------------------ */
-  auto to_real = to_integer // <sign> <uinteger R>
-               | to_ratio   // <sign> <uinteger R> / <uinteger R>
-               | to_decimal // <sign> <decimal R>
-               | to_infnan
-               | to_constant; // SRFI-144
+  constexpr auto to_real = to_integer // <sign> <uinteger R>
+                         | to_ratio   // <sign> <uinteger R> / <uinteger R>
+                         | to_decimal // <sign> <decimal R>
+                         | to_infnan
+                         | to_constant; // SRFI-144
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -228,7 +229,7 @@ inline namespace kernel
    *              |          -           i                                 TODO
    *
    * ------------------------------------------------------------------------ */
-  auto to_complex = to_real;
+  constexpr auto to_complex = to_real;
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -248,7 +249,7 @@ inline namespace kernel
    *  NOTE: <Prefix R> is parsed with 'read'.
    *
    * ------------------------------------------------------------------------ */
-  auto to_number = to_complex;
+  constexpr auto to_number = to_complex;
 } // namespace kernel
 } // namespace meevax
 

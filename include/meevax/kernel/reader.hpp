@@ -6,8 +6,8 @@
 #include <sstream>
 #include <stack>
 
-#include <boost/iostreams/device/null.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
+// #include <boost/iostreams/device/null.hpp>
+// #include <boost/iostreams/stream_buffer.hpp>
 
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/boolean.hpp>
@@ -27,18 +27,14 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(input_port & port) -> bytestring;
+  auto read_token(input_port & port) -> std::string;
 
+  // TODO Move into reader class private
   let read_char(input_port &);
 
-  /* ---- String Constructor ---------------------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
-
-  let read_string(input_port &);
-
-  let make_string(bytestring const&);
+  // TODO Move into reader class private
+  // [[deprecated]]
+  // let read_string(input_port &);
 
   /* ---- Reader ---------------------------------------------------------------
    *
@@ -52,10 +48,10 @@ inline namespace kernel
     explicit reader()
     {}
 
-    IMPORT(SK, evaluate, NIL);
-    IMPORT(SK, intern, NIL);
+    IMPORT(SK, evaluate,            NIL);
+    IMPORT(SK, intern,              NIL);
     IMPORT(SK, standard_debug_port, NIL);
-    IMPORT(SK, write_to, NIL);
+    IMPORT(SK, write_to,            NIL);
 
     using seeker = std::istream_iterator<input_port::char_type>;
 
@@ -69,77 +65,80 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let const read(input_port & port)
     {
-      bytestring token {};
+      std::string token {};
 
-      for (seeker head = port; head != seeker {}; ++head) switch (*head)
+      for (seeker head = port; head != seeker(); ++head)
       {
-      case ';':
-        port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        break;
-
-      case ' ': case '\f': case '\n': case '\r': case '\t': case '\v':
-        break;
-
-      case '(':
-        try
+        switch (*head)
         {
-          let const expression = read(port);
-          port.putback('(');
-          return cons(expression, read(port));
-        }
-        catch (read_error<proper_list_tag> const&)
-        {
-          return unit;
-        }
-        catch (read_error<improper_list_tag> const&)
-        {
-          let kdr = read(port);
-          port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-          return kdr;
-        }
+        case ';':
+          port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          break;
 
-      case ')':
-        throw read_error<proper_list_tag>("unexpected close parentheses inserted");
+        case ' ': case '\f': case '\n': case '\r': case '\t': case '\v':
+          break;
 
-      case '#':
-        return discriminate(port);
+        case '(':
+          try
+          {
+            let const kar = read(port);
+            port.putback('(');
+            return cons(kar, read(port));
+          }
+          catch (read_error<proper_list_tag> const&)
+          {
+            return unit;
+          }
+          catch (read_error<improper_list_tag> const&)
+          {
+            let const kdr = read(port);
+            port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            return kdr;
+          }
 
-      case '"':
-        return read_string(port);
+        case ')':
+          throw read_error<proper_list_tag>("unexpected close parentheses");
 
-      case '\'':
-        return list(intern("quote"), read(port));
+        case '#':
+          return discriminate(port);
 
-      case '`':
-        return list(intern("quasiquote"), read(port));
+        case '"':
+          return make<string>(port);
 
-      case ',':
-        switch (port.peek())
-        {
-        case '@':
-          port.ignore(1);
-          return list(intern("unquote-splicing"), read(port));
+        case '\'':
+          return list(intern("quote"), read(port));
+
+        case '`':
+          return list(intern("quasiquote"), read(port));
+
+        case ',':
+          switch (port.peek())
+          {
+          case '@':
+            port.ignore(1);
+            return list(intern("unquote-splicing"), read(port));
+
+          default:
+            return list(intern("unquote"), read(port));
+          }
 
         default:
-          return list(intern("unquote"), read(port));
-        }
+          token.push_back(*head);
 
-      default:
-        token.push_back(*head);
-
-        if (auto const c = port.peek(); is_end_of_token(c))
-        {
-          if (token == ".")
+          if (auto const c = port.peek(); is_end_of_token(c))
           {
-            throw read_error<improper_list_tag>("dot-notation");
-          }
-          else try
-          {
-            return to_number(token, 10);
-          }
-          catch (...)
-          {
-            return intern(token);
+            if (token == ".")
+            {
+              throw read_error<improper_list_tag>("dot-notation");
+            }
+            else try
+            {
+              return to_number(token, 10);
+            }
+            catch (...)
+            {
+              return intern(token);
+            }
           }
         }
       }
@@ -147,7 +146,7 @@ inline namespace kernel
       return eof_object;
     }
 
-    auto read(object const& x) -> decltype(auto)
+    decltype(auto) read(object const& x)
     {
       if (x.is_polymorphically<input_port>())
       {
@@ -168,7 +167,7 @@ inline namespace kernel
       return result;
     }
 
-    auto read(const bytestring& s) -> decltype(auto)
+    decltype(auto) read(std::string const& s)
     {
       std::stringstream ss { s };
       return read(ss);
@@ -188,7 +187,7 @@ inline namespace kernel
   private:
     let discriminate(input_port & is)
     {
-      switch (is.get())
+      switch (auto const discriminator = is.get())
       {
       case '!':
         is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -201,7 +200,7 @@ inline namespace kernel
         return read(is), read(is);
 
       case 'b': // (string->number (read) 2)
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 2);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 2);
 
       case 'c': // from Common Lisp
         if (let const xs = read(is); not xs.is<pair>())
@@ -218,7 +217,7 @@ inline namespace kernel
         }
 
       case 'd':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 10);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 10);
 
       case 'e':
         return exact(read(is)); // NOTE: Same as #,(exact (read))
@@ -231,35 +230,29 @@ inline namespace kernel
         return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
       case 'o':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 8);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 8);
 
       case 'p':
-        switch (is.peek())
-        {
-        case '"':
-          is.ignore(1);
-          return make<path>(read_string(is).as<string>());
-
-        default:
-          return make<path>(read_token(is));
-        }
+        assert(is.get() == '"');
+        is.ignore(1);
+        return make<path>(string(is));
 
       case 't':
         ignore(is, [](auto&& x) { return not is_end_of_token(x); });
         return t;
 
       case 'x':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<bytestring>(read(is)) : read_token(is), 16);
+        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 16);
 
       case '(':
-        is.putback('(');
+        is.putback(discriminator);
         return make<vector>(for_each_in, read(is));
 
       case '\\':
         return read_char(is);
 
       default:
-        return unspecified; // XXX
+        throw read_error<void>("unknown <discriminator>: #", discriminator);
       }
     }
   };

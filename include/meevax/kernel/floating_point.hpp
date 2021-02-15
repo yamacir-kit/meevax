@@ -75,7 +75,7 @@ inline namespace kernel
 
     auto to_string() const
     {
-      return boost::lexical_cast<bytestring>(value);
+      return boost::lexical_cast<std::string>(value);
     }
 
     template <typename... Ts>

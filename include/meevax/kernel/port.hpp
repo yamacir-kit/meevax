@@ -59,7 +59,7 @@ inline namespace kernel
   {
     path const name;
 
-    explicit file_port(bytestring const& name)
+    explicit file_port(std::string const& name)
       : T    { name }
       , name { name }
     {}

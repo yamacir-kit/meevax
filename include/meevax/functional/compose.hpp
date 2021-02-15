@@ -10,12 +10,10 @@ inline namespace functional
 {
   auto compose = [](auto&& f, auto&& g)
   {
-    return [f = std::forward_as_tuple(f),
-            g = std::forward_as_tuple(g)]
-           (auto&&... xs) mutable -> decltype(auto)
-           {
-             return std::get<0>(f)(std::get<0>(g)(std::forward<decltype(xs)>(xs)...));
-           };
+    return [fs = std::forward_as_tuple(f, g)](auto&&... xs) constexpr -> decltype(auto)
+    {
+      return std::get<0>(fs)(std::get<1>(fs)(std::forward<decltype(xs)>(xs)...));
+    };
   };
 } // namespace functional
 } // namespace meevax

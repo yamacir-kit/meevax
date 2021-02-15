@@ -3,18 +3,16 @@
 
 #include <string>
 
-#include <meevax/kernel/preface.hpp> // for bytestring
-
 namespace meevax
 {
 inline namespace kernel
 {
   struct symbol
-    : public bytestring
+    : public std::string
   {
     template <typename... Ts>
     explicit constexpr symbol(Ts&&... xs)
-      : bytestring { std::forward<decltype(xs)>(xs)... }
+      : std::string { std::forward<decltype(xs)>(xs)... }
     {}
   };
 

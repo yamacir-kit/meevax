@@ -98,19 +98,19 @@ inline namespace kernel
       write_line("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
       write_line("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
       write_line("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
-      write_line("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display version information and exit.");
+      write_line("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display this help text and exit.");
       write_line("  ", BOLD("-i"), ", ", BOLD("--interactive"), "          Interactive mode: Take over control of root syntactic-continuation.");
       write_line("  ", BOLD("-l"), ", ", BOLD("--load"), "=", UNDERLINE("file"), "            Load ", UNDERLINE("file"), " before main session.");
       write_line("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
       write_line("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
-      write_line("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display this help text and exit.");
+      write_line("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display version information and exit.");
       write_line("  ", BOLD("  "), "  ", BOLD("--verbose"), "              Verbose mode: Display detailed informations.");
       newline();
 
       SECTION("Sequence:");
       write_line("  1. ", BOLD("Configure"));
-      write_line("  2. ", BOLD("Batch operation"), " (for each ", UNDERLINE("file"), " specified)");
-      write_line("  3. ", BOLD("Interactive operation"), " (when --interactive specified)");
+      write_line("  2. ", BOLD("Load"), " (for each ", UNDERLINE("file"), " specified)");
+      write_line("  3. ", BOLD("REPL"), " (when --interactive specified)");
       newline();
 
       SECTION("Examples:");
@@ -125,7 +125,7 @@ inline namespace kernel
     {
       if (x.is<symbol>())
       {
-        return push(paths, make<path>(x.as<bytestring>()));
+        return push(paths, make<path>(x.as<std::string>()));
       }
       else
       {
@@ -183,7 +183,7 @@ inline namespace kernel
       }),
     };
 
-    const dispatcher<bytestring> long_options
+    const dispatcher<std::string> long_options
     {
       std::make_pair("batch", [this](auto&&...)
       {
@@ -226,7 +226,7 @@ inline namespace kernel
       }),
     };
 
-    const dispatcher<bytestring> long_options_
+    const dispatcher<std::string> long_options_
     {
       std::make_pair("echo", [&](const auto& xs)
       {
@@ -255,12 +255,12 @@ inline namespace kernel
   public:
     auto configure(const int argc, char const* const* const argv) -> decltype(auto)
     {
-      const std::vector<bytestring> options {argv + 1, argv + argc};
+      const std::vector<std::string> options {argv + 1, argv + argc};
 
       return configure(options);
     }
 
-    void configure(std::vector<bytestring> const& args)
+    void configure(std::vector<std::string> const& args)
     {
       static const std::regex pattern { "--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)" };
 
@@ -276,7 +276,7 @@ inline namespace kernel
           {
             if (auto callee { short_options_.find(*so) }; callee != std::end(short_options_))
             {
-              if (bytestring const rest { std::next(so), std::end(sos) }; rest.length())
+              if (std::string const rest { std::next(so), std::end(sos) }; rest.length())
               {
                 return std::invoke(cdr(*callee), read(*option));
               }
