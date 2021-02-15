@@ -14,8 +14,7 @@
 
 ; cons
 
-(define list
-  (lambda x x))
+(define (list . xs) xs)
 
 (define xcons
   (lambda (x y)

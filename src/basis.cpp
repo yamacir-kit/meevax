@@ -14,8 +14,9 @@ extern "C" const char _binary_##FILENAME##_ss_end[]; \
 extern "C" const char _binary_##FILENAME##_ss_size[]
 
 DECLARE_BINARY(dynamic_wind);
-DECLARE_BINARY(srfi_1);
 DECLARE_BINARY(overture);
+DECLARE_BINARY(srfi_1);
+DECLARE_BINARY(values);
 
 namespace meevax
 {
@@ -28,7 +29,8 @@ inline namespace kernel
   }
 
   DEFINE_BINARY(dynamic_wind);
-  DEFINE_BINARY(srfi_1);
   DEFINE_BINARY(overture);
+  DEFINE_BINARY(srfi_1);
+  DEFINE_BINARY(values);
 } // namespace kernel
 } // namespace meevax

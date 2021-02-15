@@ -1160,35 +1160,6 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
-; (define values
-;   (lambda xs
-;     (call-with-current-continuation
-;       (lambda (cc)
-;         (apply cc xs)))))
-
-; Magic Token Trick
-; https://stackoverflow.com/questions/16674214/how-to-implement-call-with-values-to-match-the-values-example-in-r5rs
-(define <values> (list 'values))
-
-(define values?
-  (lambda (x)
-    (and (pair? x)
-         (eq? (car x) <values>))))
-
-(define values
-  (lambda xs
-    (if (and (not (null? xs))
-             (null? (cdr xs)))
-        (car xs)
-        (cons <values> xs))))
-
-(define call-with-values
-  (lambda (producer consumer)
-    (let ((result (producer)))
-      (if (values? result)
-          (apply consumer (cdr result))
-          (consumer result)))))
-
 (define call/cc call-with-current-continuation)
 
 ; ------------------------------------------------------------------------------

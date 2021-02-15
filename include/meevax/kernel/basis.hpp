@@ -14,8 +14,9 @@ inline namespace kernel
   #endif
 
   extern string_view const dynamic_wind;
-  extern string_view const srfi_1;
   extern string_view const overture;
+  extern string_view const srfi_1;
+  extern string_view const values;
 } // namespace kernel
 } // namespace meevax
 
