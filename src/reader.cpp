@@ -21,6 +21,7 @@ inline namespace kernel
    *  <character> = #\ <any character>
    *              | #\ <character name>
    *              | #\x <hex scalar value>
+   *              | #\U+ <hex scalar value> TODO
    *
    *  <character name> = alarm
    *                   | backspace
@@ -94,47 +95,47 @@ inline namespace kernel
     return to_character(read_token(port), 16);
   }
 
-  let read_string(input_port & port)
-  {
-    switch (auto c = port.narrow(port.get(), '\0'); c)
-    {
-    case '"': // Right Double Quotation
-      return unit;
-
-    case '\\': // Escape Sequences
-      switch (auto c = port.narrow(port.get(), '\0'); c)
-      {
-      case 'a':  return make<string>(make<character>('\a'), read_string(port));
-      case 'b':  return make<string>(make<character>('\b'), read_string(port));
-      case 't':  return make<string>(make<character>('\t'), read_string(port));
-      case 'n':  return make<string>(make<character>('\n'), read_string(port));
-      case 'r':  return make<string>(make<character>('\r'), read_string(port));
-      case '"':  return make<string>(make<character>('"'),  read_string(port));
-      case '\\': return make<string>(make<character>('\\'), read_string(port));
-      case '|':  return make<string>(make<character>('|'),  read_string(port));
-
-      case '\r':
-      case '\n':
-        while (is_intraline_whitespace(port.peek()))
-        {
-          port.ignore(1);
-        }
-        return read_string(port);
-
-      default:
-        return make<string>(make<character>(c), read_string(port));
-      }
-
-    default:
-      return make<string>(make<character>(c), read_string(port));
-    }
-  }
-
-  let make_string(std::string const& text)
-  {
-    std::stringstream port {};
-    port << text << "\"";
-    return read_string(port);
-  }
+  // let read_string(input_port & port)
+  // {
+  //   switch (auto c = port.narrow(port.get(), '\0'); c)
+  //   {
+  //   case '"': // Right Double Quotation
+  //     return unit;
+  //
+  //   case '\\': // Escape Sequences
+  //     switch (auto c = port.narrow(port.get(), '\0'); c)
+  //     {
+  //     case 'a':  return make<string>(make<character>('\a'), read_string(port));
+  //     case 'b':  return make<string>(make<character>('\b'), read_string(port));
+  //     case 't':  return make<string>(make<character>('\t'), read_string(port));
+  //     case 'n':  return make<string>(make<character>('\n'), read_string(port));
+  //     case 'r':  return make<string>(make<character>('\r'), read_string(port));
+  //     case '"':  return make<string>(make<character>('"'),  read_string(port));
+  //     case '\\': return make<string>(make<character>('\\'), read_string(port));
+  //     case '|':  return make<string>(make<character>('|'),  read_string(port));
+  //
+  //     case '\r':
+  //     case '\n':
+  //       while (is_intraline_whitespace(port.peek()))
+  //       {
+  //         port.ignore(1);
+  //       }
+  //       return read_string(port);
+  //
+  //     default:
+  //       return make<string>(make<character>(c), read_string(port));
+  //     }
+  //
+  //   default:
+  //     return make<string>(make<character>(c), read_string(port));
+  //   }
+  // }
+  //
+  // let make_string(std::string const& text)
+  // {
+  //   std::stringstream port {};
+  //   port << text << "\"";
+  //   return read_string(port);
+  // }
 } // namespace kernel
 } // namespace meevax

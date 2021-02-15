@@ -7,6 +7,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  static_assert(std::alignment_of<character>::value == std::alignment_of<codepoint>::value);
+  static_assert(std::is_trivial<character>::value);
+  static_assert(std::is_standard_layout<character>::value);
+  static_assert(std::is_pod<character>::value);
+
   auto character::read_codeunit(input_port & port) const -> codeunit
   {
     codeunit cu {};
@@ -84,7 +89,7 @@ inline namespace kernel
     return point;
   }
 
-  auto character::write_char(output_port & port) const -> output_port &
+  auto character::write(output_port & port) const -> output_port &
   {
     return port << static_cast<codeunit const&>(*this);
   }
@@ -106,7 +111,7 @@ inline namespace kernel
     case 0x7F: return port << "delete"    << reset;
 
     default:
-      return datum.write_char(port) << reset;
+      return datum.write(port) << reset;
     }
   }
 } // namespace kernel

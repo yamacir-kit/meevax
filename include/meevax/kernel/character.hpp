@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
 #include <cstdint>
+#include <type_traits>
 #include <unordered_map>
 
 #include <meevax/kernel/miscellaneous.hpp>
@@ -26,12 +27,14 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   struct character
   {
-    codepoint const value;
+    codepoint value;
 
     [[deprecated]]
     auto read_codeunit(input_port &) const -> codeunit;
 
     auto read(input_port &) const -> codepoint;
+
+    explicit character() = default;
 
     /* ---- R7RS 6.6. Characters -----------------------------------------------
      *
@@ -107,7 +110,7 @@ inline namespace kernel
      *  value.
      *
      * --------------------------------------------------------------------- */
-    auto write_char(output_port &) const -> output_port &;
+    auto write(output_port &) const -> output_port &;
   };
 
   /* ---- R7RS 6.6. Characters -------------------------------------------------

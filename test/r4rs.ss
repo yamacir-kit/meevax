@@ -443,7 +443,7 @@
 (check (eq? '(a) '(a))                 => #f) ; unspecified
 (check (eq? (list 'a) (list 'a))       => #f)
 (check (eq? "a" "a")                   => #f) ; unspecified
-(check (eq? "" "")                     => #t) ; unspecified
+(check (eq? "" "")                     => #f) ; unspecified
 (check (eq? '() '())                   => #t)
 (check (eq? 2 2)                       => #f) ; unspecified
 (check (eq? #\A #\A)                   => #f) ; unspecified
