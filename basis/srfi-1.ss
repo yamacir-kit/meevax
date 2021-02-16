@@ -201,51 +201,44 @@
 ;     (fold cons '() x)))
 
 (define (reverse x)
+
   (define (append-2 x y) ; from SICP
     (if (null? x) y
         (cons (car x)
               (append-2 (cdr x) y))))
+
   (if (null? x) '()
       (append-2 (reverse (cdr x))
                 (list (car x)))))
 
-(define reverse!
-  (lambda (x)
-    (define reverse!
-      (lambda (x result)
-        (if (null-list? x) result
-            ((lambda (tail)
-               (set-cdr! x result)
-               (reverse! tail x))
-             (cdr x)))))
-    (reverse! x '())))
+(define (reverse! x)
 
-(define concatenate
-  (lambda (xs)
-    (reduce-right append '() xs)))
+  (define (reverse! x result)
+    (if (null-list? x) result
+        ((lambda (tail)
+           (set-cdr! x result)
+           (reverse! tail x))
+         (cdr x))))
 
-(define concatenate!
-  (lambda (xs)
-    (reduce-right append! '() xs)))
+  (reverse! x '()))
 
-(define append-reverse
-  (lambda (head tail)
-    (fold cons tail head)))
+(define (concatenate  xs) (reduce-right append  '() xs))
+(define (concatenate! xs) (reduce-right append! '() xs))
 
-(define append-reverse!
-  (lambda (head tail)
-    (pair-fold (lambda (pair tail)
-                 (set-cdr! pair tail) pair)
-               tail
-               head)))
+(define (append-reverse head tail)
+  (fold cons tail head))
 
-(define zip
-  (lambda (x . xs)
-    (apply map list x xs)))
+(define (append-reverse! head tail)
+  (pair-fold (lambda (pair tail)
+               (set-cdr! pair tail) pair)
+             tail
+             head))
 
-(define unzip1
-  (lambda (x)
-    (map car x)))
+(define (zip x . xs)
+  (apply map list x xs))
+
+(define (unzip1 x)
+  (map car x))
 
 ; unzip2
 ; unzip3
@@ -257,23 +250,23 @@
 ; map!
 ; for-each
 
-(define fold-right
-  (lambda (kons knil x . xs)
-    (define fold-right-n
-      (lambda (xs)
-        ((lambda (cdrs)
-           (if (null? cdrs) knil
-               (apply kons (%cars+ xs (fold-right-n cdrs)))))
-         (%cdrs xs))))
-    (define fold-right-1
-      (lambda (x)
-        (if (null-list? x) knil
-            ((lambda (head)
-               (kons head (fold-right-1 (cdr x))))
-             (car x)))))
-    (if (pair? xs)
-        (fold-right-n (cons x xs))
-        (fold-right-1 x))))
+(define (fold-right kons knil x . xs)
+
+  (define (fold-right-n xs)
+    ((lambda (cdrs)
+       (if (null? cdrs) knil
+           (apply kons (%cars+ xs (fold-right-n cdrs)))))
+     (%cdrs xs)))
+
+  (define (fold-right-1 x)
+    (if (null-list? x) knil
+        ((lambda (head)
+           (kons head (fold-right-1 (cdr x))))
+         (car x))))
+
+  (if (pair? xs)
+      (fold-right-n (cons x xs))
+      (fold-right-1 x)))
 
 ; fold
 ; fold-right
@@ -289,68 +282,52 @@
 ; filter-map
 ; map-in-order
 
-(define filter
-  (lambda (pred x)
-    (define filter
-      (lambda (x)
-        (if (not-pair? x) x
-            ((lambda (head tail)
-               (if (pred head)
-                   ((lambda (new-tail)
-                      (if (eq? tail new-tail) x
-                          (cons head new-tail)))
-                    (filter tail))
-                   (filter tail)))
-             (car x)
-             (cdr x)))))
-    (filter x)))
+(define (filter satisfy? x)
+
+  (define (filter x)
+    (if (not-pair? x) x
+        ((lambda (head tail)
+           (if (satisfy? head)
+               ((lambda (new-tail)
+                  (if (eq? tail new-tail) x
+                      (cons head new-tail)))
+                (filter tail))
+               (filter tail)))
+         (car x)
+         (cdr x))))
+
+  (filter x))
 
 ; filter!
 ; partition
 ; partition!
 
-(define remove
-  (lambda (pred x)
-    (filter (lambda (y)
-              (not (pred y)))
-            x)))
+(define (remove  satisfy? x) (filter  (lambda (y) (not (satisfy? y))) x))
+(define (remove! satisfy? x) (filter! (lambda (y) (not (satisfy? y))) x))
 
-(define remove!
-  (lambda (pred x)
-    (filter! (lambda (y)
-               (not (pred y)))
-             x)))
+(define (find compare x)
+  ((lambda (result)
+     (if result (car result) #f))
+   (find-tail compare x)))
 
-(define find
-  (lambda (compare x)
-    ((lambda (result)
-       (if result (car result) #f))
-     (find-tail compare x))))
+(define (find-tail compare x)
 
-(define find-tail
-  (lambda (compare x)
-    (define find-tail
-      (lambda (x)
-        (if (null-list? x) #f
-            (if (compare (car x)) x
-                (find-tail (cdr x))))))
-    (find-tail x)))
+  (define (find-tail x)
+    (if (null-list? x) #f
+        (if (compare (car x)) x
+            (find-tail (cdr x)))))
 
-(define member
-  (lambda (key x . compare)
-    ((lambda (compare)
-       (find-tail (lambda (x[i])
-                    (compare key x[i]))
-                  x))
-     (if (pair? compare) (car compare) equal?))))
+  (find-tail x))
 
-(define memq
-  (lambda (key x)
-    (member key x eq?)))
+(define (member key x . compare)
+  ((lambda (compare)
+     (find-tail (lambda (x[i])
+                  (compare key x[i]))
+                x))
+   (if (pair? compare) (car compare) equal?)))
 
-(define memv
-  (lambda (key x)
-    (member key x eqv?)))
+(define (memq key x) (member key x eq?))
+(define (memv key x) (member key x eqv?))
 
 ; any
 ; every
@@ -361,79 +338,58 @@
 ; span
 ; span!
 
-(define break
-  (lambda (break? x)
-    (span (lambda (x)
-            (not (break? x)))
-          x)))
+(define (break  break? x) (span  (lambda (x) (not (break? x))) x))
+(define (break! break? x) (span! (lambda (x) (not (break? x))) x))
 
-(define break!
-  (lambda (break? x)
-    (span! (lambda (x)
-             (not (break? x)))
-           x)))
+(define (delete key x . compare)
+  ((lambda (compare)
+     (filter (lambda (x[i])
+               (not (compare key x[i])))
+             x))
+   (if (pair? compare) (car compare) equal?)))
 
-(define delete
-  (lambda (key x . compare)
-    ((lambda (compare)
-       (filter (lambda (x[i])
-                 (not (compare key x[i])))
-               x))
-     (if (pair? compare) (car compare) equal?))))
-
-(define delete
-  (lambda (key x . compare)
-    ((lambda (compare)
-       (filter! (lambda (x[i])
-                  (not (compare key x[i])))
-                x))
-     (if (pair? compare) (car compare) equal?))))
+(define (delete key x . compare)
+  ((lambda (compare)
+     (filter! (lambda (x[i])
+                (not (compare key x[i])))
+              x))
+   (if (pair? compare) (car compare) equal?)))
 
 ; delete-duplicates
 ; delete-duplicates!
 
-(define assoc
-  (lambda (key alist . compare)
-    ((lambda (compare)
-       (find (lambda (each)
-               (compare key (car each)))
+(define (assoc key alist . compare)
+  ((lambda (compare)
+     (find (lambda (each)
+             (compare key (car each)))
+           alist))
+   (if (pair? compare) (car compare) equal?)))
+
+(define (assq key alist) (assoc key alist eq?))
+(define (assv key alist) (assoc key alist eqv?))
+
+(define (alist-cons key datum alist)
+  (cons (cons key datum) alist))
+
+(define (alist-copy alist)
+  (map (lambda (alist[i])
+         (cons (car alist[i])
+               (cdr alist[i])))
+       alist))
+
+(define (alist-dalete key alist . compare)
+  ((lambda (compare)
+     (filter (lambda (each)
+               (not (compare key (car each))))
              alist))
-     (if (pair? compare) (car compare) equal?))))
+   (if (pair? compare) (car compare) equal?)))
 
-(define assq
-  (lambda (key alist)
-    (assoc key alist eq?)))
-
-(define assv
-  (lambda (key alist)
-    (assoc key alist eqv?)))
-
-(define alist-cons
-  (lambda (key datum alist)
-    (cons (cons key datum) alist)))
-
-(define alist-copy
-  (lambda (alist)
-    (map (lambda (each)
-           (cons (car each)
-                 (cdr each)))
-         alist)))
-
-(define alist-dalete
-  (lambda (key alist . compare)
-    ((lambda (compare)
-       (filter (lambda (each)
-                 (not (compare key (car each))))
-               alist))
-     (if (pair? compare) (car compare) equal?))))
-
-(define alist-dalete!
-  (lambda (key alist . compare)
-    ((lambda (compare)
-       (filter! (lambda (each)
-                  (not (compare key (car each))))
-                alist))
-     (if (pair? compare) (car compare) equal?))))
+(define (alist-dalete! key alist . compare)
+  ((lambda (compare)
+     (filter! (lambda (each)
+                (not (compare key (car each))))
+              alist))
+   (if (pair? compare) (car compare) equal?)))
 
 ; lset<=
 ; lset=
@@ -452,28 +408,28 @@
 ; set-car! (NOTE: SRFI-17)
 ; set-cdr! (NOTE: SRFI-17)
 
-(define %cdrs ; (map cdr x)
-  (lambda (x)
-    (call-with-current-continuation
-      (lambda (abort)
-        (define cdrs
-          (lambda (x)
-            (if (pair? x)
-                ((lambda (each)
-                  (if (null-list? each)
-                      (abort '())
-                      (cons (cdr each)
-                            (iterate (cdr x)))))
-                 (car x))
-                '())))
-        (cdrs x)))))
+(define (%cdrs x) ; (map cdr x)
+  (call-with-current-continuation
+    (lambda (abort)
 
-(define %cars+
-  (lambda (x y) ; (append! (map car x) (list y))
-    (define cars+
-      (lambda (x)
+      (define (cdrs x)
         (if (pair? x)
-            (cons (caar x)
-                  (cars+ (cdr x)))
-            (list y))))
-    (cars+ x)))
+            ((lambda (each)
+              (if (null-list? each)
+                  (abort '())
+                  (cons (cdr each)
+                        (cdrs (cdr x)))))
+             (car x))
+            '()))
+
+      (cdrs x))))
+
+(define (%cars+ x y) ; (append! (map car x) (list y))
+
+  (define (cars+ x)
+    (if (pair? x)
+        (cons (caar x)
+              (cars+ (cdr x)))
+        (list y)))
+
+  (cars+ x))
