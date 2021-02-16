@@ -16,21 +16,6 @@
 (define (not x)
   (if x #f #t))
 
-; ------------------------------------------------------------------------------
-;  6.4 Pairs and Lists (Part 1 of 2)
-; ------------------------------------------------------------------------------
-
-(define reverse ; simple but slow
-  (lambda (x)
-    (define append-2 ; from SICP
-      (lambda (x y)
-        (if (null? x) y
-            (cons (car x)
-                  (append-2 (cdr x) y)))))
-    (if (null? x) '()
-        (append-2 (reverse (cdr x))
-                  (list (car x))))))
-
 ; ==== Low-Level Macro Facility ================================================
 
 (define define-syntax

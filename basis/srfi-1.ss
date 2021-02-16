@@ -49,173 +49,165 @@
 
 ; TODO iota
 
-; TODO pair?
+; BUILTIN pair?
 
-(define null?
-  (lambda (x)
-    (eqv? x '())))
+(define (null? x)
+  (eqv? x '()))
 
-(define proper-list?
-  (lambda (x)
-    (define lp
-      (lambda (x lag)
-        (if (pair? x)
-            ((lambda (x)
-               (if (pair? x)
-                   ((lambda (x lag)
-                      (if (eq? x lag) #f
-                          (lp x lag)))
-                     (cdr x)
-                     (cdr lag))
-                   (null? x)))
-             (cdr x))
-            (null? x))))
-    (lp x x)))
+(define (proper-list? x)
+  (define (lp x lag)
+    (if (pair? x)
+        ((lambda (x)
+           (if (pair? x)
+               ((lambda (x lag)
+                  (if (eq? x lag) #f
+                      (lp x lag)))
+                 (cdr x)
+                 (cdr lag))
+               (null? x)))
+         (cdr x))
+        (null? x)))
+  (lp x x))
 
-; circular-list?
-; dotted-list?
+; TODO circular-list?
+; TODO dotted-list?
 
-(define not-pair?
-  (lambda (x)
-    (not (pair? x))))
+(define (not-pair? x)
+  (not (pair? x)))
 
-(define null-list?
-  (lambda (x)
-    (if (pair? x) #f
-        (if (null? x) #t
-            (error "null-list?: argument out of domain" x)))))
+(define (null-list? x)
+  (if (pair? x) #f
+      (if (null? x) #t
+          (error "null-list?: argument out of domain" x))))
 
-; list=
+; TODO list=
 
-(define caar (lambda (x) (car (car x))))
-(define cadr (lambda (x) (car (cdr x))))
-(define cdar (lambda (x) (cdr (car x))))
-(define cddr (lambda (x) (cdr (cdr x))))
+(define (caar x) (car (car x)))
+(define (cadr x) (car (cdr x)))
+(define (cdar x) (cdr (car x)))
+(define (cddr x) (cdr (cdr x)))
 
-(define caaar (lambda (x) (car (car (car x)))))
-(define caadr (lambda (x) (car (car (cdr x)))))
-(define cadar (lambda (x) (car (cdr (car x)))))
-(define caddr (lambda (x) (car (cdr (cdr x)))))
-(define cdaar (lambda (x) (cdr (car (car x)))))
-(define cdadr (lambda (x) (cdr (car (cdr x)))))
-(define cddar (lambda (x) (cdr (cdr (car x)))))
-(define cdddr (lambda (x) (cdr (cdr (cdr x)))))
+(define (caaar x) (car (car (car x))))
+(define (caadr x) (car (car (cdr x))))
+(define (cadar x) (car (cdr (car x))))
+(define (caddr x) (car (cdr (cdr x))))
+(define (cdaar x) (cdr (car (car x))))
+(define (cdadr x) (cdr (car (cdr x))))
+(define (cddar x) (cdr (cdr (car x))))
+(define (cdddr x) (cdr (cdr (cdr x))))
 
-(define caaaar (lambda (x) (car (car (car (car x))))))
-(define caaadr (lambda (x) (car (car (car (cdr x))))))
-(define caadar (lambda (x) (car (car (cdr (car x))))))
-(define caaddr (lambda (x) (car (car (cdr (cdr x))))))
-(define cadaar (lambda (x) (car (cdr (car (car x))))))
-(define cadadr (lambda (x) (car (cdr (car (cdr x))))))
-(define caddar (lambda (x) (car (cdr (cdr (car x))))))
-(define cadddr (lambda (x) (car (cdr (cdr (cdr x))))))
-(define cdaaar (lambda (x) (cdr (car (car (car x))))))
-(define cdaadr (lambda (x) (cdr (car (car (cdr x))))))
-(define cdadar (lambda (x) (cdr (car (cdr (car x))))))
-(define cdaddr (lambda (x) (cdr (car (cdr (cdr x))))))
-(define cddaar (lambda (x) (cdr (cdr (car (car x))))))
-(define cddadr (lambda (x) (cdr (cdr (car (cdr x))))))
-(define cdddar (lambda (x) (cdr (cdr (cdr (car x))))))
-(define cddddr (lambda (x) (cdr (cdr (cdr (cdr x))))))
+(define (caaaar x) (car (car (car (car x)))))
+(define (caaadr x) (car (car (car (cdr x)))))
+(define (caadar x) (car (car (cdr (car x)))))
+(define (caaddr x) (car (car (cdr (cdr x)))))
+(define (cadaar x) (car (cdr (car (car x)))))
+(define (cadadr x) (car (cdr (car (cdr x)))))
+(define (caddar x) (car (cdr (cdr (car x)))))
+(define (cadddr x) (car (cdr (cdr (cdr x)))))
+(define (cdaaar x) (cdr (car (car (car x)))))
+(define (cdaadr x) (cdr (car (car (cdr x)))))
+(define (cdadar x) (cdr (car (cdr (car x)))))
+(define (cdaddr x) (cdr (car (cdr (cdr x)))))
+(define (cddaar x) (cdr (cdr (car (car x)))))
+(define (cddadr x) (cdr (cdr (car (cdr x)))))
+(define (cdddar x) (cdr (cdr (cdr (car x)))))
+(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
-(define first   (lambda (x) (car x)))
-(define second  (lambda (x) (car (cdr x))))
-(define third   (lambda (x) (car (cdr (cdr x)))))
-(define fourth  (lambda (x) (car (cdr (cdr (cdr x))))))
-(define fifth   (lambda (x) (car (cdr (cdr (cdr (cdr x)))))))
-(define sixth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr x))))))))
-(define seventh (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr x)))))))))
-(define eighth  (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr x))))))))))
-(define ninth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x)))))))))))
-(define tenth   (lambda (x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x))))))))))))
+(define (first   x) (car x))
+(define (second  x) (car (cdr x)))
+(define (third   x) (car (cdr (cdr x))))
+(define (fourth  x) (car (cdr (cdr (cdr x)))))
+(define (fifth   x) (car (cdr (cdr (cdr (cdr x))))))
+(define (sixth   x) (car (cdr (cdr (cdr (cdr (cdr x)))))))
+(define (seventh x) (car (cdr (cdr (cdr (cdr (cdr (cdr x))))))))
+(define (eighth  x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr x)))))))))
+(define (ninth   x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x))))))))))
+(define (tenth   x) (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr x)))))))))))
 
-(define car+cdr
-  (lambda (pair)
-    (values (car pair)
-            (cdr pair))))
+(define (car+cdr pair)
+  (values (car pair)
+          (cdr pair)))
 
-(define take
-  (lambda (x k)
-    (define take
-      (lambda (x k)
-        (if (zero? k) '()
-            (cons (car x)
-                  (take (cdr x)
-                        (- k 1))))))
-    (take x k)))
+(define (take x k)
+  (define (take x k)
+    (if (zero? k) '()
+        (cons (car x)
+              (take (cdr x)
+                    (- k 1)))))
+  (take x k))
 
-(define take!
-  (lambda (x k)
-    (if (zero? k)
-        (begin (set-cdr! (drop x (- k 1)) '()) x))))
+(define (take! x k)
+  (if (zero? k)
+      (begin (set-cdr! (drop x (- k 1)) '()) x)))
 
-(define take-right
-  (lambda (x k)
-    (define take-right
-      (lambda (a b)
-        (if (pair? b)
-            (lp (cdr a)
-                (cdr b))
-            a)))
-    (take-right x (drop x k))))
+(define (take-right x k)
+  (define (take-right a b)
+    (if (pair? b)
+        (take-right (cdr a)
+                    (cdr b))
+        a))
+  (take-right x (drop x k)))
 
-(define drop
-  (lambda (x k)
-    (define drop
-      (lambda (x k)
-        (if (zero? k) x
-            (drop (cdr x)
-                  (- k 1)))))
-    (drop x k)))
+(define (drop x k)
+  (define (drop x k)
+    (if (zero? k) x
+        (drop (cdr x)
+              (- k 1))))
+  (drop x k))
 
-(define drop!
-  (lambda (x k)
-    (if (negative? k)
-        ((lambda (nelts)
-           (if (zero? nelts) '()
-               (begin (set-cdr! (list-tail x (- nelts 1)) '()) x)))
-          (+ k (length x)))
-        (list-tail x k))))
+(define (drop! x k)
+  (if (negative? k)
+      ((lambda (nelts)
+         (if (zero? nelts) '()
+             (begin (set-cdr! (list-tail x (- nelts 1)) '()) x)))
+        (+ k (length x)))
+      (list-tail x k)))
 
-; drop-right
-; drop-right!
-; split-at
-; split-at!
-; last
-; last-pair
+; TODO drop-right
+; TODO drop-right!
+; TODO split-at
+; TODO split-at!
+; TODO last
+; TODO last-pair
 
-(define length
-  (lambda (x)
-    (define length
-      (lambda (x k)
-        (if (pair? x)
-            (length (cdr x)
-                    (+ k 1))
-            k)))
-    (length x 0)))
+(define (length x)
+  (define (length x k)
+    (if (pair? x)
+        (length (cdr x)
+                (+ k 1))
+        k))
+  (length x 0))
 
 ; length+
 
-(define append
-  (lambda xs
-    (define append
-      (lambda (x xs)
-        (if (pair? xs)
-            ((lambda (xs)
-               (fold-right cons xs x))
-             (append (car xs)
-                     (cdr xs)))
-            x)))
+(define (append . xs)
+  (define (append x xs)
     (if (pair? xs)
-        (append (car xs)
-                (cdr xs))
-        '())))
+        ((lambda (xs)
+           (fold-right cons xs x))
+         (append (car xs)
+                 (cdr xs)))
+        x))
+  (if (pair? xs)
+      (append (car xs)
+              (cdr xs))
+      '()))
 
 ; append!
 
+; TODO AFTER fold
 ; (define reverse
 ;   (lambda (x)
 ;     (fold cons '() x)))
+
+(define (reverse x)
+  (define (append-2 x y) ; from SICP
+    (if (null? x) y
+        (cons (car x)
+              (append-2 (cdr x) y))))
+  (if (null? x) '()
+      (append-2 (reverse (cdr x))
+                (list (car x)))))
 
 (define reverse!
   (lambda (x)
