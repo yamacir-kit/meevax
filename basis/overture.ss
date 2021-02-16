@@ -267,69 +267,6 @@
                               (car rxs))))
          (reverse (cons x xs))))))
 
-(define for-each
-  (lambda (procedure x . xs)
-
-    (define for-each-1
-      (lambda (procedure x)
-        (if (pair? x)
-            (begin (procedure (car x))
-                   (for-each-1 procedure (cdr x)) ))))
-
-    (if (null? xs)
-        (for-each-1 procedure x)
-        (begin (apply map procedure x xs)
-               (unspecified) ))))
-
-(define any
-  (lambda (predicate x . xs)
-
-    (define any-1
-      (lambda (predicate x)
-        (if (pair? (cdr x))
-            ((lambda (result)
-               (if result
-                   result
-                   (any-1 predicate (cdr x)) ))
-             (predicate (car x)) )
-            (predicate (car x)) )))
-
-    (define any-n
-      (lambda (predicate xs)
-        (if (every pair? xs)
-            ((lambda (result)
-               (if result
-                   result
-                   (any-n predicate (map cdr xs)) ))
-             (apply predicate (map car xs)) )
-            #false )))
-
-    (if (null? xs)
-        (if (pair? x)
-            (any-1 predicate x)
-            #false )
-        (any-n predicate (cons x xs)) )))
-
-(define every
-  (lambda (predicate x . xs)
-
-    (define every-1
-      (lambda (predicate x)
-        (if (null? (cdr x))
-            (predicate (car x))
-            (if (predicate (car x))
-                (every-1 predicate (cdr x))
-                #false ))))
-
-    (if (null? xs)
-        (if (pair? x)
-            (every-1 predicate x)
-            #true )
-        (not (apply any
-                    (lambda xs
-                      (not (apply predicate xs)) )
-                    x xs) ))))
-
 ; ------------------------------------------------------------------------------
 ;  4.2.2 Binding constructs
 ; ------------------------------------------------------------------------------

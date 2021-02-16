@@ -298,10 +298,19 @@
 ;         (map-1  f       x     '())
 ;         (map-2+ f (cons x xs) '())))
 
-
-
 ; map!
-; for-each
+
+(define (for-each f x . xs)
+
+  (define (for-each f x)
+    (if (pair? x)
+        (begin (f (car x))
+               (for-each f (cdr x)))))
+
+  (if (null? xs)
+      (for-each f x)
+      (begin (apply map f x xs)
+             (if #f #f))))
 
 (define (fold-right kons knil x . xs)
 
@@ -382,8 +391,46 @@
 (define (memq key x) (member key x eq?))
 (define (memv key x) (member key x eqv?))
 
-; any
-; every
+(define (any f x . xs)
+
+  (define (any-1 f x)
+    (if (pair? (cdr x))
+        ((lambda (result)
+           (if result result (any-1 f (cdr x))))
+         (f (car x)))
+        (f (car x))))
+
+  (define (any-2+ f xs)
+    (if (every pair? xs)
+        ((lambda (result)
+           (if result result (any-2+ f (map cdr xs))))
+         (apply f (map car xs)))
+        #f))
+
+  (if (null? xs)
+      (if (pair? x)
+          (any-1 f x)
+          #f)
+      (any-2+ f (cons x xs))))
+
+(define (every f x . xs)
+
+  (define (every-1 f x)
+    (if (null? (cdr x))
+        (f (car x))
+        (if (f (car x))
+            (every-1 f (cdr x))
+            #f)))
+
+  (if (null? xs)
+      (if (pair? x)
+          (every-1 f x)
+          #t)
+      (not (apply any
+                  (lambda xs
+                    (not (apply f xs)))
+                  x xs))))
+
 ; list-index
 ; take-while
 ; take-while!
