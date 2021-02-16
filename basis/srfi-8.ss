@@ -5,19 +5,15 @@
 ;        (lambda () expression)
 ;        (lambda parameters . body)))))
 
-; (define-syntax receive ; (receive parameters expression . body)
+; (define-syntax receive
 ;   (er-macro-transformer
 ;     (lambda (form rename compare)
 ;       `(call-with-values
 ;          (,(rename 'lambda) () ,(caddr form))
 ;          (,(rename 'lambda) ,(cadr form) ,@(cdddr form))))))
 
-(define receive
-  (fork-with-current-syntactic-continuation
-    (lambda (receive parameters expression . body)
-
-      (define (list . xs) xs)
-
-      (list call-with-values
-            (list lambda '() expression)
-            (list lambda parameters . body)))))
+(define-syntax (receive parameters expression . body)
+  (define (list . xs) xs)
+  (list call-with-values
+        (list lambda '() expression)
+        (list lambda parameters . body)))
