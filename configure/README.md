@@ -65,14 +65,14 @@ An subset of R7RS-small.
 
 ### Extensions
 
-| Number                                                | Name                                                     | Implemented as | Note       |
-|------------------------------------------------------:|:---------------------------------------------------------|:---------------|:-----------|
-|  [ 5](https://srfi.schemers.org/srfi-5/srfi-5.html)   | A compatible let form with signatures and rest arguments | Built-in       | R7RS 4.2.4 |
-|  [ 6](https://srfi.schemers.org/srfi-6/srfi-6.html)   | Basic String Ports                                       | Built-in       | R7RS 6.13  |
-|  [ 8](https://srfi.schemers.org/srfi-8/srfi-8.html)   | receive: Binding to multiple values                      | Built-in       |            |
-|  [10](https://srfi.schemers.org/srfi-10/srfi-10.html) | #, external form                                         | Built-in       |            |
-|  [62](https://srfi.schemers.org/srfi-62/srfi-62.html) | S-expression comments                                    | Built-in       | R7RS 2.2   |
-|  [87](https://srfi.schemers.org/srfi-87/srfi-87.html) | => in case clauses                                       | Built-in       | R7RS 4.2.1 |
+| Number                                                | Name                                                     | Import from | Note       |
+|------------------------------------------------------:|:---------------------------------------------------------|:------------|:-----------|
+|  [ 5](https://srfi.schemers.org/srfi-5/srfi-5.html)   | A compatible let form with signatures and rest arguments | built-in    | R7RS 4.2.4 |
+|  [ 6](https://srfi.schemers.org/srfi-6/srfi-6.html)   | Basic String Ports                                       | built-in    | R7RS 6.13  |
+|  [ 8](https://srfi.schemers.org/srfi-8/srfi-8.html)   | receive: Binding to multiple values                      | built-in    |            |
+|  [10](https://srfi.schemers.org/srfi-10/srfi-10.html) | #, external form                                         | built-in    |            |
+|  [62](https://srfi.schemers.org/srfi-62/srfi-62.html) | S-expression comments                                    | built-in    | R7RS 2.2   |
+|  [87](https://srfi.schemers.org/srfi-87/srfi-87.html) | => in case clauses                                       | built-in    | R7RS 4.2.1 |
 
 <br/>
 

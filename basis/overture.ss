@@ -267,29 +267,6 @@
                               (car rxs))))
          (reverse (cons x xs))))))
 
-(define map
-  (lambda (procedure x . xs)
-
-    (define map-1
-      (lambda (procedure x result)
-        (if (pair? x)
-            (map-1 procedure
-                   (cdr x)
-                   (cons (procedure (car x)) result))
-            (reverse result) )))
-
-    (define map-n
-      (lambda (procedure xs result)
-        (if (every pair? xs)
-            (map-n procedure
-                   (map-1 cdr xs '())
-                   (cons (apply procedure (map-1 car xs '())) result) )
-            (reverse result) )))
-
-    (if (null? xs)
-        (map-1 procedure x '())
-        (map-n procedure (cons x xs) '()) )))
-
 (define for-each
   (lambda (procedure x . xs)
 

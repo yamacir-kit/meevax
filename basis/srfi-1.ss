@@ -55,6 +55,7 @@
   (eqv? x '()))
 
 (define (proper-list? x)
+
   (define (lp x lag)
     (if (pair? x)
         ((lambda (x)
@@ -67,6 +68,7 @@
                (null? x)))
          (cdr x))
         (null? x)))
+
   (lp x x))
 
 ; TODO circular-list?
@@ -129,6 +131,7 @@
           (cdr pair)))
 
 (define (take x k)
+
   (define (take x k)
     (if (zero? k) '()
         (cons (car x)
@@ -141,18 +144,22 @@
       (begin (set-cdr! (drop x (- k 1)) '()) x)))
 
 (define (take-right x k)
+
   (define (take-right a b)
     (if (pair? b)
         (take-right (cdr a)
                     (cdr b))
         a))
+
   (take-right x (drop x k)))
 
 (define (drop x k)
+
   (define (drop x k)
     (if (zero? k) x
         (drop (cdr x)
               (- k 1))))
+
   (drop x k))
 
 (define (drop! x k)
@@ -171,16 +178,19 @@
 ; TODO last-pair
 
 (define (length x)
+
   (define (length x k)
     (if (pair? x)
         (length (cdr x)
                 (+ k 1))
         k))
+
   (length x 0))
 
 ; length+
 
 (define (append . xs)
+
   (define (append x xs)
     (if (pair? xs)
         ((lambda (xs)
@@ -188,6 +198,7 @@
          (append (car xs)
                  (cdr xs)))
         x))
+
   (if (pair? xs)
       (append (car xs)
               (cdr xs))
@@ -246,7 +257,49 @@
 ; unzip5
 ; count
 
-; map
+(define (map f x . xs) ; map-inorder
+
+  (define (map-2+ xs)
+    (receive (cars cdrs) (%cars+cdrs xs)
+      (if (pair? cars)
+          ((lambda (x)
+             (cons x (map-2+ cdrs)))
+           (apply f cars))
+          '())))
+
+  (define (map-1 lis)
+    (if (null-list? lis) lis
+        ((lambda (tail x)
+           (cons x (map-1 tail)))
+         (cdr lis)
+         (f (car lis)))))
+
+  (if (pair? xs)
+      (map-2+ (cons x xs))
+      (map-1 x)))
+
+; (define (map f x . xs) ; map-unorder
+;
+;     (define (map-1 f x result)
+;       (if (pair? x)
+;           (map-1 f
+;                  (cdr x)
+;                  (cons (f (car x)) result))
+;           (reverse result)))
+;
+;     (define (map-2+ f xs result)
+;       (if (every pair? xs)
+;           (map-2+ f
+;                   (map-1 cdr xs '())
+;                   (cons (apply f (map-1 car xs '())) result))
+;           (reverse result)))
+;
+;     (if (null? xs)
+;         (map-1  f       x     '())
+;         (map-2+ f (cons x xs) '())))
+
+
+
 ; map!
 ; for-each
 
@@ -433,3 +486,19 @@
         (list y)))
 
   (cars+ x))
+
+(define (%cars+cdrs lists)
+  (call-with-current-continuation
+    (lambda (abort)
+
+      (define (cars+cdrs lists)
+        (if (pair? lists)
+            (receive (list other-lists) (car+cdr lists)
+              (if (null-list? list) (abort '() '())
+                  (receive (a d) (car+cdr list)
+                    (receive (cars cdrs) (cars+cdrs other-lists)
+                      (values (cons a cars)
+                              (cons d cdrs))))))
+            (values '() '())))
+
+      (cars+cdrs lists))))
