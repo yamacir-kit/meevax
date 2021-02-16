@@ -2,8 +2,6 @@
   (fork-with-current-syntactic-continuation
     (lambda (this) this)))
 
-(define fork/csc fork-with-current-syntactic-continuation)
-
 (define (identity x) x)
 
 (define (unspecified)
@@ -17,15 +15,6 @@
   (if x #f #t))
 
 ; ==== Low-Level Macro Facility ================================================
-
-(define define-syntax
-  (fork/csc
-    (lambda (define-syntax identifier . transformer)
-      (if (pair? identifier)
-          (list define (car identifier)
-            (list fork/csc
-              (list lambda identifier . transformer)))
-          (list define identifier . transformer)))))
 
 (define free-identifier=?
   (lambda (x y)

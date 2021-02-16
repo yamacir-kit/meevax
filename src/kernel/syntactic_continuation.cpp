@@ -1637,6 +1637,7 @@ inline namespace kernel
   void syntactic_continuation::boot(layer<3>)
   {
     std::vector<string_view> codes {
+      define_syntax,
       values,
       dynamic_wind, // TODO dynamic-wind depends let-values
       srfi_8,

@@ -13,6 +13,7 @@ inline namespace kernel
   using string_view = std::experimental::string_view;
   #endif
 
+  extern string_view const define_syntax;
   extern string_view const dynamic_wind;
   extern string_view const overture;
   extern string_view const srfi_1;
