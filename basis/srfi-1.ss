@@ -12,42 +12,44 @@
 ;
 ; ------------------------------------------------------------------------------
 
-; cons
+; BUILTIN cons
 
 (define (list . xs) xs)
 
-(define xcons
-  (lambda (x y)
-    (cons y x)))
+(define (xcons x y)
+  (cons y x))
 
-; cons*
-; make-list
-; list-tabulate
+(define (cons* x . xs)
+  (define (cons* x xs)
+    (if (pair? xs)
+        (cons x (cons* (car xs)
+                       (cdr xs)))
+        x))
+  (cons* x xs))
 
-(define list-ref
-  (lambda (x k)
-    (car (drop x k))))
+; TODO make-list
+; TODO list-tabulate
 
-(define list-copy
-  (lambda (x)
-    (define list-copy
-      (lambda (x)
-        (if (pair? x)
-            (cons (car x)
-                  (list-copy (cdr x)))
-            x)))
-    (list-copy x)))
+(define (list-ref x k)
+  (car (drop x k)))
 
-(define circular-list
-  (lambda (x . xs)
-    ((lambda (result)
-       (set-cdr! (last-pair result) result)
-       result)
-     (cons x xs))))
+(define (list-copy x)
+  (define (list-copy x)
+    (if (pair? x)
+        (cons (car x)
+              (list-copy (cdr x)))
+        x))
+  (list-copy x))
 
-; iota
+(define (circular-list x . xs)
+  ((lambda (result)
+     (set-cdr! (last-pair result) result)
+     result)
+   (cons x xs)))
 
-; pair?
+; TODO iota
+
+; TODO pair?
 
 (define null?
   (lambda (x)
