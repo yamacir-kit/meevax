@@ -1,3 +1,5 @@
+; REQUIREMENTS: SRFI-1
+
 (define (identity x) x)
 
 (define null-environment (fork/csc identity))
@@ -10,9 +12,9 @@
 
 (define (not x) (if x #f #t))
 
-; ==== Low-Level Macro Facility ================================================
+; ---- Low-Level Macro Facility ------------------------------------------------
 
-; (define er-macro-transformer
+; (define er-macro-transformer ; unstable
 ;   (lambda (transform)
 ;     (fork/csc
 ;       (lambda form

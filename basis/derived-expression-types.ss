@@ -111,39 +111,39 @@
                        (car xs)))
          (reverse xs))))
 
-  (define (qq x d)
+  (define (expand x depth)
     (cond
       ((pair? x)
        (cond
 
          ((free-identifier=? unquote (car x))
-          (if (<= d 0)
+          (if (<= depth 0)
               (cadr x)
-              (list list (list quote unquote) (qq (cadr x) (- d 1)))))
+              (list list (list quote unquote) (expand (cadr x) (- depth 1)))))
 
          ((free-identifier=? unquote-splicing (car x))
-          (if (<= d 0)
-              (list cons (qq (car x) d)
-                         (qq (cdr x) d))
+          (if (<= depth 0)
+              (list cons (expand (car x) depth)
+                         (expand (cdr x) depth))
               (list list (list quote unquote-splicing)
-                         (qq (cadr x) (- d 1)))))
+                         (expand (cadr x) (- depth 1)))))
 
          ((free-identifier=? quasiquote (car x))
           (list list (list quote quasiquote)
-                     (qq (cadr x) (+ d 1))))
+                     (expand (cadr x) (+ depth 1))))
 
-         ((and (<= d 0)
+         ((and (<= depth 0)
                (pair? (car x))
                (free-identifier=? unquote-splicing (caar x)))
           (if (null? (cdr x))
               (cadr (car x))
-              (list append (cadr (car x)) (qq (cdr x) d))))
+              (list append (cadr (car x)) (expand (cdr x) depth))))
 
-         (else (list cons (qq (car x) d)
-                          (qq (cdr x) d)))))
+         (else (list cons (expand (car x) depth)
+                          (expand (cdr x) depth)))))
 
       ((vector? x)
-       (list list->vector (qq (vector->list x) d)))
+       (list list->vector (expand (vector->list x) depth)))
 
       ((or (identifier? x)
            (null? x))
@@ -151,4 +151,4 @@
 
       (else x)))
 
-  (qq template 0))
+  (expand template 0))
