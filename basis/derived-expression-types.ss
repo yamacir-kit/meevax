@@ -25,8 +25,6 @@
   (define (cdar x) (cdr (car x)))
   (define (cddr x) (cdr (cdr x)))
 
-  (define (caddr x) (car (cdr (cdr x))))
-
   (define (unspecified) (if #f #f))
 
   (if (null? clauses)
@@ -41,7 +39,7 @@
                  (list (list lambda (list result)
                              (list if result
                                    (if (null? (cdr clause)) result
-                                       (list (caddr clause) result))
+                                       (list (car (cddr clause)) result))
                                    (cons cond (cdr clauses))))
                        (car clause))
                  (list if (car clause)
@@ -77,3 +75,80 @@
                            result
                            (cons or (cdr tests))))
                 (car tests)))))
+
+
+(define-syntax (quasiquote template)
+
+  (define (list . xs) xs)
+
+  (define (null? x) (eqv? x '()))
+
+  (define (caar x) (car (car x)))
+  (define (cadr x) (car (cdr x)))
+  (define (cdar x) (cdr (car x)))
+  (define (cddr x) (cdr (cdr x)))
+
+  (define (append-2 x y)
+    (if (null? x) y
+        (cons (car x)
+              (append-2 (cdr x) y))))
+
+  (define (reverse x)
+    (if (null? x) '()
+        (append-2 (reverse (cdr x))
+                  (list (car x)))))
+
+  (define (append . xs) ; Simpler than SRFI-1
+
+    (define (append-aux x xs)
+      (if (null? x) xs
+          (append-aux (cdr xs)
+                      (append-2 (car x) xs))))
+
+    (if (null? xs) '()
+        ((lambda (xs)
+           (append-aux (cdr xs)
+                       (car xs)))
+         (reverse xs))))
+
+  (define (qq x d)
+    (cond
+      ((pair? x)
+       (cond
+
+         ((free-identifier=? unquote (car x))
+          (if (<= d 0)
+              (cadr x)
+              (list list (list quote unquote) (qq (cadr x) (- d 1)))))
+
+         ((free-identifier=? unquote-splicing (car x))
+          (if (<= d 0)
+              (list cons (qq (car x) d)
+                         (qq (cdr x) d))
+              (list list (list quote unquote-splicing)
+                         (qq (cadr x) (- d 1)))))
+
+         ((free-identifier=? quasiquote (car x))
+          (list list (list quote quasiquote)
+                     (qq (cadr x) (+ d 1))))
+
+         ((and (<= d 0)
+               (pair? (car x))
+               (free-identifier=? unquote-splicing (caar x)))
+          (if (null? (cdr x))
+              (cadr (car x))
+              (list append (cadr (car x)) (qq (cdr x) d))))
+
+         (else (list cons (qq (car x) d)
+                          (qq (cdr x) d)))))
+
+      ((vector? x)
+       (list list->vector (qq (vector->list x) d)))
+
+      ((or (identifier? x)
+           (null? x))
+       (list quote x))
+
+      (else x)))
+
+  (qq template 0))
