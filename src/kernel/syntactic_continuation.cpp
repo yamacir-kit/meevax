@@ -1638,6 +1638,7 @@ inline namespace kernel
   {
     std::vector<string_view> codes {
       define_syntax,
+      derived_expression_types,
       values,
       dynamic_wind, // TODO dynamic-wind depends let-values
       srfi_8,

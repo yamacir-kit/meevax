@@ -1,36 +1,16 @@
-(define null-environment
-  (fork-with-current-syntactic-continuation
-    (lambda (this) this)))
-
 (define (identity x) x)
 
-(define (unspecified)
-  (if #f #f))
+(define null-environment (fork/csc identity))
+
+(define (unspecified) (if #f #f))
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Booleans (Part 1 of 2)
 ; ------------------------------------------------------------------------------
 
-(define (not x)
-  (if x #f #t))
+(define (not x) (if x #f #t))
 
 ; ==== Low-Level Macro Facility ================================================
-
-(define free-identifier=?
-  (lambda (x y)
-    (if (symbol? x)
-        (if (symbol? y)
-            (eq? x y)
-            (if (syntactic-closure? y)
-                (eq? x (car y))
-                #false))
-        (if (syntactic-closure? x)
-            (if (syntactic-closure? y)
-                (eqv? x y)
-                (if (symbol? y)
-                    (eq? (car x) y)
-                    #false))
-            #false))))
 
 ; (define er-macro-transformer
 ;   (lambda (transform)
@@ -43,93 +23,6 @@
     (fork/csc
       (lambda form
         (transform form identity eqv?)))))
-
-; --------------------------------------------------------------------------
-;  4.2.1 Standard Conditional Library (Part 1 of 2)
-; --------------------------------------------------------------------------
-
-(define-syntax cond
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (if (null? (cdr form))
-          (unspecified)
-          ((lambda (clause)
-             (if (compare (rename 'else) (car clause))
-                 (if (pair? (cddr form))
-                     (error "else clause must be at the end of cond clause" form)
-                     (cons (rename 'begin) (cdr clause)))
-                 (if (if (null? (cdr clause)) #t
-                         (compare (rename '=>) (cadr clause)))
-                     (list (list (rename 'lambda) (list (rename 'result))
-                                 (list (rename 'if) (rename 'result)
-                                       (if (null? (cdr clause))
-                                           (rename 'result)
-                                           (list (car (cddr clause)) (rename 'result)))
-                                       (cons (rename 'cond) (cddr form))))
-                           (car clause))
-                     (list (rename 'if) (car clause)
-                           (cons (rename 'begin) (cdr clause))
-                           (cons (rename 'cond) (cddr form))))))
-           (cadr form))))))
-
-; (define-syntax (cond . clauses)
-;   (if (null? clauses)
-;       (if #f #f)
-;       ((lambda (clause)
-;          (if (free-identifier=? else (car clause))
-;              (if (pair? (cdr clauses))
-;                  (error "else clause must be at the end of cond clause" clauses)
-;                  (cons begin (cdr clause)))
-;              (if (if (null? (cdr clause)) #t
-;                      (free-identifier=? => (cadr clause)))
-;                  (list (list lambda (list result)
-;                              (list if result
-;                                    (if (null? (cdr clause)) result
-;                                        (list (caddr clause) result))
-;                                    (cons cond (cdr clauses))))
-;                        (car clause))
-;                  (list if (car clause)
-;                           (cons begin (cdr clause))
-;                           (cons cond (cdr clauses))))))
-;        (car clauses))))
-
-(define-syntax and
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (cond ((null? (cdr form)))
-            ((null? (cddr form)) (cadr form))
-            (else (list (rename 'if) (cadr form)
-                        (cons (rename 'and) (cddr form))
-                        #f))))))
-
-; (define-syntax (and . tests)
-;   (cond ((null? tests))
-;         ((null? (cdr tests)) (car tests))
-;         (else (list if (car tests)
-;                     (cons and (cdr tests))
-;                     #f))))
-
-(define-syntax or
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (cond ((null? (cdr form)) #f)
-            ((null? (cddr form)) (cadr form))
-            (else
-              (list (list (rename 'lambda) (list (rename 'result))
-                          (list (rename 'if) (rename 'result)
-                                (rename 'result)
-                                (cons (rename 'or) (cddr form))))
-                    (cadr form)))))))
-
-; (define-syntax (or . tests)
-;   (cond
-;     ((null? tests) #false)
-;     ((null? (cdr tests)) (car tests))
-;     (else (list (list lambda (list result)
-;                   (list if result
-;                            result
-;                            (cons or (cdr tests))))
-;                 (car tests)))))
 
 ; --------------------------------------------------------------------------
 ;  4.2.8 Quasiquotations
