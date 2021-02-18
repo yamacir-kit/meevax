@@ -1,31 +1,4 @@
-(define (free-identifier=? x y)
-  (if (symbol? x)
-      (if (symbol? y)
-          (eq? x y)
-          (if (syntactic-closure? y)
-              (eq? x (car y))
-              #f))
-      (if (syntactic-closure? x)
-          (if (syntactic-closure? y)
-              (eqv? x y)
-              (if (symbol? y)
-                  (eq? (car x) y)
-                  #f))
-          #f)))
-
-
 (define-syntax (cond . clauses)
-
-  (define (list . xs) xs)
-
-  (define (null? x) (eqv? x '()))
-
-  (define (caar x) (car (car x)))
-  (define (cadr x) (car (cdr x)))
-  (define (cdar x) (cdr (car x)))
-  (define (cddr x) (cdr (cdr x)))
-
-  (define (unspecified) (if #f #f))
 
   (if (null? clauses)
       (unspecified)
@@ -50,10 +23,6 @@
 
 (define-syntax (and . tests)
 
-  (define (list . xs) xs)
-
-  (define (null? x) (eqv? x '()))
-
   (cond ((null? tests))
         ((null? (cdr tests)) (car tests))
         (else (list if (car tests)
@@ -62,10 +31,6 @@
 
 
 (define-syntax (or . tests)
-
-  (define (list . xs) xs)
-
-  (define (null? x) (eqv? x '()))
 
   (cond
     ((null? tests) #f)
@@ -78,38 +43,6 @@
 
 
 (define-syntax (quasiquote template)
-
-  (define (list . xs) xs)
-
-  (define (null? x) (eqv? x '()))
-
-  (define (caar x) (car (car x)))
-  (define (cadr x) (car (cdr x)))
-  (define (cdar x) (cdr (car x)))
-  (define (cddr x) (cdr (cdr x)))
-
-  (define (append-2 x y)
-    (if (null? x) y
-        (cons (car x)
-              (append-2 (cdr x) y))))
-
-  (define (reverse x)
-    (if (null? x) '()
-        (append-2 (reverse (cdr x))
-                  (list (car x)))))
-
-  (define (append . xs) ; Simpler than SRFI-1
-
-    (define (append-aux x xs)
-      (if (null? x) xs
-          (append-aux (cdr xs)
-                      (append-2 (car x) xs))))
-
-    (if (null? xs) '()
-        ((lambda (xs)
-           (append-aux (cdr xs)
-                       (car xs)))
-         (reverse xs))))
 
   (define (expand x depth)
     (cond

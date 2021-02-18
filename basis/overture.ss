@@ -1,30 +1,6 @@
 ; REQUIREMENTS: SRFI-1
 
-(define (identity x) x)
-
 (define null-environment (fork/csc identity))
-
-(define (unspecified) (if #f #f))
-
-; ------------------------------------------------------------------------------
-;  6.3 Booleans (Part 1 of 2)
-; ------------------------------------------------------------------------------
-
-(define (not x) (if x #f #t))
-
-; ---- Low-Level Macro Facility ------------------------------------------------
-
-; (define er-macro-transformer ; unstable
-;   (lambda (transform)
-;     (fork/csc
-;       (lambda form
-;         (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
-
-(define er-macro-transformer ; unhygienic-dummy
-  (lambda (transform)
-    (fork/csc
-      (lambda form
-        (transform form identity eqv?)))))
 
 ; ------------------------------------------------------------------------------
 ;  6.10 Control features (Part 1 of 2)
