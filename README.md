@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.2.1129.
+Development HEAD: 0.2.1130.
 
 ### Characteristic Features
 
@@ -67,6 +67,7 @@ An subset of R7RS-small.
 
 | Number                                                | Name                                                     | Import from | Note       |
 |------------------------------------------------------:|:---------------------------------------------------------|:------------|:-----------|
+|  [ 1](https://srfi.schemers.org/srfi-1/srfi-1.html)   | List Library                                             | built-in    |            |
 |  [ 5](https://srfi.schemers.org/srfi-5/srfi-5.html)   | A compatible let form with signatures and rest arguments | built-in    | R7RS 4.2.4 |
 |  [ 6](https://srfi.schemers.org/srfi-6/srfi-6.html)   | Basic String Ports                                       | built-in    | R7RS 6.13  |
 |  [ 8](https://srfi.schemers.org/srfi-8/srfi-8.html)   | receive: Binding to multiple values                      | built-in    |            |

@@ -589,7 +589,17 @@
 ;                   (values ans #f))))))
 ;     ans))
 
-; SOMETHING WENT WRONG
+; Things are much simpler if you are willing to push N stack frames & do N
+; set-cdr! writes, where N is the length of the answer.
+(define (filter! pred lis)
+  (let recur ((lis lis))
+    (if (pair? lis)
+        (cond ((pred (car lis))
+               (set-cdr! lis (recur (cdr lis)))
+               lis)
+              (else (recur (cdr lis))))
+        lis)))
+
 ; (define (filter! pred lis)
 ;   (let lp ((ans lis))
 ;     (cond ((null-list? ans) ans)

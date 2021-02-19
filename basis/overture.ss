@@ -380,23 +380,7 @@
 ;                     with-input-from-file with-output-to-file write write-char
 ; zero?
 
-
-(define length*
-  (lambda (x)
-    (if (not (pair? x)) 0
-        (let rec ((succeed x)
-                  (precede (cdr x))
-                  (result 1))
-          (cond
-            ((eq? succeed precede) #false)
-            ((and (pair? precede)
-                  (pair? (cdr precede)) )
-             (rec (cdr succeed)
-                  (cddr precede)
-                  (+ 2 result) ))
-            (else (if (pair? precede) (+ 1 result) result)) )))))
-
-(define list-tail drop) ; SRFI-1
+(define list-tail drop)
 
 (define (list-set! x k object)
   (set-car! (list-tail x k) object))
