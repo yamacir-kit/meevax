@@ -254,6 +254,12 @@ add_test(
           ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
 
 add_test(
+  NAME abandoned
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/abandoned.ss)
+
+add_test(
   NAME example
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/example/test.sh
           -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}

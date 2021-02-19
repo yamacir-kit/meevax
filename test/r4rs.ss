@@ -1467,6 +1467,10 @@
         (fork/csc
           (lambda (this) this))) => 6)
 
+(define-syntax (increment x . n)
+  (let ((n (if (pair? n) (car n) 1)))
+    `(,begin (,set! ,x (,+ ,x ,n)) ,x)))
+
 ; ==== REPORT ==================================================================
 
 (check-report)
