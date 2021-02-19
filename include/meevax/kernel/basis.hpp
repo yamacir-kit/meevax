@@ -13,9 +13,10 @@ inline namespace kernel
   using string_view = std::experimental::string_view;
   #endif
 
-  extern string_view const dynamic_wind;
-  extern string_view const srfi_1;
   extern string_view const overture;
+  extern string_view const srfi_1;
+  extern string_view const srfi_8;
+  extern string_view const values;
 } // namespace kernel
 } // namespace meevax
 

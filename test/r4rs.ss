@@ -1432,7 +1432,7 @@
 ;   => 3000)
 
 
-(define ffi.so (linker "libmeevax-foreign-function-interface.so"))
+(define ffi.so (linker "libmeevax-test-foreign-function-interface.so"))
 
 (define dummy-procedure
   (procedure ffi.so "dummy_procedure"))
@@ -1466,6 +1466,10 @@
   (eval '(+ 1 2 3)
         (fork/csc
           (lambda (this) this))) => 6)
+
+(define-syntax (increment x . n)
+  (let ((n (if (pair? n) (car n) 1)))
+    `(,begin (,set! ,x (,+ ,x ,n)) ,x)))
 
 ; ==== REPORT ==================================================================
 

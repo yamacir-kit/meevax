@@ -1637,10 +1637,10 @@ inline namespace kernel
   void syntactic_continuation::boot(layer<3>)
   {
     std::vector<string_view> codes {
-      // values, TODO
-      dynamic_wind, // TODO dynamic-wind depends let-values
-      srfi_1, // SRFI-1 depends call/cc
-      overture // Derived expression types depends SRFI-1
+      overture,
+      values,
+      srfi_8, // for srfi-1
+      srfi_1,
     };
 
     for (auto const& code : codes)
@@ -1648,7 +1648,6 @@ inline namespace kernel
       boost::iostreams::stream<boost::iostreams::basic_array_source<char>> port {
         code.begin(), code.size()
       };
-      // std::cout << "size: " << code.size() << std::endl;
 
       for (let e = read(port); e != eof_object; e = read(port))
       {

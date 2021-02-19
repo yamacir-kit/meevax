@@ -108,13 +108,11 @@ endforeach()
 add_library(Kernel SHARED "")
 add_library(Meevax::Kernel ALIAS Kernel)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-list(REMOVE_ITEM ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
 target_sources(Kernel PRIVATE
   ${${PROJECT_NAME}_BASIS}
-  ${${PROJECT_NAME}_KERNEL_SOURCES}
-  )
+  ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(Kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -172,7 +170,7 @@ install(
 #  Meevax Native Library (DEPRECATED)
 # ------------------------------------------------------------------------------
 
-file(GLOB ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.cpp)
+file(GLOB ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp)
 
 foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
   string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
@@ -254,6 +252,12 @@ add_test(
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
+
+add_test(
+  NAME abandoned
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/abandoned.ss)
 
 add_test(
   NAME example
