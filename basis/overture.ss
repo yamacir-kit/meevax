@@ -1,4 +1,4 @@
-;                     abs      and angle append apply asin assoc assq assv
+;                     abs      and angle append apply      assoc assq assv
 ;       boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar cadadr
 ; cadar caddar cadddr caddr cadr
 ; call-with-input-file call-with-output-file call-with-values     case cdaaar
@@ -274,7 +274,7 @@
 (define-syntax (letrec bindings . body)
   ((lambda (definitions)
      `((,lambda () ,@definitions ,@body)) )
-   (map (lambda (x) (cons define x)) bindings) ))
+   (map (lambda (x) (cons define x)) bindings)))
 
 (define-syntax letrec* letrec) ; TODO MOVE INTO (scheme base)
 
@@ -352,7 +352,7 @@
                        (,if ,result ,result ,body))
                 `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
-;                     abs          angle        apply asin assoc assq assv
+;                     abs          angle                   assoc assq assv
 ;       boolean? caaaar caaadr       caadar caaddr            cadaar cadadr
 ;       caddar cadddr
 ; call-with-input-file call-with-output-file call-with-values          cdaaar
@@ -381,75 +381,6 @@
 ; zero?
 
 
-; ------------------------------------------------------------------------------
-;  6.4 Pairs and Lists (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define (list? x) ; SRFI-1 proper-list?
-  (let rec ((x x) (lag x))
-    (if (pair? x)
-        (let ((x (cdr x)))
-          (if (pair? x)
-              (let ((x   (cdr x))
-                    (lag (cdr lag)))
-                (and (not (eq? x lag))
-                     (rec x lag)))
-              (null? x)))
-        (null? x))))
-
-(define dotted-list?
-  (lambda (x)
-    (let rec ((x x)
-              (y x))
-      (if (pair? x)
-          (let ((x (cdr x)))
-            (if (pair? x)
-                (let ((x (cdr x))
-                      (y (cdr y)))
-                  (and (not (eq? x y))
-                       (rec x y)))
-                (not (null? x))))
-          (not (null? x))))))
-
-(define circular-list?
-  (lambda (x)
-    (let rec ((x x)
-              (y x))
-      (and (pair? x)
-           (let ((x (cdr x)))
-             (and (pair? x)
-                  (let ((x (cdr x))
-                        (y (cdr y)))
-                    (or (eq? x y)
-                        (rec x y)))))))))
-
-(define null-list?
-  (lambda (x)
-    (cond
-      ((pair? x) #false)
-      ((null? x) #true)
-      (else (error "from null-list?, argument out of domain" x) ))))
-
-(define make-list
-  (lambda (k . x)
-    (let ((default (if (pair? x) (car x) #;unspecified)))
-      (let rec ((k k)
-                (result '()))
-        (if (<= k 0) result
-            (rec (- k 1)
-                 (cons default result) ))))))
-
-; (define length*
-;   (lambda (x)
-;     (let ((length (length x)))
-;       (cond
-;         ((positive? length) length)
-;         ((= length -2) #false)
-;         (else (let rec ((k 0)
-;                         (x x))
-;                 (if (not (pair? x)) k
-;                     (rec (+ 1 i) (cdr x)))))))))
-
 (define length*
   (lambda (x)
     (if (not (pair? x)) 0
@@ -469,18 +400,6 @@
 
 (define (list-set! x k object)
   (set-car! (list-tail x k) object))
-
-; (define shallow-copy
-;   (lambda (x)
-;     (if (not (pair? x)) x
-;         (cons (car x)
-;               (cdr x)))))
-;
-; (define deep-copy
-;   (lambda (x)
-;     (if (not (pair? x)) x
-;         (cons (deep-copy (car x))
-;               (deep-copy (cdr x))))))
 
 ; ------------------------------------------------------------------------------
 ;  4.2.5 Delayed Evaluation

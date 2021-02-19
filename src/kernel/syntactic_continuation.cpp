@@ -1637,10 +1637,10 @@ inline namespace kernel
   void syntactic_continuation::boot(layer<3>)
   {
     std::vector<string_view> codes {
-      overture, // Derived expression types depends SRFI-1
+      overture,
       values,
-      srfi_8,
-      srfi_1, // SRFI-1 depends SRFI-8 (receive)
+      srfi_8, // for srfi-1
+      srfi_1,
     };
 
     for (auto const& code : codes)
