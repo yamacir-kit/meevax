@@ -26,9 +26,6 @@ inline namespace kernel                                                        \
 }                                                                              \
 } static_assert(true)
 
-DEFINE_BINARY(define_syntax);
-DEFINE_BINARY(derived_expression_types);
-DEFINE_BINARY(dynamic_wind);
 DEFINE_BINARY(overture);
 DEFINE_BINARY(srfi_1);
 DEFINE_BINARY(srfi_8);

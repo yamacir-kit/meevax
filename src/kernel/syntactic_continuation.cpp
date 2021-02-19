@@ -1637,13 +1637,10 @@ inline namespace kernel
   void syntactic_continuation::boot(layer<3>)
   {
     std::vector<string_view> codes {
-      define_syntax,
-      derived_expression_types,
+      overture, // Derived expression types depends SRFI-1
       values,
-      dynamic_wind, // TODO dynamic-wind depends let-values
       srfi_8,
       srfi_1, // SRFI-1 depends SRFI-8 (receive)
-      overture // Derived expression types depends SRFI-1
     };
 
     for (auto const& code : codes)

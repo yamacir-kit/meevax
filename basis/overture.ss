@@ -1,138 +1,401 @@
-(define null-environment (fork/csc identity))
+;                     abs      and angle append apply asin assoc assq assv
+;       boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar cadadr
+; cadar caddar cadddr caddr cadr
+; call-with-input-file call-with-output-file call-with-values     case cdaaar
+; cdaadr cdaar cdadar cdaddr cdadr cdar cddaar cddadr cddar cdddar cddddr cdddr
+; cddr                           char-alphabetic? char-ci<=? char-ci<? char-ci=?
+; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
+; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
+; char>?       close-input-port close-output-port complex? cond
+; current-input-port current-output-port        define-syntax delay denominator
+; display do dynamic-wind                 equal?           even?
+; exact?                for-each force gcd    imag-part                inexact?
+; input-port?               integer? interaction-environment        lcm length
+; let let* let-syntax letrec letrec-syntax list
+; list-ref list-tail list?          magnitude make-polar make-rectangular
+;                         map max member memq memv min modulo negative? newline
+; not null-environment null?                number? numerator odd?
+;                                  or output-port?       peek-char positive?
+; procedure? quasiquote       quotient rational? rationalize read read-char
+; real-part real? remainder reverse       scheme-report-environment
+;                            string
+;               string-ci<=? string-ci<? string-ci=? string-ci>=? string-ci>?
+;             string-fill!
+;                                              substring
+;              values
+;                     with-input-from-file with-output-to-file write write-char
+; zero?
 
-; ------------------------------------------------------------------------------
-;  6.10 Control features (Part 1 of 2)
-; ------------------------------------------------------------------------------
+(define (list . xs) xs)
 
-(define apply
-  (lambda (procedure x . xs)
+(define fork/csc fork-with-current-syntactic-continuation)
 
-    (define apply-1
-      (lambda (procedure xs)
-        (procedure . xs)))
+(define define-syntax
+  (fork/csc
+    (lambda (define-syntax keyword . transformer)
 
-    (define append-2 ; from SICP
-      (lambda (x y)
-        (if (null? x) y
-            (cons (car x)
-                  (append-2 (cdr x) y)))))
+      (if (pair? keyword)
+
+          ; (define-syntax (<keyword> <formals>) <body>)
+          ;
+          ; => (define <keyword>
+          ;      (fork/csc
+          ;        (lambda (<keyword> . <formals>) <body>)))
+          ;
+          (list define (car keyword)
+                (list fork/csc
+                      (list lambda keyword . transformer)))
+
+          ; (define-syntax <keyword> <transformer>)
+          ;
+          ; => (define <keyword> <transformer>)
+          ;
+          (list define keyword . transformer)))))
+
+(define (free-identifier=? x y)
+  (if (symbol? x)
+      (if (symbol? y)
+          (eq? x y)
+          (if (syntactic-closure? y)
+              (eq? x (car y))
+              #f))
+      (if (syntactic-closure? x)
+          (if (syntactic-closure? y)
+              (eqv? x y)
+              (if (symbol? y)
+                  (eq? (car x) y)
+                  #f))
+          #f)))
+
+; (define er-macro-transformer ; unstable
+;   (lambda (transform)
+;     (fork/csc
+;       (lambda form
+;         (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
+
+(define (identity x) x)
+
+(define (er-macro-transformer transform) ; unhygienic-dummy
+  (fork/csc
+    (lambda form
+      (transform form identity eqv?))))
+
+(define (null? x) (eqv? x '()))
+
+(define (caar x) (car (car x)))
+(define (cadr x) (car (cdr x)))
+(define (cdar x) (cdr (car x)))
+(define (cddr x) (cdr (cdr x)))
+
+(define (unspecified) (if #f #f))
+
+(define-syntax (cond . clauses)
+  (if (null? clauses)
+      (unspecified)
+      ((lambda (clause)
+         (if (free-identifier=? else (car clause))
+             (if (pair? (cdr clauses))
+                 (error "else clause must be at the end of cond clause" clauses)
+                 (cons begin (cdr clause)))
+             (if (if (null? (cdr clause)) #t
+                     (free-identifier=? => (cadr clause)))
+                 (list (list lambda (list result)
+                             (list if result
+                                   (if (null? (cdr clause)) result
+                                       (list (car (cddr clause)) result))
+                                   (cons cond (cdr clauses))))
+                       (car clause))
+                 (list if (car clause)
+                          (cons begin (cdr clause))
+                          (cons cond (cdr clauses))))))
+       (car clauses))))
+
+(define-syntax (and . tests)
+  (cond ((null? tests))
+        ((null? (cdr tests)) (car tests))
+        (else (list if (car tests)
+                    (cons and (cdr tests))
+                    #f))))
+
+(define-syntax (or . tests)
+  (cond
+    ((null? tests) #f)
+    ((null? (cdr tests)) (car tests))
+    (else (list (list lambda (list result)
+                  (list if result
+                           result
+                           (cons or (cdr tests))))
+                (car tests)))))
+
+(define (append-2 x y)
+  (if (null? x) y
+      (cons (car x)
+            (append-2 (cdr x) y))))
+
+(define (reverse x)
+  (if (null? x) '()
+      (append-2 (reverse (cdr x))
+                (list (car x)))))
+
+(define (append . xs) ; redefine
+
+  (define (append-aux x xs)
+    (if (null? x) xs
+        (append-aux (cdr xs)
+                    (append-2 (car x) xs))))
+
+  (if (null? xs) '()
+      ((lambda (xs)
+         (append-aux (cdr xs)
+                     (car xs)))
+       (reverse xs))))
+
+(define-syntax (quasiquote template)
+
+  (define (expand x depth)
+    (cond
+      ((pair? x)
+       (cond
+
+         ((free-identifier=? unquote (car x))
+          (if (<= depth 0)
+              (cadr x)
+              (list list (list quote unquote) (expand (cadr x) (- depth 1)))))
+
+         ((free-identifier=? unquote-splicing (car x))
+          (if (<= depth 0)
+              (list cons (expand (car x) depth)
+                         (expand (cdr x) depth))
+              (list list (list quote unquote-splicing)
+                         (expand (cadr x) (- depth 1)))))
+
+         ((free-identifier=? quasiquote (car x))
+          (list list (list quote quasiquote)
+                     (expand (cadr x) (+ depth 1))))
+
+         ((and (<= depth 0)
+               (pair? (car x))
+               (free-identifier=? unquote-splicing (caar x)))
+          (if (null? (cdr x))
+              (cadr (car x))
+              (list append (cadr (car x)) (expand (cdr x) depth))))
+
+         (else (list cons (expand (car x) depth)
+                          (expand (cdr x) depth)))))
+
+      ((vector? x)
+       (list list->vector (expand (vector->list x) depth)))
+
+      ((or (identifier? x)
+           (null? x))
+       (list quote x))
+
+      (else x)))
+
+  (expand template 0))
+
+(define (not x) (if x #f #t))
+
+(define-syntax (when   test . body) `(,if       ,test  (,begin ,@body))) ; TODO MOVE INTO (scheme base)
+(define-syntax (unless test . body) `(,if (,not ,test) (,begin ,@body))) ; TODO MOVE INTO (scheme base)
+
+(define (map f x . xs) ; map-unorder
+
+    (define (map-1 f x xs)
+      (if (pair? x)
+          (map-1 f
+                 (cdr x)
+                 (cons (f (car x)) xs))
+          (reverse xs)))
+
+    (define (map-2+ f xs xss)
+      (if (every pair? xs)
+          (map-2+ f
+                  (map-1 cdr xs '())
+                  (cons (apply f (map-1 car xs '())) xss))
+          (reverse xss)))
 
     (if (null? xs)
-        (apply-1 procedure x)
-        ((lambda (rxs)
-           (apply-1 procedure
-                    (append-2 (reverse (cdr rxs))
-                              (car rxs))))
-         (reverse (cons x xs))))))
+        (map-1  f       x     '())
+        (map-2+ f (cons x xs) '())))
 
-; ------------------------------------------------------------------------------
-;  4.2.2 Binding constructs
-; ------------------------------------------------------------------------------
+(define (apply f x . xs) ; for map
 
-(define-syntax letrec
-  (er-macro-transformer
-    (lambda (form rename compare)
-      ((lambda (definitions)
-         `((,(rename 'lambda) () ,@definitions ,@(cddr form))))
-       (map (lambda (x)
-              (cons (rename 'define) x))
-            (cadr form))))))
+  (define (apply-1 f xs) (f . xs))
 
-; (define-syntax (letrec bindings . body)
-;   ((lambda (definitions)
-;     `((,lambda () ,@definitions ,@body)) )
-;    (map (lambda (x) (cons 'define x)) bindings) ))
+  (if (null? xs)
+      (apply-1 f x)
+      ((lambda (rxs)
+         (apply-1 f
+                  (append-2 (reverse (cdr rxs))
+                            (car rxs))))
+       (reverse (cons x xs)))))
 
-(define letrec* letrec)
+(define (every f x . xs) ; for map
+
+  (define (every-1 f x)
+    (if (null? (cdr x))
+        (f (car x))
+        (if (f (car x))
+            (every-1 f (cdr x))
+            #f)))
+
+  (if (null? xs)
+      (if (pair? x)
+          (every-1 f x)
+          #t)
+      (not (apply any
+                  (lambda xs
+                    (not (apply f xs)))
+                  x xs))))
+
+(define (any f x . xs) ; for every
+
+  (define (any-1 f x)
+    (if (pair? (cdr x))
+        ((lambda (result)
+           (if result result (any-1 f (cdr x))))
+         (f (car x)))
+        (f (car x))))
+
+  (define (any-2+ f xs)
+    (if (every pair? xs)
+        ((lambda (result)
+           (if result result (any-2+ f (map cdr xs))))
+         (apply f (map car xs)))
+        #f))
+
+  (if (null? xs)
+      (if (pair? x)
+          (any-1 f x)
+          #f)
+      (any-2+ f (cons x xs))))
+
+(define-syntax (letrec bindings . body)
+  ((lambda (definitions)
+     `((,lambda () ,@definitions ,@body)) )
+   (map (lambda (x) (cons define x)) bindings) ))
+
+(define-syntax letrec* letrec) ; TODO MOVE INTO (scheme base)
 
 (define-syntax (let bindings . body)
   (if (identifier? bindings)
       `(,letrec ((,bindings
                    (,lambda ,(map car (car body)) ,@(cdr body))))
          (,bindings ,@(map cadr (car body))))
-      `((,lambda ,(map car bindings) ,@body)
-        ,@(map cadr bindings))))
+      `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
 
 (define-syntax (let* bindings . body)
-
-  (if (null? bindings)
-      (error "The let* syntax is defined as the form (let* <bindings> <body>) \
-              but lacks <bindings> and <body>.") )
-
-  (if (null? body)
-      (error "The let* syntax is defined as the form (let* <bindings> <body>) \
-              but lacks <body>.") )
-
   (if (or (null? bindings)
-          (null? (cdr bindings)) )
-     `(,let (,(car bindings)) ,@body)
-     `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))
+          (null? (cdr bindings)))
+      `(,let (,(car bindings)) ,@body)
+      `(,let (,(car bindings)) (,let* ,(cdr bindings) ,@body))))
 
-; TODO let-values
-; TODO let*-values
+(define (caaar x) (car (car (car x))))
+(define (caadr x) (car (car (cdr x))))
+(define (cadar x) (car (cdr (car x))))
+(define (caddr x) (car (cdr (cdr x))))
+(define (cdaar x) (cdr (car (car x))))
+(define (cdadr x) (cdr (car (cdr x))))
+(define (cddar x) (cdr (cdr (car x))))
+(define (cdddr x) (cdr (cdr (cdr x))))
 
-; ------------------------------------------------------------------------------
-;  4.2.6. Dynamic bindings
-; ------------------------------------------------------------------------------
+(define (member o x . c) ; for case
+  (let ((compare (if (pair? c) (car c) equal?)))
+    (let member ((x x))
+      (and (pair? x)
+           (if (compare o (car x)) x
+               (member (cdr x)))))))
 
-; SRFI 39: Parameter objects
+(define (memq o x) (member o x eq?))
+(define (memv o x) (member o x eqv?))
 
-(define dynamic-environment '())
+(define-syntax (case key . clauses)
 
-(define make-parameter
-  (lambda (init . converter)
-    (let* ((convert
-             (if (null? converter)
-                 (lambda (x) x)
-                 (car converter)))
-           (global-dynamic-environment
-             (cons #f (convert init))))
+  (define (body expressions)
+    (cond
+      ((null? expressions) result)
+      ((free-identifier=? => (car expressions)) `(,(cadr expressions) ,result))
+      (else `(,begin ,@expressions))))
 
-      (define dynamic-lookup
-        (lambda (parameter global-dynamic-environment)
-          (or (assq parameter dynamic-environment) global-dynamic-environment)))
+  (define (each-clause clauses)
+    (cond
+      ((null? clauses) #false)
+      ((free-identifier=? else (caar clauses))
+       (body (cdar clauses)))
+      ((and (pair? (caar clauses))
+            (null? (cdaar clauses)))
+       `(,if (,eqv? ,result (,quote ,(caaar clauses)))
+             ,(body (cdar clauses))
+             ,(each-clause (cdr clauses))))
+      (else
+        `(,if (,memv ,result (,quote ,(caar clauses)))
+              ,(body (cdar clauses))
+              ,(each-clause (cdr clauses))))))
 
-      (define parameter
-        (lambda value
-          (let ((binding
-                  (dynamic-lookup parameter global-dynamic-environment)))
-            (cond ((null? value)
-                   (cdr binding))
-                  ((null? (cdr value))
-                   (set-cdr! binding (convert (car value))))
-                  (else (convert (car value)))))))
+  `(,let ((,result ,key)) ,(each-clause clauses)))
 
-      (set-car! global-dynamic-environment parameter)
-      parameter)))
+(define-syntax (do variables test . commands)
+  (let ((body
+          `(,begin ,@commands
+                   (,rec ,@(map (lambda (x)
+                                  (if (pair? (cddr x))
+                                      (caddr x)
+                                      (car x)))
+                                variables)))))
+    `(,let ,rec ,(map (lambda (x)
+                        (list (car x)
+                              (cadr x)))
+                      variables)
+           ,(if (null? (cdr test))
+                `(,let ((,result ,(car test)))
+                       (,if ,result ,result ,body))
+                `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
-(define parameterize-aux
-  (lambda (parameters values body)
-    (let* ((saved dynamic-environment)
-           (bindings
-             (map (lambda (parameter value)
-                    (cons parameter (parameter value #f)))
-                  parameters
-                  values)))
-      (dynamic-wind
-        (lambda () (set! dynamic-environment (append bindings saved)))
-        body
-        (lambda () (set! dynamic-environment                  saved))))))
+;                     abs          angle        apply asin assoc assq assv
+;       boolean? caaaar caaadr       caadar caaddr            cadaar cadadr
+;       caddar cadddr
+; call-with-input-file call-with-output-file call-with-values          cdaaar
+; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
+;                                char-alphabetic? char-ci<=? char-ci<? char-ci=?
+; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
+; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
+; char>?       close-input-port close-output-port complex?
+; current-input-port current-output-port                      delay denominator
+; display    dynamic-wind                 equal?           even?
+; exact?                for-each force gcd    imag-part                inexact?
+; input-port?               integer? interaction-environment        lcm length
+;          let-syntax        letrec-syntax
+; list-ref list-tail list?          magnitude make-polar make-rectangular
+;                             max                  min modulo negative? newline
+;     null-environment                      number? numerator odd?
+;                                     output-port?       peek-char positive?
+; procedure?                  quotient rational? rationalize read read-char
+; real-part real? remainder               scheme-report-environment
+;                            string
+;               string-ci<=? string-ci<? string-ci=? string-ci>=? string-ci>?
+;             string-fill!
+;                                              substring
+;              values
+;                     with-input-from-file with-output-to-file write write-char
+; zero?
 
-(define-syntax parameterize
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (let* ((bindings (cadr form))
-             (body (cddr form)))
-        `(parameterize-aux
-           (list ,@(map  car bindings))
-           (list ,@(map cadr bindings))
-           (lambda () ,@body))))))
 
 ; ------------------------------------------------------------------------------
 ;  6.4 Pairs and Lists (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-(define list? proper-list?)
+(define (list? x) ; SRFI-1 proper-list?
+  (let rec ((x x) (lag x))
+    (if (pair? x)
+        (let ((x (cdr x)))
+          (if (pair? x)
+              (let ((x   (cdr x))
+                    (lag (cdr lag)))
+                (and (not (eq? x lag))
+                     (rec x lag)))
+              (null? x)))
+        (null? x))))
 
 (define dotted-list?
   (lambda (x)
@@ -218,67 +481,6 @@
 ;     (if (not (pair? x)) x
 ;         (cons (deep-copy (car x))
 ;               (deep-copy (cdr x))))))
-
-; ------------------------------------------------------------------------------
-;  4.2.1 Conditionals (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define-syntax (case key . clauses)
-
-  (define body
-    (lambda (expressions)
-      (cond
-        ((null? expressions) result)
-        ((free-identifier=? => (car expressions))
-        `(,(cadr expressions) ,result))
-        (else
-         `(,begin ,@expressions) ))))
-
-  (define each-clause
-    (lambda (clauses)
-      (cond
-        ((null? clauses) #false)
-        ((free-identifier=? else (caar clauses))
-         (body (cdar clauses)))
-        ((and (pair? (caar clauses))
-              (null? (cdaar clauses)))
-        `(,if (,eqv? ,result (,quote ,(caaar clauses)))
-             ,(body (cdar clauses))
-             ,(each-clause (cdr clauses))))
-        (else
-         `(,if (,memv ,result (,quote ,(caar clauses)))
-              ,(body (cdar clauses))
-              ,(each-clause (cdr clauses))) ))))
-
- `(,let ((,result ,key))
-   ,(each-clause clauses)) )
-
-(define-syntax (when test . body)
-  `(,if ,test (,begin ,@body)))
-
-(define-syntax (unless test . body)
- `(,if (,not ,test) (,begin ,@body)))
-
-; ------------------------------------------------------------------------------
-;  4.2.4 Iteration
-; ------------------------------------------------------------------------------
-
-(define-syntax (do variables test . commands)
-  (let ((body
-         `(,begin ,@commands
-                  (,rec ,@(map (lambda (x)
-                                 (if (pair? (cddr x))
-                                     (caddr x)
-                                     (car x)))
-                               variables)))))
-   `(,let ,rec ,(map (lambda (x)
-                       (list (car x)
-                             (cadr x)))
-                     variables)
-     ,(if (null? (cdr test))
-         `(,let ((,result ,(car test)))
-            (,if ,result ,result ,body))
-         `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
 ; ------------------------------------------------------------------------------
 ;  4.2.5 Delayed Evaluation
@@ -814,6 +1016,46 @@
 ; TODO string-for-each
 ; TODO vector-for-each
 
+(define dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
+
+(define (dynamic-wind before thunk after)
+  (before)
+  (set! dynamic-extents (cons (cons before after) dynamic-extents))
+  ((lambda (result) ; TODO let-values
+     (set! dynamic-extents (cdr dynamic-extents))
+     (after)
+     result) ; TODO (apply values result)
+   (thunk)))
+
+(define call-with-current-continuation ; overwrite
+  ((lambda (call/cc)
+     (lambda (procedure)
+
+       (define (windup! from to)
+         (set! dynamic-extents from)
+
+         (if (eq? from to) #t
+         (if (null? from)
+             (begin (windup! from (cdr to))
+                    ((caar to)))
+         (if (null? to)
+             (begin ((cdar from))
+                    (windup! (cdr from) to))
+             (begin ((cdar from))
+                    (windup! (cdr from) (cdr to))
+                    ((caar to))))))
+
+         (set! dynamic-extents to))
+
+       ((lambda (current-dynamic-extents)
+          (call/cc (lambda (k1)
+                     (procedure (lambda (k2)
+                                  (windup! dynamic-extents current-dynamic-extents)
+                                  (k1 k2))))))
+        dynamic-extents)))
+   (lambda (procedure)
+     (call-with-current-continuation procedure))))
+
 (define call/cc call-with-current-continuation)
 
 ; ------------------------------------------------------------------------------
@@ -849,17 +1091,74 @@
 ; TODO scheme-report-environment
 ; TODO null-environment
 
-(define current-lexical-environment ; deprecated
-  (lambda ()
-    (cdar (fork/csc
-            (lambda ()
-             '())))))
+(define (current-environment) (fork/csc identity))
 
-(define interaction-environment ; deprecated
-  (lambda ()
-    (cdr (fork/csc
-           (lambda ()
-            '())))))
+; (define current-lexical-environment ; deprecated
+;   (lambda ()
+;     (cdar (fork/csc
+;             (lambda ()
+;              '())))))
+;
+; (define interaction-environment ; deprecated
+;   (lambda ()
+;     (cdr (fork/csc
+;            (lambda ()
+;             '())))))
+
+; ------------------------------------------------------------------------------
+;  SRFI-39
+; ------------------------------------------------------------------------------
+
+(define dynamic-environment '())
+
+(define make-parameter
+  (lambda (init . converter)
+    (let* ((convert
+             (if (null? converter)
+                 (lambda (x) x)
+                 (car converter)))
+           (global-dynamic-environment
+             (cons #f (convert init))))
+
+      (define dynamic-lookup
+        (lambda (parameter global-dynamic-environment)
+          (or (assq parameter dynamic-environment) global-dynamic-environment)))
+
+      (define parameter
+        (lambda value
+          (let ((binding
+                  (dynamic-lookup parameter global-dynamic-environment)))
+            (cond ((null? value)
+                   (cdr binding))
+                  ((null? (cdr value))
+                   (set-cdr! binding (convert (car value))))
+                  (else (convert (car value)))))))
+
+      (set-car! global-dynamic-environment parameter)
+      parameter)))
+
+(define parameterize-aux
+  (lambda (parameters values body)
+    (let* ((saved dynamic-environment)
+           (bindings
+             (map (lambda (parameter value)
+                    (cons parameter (parameter value #f)))
+                  parameters
+                  values)))
+      (dynamic-wind
+        (lambda () (set! dynamic-environment (append bindings saved)))
+        body
+        (lambda () (set! dynamic-environment                  saved))))))
+
+(define-syntax parameterize
+  (er-macro-transformer
+    (lambda (form rename compare)
+      (let* ((bindings (cadr form))
+             (body (cddr form)))
+        `(parameterize-aux
+           (list ,@(map  car bindings))
+           (list ,@(map cadr bindings))
+           (lambda () ,@body))))))
 
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library

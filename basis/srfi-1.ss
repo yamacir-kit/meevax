@@ -84,19 +84,19 @@
 
 ; TODO list=
 
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
-(define (cdar x) (cdr (car x)))
-(define (cddr x) (cdr (cdr x)))
+; (define (caar x) (car (car x)))
+; (define (cadr x) (car (cdr x)))
+; (define (cdar x) (cdr (car x)))
+; (define (cddr x) (cdr (cdr x)))
 
-(define (caaar x) (car (car (car x))))
-(define (caadr x) (car (car (cdr x))))
-(define (cadar x) (car (cdr (car x))))
-(define (caddr x) (car (cdr (cdr x))))
-(define (cdaar x) (cdr (car (car x))))
-(define (cdadr x) (cdr (car (cdr x))))
-(define (cddar x) (cdr (cdr (car x))))
-(define (cdddr x) (cdr (cdr (cdr x))))
+; (define (caaar x) (car (car (car x))))
+; (define (caadr x) (car (car (cdr x))))
+; (define (cadar x) (car (cdr (car x))))
+; (define (caddr x) (car (cdr (cdr x))))
+; (define (cdaar x) (cdr (car (car x))))
+; (define (cdadr x) (cdr (car (cdr x))))
+; (define (cddar x) (cdr (cdr (car x))))
+; (define (cdddr x) (cdr (cdr (cdr x))))
 
 (define (caaaar x) (car (car (car (car x)))))
 (define (caaadr x) (car (car (car (cdr x)))))
@@ -278,26 +278,6 @@
       (map-2+ (cons x xs))
       (map-1 x)))
 
-; (define (map f x . xs) ; map-unorder
-;
-;     (define (map-1 f x result)
-;       (if (pair? x)
-;           (map-1 f
-;                  (cdr x)
-;                  (cons (f (car x)) result))
-;           (reverse result)))
-;
-;     (define (map-2+ f xs result)
-;       (if (every pair? xs)
-;           (map-2+ f
-;                   (map-1 cdr xs '())
-;                   (cons (apply f (map-1 car xs '())) result))
-;           (reverse result)))
-;
-;     (if (null? xs)
-;         (map-1  f       x     '())
-;         (map-2+ f (cons x xs) '())))
-
 ; map!
 
 (define (for-each f x . xs)
@@ -391,45 +371,45 @@
 (define (memq key x) (member key x eq?))
 (define (memv key x) (member key x eqv?))
 
-(define (any f x . xs)
-
-  (define (any-1 f x)
-    (if (pair? (cdr x))
-        ((lambda (result)
-           (if result result (any-1 f (cdr x))))
-         (f (car x)))
-        (f (car x))))
-
-  (define (any-2+ f xs)
-    (if (every pair? xs)
-        ((lambda (result)
-           (if result result (any-2+ f (map cdr xs))))
-         (apply f (map car xs)))
-        #f))
-
-  (if (null? xs)
-      (if (pair? x)
-          (any-1 f x)
-          #f)
-      (any-2+ f (cons x xs))))
-
-(define (every f x . xs)
-
-  (define (every-1 f x)
-    (if (null? (cdr x))
-        (f (car x))
-        (if (f (car x))
-            (every-1 f (cdr x))
-            #f)))
-
-  (if (null? xs)
-      (if (pair? x)
-          (every-1 f x)
-          #t)
-      (not (apply any
-                  (lambda xs
-                    (not (apply f xs)))
-                  x xs))))
+; (define (any f x . xs)
+;
+;   (define (any-1 f x)
+;     (if (pair? (cdr x))
+;         ((lambda (result)
+;            (if result result (any-1 f (cdr x))))
+;          (f (car x)))
+;         (f (car x))))
+;
+;   (define (any-2+ f xs)
+;     (if (every pair? xs)
+;         ((lambda (result)
+;            (if result result (any-2+ f (map cdr xs))))
+;          (apply f (map car xs)))
+;         #f))
+;
+;   (if (null? xs)
+;       (if (pair? x)
+;           (any-1 f x)
+;           #f)
+;       (any-2+ f (cons x xs))))
+;
+; (define (every f x . xs)
+;
+;   (define (every-1 f x)
+;     (if (null? (cdr x))
+;         (f (car x))
+;         (if (f (car x))
+;             (every-1 f (cdr x))
+;             #f)))
+;
+;   (if (null? xs)
+;       (if (pair? x)
+;           (every-1 f x)
+;           #t)
+;       (not (apply any
+;                   (lambda xs
+;                     (not (apply f xs)))
+;                   x xs))))
 
 ; list-index
 ; take-while
