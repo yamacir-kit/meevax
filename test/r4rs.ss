@@ -1432,7 +1432,7 @@
 ;   => 3000)
 
 
-(define ffi.so (linker "libmeevax-foreign-function-interface.so"))
+(define ffi.so (linker "libmeevax-test-foreign-function-interface.so"))
 
 (define dummy-procedure
   (procedure ffi.so "dummy_procedure"))

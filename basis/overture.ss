@@ -1,5 +1,3 @@
-; REQUIREMENTS: SRFI-1
-
 (define null-environment (fork/csc identity))
 
 ; ------------------------------------------------------------------------------
