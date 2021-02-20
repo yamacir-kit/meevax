@@ -1641,6 +1641,8 @@ inline namespace kernel
       values,
       srfi_8, // for srfi-1
       srfi_1,
+      r5rs,
+      r7rs,
     };
 
     for (auto const& code : codes)

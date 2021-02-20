@@ -380,11 +380,6 @@
 ;                     with-input-from-file with-output-to-file write write-char
 ; zero?
 
-(define list-tail drop)
-
-(define (list-set! x k object)
-  (set-car! (list-tail x k) object))
-
 ; ------------------------------------------------------------------------------
 ;  4.2.5 Delayed Evaluation
 ; ------------------------------------------------------------------------------
