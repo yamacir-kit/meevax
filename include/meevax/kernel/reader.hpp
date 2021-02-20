@@ -33,10 +33,6 @@ inline namespace kernel
   // TODO Move into reader class private
   let read_char(input_port &);
 
-  // TODO Move into reader class private
-  // [[deprecated]]
-  // let read_string(input_port &);
-
   /* ---- Reader ---------------------------------------------------------------
    *
    *
@@ -54,9 +50,9 @@ inline namespace kernel
     IMPORT(SK, standard_debug_port, NIL);
     IMPORT(SK, write_to,            NIL);
 
-    using seeker = std::istream_iterator<input_port::char_type>;
+    using char_type = typename input_port::char_type;
 
-    enum class   proper_list_tag {};
+    using seeker = std::istream_iterator<char_type>;
 
     template <input_port::char_type C>
     using reserved_character = std::integral_constant<decltype(C), C>;
@@ -76,7 +72,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let const read(input_port & port)
     {
-      std::string token {};
+      std::basic_string<char_type> token {};
 
       for (seeker head = port; head != seeker(); ++head)
       {
@@ -90,42 +86,45 @@ inline namespace kernel
           break;
 
         case '(':
+        case '[':
+        case '{':
           try
           {
             let const kar = read(port);
-            port.putback('(');
+            port.putback(c);
             return cons(kar, read(port));
           }
           catch (read_error<right_parenthesis> const&)
           {
-            return unit;
+            return char_eq(c, '(') ? unit : throw;
+          }
+          catch (read_error<right_square_bracket> const&)
+          {
+            return char_eq(c, '[') ? unit : throw;
+          }
+          catch (read_error<right_curly_bracket> const&)
+          {
+            return char_eq(c, '{') ? unit : throw;
           }
           catch (read_error<period> const&)
           {
             let const kdr = read(port);
-            ignore(port, [](auto c) { return not char_eq(c, ')', ']', '}'); }).get();
+
+            switch (c)
+            {
+            case '(': ignore(port, [](auto each) { return not char_eq(each, ')'); }).get(); break;
+            case '[': ignore(port, [](auto each) { return not char_eq(each, ']'); }).get(); break;
+            case '{': ignore(port, [](auto each) { return not char_eq(each, '}'); }).get(); break;
+            }
+
             return kdr;
           }
 
         case ')':
           throw read_error<right_parenthesis>("unexpected ", std::quoted(")"));
 
-        case '[':
-          try
-          {
-            port.putback('(');
-            return cons(intern("list"), read(port));
-          }
-          catch (...)
-          {
-            return intern("UNEXPECTED");
-          }
-
         case ']':
-          throw read_error<right_parenthesis>("unexpected ", std::quoted("]"));
-
-        case '{':
-          throw read_error<left_curly_bracket>(c, " is reserved for possible future extensions to the language.");
+          throw read_error<right_square_bracket>("unexpected ", std::quoted("]"));
 
         case '}':
           throw read_error<right_curly_bracket>(c, " is reserved for possible future extensions to the language.");
@@ -198,9 +197,9 @@ inline namespace kernel
       return result;
     }
 
-    decltype(auto) read(std::string const& s)
+    decltype(auto) read(std::basic_string<char_type> const& s)
     {
-      std::stringstream ss { s };
+      std::basic_stringstream<char_type> ss { s };
       return read(ss);
     }
 

@@ -24,12 +24,12 @@ inline namespace kernel
 
   auto is_intraline_whitespace = [](auto c) constexpr
   {
-    return char_eq(c, u8' ', u8'\f', u8'\t', u8'\v');
+    return char_eq(c, ' ', '\f', '\t', '\v');
   };
 
   auto is_end_of_line = [](auto c) constexpr
   {
-    return char_eq(c, u8'\n', u8'\r');
+    return char_eq(c, '\n', '\r');
   };
 
   auto is_eof = [](auto c) constexpr
@@ -52,14 +52,14 @@ inline namespace kernel
 
   auto is_vertical_line = [](auto c) constexpr
   {
-    return char_eq(c, u8'|');
+    return char_eq(c, '|');
   };
 
   auto is_delimiter = [](auto c) constexpr
   {
     return is_whitespace(c)
         or is_vertical_line(c)
-        or char_eq(c, u8'(', u8')', u8'[', u8']', u8'{', u8'}', u8'"', u8';');
+        or char_eq(c, '(', ')', '[', ']', '{', '}', '"', ';');
   };
 
   /* ---- Token ---------------------------------------------------
@@ -71,7 +71,7 @@ inline namespace kernel
 
   auto is_reader_macro_introducer = [](auto c) constexpr
   {
-    return char_eq(c, u8'#', u8'\'', u8'`', u8',');
+    return char_eq(c, '#', '\'', '`', ',');
   };
 
   auto is_end_of_token = [](auto c) constexpr

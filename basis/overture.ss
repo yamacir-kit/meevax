@@ -42,9 +42,9 @@
           ;      (fork/csc
           ;        (lambda (<keyword> . <formals>) <body>)))
           ;
-          [define (car keyword)
-            [fork/csc
-              [lambda keyword . transformer]]]
+          (list define (car keyword)
+            (list fork/csc
+              (list lambda keyword . transformer)))
 
           ; (define-syntax <keyword> <transformer>)
           ;
