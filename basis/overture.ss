@@ -43,8 +43,8 @@
           ;        (lambda (<keyword> . <formals>) <body>)))
           ;
           (list define (car keyword)
-                (list fork/csc
-                      (list lambda keyword . transformer)))
+            (list fork/csc
+              (list lambda keyword . transformer)))
 
           ; (define-syntax <keyword> <transformer>)
           ;
