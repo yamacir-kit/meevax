@@ -1,42 +1,35 @@
 (define <promise> (list 'promise))
 
- ; ((#f . #,(closure ...)) promise)
-(define promise
-  (lambda (forced? closure)
-    (cons (cons forced? closure) <promise>)))
+(define (promise done? closure)
+  (cons (cons done? closure) <promise>))
 
-(define promise?
-  (lambda (x)
-    (and (pair? x)
-         (eq? <promise> (cdr x)))))
+(define (promise? x)
+  (and (pair? x)
+       (eq? <promise> (cdr x))))
 
-(define force
-  (lambda (promise)
+(define promise-done? caar)
+(define promise-value cdar)
+(define promise-generator cdar)
 
-    (define done? caar)
+(define (promise-merge! new old)
+  (set-car! (car old) (promise-done? new))
+  (set-cdr! (car old) (promise-value new))
+  (set-car! new (car old)))
 
-    (define cache cdar)
+(define (force promise)
+  (if (promise-done? promise)
+      (promise-value promise)
+      (let ((new ((promise-generator promise))))
+        (unless (promise-done? promise)
+                (promise-merge! new promise))
+        (force promise))))
 
-    (define update!
-      (lambda (new old)
-        (set-car! (car old) (done? new))
-        (set-cdr! (car old) (cache new))
-        (set-car! new (car old))))
-
-    (if (done? promise)
-        (cache promise)
-        (let ((new ((cache promise))))
-          (unless (done? promise)
-                  (update! new promise))
-          (force promise)))))
-
-(define-syntax (delay-force expression)
+(define-syntax (lazy expression)
   (list promise #f (list lambda '() expression)))
 
 (define-syntax (delay expression)
-  (list delay-force (list promise #t expression)))
+  (list lazy (list promise #t expression)))
 
-; (define make-promise
-;   (lambda (x)
-;     (if (promise? x) x
-;         (delay x))))
+(define (make-promise x)
+  (if (promise? x) x
+      (delay x)))

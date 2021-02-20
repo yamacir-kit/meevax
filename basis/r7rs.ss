@@ -1,10 +1,6 @@
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
-; (define delay-force lazy) ; from SRFI-45
-
-(define (make-promise x)
-  (if (promise? x) x
-      (delay x)))
+(define delay-force lazy) ; from SRFI-45
 
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
 
