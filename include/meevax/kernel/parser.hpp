@@ -60,7 +60,9 @@ inline namespace kernel
 
   auto is_delimiter = [](auto c) constexpr
   {
-    return is_whitespace(c) or is_vertical_line(c) or char_compare(c, u8'(', u8')', u8'"', u8';');
+    return is_whitespace(c)
+        or is_vertical_line(c)
+        or char_compare(c, u8'(', u8')', u8'[', u8']', u8'{', u8'}', u8'"', u8';');
   };
 
   /* ---- Token ---------------------------------------------------

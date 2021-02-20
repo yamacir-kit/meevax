@@ -22,6 +22,7 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 #include <meevax/string/header.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -58,6 +59,12 @@ inline namespace kernel
     enum class   proper_list_tag {};
     enum class improper_list_tag {};
 
+    using opening_square_bracket = std::integral_constant<char, '['>;
+    using closing_square_bracket = std::integral_constant<char, ']'>;
+
+    using opening_curly_bracket = std::integral_constant<char, '{'>;
+    using closing_curly_bracket = std::integral_constant<char, '}'>;
+
   public:
     /* ---- Read ---------------------------------------------------------------
      *
@@ -69,7 +76,7 @@ inline namespace kernel
 
       for (seeker head = port; head != seeker(); ++head)
       {
-        switch (*head)
+        switch (auto const c = *head)
         {
         case ';':
           port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -97,7 +104,24 @@ inline namespace kernel
           }
 
         case ')':
-          throw read_error<proper_list_tag>("unexpected close parentheses");
+          throw read_error<proper_list_tag>("unexpected ", std::quoted(")"));
+
+        case '[':
+          try
+          {
+            port.putback('(');
+            return cons(intern("list"), read(port));
+          }
+          catch (...)
+          {
+            return intern("UNEXPECTED");
+          }
+
+        case ']':
+          throw read_error<proper_list_tag>("unexpected ", std::quoted("]"));
+
+        case '{': throw read_error<closing_curly_bracket>(c, " is reserved for possible future extensions to the language.");
+        case '}': throw read_error<closing_curly_bracket>(c, " is reserved for possible future extensions to the language.");
 
         case '#':
           return discriminate(port);
