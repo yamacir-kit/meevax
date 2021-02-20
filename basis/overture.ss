@@ -1,6 +1,6 @@
-;                     abs      and angle append apply      assoc assq assv
-;       boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar cadadr
-; cadar caddar cadddr caddr cadr
+;       ...          =>      abs      and angle append apply      assoc assq
+; assv            boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar
+; cadadr cadar caddar cadddr caddr cadr call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values     case cdaaar
 ; cdaadr cdaar cdadar cdaddr cdadr cdar cddaar cddadr cddar cdddar cddddr cdddr
 ; cddr                           char-alphabetic? char-ci<=? char-ci<? char-ci=?
@@ -8,23 +8,23 @@
 ; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
 ; char>?       close-input-port close-output-port complex? cond
 ; current-input-port current-output-port        define-syntax delay denominator
-; display do dynamic-wind                 equal?           even?
-; exact?                for-each force gcd    imag-part                inexact?
-; input-port?               integer? interaction-environment        lcm length
-; let let* let-syntax letrec letrec-syntax list
-; list-ref list-tail list?          magnitude make-polar make-rectangular
-;                         map max member memq memv min modulo negative? newline
-; not null-environment null?                number? numerator odd?
-;                                  or output-port?       peek-char positive?
-; procedure? quasiquote       quotient rational? rationalize read read-char
-; real-part real? remainder reverse       scheme-report-environment
-;                            string
-;               string-ci<=? string-ci<? string-ci=? string-ci>=? string-ci>?
-;             string-fill!
-;                                              substring
-;              values
-;                     with-input-from-file with-output-to-file write write-char
-; zero?
+; display do dynamic-wind else                 equal?           even?
+;                exact?                for-each force gcd    imag-part
+;                inexact? input-port?               integer?
+; interaction-environment        lcm length let let* let-syntax letrec
+; letrec-syntax list                           list-ref list-tail list?
+; magnitude make-polar make-rectangular                         map max member
+; memq memv min modulo negative? newline not null-environment null?
+;                number? numerator odd?                                  or
+; output-port?       peek-char positive? procedure? quasiquote       quotient
+; rational? rationalize read read-char real-part real? remainder reverse
+; scheme-report-environment                                 string
+;                                             string-ci<=? string-ci<?
+; string-ci=? string-ci>=? string-ci>?             string-fill!
+;
+; substring                        syntax-rules              values
+;
+; with-input-from-file with-output-to-file write write-char zero?
 
 (define (list . xs) xs)
 
@@ -352,9 +352,9 @@
                        (,if ,result ,result ,body))
                 `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
-;                     abs          angle                   assoc assq assv
-;       boolean? caaaar caaadr       caadar caaddr            cadaar cadadr
-;       caddar cadddr
+;       ...          =>      abs      and angle append apply      assoc assq
+; assv            boolean? caaaar caaadr       caadar caaddr            cadaar
+; cadadr       caddar cadddr            call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values          cdaaar
 ; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
 ;                                char-alphabetic? char-ci<=? char-ci<? char-ci=?
@@ -362,23 +362,60 @@
 ; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
 ; char>?       close-input-port close-output-port complex?
 ; current-input-port current-output-port                      delay denominator
-; display    dynamic-wind                 equal?           even?
-; exact?                for-each force gcd    imag-part                inexact?
-; input-port?               integer? interaction-environment        lcm length
-;          let-syntax        letrec-syntax
-; list-ref list-tail list?          magnitude make-polar make-rectangular
-;                             max                  min modulo negative? newline
-;     null-environment                      number? numerator odd?
-;                                     output-port?       peek-char positive?
-; procedure?                  quotient rational? rationalize read read-char
-; real-part real? remainder               scheme-report-environment
-;                            string
-;               string-ci<=? string-ci<? string-ci=? string-ci>=? string-ci>?
-;             string-fill!
-;                                              substring
-;              values
-;                     with-input-from-file with-output-to-file write write-char
-; zero?
+; display    dynamic-wind else                 equal?           even?
+;                exact?                for-each force gcd    imag-part
+;                inexact? input-port?               integer?
+; interaction-environment        lcm length          let-syntax letrec
+; letrec-syntax                                list-ref list-tail list?
+; magnitude make-polar make-rectangular                             max
+;           min modulo negative? newline     null-environment
+;                number? numerator odd?
+; output-port?       peek-char positive? procedure?                  quotient
+; rational? rationalize read read-char real-part real? remainder
+; scheme-report-environment                                 string
+;                                             string-ci<=? string-ci<?
+; string-ci=? string-ci>=? string-ci>?             string-fill!
+;
+; substring                        syntax-rules              values
+;
+; with-input-from-file with-output-to-file write write-char zero?
+
+(define (equal? x y)
+  (if (and (pair? x)
+           (pair? y))
+      (and (equal? (car x)
+                   (car y))
+           (equal? (cdr x)
+                   (cdr y)))
+      (eqv? x y)))
+
+;       ...          =>      abs      and angle append apply      assoc assq
+; assv            boolean? caaaar caaadr       caadar caaddr            cadaar
+; cadadr       caddar cadddr            call-with-current-continuation
+; call-with-input-file call-with-output-file call-with-values          cdaaar
+; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
+;                                char-alphabetic? char-ci<=? char-ci<? char-ci=?
+; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
+; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
+; char>?       close-input-port close-output-port complex?
+; current-input-port current-output-port                      delay denominator
+; display    dynamic-wind else                                  even?
+;                exact?                for-each force gcd    imag-part
+;                inexact? input-port?               integer?
+; interaction-environment        lcm length          let-syntax letrec
+; letrec-syntax                                list-ref list-tail list?
+; magnitude make-polar make-rectangular                             max
+;           min modulo negative? newline     null-environment
+;                number? numerator odd?
+; output-port?       peek-char positive? procedure?                  quotient
+; rational? rationalize read read-char real-part real? remainder
+; scheme-report-environment                                 string
+;                                             string-ci<=? string-ci<?
+; string-ci=? string-ci>=? string-ci>?             string-fill!
+;
+; substring                        syntax-rules              values
+;
+; with-input-from-file with-output-to-file write write-char zero?
 
 ; ------------------------------------------------------------------------------
 ;  4.2.5 Delayed Evaluation
@@ -430,20 +467,6 @@
   (lambda (x)
     (if (promise? x) x
         (delay x))))
-
-; ------------------------------------------------------------------------------
-;  6.1 Standard Equivalence Predicates Library (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define equal? ; list-equal?
-  (lambda (x y)
-    (if (and (pair? x)
-             (pair? y))
-        (and (equal? (car x)
-                     (car y))
-             (equal? (cdr x)
-                     (cdr y)))
-        (eqv? x y))))
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Standard Numerical Library (Part 2 of 2)

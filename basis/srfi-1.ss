@@ -105,19 +105,23 @@
 
 (define (list= = . lists)
   (or (null? lists) ; special case
-      (let lp1 ((list-a (car lists)) (others (cdr lists)))
+      (let lp1 ((list-a (car lists))
+                (others (cdr lists)))
         (or (null? others)
             (let ((list-b (car others))
                   (others (cdr others)))
               (if (eq? list-a list-b) ; EQ? => LIST=
                   (lp1 list-b others)
-                  (let lp2 ((pair-a list-a) (pair-b list-b))
+                  (let lp2 ((pair-a list-a)
+                            (pair-b list-b))
                     (if (null-list? pair-a)
                         (and (null-list? pair-b)
                              (lp1 list-b others))
                         (and (not (null-list? pair-b))
-                             (= (car pair-a) (car pair-b))
-                             (lp2 (cdr pair-a) (cdr pair-b)))))))))))
+                             (= (car pair-a)
+                                (car pair-b))
+                             (lp2 (cdr pair-a)
+                                  (cdr pair-b)))))))))))
 
 (define (length x)
   (let rec ((x x) (len 0))
