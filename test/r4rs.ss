@@ -174,39 +174,26 @@
                  nonneg
                  (cons (car numbers) neg))))) => ((6 1 3) (-5 -2)))
 
-(check
-  `(list ,(+ 1 2) 4) => (list 3 4))
+(check `(list ,(+ 1 2) 4) => (list 3 4))
+(check (let ((name 'a))
+         `(list ,name ',name)) => (list a (quote a)))
+(check `(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b) => (a 3 4 5 6 b))
+(check `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons))) => ((foo 7) . cons))
+(check `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8) => #(10 5 2 4 3 8))
 
-(check
-  (let ((name 'a))
-    `(list ,name ',name)) => (list a (quote a)))
-
-(check
-  `(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b) => (a 3 4 5 6 b))
-
-(check
-  `((foo ,(- 10 3)) ,@(cdr '(c)) . ,(car '(cons))) => ((foo 7) . cons))
-
-(check
- `#(10 5 ,(sqrt 4) ,@(map sqrt '(16 9)) 8) => #(10 5 2 4 3 8))
-
-; NOTE: Fails due to syntactic-continuation's external representation.
+; TODO
 ; (check
 ;   `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f)
 ;   => (a `(b ,(+ 1 2) ,(foo 4 d) e) f))
 
-; NOTE: Fails due to syntactic-continuation's external representation.
+; TODO
 ; (check
 ;   (let ((name1 'x)
 ;         (name2 'y))
-;    `(a `(b ,,name1 ,',name2 d) e))
-;   => (a `(b ,x ,'y d) e))
+;     `(a `(b ,,name1 ,',name2 d) e)) => (a `(b ,x ,'y d) e))
 
-(check
-  (quasiquote (list (unquote (+ 1 2)) 4)) => (list 3 4))
-
-(check
-  '(quasiquote (list (unquote (+ 1 2)) 4)) => `(list ,(+ 1 2) 4))
+(check (quasiquote (list (unquote (+ 1 2)) 4)) => (list 3 4))
+(check '(quasiquote (list (unquote (+ 1 2)) 4)) => `(list ,(+ 1 2) 4))
 
 
 ; ---- 5. Program structure ----------------------------------------------------
