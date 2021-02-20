@@ -160,17 +160,17 @@
          ((free-identifier=? unquote (car x))
           (if (<= depth 0)
               (cadr x)
-              (list list (list quote unquote) (expand (cadr x) (- depth 1)))))
+              (list list (list quote 'unquote) (expand (cadr x) (- depth 1)))))
 
          ((free-identifier=? unquote-splicing (car x))
           (if (<= depth 0)
               (list cons (expand (car x) depth)
                          (expand (cdr x) depth))
-              (list list (list quote unquote-splicing)
+              (list list (list quote 'unquote-splicing)
                          (expand (cadr x) (- depth 1)))))
 
          ((free-identifier=? quasiquote (car x))
-          (list list (list quote quasiquote)
+          (list list (list quote 'quasiquote)
                      (expand (cadr x) (+ depth 1))))
 
          ((and (<= depth 0)
