@@ -1640,7 +1640,8 @@ inline namespace kernel
       overture,
       values,
       srfi_8, // for srfi-1
-      srfi_1,
+      srfi_1, // (scheme list)
+      srfi_45, // (scheme lazy)
       r5rs,
       r7rs,
     };

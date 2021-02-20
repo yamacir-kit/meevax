@@ -1,1 +1,1 @@
-(define list-tail drop)
+(define list-tail drop) ; from SRFI-1

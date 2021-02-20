@@ -231,7 +231,7 @@
                             (car rxs))))
        (reverse (cons x xs)))))
 
-(define (every f x . xs) ; for map
+(define (every f x . xs) ; from SRFI-1 for map
 
   (define (every-1 f x)
     (if (null? (cdr x))
@@ -249,7 +249,7 @@
                     (not (apply f xs)))
                   x xs))))
 
-(define (any f x . xs) ; for every
+(define (any f x . xs) ; from SRFI-1 for every
 
   (define (any-1 f x)
     (if (pair? (cdr x))
@@ -417,56 +417,6 @@
 ;
 ; with-input-from-file with-output-to-file write write-char zero?
 
-; ------------------------------------------------------------------------------
-;  4.2.5 Delayed Evaluation
-; ------------------------------------------------------------------------------
-
-(define <promise> (list 'promise))
-
-(define promise ; ((#false . #,(closure ...)) promise)
-  (lambda (forced? closure)
-    (cons (cons forced? closure) <promise>)))
-
-(define promise?
-  (lambda (x)
-    (and (pair? x)
-         (eq? <promise> (cdr x)))))
-
-(define force
-  (lambda (promise)
-
-    (define done? caar)
-
-    (define cache cdar)
-
-    (define update!
-      (lambda (new old)
-        (set-car! (car old) (done? new))
-        (set-cdr! (car old) (cache new))
-        (set-car! new (car old))))
-
-    (if (done? promise)
-        (cache promise)
-        (let ((new ((cache promise))))
-          (unless (done? promise)
-                  (update! new promise))
-          (force promise)))))
-
-(define-syntax delay-force
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'promise) #f (,(rename 'lambda) () ,(cadr form))))))
-
-(define-syntax delay
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'delay-force)
-         (,(rename 'promise) #t ,(cadr form))))))
-
-(define make-promise
-  (lambda (x)
-    (if (promise? x) x
-        (delay x))))
 
 ; ------------------------------------------------------------------------------
 ;  6.2 Standard Numerical Library (Part 2 of 2)
