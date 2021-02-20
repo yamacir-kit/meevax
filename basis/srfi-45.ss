@@ -1,11 +1,11 @@
-(define <promise> (list 'promise))
+(define promise-tag (list 'promise))
 
-(define (promise done? closure)
-  (cons (cons done? closure) <promise>))
+(define (promise done? value-or-generator)
+  (cons (cons done? value-or-generator) promise-tag))
 
 (define (promise? x)
   (and (pair? x)
-       (eq? <promise> (cdr x))))
+       (eq? promise-tag (cdr x))))
 
 (define promise-done? caar)
 (define promise-value cdar)

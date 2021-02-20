@@ -380,6 +380,8 @@
 ;
 ; with-input-from-file with-output-to-file write write-char zero?
 
+; ---- 6.1. Equivalence predicates ---------------------------------------------
+
 (define (equal? x y)
   (if (and (pair? x)
            (pair? y))
@@ -424,15 +426,15 @@
 
 ; number?
 ;  `-- complex?
-;       |-- %complex? ................................................... atomic
+;       |-- %complex?
 ;       `-- real?
 ;            |-- floating-point?
-;            |    |-- single-float? ..................................... atomic
-;            |    `-- double-float? ..................................... atomic
+;            |    |-- single-float?
+;            |    `-- double-float?
 ;            `-- rational?
-;                 |-- ratio? ............................................ atomic
+;                 |-- ratio?
 ;                 `-- integer?
-;                      `-- exact-integer? ............................... atomic
+;                      `-- exact-integer?
 
 (define floating-point?
   (lambda (z)
