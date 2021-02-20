@@ -103,12 +103,7 @@ inline namespace kernel
           catch (read_error<period> const&)
           {
             let const kdr = read(port);
-            // port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
-            ignore(port, [](auto c)
-            {
-              return not char_compare(c, ')', ']', '}');
-            });
-            ++head;
+            ignore(port, [](auto c) { return not char_eq(c, ')', ']', '}'); }).get();
             return kdr;
           }
 
