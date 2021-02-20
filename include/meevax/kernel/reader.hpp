@@ -57,13 +57,17 @@ inline namespace kernel
     using seeker = std::istream_iterator<input_port::char_type>;
 
     enum class   proper_list_tag {};
-    enum class improper_list_tag {};
 
-    using opening_square_bracket = std::integral_constant<char, '['>;
-    using closing_square_bracket = std::integral_constant<char, ']'>;
+    template <input_port::char_type C>
+    using reserved_character = std::integral_constant<decltype(C), C>;
 
-    using opening_curly_bracket = std::integral_constant<char, '{'>;
-    using closing_curly_bracket = std::integral_constant<char, '}'>;
+    using period               = reserved_character<'.'>;
+    using left_parenthesis     = reserved_character<'('>;
+    using right_parenthesis    = reserved_character<')'>;
+    using left_square_bracket  = reserved_character<'['>;
+    using right_square_bracket = reserved_character<']'>;
+    using left_curly_bracket   = reserved_character<'{'>;
+    using right_curly_bracket  = reserved_character<'}'>;
 
   public:
     /* ---- Read ---------------------------------------------------------------
@@ -92,19 +96,24 @@ inline namespace kernel
             port.putback('(');
             return cons(kar, read(port));
           }
-          catch (read_error<proper_list_tag> const&)
+          catch (read_error<right_parenthesis> const&)
           {
             return unit;
           }
-          catch (read_error<improper_list_tag> const&)
+          catch (read_error<period> const&)
           {
             let const kdr = read(port);
-            port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            // port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+            ignore(port, [](auto c)
+            {
+              return not char_compare(c, ')', ']', '}');
+            });
+            ++head;
             return kdr;
           }
 
         case ')':
-          throw read_error<proper_list_tag>("unexpected ", std::quoted(")"));
+          throw read_error<right_parenthesis>("unexpected ", std::quoted(")"));
 
         case '[':
           try
@@ -118,10 +127,13 @@ inline namespace kernel
           }
 
         case ']':
-          throw read_error<proper_list_tag>("unexpected ", std::quoted("]"));
+          throw read_error<right_parenthesis>("unexpected ", std::quoted("]"));
 
-        case '{': throw read_error<closing_curly_bracket>(c, " is reserved for possible future extensions to the language.");
-        case '}': throw read_error<closing_curly_bracket>(c, " is reserved for possible future extensions to the language.");
+        case '{':
+          throw read_error<left_curly_bracket>(c, " is reserved for possible future extensions to the language.");
+
+        case '}':
+          throw read_error<right_curly_bracket>(c, " is reserved for possible future extensions to the language.");
 
         case '#':
           return discriminate(port);
@@ -153,7 +165,7 @@ inline namespace kernel
           {
             if (token == ".")
             {
-              throw read_error<improper_list_tag>("dot-notation");
+              throw read_error<period>("dot-notation");
             }
             else try
             {
