@@ -749,11 +749,47 @@
    (lambda (procedure)
      (call-with-current-continuation procedure)))) ; primitive call/cc
 
+; (define values
+;   (lambda xs
+;     (call-with-current-continuation
+;       (lambda (cc)
+;         (apply cc xs)))))
+
+(define values-tag (list 'values)) ; Magic Token Trick
+
+(define (values? x)
+  (if (pair? x)
+      (eq? (car x) values-tag)
+      #f))
+
+(define (values . xs)
+  (if (if (null? xs) #f
+          (null? (cdr xs)))
+      (car xs)
+      (cons values-tag xs)))
+
+; (define (call-with-values producer consumer) ; TODO
+;   (let-values ((xs (producer)))
+;     (apply consumer xs)))
+
+(define (call-with-values producer consumer)
+  ((lambda (vs)
+     (if (values? vs)
+         (apply consumer (cdr vs))
+         (consumer vs)))
+   (producer)))
+
+; ---- 6.11. Exceptions --------------------------------------------------------
+
+; ---- 6.12. Environments and evaluation ---------------------------------------
+
+; ---- 6.13. Input and output --------------------------------------------------
+
 ; ------------------------------------------------------------------------------
 ;       ...          =>                                           assoc assq
 ; assv                     caaaar caaadr       caadar caaddr            cadaar
 ; cadadr       caddar cadddr
-; call-with-input-file call-with-output-file call-with-values          cdaaar
+; call-with-input-file call-with-output-file                           cdaaar
 ; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
 ;
 ;                                                                   char-ready?
@@ -774,57 +810,10 @@
 ;
 ;
 ;
-;                                  syntax-rules              values
+;                                  syntax-rules
 ;
 ; with-input-from-file with-output-to-file write write-char
 ; ------------------------------------------------------------------------------
-
-; ------------------------------------------------------------------------------
-;  6.11 Standard Exceptions Library
-; ------------------------------------------------------------------------------
-
-; TODO with-exception-handler
-; TODO raise ; SRFI-18
-; TODO raise-continuable
-
-(define error ; SRFI-23
-  (lambda (message . irritants)
-    (display "error: ")
-    (display message)
-    (for-each (lambda (each)
-                (display " ")
-                (write each))
-              irritants)
-    (newline)
-    (exit 1)))
-
-(define (error-object? x) #false)
-
-; TODO error-object-message
-; TODO error-object-irritants
-; TODO read-error?
-; TODO file-error?
-
-; ------------------------------------------------------------------------------
-;  6.12 Standard Environments and Evaluation Library
-; ------------------------------------------------------------------------------
-
-; TODO scheme-report-environment
-; TODO null-environment
-
-(define (current-environment) (fork/csc identity))
-
-; (define current-lexical-environment ; deprecated
-;   (lambda ()
-;     (cdar (fork/csc
-;             (lambda ()
-;              '())))))
-;
-; (define interaction-environment ; deprecated
-;   (lambda ()
-;     (cdr (fork/csc
-;            (lambda ()
-;             '())))))
 
 ; ------------------------------------------------------------------------------
 ;  SRFI-39

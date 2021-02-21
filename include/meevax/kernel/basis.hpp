@@ -19,7 +19,6 @@ inline namespace kernel
   extern string_view const srfi_1;
   extern string_view const srfi_8;
   extern string_view const srfi_45;
-  extern string_view const values;
 } // namespace kernel
 } // namespace meevax
 

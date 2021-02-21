@@ -79,7 +79,40 @@
 
 (define call/cc call-with-current-continuation)
 
+; ---- 6.11. Exceptions --------------------------------------------------------
+
+; TODO with-exception-handler
+; TODO raise ; SRFI-18
+; TODO raise-continuable
+
+(define (error message . irritants) ; SRFI-23
+  (display "error: ")
+  (display message)
+  (for-each (lambda (each)
+              (display " ")
+              (write each))
+            irritants)
+  (newline)
+  (exit 1)))
+
+(define (error-object? x) #false)
+
+; TODO error-object-message
+; TODO error-object-irritants
+; TODO read-error?
+; TODO file-error?
+
+; ---- 6.12. Environments and evaluation ---------------------------------------
+
+; TODO environment
+; TODO scheme-report-environment
+; TODO null-environment
+
+; ---- 6.13. Input and output --------------------------------------------------
+
 ; ------------------------------------------------------------------------------
+
+(define (current-environment) (fork/csc identity))
 
 (define interaction-environment
   (let ((e (fork/csc identity)))

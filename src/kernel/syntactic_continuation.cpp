@@ -1636,7 +1636,6 @@ inline namespace kernel
   {
     std::vector<string_view> codes {
       overture,
-      values,
       srfi_8, // for srfi-1
       srfi_1, // (scheme list)
       srfi_45, // (scheme lazy)
