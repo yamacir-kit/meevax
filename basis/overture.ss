@@ -599,16 +599,93 @@
 (define inexact->exact exact)
 (define exact->inexact inexact)
 
+; ---- 6.3. Booleans -----------------------------------------------------------
+
+(define (boolean? x)
+  (or (eqv? x #t)
+      (eqv? x #f)))
+
+; ---- 6.4. Pairs and lists ----------------------------------------------------
+
+; ---- 6.5 Symbols -------------------------------------------------------------
+
+; ---- 6.6 Characters ----------------------------------------------------------
+
+(define (char-compare x xs compare)
+  (let rec ((compare compare)
+            (lhs (char->integer x))
+            (xs xs))
+    (if (null? xs) #t
+        (let ((rhs (char->integer (car xs))))
+          (and (compare lhs rhs)
+               (rec compare rhs (cdr xs)))))))
+
+(define (char=?  x . xs) (char-compare x xs =))
+(define (char<?  x . xs) (char-compare x xs <))
+(define (char>?  x . xs) (char-compare x xs >))
+(define (char<=? x . xs) (char-compare x xs <=))
+(define (char>=? x . xs) (char-compare x xs >=))
+
+(define (char-ci-compare x xs compare)
+  (let rec ((compare compare)
+            (lhs (char->integer (char-downcase x)))
+            (xs xs))
+    (if (null? xs) #t
+        (let ((rhs (char->integer (char-downcase (car xs)))))
+          (and (compare lhs rhs)
+               (rec compare rhs (cdr xs)))))))
+
+(define (char-ci=?  x . xs) (char-ci-compare x xs =))
+(define (char-ci<?  x . xs) (char-ci-compare x xs <))
+(define (char-ci>?  x . xs) (char-ci-compare x xs >))
+(define (char-ci<=? x . xs) (char-ci-compare x xs <=))
+(define (char-ci>=? x . xs) (char-ci-compare x xs >=))
+
+(define (char-alphabetic? x)
+  (<= #,(char->integer #\a)
+        (char->integer (char-downcase x))
+      #,(char->integer #\z)))
+
+(define (char-numeric? x)
+  (<= #,(char->integer #\0)
+        (char->integer x)
+      #,(char->integer #\9)))
+
+(define (char-whitespace? x)
+  (or (eqv? x #\space)
+      (eqv? x #\tab)
+      (eqv? x #\newline)
+      (eqv? x #\return)))
+
+(define (char-upper-case? x)
+  (<= #,(char->integer #\A)
+        (char->integer x)
+      #,(char->integer #\Z)))
+
+(define (char-lower-case? x)
+  (<= #,(char->integer #\a)
+        (char->integer x)
+      #,(char->integer #\z)))
+
+(define (char-downcase c)
+  (if (char-lower-case? c) c
+      (integer->char (+ (char->integer c) 32))))
+
+(define (char-upcase c)
+  (if (char-upper-case? c) c
+      (integer->char (- (char->integer c) 32))))
+
+
 ; ------------------------------------------------------------------------------
 ;       ...          =>                                           assoc assq
-; assv            boolean? caaaar caaadr       caadar caaddr            cadaar
+; assv                     caaaar caaadr       caadar caaddr            cadaar
 ; cadadr       caddar cadddr            call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values          cdaaar
 ; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
-;                                char-alphabetic? char-ci<=? char-ci<? char-ci=?
-; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
-; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
-; char>?       close-input-port close-output-port
+;
+;                                                                   char-ready?
+;                              char-whitespace?
+;              close-input-port close-output-port
 ; current-input-port current-output-port                      delay
 ; display    dynamic-wind else
 ;                                      for-each force
@@ -628,112 +705,6 @@
 ;
 ; with-input-from-file with-output-to-file write write-char
 ; ------------------------------------------------------------------------------
-
-; ------------------------------------------------------------------------------
-;  6.3 Standard Boolean Library (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define boolean?
-  (lambda (x)
-    (or (eqv? x #t)
-        (eqv? x #f))))
-
-(define boolean=?
-  (lambda (x y . xs)
-    (and (eqv? x y)
-         (if (pair? xs)
-             (apply boolean=? y xs)
-             #t))))
-
-; ------------------------------------------------------------------------------
-;  6.5 Symbols
-; ------------------------------------------------------------------------------
-
-(define symbol=?
-  (lambda (x y . xs)
-    (and (eqv? x y)
-         (if (pair? xs)
-             (apply symbol=? y xs)
-             #t))))
-
-; ------------------------------------------------------------------------------
-;  6.6 Characters
-; ------------------------------------------------------------------------------
-
-(define char-compare
-  (lambda (x xs compare)
-    (let rec ((compare compare)
-              (lhs (char->integer x))
-              (xs xs))
-      (if (null? xs) #true
-          (let ((rhs (char->integer (car xs))))
-            (and (compare lhs rhs)
-                 (rec compare rhs (cdr xs))))))))
-
-(define (char=?  x . xs) (char-compare x xs =))
-(define (char<?  x . xs) (char-compare x xs <))
-(define (char>?  x . xs) (char-compare x xs >))
-(define (char<=? x . xs) (char-compare x xs <=))
-(define (char>=? x . xs) (char-compare x xs >=))
-
-(define char-ci-compare
-  (lambda (x xs compare)
-    (let rec ((compare compare)
-              (lhs (char->integer (char-downcase x)))
-              (xs xs))
-      (if (null? xs) #true
-          (let ((rhs (char->integer (char-downcase (car xs)))))
-            (and (compare lhs rhs)
-                 (rec compare rhs (cdr xs))))))))
-
-(define (char-ci=?  x . xs) (char-ci-compare x xs =))
-(define (char-ci<?  x . xs) (char-ci-compare x xs <))
-(define (char-ci>?  x . xs) (char-ci-compare x xs >))
-(define (char-ci<=? x . xs) (char-ci-compare x xs <=))
-(define (char-ci>=? x . xs) (char-ci-compare x xs >=))
-
-(define char-alphabetic? ;                                         (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\a)
-          (char->integer (char-downcase x))
-        #,(char->integer #\z))))
-
-(define char-numeric? ;                                            (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\0)
-          (char->integer x)
-        #,(char->integer #\9))))
-
-(define char-whitespace? ;                                         (scheme char)
-  (lambda (x)
-    (or (eqv? x #\space)
-        (eqv? x #\tab)
-        (eqv? x #\newline)
-        (eqv? x #\return))))
-
-(define char-upper-case? ;                                         (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\A)
-          (char->integer x)
-        #,(char->integer #\Z))))
-
-(define char-lower-case? ;                                         (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\a)
-          (char->integer x)
-        #,(char->integer #\z))))
-
-(define char-downcase
-  (lambda (c)
-    (if (char-lower-case? c) c
-        (integer->char (+ (char->integer c) 32)))))
-
-(define char-upcase
-  (lambda (c)
-    (if (char-upper-case? c) c
-        (integer->char (- (char->integer c) 32)))))
-
-(define char-foldcase char-downcase)
 
 ; ------------------------------------------------------------------------------
 ;  6.7 Strings
