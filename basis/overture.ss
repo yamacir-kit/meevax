@@ -866,68 +866,9 @@
 ; ------------------------------------------------------------------------------
 
 ; ------------------------------------------------------------------------------
-;  SRFI-39
-; ------------------------------------------------------------------------------
-
-(define dynamic-environment '())
-
-(define make-parameter
-  (lambda (init . converter)
-    (let* ((convert
-             (if (null? converter)
-                 (lambda (x) x)
-                 (car converter)))
-           (global-dynamic-environment
-             (cons #f (convert init))))
-
-      (define dynamic-lookup
-        (lambda (parameter global-dynamic-environment)
-          (or (assq parameter dynamic-environment) global-dynamic-environment)))
-
-      (define parameter
-        (lambda value
-          (let ((binding
-                  (dynamic-lookup parameter global-dynamic-environment)))
-            (cond ((null? value)
-                   (cdr binding))
-                  ((null? (cdr value))
-                   (set-cdr! binding (convert (car value))))
-                  (else (convert (car value)))))))
-
-      (set-car! global-dynamic-environment parameter)
-      parameter)))
-
-(define parameterize-aux
-  (lambda (parameters values body)
-    (let* ((saved dynamic-environment)
-           (bindings
-             (map (lambda (parameter value)
-                    (cons parameter (parameter value #f)))
-                  parameters
-                  values)))
-      (dynamic-wind
-        (lambda () (set! dynamic-environment (append bindings saved)))
-        body
-        (lambda () (set! dynamic-environment                  saved))))))
-
-(define-syntax parameterize
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (let* ((bindings (cadr form))
-             (body (cddr form)))
-        `(parameterize-aux
-           (list ,@(map  car bindings))
-           (list ,@(map cadr bindings))
-           (lambda () ,@body))))))
-
-; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
 
-
-; TODO open-input-bytevector
-; TODO open-output-bytevector
-; TODO get-output-bytevector
 
 
 (define read        (lambda x (::read        (if (pair? x) (car x) (current-input-port)))))

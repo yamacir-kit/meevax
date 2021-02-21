@@ -173,6 +173,10 @@
   (parameterize ((current-output-port (open-output-file path)))
     (thunk)))
 
+; TODO open-input-bytevector
+; TODO open-output-bytevector
+; TODO get-output-bytevector
+
 
 ; ---- 6.14. System interface --------------------------------------------------
 
