@@ -675,40 +675,7 @@
   (if (char-upper-case? c) c
       (integer->char (- (char->integer c) 32))))
 
-
-; ------------------------------------------------------------------------------
-;       ...          =>                                           assoc assq
-; assv                     caaaar caaadr       caadar caaddr            cadaar
-; cadadr       caddar cadddr            call-with-current-continuation
-; call-with-input-file call-with-output-file call-with-values          cdaaar
-; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
-;
-;                                                                   char-ready?
-;                              char-whitespace?
-;              close-input-port close-output-port
-; current-input-port current-output-port                      delay
-; display    dynamic-wind else
-;                                      for-each force
-;                         input-port?
-; interaction-environment            length          let-syntax letrec
-; letrec-syntax                                list-ref list-tail list?
-;
-;                                newline     null-environment
-;
-; output-port?       peek-char           procedure?
-;                       read read-char
-; scheme-report-environment                                 string
-;                                             string-ci<=? string-ci<?
-; string-ci=? string-ci>=? string-ci>?             string-fill!
-;
-; substring                        syntax-rules              values
-;
-; with-input-from-file with-output-to-file write write-char
-; ------------------------------------------------------------------------------
-
-; ------------------------------------------------------------------------------
-;  6.7 Strings
-; ------------------------------------------------------------------------------
+; ---- 6.7 Strings -------------------------------------------------------------
 
 (define (string . xs) (list->string xs))
 
@@ -718,66 +685,33 @@
 (define (string-ci<=? . xs) (apply string<=? (map string-foldcase xs)))
 (define (string-ci>=? . xs) (apply string>=? (map string-foldcase xs)))
 
-(define (string-upcase   x) (string-map char-upcase   x))
-(define (string-downcase x) (string-map char-downcase x))
-(define (string-foldcase x) (string-map char-foldcase x))
-
 (define substring string-copy)
 
-; string-copy!
+(define (string-fill! s c . o)
+  (let ((start (if (and (pair? o)
+                        (exact-integer? (car o)))
+                   (car o)
+                   0))
+        (end (if (and (pair? o)
+                      (pair? (cdr o))
+                      (exact-integer? (cadr o)))
+                 (cadr o)
+                 (string-length s))))
+    (let rec ((k (- end 1)))
+      (if (<= start k)
+          (begin (string-set! s k c)
+                 (rec (- k 1)))))))
 
-(define string-fill!
-  (lambda (s c . o)
-    (let ((start (if (and (pair? o)
-                          (exact-integer? (car o)))
-                     (car o)
-                     0))
-          (end (if (and (pair? o)
-                        (pair? (cdr o))
-                        (exact-integer? (cadr o)))
-                   (cadr o)
-                   (string-length s))))
-      (let rec ((k (- end 1)))
-        (if (<= start k)
-            (begin (string-set! s k c)
-                   (rec (- k 1))))))))
+; ---- 6.8. Vectors ------------------------------------------------------------
 
-; ------------------------------------------------------------------------------
-;  6.9 Standard Bytevectors Library
-; ------------------------------------------------------------------------------
+; ---- 6.9. Bytevectors --------------------------------------------------------
 
-(define bytevector?
-  (lambda (x) #false))
+; ---- 6.10. Control features --------------------------------------------------
 
-; ------------------------------------------------------------------------------
-;  6.10 Control features (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define procedure?
-  (lambda (x)
-    (or (native-procedure? x) ; TODO RENAME TO primitive?
-        (closure? x)
-        (continuation? x) )))
-
-(define (string-map f x . xs)
-
-  (define (string-map-1 x)
-    (list->string
-      (map f (string->list x))))
-
-  (define (string-map-n xs)
-    (map list->string
-         (map (lambda (c) (map f c))
-              (map string->list xs))))
-
-  (if (null? xs)
-      (string-map-1 x)
-      (string-map-n (cons x xs))))
-
-; TODO vector-map
-
-; TODO string-for-each
-; TODO vector-for-each
+(define (procedure? x)
+  (or (native-procedure? x)
+      (closure? x)
+      (continuation? x)))
 
 (define dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
@@ -790,13 +724,11 @@
      result) ; TODO (apply values result)
    (thunk)))
 
-(define call-with-current-continuation ; overwrite
+(define call-with-current-continuation
   ((lambda (call/cc)
      (lambda (procedure)
-
        (define (windup! from to)
          (set! dynamic-extents from)
-
          (if (eq? from to) #t
          (if (null? from)
              (begin (windup! from (cdr to))
@@ -807,9 +739,7 @@
              (begin ((cdar from))
                     (windup! (cdr from) (cdr to))
                     ((caar to))))))
-
          (set! dynamic-extents to))
-
        ((lambda (current-dynamic-extents)
           (call/cc (lambda (k1)
                      (procedure (lambda (k2)
@@ -817,9 +747,37 @@
                                   (k1 k2))))))
         dynamic-extents)))
    (lambda (procedure)
-     (call-with-current-continuation procedure))))
+     (call-with-current-continuation procedure)))) ; primitive call/cc
 
-(define call/cc call-with-current-continuation)
+; ------------------------------------------------------------------------------
+;       ...          =>                                           assoc assq
+; assv                     caaaar caaadr       caadar caaddr            cadaar
+; cadadr       caddar cadddr
+; call-with-input-file call-with-output-file call-with-values          cdaaar
+; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
+;
+;                                                                   char-ready?
+;
+;              close-input-port close-output-port
+; current-input-port current-output-port                      delay
+; display                 else
+;                                      for-each force
+;                         input-port?
+; interaction-environment            length          let-syntax letrec
+; letrec-syntax                                list-ref list-tail list?
+;
+;                                newline     null-environment
+;
+; output-port?       peek-char
+;                       read read-char
+; scheme-report-environment
+;
+;
+;
+;                                  syntax-rules              values
+;
+; with-input-from-file with-output-to-file write write-char
+; ------------------------------------------------------------------------------
 
 ; ------------------------------------------------------------------------------
 ;  6.11 Standard Exceptions Library
