@@ -1,6 +1,6 @@
 ; ------------------------------------------------------------------------------
 ;       ...          =>      abs      and angle append apply      assoc assq
-; assv            boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar
+; assv atan       boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar
 ; cadadr cadar caddar cadddr caddr cadr call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values     case cdaaar
 ; cdaadr cdaar cdadar cdaddr cdadr cdar cddaar cddadr cddar cdddar cddddr cdddr
@@ -10,10 +10,10 @@
 ; char>?       close-input-port close-output-port complex? cond
 ; current-input-port current-output-port        define-syntax delay denominator
 ; display do dynamic-wind else                 equal?           even?
-;                exact?                for-each force gcd    imag-part
-;                inexact? input-port?               integer?
+; exact->inexact exact?                for-each force gcd    imag-part
+; inexact->exact inexact? input-port?               integer?
 ; interaction-environment        lcm length let let* let-syntax letrec
-; letrec-syntax list                           list-ref list-tail list?
+; letrec-syntax list                           list-ref list-tail list?      log
 ; magnitude make-polar make-rectangular                         map max member
 ; memq memv min modulo negative? newline not null-environment null?
 ;                number? numerator odd?                                  or
@@ -348,8 +348,8 @@
                 `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
 ; ------------------------------------------------------------------------------
-;       ...          =>      abs      and angle append apply      assoc assq
-; assv            boolean? caaaar caaadr       caadar caaddr            cadaar
+;       ...          =>      abs          angle                   assoc assq
+; assv atan       boolean? caaaar caaadr       caadar caaddr            cadaar
 ; cadadr       caddar cadddr            call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values          cdaaar
 ; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
@@ -359,10 +359,10 @@
 ; char>?       close-input-port close-output-port complex?
 ; current-input-port current-output-port                      delay denominator
 ; display    dynamic-wind else                 equal?           even?
-;                exact?                for-each force gcd    imag-part
-;                inexact? input-port?               integer?
+; exact->inexact exact?                for-each force gcd    imag-part
+; inexact->exact inexact? input-port?               integer?
 ; interaction-environment        lcm length          let-syntax letrec
-; letrec-syntax                                list-ref list-tail list?
+; letrec-syntax                                list-ref list-tail list?      log
 ; magnitude make-polar make-rectangular                             max
 ;           min modulo negative? newline     null-environment
 ;                number? numerator odd?
@@ -460,8 +460,147 @@
        (or (inexact? (real-part x))
            (inexact? (imag-part x)))))
 
+(define (zero?     n) (= n 0))
+(define (positive? n) (> n 0))
+(define (negative? n) (< n 0))
+
+(define (odd? n) (not (even? n)))
+(define (even? n) (= (remainder n 2) 0))
+
+(define (max x . xs)
+  (define (max-aux x xs)
+    (if (null? xs)
+        (inexact x)
+        (max-aux (if (< x (car xs)) (car xs) x)
+                 (cdr xs))))
+  (if (inexact? x)
+      (max-aux x xs)
+      (let rec ((x x) (xs xs))
+        (cond ((null? xs) x)
+              ((inexact? (car xs)) (max-aux x xs))
+              (else (rec (if (< x (car xs)) (car xs) x)
+                         (cdr xs)))))))
+
+(define (min x . xs)
+  (define (min-aux x xs)
+    (if (null? xs)
+        (inexact x)
+        (min-aux (if (< (car xs) x) (car xs) x)
+                 (cdr xs))))
+  (if (inexact? x)
+      (min-aux x xs)
+      (let rec ((x x) (xs xs))
+        (cond ((null? xs) x)
+              ((inexact? (car xs)) (min-aux x xs))
+              (else (rec (if (< (car xs) x) (car xs) x)
+                         (cdr xs)))))))
+
+(define (abs n)
+  (if (< n 0) (- n) n))
+
+(define (floor-quotient x y) (floor (/ x y)))
+
+(define (floor-remainder a b) (% (+ b (% a b)) b))
+
+(define (floor/ x y)
+  (values (floor-quotient x y)
+          (floor-remainder x y)))
+
+(define (truncate-quotient x y) (truncate (/ x y)))
+
+(define truncate-remainder %)
+
+(define (truncate/ x y)
+  (values (truncate-quotient x y)
+          (truncate-remainder x y)))
+
+(define quotient truncate-quotient)
+
+(define remainder truncate-remainder)
+
+(define modulo floor-remainder)
+
+(define (gcd . xs) ; from Chibi-Scheme lib/init7.scm
+  (define (gcd-2 a b)
+    (if (zero? b)
+        (abs a)
+        (gcd b (remainder a b))))
+  (if (null? xs) 0
+      (let rec ((n  (car xs))
+                (ns (cdr xs)))
+        (if (null? ns) n
+            (rec (gcd-2 n (car ns)) (cdr ns))))))
+
+(define (lcm . xs) ; from Chibi-Scheme lib/init7.scm
+  (define (lcm-2 a b)
+    (abs (quotient (* a b) (gcd a b))))
+  (if (null? xs) 1
+      (let rec ((n  (car xs))
+                (ns (cdr xs)))
+        (if (null? ns) n
+            (rec (lcm-2 n (car ns)) (cdr ns))))))
+
+(define (numerator x)
+  (cond ((ratio? x) (car x))
+        ((exact? x) x)
+        (else (inexact (numerator (exact x))))))
+
+(define (denominator x)
+  (cond ((exact? x) (if (ratio? x) (cdr x) 1))
+        ((integer? x) 1.0)
+        (else (inexact (denominator (exact x))))))
+
+(define (rationalize x e) ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
+  (define (sr x y return)
+    (let ((fx (floor x))
+          (fy (floor y)))
+      (cond ((>= fx x) (return fx 1))
+            ((= fx fy) (sr (/ (- y fy))
+                           (/ (- x fx))
+                           (lambda (n d)
+                             (return (+ d (* fx n)) n))))
+            (else (return (+ fx 1) 1)))))
+  (let ((return (if (negative? x)
+                    (lambda (num den)
+                      (/ (- num) den))
+                    /))
+        (x (abs x))
+        (e (abs e)))
+    (sr (- x e) (+ x e) return)))
+
+(define (log z . base)
+  (if (pair? base)
+      (/ (ln z)
+         (ln (car base)))
+      (ln z)))
+
+(define (atan y . o)
+  (if (pair? o)
+      (atan-2 y (car o))
+      (atan-1 y)))
+
+(define (make-rectangular x y) (+ x (* y (sqrt -1))))
+
+(define (make-polar radius phi)
+  (make-rectangular (* radius (cos phi))
+                    (* radius (sin phi))))
+
+(define (real-part z) (if (%complex? z) (car z) z))
+(define (imag-part z) (if (%complex? z) (cdr z) 0))
+
+(define (magnitude z)
+  (sqrt (+ (square (real-part z))
+           (square (imag-part z)))))
+
+(define (angle z)
+  (atan (imag-part z)
+        (real-part z)))
+
+(define inexact->exact exact)
+(define exact->inexact inexact)
+
 ; ------------------------------------------------------------------------------
-;       ...          =>      abs      and angle append apply      assoc assq
+;       ...          =>                                           assoc assq
 ; assv            boolean? caaaar caaadr       caadar caaddr            cadaar
 ; cadadr       caddar cadddr            call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values          cdaaar
@@ -470,222 +609,25 @@
 ; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
 ; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
 ; char>?       close-input-port close-output-port
-; current-input-port current-output-port                      delay denominator
-; display    dynamic-wind else                                  even?
-;                                      for-each force gcd    imag-part
+; current-input-port current-output-port                      delay
+; display    dynamic-wind else
+;                                      for-each force
 ;                         input-port?
-; interaction-environment        lcm length          let-syntax letrec
+; interaction-environment            length          let-syntax letrec
 ; letrec-syntax                                list-ref list-tail list?
-; magnitude make-polar make-rectangular                             max
-;           min modulo negative? newline     null-environment
-;                        numerator odd?
-; output-port?       peek-char positive? procedure?                  quotient
-;           rationalize read read-char real-part       remainder
+;
+;                                newline     null-environment
+;
+; output-port?       peek-char           procedure?
+;                       read read-char
 ; scheme-report-environment                                 string
 ;                                             string-ci<=? string-ci<?
 ; string-ci=? string-ci>=? string-ci>?             string-fill!
 ;
 ; substring                        syntax-rules              values
 ;
-; with-input-from-file with-output-to-file write write-char zero?
+; with-input-from-file with-output-to-file write write-char
 ; ------------------------------------------------------------------------------
-
-
-(define nan?
-  (lambda (z)
-    (if (%complex? z)
-        (or (ieee-nan? (real-part z))
-            (ieee-nan? (imag-part z)))
-        (ieee-nan? z))))
-
-(define zero?     (lambda (n) (= n 0)))
-(define positive? (lambda (n) (> n 0)))
-(define negative? (lambda (n) (< n 0)))
-
-(define odd?
-  (lambda (n)
-    (not (even? n))))
-
-(define even?
-  (lambda (n)
-    (= (remainder n 2) 0)))
-
-(define max
-  (lambda (x . xs)
-    (define max-aux
-      (lambda (x xs)
-        (if (null? xs)
-            (inexact x)
-            (max-aux (if (< x (car xs)) (car xs) x)
-                     (cdr xs)))))
-    (if (inexact? x)
-        (max-aux x xs)
-        (let rec ((x x) (xs xs))
-          (if (null? xs) x
-              (if (inexact? (car xs))
-                  (max-aux x xs)
-                  (rec (if (< x (car xs)) (car xs) x)
-                       (cdr xs))))))))
-
-(define min
-  (lambda (x . xs)
-    (define min-aux
-      (lambda (x xs)
-        (if (null? xs)
-            (inexact x)
-            (min-aux (if (< (car xs) x) (car xs) x)
-                     (cdr xs)))))
-    (if (inexact? x)
-        (min-aux x xs)
-        (let rec ((x x) (xs xs))
-          (if (null? xs) x
-              (if (inexact? (car xs))
-                  (min-aux x xs)
-                  (rec (if (< (car xs) x) (car xs) x)
-                       (cdr xs))))))))
-
-(define abs
-  (lambda (n)
-    (if (< n 0) (- n) n)))
-
-(define floor-quotient
-  (lambda (x y)
-    (floor (/ x y))))
-
-(define floor-remainder
-  (lambda (a b)
-    (% (+ b (% a b)) b)))
-
-(define floor/
-  (lambda (x y)
-    (values (floor-quotient x y)
-            (floor-remainder x y))))
-
-(define truncate-quotient
-  (lambda (x y)
-    (truncate (/ x y))))
-
-(define truncate-remainder %)
-
-(define truncate/
-  (lambda (x y)
-    (values (truncate-quotient x y)
-            (truncate-remainder x y))))
-
-(define quotient truncate-quotient)
-(define remainder truncate-remainder)
-(define modulo floor-remainder)
-
-(define gcd ; from Chibi-Scheme lib/init7.scm
-  (lambda xs
-    (define gcd-2
-      (lambda (a b)
-        (if (zero? b)
-            (abs a)
-            (gcd b (remainder a b)))))
-    (if (null? xs) 0
-        (let rec ((n  (car xs))
-                  (ns (cdr xs)))
-          (if (null? ns) n
-              (rec (gcd-2 n (car ns)) (cdr ns)) )))))
-
-(define lcm ; from Chibi-Scheme lib/init7.scm
-  (lambda xs
-    (define lcm-2
-      (lambda (a b)
-        (abs (quotient (* a b) (gcd a b)))))
-    (if (null? xs) 1
-        (let rec ((n  (car xs))
-                  (ns (cdr xs)))
-          (if (null? ns) n
-              (rec (lcm-2 n (car ns)) (cdr ns)))))))
-
-(define numerator
-  (lambda (x)
-    (if (ratio? x)
-        (car x)
-        (if (exact? x) x
-            (inexact (numerator (exact x)))))))
-
-(define denominator
-  (lambda (x)
-    (if (exact? x)
-        (if (ratio? x) (cdr x) 1)
-        (if (integer? x) 1.0
-            (inexact (denominator (exact x)))))))
-
-(define rationalize ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
-  (lambda (x e)
-
-    (define sr
-      (lambda (x y return)
-        (let ((fx (floor x))
-              (fy (floor y)))
-          (cond ((>= fx x)
-                 (return fx 1))
-                ((= fx fy)
-                 (sr (/ (- y fy))
-                     (/ (- x fx))
-                     (lambda (n d)
-                       (return (+ d (* fx n)) n))))
-                (else (return (+ fx 1) 1))))))
-
-    (let ((return (if (negative? x)
-                      (lambda (num den)
-                        (/ (- num) den))
-                      /))
-          (x (abs x))
-          (e (abs e)))
-      (sr (- x e) (+ x e) return))))
-
-(define log
-  (lambda (z . base)
-    (if (pair? base)
-        (/ (ln z)
-           (ln (car base)))
-        (ln z))))
-
-(define atan
-  (lambda (y . o)
-    (if (pair? o)
-        (atan-2 y (car o))
-        (atan-1 y))))
-
-(define square
-  (lambda (z)
-    (* z z)))
-
-; TODO exact-integer-sqrt
-
-(define make-rectangular
-  (lambda (x y)
-    (+ x (* y (sqrt -1)))))
-
-(define make-polar
-  (lambda (radius phi)
-    (make-rectangular (* radius (cos phi))
-                      (* radius (sin phi)) )))
-
-(define real-part
-  (lambda (z)
-    (if (%complex? z) (car z) z)))
-
-(define imag-part
-  (lambda (z)
-    (if (%complex? z) (cdr z) 0)))
-
-(define magnitude
-  (lambda (z)
-    (sqrt (+ (square (real-part z))
-             (square (imag-part z)) ))))
-
-(define angle
-  (lambda (z)
-    (atan (imag-part z)
-          (real-part z) )))
-
-(define inexact->exact exact)
-(define exact->inexact inexact)
 
 ; ------------------------------------------------------------------------------
 ;  6.3 Standard Boolean Library (Part 2 of 2)

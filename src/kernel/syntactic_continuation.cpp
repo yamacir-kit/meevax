@@ -301,7 +301,7 @@ inline namespace kernel
 
     define<procedure>("exact-integer?", make_predicate<exact_integer>());
 
-    define<procedure>("ieee-nan?", [](auto&& xs)
+    define<procedure>("%nan?", [](auto&& xs)
     {
       return std::all_of(std::begin(xs), std::end(xs), is_nan) ? t : f;
     });
