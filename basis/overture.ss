@@ -785,26 +785,76 @@
 
 ; ---- 6.13. Input and output --------------------------------------------------
 
+(define (call-with-port port procedure) (procedure port)) ; R7RS
+
+(define (call-with-input-file path procedure)
+  (call-with-port (open-input-file path) procedure))
+
+(define (call-with-output-file path procedure)
+  (call-with-port (open-output-file path) procedure))
+
+(define (input-standard-port? x)
+  (eq? x (input-standard-port)))
+
+(define (output-standard-port? x)
+  (eq? x (output-standard-port)))
+
+(define (error-standard-port? x)
+  (eq? x (error-standard-port)))
+
+(define (standard-port? x)
+  (or (input-standard-port? x)
+      (output-standard-port? x)
+      (error-standard-port? x)))
+
+(define (input-port? x)
+  (or (input-file-port? x)
+      (input-string-port? x)
+      (input-standard-port? x)))
+
+(define (output-port? x)
+  (or (output-file-port? x)
+      (output-string-port? x)
+      (output-standard-port? x)
+      (error-standard-port? x)))
+
+(define (close-port x)
+  (cond ((input-port? x) (close-input-port x))
+        ((output-port? x) (close-output-port x))
+        (else (unspecified))))
+
+(define (close-input-port x)
+  (cond ((input-file-port? x)
+         (close-input-file-port x))
+        (else (unspecified))))
+
+(define (close-output-port x)
+  (cond ((output-file-port? x)
+         (close-output-file-port x))
+        (else (unspecified))))
+
+; ---- 6.14. System interface --------------------------------------------------
+
 ; ------------------------------------------------------------------------------
 ;       ...          =>                                           assoc assq
 ; assv                     caaaar caaadr       caadar caaddr            cadaar
 ; cadadr       caddar cadddr
-; call-with-input-file call-with-output-file                           cdaaar
+;                                                                      cdaaar
 ; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
 ;
 ;                                                                   char-ready?
 ;
-;              close-input-port close-output-port
+;
 ; current-input-port current-output-port                      delay
 ; display                 else
 ;                                      for-each force
-;                         input-port?
+;
 ; interaction-environment            length          let-syntax letrec
 ; letrec-syntax                                list-ref list-tail list?
 ;
 ;                                newline     null-environment
 ;
-; output-port?       peek-char
+;                    peek-char
 ;                       read read-char
 ; scheme-report-environment
 ;
@@ -873,131 +923,6 @@
 ; ------------------------------------------------------------------------------
 ;  6.13 Standard Input and Output Library
 ; ------------------------------------------------------------------------------
-
-(define  input-standard-port? (lambda (x) (eq? x ( input-standard-port))))
-(define output-standard-port? (lambda (x) (eq? x (output-standard-port))))
-(define  error-standard-port? (lambda (x) (eq? x ( error-standard-port))))
-
-
-(define call-with-port
-  (lambda (port procedure)
-    (procedure port)))
-
-(define call-with-input-file
-  (lambda (path procedure)
-    (call-with-port (open-input-file path) procedure)))
-
-(define call-with-output-file
-  (lambda (path procedure)
-    (call-with-port (open-output-file path) procedure)))
-
-
-(define input-port?
-  (lambda (x)
-    (or (input-file-port? x)
-        (input-string-port? x)
-        (input-standard-port? x))))
-
-(define output-port?
-  (lambda (x)
-    (or (output-file-port? x)
-        (output-string-port? x)
-        (output-standard-port? x)
-        (error-standard-port? x))))
-
-(define textual-port?
-  (lambda (x)
-    (or (input-file-port? x)
-        (input-string-port? x)
-        (input-standard-port? x)
-        (output-file-port? x)
-        (output-string-port? x)
-        (output-standard-port? x)
-        (error-standard-port? x))))
-
-(define binary-port?
-  (lambda (x) #f))
-
-(define port?
-  (lambda (x)
-    (or (input-port? x)
-        (output-port? x))))
-
-
-(define input-port-open?
-  (lambda (x)
-    (cond ((input-file-port? x)
-           (input-file-port-open? x))
-          ((input-string-port? x) #t)
-          ((input-standard-port? x) #t)
-          (else #f))))
-
-(define output-port-open?
-  (lambda (x)
-    (cond ((output-file-port? x)
-           (output-file-port-open? x))
-          ((output-string-port? x) #t)
-          ((output-standard-port? x) #t)
-          ((error-standard-port? x) #t)
-          (else #f))))
-
-
-(define current-input-port
-  (make-parameter (input-standard-port)
-    (lambda (x)
-      (cond ((not (input-port? x))
-             (error "current-input-port: not input-port" x))
-            ((not (input-port-open? x))
-             (error "current-input-port: not input-port-open" x))
-            (else x)))))
-
-(define current-output-port
-  (make-parameter (output-standard-port)
-    (lambda (x)
-      (cond ((not (output-port? x))
-             (error "current-output-port: not output-port" x))
-            ((not (output-port-open? x))
-             (error "current-output-port: not output-port-open" x))
-            (else x)))))
-
-(define current-error-port
-  (make-parameter (error-standard-port)
-    (lambda (x)
-      (cond ((not (output-port? x))
-             (error "current-error-port: not output-port" x))
-            ((not (output-port-open? x))
-             (error "current-error-port: not output-port-open" x))
-            (else x)))))
-
-
-(define with-input-from-file
-  (lambda (string thunk)
-    (parameterize ((current-input-port (open-input-file string)))
-      (thunk))))
-
-(define with-output-to-file
-  (lambda (string thunk)
-    (parameterize ((current-output-port (open-output-file string)))
-      (thunk))))
-
-
-(define close-port
-  (lambda (x)
-    (cond (( input-port? x) ( close-input-port x))
-          ((output-port? x) (close-output-port x))
-          (else (unspecified)))))
-
-(define close-input-port
-  (lambda (x)
-    (cond ((input-file-port? x)
-           (close-input-file-port x))
-          (else (unspecified)))))
-
-(define close-output-port
-  (lambda (x)
-    (cond ((output-file-port? x)
-           (close-output-file-port x))
-          (else (unspecified)))))
 
 
 ; TODO open-input-bytevector

@@ -93,7 +93,7 @@
               (write each))
             irritants)
   (newline)
-  (exit 1)))
+  (exit 1))
 
 (define (error-object? x) #false)
 
@@ -109,6 +109,72 @@
 ; TODO null-environment
 
 ; ---- 6.13. Input and output --------------------------------------------------
+
+(define (textual-port? x)
+  (or (input-file-port? x)
+      (input-string-port? x)
+      (output-file-port? x)
+      (output-string-port? x)
+      (standard-port? x)))
+
+(define (binary-port? x) #f)
+
+(define (port? x)
+  (or (input-port? x)
+      (output-port? x)))
+
+(define (input-port-open? x)
+  (cond ((input-file-port? x)
+         (input-file-port-open? x))
+        ((input-string-port? x) #t)
+        ((input-standard-port? x) #t)
+        (else #f)))
+
+(define (output-port-open? x)
+  (cond ((output-file-port? x)
+         (output-file-port-open? x))
+        ((output-string-port? x) #t)
+        ((output-standard-port? x) #t)
+        ((error-standard-port? x) #t)
+        (else #f)))
+
+(define current-input-port
+  (make-parameter (input-standard-port)
+    (lambda (x)
+      (cond ((not (input-port? x))
+             (error "current-input-port: not input-port" x))
+            ((not (input-port-open? x))
+             (error "current-input-port: not input-port-open" x))
+            (else x)))))
+
+(define current-output-port
+  (make-parameter (output-standard-port)
+    (lambda (x)
+      (cond ((not (output-port? x))
+             (error "current-output-port: not output-port" x))
+            ((not (output-port-open? x))
+             (error "current-output-port: not output-port-open" x))
+            (else x)))))
+
+(define current-error-port
+  (make-parameter (error-standard-port)
+    (lambda (x)
+      (cond ((not (output-port? x))
+             (error "current-error-port: not output-port" x))
+            ((not (output-port-open? x))
+             (error "current-error-port: not output-port-open" x))
+            (else x)))))
+
+(define (with-input-from-file path thunk)
+  (parameterize ((current-input-port (open-input-file path)))
+    (thunk)))
+
+(define (with-output-to-file path thunk)
+  (parameterize ((current-output-port (open-output-file path)))
+    (thunk)))
+
+
+; ---- 6.14. System interface --------------------------------------------------
 
 ; ------------------------------------------------------------------------------
 
