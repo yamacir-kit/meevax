@@ -1,3 +1,33 @@
+; ------------------------------------------------------------------------------
+;       ...          =>
+;
+;
+;
+;
+;
+;
+;
+;
+; current-input-port current-output-port
+;                         else
+;
+;
+; interaction-environment                            let-syntax
+; letrec-syntax                                         list-tail
+;
+;                                            null-environment
+;
+;
+;
+; scheme-report-environment
+;
+;
+;
+;                                  syntax-rules
+;
+; with-input-from-file with-output-to-file
+; ------------------------------------------------------------------------------
+
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
 (define delay-force lazy) ; from SRFI-45
@@ -177,8 +207,40 @@
 ; TODO open-output-bytevector
 ; TODO get-output-bytevector
 
+(define (write-string string . xs)
+  (case (length xs)
+    ((0)  (::write-string string (current-output-port)))
+    ((1)  (::write-string string (car xs)))
+    (else (::write-string (apply string-copy string (cadr xs)) (car xs)))))
+
+(define (write-path path . x)
+  (::write-path path (if (pair? x)
+                         (car x)
+                         (current-output-port))))
+
+; TODO write-u8
+; TODO write-bytevector
+
+(define (flush-output-port . port)
+  (::flush-output-port (if (pair? port)
+                           (car port)
+                           (current-output-port))))
+
 
 ; ---- 6.14. System interface --------------------------------------------------
+
+; TODO file-exists?
+; TODO delete-file
+; TODO command-line
+
+(define exit emergency-exit)
+
+; TODO get-environment-variable
+; TODO get-environment-variables
+
+; TODO current-second
+; TODO current-jiffy
+; TODO jiffies-per-second
 
 ; ------------------------------------------------------------------------------
 

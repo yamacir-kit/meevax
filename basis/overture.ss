@@ -361,7 +361,7 @@
 ; display    dynamic-wind else                 equal?           even?
 ; exact->inexact exact?                for-each force gcd    imag-part
 ; inexact->exact inexact? input-port?               integer?
-; interaction-environment        lcm length          let-syntax letrec
+; interaction-environment        lcm length          let-syntax
 ; letrec-syntax                                list-ref list-tail list?      log
 ; magnitude make-polar make-rectangular                             max
 ;           min modulo negative? newline     null-environment
@@ -833,6 +833,32 @@
          (close-output-file-port x))
         (else (unspecified))))
 
+(define (read        x) (::read        (if (pair? x) (car x) (current-input-port))))
+(define (read-char   x) (::read-char   (if (pair? x) (car x) (current-input-port))))
+(define (peek-char   x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
+(define (char-ready? x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
+
+(define (write-simple datum . port)
+  (::write-simple datum (if (pair? port)
+                            (car port)
+                            (current-output-port))))
+
+(define write write-simple)
+
+(define (display datum . port)
+  (cond ((char?   datum) (apply write-char    datum port))
+        ((string? datum) (apply write-string  datum port))
+        ((path?   datum) (apply write-path    datum port))
+        (else            (apply write         datum port))))
+
+(define (newline . port)
+  (apply write-char #\newline port))
+
+(define (write-char char . port)
+  (::write-char char (if (pair? port)
+                         (car port)
+                         (current-output-port))))
+
 ; ---- 6.14. System interface --------------------------------------------------
 
 ; ------------------------------------------------------------------------------
@@ -842,102 +868,25 @@
 ;                                                                      cdaaar
 ; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
 ;
-;                                                                   char-ready?
+;
 ;
 ;
 ; current-input-port current-output-port                      delay
-; display                 else
+;                         else
 ;                                      for-each force
 ;
-; interaction-environment            length          let-syntax letrec
+; interaction-environment            length          let-syntax
 ; letrec-syntax                                list-ref list-tail list?
 ;
-;                                newline     null-environment
+;                                            null-environment
 ;
-;                    peek-char
-;                       read read-char
+;
+;
 ; scheme-report-environment
 ;
 ;
 ;
 ;                                  syntax-rules
 ;
-; with-input-from-file with-output-to-file write write-char
+; with-input-from-file with-output-to-file
 ; ------------------------------------------------------------------------------
-
-; ------------------------------------------------------------------------------
-;  6.13 Standard Input and Output Library
-; ------------------------------------------------------------------------------
-
-
-
-(define read        (lambda x (::read        (if (pair? x) (car x) (current-input-port)))))
-(define read-char   (lambda x (::read-char   (if (pair? x) (car x) (current-input-port)))))
-(define peek-char   (lambda x (::peek-char   (if (pair? x) (car x) (current-input-port)))))
-(define char-ready? (lambda x (::char-ready? (if (pair? x) (car x) (current-input-port)))))
-
-(define write-simple
-  (lambda (datum . port)
-    (let ((port (if (pair? port)
-                    (car port)
-                    (current-output-port))))
-      (::write-simple datum port))))
-
-(define write write-simple)
-
-(define display
-  (lambda (datum . port)
-    (cond ((char?   datum) (apply write-char    datum port))
-          ((string? datum) (apply write-string  datum port))
-          ((path?   datum) (apply write-path    datum port))
-          (else            (apply write         datum port)))))
-
-(define newline
-  (lambda xs
-    (apply write-char #\newline xs)))
-
-(define write-char
-  (lambda (char . port)
-    (::write-char char (if (pair? port)
-                           (car port)
-                           (current-output-port)))))
-
-(define write-string
-  (lambda (string . xs)
-    (case (length xs)
-      ((0)  (::write-string string (current-output-port)))
-      ((1)  (::write-string string (car xs)))
-      (else (::write-string (apply string-copy string (cadr xs)) (car xs))))))
-
-(define write-path
-  (lambda (path . x)
-    (::write-path path (if (pair? x)
-                           (car x)
-                           (current-output-port)))))
-
-; TODO write-u8
-; TODO write-bytevector
-
-(define flush-output-port
-  (lambda port
-    (::flush-output-port (if (pair? port)
-                             (car port)
-                             (current-output-port)))))
-
-
-; ------------------------------------------------------------------------------
-;  6.14 Standard System Interface Library
-; ------------------------------------------------------------------------------
-
-; TODO file-exists?
-; TODO delete-file
-; TODO command-line
-
-(define exit emergency-exit) ;                          (scheme process-context)
-
-; TODO get-environment-variable
-; TODO get-environment-variables
-
-; TODO current-second
-; TODO current-jiffy
-; TODO jiffies-per-second
