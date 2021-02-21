@@ -5,6 +5,8 @@
 
 #define NIL /* nothing */
 
+#define PRINT(...) std::cout << #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl;
+
 namespace meevax
 {
 inline namespace kernel

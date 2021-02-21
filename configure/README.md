@@ -63,7 +63,7 @@ Development HEAD: ${PROJECT_VERSION}.
 
 An subset of R7RS-small.
 
-### Extensions
+### SRFI
 
 | Number                                                | Name                                                     | Import from | Note       |
 |------------------------------------------------------:|:---------------------------------------------------------|:------------|:-----------|
@@ -72,6 +72,8 @@ An subset of R7RS-small.
 |  [ 6](https://srfi.schemers.org/srfi-6/srfi-6.html)   | Basic String Ports                                       | built-in    | R7RS 6.13  |
 |  [ 8](https://srfi.schemers.org/srfi-8/srfi-8.html)   | receive: Binding to multiple values                      | built-in    |            |
 |  [10](https://srfi.schemers.org/srfi-10/srfi-10.html) | #, external form                                         | built-in    |            |
+|  [39](https://srfi.schemers.org/srfi-39/srfi-39.html) | Parameter objects                                        | built-in    | R7RS 4.2.6 |
+|  [45](https://srfi.schemers.org/srfi-45/srfi-45.html) | Primitives for Expressing Iterative Lazy Algorithms      | built-in    | [#296](https://github.com/yamacir-kit/meevax/issues/296)
 |  [62](https://srfi.schemers.org/srfi-62/srfi-62.html) | S-expression comments                                    | built-in    | R7RS 2.2   |
 |  [87](https://srfi.schemers.org/srfi-87/srfi-87.html) | => in case clauses                                       | built-in    | R7RS 4.2.1 |
 

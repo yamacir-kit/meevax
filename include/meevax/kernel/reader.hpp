@@ -22,6 +22,7 @@
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 #include <meevax/string/header.hpp>
+#include <type_traits>
 
 namespace meevax
 {
@@ -31,10 +32,6 @@ inline namespace kernel
 
   // TODO Move into reader class private
   let read_char(input_port &);
-
-  // TODO Move into reader class private
-  // [[deprecated]]
-  // let read_string(input_port &);
 
   /* ---- Reader ---------------------------------------------------------------
    *
@@ -53,10 +50,20 @@ inline namespace kernel
     IMPORT(SK, standard_debug_port, NIL);
     IMPORT(SK, write_to,            NIL);
 
-    using seeker = std::istream_iterator<input_port::char_type>;
+    using char_type = typename input_port::char_type;
 
-    enum class   proper_list_tag {};
-    enum class improper_list_tag {};
+    using seeker = std::istream_iterator<char_type>;
+
+    template <input_port::char_type C>
+    using reserved_character = std::integral_constant<decltype(C), C>;
+
+    using period               = reserved_character<'.'>;
+    using left_parenthesis     = reserved_character<'('>;
+    using right_parenthesis    = reserved_character<')'>;
+    using left_square_bracket  = reserved_character<'['>;
+    using right_square_bracket = reserved_character<']'>;
+    using left_curly_bracket   = reserved_character<'{'>;
+    using right_curly_bracket  = reserved_character<'}'>;
 
   public:
     /* ---- Read ---------------------------------------------------------------
@@ -65,11 +72,11 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let const read(input_port & port)
     {
-      std::string token {};
+      std::basic_string<char_type> token {};
 
       for (seeker head = port; head != seeker(); ++head)
       {
-        switch (*head)
+        switch (auto const c = *head)
         {
         case ';':
           port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -79,25 +86,48 @@ inline namespace kernel
           break;
 
         case '(':
+        case '[':
+        case '{':
           try
           {
             let const kar = read(port);
-            port.putback('(');
+            port.putback(c);
             return cons(kar, read(port));
           }
-          catch (read_error<proper_list_tag> const&)
+          catch (read_error<right_parenthesis> const&)
           {
-            return unit;
+            return char_eq(c, '(') ? unit : throw;
           }
-          catch (read_error<improper_list_tag> const&)
+          catch (read_error<right_square_bracket> const&)
+          {
+            return char_eq(c, '[') ? unit : throw;
+          }
+          catch (read_error<right_curly_bracket> const&)
+          {
+            return char_eq(c, '{') ? unit : throw;
+          }
+          catch (read_error<period> const&)
           {
             let const kdr = read(port);
-            port.ignore(std::numeric_limits<std::streamsize>::max(), ')'); // XXX DIRTY HACK
+
+            switch (c)
+            {
+            case '(': ignore(port, [](auto each) { return not char_eq(each, ')'); }).get(); break;
+            case '[': ignore(port, [](auto each) { return not char_eq(each, ']'); }).get(); break;
+            case '{': ignore(port, [](auto each) { return not char_eq(each, '}'); }).get(); break;
+            }
+
             return kdr;
           }
 
         case ')':
-          throw read_error<proper_list_tag>("unexpected close parentheses");
+          throw read_error<right_parenthesis>("unexpected ", std::quoted(")"));
+
+        case ']':
+          throw read_error<right_square_bracket>("unexpected ", std::quoted("]"));
+
+        case '}':
+          throw read_error<right_curly_bracket>(c, " is reserved for possible future extensions to the language.");
 
         case '#':
           return discriminate(port);
@@ -129,7 +159,7 @@ inline namespace kernel
           {
             if (token == ".")
             {
-              throw read_error<improper_list_tag>("dot-notation");
+              throw read_error<period>("dot-notation");
             }
             else try
             {
@@ -167,9 +197,9 @@ inline namespace kernel
       return result;
     }
 
-    decltype(auto) read(std::string const& s)
+    decltype(auto) read(std::basic_string<char_type> const& s)
     {
-      std::stringstream ss { s };
+      std::basic_stringstream<char_type> ss { s };
       return read(ss);
     }
 

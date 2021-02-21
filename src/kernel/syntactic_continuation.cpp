@@ -133,7 +133,7 @@ inline namespace kernel
      ┌────────────────────┬────────────┬───────────────────────────────────────┐
      │ Symbol             │ Written in │ Note                                  │
      ├────────────────────┼────────────┼───────────────────────────────────────┤
-     │ COMPLEX?           │ C++        │                                       │
+     │ %complex?          │ C++        │                                       │
      ├────────────────────┼────────────┼───────────────────────────────────────┤
      │ ratio?             │ C++        │                                       │
      ├────────────────────┼────────────┼───────────────────────────────────────┤
@@ -292,18 +292,16 @@ inline namespace kernel
 
      ------------------------------------------------------------------------ */
 
-    define<procedure>("COMPLEX?", make_predicate<complex>());
+    define<procedure>("%complex?", make_predicate<complex>());
 
     define<procedure>("ratio?", make_predicate<ratio>());
 
     define<procedure>("single-float?", make_predicate<single_float>());
     define<procedure>("double-float?", make_predicate<double_float>());
 
-
     define<procedure>("exact-integer?", make_predicate<exact_integer>());
 
-
-    define<procedure>("ieee-nan?", [](auto&& xs)
+    define<procedure>("%nan?", [](auto&& xs)
     {
       return std::all_of(std::begin(xs), std::end(xs), is_nan) ? t : f;
     });
@@ -1638,9 +1636,11 @@ inline namespace kernel
   {
     std::vector<string_view> codes {
       overture,
-      values,
       srfi_8, // for srfi-1
-      srfi_1,
+      srfi_1, // (scheme list)
+      srfi_39,
+      srfi_45, // (scheme lazy)
+      r7rs,
     };
 
     for (auto const& code : codes)

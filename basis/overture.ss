@@ -1,6 +1,7 @@
-;                     abs      and angle append apply      assoc assq assv
-;       boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar cadadr
-; cadar caddar cadddr caddr cadr
+; ------------------------------------------------------------------------------
+;       ...          =>      abs      and angle append apply      assoc assq
+; assv atan       boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar
+; cadadr cadar caddar cadddr caddr cadr call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values     case cdaaar
 ; cdaadr cdaar cdadar cdaddr cdadr cdar cddaar cddadr cddar cdddar cddddr cdddr
 ; cddr                           char-alphabetic? char-ci<=? char-ci<? char-ci=?
@@ -8,23 +9,24 @@
 ; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
 ; char>?       close-input-port close-output-port complex? cond
 ; current-input-port current-output-port        define-syntax delay denominator
-; display do dynamic-wind                 equal?           even?
-; exact?                for-each force gcd    imag-part                inexact?
-; input-port?               integer? interaction-environment        lcm length
-; let let* let-syntax letrec letrec-syntax list
-; list-ref list-tail list?          magnitude make-polar make-rectangular
-;                         map max member memq memv min modulo negative? newline
-; not null-environment null?                number? numerator odd?
-;                                  or output-port?       peek-char positive?
-; procedure? quasiquote       quotient rational? rationalize read read-char
-; real-part real? remainder reverse       scheme-report-environment
-;                            string
-;               string-ci<=? string-ci<? string-ci=? string-ci>=? string-ci>?
-;             string-fill!
-;                                              substring
-;              values
-;                     with-input-from-file with-output-to-file write write-char
-; zero?
+; display do dynamic-wind else                 equal?           even?
+; exact->inexact exact?                for-each force gcd    imag-part
+; inexact->exact inexact? input-port?               integer?
+; interaction-environment        lcm length let let* let-syntax letrec
+; letrec-syntax list                           list-ref list-tail list?      log
+; magnitude make-polar make-rectangular                         map max member
+; memq memv min modulo negative? newline not null-environment null?
+;                number? numerator odd?                                  or
+; output-port?       peek-char positive? procedure? quasiquote       quotient
+; rational? rationalize read read-char real-part real? remainder reverse
+; scheme-report-environment                                 string
+;                                             string-ci<=? string-ci<?
+; string-ci=? string-ci>=? string-ci>?             string-fill!
+;
+; substring                        syntax-rules              values
+;
+; with-input-from-file with-output-to-file write write-char zero?
+; ------------------------------------------------------------------------------
 
 (define (list . xs) xs)
 
@@ -43,8 +45,8 @@
           ;        (lambda (<keyword> . <formals>) <body>)))
           ;
           (list define (car keyword)
-                (list fork/csc
-                      (list lambda keyword . transformer)))
+            (list fork/csc
+              (list lambda keyword . transformer)))
 
           ; (define-syntax <keyword> <transformer>)
           ;
@@ -138,7 +140,6 @@
                 (list (car x)))))
 
 (define (append . xs) ; redefine
-
   (define (append-aux x xs)
     (if (null? x) xs
         (append-aux (cdr xs)
@@ -151,7 +152,6 @@
        (reverse xs))))
 
 (define-syntax (quasiquote template)
-
   (define (expand x depth)
     (cond
       ((pair? x)
@@ -200,7 +200,6 @@
 (define-syntax (unless test . body) `(,if (,not ,test) (,begin ,@body))) ; TODO MOVE INTO (scheme base)
 
 (define (map f x . xs) ; map-unorder
-
     (define (map-1 f x xs)
       (if (pair? x)
           (map-1 f
@@ -220,7 +219,6 @@
         (map-2+ f (cons x xs) '())))
 
 (define (apply f x . xs) ; for map
-
   (define (apply-1 f xs) (f . xs))
 
   (if (null? xs)
@@ -231,8 +229,7 @@
                             (car rxs))))
        (reverse (cons x xs)))))
 
-(define (every f x . xs) ; for map
-
+(define (every f x . xs) ; from SRFI-1 for map
   (define (every-1 f x)
     (if (null? (cdr x))
         (f (car x))
@@ -249,8 +246,7 @@
                     (not (apply f xs)))
                   x xs))))
 
-(define (any f x . xs) ; for every
-
+(define (any f x . xs) ; from SRFI-1 for every
   (define (any-1 f x)
     (if (pair? (cdr x))
         ((lambda (result)
@@ -311,7 +307,6 @@
 (define (memv o x) (member o x eqv?))
 
 (define-syntax (case key . clauses)
-
   (define (body expressions)
     (cond
       ((null? expressions) result)
@@ -352,9 +347,10 @@
                        (,if ,result ,result ,body))
                 `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
-;                     abs          angle                   assoc assq assv
-;       boolean? caaaar caaadr       caadar caaddr            cadaar cadadr
-;       caddar cadddr
+; ------------------------------------------------------------------------------
+;       ...          =>      abs          angle                   assoc assq
+; assv atan       boolean? caaaar caaadr       caadar caaddr            cadaar
+; cadadr       caddar cadddr            call-with-current-continuation
 ; call-with-input-file call-with-output-file call-with-values          cdaaar
 ; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
 ;                                char-alphabetic? char-ci<=? char-ci<? char-ci=?
@@ -362,424 +358,267 @@
 ; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
 ; char>?       close-input-port close-output-port complex?
 ; current-input-port current-output-port                      delay denominator
-; display    dynamic-wind                 equal?           even?
-; exact?                for-each force gcd    imag-part                inexact?
-; input-port?               integer? interaction-environment        lcm length
-;          let-syntax        letrec-syntax
-; list-ref list-tail list?          magnitude make-polar make-rectangular
-;                             max                  min modulo negative? newline
-;     null-environment                      number? numerator odd?
-;                                     output-port?       peek-char positive?
-; procedure?                  quotient rational? rationalize read read-char
-; real-part real? remainder               scheme-report-environment
-;                            string
-;               string-ci<=? string-ci<? string-ci=? string-ci>=? string-ci>?
-;             string-fill!
-;                                              substring
-;              values
-;                     with-input-from-file with-output-to-file write write-char
-; zero?
-
-(define list-tail drop)
-
-(define (list-set! x k object)
-  (set-car! (list-tail x k) object))
-
-; ------------------------------------------------------------------------------
-;  4.2.5 Delayed Evaluation
+; display    dynamic-wind else                 equal?           even?
+; exact->inexact exact?                for-each force gcd    imag-part
+; inexact->exact inexact? input-port?               integer?
+; interaction-environment        lcm length          let-syntax
+; letrec-syntax                                list-ref list-tail list?      log
+; magnitude make-polar make-rectangular                             max
+;           min modulo negative? newline     null-environment
+;                number? numerator odd?
+; output-port?       peek-char positive? procedure?                  quotient
+; rational? rationalize read read-char real-part real? remainder
+; scheme-report-environment                                 string
+;                                             string-ci<=? string-ci<?
+; string-ci=? string-ci>=? string-ci>?             string-fill!
+;
+; substring                        syntax-rules              values
+;
+; with-input-from-file with-output-to-file write write-char zero?
 ; ------------------------------------------------------------------------------
 
-(define <promise> (list 'promise))
+; ---- 6.1. Equivalence predicates ---------------------------------------------
 
-(define promise ; ((#false . #,(closure ...)) promise)
-  (lambda (forced? closure)
-    (cons (cons forced? closure) <promise>)))
+(define (equal? x y)
+  (if (and (pair? x)
+           (pair? y))
+      (and (equal? (car x)
+                   (car y))
+           (equal? (cdr x)
+                   (cdr y)))
+      (eqv? x y)))
 
-(define promise?
-  (lambda (x)
-    (and (pair? x)
-         (eq? <promise> (cdr x)))))
+; ---- 6.2. Numbers ------------------------------------------------------------
 
-(define force
-  (lambda (promise)
+; .
+; `-- number?
+;      `-- complex?
+;           |-- %complex?
+;           `-- real?
+;                |-- floating-point?
+;                |    |-- single-float?
+;                |    `-- double-float?
+;                `-- rational?
+;                     |-- ratio?
+;                     `-- integer?
+;                          |-- inexact-integer?
+;                          `-- exact-integer?
 
-    (define done? caar)
+(define (number? x) (complex? x))
 
-    (define cache cdar)
+(define (complex? x)
+  (or (%complex? x)
+      (real? x)))
 
-    (define update!
-      (lambda (new old)
-        (set-car! (car old) (done? new))
-        (set-cdr! (car old) (cache new))
-        (set-car! new (car old))))
+(define (real? x)
+  (or (floating-point? x)
+      (rational? x)))
 
-    (if (done? promise)
-        (cache promise)
-        (let ((new ((cache promise))))
-          (unless (done? promise)
-                  (update! new promise))
-          (force promise)))))
+(define (floating-point? z)
+  (or (single-float? z)
+      (double-float? z)))
 
-(define-syntax delay-force
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'promise) #f (,(rename 'lambda) () ,(cadr form))))))
+(define (rational? x)
+  (or (ratio? x)
+      (integer? x)))
 
-(define-syntax delay
-  (er-macro-transformer
-    (lambda (form rename compare)
-      `(,(rename 'delay-force)
-         (,(rename 'promise) #t ,(cadr form))))))
+(define (integer? x)
+  (or (exact-integer? x) ; TODO ratio e.g. 3/1 is integer.
+      (inexact-integer? x)))
 
-(define make-promise
-  (lambda (x)
-    (if (promise? x) x
-        (delay x))))
-
-; ------------------------------------------------------------------------------
-;  6.1 Standard Equivalence Predicates Library (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define equal? ; list-equal?
-  (lambda (x y)
-    (if (and (pair? x)
-             (pair? y))
-        (and (equal? (car x)
-                     (car y))
-             (equal? (cdr x)
-                     (cdr y)))
-        (eqv? x y))))
-
-; ------------------------------------------------------------------------------
-;  6.2 Standard Numerical Library (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-; number?
-;  `-- complex?
-;       |-- %complex? ................................................... atomic
-;       `-- real?
-;            |-- floating-point?
-;            |    |-- single-float? ..................................... atomic
-;            |    `-- double-float? ..................................... atomic
-;            `-- rational?
-;                 |-- ratio? ............................................ atomic
-;                 `-- integer?
-;                      `-- exact-integer? ............................... atomic
-
-(define floating-point?
-  (lambda (z)
-    (or (single-float? z)
-        (double-float? z))))
-
-(define real?
-  (lambda (x)
-    (or (floating-point? x)
-        (rational? x))))
-
-(define rational?
-  (lambda (x)
-    (or (ratio? x)
-        (integer? x))))
-
-(define irrational?
-  (lambda (x) #f))
-
-(define almost-exact-floating-point?
-  (lambda (x)
-    (and (floating-point? x)
-         (= x (truncate x)))))
-
-(define integer?
-  (lambda (x)
-    (or (exact-integer? x)
-        (almost-exact-floating-point? x))))
+(define (inexact-integer? x)
+  (and (floating-point? x)
+       (= x (truncate x))))
 
 ;  .
 ;  |-- exact?
 ;  |    |-- exact-complex?
-;  |    |-- exact-integer? .............................................. atomic
-;  |    `-- ratio? ...................................................... atomic
+;  |    |-- exact-integer?
+;  |    `-- ratio?
 ;  `-- inexact?
-;       |-- floating-point?
-;       |    |--- single-float? ......................................... atomic
-;       |    `--- single-float? ......................................... atomic
-;       `-- inexact-complex?
+;       |-- inexact-complex?
+;       `-- floating-point?
+;            |--- single-float?
+;            `--- single-float?
 
-(define exact?
-  (lambda (z)
-    (or (exact-integer? z)
-        (ratio? z)
-        (exact-complex? z))))
+(define (exact? z)
+  (or (exact-integer? z)
+      (ratio? z)
+      (exact-complex? z)))
 
-(define exact-complex?
-  (lambda (x)
-    (and (COMPLEX? x)
-         (exact? (real-part x))
-         (exact? (imag-part x)))))
+(define (exact-complex? x) ; TODO move into r7rs.ss
+  (and (%complex? x)
+       (exact? (real-part x))
+       (exact? (imag-part x))))
 
-(define inexact?
-  (lambda (z)
-    (or (floating-point? z)
-        (inexact-complex? z))))
+(define (inexact? z)
+  (or (floating-point? z)
+      (inexact-complex? z)))
 
-(define inexact-complex?
-  (lambda (x)
-    (and (COMPLEX? x)
-         (inexact? (real-part x))
-         (inexact? (imag-part x)))))
+(define (inexact-complex? x)
+  (and (%complex? x)
+       (or (inexact? (real-part x))
+           (inexact? (imag-part x)))))
 
-(define complex?
-  (lambda (x)
-    (or (exact? x)
-        (inexact? x))))
+(define (zero?     n) (= n 0))
+(define (positive? n) (> n 0))
+(define (negative? n) (< n 0))
 
-(define number? complex?)
+(define (odd? n) (not (even? n)))
+(define (even? n) (= (remainder n 2) 0))
 
-(define finite?
-  (lambda (z)
-    (not (infinite? z))))
+(define (max x . xs)
+  (define (max-aux x xs)
+    (if (null? xs)
+        (inexact x)
+        (max-aux (if (< x (car xs)) (car xs) x)
+                 (cdr xs))))
+  (if (inexact? x)
+      (max-aux x xs)
+      (let rec ((x x) (xs xs))
+        (cond ((null? xs) x)
+              ((inexact? (car xs)) (max-aux x xs))
+              (else (rec (if (< x (car xs)) (car xs) x)
+                         (cdr xs)))))))
 
-(define infinite?
-  (lambda (z)
-    (or (= +inf.0 z)
-        (= -inf.0 z))))
+(define (min x . xs)
+  (define (min-aux x xs)
+    (if (null? xs)
+        (inexact x)
+        (min-aux (if (< (car xs) x) (car xs) x)
+                 (cdr xs))))
+  (if (inexact? x)
+      (min-aux x xs)
+      (let rec ((x x) (xs xs))
+        (cond ((null? xs) x)
+              ((inexact? (car xs)) (min-aux x xs))
+              (else (rec (if (< (car xs) x) (car xs) x)
+                         (cdr xs)))))))
 
-(define nan?
-  (lambda (z)
-    (if (COMPLEX? z)
-        (or (ieee-nan? (real-part z))
-            (ieee-nan? (imag-part z)))
-        (ieee-nan? z))))
+(define (abs n)
+  (if (< n 0) (- n) n))
 
-(define zero?     (lambda (n) (= n 0)))
-(define positive? (lambda (n) (> n 0)))
-(define negative? (lambda (n) (< n 0)))
+(define (floor-quotient x y) (floor (/ x y)))
 
-(define odd?
-  (lambda (n)
-    (not (even? n))))
+(define (floor-remainder a b) (% (+ b (% a b)) b))
 
-(define even?
-  (lambda (n)
-    (= (remainder n 2) 0)))
+(define (floor/ x y)
+  (values (floor-quotient x y)
+          (floor-remainder x y)))
 
-(define max
-  (lambda (x . xs)
-    (define max-aux
-      (lambda (x xs)
-        (if (null? xs)
-            (inexact x)
-            (max-aux (if (< x (car xs)) (car xs) x)
-                     (cdr xs)))))
-    (if (inexact? x)
-        (max-aux x xs)
-        (let rec ((x x) (xs xs))
-          (if (null? xs) x
-              (if (inexact? (car xs))
-                  (max-aux x xs)
-                  (rec (if (< x (car xs)) (car xs) x)
-                       (cdr xs))))))))
-
-(define min
-  (lambda (x . xs)
-    (define min-aux
-      (lambda (x xs)
-        (if (null? xs)
-            (inexact x)
-            (min-aux (if (< (car xs) x) (car xs) x)
-                     (cdr xs)))))
-    (if (inexact? x)
-        (min-aux x xs)
-        (let rec ((x x) (xs xs))
-          (if (null? xs) x
-              (if (inexact? (car xs))
-                  (min-aux x xs)
-                  (rec (if (< (car xs) x) (car xs) x)
-                       (cdr xs))))))))
-
-(define abs
-  (lambda (n)
-    (if (< n 0) (- n) n)))
-
-(define floor-quotient
-  (lambda (x y)
-    (floor (/ x y))))
-
-(define floor-remainder
-  (lambda (a b)
-    (% (+ b (% a b)) b)))
-
-(define floor/
-  (lambda (x y)
-    (values (floor-quotient x y)
-            (floor-remainder x y))))
-
-(define truncate-quotient
-  (lambda (x y)
-    (truncate (/ x y))))
+(define (truncate-quotient x y) (truncate (/ x y)))
 
 (define truncate-remainder %)
 
-(define truncate/
-  (lambda (x y)
-    (values (truncate-quotient x y)
-            (truncate-remainder x y))))
+(define (truncate/ x y)
+  (values (truncate-quotient x y)
+          (truncate-remainder x y)))
 
 (define quotient truncate-quotient)
+
 (define remainder truncate-remainder)
+
 (define modulo floor-remainder)
 
-(define gcd ; from Chibi-Scheme lib/init7.scm
-  (lambda xs
-    (define gcd-2
-      (lambda (a b)
-        (if (zero? b)
-            (abs a)
-            (gcd b (remainder a b)))))
-    (if (null? xs) 0
-        (let rec ((n  (car xs))
-                  (ns (cdr xs)))
-          (if (null? ns) n
-              (rec (gcd-2 n (car ns)) (cdr ns)) )))))
+(define (gcd . xs) ; from Chibi-Scheme lib/init7.scm
+  (define (gcd-2 a b)
+    (if (zero? b)
+        (abs a)
+        (gcd b (remainder a b))))
+  (if (null? xs) 0
+      (let rec ((n  (car xs))
+                (ns (cdr xs)))
+        (if (null? ns) n
+            (rec (gcd-2 n (car ns)) (cdr ns))))))
 
-(define lcm ; from Chibi-Scheme lib/init7.scm
-  (lambda xs
-    (define lcm-2
-      (lambda (a b)
-        (abs (quotient (* a b) (gcd a b)))))
-    (if (null? xs) 1
-        (let rec ((n  (car xs))
-                  (ns (cdr xs)))
-          (if (null? ns) n
-              (rec (lcm-2 n (car ns)) (cdr ns)))))))
+(define (lcm . xs) ; from Chibi-Scheme lib/init7.scm
+  (define (lcm-2 a b)
+    (abs (quotient (* a b) (gcd a b))))
+  (if (null? xs) 1
+      (let rec ((n  (car xs))
+                (ns (cdr xs)))
+        (if (null? ns) n
+            (rec (lcm-2 n (car ns)) (cdr ns))))))
 
-(define numerator
-  (lambda (x)
-    (if (ratio? x)
-        (car x)
-        (if (exact? x) x
-            (inexact (numerator (exact x)))))))
+(define (numerator x)
+  (cond ((ratio? x) (car x))
+        ((exact? x) x)
+        (else (inexact (numerator (exact x))))))
 
-(define denominator
-  (lambda (x)
-    (if (exact? x)
-        (if (ratio? x) (cdr x) 1)
-        (if (integer? x) 1.0
-            (inexact (denominator (exact x)))))))
+(define (denominator x)
+  (cond ((exact? x) (if (ratio? x) (cdr x) 1))
+        ((integer? x) 1.0)
+        (else (inexact (denominator (exact x))))))
 
-(define rationalize ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
-  (lambda (x e)
+(define (rationalize x e) ; from Chibi-Scheme lib/scheme/extras.scm (https://ml.cddddr.org/scheme/msg01498.html)
+  (define (sr x y return)
+    (let ((fx (floor x))
+          (fy (floor y)))
+      (cond ((>= fx x) (return fx 1))
+            ((= fx fy) (sr (/ (- y fy))
+                           (/ (- x fx))
+                           (lambda (n d)
+                             (return (+ d (* fx n)) n))))
+            (else (return (+ fx 1) 1)))))
+  (let ((return (if (negative? x)
+                    (lambda (num den)
+                      (/ (- num) den))
+                    /))
+        (x (abs x))
+        (e (abs e)))
+    (sr (- x e) (+ x e) return)))
 
-    (define sr
-      (lambda (x y return)
-        (let ((fx (floor x))
-              (fy (floor y)))
-          (cond ((>= fx x)
-                 (return fx 1))
-                ((= fx fy)
-                 (sr (/ (- y fy))
-                     (/ (- x fx))
-                     (lambda (n d)
-                       (return (+ d (* fx n)) n))))
-                (else (return (+ fx 1) 1))))))
+(define (log z . base)
+  (if (pair? base)
+      (/ (ln z)
+         (ln (car base)))
+      (ln z)))
 
-    (let ((return (if (negative? x)
-                      (lambda (num den)
-                        (/ (- num) den))
-                      /))
-          (x (abs x))
-          (e (abs e)))
-      (sr (- x e) (+ x e) return))))
+(define (atan y . o)
+  (if (pair? o)
+      (atan-2 y (car o))
+      (atan-1 y)))
 
-(define log
-  (lambda (z . base)
-    (if (pair? base)
-        (/ (ln z)
-           (ln (car base)))
-        (ln z))))
+(define (make-rectangular x y) (+ x (* y (sqrt -1))))
 
-(define atan
-  (lambda (y . o)
-    (if (pair? o)
-        (atan-2 y (car o))
-        (atan-1 y))))
+(define (make-polar radius phi)
+  (make-rectangular (* radius (cos phi))
+                    (* radius (sin phi))))
 
-(define square
-  (lambda (z)
-    (* z z)))
+(define (real-part z) (if (%complex? z) (car z) z))
+(define (imag-part z) (if (%complex? z) (cdr z) 0))
 
-; TODO exact-integer-sqrt
+(define (magnitude z)
+  (sqrt (+ (square (real-part z))
+           (square (imag-part z)))))
 
-(define make-rectangular
-  (lambda (x y)
-    (+ x (* y (sqrt -1)))))
-
-(define make-polar
-  (lambda (radius phi)
-    (make-rectangular (* radius (cos phi))
-                      (* radius (sin phi)) )))
-
-(define real-part
-  (lambda (z)
-    (if (COMPLEX? z) (car z) z)))
-
-(define imag-part
-  (lambda (z)
-    (if (COMPLEX? z) (cdr z) 0)))
-
-(define magnitude
-  (lambda (z)
-    (sqrt (+ (square (real-part z))
-             (square (imag-part z)) ))))
-
-(define angle
-  (lambda (z)
-    (atan (imag-part z)
-          (real-part z) )))
+(define (angle z)
+  (atan (imag-part z)
+        (real-part z)))
 
 (define inexact->exact exact)
 (define exact->inexact inexact)
 
-; ------------------------------------------------------------------------------
-;  6.3 Standard Boolean Library (Part 2 of 2)
-; ------------------------------------------------------------------------------
+; ---- 6.3. Booleans -----------------------------------------------------------
 
-(define boolean?
-  (lambda (x)
-    (or (eqv? x #t)
-        (eqv? x #f))))
+(define (boolean? x)
+  (or (eqv? x #t)
+      (eqv? x #f)))
 
-(define boolean=?
-  (lambda (x y . xs)
-    (and (eqv? x y)
-         (if (pair? xs)
-             (apply boolean=? y xs)
-             #t))))
+; ---- 6.4. Pairs and lists ----------------------------------------------------
 
-; ------------------------------------------------------------------------------
-;  6.5 Symbols
-; ------------------------------------------------------------------------------
+; ---- 6.5 Symbols -------------------------------------------------------------
 
-(define symbol=?
-  (lambda (x y . xs)
-    (and (eqv? x y)
-         (if (pair? xs)
-             (apply symbol=? y xs)
-             #t))))
+; ---- 6.6 Characters ----------------------------------------------------------
 
-; ------------------------------------------------------------------------------
-;  6.6 Characters
-; ------------------------------------------------------------------------------
-
-(define char-compare
-  (lambda (x xs compare)
-    (let rec ((compare compare)
-              (lhs (char->integer x))
-              (xs xs))
-      (if (null? xs) #true
-          (let ((rhs (char->integer (car xs))))
-            (and (compare lhs rhs)
-                 (rec compare rhs (cdr xs))))))))
+(define (char-compare x xs compare)
+  (let rec ((compare compare)
+            (lhs (char->integer x))
+            (xs xs))
+    (if (null? xs) #t
+        (let ((rhs (char->integer (car xs))))
+          (and (compare lhs rhs)
+               (rec compare rhs (cdr xs)))))))
 
 (define (char=?  x . xs) (char-compare x xs =))
 (define (char<?  x . xs) (char-compare x xs <))
@@ -787,15 +626,14 @@
 (define (char<=? x . xs) (char-compare x xs <=))
 (define (char>=? x . xs) (char-compare x xs >=))
 
-(define char-ci-compare
-  (lambda (x xs compare)
-    (let rec ((compare compare)
-              (lhs (char->integer (char-downcase x)))
-              (xs xs))
-      (if (null? xs) #true
-          (let ((rhs (char->integer (char-downcase (car xs)))))
-            (and (compare lhs rhs)
-                 (rec compare rhs (cdr xs))))))))
+(define (char-ci-compare x xs compare)
+  (let rec ((compare compare)
+            (lhs (char->integer (char-downcase x)))
+            (xs xs))
+    (if (null? xs) #t
+        (let ((rhs (char->integer (char-downcase (car xs)))))
+          (and (compare lhs rhs)
+               (rec compare rhs (cdr xs)))))))
 
 (define (char-ci=?  x . xs) (char-ci-compare x xs =))
 (define (char-ci<?  x . xs) (char-ci-compare x xs <))
@@ -803,52 +641,41 @@
 (define (char-ci<=? x . xs) (char-ci-compare x xs <=))
 (define (char-ci>=? x . xs) (char-ci-compare x xs >=))
 
-(define char-alphabetic? ;                                         (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\a)
-          (char->integer (char-downcase x))
-        #,(char->integer #\z))))
+(define (char-alphabetic? x)
+  (<= #,(char->integer #\a)
+        (char->integer (char-downcase x))
+      #,(char->integer #\z)))
 
-(define char-numeric? ;                                            (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\0)
-          (char->integer x)
-        #,(char->integer #\9))))
+(define (char-numeric? x)
+  (<= #,(char->integer #\0)
+        (char->integer x)
+      #,(char->integer #\9)))
 
-(define char-whitespace? ;                                         (scheme char)
-  (lambda (x)
-    (or (eqv? x #\space)
-        (eqv? x #\tab)
-        (eqv? x #\newline)
-        (eqv? x #\return))))
+(define (char-whitespace? x)
+  (or (eqv? x #\space)
+      (eqv? x #\tab)
+      (eqv? x #\newline)
+      (eqv? x #\return)))
 
-(define char-upper-case? ;                                         (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\A)
-          (char->integer x)
-        #,(char->integer #\Z))))
+(define (char-upper-case? x)
+  (<= #,(char->integer #\A)
+        (char->integer x)
+      #,(char->integer #\Z)))
 
-(define char-lower-case? ;                                         (scheme char)
-  (lambda (x)
-    (<= #,(char->integer #\a)
-          (char->integer x)
-        #,(char->integer #\z))))
+(define (char-lower-case? x)
+  (<= #,(char->integer #\a)
+        (char->integer x)
+      #,(char->integer #\z)))
 
-(define char-downcase
-  (lambda (c)
-    (if (char-lower-case? c) c
-        (integer->char (+ (char->integer c) 32)))))
+(define (char-downcase c)
+  (if (char-lower-case? c) c
+      (integer->char (+ (char->integer c) 32))))
 
-(define char-upcase
-  (lambda (c)
-    (if (char-upper-case? c) c
-        (integer->char (- (char->integer c) 32)))))
+(define (char-upcase c)
+  (if (char-upper-case? c) c
+      (integer->char (- (char->integer c) 32))))
 
-(define char-foldcase char-downcase)
-
-; ------------------------------------------------------------------------------
-;  6.7 Strings
-; ------------------------------------------------------------------------------
+; ---- 6.7 Strings -------------------------------------------------------------
 
 (define (string . xs) (list->string xs))
 
@@ -858,66 +685,33 @@
 (define (string-ci<=? . xs) (apply string<=? (map string-foldcase xs)))
 (define (string-ci>=? . xs) (apply string>=? (map string-foldcase xs)))
 
-(define (string-upcase   x) (string-map char-upcase   x))
-(define (string-downcase x) (string-map char-downcase x))
-(define (string-foldcase x) (string-map char-foldcase x))
-
 (define substring string-copy)
 
-; string-copy!
+(define (string-fill! s c . o)
+  (let ((start (if (and (pair? o)
+                        (exact-integer? (car o)))
+                   (car o)
+                   0))
+        (end (if (and (pair? o)
+                      (pair? (cdr o))
+                      (exact-integer? (cadr o)))
+                 (cadr o)
+                 (string-length s))))
+    (let rec ((k (- end 1)))
+      (if (<= start k)
+          (begin (string-set! s k c)
+                 (rec (- k 1)))))))
 
-(define string-fill!
-  (lambda (s c . o)
-    (let ((start (if (and (pair? o)
-                          (exact-integer? (car o)))
-                     (car o)
-                     0))
-          (end (if (and (pair? o)
-                        (pair? (cdr o))
-                        (exact-integer? (cadr o)))
-                   (cadr o)
-                   (string-length s))))
-      (let rec ((k (- end 1)))
-        (if (<= start k)
-            (begin (string-set! s k c)
-                   (rec (- k 1))))))))
+; ---- 6.8. Vectors ------------------------------------------------------------
 
-; ------------------------------------------------------------------------------
-;  6.9 Standard Bytevectors Library
-; ------------------------------------------------------------------------------
+; ---- 6.9. Bytevectors --------------------------------------------------------
 
-(define bytevector?
-  (lambda (x) #false))
+; ---- 6.10. Control features --------------------------------------------------
 
-; ------------------------------------------------------------------------------
-;  6.10 Control features (Part 2 of 2)
-; ------------------------------------------------------------------------------
-
-(define procedure?
-  (lambda (x)
-    (or (native-procedure? x) ; TODO RENAME TO primitive?
-        (closure? x)
-        (continuation? x) )))
-
-(define (string-map f x . xs)
-
-  (define (string-map-1 x)
-    (list->string
-      (map f (string->list x))))
-
-  (define (string-map-n xs)
-    (map list->string
-         (map (lambda (c) (map f c))
-              (map string->list xs))))
-
-  (if (null? xs)
-      (string-map-1 x)
-      (string-map-n (cons x xs))))
-
-; TODO vector-map
-
-; TODO string-for-each
-; TODO vector-for-each
+(define (procedure? x)
+  (or (native-procedure? x)
+      (closure? x)
+      (continuation? x)))
 
 (define dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
@@ -930,13 +724,11 @@
      result) ; TODO (apply values result)
    (thunk)))
 
-(define call-with-current-continuation ; overwrite
+(define call-with-current-continuation
   ((lambda (call/cc)
      (lambda (procedure)
-
        (define (windup! from to)
          (set! dynamic-extents from)
-
          (if (eq? from to) #t
          (if (null? from)
              (begin (windup! from (cdr to))
@@ -947,9 +739,7 @@
              (begin ((cdar from))
                     (windup! (cdr from) (cdr to))
                     ((caar to))))))
-
          (set! dynamic-extents to))
-
        ((lambda (current-dynamic-extents)
           (call/cc (lambda (k1)
                      (procedure (lambda (k2)
@@ -957,314 +747,146 @@
                                   (k1 k2))))))
         dynamic-extents)))
    (lambda (procedure)
-     (call-with-current-continuation procedure))))
+     (call-with-current-continuation procedure)))) ; primitive call/cc
 
-(define call/cc call-with-current-continuation)
+; (define values
+;   (lambda xs
+;     (call-with-current-continuation
+;       (lambda (cc)
+;         (apply cc xs)))))
 
-; ------------------------------------------------------------------------------
-;  6.11 Standard Exceptions Library
-; ------------------------------------------------------------------------------
+(define values-tag (list 'values)) ; Magic Token Trick
 
-; TODO with-exception-handler
-; TODO raise ; SRFI-18
-; TODO raise-continuable
+(define (values? x)
+  (if (pair? x)
+      (eq? (car x) values-tag)
+      #f))
 
-(define error ; SRFI-23
-  (lambda (message . irritants)
-    (display "error: ")
-    (display message)
-    (for-each (lambda (each)
-                (display " ")
-                (write each))
-              irritants)
-    (newline)
-    (exit 1)))
+(define (values . xs)
+  (if (if (null? xs) #f
+          (null? (cdr xs)))
+      (car xs)
+      (cons values-tag xs)))
 
-(define (error-object? x) #false)
+; (define (call-with-values producer consumer) ; TODO
+;   (let-values ((xs (producer)))
+;     (apply consumer xs)))
 
-; TODO error-object-message
-; TODO error-object-irritants
-; TODO read-error?
-; TODO file-error?
+(define (call-with-values producer consumer)
+  ((lambda (vs)
+     (if (values? vs)
+         (apply consumer (cdr vs))
+         (consumer vs)))
+   (producer)))
 
-; ------------------------------------------------------------------------------
-;  6.12 Standard Environments and Evaluation Library
-; ------------------------------------------------------------------------------
+; ---- 6.11. Exceptions --------------------------------------------------------
 
-; TODO scheme-report-environment
-; TODO null-environment
+; ---- 6.12. Environments and evaluation ---------------------------------------
 
-(define (current-environment) (fork/csc identity))
+; ---- 6.13. Input and output --------------------------------------------------
 
-; (define current-lexical-environment ; deprecated
-;   (lambda ()
-;     (cdar (fork/csc
-;             (lambda ()
-;              '())))))
-;
-; (define interaction-environment ; deprecated
-;   (lambda ()
-;     (cdr (fork/csc
-;            (lambda ()
-;             '())))))
+(define (call-with-port port procedure) (procedure port)) ; R7RS
 
-; ------------------------------------------------------------------------------
-;  SRFI-39
-; ------------------------------------------------------------------------------
+(define (call-with-input-file path procedure)
+  (call-with-port (open-input-file path) procedure))
 
-(define dynamic-environment '())
+(define (call-with-output-file path procedure)
+  (call-with-port (open-output-file path) procedure))
 
-(define make-parameter
-  (lambda (init . converter)
-    (let* ((convert
-             (if (null? converter)
-                 (lambda (x) x)
-                 (car converter)))
-           (global-dynamic-environment
-             (cons #f (convert init))))
+(define (input-standard-port? x)
+  (eq? x (input-standard-port)))
 
-      (define dynamic-lookup
-        (lambda (parameter global-dynamic-environment)
-          (or (assq parameter dynamic-environment) global-dynamic-environment)))
+(define (output-standard-port? x)
+  (eq? x (output-standard-port)))
 
-      (define parameter
-        (lambda value
-          (let ((binding
-                  (dynamic-lookup parameter global-dynamic-environment)))
-            (cond ((null? value)
-                   (cdr binding))
-                  ((null? (cdr value))
-                   (set-cdr! binding (convert (car value))))
-                  (else (convert (car value)))))))
+(define (error-standard-port? x)
+  (eq? x (error-standard-port)))
 
-      (set-car! global-dynamic-environment parameter)
-      parameter)))
+(define (standard-port? x)
+  (or (input-standard-port? x)
+      (output-standard-port? x)
+      (error-standard-port? x)))
 
-(define parameterize-aux
-  (lambda (parameters values body)
-    (let* ((saved dynamic-environment)
-           (bindings
-             (map (lambda (parameter value)
-                    (cons parameter (parameter value #f)))
-                  parameters
-                  values)))
-      (dynamic-wind
-        (lambda () (set! dynamic-environment (append bindings saved)))
-        body
-        (lambda () (set! dynamic-environment                  saved))))))
+(define (input-port? x)
+  (or (input-file-port? x)
+      (input-string-port? x)
+      (input-standard-port? x)))
 
-(define-syntax parameterize
-  (er-macro-transformer
-    (lambda (form rename compare)
-      (let* ((bindings (cadr form))
-             (body (cddr form)))
-        `(parameterize-aux
-           (list ,@(map  car bindings))
-           (list ,@(map cadr bindings))
-           (lambda () ,@body))))))
+(define (output-port? x)
+  (or (output-file-port? x)
+      (output-string-port? x)
+      (output-standard-port? x)
+      (error-standard-port? x)))
 
-; ------------------------------------------------------------------------------
-;  6.13 Standard Input and Output Library
-; ------------------------------------------------------------------------------
+(define (close-port x)
+  (cond ((input-port? x) (close-input-port x))
+        ((output-port? x) (close-output-port x))
+        (else (unspecified))))
 
-(define  input-standard-port? (lambda (x) (eq? x ( input-standard-port))))
-(define output-standard-port? (lambda (x) (eq? x (output-standard-port))))
-(define  error-standard-port? (lambda (x) (eq? x ( error-standard-port))))
+(define (close-input-port x)
+  (cond ((input-file-port? x)
+         (close-input-file-port x))
+        (else (unspecified))))
 
+(define (close-output-port x)
+  (cond ((output-file-port? x)
+         (close-output-file-port x))
+        (else (unspecified))))
 
-(define call-with-port
-  (lambda (port procedure)
-    (procedure port)))
+(define (read        x) (::read        (if (pair? x) (car x) (current-input-port))))
+(define (read-char   x) (::read-char   (if (pair? x) (car x) (current-input-port))))
+(define (peek-char   x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
+(define (char-ready? x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
 
-(define call-with-input-file
-  (lambda (path procedure)
-    (call-with-port (open-input-file path) procedure)))
-
-(define call-with-output-file
-  (lambda (path procedure)
-    (call-with-port (open-output-file path) procedure)))
-
-
-(define input-port?
-  (lambda (x)
-    (or (input-file-port? x)
-        (input-string-port? x)
-        (input-standard-port? x))))
-
-(define output-port?
-  (lambda (x)
-    (or (output-file-port? x)
-        (output-string-port? x)
-        (output-standard-port? x)
-        (error-standard-port? x))))
-
-(define textual-port?
-  (lambda (x)
-    (or (input-file-port? x)
-        (input-string-port? x)
-        (input-standard-port? x)
-        (output-file-port? x)
-        (output-string-port? x)
-        (output-standard-port? x)
-        (error-standard-port? x))))
-
-(define binary-port?
-  (lambda (x) #f))
-
-(define port?
-  (lambda (x)
-    (or (input-port? x)
-        (output-port? x))))
-
-
-(define input-port-open?
-  (lambda (x)
-    (cond ((input-file-port? x)
-           (input-file-port-open? x))
-          ((input-string-port? x) #t)
-          ((input-standard-port? x) #t)
-          (else #f))))
-
-(define output-port-open?
-  (lambda (x)
-    (cond ((output-file-port? x)
-           (output-file-port-open? x))
-          ((output-string-port? x) #t)
-          ((output-standard-port? x) #t)
-          ((error-standard-port? x) #t)
-          (else #f))))
-
-
-(define current-input-port
-  (make-parameter (input-standard-port)
-    (lambda (x)
-      (cond ((not (input-port? x))
-             (error "current-input-port: not input-port" x))
-            ((not (input-port-open? x))
-             (error "current-input-port: not input-port-open" x))
-            (else x)))))
-
-(define current-output-port
-  (make-parameter (output-standard-port)
-    (lambda (x)
-      (cond ((not (output-port? x))
-             (error "current-output-port: not output-port" x))
-            ((not (output-port-open? x))
-             (error "current-output-port: not output-port-open" x))
-            (else x)))))
-
-(define current-error-port
-  (make-parameter (error-standard-port)
-    (lambda (x)
-      (cond ((not (output-port? x))
-             (error "current-error-port: not output-port" x))
-            ((not (output-port-open? x))
-             (error "current-error-port: not output-port-open" x))
-            (else x)))))
-
-
-(define with-input-from-file
-  (lambda (string thunk)
-    (parameterize ((current-input-port (open-input-file string)))
-      (thunk))))
-
-(define with-output-to-file
-  (lambda (string thunk)
-    (parameterize ((current-output-port (open-output-file string)))
-      (thunk))))
-
-
-(define close-port
-  (lambda (x)
-    (cond (( input-port? x) ( close-input-port x))
-          ((output-port? x) (close-output-port x))
-          (else (unspecified)))))
-
-(define close-input-port
-  (lambda (x)
-    (cond ((input-file-port? x)
-           (close-input-file-port x))
-          (else (unspecified)))))
-
-(define close-output-port
-  (lambda (x)
-    (cond ((output-file-port? x)
-           (close-output-file-port x))
-          (else (unspecified)))))
-
-
-; TODO open-input-bytevector
-; TODO open-output-bytevector
-; TODO get-output-bytevector
-
-
-(define read        (lambda x (::read        (if (pair? x) (car x) (current-input-port)))))
-(define read-char   (lambda x (::read-char   (if (pair? x) (car x) (current-input-port)))))
-(define peek-char   (lambda x (::peek-char   (if (pair? x) (car x) (current-input-port)))))
-(define char-ready? (lambda x (::char-ready? (if (pair? x) (car x) (current-input-port)))))
-
-(define write-simple
-  (lambda (datum . port)
-    (let ((port (if (pair? port)
-                    (car port)
-                    (current-output-port))))
-      (::write-simple datum port))))
+(define (write-simple datum . port)
+  (::write-simple datum (if (pair? port)
+                            (car port)
+                            (current-output-port))))
 
 (define write write-simple)
 
-(define display
-  (lambda (datum . port)
-    (cond ((char?   datum) (apply write-char    datum port))
-          ((string? datum) (apply write-string  datum port))
-          ((path?   datum) (apply write-path    datum port))
-          (else            (apply write         datum port)))))
+(define (display datum . port)
+  (cond ((char?   datum) (apply write-char    datum port))
+        ((string? datum) (apply write-string  datum port))
+        ((path?   datum) (apply write-path    datum port))
+        (else            (apply write         datum port))))
 
-(define newline
-  (lambda xs
-    (apply write-char #\newline xs)))
+(define (newline . port)
+  (apply write-char #\newline port))
 
-(define write-char
-  (lambda (char . port)
-    (::write-char char (if (pair? port)
-                           (car port)
-                           (current-output-port)))))
+(define (write-char char . port)
+  (::write-char char (if (pair? port)
+                         (car port)
+                         (current-output-port))))
 
-(define write-string
-  (lambda (string . xs)
-    (case (length xs)
-      ((0)  (::write-string string (current-output-port)))
-      ((1)  (::write-string string (car xs)))
-      (else (::write-string (apply string-copy string (cadr xs)) (car xs))))))
-
-(define write-path
-  (lambda (path . x)
-    (::write-path path (if (pair? x)
-                           (car x)
-                           (current-output-port)))))
-
-; TODO write-u8
-; TODO write-bytevector
-
-(define flush-output-port
-  (lambda port
-    (::flush-output-port (if (pair? port)
-                             (car port)
-                             (current-output-port)))))
-
+; ---- 6.14. System interface --------------------------------------------------
 
 ; ------------------------------------------------------------------------------
-;  6.14 Standard System Interface Library
+;       ...          =>                                           assoc assq
+; assv                     caaaar caaadr       caadar caaddr            cadaar
+; cadadr       caddar cadddr
+;                                                                      cdaaar
+; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
+;
+;
+;
+;
+; current-input-port current-output-port                      delay
+;                         else
+;                                      for-each force
+;
+; interaction-environment            length          let-syntax
+; letrec-syntax                                list-ref list-tail list?
+;
+;                                            null-environment
+;
+;
+;
+; scheme-report-environment
+;
+;
+;
+;                                  syntax-rules
+;
+; with-input-from-file with-output-to-file
 ; ------------------------------------------------------------------------------
-
-; TODO file-exists?
-; TODO delete-file
-; TODO command-line
-
-(define exit emergency-exit) ;                          (scheme process-context)
-
-; TODO get-environment-variable
-; TODO get-environment-variables
-
-; TODO current-second
-; TODO current-jiffy
-; TODO jiffies-per-second
