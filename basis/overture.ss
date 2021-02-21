@@ -1,3 +1,4 @@
+; ------------------------------------------------------------------------------
 ;       ...          =>      abs      and angle append apply      assoc assq
 ; assv            boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar
 ; cadadr cadar caddar cadddr caddr cadr call-with-current-continuation
@@ -25,6 +26,7 @@
 ; substring                        syntax-rules              values
 ;
 ; with-input-from-file with-output-to-file write write-char zero?
+; ------------------------------------------------------------------------------
 
 (define (list . xs) xs)
 
@@ -138,7 +140,6 @@
                 (list (car x)))))
 
 (define (append . xs) ; redefine
-
   (define (append-aux x xs)
     (if (null? x) xs
         (append-aux (cdr xs)
@@ -151,7 +152,6 @@
        (reverse xs))))
 
 (define-syntax (quasiquote template)
-
   (define (expand x depth)
     (cond
       ((pair? x)
@@ -200,7 +200,6 @@
 (define-syntax (unless test . body) `(,if (,not ,test) (,begin ,@body))) ; TODO MOVE INTO (scheme base)
 
 (define (map f x . xs) ; map-unorder
-
     (define (map-1 f x xs)
       (if (pair? x)
           (map-1 f
@@ -220,7 +219,6 @@
         (map-2+ f (cons x xs) '())))
 
 (define (apply f x . xs) ; for map
-
   (define (apply-1 f xs) (f . xs))
 
   (if (null? xs)
@@ -232,7 +230,6 @@
        (reverse (cons x xs)))))
 
 (define (every f x . xs) ; from SRFI-1 for map
-
   (define (every-1 f x)
     (if (null? (cdr x))
         (f (car x))
@@ -250,7 +247,6 @@
                   x xs))))
 
 (define (any f x . xs) ; from SRFI-1 for every
-
   (define (any-1 f x)
     (if (pair? (cdr x))
         ((lambda (result)
@@ -311,7 +307,6 @@
 (define (memv o x) (member o x eqv?))
 
 (define-syntax (case key . clauses)
-
   (define (body expressions)
     (cond
       ((null? expressions) result)
@@ -352,6 +347,7 @@
                        (,if ,result ,result ,body))
                 `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
 
+; ------------------------------------------------------------------------------
 ;       ...          =>      abs      and angle append apply      assoc assq
 ; assv            boolean? caaaar caaadr       caadar caaddr            cadaar
 ; cadadr       caddar cadddr            call-with-current-continuation
@@ -379,6 +375,7 @@
 ; substring                        syntax-rules              values
 ;
 ; with-input-from-file with-output-to-file write write-char zero?
+; ------------------------------------------------------------------------------
 
 ; ---- 6.1. Equivalence predicates ---------------------------------------------
 
@@ -391,6 +388,79 @@
                    (cdr y)))
       (eqv? x y)))
 
+; ---- 6.2. Numbers ------------------------------------------------------------
+
+; .
+; `-- number?
+;      `-- complex?
+;           |-- %complex?
+;           `-- real?
+;                |-- floating-point?
+;                |    |-- single-float?
+;                |    `-- double-float?
+;                `-- rational?
+;                     |-- ratio?
+;                     `-- integer?
+;                          |-- inexact-integer?
+;                          `-- exact-integer?
+
+(define (number? x) (complex? x))
+
+(define (complex? x)
+  (or (%complex? x)
+      (real? x)))
+
+(define (real? x)
+  (or (floating-point? x)
+      (rational? x)))
+
+(define (floating-point? z)
+  (or (single-float? z)
+      (double-float? z)))
+
+(define (rational? x)
+  (or (ratio? x)
+      (integer? x)))
+
+(define (integer? x)
+  (or (exact-integer? x) ; TODO ratio e.g. 3/1 is integer.
+      (inexact-integer? x)))
+
+(define (inexact-integer? x)
+  (and (floating-point? x)
+       (= x (truncate x))))
+
+;  .
+;  |-- exact?
+;  |    |-- exact-complex?
+;  |    |-- exact-integer?
+;  |    `-- ratio?
+;  `-- inexact?
+;       |-- inexact-complex?
+;       `-- floating-point?
+;            |--- single-float?
+;            `--- single-float?
+
+(define (exact? z)
+  (or (exact-integer? z)
+      (ratio? z)
+      (exact-complex? z)))
+
+(define (exact-complex? x) ; TODO move into r7rs.ss
+  (and (%complex? x)
+       (exact? (real-part x))
+       (exact? (imag-part x))))
+
+(define (inexact? z)
+  (or (floating-point? z)
+      (inexact-complex? z)))
+
+(define (inexact-complex? x)
+  (and (%complex? x)
+       (or (inexact? (real-part x))
+           (inexact? (imag-part x)))))
+
+; ------------------------------------------------------------------------------
 ;       ...          =>      abs      and angle append apply      assoc assq
 ; assv            boolean? caaaar caaadr       caadar caaddr            cadaar
 ; cadadr       caddar cadddr            call-with-current-continuation
@@ -399,18 +469,18 @@
 ;                                char-alphabetic? char-ci<=? char-ci<? char-ci=?
 ; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
 ; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
-; char>?       close-input-port close-output-port complex?
+; char>?       close-input-port close-output-port
 ; current-input-port current-output-port                      delay denominator
 ; display    dynamic-wind else                                  even?
-;                exact?                for-each force gcd    imag-part
-;                inexact? input-port?               integer?
+;                                      for-each force gcd    imag-part
+;                         input-port?
 ; interaction-environment        lcm length          let-syntax letrec
 ; letrec-syntax                                list-ref list-tail list?
 ; magnitude make-polar make-rectangular                             max
 ;           min modulo negative? newline     null-environment
-;                number? numerator odd?
+;                        numerator odd?
 ; output-port?       peek-char positive? procedure?                  quotient
-; rational? rationalize read read-char real-part real? remainder
+;           rationalize read read-char real-part       remainder
 ; scheme-report-environment                                 string
 ;                                             string-ci<=? string-ci<?
 ; string-ci=? string-ci>=? string-ci>?             string-fill!
@@ -418,105 +488,12 @@
 ; substring                        syntax-rules              values
 ;
 ; with-input-from-file with-output-to-file write write-char zero?
-
-
-; ------------------------------------------------------------------------------
-;  6.2 Standard Numerical Library (Part 2 of 2)
 ; ------------------------------------------------------------------------------
 
-; number?
-;  `-- complex?
-;       |-- %complex?
-;       `-- real?
-;            |-- floating-point?
-;            |    |-- single-float?
-;            |    `-- double-float?
-;            `-- rational?
-;                 |-- ratio?
-;                 `-- integer?
-;                      `-- exact-integer?
-
-(define floating-point?
-  (lambda (z)
-    (or (single-float? z)
-        (double-float? z))))
-
-(define real?
-  (lambda (x)
-    (or (floating-point? x)
-        (rational? x))))
-
-(define rational?
-  (lambda (x)
-    (or (ratio? x)
-        (integer? x))))
-
-(define irrational?
-  (lambda (x) #f))
-
-(define almost-exact-floating-point?
-  (lambda (x)
-    (and (floating-point? x)
-         (= x (truncate x)))))
-
-(define integer?
-  (lambda (x)
-    (or (exact-integer? x)
-        (almost-exact-floating-point? x))))
-
-;  .
-;  |-- exact?
-;  |    |-- exact-complex?
-;  |    |-- exact-integer? .............................................. atomic
-;  |    `-- ratio? ...................................................... atomic
-;  `-- inexact?
-;       |-- floating-point?
-;       |    |--- single-float? ......................................... atomic
-;       |    `--- single-float? ......................................... atomic
-;       `-- inexact-complex?
-
-(define exact?
-  (lambda (z)
-    (or (exact-integer? z)
-        (ratio? z)
-        (exact-complex? z))))
-
-(define exact-complex?
-  (lambda (x)
-    (and (COMPLEX? x)
-         (exact? (real-part x))
-         (exact? (imag-part x)))))
-
-(define inexact?
-  (lambda (z)
-    (or (floating-point? z)
-        (inexact-complex? z))))
-
-(define inexact-complex?
-  (lambda (x)
-    (and (COMPLEX? x)
-         (inexact? (real-part x))
-         (inexact? (imag-part x)))))
-
-(define complex?
-  (lambda (x)
-    (or (exact? x)
-        (inexact? x))))
-
-(define number? complex?)
-
-(define finite?
-  (lambda (z)
-    (not (infinite? z))))
-
-(define infinite?
-  (lambda (z)
-    (or (= +inf.0 z)
-        (= -inf.0 z))))
 
 (define nan?
   (lambda (z)
-    (if (COMPLEX? z)
+    (if (%complex? z)
         (or (ieee-nan? (real-part z))
             (ieee-nan? (imag-part z)))
         (ieee-nan? z))))
@@ -691,11 +668,11 @@
 
 (define real-part
   (lambda (z)
-    (if (COMPLEX? z) (car z) z)))
+    (if (%complex? z) (car z) z)))
 
 (define imag-part
   (lambda (z)
-    (if (COMPLEX? z) (cdr z) 0)))
+    (if (%complex? z) (cdr z) 0)))
 
 (define magnitude
   (lambda (z)
