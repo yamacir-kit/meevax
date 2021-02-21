@@ -61,6 +61,8 @@
 
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
 
+(define list-tail drop) ; from SRFI-1
+
 (define (list-set! x k object) (set-car! (list-tail x k) object))
 
 ; ---- 6.5 Symbols -------------------------------------------------------------
@@ -242,6 +244,34 @@
 ; TODO current-jiffy
 ; TODO jiffies-per-second
 
+; ------------------------------------------------------------------------------
+;       ...          =>
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;                         else
+;
+;
+; interaction-environment                            let-syntax
+; letrec-syntax
+;
+;                                            null-environment
+;
+;
+;
+; scheme-report-environment
+;
+;
+;
+;                                  syntax-rules
+;
+;
 ; ------------------------------------------------------------------------------
 
 (define (current-environment) (fork/csc identity))
