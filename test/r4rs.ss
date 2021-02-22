@@ -1,5 +1,3 @@
-(check-set-mode! 'report)
-
 (check (* 5 8) => 40)
 
 ;;; The FACT procedure computes the factorial
@@ -665,4 +663,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))

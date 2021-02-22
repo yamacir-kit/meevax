@@ -226,7 +226,7 @@ enable_testing()
 add_test(
   NAME r4rs
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
+          # ${CMAKE_CURRENT_SOURCE_DIR}/basis/experimental/srfi-78.ss
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
 
 add_test(

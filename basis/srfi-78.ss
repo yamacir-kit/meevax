@@ -69,7 +69,7 @@
 ; -- state --
 
 (define check:correct #f)
-(define check:failed   #f)
+(define check:failed #f)
 
 (define (check-reset!)
   (set! check:correct 0)
@@ -133,7 +133,7 @@
               (check:report-failed expected-result))))))
 
 (define (check-passed? expected-total-count)
-  (and (= (length check:failed) 0)
+  (and (zero? (length check:failed))
        (= check:correct expected-total-count)))
 
 ; -- simple checks --
@@ -178,13 +178,10 @@
 ;          (check:proc 'expr (lambda () expr) equal expected)))))
 
 (define-syntax (check expr rule expected)
-  (cond ((and (identifier? rule)
-              (identifier=? => rule))
+  (cond ((free-identifier=? => rule)
          `(,check ,expr (,=> ,equal?) ,expected))
 
-        ((and (pair? rule)
-              (identifier=? => (car rule))
-              (identifier? (cadr rule)))
+        ((free-identifier=? => (car rule))
          (if (<= 1 check:mode)
              `(,check:proc ',expr (,lambda () ,expr) ,(cadr rule) ',expected)))
 

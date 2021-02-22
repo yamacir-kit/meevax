@@ -1640,6 +1640,7 @@ inline namespace kernel
       srfi_1, // (scheme list)
       srfi_39,
       srfi_45, // (scheme lazy)
+      srfi_78,
       r7rs,
     };
 
