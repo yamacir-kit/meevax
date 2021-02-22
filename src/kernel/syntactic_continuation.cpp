@@ -1658,6 +1658,7 @@ inline namespace kernel
       srfi_8, // for srfi-1
       srfi_1, // (scheme list)
       srfi_23,
+      srfi_34,
       srfi_39,
       srfi_45, // (scheme lazy)
       srfi_78,

@@ -117,7 +117,7 @@
 ; TODO raise ; SRFI-18
 ; TODO raise-continuable
 
-(define (error-object? x) #false)
+(define (error-object? x) #f)
 
 ; TODO error-object-message
 ; TODO error-object-irritants
