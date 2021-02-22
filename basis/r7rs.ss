@@ -117,16 +117,6 @@
 ; TODO raise ; SRFI-18
 ; TODO raise-continuable
 
-(define (error message . irritants) ; SRFI-23
-  (display "error: ")
-  (display message)
-  (for-each (lambda (each)
-              (display " ")
-              (write each))
-            irritants)
-  (newline)
-  (exit 1))
-
 (define (error-object? x) #false)
 
 ; TODO error-object-message
