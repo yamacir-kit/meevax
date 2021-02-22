@@ -5,9 +5,9 @@
 #include <typeindex>
 
 #include <boost/math/constants/constants.hpp>
-
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/floating_point.hpp>
 #include <meevax/kernel/ratio.hpp>

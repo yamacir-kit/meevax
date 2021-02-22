@@ -2,6 +2,10 @@
 #define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 
 #include <meevax/functional/identity.hpp>
+#include <meevax/posix/vt10x.hpp>
+#include <meevax/string/cat.hpp>
+#include <meevax/utility/hexdump.hpp>
+#include <meevax/utility/requires.hpp>
 
 #define NIL /* nothing */
 
@@ -25,6 +29,12 @@ inline namespace kernel
 
   template <typename... Ts>
   using define = typename identity<Ts...>::type;
+
+  template <typename... Ts>
+  auto make_error(Ts&&... xs)
+  {
+    return std::runtime_error(cat(std::forward<decltype(xs)>(xs)...));
+  }
 } // namespace kernel
 } // namespace meevax
 

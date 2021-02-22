@@ -233,7 +233,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("no viable conversion from ", demangle(binding().type()), " to ", demangle(typeid(U)));
+        throw make_error("no viable conversion from ", demangle(binding().type()), " to ", demangle(typeid(U)));
       }
     }
 
@@ -290,7 +290,7 @@ inline namespace kernel
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      throw error("no viable operation '" #SYMBOL " with ", a, " and ", b);    \
+      throw make_error("no viable operation '" #SYMBOL " with ", a, " and ", b); \
     }                                                                          \
   } static_assert(true)
 

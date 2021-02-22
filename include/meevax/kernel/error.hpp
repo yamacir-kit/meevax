@@ -1,14 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
-#include <iomanip>
-#include <stdexcept>
-#include <utility>
-
-#include <meevax/kernel/preface.hpp>
-#include <meevax/posix/vt10x.hpp>
-#include <meevax/string/cat.hpp>
-#include <meevax/utility/hexdump.hpp>
+#include <meevax/kernel/object.hpp>
 
 /* ---- Error ------------------------------------------------------------------
  *

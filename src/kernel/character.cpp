@@ -1,4 +1,5 @@
 #include <meevax/kernel/character.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/parser.hpp>
 #include <meevax/posix/vt10x.hpp>

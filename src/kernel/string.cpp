@@ -1,6 +1,7 @@
 #include <iomanip>
 
 #include <meevax/iostream/ignore.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/parser.hpp>
 #include <meevax/kernel/string.hpp>
