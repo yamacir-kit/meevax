@@ -1,3 +1,4 @@
+#include <boost/cstdlib.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/range/adaptor/reversed.hpp>
@@ -1583,18 +1584,36 @@ inline namespace kernel
       return load(car(xs).as<const string>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (emergency-exit)                      process-context library procedure
+     *  (emergency-exit obj)                  process-context library procedure
+     *
+     *  Terminates the program without running any outstanding dynamic-wind
+     *  after procedures and communicates an exit value to the operating system
+     *  in the same manner as exit.
+     *
+     *  NOTE: The emergency-exit procedure corresponds to the exit procedure in
+     *  Windows and Posix.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("emergency-exit", [](let const& xs)
     {
-      if (xs.is<null>() or not car(xs).is<exact_integer>())
+      if (not xs.is<pair>() or eq(car(xs), t))
       {
         std::exit(boost::exit_success);
       }
-      else
+      else if (car(xs).is<exact_integer>())
       {
         std::exit(car(xs).as<exact_integer>().to<int>());
       }
+      else
+      {
+        std::exit(boost::exit_failure);
+      }
 
-      return unspecified;
+      return unspecified; // NOTE: Dummy. This function is never returns.
     });
 
     define<procedure>("linker", [](auto&& xs)

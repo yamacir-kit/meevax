@@ -63,4 +63,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check:correct) 0 1))
+(emergency-exit (check-passed? check:correct))

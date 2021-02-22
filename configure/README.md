@@ -75,6 +75,7 @@ An subset of R7RS-small.
 |  [39](https://srfi.schemers.org/srfi-39/srfi-39.html) | Parameter objects                                        | built-in    | R7RS 4.2.6 |
 |  [45](https://srfi.schemers.org/srfi-45/srfi-45.html) | Primitives for Expressing Iterative Lazy Algorithms      | built-in    | [#296](https://github.com/yamacir-kit/meevax/issues/296)
 |  [62](https://srfi.schemers.org/srfi-62/srfi-62.html) | S-expression comments                                    | built-in    | R7RS 2.2   |
+|  [78](https://srfi.schemers.org/srfi-78/srfi-78.html) | Lightweight testing                                      | built-in    | Except `check-ec`
 |  [87](https://srfi.schemers.org/srfi-87/srfi-87.html) | => in case clauses                                       | built-in    | R7RS 4.2.1 |
 
 <br/>
