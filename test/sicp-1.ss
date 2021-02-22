@@ -1,5 +1,3 @@
-(check-set-mode! 'report)
-
 ; ---- Section 1.1.1 -----------------------------------------------------------
 
 (check 486 => 486)
@@ -480,8 +478,6 @@
   )
 
 
-; SRFI-78
-
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))

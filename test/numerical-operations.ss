@@ -1,7 +1,3 @@
-; ---- SRFI-78 -----------------------------------------------------------------
-
-(check-set-mode! 'report)
-
 ; ---- 6.2.6. Numerical operations ---------------------------------------------
 
 (check (rational? 1/3) => #t)
@@ -67,4 +63,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))

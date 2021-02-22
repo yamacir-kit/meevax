@@ -1,4 +1,4 @@
-; ==== Chibi-Scheme's Basic Tests ==============================================
+; ---- Chibi-Scheme's Basic Tests ----------------------------------------------
 ;
 ; NOTE
 ;   Based on Chibi-Scheme's test codes at chibi-scheme/tests/basic/*.scm
@@ -29,9 +29,7 @@
 ;   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 ;   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;
-; ==============================================================================
-
-(check-set-mode! 'report)
+; ------------------------------------------------------------------------------
 
 ; ==== test00-fact-3.scm =======================================================
 
@@ -290,4 +288,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))
