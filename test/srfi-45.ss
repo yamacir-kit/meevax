@@ -1,5 +1,3 @@
-(check-set-mode! 'report)
-
 ;=========================================================================
 ; Memoization test 1:
 
@@ -202,4 +200,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))

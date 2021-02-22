@@ -1,5 +1,3 @@
-(check-set-mode! 'report)
-
 (check
   (call-with-values (lambda () (values 4 5))
                     (lambda (a b) b))
@@ -25,4 +23,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))

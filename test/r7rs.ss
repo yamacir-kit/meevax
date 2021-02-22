@@ -1,9 +1,3 @@
-; ---- SRFI-78 -----------------------------------------------------------------
-
-(check-set-mode! 'report)
-
-; ------------------------------------------------------------------------------
-
 (check (eqv? 2 2.0) => #f)
 (check (eqv? 0.0 +nan.0) => #f)
 
@@ -328,4 +322,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))

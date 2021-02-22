@@ -1,7 +1,3 @@
-(check-set-mode! 'report)
-
-; ------------------------------------------------------------------------------
-
 (check (symbol? (syntax x)) => #f)
 
 ; (check
@@ -199,4 +195,4 @@
 
 (check-report)
 
-(exit (if (check-passed? check::correct) exit-success exit-failure))
+(exit (if (check-passed? check:correct) 0 1))
