@@ -1181,6 +1181,10 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
+    define<procedure>("%throw", [](let const& xs) -> object
+    {
+      throw car(xs);
+    });
 
   /* ---- R7RS 6.12. Environments and evaluation -------------------------------
 
