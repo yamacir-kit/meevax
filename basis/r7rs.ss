@@ -256,7 +256,16 @@
 ;
 ; ------------------------------------------------------------------------------
 
-(define exit emergency-exit)
+(define (exit . normally?)
+  (for-each (lambda (before/after)
+              ((cdr before/after)))
+            dynamic-extents)
+  (emergency-exit normally?))
+
+; (dynamic-wind
+;   (lambda () (display "before\n"))
+;   (lambda () (exit))
+;   (lambda () (display "after\n")))
 
 ; TODO get-environment-variable
 ; TODO get-environment-variables
