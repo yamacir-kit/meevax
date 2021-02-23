@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_NUMERIC_LITERAL_HPP
 
 #include <regex>
-#include <tuple>
 
 #include <meevax/kernel/number.hpp>
 

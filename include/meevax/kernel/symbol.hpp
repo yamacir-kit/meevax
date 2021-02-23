@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 
-#include <string>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax
 {

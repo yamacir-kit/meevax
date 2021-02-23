@@ -1,4 +1,3 @@
-#include <boost/cstdlib.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 int main(const int argc, char const* const* const argv) try

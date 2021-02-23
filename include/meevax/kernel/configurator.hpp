@@ -2,11 +2,11 @@
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
 #include <regex>
-#include <unordered_map>
 
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax

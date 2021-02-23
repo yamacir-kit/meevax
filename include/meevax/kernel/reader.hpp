@@ -1,25 +1,15 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <limits> // std::numeric_limits<std::streamsize>
-#include <sstream>
-#include <stack>
-#include <type_traits>
-
 // #include <boost/iostreams/device/null.hpp>
 // #include <boost/iostreams/stream_buffer.hpp>
 
 #include <boost/lexical_cast.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/kernel/numeric_io.hpp>
 #include <meevax/kernel/parser.hpp> // DEPRECATED
-#include <meevax/kernel/path.hpp>
-#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>

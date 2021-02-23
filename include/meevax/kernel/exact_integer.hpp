@@ -12,7 +12,6 @@
 #endif
 
 #include <meevax/kernel/numeric_tower.hpp>
-#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {

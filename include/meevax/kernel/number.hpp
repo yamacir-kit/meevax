@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <limits> // for epsilon
 #include <typeindex>
 
 #include <boost/math/constants/constants.hpp>

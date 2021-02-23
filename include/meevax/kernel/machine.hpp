@@ -11,7 +11,6 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntax.hpp>
 #include <meevax/string/header.hpp>
-#include <meevax/string/indent.hpp>
 
 namespace meevax
 {

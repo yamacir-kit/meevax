@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 
 /* ---- Error ------------------------------------------------------------------
  *

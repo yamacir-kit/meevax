@@ -1,10 +1,7 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
-#include <functional>
-#include <iomanip>
 #include <memory>
-#include <type_traits>
 
 #include <meevax/kernel/preface.hpp>
 
