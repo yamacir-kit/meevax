@@ -593,34 +593,25 @@ inline namespace kernel
 
     define<procedure>("char->integer", [](let const& xs)
     {
-      if (xs.is<null>())
+      if (xs.is<pair>() and car(xs).is<character>())
       {
-        throw error(
-          cat("Procedure char->integer got ", xs));
-      }
-      else if (let const& x = car(xs); x.is<character>())
-      {
-        return make<exact_integer>(static_cast<codepoint>(x.as<character>()));
+        return make<exact_integer>(static_cast<codepoint>(car(xs).as<character>()));
       }
       else
       {
-        throw error(cat("Procedure char-integer got ", xs));
+        throw make<error_>(make<string>("invalid arguments: "), xs);
       }
     });
 
     define<procedure>("integer->char", [](let const& xs)
     {
-      if (xs.is<null>())
+      if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
-        throw error(cat("Procedure integer->char got ", xs));
-      }
-      else if (let const& x = car(xs); x.is<exact_integer>())
-      {
-        return make<character>(x.as<exact_integer>().to<codepoint>());
+        return make<character>(car(xs).as<exact_integer>().to<codepoint>());
       }
       else
       {
-        throw error(cat("Procedure integer->char got ", xs));
+        throw make<error_>(make<string>("invalid arguments: "), xs);
       }
     });
 
@@ -1440,7 +1431,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("open-input-string: not string", car(xs));
+        throw make<error_>(make<string>("not a string"), car(xs));
       }
     });
 
@@ -1456,7 +1447,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("open-output-string: not string", car(xs));
+        throw make<error_>(make<string>("not a string"), car(xs));
       }
     });
 
@@ -1477,7 +1468,7 @@ inline namespace kernel
       {
         return make<character>(car(xs).as<input_port>());
       }
-      catch (read_error<eof> const&)
+      catch (tagged_read_error_<eof> const&)
       {
         return eof_object;
       }
@@ -1492,7 +1483,7 @@ inline namespace kernel
         car(xs).as<input_port>().seekg(g);
         return c;
       }
-      catch (read_error<eof> const&)
+      catch (tagged_read_error_<eof> const&)
       {
         return eof_object;
       }

@@ -25,7 +25,8 @@ inline namespace kernel
         }
       }
 
-      throw read_error<character>("invalid escape sequence");
+      throw tagged_read_error_<character>(
+        make<string>("invalid escape sequence"), unit);
     };
 
     characters cs;
@@ -69,7 +70,8 @@ inline namespace kernel
       }
     }
 
-    throw read_error<string>("unterminated string");
+    throw tagged_read_error_<string>(
+      make<string>("unterminated string"), unit);
   }
 
   auto string::write_string(output_port & port) const -> output_port &

@@ -19,7 +19,8 @@ inline namespace kernel
 
     if (auto const c = port.peek(); is_eof(c))
     {
-      throw read_error<eof>("exhausted input-port");
+      throw tagged_read_error_<eof>(
+        make<string>("no more characters are available"), unit);
     }
     else if (0b1111'0000 < c)
     {
@@ -62,7 +63,8 @@ inline namespace kernel
 
     if (auto const c = port.peek(); is_eof(c))
     {
-      throw read_error<eof>("no more characters are available");
+      throw tagged_read_error_<eof>(
+        make<string>("no more characters are available"), unit);
     }
     else if (0b1111'0000 < c)
     {

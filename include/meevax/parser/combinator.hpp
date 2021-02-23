@@ -21,7 +21,7 @@ namespace meevax
 
     if (auto const c = port.peek(); is_eof(c))
     {
-      throw read_error<eof>("exhausted input-port");
+      throw tagged_read_error_<eof>("exhausted input-port");
     }
     else if (0b1111'0000 < c)
     {
@@ -58,7 +58,7 @@ namespace meevax
       if (auto const c = get_char(port); check(c))
       {
         port.seekg(g);
-        throw read_error<void>("not satisfy");
+        throw make<read_error_>("not satisfy");
       }
       else
       {

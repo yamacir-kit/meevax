@@ -459,7 +459,7 @@ inline namespace kernel
         }
         else
         {
-          throw error(callee, " is not applicable");
+          throw make<error_>(make<string>("not applicable: "), callee);
         }
         goto dispatch;
 
@@ -488,7 +488,7 @@ inline namespace kernel
         }
         else
         {
-          throw error(callee, " is not applicable");
+          throw make<error_>(make<string>("not applicable: "), callee);
         }
         goto dispatch;
 
@@ -694,7 +694,8 @@ inline namespace kernel
       else
       {
         indent() << indent::width; // XXX DIRTY HACK!
-        throw syntax_error<internal_definition_tag>("definition cannot appear in this context");
+        throw tagged_syntax_error_<internal_definition_tag>(
+          make<string>("definition cannot appear in this context"), unit);
       }
     }
 
@@ -712,7 +713,7 @@ inline namespace kernel
           compile(the_expression_is, syntactic_environment, form, frames, continuation);
           return false;
         }
-        catch (const syntax_error<internal_definition_tag>&)
+        catch (const tagged_syntax_error_<internal_definition_tag>&)
         {
           return true;
         }
@@ -976,7 +977,7 @@ inline namespace kernel
     {
       if (expression.is<null>())
       {
-        throw syntax_error<void>("set!");
+        throw make<syntax_error_>(make<string>("set!"), unit);
       }
       else if (de_bruijn_index index { car(expression), frames }; not index.is<null>())
       {
@@ -1009,7 +1010,9 @@ inline namespace kernel
 
         if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_closure>())
         {
-          throw syntax_error<void>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)");
+          throw make<syntax_error_>(
+            make<string>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"),
+            unit);
         }
         else
         {

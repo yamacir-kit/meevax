@@ -51,7 +51,9 @@ inline namespace kernel
       }
       else
       {
-        throw error("It is an error if any element of vector between start and end is not a character.");
+        throw make<error_>(
+          make<string>("It is an error if any element of vector between start and end is not a character."),
+          unit);
       }
     }
 

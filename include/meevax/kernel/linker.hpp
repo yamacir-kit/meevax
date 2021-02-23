@@ -16,11 +16,6 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   class linker
   {
-    /* ==== Close ==============================================================
-    *
-    * The "dlclose" as custom deleter.
-    *
-    *======================================================================== */
     struct close
     {
       std::string const name;
@@ -50,7 +45,7 @@ inline namespace kernel
 
       if (auto* message { dlerror() }; message)
       {
-        throw file_error<void>(message);
+        throw file_error_(make<string>(message), unit);
       }
       else
       {
@@ -83,16 +78,22 @@ inline namespace kernel
         }
         else if (auto* message { dlerror() }; message)
         {
-          throw error("failed to link symbol ", symbol, " of shared library ", name, ": ", message);
+          throw make<error_>(
+            make<string>(cat("failed to link symbol ", symbol, " of shared library ", name, ": ", message)),
+            unit);
         }
         else
         {
-          throw error("failed to link symbol in unexpected situation");
+          throw make<error_>(
+            make<string>("failed to link symbol in unexpected situation"),
+            unit);
         }
       }
       else
       {
-        throw error("shared library is not opened");
+        throw make<error_>(
+          make<string>("shared library is not opened"),
+          unit);
       }
     }
   };
