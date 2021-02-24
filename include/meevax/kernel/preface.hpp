@@ -3,7 +3,7 @@
 
 #include <meevax/functional/identity.hpp>
 #include <meevax/posix/vt10x.hpp>
-#include <meevax/string/cat.hpp>
+#include <meevax/string/append.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/requires.hpp>
 
@@ -33,7 +33,7 @@ inline namespace kernel
   template <typename... Ts>
   auto make_error(Ts&&... xs)
   {
-    return std::runtime_error(cat(std::forward<decltype(xs)>(xs)...));
+    return std::runtime_error(string_append(std::forward<decltype(xs)>(xs)...));
   }
 } // namespace kernel
 } // namespace meevax

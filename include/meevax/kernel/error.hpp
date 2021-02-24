@@ -24,28 +24,10 @@ inline namespace kernel
   struct error
     : public virtual pair
   {
-    // explicit error() = default;
-    //
-    // template <typename S, REQUIRES(std::is_convertible<S, std::string>)>
-    // explicit error(S const& message, let const& irritants = unit)
-    //   : pair { make<string>(message), irritants }
-    // {}
-
-    // template <typename... Ts>
-    // explicit error(std::string const& message, Ts&&... xs)
-    //   : pair { make<string>(message), list(std::forward<decltype(xs)>(xs)...) }
-    // {}
-
-    // explicit error(let const& kar, let const& kdr = unit)
-    //   : pair { kar, kdr }
-    // {}
-
     template <typename... Ts>
     explicit error(Ts&&... xs)
       : pair { std::forward<decltype(xs)>(xs)... }
     {}
-
-    // using pair::pair;
 
     ~error() override = default;
 
@@ -110,23 +92,6 @@ inline namespace kernel
 
     ~tagged_syntax_error() override = default;
   };
-
-  // struct [[deprecated]] error : public std::runtime_error
-  // {
-  //   template <typename... Ts>
-  //   explicit error(Ts&&... xs)
-  //     : std::runtime_error { cat(std::forward<decltype(xs)>(xs)...) }
-  //   {}
-  //
-  //   virtual ~error() = default;
-  //
-  //   virtual void raise() const
-  //   {
-  //     throw *this;
-  //   }
-  // };
-  //
-  // auto operator <<(output_port &, error const&) -> output_port &;
 } // namespace kernel
 } // namespace meevax
 

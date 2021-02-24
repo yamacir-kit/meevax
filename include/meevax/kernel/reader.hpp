@@ -274,7 +274,7 @@ inline namespace kernel
         return read_char(is);
 
       default:
-        throw make<read_error>(make<string>("unknown <discriminator>: "), make<character>(discriminator));
+        throw read_error(make<string>("unknown <discriminator>: "), make<character>(discriminator));
       }
     }
   };

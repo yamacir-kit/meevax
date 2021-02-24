@@ -79,7 +79,7 @@ inline namespace kernel
         else if (auto* message { dlerror() }; message)
         {
           throw error(
-            make<string>(cat("failed to link symbol ", symbol, " of shared library ", name, ": ", message)),
+            make<string>(string_append("failed to link symbol ", symbol, " of shared library ", name, ": ", message)),
             unit);
         }
         else

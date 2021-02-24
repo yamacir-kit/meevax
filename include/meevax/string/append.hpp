@@ -1,12 +1,12 @@
-#ifndef INCLUDED_MEEVAX_STRING_CAT_HPP
-#define INCLUDED_MEEVAX_STRING_CAT_HPP
+#ifndef INCLUDED_MEEVAX_STRING_APPEND_HPP
+#define INCLUDED_MEEVAX_STRING_APPEND_HPP
 
 #include <sstream>
 
 namespace meevax
 {
   template <typename... Ts>
-  auto cat(Ts&&... xs)
+  auto string_append(Ts&&... xs)
   {
     std::stringstream port {};
     (port << ... << xs);
@@ -14,4 +14,4 @@ namespace meevax
   }
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_STRING_CAT_HPP
+#endif // INCLUDED_MEEVAX_STRING_APPEND_HPP
