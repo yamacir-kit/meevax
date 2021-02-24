@@ -599,7 +599,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error>(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments: "), xs);
       }
     });
 
@@ -611,7 +611,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error>(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments: "), xs);
       }
     });
 
@@ -1431,7 +1431,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error>(make<string>("not a string"), car(xs));
+        throw error(make<string>("not a string"), car(xs));
       }
     });
 
@@ -1447,7 +1447,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error>(make<string>("not a string"), car(xs));
+        throw error(make<string>("not a string"), car(xs));
       }
     });
 

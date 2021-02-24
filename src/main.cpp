@@ -30,15 +30,27 @@ int main(const int argc, char const* const* const argv) try
   return boost::exit_success;
 }
 
-
-// NOTE: Perform I/O in the C++ way, as there may be a serious anomaly in Lisp system.
-
-catch (meevax::object const& error) // is the default-exception-handler
+/* ---- NOTE -------------------------------------------------------------------
+ *
+ *  Exceptions thrown by the run-time raise procedure reach here via the
+ *  default-exception-handler (procedure '%throw'). Except procedure '%throw',
+ *  any processing in namespace meevax::kernel must not throw meevax::object
+ *  type object.
+ *
+ *  Perform I/O in the C++ way, as there may be a serious anomaly in system.
+ *
+ * -------------------------------------------------------------------------- */
+catch (meevax::object const& error)
 {
   std::cerr << "error: " << error << std::endl;
   return boost::exit_exception_failure;
 }
 
+/* ---- NOTE -------------------------------------------------------------------
+ *
+ *  Exceptions thrown from the Meevax system itself will eventually reach here.
+ *
+ * -------------------------------------------------------------------------- */
 catch (meevax::error const& error)
 {
   std::cerr << "error: " << error << "." << std::endl;

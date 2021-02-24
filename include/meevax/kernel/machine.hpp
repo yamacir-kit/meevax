@@ -459,7 +459,7 @@ inline namespace kernel
         }
         else
         {
-          throw make<error>(make<string>("not applicable: "), callee);
+          throw error(make<string>("not applicable: "), callee);
         }
         goto dispatch;
 
@@ -488,7 +488,7 @@ inline namespace kernel
         }
         else
         {
-          throw make<error>(make<string>("not applicable: "), callee);
+          throw error(make<string>("not applicable: "), callee);
         }
         goto dispatch;
 
@@ -977,7 +977,7 @@ inline namespace kernel
     {
       if (expression.is<null>())
       {
-        throw make<syntax_error>(make<string>("set!"), unit);
+        throw syntax_error(make<string>("set!"), unit);
       }
       else if (de_bruijn_index index { car(expression), frames }; not index.is<null>())
       {
@@ -1010,7 +1010,7 @@ inline namespace kernel
 
         if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_closure>())
         {
-          throw make<syntax_error>(
+          throw syntax_error(
             make<string>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"),
             unit);
         }

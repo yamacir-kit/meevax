@@ -118,7 +118,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error>(make<string>("failed to intern a symbol"), unit);
+        throw error(make<string>("failed to intern a symbol"), unit);
       }
     }
 
@@ -228,7 +228,7 @@ inline namespace kernel
       {
         write_to(standard_debug_port(), f, "\n");
 
-        throw make<file_error>(make<string>("failed to open file: " + name.string()), unit);
+        throw file_error(make<string>("failed to open file: " + name.string()), unit);
       }
     }
 
