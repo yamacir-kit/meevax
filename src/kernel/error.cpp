@@ -4,13 +4,16 @@ namespace meevax
 {
 inline namespace kernel
 {
-  // auto operator <<(std::ostream& port, const error& datum) -> std::ostream&
-  // {
-  //   return port << magenta << "#("
-  //               << green << "error "
-  //               << cyan << std::quoted(datum.what())
-  //               << magenta << ")"
-  //               << reset;
-  // }
+  auto operator <<(output_port & port, error_ const& datum) -> output_port &
+  {
+    port << magenta << "#,(" << green << "error " << reset << car(datum);
+
+    for (let const& each : cdr(datum))
+    {
+      port << " " << each;
+    }
+
+    return port << magenta << ")" << reset;
+  }
 } // namespace kernel
 } // namespace meevax

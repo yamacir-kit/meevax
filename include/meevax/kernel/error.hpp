@@ -52,19 +52,9 @@ inline namespace kernel
     {
       throw *this;
     }
-
-    friend auto operator <<(output_port & port, error_ const& datum) -> output_port &
-    {
-      port << magenta << "#,(" << green << "error " << reset << car(datum);
-
-      for (let const& each : cdr(datum))
-      {
-        port << " " << each;
-      }
-
-      return port << magenta << ")" << reset;
-    }
   };
+
+  auto operator <<(output_port & port, error_ const& datum) -> output_port &;
 
   struct read_error_ : public error_
   {
