@@ -12,8 +12,7 @@ cd "$root/build"
 
 make uninstall
 
-# make -j"$(nproc)"
-make -j1
+make -j"$(nproc)"
 
 sudo make install -j"$(nproc)"
 rm -f "$root/build/install_manifest.txt"

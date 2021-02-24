@@ -112,51 +112,22 @@ inline namespace kernel
     ~tagged_syntax_error_() override = default;
   };
 
-  struct [[deprecated]] error : public std::runtime_error
-  {
-    template <typename... Ts>
-    explicit error(Ts&&... xs)
-      : std::runtime_error { cat(std::forward<decltype(xs)>(xs)...) }
-    {}
-
-    virtual ~error() = default;
-
-    virtual void raise() const
-    {
-      throw *this;
-    }
-  };
-
-  auto operator <<(output_port &, error const&) -> output_port &;
-
-  #define BOILERPLATE(CATEGORY)                                                \
-  template <typename Tag>                                                      \
-  struct [[deprecated]] CATEGORY##_error : public error                        \
-  {                                                                            \
-    using error::error;                                                        \
-                                                                               \
-    virtual void raise() const override                                        \
-    {                                                                          \
-      throw *this;                                                             \
-    }                                                                          \
-  };                                                                           \
-                                                                               \
-  template <typename Tag>                                                      \
-  auto operator <<(output_port & port, CATEGORY##_error<Tag> const& datum)     \
-    -> output_port &                                                           \
-  {                                                                            \
-    return port << magenta << "#,("                                            \
-                << green << #CATEGORY "-error "                                \
-                << cyan << std::quoted(datum.what())                           \
-                << magenta << ")"                                              \
-                << reset;                                                      \
-  } static_assert(true)
-
-  BOILERPLATE(file);
-  BOILERPLATE(read);
-  BOILERPLATE(syntax);
-
-  #undef BOILERPLATE
+  // struct [[deprecated]] error : public std::runtime_error
+  // {
+  //   template <typename... Ts>
+  //   explicit error(Ts&&... xs)
+  //     : std::runtime_error { cat(std::forward<decltype(xs)>(xs)...) }
+  //   {}
+  //
+  //   virtual ~error() = default;
+  //
+  //   virtual void raise() const
+  //   {
+  //     throw *this;
+  //   }
+  // };
+  //
+  // auto operator <<(output_port &, error const&) -> output_port &;
 } // namespace kernel
 } // namespace meevax
 
