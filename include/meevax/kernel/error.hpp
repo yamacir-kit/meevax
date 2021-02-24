@@ -4,6 +4,7 @@
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/string.hpp>
+#include <stdexcept>
 #include <type_traits>
 
 /* ---- Error ------------------------------------------------------------------
@@ -47,6 +48,14 @@ inline namespace kernel
     // using pair::pair;
 
     ~error() override = default;
+
+    virtual auto what() const -> std::string
+    {
+      std::stringstream ss { "error: " };
+      car(*this).as<const string>().write_string(ss);
+      ss << ".";
+      return ss.str();
+    }
 
     virtual void raise() const
     {

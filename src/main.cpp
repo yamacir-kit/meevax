@@ -42,7 +42,7 @@ int main(const int argc, char const* const* const argv) try
  * -------------------------------------------------------------------------- */
 catch (meevax::object const& error)
 {
-  std::cerr << "error: " << error << std::endl;
+  std::cerr << error << std::endl;
   return boost::exit_exception_failure;
 }
 
@@ -53,7 +53,7 @@ catch (meevax::object const& error)
  * -------------------------------------------------------------------------- */
 catch (meevax::error const& error)
 {
-  std::cerr << "error: " << error << "." << std::endl;
+  std::cerr << error.what() << std::endl;
   return boost::exit_exception_failure;
 }
 
