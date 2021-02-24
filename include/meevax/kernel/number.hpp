@@ -66,7 +66,7 @@ inline namespace kernel
     }
     else
     {
-      throw make<error_>(
+      throw make<error>(
         make<string>(cat("no viable operation '", typeid(F).name(), "' with ", a, " and ", b)),
         unit);
     }
@@ -104,7 +104,7 @@ inline namespace kernel
     }
     else
     {
-      throw make<error_>(
+      throw make<error>(
         make<string>(cat("no viable operation '", typeid(F).name(), "' with ", a, " and ", b)),
         unit);
     }
@@ -159,7 +159,7 @@ inline namespace kernel
     }
     else
     {
-      throw make<error_>(
+      throw make<error>(
         make<string>(cat("no viable operation '", typeid(F).name(), "' with ", x)),
         unit);
     }

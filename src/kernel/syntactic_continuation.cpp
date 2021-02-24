@@ -599,7 +599,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error_>(make<string>("invalid arguments: "), xs);
+        throw make<error>(make<string>("invalid arguments: "), xs);
       }
     });
 
@@ -611,7 +611,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error_>(make<string>("invalid arguments: "), xs);
+        throw make<error>(make<string>("invalid arguments: "), xs);
       }
     });
 
@@ -1431,7 +1431,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error_>(make<string>("not a string"), car(xs));
+        throw make<error>(make<string>("not a string"), car(xs));
       }
     });
 
@@ -1447,7 +1447,7 @@ inline namespace kernel
       }
       else
       {
-        throw make<error_>(make<string>("not a string"), car(xs));
+        throw make<error>(make<string>("not a string"), car(xs));
       }
     });
 
@@ -1468,7 +1468,7 @@ inline namespace kernel
       {
         return make<character>(car(xs).as<input_port>());
       }
-      catch (tagged_read_error_<eof> const&)
+      catch (tagged_read_error<eof> const&)
       {
         return eof_object;
       }
@@ -1483,7 +1483,7 @@ inline namespace kernel
         car(xs).as<input_port>().seekg(g);
         return c;
       }
-      catch (tagged_read_error_<eof> const&)
+      catch (tagged_read_error<eof> const&)
       {
         return eof_object;
       }

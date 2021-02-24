@@ -287,7 +287,7 @@ inline namespace kernel
               }
               else
               {
-                throw make<error_>(
+                throw make<error>(
                   make<string>(cat("option -", *so, " requires an argument")),
                   unit);
               }
@@ -298,7 +298,7 @@ inline namespace kernel
             }
             else
             {
-              throw make<error_>(
+              throw make<error>(
                 make<string>(cat("unknown short-option: ", *so)),
                 unit);
             }
@@ -318,7 +318,7 @@ inline namespace kernel
             }
             else
             {
-              throw make<error_>(
+              throw make<error>(
                 make<string>(cat("option --", lo, " requires an argument")),
                 unit);
             }
@@ -329,7 +329,7 @@ inline namespace kernel
           }
           else
           {
-            throw make<error_>(
+            throw make<error>(
               make<string>(cat("unknown long-option: ", *option)),
               unit);
           }

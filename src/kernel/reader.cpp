@@ -47,7 +47,7 @@ inline namespace kernel
         return make<character>(token.front());
 
       default:
-        throw tagged_read_error_<character>(
+        throw tagged_read_error<character>(
           make<string>(
             "If <character> in #\\<character> is alphabetic, then any "
             "character immediately following <character> cannot be one that "
@@ -88,7 +88,7 @@ inline namespace kernel
       }
       else
       {
-        throw tagged_read_error_<character>(
+        throw tagged_read_error<character>(
           make<string>("invalid character literal: "),
           make<string>("\\#" + token));
       }

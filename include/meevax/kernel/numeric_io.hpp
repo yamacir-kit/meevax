@@ -44,7 +44,7 @@ inline namespace kernel
 
     auto error = [&]()
     {
-      return tagged_read_error_<exact_integer>(
+      return tagged_read_error<exact_integer>(
         make<string>(cat("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
         unit);
     };
@@ -115,7 +115,7 @@ inline namespace kernel
     }
     else
     {
-      throw tagged_read_error_<ratio>(
+      throw tagged_read_error<ratio>(
         make<string>(cat("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
         unit);
     }
@@ -149,7 +149,7 @@ inline namespace kernel
       [[fallthrough]];
 
     default:
-      throw tagged_read_error_<system_float>(
+      throw tagged_read_error<system_float>(
         make<string>(cat("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
         unit);
     }
@@ -176,7 +176,7 @@ inline namespace kernel
     }
     else
     {
-      throw tagged_read_error_<system_float>(
+      throw tagged_read_error<system_float>(
         make<string>(cat("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
         unit);
     }
@@ -199,7 +199,7 @@ inline namespace kernel
     }
     else
     {
-      throw tagged_read_error_<system_float>(
+      throw tagged_read_error<system_float>(
         make<string>(cat("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
         unit);
     }

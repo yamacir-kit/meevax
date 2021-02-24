@@ -25,7 +25,7 @@ inline namespace kernel
         }
       }
 
-      throw tagged_read_error_<character>(
+      throw tagged_read_error<character>(
         make<string>("invalid escape sequence"), unit);
     };
 
@@ -70,7 +70,7 @@ inline namespace kernel
       }
     }
 
-    throw tagged_read_error_<string>(
+    throw tagged_read_error<string>(
       make<string>("unterminated string"), unit);
   }
 

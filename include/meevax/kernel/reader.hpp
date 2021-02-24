@@ -86,19 +86,19 @@ inline namespace kernel
             port.putback(c);
             return cons(kar, read(port));
           }
-          catch (tagged_read_error_<right_parenthesis> const&)
+          catch (tagged_read_error<right_parenthesis> const&)
           {
             return char_eq(c, '(') ? unit : throw;
           }
-          catch (tagged_read_error_<right_square_bracket> const&)
+          catch (tagged_read_error<right_square_bracket> const&)
           {
             return char_eq(c, '[') ? unit : throw;
           }
-          catch (tagged_read_error_<right_curly_bracket> const&)
+          catch (tagged_read_error<right_curly_bracket> const&)
           {
             return char_eq(c, '{') ? unit : throw;
           }
-          catch (tagged_read_error_<period> const&)
+          catch (tagged_read_error<period> const&)
           {
             let const kdr = read(port);
 
@@ -113,13 +113,13 @@ inline namespace kernel
           }
 
         case ')':
-          throw tagged_read_error_<right_parenthesis>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<right_parenthesis>(make<string>("unexpected character: "), make<character>(c));
 
         case ']':
-          throw tagged_read_error_<right_square_bracket>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<right_square_bracket>(make<string>("unexpected character: "), make<character>(c));
 
         case '}':
-          throw tagged_read_error_<right_curly_bracket>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<right_curly_bracket>(make<string>("unexpected character: "), make<character>(c));
 
         case '#':
           return discriminate(port);
@@ -151,7 +151,7 @@ inline namespace kernel
           {
             if (token == ".")
             {
-              throw tagged_read_error_<period>(make<string>("unexpected character: "), make<character>('.'));
+              throw tagged_read_error<period>(make<string>("unexpected character: "), make<character>('.'));
             }
             else try
             {
@@ -176,7 +176,7 @@ inline namespace kernel
       }
       else
       {
-        throw read_error_(make<string>("not an input-port: "), x);
+        throw read_error(make<string>("not an input-port: "), x);
       }
     }
 
@@ -274,7 +274,7 @@ inline namespace kernel
         return read_char(is);
 
       default:
-        throw make<read_error_>(make<string>("unknown <discriminator>: "), make<character>(discriminator));
+        throw make<read_error>(make<string>("unknown <discriminator>: "), make<character>(discriminator));
       }
     }
   };

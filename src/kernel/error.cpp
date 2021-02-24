@@ -4,7 +4,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(output_port & port, error_ const& datum) -> output_port &
+  auto operator <<(output_port & port, error const& datum) -> output_port &
   {
     port << magenta << "#,(" << green << "error " << reset << car(datum);
 

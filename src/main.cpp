@@ -39,7 +39,7 @@ catch (meevax::object const& error) // is the default-exception-handler
   return boost::exit_exception_failure;
 }
 
-catch (meevax::error_ const& error)
+catch (meevax::error const& error)
 {
   std::cerr << "error: " << error << "." << std::endl;
   return boost::exit_exception_failure;

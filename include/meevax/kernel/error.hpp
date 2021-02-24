@@ -20,33 +20,33 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct error_
+  struct error
     : public virtual pair
   {
-    // explicit error_() = default;
+    // explicit error() = default;
     //
     // template <typename S, REQUIRES(std::is_convertible<S, std::string>)>
-    // explicit error_(S const& message, let const& irritants = unit)
+    // explicit error(S const& message, let const& irritants = unit)
     //   : pair { make<string>(message), irritants }
     // {}
 
     // template <typename... Ts>
-    // explicit error_(std::string const& message, Ts&&... xs)
+    // explicit error(std::string const& message, Ts&&... xs)
     //   : pair { make<string>(message), list(std::forward<decltype(xs)>(xs)...) }
     // {}
 
-    // explicit error_(let const& kar, let const& kdr = unit)
+    // explicit error(let const& kar, let const& kdr = unit)
     //   : pair { kar, kdr }
     // {}
 
     template <typename... Ts>
-    explicit error_(Ts&&... xs)
+    explicit error(Ts&&... xs)
       : pair { std::forward<decltype(xs)>(xs)... }
     {}
 
     // using pair::pair;
 
-    ~error_() override = default;
+    ~error() override = default;
 
     virtual void raise() const
     {
@@ -54,52 +54,52 @@ inline namespace kernel
     }
   };
 
-  auto operator <<(output_port & port, error_ const& datum) -> output_port &;
+  auto operator <<(output_port & port, error const& datum) -> output_port &;
 
-  struct read_error_ : public error_
+  struct read_error : public error
   {
     template <typename... Ts>
-    explicit read_error_(Ts&&... xs)
-      : error_ { std::forward<decltype(xs)>(xs)... }
+    explicit read_error(Ts&&... xs)
+      : error { std::forward<decltype(xs)>(xs)... }
     {}
 
-    ~read_error_() override = default;
+    ~read_error() override = default;
   };
 
   template <typename... Ts>
-  struct tagged_read_error_ : public read_error_
+  struct tagged_read_error : public read_error
   {
     template <typename... Us>
-    explicit tagged_read_error_(Us&&... xs)
-      : read_error_ { std::forward<decltype(xs)>(xs)... }
+    explicit tagged_read_error(Us&&... xs)
+      : read_error { std::forward<decltype(xs)>(xs)... }
     {}
 
-    ~tagged_read_error_() override = default;
+    ~tagged_read_error() override = default;
   };
 
-  struct file_error_ : public error_
+  struct file_error : public error
   {
     template <typename... Us>
-    explicit file_error_(Us&&... xs)
-      : error_ { std::forward<decltype(xs)>(xs)... }
+    explicit file_error(Us&&... xs)
+      : error { std::forward<decltype(xs)>(xs)... }
     {}
 
-    ~file_error_() override = default;
+    ~file_error() override = default;
   };
 
-  struct syntax_error_ : public error_
+  struct syntax_error : public error
   {
-    using error_::error_;
+    using error::error;
 
-    ~syntax_error_() override = default;
+    ~syntax_error() override = default;
   };
 
   template <typename... Ts>
-  struct tagged_syntax_error_ : public syntax_error_
+  struct tagged_syntax_error : public syntax_error
   {
-    using syntax_error_::syntax_error_;
+    using syntax_error::syntax_error;
 
-    ~tagged_syntax_error_() override = default;
+    ~tagged_syntax_error() override = default;
   };
 
   // struct [[deprecated]] error : public std::runtime_error

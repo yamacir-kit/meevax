@@ -45,7 +45,7 @@ inline namespace kernel
 
       if (auto* message { dlerror() }; message)
       {
-        throw file_error_(make<string>(message), unit);
+        throw make<file_error>(make<string>(message), unit);
       }
       else
       {
@@ -78,20 +78,20 @@ inline namespace kernel
         }
         else if (auto* message { dlerror() }; message)
         {
-          throw make<error_>(
+          throw make<error>(
             make<string>(cat("failed to link symbol ", symbol, " of shared library ", name, ": ", message)),
             unit);
         }
         else
         {
-          throw make<error_>(
+          throw make<error>(
             make<string>("failed to link symbol in unexpected situation"),
             unit);
         }
       }
       else
       {
-        throw make<error_>(
+        throw make<error>(
           make<string>("shared library is not opened"),
           unit);
       }
