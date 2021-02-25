@@ -1161,9 +1161,9 @@ inline namespace kernel
      ├────────────────────────┼────────────┼──────────────────────────────────┤
      │ error-object?          │ Scheme     │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-message   │ TODO       │                                  │
+     │ error-object-message   │ Scheme     │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-irritants │ TODO       │                                  │
+     │ error-object-irritants │ Scheme     │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
      │ read-error?            │ C++        │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
@@ -1666,11 +1666,11 @@ inline namespace kernel
   {
     std::vector<string_view> codes {
       overture,
-      srfi_8, // for srfi-1
-      srfi_1, // (scheme list)
+      srfi_8,
+      srfi_1, // (scheme list) requires (srfi 8)
       srfi_23,
-      srfi_34,
       srfi_39,
+      srfi_34, // requires (srfi 39)
       srfi_45, // (scheme lazy)
       srfi_78,
       r7rs,

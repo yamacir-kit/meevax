@@ -113,16 +113,21 @@
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
+; error => SRFI-23
+
 ; TODO with-exception-handler
-; TODO raise ; SRFI-18
+; TODO raise
 ; TODO raise-continuable
 
-(define (error-object? x) #f)
+(define (error-object? x)
+  (or (error? x)
+      (continuable-error? x)
+      (read-error? x)
+      (file-error? x)
+      (syntax-error? x)))
 
-; TODO error-object-message
-; TODO error-object-irritants
-; TODO read-error?
-; TODO file-error?
+(define error-object-message car)
+(define error-object-irritants cdr)
 
 ; ---- 6.12. Environments and evaluation ---------------------------------------
 
