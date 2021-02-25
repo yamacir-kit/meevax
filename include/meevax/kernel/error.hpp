@@ -47,15 +47,21 @@ inline namespace kernel
 
   auto operator <<(output_port & port, error const& datum) -> output_port &;
 
-  struct read_error : public error
-  {
-    template <typename... Ts>
-    explicit read_error(Ts&&... xs)
-      : error { std::forward<decltype(xs)>(xs)... }
-    {}
+  #define DEFINE_ERROR(TYPENAME)                                               \
+  struct TYPENAME ## _error : public error                                     \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    explicit TYPENAME ## _error(Ts&&... xs)                                    \
+      : error { std::forward<decltype(xs)>(xs)... }                            \
+    {}                                                                         \
+                                                                               \
+    ~TYPENAME ## _error() override = default;                                  \
+  }
 
-    ~read_error() override = default;
-  };
+  DEFINE_ERROR(continuable);
+  DEFINE_ERROR(file);
+  DEFINE_ERROR(read);
+  DEFINE_ERROR(syntax);
 
   template <typename... Ts>
   struct tagged_read_error : public read_error
@@ -66,23 +72,6 @@ inline namespace kernel
     {}
 
     ~tagged_read_error() override = default;
-  };
-
-  struct file_error : public error
-  {
-    template <typename... Us>
-    explicit file_error(Us&&... xs)
-      : error { std::forward<decltype(xs)>(xs)... }
-    {}
-
-    ~file_error() override = default;
-  };
-
-  struct syntax_error : public error
-  {
-    using error::error;
-
-    ~syntax_error() override = default;
   };
 
   template <typename... Ts>

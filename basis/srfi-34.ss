@@ -26,7 +26,7 @@
 ;   (list (lambda (condition)
 ;           (error "unhandled exception" condition))))
 
-(define %current-exception-handlers (list %throw))
+(define %current-exception-handlers (list throw))
 
 (define (with-exception-handler handler thunk)
   (with-exception-handlers (cons handler %current-exception-handlers) thunk))
