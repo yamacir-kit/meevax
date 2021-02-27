@@ -28,11 +28,10 @@
 (define-syntax (parameterize bindings . body)
   (define (dynamic-bind parameters values body)
     (let* ((saved dynamic-environment)
-           (bindings
-             (map (lambda (parameter value)
-                    (cons parameter (parameter value #f)))
-                  parameters
-                  values)))
+           (bindings (map (lambda (parameter value)
+                            (cons parameter (parameter value #f)))
+                          parameters
+                          values)))
       (dynamic-wind
         (lambda () (set! dynamic-environment (append bindings saved)))
         body

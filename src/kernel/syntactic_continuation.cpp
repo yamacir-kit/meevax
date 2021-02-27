@@ -1667,11 +1667,11 @@ inline namespace kernel
     std::vector<string_view> codes {
       overture,
       srfi_8,
-      srfi_1, // (scheme list) requires (srfi 8)
+      srfi_1,
       srfi_23,
+      srfi_34,
       srfi_39,
-      srfi_34, // requires (srfi 39)
-      srfi_45, // (scheme lazy)
+      srfi_45,
       srfi_78,
       r7rs,
     };

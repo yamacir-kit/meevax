@@ -22,32 +22,69 @@
 ;
 ; ------------------------------------------------------------------------------
 
-; (define %current-exception-handlers
-;   (list (lambda (condition)
-;           (error "unhandled exception" condition))))
-
 (define %current-exception-handlers (list throw))
 
-(define (with-exception-handler handler thunk)
-  (with-exception-handlers (cons handler %current-exception-handlers) thunk))
-
-(define (with-exception-handlers new-handlers thunk)
-  (let ((previous-handlers %current-exception-handlers))
+(define (%with-exception-handlers new-handlers thunk)
+  (let ((old-handlers %current-exception-handlers))
     (dynamic-wind
-      (lambda ()
-        (set! %current-exception-handlers new-handlers))
+      (lambda () (set! %current-exception-handlers new-handlers)) ; install
       thunk
-      (lambda ()
-        (set! %current-exception-handlers previous-handlers)))))
+      (lambda () (set! %current-exception-handlers old-handlers))))) ; uninstall
 
-(define (raise obj)
-  (let ((handlers %current-exception-handlers))
-    (with-exception-handlers (cdr handlers)
+; ------------------------------------------------------------------------------
+;
+;  (with-exception-handler handler thunk)                             procedure
+;
+;  It is an error if handler does not accept one argument. It is also an error
+;  if thunk does not accept zero arguments. The with-exception-handler
+;  procedure returns the results of invoking thunk. Handler is installed as the
+;  current exception handler in the dynamic environment used for the invocation
+;  of thunk.
+;
+; ------------------------------------------------------------------------------
+(define (with-exception-handler handler thunk)
+  (%with-exception-handlers (cons handler %current-exception-handlers) thunk))
+
+; ------------------------------------------------------------------------------
+;
+;  (raise obj)                                                        procedure
+;
+;  Raises an exception by invoking the current exception handler on obj. The
+;  handler is called with the same dynamic environment as that of the call to
+;  raise, except that the current exception handler is the one that was in
+;  place when the handler being called was installed. If the handler returns, a
+;  secondary exception is raised in the same dynamic environment as the
+;  handler. The relationship between obj and the object raised by the secondary
+;  exception is unspecified.
+;
+; ------------------------------------------------------------------------------
+(define (raise x)
+  (let ((inner (car %current-exception-handlers))
+        (outer (cdr %current-exception-handlers)))
+    (%with-exception-handlers outer
       (lambda ()
-        ((car handlers) obj)
-        (error "handler returned"
-               (car handlers)
-               obj)))))
+        (inner x)
+        (error "If the handler returns, a secondary exception is raised in the same dynamic environment as the handler")))))
+
+; ------------------------------------------------------------------------------
+;
+;  (raise-continuable obj)                                            procedure
+;
+;  Raises an exception by invoking the current exception handler on obj. The
+;  handler is called with the same dynamic environment as the call to
+;  raise-continuable, except that: (1) the current exception handler is the one
+;  that was in place when the handler being called was installed, and (2) if
+;  the handler being called returns, then it will again become the current
+;  exception handler. If the handler returns, the values it returns become the
+;  values returned by the call to raise-continuable.
+;
+; ------------------------------------------------------------------------------
+(define (raise-continuable x)
+  (let ((inner (car %current-exception-handlers))
+        (outer (cdr %current-exception-handlers)))
+    (%with-exception-handlers outer
+      (lambda ()
+        (inner x)))))
 
 ; (define-syntax guard
 ;   (syntax-rules ()
