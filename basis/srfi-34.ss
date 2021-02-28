@@ -42,6 +42,7 @@
 ;  of thunk.
 ;
 ; ------------------------------------------------------------------------------
+
 (define (with-exception-handler handler thunk)
   (%with-exception-handlers (cons handler %current-exception-handlers) thunk))
 
@@ -58,6 +59,7 @@
 ;  exception is unspecified.
 ;
 ; ------------------------------------------------------------------------------
+
 (define (raise x)
   (let ((inner (car %current-exception-handlers))
         (outer (cdr %current-exception-handlers)))
@@ -79,6 +81,7 @@
 ;  values returned by the call to raise-continuable.
 ;
 ; ------------------------------------------------------------------------------
+
 (define (raise-continuable x)
   (let ((inner (car %current-exception-handlers))
         (outer (cdr %current-exception-handlers)))
