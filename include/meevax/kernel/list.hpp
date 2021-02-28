@@ -168,38 +168,36 @@ inline namespace kernel
    *   - proper-list?
    *
    * ------------------------------------------------------------------------ */
-  inline namespace predicate
+
+  auto eq = [](auto const& x, auto const& y) constexpr
   {
-    auto eq = [](auto const& x, auto const& y) constexpr
-    {
-      return x == y;
-    };
+    return x == y;
+  };
 
-    auto eqv = [](auto const& x, auto const& y)
-    {
-      return x.eqv(y);
-    };
+  auto eqv = [](auto const& x, auto const& y)
+  {
+    return x.eqv(y);
+  };
 
-    auto equal(object const& x, object const& y) -> bool;
+  auto equal(object const& x, object const& y) -> bool;
 
-    template <std::size_t Coarseness = 0>
-    struct equivalence_comparator;
+  template <std::size_t Coarseness = 0>
+  struct equivalence_comparator;
 
-    #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)             \
-    template <>                                                                \
-    struct equivalence_comparator<COARSENESS>                                  \
-    {                                                                          \
-      Define_Const_Perfect_Forwarding(operator (), COMPARE);                   \
-    }
-
-    SPECIALIZE_EQUIVALENCE_COMPARATOR(0, eq);
-    SPECIALIZE_EQUIVALENCE_COMPARATOR(1, eqv);
-    SPECIALIZE_EQUIVALENCE_COMPARATOR(2, equal);
-
-    #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
-
-    using default_equivalence_comparator = equivalence_comparator<>;
+  #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)             \
+  template <>                                                                \
+  struct equivalence_comparator<COARSENESS>                                  \
+  {                                                                          \
+    Define_Const_Perfect_Forwarding(operator (), COMPARE);                   \
   }
+
+  SPECIALIZE_EQUIVALENCE_COMPARATOR(0, eq);
+  SPECIALIZE_EQUIVALENCE_COMPARATOR(1, eqv);
+  SPECIALIZE_EQUIVALENCE_COMPARATOR(2, equal);
+
+  #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
+
+  using default_equivalence_comparator = equivalence_comparator<>;
 
   /* ---- Selectors ------------------------------------------------------------
    *

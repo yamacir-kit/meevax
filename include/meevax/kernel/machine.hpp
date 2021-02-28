@@ -459,7 +459,7 @@ inline namespace kernel
         }
         else
         {
-          throw error(make<string>("not applicable: "), callee);
+          throw error(make<string>("not applicable"), callee);
         }
         goto dispatch;
 
@@ -488,7 +488,7 @@ inline namespace kernel
         }
         else
         {
-          throw error(make<string>("not applicable: "), callee);
+          throw error(make<string>("not applicable"), callee);
         }
         goto dispatch;
 

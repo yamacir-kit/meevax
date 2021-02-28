@@ -87,249 +87,202 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<2>)
   {
-  /* ---- R7RS 6.1. Equivalence predicates -------------------------------------
+    /* -------------------------------------------------------------------------
+     *
+     *  (eqv? obj1 obj2)                                              procedure
+     *
+     *  The eqv? procedure defines a useful equivalence relation on objects.
+     *  Briefly, it returns #t if obj1 and obj2 are normally regarded as the
+     *  same object.
+     *
+     * ---------------------------------------------------------------------- */
 
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ eq?                │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ eqv?               │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ equal?             │ Scheme     │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
+    define<procedure>("eqv?", [](auto&& xs)
+    {
+      if (let const& a = car(xs), b = cadr(xs); eq(a, b))
+      {
+        return t;
+      }
+      else
+      {
+        return a.eqv(b) ? t : f;
+      }
+    });
 
-     ------------------------------------------------------------------------ */
+    /* -------------------------------------------------------------------------
+     *
+     *  (eq? obj1 obj2)                                               procedure
+     *
+     *  The eq? procedure is similar to eqv? except that in some cases it is
+     *  capable of discerning distinctions finer than those detectable by eqv?.
+     *  It must always return #f when eqv? also would, but may return #f in
+     *  some cases where eqv? would return #t.
+     *
+     *  On symbols, booleans, the empty list, pairs, and records, and also on
+     *  non-empty strings, vectors, and bytevectors, eq? and eqv? are
+     *  guaranteed to have the same behavior. On procedures, eq? must return
+     *  true if the arguments’ location tags are equal. On numbers and
+     *  characters, eq?’s behavior is implementation-dependent, but it will
+     *  always return either true or false. On empty strings, empty vectors,
+     *  and empty bytevectors, eq? may also behave differently from eqv?.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("eq?", [](auto&& xs)
     {
       return car(xs) == cadr(xs) ? t : f;
     });
 
-    define<procedure>("eqv?", [](auto&& xs)
-    {
-      if (let const& lhs = car(xs), rhs = cadr(xs); eq(lhs, rhs))
-      {
-        return t;
-      }
-      else if (lhs.is<null>() and rhs.is<null>())
-      {
-        return t;
-      }
-      else if (lhs.is<null>() or rhs.is<null>())
-      {
-        return f;
-      }
-      else
-      {
-        return lhs.eqv(rhs) ? t : f;
-      }
-    });
+    /* -------------------------------------------------------------------------
+     *
+     *  (number? obj)                                                 procedure
+     *  (complex? obj)                                                procedure
+     *  (real? obj)                                                   procedure
+     *  (rational? obj)                                               procedure
+     *  (integer? obj)                                                procedure
+     *
+     *  These numerical type predicates can be applied to any kind of argument,
+     *  including non-numbers. They return #t if the object is of the named
+     *  type, and otherwise they return #f. In general, if a type predicate is
+     *  true of a number then all higher type predicates are also true of that
+     *  number. Consequently, if a type predicate is false of a number, then
+     *  all lower type predicates are also false of that number. If z is a
+     *  complex number, then (real? z) is true if and only if
+     *  (zero? (imag-part z)) is true. If x is an inexact real number, then
+     *  (integer? x) is true if and only if (= x (round x)).
+     *
+     *  The numbers +inf.0, -inf.0, and +nan.0 are real but not rational.
+     *
+     * ---------------------------------------------------------------------- */
 
+    define<procedure>("%complex?", predicate<complex>());
+    define<procedure>("ratio?", predicate<ratio>());
+    define<procedure>("single-float?", predicate<single_float>());
+    define<procedure>("double-float?", predicate<double_float>());
 
-  /* ---- R7RS 6.2. Numbers ----------------------------------------------------
+    /* -------------------------------------------------------------------------
+     *
+     *  (exact-integer? z)                                            procedure
+     *
+     *  Returns #t if z is both exact and an integer; otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
-      Non-standard procedures
-     -------------------------
-     ┌────────────────────┬────────────┬───────────────────────────────────────┐
-     │ Symbol             │ Written in │ Note                                  │
-     ├────────────────────┼────────────┼───────────────────────────────────────┤
-     │ %complex?          │ C++        │                                       │
-     ├────────────────────┼────────────┼───────────────────────────────────────┤
-     │ ratio?             │ C++        │                                       │
-     ├────────────────────┼────────────┼───────────────────────────────────────┤
-     │ single-float?      │ C++        │                                       │
-     ├────────────────────┼────────────┼───────────────────────────────────────┤
-     │ double-float?      │ C++        │                                       │
-     └────────────────────┴────────────┴───────────────────────────────────────┘
+    define<procedure>("exact-integer?", predicate<exact_integer>());
 
-      6.2.6. Numerical operations
-     -----------------------------
-     ┌────────────────────┬────────────┬────────────────────────────────────┐
-     │ Symbol             │ Written in │ Note                               │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ number?            │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ complex?           │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ real?              │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ rational?          │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ integer?           │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ exact?             │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ inexact?           │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ exact-integer?     │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ finite?            │ Scheme     │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ infinite?          │ Scheme     │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ nan?               │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ =                  │ C++        │ Number::operator ==(object const&) │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ <                  │ C++        │ Number::operator < (object const&) │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ >                  │ C++        │ Number::operator > (object const&) │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ <=                 │ C++        │ Number::operator <=(object const&) │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ >=                 │ C++        │ Number::operator >=(object const&) │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ zero?              │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ positive?          │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ negative?          │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ odd?               │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ even?              │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ max                │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ min                │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ +                  │ C++        │ std::plus<object>                  │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ *                  │ C++        │ std::multiplies<object>            │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ -                  │ C++        │ std::minus<object>                 │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ /                  │ C++        │ std::divides<object>               │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ abs                │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ floor/             │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ floor-quotient     │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ floor-remainder    │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ truncate/          │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ truncate-quotient  │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ trucate-remainer   │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ quotient           │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ remainder          │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ modulo             │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ gcd                │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ lcm                │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ numerator          │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ denominator        │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ floor              │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ ceiling            │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ truncate           │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ round              │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ rationalize        │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ exp                │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ log                │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ sin                │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ cos                │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ tan                │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ asin               │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ acos               │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ atan               │ C++        │ inexact library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ square             │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ sqrt               │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ exact-integer-sqrt │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ expt               │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ make-rectangular   │ Scheme     │ complex library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ make-polar         │ Scheme     │ complex library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ real-part          │ Scheme     │ complex library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ imag-part          │ Scheme     │ complex library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ magnitude          │ Scheme     │ complex library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ angle              │ Scheme     │ complex library procedure          │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ inexact            │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ exact              │ C++        │                                    │
-     └────────────────────┴────────────┴────────────────────────────────────┘
-
-      6.2.7. Numerical input and output
-     -----------------------------------
-     ┌────────────────────┬────────────┬────────────────────────────────────┐
-     │ Symbol             │ Written in │ Note                               │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ number->string     │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ string->number     │ TODO       │                                    │
-     └────────────────────┴────────────┴────────────────────────────────────┘
-
-     ------------------------------------------------------------------------ */
-
-    define<procedure>("%complex?", make_predicate<complex>());
-
-    define<procedure>("ratio?", make_predicate<ratio>());
-
-    define<procedure>("single-float?", make_predicate<single_float>());
-    define<procedure>("double-float?", make_predicate<double_float>());
-
-    define<procedure>("exact-integer?", make_predicate<exact_integer>());
+    /* -------------------------------------------------------------------------
+     *
+     *  (nan? z)                                      inexact library procedure
+     *
+     *  The nan? procedure returns #t on +nan.0, and on complex numbers if
+     *  their real or imaginary parts or both are +nan.0. Otherwise it returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("%nan?", [](auto&& xs)
     {
       return std::all_of(std::begin(xs), std::end(xs), is_nan) ? t : f;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (=  z1 z2 z3 ...)                                             procedure
+     *  (<  x1 x2 x3 ...)                                             procedure
+     *  (>  x1 x2 x3 ...)                                             procedure
+     *  (<= x1 x2 x3 ...)                                             procedure
+     *  (>= x1 x2 x3 ...)                                             procedure
+     *
+     *  These procedures return #t if their arguments are (respectively):
+     *  equal, monotonically increasing, monotonically decreasing,
+     *  monotonically non-decreasing, or monotonically non-increasing, and #f
+     *  otherwise. If any of the arguments are +nan.0, all the predicates
+     *  return #f. They do not distinguish between inexact zero and inexact
+     *  negative zero.
+     *
+     *  These predicates are required to be transitive.
+     *
+     *  Note: The implementation approach of converting all arguments to
+     *  inexact numbers if any argument is inexact is not transitive. For
+     *  example, let big be (expt 2 1000), and assume that big is exact and
+     *  that inexact numbers are represented by 64-bit IEEE binary floating
+     *  point numbers. Then (= (- big 1) (inexact big)) and (= (inexact big)
+     *  (+ big 1)) would both be true with this approach, because of the
+     *  limitations of IEEE representations of large integers, whereas (= (-
+     *  big 1) (+ big 1)) is false. Converting inexact values to exact numbers
+     *  that are the same (in the sense of =) to them will avoid this problem,
+     *  though special care must be taken with infinities.
+     *
+     *  Note: While it is not an error to compare inexact numbers using these
+     *  predicates, the results are unreliable because a small inaccuracy can
+     *  affect the result; this is especially true of = and zero?. When in
+     *  doubt, consult a numerical analyst.
+     *
+     * ---------------------------------------------------------------------- */
 
-    #define DEFINE_TRANSITIVE_COMPARISON(SYMBOL, COMPARE)                      \
+    #define BOILERPLATE(SYMBOL, OPERATOR)                                      \
     define<procedure>(#SYMBOL, [](auto&& xs) constexpr                         \
     {                                                                          \
-      return std::adjacent_find(std::begin(xs), std::end(xs), std::not_fn(COMPARE)) == std::end(xs) ? t : f; \
+      const auto compare = std::not_fn([](let const& a, let const& b)          \
+      {                                                                        \
+        return a.binding() OPERATOR b;                                         \
+      });                                                                      \
+                                                                               \
+      return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs) ? t : f; \
     })
 
-    DEFINE_TRANSITIVE_COMPARISON(= , [](auto&& a, auto&& b) { return a.binding() == b; });
-    DEFINE_TRANSITIVE_COMPARISON(< , [](auto&& a, auto&& b) { return a.binding() <  b; });
-    DEFINE_TRANSITIVE_COMPARISON(<=, [](auto&& a, auto&& b) { return a.binding() <= b; });
-    DEFINE_TRANSITIVE_COMPARISON(> , [](auto&& a, auto&& b) { return a.binding() >  b; });
-    DEFINE_TRANSITIVE_COMPARISON(>=, [](auto&& a, auto&& b) { return a.binding() >= b; });
+    BOILERPLATE(= , ==);
+    BOILERPLATE(< , < );
+    BOILERPLATE(<=, <=);
+    BOILERPLATE(> , > );
+    BOILERPLATE(>=, >=);
+
+    #undef BOILERPLATE
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (+ z1 ...)                                                    procedure
+     *  (* z1 ...)                                                    procedure
+     *
+     *  These procedures return the sum or product of their arguments.
+     *
+     * ---------------------------------------------------------------------- */
 
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
-      return std::accumulate(std::begin(xs), std::end(xs), make<exact_integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+      return std::accumulate(                                                  \
+               std::begin(xs), std::end(xs), BASIS, [](auto&& x, auto&& y)     \
+               {                                                               \
+                 return x SYMBOL y;                                            \
+               });                                                             \
     })
 
-    BOILERPLATE(+, 0);
-    BOILERPLATE(*, 1);
+    let static const e0 = make<exact_integer>(0);
+    let static const e1 = make<exact_integer>(1);
+
+    BOILERPLATE(+, e0);
+    BOILERPLATE(*, e1);
 
     #undef BOILERPLATE
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (- z)                                                         procedure
+     *  (- z1 z2 ...)                                                 procedure
+     *  (/ z)                                                         procedure
+     *  (/ z1 z2 ...)                                                 procedure
+     *
+     *  With two or more arguments, these procedures return the difference or
+     *  quotient of their arguments, associating to the left. With one
+     *  argument, however, they return the additive or multiplicative inverse
+     *  of their argument.
+     *
+     *  It is an error if any argument of / other than the first is an exact
+     *  zero. If the first argument is an exact zero, an implementation may
+     *  return an exact zero unless one of the other arguments is a NaN.
+     *
+     * ---------------------------------------------------------------------- */
 
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
@@ -362,10 +315,35 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
-    define<procedure>("floor"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::floor(x   ); }, car(xs)          ); });
-    define<procedure>("ceiling" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::ceil (x   ); }, car(xs)          ); });
-    define<procedure>("truncate", [](let const& xs) { return apply_1([](auto&& x          ) { return std::trunc(x   ); }, car(xs)          ); });
-    define<procedure>("round"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::round(x   ); }, car(xs)          ); });
+    /* -------------------------------------------------------------------------
+     *
+     *  (floor x)                                                     procedure
+     *  (ceiling x)                                                   procedure
+     *  (truncate x)                                                  procedure
+     *  (round x)                                                     procedure
+     *
+     *  These procedures return integers. The floor procedure returns the
+     *  largest integer not larger than x. The ceiling procedure returns the
+     *  smallest integer not smaller than x, truncate returns the integer
+     *  closest to x whose absolute value is not larger than the absolute value
+     *  of x, and round returns the closest integer to x, rounding to even when
+     *  x is halfway between two integers.
+     *
+     * ---------------------------------------------------------------------- */
+
+    #define DEFINE_CMATH_1(NAME, CMATH)                                        \
+    define<procedure>(NAME, [](let const& xs)                                  \
+    {                                                                          \
+      return apply_1([](auto&&... xs)                                          \
+      {                                                                        \
+        return std::CMATH(std::forward<decltype(xs)>(xs)...);                  \
+      }, car(xs));                                                             \
+    })
+
+    DEFINE_CMATH_1("floor", floor);
+    DEFINE_CMATH_1("ceiling", ceil);
+    DEFINE_CMATH_1("truncate", trunc);
+    DEFINE_CMATH_1("round", round);
 
     define<procedure>( "sin"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
     define<procedure>( "sinh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
@@ -389,108 +367,170 @@ inline namespace kernel
     define<procedure>("exp"     , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
     define<procedure>("expt"    , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
 
-    define<procedure>(  "exact", [](auto&& xs) { return   exact(car(xs)); });
-    define<procedure>("inexact", [](auto&& xs) { return inexact(car(xs)); });
+    /* -------------------------------------------------------------------------
+     *
+     *  (inexact z)                                                   procedure
+     *  (exact z)                                                     procedure
+     *
+     *  The procedure inexact returns an inexact representation of z. The value
+     *  returned is the inexact number that is numerically closest to the
+     *  argument. For inexact arguments, the result is the same as the argument.
+     *  For exact complex numbers, the result is a complex number whose real
+     *  and imaginary parts are the result of applying inexact to the real and
+     *  imaginary parts of the argument, respectively. If an exact argument has
+     *  no reasonably close inexact equivalent (in the sense of =), then a
+     *  violation of an implementation restriction may be reported.
+     *
+     *  The procedure exact returns an exact representation of z. The value
+     *  returned is the exact number that is numerically closest to the
+     *  argument. For exact arguments, the result is the same as the argument.
+     *  For inexact nonintegral real arguments, the implementation may return a
+     *  rational approximation, or may report an implementation violation. For
+     *  inexact complex arguments, the result is a complex number whose real
+     *  and imaginary parts are the result of applying exact to the real and
+     *  imaginary parts of the argument, respectively. If an inexact argument
+     *  has no reasonably close exact equivalent, (in the sense of =), then a
+     *  violation of an implementation restriction may be reported.
+     *
+     *  These procedures implement the natural one-to-one correspondence
+     *  between exact and inexact integers throughout an
+     *  implementation-dependent range. See section 6.2.3.
+     *
+     *  Note: These procedures were known in R5RS as exact->inexact and
+     *  inexact->exact, respectively, but they have always accepted arguments
+     *  of any exactness. The new names are clearer and shorter, as well as
+     *  being compatible with R6RS.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("exact", [](auto&& xs)
+    {
+      return exact(car(xs));
+    });
+
+    define<procedure>("inexact", [](auto&& xs)
+    {
+      return inexact(car(xs));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (number->string z)                                            procedure
+     *  (number->string z radix)                                      procedure
+     *
+     *  It is an error if radix is not one of 2, 8, 10, or 16. The procedure
+     *  number->string takes a number and a radix and returns as a string an
+     *  external representation of the given number in the given radix such
+     *  that
+     *
+     *    (let ((number number)
+     *          (radix radix))
+     *      (eqv? number (string->number (number->string number radix) radix)))
+     *
+     *  is true. It is an error if no possible result makes this expression
+     *  true. If omitted, radix defaults to 10.
+     *
+     *  If z is inexact, the radix is 10, and the above expression can be
+     *  satisfied by a result that contains a decimal point, then the result
+     *  contains a decimal point and is expressed using the minimum number of
+     *  digits (exclusive of exponent and trailing zeroes) needed to make the
+     *  above expression true [4, 5]; otherwise the format of the result is
+     *  unspecified.
+     *
+     *  The result returned by number->string never contains an explicit radix
+     *  prefix.
+     *
+     *  Note: The error case can occur only when z is not a complex number or
+     *  is a complex number with a non-rational real or imaginary part.
+     *
+     *  Rationale: If z is an inexact number and the radix is 10, then the
+     *  above expression is normally satisfied by a result containing a decimal
+     *  point. The unspecified case allows for infinities, NaNs, and unusual
+     *  representations.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("number->string", [](auto&& xs)
     {
       return make<string>(boost::lexical_cast<std::string>(car(xs)));
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (string->number string)                                       procedure
+     *  (string->number string radix)                                 procedure
+     *
+     *  Returns a number of the maximally precise representation expressed by
+     *  the given string. It is an error if radix is not 2, 8, 10, or 16.
+     *
+     *  If supplied, radix is a default radix that will be overridden if an
+     *  explicit radix prefix is present in string (e.g. "#o177"). If radix is
+     *  not supplied, then the default radix is 10. If string is not a
+     *  syntactically valid notation for a number, or would result in a number
+     *  that the implementation cannot represent, then string->number returns
+     *  #f. An error is never signaled due to the content of string.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("string->number", [](let const& xs)
     {
       return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>().to<int>() : 10);
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (pair? obj)                                                   procedure
+     *
+     *  The pair? predicate returns #t if obj is a pair, and otherwise returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
 
-  /* ---- R7RS 6.3. Booleans ---------------------------------------------------
+    define<procedure>("pair?", predicate<pair>());
 
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ not                │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ boolean?           │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ boolean=?          │ Scheme     │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-     ------------------------------------------------------------------------ */
-
-
-  /* ---- R7RS 6.4. Pairs and lists --------------------------------------------
-
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ pair?              │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cons               │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ car                │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cdr                │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ set-car!           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ set-cdr!           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ caar               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cadr               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cdar               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ cddr               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ caaar ... cddddr   │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ null?              │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list?              │ Scheme     │ SRFI-1 (proper-list?)              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ make-list          │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ length             │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ append             │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ reverse            │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list-tail          │ Scheme     │ SRFI-1 (drop)                      │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list-ref           │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list-set!          │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ memq               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ memv               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ member             │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ assq               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ assv               │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ assoc              │ Scheme     │ SRFI-1                             │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list-copy          │ Scheme     │ SRFI-1                             │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
-
-    define<procedure>("pair?", make_predicate<pair>());
+    /* -------------------------------------------------------------------------
+     *
+     *  (cons obj1 obj2)                                              procedure
+     *
+     *  Returns a newly allocated pair whose car is obj1 and whose cdr is obj2.
+     *  The pair is guaranteed to be different (in the sense of eqv?) from
+     *  every existing object.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("cons", [](auto&& xs)
     {
       return cons(car(xs), cadr(xs));
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (car pair)                                                    procedure
+     *
+     *  Returns the contents of the car field of pair. Note that it is an error
+     *  to take the car of the empty list.
+     *
+     *  (cdr pair)                                                    procedure
+     *
+     *  Returns the contents of the cdr field of pair. Note that it is an error
+     *  to take the cdr of the empty list.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("car", [](auto&& xs) { return caar(xs); });
     define<procedure>("cdr", [](auto&& xs) { return cdar(xs); });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (set-car! pair obj)                                           procedure
+     *
+     *  Stores obj in the car field of pair.
+     *
+     *  (set-cdr! pair obj)                                           procedure
+     *
+     *  Stores obj in the cdr field of pair.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
@@ -512,7 +552,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("symbol?", make_predicate<symbol>());
+    define<procedure>("symbol?", predicate<symbol>());
 
     define<procedure>("symbol->string", [](let const& xs)
     {
@@ -577,7 +617,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("char?", make_predicate<character>());
+    define<procedure>("char?", predicate<character>());
 
     define<procedure>("digit-value", [](let const& xs)
     {
@@ -684,7 +724,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string?", make_predicate<string>());
+    define<procedure>("string?", predicate<string>());
 
     /* -------------------------------------------------------------------------
      *
@@ -983,7 +1023,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("vector?", make_predicate<vector>());
+    define<procedure>("vector?", predicate<vector>());
 
     define<procedure>("make-vector", [](let const& xs)
     {
@@ -1136,11 +1176,11 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("native-procedure?", make_predicate<procedure>());
+    define<procedure>("native-procedure?", predicate<procedure>());
 
-    define<procedure>("closure?", make_predicate<closure>());
+    define<procedure>("closure?", predicate<closure>());
 
-    define<procedure>("continuation?", make_predicate<continuation>());
+    define<procedure>("continuation?", predicate<continuation>());
 
 
   /* ---- R7RS 6.11. Exceptions ------------------------------------------------
@@ -1182,10 +1222,10 @@ inline namespace kernel
       return make<error>(car(xs), cdr(xs));
     });
 
-    define<procedure>(       "error?", make_predicate<       error>());
-    define<procedure>(  "read-error?", make_predicate<  read_error>());
-    define<procedure>(  "file-error?", make_predicate<  file_error>());
-    define<procedure>("syntax-error?", make_predicate<syntax_error>());
+    define<procedure>(       "error?", predicate<       error>());
+    define<procedure>(  "read-error?", predicate<  read_error>());
+    define<procedure>(  "file-error?", predicate<  file_error>());
+    define<procedure>("syntax-error?", predicate<syntax_error>());
 
   /* ---- R7RS 6.12. Environments and evaluation -------------------------------
 
@@ -1385,13 +1425,13 @@ inline namespace kernel
     });
 
 
-    define<procedure>("input-file-port?", make_predicate<input_file_port>());
+    define<procedure>("input-file-port?", predicate<input_file_port>());
 
-    define<procedure>("output-file-port?", make_predicate<output_file_port>());
+    define<procedure>("output-file-port?", predicate<output_file_port>());
 
-    define<procedure>("input-string-port?", make_predicate<input_string_port>());
+    define<procedure>("input-string-port?", predicate<input_string_port>());
 
-    define<procedure>("output-string-port?", make_predicate<output_string_port>());
+    define<procedure>("output-string-port?", predicate<output_string_port>());
 
 
     define<procedure>("input-file-port-open?", [](let const& xs)
@@ -1500,7 +1540,7 @@ inline namespace kernel
     });
 
 
-    define<procedure>("eof-object?", make_predicate<eof>());
+    define<procedure>("eof-object?", predicate<eof>());
 
     define<procedure>("eof-object", [](auto&&)
     {
@@ -1533,7 +1573,7 @@ inline namespace kernel
     });
 
 
-    define<procedure>("path?", make_predicate<path>());
+    define<procedure>("path?", predicate<path>());
 
     define<procedure>("::write-path", [](let const& xs)
     {
@@ -1640,9 +1680,9 @@ inline namespace kernel
 
   /* ---- R4RS APPENDIX: A compatible low-level macro facility -------------- */
 
-    define<procedure>("syntactic-closure?", make_predicate<syntactic_closure>());
+    define<procedure>("syntactic-closure?", predicate<syntactic_closure>());
 
-    define<procedure>("syntactic-continuation?", make_predicate<syntactic_continuation>());
+    define<procedure>("syntactic-continuation?", predicate<syntactic_continuation>());
 
     define<procedure>("identifier?", [](auto&& xs)
     {

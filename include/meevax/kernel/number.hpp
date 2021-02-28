@@ -60,7 +60,7 @@ inline namespace kernel
       { typeid(exact_integer), [&](T const& a, let const& b) { return procedure(a, b.as<exact_integer>()); } },
     };
 
-    if (auto const iter { overloads.find(b.type()) }; iter != std::end(overloads))
+    if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
     {
       return std::get<1>(*iter)(a, b);
     }
@@ -134,7 +134,8 @@ inline namespace kernel
 
     auto aux2 = [&](auto&& x)
     {
-      if (floating_point const y { cmath(x.template as_inexact<decltype(0.0)>()) }; y.is_integer())
+      if (floating_point const y {
+            cmath(x.template as_inexact<decltype(0.0)>()) }; y.is_integer())
       {
         return make<exact_integer>(y.value);
       }

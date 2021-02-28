@@ -16,10 +16,9 @@ inline namespace kernel
   #else
   #define PROCEDURE(...) \
     meevax::object const __VA_ARGS__(                 meevax::object const& xs)
-  #endif // __has_cpp_attribute(maybe_unused)
+  #endif
 
-  struct procedure
-    : public std::function<PROCEDURE()>
+  struct procedure : public std::function<PROCEDURE()>
   {
     using signature = PROCEDURE((*));
 
@@ -31,21 +30,15 @@ inline namespace kernel
       , name { name }
     {}
 
-    friend auto operator <<(std::ostream & port, procedure const& datum) -> std::ostream &
-    {
-      return port << magenta << "#,("
-                  << green << "procedure "
-                  << reset << datum.name
-                  << faint << " #;" << &datum << reset
-                  << magenta << ")"
-                  << reset;
-    }
+    virtual ~procedure() = default;
   };
 
+  auto operator <<(output_port & port, procedure const& datum) -> output_port &;
+
   template <typename T>
-  struct make_predicate
+  struct predicate
   {
-    let operator ()(let const& xs) const
+    let const& operator ()(let const& xs) const
     {
       if (xs.is<null>())
       {
@@ -55,7 +48,7 @@ inline namespace kernel
       {
         for (let const& x : xs)
         {
-          if (x.is<null>() or not x.is<T>())
+          if (not x.is<T>())
           {
             return f;
           }

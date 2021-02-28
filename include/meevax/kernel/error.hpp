@@ -33,9 +33,26 @@ inline namespace kernel
 
     virtual auto what() const -> std::string
     {
-      std::stringstream ss { "error: " };
+      std::stringstream ss {};
+
+      ss << "error: ";
+
       car(*this).as<const string>().write_string(ss);
-      ss << ".";
+
+      if (cdr(*this))
+      {
+        ss << ":";
+
+        for (let const& irritant : cdr(*this))
+        {
+          ss << " " << irritant;
+        }
+      }
+      else
+      {
+        ss << ".";
+      }
+
       return ss.str();
     }
 
