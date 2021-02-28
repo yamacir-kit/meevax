@@ -713,41 +713,33 @@
       (closure? x)
       (continuation? x)))
 
-(define dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
+(define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
 (define (dynamic-wind before thunk after)
   (before)
-  (set! dynamic-extents (cons (cons before after) dynamic-extents))
+  (set! %current-dynamic-extents (cons (cons before after) %current-dynamic-extents))
   ((lambda (result) ; TODO let-values
-     (set! dynamic-extents (cdr dynamic-extents))
+     (set! %current-dynamic-extents (cdr %current-dynamic-extents))
      (after)
      result) ; TODO (apply values result)
    (thunk)))
 
 (define call-with-current-continuation
-  ((lambda (call/cc)
-     (lambda (procedure)
-       (define (windup! from to)
-         (set! dynamic-extents from)
-         (if (eq? from to) #t
-         (if (null? from)
-             (begin (windup! from (cdr to))
-                    ((caar to)))
-         (if (null? to)
-             (begin ((cdar from))
-                    (windup! (cdr from) to))
-             (begin ((cdar from))
-                    (windup! (cdr from) (cdr to))
-                    ((caar to))))))
-         (set! dynamic-extents to))
-       ((lambda (current-dynamic-extents)
-          (call/cc (lambda (k1)
-                     (procedure (lambda (k2)
-                                  (windup! dynamic-extents current-dynamic-extents)
-                                  (k1 k2))))))
-        dynamic-extents)))
-   (lambda (procedure)
-     (call-with-current-continuation procedure)))) ; primitive call/cc
+  (let ((call/cc (lambda (procedure)
+                   (call-with-current-continuation procedure))))
+    (lambda (procedure)
+      (define (windup! from to)
+        (set! %current-dynamic-extents from)
+        (cond ((eq? from to))
+              ((null? from) (windup! from (cdr to)) ((caar to)))
+              ((null? to) ((cdar from)) (windup! (cdr from) to))
+              (else ((cdar from)) (windup! (cdr from) (cdr to)) ((caar to))))
+        (set! %current-dynamic-extents to))
+      (let ((current-dynamic-extents %current-dynamic-extents))
+        (call/cc (lambda (k1)
+                   (procedure (lambda (k2)
+                                (windup! %current-dynamic-extents current-dynamic-extents)
+                                (k1 k2)))))))))
 
 ; (define values
 ;   (lambda xs

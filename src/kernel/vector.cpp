@@ -1,5 +1,6 @@
 #include <boost/range/adaptors.hpp>
 #include <meevax/algorithm/for_each.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -50,7 +51,9 @@ inline namespace kernel
       }
       else
       {
-        throw error("It is an error if any element of vector between start and end is not a character.");
+        throw error(
+          make<string>("It is an error if any element of vector between start and end is not a character."),
+          unit);
       }
     }
 

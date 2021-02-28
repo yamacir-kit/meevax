@@ -113,26 +113,21 @@
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
+; error => SRFI-23
+
 ; TODO with-exception-handler
-; TODO raise ; SRFI-18
+; TODO raise
 ; TODO raise-continuable
 
-(define (error message . irritants) ; SRFI-23
-  (display "error: ")
-  (display message)
-  (for-each (lambda (each)
-              (display " ")
-              (write each))
-            irritants)
-  (newline)
-  (exit 1))
+(define (error-object? x)
+  (or (error? x)
+      (continuable-error? x)
+      (read-error? x)
+      (file-error? x)
+      (syntax-error? x)))
 
-(define (error-object? x) #false)
-
-; TODO error-object-message
-; TODO error-object-irritants
-; TODO read-error?
-; TODO file-error?
+(define error-object-message car)
+(define error-object-irritants cdr)
 
 ; ---- 6.12. Environments and evaluation ---------------------------------------
 
@@ -235,7 +230,37 @@
 ; TODO delete-file
 ; TODO command-line
 
-(define exit emergency-exit)
+; ------------------------------------------------------------------------------
+;
+;  (exit)                                     process-context library procedure
+;  (exit obj)                                 process-context library procedure
+;
+;  Runs all outstanding dynamic-wind after procedures, terminates the running
+;  program, and communicates an exit value to the operating system. If no
+;  argument is supplied, or if obj is #t, the exit procedure should communicate
+;  to the operating system that the program exited normally. If obj is #f, the
+;  exit procedure should communicate to the operating system that the program
+;  exited abnormally. Otherwise, exit should translate obj into an appropriate
+;  exit value for the operating system, if possible.
+;
+;  The exit procedure must not signal an exception or return to its
+;  continuation.
+;
+;  Note: Because of the requirement to run handlers, this procedure is not just
+;  the operating system’s exit procedure.
+;
+; ------------------------------------------------------------------------------
+
+(define (exit . normally?)
+  (for-each (lambda (before/after)
+              ((cdr before/after)))
+            %current-dynamic-extents)
+  (emergency-exit normally?))
+
+; (dynamic-wind
+;   (lambda () (display "before\n"))
+;   (lambda () (exit))
+;   (lambda () (display "after\n")))
 
 ; TODO get-environment-variable
 ; TODO get-environment-variables

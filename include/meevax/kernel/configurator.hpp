@@ -2,11 +2,12 @@
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
 #include <regex>
-#include <unordered_map>
 
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
+#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax
@@ -286,7 +287,9 @@ inline namespace kernel
               }
               else
               {
-                throw error("option -", *so, " requires an argument");
+                throw error(
+                  make<string>(string_append("option -", *so, " requires an argument")),
+                  unit);
               }
             }
             else if (auto callee { short_options.find(*so) }; callee != std::end(short_options))
@@ -295,7 +298,9 @@ inline namespace kernel
             }
             else
             {
-              throw error("unknown short-option: ", *so);
+              throw error(
+                make<string>(string_append("unknown short-option: ", *so)),
+                unit);
             }
           }
         }
@@ -313,7 +318,9 @@ inline namespace kernel
             }
             else
             {
-              throw error("option --", lo, " requires an argument");
+              throw error(
+                make<string>(string_append("option --", lo, " requires an argument")),
+                unit);
             }
           }
           else if (auto callee { long_options.find(lo) }; callee != std::end(long_options))
@@ -322,7 +329,7 @@ inline namespace kernel
           }
           else
           {
-            throw error("unknown long-option: ", *option);
+            throw error(make<string>(string_append("unknown long-option: ", *option)), unit);
           }
         }
         else

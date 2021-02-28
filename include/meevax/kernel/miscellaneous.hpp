@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_MISCELLANEOUS_HPP
 
 #include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {

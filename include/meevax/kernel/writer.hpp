@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
-#include <meevax/kernel/object.hpp>
 #include <meevax/kernel/port.hpp>
 
 namespace meevax

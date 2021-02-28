@@ -1,20 +1,18 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
-#include <iomanip>
+#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/string.hpp>
 #include <stdexcept>
-#include <utility>
-
-#include <meevax/kernel/preface.hpp>
-#include <meevax/posix/vt10x.hpp>
-#include <meevax/string/cat.hpp>
-#include <meevax/utility/hexdump.hpp>
+#include <type_traits>
 
 /* ---- Error ------------------------------------------------------------------
  *
  * - error
  *    |-- file-error
  *    |-- read_error
+ *    |    `-- tagged_read_error
  *    `-- syntax_error
  *
  * -------------------------------------------------------------------------- */
@@ -23,14 +21,23 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct error : public std::runtime_error
+  struct error
+    : public virtual pair
   {
     template <typename... Ts>
     explicit error(Ts&&... xs)
-      : std::runtime_error { cat(std::forward<decltype(xs)>(xs)...) }
+      : pair { std::forward<decltype(xs)>(xs)... }
     {}
 
-    virtual ~error() = default;
+    ~error() override = default;
+
+    virtual auto what() const -> std::string
+    {
+      std::stringstream ss { "error: " };
+      car(*this).as<const string>().write_string(ss);
+      ss << ".";
+      return ss.str();
+    }
 
     virtual void raise() const
     {
@@ -38,36 +45,41 @@ inline namespace kernel
     }
   };
 
-  auto operator <<(output_port &, error const&) -> output_port &;
+  auto operator <<(output_port & port, error const& datum) -> output_port &;
 
-  #define BOILERPLATE(CATEGORY)                                                \
-  template <typename Tag>                                                      \
-  struct CATEGORY##_error : public error                                       \
+  #define DEFINE_ERROR(TYPENAME)                                               \
+  struct TYPENAME ## _error : public error                                     \
   {                                                                            \
-    using error::error;                                                        \
+    template <typename... Ts>                                                  \
+    explicit TYPENAME ## _error(Ts&&... xs)                                    \
+      : error { std::forward<decltype(xs)>(xs)... }                            \
+    {}                                                                         \
                                                                                \
-    virtual void raise() const override                                        \
-    {                                                                          \
-      throw *this;                                                             \
-    }                                                                          \
-  };                                                                           \
-                                                                               \
-  template <typename Tag>                                                      \
-  auto operator <<(output_port & port, CATEGORY##_error<Tag> const& datum)     \
-    -> output_port &                                                           \
-  {                                                                            \
-    return port << magenta << "#,("                                            \
-                << green << #CATEGORY "-error "                                \
-                << cyan << std::quoted(datum.what())                           \
-                << magenta << ")"                                              \
-                << reset;                                                      \
-  } static_assert(true)
+    ~TYPENAME ## _error() override = default;                                  \
+  }
 
-  BOILERPLATE(file);
-  BOILERPLATE(read);
-  BOILERPLATE(syntax);
+  DEFINE_ERROR(file);
+  DEFINE_ERROR(read);
+  DEFINE_ERROR(syntax);
 
-  #undef BOILERPLATE
+  template <typename... Ts>
+  struct tagged_read_error : public read_error
+  {
+    template <typename... Us>
+    explicit tagged_read_error(Us&&... xs)
+      : read_error { std::forward<decltype(xs)>(xs)... }
+    {}
+
+    ~tagged_read_error() override = default;
+  };
+
+  template <typename... Ts>
+  struct tagged_syntax_error : public syntax_error
+  {
+    using syntax_error::syntax_error;
+
+    ~tagged_syntax_error() override = default;
+  };
 } // namespace kernel
 } // namespace meevax
 

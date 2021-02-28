@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_RATIO_HPP
 
 #include <meevax/kernel/numeric_tower.hpp>
-#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {

@@ -1,3 +1,4 @@
+#include <boost/cstdlib.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/range/adaptor/reversed.hpp>
@@ -592,34 +593,25 @@ inline namespace kernel
 
     define<procedure>("char->integer", [](let const& xs)
     {
-      if (xs.is<null>())
+      if (xs.is<pair>() and car(xs).is<character>())
       {
-        throw error(
-          cat("Procedure char->integer got ", xs));
-      }
-      else if (let const& x = car(xs); x.is<character>())
-      {
-        return make<exact_integer>(static_cast<codepoint>(x.as<character>()));
+        return make<exact_integer>(static_cast<codepoint>(car(xs).as<character>()));
       }
       else
       {
-        throw error(cat("Procedure char-integer got ", xs));
+        throw error(make<string>("invalid arguments: "), xs);
       }
     });
 
     define<procedure>("integer->char", [](let const& xs)
     {
-      if (xs.is<null>())
+      if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
-        throw error(cat("Procedure integer->char got ", xs));
-      }
-      else if (let const& x = car(xs); x.is<exact_integer>())
-      {
-        return make<character>(x.as<exact_integer>().to<codepoint>());
+        return make<character>(car(xs).as<exact_integer>().to<codepoint>());
       }
       else
       {
-        throw error(cat("Procedure integer->char got ", xs));
+        throw error(make<string>("invalid arguments: "), xs);
       }
     });
 
@@ -1167,19 +1159,33 @@ inline namespace kernel
      ├────────────────────────┼────────────┼──────────────────────────────────┤
      │ error                  │ TODO       │ SRFI-23                          │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object?          │ TODO       │                                  │
+     │ error-object?          │ Scheme     │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-message   │ TODO       │                                  │
+     │ error-object-message   │ Scheme     │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-irritants │ TODO       │                                  │
+     │ error-object-irritants │ Scheme     │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ read-error?            │ TODO       │                                  │
+     │ read-error?            │ C++        │                                  │
      ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ file-error?            │ TODO       │                                  │
+     │ file-error?            │ C++        │                                  │
      └────────────────────────┴────────────┴──────────────────────────────────┘
 
     ------------------------------------------------------------------------- */
 
+    define<procedure>("throw", [](let const& xs) -> object
+    {
+      throw car(xs);
+    });
+
+    define<procedure>("make-error", [](let const& xs)
+    {
+      return make<error>(car(xs), cdr(xs));
+    });
+
+    define<procedure>(       "error?", make_predicate<       error>());
+    define<procedure>(  "read-error?", make_predicate<  read_error>());
+    define<procedure>(  "file-error?", make_predicate<  file_error>());
+    define<procedure>("syntax-error?", make_predicate<syntax_error>());
 
   /* ---- R7RS 6.12. Environments and evaluation -------------------------------
 
@@ -1435,7 +1441,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("open-input-string: not string", car(xs));
+        throw error(make<string>("not a string"), car(xs));
       }
     });
 
@@ -1451,7 +1457,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("open-output-string: not string", car(xs));
+        throw error(make<string>("not a string"), car(xs));
       }
     });
 
@@ -1472,7 +1478,7 @@ inline namespace kernel
       {
         return make<character>(car(xs).as<input_port>());
       }
-      catch (read_error<eof> const&)
+      catch (tagged_read_error<eof> const&)
       {
         return eof_object;
       }
@@ -1487,7 +1493,7 @@ inline namespace kernel
         car(xs).as<input_port>().seekg(g);
         return c;
       }
-      catch (read_error<eof> const&)
+      catch (tagged_read_error<eof> const&)
       {
         return eof_object;
       }
@@ -1583,18 +1589,36 @@ inline namespace kernel
       return load(car(xs).as<const string>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (emergency-exit)                      process-context library procedure
+     *  (emergency-exit obj)                  process-context library procedure
+     *
+     *  Terminates the program without running any outstanding dynamic-wind
+     *  after procedures and communicates an exit value to the operating system
+     *  in the same manner as exit.
+     *
+     *  NOTE: The emergency-exit procedure corresponds to the exit procedure in
+     *  Windows and Posix.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("emergency-exit", [](let const& xs)
     {
-      if (xs.is<null>() or not car(xs).is<exact_integer>())
+      if (not xs.is<pair>() or eq(car(xs), t))
       {
         std::exit(boost::exit_success);
       }
-      else
+      else if (car(xs).is<exact_integer>())
       {
         std::exit(car(xs).as<exact_integer>().to<int>());
       }
+      else
+      {
+        std::exit(boost::exit_failure);
+      }
 
-      return unspecified;
+      return unspecified; // NOTE: Dummy. This function is never returns.
     });
 
     define<procedure>("linker", [](auto&& xs)
@@ -1636,10 +1660,12 @@ inline namespace kernel
   {
     std::vector<string_view> codes {
       overture,
-      srfi_8, // for srfi-1
-      srfi_1, // (scheme list)
+      srfi_8,
+      srfi_1,
+      srfi_23,
+      srfi_34,
       srfi_39,
-      srfi_45, // (scheme lazy)
+      srfi_45,
       srfi_78,
       r7rs,
     };

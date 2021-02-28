@@ -2,7 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_NUMERIC_LITERAL_HPP
 
 #include <regex>
-#include <tuple>
 
 #include <meevax/kernel/number.hpp>
 
@@ -45,7 +44,9 @@ inline namespace kernel
 
     auto error = [&]()
     {
-      return read_error<exact_integer>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      return tagged_read_error<exact_integer>(
+        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
+        unit);
     };
 
     switch (radix)
@@ -114,7 +115,9 @@ inline namespace kernel
     }
     else
     {
-      throw read_error<ratio>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      throw tagged_read_error<ratio>(
+        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
+        unit);
     }
   };
 
@@ -146,7 +149,9 @@ inline namespace kernel
       [[fallthrough]];
 
     default:
-      throw read_error<system_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      throw tagged_read_error<system_float>(
+        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
+        unit);
     }
   };
 
@@ -171,7 +176,9 @@ inline namespace kernel
     }
     else
     {
-      throw read_error<system_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      throw tagged_read_error<system_float>(
+        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
+        unit);
     }
   };
 
@@ -192,7 +199,9 @@ inline namespace kernel
     }
     else
     {
-      throw read_error<system_float>("not a number: (string->number ", std::quoted(token), " ", radix, ")");
+      throw tagged_read_error<system_float>(
+        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
+        unit);
     }
   };
 

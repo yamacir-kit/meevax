@@ -1,6 +1,7 @@
 #include <iomanip>
 
 #include <meevax/iostream/ignore.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/parser.hpp>
 #include <meevax/kernel/string.hpp>
@@ -24,7 +25,8 @@ inline namespace kernel
         }
       }
 
-      throw read_error<character>("invalid escape sequence");
+      throw tagged_read_error<character>(
+        make<string>("invalid escape sequence"), unit);
     };
 
     characters cs;
@@ -68,7 +70,8 @@ inline namespace kernel
       }
     }
 
-    throw read_error<string>("unterminated string");
+    throw tagged_read_error<string>(
+      make<string>("unterminated string"), unit);
   }
 
   auto string::write_string(output_port & port) const -> output_port &
