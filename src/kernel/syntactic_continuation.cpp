@@ -99,13 +99,13 @@ inline namespace kernel
 
     define<procedure>("eqv?", [](auto&& xs)
     {
-      if (let const& lhs = car(xs), rhs = cadr(xs); eq(lhs, rhs))
+      if (let const& a = car(xs), b = cadr(xs); eq(a, b))
       {
         return t;
       }
       else
       {
-        return lhs.eqv(rhs) ? t : f;
+        return a.eqv(b) ? t : f;
       }
     });
 
@@ -156,9 +156,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
 
     define<procedure>("%complex?", predicate<complex>());
-
     define<procedure>("ratio?", predicate<ratio>());
-
     define<procedure>("single-float?", predicate<single_float>());
     define<procedure>("double-float?", predicate<double_float>());
 
@@ -172,32 +170,99 @@ inline namespace kernel
 
     define<procedure>("exact-integer?", predicate<exact_integer>());
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (nan? z)                                      inexact library procedure
+     *
+     *  The nan? procedure returns #t on +nan.0, and on complex numbers if
+     *  their real or imaginary parts or both are +nan.0. Otherwise it returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("%nan?", [](auto&& xs)
     {
       return std::all_of(std::begin(xs), std::end(xs), is_nan) ? t : f;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (=  z1 z2 z3 ...)                                             procedure
+     *  (<  x1 x2 x3 ...)                                             procedure
+     *  (>  x1 x2 x3 ...)                                             procedure
+     *  (<= x1 x2 x3 ...)                                             procedure
+     *  (>= x1 x2 x3 ...)                                             procedure
+     *
+     *  These procedures return #t if their arguments are (respectively):
+     *  equal, monotonically increasing, monotonically decreasing,
+     *  monotonically non-decreasing, or monotonically non-increasing, and #f
+     *  otherwise. If any of the arguments are +nan.0, all the predicates
+     *  return #f. They do not distinguish between inexact zero and inexact
+     *  negative zero.
+     *
+     *  These predicates are required to be transitive.
+     *
+     *  Note: The implementation approach of converting all arguments to
+     *  inexact numbers if any argument is inexact is not transitive. For
+     *  example, let big be (expt 2 1000), and assume that big is exact and
+     *  that inexact numbers are represented by 64-bit IEEE binary floating
+     *  point numbers. Then (= (- big 1) (inexact big)) and (= (inexact big)
+     *  (+ big 1)) would both be true with this approach, because of the
+     *  limitations of IEEE representations of large integers, whereas (= (-
+     *  big 1) (+ big 1)) is false. Converting inexact values to exact numbers
+     *  that are the same (in the sense of =) to them will avoid this problem,
+     *  though special care must be taken with infinities.
+     *
+     *  Note: While it is not an error to compare inexact numbers using these
+     *  predicates, the results are unreliable because a small inaccuracy can
+     *  affect the result; this is especially true of = and zero?. When in
+     *  doubt, consult a numerical analyst.
+     *
+     * ---------------------------------------------------------------------- */
 
-    #define DEFINE_TRANSITIVE_COMPARISON(SYMBOL, COMPARE)                      \
+    #define BOILERPLATE(SYMBOL, OPERATOR)                                      \
     define<procedure>(#SYMBOL, [](auto&& xs) constexpr                         \
     {                                                                          \
-      return std::adjacent_find(std::begin(xs), std::end(xs), std::not_fn(COMPARE)) == std::end(xs) ? t : f; \
+      const auto compare = std::not_fn([](let const& a, let const& b)          \
+      {                                                                        \
+        return a.binding() OPERATOR b;                                         \
+      });                                                                      \
+                                                                               \
+      return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs) ? t : f; \
     })
 
-    DEFINE_TRANSITIVE_COMPARISON(= , [](auto&& a, auto&& b) { return a.binding() == b; });
-    DEFINE_TRANSITIVE_COMPARISON(< , [](auto&& a, auto&& b) { return a.binding() <  b; });
-    DEFINE_TRANSITIVE_COMPARISON(<=, [](auto&& a, auto&& b) { return a.binding() <= b; });
-    DEFINE_TRANSITIVE_COMPARISON(> , [](auto&& a, auto&& b) { return a.binding() >  b; });
-    DEFINE_TRANSITIVE_COMPARISON(>=, [](auto&& a, auto&& b) { return a.binding() >= b; });
+    BOILERPLATE(= , ==);
+    BOILERPLATE(< , < );
+    BOILERPLATE(<=, <=);
+    BOILERPLATE(> , > );
+    BOILERPLATE(>=, >=);
+
+    #undef BOILERPLATE
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (+ z1 ...)                                                    procedure
+     *  (* z1 ...)                                                    procedure
+     *
+     *  These procedures return the sum or product of their arguments.
+     *
+     * ---------------------------------------------------------------------- */
 
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
-      return std::accumulate(std::begin(xs), std::end(xs), make<exact_integer>(BASIS), [](auto&& x, auto&& y) { return x SYMBOL y; }); \
+      return std::accumulate(                                                  \
+               std::begin(xs), std::end(xs), BASIS, [](auto&& x, auto&& y)     \
+               {                                                               \
+                 return x SYMBOL y;                                            \
+               });                                                             \
     })
 
-    BOILERPLATE(+, 0);
-    BOILERPLATE(*, 1);
+    let static const e0 = make<exact_integer>(0);
+    let static const e1 = make<exact_integer>(1);
+
+    BOILERPLATE(+, e0);
+    BOILERPLATE(*, e1);
 
     #undef BOILERPLATE
 

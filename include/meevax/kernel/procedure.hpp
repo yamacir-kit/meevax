@@ -48,7 +48,7 @@ inline namespace kernel
       {
         for (let const& x : xs)
         {
-          if (x.is<null>() or not x.is<T>())
+          if (not x.is<T>())
           {
             return f;
           }
