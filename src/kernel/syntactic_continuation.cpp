@@ -266,6 +266,24 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (- z)                                                         procedure
+     *  (- z1 z2 ...)                                                 procedure
+     *  (/ z)                                                         procedure
+     *  (/ z1 z2 ...)                                                 procedure
+     *
+     *  With two or more arguments, these procedures return the difference or
+     *  quotient of their arguments, associating to the left. With one
+     *  argument, however, they return the additive or multiplicative inverse
+     *  of their argument.
+     *
+     *  It is an error if any argument of / other than the first is an exact
+     *  zero. If the first argument is an exact zero, an implementation may
+     *  return an exact zero unless one of the other arguments is a NaN.
+     *
+     * ---------------------------------------------------------------------- */
+
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
@@ -297,10 +315,35 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
-    define<procedure>("floor"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::floor(x   ); }, car(xs)          ); });
-    define<procedure>("ceiling" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::ceil (x   ); }, car(xs)          ); });
-    define<procedure>("truncate", [](let const& xs) { return apply_1([](auto&& x          ) { return std::trunc(x   ); }, car(xs)          ); });
-    define<procedure>("round"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::round(x   ); }, car(xs)          ); });
+    /* -------------------------------------------------------------------------
+     *
+     *  (floor x)                                                     procedure
+     *  (ceiling x)                                                   procedure
+     *  (truncate x)                                                  procedure
+     *  (round x)                                                     procedure
+     *
+     *  These procedures return integers. The floor procedure returns the
+     *  largest integer not larger than x. The ceiling procedure returns the
+     *  smallest integer not smaller than x, truncate returns the integer
+     *  closest to x whose absolute value is not larger than the absolute value
+     *  of x, and round returns the closest integer to x, rounding to even when
+     *  x is halfway between two integers.
+     *
+     * ---------------------------------------------------------------------- */
+
+    #define DEFINE_CMATH_1(NAME, CMATH)                                        \
+    define<procedure>(NAME, [](let const& xs)                                  \
+    {                                                                          \
+      return apply_1([](auto&&... xs)                                          \
+      {                                                                        \
+        return std::CMATH(std::forward<decltype(xs)>(xs)...);                  \
+      }, car(xs));                                                             \
+    })
+
+    DEFINE_CMATH_1("floor", floor);
+    DEFINE_CMATH_1("ceiling", ceil);
+    DEFINE_CMATH_1("truncate", trunc);
+    DEFINE_CMATH_1("round", round);
 
     define<procedure>( "sin"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
     define<procedure>( "sinh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
@@ -324,13 +367,110 @@ inline namespace kernel
     define<procedure>("exp"     , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
     define<procedure>("expt"    , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
 
-    define<procedure>(  "exact", [](auto&& xs) { return   exact(car(xs)); });
-    define<procedure>("inexact", [](auto&& xs) { return inexact(car(xs)); });
+    /* -------------------------------------------------------------------------
+     *
+     *  (inexact z)                                                   procedure
+     *  (exact z)                                                     procedure
+     *
+     *  The procedure inexact returns an inexact representation of z. The value
+     *  returned is the inexact number that is numerically closest to the
+     *  argument. For inexact arguments, the result is the same as the argument.
+     *  For exact complex numbers, the result is a complex number whose real
+     *  and imaginary parts are the result of applying inexact to the real and
+     *  imaginary parts of the argument, respectively. If an exact argument has
+     *  no reasonably close inexact equivalent (in the sense of =), then a
+     *  violation of an implementation restriction may be reported.
+     *
+     *  The procedure exact returns an exact representation of z. The value
+     *  returned is the exact number that is numerically closest to the
+     *  argument. For exact arguments, the result is the same as the argument.
+     *  For inexact nonintegral real arguments, the implementation may return a
+     *  rational approximation, or may report an implementation violation. For
+     *  inexact complex arguments, the result is a complex number whose real
+     *  and imaginary parts are the result of applying exact to the real and
+     *  imaginary parts of the argument, respectively. If an inexact argument
+     *  has no reasonably close exact equivalent, (in the sense of =), then a
+     *  violation of an implementation restriction may be reported.
+     *
+     *  These procedures implement the natural one-to-one correspondence
+     *  between exact and inexact integers throughout an
+     *  implementation-dependent range. See section 6.2.3.
+     *
+     *  Note: These procedures were known in R5RS as exact->inexact and
+     *  inexact->exact, respectively, but they have always accepted arguments
+     *  of any exactness. The new names are clearer and shorter, as well as
+     *  being compatible with R6RS.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("exact", [](auto&& xs)
+    {
+      return exact(car(xs));
+    });
+
+    define<procedure>("inexact", [](auto&& xs)
+    {
+      return inexact(car(xs));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (number->string z)                                            procedure
+     *  (number->string z radix)                                      procedure
+     *
+     *  It is an error if radix is not one of 2, 8, 10, or 16. The procedure
+     *  number->string takes a number and a radix and returns as a string an
+     *  external representation of the given number in the given radix such
+     *  that
+     *
+     *    (let ((number number)
+     *          (radix radix))
+     *      (eqv? number (string->number (number->string number radix) radix)))
+     *
+     *  is true. It is an error if no possible result makes this expression
+     *  true. If omitted, radix defaults to 10.
+     *
+     *  If z is inexact, the radix is 10, and the above expression can be
+     *  satisfied by a result that contains a decimal point, then the result
+     *  contains a decimal point and is expressed using the minimum number of
+     *  digits (exclusive of exponent and trailing zeroes) needed to make the
+     *  above expression true [4, 5]; otherwise the format of the result is
+     *  unspecified.
+     *
+     *  The result returned by number->string never contains an explicit radix
+     *  prefix.
+     *
+     *  Note: The error case can occur only when z is not a complex number or
+     *  is a complex number with a non-rational real or imaginary part.
+     *
+     *  Rationale: If z is an inexact number and the radix is 10, then the
+     *  above expression is normally satisfied by a result containing a decimal
+     *  point. The unspecified case allows for infinities, NaNs, and unusual
+     *  representations.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("number->string", [](auto&& xs)
     {
       return make<string>(boost::lexical_cast<std::string>(car(xs)));
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (string->number string)                                       procedure
+     *  (string->number string radix)                                 procedure
+     *
+     *  Returns a number of the maximally precise representation expressed by
+     *  the given string. It is an error if radix is not 2, 8, 10, or 16.
+     *
+     *  If supplied, radix is a default radix that will be overridden if an
+     *  explicit radix prefix is present in string (e.g. "#o177"). If radix is
+     *  not supplied, then the default radix is 10. If string is not a
+     *  syntactically valid notation for a number, or would result in a number
+     *  that the implementation cannot represent, then string->number returns
+     *  #f. An error is never signaled due to the content of string.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("string->number", [](let const& xs)
     {

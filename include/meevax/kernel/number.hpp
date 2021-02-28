@@ -134,7 +134,8 @@ inline namespace kernel
 
     auto aux2 = [&](auto&& x)
     {
-      if (floating_point const y { cmath(x.template as_inexact<decltype(0.0)>()) }; y.is_integer())
+      if (floating_point const y {
+            cmath(x.template as_inexact<decltype(0.0)>()) }; y.is_integer())
       {
         return make<exact_integer>(y.value);
       }
