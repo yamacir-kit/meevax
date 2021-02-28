@@ -32,7 +32,7 @@ inline namespace kernel
   auto operator + (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator() + b.numerator()), cdr(b)); }
   auto operator - (exact_integer const& a, ratio const& b) -> ratio { return ratio(make(a * b.denominator() - b.numerator()), cdr(b)); }
   auto operator / (exact_integer const& a, ratio const& b) -> ratio { return a * b.invert(); }
-  auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(__FILE__, ":", __LINE__); }
+  auto operator % (exact_integer const&  , ratio const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
   auto operator !=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a != x.numerator() : boolean(false); }
   auto operator < (exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a <  x.numerator() : boolean(false); }
   auto operator <=(exact_integer const& a, ratio const& b) -> boolean { auto const x = b.reduce(); return x.is_integer() ? a <= x.numerator() : boolean(false); }
@@ -56,7 +56,7 @@ inline namespace kernel
   auto operator + (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() + a.denominator() * b), cdr(a)); }
   auto operator - (ratio const& a, exact_integer const& b) -> ratio { return ratio(make(a.numerator() - a.denominator() * b), cdr(a)); }
   auto operator / (ratio const& a, exact_integer const& b) -> ratio { return ratio(car(a), make(a.denominator() * b)); }
-  auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(__FILE__, ":", __LINE__); }
+  auto operator % (ratio const&  , exact_integer const&  ) -> ratio { throw error(make<string>("unsupported operation"), unit); }
   auto operator !=(ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() != b : boolean(false); }
   auto operator < (ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() <  b : boolean(false); }
   auto operator <=(ratio const& a, exact_integer const& b) -> boolean { auto const x = a.reduce(); return x.is_integer() ? x.numerator() <= b : boolean(false); }
@@ -68,7 +68,7 @@ inline namespace kernel
   auto operator - (ratio const& a, ratio const& b) -> ratio   { return ratio(make(a.numerator() * b.denominator() - b.numerator() * a.denominator()), make(a.denominator() * b.denominator())); }
   auto operator * (ratio const& a, ratio const& b) -> ratio   { return ratio(make(a.numerator() * b.numerator()), make(a.denominator() * b.denominator())); }
   auto operator / (ratio const& a, ratio const& b) -> ratio   { return a * b.invert(); }
-  auto operator % (ratio const&  , ratio const&  ) -> ratio   { throw error(__FILE__, ":", __LINE__); }
+  auto operator % (ratio const&  , ratio const&  ) -> ratio   { throw error(make<string>("unsupported operation"), unit); }
   auto operator ==(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) == (b.numerator() * a.denominator()); }
   auto operator !=(ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) != (b.numerator() * a.denominator()); }
   auto operator < (ratio const& a, ratio const& b) -> boolean { return (a.numerator() * b.denominator()) <  (b.numerator() * a.denominator()); }

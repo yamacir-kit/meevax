@@ -113,26 +113,21 @@
 
 ; ---- 6.11. Exceptions --------------------------------------------------------
 
+; error => SRFI-23
+
 ; TODO with-exception-handler
-; TODO raise ; SRFI-18
+; TODO raise
 ; TODO raise-continuable
 
-(define (error message . irritants) ; SRFI-23
-  (display "error: ")
-  (display message)
-  (for-each (lambda (each)
-              (display " ")
-              (write each))
-            irritants)
-  (newline)
-  (exit 1))
+(define (error-object? x)
+  (or (error? x)
+      (continuable-error? x)
+      (read-error? x)
+      (file-error? x)
+      (syntax-error? x)))
 
-(define (error-object? x) #false)
-
-; TODO error-object-message
-; TODO error-object-irritants
-; TODO read-error?
-; TODO file-error?
+(define error-object-message car)
+(define error-object-irritants cdr)
 
 ; ---- 6.12. Environments and evaluation ---------------------------------------
 
@@ -259,7 +254,7 @@
 (define (exit . normally?)
   (for-each (lambda (before/after)
               ((cdr before/after)))
-            dynamic-extents)
+            %current-dynamic-extents)
   (emergency-exit normally?))
 
 ; (dynamic-wind

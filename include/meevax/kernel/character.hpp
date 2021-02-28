@@ -1,13 +1,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
-#include <cstdint>
-#include <type_traits>
 #include <unordered_map>
 
 #include <meevax/kernel/miscellaneous.hpp>
-#include <meevax/kernel/object.hpp>
-#include <meevax/kernel/port.hpp>
 #include <meevax/string/unicode.hpp>
 
 namespace meevax

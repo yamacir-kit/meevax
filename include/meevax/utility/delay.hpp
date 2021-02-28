@@ -1,12 +1,9 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
-#include <iomanip>
 #include <memory>
-#include <type_traits>
 
-#include <meevax/kernel/error.hpp>
-#include <meevax/utility/requires.hpp>
+#include <meevax/kernel/preface.hpp>
 
 namespace meevax
 {
@@ -41,7 +38,7 @@ inline namespace utility
         }
         else
         {
-          throw error("no viable operation '", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
+          throw make_error("no viable operation '", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
         }
       }
     };

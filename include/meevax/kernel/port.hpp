@@ -2,15 +2,9 @@
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
 #include <ios>
-#include <unistd.h>
-
-#include <cassert>
 #include <fstream>
-#include <iostream>
-#include <sstream>
 
 #include <meevax/kernel/path.hpp>
-#include <meevax/kernel/preface.hpp>
 
 namespace meevax
 {

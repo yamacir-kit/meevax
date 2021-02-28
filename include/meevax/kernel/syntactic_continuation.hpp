@@ -1,12 +1,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
-#include <boost/cstdlib.hpp>
-
 #include <meevax/kernel/configurator.hpp>
 #include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/machine.hpp>
-#include <meevax/kernel/port.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
 
@@ -121,7 +118,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(__FILE__, ":", __LINE__);
+        throw error(make<string>("failed to intern a symbol"), unit);
       }
     }
 
@@ -231,7 +228,7 @@ inline namespace kernel
       {
         write_to(standard_debug_port(), f, "\n");
 
-        throw file_error<void>("failed to open file: ", name.c_str());
+        throw file_error(make<string>("failed to open file: " + name.string()), unit);
       }
     }
 
