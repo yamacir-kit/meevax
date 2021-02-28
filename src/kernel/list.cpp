@@ -13,24 +13,21 @@ namespace meevax
 {
 inline namespace kernel
 {
-  inline namespace predicate
+  auto equal(const object& x, const object& y) -> bool
   {
-    auto equal(const object& x, const object& y) -> bool
+    if (x.is<null>() and y.is<null>())
     {
-      if (x.is<null>() and y.is<null>())
-      {
-        return true;
-      }
-      else if (x.is<pair>() and y.is<pair>())
-      {
-        return equal(car(x), car(y)) and equal(cdr(x), cdr(y));
-      }
-      else
-      {
-        return eqv(x, y);
-      }
+      return true;
     }
-  } // namespace predicate
+    else if (x.is<pair>() and y.is<pair>())
+    {
+      return equal(car(x), car(y)) and equal(cdr(x), cdr(y));
+    }
+    else
+    {
+      return eqv(x, y);
+    }
+  }
 
   inline namespace selector
   {
