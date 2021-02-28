@@ -41,12 +41,7 @@ inline namespace kernel
 
       if (cdr(*this))
       {
-        ss << ":";
-
-        for (let const& irritant : cdr(*this))
-        {
-          ss << " " << irritant;
-        }
+        ss << ": " << cdr(*this) << ".";
       }
       else
       {

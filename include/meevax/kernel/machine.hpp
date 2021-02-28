@@ -406,7 +406,7 @@ inline namespace kernel
         *  where selection = (if test consequent alternate)
         *
         * ------------------------------------------------------------------- */
-        c = car(s).template is<null>() or not car(s).eqv(f) ? cadr(c) : caddr(c);
+        c = car(s).template is<null>() or (car(s) != f) ? cadr(c) : caddr(c);
         s = cdr(s);
         goto dispatch;
 
