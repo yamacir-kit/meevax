@@ -60,7 +60,7 @@ inline namespace kernel
       { typeid(exact_integer), [&](T const& a, let const& b) { return procedure(a, b.as<exact_integer>()); } },
     };
 
-    if (auto const iter { overloads.find(b.type()) }; iter != std::end(overloads))
+    if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
     {
       return std::get<1>(*iter)(a, b);
     }
