@@ -36,9 +36,9 @@ inline namespace kernel
   auto operator <<(output_port & port, procedure const& datum) -> output_port &;
 
   template <typename T>
-  struct make_predicate
+  struct predicate
   {
-    let operator ()(let const& xs) const
+    let const& operator ()(let const& xs) const
     {
       if (xs.is<null>())
       {
