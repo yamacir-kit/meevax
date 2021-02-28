@@ -3,16 +3,14 @@
 
 #include <atomic>
 #include <cassert>
-#include <cmath>
 
+#include <meevax/functional/compose.hpp>
 #include <meevax/memory/tagged_pointer.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/demangle.hpp>
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
-#include <meevax/utility/requires.hpp>
-#include <type_traits>
 
 namespace meevax
 {
@@ -233,7 +231,7 @@ inline namespace kernel
       }
       else
       {
-        throw error("no viable conversion from ", demangle(binding().type()), " to ", demangle(typeid(U)));
+        throw make_error("no viable conversion from ", demangle(binding().type()), " to ", demangle(typeid(U)));
       }
     }
 
@@ -290,7 +288,7 @@ inline namespace kernel
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      throw error("no viable operation '" #SYMBOL " with ", a, " and ", b);    \
+      throw make_error("no viable operation '" #SYMBOL " with ", a, " and ", b); \
     }                                                                          \
   } static_assert(true)
 

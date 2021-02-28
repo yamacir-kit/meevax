@@ -47,10 +47,12 @@ inline namespace kernel
         return make<character>(token.front());
 
       default:
-        throw read_error<character>(
-          "If <character> in #\\<character> is alphabetic, then any character "
-          "immediately following <character> cannot be one that can appear in "
-          "an identifier");
+        throw tagged_read_error<character>(
+          make<string>(
+            "If <character> in #\\<character> is alphabetic, then any "
+            "character immediately following <character> cannot be one that "
+            "can appear in an identifier"),
+          unit);
       }
     };
 
@@ -86,7 +88,9 @@ inline namespace kernel
       }
       else
       {
-        throw read_error<character>("invalid character literal: #\\", token);
+        throw tagged_read_error<character>(
+          make<string>("invalid character literal: "),
+          make<string>("\\#" + token));
       }
     };
 

@@ -11,6 +11,10 @@ cmake -B "$root/build" -S "$root" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILE
 cd "$root/build"
 
 make uninstall
+
 make -j"$(nproc)"
+
 sudo make install -j"$(nproc)"
+rm -f "$root/build/install_manifest.txt"
+
 make test -j"$(nproc)"

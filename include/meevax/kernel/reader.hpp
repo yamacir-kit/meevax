@@ -1,28 +1,20 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <boost/lexical_cast.hpp>
-#include <limits> // std::numeric_limits<std::streamsize>
-#include <sstream>
-#include <stack>
-
 // #include <boost/iostreams/device/null.hpp>
 // #include <boost/iostreams/stream_buffer.hpp>
 
+#include <boost/lexical_cast.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/kernel/numeric_io.hpp>
 #include <meevax/kernel/parser.hpp> // DEPRECATED
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
 #include <meevax/string/header.hpp>
-#include <type_traits>
 
 namespace meevax
 {
@@ -94,19 +86,19 @@ inline namespace kernel
             port.putback(c);
             return cons(kar, read(port));
           }
-          catch (read_error<right_parenthesis> const&)
+          catch (tagged_read_error<right_parenthesis> const&)
           {
             return char_eq(c, '(') ? unit : throw;
           }
-          catch (read_error<right_square_bracket> const&)
+          catch (tagged_read_error<right_square_bracket> const&)
           {
             return char_eq(c, '[') ? unit : throw;
           }
-          catch (read_error<right_curly_bracket> const&)
+          catch (tagged_read_error<right_curly_bracket> const&)
           {
             return char_eq(c, '{') ? unit : throw;
           }
-          catch (read_error<period> const&)
+          catch (tagged_read_error<period> const&)
           {
             let const kdr = read(port);
 
@@ -121,13 +113,13 @@ inline namespace kernel
           }
 
         case ')':
-          throw read_error<right_parenthesis>("unexpected ", std::quoted(")"));
+          throw tagged_read_error<right_parenthesis>(make<string>("unexpected character: "), make<character>(c));
 
         case ']':
-          throw read_error<right_square_bracket>("unexpected ", std::quoted("]"));
+          throw tagged_read_error<right_square_bracket>(make<string>("unexpected character: "), make<character>(c));
 
         case '}':
-          throw read_error<right_curly_bracket>(c, " is reserved for possible future extensions to the language.");
+          throw tagged_read_error<right_curly_bracket>(make<string>("unexpected character: "), make<character>(c));
 
         case '#':
           return discriminate(port);
@@ -159,7 +151,7 @@ inline namespace kernel
           {
             if (token == ".")
             {
-              throw read_error<period>("dot-notation");
+              throw tagged_read_error<period>(make<string>("unexpected character: "), make<character>('.'));
             }
             else try
             {
@@ -184,7 +176,7 @@ inline namespace kernel
       }
       else
       {
-        throw read_error<void>(__FILE__, ":", __LINE__);
+        throw read_error(make<string>("not an input-port: "), x);
       }
     }
 
@@ -282,7 +274,7 @@ inline namespace kernel
         return read_char(is);
 
       default:
-        throw read_error<void>("unknown <discriminator>: #", discriminator);
+        throw read_error(make<string>("unknown <discriminator>: "), make<character>(discriminator));
       }
     }
   };

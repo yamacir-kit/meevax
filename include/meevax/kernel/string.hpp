@@ -2,8 +2,6 @@
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
 #include <meevax/kernel/character.hpp>
-#include <meevax/kernel/pair.hpp> // TODO REMOVE
-#include <meevax/kernel/port.hpp>
 
 namespace meevax
 {

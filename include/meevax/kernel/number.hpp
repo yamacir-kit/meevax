@@ -1,13 +1,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERICAL_HPP
 
-#include <limits> // for epsilon
 #include <typeindex>
 
 #include <boost/math/constants/constants.hpp>
-
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/floating_point.hpp>
 #include <meevax/kernel/ratio.hpp>
@@ -67,7 +66,9 @@ inline namespace kernel
     }
     else
     {
-      throw error("no viable operation '", typeid(F).name(), "' with ", a, " and ", b);
+      throw error(
+        make<string>(
+          string_append("no viable operation '", typeid(F).name(), "' with ", a, " and ", b)));
     }
   }
 
@@ -103,7 +104,9 @@ inline namespace kernel
     }
     else
     {
-      throw error("no viable operation '", typeid(F).name(), "' with ", a, " and ", b);
+      throw error(
+        make<string>(
+          string_append("no viable operation '", typeid(F).name(), "' with ", a, " and ", b)));
     }
   }
 
@@ -156,7 +159,9 @@ inline namespace kernel
     }
     else
     {
-      throw error("no viable operation '", typeid(F).name(), "' with ", x);
+      throw error(
+        make<string>(
+          string_append("no viable operation '", typeid(F).name(), "' with ", x)));
     }
   }
 

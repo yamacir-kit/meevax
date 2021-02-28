@@ -1,12 +1,10 @@
 (define dynamic-environment '())
 
 (define (make-parameter init . converter)
-  (let* ((convert
-           (if (null? converter)
-               (lambda (x) x)
-               (car converter)))
-         (global-dynamic-environment
-           (cons #f (convert init))))
+  (let* ((convert (if (null? converter)
+                      (lambda (x) x)
+                      (car converter)))
+         (global-dynamic-environment (cons #f (convert init))))
     (define (dynamic-lookup parameter global-dynamic-environment)
       (or (assq parameter dynamic-environment) global-dynamic-environment))
     (define (parameter . value)
@@ -30,11 +28,10 @@
 (define-syntax (parameterize bindings . body)
   (define (dynamic-bind parameters values body)
     (let* ((saved dynamic-environment)
-           (bindings
-             (map (lambda (parameter value)
-                    (cons parameter (parameter value #f)))
-                  parameters
-                  values)))
+           (bindings (map (lambda (parameter value)
+                            (cons parameter (parameter value #f)))
+                          parameters
+                          values)))
       (dynamic-wind
         (lambda () (set! dynamic-environment (append bindings saved)))
         body
