@@ -42,7 +42,16 @@ int main(const int argc, char const* const* const argv) try
  * -------------------------------------------------------------------------- */
 catch (meevax::object const& error)
 {
-  std::cerr << error << std::endl;
+  std::cerr << meevax::header(__func__)
+            << "The default-exception-handler invoked. Raised: " << error
+            << std::endl;
+  std::cerr << meevax::header(__func__)
+            << "I have control of root syntactic-continuation."
+            << std::endl;
+  std::cerr << meevax::header(__func__)
+            << "Terminate this program without running any outstanding dynamic-wind after procedures."
+            << std::endl;
+
   return boost::exit_exception_failure;
 }
 
