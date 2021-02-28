@@ -58,7 +58,6 @@ inline namespace kernel
     ~TYPENAME ## _error() override = default;                                  \
   }
 
-  DEFINE_ERROR(continuable);
   DEFINE_ERROR(file);
   DEFINE_ERROR(read);
   DEFINE_ERROR(syntax);

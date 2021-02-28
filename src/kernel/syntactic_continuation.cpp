@@ -1182,16 +1182,10 @@ inline namespace kernel
       return make<error>(car(xs), cdr(xs));
     });
 
-    define<procedure>("make-continuable-error", [](let const& xs)
-    {
-      return make<continuable_error>(car(xs), cdr(xs));
-    });
-
-    define<procedure>(            "error?", make_predicate<            error>());
-    define<procedure>("continuable-error?", make_predicate<continuable_error>());
-    define<procedure>(       "read-error?", make_predicate<       read_error>());
-    define<procedure>(       "file-error?", make_predicate<       file_error>());
-    define<procedure>(     "syntax-error?", make_predicate<     syntax_error>());
+    define<procedure>(       "error?", make_predicate<       error>());
+    define<procedure>(  "read-error?", make_predicate<  read_error>());
+    define<procedure>(  "file-error?", make_predicate<  file_error>());
+    define<procedure>("syntax-error?", make_predicate<syntax_error>());
 
   /* ---- R7RS 6.12. Environments and evaluation -------------------------------
 
