@@ -107,7 +107,7 @@ inline namespace kernel
       return cdr(form());
     }
 
-    auto const& intern(std::string const& s)
+    static auto const& intern(std::string const& s)
     {
       if (auto iter = symbols.find(s); iter != std::end(symbols))
       {
