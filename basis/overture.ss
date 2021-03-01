@@ -28,6 +28,8 @@
 ; with-input-from-file with-output-to-file write write-char zero?
 ; ------------------------------------------------------------------------------
 
+(define (identity x) x)
+
 (define (list . xs) xs)
 
 (define fork/csc fork-with-current-syntactic-continuation)
@@ -69,13 +71,13 @@
                   #f))
           #f)))
 
-; (define er-macro-transformer ; unstable
-;   (lambda (transform)
-;     (fork/csc
-;       (lambda form
-;         (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
+(define (current-environment) (fork/csc identity))
 
-(define (identity x) x)
+; (define (er-macro-transformer transform) ; unstable
+;   (fork/csc
+;     (define hoge (current-environment))
+;     (lambda form
+;       (transform form (lambda (x) (eval x hoge)) eqv?))))
 
 (define (er-macro-transformer transform) ; unhygienic-dummy
   (fork/csc

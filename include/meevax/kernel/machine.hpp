@@ -294,8 +294,8 @@ inline namespace kernel
         *
         *  where result = (list-ref (list-ref E i) j)
         *
-        *  i = (caadr c)
-        *  j = (cdadr c)
+        *    i = (caadr c)
+        *    j = (cdadr c)
         *
         * ------------------------------------------------------------------- */
         push(s, list_ref(list_ref(e, caadr(c)), cdadr(c)));
@@ -515,8 +515,8 @@ inline namespace kernel
 
       case mnemonic::DROP: /* --------------------------------------------------
         *
-        *     (result . S) E (DROP . C) D
-        *   =>          S  E         C  D
+        *    (result . S) E (DROP . C) D
+        *  =>          S  E         C  D
         *
         * ------------------------------------------------------------------- */
         s = cdr(s);
@@ -544,8 +544,8 @@ inline namespace kernel
 
       case mnemonic::STORE_LOCAL: /* -------------------------------------------
         *
-        *      (value . S) E (STORE-LOCAL (i . j) . C) D
-        *   => (value . S) E                        C  D
+        *     (value . S) E (STORE-LOCAL (i . j) . C) D
+        *  => (value . S) E                        C  D
         *
         * ------------------------------------------------------------------- */
         car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
@@ -561,7 +561,7 @@ inline namespace kernel
       case mnemonic::STOP: /* --------------------------------------------------
         *
         *     (result . S) E (STOP . C) D
-        * = >           S  E         C  D
+        *  =>           S  E         C  D
         *
         * ------------------------------------------------------------------- */
         c = cdr(c);

@@ -1680,9 +1680,14 @@ inline namespace kernel
 
   /* ---- R4RS APPENDIX: A compatible low-level macro facility -------------- */
 
+    define<procedure>("syntactic-continuation?", predicate<syntactic_continuation>());
+
     define<procedure>("syntactic-closure?", predicate<syntactic_closure>());
 
-    define<procedure>("syntactic-continuation?", predicate<syntactic_continuation>());
+    define<procedure>("syntactic-closure", [](let const& xs)
+    {
+      return make<syntactic_closure>(car(xs), cadr(xs));
+    });
 
     define<procedure>("identifier?", [](auto&& xs)
     {

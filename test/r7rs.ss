@@ -1200,6 +1200,15 @@
      (,set! ,x ,y)
      (,set! ,y ,value)))
 
+; (define-syntax swap!
+;   (er-macro-transformer
+;     (lambda (form rename compare)
+;       (let ((a (cadr form))
+;             (b (caddr form)))
+;        `(,(rename 'let) ((,(rename 'value) ,a))
+;           (,(rename 'set!) ,a ,b)
+;           (,(rename 'set!) ,b ,(rename 'value)))))))
+
 (check (let ((x 1)
              (y 2))
          (swap! x y)
