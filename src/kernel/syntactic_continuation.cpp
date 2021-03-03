@@ -561,14 +561,9 @@ inline namespace kernel
 
     define<procedure>("string->symbol", [](let const& xs)
     {
-      return make<symbol>(car(xs).as<string>());
-    });
-
-    define<procedure>("intern", [](let const& xs)
-    {
+      // return make<symbol>(car(xs).as<string>());
       return intern(car(xs).as<string>());
     });
-
 
   /* ---- R7RS 6.6. Characters -------------------------------------------------
 
