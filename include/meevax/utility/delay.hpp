@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include <meevax/kernel/preface.hpp>
+#include <meevax/kernel/forward.hpp>
 
 namespace meevax
 {
