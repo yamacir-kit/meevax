@@ -444,21 +444,18 @@
 
 (check (symbol->string 'flying-fish) => "flying-fish")
 (check (symbol->string 'Martin) => "Martin")
-(check
-  (symbol->string
-    (string->symbol "Malvina")) => "Malvina")
+(check (symbol->string
+         (string->symbol "Malvina")) => "Malvina")
 
 (check (eq? 'mISSISSIppi 'mississippi) => #f) ; R7RS
 (check (string->symbol "mISSISSIppi") => mISSISSIppi)
-(check (eq? 'bitBlt (string->symbol "bitBlt")) => #f)
-(check
-  (eqv? 'JollyWog ; in R7RS, eq? level equality is not required.
-        (string->symbol
-          (symbol->string 'JollyWog))) => #t)
-(check
-  (string=? "K. Harper, M.D."
-            (symbol->string
-              (string->symbol "K. Harper, M.D."))) => #t)
+; (check (eq? 'bitBlt (string->symbol "bitBlt")) => #f)
+(check (eqv? 'JollyWog ; in R7RS, eq? level equality is not required.
+             (string->symbol
+               (symbol->string 'JollyWog))) => #t)
+(check (string=? "K. Harper, M.D."
+                 (symbol->string
+                   (string->symbol "K. Harper, M.D."))) => #t)
 
 
 ; ---- 6.5. Numbers ------------------------------------------------------------
