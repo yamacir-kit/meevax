@@ -36,26 +36,16 @@ inline namespace kernel
   auto operator <<(output_port & port, procedure const& datum) -> output_port &;
 
   template <typename T>
-  struct predicate
+  struct is
   {
     let const& operator ()(let const& xs) const
     {
-      if (xs.is<null>())
+      auto is_T = [](let const& x)
       {
-        return f;
-      }
-      else
-      {
-        for (let const& x : xs)
-        {
-          if (not x.is<T>())
-          {
-            return f;
-          }
-        }
+        return x.is<T>();
+      };
 
-        return t;
-      }
+      return std::all_of(std::begin(xs), std::end(xs), is_T) ? t : f;
     }
   };
 } // namespace kernel

@@ -155,10 +155,10 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%complex?", predicate<complex>());
-    define<procedure>("ratio?", predicate<ratio>());
-    define<procedure>("single-float?", predicate<single_float>());
-    define<procedure>("double-float?", predicate<double_float>());
+    define<procedure>("%complex?", is<complex>());
+    define<procedure>("ratio?", is<ratio>());
+    define<procedure>("single-float?", is<single_float>());
+    define<procedure>("double-float?", is<double_float>());
 
     /* -------------------------------------------------------------------------
      *
@@ -168,7 +168,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("exact-integer?", predicate<exact_integer>());
+    define<procedure>("exact-integer?", is<exact_integer>());
 
     /* -------------------------------------------------------------------------
      *
@@ -486,7 +486,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("pair?", predicate<pair>());
+    define<procedure>("pair?", is<pair>());
 
     /* -------------------------------------------------------------------------
      *
@@ -552,7 +552,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("symbol?", predicate<symbol>());
+    define<procedure>("symbol?", is<symbol>());
 
     define<procedure>("symbol->string", [](let const& xs)
     {
@@ -617,7 +617,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("char?", predicate<character>());
+    define<procedure>("char?", is<character>());
 
     define<procedure>("digit-value", [](let const& xs)
     {
@@ -724,7 +724,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string?", predicate<string>());
+    define<procedure>("string?", is<string>());
 
     /* -------------------------------------------------------------------------
      *
@@ -1023,7 +1023,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("vector?", predicate<vector>());
+    define<procedure>("vector?", is<vector>());
 
     define<procedure>("make-vector", [](let const& xs)
     {
@@ -1176,11 +1176,11 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("native-procedure?", predicate<procedure>());
+    define<procedure>("native-procedure?", is<procedure>());
 
-    define<procedure>("closure?", predicate<closure>());
+    define<procedure>("closure?", is<closure>());
 
-    define<procedure>("continuation?", predicate<continuation>());
+    define<procedure>("continuation?", is<continuation>());
 
 
   /* ---- R7RS 6.11. Exceptions ------------------------------------------------
@@ -1222,10 +1222,10 @@ inline namespace kernel
       return make<error>(car(xs), cdr(xs));
     });
 
-    define<procedure>(       "error?", predicate<       error>());
-    define<procedure>(  "read-error?", predicate<  read_error>());
-    define<procedure>(  "file-error?", predicate<  file_error>());
-    define<procedure>("syntax-error?", predicate<syntax_error>());
+    define<procedure>(       "error?", is<       error>());
+    define<procedure>(  "read-error?", is<  read_error>());
+    define<procedure>(  "file-error?", is<  file_error>());
+    define<procedure>("syntax-error?", is<syntax_error>());
 
   /* ---- R7RS 6.12. Environments and evaluation -------------------------------
 
@@ -1425,13 +1425,13 @@ inline namespace kernel
     });
 
 
-    define<procedure>("input-file-port?", predicate<input_file_port>());
+    define<procedure>("input-file-port?", is<input_file_port>());
 
-    define<procedure>("output-file-port?", predicate<output_file_port>());
+    define<procedure>("output-file-port?", is<output_file_port>());
 
-    define<procedure>("input-string-port?", predicate<input_string_port>());
+    define<procedure>("input-string-port?", is<input_string_port>());
 
-    define<procedure>("output-string-port?", predicate<output_string_port>());
+    define<procedure>("output-string-port?", is<output_string_port>());
 
 
     define<procedure>("input-file-port-open?", [](let const& xs)
@@ -1540,7 +1540,7 @@ inline namespace kernel
     });
 
 
-    define<procedure>("eof-object?", predicate<eof>());
+    define<procedure>("eof-object?", is<eof>());
 
     define<procedure>("eof-object", [](auto&&)
     {
@@ -1573,7 +1573,7 @@ inline namespace kernel
     });
 
 
-    define<procedure>("path?", predicate<path>());
+    define<procedure>("path?", is<path>());
 
     define<procedure>("::write-path", [](let const& xs)
     {
@@ -1680,9 +1680,9 @@ inline namespace kernel
 
   /* ---- R4RS APPENDIX: A compatible low-level macro facility -------------- */
 
-    define<procedure>("syntactic-continuation?", predicate<syntactic_continuation>());
+    define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("syntactic-closure?", predicate<syntactic_closure>());
+    define<procedure>("syntactic-closure?", is<syntactic_closure>());
 
     define<procedure>("syntactic-closure", [](let const& xs)
     {
