@@ -28,17 +28,7 @@ inline namespace kernel
   template <std::size_t N>
   using layer = std::integral_constant<decltype(N), N>;
 
-  class syntactic_continuation /* ----------------------------------------------
-  *
-  *  (<program> . <syntactic environment>)
-  *
-  * ------------------------------------------------------------------------- */
-
-    : public syntactic_closure /* ----------------------------------------------
-    *
-    *  (<closure> . <lexical environment>)
-    *
-    * ----------------------------------------------------------------------- */
+  class syntactic_continuation : public virtual pair
 
     , public reader<syntactic_continuation> /* ---------------------------------
     *
@@ -77,8 +67,6 @@ inline namespace kernel
 
     std::size_t generation = 0;
 
-    using syntactic_closure::syntactic_environment;
-
     using reader::read;
 
     using writer::newline;
@@ -97,6 +85,12 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
+    decltype(auto) form() const { return car(*this); }
+    decltype(auto) form()       { return car(*this); }
+
+    decltype(auto) syntactic_environment() const { return cdr(*this); }
+    decltype(auto) syntactic_environment()       { return cdr(*this); }
+
     decltype(auto) current_expression() const
     {
       return car(form());
