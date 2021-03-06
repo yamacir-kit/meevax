@@ -250,15 +250,28 @@ inline namespace kernel
     {
       boot(layer<0>());
 
-      if (form()) // If called from FORK instruction.
+      /* ---- NOTE -------------------------------------------------------------
+       *
+       *  If this class was instantiated by the FORK instruction, the instance
+       *  will have received the compilation continuation as a constructor
+       *  argument.
+       *
+       *  The car part contains the registers of the virtual Lisp machine
+       *  (s e c . d). The cdr part is set to the global environment at the
+       *  time the FORK instruction was executed.
+       *
+       *  Here, the value in the c register is the operand of the FORK
+       *  instruction. The operand of the FORK instruction is a pair of a
+       *  lambda expression form passed to the syntax fork/csc and a lexical
+       *  environment.
+       *
+       * -------------------------------------------------------------------- */
+      if (let const& k = first; k.is<pair>())
       {
-        s = car(form());
-        e = cadr(form());
-        c = compile(at_the_top_level,
-                    syntactic_environment(),
-                    caaddr(form()),
-                    cdaddr(form()));
-        d = cdddr(form());
+        s = car(k);
+        e = cadr(k);
+        c = compile(at_the_top_level, syntactic_environment(), caaddr(k), cdaddr(k));
+        d = cdddr(k);
 
         form() = execute();
 

@@ -43,10 +43,24 @@ inline namespace kernel
     using keyword = SK;
 
   protected:
-    let s, // Stack (holding intermediate results and return address)
-        e, // Environment (giving values to symbols)
-        c, // Control (instructions yet to be executed)
-        d; // Dump (S.E.C)
+    let s, // stack (holding intermediate results and return address)
+        e, // environment (giving values to symbols)
+        c, // control (instructions yet to be executed)
+        d; // dump (s.e.c)
+
+    /* ---- NOTE ---------------------------------------------------------------
+     *
+     *  global-environment: g = syntactic_environment()
+     *
+     *  lexical-environment: e
+     *
+     *  dynamic-environment: d = (s e c ...)
+     *
+     *  syntactic-environment: (e . g) when define-syntax invoked
+     *
+     *  syntactic-continuation: (d . g)
+     *
+     * ---------------------------------------------------------------------- */
 
   public:
     // TODO MOVE INTO SK
