@@ -31,13 +31,13 @@ inline namespace kernel
     {}
 
     IMPORT(SK, evaluate, NIL);
+    IMPORT(SK, global_environment, NIL);
     IMPORT(SK, in_debug_mode, const);
     IMPORT(SK, in_trace_mode, const);
     IMPORT(SK, intern, NIL);
     IMPORT(SK, standard_debug_port, const);
     IMPORT(SK, standard_error_port, const);
     IMPORT(SK, standard_output_port, const);
-    IMPORT(SK, syntactic_environment, NIL);
     IMPORT(SK, write_to, const);
 
     using keyword = SK;
@@ -46,11 +46,11 @@ inline namespace kernel
     let s, // stack (holding intermediate results and return address)
         e, // environment (giving values to symbols)
         c, // control (instructions yet to be executed)
-        d; // dump (s.e.c)
+        d; // dump (s e c . d)
 
     /* ---- NOTE ---------------------------------------------------------------
      *
-     *  global-environment: g = syntactic_environment()
+     *  global-environment: g = global_environment()
      *
      *  lexical-environment: e
      *
@@ -67,22 +67,22 @@ inline namespace kernel
     template <typename... Ts>
     let const& define(let const& variable, Ts&&... expression)
     {
-      push(syntactic_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
+      push(global_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
 
-      WRITE_DEBUG(caar(syntactic_environment()), faint, " binds ", reset,
-                  cdar(syntactic_environment()));
+      WRITE_DEBUG(caar(global_environment()), faint, " binds ", reset,
+                  cdar(global_environment()));
 
       return unspecified;
     }
 
-    /* ---- Auxiliary Syntax 'global' ------------------------------------------
+    /* ---- NOTE ---------------------------------------------------------------
      *
-     *  Note: This function extends the given syntax environment 'g'. Since the
-     *  order of operand evaluation in C ++ is undefined, be aware of the
-     *  execution timing of side effects of this function.
+     *  This function extends the given syntax environment 'g'. Since the order
+     *  of operand evaluation in C ++ is undefined, be aware of the execution
+     *  timing of side effects of this function.
      *
      * ---------------------------------------------------------------------- */
-    let const global(let const& x, let & g)
+    let const locate(let const& x, let & g)
     {
       if (let const binding = assq(x, g); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
       {
@@ -103,12 +103,17 @@ inline namespace kernel
          *  an unbound variable.
          *
          * ------------------------------------------------------------------ */
-        return global(x, push(g, cons(x, make<syntactic_closure>(x, g))));
+        return locate(x, push(g, cons(x, make<syntactic_closure>(x, g))));
       }
       else
       {
         return binding;
       }
+    }
+
+    auto current_continuation() const
+    {
+      return make<continuation>(s, cons(e, cadr(c), d));
     }
 
     /* ---- R7RS 4. Expressions ------------------------------------------------
@@ -186,7 +191,7 @@ inline namespace kernel
           else
           {
             WRITE_DEBUG(expression, faint, " ; is a <free variable>");
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(expression, syntactic_environment), continuation);
+            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), locate(expression, syntactic_environment), continuation);
           }
         }
         else // is <self-evaluating>
@@ -205,7 +210,7 @@ inline namespace kernel
 
             decltype(auto) result =
               applicant.as<syntax>().compile(
-                the_expression_is,syntactic_environment, cdr(expression), frames, continuation);
+                the_expression_is, syntactic_environment, cdr(expression), frames, continuation);
 
             WRITE_DEBUG(magenta, ")") << indent::width;
 
@@ -380,11 +385,13 @@ inline namespace kernel
 
       case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
         *
-        *                       S  E (LDK cc . C) D
-        *  => ((continuation) . S) E           C  D
+        *                       s  e (LDK cc . c) d
+        *  => ((continuation) . s) e           c  d
+        *
+        *  where continuation = (s e c . d)
         *
         * ------------------------------------------------------------------- */
-        push(s, list(make<continuation>(s, cons(e, cadr(c), d))));
+        push(s, list(current_continuation()));
         c = cddr(c);
         goto dispatch;
 
@@ -396,7 +403,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<keyword>(cons(s, e, cadr(c), d), syntactic_environment()));
+        push(s, make<keyword>(current_continuation(), global_environment()));
         c = cddr(c);
         goto dispatch;
 
@@ -461,14 +468,19 @@ inline namespace kernel
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           c = cdr(c);
         }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
+        else if (callee.is<continuation>()) /* ---------------------------------
+        *
+        *     (k operands . s)  e (CALL . c) d
+        *  =>   (operand  . s') e'        c' d'
+        *
+        *  where k = (s' e' c' . 'd)
+        *
+        * ------------------------------------------------------------------- */
         {
-          s = cons(
-                caadr(s),
-                car(callee));
-          e =  cadr(callee);
-          c = caddr(callee);
-          d = cdddr(callee);
+          s = cons(caadr(s), callee.as<continuation>().s());
+          e =                callee.as<continuation>().e();
+          c =                callee.as<continuation>().c();
+          d =                callee.as<continuation>().d();
         }
         else
         {
@@ -493,11 +505,10 @@ inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(caadr(s),
-                car(callee));
-          e =  cadr(callee);
-          c = caddr(callee);
-          d = cdddr(callee);
+          s = cons(caadr(s), callee.as<continuation>().s());
+          e =                callee.as<continuation>().e();
+          c =                callee.as<continuation>().c();
+          d =                callee.as<continuation>().d();
         }
         else
         {
@@ -683,7 +694,7 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          let const g = global(caar(expression), syntactic_environment);
+          let const g = locate(caar(expression), syntactic_environment);
 
           return compile(in_context_free,
                          syntactic_environment,
@@ -694,7 +705,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          let const g = global(car(expression), syntactic_environment);
+          let const g = locate(car(expression), syntactic_environment);
 
           return compile(in_context_free,
                          syntactic_environment,
@@ -1019,7 +1030,7 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        let const g = global(car(expression), syntactic_environment);
+        let const g = locate(car(expression), syntactic_environment);
 
         if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_closure>())
         {
@@ -1067,7 +1078,7 @@ inline namespace kernel
       else
       {
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of free variable");
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(car(expression), syntactic_environment), continuation);
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), locate(car(expression), syntactic_environment), continuation);
       }
     }
 

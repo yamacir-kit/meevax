@@ -11,18 +11,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto decrement = [](auto&& x) constexpr
-  {
-    return --x;
-  };
-
   /* ---- System Layers --------------------------------------------------------
    *
-   * Layer 0 - Module System (Program Structures)
-   * Layer 1 - R7RS Primitive Expression Types
-   * Layer 2 - R7RS Standard Procedures
-   * Layer 3 - Basis Library
-   * Layer 4 - Experimental Procedures
+   *  Layer 0 - Module System (Program Structures)
+   *  Layer 1 - R7RS Primitive Expression Types
+   *  Layer 2 - R7RS Standard Procedures
+   *  Layer 3 - Basis Library
+   *  Layer 4 - Experimental Procedures
    *
    * ------------------------------------------------------------------------ */
   template <std::size_t N>
@@ -88,8 +83,10 @@ inline namespace kernel
     decltype(auto) form() const { return car(*this); }
     decltype(auto) form()       { return car(*this); }
 
-    decltype(auto) syntactic_environment() const { return cdr(*this); }
-    decltype(auto) syntactic_environment()       { return cdr(*this); }
+    decltype(auto) global_environment()
+    {
+      return std::get<1>(*this);
+    }
 
     decltype(auto) current_expression() const
     {
@@ -174,7 +171,7 @@ inline namespace kernel
       //          dynamic_environment()
       //          );
 
-      // for (auto const& each : syntactic_environment())
+      // for (auto const& each : global_environment())
       // {
       //   std::cout << "  " << each << std::endl;
       // }
@@ -191,7 +188,7 @@ inline namespace kernel
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
       }
 
-      c = compile(in_context_free, syntactic_environment(), expression);
+      c = compile(in_context_free, global_environment(), expression);
 
       if (in_debug_mode())
       {
@@ -235,7 +232,7 @@ inline namespace kernel
 
     let const& operator [](let const& name)
     {
-      return cdr(machine::global(name, syntactic_environment()));
+      return cdr(machine::locate(name, global_environment()));
     }
 
     decltype(auto) operator [](std::string const& name)
@@ -266,12 +263,14 @@ inline namespace kernel
        *  environment.
        *
        * -------------------------------------------------------------------- */
-      if (let const& k = first; k.is<pair>())
+      if (first.is<continuation>())
       {
-        s = car(k);
-        e = cadr(k);
-        c = compile(at_the_top_level, syntactic_environment(), caaddr(k), cdaddr(k));
-        d = cdddr(k);
+        auto const& k = first.as<continuation>();
+
+        s = k.s();
+        e = k.e();
+        c = compile(at_the_top_level, global_environment(), car(k.c()), cdr(k.c()));
+        d = k.d();
 
         form() = execute();
 

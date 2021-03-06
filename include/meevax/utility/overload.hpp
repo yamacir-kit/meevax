@@ -8,18 +8,17 @@ namespace meevax
 inline namespace utility
 {
   template <typename... Ts>
-  struct overloaded
+  struct overloads
     : public Ts...
   {
     using Ts::operator()...;
   };
 
   template <typename... Ts>
-  overloaded(Ts&&...) -> overloaded<Ts...>;
+  overloads(Ts&&...) -> overloads<Ts...>;
 
   template <typename... Ts>
-  constexpr auto overload(Ts&&... xs)
-    -> overloaded<typename std::decay<Ts...>::type>
+  constexpr auto overload(Ts&&... xs) -> overloads<typename std::decay<Ts...>::type>
   {
     return { std::forward<decltype(xs)>(xs)... };
   }
