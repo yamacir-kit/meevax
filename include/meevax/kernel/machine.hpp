@@ -55,9 +55,8 @@ inline namespace kernel
     {
       push(syntactic_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
 
-      WRITE_DEBUG(
-        caar(syntactic_environment()), faint, " binds ", reset,
-        cdar(syntactic_environment()));
+      WRITE_DEBUG(caar(syntactic_environment()), faint, " binds ", reset,
+                  cdar(syntactic_environment()));
 
       return unspecified;
     }

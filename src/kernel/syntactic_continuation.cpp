@@ -994,7 +994,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ vector?            │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ make-vector?       │ C++        │                                    │
+     │ make-vector        │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ vector             │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -1025,7 +1025,7 @@ inline namespace kernel
 
     define<procedure>("vector?", is<vector>());
 
-    define<procedure>("make-vector", [](let const& xs)
+    define<procedure>("make-vector", [](let const& xs) // TODO Rename to vector-allocate
     {
       return make<vector>(car(xs).as<exact_integer>().to<vector::size_type>(),
                           cdr(xs).is<null>() ? unspecified : cadr(xs));
@@ -1643,22 +1643,20 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs)
+    define<procedure>("emergency-exit", [](let const& xs) -> object
     {
-      if (not xs.is<pair>() or eq(car(xs), t))
+      if (xs.is<null>() or car(xs) == t)
       {
         std::exit(boost::exit_success);
       }
-      else if (car(xs).is<exact_integer>())
+      else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        std::exit(car(xs).as<exact_integer>().to<int>());
+        std::exit(x.as<exact_integer>().to<int>());
       }
       else
       {
         std::exit(boost::exit_failure);
       }
-
-      return unspecified; // NOTE: Dummy. This function is never returns.
     });
 
     define<procedure>("linker", [](auto&& xs)
@@ -1697,6 +1695,18 @@ inline namespace kernel
     define<procedure>("syntax", [this](auto&& xs)
     {
       return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
+    });
+
+    define<procedure>("macroexpand-1", [this](let const& xs)
+    {
+      if (let const& macro = (*this)[caar(xs)]; macro.is<syntactic_continuation>())
+      {
+        return macro.as<syntactic_continuation>().macroexpand(macro, car(xs));
+      }
+      else
+      {
+        throw error(make<string>("not a macro"), caar(xs));
+      }
     });
   }
 
