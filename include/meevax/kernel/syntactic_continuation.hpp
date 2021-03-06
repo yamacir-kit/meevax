@@ -232,7 +232,7 @@ inline namespace kernel
 
     let const& operator [](let const& name)
     {
-      return cdr(machine::global(name, global_environment()));
+      return cdr(machine::locate(name, global_environment()));
     }
 
     decltype(auto) operator [](std::string const& name)
