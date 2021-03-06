@@ -37,24 +37,17 @@
 (define define-syntax
   (fork/csc
     (lambda (define-syntax keyword . transformer)
-
       (if (pair? keyword)
-
-          ; (define-syntax (<keyword> <formals>) <body>)
-          ;
-          ; => (define <keyword>
-          ;      (fork/csc
-          ;        (lambda (<keyword> . <formals>) <body>)))
-          ;
           (list define (car keyword)
             (list fork/csc
               (list lambda keyword . transformer)))
-
-          ; (define-syntax <keyword> <transformer>)
-          ;
-          ; => (define <keyword> <transformer>)
-          ;
           (list define keyword . transformer)))))
+
+(define-syntax (syntax datum)
+  (list fork/csc
+    (list lambda '() datum)))
+
+; (define identifier? syntactic-continuation?)
 
 (define (free-identifier=? x y)
   (if (symbol? x)
