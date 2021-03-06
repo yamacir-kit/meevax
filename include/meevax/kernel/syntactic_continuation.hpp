@@ -11,11 +11,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto decrement = [](auto&& x) constexpr
-  {
-    return --x;
-  };
-
   /* ---- System Layers --------------------------------------------------------
    *
    *  Layer 0 - Module System (Program Structures)

@@ -8,6 +8,11 @@
 
 namespace meevax
 {
+  auto decrement = overload([](auto&& x) constexpr
+  {
+    return --x;
+  });
+
   #define DEFINE_OPERATOR(NAME, BASE)                                          \
   struct NAME : public BASE                                                    \
   {                                                                            \
