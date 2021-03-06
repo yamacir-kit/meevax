@@ -83,8 +83,10 @@ inline namespace kernel
     decltype(auto) form() const { return car(*this); }
     decltype(auto) form()       { return car(*this); }
 
-    decltype(auto) syntactic_environment() const { return cdr(*this); }
-    decltype(auto) syntactic_environment()       { return cdr(*this); }
+    decltype(auto) global_environment()
+    {
+      return std::get<1>(*this);
+    }
 
     decltype(auto) current_expression() const
     {
@@ -169,7 +171,7 @@ inline namespace kernel
       //          dynamic_environment()
       //          );
 
-      // for (auto const& each : syntactic_environment())
+      // for (auto const& each : global_environment())
       // {
       //   std::cout << "  " << each << std::endl;
       // }
@@ -186,7 +188,7 @@ inline namespace kernel
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
       }
 
-      c = compile(in_context_free, syntactic_environment(), expression);
+      c = compile(in_context_free, global_environment(), expression);
 
       if (in_debug_mode())
       {
@@ -230,7 +232,7 @@ inline namespace kernel
 
     let const& operator [](let const& name)
     {
-      return cdr(machine::global(name, syntactic_environment()));
+      return cdr(machine::global(name, global_environment()));
     }
 
     decltype(auto) operator [](std::string const& name)
@@ -265,7 +267,7 @@ inline namespace kernel
       {
         s = car(k);
         e = cadr(k);
-        c = compile(at_the_top_level, syntactic_environment(), caaddr(k), cdaddr(k));
+        c = compile(at_the_top_level, global_environment(), caaddr(k), cdaddr(k));
         d = cdddr(k);
 
         form() = execute();

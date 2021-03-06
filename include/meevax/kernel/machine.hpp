@@ -37,7 +37,7 @@ inline namespace kernel
     IMPORT(SK, standard_debug_port, const);
     IMPORT(SK, standard_error_port, const);
     IMPORT(SK, standard_output_port, const);
-    IMPORT(SK, syntactic_environment, NIL);
+    IMPORT(SK, global_environment, NIL);
     IMPORT(SK, write_to, const);
 
     using keyword = SK;
@@ -50,7 +50,7 @@ inline namespace kernel
 
     /* ---- NOTE ---------------------------------------------------------------
      *
-     *  global-environment: g = syntactic_environment()
+     *  global-environment: g = global_environment()
      *
      *  lexical-environment: e
      *
@@ -67,10 +67,10 @@ inline namespace kernel
     template <typename... Ts>
     let const& define(let const& variable, Ts&&... expression)
     {
-      push(syntactic_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
+      push(global_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
 
-      WRITE_DEBUG(caar(syntactic_environment()), faint, " binds ", reset,
-                  cdar(syntactic_environment()));
+      WRITE_DEBUG(caar(global_environment()), faint, " binds ", reset,
+                  cdar(global_environment()));
 
       return unspecified;
     }
@@ -205,7 +205,7 @@ inline namespace kernel
 
             decltype(auto) result =
               applicant.as<syntax>().compile(
-                the_expression_is,syntactic_environment, cdr(expression), frames, continuation);
+                the_expression_is, syntactic_environment, cdr(expression), frames, continuation);
 
             WRITE_DEBUG(magenta, ")") << indent::width;
 
@@ -396,7 +396,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<keyword>(cons(s, e, cadr(c), d), syntactic_environment()));
+        push(s, make<keyword>(cons(s, e, cadr(c), d), global_environment()));
         c = cddr(c);
         goto dispatch;
 
