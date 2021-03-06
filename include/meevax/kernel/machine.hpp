@@ -468,12 +468,19 @@ inline namespace kernel
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           c = cdr(c);
         }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
+        else if (callee.is<continuation>()) /* ---------------------------------
+        *
+        *     (k operands . s)  e (CALL . c) d
+        *  =>   (operand  . s') e'        c' d'
+        *
+        *  where k = (s' e' c' . 'd)
+        *
+        * ------------------------------------------------------------------- */
         {
-          s = cons(caadr(s), car(callee));
-          e =               cadr(callee);
-          c =              caddr(callee);
-          d =              cdddr(callee);
+          s = cons(caadr(s), callee.as<continuation>().s());
+          e =                callee.as<continuation>().e();
+          c =                callee.as<continuation>().c();
+          d =                callee.as<continuation>().d();
         }
         else
         {
@@ -498,10 +505,10 @@ inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(caadr(s), car(callee));
-          e =               cadr(callee);
-          c =              caddr(callee);
-          d =              cdddr(callee);
+          s = cons(caadr(s), callee.as<continuation>().s());
+          e =                callee.as<continuation>().e();
+          c =                callee.as<continuation>().c();
+          d =                callee.as<continuation>().d();
         }
         else
         {
