@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 
-#include <meevax/functional/identity.hpp>
+#include <meevax/functional/operator.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/string/append.hpp>
 #include <meevax/utility/hexdump.hpp>
