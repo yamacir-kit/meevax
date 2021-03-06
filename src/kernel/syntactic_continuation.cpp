@@ -1682,20 +1682,21 @@ inline namespace kernel
 
     define<procedure>("syntactic-closure?", is<syntactic_closure>());
 
-    define<procedure>("syntactic-closure", [](let const& xs)
-    {
-      return make<syntactic_closure>(car(xs), cadr(xs));
-    });
+    // define<procedure>("syntactic-closure", [](let const& xs)
+    // {
+    //   return make<syntactic_closure>(car(xs), cadr(xs));
+    // });
 
     define<procedure>("identifier?", [](auto&& xs)
     {
+      // TODO return car(xs).is<identifier>();
       return kernel::is_identifier(car(xs)) ? t : f;
     });
 
-    define<procedure>("syntax", [this](auto&& xs)
-    {
-      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
-    });
+    // define<procedure>("syntax", [this](auto&& xs)
+    // {
+    //   return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
+    // });
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
