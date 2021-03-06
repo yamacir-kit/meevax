@@ -263,12 +263,14 @@ inline namespace kernel
        *  environment.
        *
        * -------------------------------------------------------------------- */
-      if (let const& k = first; k.is<pair>())
+      if (first.is<continuation>())
       {
-        s = car(k);
-        e = cadr(k);
-        c = compile(at_the_top_level, global_environment(), caaddr(k), cdaddr(k));
-        d = cdddr(k);
+        auto const& k = first.as<continuation>();
+
+        s = k.s();
+        e = k.e();
+        c = compile(at_the_top_level, global_environment(), car(k.c()), cdr(k.c()));
+        d = k.d();
 
         form() = execute();
 

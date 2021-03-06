@@ -111,6 +111,11 @@ inline namespace kernel
       }
     }
 
+    auto current_continuation() const
+    {
+      return make<continuation>(s, cons(e, cadr(c), d));
+    }
+
     /* ---- R7RS 4. Expressions ------------------------------------------------
      *
      *  <expression> = <identifier>
@@ -380,11 +385,13 @@ inline namespace kernel
 
       case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
         *
-        *                       S  E (LDK cc . C) D
-        *  => ((continuation) . S) E           C  D
+        *                       s  e (LDK cc . c) d
+        *  => ((continuation) . s) e           c  d
+        *
+        *  where continuation = (s e c . d)
         *
         * ------------------------------------------------------------------- */
-        push(s, list(make<continuation>(s, cons(e, cadr(c), d))));
+        push(s, list(current_continuation()));
         c = cddr(c);
         goto dispatch;
 
@@ -396,7 +403,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<keyword>(cons(s, e, cadr(c), d), global_environment()));
+        push(s, make<keyword>(current_continuation(), global_environment()));
         c = cddr(c);
         goto dispatch;
 
@@ -463,12 +470,10 @@ inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(
-                caadr(s),
-                car(callee));
-          e =  cadr(callee);
-          c = caddr(callee);
-          d = cdddr(callee);
+          s = cons(caadr(s), car(callee));
+          e =               cadr(callee);
+          c =              caddr(callee);
+          d =              cdddr(callee);
         }
         else
         {
@@ -493,11 +498,10 @@ inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(caadr(s),
-                car(callee));
-          e =  cadr(callee);
-          c = caddr(callee);
-          d = cdddr(callee);
+          s = cons(caadr(s), car(callee));
+          e =               cadr(callee);
+          c =              caddr(callee);
+          d =              cdddr(callee);
         }
         else
         {
