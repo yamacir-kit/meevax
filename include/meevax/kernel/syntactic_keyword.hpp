@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_KEYWORD_HPP
+#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_KEYWORD_HPP
 
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
@@ -8,8 +8,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_closure
-    : public virtual pair
+  struct syntactic_keyword : public virtual pair
   {
     using pair::pair;
 
@@ -45,7 +44,7 @@ inline namespace kernel
       return not is_free();
     }
 
-    friend auto operator <<(std::ostream& port, const syntactic_closure& datum) -> decltype(auto)
+    friend auto operator <<(output_port & port, syntactic_keyword const& datum) -> output_port &
     {
       return port << underline << datum.form() << faint << " #;" << &datum << reset;
     }
@@ -53,4 +52,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CLOSURE_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_KEYWORD_HPP

@@ -40,8 +40,6 @@ inline namespace kernel
     IMPORT(SK, standard_output_port, const);
     IMPORT(SK, write_to, const);
 
-    using keyword = SK;
-
   protected:
     let s, // stack (holding intermediate results and return address)
         e, // environment (giving values to symbols)
@@ -103,7 +101,7 @@ inline namespace kernel
          *  an unbound variable.
          *
          * ------------------------------------------------------------------ */
-        return locate(x, push(g, cons(x, make<syntactic_closure>(x, g))));
+        return locate(x, push(g, cons(x, make<syntactic_keyword>(x, g))));
       }
       else
       {
@@ -183,9 +181,9 @@ inline namespace kernel
               return cons(make<instruction>(mnemonic::LOAD_LOCAL), index, continuation);
             }
           }
-          else if (expression.is<syntactic_closure>())
+          else if (expression.is<syntactic_keyword>())
           {
-            WRITE_DEBUG(expression, faint, " ; is <alias>");
+            WRITE_DEBUG(expression, faint, " ; is <syntactic-keyword>");
             return cons(make<instruction>(mnemonic::STRIP), expression, continuation);
           }
           else
@@ -365,11 +363,11 @@ inline namespace kernel
 
       case mnemonic::STRIP: /* -------------------------------------------------
         *
-        *             S  E (STRIP syntactic-closure . C) D
-        *  => (form . S) E                            C  D
+        *             S  E (STRIP identifier . C) D
+        *  => (form . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, cadr(c).template as<syntactic_closure>().strip());
+        push(s, cadr(c).template as<syntactic_keyword>().strip());
         c = cddr(c);
         goto dispatch;
 
@@ -403,7 +401,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<keyword>(current_continuation(), global_environment()));
+        push(s, make<SK>(current_continuation(), global_environment()));
         c = cddr(c);
         goto dispatch;
 
@@ -1031,7 +1029,7 @@ inline namespace kernel
 
         let const g = locate(car(expression), syntactic_environment);
 
-        if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_closure>())
+        if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_keyword>())
         {
           throw syntax_error(
             make<string>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"),

@@ -1,7 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 #define INCLUDED_MEEVAX_KERNEL_IDENTIFIER_HPP
 
-#include <meevax/kernel/syntactic_closure.hpp>
+#include <meevax/kernel/syntactic_keyword.hpp>
 
 namespace meevax
 {
@@ -11,18 +11,18 @@ inline namespace kernel
    *
    *  (define (identifier? x)
    *    (or (symbol? x)
-   *        (and (syntactic-closure? x)
+   *        (and (syntactic-keyword? x)
    *             (symbol? (car x)))))
    *
    * ------------------------------------------------------------------------ */
   auto is_identifier(let const& x)
   {
-    return x.is<syntactic_closure>() ? x.as<syntactic_closure>().is_identifier() : x.is<symbol>();
+    return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().is_identifier() : x.is<symbol>();
   }
 
   auto strip(let const& x)
   {
-    return x.is<syntactic_closure>() ? x.as<syntactic_closure>().strip() : x;
+    return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().strip() : x;
   }
 
   auto lookup(let const& x, let const& env)

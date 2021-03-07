@@ -1691,7 +1691,7 @@ inline namespace kernel
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("syntactic-closure?", is<syntactic_closure>());
+    define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
 
     define<procedure>("identifier?", [](auto&& xs)
     {
