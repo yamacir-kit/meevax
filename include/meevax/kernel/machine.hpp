@@ -700,8 +700,7 @@ inline namespace kernel
                          syntactic_environment,
                          cons(intern("lambda"), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), g,
-                              continuation));
+                         cons(make<instruction>(mnemonic::DEFINE), g, continuation));
         }
         else // (define x ...)
         {
