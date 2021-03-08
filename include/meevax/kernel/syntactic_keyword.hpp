@@ -29,10 +29,10 @@ inline namespace kernel
       return pare.eqv(f) ? form() : cdr(pare);
     }
 
-    auto is_identifier() const
-    {
-      return form().is<symbol>();
-    }
+    // auto is_identifier() const
+    // {
+    //   return form().is<symbol>();
+    // }
 
     auto is_free() const
     {
@@ -46,7 +46,7 @@ inline namespace kernel
 
     friend auto operator <<(output_port & port, syntactic_keyword const& datum) -> output_port &
     {
-      return port << underline << datum.form() << faint << " #;" << &datum << reset;
+      return port << underline << datum.form() << reset;
     }
   };
 } // namespace kernel

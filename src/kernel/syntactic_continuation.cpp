@@ -1693,12 +1693,6 @@ inline namespace kernel
 
     define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
 
-    define<procedure>("identifier?", [](auto&& xs)
-    {
-      // TODO return car(xs).is<identifier>();
-      return kernel::is_identifier(car(xs)) ? t : f;
-    });
-
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
       if (let const& macro = (*this)[caar(xs)]; macro.is<syntactic_continuation>())

@@ -156,7 +156,7 @@ inline namespace kernel
       }
       else if (not expression.is<pair>()) // is <identifier>
       {
-        if (is_identifier(expression))
+        if (expression.is<symbol>() or expression.is<syntactic_keyword>())
         {
           /* ---- R7RS 4.1.1. Variable references ------------------------------
            *

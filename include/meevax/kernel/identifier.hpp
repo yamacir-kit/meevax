@@ -15,10 +15,11 @@ inline namespace kernel
    *             (symbol? (car x)))))
    *
    * ------------------------------------------------------------------------ */
-  auto is_identifier(let const& x)
-  {
-    return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().is_identifier() : x.is<symbol>();
-  }
+  // [[deprecated]]
+  // auto is_identifier(let const& x)
+  // {
+  //   return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().is_identifier() : x.is<symbol>();
+  // }
 
   auto strip(let const& x)
   {

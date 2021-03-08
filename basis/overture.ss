@@ -48,6 +48,9 @@
     (list lambda '() datum)))
 
 ; (define identifier? syntactic-continuation?)
+(define (identifier? x)
+  (if (syntactic-keyword? x) #t
+      (symbol? x)))
 
 (define (free-identifier=? x y)
   (if (symbol? x)
