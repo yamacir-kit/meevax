@@ -55,6 +55,18 @@ inline namespace kernel
   {
     return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().unwrap() : x;
   }
+
+  auto lookup(let const& x, let const& env)
+  {
+    if (let const& binding = assq(x, env); not binding.eqv(f))
+    {
+      return cdr(binding);
+    }
+    else
+    {
+      return unwrap_syntax(x);
+    }
+  }
 } // namespace kernel
 } // namespace meevax
 

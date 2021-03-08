@@ -5,10 +5,10 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_brujin_index.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
+#include <meevax/kernel/syntactic_keyword.hpp>
 #include <meevax/kernel/syntax.hpp>
 #include <meevax/string/header.hpp>
 
