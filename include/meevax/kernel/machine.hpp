@@ -336,7 +336,6 @@ inline namespace kernel
         *  => (constant . S) E                           C  D
         *
         * ------------------------------------------------------------------- */
-        // push(s, strip(cadr(c)));
         push(s, cadr(c));
         c = cddr(c);
         goto dispatch;
@@ -367,7 +366,7 @@ inline namespace kernel
         *  => (form . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, cadr(c).template as<syntactic_keyword>().strip());
+        push(s, unwrap_syntax(cadr(c)));
         c = cddr(c);
         goto dispatch;
 

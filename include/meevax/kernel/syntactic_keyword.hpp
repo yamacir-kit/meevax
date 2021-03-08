@@ -20,19 +20,20 @@ inline namespace kernel
 
     auto lookup() const
     {
-      return assq(form(), syntactic_environment());
+      return assq(car(*this), cdr(*this));
     }
 
-    auto strip() const
+    let const& unwrap() const
     {
-      const auto pare { lookup() };
-      return pare.eqv(f) ? form() : cdr(pare);
+      if (let const& x = lookup(); x != f)
+      {
+        return cdr(x);
+      }
+      else
+      {
+        return car(*this);
+      }
     }
-
-    // auto is_identifier() const
-    // {
-    //   return form().is<symbol>();
-    // }
 
     auto is_free() const
     {
@@ -49,6 +50,11 @@ inline namespace kernel
       return port << underline << datum.form() << reset;
     }
   };
+
+  auto unwrap_syntax(let const& x)
+  {
+    return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().unwrap() : x;
+  }
 } // namespace kernel
 } // namespace meevax
 
