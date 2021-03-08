@@ -366,7 +366,7 @@ inline namespace kernel
         *  => (form . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, unwrap_syntax(cadr(c)));
+        push(s, cadr(c).as<syntactic_keyword>().unwrap());
         c = cddr(c);
         goto dispatch;
 

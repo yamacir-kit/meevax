@@ -12,12 +12,6 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto form() const noexcept -> decltype(auto) { return car(*this); }
-    auto form()       noexcept -> decltype(auto) { return car(*this); }
-
-    auto syntactic_environment() const noexcept -> decltype(auto) { return cdr(*this); }
-    auto syntactic_environment()       noexcept -> decltype(auto) { return cdr(*this); }
-
     auto lookup() const
     {
       return assq(car(*this), cdr(*this));
@@ -47,14 +41,9 @@ inline namespace kernel
 
     friend auto operator <<(output_port & port, syntactic_keyword const& datum) -> output_port &
     {
-      return port << underline << datum.form() << reset;
+      return port << underline << car(datum) << reset;
     }
   };
-
-  auto unwrap_syntax(let const& x)
-  {
-    return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().unwrap() : x;
-  }
 
   auto lookup(let const& x, let const& env)
   {
@@ -64,7 +53,7 @@ inline namespace kernel
     }
     else
     {
-      return unwrap_syntax(x);
+      return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().unwrap() : x;
     }
   }
 } // namespace kernel
