@@ -12,14 +12,14 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto lookup() const
+    decltype(auto) assq() const
     {
-      return assq(car(*this), cdr(*this));
+      return kernel::assq(car(*this), cdr(*this));
     }
 
-    let const& unwrap() const
+    let const& lookup() const
     {
-      if (let const& x = lookup(); x != f)
+      if (let const& x = assq(); x != f)
       {
         return cdr(x);
       }
@@ -31,7 +31,7 @@ inline namespace kernel
 
     auto is_free() const
     {
-      return lookup().eqv(f);
+      return assq().eqv(f);
     }
 
     auto is_bound() const
@@ -47,13 +47,13 @@ inline namespace kernel
 
   auto lookup(let const& x, let const& env)
   {
-    if (let const& binding = assq(x, env); not binding.eqv(f))
+    if (let const& p = assq(x, env); not p.eqv(f))
     {
-      return cdr(binding);
+      return cdr(p);
     }
     else
     {
-      return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().unwrap() : x;
+      return x.is<syntactic_keyword>() ? x.as<syntactic_keyword>().lookup() : x;
     }
   }
 } // namespace kernel

@@ -85,7 +85,7 @@ inline namespace kernel
 
     decltype(auto) global_environment()
     {
-      return std::get<1>(*this);
+      return cdr(*this);
     }
 
     decltype(auto) current_expression() const
