@@ -5,10 +5,10 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_brujin_index.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
+#include <meevax/kernel/syntactic_keyword.hpp>
 #include <meevax/kernel/syntax.hpp>
 #include <meevax/string/header.hpp>
 
@@ -31,44 +31,56 @@ inline namespace kernel
     {}
 
     IMPORT(SK, evaluate, NIL);
+    IMPORT(SK, global_environment, NIL);
     IMPORT(SK, in_debug_mode, const);
     IMPORT(SK, in_trace_mode, const);
     IMPORT(SK, intern, NIL);
     IMPORT(SK, standard_debug_port, const);
     IMPORT(SK, standard_error_port, const);
     IMPORT(SK, standard_output_port, const);
-    IMPORT(SK, syntactic_environment, NIL);
     IMPORT(SK, write_to, const);
 
-    using keyword = SK;
-
   protected:
-    let s, // Stack (holding intermediate results and return address)
-        e, // Environment (giving values to symbols)
-        c, // Control (instructions yet to be executed)
-        d; // Dump (S.E.C)
+    let s, // stack (holding intermediate results and return address)
+        e, // environment (giving values to symbols)
+        c, // control (instructions yet to be executed)
+        d; // dump (s e c . d)
+
+    /* ---- NOTE ---------------------------------------------------------------
+     *
+     *  global-environment: g = global_environment()
+     *
+     *  lexical-environment: e
+     *
+     *  dynamic-environment: d = (s e c ...)
+     *
+     *  syntactic-environment: (e . g) when define-syntax invoked
+     *
+     *  syntactic-continuation: (d . g)
+     *
+     * ---------------------------------------------------------------------- */
 
   public:
     // TODO MOVE INTO SK
     template <typename... Ts>
     let const& define(let const& variable, Ts&&... expression)
     {
-      push(syntactic_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
+      push(global_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
 
-      WRITE_DEBUG(caar(syntactic_environment()), faint, " binds ", reset,
-                  cdar(syntactic_environment()));
+      WRITE_DEBUG(caar(global_environment()), faint, " binds ", reset,
+                  cdar(global_environment()));
 
       return unspecified;
     }
 
-    /* ---- Auxiliary Syntax 'global' ------------------------------------------
+    /* ---- NOTE ---------------------------------------------------------------
      *
-     *  Note: This function extends the given syntax environment 'g'. Since the
-     *  order of operand evaluation in C ++ is undefined, be aware of the
-     *  execution timing of side effects of this function.
+     *  This function extends the given syntax environment 'g'. Since the order
+     *  of operand evaluation in C ++ is undefined, be aware of the execution
+     *  timing of side effects of this function.
      *
      * ---------------------------------------------------------------------- */
-    let const global(let const& x, let & g)
+    let const locate(let const& x, let & g)
     {
       if (let const binding = assq(x, g); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
       {
@@ -89,12 +101,17 @@ inline namespace kernel
          *  an unbound variable.
          *
          * ------------------------------------------------------------------ */
-        return global(x, push(g, cons(x, make<syntactic_closure>(x, g))));
+        return locate(x, push(g, cons(x, make<syntactic_keyword>(x, g))));
       }
       else
       {
         return binding;
       }
+    }
+
+    auto current_continuation() const
+    {
+      return make<continuation>(s, cons(e, cadr(c), d));
     }
 
     /* ---- R7RS 4. Expressions ------------------------------------------------
@@ -139,7 +156,7 @@ inline namespace kernel
       }
       else if (not expression.is<pair>()) // is <identifier>
       {
-        if (is_identifier(expression))
+        if (expression.is<symbol>() or expression.is<syntactic_keyword>())
         {
           /* ---- R7RS 4.1.1. Variable references ------------------------------
            *
@@ -164,15 +181,15 @@ inline namespace kernel
               return cons(make<instruction>(mnemonic::LOAD_LOCAL), index, continuation);
             }
           }
-          else if (expression.is<syntactic_closure>())
+          else if (expression.is<syntactic_keyword>())
           {
-            WRITE_DEBUG(expression, faint, " ; is <alias>");
+            WRITE_DEBUG(expression, faint, " ; is <syntactic-keyword>");
             return cons(make<instruction>(mnemonic::STRIP), expression, continuation);
           }
           else
           {
             WRITE_DEBUG(expression, faint, " ; is a <free variable>");
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(expression, syntactic_environment), continuation);
+            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), locate(expression, syntactic_environment), continuation);
           }
         }
         else // is <self-evaluating>
@@ -191,7 +208,7 @@ inline namespace kernel
 
             decltype(auto) result =
               applicant.as<syntax>().compile(
-                the_expression_is,syntactic_environment, cdr(expression), frames, continuation);
+                the_expression_is, syntactic_environment, cdr(expression), frames, continuation);
 
             WRITE_DEBUG(magenta, ")") << indent::width;
 
@@ -319,7 +336,6 @@ inline namespace kernel
         *  => (constant . S) E                           C  D
         *
         * ------------------------------------------------------------------- */
-        // push(s, strip(cadr(c)));
         push(s, cadr(c));
         c = cddr(c);
         goto dispatch;
@@ -346,11 +362,11 @@ inline namespace kernel
 
       case mnemonic::STRIP: /* -------------------------------------------------
         *
-        *             S  E (STRIP syntactic-closure . C) D
-        *  => (form . S) E                            C  D
+        *             S  E (STRIP identifier . C) D
+        *  => (form . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, cadr(c).template as<syntactic_closure>().strip());
+        push(s, cadr(c).template as<syntactic_keyword>().lookup());
         c = cddr(c);
         goto dispatch;
 
@@ -366,11 +382,13 @@ inline namespace kernel
 
       case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
         *
-        *                       S  E (LDK cc . C) D
-        *  => ((continuation) . S) E           C  D
+        *                       s  e (LDK cc . c) d
+        *  => ((continuation) . s) e           c  d
+        *
+        *  where continuation = (s e c . d)
         *
         * ------------------------------------------------------------------- */
-        push(s, list(make<continuation>(s, cons(e, cadr(c), d))));
+        push(s, list(current_continuation()));
         c = cddr(c);
         goto dispatch;
 
@@ -382,7 +400,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<keyword>(cons(s, e, cadr(c), d), syntactic_environment()));
+        push(s, make<SK>(current_continuation(), global_environment()));
         c = cddr(c);
         goto dispatch;
 
@@ -447,14 +465,19 @@ inline namespace kernel
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           c = cdr(c);
         }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
+        else if (callee.is<continuation>()) /* ---------------------------------
+        *
+        *     (k operands . s)  e (CALL . c) d
+        *  =>   (operand  . s') e'        c' d'
+        *
+        *  where k = (s' e' c' . 'd)
+        *
+        * ------------------------------------------------------------------- */
         {
-          s = cons(
-                caadr(s),
-                car(callee));
-          e =  cadr(callee);
-          c = caddr(callee);
-          d = cdddr(callee);
+          s = cons(caadr(s), callee.as<continuation>().s());
+          e =                callee.as<continuation>().e();
+          c =                callee.as<continuation>().c();
+          d =                callee.as<continuation>().d();
         }
         else
         {
@@ -479,11 +502,10 @@ inline namespace kernel
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
         {
-          s = cons(caadr(s),
-                car(callee));
-          e =  cadr(callee);
-          c = caddr(callee);
-          d = cdddr(callee);
+          s = cons(caadr(s), callee.as<continuation>().s());
+          e =                callee.as<continuation>().e();
+          c =                callee.as<continuation>().c();
+          d =                callee.as<continuation>().d();
         }
         else
         {
@@ -669,18 +691,17 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          let const g = global(caar(expression), syntactic_environment);
+          let const g = locate(caar(expression), syntactic_environment);
 
           return compile(in_context_free,
                          syntactic_environment,
                          cons(intern("lambda"), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), g,
-                              continuation));
+                         cons(make<instruction>(mnemonic::DEFINE), g, continuation));
         }
         else // (define x ...)
         {
-          let const g = global(car(expression), syntactic_environment);
+          let const g = locate(car(expression), syntactic_environment);
 
           return compile(in_context_free,
                          syntactic_environment,
@@ -1005,9 +1026,9 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        let const g = global(car(expression), syntactic_environment);
+        let const g = locate(car(expression), syntactic_environment);
 
-        if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_closure>())
+        if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_keyword>())
         {
           throw syntax_error(
             make<string>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"),
@@ -1053,7 +1074,7 @@ inline namespace kernel
       else
       {
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of free variable");
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), global(car(expression), syntactic_environment), continuation);
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), locate(car(expression), syntactic_environment), continuation);
       }
     }
 

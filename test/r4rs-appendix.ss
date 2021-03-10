@@ -1,4 +1,4 @@
-(check (symbol? (syntax x)) => #f)
+; (check (symbol? (syntax x)) => #f)
 
 ; (check
 ;   (let-syntax ((car
@@ -88,20 +88,20 @@
 ;     (cdr (unwrap-syntax (syntax x))))
 ;   => ())
 
-(check
-  (free-identifier=? (syntax x)
-                     (syntax x))
-  => #t)
+; (check
+;   (free-identifier=? (syntax x)
+;                      (syntax x))
+;   => #t)
 
-(check
-  (free-identifier=? (syntax x)
-                     (syntax y))
-  => #f)
+; (check
+;   (free-identifier=? (syntax x)
+;                      (syntax y))
+;   => #f)
 
-(check
-  (let ((x (syntax x)))
-    (free-identifier=? x (syntax x)))
-  => #f)
+; (check
+;   (let ((x (syntax x)))
+;     (free-identifier=? x (syntax x)))
+;   => #f)
 
 ; (check
 ;   (let-syntax ((alpha

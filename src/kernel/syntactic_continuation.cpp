@@ -536,32 +536,43 @@ inline namespace kernel
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
 
-  /* ---- R7RS 6.5. Symbols ----------------------------------------------------
-
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ symbol?            │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ symbol=?           │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ symbol->string     │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string->symbol     │ C++        │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (symbol? obj)                                                 procedure
+     *
+     *  Returns #t if obj is a symbol, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("symbol?", is<symbol>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (symbol->string symbol)                                       procedure
+     *
+     *  Returns the name of symbol as a string, but without adding escapes. It
+     *  is an error to apply mutation procedures like string-set! to strings
+     *  returned by this procedure.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("symbol->string", [](let const& xs)
     {
       return make<string>(car(xs).as<symbol>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (string->symbol string)                                       procedure
+     *
+     *  Returns the symbol whose name is string. This procedure can create
+     *  symbols with names containing special characters that would require
+     *  escaping when written, but does not interpret escapes in its input.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("string->symbol", [](let const& xs)
     {
-      // return make<symbol>(car(xs).as<string>());
       return intern(car(xs).as<string>());
     });
 
@@ -1680,22 +1691,7 @@ inline namespace kernel
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("syntactic-closure?", is<syntactic_closure>());
-
-    define<procedure>("syntactic-closure", [](let const& xs)
-    {
-      return make<syntactic_closure>(car(xs), cadr(xs));
-    });
-
-    define<procedure>("identifier?", [](auto&& xs)
-    {
-      return kernel::is_identifier(car(xs)) ? t : f;
-    });
-
-    define<procedure>("syntax", [this](auto&& xs)
-    {
-      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
-    });
+    define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
