@@ -12,9 +12,19 @@ inline namespace kernel
   {
     using pair::pair;
 
+    let const& unwrap_syntax() const
+    {
+      return first;
+    }
+
+    let const& global_environment() const
+    {
+      return second;
+    }
+
     decltype(auto) assq() const
     {
-      return kernel::assq(car(*this), cdr(*this));
+      return kernel::assq(unwrap_syntax(), global_environment());
     }
 
     let const& lookup() const
@@ -25,7 +35,7 @@ inline namespace kernel
       }
       else
       {
-        return car(*this);
+        return unwrap_syntax();
       }
     }
 
@@ -41,13 +51,13 @@ inline namespace kernel
 
     friend auto operator <<(output_port & port, syntactic_keyword const& datum) -> output_port &
     {
-      return port << underline << car(datum) << reset;
+      return port << underline << datum.unwrap_syntax() << reset;
     }
   };
 
-  auto lookup(let const& x, let const& env)
+  auto lookup(let const& x, let const& g)
   {
-    if (let const& p = assq(x, env); not p.eqv(f))
+    if (let const& p = assq(x, g); p != f)
     {
       return cdr(p);
     }
