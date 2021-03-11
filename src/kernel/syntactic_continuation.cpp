@@ -1691,8 +1691,6 @@ inline namespace kernel
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
-
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
       if (let const& macro = (*this)[caar(xs)]; macro.is<syntactic_continuation>())
@@ -1703,6 +1701,13 @@ inline namespace kernel
       {
         throw error(make<string>("not a macro"), caar(xs));
       }
+    });
+
+    define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
+
+    define<procedure>("identifier->symbol", [](let const& xs)
+    {
+      return car(xs).as<syntactic_keyword>().unwrap_syntax();
     });
   }
 

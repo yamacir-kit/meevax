@@ -47,7 +47,6 @@
   (list fork/csc
     (list lambda '() datum)))
 
-; (define identifier? syntactic-continuation?)
 (define (identifier? x)
   (if (symbol? x) #t
       (if (syntactic-keyword? x) #t

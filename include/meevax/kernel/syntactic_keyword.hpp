@@ -12,12 +12,12 @@ inline namespace kernel
   {
     using pair::pair;
 
-    let const& unwrap_syntax() const
+    let const& unwrap_syntax() const noexcept
     {
       return first;
     }
 
-    let const& global_environment() const
+    let const& global_environment() const noexcept
     {
       return second;
     }
