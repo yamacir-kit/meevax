@@ -50,7 +50,8 @@
 (define (identifier? x)
   (if (symbol? x) #t
       (if (syntactic-keyword? x) #t
-          (syntactic-continuation? x))))
+          (syntactic-continuation? x) ; TODO
+          )))
 
 (define (free-identifier=? x y)
   (if (symbol? x)

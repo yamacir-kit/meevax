@@ -62,6 +62,8 @@ inline namespace kernel
 
     std::size_t generation = 0;
 
+    let const representation = unit;
+
     using reader::read;
 
     using writer::newline;
@@ -80,13 +82,11 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    decltype(auto) form() const { return car(*this); }
-    decltype(auto) form()       { return car(*this); }
+    let const& form() const noexcept { return first; }
+    let      & form()       noexcept { return first; }
 
-    decltype(auto) global_environment()
-    {
-      return cdr(*this);
-    }
+    let const& global_environment() const noexcept { return second; }
+    let      & global_environment()       noexcept { return second; }
 
     decltype(auto) current_expression() const
     {
@@ -98,13 +98,13 @@ inline namespace kernel
       return cdr(form());
     }
 
-    static auto const& intern(std::string const& s)
+    let static const& intern(std::string const& s)
     {
-      if (auto iter = symbols.find(s); iter != std::end(symbols))
+      if (auto const iter = symbols.find(s); iter != std::end(symbols))
       {
         return cdr(*iter);
       }
-      else if (const auto [position, success] = symbols.emplace(s, make<symbol>(s)); success)
+      else if (auto const [position, success] = symbols.emplace(s, make<symbol>(s)); success)
       {
         return cdr(*position);
       }
@@ -244,6 +244,7 @@ inline namespace kernel
     template <typename... Ts>
     explicit syntactic_continuation(Ts &&... xs)
       : pair { std::forward<decltype(xs)>(xs)... }
+      , representation { first }
     {
       boot(layer<0>());
 
