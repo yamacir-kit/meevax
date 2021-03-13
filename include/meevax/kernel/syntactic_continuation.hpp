@@ -62,7 +62,7 @@ inline namespace kernel
 
     std::size_t generation = 0;
 
-    let const representation = unit;
+    let representation = unit;
 
     using reader::read;
 
@@ -244,7 +244,6 @@ inline namespace kernel
     template <typename... Ts>
     explicit syntactic_continuation(Ts &&... xs)
       : pair { std::forward<decltype(xs)>(xs)... }
-      , representation { first }
     {
       boot(layer<0>());
 
@@ -267,6 +266,8 @@ inline namespace kernel
       if (first.is<continuation>())
       {
         auto const& k = first.as<continuation>();
+
+        representation = car(k.c());
 
         s = k.s();
         e = k.e();
