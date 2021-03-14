@@ -1722,17 +1722,25 @@ inline namespace kernel
       return car(xs).as<syntactic_keyword>().unwrap_syntax();
     });
 
-    // define<procedure>("identifier?", [](let const& xs)
-    // {
-    //   if (let const& x = car(xs); x.is<syntactic_continuation>())
-    //   {
-    //     return x.as<syntactic_continuation>().representation.is<symbol>() ? t : f;
-    //   }
-    //   else
-    //   {
-    //     return x.is<syntactic_keyword>() or x.is<symbol>() ? t : f;
-    //   }
-    // });
+    /* -------------------------------------------------------------------------
+     *
+     *  (identifier? syntax-object)                                   procedure
+     *
+     *  Returns #t if syntax-object represents an identifier, otherwise returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
+    define<procedure>("identifier?", [](let const& xs)
+    {
+      if (let const& x = car(xs); x.is<syntactic_continuation>())
+      {
+        return x.as<syntactic_continuation>().representation.is<symbol>() ? t : f;
+      }
+      else
+      {
+        return x.is<syntactic_keyword>() or x.is<symbol>() ? t : f;
+      }
+    });
   }
 
   template <>
