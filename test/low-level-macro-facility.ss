@@ -4,7 +4,7 @@
 
 (define hygienic-x (syntax x))
 
-(define rename.v1
+(define rename
   (let ((e (fork/csc identity)))
     (lambda (x)
       (eval x e))))
@@ -13,8 +13,7 @@
   (check x => 3.14)
   (check (hygienic-x) => 42)
   (check (macroexpand-1 '(hygienic-x)) => 42)
-  (check (rename.v1 'x) => 42)
-  )
+  (check (rename 'x) => 42))
 
 ; (define-syntax (swap! x y)
 ;   `(,let ((,value ,x))
@@ -26,6 +25,7 @@
     (lambda (form rename compare)
 
       (check (syntactic-continuation? (rename 'let)) => #t)
+      (check (identifier? (rename 'value)) => #t)
 
       (let ((a (cadr form))
             (b (caddr form)))

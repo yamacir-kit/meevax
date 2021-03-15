@@ -65,14 +65,14 @@
 (define (current-environment) (fork/csc identity))
 
 (define (er-macro-transformer transform)
-  (define rename
-    ((lambda (e)
-       (lambda (x)
-         (eval x e)))
-     (fork/csc identity)))
   (fork/csc
     (lambda form
-      (transform form rename eqv?))))
+      (define rename
+        ((lambda (e)
+           (lambda (x)
+             (eval x e)))
+         (fork/csc identity)))
+      (transform form rename free-identifier=?))))
 
 (define (null? x) (eqv? x '()))
 
