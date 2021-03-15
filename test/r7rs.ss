@@ -1195,7 +1195,7 @@
 
 (check (dummy-procedure "hello, world!\n" 42 '(1 . 2) #(1 2 3) 3.14) => 43)
 
-(check (eval '(+ 1 2 3) (current-environment)) => 6)
+(check (eval '(+ 1 2 3) (current-environment-specifier)) => 6)
 
 (define-syntax (increment x . n)
   (let ((n (if (pair? n) (car n) 1)))
