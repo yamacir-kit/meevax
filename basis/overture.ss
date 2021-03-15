@@ -43,7 +43,7 @@
               (list lambda keyword . transformer)))
           (list define keyword . transformer)))))
 
-(define-syntax (syntax datum)
+(define-syntax (syntax datum) ; Experimental: DON'T USE THIS!
   (list fork/csc
     (list lambda '() datum)))
 
@@ -64,16 +64,15 @@
 
 (define (current-environment) (fork/csc identity))
 
-; (define (er-macro-transformer transform) ; unstable
-;   (fork/csc
-;     (define hoge (current-environment))
-;     (lambda form
-;       (transform form (lambda (x) (eval x hoge)) eqv?))))
-
-(define (er-macro-transformer transform) ; unhygienic-dummy
+(define (er-macro-transformer transform)
+  (define rename
+    ((lambda (e)
+       (lambda (x)
+         (eval x e)))
+     (fork/csc identity)))
   (fork/csc
     (lambda form
-      (transform form identity eqv?))))
+      (transform form rename eqv?))))
 
 (define (null? x) (eqv? x '()))
 
