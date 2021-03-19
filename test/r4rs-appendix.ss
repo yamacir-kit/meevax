@@ -1,4 +1,4 @@
-; (check (symbol? (syntax x)) => #f)
+(check (symbol? (syntax x)) => #f)
 
 ; (check
 ;   (let-syntax ((car

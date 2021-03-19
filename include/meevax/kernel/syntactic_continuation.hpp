@@ -62,7 +62,7 @@ inline namespace kernel
 
     std::size_t generation = 0;
 
-    let representation = unit;
+    let datum = unit;
 
     using reader::read;
 
@@ -266,8 +266,6 @@ inline namespace kernel
       if (first.is<continuation>())
       {
         auto const& k = first.as<continuation>();
-
-        representation = car(k.c());
 
         s = k.s();
         e = k.e();

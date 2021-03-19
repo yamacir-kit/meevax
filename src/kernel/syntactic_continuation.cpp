@@ -1695,7 +1695,7 @@ inline namespace kernel
     {
       if (let const& x = car(xs); x.is<syntactic_continuation>())
       {
-        return car(xs).as<syntactic_continuation>().representation;
+        return car(xs).as<syntactic_continuation>().datum;
       }
       else
       {
@@ -1734,7 +1734,7 @@ inline namespace kernel
     {
       if (let const& x = car(xs); x.is<syntactic_continuation>())
       {
-        return x.as<syntactic_continuation>().representation.is<symbol>() ? t : f;
+        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
       }
       else
       {
