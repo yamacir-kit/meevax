@@ -234,6 +234,11 @@ add_test(
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs-appendix.ss)
 
 add_test(
+  NAME low-level-macro-facility
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/low-level-macro-facility.ss)
+
+add_test(
   NAME r7rs
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
           ${CMAKE_CURRENT_SOURCE_DIR}/test/r7rs.ss)

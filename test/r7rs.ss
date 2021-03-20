@@ -1195,34 +1195,7 @@
 
 (check (dummy-procedure "hello, world!\n" 42 '(1 . 2) #(1 2 3) 3.14) => 43)
 
-(define-syntax (swap! x y)
-  `(,let ((,value ,x))
-     (,set! ,x ,y)
-     (,set! ,y ,value)))
-
-; (define-syntax swap!
-;   (er-macro-transformer
-;     (lambda (form rename compare)
-;       (let ((a (cadr form))
-;             (b (caddr form)))
-;        `(,(rename 'let) ((,(rename 'value) ,a))
-;           (,(rename 'set!) ,a ,b)
-;           (,(rename 'set!) ,b ,(rename 'value)))))))
-
-(check (let ((x 1)
-             (y 2))
-         (swap! x y)
-         (cons x y)) => (2 . 1))
-
-(check (let ((x 1)
-             (y 2)
-             (let '())
-             (set! '())
-             (value 42))
-         (swap! x y)
-         (cons x y)) => (2 . 1))
-
-(check (eval '(+ 1 2 3) (current-environment)) => 6)
+(check (eval '(+ 1 2 3) (current-environment-specifier)) => 6)
 
 (define-syntax (increment x . n)
   (let ((n (if (pair? n) (car n) 1)))
