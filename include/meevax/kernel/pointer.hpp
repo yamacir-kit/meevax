@@ -250,7 +250,7 @@ inline namespace kernel
 
     bool eqv(pointer const& rhs) const
     {
-      return type() != rhs.type() ? false : binding().eqv(rhs);
+      return type() == rhs.type() and binding().eqv(rhs);
     }
 
     template <typename... Ts>
