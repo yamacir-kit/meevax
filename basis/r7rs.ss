@@ -299,8 +299,6 @@
 ;
 ; ------------------------------------------------------------------------------
 
-(define (current-environment) (fork/csc identity))
-
 (define interaction-environment
   (let ((e (fork/csc identity)))
     (lambda () e)))

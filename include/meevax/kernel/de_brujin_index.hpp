@@ -23,20 +23,20 @@ inline namespace kernel
 
     let lookup(object const& value, object const& frames)
     {
-      auto layer {0};
+      std::size_t layer = 0;
 
       for (const auto& frame : frames)
       {
-        auto index {0};
+        std::size_t index = 0;
 
-        for (auto iter { std::begin(frame) }; iter != std::end(frame); ++iter)
+        for (auto iter = std::begin(frame); iter != std::end(frame); ++iter)
         {
-          if (static_cast<object const&>(iter).is<pair>() and compare(*iter, value))
+          if (static_cast<let const&>(iter).is<pair>() and compare(*iter, value))
           {
             variadic = false;
             return cons(make<exact_integer>(layer), make<exact_integer>(index));
           }
-          else if (static_cast<object const&>(iter).is<symbol>() and compare(iter, value))
+          else if (static_cast<let const&>(iter).is<symbol>() and compare(iter, value))
           {
             variadic = true;
             return cons(make<exact_integer>(layer), make<exact_integer>(index));

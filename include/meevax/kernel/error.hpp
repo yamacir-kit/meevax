@@ -4,8 +4,8 @@
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/string.hpp>
+
 #include <stdexcept>
-#include <type_traits>
 
 /* ---- Error ------------------------------------------------------------------
  *
@@ -41,12 +41,7 @@ inline namespace kernel
 
       if (cdr(*this))
       {
-        ss << ":";
-
-        for (let const& irritant : cdr(*this))
-        {
-          ss << " " << irritant;
-        }
+        ss << ": " << cdr(*this) << ".";
       }
       else
       {

@@ -155,10 +155,10 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%complex?", predicate<complex>());
-    define<procedure>("ratio?", predicate<ratio>());
-    define<procedure>("single-float?", predicate<single_float>());
-    define<procedure>("double-float?", predicate<double_float>());
+    define<procedure>("%complex?", is<complex>());
+    define<procedure>("ratio?", is<ratio>());
+    define<procedure>("single-float?", is<single_float>());
+    define<procedure>("double-float?", is<double_float>());
 
     /* -------------------------------------------------------------------------
      *
@@ -168,7 +168,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("exact-integer?", predicate<exact_integer>());
+    define<procedure>("exact-integer?", is<exact_integer>());
 
     /* -------------------------------------------------------------------------
      *
@@ -486,7 +486,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("pair?", predicate<pair>());
+    define<procedure>("pair?", is<pair>());
 
     /* -------------------------------------------------------------------------
      *
@@ -536,34 +536,45 @@ inline namespace kernel
     define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
 
 
-  /* ---- R7RS 6.5. Symbols ----------------------------------------------------
+    /* -------------------------------------------------------------------------
+     *
+     *  (symbol? obj)                                                 procedure
+     *
+     *  Returns #t if obj is a symbol, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ symbol?            │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ symbol=?           │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ symbol->string     │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string->symbol     │ C++        │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
+    define<procedure>("symbol?", is<symbol>());
 
-    ------------------------------------------------------------------------- */
-
-    define<procedure>("symbol?", predicate<symbol>());
+    /* -------------------------------------------------------------------------
+     *
+     *  (symbol->string symbol)                                       procedure
+     *
+     *  Returns the name of symbol as a string, but without adding escapes. It
+     *  is an error to apply mutation procedures like string-set! to strings
+     *  returned by this procedure.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("symbol->string", [](let const& xs)
     {
       return make<string>(car(xs).as<symbol>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (string->symbol string)                                       procedure
+     *
+     *  Returns the symbol whose name is string. This procedure can create
+     *  symbols with names containing special characters that would require
+     *  escaping when written, but does not interpret escapes in its input.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("string->symbol", [](let const& xs)
     {
-      return make<symbol>(car(xs).as<string>());
+      return intern(car(xs).as<string>());
     });
-
 
   /* ---- R7RS 6.6. Characters -------------------------------------------------
 
@@ -617,7 +628,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("char?", predicate<character>());
+    define<procedure>("char?", is<character>());
 
     define<procedure>("digit-value", [](let const& xs)
     {
@@ -724,7 +735,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string?", predicate<string>());
+    define<procedure>("string?", is<string>());
 
     /* -------------------------------------------------------------------------
      *
@@ -994,7 +1005,7 @@ inline namespace kernel
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ vector?            │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ make-vector?       │ C++        │                                    │
+     │ make-vector        │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
      │ vector             │ C++        │                                    │
      ├────────────────────┼────────────┼────────────────────────────────────┤
@@ -1023,9 +1034,9 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("vector?", predicate<vector>());
+    define<procedure>("vector?", is<vector>());
 
-    define<procedure>("make-vector", [](let const& xs)
+    define<procedure>("make-vector", [](let const& xs) // TODO Rename to vector-allocate
     {
       return make<vector>(car(xs).as<exact_integer>().to<vector::size_type>(),
                           cdr(xs).is<null>() ? unspecified : cadr(xs));
@@ -1176,11 +1187,11 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("native-procedure?", predicate<procedure>());
+    define<procedure>("native-procedure?", is<procedure>());
 
-    define<procedure>("closure?", predicate<closure>());
+    define<procedure>("closure?", is<closure>());
 
-    define<procedure>("continuation?", predicate<continuation>());
+    define<procedure>("continuation?", is<continuation>());
 
 
   /* ---- R7RS 6.11. Exceptions ------------------------------------------------
@@ -1222,10 +1233,10 @@ inline namespace kernel
       return make<error>(car(xs), cdr(xs));
     });
 
-    define<procedure>(       "error?", predicate<       error>());
-    define<procedure>(  "read-error?", predicate<  read_error>());
-    define<procedure>(  "file-error?", predicate<  file_error>());
-    define<procedure>("syntax-error?", predicate<syntax_error>());
+    define<procedure>(       "error?", is<       error>());
+    define<procedure>(  "read-error?", is<  read_error>());
+    define<procedure>(  "file-error?", is<  file_error>());
+    define<procedure>("syntax-error?", is<syntax_error>());
 
   /* ---- R7RS 6.12. Environments and evaluation -------------------------------
 
@@ -1425,13 +1436,13 @@ inline namespace kernel
     });
 
 
-    define<procedure>("input-file-port?", predicate<input_file_port>());
+    define<procedure>("input-file-port?", is<input_file_port>());
 
-    define<procedure>("output-file-port?", predicate<output_file_port>());
+    define<procedure>("output-file-port?", is<output_file_port>());
 
-    define<procedure>("input-string-port?", predicate<input_string_port>());
+    define<procedure>("input-string-port?", is<input_string_port>());
 
-    define<procedure>("output-string-port?", predicate<output_string_port>());
+    define<procedure>("output-string-port?", is<output_string_port>());
 
 
     define<procedure>("input-file-port-open?", [](let const& xs)
@@ -1540,7 +1551,7 @@ inline namespace kernel
     });
 
 
-    define<procedure>("eof-object?", predicate<eof>());
+    define<procedure>("eof-object?", is<eof>());
 
     define<procedure>("eof-object", [](auto&&)
     {
@@ -1573,7 +1584,7 @@ inline namespace kernel
     });
 
 
-    define<procedure>("path?", predicate<path>());
+    define<procedure>("path?", is<path>());
 
     define<procedure>("::write-path", [](let const& xs)
     {
@@ -1643,22 +1654,20 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs)
+    define<procedure>("emergency-exit", [](let const& xs) -> object
     {
-      if (not xs.is<pair>() or eq(car(xs), t))
+      if (xs.is<null>() or car(xs) == t)
       {
         std::exit(boost::exit_success);
       }
-      else if (car(xs).is<exact_integer>())
+      else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        std::exit(car(xs).as<exact_integer>().to<int>());
+        std::exit(x.as<exact_integer>().to<int>());
       }
       else
       {
         std::exit(boost::exit_failure);
       }
-
-      return unspecified; // NOTE: Dummy. This function is never returns.
     });
 
     define<procedure>("linker", [](auto&& xs)
@@ -1680,18 +1689,57 @@ inline namespace kernel
 
   /* ---- R4RS APPENDIX: A compatible low-level macro facility -------------- */
 
-    define<procedure>("syntactic-closure?", predicate<syntactic_closure>());
+    define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("syntactic-continuation?", predicate<syntactic_continuation>());
-
-    define<procedure>("identifier?", [](auto&& xs)
+    define<procedure>("unwrap-syntax", [](let const& xs)
     {
-      return kernel::is_identifier(car(xs)) ? t : f;
+      if (let const& x = car(xs); x.is<syntactic_continuation>())
+      {
+        return car(xs).as<syntactic_continuation>().datum;
+      }
+      else
+      {
+        return x;
+      }
     });
 
-    define<procedure>("syntax", [this](auto&& xs)
+    define<procedure>("macroexpand-1", [this](let const& xs)
     {
-      return make<syntactic_closure>(xs ? car(xs) : unspecified, syntactic_environment());
+      if (let const& macro = (*this)[caar(xs)]; macro.is<syntactic_continuation>())
+      {
+        return macro.as<syntactic_continuation>().macroexpand(macro, car(xs));
+      }
+      else
+      {
+        throw error(make<string>("not a macro"), caar(xs));
+      }
+    });
+
+    define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
+
+    define<procedure>("identifier->symbol", [](let const& xs)
+    {
+      return car(xs).as<syntactic_keyword>().unwrap_syntax();
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (identifier? syntax-object)                                   procedure
+     *
+     *  Returns #t if syntax-object represents an identifier, otherwise returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
+    define<procedure>("identifier?", [](let const& xs)
+    {
+      if (let const& x = car(xs); x.is<syntactic_continuation>())
+      {
+        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
+      }
+      else
+      {
+        return x.is<syntactic_keyword>() or x.is<symbol>() ? t : f;
+      }
     });
   }
 

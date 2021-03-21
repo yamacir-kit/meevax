@@ -28,6 +28,8 @@
 ; with-input-from-file with-output-to-file write write-char zero?
 ; ------------------------------------------------------------------------------
 
+(define (identity x) x)
+
 (define (list . xs) xs)
 
 (define fork/csc fork-with-current-syntactic-continuation)
@@ -35,52 +37,44 @@
 (define define-syntax
   (fork/csc
     (lambda (define-syntax keyword . transformer)
-
       (if (pair? keyword)
-
-          ; (define-syntax (<keyword> <formals>) <body>)
-          ;
-          ; => (define <keyword>
-          ;      (fork/csc
-          ;        (lambda (<keyword> . <formals>) <body>)))
-          ;
           (list define (car keyword)
             (list fork/csc
               (list lambda keyword . transformer)))
-
-          ; (define-syntax <keyword> <transformer>)
-          ;
-          ; => (define <keyword> <transformer>)
-          ;
           (list define keyword . transformer)))))
+
+(define-syntax (syntax datum) ; Experimental: DON'T USE THIS!
+  (list fork/csc
+    (list lambda '() datum)))
 
 (define (free-identifier=? x y)
   (if (symbol? x)
       (if (symbol? y)
           (eq? x y)
-          (if (syntactic-closure? y)
+          (if (syntactic-keyword? y)
               (eq? x (car y))
               #f))
-      (if (syntactic-closure? x)
-          (if (syntactic-closure? y)
+      (if (syntactic-keyword? x)
+          (if (syntactic-keyword? y)
               (eqv? x y)
               (if (symbol? y)
                   (eq? (car x) y)
                   #f))
           #f)))
 
-; (define er-macro-transformer ; unstable
-;   (lambda (transform)
-;     (fork/csc
-;       (lambda form
-;         (transform form (lambda (x) (eval x (car form))) free-identifier=?)))))
+(define (current-environment-specifier)
+  (fork/csc identity))
 
-(define (identity x) x)
+(define (current-renamer)
+  ((lambda (e)
+     (lambda (x)
+       (eval x e)))
+   (current-environment-specifier)))
 
-(define (er-macro-transformer transform) ; unhygienic-dummy
+(define (er-macro-transformer transform)
   (fork/csc
     (lambda form
-      (transform form identity eqv?))))
+      (transform form (current-renamer) free-identifier=?))))
 
 (define (null? x) (eqv? x '()))
 
