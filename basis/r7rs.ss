@@ -54,10 +54,7 @@
 
 ; ---- 6.3. Booleans -----------------------------------------------------------
 
-(define (boolean=? x y . xs)
-  (and (eqv? x y)
-       (or (not (pair? xs))
-           (apply boolean=? y xs))))
+(define boolean=? eqv?)
 
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
 
@@ -67,10 +64,7 @@
 
 ; ---- 6.5 Symbols -------------------------------------------------------------
 
-(define (symbol=? x y . xs)
-  (and (eqv? x y)
-       (or (not (pair? xs))
-           (apply boolean=? y xs))))
+(define symbol=? eqv?)
 
 ; ---- 6.6 Characters ----------------------------------------------------------
 

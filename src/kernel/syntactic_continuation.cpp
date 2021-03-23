@@ -4,6 +4,7 @@
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/adaptors.hpp>
 
+#include <ios>
 #include <iterator>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
@@ -97,16 +98,16 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eqv?", [](auto&& xs)
+    define<procedure>("eqv?", [](let const& xs)
     {
-      if (let const& a = car(xs), b = cadr(xs); eq(a, b))
+      let const& a = car(xs);
+
+      auto is_equiv = [&](let const& b)
       {
-        return t;
-      }
-      else
-      {
-        return a.eqv(b) ? t : f;
-      }
+        return eq(a, b) or a.eqv(b);
+      };
+
+      return std::all_of(std::next(std::begin(xs)), std::end(xs), is_equiv) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -121,8 +122,8 @@ inline namespace kernel
      *  On symbols, booleans, the empty list, pairs, and records, and also on
      *  non-empty strings, vectors, and bytevectors, eq? and eqv? are
      *  guaranteed to have the same behavior. On procedures, eq? must return
-     *  true if the arguments’ location tags are equal. On numbers and
-     *  characters, eq?’s behavior is implementation-dependent, but it will
+     *  true if the arguments' location tags are equal. On numbers and
+     *  characters, eq?'s behavior is implementation-dependent, but it will
      *  always return either true or false. On empty strings, empty vectors,
      *  and empty bytevectors, eq? may also behave differently from eqv?.
      *
@@ -1748,8 +1749,7 @@ inline namespace kernel
   {
     std::vector<string_view> codes {
       overture,
-      srfi_8,
-      srfi_1,
+      srfi_8, srfi_1,
       srfi_23,
       srfi_34,
       srfi_39,
