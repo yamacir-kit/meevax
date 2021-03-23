@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <memory>
 
 #include <meevax/functional/compose.hpp>
 #include <meevax/memory/tagged_pointer.hpp>
@@ -43,13 +44,9 @@ inline namespace kernel
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
-        : std::conditional< // Transfers all arguments if Bound Type inherits Top Type virtually.
+        : std::conditional<
             std::is_base_of<T, B>::value, T, B
           >::type { std::forward<decltype(xs)>(xs)... }
-      {}
-
-      explicit constexpr binder(B&& bound)
-        : B { std::forward<decltype(bound)>(bound) }
       {}
 
       virtual ~binder() = default;
@@ -68,14 +65,8 @@ inline namespace kernel
       {
         if constexpr (is_equality_comparable<B>::value)
         {
-          if (const auto rhsp { std::dynamic_pointer_cast<B const>(rhs) })
-          {
-            return static_cast<B const&>(*this) == *rhsp;
-          }
-          else
-          {
-            return false;
-          }
+          auto const p = std::dynamic_pointer_cast<B const>(rhs);
+          return p and static_cast<B const&>(*this) == *p;
         }
         else
         {

@@ -49,8 +49,7 @@ inline namespace utility
       template <typename R>
       static constexpr auto apply(T&& x, U&& y) -> R
       {
-        return f(std::forward<decltype(x)>(x),
-                 std::forward<decltype(y)>(y));
+        return f(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
       }
     };
 
