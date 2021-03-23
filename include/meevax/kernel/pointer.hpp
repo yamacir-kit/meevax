@@ -29,42 +29,34 @@ inline namespace kernel
   {
     /* ---- Binder -------------------------------------------------------------
      *
-     * The object binder is the actual data pointed to by the pointer type. To
-     * handle all types uniformly, the binder inherits type T and uses dynamic
-     * polymorphism. This provides access to the bound type ID and its
-     * instances. However, the performance is inferior due to the heavy use of
-     * dynamic cast as a price for convenience.
+     *  The object binder is the actual data pointed to by the pointer type. To
+     *  handle all types uniformly, the binder inherits type T and uses dynamic
+     *  polymorphism. This provides access to the bound type ID and its
+     *  instances. However, the performance is inferior due to the heavy use of
+     *  dynamic cast as a price for convenience.
      *
      * ---------------------------------------------------------------------- */
-    template <typename Bound>
+    template <typename B>
     struct binder
-      : public Bound
-      , public virtual T
+      : public virtual T
+      , public B
     {
-      using top = T;
-
-      using       bound =       Bound;
-      using const_bound = const bound;
-
-      using binding = binder<bound>;
-
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
         : std::conditional< // Transfers all arguments if Bound Type inherits Top Type virtually.
-            std::is_base_of<top, bound>::value, top, bound
+            std::is_base_of<T, B>::value, T, B
           >::type { std::forward<decltype(xs)>(xs)... }
       {}
 
-      explicit constexpr binder(Bound&& bound)
-        : Bound { std::forward<decltype(bound)>(bound) }
+      explicit constexpr binder(B&& bound)
+        : B { std::forward<decltype(bound)>(bound) }
       {}
 
       virtual ~binder() = default;
 
-    private:
       auto type() const noexcept -> std::type_info const& override
       {
-        return typeid(bound);
+        return typeid(B);
       }
 
       auto copy() const -> pointer override
@@ -74,11 +66,11 @@ inline namespace kernel
 
       auto eqv(pointer const& rhs) const -> bool override
       {
-        if constexpr (is_equality_comparable<bound>::value)
+        if constexpr (is_equality_comparable<B>::value)
         {
-          if (const auto rhsp { std::dynamic_pointer_cast<bound const>(rhs) })
+          if (const auto rhsp { std::dynamic_pointer_cast<B const>(rhs) })
           {
-            return static_cast<bound const&>(*this) == *rhsp;
+            return static_cast<B const&>(*this) == *rhsp;
           }
           else
           {
@@ -93,7 +85,7 @@ inline namespace kernel
 
       auto write_to(std::ostream & port) const -> std::ostream & override
       {
-        return delay<write>().yield<decltype(port)>(port, static_cast<bound const&>(*this));
+        return delay<write>().yield<decltype(port)>(port, static_cast<B const&>(*this));
       }
 
       /* ---- Numerical operations ------------------------------------------ */
@@ -101,7 +93,7 @@ inline namespace kernel
       #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                           \
       auto operator SYMBOL(pointer const& rhs) const -> RESULT override        \
       {                                                                        \
-        return delay<OPERATION>().yield<RESULT>(static_cast<bound const&>(*this), rhs); \
+        return delay<OPERATION>().yield<RESULT>(static_cast<B const&>(*this), rhs); \
       } static_assert(true)
 
       BOILERPLATE(+, pointer, std::plus<void>);
@@ -143,27 +135,6 @@ inline namespace kernel
       using binding = binder<Bound>;
       return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
     }
-
-    // #if __cpp_lib_memory_resource
-    // template <typename Bound,
-    //           typename MemoryResource, // XXX (GCC-9 <=)
-    //           typename... Ts,
-    //           typename = typename std::enable_if<std::is_compound<Bound>::type>::value>
-    // static pointer allocate_binding(MemoryResource&& resource, Ts&&... xs)
-    // {
-    //   using binding = binder<Bound>;
-    //
-    //   using binding_allocator
-    //     = typename std::decay<
-    //         decltype(resource)
-    //       >::type::template rebind<binding>::other;
-    //
-    //   return
-    //     std::allocate_shared<binding>(
-    //       binding_allocator { std::forward<decltype(resource)>(resource) },
-    //       std::forward<decltype(xs)>(xs)...);
-    // }
-    // #endif // __cpp_lib_memory_resource
 
     /* ---- Immediate Value Binding ----------------------------------------- */
 
