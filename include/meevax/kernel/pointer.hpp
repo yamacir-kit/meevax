@@ -118,8 +118,6 @@ inline namespace kernel
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
     {}
 
-    /* ---- Compound Types Binding ------------------------------------------ */
-
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto bind(Ts&&... xs) -> pointer
     {
@@ -127,39 +125,17 @@ inline namespace kernel
       return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
     }
 
-    /* ---- Immediate Value Binding ----------------------------------------- */
-
-    // template <typename U, typename = typename std::enable_if<is_immediate<U>::value>::type>
-    // static pointer bind(U&& value)
-    // {
-    //   return pointer(box(TODO), [](auto*) {});
-    // }
-
     auto binding() const noexcept -> decltype(auto)
     {
       return std::shared_ptr<T>::operator *();
     }
 
+    /* ---- Type Predicates ------------------------------------------------- */
+
     auto type() const -> decltype(auto)
     {
-      if (*this)
-      {
-        switch (auto const* data = std::shared_ptr<T>::get(); tag_of(data))
-        {
-        case 0:
-          return (*data).type();
-
-        default:
-          return type_of(data);
-        }
-      }
-      else
-      {
-        return typeid(null);
-      }
+      return *this ?  std::shared_ptr<T>::get()->type() : typeid(null);
     }
-
-    /* ---- Type Predicates ------------------------------------------------- */
 
     template <typename U>
     auto is() const
@@ -169,7 +145,9 @@ inline namespace kernel
 
     template <typename U,
               typename std::enable_if<
-                std::is_null_pointer<typename std::decay<U>::type>::value
+                std::is_null_pointer<
+                  typename std::decay<U>::type
+                >::value
               >::type = 0>
     auto is() const
     {
@@ -199,10 +177,9 @@ inline namespace kernel
 
     template <typename U,
               typename std::enable_if<is_immediate<U>::value>::type = 0>
-    auto as() const -> typename std::decay<U>::type
+    decltype(auto) as() const
     {
-      // return unbox(std::shared_ptr<T>::get());
-      return reinterpret_cast<U>(0);
+      return reinterpret_cast<U>(0); // TODO unbox(std::shared_ptr<T>::get());
     }
 
     decltype(auto) copy() const
@@ -235,9 +212,9 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto operator <<(std::ostream & port, pointer<T> const& rhs) -> decltype(auto)
+  auto operator <<(output_port & port, pointer<T> const& datum) -> output_port &
   {
-    return (rhs.template is<null>() ? port << magenta << "()" : rhs.binding().write_to(port)) << reset;
+    return (datum.template is<null>() ? port << magenta << "()" : datum.binding().write_to(port)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
