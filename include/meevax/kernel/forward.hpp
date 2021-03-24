@@ -9,7 +9,7 @@
 
 #define NIL /* nothing */
 
-#define PRINT(...) std::cout << #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl;
+#define PRINT(...) std::cout << ";" #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl;
 
 namespace meevax
 {
@@ -19,6 +19,8 @@ inline namespace kernel
   class pointer;
 
   struct pair;
+
+  using null = std::nullptr_t;
 
   using object = pointer<pair>;
 

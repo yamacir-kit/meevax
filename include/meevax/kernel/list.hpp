@@ -113,44 +113,41 @@ inline namespace kernel
    *   - xcons                           => xcons
    *
    * ------------------------------------------------------------------------ */
-  inline namespace constructor
+  template <typename T, typename U,
+            REQUIRES(std::is_convertible<T, object>,
+                     std::is_convertible<U, object>)>
+  inline decltype(auto) operator |(T&& x, U&& y)
   {
-    template <typename T, typename U,
-              REQUIRES(std::is_convertible<T, object>,
-                       std::is_convertible<U, object>)>
-    inline decltype(auto) operator |(T&& x, U&& y)
+    return make<pair>(std::forward<decltype(x)>(x),
+                      std::forward<decltype(y)>(y));
+  }
+
+  auto cons = [](auto&&... xs) constexpr
+  {
+    return (std::forward<decltype(xs)>(xs) | ...);
+  };
+
+  auto list = [](auto&& ... xs) constexpr
+  {
+    return (std::forward<decltype(xs)>(xs) | ... | unit);
+  };
+
+  auto make_list = [](auto length, let const& x = unit)
+  {
+    let result = unit;
+
+    for (decltype(length) i = 0; i < length; ++i)
     {
-      return std::make_shared<pair>(std::forward<decltype(x)>(x),
-                                    std::forward<decltype(y)>(y));
+      result = cons(x, result);
     }
 
-    auto cons = [](auto&&... xs) constexpr
-    {
-      return (std::forward<decltype(xs)>(xs) | ...);
-    };
+    return result;
+  };
 
-    auto list = [](auto&& ... xs) constexpr
-    {
-      return (std::forward<decltype(xs)>(xs) | ... | unit);
-    };
-
-    auto make_list = [](auto length, auto const& x = unit)
-    {
-      auto result { unit };
-
-      for (auto i = 0; i < length; ++i)
-      {
-        result = cons(x, result);
-      }
-
-      return result;
-    };
-
-    auto xcons = [](auto&&... xs) constexpr
-    {
-      return (... | std::forward<decltype(xs)>(xs));
-    };
-  } // inline namespace constructor
+  auto xcons = [](auto&&... xs) constexpr
+  {
+    return (... | std::forward<decltype(xs)>(xs));
+  };
 
   /* ---- Predicates -----------------------------------------------------------
    *

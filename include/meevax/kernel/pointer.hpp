@@ -17,8 +17,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  using null = std::nullptr_t;
-
   /* ---- Heterogenous Shared Pointer ------------------------------------------
    *
    *  This type requires to the template parameter T inherits top type.
@@ -51,7 +49,7 @@ inline namespace kernel
 
       virtual ~binder() = default;
 
-      auto type() const noexcept -> std::type_info const& override
+      std::type_info const& type() const noexcept override
       {
         return typeid(B);
       }
@@ -118,11 +116,17 @@ inline namespace kernel
       : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
     {}
 
-    template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
+    template <typename B, typename... Ts, REQUIRES(std::is_compound<B>)>
     static auto bind(Ts&&... xs) -> pointer
     {
-      using binding = binder<Bound>;
-      return std::make_shared<binding>(std::forward<decltype(xs)>(xs)...);
+      if constexpr (std::is_same<B, T>::value)
+      {
+        return std::make_shared<T>(std::forward<decltype(xs)>(xs)...);
+      }
+      else
+      {
+        return std::make_shared<binder<B>>(std::forward<decltype(xs)>(xs)...);
+      }
     }
 
     auto binding() const noexcept -> decltype(auto)
