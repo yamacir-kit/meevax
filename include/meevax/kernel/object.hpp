@@ -7,8 +7,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Identity ---------------------------------------------------------- */
-
   template <typename T>
   struct alignas(sizeof(word)) top
   {
@@ -26,14 +24,8 @@ inline namespace kernel
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        if (auto const rhsp = std::dynamic_pointer_cast<T const>(rhs))
-        {
-          return static_cast<T const&>(*this) == *rhsp;
-        }
-        else
-        {
-          return false;
-        }
+        auto const p = std::dynamic_pointer_cast<T const>(rhs);
+        return p and *p == static_cast<T const&>(*this);
       }
       else
       {
@@ -46,10 +38,10 @@ inline namespace kernel
       return delay<write>().yield<output_port &>(port, static_cast<T const&>(*this));
     }
 
-    #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                             \
+    #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
     virtual auto operator SYMBOL(pointer<T> const& x) const -> RESULT          \
     {                                                                          \
-      return delay<OPERATION>().yield<RESULT>(static_cast<T const&>(*this), x); \
+      return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
     } static_assert(true)
 
     BOILERPLATE(+, pointer<T>, std::plus<void>);
@@ -74,13 +66,13 @@ inline namespace kernel
   template <typename T, typename... Ts>
   inline constexpr decltype(auto) make(Ts&&... xs)
   {
-    return object::bind<T>(std::forward<decltype(xs)>(xs)...);
+    return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
   inline constexpr auto make(T&& x)
   {
-    return object::bind<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
+    return object::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
   // #if __cpp_lib_memory_resource

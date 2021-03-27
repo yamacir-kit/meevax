@@ -64,7 +64,7 @@ inline namespace kernel
         if constexpr (is_equality_comparable<B>::value)
         {
           auto const p = std::dynamic_pointer_cast<B const>(rhs);
-          return p and static_cast<B const&>(*this) == *p;
+          return p and *p == static_cast<B const&>(*this);
         }
         else
         {
@@ -79,10 +79,10 @@ inline namespace kernel
 
       /* ---- Numerical operations ------------------------------------------ */
 
-      #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                           \
-      auto operator SYMBOL(pointer const& rhs) const -> RESULT override        \
+      #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                             \
+      auto operator SYMBOL(pointer const& x) const -> RESULT override          \
       {                                                                        \
-        return delay<OPERATION>().yield<RESULT>(static_cast<B const&>(*this), rhs); \
+        return delay<FUNCTOR>().yield<RESULT>(static_cast<B const&>(*this), x); \
       } static_assert(true)
 
       BOILERPLATE(+, pointer, std::plus<void>);
@@ -117,7 +117,7 @@ inline namespace kernel
     {}
 
     template <typename B, typename... Ts, REQUIRES(std::is_compound<B>)>
-    static auto bind(Ts&&... xs) -> pointer
+    static pointer allocate(Ts&&... xs)
     {
       if constexpr (std::is_same<B, T>::value)
       {
@@ -129,14 +129,14 @@ inline namespace kernel
       }
     }
 
-    auto binding() const noexcept -> decltype(auto)
+    decltype(auto) binding() const noexcept
     {
       return std::shared_ptr<T>::operator *();
     }
 
     /* ---- Type Predicates ------------------------------------------------- */
 
-    auto type() const -> decltype(auto)
+    decltype(auto) type() const
     {
       return *this ?  std::shared_ptr<T>::get()->type() : typeid(null);
     }
