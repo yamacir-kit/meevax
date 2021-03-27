@@ -15,11 +15,6 @@ inline namespace kernel
       return typeid(T);
     }
 
-    virtual auto copy() const -> pointer<T>
-    {
-      return delay<clone>().yield<pointer<T>>(static_cast<T const&>(*this), nullptr);
-    }
-
     virtual bool eqv(pointer<T> const& rhs) const
     {
       if constexpr (is_equality_comparable<T>::value)

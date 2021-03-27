@@ -66,15 +66,6 @@ inline namespace utility
    *
    * ------------------------------------------------------------------------ */
 
-  struct clone
-  {
-    template <typename T, REQUIRES(std::is_copy_constructible<T>)>
-    auto operator ()(T const& origin, std::nullptr_t) const -> decltype(auto)
-    {
-      return std::make_shared<T>(origin);
-    }
-  };
-
   struct read
   {
     template <typename Port, typename... Ts>

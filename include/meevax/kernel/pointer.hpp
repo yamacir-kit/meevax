@@ -47,16 +47,11 @@ inline namespace kernel
           >::type { std::forward<decltype(xs)>(xs)... }
       {}
 
-      virtual ~binder() = default;
+      ~binder() override = default;
 
       std::type_info const& type() const noexcept override
       {
         return typeid(B);
-      }
-
-      auto copy() const -> pointer override
-      {
-        return delay<clone>().yield<pointer>(*this, nullptr);
       }
 
       auto eqv(pointer const& rhs) const -> bool override
@@ -184,11 +179,6 @@ inline namespace kernel
     decltype(auto) as() const
     {
       return reinterpret_cast<U>(0); // TODO unbox(std::shared_ptr<T>::get());
-    }
-
-    decltype(auto) copy() const
-    {
-      return binding().copy();
     }
 
     bool eqv(pointer const& rhs) const
