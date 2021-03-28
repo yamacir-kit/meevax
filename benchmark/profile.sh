@@ -2,8 +2,11 @@
 
 here="$(cd "$(dirname "$0")"; pwd)"
 
-# sudo apt install graphviz python3 python3-pip
-# sudo pip3 install gprof2dot
+install_gprof2dot()
+{
+  sudo apt install graphviz python3 python3-pip
+  sudo pip3 install gprof2dot
+}
 
 cd "$here"
 
