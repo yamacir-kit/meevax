@@ -14,8 +14,6 @@ inline namespace utility
   {
     static inline F f {};
 
-    // TODO SUPPORT UNARY FUNCTION!
-
     template <typename T, typename U, typename = void>
     struct viable
       : public std::false_type

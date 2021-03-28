@@ -1,11 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
-#include <atomic>
-#include <cassert>
-#include <memory>
-
 #include <meevax/functional/compose.hpp>
+#include <meevax/memory/simple_pointer.hpp>
 #include <meevax/memory/tagged_pointer.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
@@ -24,7 +21,7 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   template <typename T>
   class pointer
-    : public std::shared_ptr<T>
+    : public simple_pointer<T>
   {
     /* ---- Binder -------------------------------------------------------------
      *
@@ -54,11 +51,12 @@ inline namespace kernel
         return typeid(B);
       }
 
-      auto eqv(pointer const& rhs) const -> bool override
+      bool eqv(pointer const& x) const override
       {
         if constexpr (is_equality_comparable<B>::value)
         {
-          auto const p = std::dynamic_pointer_cast<B const>(rhs);
+          auto const* p = dynamic_cast<B const*>(x.get());
+
           return p and *p == static_cast<B const&>(*this);
         }
         else
@@ -71,8 +69,6 @@ inline namespace kernel
       {
         return delay<write>().yield<decltype(port)>(port, static_cast<B const&>(*this));
       }
-
-      /* ---- Numerical operations ------------------------------------------ */
 
       #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                             \
       auto operator SYMBOL(pointer const& x) const -> RESULT override          \
@@ -97,43 +93,31 @@ inline namespace kernel
     };
 
   public:
-    pointer(const std::shared_ptr<T>& other)
-      : std::shared_ptr<T> { other }
-    {}
-
-    template <typename B>
-    pointer(const std::shared_ptr<binder<B>>& binding)
-      : std::shared_ptr<T> { binding }
-    {}
-
-    template <typename... Ts>
-    explicit constexpr pointer(Ts&&... xs)
-      : std::shared_ptr<T> { std::forward<decltype(xs)>(xs)... }
-    {}
+    using simple_pointer<T>::simple_pointer;
 
     template <typename B, typename... Ts, REQUIRES(std::is_compound<B>)>
-    static pointer allocate(Ts&&... xs)
+    static auto allocate(Ts&&... xs)
     {
       if constexpr (std::is_same<B, T>::value)
       {
-        return std::make_shared<T>(std::forward<decltype(xs)>(xs)...);
+        return static_cast<pointer>(new T(std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        return std::make_shared<binder<B>>(std::forward<decltype(xs)>(xs)...);
+        return static_cast<pointer>(new binder<B>(std::forward<decltype(xs)>(xs)...));
       }
     }
 
     decltype(auto) binding() const noexcept
     {
-      return std::shared_ptr<T>::operator *();
+      return simple_pointer<T>::operator *();
     }
 
     /* ---- Type Predicates ------------------------------------------------- */
 
     decltype(auto) type() const
     {
-      return *this ?  std::shared_ptr<T>::get()->type() : typeid(null);
+      return *this ? binding().type() : typeid(null);
     }
 
     template <typename U>
@@ -150,13 +134,13 @@ inline namespace kernel
               >::type = 0>
     auto is() const
     {
-      return not std::shared_ptr<T>::operator bool();
+      return not static_cast<bool>(*this);
     }
 
     template <typename U>
     auto is_polymorphically() const
     {
-      return std::dynamic_pointer_cast<U>(*this).operator bool();
+      return dynamic_cast<U const*>(simple_pointer<T>::get()) != nullptr;
     }
 
     /* ---- Accessors ------------------------------------------------------- */
@@ -164,9 +148,9 @@ inline namespace kernel
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
     {
-      if (auto bound = std::dynamic_pointer_cast<U>(*this); bound)
+      if (auto * p = dynamic_cast<U *>(simple_pointer<T>::get()); p)
       {
-        return *bound;
+        return *p;
       }
       else
       {
@@ -174,34 +158,9 @@ inline namespace kernel
       }
     }
 
-    template <typename U,
-              typename std::enable_if<is_immediate<U>::value>::type = 0>
-    decltype(auto) as() const
-    {
-      return reinterpret_cast<U>(0); // TODO unbox(std::shared_ptr<T>::get());
-    }
-
     bool eqv(pointer const& rhs) const
     {
       return type() == rhs.type() and binding().eqv(rhs);
-    }
-
-    template <typename... Ts>
-    decltype(auto) load(Ts&&...)
-    {
-      return std::atomic_load(this);
-    }
-
-    template <typename... Ts>
-    decltype(auto) store(Ts&&... xs)
-    {
-      return std::atomic_store(this, std::forward<decltype(xs)>(xs)...);
-    }
-
-    template <typename... Ts>
-    decltype(auto) exchange(Ts&&... xs)
-    {
-      return std::atomic_exchange(this, std::forward<decltype(xs)>(xs)...);
     }
   };
 
@@ -239,13 +198,5 @@ inline namespace kernel
   #undef BOILERPLATE
 } // namespace kernel
 } // namespace meevax
-
-namespace std
-{
-  template <typename T>
-  class hash<meevax::kernel::pointer<T>>
-    : public hash<std::shared_ptr<T>>
-  {};
-}
 
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP

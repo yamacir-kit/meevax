@@ -11,18 +11,21 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Homoiconic Iterator --------------------------------------------------
-   *
-   * TODO std::empty
-   *
-   * ------------------------------------------------------------------------ */
   template <typename T>
   struct homoiconic_iterator
+  #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
     : public std::reference_wrapper<T>
+  #else
+    : public object
+  #endif
   {
     using iterator_category = std::forward_iterator_tag;
 
+    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
     using value_type = std::reference_wrapper<T>;
+    #else
+    using value_type = object;
+    #endif
 
     using reference = typename std::add_lvalue_reference<value_type>::type;
 
@@ -34,43 +37,51 @@ inline namespace kernel
 
     using size_type = std::size_t;
 
+    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
     using std::reference_wrapper<T>::reference_wrapper;
 
     homoiconic_iterator(T const& x)
       : std::reference_wrapper<T> { std::cref(x) }
     {}
+    #else
+    template <typename... Ts>
+    constexpr homoiconic_iterator(Ts&&... xs)
+      : object { std::forward<decltype(xs)>(xs)... }
+    {}
+    #endif
 
-    operator T&() const noexcept
-    {
-      return std::reference_wrapper<T>::get();
-    }
-
-    decltype(auto) operator*() const
+    decltype(auto) operator *() const
     {
       return car(*this);
     }
 
-    decltype(auto) operator->() const
+    decltype(auto) operator ->() const
     {
       return operator*();
     }
 
-    decltype(auto) operator++()
+    decltype(auto) operator ++()
     {
+      #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
       return *this = cdr(*this);
+      #else
+      static_cast<object &>(*this) = cdr(*this);
+      return *this;
+      #endif
     }
 
-    decltype(auto) operator++(int)
+    decltype(auto) operator ++(int)
     {
       auto copy = *this;
       operator++();
       return std::move(copy);
     }
 
-    homoiconic_iterator cbegin() const noexcept { return *this; }
-    homoiconic_iterator  begin() const noexcept { return *this; }
-    homoiconic_iterator   cend() const noexcept { return unit; }
-    homoiconic_iterator    end() const noexcept { return unit; }
+    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
+    operator T&() const noexcept
+    {
+      return std::reference_wrapper<T>::get();
+    }
 
     using std::reference_wrapper<T>::get;
 
@@ -81,6 +92,12 @@ inline namespace kernel
     {
       return static_cast<bool>(static_cast<T const&>(*this));
     }
+    #endif
+
+    homoiconic_iterator cbegin() const noexcept { return *this; }
+    homoiconic_iterator  begin() const noexcept { return *this; }
+    homoiconic_iterator   cend() const noexcept { return unit; }
+    homoiconic_iterator    end() const noexcept { return unit; }
   };
 } // namespace kernel
 } // namespace meevax

@@ -15,10 +15,12 @@ cmake .. "$@"
 
 make
 
-valgrind --error-exitcode=1 \
-         --leak-check=full \
-         --quiet \
-         --show-leak-kinds=all \
-         "$here/build/unit-test" --report_level=detailed
+# valgrind --error-exitcode=1 \
+#          --leak-check=full \
+#          --quiet \
+#          --show-leak-kinds=all \
+#          "$here/build/unit-test" --report_level=detailed
+
+"$here/build/unit-test"
 
 # ctest --verbose
