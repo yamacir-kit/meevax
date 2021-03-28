@@ -15,11 +15,12 @@ inline namespace kernel
       return typeid(T);
     }
 
-    virtual bool eqv(pointer<T> const& rhs) const
+    virtual bool eqv(pointer<T> const& x) const
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        auto const p = std::dynamic_pointer_cast<T const>(rhs);
+        auto const* p = dynamic_cast<T const*>(x.get());
+
         return p and *p == static_cast<T const&>(*this);
       }
       else

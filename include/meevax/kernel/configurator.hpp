@@ -29,15 +29,13 @@ inline namespace kernel
 
   protected:
     let batch_mode       = f;
-    let debug_mode       = f;
+    let debug_mode       = t;
     let interactive_mode = f;
-    let trace_mode       = f;
+    let trace_mode       = t;
     let verbose_mode     = f;
 
   public:
     let paths = unit;
-
-    let variable = unit;
 
     #define BOILERPLATE(MODE)                                                  \
     auto in_##MODE() const                                                     \
@@ -244,12 +242,6 @@ inline namespace kernel
       std::make_pair("load", [this](auto&&... xs)
       {
         return append_path(std::forward<decltype(xs)>(xs)...);
-      }),
-
-      std::make_pair("variable", [this](const auto& xs)
-      {
-        std::cerr << "; configure\t; " << variable << " => " << (variable = xs) << std::endl;
-        return variable;
       }),
     };
 
