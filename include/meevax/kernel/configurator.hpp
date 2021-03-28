@@ -29,7 +29,7 @@ inline namespace kernel
 
   protected:
     let batch_mode       = f;
-    let debug_mode       = t;
+    let debug_mode       = f;
     let interactive_mode = f;
     let trace_mode       = f;
     let verbose_mode     = f;
