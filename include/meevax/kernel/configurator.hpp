@@ -31,7 +31,7 @@ inline namespace kernel
     let batch_mode       = f;
     let debug_mode       = t;
     let interactive_mode = f;
-    let trace_mode       = t;
+    let trace_mode       = f;
     let verbose_mode     = f;
 
   public:

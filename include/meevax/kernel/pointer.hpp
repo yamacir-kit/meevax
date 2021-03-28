@@ -158,13 +158,6 @@ inline namespace kernel
       }
     }
 
-    // template <typename U,
-    //           typename std::enable_if<is_immediate<U>::value>::type = 0>
-    // decltype(auto) as() const
-    // {
-    //   return reinterpret_cast<U>(0); // TODO unbox(data);
-    // }
-
     bool eqv(pointer const& rhs) const
     {
       return type() == rhs.type() and binding().eqv(rhs);
@@ -205,13 +198,5 @@ inline namespace kernel
   #undef BOILERPLATE
 } // namespace kernel
 } // namespace meevax
-
-namespace std
-{
-  template <typename T>
-  class hash<meevax::kernel::pointer<T>>
-    : public hash<typename meevax::kernel::pointer<T>::pointer>
-  {};
-}
 
 #endif // INCLUDED_MEEVAX_KERNEL_POINTER_HPP

@@ -37,6 +37,7 @@ inline namespace memory
       : data { sp.get() }
     {}
 
+  public:
     constexpr pointer get() const noexcept
     {
       return data;
@@ -58,6 +59,7 @@ inline namespace memory
       return data != nullptr;
     }
 
+  public:
     decltype(auto) load()
     {
       return operator *();
@@ -65,7 +67,7 @@ inline namespace memory
 
     decltype(auto) store(simple_pointer const& x)
     {
-      return *data = *x;
+      return data = x.get();
     }
   };
 
@@ -84,5 +86,13 @@ inline namespace memory
   }
 } // namespace memory
 } // namespace meevax
+
+namespace std
+{
+  template <typename T>
+  class hash<meevax::memory::simple_pointer<T>>
+    : public hash<typename meevax::memory::simple_pointer<T>::pointer>
+  {};
+}
 
 #endif // INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
