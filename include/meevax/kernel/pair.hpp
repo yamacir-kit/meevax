@@ -15,12 +15,8 @@ inline namespace kernel
     : public std::pair<object, object>
     , public top<pair>
   {
-    using base = std::pair<object, object>;
-
-    using base::pair;
-
     explicit pair(let const& a = unit, let const& b = unit)
-      : base { a, b }
+      : std::pair<object, object> { a, b }
     {}
 
     virtual ~pair() = default;

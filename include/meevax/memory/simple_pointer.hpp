@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_SIMPLE_POINTER_HPP
 
-#include <atomic>
 #include <cassert>
 #include <cstddef>
 #include <memory>
@@ -13,11 +12,14 @@ inline namespace memory
 {
   template <typename T>
   class simple_pointer
-    : public std::pointer_traits<T *>
+    : public std::pointer_traits<
+               typename std::add_pointer<T>::type>
   {
     using typename std::pointer_traits<T *>::pointer;
 
     pointer data;
+
+    using reference = typename std::add_lvalue_reference<T>::type;
 
   public:
     explicit constexpr simple_pointer(std::nullptr_t = nullptr)
@@ -43,6 +45,13 @@ inline namespace memory
       return data;
     }
 
+    constexpr reference ref() const
+    {
+      assert(data);
+      return *data;
+    }
+
+  public:
     decltype(auto) operator =(pointer const& p) noexcept
     {
       data = p.get();
@@ -51,7 +60,7 @@ inline namespace memory
 
     decltype(auto) operator *() const noexcept
     {
-      return *data;
+      return ref();
     }
 
     explicit constexpr operator bool() const noexcept
