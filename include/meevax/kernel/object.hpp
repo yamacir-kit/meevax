@@ -93,11 +93,11 @@ inline namespace kernel
   {
     if constexpr (is_object<decltype(x)>::value)
     {
-      return x.binding();
+      return x.load();
     }
     else if constexpr (is_reference<decltype(x)>::value)
     {
-      return x.get().binding();
+      return x.get().load();
     }
     else
     {

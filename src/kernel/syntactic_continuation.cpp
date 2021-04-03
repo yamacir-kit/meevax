@@ -226,7 +226,7 @@ inline namespace kernel
     {                                                                          \
       const auto compare = std::not_fn([](let const& a, let const& b)          \
       {                                                                        \
-        return a.binding() OPERATOR b;                                         \
+        return a.load() OPERATOR b;                                            \
       });                                                                      \
                                                                                \
       return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs) ? t : f; \

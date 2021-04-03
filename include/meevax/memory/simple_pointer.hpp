@@ -21,7 +21,11 @@ inline namespace memory
 
     using reference = typename std::add_lvalue_reference<T>::type;
 
-  public:
+  public: /* ---- CONSTRUCTORS -------------------------------------------------
+  *
+  *
+  * ------------------------------------------------------------------------- */
+
     explicit constexpr simple_pointer(std::nullptr_t = nullptr)
       : data { nullptr }
     {}
@@ -39,57 +43,56 @@ inline namespace memory
       : data { sp.get() }
     {}
 
-  public:
+  public: /* ---- ACCESSORS ----------------------------------------------------
+  *
+  *
+  * ------------------------------------------------------------------------- */
+
     constexpr pointer get() const noexcept
     {
       return data;
     }
 
-    constexpr reference ref() const
+    constexpr reference load() const noexcept
     {
-      assert(data);
       return *data;
     }
 
-  public:
+    decltype(auto) store(simple_pointer const& x) noexcept
+    {
+      data = x.get();
+      return *this;
+    }
+
+  public: /* ---- OPERATOR OVERLOADS -------------------------------------------
+  *
+  *
+  * ------------------------------------------------------------------------- */
+
     decltype(auto) operator =(pointer const& p) noexcept
     {
-      data = p.get();
-      return *this;
+      return store();
     }
 
     decltype(auto) operator *() const noexcept
     {
-      return ref();
+      return load();
     }
 
     explicit constexpr operator bool() const noexcept
     {
       return data != nullptr;
     }
-
-  public:
-    decltype(auto) load()
-    {
-      return operator *();
-    }
-
-    decltype(auto) store(simple_pointer const& x)
-    {
-      return data = x.get();
-    }
   };
 
   template <typename T, typename U>
-  constexpr auto operator ==(simple_pointer<T> const& x,
-                             simple_pointer<U> const& y)
+  constexpr auto operator ==(simple_pointer<T> const& x, simple_pointer<U> const& y)
   {
     return x.get() == y.get();
   }
 
   template <typename T, typename U>
-  constexpr auto operator !=(simple_pointer<T> const& x,
-                             simple_pointer<U> const& y)
+  constexpr auto operator !=(simple_pointer<T> const& x, simple_pointer<U> const& y)
   {
     return x.get() != y.get();
   }

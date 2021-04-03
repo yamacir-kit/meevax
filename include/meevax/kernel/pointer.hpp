@@ -14,11 +14,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Heterogenous Shared Pointer ------------------------------------------
-   *
-   *  This type requires to the template parameter T inherits top type.
-   *
-   * ------------------------------------------------------------------------ */
   template <typename T>
   class pointer
     : public simple_pointer<T>
@@ -92,7 +87,11 @@ inline namespace kernel
       #undef BOILERPLATE
     };
 
-  public:
+  public: /* ---- CONSTRUCTORS -------------------------------------------------
+  *
+  *
+  * ------------------------------------------------------------------------- */
+
     using simple_pointer<T>::simple_pointer;
 
     template <typename B, typename... Ts, REQUIRES(std::is_compound<B>)>
@@ -108,16 +107,14 @@ inline namespace kernel
       }
     }
 
-    decltype(auto) binding() const noexcept
-    {
-      return simple_pointer<T>::operator *();
-    }
-
-    /* ---- Type Predicates ------------------------------------------------- */
+  public: /* ---- TYPE PREDICATES ----------------------------------------------
+  *
+  *
+  * ------------------------------------------------------------------------- */
 
     decltype(auto) type() const
     {
-      return *this ? binding().type() : typeid(null);
+      return *this ? simple_pointer<T>::load().type() : typeid(null);
     }
 
     template <typename U>
@@ -143,7 +140,10 @@ inline namespace kernel
       return dynamic_cast<U const*>(simple_pointer<T>::get()) != nullptr;
     }
 
-    /* ---- Accessors ------------------------------------------------------- */
+  public: /* ---- ACCESSORS ----------------------------------------------------
+  *
+  *
+  * ------------------------------------------------------------------------- */
 
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
@@ -154,20 +154,21 @@ inline namespace kernel
       }
       else
       {
-        throw make_error("no viable conversion from ", demangle(binding().type()), " to ", demangle(typeid(U)));
+        throw make_error(
+          "no viable conversion from ", demangle(simple_pointer<T>::load().type()), " to ", demangle(typeid(U)));
       }
     }
 
     bool eqv(pointer const& rhs) const
     {
-      return type() == rhs.type() and binding().eqv(rhs);
+      return type() == rhs.type() and simple_pointer<T>::load().eqv(rhs);
     }
   };
 
   template <typename T>
   auto operator <<(output_port & port, pointer<T> const& datum) -> output_port &
   {
-    return (datum.template is<null>() ? port << magenta << "()" : datum.binding().write_to(port)) << reset;
+    return (datum.template is<null>() ? port << magenta << "()" : datum.load().write_to(port)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
@@ -176,7 +177,7 @@ inline namespace kernel
   {                                                                            \
     if (a && b)                                                                \
     {                                                                          \
-      return a.binding() SYMBOL b;                                             \
+      return a.load() SYMBOL b;                                                \
     }                                                                          \
     else                                                                       \
     {                                                                          \
