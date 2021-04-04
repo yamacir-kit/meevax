@@ -12,10 +12,9 @@ inline namespace memory
 {
   template <typename T>
   class simple_pointer
-    : public std::pointer_traits<
-               typename std::add_pointer<T>::type>
+    : public std::pointer_traits<typename std::add_pointer<T>::type>
   {
-    using typename std::pointer_traits<T *>::pointer;
+    using typename std::pointer_traits<typename std::add_pointer<T>::type>::pointer;
 
     pointer data;
 
@@ -26,16 +25,8 @@ inline namespace memory
   *
   * ------------------------------------------------------------------------- */
 
-    explicit constexpr simple_pointer(std::nullptr_t = nullptr)
-      : data { nullptr }
-    {}
-
-    explicit constexpr simple_pointer(pointer data)
-      : data { data }
-    {}
-
-    template <typename... Ts>
-    explicit constexpr simple_pointer(typename std::pointer_traits<Ts...>::pointer data)
+    template <typename P = pointer>
+    explicit constexpr simple_pointer(typename std::pointer_traits<P>::pointer data = nullptr)
       : data { static_cast<pointer>(data) }
     {}
 
