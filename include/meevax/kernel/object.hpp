@@ -71,19 +71,6 @@ inline namespace kernel
     return object::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  // #if __cpp_lib_memory_resource
-  // template <typename T,
-  //           typename MemoryResource, // XXX (GCC-9 <=)
-  //           typename... Ts>
-  // inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... xs)
-  // {
-  //   return
-  //     object::allocate_binding<T>(
-  //       std::forward<decltype(resource)>(resource),
-  //       std::forward<decltype(xs)>(xs)...);
-  // }
-  // #endif // __cpp_lib_memory_resource
-
   let extern const unit;
 
   template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
