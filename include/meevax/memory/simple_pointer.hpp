@@ -11,14 +11,19 @@ namespace meevax
 inline namespace memory
 {
   template <typename T>
-  class simple_pointer
-    : public std::pointer_traits<typename std::add_pointer<T>::type>
+  struct simple_pointer
   {
-    using typename std::pointer_traits<typename std::add_pointer<T>::type>::pointer;
+    using value_type = T;
+
+    using reference = typename std::add_lvalue_reference<value_type>::type;
+
+    using const_reference = typename std::add_const<reference>::type;
+
+    using pointer = typename std::add_pointer<value_type>::type;
+
+    using const_pointer = typename std::add_const<pointer>::type;
 
     pointer data;
-
-    using reference = typename std::add_lvalue_reference<T>::type;
 
   public: /* ---- CONSTRUCTORS -------------------------------------------------
   *
