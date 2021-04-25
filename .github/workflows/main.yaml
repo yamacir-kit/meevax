@@ -1,12 +1,7 @@
-# name: "CI"
-
-on: push
-# on:
-#   push:
-#     branches:
-#       - "!*"
-#     tags:
-#       - "v*"
+on:
+  push:
+  schedule:
+    - cron: 0 0 * * *
 
 jobs:
   Ubuntu:
