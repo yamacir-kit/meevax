@@ -23,6 +23,7 @@ inline namespace memory
 
     using const_pointer = typename std::add_const<pointer>::type;
 
+  protected:
     pointer data;
 
   public: /* ---- CONSTRUCTORS -------------------------------------------------
