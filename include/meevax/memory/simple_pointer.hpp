@@ -23,13 +23,11 @@ inline namespace memory
 
     using const_pointer = typename std::add_const<pointer>::type;
 
-  protected:
+  protected: /* ---- DATA MEMBERS ------------------------------------------- */
+
     pointer data;
 
-  public: /* ---- CONSTRUCTORS -------------------------------------------------
-  *
-  *
-  * ------------------------------------------------------------------------- */
+  public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
     template <typename P = pointer>
     explicit constexpr simple_pointer(typename std::pointer_traits<P>::pointer data = nullptr)
@@ -40,10 +38,7 @@ inline namespace memory
       : data { sp.get() }
     {}
 
-  public: /* ---- ACCESSORS ----------------------------------------------------
-  *
-  *
-  * ------------------------------------------------------------------------- */
+  public: /* ---- ACCESSORS ------------------------------------------------- */
 
     constexpr pointer get() const noexcept
     {
@@ -61,14 +56,21 @@ inline namespace memory
       return *this;
     }
 
-  public: /* ---- OPERATOR OVERLOADS -------------------------------------------
-  *
-  *
-  * ------------------------------------------------------------------------- */
+    decltype(auto) reset(pointer const p = nullptr) noexcept
+    {
+      return data = p;
+    }
+
+  public: /* ---- OPERATOR OVERLOADS ---------------------------------------- */
 
     decltype(auto) operator =(pointer const& p) noexcept
     {
       return store();
+    }
+
+    decltype(auto) operator ->() const noexcept
+    {
+      return get();
     }
 
     decltype(auto) operator *() const noexcept

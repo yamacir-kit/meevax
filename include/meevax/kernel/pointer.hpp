@@ -34,9 +34,7 @@ inline namespace kernel
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
-        : std::conditional<
-            std::is_base_of<T, B>::value, T, B
-          >::type { std::forward<decltype(xs)>(xs)... }
+        : std::conditional<std::is_base_of<T, B>::value, T, B>::type { std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;
@@ -87,10 +85,7 @@ inline namespace kernel
       #undef BOILERPLATE
     };
 
-  public: /* ---- CONSTRUCTORS -------------------------------------------------
-  *
-  *
-  * ------------------------------------------------------------------------- */
+  public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
     using simple_pointer<T>::simple_pointer;
 
@@ -107,10 +102,7 @@ inline namespace kernel
       }
     }
 
-  public: /* ---- TYPE PREDICATES ----------------------------------------------
-  *
-  *
-  * ------------------------------------------------------------------------- */
+  public: /* ---- TYPE PREDICATES ------------------------------------------- */
 
     decltype(auto) type() const
     {
@@ -140,10 +132,7 @@ inline namespace kernel
       return dynamic_cast<U const*>(simple_pointer<T>::get()) != nullptr;
     }
 
-  public: /* ---- ACCESSORS ----------------------------------------------------
-  *
-  *
-  * ------------------------------------------------------------------------- */
+  public: /* ---- ACCESSORS ------------------------------------------------- */
 
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
