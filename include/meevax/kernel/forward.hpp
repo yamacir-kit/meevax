@@ -9,7 +9,9 @@
 
 #define NIL /* nothing */
 
-#define PRINT(...) std::cout << ";" #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl;
+#define LINE() std::cout << "; " __FILE__ ":" << __LINE__ << std::endl
+
+#define PRINT(...) std::cout << "; " #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl
 
 namespace meevax
 {

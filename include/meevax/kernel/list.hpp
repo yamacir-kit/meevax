@@ -70,11 +70,11 @@ inline namespace kernel
       #endif
     }
 
-    decltype(auto) operator ++(int)
+    auto operator ++(int)
     {
       auto copy = *this;
       operator++();
-      return std::move(copy);
+      return copy;
     }
 
     #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER

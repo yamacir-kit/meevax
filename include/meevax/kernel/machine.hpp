@@ -286,10 +286,7 @@ inline namespace kernel
       }
     }
 
-    template
-    <
-      bool Trace = false
-    >
+    template <bool Trace = false>
     let execute()
     {
     dispatch:
