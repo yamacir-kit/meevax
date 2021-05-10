@@ -1,27 +1,29 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_CONTROLLER_HPP
 #define INCLUDED_MEEVAX_MEMORY_CONTROLLER_HPP
 
+#include <cstdint> // std::uintptr_t
+#include <functional> // std::less
+#include <type_traits>
+
+#include <meevax/memory/deallocator.hpp>
 #include <meevax/memory/marker.hpp>
-#include <meevax/memory/void_pointer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  struct controller
+  struct controller : public marker
   {
     using pointer = typename std::add_pointer<controller>::type;
 
-    using signature = void (*)(void_pointer const);
+    using const_pointer = typename std::add_pointer<controller const>::type;
 
-  public:
+  private:
     void_pointer base, derived = nullptr;
 
     std::size_t size;
 
-    marker reachable;
-
-    signature custom_delete = nullptr;
+    deallocator<void>::signature deallocate = nullptr;
 
   public:
     explicit controller(void_pointer const base, std::size_t const size)
@@ -49,24 +51,30 @@ inline namespace memory
       return lower_bound() <= k and k < upper_bound();
     }
 
-    constexpr auto controls(void_pointer const p) const noexcept
+    constexpr auto controls(void_pointer const derived) const noexcept
     {
-      return controls(reinterpret_cast<std::uintptr_t>(p));
+      return controls(reinterpret_cast<std::uintptr_t>(derived));
     }
 
-    constexpr bool has_custom_deleter() const noexcept
+    constexpr bool assigned() const noexcept
     {
-      return custom_delete;
+      return derived and deallocate;
+    }
+
+    void reset(decltype(derived) derived = nullptr, decltype(deallocate) deallocate = nullptr)
+    {
+      (*this).derived = derived;
+      (*this).deallocate = deallocate;
     }
 
     void release()
     {
-      if (derived and custom_delete)
+      if (assigned())
       {
-        custom_delete(derived);
+        deallocate(derived);
       }
 
-      derived = base = nullptr;
+      reset();
 
       size = 0;
     }
@@ -79,7 +87,8 @@ namespace std
   template <>
   struct less<meevax::controller::pointer>
   {
-    constexpr bool operator ()(meevax::controller const* x, meevax::controller const* y) const
+    constexpr bool operator ()(meevax::controller::const_pointer x,
+                               meevax::controller::const_pointer y) const
     {
       return (*x).upper_bound() <= (*y).lower_bound();
     }

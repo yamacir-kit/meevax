@@ -31,7 +31,7 @@ inline namespace memory
       return value == phase;
     }
 
-    static auto flip() noexcept
+    static auto toggle() noexcept
     {
       return phase = not phase;
     }
