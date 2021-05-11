@@ -4,6 +4,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  let const unit { nullptr };
+
   auto operator <<(std::ostream& port, const pair& pare) -> decltype(port)
   {
     port << magenta << "(" << reset << car(pare);

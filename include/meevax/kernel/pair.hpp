@@ -7,6 +7,8 @@ namespace meevax
 {
 inline namespace kernel
 {
+  let extern const unit;
+
   /* ---- Pair -----------------------------------------------------------------
    *
    *

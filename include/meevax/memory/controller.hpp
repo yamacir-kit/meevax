@@ -36,22 +36,22 @@ inline namespace memory
       release();
     }
 
-    constexpr auto lower_bound() const noexcept
+    auto lower_bound() const noexcept
     {
       return reinterpret_cast<std::uintptr_t>(base);
     }
 
-    constexpr auto upper_bound() const noexcept
+    auto upper_bound() const noexcept
     {
       return lower_bound() + size;
     }
 
-    constexpr auto controls(std::uintptr_t const k) const noexcept
+    auto controls(std::uintptr_t const k) const noexcept
     {
       return lower_bound() <= k and k < upper_bound();
     }
 
-    constexpr auto controls(void_pointer const derived) const noexcept
+    auto controls(void_pointer const derived) const noexcept
     {
       return controls(reinterpret_cast<std::uintptr_t>(derived));
     }
@@ -87,8 +87,8 @@ namespace std
   template <>
   struct less<meevax::controller::pointer>
   {
-    constexpr bool operator ()(meevax::controller::const_pointer x,
-                               meevax::controller::const_pointer y) const
+    bool operator ()(meevax::controller::const_pointer x,
+                     meevax::controller::const_pointer y) const
     {
       return (*x).upper_bound() <= (*y).lower_bound();
     }

@@ -71,8 +71,6 @@ inline namespace kernel
     return object::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  let extern const unit;
-
   template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
   template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<object const>, typename std::decay<T>::type>;
 
