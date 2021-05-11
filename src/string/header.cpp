@@ -11,7 +11,7 @@ namespace meevax
       s.append(from);
     }
 
-    s.resize(size, ' ');
+    s.resize(size + 2, ' ');
 
     s.replace(s.size() - 3, 3, " ; ");
 

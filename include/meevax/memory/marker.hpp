@@ -12,8 +12,8 @@ inline namespace memory
     bool value;
 
   public:
-    explicit marker(bool value = phase)
-      : value { value }
+    explicit marker() noexcept
+      : value { phase }
     {}
 
     auto mark() noexcept

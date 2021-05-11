@@ -456,9 +456,9 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](auto const& key, auto&& alist, auto&& compare = equivalence_comparator<2>()) constexpr
+    auto assoc = [](auto const& key, auto const& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
-      return find(std::forward<decltype(alist)>(alist), [&](auto&& each)
+      return find(alist, [&](auto&& each)
              {
                return compare(car(each), key);
              });

@@ -58,7 +58,7 @@ inline namespace memory
 
     constexpr bool assigned() const noexcept
     {
-      return derived and deallocate;
+      return deallocate;
     }
 
     void reset(decltype(derived) derived = nullptr, decltype(deallocate) deallocate = nullptr)
@@ -69,7 +69,7 @@ inline namespace memory
 
     void release()
     {
-      if (assigned())
+      if (derived and assigned())
       {
         deallocate(derived);
       }
