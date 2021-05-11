@@ -206,7 +206,7 @@ inline namespace kernel
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>") >> indent::width;
 
-            decltype(auto) result =
+            let result =
               applicant.as<syntax>().compile(
                 the_expression_is, syntactic_environment, cdr(expression), frames, continuation);
 

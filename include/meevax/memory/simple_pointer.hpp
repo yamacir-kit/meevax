@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 namespace meevax
 {
@@ -47,25 +48,27 @@ inline namespace memory
 
     constexpr reference load() const noexcept
     {
-      return *data;
+      assert(get());
+      return *get();
     }
 
-    decltype(auto) store(simple_pointer const& x) noexcept
+    auto & store(simple_pointer const& x) noexcept
     {
       data = x.get();
       return *this;
     }
 
-    decltype(auto) reset(pointer const p = nullptr) noexcept
+    pointer reset(pointer const p = nullptr) noexcept
     {
       return data = p;
     }
 
   public: /* ---- OPERATOR OVERLOADS ---------------------------------------- */
 
-    decltype(auto) operator =(pointer const& p) noexcept
+    template <typename... Ts>
+    decltype(auto) operator =(Ts&&... xs) noexcept
     {
-      return store();
+      return store(std::forward<decltype(xs)>(xs)...);
     }
 
     decltype(auto) operator ->() const noexcept

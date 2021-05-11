@@ -33,7 +33,10 @@ inline namespace memory
 
     ~controller()
     {
-      release();
+      if (derived and deallocate)
+      {
+        deallocate(derived);
+      }
     }
 
     auto lower_bound() const noexcept
@@ -61,20 +64,20 @@ inline namespace memory
       return deallocate;
     }
 
-    void reset(decltype(derived) derived = nullptr, decltype(deallocate) deallocate = nullptr)
+    void reset(decltype(derived) x, decltype(deallocate) f)
     {
-      (*this).derived = derived;
-      (*this).deallocate = deallocate;
+      derived = x;
+      deallocate = f;
     }
 
     void release()
     {
-      if (derived and assigned())
+      if (derived and deallocate)
       {
         deallocate(derived);
       }
 
-      reset();
+      base = derived = nullptr;
 
       size = 0;
     }

@@ -82,11 +82,11 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    let const& form() const noexcept { return first; }
-    let      & form()       noexcept { return first; }
+    auto const& form() const noexcept { return std::get<0>(*this); }
+    auto      & form()       noexcept { return std::get<0>(*this); }
 
-    let const& global_environment() const noexcept { return second; }
-    let      & global_environment()       noexcept { return second; }
+    auto const& global_environment() const noexcept { return std::get<1>(*this); }
+    auto      & global_environment()       noexcept { return std::get<1>(*this); }
 
     decltype(auto) current_expression() const
     {
