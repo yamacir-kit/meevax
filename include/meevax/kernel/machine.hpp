@@ -311,7 +311,7 @@ inline namespace kernel
         *    j = (cdadr c)
         *
         * ------------------------------------------------------------------- */
-        push(s, list_ref(list_ref(e, caadr(c)), cdadr(c)));
+        s = cons(list_ref(list_ref(e, caadr(c)), cdadr(c)), s);
         c = cddr(c);
         goto dispatch;
 
@@ -323,7 +323,7 @@ inline namespace kernel
         *  where result = (list-tail (list-ref E i) j)
         *
         * ------------------------------------------------------------------- */
-        push(s, list_tail(list_ref(e, caadr(c)), cdadr(c)));
+        s = cons(list_tail(list_ref(e, caadr(c)), cdadr(c)), s);
         c = cddr(c);
         goto dispatch;
 
@@ -333,7 +333,7 @@ inline namespace kernel
         *  => (constant . S) E                           C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, cadr(c));
+        s = cons(cadr(c), s);
         c = cddr(c);
         goto dispatch;
 
@@ -353,7 +353,7 @@ inline namespace kernel
         *  => (object . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, cdadr(c));
+        s = cons(cdadr(c), s);
         c = cddr(c);
         goto dispatch;
 
@@ -363,7 +363,7 @@ inline namespace kernel
         *  => (form . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, cadr(c).template as<syntactic_keyword>().lookup());
+        s = cons(cadr(c).template as<syntactic_keyword>().lookup(), s);
         c = cddr(c);
         goto dispatch;
 
@@ -373,7 +373,7 @@ inline namespace kernel
         *  => (closure . S) E                      C  D
         *
         * ------------------------------------------------------------------- */
-        push(s, make<closure>(cadr(c), e));
+        s = cons(make<closure>(cadr(c), e), s);
         c = cddr(c);
         goto dispatch;
 
@@ -385,7 +385,7 @@ inline namespace kernel
         *  where continuation = (s e c . d)
         *
         * ------------------------------------------------------------------- */
-        push(s, list(current_continuation()));
+        s = cons(list(current_continuation()), s);
         c = cddr(c);
         goto dispatch;
 
@@ -397,7 +397,7 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        push(s, make<SK>(current_continuation(), global_environment()));
+        s = cons(make<SK>(current_continuation(), global_environment()), s);
         c = cddr(c);
         goto dispatch;
 
@@ -409,7 +409,7 @@ inline namespace kernel
         *  where selection = (if test consequent alternate)
         *
         * ------------------------------------------------------------------- */
-        push(d, cdddr(c));
+        d = cons(cdddr(c), d);
         [[fallthrough]];
 
       case mnemonic::TAIL_SELECT: /* -------------------------------------------
@@ -452,7 +452,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
-          push(d, cddr(s), e, cdr(c));
+          d = cons(cddr(s), e, cdr(c), d);
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;

@@ -82,9 +82,8 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    auto const& form() const noexcept { return std::get<0>(*this); }
-    auto      & form()       noexcept { return std::get<0>(*this); }
-
+    auto const& form()               const noexcept { return std::get<0>(*this); }
+    auto      & form()                     noexcept { return std::get<0>(*this); }
     auto const& global_environment() const noexcept { return std::get<1>(*this); }
     auto      & global_environment()       noexcept { return std::get<1>(*this); }
 

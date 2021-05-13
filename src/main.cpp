@@ -2,8 +2,6 @@
 
 int main(const int argc, char const* const* const argv) try
 {
-  using meevax::let;
-
   auto root = meevax::syntactic_continuation(meevax::layer<4>());
 
   root.configure(argc, argv);
