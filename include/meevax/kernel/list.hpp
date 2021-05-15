@@ -13,27 +13,16 @@ inline namespace kernel
 {
   /* ---- Constructors ---------------------------------------------------------
    *
-   * From R7RS
-   *   - cons                            => cons
-   *   - list                            => list
-   *
-   * From SRFI-1
-   *   - circular-list
-   *   - cons*                           => cons
-   *   - iota
-   *   - list-copy
-   *   - list-tabulate
-   *   - make-list
-   *   - xcons                           => xcons
+   *  cons list
+   *  xcons cons* make-list list-tabulate
+   *  list-copy circular-list iota
    *
    * ------------------------------------------------------------------------ */
-  template <typename T, typename U,
-            REQUIRES(std::is_convertible<T, object>,
-                     std::is_convertible<U, object>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>,
+                                             std::is_convertible<U, object>)>
   inline decltype(auto) operator |(T&& x, U&& y)
   {
-    return make<pair>(std::forward<decltype(x)>(x),
-                      std::forward<decltype(y)>(y));
+    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
   }
 
   auto cons = [](auto&&... xs) constexpr
@@ -46,21 +35,21 @@ inline namespace kernel
     return (std::forward<decltype(xs)>(xs) | ... | unit);
   };
 
-  auto make_list = [](auto length, let const& x = unit)
+  auto xcons = [](auto&&... xs) constexpr
+  {
+    return (... | std::forward<decltype(xs)>(xs));
+  };
+
+  auto make_list = [](std::size_t length, let const& x = unit)
   {
     let result = unit;
 
-    for (decltype(length) i = 0; i < length; ++i)
+    for (std::size_t i = 0; i < length; ++i)
     {
       result = cons(x, result);
     }
 
     return result;
-  };
-
-  auto xcons = [](auto&&... xs) constexpr
-  {
-    return (... | std::forward<decltype(xs)>(xs));
   };
 
   /* ---- Predicates -----------------------------------------------------------

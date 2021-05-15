@@ -21,4 +21,5 @@ macro(define_unit_test TEST_NAME)
 endmacro()
 
 define_unit_test(test-gc)
+define_unit_test(test-list)
 define_unit_test(test-r7rs)
