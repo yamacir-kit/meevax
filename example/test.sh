@@ -7,20 +7,22 @@ then
   rm -rf "$here/build"
 fi
 
-mkdir -p "$here/build"
+cmake -B "$here/build" -S "$here" "$@"
 
 cd "$here/build"
 
-cmake .. "$@"
+make -j"$(nproc)"
 
-make
 
-# valgrind --error-exitcode=1 \
-#          --leak-check=full \
-#          --quiet \
-#          --show-leak-kinds=all \
-#          "$here/build/unit-test" --report_level=detailed
+check()
+{
+  valgrind --error-exitcode=1 \
+           --leak-check=full \
+           --quiet \
+           --show-leak-kinds=all \
+           "$@"
+}
 
-"$here/build/unit-test"
+"$here/build/unit-test" --report_level=detailed
 
 # ctest --verbose
