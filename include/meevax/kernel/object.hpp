@@ -8,7 +8,7 @@ namespace meevax
 inline namespace kernel
 {
   template <typename T>
-  struct alignas(sizeof(word)) top
+  struct alignas(sizeof(std::uintptr_t)) top
   {
     virtual auto type() const noexcept -> std::type_info const&
     {

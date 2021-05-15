@@ -1,8 +1,6 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_ROOT_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_ROOT_POINTER_HPP
 
-#include <cstddef> // std::nullptr_t
-
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/simple_pointer.hpp>
 

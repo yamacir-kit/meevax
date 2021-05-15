@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
-#include <limits>
 #include <valarray>
 
 #include <meevax/kernel/numeric_tower.hpp>

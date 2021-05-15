@@ -2,11 +2,9 @@
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <meevax/functional/compose.hpp>
-#include <meevax/memory/simple_pointer.hpp>
-#include <meevax/memory/tagged_pointer.hpp>
+#include <meevax/memory/root_pointer.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
-#include <meevax/utility/demangle.hpp>
 #include <meevax/utility/module.hpp>
 #include <meevax/utility/perfect_forward.hpp>
 
@@ -14,9 +12,9 @@ namespace meevax
 {
 inline namespace kernel
 {
+  // TODO: RENAME TO cell
   template <typename T>
-  class pointer
-    : public simple_pointer<T>
+  class pointer : public root_pointer<T>
   {
     /* ---- Binder -------------------------------------------------------------
      *
@@ -87,18 +85,18 @@ inline namespace kernel
 
   public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
-    using simple_pointer<T>::simple_pointer;
+    using root_pointer<T>::root_pointer;
 
     template <typename B, typename... Ts, REQUIRES(std::is_compound<B>)>
     static auto allocate(Ts&&... xs)
     {
       if constexpr (std::is_same<B, T>::value)
       {
-        return static_cast<pointer>(new T(std::forward<decltype(xs)>(xs)...));
+        return static_cast<pointer>(new (gc) T(std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        return static_cast<pointer>(new binder<B>(std::forward<decltype(xs)>(xs)...));
+        return static_cast<pointer>(new (gc) binder<B>(std::forward<decltype(xs)>(xs)...));
       }
     }
 
@@ -106,7 +104,7 @@ inline namespace kernel
 
     decltype(auto) type() const
     {
-      return *this ? simple_pointer<T>::load().type() : typeid(null);
+      return *this ? root_pointer<T>::load().type() : typeid(null);
     }
 
     template <typename U>
@@ -129,7 +127,7 @@ inline namespace kernel
     template <typename U>
     auto is_polymorphically() const
     {
-      return dynamic_cast<U const*>(simple_pointer<T>::get()) != nullptr;
+      return dynamic_cast<U const*>(root_pointer<T>::get()) != nullptr;
     }
 
   public: /* ---- ACCESSORS ------------------------------------------------- */
@@ -137,20 +135,20 @@ inline namespace kernel
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
     {
-      if (auto * p = dynamic_cast<U *>(simple_pointer<T>::get()); p)
+      if (auto * p = dynamic_cast<U *>(root_pointer<T>::get()); p)
       {
         return *p;
       }
       else
       {
         throw make_error(
-          "no viable conversion from ", demangle(simple_pointer<T>::load().type()), " to ", demangle(typeid(U)));
+          "no viable conversion from ", demangle(root_pointer<T>::load().type()), " to ", demangle(typeid(U)));
       }
     }
 
     bool eqv(pointer const& rhs) const
     {
-      return type() == rhs.type() and simple_pointer<T>::load().eqv(rhs);
+      return type() == rhs.type() and root_pointer<T>::load().eqv(rhs);
     }
   };
 
