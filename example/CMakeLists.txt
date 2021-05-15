@@ -7,11 +7,13 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Boost  REQUIRED)
 find_package(Meevax REQUIRED)
 
-add_executable(test-r7rs ${CMAKE_CURRENT_SOURCE_DIR}/src/test-r7rs.cpp)
-target_link_libraries(test-r7rs Boost::boost Meevax::Kernel)
+macro(define TEST_NAME)
+  add_executable(${TEST_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/${TEST_NAME}.cpp)
+  target_link_libraries(${TEST_NAME} Boost::boost Meevax::Kernel)
+endmacro()
 
-add_executable(test-gc ${CMAKE_CURRENT_SOURCE_DIR}/src/test-gc.cpp)
-target_link_libraries(test-gc Boost::boost Meevax::Kernel)
+define(test-gc)
+define(test-r7rs)
 
 # enable_testing()
 #
