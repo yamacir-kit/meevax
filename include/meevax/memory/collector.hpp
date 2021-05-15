@@ -92,15 +92,15 @@ inline namespace memory
     {
       if (not --schwarz_counter)
       {
-        std::cout << header(__func__) << "collecting objects\n"
-                  << header("")       << "  collectables\t= " << std::size(collectables) << "\n"
-                  << header("")       << "  regions\t= " << std::size(regions) << std::endl;
+        std::cout << header(__func__) << "collecting objects" << std::endl;
+
+        auto const collectables_size = std::size(collectables);
+        auto const regions_size      = std::size(regions);
 
         collect();
 
-        std::cout << header(__func__) << "collected objects\n"
-                  << header("")       << "  collectables\t= " << std::size(collectables) << "\n"
-                  << header("")       << "  regions\t= " << std::size(regions) << std::endl;
+        std::cout << header("")       << "  collectables = " << collectables_size << " => " << std::size(collectables) << "\n"
+                  << header("")       << "  regions = " << regions_size << " => " << std::size(regions) << std::endl;
 
         for (auto iter = std::begin(regions); iter != std::end(regions); )
         {
