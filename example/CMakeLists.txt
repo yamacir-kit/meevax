@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 
-project(unit-test VERSION 0.0.0 LANGUAGES CXX)
+project(test VERSION 0.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(Boost  REQUIRED)
 find_package(Meevax REQUIRED)
 
-add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
-target_link_libraries(${PROJECT_NAME} Boost::boost Meevax::Kernel)
+add_executable(test-r7rs ${CMAKE_CURRENT_SOURCE_DIR}/src/test-r7rs.cpp)
+target_link_libraries(test-r7rs Boost::boost Meevax::Kernel)
 
 add_executable(test-gc ${CMAKE_CURRENT_SOURCE_DIR}/src/test-gc.cpp)
 target_link_libraries(test-gc Boost::boost Meevax::Kernel)

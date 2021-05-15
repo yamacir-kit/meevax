@@ -1,4 +1,5 @@
 #define BOOST_TEST_MODULE test_gc
+
 #include <boost/test/included/unit_test.hpp>
 
 #include <meevax/kernel/list.hpp>
