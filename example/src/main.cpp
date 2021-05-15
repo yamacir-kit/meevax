@@ -1,9 +1,9 @@
-#include <meevax/kernel/exact_integer.hpp>
-#include <meevax/kernel/floating_point.hpp>
 #define BOOST_TEST_MODULE Example
 
 #include <boost/test/included/unit_test.hpp>
 
+#include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/floating_point.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 struct basis

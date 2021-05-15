@@ -16,13 +16,10 @@ make -j"$(nproc)"
 
 check()
 {
-  valgrind --error-exitcode=1 \
-           --leak-check=full \
-           --quiet \
-           --show-leak-kinds=all \
-           "$@"
+  valgrind --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all "$@"
 }
 
-"$here/build/unit-test" --report_level=detailed
+check "$here/build/unit-test" --report_level=detailed
+check "$here/build/test-gc"   --report_level=detailed
 
 # ctest --verbose
