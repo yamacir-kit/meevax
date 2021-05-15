@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_MEMORY_CONTROLLER_HPP
-#define INCLUDED_MEEVAX_MEMORY_CONTROLLER_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_REGION_HPP
+#define INCLUDED_MEEVAX_MEMORY_REGION_HPP
 
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
@@ -12,11 +12,11 @@ namespace meevax
 {
 inline namespace memory
 {
-  struct controller : public marker
+  struct region : public marker
   {
-    using pointer = typename std::add_pointer<controller>::type;
+    using pointer = typename std::add_pointer<region>::type;
 
-    using const_pointer = typename std::add_pointer<controller const>::type;
+    using const_pointer = typename std::add_pointer<region const>::type;
 
   private:
     void_pointer base, derived = nullptr;
@@ -26,14 +26,14 @@ inline namespace memory
     deallocator<void>::signature deallocate = nullptr;
 
   public:
-    explicit controller(void_pointer const base, std::size_t const size)
+    explicit region(void_pointer const base, std::size_t const size)
       : base { base }
       , size { size }
     {}
 
-    ~controller()
+    ~region()
     {
-      if (derived and deallocate)
+      if (assigned())
       {
         deallocate(derived);
       }
@@ -61,10 +61,10 @@ inline namespace memory
 
     constexpr bool assigned() const noexcept
     {
-      return deallocate;
+      return derived and deallocate;
     }
 
-    void reset(decltype(derived) x, decltype(deallocate) f)
+    void reset(decltype(derived) x, decltype(deallocate) f) noexcept
     {
       derived = x;
       deallocate = f;
@@ -72,12 +72,12 @@ inline namespace memory
 
     void release()
     {
-      if (derived and deallocate)
+      if (assigned())
       {
         deallocate(derived);
       }
 
-      base = derived = nullptr;
+      reset(nullptr, nullptr);
 
       size = 0;
     }
@@ -88,14 +88,14 @@ inline namespace memory
 namespace std
 {
   template <>
-  struct less<meevax::controller::pointer>
+  struct less<meevax::region::pointer>
   {
-    bool operator ()(meevax::controller::const_pointer x,
-                     meevax::controller::const_pointer y) const
+    bool operator ()(meevax::region::const_pointer x,
+                     meevax::region::const_pointer y) const
     {
       return (*x).upper_bound() <= (*y).lower_bound();
     }
   };
 } // namespace std
 
-#endif // INCLUDED_MEEVAX_MEMORY_CONTROLLER_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_REGION_HPP
