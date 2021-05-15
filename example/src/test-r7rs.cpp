@@ -1,9 +1,6 @@
 #define BOOST_TEST_MODULE test_r7rs
 
 #include <boost/test/included/unit_test.hpp>
-
-#include <meevax/kernel/exact_integer.hpp>
-#include <meevax/kernel/floating_point.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 using namespace meevax;

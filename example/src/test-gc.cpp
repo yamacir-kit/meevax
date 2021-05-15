@@ -1,7 +1,6 @@
 #define BOOST_TEST_MODULE test_gc
 
 #include <boost/test/included/unit_test.hpp>
-
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 using namespace meevax;
@@ -12,28 +11,34 @@ using namespace meevax;
 #define DEBUG_COLLECT() \
   std::cout << __LINE__ << ":\t" << gc.size() << " => (gc-collect) => " << (gc.collect(), gc.size()) << std::endl
 
-BOOST_AUTO_TEST_CASE(native)
+struct fixture // Check if all allocated objects are collected.
 {
-  BOOST_CHECK(gc.size() == 6);
+  std::size_t const size;
 
-  BOOST_CHECK(eof_object.is<eof>());
-  BOOST_CHECK(eos_object.is<eos>());
-  BOOST_CHECK(f.is<boolean>());
-  BOOST_CHECK(t.is<boolean>());
-  BOOST_CHECK(undefined.is<undefined_t>());
-  BOOST_CHECK(unspecified.is<unspecified_t>());
+  explicit fixture()
+    : size { gc.size() }
+  {
+    BOOST_CHECK(size == 6);
 
-  gc.collect();
+    BOOST_CHECK(eof_object.is<eof>());
+    BOOST_CHECK(eos_object.is<eos>());
+    BOOST_CHECK(f.is<boolean>());
+    BOOST_CHECK(t.is<boolean>());
+    BOOST_CHECK(undefined.is<undefined_t>());
+    BOOST_CHECK(unspecified.is<unspecified_t>());
+  }
 
-  BOOST_CHECK(gc.size() == 6);
-}
+  ~fixture()
+  {
+    gc.collect();
 
-BOOST_AUTO_TEST_CASE(scope)
+    BOOST_CHECK(gc.size() == size);
+  }
+};
+
+BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
 {
-  auto const size = gc.size();
-
-  // DEBUG_PRINT(gc.size());
-
+  BOOST_AUTO_TEST_CASE(scope)
   {
     let x = make<symbol>("x");
     let y = make<symbol>("y");
@@ -42,92 +47,69 @@ BOOST_AUTO_TEST_CASE(scope)
     BOOST_CHECK(gc.size() == size + 3);
   }
 
-  DEBUG_COLLECT();
-
-  BOOST_CHECK(gc.size() == size);
-}
-
-BOOST_AUTO_TEST_CASE(copy)
-{
-  let x = make<symbol>("copy-x");
-
-  // DEBUG_PRINT(x);
-  BOOST_CHECK(x.is<symbol>());
-
-  let y = x;
-
-  // DEBUG_PRINT(y);
-  BOOST_CHECK(y.is<symbol>());
-  BOOST_CHECK(x.get() == y.get());
-
-  DEBUG_COLLECT();
-
-  // DEBUG_PRINT(x);
-  // DEBUG_PRINT(y);
-}
-
-BOOST_AUTO_TEST_CASE(rvo)
-{
-  auto f = []()
+  BOOST_AUTO_TEST_CASE(copy)
   {
-    let x = make<symbol>("rvo-x");
+    let x = make<symbol>("original");
+    let y = x;
+
     BOOST_CHECK(x.is<symbol>());
-    BOOST_CHECK(x.as<symbol>() == "rvo-x");
-    return x;
-  };
+    BOOST_CHECK(y.is<symbol>());
+    BOOST_CHECK(eq(x, y));
+    BOOST_CHECK(eqv(x, y));
+  }
 
-  let x = f();
-
-  BOOST_CHECK(x.is<symbol>());
-  BOOST_CHECK(x.as<symbol>() == "rvo-x");
-
-  gc.collect();
-
-  BOOST_CHECK(x.is<symbol>());
-  BOOST_CHECK(x.as<symbol>() == "rvo-x");
-}
-
-BOOST_AUTO_TEST_CASE(proper_list)
-{
-  auto size = gc.size();
-
-  auto f = []()
+  BOOST_AUTO_TEST_CASE(return_value)
   {
-    DEBUG_PRINT(gc.size());
+    auto f = []()
+    {
+      let x = make<symbol>("x");
+      BOOST_CHECK(x.is<symbol>());
+      BOOST_CHECK(x.as<symbol>() == "x");
+      return x;
+    };
 
-    let x = make<symbol>("x");
-    let y = make<symbol>("y");
-    let z = make<symbol>("z");
+    let x = f();
 
     BOOST_CHECK(x.is<symbol>());
     BOOST_CHECK(x.as<symbol>() == "x");
 
-    BOOST_CHECK(y.is<symbol>());
-    BOOST_CHECK(y.as<symbol>() == "y");
+    gc.collect();
 
-    BOOST_CHECK(z.is<symbol>());
-    BOOST_CHECK(z.as<symbol>() == "z");
+    BOOST_CHECK(x.is<symbol>());
+    BOOST_CHECK(x.as<symbol>() == "x");
+  }
 
-    DEBUG_PRINT(gc.size());
+  BOOST_AUTO_TEST_CASE(proper_list)
+  {
+    auto f = [&]()
+    {
+      let x = make<symbol>("x");
+      let y = make<symbol>("y");
+      let z = make<symbol>("z");
 
-    return list(x, y, z);
-  };
+      BOOST_CHECK(x.is<symbol>() and x.as<symbol>() == "x");
+      BOOST_CHECK(y.is<symbol>() and y.as<symbol>() == "y");
+      BOOST_CHECK(z.is<symbol>() and z.as<symbol>() == "z");
+      BOOST_CHECK(gc.size() == size + 3);
 
-  let a = f();
+      return list(x, y, z);
+    };
 
-  DEBUG_PRINT(a);
-  DEBUG_PRINT(car(a));
-  DEBUG_PRINT(cadr(a));
-  DEBUG_PRINT(caddr(a));
+    {
+      let a = f();
 
-  BOOST_CHECK(length(a) == 3);
+      BOOST_CHECK(length(a) == 3);
+      BOOST_CHECK(car(a).is<symbol>());
+      BOOST_CHECK(cadr(a).is<symbol>());
+      BOOST_CHECK(caddr(a).is<symbol>());
 
-  DEBUG_COLLECT();
+      gc.collect();
 
-  BOOST_CHECK(not a.is<null>());
-  BOOST_CHECK(a.is<pair>());
-  BOOST_CHECK(length(a) == 3);
-
-  DEBUG_PRINT(car(a));
-  DEBUG_PRINT(cdr(a));
+      BOOST_CHECK(length(a) == 3);
+      BOOST_CHECK(car(a).is<symbol>());
+      BOOST_CHECK(cadr(a).is<symbol>());
+      BOOST_CHECK(caddr(a).is<symbol>());
+    }
+  }
 }
+BOOST_AUTO_TEST_SUITE_END();
