@@ -8,8 +8,10 @@ find_package(Boost  REQUIRED)
 find_package(Meevax REQUIRED)
 
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
-
 target_link_libraries(${PROJECT_NAME} Boost::boost Meevax::Kernel)
+
+add_executable(test-gc ${CMAKE_CURRENT_SOURCE_DIR}/src/test-gc.cpp)
+target_link_libraries(test-gc Boost::boost Meevax::Kernel)
 
 # enable_testing()
 #
