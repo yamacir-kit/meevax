@@ -223,48 +223,24 @@ add_custom_target(uninstall
 
 enable_testing()
 
-add_test(
-  NAME r4rs
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
+macro(define_test TEST_NAME)
+  add_test(
+    NAME ${TEST_NAME}
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+            ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
+endmacro()
+
+define_test(abandoned)
+define_test(chibi-basic)
+define_test(low-level-macro-facility)
+define_test(numerical-operations)
+define_test(r4rs)
+define_test(r4rs-appendix)
+define_test(r7rs)
+define_test(sicp-1)
 
 add_test(
-  NAME r4rs-appendix
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs-appendix.ss)
-
-add_test(
-  NAME low-level-macro-facility
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/low-level-macro-facility.ss)
-
-add_test(
-  NAME r7rs
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/r7rs.ss)
-
-add_test(
-  NAME numerical-operations
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/numerical-operations.ss)
-
-add_test(
-  NAME sicp-1
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/sicp-1.ss)
-
-add_test(
-  NAME chibi
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
-
-add_test(
-  NAME abandoned
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/abandoned.ss)
-
-add_test(
-  NAME example
+  NAME internal-api
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/example/test.sh
           -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
