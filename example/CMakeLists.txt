@@ -7,22 +7,18 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Boost  REQUIRED)
 find_package(Meevax REQUIRED)
 
-macro(define TEST_NAME)
+set(LEAK_CHECK valgrind --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all)
+
+enable_testing()
+
+macro(define_unit_test TEST_NAME)
   add_executable(${TEST_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/${TEST_NAME}.cpp)
   target_link_libraries(${TEST_NAME} Boost::boost Meevax::Kernel)
+  add_test(
+    NAME ${TEST_NAME}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${LEAK_CHECK} ./${TEST_NAME} --report_level=detailed)
 endmacro()
 
-define(test-gc)
-define(test-r7rs)
-
-# enable_testing()
-#
-# set(VALGRIND valgrind --error-exitcode=1
-#                       --leak-check=full
-#                       --quiet
-#                       --show-leak-kinds=all)
-#
-# add_test(
-#   NAME ${PROJECT_NAME}
-#   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-#   COMMAND ${VALGRIND} ./${PROJECT_NAME} --report_level=detailed)
+define_unit_test(test-gc)
+define_unit_test(test-r7rs)
