@@ -2,25 +2,30 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include <meevax/kernel/list.hpp>
-#include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/symbol.hpp>
+#include <meevax/kernel/syntactic_continuation.hpp>
 
 using namespace meevax;
 
 #define DEBUG_PRINT(...) \
-  std::cout << __LINE__ << ": " #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl
+  std::cout << __LINE__ << ":\t" #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl
 
 #define DEBUG_COLLECT() \
-  std::cout << __LINE__ << ": " << gc.size() << " => (gc-collect) => " << (gc.collect(), gc.size()) << std::endl
+  std::cout << __LINE__ << ":\t" << gc.size() << " => (gc-collect) => " << (gc.collect(), gc.size()) << std::endl
 
-BOOST_AUTO_TEST_CASE(no_collect)
+BOOST_AUTO_TEST_CASE(native)
 {
-  auto const size = gc.size();
+  BOOST_CHECK(gc.size() == 6);
 
-  DEBUG_COLLECT();
+  BOOST_CHECK(eof_object.is<eof>());
+  BOOST_CHECK(eos_object.is<eos>());
+  BOOST_CHECK(f.is<boolean>());
+  BOOST_CHECK(t.is<boolean>());
+  BOOST_CHECK(undefined.is<undefined_t>());
+  BOOST_CHECK(unspecified.is<unspecified_t>());
 
-  BOOST_CHECK(gc.size() == size);
+  gc.collect();
+
+  BOOST_CHECK(gc.size() == 6);
 }
 
 BOOST_AUTO_TEST_CASE(scope)
