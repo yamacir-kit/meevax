@@ -8,7 +8,6 @@
 #include <memory>
 #include <mutex>
 #include <set>
-#include <unordered_map>
 
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>

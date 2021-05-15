@@ -198,11 +198,15 @@ inline namespace kernel
   template <std::size_t Coarseness = 0>
   struct equivalence_comparator;
 
-  #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)             \
-  template <>                                                                \
-  struct equivalence_comparator<COARSENESS>                                  \
-  {                                                                          \
-    Define_Const_Perfect_Forwarding(operator (), COMPARE);                   \
+  #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)               \
+  template <>                                                                  \
+  struct equivalence_comparator<COARSENESS>                                    \
+  {                                                                            \
+    template <typename... Ts>                                                  \
+    constexpr decltype(auto) operator ()(Ts&&... xs) const                     \
+    {                                                                          \
+      return COMPARE(std::forward<decltype(xs)>(xs)...);                       \
+    }                                                                          \
   }
 
   SPECIALIZE_EQUIVALENCE_COMPARATOR(0, eq);

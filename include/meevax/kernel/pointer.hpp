@@ -6,7 +6,6 @@
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/module.hpp>
-#include <meevax/utility/perfect_forward.hpp>
 
 namespace meevax
 {
