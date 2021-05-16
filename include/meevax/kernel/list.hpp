@@ -83,14 +83,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Constructors ---------------------------------------------------------
-   *
-   *  cons list
-   *  xcons cons* make-list list-tabulate
-   *  list-copy circular-list iota
-   *
-   * ------------------------------------------------------------------------ */
-
   /* ---- NOTE -----------------------------------------------------------------
    *
    *  cons a d -> pair
@@ -134,6 +126,14 @@ inline namespace kernel
     return (std::forward<decltype(xs)>(xs) | ... | unit);
   };
 
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  xcons d a -> pair
+   *
+   *    Of utility only as a value to be conveniently passed to higher-order
+   *    procedures. The name stands for "eXchanged CONS."
+   *
+   * ------------------------------------------------------------------------ */
   auto xcons = [](auto&&... xs) constexpr
   {
     return (... | std::forward<decltype(xs)>(xs));

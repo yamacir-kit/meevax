@@ -55,5 +55,12 @@ BOOST_FIXTURE_TEST_SUITE(constructors, fixture); namespace
     let x2 = list();
     BOOST_CHECK(boost::lexical_cast<std::string>(x2) == "()");
   }
+
+  BOOST_AUTO_TEST_CASE(xcons_)
+  {
+    // (xcons '(b c) 'a) => (a b c)
+    let x1 = xcons(list(b, c), a);
+    BOOST_CHECK(boost::lexical_cast<std::string>(x1) == "(a b c)");
+  }
 }
 BOOST_AUTO_TEST_SUITE_END();
