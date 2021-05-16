@@ -83,6 +83,12 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>, std::is_convertible<U, object>)>
+  inline decltype(auto) operator |(T&& x, U&& y)
+  {
+    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
+  }
+
   /* ---- NOTE -----------------------------------------------------------------
    *
    *  cons a d -> pair
@@ -103,12 +109,6 @@ inline namespace kernel
    *    Schemes that provide it, and cons* in the other half.
    *
    * ------------------------------------------------------------------------ */
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>, std::is_convertible<U, object>)>
-  inline decltype(auto) operator |(T&& x, U&& y)
-  {
-    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
-  }
-
   auto cons = [](auto&&... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ...);
@@ -134,21 +134,51 @@ inline namespace kernel
    *    procedures. The name stands for "eXchanged CONS."
    *
    * ------------------------------------------------------------------------ */
-  auto xcons = [](auto&&... xs) constexpr
+  auto xcons = [](auto&& d, auto&& a) constexpr
   {
-    return (... | std::forward<decltype(xs)>(xs));
+    return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
   };
 
-  auto make_list = [](std::size_t length, let const& x = unit)
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  make-list n [fill] -> list
+   *
+   *    Returns an n-element list, whose elements are all the value fill. If
+   *    the fill argument is not given, the elements of the list may be
+   *    arbitrary values.
+   *
+   * ------------------------------------------------------------------------ */
+  auto make_list = [](std::size_t k, let const& x = unit)
   {
-    let result = unit;
+    let result = list();
 
-    for (std::size_t i = 0; i < length; ++i)
+    for (std::size_t i = 0; i < k; ++i)
     {
       result = cons(x, result);
     }
 
     return result;
+  };
+
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  list-tabulate n init-proc -> list
+   *
+   *    Returns an n-element list. Element i of the list, where 0 <= i < n, is
+   *    produced by (init-proc i). No guarantee is made about the dynamic order
+   *    in which init-proc is applied to these indices.
+   *
+   * ------------------------------------------------------------------------ */
+  auto list_tabulate = [](auto n, auto&& initialize)
+  {
+    let x = list();
+
+    while (0 <= --n)
+    {
+      x = cons(initialize(n), x);
+    }
+
+    return x;
   };
 
   /* ---- Predicates -----------------------------------------------------------

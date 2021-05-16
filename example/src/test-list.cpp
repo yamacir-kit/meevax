@@ -60,7 +60,27 @@ BOOST_FIXTURE_TEST_SUITE(constructors, fixture); namespace
   {
     // (xcons '(b c) 'a) => (a b c)
     let x1 = xcons(list(b, c), a);
+    PRINT(x1);
     BOOST_CHECK(boost::lexical_cast<std::string>(x1) == "(a b c)");
+  }
+
+  BOOST_AUTO_TEST_CASE(make_list_)
+  {
+    // (make-list 4 'c) => (c c c c)
+    let x1 = make_list(4, c);
+    BOOST_CHECK(boost::lexical_cast<std::string>(x1) == "(c c c c)");
+  }
+
+  BOOST_AUTO_TEST_CASE(list_tabulate_)
+  {
+    auto make_exact_integer = [](auto&&... xs)
+    {
+      return make<exact_integer>(std::forward<decltype(xs)>(xs)...);
+    };
+
+    // (list-tabulate 4 values) => (0 1 2 3)
+    let x1 = list_tabulate(4, make_exact_integer);
+    BOOST_CHECK(boost::lexical_cast<std::string>(x1) == "(0 1 2 3)");
   }
 }
 BOOST_AUTO_TEST_SUITE_END();
