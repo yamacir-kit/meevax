@@ -3,6 +3,7 @@
 
 #include <algorithm> // std::equal
 
+#include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/iterator.hpp>
@@ -176,6 +177,49 @@ inline namespace kernel
     while (0 <= --n)
     {
       x = cons(initialize(n), x);
+    }
+
+    return x;
+  };
+
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  list-copy flist -> flist
+   *
+   *    Copies the spine of the argument.
+   *
+   * ------------------------------------------------------------------------ */
+  auto list_copy = [](auto const& x)
+  {
+    auto copy = [](auto&& rec, let const& x) -> object
+    {
+      if (x.is<pair>())
+      {
+        return cons(car(x), rec(rec, cdr(x)));
+      }
+      else
+      {
+        return x;
+      }
+    };
+
+    return z(copy)(x);
+  };
+
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  circular-list elt1 elt2 ... -> list
+   *
+   *    Constructs a circular list of the elements.
+   *
+   * ------------------------------------------------------------------------ */
+  auto circular_list = [](auto&&... xs)
+  {
+    let x = list(std::forward<decltype(xs)>(xs)...);
+
+    if (auto const length = std::distance(std::cbegin(x), std::cend(x)); 0 < length)
+    {
+      cdr(std::next(std::begin(x), length - 1)) = x;
     }
 
     return x;

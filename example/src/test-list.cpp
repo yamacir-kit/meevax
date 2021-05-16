@@ -1,4 +1,3 @@
-#include <boost/lexical_cast.hpp>
 #define BOOST_TEST_MODULE test_list
 
 #include <boost/test/included/unit_test.hpp>
@@ -60,7 +59,6 @@ BOOST_FIXTURE_TEST_SUITE(constructors, fixture); namespace
   {
     // (xcons '(b c) 'a) => (a b c)
     let x1 = xcons(list(b, c), a);
-    PRINT(x1);
     BOOST_CHECK(boost::lexical_cast<std::string>(x1) == "(a b c)");
   }
 
@@ -81,6 +79,24 @@ BOOST_FIXTURE_TEST_SUITE(constructors, fixture); namespace
     // (list-tabulate 4 values) => (0 1 2 3)
     let x1 = list_tabulate(4, make_exact_integer);
     BOOST_CHECK(boost::lexical_cast<std::string>(x1) == "(0 1 2 3)");
+  }
+
+  BOOST_AUTO_TEST_CASE(list_copy_)
+  {
+    let x1 = list(a, b, c);
+    let x2 = list_copy(x1);
+    BOOST_CHECK(boost::lexical_cast<std::string>(x2) == "(a b c)");
+    BOOST_CHECK(not eq(x1, x2));
+  }
+
+  BOOST_AUTO_TEST_CASE(circular_list_)
+  {
+    let x = circular_list(a, b, c);
+
+    BOOST_CHECK(car(x) == a);
+    BOOST_CHECK(cadr(x) == b);
+    BOOST_CHECK(caddr(x) == c);
+    BOOST_CHECK(cadddr(x) == a);
   }
 }
 BOOST_AUTO_TEST_SUITE_END();
