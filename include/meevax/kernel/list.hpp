@@ -7,6 +7,78 @@
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/iterator.hpp>
 
+/* ---- Procedure Index --------------------------------------------------------
+ *
+ *  Constructors
+ *    cons list
+ *    xcons cons* make-list list-tabulate
+ *    list-copy circular-list iota
+ *
+ *  Predicates
+ *    pair? null?
+ *    proper-list? circular-list? dotted-list?
+ *    not-pair? null-list?
+ *    list=
+ *
+ *  Selectors
+ *    car cdr ... cddadr cddddr list-ref
+ *    first second third fourth fifth sixth seventh eighth ninth tenth
+ *    car+cdr
+ *    take       drop
+ *    take-right drop-right
+ *    take!      drop-right!
+ *    split-at   split-at!
+ *    last last-pair
+ *
+ *  Miscellaneous: length, append, concatenate, reverse, zip & count
+ *    length length+
+ *    append  concatenate  reverse
+ *    append! concatenate! reverse!
+ *    append-reverse append-reverse!
+ *    zip unzip1 unzip2 unzip3 unzip4 unzip5
+ *    count
+ *
+ *  Fold, unfold & map
+ *    map for-each
+ *    fold       unfold       pair-fold       reduce
+ *    fold-right unfold-right pair-fold-right reduce-right
+ *    append-map append-map!
+ *    map! pair-for-each filter-map map-in-order
+ *
+ *  Filtering & partitioning
+ *    filter  partition  remove
+ *    filter! partition! remove!
+ *
+ *  Searching
+ *    member memq memv
+ *    find find-tail
+ *    any every
+ *    list-index
+ *    take-while drop-while take-while!
+ *    span break span! break!
+ *
+ *  Deleting
+ *    delete  delete-duplicates
+ *    delete! delete-duplicates!
+ *
+ *  Association lists
+ *    assoc assq assv
+ *    alist-cons alist-copy
+ *    alist-delete alist-delete!
+ *
+ *  Set operations on lists
+ *    lset<= lset= lset-adjoin
+ *    lset-union             lset-union!
+ *    lset-intersection      lset-intersection!
+ *    lset-difference        lset-difference!
+ *    lset-xor               lset-xor!
+ *    lset-diff+intersection lset-diff+intersection!
+ *
+ *  Primitive side-effects
+ *    set-car! set-cdr!
+ *
+ * -------------------------------------------------------------------------- */
+
 namespace meevax
 {
 inline namespace kernel
@@ -18,8 +90,28 @@ inline namespace kernel
    *  list-copy circular-list iota
    *
    * ------------------------------------------------------------------------ */
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>,
-                                             std::is_convertible<U, object>)>
+
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  cons a d -> pair
+   *
+   *    The primitive constructor. Returns a newly allocated pair whose car is a
+   *    and whose cdr is d. The pair is guaranteed to be different (in the sense
+   *    of eqv?) from every existing object.
+   *
+   *
+   *  cons* elt1 elt2 ... -> object
+   *
+   *    Like list, but the last argument provides the tail of the constructed
+   *    list, returning
+   *
+   *      (cons elt1 (cons elt2 (cons ... eltn)))
+   *
+   *    This function is called list* in Common Lisp and about half of the
+   *    Schemes that provide it, and cons* in the other half.
+   *
+   * ------------------------------------------------------------------------ */
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>, std::is_convertible<U, object>)>
   inline decltype(auto) operator |(T&& x, U&& y)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -30,6 +122,13 @@ inline namespace kernel
     return (std::forward<decltype(xs)>(xs) | ...);
   };
 
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  list object ... -> list
+   *
+   *    Returns a newly allocated list of its arguments.
+   *
+   * ------------------------------------------------------------------------ */
   auto list = [](auto&& ... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ... | unit);

@@ -11,7 +11,7 @@ set(LEAK_CHECK valgrind --error-exitcode=1 --leak-check=full --quiet --show-leak
 
 enable_testing()
 
-macro(define_unit_test TEST_NAME)
+macro(define_test TEST_NAME)
   add_executable(${TEST_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/${TEST_NAME}.cpp)
   target_link_libraries(${TEST_NAME} Boost::boost Meevax::Kernel)
   add_test(
@@ -20,6 +20,6 @@ macro(define_unit_test TEST_NAME)
     COMMAND ${LEAK_CHECK} ./${TEST_NAME} --report_level=detailed)
 endmacro()
 
-define_unit_test(test-gc)
-define_unit_test(test-list)
-define_unit_test(test-r7rs)
+define_test(test-gc)
+define_test(test-list)
+define_test(test-r7rs)

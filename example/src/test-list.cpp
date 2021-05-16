@@ -44,5 +44,16 @@ BOOST_FIXTURE_TEST_SUITE(constructors, fixture); namespace
     let x5 = cons(list(a, b), c);
     BOOST_CHECK(boost::lexical_cast<std::string>(x5) == "((a b) . c)");
   }
+
+  BOOST_AUTO_TEST_CASE(list_)
+  {
+    // (list 'a (+ 3 4) 'c) => (a 7 c)
+    let x1 = list(a, make<exact_integer>(3 + 4), c);
+    BOOST_CHECK(boost::lexical_cast<std::string>(x1) == "(a 7 c)");
+
+    // (list) => ()
+    let x2 = list();
+    BOOST_CHECK(boost::lexical_cast<std::string>(x2) == "()");
+  }
 }
 BOOST_AUTO_TEST_SUITE_END();
