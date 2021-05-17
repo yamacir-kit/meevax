@@ -18,8 +18,8 @@ check()
   valgrind --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all "$@"
 }
 
-check "$here/build/test-gc"   --report_level=detailed
-check "$here/build/test-list" --report_level=detailed
-check "$here/build/test-r7rs" --report_level=detailed
+check "$here/build/test-collector" --report_level=detailed
+check "$here/build/test-list"      --report_level=detailed
+check "$here/build/test-r7rs"      --report_level=detailed
 
 # ctest --verbose

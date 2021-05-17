@@ -20,6 +20,6 @@ macro(define_test TEST_NAME)
     COMMAND ${LEAK_CHECK} ./${TEST_NAME} --report_level=detailed)
 endmacro()
 
-define_test(test-gc)
+define_test(test-collector)
 define_test(test-list)
 define_test(test-r7rs)
