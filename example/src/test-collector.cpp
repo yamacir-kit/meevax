@@ -63,8 +63,10 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     auto f = []()
     {
       let x = make<symbol>("x");
+
       BOOST_CHECK(x.is<symbol>());
       BOOST_CHECK(x.as<symbol>() == "x");
+
       return x;
     };
 
@@ -87,9 +89,12 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
       let y = make<symbol>("y");
       let z = make<symbol>("z");
 
-      BOOST_CHECK(x.is<symbol>() and x.as<symbol>() == "x");
-      BOOST_CHECK(y.is<symbol>() and y.as<symbol>() == "y");
-      BOOST_CHECK(z.is<symbol>() and z.as<symbol>() == "z");
+      BOOST_CHECK(x.is<symbol>());
+      BOOST_CHECK(y.is<symbol>());
+      BOOST_CHECK(z.is<symbol>());
+      BOOST_CHECK(x.as<symbol>() == "x");
+      BOOST_CHECK(y.as<symbol>() == "y");
+      BOOST_CHECK(z.as<symbol>() == "z");
       BOOST_CHECK(gc.size() == size + 3);
 
       return list(x, y, z);
@@ -109,6 +114,42 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
       BOOST_CHECK(car(a).is<symbol>());
       BOOST_CHECK(cadr(a).is<symbol>());
       BOOST_CHECK(caddr(a).is<symbol>());
+    }
+  }
+
+  BOOST_AUTO_TEST_CASE(improper_list)
+  {
+    auto f = [&]()
+    {
+      let a = make<symbol>("a");
+      let b = make<symbol>("b");
+      let c = make<symbol>("c");
+
+      BOOST_CHECK(a.is<symbol>());
+      BOOST_CHECK(b.is<symbol>());
+      BOOST_CHECK(c.is<symbol>());
+      BOOST_CHECK(a.as<symbol>() == "a");
+      BOOST_CHECK(b.as<symbol>() == "b");
+      BOOST_CHECK(c.as<symbol>() == "c");
+      BOOST_CHECK(gc.size() == size + 3);
+
+      return circular_list(a, b, c);
+    };
+
+    {
+      let x = f();
+
+      BOOST_CHECK(car(x).as<symbol>() == "a");
+      BOOST_CHECK(cadr(x).as<symbol>() == "b");
+      BOOST_CHECK(caddr(x).as<symbol>() == "c");
+      BOOST_CHECK(cadddr(x).as<symbol>() == "a");
+
+      gc.collect();
+
+      BOOST_CHECK(car(x).as<symbol>() == "a");
+      BOOST_CHECK(cadr(x).as<symbol>() == "b");
+      BOOST_CHECK(caddr(x).as<symbol>() == "c");
+      BOOST_CHECK(cadddr(x).as<symbol>() == "a");
     }
   }
 }
