@@ -30,6 +30,7 @@ struct fixture // Check if all allocated objects are collected.
 
   ~fixture()
   {
+    syntactic_continuation::symbols.clear();
     gc.collect();
 
     BOOST_CHECK(gc.size() == size);
@@ -100,21 +101,19 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
       return list(x, y, z);
     };
 
-    {
-      let a = f();
+    let a = f();
 
-      BOOST_CHECK(length(a) == 3);
-      BOOST_CHECK(car(a).is<symbol>());
-      BOOST_CHECK(cadr(a).is<symbol>());
-      BOOST_CHECK(caddr(a).is<symbol>());
+    BOOST_CHECK(length(a) == 3);
+    BOOST_CHECK(car(a).is<symbol>());
+    BOOST_CHECK(cadr(a).is<symbol>());
+    BOOST_CHECK(caddr(a).is<symbol>());
 
-      gc.collect();
+    gc.collect();
 
-      BOOST_CHECK(length(a) == 3);
-      BOOST_CHECK(car(a).is<symbol>());
-      BOOST_CHECK(cadr(a).is<symbol>());
-      BOOST_CHECK(caddr(a).is<symbol>());
-    }
+    BOOST_CHECK(length(a) == 3);
+    BOOST_CHECK(car(a).is<symbol>());
+    BOOST_CHECK(cadr(a).is<symbol>());
+    BOOST_CHECK(caddr(a).is<symbol>());
   }
 
   BOOST_AUTO_TEST_CASE(improper_list)
@@ -136,21 +135,24 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
       return circular_list(a, b, c);
     };
 
-    {
-      let x = f();
+    let x = f();
 
-      BOOST_CHECK(car(x).as<symbol>() == "a");
-      BOOST_CHECK(cadr(x).as<symbol>() == "b");
-      BOOST_CHECK(caddr(x).as<symbol>() == "c");
-      BOOST_CHECK(cadddr(x).as<symbol>() == "a");
+    BOOST_CHECK(car(x).as<symbol>() == "a");
+    BOOST_CHECK(cadr(x).as<symbol>() == "b");
+    BOOST_CHECK(caddr(x).as<symbol>() == "c");
+    BOOST_CHECK(cadddr(x).as<symbol>() == "a");
 
-      gc.collect();
+    gc.collect();
 
-      BOOST_CHECK(car(x).as<symbol>() == "a");
-      BOOST_CHECK(cadr(x).as<symbol>() == "b");
-      BOOST_CHECK(caddr(x).as<symbol>() == "c");
-      BOOST_CHECK(cadddr(x).as<symbol>() == "a");
-    }
+    BOOST_CHECK(car(x).as<symbol>() == "a");
+    BOOST_CHECK(cadr(x).as<symbol>() == "b");
+    BOOST_CHECK(caddr(x).as<symbol>() == "c");
+    BOOST_CHECK(cadddr(x).as<symbol>() == "a");
+  }
+
+  BOOST_AUTO_TEST_CASE(layer0)
+  {
+    syntactic_continuation sk { layer<0>() };
   }
 }
 BOOST_AUTO_TEST_SUITE_END();
