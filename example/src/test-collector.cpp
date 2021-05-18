@@ -18,8 +18,10 @@ struct fixture // Check if all allocated objects are collected.
   explicit fixture()
     : size { gc.size() }
   {
-    BOOST_CHECK(size == 6);
+    BOOST_CHECK(size == 8);
 
+    BOOST_CHECK(e0.is<exact_integer>());
+    BOOST_CHECK(e1.is<exact_integer>());
     BOOST_CHECK(eof_object.is<eof>());
     BOOST_CHECK(eos_object.is<eos>());
     BOOST_CHECK(f.is<boolean>());
@@ -31,8 +33,11 @@ struct fixture // Check if all allocated objects are collected.
   ~fixture()
   {
     syntactic_continuation::symbols.clear();
+
     gc.collect();
 
+    PRINT(gc.size());
+    BOOST_CHECK(std::empty(syntactic_continuation::symbols));
     BOOST_CHECK(gc.size() == size);
   }
 };
@@ -152,7 +157,17 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
 
   BOOST_AUTO_TEST_CASE(layer0)
   {
-    syntactic_continuation sk { layer<0>() };
+    syntactic_continuation root { layer<0>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(layer1)
+  {
+    syntactic_continuation root { layer<1>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(layer2)
+  {
+    syntactic_continuation root { layer<2>() };
   }
 }
 BOOST_AUTO_TEST_SUITE_END();

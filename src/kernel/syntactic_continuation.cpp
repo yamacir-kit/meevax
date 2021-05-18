@@ -259,9 +259,6 @@ inline namespace kernel
                });                                                             \
     })
 
-    let static const e0 = make<exact_integer>(0);
-    let static const e1 = make<exact_integer>(1);
-
     BOILERPLATE(+, e0);
     BOILERPLATE(*, e1);
 
