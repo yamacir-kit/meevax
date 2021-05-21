@@ -34,10 +34,10 @@ struct fixture // Check if all allocated objects are collected.
   {
     syntactic_continuation::symbols.clear();
 
+    BOOST_CHECK(std::empty(syntactic_continuation::symbols));
+
     gc.collect();
 
-    PRINT(gc.size());
-    BOOST_CHECK(std::empty(syntactic_continuation::symbols));
     BOOST_CHECK(gc.size() == size);
   }
 };

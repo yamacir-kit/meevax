@@ -78,7 +78,7 @@ inline namespace memory
     {
       if (not schwarz_counter++)
       {
-        std::cout << header(__func__) << "garbage-collector initialized." << std::endl;
+        std::cout << header(__func__) << "ready." << std::endl;
       }
     }
 

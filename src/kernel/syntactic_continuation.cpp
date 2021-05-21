@@ -64,9 +64,14 @@ inline namespace kernel
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
 
-    define<procedure>("set-trace!", [this](auto&& xs)
+    define<procedure>("set-debug!", [this](auto&&... xs)
     {
-      return trace_mode = car(xs);
+      return debug_mode = car(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<procedure>("set-trace!", [this](auto&&... xs)
+    {
+      return trace_mode = car(std::forward<decltype(xs)>(xs)...);
     });
   }
 
