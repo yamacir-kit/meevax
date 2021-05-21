@@ -18,8 +18,9 @@ struct fixture // Check if all allocated objects are collected.
   explicit fixture()
     : size { gc.size() }
   {
-    BOOST_CHECK(size == 8);
+    BOOST_CHECK(size == constants.size() + 9);
 
+    BOOST_CHECK(default_input_port.is<standard_input>());
     BOOST_CHECK(e0.is<exact_integer>());
     BOOST_CHECK(e1.is<exact_integer>());
     BOOST_CHECK(eof_object.is<eof>());

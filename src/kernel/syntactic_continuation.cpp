@@ -1423,9 +1423,9 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("input-standard-port", [this](auto&&)
+    define<procedure>("input-standard-port", [](auto&&)
     {
-      return standard_input_port();
+      return default_input_port;
     });
 
     define<procedure>("output-standard-port", [this](auto&&)

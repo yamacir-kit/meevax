@@ -195,14 +195,9 @@ inline namespace kernel
       return read(ss);
     }
 
-    let standard_input_port() const noexcept
-    {
-      return default_input_port;
-    }
-
     auto ready() // TODO RENAME TO 'char-ready'
     {
-      return not standard_input_port().template is<null>() and standard_input_port().template as<input_port>();
+      return not default_input_port.is<null>() and default_input_port.as<input_port>();
     }
 
   private:
