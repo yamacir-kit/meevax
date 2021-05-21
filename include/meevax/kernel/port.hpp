@@ -10,39 +10,39 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Standard I/O ---------------------------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
   void copy_ios(std::ios & from, std::ios & to);
 
-  struct standard_input : public input_port
+  struct standard_input_port : public input_port
   {
-    explicit standard_input()
+    explicit standard_input_port()
     {
       copy_ios(std::cin, *this);
     }
   };
 
-  struct standard_output : public output_port
+  struct standard_output_port : public output_port
   {
-    explicit standard_output()
+    explicit standard_output_port()
     {
       copy_ios(std::cout, *this);
     }
   };
 
-  struct standard_error : public output_port
+  struct standard_error_port : public output_port
   {
-    explicit standard_error()
+    explicit standard_error_port()
     {
       copy_ios(std::cerr, *this);
     }
   };
 
-  auto operator <<(output_port &, standard_input  const&) -> output_port &;
-  auto operator <<(output_port &, standard_output const&) -> output_port &;
-  auto operator <<(output_port &, standard_error  const&) -> output_port &;
+  let extern const default_input_port;
+  let extern const default_output_port;
+  let extern const default_error_port;
+
+  auto operator <<(output_port &, standard_input_port  const&) -> output_port &;
+  auto operator <<(output_port &, standard_output_port const&) -> output_port &;
+  auto operator <<(output_port &, standard_error_port  const&) -> output_port &;
 
   /* ---- File Ports -----------------------------------------------------------
    *

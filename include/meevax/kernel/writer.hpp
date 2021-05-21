@@ -22,7 +22,7 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(std::ostream & port, Ts&&... xs) const -> decltype(auto)
+    auto write_to(output_port & port, Ts&&... xs) const -> output_port &
     {
       return (port << ... << xs) << reset;
     }
@@ -36,7 +36,7 @@ inline namespace kernel
     template <typename... Ts>
     auto write(Ts&&... xs) const -> decltype(auto)
     {
-      return write_to(standard_output_port(), std::forward<decltype(xs)>(xs)...);
+      return write_to(default_output_port, std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename... Ts>
@@ -52,20 +52,6 @@ inline namespace kernel
 
   public:
     // TODO MOVE INTO writer.cpp
-    let standard_output_port() const
-    {
-      let static port = make<standard_output>();
-      return in_batch_mode() ? standard_null_port() : port;
-    }
-
-    // TODO MOVE INTO writer.cpp
-    let standard_error_port() const
-    {
-      let static port = make<standard_error>();
-      return in_batch_mode() ? standard_null_port() : port;
-    }
-
-    // TODO MOVE INTO writer.cpp
     let standard_null_port() const
     {
       let static port = make<output_file_port>("/dev/null");
@@ -74,17 +60,17 @@ inline namespace kernel
 
     auto standard_verbose_port() const -> decltype(auto)
     {
-      return in_verbose_mode() ? standard_output_port() : standard_null_port();
+      return in_verbose_mode() ? default_output_port : standard_null_port();
     }
 
     auto standard_debug_port() const -> decltype(auto)
     {
-      return in_debug_mode() ? standard_error_port() : standard_null_port();
+      return in_debug_mode() ? default_error_port : standard_null_port();
     }
 
     auto standard_interaction_port() const -> decltype(auto)
     {
-      return in_interactive_mode() ? standard_output_port() : standard_null_port();
+      return in_interactive_mode() ? default_output_port : standard_null_port();
     }
   };
 } // namespace kernel
