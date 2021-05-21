@@ -36,8 +36,6 @@ inline namespace kernel
     IMPORT(SK, in_trace_mode, const);
     IMPORT(SK, intern, NIL);
     IMPORT(SK, standard_debug_port, const);
-    IMPORT(SK, standard_error_port, const);
-    IMPORT(SK, standard_output_port, const);
     IMPORT(SK, write_to, const);
 
   protected:

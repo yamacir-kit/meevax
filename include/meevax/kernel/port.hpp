@@ -37,6 +37,8 @@ inline namespace kernel
   };
 
   let extern const default_input_port;
+  let extern const default_output_port;
+  let extern const default_error_port;
 
   auto operator <<(output_port &, standard_input  const&) -> output_port &;
   auto operator <<(output_port &, standard_output const&) -> output_port &;

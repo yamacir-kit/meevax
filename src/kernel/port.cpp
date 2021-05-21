@@ -15,7 +15,9 @@ inline namespace kernel
     to.rdbuf(from.rdbuf());
   }
 
-  let const default_input_port = make<standard_input>();
+  let const default_input_port  = make<standard_input>();
+  let const default_output_port = make<standard_output>();
+  let const default_error_port  = make<standard_error>();
 
   auto operator <<(output_port & port, standard_input const&) -> output_port &
   {

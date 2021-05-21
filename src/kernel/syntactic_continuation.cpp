@@ -17,13 +17,12 @@ inline namespace kernel
 {
   auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
   {
-    datum.write_to(datum.standard_output_port(),
+    datum.write_to(default_output_port,
       "syntactic_continuation::operator >>(std::istream &, syntactic_continuation &)\n");
 
-    datum.write_to(datum.standard_output_port(),
-      "read new expression => ", datum.read(is), "\n");
+    datum.write_to(default_output_port, "read new expression => ", datum.read(is), "\n");
 
-    // sk.write_to(sk.standard_output_port(),
+    // sk.write_to(default_output_port,
     //   "program == ", sk.program(),
     //   "current_expression is ", sk.current_expression());
 
@@ -1430,12 +1429,12 @@ inline namespace kernel
 
     define<procedure>("output-standard-port", [this](auto&&)
     {
-      return standard_output_port();
+      return default_output_port;
     });
 
     define<procedure>("error-standard-port", [this](auto&&)
     {
-      return standard_error_port();
+      return default_error_port;
     });
 
 
