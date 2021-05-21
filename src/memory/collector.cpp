@@ -32,14 +32,10 @@ void operator delete(meevax::void_pointer const p, meevax::collector & gc) noexc
 
   try
   {
-    auto const iter = gc.find(p);
-
-    if (*iter)
+    if (auto const iter = gc.find(p); *iter)
     {
       gc.erase(iter);
     }
-
-    delete *iter;
   }
   catch (...)
   {}

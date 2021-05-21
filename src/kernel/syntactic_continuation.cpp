@@ -1427,12 +1427,12 @@ inline namespace kernel
       return default_input_port;
     });
 
-    define<procedure>("standard-output-port", [this](auto&&)
+    define<procedure>("standard-output-port", [](auto&&)
     {
       return default_output_port;
     });
 
-    define<procedure>("standard-error-port", [this](auto&&)
+    define<procedure>("standard-error-port", [](auto&&)
     {
       return default_error_port;
     });

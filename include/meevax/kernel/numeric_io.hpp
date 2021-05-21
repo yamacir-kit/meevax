@@ -138,7 +138,7 @@ inline namespace kernel
     {
     case 10:
       if (std::regex static const r1 { "[+-]?\\d+e[+-]?\\d+" },
-                                  r2 { "[+-]?.\\d+" },
+                                  r2 { "[+-]?\\.\\d+" },
                                   r3 { "[+-]?\\d+.\\d*" };
           std::regex_match(token, r1) or
           std::regex_match(token, r2) or

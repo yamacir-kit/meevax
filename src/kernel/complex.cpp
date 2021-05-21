@@ -8,9 +8,7 @@ inline namespace kernel
 {
   auto operator <<(output_port & port, complex const& z) -> output_port &
   {
-    let static const zero = make<exact_integer>(0);
-
-    return port << cyan << z.real() << (zero < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
+    return port << cyan << z.real() << (e0 < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
   }
 } // namespace kernel
 } // namespace meevax
