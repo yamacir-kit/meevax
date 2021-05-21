@@ -64,7 +64,7 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     BOOST_CHECK(eqv(x, y));
   }
 
-  BOOST_AUTO_TEST_CASE(return_value)
+  BOOST_AUTO_TEST_CASE(move)
   {
     auto f = []()
     {
@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
       BOOST_CHECK(x.is<symbol>());
       BOOST_CHECK(x.as<symbol>() == "x");
 
-      return x;
+      return x; //  RVO
     };
 
     let x = f();
@@ -153,6 +153,26 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     BOOST_CHECK(cadr(x).as<symbol>() == "b");
     BOOST_CHECK(caddr(x).as<symbol>() == "c");
     BOOST_CHECK(cadddr(x).as<symbol>() == "a");
+  }
+
+  using decimals = boost::mpl::list<single_float, double_float>;
+
+  BOOST_AUTO_TEST_CASE_TEMPLATE(number, T, decimals)
+  {
+    let const x = make<T>(42);
+
+    BOOST_CHECK(x.is<T>());
+    BOOST_CHECK(x.as<T>() == 42);
+
+    let const y = make<T>("42");
+
+    BOOST_CHECK(y.is<T>());
+    BOOST_CHECK(y.as<T>() == 42);
+  }
+
+  BOOST_AUTO_TEST_CASE(to_number_)
+  {
+    let const x = to_number("3.14", 10);
   }
 
   BOOST_AUTO_TEST_CASE(layer0)

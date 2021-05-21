@@ -3,7 +3,7 @@
 
 #include <regex>
 
-#include <meevax/kernel/number.hpp>
+#include <meevax/kernel/constant.hpp>
 
 namespace meevax
 {
@@ -159,40 +159,11 @@ inline namespace kernel
    *
    *  <infnan> = +inf.0 | -inf.0 | +nan.0 | -nan.0
    *
-   * ------------------------------------------------------------------------ */
-  constexpr auto to_infnan = [](std::string const& token, auto radix = 10)
-  {
-    std::unordered_map<std::string, object> static const infnan
-    {
-      std::make_pair("+inf.0", make<system_float>(+system_float::infinity())),
-      std::make_pair("-inf.0", make<system_float>(-system_float::infinity())),
-      std::make_pair("+nan.0", make<system_float>(+system_float::quiet_NaN())),
-      std::make_pair("-nan.0", make<system_float>(-system_float::quiet_NaN()))
-    };
-
-    if (auto iter = infnan.find(token); iter != std::end(infnan))
-    {
-      return std::get<1>(*iter);
-    }
-    else
-    {
-      throw tagged_read_error<system_float>(
-        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
-        unit);
-    }
-  };
-
-  /* ---- SRFI-144 -------------------------------------------------------------
-   *
+   *  <srfi 144> = fl-pi                                                   TODO
    *
    * ------------------------------------------------------------------------ */
   constexpr auto to_constant = [](std::string const& token, auto radix = 10)
   {
-    static const std::unordered_map<std::string, object> constants
-    {
-      std::make_pair("fl-pi", make<system_float>(boost::math::constants::pi<system_float::value_type>())),
-    };
-
     if (auto iter = constants.find(token); iter != std::end(constants))
     {
       return std::get<1>(*iter);
@@ -219,8 +190,7 @@ inline namespace kernel
   constexpr auto to_real = to_integer // <sign> <uinteger R>
                          | to_ratio   // <sign> <uinteger R> / <uinteger R>
                          | to_decimal // <sign> <decimal R>
-                         | to_infnan
-                         | to_constant; // SRFI-144
+                         | to_constant; // <infnan> or SRFI-144
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
