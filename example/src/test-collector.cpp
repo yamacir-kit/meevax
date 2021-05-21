@@ -18,9 +18,11 @@ struct fixture // Check if all allocated objects are collected.
   explicit fixture()
     : size { gc.size() }
   {
-    BOOST_CHECK(size == constants.size() + 9);
+    BOOST_CHECK(size == constants.size() + 11);
 
-    BOOST_CHECK(default_input_port.is<standard_input>());
+    BOOST_CHECK(default_error_port.is<standard_error_port>());
+    BOOST_CHECK(default_input_port.is<standard_input_port>());
+    BOOST_CHECK(default_output_port.is<standard_output_port>());
     BOOST_CHECK(e0.is<exact_integer>());
     BOOST_CHECK(e1.is<exact_integer>());
     BOOST_CHECK(eof_object.is<eof>());
@@ -189,6 +191,11 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
   BOOST_AUTO_TEST_CASE(layer2)
   {
     syntactic_continuation root { layer<2>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(layer3)
+  {
+    syntactic_continuation root { layer<3>() };
   }
 }
 BOOST_AUTO_TEST_SUITE_END();
