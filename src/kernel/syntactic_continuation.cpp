@@ -1422,17 +1422,17 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("input-standard-port", [](auto&&)
+    define<procedure>("standard-input-port", [](auto&&)
     {
       return default_input_port;
     });
 
-    define<procedure>("output-standard-port", [this](auto&&)
+    define<procedure>("standard-output-port", [this](auto&&)
     {
       return default_output_port;
     });
 
-    define<procedure>("error-standard-port", [this](auto&&)
+    define<procedure>("standard-error-port", [this](auto&&)
     {
       return default_error_port;
     });
