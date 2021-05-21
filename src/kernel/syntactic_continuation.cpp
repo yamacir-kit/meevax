@@ -1751,7 +1751,8 @@ inline namespace kernel
   {
     std::vector<string_view> codes {
       overture,
-      srfi_8, srfi_1,
+      srfi_8,
+      srfi_1,
       srfi_23,
       srfi_34,
       srfi_39,

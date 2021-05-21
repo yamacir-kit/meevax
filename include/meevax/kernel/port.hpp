@@ -10,10 +10,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Standard I/O ---------------------------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
   void copy_ios(std::ios & from, std::ios & to);
 
   struct standard_input : public input_port
@@ -39,6 +35,8 @@ inline namespace kernel
       copy_ios(std::cerr, *this);
     }
   };
+
+  let extern const default_input_port;
 
   auto operator <<(output_port &, standard_input  const&) -> output_port &;
   auto operator <<(output_port &, standard_output const&) -> output_port &;

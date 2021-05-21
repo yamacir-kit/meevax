@@ -819,10 +819,10 @@
          (close-output-file-port x))
         (else (unspecified))))
 
-(define (read        x) (::read        (if (pair? x) (car x) (current-input-port))))
-(define (read-char   x) (::read-char   (if (pair? x) (car x) (current-input-port))))
-(define (peek-char   x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
-(define (char-ready? x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
+(define (read        . x) (::read        (if (pair? x) (car x) (current-input-port))))
+(define (read-char   . x) (::read-char   (if (pair? x) (car x) (current-input-port))))
+(define (peek-char   . x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
+(define (char-ready? . x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
 
 (define (write-simple datum . port)
   (::write-simple datum (if (pair? port)

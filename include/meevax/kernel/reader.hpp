@@ -182,7 +182,7 @@ inline namespace kernel
 
     let const read()
     {
-      let const result = read(standard_input_port());
+      let const result = read(default_input_port);
 
       write_to(standard_debug_port(), "\n", header(__func__), result, "\n");
 
@@ -197,8 +197,7 @@ inline namespace kernel
 
     let standard_input_port() const noexcept
     {
-      let static port = make<standard_input>();
-      return port;
+      return default_input_port;
     }
 
     auto ready() // TODO RENAME TO 'char-ready'

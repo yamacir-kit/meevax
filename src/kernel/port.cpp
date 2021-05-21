@@ -15,6 +15,8 @@ inline namespace kernel
     to.rdbuf(from.rdbuf());
   }
 
+  let const default_input_port = make<standard_input>();
+
   auto operator <<(output_port & port, standard_input const&) -> output_port &
   {
     return port << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
