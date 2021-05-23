@@ -17,4 +17,4 @@ make -j"$(nproc)"
 sudo make install -j"$(nproc)"
 rm -f "$root/build/install_manifest.txt"
 
-make test -j"$(nproc)"
+make test ARGS=-j"$(nproc)"

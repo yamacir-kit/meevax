@@ -15,13 +15,13 @@ inline namespace kernel
     using std::vector<object>::vector;
 
     template <typename InputIterator>
-    explicit vector(for_each_in_tag, InputIterator&& begin, InputIterator&& end)
+    explicit vector(for_each_in_tag, InputIterator begin, InputIterator end)
       : std::vector<object> {}
     {
       std::copy(begin, end, std::back_inserter(*this));
     }
 
-    explicit vector(for_each_in_tag, value_type const& xs)
+    explicit vector(for_each_in_tag, let const& xs)
       : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
     {}
 
