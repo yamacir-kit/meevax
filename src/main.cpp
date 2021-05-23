@@ -28,6 +28,11 @@ int main(const int argc, char const* const* const argv) try
   return boost::exit_success;
 }
 
+catch (int exit_code)
+{
+  return exit_code;
+}
+
 /* ---- NOTE -------------------------------------------------------------------
  *
  *  Exceptions thrown by the run-time raise procedure reach here via the
@@ -44,7 +49,7 @@ catch (meevax::object const& error)
             << "The default-exception-handler invoked: " << error
             << std::endl;
   std::cerr << meevax::header(__func__)
-            << "Terminate this program without running any outstanding dynamic-wind after procedures."
+            << "Terminate the program without running any outstanding dynamic-wind after procedures."
             << std::endl;
 
   return boost::exit_exception_failure;

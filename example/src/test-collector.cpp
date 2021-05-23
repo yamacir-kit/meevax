@@ -197,5 +197,10 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
   {
     syntactic_continuation root { layer<3>() };
   }
+
+  // BOOST_AUTO_TEST_CASE(layer4)
+  // {
+  //   syntactic_continuation root { layer<4>() };
+  // }
 }
 BOOST_AUTO_TEST_SUITE_END();

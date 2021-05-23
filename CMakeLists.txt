@@ -240,7 +240,7 @@ define_test(r7rs)
 define_test(sicp-1)
 
 add_test(
-  NAME internal-api
+  NAME example
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/example/test.sh
           -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})

@@ -249,7 +249,7 @@
   (for-each (lambda (before/after)
               ((cdr before/after)))
             %current-dynamic-extents)
-  (emergency-exit normally?))
+  (apply emergency-exit normally?))
 
 ; (dynamic-wind
 ;   (lambda () (display "before\n"))

@@ -1660,15 +1660,15 @@ inline namespace kernel
     {
       if (xs.is<null>() or car(xs) == t)
       {
-        std::exit(boost::exit_success);
+        throw boost::exit_success;
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        std::exit(x.as<exact_integer>().to<int>());
+        throw x.as<exact_integer>().to<int>();
       }
       else
       {
-        std::exit(boost::exit_failure);
+        throw boost::exit_failure;
       }
     });
 
@@ -1748,7 +1748,7 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    std::vector<string_view> codes {
+    std::vector<string_view> const codes {
       overture,
       srfi_8,
       srfi_1,
@@ -1782,7 +1782,7 @@ inline namespace kernel
       {
         if (x.is<string>())
         {
-          std::cout << static_cast<std::string>(x.template as<string>());
+          std::cout << static_cast<std::string>(x.as<string>());
         }
         else
         {
