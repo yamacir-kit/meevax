@@ -178,6 +178,34 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     let const x = to_number("3.14", 10);
   }
 
+  BOOST_AUTO_TEST_CASE(vector_)
+  {
+    let v = make<vector>(make<symbol>("a"),
+                         make<symbol>("b"),
+                         make<symbol>("c"));
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+
+    v.as<vector>().clear();
+
+    BOOST_CHECK(v.as<vector>().size() == 0);
+  }
+
+  BOOST_AUTO_TEST_CASE(read_vector)
+  {
+    syntactic_continuation root { layer<0>() };
+
+    let const v = root.read("#(a b c)");
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+
+    v.as<vector>().clear();
+
+    BOOST_CHECK(v.as<vector>().size() == 0);
+  }
+
   BOOST_AUTO_TEST_CASE(layer0)
   {
     syntactic_continuation root { layer<0>() };
