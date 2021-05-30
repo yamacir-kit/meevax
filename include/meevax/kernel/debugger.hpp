@@ -16,7 +16,7 @@ inline namespace kernel
 
     struct tracker
     {
-      explicit tracker(let const& xs)
+      explicit tracker(let const&)
       {
         std::cout << header("debugger") << "construct tracker " << this << std::endl;
       }

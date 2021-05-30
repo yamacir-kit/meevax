@@ -16,7 +16,6 @@ inline namespace kernel
 
     template <typename InputIterator>
     explicit vector(for_each_in_tag, InputIterator begin, InputIterator end)
-      : std::vector<object> {}
     {
       std::copy(begin, end, std::back_inserter(*this));
     }

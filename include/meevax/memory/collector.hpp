@@ -102,20 +102,20 @@ inline namespace memory
         std::cout << header("")       << "  collectables = " << collectables_size << " => " << std::size(collectables) << "\n"
                   << header("")       << "  regions = " << regions_size << " => " << std::size(regions) << std::endl;
 
-        for (auto iter = std::begin(regions); iter != std::end(regions); )
-        {
-          assert(*iter);
-
-          if (region::pointer region = *iter; region->assigned())
-          {
-            delete region;
-            iter = regions.erase(iter);
-          }
-          else
-          {
-            ++iter;
-          }
-        }
+        // for (auto iter = std::begin(regions); iter != std::end(regions); )
+        // {
+        //   assert(*iter);
+        //
+        //   if (region::pointer region = *iter; region->assigned())
+        //   {
+        //     delete region;
+        //     iter = regions.erase(iter);
+        //   }
+        //   else
+        //   {
+        //     ++iter;
+        //   }
+        // }
 
         assert(std::size(collectables) == 0);
         assert(std::size(regions) == 0);
