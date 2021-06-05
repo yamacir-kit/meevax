@@ -59,7 +59,8 @@ inline namespace memory
       }
     };
 
-  public:
+  public: /* ---- DATA MEMBERS ---------------------------------------------- */
+
     static inline std::map<collectable::pointer, region::pointer> collectables;
 
     static inline std::set<region::pointer> regions;
@@ -73,7 +74,8 @@ inline namespace memory
 
     static inline std::size_t schwarz_counter = 0;
 
-  public:
+  public: /* ---- CONSTRUCTORS AND DESTRUCTORS ------------------------------ */
+
     explicit collector() noexcept
     {
       if (not schwarz_counter++)

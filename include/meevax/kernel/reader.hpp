@@ -46,16 +46,8 @@ inline namespace kernel
 
     using seeker = std::istream_iterator<char_type>;
 
-    template <input_port::char_type C>
-    using reserved_character = std::integral_constant<decltype(C), C>;
-
-    using period               = reserved_character<'.'>;
-    using left_parenthesis     = reserved_character<'('>;
-    using right_parenthesis    = reserved_character<')'>;
-    using left_square_bracket  = reserved_character<'['>;
-    using right_square_bracket = reserved_character<']'>;
-    using left_curly_bracket   = reserved_character<'{'>;
-    using right_curly_bracket  = reserved_character<'}'>;
+    template <char_type C>
+    using char_constant = std::integral_constant<char_type, C>;
 
   public:
     /* ---- Read ---------------------------------------------------------------
@@ -86,40 +78,40 @@ inline namespace kernel
             port.putback(c);
             return cons(kar, read(port));
           }
-          catch (tagged_read_error<right_parenthesis> const&)
+          catch (tagged_read_error<char_constant<')'>> const&)
           {
             return char_eq(c, '(') ? unit : throw;
           }
-          catch (tagged_read_error<right_square_bracket> const&)
+          catch (tagged_read_error<char_constant<']'>> const&)
           {
             return char_eq(c, '[') ? unit : throw;
           }
-          catch (tagged_read_error<right_curly_bracket> const&)
+          catch (tagged_read_error<char_constant<'}'>> const&)
           {
             return char_eq(c, '{') ? unit : throw;
           }
-          catch (tagged_read_error<period> const&)
+          catch (tagged_read_error<char_constant<'.'>> const&)
           {
             let const kdr = read(port);
 
             switch (c)
             {
-            case '(': ignore(port, [](auto each) { return not char_eq(each, ')'); }).get(); break;
-            case '[': ignore(port, [](auto each) { return not char_eq(each, ']'); }).get(); break;
-            case '{': ignore(port, [](auto each) { return not char_eq(each, '}'); }).get(); break;
+            case '(': ignore(port, [](auto c) { return not char_eq(c, ')'); }).get(); break;
+            case '[': ignore(port, [](auto c) { return not char_eq(c, ']'); }).get(); break;
+            case '{': ignore(port, [](auto c) { return not char_eq(c, '}'); }).get(); break;
             }
 
             return kdr;
           }
 
         case ')':
-          throw tagged_read_error<right_parenthesis>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<char_constant<')'>>(make<string>("unexpected character: "), make<character>(c));
 
         case ']':
-          throw tagged_read_error<right_square_bracket>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<char_constant<']'>>(make<string>("unexpected character: "), make<character>(c));
 
         case '}':
-          throw tagged_read_error<right_curly_bracket>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<char_constant<'}'>>(make<string>("unexpected character: "), make<character>(c));
 
         case '#':
           return discriminate(port);
@@ -151,7 +143,7 @@ inline namespace kernel
           {
             if (token == ".")
             {
-              throw tagged_read_error<period>(make<string>("unexpected character: "), make<character>('.'));
+              throw tagged_read_error<char_constant<'.'>>(make<string>("unexpected character: "), make<character>('.'));
             }
             else try
             {
@@ -201,7 +193,7 @@ inline namespace kernel
     }
 
   private:
-    let discriminate(input_port & is)
+    let discriminate(input_port & is) // TODO RENAME TO 'read_literal'
     {
       switch (auto const discriminator = is.get())
       {
