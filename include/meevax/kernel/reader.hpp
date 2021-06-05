@@ -56,7 +56,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let const read(input_port & port)
     {
-      std::basic_string<char_type> token {};
+      std::string token {};
 
       for (seeker head = port; head != seeker(); ++head)
       {
@@ -78,18 +78,9 @@ inline namespace kernel
             port.putback(c);
             return cons(kar, read(port));
           }
-          catch (tagged_read_error<char_constant<')'>> const&)
-          {
-            return char_eq(c, '(') ? unit : throw;
-          }
-          catch (tagged_read_error<char_constant<']'>> const&)
-          {
-            return char_eq(c, '[') ? unit : throw;
-          }
-          catch (tagged_read_error<char_constant<'}'>> const&)
-          {
-            return char_eq(c, '{') ? unit : throw;
-          }
+          catch (tagged_read_error<char_constant<')'>> const&) { return char_eq(c, '(') ? unit : throw; }
+          catch (tagged_read_error<char_constant<']'>> const&) { return char_eq(c, '[') ? unit : throw; }
+          catch (tagged_read_error<char_constant<'}'>> const&) { return char_eq(c, '{') ? unit : throw; }
           catch (tagged_read_error<char_constant<'.'>> const&)
           {
             let const kdr = read(port);
@@ -137,9 +128,7 @@ inline namespace kernel
           }
 
         default:
-          token.push_back(*head);
-
-          if (auto const c = port.peek(); is_end_of_token(c))
+          if (token.push_back(c); is_end_of_token(port.peek()))
           {
             if (token == ".")
             {
@@ -160,7 +149,7 @@ inline namespace kernel
       return eof_object;
     }
 
-    decltype(auto) read(object const& x)
+    auto read(object const& x)
     {
       if (x.is_polymorphically<input_port>())
       {
@@ -181,19 +170,20 @@ inline namespace kernel
       return result;
     }
 
-    decltype(auto) read(std::basic_string<char_type> const& s)
+    decltype(auto) read(std::string const& s)
     {
-      std::basic_stringstream<char_type> ss { s };
-      return read(ss);
+      std::stringstream port { s };
+
+      return read(port);
     }
 
     auto ready() // TODO RENAME TO 'char-ready'
     {
-      return not default_input_port.is<null>() and default_input_port.as<input_port>();
+      return default_input_port.is_polymorphically<input_port>() and default_input_port.as<input_port>();
     }
 
   private:
-    let discriminate(input_port & is) // TODO RENAME TO 'read_literal'
+    let const discriminate(input_port & is) // TODO MOVE INTO read
     {
       switch (auto const discriminator = is.get())
       {

@@ -171,22 +171,6 @@ inline namespace memory
       }
     }
 
-    auto count() const
-    {
-      // return std::count_if(
-      //          std::begin(collectables), std::end(collectables), [](auto const& each)
-      //          {
-      //            auto const* const c = std::get<1>(each);
-      //            return c and c->marked();
-      //          });
-
-      return std::count_if(
-               std::begin(regions), std::end(regions), [](auto const& each)
-               {
-                 return each and each->marked();
-               });
-    }
-
     // NOTE: v1
     // void traverse(region::pointer const root)
     // {
@@ -357,6 +341,33 @@ inline namespace memory
     {
       return regions.size();
     }
+
+    auto count_unmarked_collectables()
+    {
+      return std::count_if(std::begin(collectables), std::end(collectables), [](auto const& each)
+             {
+               auto const* const c = std::get<1>(each);
+               return c and c->marked();
+             });
+    }
+
+    auto count_unmarked_regions() const -> std::size_t
+    {
+      return std::count_if(std::begin(regions), std::end(regions), [](auto const& each)
+             {
+               return each and each->marked();
+             });
+    }
+
+    auto print() const
+    {
+      std::cout << "; GC-DETAIL" << std::endl;
+      std::cout << ";   collectables" << std::endl;
+      std::cout << ";     size: " << std::size(collectables) << std::endl;
+      std::cout << ";   regions" << std::endl;
+      std::cout << ";     size: " << std::size(regions) << std::endl;
+    }
+
   } static gc {}; // for 'new (gc) T(...);'
 } // namespace memory
 } // namespace meevax

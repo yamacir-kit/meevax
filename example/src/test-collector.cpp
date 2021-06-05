@@ -246,7 +246,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
     BOOST_CHECK(gc.size() == size + 1);
   }
 
-  BOOST_AUTO_TEST_CASE(vector_from_list)
+  BOOST_AUTO_TEST_CASE(vector_from_list_1)
   {
     let const v = make<vector>(for_each_in, list(make<symbol>("a"),
                                                  make<symbol>("b"),
@@ -279,6 +279,63 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
     BOOST_CHECK(gc.size() == size + 1);
+  }
+
+  BOOST_AUTO_TEST_CASE(list_read)
+  {
+    syntactic_continuation module { layer<0>() };
+
+    auto const size = gc.size();
+
+    module.read("(a a a)");
+
+    gc.collect();
+
+    BOOST_CHECK(gc.size() == size + 1);
+  }
+
+  BOOST_AUTO_TEST_CASE(vector_from_list_2)
+  {
+    syntactic_continuation module { layer<0>() };
+
+    auto const size = gc.size();
+
+    let const v = make<vector>(for_each_in, module.read("(a b c)"));
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
+    BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
+    BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
+    BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
+    BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
+    BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
+    BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
+    BOOST_CHECK(gc.size() == size + 4);
+
+    v.as<vector>().clear();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
   }
 
   BOOST_AUTO_TEST_CASE(vector_literal)
@@ -314,7 +371,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    // BOOST_CHECK(gc.size() == size + 1); // BUG
+    BOOST_CHECK(gc.size() == size + 4);
   }
 
   BOOST_AUTO_TEST_CASE(vector_evaluate)
@@ -329,11 +386,6 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
     module.evaluate(module.read("(vector 1 2 3)"));
 
     gc.collect();
-
-    // for (auto const& region : gc.regions)
-    // {
-    //   std::cout <<
-    // }
   }
 }
 BOOST_AUTO_TEST_SUITE_END();
