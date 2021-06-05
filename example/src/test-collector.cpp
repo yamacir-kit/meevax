@@ -45,7 +45,7 @@ struct fixture // Check if all allocated objects are collected.
   }
 };
 
-BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
+BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
 {
   BOOST_AUTO_TEST_CASE(scope)
   {
@@ -157,7 +157,40 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     BOOST_CHECK(caddr(x).as<symbol>() == "c");
     BOOST_CHECK(cadddr(x).as<symbol>() == "a");
   }
+}
+BOOST_AUTO_TEST_SUITE_END();
 
+BOOST_FIXTURE_TEST_SUITE(layers, fixture); namespace
+{
+  BOOST_AUTO_TEST_CASE(v0)
+  {
+    syntactic_continuation root { layer<0>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v1)
+  {
+    syntactic_continuation root { layer<1>() };
+  }
+
+  // BOOST_AUTO_TEST_CASE(v2)
+  // {
+  //   syntactic_continuation root { layer<2>() };
+  // }
+  //
+  // BOOST_AUTO_TEST_CASE(v3)
+  // {
+  //   syntactic_continuation root { layer<3>() };
+  // }
+
+  // BOOST_AUTO_TEST_CASE(v4)
+  // {
+  //   syntactic_continuation root { layer<4>() };
+  // }
+}
+BOOST_AUTO_TEST_SUITE_END();
+
+BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
+{
   using decimals = boost::mpl::list<single_float, double_float>;
 
   BOOST_AUTO_TEST_CASE_TEMPLATE(number, T, decimals)
@@ -178,21 +211,36 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     let const x = to_number("3.14", 10);
   }
 
-  BOOST_AUTO_TEST_CASE(vector_)
+  BOOST_AUTO_TEST_CASE(vector_make)
   {
-    let v = make<vector>(make<symbol>("a"),
-                         make<symbol>("b"),
-                         make<symbol>("c"));
+    let const v = make<vector>(make<symbol>("a"),
+                               make<symbol>("b"),
+                               make<symbol>("c"));
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
 
     v.as<vector>().clear();
 
+    BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 1);
   }
 
-  BOOST_AUTO_TEST_CASE(read_vector)
+  BOOST_AUTO_TEST_CASE(vector_read)
   {
     syntactic_continuation root { layer<0>() };
 
@@ -206,29 +254,29 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     BOOST_CHECK(v.as<vector>().size() == 0);
   }
 
-  BOOST_AUTO_TEST_CASE(layer0)
+  BOOST_AUTO_TEST_CASE(vector_module)
   {
-    syntactic_continuation root { layer<0>() };
-  }
+    syntactic_continuation module { layer<0>() };
 
-  BOOST_AUTO_TEST_CASE(layer1)
-  {
-    syntactic_continuation root { layer<1>() };
-  }
+    module.define<procedure>("vector", [](auto&&... xs)
+    {
+      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
+    });
 
-  BOOST_AUTO_TEST_CASE(layer2)
-  {
-    syntactic_continuation root { layer<2>() };
-  }
+    PRINT(gc.size());
 
-  BOOST_AUTO_TEST_CASE(layer3)
-  {
-    syntactic_continuation root { layer<3>() };
-  }
+    module.evaluate(module.read("(vector 1 2 3)"));
 
-  // BOOST_AUTO_TEST_CASE(layer4)
-  // {
-  //   syntactic_continuation root { layer<4>() };
-  // }
+    PRINT(gc.size());
+
+    gc.collect();
+
+    PRINT(gc.size());
+
+    // for (auto const& region : gc.regions)
+    // {
+    //   std::cout <<
+    // }
+  }
 }
 BOOST_AUTO_TEST_SUITE_END();
