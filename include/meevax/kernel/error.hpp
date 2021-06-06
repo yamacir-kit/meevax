@@ -24,12 +24,7 @@ inline namespace kernel
   struct error
     : public virtual pair
   {
-    template <typename... Ts>
-    explicit error(Ts&&... xs)
-      : pair { std::forward<decltype(xs)>(xs)... }
-    {}
-
-    ~error() override = default;
+    using pair::pair;
 
     virtual auto what() const -> std::string
     {

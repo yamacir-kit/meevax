@@ -56,9 +56,9 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
   {
   public:
-    static inline std::unordered_map<std::string, object> symbols;
+    static inline std::unordered_map<std::string, let> symbols;
 
-    std::unordered_map<std::string, object> external_symbols; // TODO REMOVE
+    std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 

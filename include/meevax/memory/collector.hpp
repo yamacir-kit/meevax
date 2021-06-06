@@ -59,7 +59,8 @@ inline namespace memory
       }
     };
 
-  public:
+  public: /* ---- DATA MEMBERS ---------------------------------------------- */
+
     static inline std::map<collectable::pointer, region::pointer> collectables;
 
     static inline std::set<region::pointer> regions;
@@ -73,7 +74,8 @@ inline namespace memory
 
     static inline std::size_t schwarz_counter = 0;
 
-  public:
+  public: /* ---- CONSTRUCTORS AND DESTRUCTORS ------------------------------ */
+
     explicit collector() noexcept
     {
       if (not schwarz_counter++)
@@ -98,24 +100,25 @@ inline namespace memory
         auto const regions_size      = std::size(regions);
 
         collect();
+        collect(); // ???
 
         std::cout << header("")       << "  collectables = " << collectables_size << " => " << std::size(collectables) << "\n"
                   << header("")       << "  regions = " << regions_size << " => " << std::size(regions) << std::endl;
 
-        for (auto iter = std::begin(regions); iter != std::end(regions); )
-        {
-          assert(*iter);
-
-          if (region::pointer region = *iter; region->assigned())
-          {
-            delete region;
-            iter = regions.erase(iter);
-          }
-          else
-          {
-            ++iter;
-          }
-        }
+        // for (auto iter = std::begin(regions); iter != std::end(regions); )
+        // {
+        //   assert(*iter);
+        //
+        //   if (region::pointer region = *iter; region->assigned())
+        //   {
+        //     delete region;
+        //     iter = regions.erase(iter);
+        //   }
+        //   else
+        //   {
+        //     ++iter;
+        //   }
+        // }
 
         assert(std::size(collectables) == 0);
         assert(std::size(regions) == 0);
@@ -167,22 +170,6 @@ inline namespace memory
 
         return the_region;
       }
-    }
-
-    auto count() const
-    {
-      // return std::count_if(
-      //          std::begin(collectables), std::end(collectables), [](auto const& each)
-      //          {
-      //            auto const* const c = std::get<1>(each);
-      //            return c and c->marked();
-      //          });
-
-      return std::count_if(
-               std::begin(regions), std::end(regions), [](auto const& each)
-               {
-                 return each and each->marked();
-               });
     }
 
     // NOTE: v1
@@ -355,6 +342,33 @@ inline namespace memory
     {
       return regions.size();
     }
+
+    auto count_unmarked_collectables()
+    {
+      return std::count_if(std::begin(collectables), std::end(collectables), [](auto const& each)
+             {
+               auto const* const c = std::get<1>(each);
+               return c and c->marked();
+             });
+    }
+
+    auto count_unmarked_regions() const -> std::size_t
+    {
+      return std::count_if(std::begin(regions), std::end(regions), [](auto const& each)
+             {
+               return each and each->marked();
+             });
+    }
+
+    auto print() const
+    {
+      std::cout << "; GC-DETAIL" << std::endl;
+      std::cout << ";   collectables" << std::endl;
+      std::cout << ";     size: " << std::size(collectables) << std::endl;
+      std::cout << ";   regions" << std::endl;
+      std::cout << ";     size: " << std::size(regions) << std::endl;
+    }
+
   } static gc {}; // for 'new (gc) T(...);'
 } // namespace memory
 } // namespace meevax

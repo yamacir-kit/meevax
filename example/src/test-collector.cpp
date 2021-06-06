@@ -40,12 +40,13 @@ struct fixture // Check if all allocated objects are collected.
     BOOST_CHECK(std::empty(syntactic_continuation::symbols));
 
     gc.collect();
+    gc.collect();
 
     BOOST_CHECK(gc.size() == size);
   }
 };
 
-BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
+BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
 {
   BOOST_AUTO_TEST_CASE(scope)
   {
@@ -157,7 +158,40 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     BOOST_CHECK(caddr(x).as<symbol>() == "c");
     BOOST_CHECK(cadddr(x).as<symbol>() == "a");
   }
+}
+BOOST_AUTO_TEST_SUITE_END();
 
+BOOST_FIXTURE_TEST_SUITE(layers, fixture); namespace
+{
+  BOOST_AUTO_TEST_CASE(v0)
+  {
+    syntactic_continuation root { layer<0>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v1)
+  {
+    syntactic_continuation root { layer<1>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v2)
+  {
+    syntactic_continuation root { layer<2>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v3)
+  {
+    syntactic_continuation root { layer<3>() };
+  }
+
+  // BOOST_AUTO_TEST_CASE(v4)
+  // {
+  //   syntactic_continuation root { layer<4>() };
+  // }
+}
+BOOST_AUTO_TEST_SUITE_END();
+
+BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
+{
   using decimals = boost::mpl::list<single_float, double_float>;
 
   BOOST_AUTO_TEST_CASE_TEMPLATE(number, T, decimals)
@@ -178,29 +212,179 @@ BOOST_FIXTURE_TEST_SUITE(suite, fixture); namespace
     let const x = to_number("3.14", 10);
   }
 
-  BOOST_AUTO_TEST_CASE(layer0)
+  BOOST_AUTO_TEST_CASE(vector_make)
   {
-    syntactic_continuation root { layer<0>() };
+    let const v = make<vector>(make<symbol>("a"),
+                               make<symbol>("b"),
+                               make<symbol>("c"));
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    v.as<vector>().clear();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 1);
   }
 
-  BOOST_AUTO_TEST_CASE(layer1)
+  BOOST_AUTO_TEST_CASE(vector_from_list_1)
   {
-    syntactic_continuation root { layer<1>() };
+    let const v = make<vector>(for_each_in, list(make<symbol>("a"),
+                                                 make<symbol>("b"),
+                                                 make<symbol>("c")));
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 7);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    v.as<vector>().clear();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 1);
   }
 
-  BOOST_AUTO_TEST_CASE(layer2)
+  BOOST_AUTO_TEST_CASE(list_read)
   {
-    syntactic_continuation root { layer<2>() };
+    syntactic_continuation module { layer<0>() };
+
+    auto const size = gc.size();
+
+    module.read("(a a a)");
+
+    gc.collect();
+
+    BOOST_CHECK(gc.size() == size + 1);
   }
 
-  BOOST_AUTO_TEST_CASE(layer3)
+  BOOST_AUTO_TEST_CASE(vector_from_list_2)
   {
-    syntactic_continuation root { layer<3>() };
+    syntactic_continuation module { layer<0>() };
+
+    auto const size = gc.size();
+
+    let const v = make<vector>(for_each_in, module.read("(a b c)"));
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
+    BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
+    BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
+    BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
+    BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
+    BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
+    BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
+    BOOST_CHECK(gc.size() == size + 4);
+
+    v.as<vector>().clear();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
   }
 
-  // BOOST_AUTO_TEST_CASE(layer4)
-  // {
-  //   syntactic_continuation root { layer<4>() };
-  // }
+  BOOST_AUTO_TEST_CASE(vector_literal)
+  {
+    syntactic_continuation module { layer<0>() };
+
+    auto const size = gc.size();
+
+    let const v = module.read("#(a b c)");
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 3);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    v.as<vector>().clear();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 4);
+
+    gc.collect();
+
+    BOOST_CHECK(v.is<vector>());
+    BOOST_CHECK(v.as<vector>().size() == 0);
+    BOOST_CHECK(gc.size() == size + 4);
+  }
+
+  BOOST_AUTO_TEST_CASE(vector_evaluate)
+  {
+    syntactic_continuation module { layer<0>() };
+
+    module.define<procedure>("vector", [](auto&&... xs)
+    {
+      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
+    });
+
+    module.evaluate(module.read("(vector 1 2 3)"));
+  }
 }
 BOOST_AUTO_TEST_SUITE_END();
