@@ -100,6 +100,7 @@ inline namespace memory
         auto const regions_size      = std::size(regions);
 
         collect();
+        collect(); // ???
 
         std::cout << header("")       << "  collectables = " << collectables_size << " => " << std::size(collectables) << "\n"
                   << header("")       << "  regions = " << regions_size << " => " << std::size(regions) << std::endl;

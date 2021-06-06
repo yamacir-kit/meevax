@@ -40,6 +40,7 @@ struct fixture // Check if all allocated objects are collected.
     BOOST_CHECK(std::empty(syntactic_continuation::symbols));
 
     gc.collect();
+    gc.collect();
 
     BOOST_CHECK(gc.size() == size);
   }
@@ -172,15 +173,15 @@ BOOST_FIXTURE_TEST_SUITE(layers, fixture); namespace
     syntactic_continuation root { layer<1>() };
   }
 
-  // BOOST_AUTO_TEST_CASE(v2)
-  // {
-  //   syntactic_continuation root { layer<2>() };
-  // }
-  //
-  // BOOST_AUTO_TEST_CASE(v3)
-  // {
-  //   syntactic_continuation root { layer<3>() };
-  // }
+  BOOST_AUTO_TEST_CASE(v2)
+  {
+    syntactic_continuation root { layer<2>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v3)
+  {
+    syntactic_continuation root { layer<3>() };
+  }
 
   // BOOST_AUTO_TEST_CASE(v4)
   // {
@@ -384,8 +385,6 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
     });
 
     module.evaluate(module.read("(vector 1 2 3)"));
-
-    gc.collect();
   }
 }
 BOOST_AUTO_TEST_SUITE_END();
