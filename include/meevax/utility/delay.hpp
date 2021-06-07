@@ -36,7 +36,7 @@ inline namespace utility
         else
         {
           // TODO USE demangle
-          throw make_error("no viable operation '", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
+          throw make_error("no viable operation ", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
         }
       }
     };

@@ -15,11 +15,11 @@ make -j"$(nproc)"
 
 make test ARGS=-j"$(nproc)"
 
-# check()
-# {
-#   valgrind --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all "$@" --report_level=detailed
-# }
-#
+check()
+{
+  valgrind --error-exitcode=1 --leak-check=full --quiet --show-leak-kinds=all "$@" # --report_level=detailed
+}
+
 # check "$here/build/test-collector"
 # check "$here/build/test-list"
 # check "$here/build/test-r7rs"
