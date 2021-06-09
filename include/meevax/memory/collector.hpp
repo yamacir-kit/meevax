@@ -88,9 +88,9 @@ inline namespace memory
   public:
     static auto find(void_pointer const x)
     {
-      region dummy { x, 0 };
+      const auto dummy = std::make_unique<region>(x, 0);
 
-      if (auto iter = regions.lower_bound(&dummy); iter != std::end(regions) and (**iter).controls(x))
+      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).controls(x))
       {
         return iter;
       }
