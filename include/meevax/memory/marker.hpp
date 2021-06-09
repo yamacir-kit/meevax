@@ -7,11 +7,16 @@ inline namespace memory
 {
   class marker
   {
-    static inline auto phase = false;
+    static inline bool phase;
 
     bool value;
 
   public:
+    struct initializer
+    {
+      explicit initializer();
+    };
+
     explicit marker() noexcept
       : value { phase }
     {}
@@ -41,6 +46,8 @@ inline namespace memory
       return marked();
     }
   };
+
+  static marker::initializer initializer;
 } // namespace memory
 } // namespace meevax
 

@@ -90,13 +90,13 @@ inline namespace memory
     {
       region dummy { x, 0 };
 
-      if (auto iter = regions.lower_bound(&dummy); iter == std::end(regions) or not (**iter).controls(x))
+      if (auto iter = regions.lower_bound(&dummy); iter != std::end(regions) and (**iter).controls(x))
       {
-        return std::end(regions);
+        return iter;
       }
       else
       {
-        return iter;
+        return std::end(regions);
       }
     }
 
