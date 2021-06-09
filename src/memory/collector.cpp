@@ -4,6 +4,60 @@ namespace meevax
 {
 inline namespace memory
 {
+  static std::size_t count = 0;
+
+  collector::collector()
+  {
+    if (not count++)
+    {
+      collectables = {};
+
+      regions = {};
+
+      collecting = false;
+
+      newly_allocated = 0;
+
+      threshold = std::numeric_limits<std::size_t>::max();
+
+      std::cout << header(__func__) << "ready." << std::endl;
+    }
+  }
+
+  collector::~collector()
+  {
+    if (not --count)
+    {
+      std::cout << header(__func__) << "collecting objects" << std::endl;
+
+      auto const collectables_size = std::size(collectables);
+      auto const regions_size      = std::size(regions);
+
+      collect();
+      collect(); // ???
+
+      std::cout << header("")       << "  collectables = " << collectables_size << " => " << std::size(collectables) << "\n"
+                << header("")       << "  regions = " << regions_size << " => " << std::size(regions) << std::endl;
+
+      // for (auto iter = std::begin(regions); iter != std::end(regions); )
+      // {
+      //   assert(*iter);
+      //
+      //   if (region::pointer region = *iter; region->assigned())
+      //   {
+      //     delete region;
+      //     iter = regions.erase(iter);
+      //   }
+      //   else
+      //   {
+      //     ++iter;
+      //   }
+      // }
+
+      assert(std::size(collectables) == 0);
+      assert(std::size(regions) == 0);
+    }
+  }
 } // namespace memory
 } // namespace meevax
 

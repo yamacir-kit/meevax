@@ -56,9 +56,16 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
   {
   public:
+    struct initializer
+    {
+      explicit initializer();
+
+      ~initializer();
+    };
+
     static inline std::unordered_map<std::string, let> symbols;
 
-    std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
+    static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 
@@ -298,7 +305,7 @@ inline namespace kernel
                   << reset << std::endl;
       }
 
-      auto exportation = [this](let const& xs)
+      auto exportation = [](let const& xs)
       {
         for (auto const& each : xs)
         {
@@ -373,6 +380,8 @@ inline namespace kernel
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
   {}
+
+  static syntactic_continuation::initializer initializer;
 } // namespace kernel
 } // namespace meevax
 

@@ -1811,5 +1811,25 @@ inline namespace kernel
       return unspecified;
     });
   }
+
+  static std::size_t count = 0;
+
+  syntactic_continuation::initializer::initializer()
+  {
+    if (not count++)
+    {
+      symbols = {};
+      external_symbols = {}; // XXX DEPRECATED
+    }
+  }
+
+  syntactic_continuation::initializer::~initializer()
+  {
+    if (not --count)
+    {
+      symbols.clear();
+      external_symbols.clear(); // XXX DEPRECATED
+    }
+  }
 } // namespace kernel
 } // namespace meevax

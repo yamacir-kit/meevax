@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP
 
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -22,18 +23,6 @@ inline namespace memory
   {
     static inline std::mutex resource;
 
-    static auto & collectables()
-    {
-      static std::map<collectable::pointer, region::pointer> collectables {};
-      return collectables;
-    }
-
-    static auto & regions()
-    {
-      static std::set<region::pointer> regions {};
-      return regions;
-    }
-
   public:
     static auto lock()
     {
@@ -48,19 +37,19 @@ inline namespace memory
       explicit collectable()
       {
         auto const locking = lock();
-        collectables().emplace(this, nullptr);
+        collectables.emplace(this, nullptr);
       }
 
       ~collectable()
       {
         auto const locking = lock();
-        collectables().erase(this);
+        collectables.erase(this);
       }
 
       void reset(void_pointer const derived, deallocator<void>::signature const deallocate)
       {
         auto const locking = lock();
-        collectables()[this] = collector::reset(derived, deallocate);
+        collectables[this] = collector::reset(derived, deallocate);
       }
 
       template <typename P>
@@ -73,24 +62,20 @@ inline namespace memory
 
   public: /* ---- DATA MEMBERS ---------------------------------------------- */
 
-    static inline auto collecting = false;
+    static inline std::map<collectable::pointer, region::pointer> collectables;
 
-    static inline std::size_t newly_allocated = 0;
+    static inline std::set<region::pointer> regions;
 
-    static inline auto threshold = std::numeric_limits<std::size_t>::max();
+    static inline bool collecting;
+
+    static inline std::size_t newly_allocated;
+
+    static inline std::size_t threshold;
     // static inline std::size_t threshold = 1024 * 1024; // = 1 MiB
-
-    static inline std::size_t schwarz_counter = 0;
 
   public: /* ---- CONSTRUCTORS AND DESTRUCTORS ------------------------------ */
 
-    explicit collector() noexcept
-    {
-      if (not schwarz_counter++)
-      {
-        std::cout << header(__func__) << "ready." << std::endl;
-      }
-    }
+    explicit collector();
 
     explicit collector(collector &&) = delete;
     explicit collector(collector const&) = delete;
@@ -98,49 +83,16 @@ inline namespace memory
     collector & operator =(collector &&) = delete;
     collector & operator =(collector const&) = delete;
 
-    ~collector()
-    {
-      if (not --schwarz_counter)
-      {
-        std::cout << header(__func__) << "collecting objects" << std::endl;
-
-        auto const collectables_size = std::size(collectables());
-        auto const regions_size      = std::size(regions());
-
-        collect();
-        collect(); // ???
-
-        std::cout << header("")       << "  collectables = " << collectables_size << " => " << std::size(collectables()) << "\n"
-                  << header("")       << "  regions = " << regions_size << " => " << std::size(regions()) << std::endl;
-
-        // for (auto iter = std::begin(regions()); iter != std::end(regions()); )
-        // {
-        //   assert(*iter);
-        //
-        //   if (region::pointer region = *iter; region->assigned())
-        //   {
-        //     delete region;
-        //     iter = regions().erase(iter);
-        //   }
-        //   else
-        //   {
-        //     ++iter;
-        //   }
-        // }
-
-        assert(std::size(collectables()) == 0);
-        assert(std::size(regions()) == 0);
-      }
-    }
+    ~collector();
 
   public:
     static auto find(void_pointer const x)
     {
       region dummy { x, 0 };
 
-      if (auto iter = regions().lower_bound(&dummy); iter == std::end(regions()) or not (**iter).controls(x))
+      if (auto iter = regions.lower_bound(&dummy); iter == std::end(regions) or not (**iter).controls(x))
       {
-        return std::end(regions());
+        return std::end(regions);
       }
       else
       {
@@ -151,7 +103,7 @@ inline namespace memory
     template <typename... Ts>
     auto is_root(Ts&&... xs) const
     {
-      return find(std::forward<decltype(xs)>(xs)...) == std::end(regions());
+      return find(std::forward<decltype(xs)>(xs)...) == std::end(regions);
     }
 
     static region::pointer reset(void_pointer const derived, deallocator<void>::signature const deallocate)
@@ -166,7 +118,7 @@ inline namespace memory
 
         auto iter = find(derived);
 
-        assert(iter != std::end(regions()));
+        assert(iter != std::end(regions));
         assert(deallocate);
 
         region::pointer the_region = *iter;
@@ -234,8 +186,8 @@ inline namespace memory
       {
         the_region->mark();
 
-        auto lower = collectables().lower_bound(reinterpret_cast<collectable::pointer>(the_region->lower_bound()));
-        auto upper = collectables().lower_bound(reinterpret_cast<collectable::pointer>(the_region->upper_bound()));
+        auto lower = collectables.lower_bound(reinterpret_cast<collectable::pointer>(the_region->lower_bound()));
+        auto upper = collectables.lower_bound(reinterpret_cast<collectable::pointer>(the_region->upper_bound()));
 
         for (auto iter = lower; iter != upper; ++iter)
         {
@@ -250,7 +202,7 @@ inline namespace memory
 
       // std::size_t size = 0;
 
-      for (auto [x, region] : collectables())
+      for (auto [x, region] : collectables)
       {
         // std::cout << "\r\x1b[K; mark\t\t\t; [" << ++size << "/" << std::size(collectables) << "] (" << count() << " marked)" << std::flush;
 
@@ -265,21 +217,21 @@ inline namespace memory
 
     auto sweep()
     {
-      // std::size_t size = std::size(regions());
+      // std::size_t size = std::size(regions);
 
       // std::size_t deleted = 0;
       // std::size_t skipped = 0;
       // std::size_t remains = 0;
 
-      for (auto iter = std::begin(regions()); iter != std::end(regions());
+      for (auto iter = std::begin(regions); iter != std::end(regions);
            // std::cout << "\r\x1b[K; sweep\t\t\t; ["
-           //           << std::distance(std::begin(regions()), iter)
+           //           << std::distance(std::begin(regions), iter)
            //           << "/"
-           //           << std::size(regions())
+           //           << std::size(regions)
            //           << "] ("
            //           << size
            //           << " => "
-           //           << std::size(regions())
+           //           << std::size(regions)
            //           << ")"
            //           // << ", " << "deleted = " << deleted
            //           // << ", " << "skipped = " << skipped
@@ -294,7 +246,7 @@ inline namespace memory
           if (c->assigned())
           {
             delete c;
-            iter = regions().erase(iter);
+            iter = regions.erase(iter);
             // ++deleted;
             continue;
           }
@@ -335,25 +287,25 @@ inline namespace memory
     template <typename... Ts>
     decltype(auto) insert(Ts&&... xs)
     {
-      return regions().insert(new region(std::forward<decltype(xs)>(xs)...));
+      return regions.insert(new region(std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
     decltype(auto) erase(Ts&&... xs)
     {
-      return regions().erase(std::forward<decltype(xs)>(xs)...);
+      return regions.erase(std::forward<decltype(xs)>(xs)...);
     }
 
   public: /* ---- DEBUG TOOLS ----------------------------------------------- */
 
     static auto size()
     {
-      return regions().size();
+      return regions.size();
     }
 
     auto count_unmarked_collectables()
     {
-      return std::count_if(std::begin(collectables()), std::end(collectables()), [](auto const& each)
+      return std::count_if(std::begin(collectables), std::end(collectables), [](auto const& each)
              {
                auto const* const c = std::get<1>(each);
                return c and c->marked();
@@ -362,7 +314,7 @@ inline namespace memory
 
     auto count_unmarked_regions() const -> std::size_t
     {
-      return std::count_if(std::begin(regions()), std::end(regions()), [](auto const& each)
+      return std::count_if(std::begin(regions), std::end(regions), [](auto const& each)
              {
                return each and each->marked();
              });
@@ -372,12 +324,12 @@ inline namespace memory
     {
       std::cout << "; GC-DETAIL" << std::endl;
       std::cout << ";   collectables" << std::endl;
-      std::cout << ";     size: " << std::size(collectables()) << std::endl;
+      std::cout << ";     size: " << std::size(collectables) << std::endl;
       std::cout << ";   regions" << std::endl;
-      std::cout << ";     size: " << std::size(regions()) << std::endl;
+      std::cout << ";     size: " << std::size(regions) << std::endl;
     }
 
-  } static gc {}; // for 'new (gc) T(...);'
+  } static gc;
 } // namespace memory
 } // namespace meevax
 
