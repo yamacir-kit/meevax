@@ -71,6 +71,7 @@ inline namespace kernel
       return value == std::trunc(value);
     }
 
+    // TODO TEMPLATE SPECIALIZATION to<std::string>()
     auto to_string() const
     {
       return boost::lexical_cast<std::string>(value);

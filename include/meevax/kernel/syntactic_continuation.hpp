@@ -23,42 +23,25 @@ inline namespace kernel
   template <std::size_t N>
   using layer = std::integral_constant<decltype(N), N>;
 
-  class syntactic_continuation : public virtual pair
-
-    , public reader<syntactic_continuation> /* ---------------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public writer<syntactic_continuation> /* ---------------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public machine<syntactic_continuation> /* --------------------------------
-    *
-    *  TR-SECD virtual machine and it's compiler.
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public debugger<syntactic_continuation> /* -------------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public configurator<syntactic_continuation> /* ---------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
+  class syntactic_continuation
+    : public virtual pair
+    , public configurator <syntactic_continuation>
+    , public debugger     <syntactic_continuation>
+    , public machine      <syntactic_continuation>
+    , public reader       <syntactic_continuation>
+    , public writer       <syntactic_continuation>
   {
   public:
-    static inline std::unordered_map<std::string, object> symbols;
+    struct initializer
+    {
+      explicit initializer();
 
-    std::unordered_map<std::string, object> external_symbols; // TODO REMOVE
+      ~initializer();
+    };
+
+    static inline std::unordered_map<std::string, let> symbols;
+
+    static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 
@@ -68,8 +51,6 @@ inline namespace kernel
 
     using writer::newline;
     using writer::standard_debug_port;
-    using writer::standard_error_port;
-    using writer::standard_output_port;
     using writer::standard_verbose_port;
     using writer::write;
     using writer::write_to;
@@ -300,7 +281,7 @@ inline namespace kernel
                   << reset << std::endl;
       }
 
-      auto exportation = [this](let const& xs)
+      auto exportation = [](let const& xs)
       {
         for (auto const& each : xs)
         {
@@ -359,11 +340,11 @@ inline namespace kernel
   auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
-  extern template class configurator<syntactic_continuation>;
-  extern template class debugger<syntactic_continuation>;
-  extern template class machine<syntactic_continuation>;
-  extern template class reader<syntactic_continuation>;
-  extern template class writer<syntactic_continuation>;
+  extern template class configurator <syntactic_continuation>;
+  extern template class debugger     <syntactic_continuation>;
+  extern template class machine      <syntactic_continuation>;
+  extern template class reader       <syntactic_continuation>;
+  extern template class writer       <syntactic_continuation>;
 
   template <> void syntactic_continuation::boot(layer<0>);
   template <> void syntactic_continuation::boot(layer<1>);
@@ -375,6 +356,8 @@ inline namespace kernel
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
   {}
+
+  static syntactic_continuation::initializer initializer;
 } // namespace kernel
 } // namespace meevax
 

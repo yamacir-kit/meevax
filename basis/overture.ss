@@ -779,30 +779,30 @@
 (define (call-with-output-file path procedure)
   (call-with-port (open-output-file path) procedure))
 
-(define (input-standard-port? x)
-  (eq? x (input-standard-port)))
+(define (standard-input-port? x)
+  (eq? x (standard-input-port)))
 
-(define (output-standard-port? x)
-  (eq? x (output-standard-port)))
+(define (standard-output-port? x)
+  (eq? x (standard-output-port)))
 
-(define (error-standard-port? x)
-  (eq? x (error-standard-port)))
+(define (standard-error-port? x)
+  (eq? x (standard-error-port)))
 
 (define (standard-port? x)
-  (or (input-standard-port? x)
-      (output-standard-port? x)
-      (error-standard-port? x)))
+  (or (standard-input-port? x)
+      (standard-output-port? x)
+      (standard-error-port? x)))
 
 (define (input-port? x)
   (or (input-file-port? x)
       (input-string-port? x)
-      (input-standard-port? x)))
+      (standard-input-port? x)))
 
 (define (output-port? x)
   (or (output-file-port? x)
       (output-string-port? x)
-      (output-standard-port? x)
-      (error-standard-port? x)))
+      (standard-output-port? x)
+      (standard-error-port? x)))
 
 (define (close-port x)
   (cond ((input-port? x) (close-input-port x))
@@ -819,10 +819,10 @@
          (close-output-file-port x))
         (else (unspecified))))
 
-(define (read        x) (::read        (if (pair? x) (car x) (current-input-port))))
-(define (read-char   x) (::read-char   (if (pair? x) (car x) (current-input-port))))
-(define (peek-char   x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
-(define (char-ready? x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
+(define (read        . x) (::read        (if (pair? x) (car x) (current-input-port))))
+(define (read-char   . x) (::read-char   (if (pair? x) (car x) (current-input-port))))
+(define (peek-char   . x) (::peek-char   (if (pair? x) (car x) (current-input-port))))
+(define (char-ready? . x) (::char-ready? (if (pair? x) (car x) (current-input-port))))
 
 (define (write-simple datum . port)
   (::write-simple datum (if (pair? port)

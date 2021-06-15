@@ -2,158 +2,158 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <algorithm> // std::equal
-#include <iterator> // std::begin, std::end, std::distance
 
+#include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/iterator.hpp>
+
+/* ---- Procedure Index --------------------------------------------------------
+ *
+ *  Constructors
+ *    cons list
+ *    xcons cons* make-list list-tabulate
+ *    list-copy circular-list iota
+ *
+ *  Predicates
+ *    pair? null?
+ *    proper-list? circular-list? dotted-list?
+ *    not-pair? null-list?
+ *    list=
+ *
+ *  Selectors
+ *    car cdr ... cddadr cddddr list-ref
+ *    first second third fourth fifth sixth seventh eighth ninth tenth
+ *    car+cdr
+ *    take       drop
+ *    take-right drop-right
+ *    take!      drop-right!
+ *    split-at   split-at!
+ *    last last-pair
+ *
+ *  Miscellaneous: length, append, concatenate, reverse, zip & count
+ *    length length+
+ *    append  concatenate  reverse
+ *    append! concatenate! reverse!
+ *    append-reverse append-reverse!
+ *    zip unzip1 unzip2 unzip3 unzip4 unzip5
+ *    count
+ *
+ *  Fold, unfold & map
+ *    map for-each
+ *    fold       unfold       pair-fold       reduce
+ *    fold-right unfold-right pair-fold-right reduce-right
+ *    append-map append-map!
+ *    map! pair-for-each filter-map map-in-order
+ *
+ *  Filtering & partitioning
+ *    filter  partition  remove
+ *    filter! partition! remove!
+ *
+ *  Searching
+ *    member memq memv
+ *    find find-tail
+ *    any every
+ *    list-index
+ *    take-while drop-while take-while!
+ *    span break span! break!
+ *
+ *  Deleting
+ *    delete  delete-duplicates
+ *    delete! delete-duplicates!
+ *
+ *  Association lists
+ *    assoc assq assv
+ *    alist-cons alist-copy
+ *    alist-delete alist-delete!
+ *
+ *  Set operations on lists
+ *    lset<= lset= lset-adjoin
+ *    lset-union             lset-union!
+ *    lset-intersection      lset-intersection!
+ *    lset-difference        lset-difference!
+ *    lset-xor               lset-xor!
+ *    lset-diff+intersection lset-diff+intersection!
+ *
+ *  Primitive side-effects
+ *    set-car! set-cdr!
+ *
+ * -------------------------------------------------------------------------- */
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T>
-  struct homoiconic_iterator
-  #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-    : public std::reference_wrapper<T>
-  #else
-    : public object
-  #endif
-  {
-    using iterator_category = std::forward_iterator_tag;
-
-    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-    using value_type = std::reference_wrapper<T>;
-    #else
-    using value_type = object;
-    #endif
-
-    using reference = typename std::add_lvalue_reference<value_type>::type;
-
-    using const_reference = typename std::add_const<reference>::type;
-
-    using pointer = value_type; // homoiconicity
-
-    using difference_type = std::ptrdiff_t;
-
-    using size_type = std::size_t;
-
-    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-    using std::reference_wrapper<T>::reference_wrapper;
-
-    homoiconic_iterator(T const& x)
-      : std::reference_wrapper<T> { std::cref(x) }
-    {}
-    #else
-    template <typename... Ts>
-    constexpr homoiconic_iterator(Ts&&... xs)
-      : object { std::forward<decltype(xs)>(xs)... }
-    {}
-    #endif
-
-    decltype(auto) operator *() const
-    {
-      return car(*this);
-    }
-
-    decltype(auto) operator ->() const
-    {
-      return operator*();
-    }
-
-    decltype(auto) operator ++()
-    {
-      #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-      return *this = cdr(*this);
-      #else
-      static_cast<object &>(*this) = cdr(*this);
-      return *this;
-      #endif
-    }
-
-    auto operator ++(int)
-    {
-      auto copy = *this;
-      operator++();
-      return copy;
-    }
-
-    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-    operator T&() const noexcept
-    {
-      return std::reference_wrapper<T>::get();
-    }
-
-    using std::reference_wrapper<T>::get;
-
-    decltype(auto) operator==(homoiconic_iterator const& rhs) const noexcept { return get() == rhs.get(); }
-    decltype(auto) operator!=(homoiconic_iterator const& rhs) const noexcept { return get() != rhs.get(); }
-
-    operator bool() const
-    {
-      return static_cast<bool>(static_cast<T const&>(*this));
-    }
-    #endif
-
-    homoiconic_iterator cbegin() const noexcept { return *this; }
-    homoiconic_iterator  begin() const noexcept { return *this; }
-    homoiconic_iterator   cend() const noexcept { return unit; }
-    homoiconic_iterator    end() const noexcept { return unit; }
-  };
-} // namespace kernel
-} // namespace meevax
-
-namespace std
-{
-  auto cbegin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const>;
-  auto  begin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const>;
-  auto   cend(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const>;
-  auto    end(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const>;
-} // namespace std
-
-namespace meevax
-{
-inline namespace kernel
-{
-  /* ---- Constructors ---------------------------------------------------------
-   *
-   * From R7RS
-   *   - cons                            => cons
-   *   - list                            => list
-   *
-   * From SRFI-1
-   *   - circular-list
-   *   - cons*                           => cons
-   *   - iota
-   *   - list-copy
-   *   - list-tabulate
-   *   - make-list
-   *   - xcons                           => xcons
-   *
-   * ------------------------------------------------------------------------ */
-  template <typename T, typename U,
-            REQUIRES(std::is_convertible<T, object>,
-                     std::is_convertible<U, object>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>, std::is_convertible<U, object>)>
   inline decltype(auto) operator |(T&& x, U&& y)
   {
-    return make<pair>(std::forward<decltype(x)>(x),
-                      std::forward<decltype(y)>(y));
+    return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
   }
 
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  cons a d -> pair
+   *
+   *    The primitive constructor. Returns a newly allocated pair whose car is a
+   *    and whose cdr is d. The pair is guaranteed to be different (in the sense
+   *    of eqv?) from every existing object.
+   *
+   *
+   *  cons* elt1 elt2 ... -> object
+   *
+   *    Like list, but the last argument provides the tail of the constructed
+   *    list, returning
+   *
+   *      (cons elt1 (cons elt2 (cons ... eltn)))
+   *
+   *    This function is called list* in Common Lisp and about half of the
+   *    Schemes that provide it, and cons* in the other half.
+   *
+   * ------------------------------------------------------------------------ */
   auto cons = [](auto&&... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ...);
   };
 
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  list object ... -> list
+   *
+   *    Returns a newly allocated list of its arguments.
+   *
+   * ------------------------------------------------------------------------ */
   auto list = [](auto&& ... xs) constexpr
   {
     return (std::forward<decltype(xs)>(xs) | ... | unit);
   };
 
-  auto make_list = [](auto length, let const& x = unit)
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  xcons d a -> pair
+   *
+   *    Of utility only as a value to be conveniently passed to higher-order
+   *    procedures. The name stands for "eXchanged CONS."
+   *
+   * ------------------------------------------------------------------------ */
+  auto xcons = [](auto&& d, auto&& a) constexpr
   {
-    let result = unit;
+    return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
+  };
 
-    for (decltype(length) i = 0; i < length; ++i)
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  make-list n [fill] -> list
+   *
+   *    Returns an n-element list, whose elements are all the value fill. If
+   *    the fill argument is not given, the elements of the list may be
+   *    arbitrary values.
+   *
+   * ------------------------------------------------------------------------ */
+  auto make_list = [](std::size_t k, let const& x = unit)
+  {
+    let result = list();
+
+    for (std::size_t i = 0; i < k; ++i)
     {
       result = cons(x, result);
     }
@@ -161,9 +161,68 @@ inline namespace kernel
     return result;
   };
 
-  auto xcons = [](auto&&... xs) constexpr
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  list-tabulate n init-proc -> list
+   *
+   *    Returns an n-element list. Element i of the list, where 0 <= i < n, is
+   *    produced by (init-proc i). No guarantee is made about the dynamic order
+   *    in which init-proc is applied to these indices.
+   *
+   * ------------------------------------------------------------------------ */
+  auto list_tabulate = [](auto n, auto&& initialize)
   {
-    return (... | std::forward<decltype(xs)>(xs));
+    let x = list();
+
+    while (0 <= --n)
+    {
+      x = cons(initialize(n), x);
+    }
+
+    return x;
+  };
+
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  list-copy flist -> flist
+   *
+   *    Copies the spine of the argument.
+   *
+   * ------------------------------------------------------------------------ */
+  auto list_copy = [](auto const& x)
+  {
+    auto copy = [](auto&& rec, let const& x) -> object
+    {
+      if (x.is<pair>())
+      {
+        return cons(car(x), rec(rec, cdr(x)));
+      }
+      else
+      {
+        return x;
+      }
+    };
+
+    return z(copy)(x);
+  };
+
+  /* ---- NOTE -----------------------------------------------------------------
+   *
+   *  circular-list elt1 elt2 ... -> list
+   *
+   *    Constructs a circular list of the elements.
+   *
+   * ------------------------------------------------------------------------ */
+  auto circular_list = [](auto&&... xs)
+  {
+    let x = list(std::forward<decltype(xs)>(xs)...);
+
+    if (auto const length = std::distance(std::cbegin(x), std::cend(x)); 0 < length)
+    {
+      cdr(std::next(std::begin(x), length - 1)) = x;
+    }
+
+    return x;
   };
 
   /* ---- Predicates -----------------------------------------------------------

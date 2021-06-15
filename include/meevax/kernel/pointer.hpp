@@ -167,7 +167,7 @@ inline namespace kernel
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      throw make_error("no viable operation '" #SYMBOL " with ", a, " and ", b); \
+      throw make_error("no viable operation " #SYMBOL " with ", a, " and ", b); \
     }                                                                          \
   } static_assert(true)
 

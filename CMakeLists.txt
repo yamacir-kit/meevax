@@ -20,13 +20,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g -pg")
+set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -g -DNDEBUG -flto -pipe") # Note: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -flto")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ")
 endif()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
@@ -223,45 +225,21 @@ add_custom_target(uninstall
 
 enable_testing()
 
-add_test(
-  NAME r4rs
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs.ss)
+macro(define_test TEST_NAME)
+  add_test(
+    NAME ${TEST_NAME}
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+            ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
+endmacro()
 
-add_test(
-  NAME r4rs-appendix
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/r4rs-appendix.ss)
-
-add_test(
-  NAME low-level-macro-facility
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/low-level-macro-facility.ss)
-
-add_test(
-  NAME r7rs
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/r7rs.ss)
-
-add_test(
-  NAME numerical-operations
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/numerical-operations.ss)
-
-add_test(
-  NAME sicp-1
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/sicp-1.ss)
-
-add_test(
-  NAME chibi
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/chibi-basic.ss)
-
-add_test(
-  NAME abandoned
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-          ${CMAKE_CURRENT_SOURCE_DIR}/test/abandoned.ss)
+define_test(abandoned)
+define_test(chibi-basic)
+define_test(low-level-macro-facility)
+define_test(numerical-operations)
+define_test(r4rs)
+define_test(r4rs-appendix)
+define_test(r7rs)
+define_test(sicp-1)
 
 add_test(
   NAME example
