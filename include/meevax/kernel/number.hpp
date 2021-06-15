@@ -123,6 +123,8 @@ inline namespace kernel
    *
    *    apply(std::sin, make<double_float>(1.0));
    *
+   *  TODO: RENAME TO apply_unary / apply_binary
+   *
    * ------------------------------------------------------------------------ */
   template <typename F>
   auto apply_1(F&& cmath, object const& x) -> decltype(auto)

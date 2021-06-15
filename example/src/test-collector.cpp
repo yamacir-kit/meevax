@@ -161,35 +161,6 @@ BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
 }
 BOOST_AUTO_TEST_SUITE_END();
 
-BOOST_FIXTURE_TEST_SUITE(layers, fixture); namespace
-{
-  BOOST_AUTO_TEST_CASE(v0)
-  {
-    syntactic_continuation root { layer<0>() };
-  }
-
-  BOOST_AUTO_TEST_CASE(v1)
-  {
-    syntactic_continuation root { layer<1>() };
-  }
-
-  BOOST_AUTO_TEST_CASE(v2)
-  {
-    syntactic_continuation root { layer<2>() };
-  }
-
-  BOOST_AUTO_TEST_CASE(v3)
-  {
-    syntactic_continuation root { layer<3>() };
-  }
-
-  // BOOST_AUTO_TEST_CASE(v4)
-  // {
-  //   syntactic_continuation root { layer<4>() };
-  // }
-}
-BOOST_AUTO_TEST_SUITE_END();
-
 BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 {
   using decimals = boost::mpl::list<single_float, double_float>;
@@ -385,6 +356,35 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
     });
 
     module.evaluate(module.read("(vector 1 2 3)"));
+  }
+}
+BOOST_AUTO_TEST_SUITE_END();
+
+BOOST_FIXTURE_TEST_SUITE(layers, fixture); namespace
+{
+  BOOST_AUTO_TEST_CASE(v0)
+  {
+    syntactic_continuation root { layer<0>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v1)
+  {
+    syntactic_continuation root { layer<1>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v2)
+  {
+    syntactic_continuation root { layer<2>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v3)
+  {
+    syntactic_continuation root { layer<3>() };
+  }
+
+  BOOST_AUTO_TEST_CASE(v4)
+  {
+    syntactic_continuation root { layer<4>() };
   }
 }
 BOOST_AUTO_TEST_SUITE_END();

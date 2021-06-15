@@ -1,6 +1,4 @@
 #include <boost/cstdlib.hpp>
-#include <boost/iostreams/device/array.hpp>
-#include <boost/iostreams/stream.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/adaptors.hpp>
 
@@ -240,7 +238,8 @@ inline namespace kernel
         return a.load() OPERATOR b;                                            \
       });                                                                      \
                                                                                \
-      return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs) ? t : f; \
+      return std::adjacent_find(                                               \
+        std::cbegin(xs), std::cend(xs), compare) == std::end(xs) ? t : f;      \
     })
 
     BOILERPLATE(= , ==);
@@ -296,25 +295,20 @@ inline namespace kernel
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
+      auto f = [](auto&& x, auto&& y)                                          \
+      {                                                                        \
+        return x SYMBOL y;                                                     \
+      };                                                                       \
+                                                                               \
       if (length(xs) < 2)                                                      \
       {                                                                        \
         let const basis = make<exact_integer>(BASIS);                          \
-                                                                               \
-        return std::accumulate(                                                \
-                 std::begin(xs), std::end(xs), basis, [](auto&& x, auto&& y)   \
-                 {                                                             \
-                   return x SYMBOL y;                                          \
-                 });                                                           \
+        return std::accumulate(std::cbegin(xs), std::cend(xs), basis, f);      \
       }                                                                        \
       else                                                                     \
       {                                                                        \
         auto const head = std::cbegin(xs);                                     \
-                                                                               \
-        return std::accumulate(                                                \
-                 std::next(head), std::cend(xs), *head, [](auto&& x, auto&& y) \
-                 {                                                             \
-                   return x SYMBOL y;                                          \
-                 });                                                           \
+        return std::accumulate(std::next(head), std::cend(xs), *head, f);      \
       }                                                                        \
     })
 
@@ -1769,9 +1763,8 @@ inline namespace kernel
 
     for (auto const& code : codes)
     {
-      boost::iostreams::stream<boost::iostreams::basic_array_source<char>> port {
-        code.begin(), code.size()
-      };
+      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
+      std::stringstream port { std::string(code) };
 
       for (let e = read(port); e != eof_object; e = read(port))
       {
