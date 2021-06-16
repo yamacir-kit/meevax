@@ -19,6 +19,7 @@ inline namespace memory
       newly_allocated = 0;
 
       threshold = std::numeric_limits<std::size_t>::max();
+      // threshold = 1024 * 1024; // = 1 MiB
 
       std::cout << header(__func__) << "ready." << std::endl;
     }
@@ -65,11 +66,8 @@ meevax::void_pointer operator new(std::size_t const size, meevax::collector & gc
 {
   auto const lock = gc.lock();
 
-  // std::cout << meevax::header(__func__) << "allocating " << size << " bytes of object (" << (gc.newly_allocated + size) << ", " << gc.size() << ")" << std::endl;
-
   if (gc.newly_allocated += size; gc.threshold < gc.newly_allocated)
   {
-    // std::cout << meevax::header(__func__) << "exceeds threthold => invoke collector." << std::endl;
     gc.collect();
   }
 

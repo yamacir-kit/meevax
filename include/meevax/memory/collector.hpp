@@ -52,11 +52,10 @@ inline namespace memory
         collectables[this] = collector::reset(derived, deallocate);
       }
 
-      template <typename P>
-      void reset(P const derived)
+      template <typename Pointer>
+      void reset(Pointer const derived)
       {
-        using element_type = typename std::pointer_traits<P>::element_type;
-        reset(derived, deallocator<element_type>::deallocate);
+        reset(derived, deallocator<typename std::pointer_traits<Pointer>::element_type>::deallocate);
       }
     };
 
@@ -71,7 +70,6 @@ inline namespace memory
     static inline std::size_t newly_allocated;
 
     static inline std::size_t threshold;
-    // static inline std::size_t threshold = 1024 * 1024; // = 1 MiB
 
   public: /* ---- CONSTRUCTORS AND DESTRUCTORS ------------------------------ */
 
