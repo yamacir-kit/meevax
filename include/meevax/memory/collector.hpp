@@ -76,9 +76,11 @@ inline namespace memory
     explicit collector();
 
     explicit collector(collector &&) = delete;
+
     explicit collector(collector const&) = delete;
 
     collector & operator =(collector &&) = delete;
+
     collector & operator =(collector const&) = delete;
 
     ~collector();
@@ -130,54 +132,6 @@ inline namespace memory
       }
     }
 
-    // NOTE: v1
-    // void traverse(region::pointer const root)
-    // {
-    //   // std::size_t size = 0;
-    //
-    //   if (root and not root->marked())
-    //   {
-    //     root->mark();
-    //
-    //     for (auto && [x, region] : roots)
-    //     {
-    //       // std::cout << "\r\x1b[K; traverse\t\t; [" << ++size << "/" << std::size(roots) << "] (" << count() << " marked)" << std::flush;
-    //
-    //       if (root->controls(x))
-    //       {
-    //         traverse(region);
-    //       }
-    //     }
-    //   }
-    // }
-
-    // NOTE: v2
-    // void traverse(region::pointer const node)
-    // {
-    //   if (node and not node->marked())
-    //   {
-    //     node->mark();
-    //
-    //     auto iter = roots.lower_bound(static_cast<root::pointer>(node->base));
-    //
-    //     if (iter != std::end(roots))
-    //     {
-    //       if (auto && [x, region] = *iter; node->controls(x))
-    //       {
-    //         traverse(region);
-    //       }
-    //
-    //       ++iter;
-    //     }
-    //
-    //     for (; iter != std::end(roots) and node->controls(iter->first); ++iter)
-    //     {
-    //       traverse(iter->second);
-    //     }
-    //   }
-    // }
-
-    // NOTE: v3
     void traverse(region::pointer const the_region)
     {
       if (the_region and not the_region->marked())
@@ -198,44 +152,18 @@ inline namespace memory
     {
       marker::toggle();
 
-      // std::size_t size = 0;
-
       for (auto [x, region] : collectables)
       {
-        // std::cout << "\r\x1b[K; mark\t\t\t; [" << ++size << "/" << std::size(collectables) << "] (" << count() << " marked)" << std::flush;
-
         if (region and not region->marked() and is_root(x)) // = is_unmarked_root
         {
           traverse(region);
         }
       }
-
-      // std::cout << std::endl;
     }
 
     auto sweep()
     {
-      // std::size_t size = std::size(regions);
-
-      // std::size_t deleted = 0;
-      // std::size_t skipped = 0;
-      // std::size_t remains = 0;
-
-      for (auto iter = std::begin(regions); iter != std::end(regions);
-           // std::cout << "\r\x1b[K; sweep\t\t\t; ["
-           //           << std::distance(std::begin(regions), iter)
-           //           << "/"
-           //           << std::size(regions)
-           //           << "] ("
-           //           << size
-           //           << " => "
-           //           << std::size(regions)
-           //           << ")"
-           //           // << ", " << "deleted = " << deleted
-           //           // << ", " << "skipped = " << skipped
-           //           // << ", " << "remains = " << remains
-           //           << std::flush
-                     )
+      for (auto iter = std::begin(regions); iter != std::end(regions); )
       {
         assert(*iter);
 
@@ -245,21 +173,16 @@ inline namespace memory
           {
             delete c;
             iter = regions.erase(iter);
-            // ++deleted;
             continue;
           }
           else
           {
-            // ++skipped;
             c->mark();
           }
         }
 
-        // ++remains;
         ++iter;
       }
-
-      // std::cout << std::endl;
     }
 
     void collect()
@@ -317,16 +240,6 @@ inline namespace memory
                return each and each->marked();
              });
     }
-
-    auto print() const
-    {
-      std::cout << "; GC-DETAIL" << std::endl;
-      std::cout << ";   collectables" << std::endl;
-      std::cout << ";     size: " << std::size(collectables) << std::endl;
-      std::cout << ";   regions" << std::endl;
-      std::cout << ";     size: " << std::size(regions) << std::endl;
-    }
-
   } static gc;
 } // namespace memory
 } // namespace meevax

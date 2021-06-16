@@ -20,8 +20,6 @@ inline namespace memory
 
       threshold = std::numeric_limits<std::size_t>::max();
       // threshold = 1024 * 1024; // = 1 MiB
-
-      std::cout << header(__func__) << "ready." << std::endl;
     }
   }
 
@@ -29,16 +27,8 @@ inline namespace memory
   {
     if (not --count)
     {
-      std::cout << header(__func__) << "collecting objects" << std::endl;
-
-      auto const collectables_size = std::size(collectables);
-      auto const regions_size      = std::size(regions);
-
       collect();
       collect(); // ???
-
-      std::cout << header("")       << "  collectables = " << collectables_size << " => " << std::size(collectables) << "\n"
-                << header("")       << "  regions = " << regions_size << " => " << std::size(regions) << std::endl;
 
       // for (auto iter = std::begin(regions); iter != std::end(regions); )
       // {
