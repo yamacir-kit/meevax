@@ -24,6 +24,7 @@ inline namespace memory
     static inline std::mutex resource;
 
   public:
+
     static auto lock()
     {
       return std::unique_lock(resource);
@@ -86,6 +87,7 @@ inline namespace memory
     ~collector();
 
   public:
+
     static auto find(void_pointer const x)
     {
       const auto dummy = std::make_unique<region>(x, 0);
@@ -196,6 +198,24 @@ inline namespace memory
         collecting = false;
 
         newly_allocated = 0;
+      }
+    }
+
+    void clear()
+    {
+      for (auto iter = std::begin(regions); iter != std::end(regions); )
+      {
+        assert(*iter);
+
+        if (region::pointer region = *iter; region->assigned())
+        {
+          delete region;
+          iter = regions.erase(iter);
+        }
+        else
+        {
+          ++iter;
+        }
       }
     }
 

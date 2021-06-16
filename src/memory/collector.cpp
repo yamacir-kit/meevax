@@ -30,21 +30,6 @@ inline namespace memory
       collect();
       collect(); // ???
 
-      // for (auto iter = std::begin(regions); iter != std::end(regions); )
-      // {
-      //   assert(*iter);
-      //
-      //   if (region::pointer region = *iter; region->assigned())
-      //   {
-      //     delete region;
-      //     iter = regions.erase(iter);
-      //   }
-      //   else
-      //   {
-      //     ++iter;
-      //   }
-      // }
-
       assert(std::size(collectables) == 0);
       assert(std::size(regions) == 0);
     }
