@@ -24,9 +24,9 @@ inline namespace kernel
 
   using null = std::nullptr_t;
 
-  using object = pointer<pair>;
+  using object [[deprecated]] = pointer<pair>;
 
-  using let = object;
+  using let = pointer<pair>;
 
   using  input_port = std::istream;
   using output_port = std::ostream;

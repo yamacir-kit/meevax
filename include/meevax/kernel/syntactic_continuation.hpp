@@ -187,11 +187,11 @@ inline namespace kernel
       {
         write_to(standard_debug_port(), t, "\n");
 
-        for (let expression = read(port); expression != eof_object; expression = read(port))
+        for (let e = read(port); e != eof_object; e = read(port))
         {
-          WRITE_DEBUG(expression);
+          WRITE_DEBUG(e);
 
-          evaluate(expression);
+          evaluate(e);
         }
 
         return unspecified;
@@ -307,7 +307,7 @@ inline namespace kernel
 
     SYNTAX(importation)
     {
-      auto importation = [&](const object& xs)
+      auto importation = [&](let const& xs)
       {
         assert(xs.is<syntactic_continuation>());
 

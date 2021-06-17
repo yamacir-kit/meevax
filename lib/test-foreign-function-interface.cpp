@@ -12,12 +12,12 @@ extern "C"
 
     std::size_t count { 0 };
 
-    for (const object& each : xs)
+    for (let const& each : xs)
     {
       std::cout << "; [" << count++ << "] is " << each << " (C++ typename " << each.type().name() << ")" << std::endl;
     }
 
-    for (const object& each : xs)
+    for (let const& each : xs)
     {
       if (each.is<exact_integer>())
       {

@@ -35,6 +35,7 @@ inline namespace memory
       using pointer = typename std::add_pointer<collectable>::type;
 
     protected:
+
       explicit collectable()
       {
         auto const locking = lock();

@@ -107,9 +107,10 @@ inline namespace kernel
       newline();
 
       SECTION("Sequence:");
-      write_line("  1. ", BOLD("Configure"));
-      write_line("  2. ", BOLD("Load"), " (for each ", UNDERLINE("file"), " specified)");
-      write_line("  3. ", BOLD("REPL"), " (when --interactive specified)");
+      write_line("  1. ", BOLD("Boot"));
+      write_line("  2. ", BOLD("Configure"));
+      write_line("  3. ", BOLD("Load"), " (for each ", UNDERLINE("file"), " specified)");
+      write_line("  4. ", BOLD("REPL"), " (when --interactive specified)");
       newline();
 
       SECTION("Examples:");

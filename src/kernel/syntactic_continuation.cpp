@@ -1226,7 +1226,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("throw", [](let const& xs) -> object
+    define<procedure>("throw", [](let const& xs) -> let
     {
       throw car(xs);
     });
@@ -1657,7 +1657,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs) -> object
+    define<procedure>("emergency-exit", [](let const& xs) -> let
     {
       if (xs.is<null>() or car(xs) == t)
       {

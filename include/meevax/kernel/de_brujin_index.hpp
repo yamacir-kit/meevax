@@ -9,7 +9,7 @@ inline namespace kernel
 {
   template <typename Comparator = default_equivalence_comparator>
   class de_bruijn_index
-    : public object
+    : public let
   {
     bool variadic;
 
@@ -18,10 +18,10 @@ inline namespace kernel
 
     template <typename... Ts>
     explicit de_bruijn_index(Ts&&... xs)
-      : object { lookup(std::forward<decltype(xs)>(xs)...) }
+      : let { lookup(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    let lookup(object const& value, object const& frames)
+    let lookup(let const& value, let const& frames)
     {
       std::size_t layer = 0;
 

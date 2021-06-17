@@ -149,7 +149,7 @@ inline namespace kernel
       return eof_object;
     }
 
-    auto read(object const& x)
+    auto read(let const& x)
     {
       if (x.is_polymorphically<input_port>())
       {

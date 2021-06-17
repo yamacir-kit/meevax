@@ -57,22 +57,22 @@ inline namespace kernel
   };
 
   // TODO Rename to 'cons'?
-  using resource = std::allocator<object>;
+  using resource = std::allocator<let>;
 
   template <typename T, typename... Ts>
   inline constexpr decltype(auto) make(Ts&&... xs)
   {
-    return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
+    return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
   inline constexpr auto make(T&& x)
   {
-    return object::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
+    return let::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
-  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<object const>, typename std::decay<T>::type>;
+  template <typename T> using is_object    = std::is_base_of<                       let       , typename std::decay<T>::type>;
+  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<let const>, typename std::decay<T>::type>;
 
   auto unwrap = [](auto&& x) -> decltype(auto)
   {
