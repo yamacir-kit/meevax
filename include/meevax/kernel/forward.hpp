@@ -17,8 +17,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <template <typename...> typename Pointer, typename T>
+  class heterogeneous;
+
   template <typename T>
-  class pointer;
+  using pointer = heterogeneous<root_pointer, T>;
 
   struct pair;
 

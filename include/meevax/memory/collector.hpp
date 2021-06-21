@@ -190,7 +190,7 @@ inline namespace memory
 
     auto collect()
     {
-      auto const size = std::size(regions);
+      auto const size = regions.size();
 
       if (auto const locking = lock(); not collecting)
       {
@@ -204,7 +204,7 @@ inline namespace memory
         newly_allocated = 0;
       }
 
-      return size - std::size(regions);
+      return size - regions.size();
     }
 
     void clear()

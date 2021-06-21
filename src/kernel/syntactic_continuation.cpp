@@ -1804,7 +1804,12 @@ inline namespace kernel
       return unspecified;
     });
 
-    define<procedure>("gc-collect", [](auto&& xs)
+    define<procedure>("gc-size", [](auto&&)
+    {
+      return make<exact_integer>(gc.size());
+    });
+
+    define<procedure>("gc-collect", [](auto&&)
     {
       return make<exact_integer>(gc.collect());
     });

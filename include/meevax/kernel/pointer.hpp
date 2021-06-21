@@ -11,9 +11,8 @@ namespace meevax
 {
 inline namespace kernel
 {
-  // TODO: RENAME TO cell
-  template <typename T>
-  class pointer : public root_pointer<T>
+  template <template <typename...> typename Pointer, typename T>
+  class heterogeneous : public Pointer<T>
   {
     /* ---- Binder -------------------------------------------------------------
      *
@@ -41,7 +40,7 @@ inline namespace kernel
         return typeid(B);
       }
 
-      bool eqv(pointer const& x) const override
+      bool eqv(heterogeneous const& x) const override
       {
         if constexpr (is_equality_comparable<B>::value)
         {
@@ -61,16 +60,16 @@ inline namespace kernel
       }
 
       #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                             \
-      auto operator SYMBOL(pointer const& x) const -> RESULT override          \
+      auto operator SYMBOL(heterogeneous const& x) const -> RESULT override    \
       {                                                                        \
         return delay<FUNCTOR>().yield<RESULT>(static_cast<B const&>(*this), x); \
       } static_assert(true)
 
-      BOILERPLATE(+, pointer, std::plus<void>);
-      BOILERPLATE(-, pointer, std::minus<void>);
-      BOILERPLATE(*, pointer, std::multiplies<void>);
-      BOILERPLATE(/, pointer, std::divides<void>);
-      BOILERPLATE(%, pointer, std::modulus<void>);
+      BOILERPLATE(+, heterogeneous, std::plus<void>);
+      BOILERPLATE(-, heterogeneous, std::minus<void>);
+      BOILERPLATE(*, heterogeneous, std::multiplies<void>);
+      BOILERPLATE(/, heterogeneous, std::divides<void>);
+      BOILERPLATE(%, heterogeneous, std::modulus<void>);
 
       BOILERPLATE(==, bool, std::equal_to<void>);
       BOILERPLATE(!=, bool, std::not_equal_to<void>);
@@ -84,18 +83,18 @@ inline namespace kernel
 
   public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
-    using root_pointer<T>::root_pointer;
+    using Pointer<T>::Pointer;
 
     template <typename B, typename... Ts, REQUIRES(std::is_compound<B>)>
     static auto allocate(Ts&&... xs)
     {
       if constexpr (std::is_same<B, T>::value)
       {
-        return static_cast<pointer>(new (gc) T(std::forward<decltype(xs)>(xs)...));
+        return static_cast<heterogeneous>(new (gc) T(std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        return static_cast<pointer>(new (gc) binder<B>(std::forward<decltype(xs)>(xs)...));
+        return static_cast<heterogeneous>(new (gc) binder<B>(std::forward<decltype(xs)>(xs)...));
       }
     }
 
@@ -103,7 +102,7 @@ inline namespace kernel
 
     decltype(auto) type() const
     {
-      return *this ? root_pointer<T>::load().type() : typeid(null);
+      return *this ? Pointer<T>::load().type() : typeid(null);
     }
 
     template <typename U>
@@ -126,7 +125,7 @@ inline namespace kernel
     template <typename U>
     auto is_polymorphically() const
     {
-      return dynamic_cast<U const*>(root_pointer<T>::get()) != nullptr;
+      return dynamic_cast<U const*>(Pointer<T>::get()) != nullptr;
     }
 
   public: /* ---- ACCESSORS ------------------------------------------------- */
@@ -134,34 +133,35 @@ inline namespace kernel
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
     {
-      if (auto * p = dynamic_cast<U *>(root_pointer<T>::get()); p)
+      if (auto * p = dynamic_cast<U *>(Pointer<T>::get()); p)
       {
         return *p;
       }
       else
       {
         throw make_error(
-          "no viable conversion from ", demangle(root_pointer<T>::load().type()), " to ", demangle(typeid(U)));
+          "no viable conversion from ", demangle(Pointer<T>::load().type()), " to ", demangle(typeid(U)));
       }
     }
 
-    bool eqv(pointer const& rhs) const
+    bool eqv(heterogeneous const& rhs) const
     {
-      return type() == rhs.type() and root_pointer<T>::load().eqv(rhs);
+      return type() == rhs.type() and Pointer<T>::load().eqv(rhs);
     }
   };
 
-  template <typename T>
-  auto operator <<(output_port & port, pointer<T> const& datum) -> output_port &
+  template <template <typename...> typename Pointer, typename T>
+  auto operator <<(output_port & port, heterogeneous<Pointer, T> const& datum) -> output_port &
   {
     return (datum.template is<null>() ? port << magenta << "()" : datum.load().write_to(port)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
-  template <typename T, typename U>                                            \
-  decltype(auto) operator SYMBOL(pointer<T> const& a, pointer<U> const& b)     \
+  template <template <typename...> typename Pointer, typename T>               \
+  decltype(auto) operator SYMBOL(heterogeneous<Pointer, T> const& a,           \
+                                 heterogeneous<Pointer, T> const& b)           \
   {                                                                            \
-    if (a && b)                                                                \
+    if (a and b)                                                               \
     {                                                                          \
       return a.load() SYMBOL b;                                                \
     }                                                                          \
