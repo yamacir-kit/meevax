@@ -20,6 +20,7 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
 
+  // TODO REMOVE THIS ALIAS
   template <typename T>
   using pointer = heterogeneous<root_pointer, T>;
 
@@ -27,8 +28,10 @@ inline namespace kernel
 
   using null = std::nullptr_t;
 
+  // TODO using cell = heterogeneous<simple_pointer, pair>;
   using object [[deprecated]] = pointer<pair>;
 
+  // TODO using let = heterogeneous<root, pair>;
   using let = pointer<pair>;
 
   using  input_port = std::istream;

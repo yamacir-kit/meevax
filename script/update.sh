@@ -12,8 +12,7 @@ cd "$root/build"
 
 make uninstall
 
-# make -j"$(nproc)"
-make
+make -j"$(nproc)"
 
 sudo make install -j"$(nproc)"
 

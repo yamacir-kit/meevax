@@ -35,7 +35,7 @@ inline namespace kernel
 
       ~binder() override = default;
 
-      std::type_info const& type() const noexcept override
+      auto type() const noexcept -> std::type_info const& override
       {
         return typeid(B);
       }
@@ -100,7 +100,7 @@ inline namespace kernel
 
   public: /* ---- TYPE PREDICATES ------------------------------------------- */
 
-    decltype(auto) type() const
+    auto type() const -> decltype(auto)
     {
       return *this ? Pointer<T>::load().type() : typeid(null);
     }
@@ -113,9 +113,7 @@ inline namespace kernel
 
     template <typename U,
               typename std::enable_if<
-                std::is_null_pointer<
-                  typename std::decay<U>::type
-                >::value
+                std::is_null_pointer<typename std::decay<U>::type>::value
               >::type = 0>
     auto is() const
     {
@@ -158,8 +156,8 @@ inline namespace kernel
 
   #define BOILERPLATE(SYMBOL)                                                  \
   template <template <typename...> typename Pointer, typename T>               \
-  decltype(auto) operator SYMBOL(heterogeneous<Pointer, T> const& a,           \
-                                 heterogeneous<Pointer, T> const& b)           \
+  auto operator SYMBOL(heterogeneous<Pointer, T> const& a,                     \
+                       heterogeneous<Pointer, T> const& b) -> decltype(auto)   \
   {                                                                            \
     if (a and b)                                                               \
     {                                                                          \
