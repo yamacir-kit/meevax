@@ -188,11 +188,14 @@ inline namespace memory
       }
     }
 
-    void collect()
+    auto collect()
     {
+      auto const size = std::size(regions);
+
       if (auto const locking = lock(); not collecting)
       {
         collecting = true;
+
 
         mark(), sweep();
 
@@ -200,6 +203,8 @@ inline namespace memory
 
         newly_allocated = 0;
       }
+
+      return size - std::size(regions);
     }
 
     void clear()

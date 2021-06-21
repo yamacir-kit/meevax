@@ -1803,6 +1803,11 @@ inline namespace kernel
       std::cout << car(xs).type().name() << std::endl;
       return unspecified;
     });
+
+    define<procedure>("gc-collect", [](auto&& xs)
+    {
+      return make<exact_integer>(gc.collect());
+    });
   }
 
   static std::size_t count = 0;
