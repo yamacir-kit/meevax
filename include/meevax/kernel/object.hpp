@@ -10,12 +10,14 @@ inline namespace kernel
   template <typename T>
   struct alignas(sizeof(std::uintptr_t)) top
   {
+    using cell = heterogeneous<root_pointer, T>;
+
     virtual auto type() const noexcept -> std::type_info const&
     {
       return typeid(T);
     }
 
-    virtual bool eqv(pointer<T> const& x) const
+    virtual bool eqv(cell const& x) const
     {
       if constexpr (is_equality_comparable<T>::value)
       {
@@ -35,16 +37,16 @@ inline namespace kernel
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
-    virtual auto operator SYMBOL(pointer<T> const& x) const -> RESULT          \
+    virtual auto operator SYMBOL(cell const& x) const -> RESULT                \
     {                                                                          \
       return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
     } static_assert(true)
 
-    BOILERPLATE(+, pointer<T>, std::plus<void>);
-    BOILERPLATE(-, pointer<T>, std::minus<void>);
-    BOILERPLATE(*, pointer<T>, std::multiplies<void>);
-    BOILERPLATE(/, pointer<T>, std::divides<void>);
-    BOILERPLATE(%, pointer<T>, std::modulus<void>);
+    BOILERPLATE(+, cell, std::plus<void>);
+    BOILERPLATE(-, cell, std::minus<void>);
+    BOILERPLATE(*, cell, std::multiplies<void>);
+    BOILERPLATE(/, cell, std::divides<void>);
+    BOILERPLATE(%, cell, std::modulus<void>);
 
     BOILERPLATE(==, bool, std::equal_to<void>);
     BOILERPLATE(!=, bool, std::not_equal_to<void>);

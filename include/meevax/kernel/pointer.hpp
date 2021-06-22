@@ -14,15 +14,6 @@ inline namespace kernel
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous : public Pointer<T>
   {
-    /* ---- Binder -------------------------------------------------------------
-     *
-     *  The object binder is the actual data pointed to by the pointer type. To
-     *  handle all types uniformly, the binder inherits type T and uses dynamic
-     *  polymorphism. This provides access to the bound type ID and its
-     *  instances. However, the performance is inferior due to the heavy use of
-     *  dynamic cast as a price for convenience.
-     *
-     * ---------------------------------------------------------------------- */
     template <typename B>
     struct binder
       : public virtual T
