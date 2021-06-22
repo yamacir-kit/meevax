@@ -10,7 +10,7 @@ inline namespace kernel
   template <typename T>
   struct alignas(sizeof(std::uintptr_t)) top
   {
-    using cell = heterogeneous<root_pointer, T>;
+    using cell = heterogeneous<root, T>;
 
     virtual auto type() const noexcept -> std::type_info const&
     {
@@ -57,9 +57,6 @@ inline namespace kernel
 
     #undef BOILERPLATE
   };
-
-  // TODO Rename to 'cons'?
-  using resource = std::allocator<let>;
 
   template <typename T, typename... Ts>
   inline constexpr decltype(auto) make(Ts&&... xs)

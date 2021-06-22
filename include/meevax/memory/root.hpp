@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_MEMORY_ROOT_POINTER_HPP
-#define INCLUDED_MEEVAX_MEMORY_ROOT_POINTER_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_ROOT_HPP
+#define INCLUDED_MEEVAX_MEMORY_ROOT_HPP
 
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/simple_pointer.hpp>
@@ -9,7 +9,7 @@ namespace meevax
 inline namespace memory
 {
   template <typename T>
-  struct root_pointer
+  struct root
     : protected collector::collectable
     , public simple_pointer<T>
   {
@@ -17,24 +17,24 @@ inline namespace memory
 
   public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
-    explicit root_pointer(std::nullptr_t = nullptr)
+    explicit root(std::nullptr_t = nullptr)
       : simple_pointer<T> {}
     {}
 
-    explicit root_pointer(pointer const data)
+    explicit root(pointer const data)
       : simple_pointer<T> { data }
     {
       reset(data);
     }
 
-    explicit root_pointer(root_pointer const& p)
+    explicit root(root const& p)
       : simple_pointer<T> { p.get() }
     {
       reset(p.get());
     }
 
     template <typename U>
-    explicit root_pointer(root_pointer<U> const& p)
+    explicit root(root<U> const& p)
       : simple_pointer<T> { p.get() }
     {
       reset(p.get());
@@ -50,20 +50,20 @@ inline namespace memory
 
   public: /* ---- OPERATOR OVERLOADS ---------------------------------------- */
 
-    auto & operator =(root_pointer const& p)
+    auto & operator =(root const& p)
     {
       reset(p.get());
       return *this;
     }
 
     template <typename U>
-    auto & operator =(root_pointer<U> const& p)
+    auto & operator =(root<U> const& p)
     {
       reset(p.get());
       return *this;
     }
 
-    void swap(root_pointer & other)
+    void swap(root & other)
     {
       auto const copy = simple_pointer<T>::get();
       reset(other.get());
@@ -73,4 +73,4 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_ROOT_POINTER_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_ROOT_HPP

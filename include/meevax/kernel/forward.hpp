@@ -22,7 +22,7 @@ inline namespace kernel
 
   struct pair;
 
-  using let = heterogeneous<root_pointer, pair>;
+  using let = heterogeneous<root, pair>;
 
   using null = std::nullptr_t;
 
