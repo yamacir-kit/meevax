@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
+#include <cstddef>
 #include <meevax/kernel/pointer.hpp>
 
 namespace meevax
@@ -21,9 +22,14 @@ inline namespace kernel
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        auto const* p = dynamic_cast<T const*>(x.get());
-
-        return p and *p == static_cast<T const&>(*this);
+        if (auto const* address = dynamic_cast<T const*>(x.get()); address)
+        {
+          return *address == static_cast<T const&>(*this);
+        }
+        else
+        {
+          return std::is_same<T, std::nullptr_t>::value;
+        }
       }
       else
       {
@@ -42,17 +48,17 @@ inline namespace kernel
       return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
     } static_assert(true)
 
-    BOILERPLATE(+, cell, std::plus<void>);
-    BOILERPLATE(-, cell, std::minus<void>);
+    BOILERPLATE(+, cell, std::plus      <void>);
+    BOILERPLATE(-, cell, std::minus     <void>);
     BOILERPLATE(*, cell, std::multiplies<void>);
-    BOILERPLATE(/, cell, std::divides<void>);
-    BOILERPLATE(%, cell, std::modulus<void>);
+    BOILERPLATE(/, cell, std::divides   <void>);
+    BOILERPLATE(%, cell, std::modulus   <void>);
 
-    BOILERPLATE(==, bool, std::equal_to<void>);
-    BOILERPLATE(!=, bool, std::not_equal_to<void>);
-    BOILERPLATE(<,  bool, std::less<void>);
-    BOILERPLATE(<=, bool, std::less_equal<void>);
-    BOILERPLATE(>,  bool, std::greater<void>);
+    BOILERPLATE(!=, bool, std::not_equal_to <void>);
+    BOILERPLATE(<,  bool, std::less         <void>);
+    BOILERPLATE(<=, bool, std::less_equal   <void>);
+    BOILERPLATE(==, bool, std::equal_to     <void>);
+    BOILERPLATE(>,  bool, std::greater      <void>);
     BOILERPLATE(>=, bool, std::greater_equal<void>);
 
     #undef BOILERPLATE

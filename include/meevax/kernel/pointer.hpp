@@ -1,6 +1,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
+#include <cstddef>
 #include <meevax/functional/compose.hpp>
 #include <meevax/memory/root.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
@@ -11,33 +12,38 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <template <typename...> typename Pointer, typename T>
-  class heterogeneous : public Pointer<T>
+  template <template <typename...> typename Pointer, typename Top>
+  class heterogeneous : public Pointer<Top>
   {
-    template <typename B>
+    template <typename Bound>
     struct binder
-      : public virtual T
-      , public B
+      : public virtual Top
+      , public Bound
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
-        : std::conditional<std::is_base_of<T, B>::value, T, B>::type { std::forward<decltype(xs)>(xs)... }
+        : std::conditional<std::is_base_of<Top, Bound>::value, Top, Bound>::type { std::forward<decltype(xs)>(xs)... }
       {}
 
       ~binder() override = default;
 
       auto type() const noexcept -> std::type_info const& override
       {
-        return typeid(B);
+        return typeid(Bound);
       }
 
       bool eqv(heterogeneous const& x) const override
       {
-        if constexpr (is_equality_comparable<B>::value)
+        if constexpr (is_equality_comparable<Bound>::value)
         {
-          auto const* p = dynamic_cast<B const*>(x.get());
-
-          return p and *p == static_cast<B const&>(*this);
+          if (auto const* address = dynamic_cast<Bound const*>(x.get()); address)
+          {
+            return *address == static_cast<Bound const&>(*this);
+          }
+          else
+          {
+            return std::is_same<Bound, std::nullptr_t>::value;
+          }
         }
         else
         {
@@ -47,13 +53,13 @@ inline namespace kernel
 
       auto write_to(std::ostream & port) const -> std::ostream & override
       {
-        return delay<write>().yield<decltype(port)>(port, static_cast<B const&>(*this));
+        return delay<write>().yield<decltype(port)>(port, static_cast<Bound const&>(*this));
       }
 
-      #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                             \
+      #define BOILERPLATE(SYMBOL, RESULT, FUNCTION)                            \
       auto operator SYMBOL(heterogeneous const& x) const -> RESULT override    \
       {                                                                        \
-        return delay<FUNCTOR>().yield<RESULT>(static_cast<B const&>(*this), x); \
+        return delay<FUNCTION>().yield<RESULT>(static_cast<Bound const&>(*this), x); \
       } static_assert(true)
 
       BOILERPLATE(+, heterogeneous, std::plus      <void>);
@@ -74,18 +80,18 @@ inline namespace kernel
 
   public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
-    using Pointer<T>::Pointer;
+    using Pointer<Top>::Pointer;
 
-    template <typename B, typename... Ts, REQUIRES(std::is_compound<B>)>
+    template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
     static auto allocate(Ts&&... xs)
     {
-      if constexpr (std::is_same<B, T>::value)
+      if constexpr (std::is_same<Bound, Top>::value)
       {
-        return static_cast<heterogeneous>(new (gc) T(std::forward<decltype(xs)>(xs)...));
+        return static_cast<heterogeneous>(new (gc) Top(std::forward<decltype(xs)>(xs)...));
       }
       else
       {
-        return static_cast<heterogeneous>(new (gc) binder<B>(std::forward<decltype(xs)>(xs)...));
+        return static_cast<heterogeneous>(new (gc) binder<Bound>(std::forward<decltype(xs)>(xs)...));
       }
     }
 
@@ -93,7 +99,7 @@ inline namespace kernel
 
     auto type() const -> decltype(auto)
     {
-      return *this ? Pointer<T>::load().type() : typeid(null);
+      return *this ? Pointer<Top>::load().type() : typeid(null);
     }
 
     template <typename U>
@@ -114,7 +120,7 @@ inline namespace kernel
     template <typename U>
     auto is_polymorphically() const
     {
-      return dynamic_cast<U const*>(Pointer<T>::get()) != nullptr;
+      return dynamic_cast<U const*>(Pointer<Top>::get()) != nullptr;
     }
 
   public: /* ---- ACCESSORS ------------------------------------------------- */
@@ -122,33 +128,33 @@ inline namespace kernel
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
     {
-      if (auto * p = dynamic_cast<U *>(Pointer<T>::get()); p)
+      if (auto * p = dynamic_cast<U *>(Pointer<Top>::get()); p)
       {
         return *p;
       }
       else
       {
         throw make_error(
-          "no viable conversion from ", demangle(Pointer<T>::load().type()), " to ", demangle(typeid(U)));
+          "no viable conversion from ", demangle(Pointer<Top>::load().type()), " to ", demangle(typeid(U)));
       }
     }
 
     bool eqv(heterogeneous const& rhs) const
     {
-      return type() == rhs.type() and Pointer<T>::load().eqv(rhs);
+      return type() == rhs.type() and Pointer<Top>::load().eqv(rhs);
     }
   };
 
-  template <template <typename...> typename Pointer, typename T>
-  auto operator <<(output_port & port, heterogeneous<Pointer, T> const& datum) -> output_port &
+  template <template <typename...> typename Pointer, typename Top>
+  auto operator <<(std::ostream & port, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
   {
     return (datum.template is<null>() ? port << magenta << "()" : datum.load().write_to(port)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \
-  template <template <typename...> typename Pointer, typename T>               \
-  auto operator SYMBOL(heterogeneous<Pointer, T> const& a,                     \
-                       heterogeneous<Pointer, T> const& b) -> decltype(auto)   \
+  template <template <typename...> typename Pointer, typename Top>             \
+  auto operator SYMBOL(heterogeneous<Pointer, Top> const& a,                   \
+                       heterogeneous<Pointer, Top> const& b) -> decltype(auto) \
   {                                                                            \
     if (a and b)                                                               \
     {                                                                          \
