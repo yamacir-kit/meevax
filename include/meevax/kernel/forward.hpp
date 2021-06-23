@@ -22,6 +22,8 @@ inline namespace kernel
 
   struct pair;
 
+  using cell = heterogeneous<simple_pointer, pair>;
+
   using let = heterogeneous<root, pair>;
 
   using null = std::nullptr_t;

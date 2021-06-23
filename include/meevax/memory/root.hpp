@@ -17,7 +17,7 @@ inline namespace memory
 
   public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
-    explicit root(std::nullptr_t = nullptr)
+    explicit constexpr root(std::nullptr_t = nullptr)
       : simple_pointer<T> {}
     {}
 
@@ -42,32 +42,32 @@ inline namespace memory
 
   public: /* ---- ACCESSORS ------------------------------------------------- */
 
-    void reset(pointer const p = nullptr)
+    void reset(pointer const data = nullptr)
     {
-      simple_pointer<T>::reset(p);
+      simple_pointer<T>::reset(data);
       collectable::reset(simple_pointer<T>::get());
     }
 
   public: /* ---- OPERATOR OVERLOADS ---------------------------------------- */
 
-    auto & operator =(root const& p)
+    auto & operator =(root const& another)
     {
-      reset(p.get());
+      reset(another.get());
       return *this;
     }
 
     template <typename U>
-    auto & operator =(root<U> const& p)
+    auto & operator =(root<U> const& another)
     {
-      reset(p.get());
+      reset(another.get());
       return *this;
     }
 
-    void swap(root & other)
+    void swap(root & another)
     {
       auto const copy = simple_pointer<T>::get();
-      reset(other.get());
-      other.reset(copy);
+      reset(another.get());
+      another.reset(copy);
     }
   };
 } // namespace memory

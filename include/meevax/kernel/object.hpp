@@ -9,7 +9,7 @@ namespace meevax
 inline namespace kernel
 {
   template <typename T>
-  struct alignas(sizeof(std::uintptr_t)) top
+  struct top
   {
     using cell = heterogeneous<root, T>;
 
