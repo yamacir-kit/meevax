@@ -2,7 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
 #include <cstddef>
-#include <meevax/kernel/pointer.hpp>
+#include <meevax/kernel/heterogeneous.hpp>
 
 namespace meevax
 {
@@ -65,7 +65,7 @@ inline namespace kernel
   };
 
   template <typename T, typename... Ts>
-  inline constexpr decltype(auto) make(Ts&&... xs)
+  inline constexpr auto make(Ts&&... xs) -> decltype(auto)
   {
     return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
