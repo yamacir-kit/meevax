@@ -41,7 +41,7 @@ meevax::void_pointer operator new(std::size_t const size, meevax::collector & gc
 {
   auto const lock = gc.lock();
 
-  if (gc.newly_allocated += size; gc.threshold < gc.newly_allocated)
+  if (gc.overflow(size))
   {
     gc.collect();
   }

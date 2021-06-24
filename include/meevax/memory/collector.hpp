@@ -25,7 +25,7 @@ inline namespace memory
 
   public:
 
-    static auto lock()
+    static auto lock() -> std::unique_lock<std::mutex>
     {
       return std::unique_lock(resource);
     }
@@ -60,7 +60,7 @@ inline namespace memory
       }
     };
 
-  public: /* ---- DATA MEMBERS ---------------------------------------------- */
+  private:
 
     static inline std::map<root::pointer, region::pointer> roots;
 
@@ -72,7 +72,7 @@ inline namespace memory
 
     static inline std::size_t threshold;
 
-  public: /* ---- CONSTRUCTORS AND DESTRUCTORS ------------------------------ */
+  public:
 
     explicit collector();
 
@@ -86,11 +86,11 @@ inline namespace memory
 
     ~collector();
 
-    static auto find(void_pointer const x)
+    static auto find(void_pointer const interior)
     {
-      const auto dummy = std::make_unique<region>(x, 0);
+      const auto dummy = std::make_unique<region>(interior, 0);
 
-      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).controls(x))
+      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).controls(interior))
       {
         return iter;
       }
@@ -230,16 +230,21 @@ inline namespace memory
       threshold = size;
     }
 
-    template <typename... Ts>
-    auto insert(Ts&&... xs) -> decltype(auto)
+    auto insert(void_pointer const base, std::size_t const size) -> decltype(auto)
     {
-      return regions.insert(new region(std::forward<decltype(xs)>(xs)...));
+      newly_allocated += size;
+      return regions.insert(new region(base, size));
     }
 
     template <typename... Ts>
     auto erase(Ts&&... xs) -> decltype(auto)
     {
       return regions.erase(std::forward<decltype(xs)>(xs)...);
+    }
+
+    auto overflow(std::size_t const size)
+    {
+      return threshold < newly_allocated + size;
     }
 
     static auto size()
