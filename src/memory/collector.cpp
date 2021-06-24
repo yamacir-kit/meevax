@@ -27,6 +27,13 @@ inline namespace memory
   {
     if (not --count)
     {
+      /* ---- NOTE -------------------------------------------------------------
+       *
+       *  We're using collect instead of clear to check that all objects can be
+       *  collected. If speed is a priority, clear should be used here.
+       *
+       * -------------------------------------------------------------------- */
+
       collect();
       collect(); // XXX: vector elements
 

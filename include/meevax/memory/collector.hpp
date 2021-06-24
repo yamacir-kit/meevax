@@ -21,15 +21,7 @@ inline namespace memory
 {
   class collector // A mark-and-sweep garbage collector.
   {
-    static inline std::mutex resource;
-
   public:
-
-    static auto lock() -> std::unique_lock<std::mutex>
-    {
-      return std::unique_lock(resource);
-    }
-
     struct root
     {
       using pointer = typename std::add_pointer<root>::type;
@@ -62,6 +54,8 @@ inline namespace memory
 
   private:
 
+    static inline std::mutex resource;
+
     static inline std::map<root::pointer, region::pointer> roots;
 
     static inline std::set<region::pointer> regions;
@@ -80,11 +74,54 @@ inline namespace memory
 
     explicit collector(collector const&) = delete;
 
+    ~collector();
+
     collector & operator =(collector &&) = delete;
 
     collector & operator =(collector const&) = delete;
 
-    ~collector();
+    void clear()
+    {
+      for (auto iter = std::begin(regions); iter != std::end(regions); )
+      {
+        assert(*iter);
+
+        if (region::pointer region = *iter; region->assigned())
+        {
+          delete region;
+          iter = regions.erase(iter);
+        }
+        else
+        {
+          ++iter;
+        }
+      }
+    }
+
+    auto collect()
+    {
+      auto const size = regions.size();
+
+      if (auto const locking = lock(); not collecting)
+      {
+        collecting = true;
+
+        mark(), sweep();
+
+        collecting = false;
+
+        newly_allocated = 0;
+      }
+
+      std::cout << header(__func__) << (size - regions.size()) << " objects collected." << std::endl;
+
+      return size - regions.size();
+    }
+
+    auto erase(decltype(regions)::iterator iter) -> decltype(auto)
+    {
+      return regions.erase(iter);
+    }
 
     static auto find(void_pointer const interior)
     {
@@ -100,10 +137,38 @@ inline namespace memory
       }
     }
 
-    template <typename... Ts>
-    auto is_root(Ts&&... xs) const
+    auto insert(void_pointer const base, std::size_t const size) -> decltype(auto)
     {
-      return find(std::forward<decltype(xs)>(xs)...) == std::end(regions);
+      newly_allocated += size;
+      return regions.insert(new region(base, size));
+    }
+
+    auto is_root(void_pointer const interior) const
+    {
+      return find(interior) == std::end(regions);
+    }
+
+    static auto lock() -> std::unique_lock<std::mutex>
+    {
+      return std::unique_lock(resource);
+    }
+
+    void mark()
+    {
+      marker::toggle();
+
+      for (auto [x, region] : roots)
+      {
+        if (region and not region->marked() and is_root(x)) // = is_unmarked_root
+        {
+          traverse(region);
+        }
+      }
+    }
+
+    auto overflow(std::size_t const size)
+    {
+      return threshold < newly_allocated + size;
     }
 
     static auto reset(void_pointer const derived, deallocator<void>::signature const deallocate) -> region::pointer
@@ -132,36 +197,18 @@ inline namespace memory
       }
     }
 
-    void traverse(region::pointer const the_region)
+    void reset_threshold(std::size_t const size = std::numeric_limits<std::size_t>::max())
     {
-      if (the_region and not the_region->marked())
-      {
-        the_region->mark();
-
-        auto lower = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->lower_bound()));
-        auto upper = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->upper_bound()));
-
-        for (auto iter = lower; iter != upper; ++iter)
-        {
-          traverse(iter->second);
-        }
-      }
+      auto const locking = lock();
+      threshold = size;
     }
 
-    auto mark()
+    auto size()
     {
-      marker::toggle();
-
-      for (auto [x, region] : roots)
-      {
-        if (region and not region->marked() and is_root(x)) // = is_unmarked_root
-        {
-          traverse(region);
-        }
-      }
+      return regions.size();
     }
 
-    auto sweep()
+    void sweep()
     {
       for (auto iter = std::begin(regions); iter != std::end(regions); )
       {
@@ -185,88 +232,20 @@ inline namespace memory
       }
     }
 
-    auto collect()
+    void traverse(region::pointer const the_region)
     {
-      auto const size = regions.size();
-
-      if (auto const locking = lock(); not collecting)
+      if (the_region and not the_region->marked())
       {
-        collecting = true;
+        the_region->mark();
 
+        auto lower = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->lower_bound()));
+        auto upper = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->upper_bound()));
 
-        mark(), sweep();
-
-        collecting = false;
-
-        newly_allocated = 0;
-      }
-
-      std::cout << header(__func__) << (size - regions.size()) << " objects collected." << std::endl;
-
-      return size - regions.size();
-    }
-
-    void clear()
-    {
-      for (auto iter = std::begin(regions); iter != std::end(regions); )
-      {
-        assert(*iter);
-
-        if (region::pointer region = *iter; region->assigned())
+        for (auto iter = lower; iter != upper; ++iter)
         {
-          delete region;
-          iter = regions.erase(iter);
-        }
-        else
-        {
-          ++iter;
+          traverse(iter->second);
         }
       }
-    }
-
-    void reset_threshold(std::size_t const size = std::numeric_limits<std::size_t>::max())
-    {
-      auto const locking = lock();
-      threshold = size;
-    }
-
-    auto insert(void_pointer const base, std::size_t const size) -> decltype(auto)
-    {
-      newly_allocated += size;
-      return regions.insert(new region(base, size));
-    }
-
-    template <typename... Ts>
-    auto erase(Ts&&... xs) -> decltype(auto)
-    {
-      return regions.erase(std::forward<decltype(xs)>(xs)...);
-    }
-
-    auto overflow(std::size_t const size)
-    {
-      return threshold < newly_allocated + size;
-    }
-
-    static auto size()
-    {
-      return regions.size();
-    }
-
-    auto count_unmarked_roots()
-    {
-      return std::count_if(std::begin(roots), std::end(roots), [](auto const& each)
-             {
-               auto const* const c = std::get<1>(each);
-               return c and c->marked();
-             });
-    }
-
-    auto count_unmarked_regions() const -> std::size_t
-    {
-      return std::count_if(std::begin(regions), std::end(regions), [](auto const& each)
-             {
-               return each and each->marked();
-             });
     }
   } static gc;
 } // namespace memory
