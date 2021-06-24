@@ -10,7 +10,7 @@ inline namespace memory
   {
     if (not count++)
     {
-      collectables = {};
+      roots = {};
 
       regions = {};
 
@@ -30,7 +30,7 @@ inline namespace memory
       collect();
       collect(); // XXX: vector elements
 
-      assert(std::size(collectables) == 0);
+      assert(std::size(roots) == 0);
       assert(std::size(regions) == 0);
     }
   }

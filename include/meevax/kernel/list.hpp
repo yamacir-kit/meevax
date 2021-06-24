@@ -84,7 +84,8 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, let>, std::is_convertible<U, let>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, let>,
+                                             std::is_convertible<U, let>)>
   inline decltype(auto) operator |(T&& x, U&& y)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));

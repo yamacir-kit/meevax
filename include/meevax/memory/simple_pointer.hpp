@@ -24,14 +24,10 @@ inline namespace memory
 
     using const_pointer = typename std::add_const<pointer>::type;
 
-  protected: /* ---- DATA MEMBERS ------------------------------------------- */
-
     pointer data;
 
-  public: /* ---- CONSTRUCTORS ---------------------------------------------- */
-
-    template <typename P = pointer>
-    explicit constexpr simple_pointer(typename std::pointer_traits<P>::pointer data = nullptr)
+    template <typename Pointer = pointer>
+    explicit constexpr simple_pointer(typename std::pointer_traits<Pointer>::pointer data = nullptr)
       : data { static_cast<pointer>(data) }
     {}
 
@@ -39,44 +35,18 @@ inline namespace memory
       : data { sp.get() }
     {}
 
-  public: /* ---- ACCESSORS ------------------------------------------------- */
-
-    constexpr pointer get() const noexcept
-    {
-      return data;
-    }
-
-    constexpr reference load() const noexcept
-    {
-      assert(get());
-      return *get();
-    }
-
-    auto & store(simple_pointer const& x) noexcept
-    {
-      data = x.get();
-      return *this;
-    }
-
-    pointer reset(pointer const p = nullptr) noexcept
-    {
-      return data = p;
-    }
-
-  public: /* ---- OPERATOR OVERLOADS ---------------------------------------- */
-
     template <typename... Ts>
-    decltype(auto) operator =(Ts&&... xs) noexcept
+    auto operator =(Ts&&... xs) noexcept -> decltype(auto)
     {
       return store(std::forward<decltype(xs)>(xs)...);
     }
 
-    decltype(auto) operator ->() const noexcept
+    auto operator ->() const noexcept -> decltype(auto)
     {
       return get();
     }
 
-    decltype(auto) operator *() const noexcept
+    auto operator *() const noexcept -> decltype(auto)
     {
       return load();
     }
@@ -85,16 +55,40 @@ inline namespace memory
     {
       return data != nullptr;
     }
+
+    constexpr auto get() const noexcept -> pointer
+    {
+      return data;
+    }
+
+    constexpr auto load() const noexcept -> reference
+    {
+      assert(data);
+      return *data;
+    }
+
+    auto reset(pointer const p = nullptr) noexcept -> pointer
+    {
+      return data = p;
+    }
+
+    auto store(simple_pointer const& x) noexcept -> auto &
+    {
+      data = x.get();
+      return *this;
+    }
   };
 
   template <typename T, typename U>
-  constexpr auto operator ==(simple_pointer<T> const& x, simple_pointer<U> const& y)
+  constexpr auto operator ==(simple_pointer<T> const& x,
+                             simple_pointer<U> const& y)
   {
     return x.get() == y.get();
   }
 
   template <typename T, typename U>
-  constexpr auto operator !=(simple_pointer<T> const& x, simple_pointer<U> const& y)
+  constexpr auto operator !=(simple_pointer<T> const& x,
+                             simple_pointer<U> const& y)
   {
     return x.get() != y.get();
   }

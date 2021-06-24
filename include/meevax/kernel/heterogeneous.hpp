@@ -83,7 +83,7 @@ inline namespace kernel
     using Pointer<Top>::Pointer;
 
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
-    static auto allocate(Ts&&... xs)
+    static auto allocate(Ts&&... xs) // TODO: -> typename std::add_pointer<Top>::type
     {
       if constexpr (std::is_same<Bound, Top>::value)
       {
@@ -128,9 +128,9 @@ inline namespace kernel
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
     {
-      if (auto * p = dynamic_cast<U *>(Pointer<Top>::get()); p)
+      if (auto * const address = dynamic_cast<U *>(Pointer<Top>::get()); address)
       {
-        return *p;
+        return *address;
       }
       else
       {

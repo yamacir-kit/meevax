@@ -10,12 +10,10 @@ inline namespace memory
 {
   template <typename T>
   struct root
-    : protected collector::collectable
+    : protected collector::root
     , public simple_pointer<T>
   {
     using pointer = typename simple_pointer<T>::pointer;
-
-  public: /* ---- CONSTRUCTORS ---------------------------------------------- */
 
     explicit constexpr root(std::nullptr_t = nullptr)
       : simple_pointer<T> {}
@@ -40,16 +38,6 @@ inline namespace memory
       reset(p.get());
     }
 
-  public: /* ---- ACCESSORS ------------------------------------------------- */
-
-    void reset(pointer const data = nullptr)
-    {
-      simple_pointer<T>::reset(data);
-      collectable::reset(simple_pointer<T>::get());
-    }
-
-  public: /* ---- OPERATOR OVERLOADS ---------------------------------------- */
-
     auto & operator =(root const& another)
     {
       reset(another.get());
@@ -61,6 +49,12 @@ inline namespace memory
     {
       reset(another.get());
       return *this;
+    }
+
+    void reset(pointer const data = nullptr)
+    {
+      simple_pointer<T>::reset(data);
+      collector::root::reset(simple_pointer<T>::get());
     }
 
     void swap(root & another)

@@ -30,28 +30,27 @@ inline namespace memory
       return std::unique_lock(resource);
     }
 
-    struct collectable
+    struct root
     {
-      using pointer = typename std::add_pointer<collectable>::type;
+      using pointer = typename std::add_pointer<root>::type;
 
     protected:
-
-      explicit collectable()
+      explicit root()
       {
         auto const locking = lock();
-        collectables.emplace(this, nullptr);
+        roots.emplace(this, nullptr);
       }
 
-      ~collectable()
+      ~root()
       {
         auto const locking = lock();
-        collectables.erase(this);
+        roots.erase(this);
       }
 
       void reset(void_pointer const derived, deallocator<void>::signature const deallocate)
       {
         auto const locking = lock();
-        collectables[this] = collector::reset(derived, deallocate);
+        roots[this] = collector::reset(derived, deallocate);
       }
 
       template <typename Pointer>
@@ -63,7 +62,7 @@ inline namespace memory
 
   public: /* ---- DATA MEMBERS ---------------------------------------------- */
 
-    static inline std::map<collectable::pointer, region::pointer> collectables;
+    static inline std::map<root::pointer, region::pointer> roots;
 
     static inline std::set<region::pointer> regions;
 
@@ -87,8 +86,6 @@ inline namespace memory
 
     ~collector();
 
-  public:
-
     static auto find(void_pointer const x)
     {
       const auto dummy = std::make_unique<region>(x, 0);
@@ -109,7 +106,7 @@ inline namespace memory
       return find(std::forward<decltype(xs)>(xs)...) == std::end(regions);
     }
 
-    static region::pointer reset(void_pointer const derived, deallocator<void>::signature const deallocate)
+    static auto reset(void_pointer const derived, deallocator<void>::signature const deallocate) -> region::pointer
     {
       if (not derived)
       {
@@ -141,8 +138,8 @@ inline namespace memory
       {
         the_region->mark();
 
-        auto lower = collectables.lower_bound(reinterpret_cast<collectable::pointer>(the_region->lower_bound()));
-        auto upper = collectables.lower_bound(reinterpret_cast<collectable::pointer>(the_region->upper_bound()));
+        auto lower = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->lower_bound()));
+        auto upper = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->upper_bound()));
 
         for (auto iter = lower; iter != upper; ++iter)
         {
@@ -155,7 +152,7 @@ inline namespace memory
     {
       marker::toggle();
 
-      for (auto [x, region] : collectables)
+      for (auto [x, region] : roots)
       {
         if (region and not region->marked() and is_root(x)) // = is_unmarked_root
         {
@@ -234,27 +231,25 @@ inline namespace memory
     }
 
     template <typename... Ts>
-    decltype(auto) insert(Ts&&... xs)
+    auto insert(Ts&&... xs) -> decltype(auto)
     {
       return regions.insert(new region(std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) erase(Ts&&... xs)
+    auto erase(Ts&&... xs) -> decltype(auto)
     {
       return regions.erase(std::forward<decltype(xs)>(xs)...);
     }
-
-  public: /* ---- DEBUG TOOLS ----------------------------------------------- */
 
     static auto size()
     {
       return regions.size();
     }
 
-    auto count_unmarked_collectables()
+    auto count_unmarked_roots()
     {
-      return std::count_if(std::begin(collectables), std::end(collectables), [](auto const& each)
+      return std::count_if(std::begin(roots), std::end(roots), [](auto const& each)
              {
                auto const* const c = std::get<1>(each);
                return c and c->marked();
