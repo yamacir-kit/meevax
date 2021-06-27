@@ -1776,6 +1776,34 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<4>)
   {
+    define<procedure>("disassemble", [](let const& xs)
+    {
+      if (0 < length(xs))
+      {
+        if (let const& f = car(xs); f.is<closure>())
+        {
+          disassemble(std::cout, car(f));
+        }
+      }
+
+      return default_output_port;
+    });
+
+    define<procedure>("gc-collect", [](auto&&)
+    {
+      return make<exact_integer>(gc.collect());
+    });
+
+    define<procedure>("gc-size", [](auto&&)
+    {
+      return make<exact_integer>(gc.size());
+    });
+
+    define<procedure>("ieee-float?", [](auto&&)
+    {
+      return std::numeric_limits<double>::is_iec559 ? t : f;
+    });
+
     define<procedure>("print", [](let const& xs)
     {
       for (let const& x : xs)
@@ -1790,28 +1818,16 @@ inline namespace kernel
         }
       }
 
-      return unspecified; // TODO standard-output-port
-    });
+      std::cout << std::endl;
 
-    define<procedure>("iec-60559?", [](auto&&)
-    {
-      return std::numeric_limits<double>::is_iec559 ? t : f;
+      return default_output_port;
     });
 
     define<procedure>("type-of", [](auto&& xs)
     {
       std::cout << car(xs).type().name() << std::endl;
-      return unspecified;
-    });
 
-    define<procedure>("gc-size", [](auto&&)
-    {
-      return make<exact_integer>(gc.size());
-    });
-
-    define<procedure>("gc-collect", [](auto&&)
-    {
-      return make<exact_integer>(gc.collect());
+      return default_output_port;
     });
   }
 

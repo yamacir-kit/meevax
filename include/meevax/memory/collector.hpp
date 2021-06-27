@@ -143,11 +143,6 @@ inline namespace memory
       return regions.insert(new region(base, size));
     }
 
-    auto is_root(void_pointer const interior) const
-    {
-      return find(interior) == std::end(regions);
-    }
-
     static auto lock() -> std::unique_lock<std::mutex>
     {
       return std::unique_lock(resource);
@@ -159,7 +154,7 @@ inline namespace memory
 
       for (auto [x, region] : roots)
       {
-        if (region and not region->marked() and is_root(x)) // = is_unmarked_root
+        if (region and not region->marked() and find(x) == std::end(regions))
         {
           traverse(region);
         }
@@ -214,17 +209,17 @@ inline namespace memory
       {
         assert(*iter);
 
-        if (region::pointer c = *iter; not c->marked())
+        if (region::pointer region = *iter; not region->marked())
         {
-          if (c->assigned())
+          if (region->assigned())
           {
-            delete c;
+            delete region;
             iter = regions.erase(iter);
             continue;
           }
           else
           {
-            c->mark();
+            region->mark();
           }
         }
 
