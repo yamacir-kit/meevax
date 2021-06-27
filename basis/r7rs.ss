@@ -168,17 +168,14 @@
              (error "current-input-port: not input-port-open" x))
             (else x)))))
 
-; (define current-output-port
-;   (make-parameter (standard-output-port)
-;     (lambda (x)
-;       (cond ((not (output-port? x))
-;              (error "current-output-port: not output-port" x))
-;             ((not (output-port-open? x))
-;              (error "current-output-port: not output-port-open" x))
-;             (else x)))))
-
-(define (current-output-port . ignore)
-  (standard-output-port))
+(define current-output-port
+  (make-parameter (standard-output-port)
+    (lambda (x)
+      (cond ((not (output-port? x))
+             (error "current-output-port: not output-port" x))
+            ((not (output-port-open? x))
+             (error "current-output-port: not output-port-open" x))
+            (else x)))))
 
 (define current-error-port
   (make-parameter (standard-error-port)
