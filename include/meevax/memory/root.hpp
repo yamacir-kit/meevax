@@ -20,20 +20,20 @@ inline namespace memory
     {}
 
     explicit root(pointer const data)
-      : simple_pointer<T> { data }
+      : simple_pointer<T> {}
     {
       reset(data);
     }
 
     explicit root(root const& p)
-      : simple_pointer<T> { p.get() }
+      : simple_pointer<T> {}
     {
       reset(p.get());
     }
 
     template <typename U>
     explicit root(root<U> const& p)
-      : simple_pointer<T> { p.get() }
+      : simple_pointer<T> {}
     {
       reset(p.get());
     }
@@ -43,16 +43,15 @@ inline namespace memory
       return store(another);
     }
 
-    template <typename U>
-    auto operator =(root<U> const& another) -> auto &
+    template <typename... Ts>
+    auto operator =(Ts&&... xs) -> decltype(auto)
     {
-      return store(another);
+      return store(std::forward<decltype(xs)>(xs)...);
     }
 
     void reset(pointer const data = nullptr)
     {
-      simple_pointer<T>::reset(data);
-      collector::root::reset(data);
+      collector::root::reset(simple_pointer<T>::reset(data));
     }
 
     auto store(root const& another) -> auto &

@@ -1,3 +1,5 @@
+#include <new>
+
 #include <meevax/memory/collector.hpp>
 
 namespace meevax
@@ -48,16 +50,27 @@ auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::poi
 {
   auto const lock = gc.lock();
 
-  if (gc.overflow(size))
+  if (auto data = ::operator new(size); data or not gc.overflow())
+  {
+    gc.insert(data, size);
+
+    return data;
+  }
+  else
   {
     gc.collect();
+
+    if (auto data = ::operator new(size); data) // RETRY
+    {
+      gc.insert(data, size);
+
+      return data;
+    }
+    else
+    {
+      throw std::bad_alloc();
+    }
   }
-
-  auto p = ::operator new(size);
-
-  gc.insert(p, size);
-
-  return p;
 }
 
 void operator delete(meevax::pointer<void> const p, meevax::collector & gc) noexcept

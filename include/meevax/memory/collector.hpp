@@ -157,7 +157,7 @@ inline namespace memory
       }
     }
 
-    auto overflow(std::size_t const size)
+    auto overflow(std::size_t const size = 0)
     {
       return threshold < newly_allocated + size;
     }

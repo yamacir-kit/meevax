@@ -163,6 +163,8 @@ inline namespace kernel
 
     let const evaluate(let const& expression)
     {
+      gc.collect();
+
       if (in_debug_mode())
       {
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
@@ -176,13 +178,7 @@ inline namespace kernel
         disassemble(standard_debug_port().as<output_port>(), c);
       }
 
-      let const evaluation = execute();
-
-      gc.collect();
-
-      return evaluation;
-
-      // return execute();
+      return execute();
     }
 
     auto load(path const& name) -> auto const&
