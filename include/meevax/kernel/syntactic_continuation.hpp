@@ -176,7 +176,13 @@ inline namespace kernel
         disassemble(standard_debug_port().as<output_port>(), c);
       }
 
-      return execute();
+      let const evaluation = execute();
+
+      gc.collect();
+
+      return evaluation;
+
+      // return execute();
     }
 
     auto load(path const& name) -> auto const&

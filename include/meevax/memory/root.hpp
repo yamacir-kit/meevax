@@ -38,23 +38,27 @@ inline namespace memory
       reset(p.get());
     }
 
-    auto & operator =(root const& another)
+    auto operator =(root const& another) -> auto &
     {
-      reset(another.get());
-      return *this;
+      return store(another);
     }
 
     template <typename U>
-    auto & operator =(root<U> const& another)
+    auto operator =(root<U> const& another) -> auto &
     {
-      reset(another.get());
-      return *this;
+      return store(another);
     }
 
     void reset(pointer const data = nullptr)
     {
       simple_pointer<T>::reset(data);
-      collector::root::reset(simple_pointer<T>::get());
+      collector::root::reset(data);
+    }
+
+    auto store(root const& another) -> auto &
+    {
+      reset(another.get());
+      return *this;
     }
 
     void swap(root & another)

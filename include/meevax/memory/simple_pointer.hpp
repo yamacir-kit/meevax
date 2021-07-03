@@ -41,7 +41,7 @@ inline namespace memory
       return store(std::forward<decltype(xs)>(xs)...);
     }
 
-    auto operator ->() const noexcept -> decltype(auto)
+    auto operator ->() const noexcept
     {
       return get();
     }
