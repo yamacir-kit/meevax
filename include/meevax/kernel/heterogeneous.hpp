@@ -120,7 +120,7 @@ inline namespace kernel
     template <typename U>
     auto is_polymorphically() const
     {
-      return dynamic_cast<U const*>(Pointer<Top>::get()) != nullptr;
+      return dynamic_cast<pointer<const U>>(Pointer<Top>::get()) != nullptr;
     }
 
   public: /* ---- ACCESSORS ------------------------------------------------- */

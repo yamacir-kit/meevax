@@ -24,8 +24,6 @@ inline namespace memory
   public:
     struct root
     {
-      using pointer = typename std::add_pointer<root>::type;
-
     protected:
       explicit root()
       {
@@ -39,7 +37,7 @@ inline namespace memory
         roots.erase(this);
       }
 
-      void reset(void_pointer const derived, deallocator<void>::signature const deallocate)
+      void reset(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
         auto const locking = lock();
         roots[this] = collector::reset(derived, deallocate);
@@ -53,12 +51,11 @@ inline namespace memory
     };
 
   private:
-
     static inline std::mutex resource;
 
-    static inline std::map<root::pointer, region::pointer> roots;
+    static inline std::map<pointer<root>, pointer<region>> roots;
 
-    static inline std::set<region::pointer> regions;
+    static inline std::set<pointer<region>> regions;
 
     static inline bool collecting;
 
@@ -67,7 +64,6 @@ inline namespace memory
     static inline std::size_t threshold;
 
   public:
-
     explicit collector();
 
     explicit collector(collector &&) = delete;
@@ -86,7 +82,7 @@ inline namespace memory
       {
         assert(*iter);
 
-        if (region::pointer region = *iter; region->assigned())
+        if (pointer<region> region = *iter; region->assigned())
         {
           delete region;
           iter = regions.erase(iter);
@@ -123,7 +119,7 @@ inline namespace memory
       return regions.erase(iter);
     }
 
-    static auto find(void_pointer const interior)
+    static auto find(pointer<void> const interior)
     {
       const auto dummy = std::make_unique<region>(interior, 0);
 
@@ -137,7 +133,7 @@ inline namespace memory
       }
     }
 
-    auto insert(void_pointer const base, std::size_t const size) -> decltype(auto)
+    auto insert(pointer<void> const base, std::size_t const size) -> decltype(auto)
     {
       newly_allocated += size;
       return regions.insert(new region(base, size));
@@ -166,7 +162,7 @@ inline namespace memory
       return threshold < newly_allocated + size;
     }
 
-    static auto reset(void_pointer const derived, deallocator<void>::signature const deallocate) -> region::pointer
+    static auto reset(pointer<void> const derived, deallocator<void>::signature const deallocate) -> pointer<region>
     {
       if (not derived)
       {
@@ -181,7 +177,7 @@ inline namespace memory
         assert(iter != std::end(regions));
         assert(deallocate);
 
-        region::pointer the_region = *iter;
+        pointer<region> the_region = *iter;
 
         if (deallocate and not the_region->assigned())
         {
@@ -209,7 +205,7 @@ inline namespace memory
       {
         assert(*iter);
 
-        if (region::pointer region = *iter; not region->marked())
+        if (pointer<region> region = *iter; not region->marked())
         {
           if (region->assigned())
           {
@@ -227,14 +223,14 @@ inline namespace memory
       }
     }
 
-    void traverse(region::pointer const the_region)
+    void traverse(pointer<region> const the_region)
     {
       if (the_region and not the_region->marked())
       {
         the_region->mark();
 
-        auto lower = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->lower_bound()));
-        auto upper = roots.lower_bound(reinterpret_cast<root::pointer>(the_region->upper_bound()));
+        auto lower = roots.lower_bound(reinterpret_cast<pointer<root>>(the_region->lower_bound()));
+        auto upper = roots.lower_bound(reinterpret_cast<pointer<root>>(the_region->upper_bound()));
 
         for (auto iter = lower; iter != upper; ++iter)
         {
@@ -246,8 +242,8 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-meevax::void_pointer operator new(std::size_t const, meevax::collector &);
+meevax::pointer<void> operator new(std::size_t const, meevax::collector &);
 
-void operator delete(meevax::void_pointer const, meevax::collector &) noexcept;
+void operator delete(meevax::pointer<void> const, meevax::collector &) noexcept;
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP

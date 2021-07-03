@@ -44,7 +44,7 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-meevax::void_pointer operator new(std::size_t const size, meevax::collector & gc)
+auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::pointer<void>
 {
   auto const lock = gc.lock();
 
@@ -60,7 +60,7 @@ meevax::void_pointer operator new(std::size_t const size, meevax::collector & gc
   return p;
 }
 
-void operator delete(meevax::void_pointer const p, meevax::collector & gc) noexcept
+void operator delete(meevax::pointer<void> const p, meevax::collector & gc) noexcept
 {
   auto const lock = gc.lock();
 

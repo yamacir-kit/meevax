@@ -1,13 +1,13 @@
 #ifndef INCLUDED_MEEVAX_MEMORY_VOID_POINTER_HPP
 #define INCLUDED_MEEVAX_MEMORY_VOID_POINTER_HPP
 
-#include <type_traits>
+#include <meevax/memory/pointer.hpp>
 
 namespace meevax
 {
 inline namespace memory
 {
-  using void_pointer = typename std::add_pointer<void>::type;
+  using void_pointer = pointer<void>;
 } // namespace memory
 } // namespace meevax
 

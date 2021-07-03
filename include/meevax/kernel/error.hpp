@@ -36,11 +36,7 @@ inline namespace kernel
 
       if (cdr(*this))
       {
-        ss << ": " << cdr(*this) << ".";
-      }
-      else
-      {
-        ss << ".";
+        ss << ": " << cdr(*this);
       }
 
       return ss.str();
