@@ -21,7 +21,7 @@ inline namespace memory
       newly_allocated = 0;
 
       threshold = std::numeric_limits<std::size_t>::max();
-      // threshold = 1024 * 1024; // = 1 MiB
+      // threshold = 2_MiB;
     }
   }
 
@@ -50,26 +50,20 @@ auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::poi
 {
   auto const lock = gc.lock();
 
-  if (auto data = ::operator new(size); data or not gc.overflow())
+  if (auto data = ::operator new(size); data)
   {
+    if (gc.overflow())
+    {
+      gc.collect();
+    }
+
     gc.insert(data, size);
 
     return data;
   }
   else
   {
-    gc.collect();
-
-    if (auto data = ::operator new(size); data) // RETRY
-    {
-      gc.insert(data, size);
-
-      return data;
-    }
-    else
-    {
-      throw std::bad_alloc();
-    }
+    throw std::bad_alloc();
   }
 }
 

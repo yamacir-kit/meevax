@@ -74,7 +74,7 @@ inline namespace kernel
     /* ---- NOTE ---------------------------------------------------------------
      *
      *  This function extends the given syntax environment 'g'. Since the order
-     *  of operand evaluation in C ++ is undefined, be aware of the execution
+     *  of operand evaluation in C++ is undefined, be aware of the execution
      *  timing of side effects of this function.
      *
      * ---------------------------------------------------------------------- */
@@ -216,7 +216,15 @@ inline namespace kernel
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
+            // LINE();
+            // PRINT(syntactic_environment.get());
+            // PRINT(syntactic_environment.is<null>());
+
             let const result = applicant.as<SK>().macroexpand(applicant, expression);
+
+            // LINE();
+            // PRINT(syntactic_environment.get());
+            // PRINT(syntactic_environment.is<null>());
 
             WRITE_DEBUG(result);
 
