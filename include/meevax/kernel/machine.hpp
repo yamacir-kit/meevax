@@ -27,6 +27,8 @@ inline namespace kernel
   {
     friend SK;
 
+    using syntactic_continuation = SK; // HACK
+
     machine()
     {}
 

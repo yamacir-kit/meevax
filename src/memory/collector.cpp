@@ -20,8 +20,8 @@ inline namespace memory
 
       newly_allocated = 0;
 
-      threshold = std::numeric_limits<std::size_t>::max();
-      // threshold = 2_MiB;
+      // threshold = std::numeric_limits<std::size_t>::max();
+      threshold = 2_MiB;
     }
   }
 
