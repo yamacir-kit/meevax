@@ -17,9 +17,10 @@ namespace meevax
 inline namespace kernel
 {
   #define WRITE_DEBUG(...)                                                     \
-  if (in_debug_mode())                                                         \
+  if (current_syntactic_continuation.in_debug_mode())                          \
   {                                                                            \
-    write_to(standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
+    current_syntactic_continuation.write_to(                                   \
+      current_syntactic_continuation.standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
   } indent()
 
   template <typename SK>
@@ -34,11 +35,8 @@ inline namespace kernel
 
     IMPORT(SK, evaluate, NIL);
     IMPORT(SK, global_environment, NIL); // TODO REMOVE THIS!!!
-    IMPORT(SK, in_debug_mode, const);
     IMPORT(SK, in_trace_mode, const);
     IMPORT(SK, intern, NIL);
-    IMPORT(SK, standard_debug_port, const);
-    IMPORT(SK, write_to, const);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -63,14 +61,9 @@ inline namespace kernel
   public:
     // TODO MOVE INTO SK
     template <typename... Ts>
-    let const& define(let const& variable, Ts&&... expression)
+    let const& define(let const& variable, Ts&&... xs)
     {
-      push(global_environment(), cons(variable, std::forward<decltype(expression)>(expression)...));
-
-      WRITE_DEBUG(caar(global_environment()), faint, " binds ", reset,
-                  cdar(global_environment()));
-
-      return unspecified;
+      return push(global_environment(), cons(variable, std::forward<decltype(xs)>(xs)...));
     }
 
     /* ---- NOTE ---------------------------------------------------------------

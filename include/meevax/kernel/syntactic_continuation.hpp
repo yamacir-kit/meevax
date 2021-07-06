@@ -191,7 +191,7 @@ inline namespace kernel
 
         for (let e = read(port); e != eof_object; e = read(port))
         {
-          WRITE_DEBUG(e);
+          write_to(standard_debug_port(), header(__func__), e, "\n");
 
           evaluate(e);
         }
