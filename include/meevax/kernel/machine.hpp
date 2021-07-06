@@ -137,7 +137,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     let compile(
       syntactic_context const& the_expression_is,
-      SK & current_syntactic_continuation,
+      syntactic_continuation & current_syntactic_continuation,
       let const& expression,
       let const& frames = unit,
       let const& continuation = list(make<instruction>(mnemonic::STOP)))
@@ -595,7 +595,7 @@ inline namespace kernel
       }
     }
 
-  protected: // Primitive Expression Types
+  protected: // PRIMITIVE EXPRESSION TYPES
     SYNTAX(quotation) /* -------------------------------------------------------
     *
     *  (quote <datum>)                                                   syntax
