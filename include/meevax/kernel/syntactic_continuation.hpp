@@ -170,7 +170,7 @@ inline namespace kernel
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
       }
 
-      c = compile(in_context_free, global_environment(), expression);
+      c = compile(in_context_free, *this, expression);
 
       if (in_debug_mode())
       {
@@ -251,7 +251,7 @@ inline namespace kernel
 
         s = k.s();
         e = k.e();
-        c = compile(at_the_top_level, global_environment(), car(k.c()), cdr(k.c()));
+        c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
         d = k.d();
 
         form() = execute();
@@ -329,7 +329,7 @@ inline namespace kernel
 
       // XXX DIRTY HACK
       return reference(in_context_free,
-                       syntactic_environment,
+                       current_syntactic_continuation,
                        expression,
                        frames,
                        cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
