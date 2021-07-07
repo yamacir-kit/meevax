@@ -213,13 +213,17 @@ inline namespace kernel
 
             // LINE();
             // PRINT(current_syntactic_continuation.global_environment().get());
-            // PRINT(current_syntactic_continuation.global_environment().is<null>());
+            // LINE();
+            // PRINT(current_syntactic_continuation.global_environment().template is<null>());
+            // LINE();
 
             let const result = applicant.as<SK>().macroexpand(applicant, expression);
 
             // LINE();
             // PRINT(current_syntactic_continuation.global_environment().get());
-            // PRINT(current_syntactic_continuation.global_environment().is<null>());
+            // LINE();
+            // PRINT(current_syntactic_continuation.global_environment().template is<null>());
+            // LINE();
 
             WRITE_DEBUG(result);
 

@@ -4,14 +4,11 @@
 #include <meevax/functional/operator.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/string/append.hpp>
+#include <meevax/utility/debug.hpp>
 #include <meevax/utility/hexdump.hpp>
 #include <meevax/utility/requires.hpp>
 
 #define NIL /* nothing */
-
-#define LINE() std::cout << "; " __FILE__ ":" << __LINE__ << std::endl
-
-#define PRINT(...) std::cout << "; " #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl
 
 namespace meevax
 {

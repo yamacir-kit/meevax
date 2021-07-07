@@ -68,12 +68,12 @@ inline namespace kernel
     auto const& global_environment() const noexcept { return std::get<1>(*this); }
     auto      & global_environment()       noexcept { return std::get<1>(*this); }
 
-    decltype(auto) current_expression() const
+    auto current_expression() const -> decltype(auto)
     {
       return car(form());
     }
 
-    decltype(auto) dynamic_environment() const
+    auto dynamic_environment() const -> decltype(auto)
     {
       return cdr(form());
     }
@@ -95,18 +95,18 @@ inline namespace kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
-    decltype(auto) execute()
+    auto execute()
     {
       static constexpr auto trace = true;
 
@@ -120,7 +120,7 @@ inline namespace kernel
       }
     }
 
-    decltype(auto) macroexpand(let const& keyword, let const& form)
+    auto macroexpand(let const& keyword, let const& form)
     {
       ++generation;
 
@@ -161,7 +161,7 @@ inline namespace kernel
       return execute();
     }
 
-    let const evaluate(let const& expression)
+    auto evaluate(let const& expression)
     {
       gc.collect();
 

@@ -76,6 +76,7 @@
 (define swap!
   (fork/csc
     (lambda (swap! x y)
+      (set-debug! #t)
       (let ((temporary (string->symbol)))
        `(,let ((,temporary ,x))
           (,set! ,x ,y)

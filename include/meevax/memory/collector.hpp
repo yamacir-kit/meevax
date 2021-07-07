@@ -13,8 +13,6 @@
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>
 
-#define LINE() std::cout << "; " __FILE__ ":" << __LINE__ << std::endl
-
 namespace meevax
 {
 inline namespace memory
