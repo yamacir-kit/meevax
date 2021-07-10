@@ -1046,7 +1046,7 @@ inline namespace kernel
      *  TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
      *
      * ---------------------------------------------------------------------- */
-    SYNTAX(reference)
+    SYNTAX(lvalue)
     {
       if (expression.is<null>())
       {

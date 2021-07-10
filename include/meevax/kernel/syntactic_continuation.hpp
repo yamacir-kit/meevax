@@ -63,10 +63,11 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    auto const& form()               const noexcept { return std::get<0>(*this); }
-    auto      & form()                     noexcept { return std::get<0>(*this); }
-    auto const& global_environment() const noexcept { return std::get<1>(*this); }
-    auto      & global_environment()       noexcept { return std::get<1>(*this); }
+    auto form()               const noexcept -> let const& { return std::get<0>(*this); }
+    auto form()                     noexcept -> let      & { return std::get<0>(*this); }
+
+    auto global_environment() const noexcept -> let const& { return std::get<1>(*this); }
+    auto global_environment()       noexcept -> let      & { return std::get<1>(*this); }
 
     auto current_expression() const -> decltype(auto)
     {
@@ -223,6 +224,16 @@ inline namespace kernel
     }
 
   public:
+    /* ---- NOTE ---------------------------------------------------------------
+     *
+     *  If this class is constructed as make<syntactic_continuation>(...) then
+     *  the heterogeneous::binder will have forwarded all constructor arguments
+     *  to the virtual base class pair in advance, and this constructor will be
+     *  called without any arguments.
+     *
+     *  (See the heterogeneous::binder::binder for details)
+     *
+     * ---------------------------------------------------------------------- */
     template <typename... Ts>
     explicit syntactic_continuation(Ts &&... xs)
       : pair { std::forward<decltype(xs)>(xs)... }
@@ -245,9 +256,11 @@ inline namespace kernel
        *  environment.
        *
        * -------------------------------------------------------------------- */
-      if (first.is<continuation>())
+      if (std::get<0>(*this).is<continuation>())
       {
-        auto const& k = first.as<continuation>();
+        auto const& k = std::get<0>(*this).as<continuation>();
+
+        // let const backup = second;
 
         s = k.s();
         e = k.e();
@@ -328,15 +341,17 @@ inline namespace kernel
       };
 
       // XXX DIRTY HACK
-      return reference(in_context_free,
-                       current_syntactic_continuation,
-                       expression,
-                       frames,
-                       cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-                            make<instruction>(mnemonic::CALL),
-                            continuation));
+      return lvalue(in_context_free,
+                    current_syntactic_continuation,
+                    expression,
+                    frames,
+                    cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
+                         make<instruction>(mnemonic::CALL),
+                         continuation));
     }
   };
+
+  static_assert(std::is_base_of<pair, syntactic_continuation>::value);
 
   auto operator >>(std::istream &, syntactic_continuation      &) -> std::istream &;
   auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;

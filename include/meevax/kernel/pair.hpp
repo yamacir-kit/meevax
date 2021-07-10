@@ -14,12 +14,12 @@ inline namespace kernel
    *
    * ------------------------------------------------------------------------ */
   struct pair
-    : public std::pair<let, let>
+    : public std::array<let, 2>
     , public top<pair>
   {
     explicit pair(let const& a = unit,
                   let const& b = unit)
-      : std::pair<let, let> { a, b }
+      : std::array<let, 2> { a, b }
     {}
 
     virtual ~pair() = default;

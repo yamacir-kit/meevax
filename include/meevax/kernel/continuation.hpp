@@ -12,13 +12,13 @@ inline namespace kernel
   {
     using pair::pair;
 
-    decltype(auto) s() const { return   car(*this); }
-    decltype(auto) e() const { return  cadr(*this); }
-    decltype(auto) c() const { return caddr(*this); }
-    decltype(auto) d() const { return cdddr(*this); }
+    auto s() const { return   car(*this); }
+    auto e() const { return  cadr(*this); }
+    auto c() const { return caddr(*this); }
+    auto d() const { return cdddr(*this); }
   };
 
-  auto operator <<(std::ostream & port, continuation const&) -> decltype(port);
+  auto operator <<(std::ostream &, continuation const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

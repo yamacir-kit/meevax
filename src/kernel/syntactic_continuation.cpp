@@ -90,7 +90,7 @@ inline namespace kernel
     DEFINE_SYNTAX("if", conditional);
     DEFINE_SYNTAX("lambda", lambda);
     DEFINE_SYNTAX("quote", quotation);
-    DEFINE_SYNTAX("reference", reference);
+    DEFINE_SYNTAX("reference", lvalue);
     DEFINE_SYNTAX("set!", assignment);
   }
 

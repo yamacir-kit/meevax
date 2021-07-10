@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <iostream>
 #include <limits>
 #include <map>
 #include <memory>
@@ -12,6 +11,7 @@
 
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>
+#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
@@ -133,6 +133,19 @@ inline namespace memory
     {
       newly_allocated += size;
       return regions.insert(new region(base, size));
+    }
+
+    auto is_root(pointer<void> const interior) // for debug
+    {
+      for (auto [x, region] : roots)
+      {
+        if (x == interior)
+        {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     static auto lock() -> std::unique_lock<std::mutex>
