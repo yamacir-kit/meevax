@@ -211,19 +211,27 @@ inline namespace kernel
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <macro application>");
 
-            // LINE();
-            // PRINT(current_syntactic_continuation.global_environment().get());
-            // LINE();
-            // PRINT(current_syntactic_continuation.global_environment().template is<null>());
-            // LINE();
+            // {
+            //   LINE();
+            //   PRINT(current_syntactic_continuation.global_environment().get());
+            //   LINE();
+            //   PRINT(current_syntactic_continuation.global_environment().template is<null>());
+            //   LINE();
+            //   PRINT(expression);
+            //   LINE();
+            // }
 
             let const result = applicant.as<SK>().macroexpand(applicant, expression);
 
-            // LINE();
-            // PRINT(current_syntactic_continuation.global_environment().get());
-            // LINE();
-            // PRINT(current_syntactic_continuation.global_environment().template is<null>());
-            // LINE();
+            // {
+            //   LINE();
+            //   PRINT(result);
+            //   LINE();
+            //   PRINT(current_syntactic_continuation.global_environment().get());
+            //   LINE();
+            //   PRINT(current_syntactic_continuation.global_environment().template is<null>());
+            //   LINE();
+            // }
 
             WRITE_DEBUG(result);
 

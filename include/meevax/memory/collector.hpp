@@ -107,8 +107,6 @@ inline namespace memory
         newly_allocated = 0;
       }
 
-      std::cout << header(__func__) << (size - regions.size()) << " objects collected." << std::endl;
-
       return size - regions.size();
     }
 

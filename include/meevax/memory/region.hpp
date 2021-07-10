@@ -67,6 +67,8 @@ inline namespace memory
 
     void release()
     {
+      assert(marked());
+
       if (assigned())
       {
         deallocate(derived);
