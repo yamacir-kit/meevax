@@ -164,8 +164,6 @@ inline namespace kernel
 
     auto evaluate(let const& expression)
     {
-      gc.collect();
-
       if (in_debug_mode())
       {
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
@@ -258,9 +256,17 @@ inline namespace kernel
        * -------------------------------------------------------------------- */
       if (std::get<0>(*this).is<continuation>())
       {
-        auto const& k = std::get<0>(*this).as<continuation>();
+        /* ---- NOTE -----------------------------------------------------------
+         *
+         *  If this class is constructed as make<syntactic_continuation>(...),
+         *  this object until the constructor is completed, the case noted that
+         *  it is the state that is not registered in the GC.
+         *
+         * ------------------------------------------------------------------ */
+        let const backup = cons(std::get<0>(*this),
+                                std::get<1>(*this));
 
-        // let const backup = second;
+        auto const& k = std::get<0>(*this).as<continuation>();
 
         s = k.s();
         e = k.e();
