@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <iostream>
 #include <limits>
 #include <map>
 #include <memory>
@@ -12,8 +11,7 @@
 
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>
-
-#define LINE() std::cout << "; " __FILE__ ":" << __LINE__ << std::endl
+#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
@@ -109,8 +107,6 @@ inline namespace memory
         newly_allocated = 0;
       }
 
-      std::cout << header(__func__) << (size - regions.size()) << " objects collected." << std::endl;
-
       return size - regions.size();
     }
 
@@ -148,9 +144,9 @@ inline namespace memory
     {
       marker::toggle();
 
-      for (auto [x, region] : roots)
+      for (auto [derived, region] : roots)
       {
-        if (region and not region->marked() and find(x) == std::end(regions))
+        if (region and not region->marked() and find(derived) == std::end(regions))
         {
           traverse(region);
         }
@@ -239,6 +235,11 @@ inline namespace memory
       }
     }
   } static gc;
+
+  constexpr auto operator ""_MiB(unsigned long long n)
+  {
+    return n * 1024 * 1024;
+  }
 } // namespace memory
 } // namespace meevax
 

@@ -63,17 +63,18 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    auto const& form()               const noexcept { return std::get<0>(*this); }
-    auto      & form()                     noexcept { return std::get<0>(*this); }
-    auto const& global_environment() const noexcept { return std::get<1>(*this); }
-    auto      & global_environment()       noexcept { return std::get<1>(*this); }
+    auto form()               const noexcept -> let const& { return std::get<0>(*this); }
+    auto form()                     noexcept -> let      & { return std::get<0>(*this); }
 
-    decltype(auto) current_expression() const
+    auto global_environment() const noexcept -> let const& { return std::get<1>(*this); }
+    auto global_environment()       noexcept -> let      & { return std::get<1>(*this); }
+
+    auto current_expression() const -> decltype(auto)
     {
       return car(form());
     }
 
-    decltype(auto) dynamic_environment() const
+    auto dynamic_environment() const -> decltype(auto)
     {
       return cdr(form());
     }
@@ -95,18 +96,18 @@ inline namespace kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
-    decltype(auto) execute()
+    auto execute()
     {
       static constexpr auto trace = true;
 
@@ -120,7 +121,7 @@ inline namespace kernel
       }
     }
 
-    decltype(auto) macroexpand(let const& keyword, let const& form)
+    auto macroexpand(let const& keyword, let const& form)
     {
       ++generation;
 
@@ -161,16 +162,14 @@ inline namespace kernel
       return execute();
     }
 
-    let const evaluate(let const& expression)
+    auto evaluate(let const& expression)
     {
-      gc.collect();
-
       if (in_debug_mode())
       {
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
       }
 
-      c = compile(in_context_free, global_environment(), expression);
+      c = compile(in_context_free, *this, expression);
 
       if (in_debug_mode())
       {
@@ -191,7 +190,7 @@ inline namespace kernel
 
         for (let e = read(port); e != eof_object; e = read(port))
         {
-          WRITE_DEBUG(e);
+          write_to(standard_debug_port(), header(__func__), e, "\n");
 
           evaluate(e);
         }
@@ -223,6 +222,16 @@ inline namespace kernel
     }
 
   public:
+    /* ---- NOTE ---------------------------------------------------------------
+     *
+     *  If this class is constructed as make<syntactic_continuation>(...) then
+     *  the heterogeneous::binder will have forwarded all constructor arguments
+     *  to the virtual base class pair in advance, and this constructor will be
+     *  called without any arguments.
+     *
+     *  (See the heterogeneous::binder::binder for details)
+     *
+     * ---------------------------------------------------------------------- */
     template <typename... Ts>
     explicit syntactic_continuation(Ts &&... xs)
       : pair { std::forward<decltype(xs)>(xs)... }
@@ -245,13 +254,23 @@ inline namespace kernel
        *  environment.
        *
        * -------------------------------------------------------------------- */
-      if (first.is<continuation>())
+      if (std::get<0>(*this).is<continuation>())
       {
-        auto const& k = first.as<continuation>();
+        /* ---- NOTE -----------------------------------------------------------
+         *
+         *  If this class is constructed as make<syntactic_continuation>(...),
+         *  this object until the constructor is completed, the case noted that
+         *  it is the state that is not registered in the GC.
+         *
+         * ------------------------------------------------------------------ */
+        let const backup = cons(std::get<0>(*this),
+                                std::get<1>(*this));
+
+        auto const& k = std::get<0>(*this).as<continuation>();
 
         s = k.s();
         e = k.e();
-        c = compile(at_the_top_level, global_environment(), car(k.c()), cdr(k.c()));
+        c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
         d = k.d();
 
         form() = execute();
@@ -328,15 +347,17 @@ inline namespace kernel
       };
 
       // XXX DIRTY HACK
-      return reference(in_context_free,
-                       syntactic_environment,
-                       expression,
-                       frames,
-                       cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-                            make<instruction>(mnemonic::CALL),
-                            continuation));
+      return lvalue(in_context_free,
+                    current_syntactic_continuation,
+                    expression,
+                    frames,
+                    cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
+                         make<instruction>(mnemonic::CALL),
+                         continuation));
     }
   };
+
+  static_assert(std::is_base_of<pair, syntactic_continuation>::value);
 
   auto operator >>(std::istream &, syntactic_continuation      &) -> std::istream &;
   auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;

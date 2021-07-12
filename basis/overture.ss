@@ -270,8 +270,7 @@
 
 (define-syntax (let bindings . body)
   (if (identifier? bindings)
-      `(,letrec ((,bindings
-                   (,lambda ,(map car (car body)) ,@(cdr body))))
+      `(,letrec ((,bindings (,lambda ,(map car (car body)) ,@(cdr body))))
          (,bindings ,@(map cadr (car body))))
       `((,lambda ,(map car bindings) ,@body) ,@(map cadr bindings))))
 

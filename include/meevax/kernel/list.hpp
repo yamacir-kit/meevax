@@ -481,7 +481,7 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](auto const& x, auto&& predicate) constexpr -> auto const&
+    auto find = [](let const& x, auto&& predicate) constexpr -> auto const&
     {
       if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
       {
@@ -520,7 +520,7 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](auto const& key, auto const& alist, auto&& compare = equivalence_comparator<2>()) constexpr
+    auto assoc = [](let const& key, let const& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
       return find(alist, [&](auto&& each)
              {

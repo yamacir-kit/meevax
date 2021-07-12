@@ -28,10 +28,7 @@ inline namespace memory
 
     ~region()
     {
-      if (assigned())
-      {
-        deallocate(derived);
-      }
+      release();
     }
 
     auto lower_bound() const noexcept
