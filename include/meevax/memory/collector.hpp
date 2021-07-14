@@ -236,9 +236,14 @@ inline namespace memory
     }
   } static gc;
 
-  constexpr auto operator ""_MiB(unsigned long long n)
+  constexpr auto operator ""_KiB(unsigned long long size)
   {
-    return n * 1024 * 1024;
+    return size * 1024;
+  }
+
+  constexpr auto operator ""_MiB(unsigned long long size)
+  {
+    return size * 1024 * 1024;
   }
 } // namespace memory
 } // namespace meevax
