@@ -19,6 +19,9 @@ inline namespace kernel
   {
     friend SK;
 
+    explicit configurator()
+    {}
+
     IMPORT(SK, evaluate, NIL);
     IMPORT(SK, newline, const);
     IMPORT(SK, read, NIL);
@@ -78,7 +81,7 @@ inline namespace kernel
       return unspecified;
     }
 
-    decltype(auto) display_help() const
+    auto display_help() const
     {
       display_version();
       newline();
