@@ -63,6 +63,49 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
+    auto build() // NOTE: Only FORK instructions may execute this function.
+    {
+      /* ---- NOTE -------------------------------------------------------------
+       *
+       *  If this class was instantiated by the FORK instruction, the instance
+       *  will have received the compilation continuation as a constructor
+       *  argument.
+       *
+       *  The car part contains the registers of the virtual Lisp machine
+       *  (s e c . d). The cdr part is set to the global environment at the
+       *  time the FORK instruction was executed.
+       *
+       *  Here, the value in the c register is the operand of the FORK
+       *  instruction. The operand of the FORK instruction is a pair of a
+       *  lambda expression form passed to the syntax fork/csc and a lexical
+       *  environment.
+       *
+       * -------------------------------------------------------------------- */
+      if (std::get<0>(*this).is<continuation>())
+      {
+        /* ---- NOTE -----------------------------------------------------------
+         *
+         *  If this class is constructed as make<syntactic_continuation>(...),
+         *  this object until the constructor is completed, the case noted that
+         *  it is the state that is not registered in the GC.
+         *
+         * ------------------------------------------------------------------ */
+        // let const backup = cons(std::get<0>(*this),
+        //                         std::get<1>(*this));
+
+        auto const& k = std::get<0>(*this).as<continuation>();
+
+        s = k.s();
+        e = k.e();
+        c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
+        d = k.d();
+
+        form() = execute();
+
+        assert(form().is<closure>());
+      }
+    }
+
     auto form()               const noexcept -> let const& { return std::get<0>(*this); }
     auto form()                     noexcept -> let      & { return std::get<0>(*this); }
 
@@ -107,7 +150,7 @@ inline namespace kernel
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
-    auto execute()
+    auto execute() -> let const
     {
       static constexpr auto trace = true;
 
@@ -221,7 +264,7 @@ inline namespace kernel
       return (*this)[intern(name)];
     }
 
-  public:
+  private:
     /* ---- NOTE ---------------------------------------------------------------
      *
      *  If this class is constructed as make<syntactic_continuation>(...) then
@@ -232,53 +275,9 @@ inline namespace kernel
      *  (See the heterogeneous::binder::binder for details)
      *
      * ---------------------------------------------------------------------- */
-    template <typename... Ts>
-    explicit syntactic_continuation(Ts &&... xs)
-      : pair { std::forward<decltype(xs)>(xs)... }
-    {
-      boot(layer<0>());
+    using pair::pair;
 
-      /* ---- NOTE -------------------------------------------------------------
-       *
-       *  If this class was instantiated by the FORK instruction, the instance
-       *  will have received the compilation continuation as a constructor
-       *  argument.
-       *
-       *  The car part contains the registers of the virtual Lisp machine
-       *  (s e c . d). The cdr part is set to the global environment at the
-       *  time the FORK instruction was executed.
-       *
-       *  Here, the value in the c register is the operand of the FORK
-       *  instruction. The operand of the FORK instruction is a pair of a
-       *  lambda expression form passed to the syntax fork/csc and a lexical
-       *  environment.
-       *
-       * -------------------------------------------------------------------- */
-      if (std::get<0>(*this).is<continuation>())
-      {
-        /* ---- NOTE -----------------------------------------------------------
-         *
-         *  If this class is constructed as make<syntactic_continuation>(...),
-         *  this object until the constructor is completed, the case noted that
-         *  it is the state that is not registered in the GC.
-         *
-         * ------------------------------------------------------------------ */
-        let const backup = cons(std::get<0>(*this),
-                                std::get<1>(*this));
-
-        auto const& k = std::get<0>(*this).as<continuation>();
-
-        s = k.s();
-        e = k.e();
-        c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
-        d = k.d();
-
-        form() = execute();
-
-        assert(form().is<closure>());
-      }
-    }
-
+  public:
     template <std::size_t N>
     explicit syntactic_continuation(layer<N>)
       : syntactic_continuation { layer<decrement(N)>() }
@@ -290,7 +289,7 @@ inline namespace kernel
     void boot(layer<N>)
     {}
 
-  public: // Primitive Expression Types
+  public:
     SYNTAX(exportation)
     {
       if (in_verbose_mode())

@@ -390,8 +390,25 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        s = cons(make<SK>(current_continuation(), global_environment()), s);
-        c = cddr(c);
+        if (let const module = make<SK>(current_continuation(), global_environment()); module.is<SK>())
+        {
+          /* ---- NOTE ---------------------------------------------------------
+           *
+           *  Ideally, the following should be done in SK's own constructor.
+           *  When allocating SK to the heap, SK itself is not registered with
+           *  the GC until the SK constructor is complete.
+           *
+           * ---------------------------------------------------------------- */
+          module.as<SK>().boot(std::integral_constant<std::size_t, 0>());
+          module.as<SK>().build();
+
+          s = cons(module, s);
+          c = cddr(c);
+        }
+        else
+        {
+          // TODO ERROR
+        }
         goto dispatch;
 
       case mnemonic::SELECT: /* ------------------------------------------------

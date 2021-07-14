@@ -1768,6 +1768,7 @@ inline namespace kernel
 
       for (let e = read(port); e != eof_object; e = read(port))
       {
+        PRINT(e);
         evaluate(e);
       }
     }
