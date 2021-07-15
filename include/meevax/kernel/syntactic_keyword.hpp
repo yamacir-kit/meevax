@@ -55,7 +55,7 @@ inline namespace kernel
     }
   };
 
-  auto lookup(let const& x, let const& g)
+  auto lookup(let const& x, let const& g) -> let const&
   {
     if (let const& p = assq(x, g); p != f)
     {

@@ -18,6 +18,8 @@ inline namespace memory
 
       collecting = false;
 
+      whole_size = 0;
+
       newly_allocated = 0;
 
       // threshold = std::numeric_limits<std::size_t>::max();

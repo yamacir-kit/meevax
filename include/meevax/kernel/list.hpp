@@ -481,7 +481,7 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](let const& x, auto&& predicate) constexpr -> auto const&
+    auto find = [](let const& x, auto&& predicate) constexpr -> let const&
     {
       if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
       {

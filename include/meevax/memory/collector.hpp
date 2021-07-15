@@ -155,9 +155,9 @@ inline namespace memory
 
     static auto region_of(pointer<void> const interior) -> decltype(regions)::iterator
     {
-      const auto dummy = std::make_unique<region>(interior, 0);
+      region dummy { interior, 0 };
 
-      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).contains(interior))
+      if (auto iter = regions.lower_bound(&dummy); iter != std::end(regions) and (**iter).contains(interior))
       {
         return iter;
       }
@@ -182,14 +182,7 @@ inline namespace memory
         assert(iter != std::end(regions));
         assert(deallocate);
 
-        pointer<region> the_region = *iter;
-
-        if (deallocate and not the_region->assigned())
-        {
-          the_region->reset(derived, deallocate);
-        }
-
-        return the_region;
+        return (*iter)->reset(derived, deallocate);
       }
     }
 

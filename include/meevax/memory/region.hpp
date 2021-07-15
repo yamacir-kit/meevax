@@ -55,10 +55,15 @@ inline namespace memory
       return derived and deallocate;
     }
 
-    void reset(pointer<void> const x, deallocator<void>::signature const f) noexcept
+    auto reset(pointer<void> const x, deallocator<void>::signature const f) noexcept
     {
-      derived = x;
-      deallocate = f;
+      if (f and not assigned())
+      {
+        derived = x;
+        deallocate = f;
+      }
+
+      return this;
     }
 
     void release()

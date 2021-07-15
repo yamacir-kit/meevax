@@ -5,13 +5,15 @@
 
 #include <meevax/kernel/pair.hpp>
 
+#define MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
+
 namespace meevax
 {
 inline namespace kernel
 {
   template <typename T>
   struct homoiconic_iterator
-  #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
+  #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
     : public std::reference_wrapper<T>
   #else
     : public let
@@ -19,7 +21,7 @@ inline namespace kernel
   {
     using iterator_category = std::forward_iterator_tag;
 
-    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
+    #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
     using value_type = std::reference_wrapper<T>;
     #else
     using value_type = let;
@@ -35,9 +37,10 @@ inline namespace kernel
 
     using size_type = std::size_t;
 
-    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-    using std::reference_wrapper<T>::reference_wrapper;
+  public:
+    using value_type::value_type;
 
+    #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
     homoiconic_iterator(T const& x)
       : std::reference_wrapper<T> { std::cref(x) }
     {}
@@ -48,24 +51,19 @@ inline namespace kernel
     {}
     #endif
 
-    decltype(auto) operator *() const
+    auto operator *() const -> let const&
     {
       return car(*this);
     }
 
-    decltype(auto) operator ->() const
+    auto operator ->() const -> let const&
     {
       return operator *();
     }
 
-    decltype(auto) operator ++()
+    auto operator ++() -> auto &
     {
-      #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-      static_cast<let &>(*this) = cdr(*this);
-      return *this;
-      #else
       return *this = cdr(*this);
-      #endif
     }
 
     auto operator ++(int)
@@ -75,27 +73,34 @@ inline namespace kernel
       return copy;
     }
 
-    #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
+    #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
+    auto operator ==(homoiconic_iterator const& rhs) const noexcept -> decltype(auto)
+    {
+      return get() == rhs.get();
+    }
+
+    auto operator !=(homoiconic_iterator const& rhs) const noexcept -> decltype(auto)
+    {
+      return get() != rhs.get();
+    }
+
+    operator bool() const
+    {
+      return static_cast<bool>(static_cast<T const&>(*this));
+    }
+
     operator T&() const noexcept
     {
       return std::reference_wrapper<T>::get();
     }
 
     using std::reference_wrapper<T>::get;
-
-    decltype(auto) operator==(homoiconic_iterator const& rhs) const noexcept { return get() == rhs.get(); }
-    decltype(auto) operator!=(homoiconic_iterator const& rhs) const noexcept { return get() != rhs.get(); }
-
-    operator bool() const
-    {
-      return static_cast<bool>(static_cast<T const&>(*this));
-    }
     #endif
 
-    homoiconic_iterator cbegin() const noexcept { return *this; }
-    homoiconic_iterator  begin() const noexcept { return *this; }
-    homoiconic_iterator   cend() const noexcept { return unit; }
-    homoiconic_iterator    end() const noexcept { return unit; }
+    auto cbegin() const noexcept -> homoiconic_iterator { return *this; }
+    auto  begin() const noexcept -> homoiconic_iterator { return *this; }
+    auto   cend() const noexcept -> homoiconic_iterator { return unit; }
+    auto    end() const noexcept -> homoiconic_iterator { return unit; }
   };
 } // namespace kernel
 } // namespace meevax
