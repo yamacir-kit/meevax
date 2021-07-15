@@ -26,19 +26,19 @@ inline namespace memory
       explicit root()
       {
         auto const locking = lock();
-        roots.emplace(this, nullptr);
+        objects.emplace(this, nullptr);
       }
 
       ~root()
       {
         auto const locking = lock();
-        roots.erase(this);
+        objects.erase(this);
       }
 
       void reset(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
         auto const locking = lock();
-        roots[this] = collector::reset(derived, deallocate);
+        objects[this] = collector::reset(derived, deallocate);
       }
 
       template <typename Pointer>
@@ -51,7 +51,7 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
-    static inline std::map<pointer<root>, pointer<region>> roots;
+    static inline std::map<pointer<root>, pointer<region>> objects;
 
     static inline std::set<pointer<region>> regions;
 
@@ -119,7 +119,7 @@ inline namespace memory
     {
       const auto dummy = std::make_unique<region>(interior, 0);
 
-      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).controls(interior))
+      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).contains(interior))
       {
         return iter;
       }
@@ -144,7 +144,7 @@ inline namespace memory
     {
       marker::toggle();
 
-      for (auto [derived, region] : roots)
+      for (auto [derived, region] : objects)
       {
         if (region and not region->marked() and find(derived) == std::end(regions))
         {
@@ -225,8 +225,8 @@ inline namespace memory
       {
         the_region->mark();
 
-        auto lower = roots.lower_bound(reinterpret_cast<pointer<root>>(the_region->lower_bound()));
-        auto upper = roots.lower_bound(reinterpret_cast<pointer<root>>(the_region->upper_bound()));
+        auto lower = objects.lower_bound(reinterpret_cast<pointer<root>>(the_region->lower_bound()));
+        auto upper = objects.lower_bound(reinterpret_cast<pointer<root>>(the_region->upper_bound()));
 
         for (auto iter = lower; iter != upper; ++iter)
         {

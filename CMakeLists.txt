@@ -23,7 +23,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -g -DNDEBUG -pipe") # NOTE: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})

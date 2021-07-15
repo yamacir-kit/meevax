@@ -41,14 +41,14 @@ inline namespace memory
       return lower_bound() + size;
     }
 
-    auto controls(std::uintptr_t const k) const noexcept
+    auto contains(std::uintptr_t const k) const noexcept
     {
       return lower_bound() <= k and k < upper_bound();
     }
 
-    auto controls(pointer<void> const derived) const noexcept
+    auto contains(pointer<void> const derived) const noexcept
     {
-      return controls(reinterpret_cast<std::uintptr_t>(derived));
+      return contains(reinterpret_cast<std::uintptr_t>(derived));
     }
 
     constexpr bool assigned() const noexcept
