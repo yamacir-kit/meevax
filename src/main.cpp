@@ -43,7 +43,7 @@ catch (int exit_code)
  *  Perform I/O in the C++ way, as there may be a serious anomaly in system.
  *
  * -------------------------------------------------------------------------- */
-catch (meevax::object const& error)
+catch (meevax::let const& error)
 {
   std::cerr << meevax::header("exception-handler") << error << std::endl;
   std::cerr << meevax::header("exception-handler") << "Terminate the program without running any outstanding dynamic-wind after procedures." << std::endl;

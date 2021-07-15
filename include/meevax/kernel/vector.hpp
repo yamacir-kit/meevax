@@ -10,9 +10,9 @@ inline namespace kernel
   enum class for_each_in_tag {} constexpr for_each_in {};
 
   struct vector
-    : public std::vector<object>
+    : public std::vector<let>
   {
-    using std::vector<object>::vector;
+    using std::vector<let>::vector;
 
     template <typename InputIterator>
     explicit vector(for_each_in_tag, InputIterator from, InputIterator to)

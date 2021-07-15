@@ -84,7 +84,8 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, object>, std::is_convertible<U, object>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, let>,
+                                             std::is_convertible<U, let>)>
   inline decltype(auto) operator |(T&& x, U&& y)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -191,7 +192,7 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, let const& x) -> object
+    auto copy = [](auto&& rec, let const& x) -> let
     {
       if (x.is<pair>())
       {
@@ -230,14 +231,14 @@ inline namespace kernel
    * From SRFI-1
    *   - circular-list?
    *   - dotted-list?
-   *   - eq?                            => eq, object::operator ==
-   *   - eqv?                           => eqv, object::eqv
+   *   - eq?                            => eq, let::operator ==
+   *   - eqv?                           => eqv, let::eqv
    *   - euqal?                         => equal
    *   - list?
    *   - not-pair?                      => not x.is<pair>()
    *   - null-list?
-   *   - null?                          => object::is<null>()
-   *   - pair?                          => object::is<pair>()
+   *   - null?                          => let::is<null>()
+   *   - pair?                          => let::is<pair>()
    *   - proper-list?
    *
    * ------------------------------------------------------------------------ */
@@ -252,7 +253,7 @@ inline namespace kernel
     return x.eqv(y);
   };
 
-  auto equal(object const& x, object const& y) -> bool;
+  auto equal(let const& x, let const& y) -> bool;
 
   template <std::size_t Coarseness = 0>
   struct equivalence_comparator;
@@ -341,7 +342,7 @@ inline namespace kernel
     }
 
     template <typename T>
-    decltype(auto) list_tail(T&& x, object const& k)
+    decltype(auto) list_tail(T&& x, let const& k)
     {
       return list_tail(std::forward<decltype(x)>(x), k.as<exact_integer>().to<std::size_t>());
     }
@@ -352,7 +353,7 @@ inline namespace kernel
       return car(list_tail(std::forward<decltype(xs)>(xs)...));
     }
 
-    let take(const object& exp, std::size_t size);
+    let take(let const& exp, std::size_t size);
   }
 
   /* ---- Miscellaneous --------------------------------------------------------
@@ -384,11 +385,11 @@ inline namespace kernel
       return std::distance(std::cbegin(x), std::cend(x));
     };
 
-    let append(const object& x, const object& y);
+    let append(let const& x, let const& y);
 
-    let reverse(const object& x);
+    let reverse(let const& x);
 
-    let zip(const object& x, const object& y);
+    let zip(let const& x, let const& y);
   }
 
   /* ==== Folding ==============================================================
@@ -433,7 +434,7 @@ inline namespace kernel
   inline namespace mapping
   {
     template <typename Procedure>
-    object map(Procedure&& procedure, const object& x)
+    let map(Procedure&& procedure, let const& x)
     {
       if (x.is<null>())
       {
@@ -480,7 +481,7 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace searching
   {
-    auto find = [](auto const& x, auto&& predicate) constexpr -> auto const&
+    auto find = [](let const& x, auto&& predicate) constexpr -> auto const&
     {
       if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
       {
@@ -519,7 +520,7 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](auto const& key, auto const& alist, auto&& compare = equivalence_comparator<2>()) constexpr
+    auto assoc = [](let const& key, let const& alist, auto&& compare = equivalence_comparator<2>()) constexpr
     {
       return find(alist, [&](auto&& each)
              {

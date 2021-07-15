@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <iostream>
 #include <limits>
 #include <map>
 #include <memory>
@@ -12,8 +11,7 @@
 
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>
-
-#define LINE() std::cout << "; " __FILE__ ":" << __LINE__ << std::endl
+#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
@@ -21,36 +19,26 @@ inline namespace memory
 {
   class collector // A mark-and-sweep garbage collector.
   {
-    static inline std::mutex resource;
-
   public:
-
-    static auto lock()
+    struct root
     {
-      return std::unique_lock(resource);
-    }
-
-    struct collectable
-    {
-      using pointer = typename std::add_pointer<collectable>::type;
-
     protected:
-      explicit collectable()
+      explicit root()
       {
         auto const locking = lock();
-        collectables.emplace(this, nullptr);
+        roots.emplace(this, nullptr);
       }
 
-      ~collectable()
+      ~root()
       {
         auto const locking = lock();
-        collectables.erase(this);
+        roots.erase(this);
       }
 
-      void reset(void_pointer const derived, deallocator<void>::signature const deallocate)
+      void reset(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
         auto const locking = lock();
-        collectables[this] = collector::reset(derived, deallocate);
+        roots[this] = collector::reset(derived, deallocate);
       }
 
       template <typename Pointer>
@@ -60,11 +48,12 @@ inline namespace memory
       }
     };
 
-  public: /* ---- DATA MEMBERS ---------------------------------------------- */
+  private:
+    static inline std::mutex resource;
 
-    static inline std::map<collectable::pointer, region::pointer> collectables;
+    static inline std::map<pointer<root>, pointer<region>> roots;
 
-    static inline std::set<region::pointer> regions;
+    static inline std::set<pointer<region>> regions;
 
     static inline bool collecting;
 
@@ -72,27 +61,65 @@ inline namespace memory
 
     static inline std::size_t threshold;
 
-  public: /* ---- CONSTRUCTORS AND DESTRUCTORS ------------------------------ */
-
+  public:
     explicit collector();
 
     explicit collector(collector &&) = delete;
 
     explicit collector(collector const&) = delete;
 
+    ~collector();
+
     collector & operator =(collector &&) = delete;
 
     collector & operator =(collector const&) = delete;
 
-    ~collector();
-
-  public:
-
-    static auto find(void_pointer const x)
+    void clear()
     {
-      const auto dummy = std::make_unique<region>(x, 0);
+      for (auto iter = std::begin(regions); iter != std::end(regions); )
+      {
+        assert(*iter);
 
-      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).controls(x))
+        if (pointer<region> region = *iter; region->assigned())
+        {
+          delete region;
+          iter = regions.erase(iter);
+        }
+        else
+        {
+          ++iter;
+        }
+      }
+    }
+
+    auto collect()
+    {
+      auto const size = regions.size();
+
+      if (auto const locking = lock(); not collecting)
+      {
+        collecting = true;
+
+        mark(), sweep();
+
+        collecting = false;
+
+        newly_allocated = 0;
+      }
+
+      return size - regions.size();
+    }
+
+    auto erase(decltype(regions)::iterator iter) -> decltype(auto)
+    {
+      return regions.erase(iter);
+    }
+
+    static auto find(pointer<void> const interior)
+    {
+      const auto dummy = std::make_unique<region>(interior, 0);
+
+      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).controls(interior))
       {
         return iter;
       }
@@ -102,13 +129,36 @@ inline namespace memory
       }
     }
 
-    template <typename... Ts>
-    auto is_root(Ts&&... xs) const
+    auto insert(pointer<void> const base, std::size_t const size) -> decltype(auto)
     {
-      return find(std::forward<decltype(xs)>(xs)...) == std::end(regions);
+      newly_allocated += size;
+      return regions.insert(new region(base, size));
     }
 
-    static region::pointer reset(void_pointer const derived, deallocator<void>::signature const deallocate)
+    static auto lock() -> std::unique_lock<std::mutex>
+    {
+      return std::unique_lock(resource);
+    }
+
+    void mark()
+    {
+      marker::toggle();
+
+      for (auto [derived, region] : roots)
+      {
+        if (region and not region->marked() and find(derived) == std::end(regions))
+        {
+          traverse(region);
+        }
+      }
+    }
+
+    auto overflow(std::size_t const size = 0)
+    {
+      return threshold < newly_allocated + size;
+    }
+
+    static auto reset(pointer<void> const derived, deallocator<void>::signature const deallocate) -> pointer<region>
     {
       if (not derived)
       {
@@ -123,7 +173,7 @@ inline namespace memory
         assert(iter != std::end(regions));
         assert(deallocate);
 
-        region::pointer the_region = *iter;
+        pointer<region> the_region = *iter;
 
         if (deallocate and not the_region->assigned())
         {
@@ -134,52 +184,34 @@ inline namespace memory
       }
     }
 
-    void traverse(region::pointer const the_region)
+    void reset_threshold(std::size_t const size = std::numeric_limits<std::size_t>::max())
     {
-      if (the_region and not the_region->marked())
-      {
-        the_region->mark();
-
-        auto lower = collectables.lower_bound(reinterpret_cast<collectable::pointer>(the_region->lower_bound()));
-        auto upper = collectables.lower_bound(reinterpret_cast<collectable::pointer>(the_region->upper_bound()));
-
-        for (auto iter = lower; iter != upper; ++iter)
-        {
-          traverse(iter->second);
-        }
-      }
+      auto const locking = lock();
+      threshold = size;
     }
 
-    auto mark()
+    auto size()
     {
-      marker::toggle();
-
-      for (auto [x, region] : collectables)
-      {
-        if (region and not region->marked() and is_root(x)) // = is_unmarked_root
-        {
-          traverse(region);
-        }
-      }
+      return regions.size();
     }
 
-    auto sweep()
+    void sweep()
     {
       for (auto iter = std::begin(regions); iter != std::end(regions); )
       {
         assert(*iter);
 
-        if (region::pointer c = *iter; not c->marked())
+        if (pointer<region> region = *iter; not region->marked())
         {
-          if (c->assigned())
+          if (region->assigned())
           {
-            delete c;
+            delete region;
             iter = regions.erase(iter);
             continue;
           }
           else
           {
-            c->mark();
+            region->mark();
           }
         }
 
@@ -187,85 +219,37 @@ inline namespace memory
       }
     }
 
-    void collect()
+    void traverse(pointer<region> const the_region)
     {
-      if (auto const locking = lock(); not collecting)
+      if (the_region and not the_region->marked())
       {
-        collecting = true;
+        the_region->mark();
 
-        mark(), sweep();
+        auto lower = roots.lower_bound(reinterpret_cast<pointer<root>>(the_region->lower_bound()));
+        auto upper = roots.lower_bound(reinterpret_cast<pointer<root>>(the_region->upper_bound()));
 
-        collecting = false;
-
-        newly_allocated = 0;
-      }
-    }
-
-    void clear()
-    {
-      for (auto iter = std::begin(regions); iter != std::end(regions); )
-      {
-        assert(*iter);
-
-        if (region::pointer region = *iter; region->assigned())
+        for (auto iter = lower; iter != upper; ++iter)
         {
-          delete region;
-          iter = regions.erase(iter);
-        }
-        else
-        {
-          ++iter;
+          traverse(iter->second);
         }
       }
-    }
-
-    void reset_threshold(std::size_t const size = std::numeric_limits<std::size_t>::max())
-    {
-      auto const locking = lock();
-      threshold = size;
-    }
-
-    template <typename... Ts>
-    decltype(auto) insert(Ts&&... xs)
-    {
-      return regions.insert(new region(std::forward<decltype(xs)>(xs)...));
-    }
-
-    template <typename... Ts>
-    decltype(auto) erase(Ts&&... xs)
-    {
-      return regions.erase(std::forward<decltype(xs)>(xs)...);
-    }
-
-  public: /* ---- DEBUG TOOLS ----------------------------------------------- */
-
-    static auto size()
-    {
-      return regions.size();
-    }
-
-    auto count_unmarked_collectables()
-    {
-      return std::count_if(std::begin(collectables), std::end(collectables), [](auto const& each)
-             {
-               auto const* const c = std::get<1>(each);
-               return c and c->marked();
-             });
-    }
-
-    auto count_unmarked_regions() const -> std::size_t
-    {
-      return std::count_if(std::begin(regions), std::end(regions), [](auto const& each)
-             {
-               return each and each->marked();
-             });
     }
   } static gc;
+
+  constexpr auto operator ""_KiB(unsigned long long size)
+  {
+    return size * 1024;
+  }
+
+  constexpr auto operator ""_MiB(unsigned long long size)
+  {
+    return size * 1024 * 1024;
+  }
 } // namespace memory
 } // namespace meevax
 
-meevax::void_pointer operator new(std::size_t const, meevax::collector &);
+meevax::pointer<void> operator new(std::size_t const, meevax::collector &);
 
-void operator delete(meevax::void_pointer const, meevax::collector &) noexcept;
+void operator delete(meevax::pointer<void> const, meevax::collector &) noexcept;
 
 #endif // INCLUDED_MEEVAX_MEMORY_COLLECTOR_HPP

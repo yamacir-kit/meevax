@@ -12,31 +12,23 @@ namespace meevax
 {
 inline namespace memory
 {
-  struct region : public marker
+  class region : public marker
   {
-    using pointer = typename std::add_pointer<region>::type;
-
-    using const_pointer = typename std::add_pointer<region const>::type;
-
-  private:
-    void_pointer base, derived = nullptr;
+    pointer<void> base, derived = nullptr;
 
     std::size_t size;
 
     deallocator<void>::signature deallocate = nullptr;
 
   public:
-    explicit region(void_pointer const base, std::size_t const size)
+    explicit region(pointer<void> const base, std::size_t const size)
       : base { base }
       , size { size }
     {}
 
     ~region()
     {
-      if (assigned())
-      {
-        deallocate(derived);
-      }
+      release();
     }
 
     auto lower_bound() const noexcept
@@ -54,7 +46,7 @@ inline namespace memory
       return lower_bound() <= k and k < upper_bound();
     }
 
-    auto controls(void_pointer const derived) const noexcept
+    auto controls(pointer<void> const derived) const noexcept
     {
       return controls(reinterpret_cast<std::uintptr_t>(derived));
     }
@@ -88,10 +80,10 @@ inline namespace memory
 namespace std
 {
   template <>
-  struct less<meevax::region::pointer>
+  struct less<meevax::pointer<meevax::region>>
   {
-    bool operator ()(meevax::region::const_pointer x,
-                     meevax::region::const_pointer y) const
+    bool operator ()(meevax::const_pointer<meevax::region> x,
+                     meevax::const_pointer<meevax::region> y) const
     {
       return (*x).upper_bound() <= (*y).lower_bound();
     }

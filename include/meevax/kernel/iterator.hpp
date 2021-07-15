@@ -14,7 +14,7 @@ inline namespace kernel
   #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
     : public std::reference_wrapper<T>
   #else
-    : public object
+    : public let
   #endif
   {
     using iterator_category = std::forward_iterator_tag;
@@ -22,7 +22,7 @@ inline namespace kernel
     #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
     using value_type = std::reference_wrapper<T>;
     #else
-    using value_type = object;
+    using value_type = let;
     #endif
 
     using reference = typename std::add_lvalue_reference<value_type>::type;
@@ -44,7 +44,7 @@ inline namespace kernel
     #else
     template <typename... Ts>
     constexpr homoiconic_iterator(Ts&&... xs)
-      : object { std::forward<decltype(xs)>(xs)... }
+      : let { std::forward<decltype(xs)>(xs)... }
     {}
     #endif
 
@@ -61,7 +61,7 @@ inline namespace kernel
     decltype(auto) operator ++()
     {
       #ifdef MEEVAX_HOMOICONIC_ITERATOR_USE_REFERENCE_WRAPPER
-      static_cast<object &>(*this) = cdr(*this);
+      static_cast<let &>(*this) = cdr(*this);
       return *this;
       #else
       return *this = cdr(*this);
@@ -102,10 +102,10 @@ inline namespace kernel
 
 namespace std
 {
-  auto cbegin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const>;
-  auto  begin(meevax::object const& x) -> meevax::homoiconic_iterator<meevax::object const>;
-  auto   cend(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const>;
-  auto    end(meevax::object const&  ) -> meevax::homoiconic_iterator<meevax::object const>;
+  auto cbegin(meevax::let const& x) -> meevax::homoiconic_iterator<meevax::let const>;
+  auto  begin(meevax::let const& x) -> meevax::homoiconic_iterator<meevax::let const>;
+  auto   cend(meevax::let const&  ) -> meevax::homoiconic_iterator<meevax::let const>;
+  auto    end(meevax::let const&  ) -> meevax::homoiconic_iterator<meevax::let const>;
 } // namespace std
 
 #endif // INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP

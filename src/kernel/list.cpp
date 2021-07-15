@@ -4,7 +4,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto equal(const object& x, const object& y) -> bool
+  auto equal(let const& x, let const& y) -> bool
   {
     if (x.is<null>() and y.is<null>())
     {
@@ -22,7 +22,7 @@ inline namespace kernel
 
   inline namespace selector
   {
-    let take(const object& exp, std::size_t size)
+    let take(let const& exp, std::size_t size)
     {
       if (0 < size)
       {
@@ -37,7 +37,7 @@ inline namespace kernel
 
   inline namespace miscellaneous
   {
-    let append(const object& x, const object& y)
+    let append(let const& x, let const& y)
     {
       if (x.is<null>())
       {
@@ -49,12 +49,12 @@ inline namespace kernel
       }
     }
 
-    let reverse(const object& x)
+    let reverse(let const& x)
     {
       return x ? append(reverse(cdr(x)), list(car(x))) : unit;
     }
 
-    let zip(const object& x, const object& y)
+    let zip(let const& x, let const& y)
     {
       if (x.is<null>() and y.is<null>())
       {

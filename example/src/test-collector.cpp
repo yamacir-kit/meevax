@@ -158,6 +158,25 @@ BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
     BOOST_CHECK(caddr(x).as<symbol>() == "c");
     BOOST_CHECK(cadddr(x).as<symbol>() == "a");
   }
+
+  BOOST_AUTO_TEST_CASE(change_class)
+  {
+    let x = make<symbol>("hoge");
+
+    gc.collect();
+
+    BOOST_CHECK(gc.size() == size + 1);
+    BOOST_CHECK(x.is<symbol>());
+    BOOST_CHECK(x.as<symbol>() == "hoge");
+
+    x = make<exact_integer>(42);
+
+    gc.collect();
+
+    BOOST_CHECK(gc.size() == size + 1);
+    BOOST_CHECK(x.is<exact_integer>());
+    BOOST_CHECK(x.as<exact_integer>() == 42);
+  }
 }
 BOOST_AUTO_TEST_SUITE_END();
 

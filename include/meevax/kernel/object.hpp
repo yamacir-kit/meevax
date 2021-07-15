@@ -1,27 +1,35 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
-#include <meevax/kernel/pointer.hpp>
+#include <cstddef>
+#include <meevax/kernel/heterogeneous.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
   template <typename T>
-  struct alignas(sizeof(std::uintptr_t)) top
+  struct top
   {
+    using cell = heterogeneous<root, T>;
+
     virtual auto type() const noexcept -> std::type_info const&
     {
       return typeid(T);
     }
 
-    virtual bool eqv(pointer<T> const& x) const
+    virtual bool eqv(cell const& x) const
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        auto const* p = dynamic_cast<T const*>(x.get());
-
-        return p and *p == static_cast<T const&>(*this);
+        if (auto const* address = dynamic_cast<T const*>(x.get()); address)
+        {
+          return *address == static_cast<T const&>(*this);
+        }
+        else
+        {
+          return std::is_same<T, std::nullptr_t>::value;
+        }
       }
       else
       {
@@ -35,44 +43,41 @@ inline namespace kernel
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
-    virtual auto operator SYMBOL(pointer<T> const& x) const -> RESULT          \
+    virtual auto operator SYMBOL(cell const& x) const -> RESULT                \
     {                                                                          \
       return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
     } static_assert(true)
 
-    BOILERPLATE(+, pointer<T>, std::plus<void>);
-    BOILERPLATE(-, pointer<T>, std::minus<void>);
-    BOILERPLATE(*, pointer<T>, std::multiplies<void>);
-    BOILERPLATE(/, pointer<T>, std::divides<void>);
-    BOILERPLATE(%, pointer<T>, std::modulus<void>);
+    BOILERPLATE(+, cell, std::plus      <void>);
+    BOILERPLATE(-, cell, std::minus     <void>);
+    BOILERPLATE(*, cell, std::multiplies<void>);
+    BOILERPLATE(/, cell, std::divides   <void>);
+    BOILERPLATE(%, cell, std::modulus   <void>);
 
-    BOILERPLATE(==, bool, std::equal_to<void>);
-    BOILERPLATE(!=, bool, std::not_equal_to<void>);
-    BOILERPLATE(<,  bool, std::less<void>);
-    BOILERPLATE(<=, bool, std::less_equal<void>);
-    BOILERPLATE(>,  bool, std::greater<void>);
+    BOILERPLATE(!=, bool, std::not_equal_to <void>);
+    BOILERPLATE(<,  bool, std::less         <void>);
+    BOILERPLATE(<=, bool, std::less_equal   <void>);
+    BOILERPLATE(==, bool, std::equal_to     <void>);
+    BOILERPLATE(>,  bool, std::greater      <void>);
     BOILERPLATE(>=, bool, std::greater_equal<void>);
 
     #undef BOILERPLATE
   };
 
-  // TODO Rename to 'cons'?
-  using resource = std::allocator<object>;
-
   template <typename T, typename... Ts>
-  inline constexpr decltype(auto) make(Ts&&... xs)
+  inline constexpr auto make(Ts&&... xs) -> decltype(auto)
   {
-    return object::allocate<T>(std::forward<decltype(xs)>(xs)...);
+    return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
   inline constexpr auto make(T&& x)
   {
-    return object::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
+    return let::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
-  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<object const>, typename std::decay<T>::type>;
+  template <typename T> using is_object    = std::is_base_of<                       let       , typename std::decay<T>::type>;
+  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<let const>, typename std::decay<T>::type>;
 
   auto unwrap = [](auto&& x) -> decltype(auto)
   {

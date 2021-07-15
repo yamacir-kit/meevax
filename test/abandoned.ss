@@ -76,22 +76,22 @@
 (define swap!
   (fork/csc
     (lambda (swap! x y)
-      (let ((temporary (string->symbol)))
-       `(,let ((,temporary ,x))
-          (,set! ,x ,y)
-          (,set! ,y ,temporary)) ))))
+      (let ((z (string->symbol)))
+        `(,let ((,z ,x))
+           (,set! ,x ,y)
+           (,set! ,y ,z))))))
 
 (define swap!
   (fork/csc
     (lambda (swap! x y)
-     `(,let ((,value ,x))
-        (,set! ,x ,y)
-        (,set! ,y ,value)) )))
+      `(,let ((,value ,x))
+         (,set! ,x ,y)
+         (,set! ,y ,value)))))
 
 (define-syntax (swap! x y)
- `(,let ((,value ,x))
-    (,set! ,x ,y)
-    (,set! ,y ,value)))
+  `(,let ((,value ,x))
+     (,set! ,x ,y)
+     (,set! ,y ,value)))
 
 ; (define swap!
 ;   (er-macro-transformer

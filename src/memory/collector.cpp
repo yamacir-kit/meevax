@@ -1,3 +1,5 @@
+#include <new>
+
 #include <meevax/memory/collector.hpp>
 
 namespace meevax
@@ -10,7 +12,7 @@ inline namespace memory
   {
     if (not count++)
     {
-      collectables = {};
+      roots = {};
 
       regions = {};
 
@@ -18,8 +20,8 @@ inline namespace memory
 
       newly_allocated = 0;
 
-      threshold = std::numeric_limits<std::size_t>::max();
-      // threshold = 1024 * 1024; // = 1 MiB
+      // threshold = std::numeric_limits<std::size_t>::max();
+      threshold = 8_MiB;
     }
   }
 
@@ -27,33 +29,45 @@ inline namespace memory
   {
     if (not --count)
     {
-      collect();
-      collect(); // ???
+      /* ---- NOTE -------------------------------------------------------------
+       *
+       *  We're using collect instead of clear to check that all objects can be
+       *  collected. If speed is a priority, clear should be used here.
+       *
+       * -------------------------------------------------------------------- */
 
-      assert(std::size(collectables) == 0);
+      collect();
+      collect(); // XXX: vector elements
+
+      assert(std::size(roots) == 0);
       assert(std::size(regions) == 0);
     }
   }
 } // namespace memory
 } // namespace meevax
 
-meevax::void_pointer operator new(std::size_t const size, meevax::collector & gc)
+auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::pointer<void>
 {
   auto const lock = gc.lock();
 
-  if (gc.newly_allocated += size; gc.threshold < gc.newly_allocated)
+  if (auto data = ::operator new(size); data)
   {
-    gc.collect();
+    if (gc.overflow())
+    {
+      std::cout << meevax::header(__func__) << gc.collect() << " objects collected." << std::endl;
+    }
+
+    gc.insert(data, size);
+
+    return data;
   }
-
-  auto p = ::operator new(size);
-
-  gc.insert(p, size);
-
-  return p;
+  else
+  {
+    throw std::bad_alloc();
+  }
 }
 
-void operator delete(meevax::void_pointer const p, meevax::collector & gc) noexcept
+void operator delete(meevax::pointer<void> const p, meevax::collector & gc) noexcept
 {
   auto const lock = gc.lock();
 
