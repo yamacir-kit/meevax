@@ -9,14 +9,14 @@ using namespace meevax;
   std::cout << __LINE__ << ":\t" #__VA_ARGS__ " = " << (__VA_ARGS__) << std::endl
 
 #define DEBUG_COLLECT() \
-  std::cout << __LINE__ << ":\t" << gc.size() << " => (gc-collect) => " << (gc.collect(), gc.size()) << std::endl
+  std::cout << __LINE__ << ":\t" << gc.count() << " => (gc-collect) => " << (gc.collect(), gc.count()) << std::endl
 
 struct fixture // Check if all allocated objects are collected.
 {
   std::size_t const size;
 
   explicit fixture()
-    : size { gc.size() }
+    : size { gc.count() }
   {
     BOOST_CHECK(size == constants.size() + 11);
 
@@ -42,7 +42,7 @@ struct fixture // Check if all allocated objects are collected.
     gc.collect();
     gc.collect();
 
-    BOOST_CHECK(gc.size() == size);
+    BOOST_CHECK(gc.count() == size);
   }
 };
 
@@ -54,7 +54,7 @@ BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
     let y = make<symbol>("y");
     let z = make<symbol>("z");
 
-    BOOST_CHECK(gc.size() == size + 3);
+    BOOST_CHECK(gc.count() == size + 3);
   }
 
   BOOST_AUTO_TEST_CASE(copy)
@@ -105,7 +105,7 @@ BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
       BOOST_CHECK(x.as<symbol>() == "x");
       BOOST_CHECK(y.as<symbol>() == "y");
       BOOST_CHECK(z.as<symbol>() == "z");
-      BOOST_CHECK(gc.size() == size + 3);
+      BOOST_CHECK(gc.count() == size + 3);
 
       return list(x, y, z);
     };
@@ -139,7 +139,7 @@ BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
       BOOST_CHECK(a.as<symbol>() == "a");
       BOOST_CHECK(b.as<symbol>() == "b");
       BOOST_CHECK(c.as<symbol>() == "c");
-      BOOST_CHECK(gc.size() == size + 3);
+      BOOST_CHECK(gc.count() == size + 3);
 
       return circular_list(a, b, c);
     };
@@ -165,7 +165,7 @@ BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
 
     gc.collect();
 
-    BOOST_CHECK(gc.size() == size + 1);
+    BOOST_CHECK(gc.count() == size + 1);
     BOOST_CHECK(x.is<symbol>());
     BOOST_CHECK(x.as<symbol>() == "hoge");
 
@@ -173,7 +173,7 @@ BOOST_FIXTURE_TEST_SUITE(features, fixture); namespace
 
     gc.collect();
 
-    BOOST_CHECK(gc.size() == size + 1);
+    BOOST_CHECK(gc.count() == size + 1);
     BOOST_CHECK(x.is<exact_integer>());
     BOOST_CHECK(x.as<exact_integer>() == 42);
   }
@@ -210,31 +210,31 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     v.as<vector>().clear();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    BOOST_CHECK(gc.size() == size + 1);
+    BOOST_CHECK(gc.count() == size + 1);
   }
 
   BOOST_AUTO_TEST_CASE(vector_from_list_1)
@@ -245,51 +245,51 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 7);
+    BOOST_CHECK(gc.count() == size + 7);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     v.as<vector>().clear();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    BOOST_CHECK(gc.size() == size + 1);
+    BOOST_CHECK(gc.count() == size + 1);
   }
 
   BOOST_AUTO_TEST_CASE(list_read)
   {
     syntactic_continuation module { layer<0>() };
 
-    auto const size = gc.size();
+    auto const size = gc.count();
 
     module.read("(a a a)");
 
     gc.collect();
 
-    BOOST_CHECK(gc.size() == size + 1);
+    BOOST_CHECK(gc.count() == size + 1);
   }
 
   BOOST_AUTO_TEST_CASE(vector_from_list_2)
   {
     syntactic_continuation module { layer<0>() };
 
-    auto const size = gc.size();
+    auto const size = gc.count();
 
     let const v = make<vector>(for_each_in, module.read("(a b c)"));
 
@@ -306,7 +306,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
     BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
     BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
     BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
@@ -315,13 +315,13 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
     BOOST_CHECK(v.as<vector>()[0].as<symbol>() == "a");
     BOOST_CHECK(v.as<vector>()[1].as<symbol>() == "b");
     BOOST_CHECK(v.as<vector>()[2].as<symbol>() == "c");
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     v.as<vector>().clear();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
@@ -333,7 +333,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
   {
     syntactic_continuation module { layer<0>() };
 
-    auto const size = gc.size();
+    auto const size = gc.count();
 
     let const v = module.read("#(a b c)");
 
@@ -344,25 +344,25 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 3);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     v.as<vector>().clear();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
 
     gc.collect();
 
     BOOST_CHECK(v.is<vector>());
     BOOST_CHECK(v.as<vector>().size() == 0);
-    BOOST_CHECK(gc.size() == size + 4);
+    BOOST_CHECK(gc.count() == size + 4);
   }
 
   BOOST_AUTO_TEST_CASE(vector_evaluate)

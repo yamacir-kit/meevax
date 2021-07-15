@@ -1794,9 +1794,9 @@ inline namespace kernel
       return make<exact_integer>(gc.collect());
     });
 
-    define<procedure>("gc-size", [](auto&&)
+    define<procedure>("gc-count", [](auto&&)
     {
-      return make<exact_integer>(gc.size());
+      return make<exact_integer>(gc.count());
     });
 
     define<procedure>("ieee-float?", [](auto&&)

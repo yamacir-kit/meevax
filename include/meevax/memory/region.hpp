@@ -12,7 +12,7 @@ namespace meevax
 {
 inline namespace memory
 {
-  class region : public marker
+  struct region : public marker
   {
     pointer<void> base, derived = nullptr;
 
@@ -20,7 +20,6 @@ inline namespace memory
 
     deallocator<void>::signature deallocate = nullptr;
 
-  public:
     explicit region(pointer<void> const base, std::size_t const size)
       : base { base }
       , size { size }
@@ -51,12 +50,12 @@ inline namespace memory
       return contains(reinterpret_cast<std::uintptr_t>(derived));
     }
 
-    constexpr bool assigned() const noexcept
+    auto assigned() const noexcept
     {
       return derived and deallocate;
     }
 
-    void reset(decltype(derived) x, decltype(deallocate) f) noexcept
+    void reset(pointer<void> const x, deallocator<void>::signature const f) noexcept
     {
       derived = x;
       deallocate = f;

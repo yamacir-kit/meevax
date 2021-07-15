@@ -6,11 +6,11 @@ namespace meevax
 {
 inline namespace memory
 {
-  static std::size_t count = 0;
+  static std::size_t reference_count = 0;
 
   collector::collector()
   {
-    if (not count++)
+    if (not reference_count++)
     {
       objects = {};
 
@@ -27,7 +27,7 @@ inline namespace memory
 
   collector::~collector()
   {
-    if (not --count)
+    if (not --reference_count)
     {
       /* ---- NOTE -------------------------------------------------------------
        *
@@ -67,13 +67,13 @@ auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::poi
   }
 }
 
-void operator delete(meevax::pointer<void> const p, meevax::collector & gc) noexcept
+void operator delete(meevax::pointer<void> const data, meevax::collector & gc) noexcept
 {
   auto const lock = gc.lock();
 
   try
   {
-    if (auto const iter = gc.find(p); *iter)
+    if (auto const iter = gc.region_of(data); *iter)
     {
       gc.erase(iter);
     }
@@ -81,5 +81,5 @@ void operator delete(meevax::pointer<void> const p, meevax::collector & gc) noex
   catch (...)
   {}
 
-  ::operator delete(p);
+  ::operator delete(data);
 }

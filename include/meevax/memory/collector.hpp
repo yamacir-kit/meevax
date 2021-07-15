@@ -57,6 +57,8 @@ inline namespace memory
 
     static inline bool collecting;
 
+    static inline std::size_t whole_size;
+
     static inline std::size_t newly_allocated;
 
     static inline std::size_t threshold;
@@ -94,7 +96,7 @@ inline namespace memory
 
     auto collect()
     {
-      auto const size = regions.size();
+      auto const before = count();
 
       if (auto const locking = lock(); not collecting)
       {
@@ -107,30 +109,23 @@ inline namespace memory
         newly_allocated = 0;
       }
 
-      return size - regions.size();
+      return before - count();
     }
 
-    auto erase(decltype(regions)::iterator iter) -> decltype(auto)
+    auto count() const noexcept -> std::size_t
     {
+      return regions.size();
+    }
+
+    auto erase(decltype(regions)::iterator iter)
+    {
+      whole_size -= (*iter)->size;
       return regions.erase(iter);
-    }
-
-    static auto find(pointer<void> const interior)
-    {
-      const auto dummy = std::make_unique<region>(interior, 0);
-
-      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).contains(interior))
-      {
-        return iter;
-      }
-      else
-      {
-        return std::end(regions);
-      }
     }
 
     auto insert(pointer<void> const base, std::size_t const size) -> decltype(auto)
     {
+      whole_size += size;
       newly_allocated += size;
       return regions.insert(new region(base, size));
     }
@@ -146,16 +141,30 @@ inline namespace memory
 
       for (auto [derived, region] : objects)
       {
-        if (region and not region->marked() and find(derived) == std::end(regions))
+        if (region and not region->marked() and region_of(derived) == std::end(regions))
         {
           traverse(region);
         }
       }
     }
 
-    auto overflow(std::size_t const size = 0)
+    auto overflow() const noexcept
     {
-      return threshold < newly_allocated + size;
+      return threshold < newly_allocated;
+    }
+
+    static auto region_of(pointer<void> const interior) -> decltype(regions)::iterator
+    {
+      const auto dummy = std::make_unique<region>(interior, 0);
+
+      if (auto iter = regions.lower_bound(dummy.get()); iter != std::end(regions) and (**iter).contains(interior))
+      {
+        return iter;
+      }
+      else
+      {
+        return std::end(regions);
+      }
     }
 
     static auto reset(pointer<void> const derived, deallocator<void>::signature const deallocate) -> pointer<region>
@@ -168,7 +177,7 @@ inline namespace memory
       {
         auto const locking = lock();
 
-        auto iter = find(derived);
+        auto iter = region_of(derived);
 
         assert(iter != std::end(regions));
         assert(deallocate);
@@ -188,11 +197,6 @@ inline namespace memory
     {
       auto const locking = lock();
       threshold = size;
-    }
-
-    auto size()
-    {
-      return regions.size();
     }
 
     void sweep()
