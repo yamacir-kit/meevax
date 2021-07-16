@@ -27,11 +27,11 @@ inline namespace memory
     pointer data;
 
     template <typename Pointer = pointer>
-    explicit constexpr simple_pointer(typename std::pointer_traits<Pointer>::pointer data = nullptr)
+    constexpr simple_pointer(typename std::pointer_traits<Pointer>::pointer data = nullptr)
       : data { static_cast<pointer>(data) }
     {}
 
-    explicit constexpr simple_pointer(simple_pointer const& sp)
+    constexpr simple_pointer(simple_pointer const& sp)
       : data { sp.get() }
     {}
 

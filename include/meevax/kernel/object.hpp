@@ -65,7 +65,7 @@ inline namespace kernel
   };
 
   template <typename T, typename... Ts>
-  inline constexpr auto make(Ts&&... xs) -> decltype(auto)
+  inline constexpr auto make(Ts&&... xs)
   {
     return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }

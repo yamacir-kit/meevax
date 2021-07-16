@@ -17,6 +17,15 @@ namespace meevax
 {
 inline namespace memory
 {
+  /* ---- Acknowledgement ------------------------------------------------------
+   *
+   *  The class is based on the implementation of gc_ptr written by
+   *  William E. Kempf and posted to CodeProject.
+   *
+   *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
+   *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
+   *
+   * ------------------------------------------------------------------------ */
   class collector // A mark-and-sweep garbage collector.
   {
   public:

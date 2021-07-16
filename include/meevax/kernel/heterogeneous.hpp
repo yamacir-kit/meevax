@@ -83,7 +83,7 @@ inline namespace kernel
     using Pointer<Top>::Pointer;
 
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
-    static auto allocate(Ts&&... xs) // TODO: -> typename std::add_pointer<Top>::type
+    static auto allocate(Ts&&... xs)
     {
       if constexpr (std::is_same<Bound, Top>::value)
       {

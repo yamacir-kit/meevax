@@ -13,16 +13,10 @@ inline namespace memory
     : protected collector::object
     , public simple_pointer<T>
   {
-    using pointer = typename simple_pointer<T>::pointer;
-
-    explicit constexpr cell(std::nullptr_t = nullptr)
-      : simple_pointer<T> {}
-    {}
-
-    explicit cell(pointer const data)
+    explicit cell(simple_pointer<T> const p = nullptr)
       : simple_pointer<T> {}
     {
-      reset(data);
+      reset(p.get());
     }
 
     explicit cell(cell const& p)
@@ -49,7 +43,7 @@ inline namespace memory
       return store(std::forward<decltype(xs)>(xs)...);
     }
 
-    void reset(pointer const data = nullptr)
+    void reset(const_pointer<T> data = nullptr)
     {
       collector::object::reset(simple_pointer<T>::reset(data));
     }
