@@ -1,5 +1,5 @@
-#ifndef INCLUDED_MEEVAX_MEMORY_ROOT_HPP
-#define INCLUDED_MEEVAX_MEMORY_ROOT_HPP
+#ifndef INCLUDED_MEEVAX_MEMORY_CELL_HPP
+#define INCLUDED_MEEVAX_MEMORY_CELL_HPP
 
 #include <meevax/memory/collector.hpp>
 #include <meevax/memory/simple_pointer.hpp>
@@ -9,36 +9,36 @@ namespace meevax
 inline namespace memory
 {
   template <typename T>
-  struct root
-    : protected collector::root
+  struct cell
+    : protected collector::object
     , public simple_pointer<T>
   {
     using pointer = typename simple_pointer<T>::pointer;
 
-    explicit constexpr root(std::nullptr_t = nullptr)
+    explicit constexpr cell(std::nullptr_t = nullptr)
       : simple_pointer<T> {}
     {}
 
-    explicit root(pointer const data)
+    explicit cell(pointer const data)
       : simple_pointer<T> {}
     {
       reset(data);
     }
 
-    explicit root(root const& p)
+    explicit cell(cell const& p)
       : simple_pointer<T> {}
     {
       reset(p.get());
     }
 
     template <typename U>
-    explicit root(root<U> const& p)
+    explicit cell(cell<U> const& p)
       : simple_pointer<T> {}
     {
       reset(p.get());
     }
 
-    auto operator =(root const& another) -> auto &
+    auto operator =(cell const& another) -> auto &
     {
       return store(another);
     }
@@ -51,16 +51,16 @@ inline namespace memory
 
     void reset(pointer const data = nullptr)
     {
-      collector::root::reset(simple_pointer<T>::reset(data));
+      collector::object::reset(simple_pointer<T>::reset(data));
     }
 
-    auto store(root const& another) -> auto &
+    auto store(cell const& another) -> auto &
     {
       reset(another.get());
       return *this;
     }
 
-    void swap(root & another)
+    void swap(cell & another)
     {
       auto const copy = simple_pointer<T>::get();
       reset(another.get());
@@ -70,4 +70,4 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_MEMORY_ROOT_HPP
+#endif // INCLUDED_MEEVAX_MEMORY_CELL_HPP

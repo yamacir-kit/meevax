@@ -20,10 +20,10 @@ inline namespace memory
   class collector // A mark-and-sweep garbage collector.
   {
   public:
-    struct root
+    struct object
     {
     protected:
-      explicit root()
+      explicit object()
       {
         if (auto const lock = std::unique_lock(resource); lock)
         {
@@ -31,7 +31,7 @@ inline namespace memory
         }
       }
 
-      ~root()
+      ~object()
       {
         if (auto const lock = std::unique_lock(resource); lock)
         {
@@ -57,7 +57,7 @@ inline namespace memory
   private:
     static inline std::mutex resource;
 
-    static inline std::map<pointer<root>, pointer<region>> objects;
+    static inline std::map<pointer<object>, pointer<region>> objects;
 
     static inline std::set<pointer<region>> regions;
 
@@ -213,8 +213,8 @@ inline namespace memory
       {
         the_region->mark();
 
-        auto lower = objects.lower_bound(reinterpret_cast<pointer<root>>(the_region->lower_bound()));
-        auto upper = objects.lower_bound(reinterpret_cast<pointer<root>>(the_region->upper_bound()));
+        auto lower = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->lower_bound()));
+        auto upper = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->upper_bound()));
 
         for (auto iter = lower; iter != upper; ++iter)
         {

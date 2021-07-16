@@ -2,6 +2,7 @@
 #define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 
 #include <meevax/functional/operator.hpp>
+#include <meevax/memory/cell.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/string/append.hpp>
 #include <meevax/utility/debug.hpp>
@@ -19,9 +20,7 @@ inline namespace kernel
 
   struct pair;
 
-  using cell = heterogeneous<simple_pointer, pair>;
-
-  using let = heterogeneous<root, pair>;
+  using let = heterogeneous<cell, pair>;
 
   using null = std::nullptr_t;
 

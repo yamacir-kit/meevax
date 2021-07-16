@@ -11,14 +11,14 @@ inline namespace kernel
   template <typename T>
   struct top
   {
-    using cell = heterogeneous<root, T>;
+    using let = heterogeneous<cell, T>;
 
     virtual auto type() const noexcept -> std::type_info const&
     {
       return typeid(T);
     }
 
-    virtual bool eqv(cell const& x) const
+    virtual bool eqv(let const& x) const
     {
       if constexpr (is_equality_comparable<T>::value)
       {
@@ -43,16 +43,16 @@ inline namespace kernel
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
-    virtual auto operator SYMBOL(cell const& x) const -> RESULT                \
+    virtual auto operator SYMBOL(let const& x) const -> RESULT                 \
     {                                                                          \
       return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
     } static_assert(true)
 
-    BOILERPLATE(+, cell, std::plus      <void>);
-    BOILERPLATE(-, cell, std::minus     <void>);
-    BOILERPLATE(*, cell, std::multiplies<void>);
-    BOILERPLATE(/, cell, std::divides   <void>);
-    BOILERPLATE(%, cell, std::modulus   <void>);
+    BOILERPLATE(+, let, std::plus      <void>);
+    BOILERPLATE(-, let, std::minus     <void>);
+    BOILERPLATE(*, let, std::multiplies<void>);
+    BOILERPLATE(/, let, std::divides   <void>);
+    BOILERPLATE(%, let, std::modulus   <void>);
 
     BOILERPLATE(!=, bool, std::not_equal_to <void>);
     BOILERPLATE(<,  bool, std::less         <void>);
