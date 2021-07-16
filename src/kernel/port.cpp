@@ -15,17 +15,21 @@ inline namespace kernel
     to.rdbuf(from.rdbuf());
   }
 
-  auto operator <<(output_port & port, standard_input const&) -> output_port &
+  let const default_input_port  = make<standard_input_port>();
+  let const default_output_port = make<standard_output_port>();
+  let const default_error_port  = make<standard_error_port>();
+
+  auto operator <<(output_port & port, standard_input_port const&) -> output_port &
   {
     return port << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
   }
 
-  auto operator <<(output_port & port, standard_output const&) -> output_port &
+  auto operator <<(output_port & port, standard_output_port const&) -> output_port &
   {
     return port << magenta << "#,(" << reset << "standard-output-port" << magenta << ")" << reset;
   }
 
-  auto operator <<(output_port & port, standard_error const&) -> output_port &
+  auto operator <<(output_port & port, standard_error_port const&) -> output_port &
   {
     return port << magenta << "#,(" << reset << "standard-error-port" << magenta << ")" << reset;
   }

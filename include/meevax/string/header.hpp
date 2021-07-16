@@ -5,7 +5,7 @@
 
 namespace meevax
 {
-  auto header(std::string const&, std::size_t = 16) -> std::string;
+  auto header(std::string const&, std::size_t = 24) -> std::string;
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_STRING_HEADER_HPP

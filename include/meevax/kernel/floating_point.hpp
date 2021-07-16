@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
-#include <limits>
 #include <valarray>
 
 #include <meevax/kernel/numeric_tower.hpp>
@@ -72,6 +71,7 @@ inline namespace kernel
       return value == std::trunc(value);
     }
 
+    // TODO TEMPLATE SPECIALIZATION to<std::string>()
     auto to_string() const
     {
       return boost::lexical_cast<std::string>(value);

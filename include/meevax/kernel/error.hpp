@@ -24,12 +24,7 @@ inline namespace kernel
   struct error
     : public virtual pair
   {
-    template <typename... Ts>
-    explicit error(Ts&&... xs)
-      : pair { std::forward<decltype(xs)>(xs)... }
-    {}
-
-    ~error() override = default;
+    using pair::pair;
 
     virtual auto what() const -> std::string
     {
@@ -41,11 +36,7 @@ inline namespace kernel
 
       if (cdr(*this))
       {
-        ss << ": " << cdr(*this) << ".";
-      }
-      else
-      {
-        ss << ".";
+        ss << ": " << cdr(*this);
       }
 
       return ss.str();

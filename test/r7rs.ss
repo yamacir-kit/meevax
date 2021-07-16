@@ -1188,12 +1188,12 @@
 
 ; ------------------------------------------------------------------------------
 
-(define ffi.so (linker "libmeevax-test-foreign-function-interface.so"))
-
-(define dummy-procedure
-  (procedure ffi.so "dummy_procedure"))
-
-(check (dummy-procedure "hello, world!\n" 42 '(1 . 2) #(1 2 3) 3.14) => 43)
+; (define ffi.so (linker "libmeevax-test-foreign-function-interface.so"))
+;
+; (define dummy-procedure
+;   (procedure ffi.so "dummy_procedure"))
+;
+; (check (dummy-procedure "hello, world!\n" 42 '(1 . 2) #(1 2 3) 3.14) => 43)
 
 (check (eval '(+ 1 2 3) (current-environment-specifier)) => 6)
 
@@ -1205,4 +1205,4 @@
 
 (check-report)
 
-(emergency-exit (check-passed? check:correct))
+(exit (check-passed? check:correct))

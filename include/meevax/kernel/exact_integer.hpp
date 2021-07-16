@@ -60,6 +60,9 @@ inline namespace kernel
     operator value_type()       noexcept { return value; }
   };
 
+  // Extremely frequently used exact-integer values.
+  let extern const e0, e1;
+
   template <typename T, REQUIRES(std::is_integral<T>)> auto operator ==(exact_integer const& a, T&& b) { return a.value == b; }
   template <typename T, REQUIRES(std::is_integral<T>)> auto operator !=(exact_integer const& a, T&& b) { return a.value != b; }
   template <typename T, REQUIRES(std::is_integral<T>)> auto operator < (exact_integer const& a, T&& b) { return a.value <  b; }

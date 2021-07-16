@@ -2,8 +2,6 @@
 
 int main(const int argc, char const* const* const argv) try
 {
-  using meevax::let;
-
   auto root = meevax::syntactic_continuation(meevax::layer<4>());
 
   root.configure(argc, argv);
@@ -30,6 +28,11 @@ int main(const int argc, char const* const* const argv) try
   return boost::exit_success;
 }
 
+catch (int exit_code)
+{
+  return exit_code;
+}
+
 /* ---- NOTE -------------------------------------------------------------------
  *
  *  Exceptions thrown by the run-time raise procedure reach here via the
@@ -40,14 +43,10 @@ int main(const int argc, char const* const* const argv) try
  *  Perform I/O in the C++ way, as there may be a serious anomaly in system.
  *
  * -------------------------------------------------------------------------- */
-catch (meevax::object const& error)
+catch (meevax::let const& error)
 {
-  std::cerr << meevax::header(__func__)
-            << "The default-exception-handler invoked: " << error
-            << std::endl;
-  std::cerr << meevax::header(__func__)
-            << "Terminate this program without running any outstanding dynamic-wind after procedures."
-            << std::endl;
+  std::cerr << meevax::header("exception-handler") << error << std::endl;
+  std::cerr << meevax::header("exception-handler") << "Terminate the program without running any outstanding dynamic-wind after procedures." << std::endl;
 
   return boost::exit_exception_failure;
 }
@@ -59,19 +58,22 @@ catch (meevax::object const& error)
  * -------------------------------------------------------------------------- */
 catch (meevax::error const& error)
 {
-  std::cerr << error.what() << std::endl;
+  std::cerr << meevax::header("system-error") << error.what() << "." << std::endl;
+
   return boost::exit_exception_failure;
 }
 
 catch (std::exception const& error)
 {
-  std::cerr << "system-error: " << error.what() << "." << std::endl;
+  std::cerr << meevax::header("system-error") << error.what() << "." << std::endl;
+
   return boost::exit_exception_failure;
 }
 
 catch (...)
 {
-  std::cerr << "system-error: An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
+  std::cerr << meevax::header("unknown-error") << "An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
+
   return boost::exit_exception_failure;
 }
 

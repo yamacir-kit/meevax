@@ -1,9 +1,8 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
-#include <memory>
-
 #include <meevax/kernel/forward.hpp>
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax
 {
@@ -36,7 +35,8 @@ inline namespace utility
         }
         else
         {
-          throw make_error("no viable operation '", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
+          // TODO USE demangle
+          throw make_error("no viable operation ", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
         }
       }
     };

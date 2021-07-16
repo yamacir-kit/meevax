@@ -23,42 +23,25 @@ inline namespace kernel
   template <std::size_t N>
   using layer = std::integral_constant<decltype(N), N>;
 
-  class syntactic_continuation : public virtual pair
-
-    , public reader<syntactic_continuation> /* ---------------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public writer<syntactic_continuation> /* ---------------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public machine<syntactic_continuation> /* --------------------------------
-    *
-    *  TR-SECD virtual machine and it's compiler.
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public debugger<syntactic_continuation> /* -------------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
-
-    , public configurator<syntactic_continuation> /* ---------------------------
-    *
-    *  TODO
-    *
-    * ----------------------------------------------------------------------- */
+  class syntactic_continuation
+    : public virtual pair
+    , public configurator <syntactic_continuation>
+    , public debugger     <syntactic_continuation>
+    , public machine      <syntactic_continuation>
+    , public reader       <syntactic_continuation>
+    , public writer       <syntactic_continuation>
   {
   public:
-    static inline std::unordered_map<std::string, object> symbols;
+    struct initializer
+    {
+      explicit initializer();
 
-    std::unordered_map<std::string, object> external_symbols; // TODO REMOVE
+      ~initializer();
+    };
+
+    static inline std::unordered_map<std::string, let> symbols;
+
+    static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 
@@ -68,8 +51,6 @@ inline namespace kernel
 
     using writer::newline;
     using writer::standard_debug_port;
-    using writer::standard_error_port;
-    using writer::standard_output_port;
     using writer::standard_verbose_port;
     using writer::write;
     using writer::write_to;
@@ -82,18 +63,61 @@ inline namespace kernel
     using configurator::in_verbose_mode;
 
   public:
-    let const& form() const noexcept { return first; }
-    let      & form()       noexcept { return first; }
+    auto build() // NOTE: Only FORK instructions may execute this function.
+    {
+      /* ---- NOTE -------------------------------------------------------------
+       *
+       *  If this class was instantiated by the FORK instruction, the instance
+       *  will have received the compilation continuation as a constructor
+       *  argument.
+       *
+       *  The car part contains the registers of the virtual Lisp machine
+       *  (s e c . d). The cdr part is set to the global environment at the
+       *  time the FORK instruction was executed.
+       *
+       *  Here, the value in the c register is the operand of the FORK
+       *  instruction. The operand of the FORK instruction is a pair of a
+       *  lambda expression form passed to the syntax fork/csc and a lexical
+       *  environment.
+       *
+       * -------------------------------------------------------------------- */
+      if (std::get<0>(*this).is<continuation>())
+      {
+        /* ---- NOTE -----------------------------------------------------------
+         *
+         *  If this class is constructed as make<syntactic_continuation>(...),
+         *  this object until the constructor is completed, the case noted that
+         *  it is the state that is not registered in the GC.
+         *
+         * ------------------------------------------------------------------ */
+        // let const backup = cons(std::get<0>(*this),
+        //                         std::get<1>(*this));
 
-    let const& global_environment() const noexcept { return second; }
-    let      & global_environment()       noexcept { return second; }
+        auto const& k = std::get<0>(*this).as<continuation>();
 
-    decltype(auto) current_expression() const
+        s = k.s();
+        e = k.e();
+        c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
+        d = k.d();
+
+        form() = execute();
+
+        assert(form().is<closure>());
+      }
+    }
+
+    auto form()               const noexcept -> let const& { return std::get<0>(*this); }
+    auto form()                     noexcept -> let      & { return std::get<0>(*this); }
+
+    auto global_environment() const noexcept -> let const& { return std::get<1>(*this); }
+    auto global_environment()       noexcept -> let      & { return std::get<1>(*this); }
+
+    auto current_expression() const -> decltype(auto)
     {
       return car(form());
     }
 
-    decltype(auto) dynamic_environment() const
+    auto dynamic_environment() const -> decltype(auto)
     {
       return cdr(form());
     }
@@ -115,18 +139,18 @@ inline namespace kernel
     }
 
     template <typename T, typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     template <typename... Ts>
-    decltype(auto) define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs)
     {
       return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
     }
 
-    decltype(auto) execute()
+    auto execute() -> let const
     {
       static constexpr auto trace = true;
 
@@ -140,7 +164,7 @@ inline namespace kernel
       }
     }
 
-    decltype(auto) macroexpand(let const& keyword, let const& form)
+    auto macroexpand(let const& keyword, let const& form)
     {
       ++generation;
 
@@ -181,14 +205,14 @@ inline namespace kernel
       return execute();
     }
 
-    let const evaluate(let const& expression)
+    auto evaluate(let const& expression)
     {
       if (in_debug_mode())
       {
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
       }
 
-      c = compile(in_context_free, global_environment(), expression);
+      c = compile(in_context_free, *this, expression);
 
       if (in_debug_mode())
       {
@@ -207,11 +231,11 @@ inline namespace kernel
       {
         write_to(standard_debug_port(), t, "\n");
 
-        for (let expression = read(port); expression != eof_object; expression = read(port))
+        for (let e = read(port); e != eof_object; e = read(port))
         {
-          WRITE_DEBUG(expression);
+          write_to(standard_debug_port(), header(__func__), e, "\n");
 
-          evaluate(expression);
+          evaluate(e);
         }
 
         return unspecified;
@@ -240,44 +264,20 @@ inline namespace kernel
       return (*this)[intern(name)];
     }
 
+  private:
+    /* ---- NOTE ---------------------------------------------------------------
+     *
+     *  If this class is constructed as make<syntactic_continuation>(...) then
+     *  the heterogeneous::binder will have forwarded all constructor arguments
+     *  to the virtual base class pair in advance, and this constructor will be
+     *  called without any arguments.
+     *
+     *  (See the heterogeneous::binder::binder for details)
+     *
+     * ---------------------------------------------------------------------- */
+    using pair::pair;
+
   public:
-    template <typename... Ts>
-    explicit syntactic_continuation(Ts &&... xs)
-      : pair { std::forward<decltype(xs)>(xs)... }
-    {
-      boot(layer<0>());
-
-      /* ---- NOTE -------------------------------------------------------------
-       *
-       *  If this class was instantiated by the FORK instruction, the instance
-       *  will have received the compilation continuation as a constructor
-       *  argument.
-       *
-       *  The car part contains the registers of the virtual Lisp machine
-       *  (s e c . d). The cdr part is set to the global environment at the
-       *  time the FORK instruction was executed.
-       *
-       *  Here, the value in the c register is the operand of the FORK
-       *  instruction. The operand of the FORK instruction is a pair of a
-       *  lambda expression form passed to the syntax fork/csc and a lexical
-       *  environment.
-       *
-       * -------------------------------------------------------------------- */
-      if (first.is<continuation>())
-      {
-        auto const& k = first.as<continuation>();
-
-        s = k.s();
-        e = k.e();
-        c = compile(at_the_top_level, global_environment(), car(k.c()), cdr(k.c()));
-        d = k.d();
-
-        form() = execute();
-
-        assert(form().is<closure>());
-      }
-    }
-
     template <std::size_t N>
     explicit syntactic_continuation(layer<N>)
       : syntactic_continuation { layer<decrement(N)>() }
@@ -289,7 +289,7 @@ inline namespace kernel
     void boot(layer<N>)
     {}
 
-  public: // Primitive Expression Types
+  public:
     SYNTAX(exportation)
     {
       if (in_verbose_mode())
@@ -301,7 +301,7 @@ inline namespace kernel
                   << reset << std::endl;
       }
 
-      auto exportation = [this](let const& xs)
+      auto exportation = [](let const& xs)
       {
         for (auto const& each : xs)
         {
@@ -327,7 +327,7 @@ inline namespace kernel
 
     SYNTAX(importation)
     {
-      auto importation = [&](const object& xs)
+      auto importation = [&](let const& xs)
       {
         assert(xs.is<syntactic_continuation>());
 
@@ -346,25 +346,27 @@ inline namespace kernel
       };
 
       // XXX DIRTY HACK
-      return reference(in_context_free,
-                       syntactic_environment,
-                       expression,
-                       frames,
-                       cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
-                            make<instruction>(mnemonic::CALL),
-                            continuation));
+      return lvalue(in_context_free,
+                    current_syntactic_continuation,
+                    expression,
+                    frames,
+                    cons(make<instruction>(mnemonic::LOAD_CONSTANT), make<procedure>("import", importation),
+                         make<instruction>(mnemonic::CALL),
+                         continuation));
     }
   };
+
+  static_assert(std::is_base_of<pair, syntactic_continuation>::value);
 
   auto operator >>(std::istream &, syntactic_continuation      &) -> std::istream &;
   auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
-  extern template class configurator<syntactic_continuation>;
-  extern template class debugger<syntactic_continuation>;
-  extern template class machine<syntactic_continuation>;
-  extern template class reader<syntactic_continuation>;
-  extern template class writer<syntactic_continuation>;
+  extern template class configurator <syntactic_continuation>;
+  extern template class debugger     <syntactic_continuation>;
+  extern template class machine      <syntactic_continuation>;
+  extern template class reader       <syntactic_continuation>;
+  extern template class writer       <syntactic_continuation>;
 
   template <> void syntactic_continuation::boot(layer<0>);
   template <> void syntactic_continuation::boot(layer<1>);
@@ -376,6 +378,8 @@ inline namespace kernel
   syntactic_continuation::syntactic_continuation(layer<0>)
     : syntactic_continuation::syntactic_continuation {}
   {}
+
+  static syntactic_continuation::initializer initializer;
 } // namespace kernel
 } // namespace meevax
 

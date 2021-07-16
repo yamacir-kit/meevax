@@ -139,7 +139,7 @@ sudo ldconfig
 ### 5. Test (Optional)
 
 ``` bash
-sudo apt install valgrind
+sudo apt install valgrind kcachegrind massif-visualizer
 make test
 ```
 
