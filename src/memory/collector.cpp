@@ -16,11 +16,7 @@ inline namespace memory
 
       regions = {};
 
-      collecting = false;
-
-      whole_size = 0;
-
-      newly_allocated = 0;
+      allocation = 0;
 
       // threshold = std::numeric_limits<std::size_t>::max();
       threshold = 8_MiB;
@@ -50,8 +46,6 @@ inline namespace memory
 
 auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::pointer<void>
 {
-  auto const lock = gc.lock();
-
   if (auto data = ::operator new(size); data)
   {
     if (gc.overflow())
@@ -71,8 +65,6 @@ auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::poi
 
 void operator delete(meevax::pointer<void> const data, meevax::collector & gc) noexcept
 {
-  auto const lock = gc.lock();
-
   try
   {
     if (auto const iter = gc.region_of(data); *iter)

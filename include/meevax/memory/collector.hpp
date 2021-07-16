@@ -25,20 +25,26 @@ inline namespace memory
     protected:
       explicit root()
       {
-        auto const locking = lock();
-        objects.emplace(this, nullptr);
+        if (auto const lock = std::unique_lock(resource); lock)
+        {
+          objects.emplace(this, nullptr);
+        }
       }
 
       ~root()
       {
-        auto const locking = lock();
-        objects.erase(this);
+        if (auto const lock = std::unique_lock(resource); lock)
+        {
+          objects.erase(this);
+        }
       }
 
       void reset(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
-        auto const locking = lock();
-        objects[this] = collector::reset(derived, deallocate);
+        if (auto const lock = std::unique_lock(resource); lock)
+        {
+          objects[this] = collector::reset(derived, deallocate);
+        }
       }
 
       template <typename Pointer>
@@ -55,11 +61,7 @@ inline namespace memory
 
     static inline std::set<pointer<region>> regions;
 
-    static inline bool collecting;
-
-    static inline std::size_t whole_size;
-
-    static inline std::size_t newly_allocated;
+    static inline std::size_t allocation;
 
     static inline std::size_t threshold;
 
@@ -98,15 +100,11 @@ inline namespace memory
     {
       auto const before = count();
 
-      if (auto const locking = lock(); not collecting)
+      if (auto const lock = std::unique_lock(resource); lock)
       {
-        collecting = true;
-
         mark(), sweep();
 
-        collecting = false;
-
-        newly_allocated = 0;
+        allocation = 0;
       }
 
       return before - count();
@@ -114,25 +112,18 @@ inline namespace memory
 
     auto count() const noexcept -> std::size_t
     {
-      return regions.size();
+      return std::size(regions);
     }
 
     auto erase(decltype(regions)::iterator iter)
     {
-      whole_size -= (*iter)->size;
       return regions.erase(iter);
     }
 
     auto insert(pointer<void> const base, std::size_t const size) -> decltype(auto)
     {
-      whole_size += size;
-      newly_allocated += size;
+      allocation += size;
       return regions.insert(new region(base, size));
-    }
-
-    static auto lock() -> std::unique_lock<std::mutex>
-    {
-      return std::unique_lock(resource);
     }
 
     void mark()
@@ -150,7 +141,7 @@ inline namespace memory
 
     auto overflow() const noexcept
     {
-      return threshold < newly_allocated;
+      return threshold < allocation;
     }
 
     static auto region_of(pointer<void> const interior) -> decltype(regions)::iterator
@@ -169,27 +160,27 @@ inline namespace memory
 
     static auto reset(pointer<void> const derived, deallocator<void>::signature const deallocate) -> pointer<region>
     {
-      if (not derived)
+      if (auto const lock = std::unique_lock(resource); lock and derived)
       {
-        return nullptr;
-      }
-      else
-      {
-        auto const locking = lock();
-
-        auto iter = region_of(derived);
+        auto const iter = region_of(derived);
 
         assert(iter != std::end(regions));
         assert(deallocate);
 
         return (*iter)->reset(derived, deallocate);
       }
+      else
+      {
+        return nullptr;
+      }
     }
 
     void reset_threshold(std::size_t const size = std::numeric_limits<std::size_t>::max())
     {
-      auto const locking = lock();
-      threshold = size;
+      if (auto const lock = std::unique_lock(resource); lock)
+      {
+        threshold = size;
+      }
     }
 
     void sweep()

@@ -3,6 +3,7 @@
 
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
+#include <new>
 #include <type_traits>
 
 #include <meevax/memory/deallocator.hpp>
@@ -12,7 +13,7 @@ namespace meevax
 {
 inline namespace memory
 {
-  struct region : public marker
+  class region : public marker
   {
     pointer<void> base, derived = nullptr;
 
@@ -20,6 +21,7 @@ inline namespace memory
 
     deallocator<void>::signature deallocate = nullptr;
 
+  public:
     explicit region(pointer<void> const base, std::size_t const size)
       : base { base }
       , size { size }
