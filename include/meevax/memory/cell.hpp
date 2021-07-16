@@ -10,27 +10,27 @@ inline namespace memory
 {
   template <typename T>
   struct cell
-    : protected collector::object
-    , public simple_pointer<T>
+    : public simple_pointer<T>
+    , private collector::object
   {
-    explicit cell(simple_pointer<T> const p = nullptr)
-      : simple_pointer<T> {}
-    {
-      reset(p.get());
-    }
+    explicit cell(std::nullptr_t = nullptr)
+    {}
 
-    explicit cell(cell const& p)
-      : simple_pointer<T> {}
-    {
-      reset(p.get());
-    }
+    explicit cell(simple_pointer<T> const& datum)
+      : simple_pointer<T> { datum }
+      , collector::object { simple_pointer<T>::get() }
+    {}
+
+    explicit cell(cell const& datum)
+      : simple_pointer<T> { datum.get() }
+      , collector::object { simple_pointer<T>::get() }
+    {}
 
     template <typename U>
-    explicit cell(cell<U> const& p)
-      : simple_pointer<T> {}
-    {
-      reset(p.get());
-    }
+    explicit cell(cell<U> const& datum)
+      : simple_pointer<T> { datum.get() }
+      , collector::object { simple_pointer<T>::get() }
+    {}
 
     auto operator =(cell const& another) -> auto &
     {

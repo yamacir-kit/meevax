@@ -40,6 +40,19 @@ inline namespace memory
         }
       }
 
+      explicit object(pointer<void> const derived, deallocator<void>::signature const deallocate)
+      {
+        if (auto const lock = std::unique_lock(resource); lock)
+        {
+          objects.emplace(this, collector::reset(derived, deallocate));
+        }
+      }
+
+      template <typename Pointer>
+      explicit object(Pointer const derived)
+        : object { derived, deallocator<typename std::pointer_traits<Pointer>::element_type>::deallocate }
+      {}
+
       ~object()
       {
         if (auto const lock = std::unique_lock(resource); lock)

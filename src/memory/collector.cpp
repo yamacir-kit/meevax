@@ -50,7 +50,7 @@ auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::poi
   {
     if (gc.overflow())
     {
-      std::cout << meevax::header(__func__) << gc.collect() << " objects collected." << std::endl;
+      gc.collect();
     }
 
     gc.insert(data, size);
