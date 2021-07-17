@@ -5,10 +5,10 @@
 #include <cstddef>
 #include <limits>
 #include <map>
-#include <memory>
 #include <mutex>
 #include <set>
 
+#include <meevax/memory/literal.hpp>
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>
 #include <meevax/utility/debug.hpp>
@@ -154,7 +154,7 @@ inline namespace memory
 
       for (auto [derived, region] : objects)
       {
-        if (region and not region->marked() and region_of(derived) == std::end(regions))
+        if (region and not region->marked() and region_of(derived) == std::cend(regions))
         {
           traverse(region);
         }
@@ -170,13 +170,13 @@ inline namespace memory
     {
       region dummy { interior, 0 };
 
-      if (auto iter = regions.lower_bound(&dummy); iter != std::end(regions) and (**iter).contains(interior))
+      if (auto iter = regions.lower_bound(&dummy); iter != std::cend(regions) and (**iter).contains(interior))
       {
         return iter;
       }
       else
       {
-        return std::end(regions);
+        return std::cend(regions);
       }
     }
 
@@ -186,7 +186,7 @@ inline namespace memory
       {
         auto const iter = region_of(derived);
 
-        assert(iter != std::end(regions));
+        assert(iter != std::cend(regions));
         assert(deallocate);
 
         return (*iter)->reset(derived, deallocate);
@@ -245,16 +245,6 @@ inline namespace memory
       }
     }
   } static gc;
-
-  constexpr auto operator ""_KiB(unsigned long long size)
-  {
-    return size * 1024;
-  }
-
-  constexpr auto operator ""_MiB(unsigned long long size)
-  {
-    return size * 1024 * 1024;
-  }
 } // namespace memory
 } // namespace meevax
 
