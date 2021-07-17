@@ -1,38 +1,34 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
-#include <meevax/kernel/pointer.hpp>
+#include <cstddef>
+#include <meevax/kernel/heterogeneous.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- Identity ---------------------------------------------------------- */
-
   template <typename T>
-  struct alignas(sizeof(word)) top
+  struct top
   {
+    using let = heterogeneous<cell, T>;
+
     virtual auto type() const noexcept -> std::type_info const&
     {
       return typeid(T);
     }
 
-    virtual auto copy() const -> pointer<T>
-    {
-      return delay<clone>().yield<pointer<T>>(static_cast<T const&>(*this), nullptr);
-    }
-
-    virtual bool eqv(pointer<T> const& rhs) const
+    virtual bool eqv(let const& x) const
     {
       if constexpr (is_equality_comparable<T>::value)
       {
-        if (auto const rhsp = std::dynamic_pointer_cast<T const>(rhs))
+        if (auto const* address = dynamic_cast<T const*>(x.get()); address)
         {
-          return static_cast<T const&>(*this) == *rhsp;
+          return *address == static_cast<T const&>(*this);
         }
         else
         {
-          return false;
+          return std::is_same<T, std::nullptr_t>::value;
         }
       }
       else
@@ -46,70 +42,52 @@ inline namespace kernel
       return delay<write>().yield<output_port &>(port, static_cast<T const&>(*this));
     }
 
-    #define BOILERPLATE(SYMBOL, RESULT, OPERATION)                             \
-    virtual auto operator SYMBOL(pointer<T> const& x) const -> RESULT          \
+    #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
+    virtual auto operator SYMBOL(let const& x) const -> RESULT                 \
     {                                                                          \
-      return delay<OPERATION>().yield<RESULT>(static_cast<T const&>(*this), x); \
+      return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
     } static_assert(true)
 
-    BOILERPLATE(+, pointer<T>, std::plus<void>);
-    BOILERPLATE(-, pointer<T>, std::minus<void>);
-    BOILERPLATE(*, pointer<T>, std::multiplies<void>);
-    BOILERPLATE(/, pointer<T>, std::divides<void>);
-    BOILERPLATE(%, pointer<T>, std::modulus<void>);
+    BOILERPLATE(+, let, std::plus      <void>);
+    BOILERPLATE(-, let, std::minus     <void>);
+    BOILERPLATE(*, let, std::multiplies<void>);
+    BOILERPLATE(/, let, std::divides   <void>);
+    BOILERPLATE(%, let, std::modulus   <void>);
 
-    BOILERPLATE(==, bool, std::equal_to<void>);
-    BOILERPLATE(!=, bool, std::not_equal_to<void>);
-    BOILERPLATE(<,  bool, std::less<void>);
-    BOILERPLATE(<=, bool, std::less_equal<void>);
-    BOILERPLATE(>,  bool, std::greater<void>);
+    BOILERPLATE(!=, bool, std::not_equal_to <void>);
+    BOILERPLATE(<,  bool, std::less         <void>);
+    BOILERPLATE(<=, bool, std::less_equal   <void>);
+    BOILERPLATE(==, bool, std::equal_to     <void>);
+    BOILERPLATE(>,  bool, std::greater      <void>);
     BOILERPLATE(>=, bool, std::greater_equal<void>);
 
     #undef BOILERPLATE
   };
 
-  // TODO Rename to 'cons'?
-  using resource = std::allocator<object>;
-
   template <typename T, typename... Ts>
-  inline constexpr decltype(auto) make(Ts&&... xs)
+  inline constexpr auto make(Ts&&... xs)
   {
-    return object::bind<T>(std::forward<decltype(xs)>(xs)...);
+    return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
   inline constexpr auto make(T&& x)
   {
-    return object::bind<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
+    return let::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  // #if __cpp_lib_memory_resource
-  // template <typename T,
-  //           typename MemoryResource, // XXX (GCC-9 <=)
-  //           typename... Ts>
-  // inline constexpr decltype(auto) allocate(MemoryResource&& resource, Ts&&... xs)
-  // {
-  //   return
-  //     object::allocate_binding<T>(
-  //       std::forward<decltype(resource)>(resource),
-  //       std::forward<decltype(xs)>(xs)...);
-  // }
-  // #endif // __cpp_lib_memory_resource
-
-  let extern const unit;
-
-  template <typename T> using is_object    = std::is_base_of<                       object       , typename std::decay<T>::type>;
-  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<object const>, typename std::decay<T>::type>;
+  template <typename T> using is_object    = std::is_base_of<                       let       , typename std::decay<T>::type>;
+  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<let const>, typename std::decay<T>::type>;
 
   auto unwrap = [](auto&& x) -> decltype(auto)
   {
     if constexpr (is_object<decltype(x)>::value)
     {
-      return x.binding();
+      return x.load();
     }
     else if constexpr (is_reference<decltype(x)>::value)
     {
-      return x.get().binding();
+      return x.get().load();
     }
     else
     {

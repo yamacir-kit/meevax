@@ -7,20 +7,19 @@ namespace meevax
 {
 inline namespace kernel
 {
+  let extern const unit;
+
   /* ---- Pair -----------------------------------------------------------------
    *
    *
    * ------------------------------------------------------------------------ */
   struct pair
-    : public std::pair<object, object>
+    : public std::array<let, 2>
     , public top<pair>
   {
-    using base = std::pair<object, object>;
-
-    using base::pair;
-
-    explicit pair(let const& a = unit, let const& b = unit)
-      : base { a, b }
+    explicit pair(let const& a = unit,
+                  let const& b = unit)
+      : std::array<let, 2> { a, b }
     {}
 
     virtual ~pair() = default;

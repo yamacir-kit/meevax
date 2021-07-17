@@ -148,19 +148,19 @@
   (cond ((input-file-port? x)
          (input-file-port-open? x))
         ((input-string-port? x) #t)
-        ((input-standard-port? x) #t)
+        ((standard-input-port? x) #t)
         (else #f)))
 
 (define (output-port-open? x)
   (cond ((output-file-port? x)
          (output-file-port-open? x))
         ((output-string-port? x) #t)
-        ((output-standard-port? x) #t)
-        ((error-standard-port? x) #t)
+        ((standard-output-port? x) #t)
+        ((standard-error-port? x) #t)
         (else #f)))
 
 (define current-input-port
-  (make-parameter (input-standard-port)
+  (make-parameter (standard-input-port)
     (lambda (x)
       (cond ((not (input-port? x))
              (error "current-input-port: not input-port" x))
@@ -169,7 +169,7 @@
             (else x)))))
 
 (define current-output-port
-  (make-parameter (output-standard-port)
+  (make-parameter (standard-output-port)
     (lambda (x)
       (cond ((not (output-port? x))
              (error "current-output-port: not output-port" x))
@@ -178,7 +178,7 @@
             (else x)))))
 
 (define current-error-port
-  (make-parameter (error-standard-port)
+  (make-parameter (standard-error-port)
     (lambda (x)
       (cond ((not (output-port? x))
              (error "current-error-port: not output-port" x))
@@ -249,7 +249,7 @@
   (for-each (lambda (before/after)
               ((cdr before/after)))
             %current-dynamic-extents)
-  (emergency-exit normally?))
+  (apply emergency-exit normally?))
 
 ; (dynamic-wind
 ;   (lambda () (display "before\n"))

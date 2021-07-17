@@ -16,16 +16,16 @@ inline namespace kernel
    *  various escape sequences represent characters other than themselves.
    *  Escape sequences always start with a backslash (\):
    *
-   *    - \a : alarm, U+0007
-   *    - \b : backspace, U+0008
-   *    - \t : character tabulation, U+0009
-   *    - \n : linefeed, U+000A
-   *    - \r : return, U+000D
-   *    - \" : double quote, U+0022
-   *    - \\ : backslash, U+005C
-   *    - \| : vertical line, U+007C
-   *    - \<intraline whitespace>* <line ending> <intraline whitespace>* : nothing
-   *    - \x<hex scalar value>; : specified character (note the terminating semi-colon).
+   *    \a : alarm, U+0007
+   *    \b : backspace, U+0008
+   *    \t : character tabulation, U+0009
+   *    \n : linefeed, U+000A
+   *    \r : return, U+000D
+   *    \" : double quote, U+0022
+   *    \\ : backslash, U+005C
+   *    \| : vertical line, U+007C
+   *    \<intraline whitespace>* <line ending> <intraline whitespace>* : nothing
+   *    \x<hex scalar value>; : specified character (note the terminating semi-colon).
    *
    *  The result is unspecified if any other character in a string occurs after
    *  a backslash.  Except for a line ending, any character outside of an

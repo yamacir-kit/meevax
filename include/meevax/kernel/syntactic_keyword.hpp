@@ -12,17 +12,17 @@ inline namespace kernel
   {
     using pair::pair;
 
-    let const& unwrap_syntax() const noexcept
+    auto unwrap_syntax() const noexcept -> let const&
     {
-      return first;
+      return std::get<0>(*this);
     }
 
-    let const& global_environment() const noexcept
+    auto global_environment() const noexcept -> let const&
     {
-      return second;
+      return std::get<1>(*this);
     }
 
-    decltype(auto) assq() const
+    auto assq() const -> decltype(auto)
     {
       return kernel::assq(unwrap_syntax(), global_environment());
     }
@@ -55,7 +55,7 @@ inline namespace kernel
     }
   };
 
-  auto lookup(let const& x, let const& g)
+  auto lookup(let const& x, let const& g) -> let const&
   {
     if (let const& p = assq(x, g); p != f)
     {

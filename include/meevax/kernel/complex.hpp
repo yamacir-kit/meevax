@@ -10,6 +10,8 @@ inline namespace kernel
   struct complex
     : public virtual pair
   {
+    using pair::pair;
+
     auto real() const noexcept -> decltype(auto) { return car(*this); }
     auto real()       noexcept -> decltype(auto) { return car(*this); }
 
@@ -32,13 +34,11 @@ inline namespace kernel
     //       lhs.real() + rhs,
     //       lhs.imag());
     // }
-
-    friend std::ostream& operator<<(std::ostream& os, const complex& z)
-    {
-      return os << cyan << z.real() << (0 < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
-    }
   };
 
+  auto operator <<(output_port &, complex const&) -> output_port &;
+
+  static_assert(std::is_base_of<pair, complex>::value);
 } // namespace kernel
 } // namespace meevax
 

@@ -19,6 +19,9 @@ inline namespace kernel
   {
     friend SK;
 
+    explicit configurator()
+    {}
+
     IMPORT(SK, evaluate, NIL);
     IMPORT(SK, newline, const);
     IMPORT(SK, read, NIL);
@@ -36,8 +39,6 @@ inline namespace kernel
 
   public:
     let paths = unit;
-
-    let variable = unit;
 
     #define BOILERPLATE(MODE)                                                  \
     auto in_##MODE() const                                                     \
@@ -80,7 +81,7 @@ inline namespace kernel
       return unspecified;
     }
 
-    decltype(auto) display_help() const
+    auto display_help() const
     {
       display_version();
       newline();
@@ -109,9 +110,10 @@ inline namespace kernel
       newline();
 
       SECTION("Sequence:");
-      write_line("  1. ", BOLD("Configure"));
-      write_line("  2. ", BOLD("Load"), " (for each ", UNDERLINE("file"), " specified)");
-      write_line("  3. ", BOLD("REPL"), " (when --interactive specified)");
+      write_line("  1. ", BOLD("Boot"));
+      write_line("  2. ", BOLD("Configure"));
+      write_line("  3. ", BOLD("Load"), " (for each ", UNDERLINE("file"), " specified)");
+      write_line("  4. ", BOLD("REPL"), " (when --interactive specified)");
       newline();
 
       SECTION("Examples:");
@@ -244,12 +246,6 @@ inline namespace kernel
       std::make_pair("load", [this](auto&&... xs)
       {
         return append_path(std::forward<decltype(xs)>(xs)...);
-      }),
-
-      std::make_pair("variable", [this](const auto& xs)
-      {
-        std::cerr << "; configure\t; " << variable << " => " << (variable = xs) << std::endl;
-        return variable;
       }),
     };
 

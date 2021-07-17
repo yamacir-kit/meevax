@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.3.126.
+Development HEAD: 0.3.242.
 
 ### Characteristic Features
 
@@ -139,7 +139,7 @@ sudo ldconfig
 ### 5. Test (Optional)
 
 ``` bash
-sudo apt install valgrind
+sudo apt install valgrind kcachegrind massif-visualizer
 make test
 ```
 

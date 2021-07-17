@@ -11,11 +11,9 @@ namespace meevax
 inline namespace kernel
 {
   #if __has_cpp_attribute(maybe_unused)
-  #define PROCEDURE(...) \
-    meevax::object const __VA_ARGS__([[maybe_unused]] meevax::object const& xs)
+  #define PROCEDURE(...) meevax::let const __VA_ARGS__([[maybe_unused]] meevax::let const& xs)
   #else
-  #define PROCEDURE(...) \
-    meevax::object const __VA_ARGS__(                 meevax::object const& xs)
+  #define PROCEDURE(...) meevax::let const __VA_ARGS__(                 meevax::let const& xs)
   #endif
 
   struct procedure : public std::function<PROCEDURE()>

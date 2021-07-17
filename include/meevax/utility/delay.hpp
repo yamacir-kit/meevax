@@ -1,9 +1,8 @@
 #ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 #define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
 
-#include <memory>
-
 #include <meevax/kernel/forward.hpp>
+#include <meevax/utility/demangle.hpp>
 
 namespace meevax
 {
@@ -13,8 +12,6 @@ inline namespace utility
   struct delay
   {
     static inline F f {};
-
-    // TODO SUPPORT UNARY FUNCTION!
 
     template <typename T, typename U, typename = void>
     struct viable
@@ -38,7 +35,8 @@ inline namespace utility
         }
         else
         {
-          throw make_error("no viable operation '", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
+          // TODO USE demangle
+          throw make_error("no viable operation ", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
         }
       }
     };
@@ -49,8 +47,7 @@ inline namespace utility
       template <typename R>
       static constexpr auto apply(T&& x, U&& y) -> R
       {
-        return f(std::forward<decltype(x)>(x),
-                 std::forward<decltype(y)>(y));
+        return f(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
       }
     };
 
@@ -66,15 +63,6 @@ inline namespace utility
    *  Temporary
    *
    * ------------------------------------------------------------------------ */
-
-  struct clone
-  {
-    template <typename T, REQUIRES(std::is_copy_constructible<T>)>
-    auto operator ()(T const& origin, std::nullptr_t) const -> decltype(auto)
-    {
-      return std::make_shared<T>(origin);
-    }
-  };
 
   struct read
   {

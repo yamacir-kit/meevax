@@ -5,17 +5,19 @@
 #include <meevax/kernel/syntactic_context.hpp>
 
 #define SYNTAX(NAME)                                                           \
-  let const NAME(                                                              \
+  auto NAME(                                                                   \
     [[maybe_unused]] syntactic_context const& the_expression_is,               \
-    [[maybe_unused]] let      & syntactic_environment,                         \
+    [[maybe_unused]] syntactic_continuation & current_syntactic_continuation,  \
     [[maybe_unused]] let const& expression,                                    \
     [[maybe_unused]] let const& frames,                                        \
-    [[maybe_unused]] let const& continuation)
+    [[maybe_unused]] let const& continuation) -> let const
 
 namespace meevax
 {
 inline namespace kernel
 {
+  class syntactic_continuation;
+
   struct syntax
     : public std::function<SYNTAX()>
   {

@@ -66,7 +66,7 @@ inline namespace kernel
                       std::begin(rhs), std::end(rhs), equal);
   }
 
-  auto operator <<(std::ostream & port, vector const& datum) -> std::ostream &
+  auto operator <<(output_port & port, vector const& datum) -> output_port &
   {
     return port << magenta << "#(" << reset << for_each(datum) << magenta << ")" << reset;
   }

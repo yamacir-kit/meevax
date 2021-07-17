@@ -1,6 +1,4 @@
 #include <boost/cstdlib.hpp>
-#include <boost/iostreams/device/array.hpp>
-#include <boost/iostreams/stream.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/adaptors.hpp>
 
@@ -17,13 +15,12 @@ inline namespace kernel
 {
   auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
   {
-    datum.write_to(datum.standard_output_port(),
+    datum.write_to(default_output_port,
       "syntactic_continuation::operator >>(std::istream &, syntactic_continuation &)\n");
 
-    datum.write_to(datum.standard_output_port(),
-      "read new expression => ", datum.read(is), "\n");
+    datum.write_to(default_output_port, "read new expression => ", datum.read(is), "\n");
 
-    // sk.write_to(sk.standard_output_port(),
+    // sk.write_to(default_output_port,
     //   "program == ", sk.program(),
     //   "current_expression is ", sk.current_expression());
 
@@ -64,9 +61,21 @@ inline namespace kernel
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
 
-    define<procedure>("set-trace!", [this](auto&& xs)
+    // TODO (define (set-debug! t/f)
+    //        (set! (debug) t/f))
+    define<procedure>("set-debug!", [this](auto&&... xs)
     {
-      return trace_mode = car(xs);
+      return debug_mode = car(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<procedure>("set-trace!", [this](auto&&... xs)
+    {
+      return trace_mode = car(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<procedure>("tracker", [](auto&&... xs)
+    {
+      return make<tracker>(std::forward<decltype(xs)>(xs)...);
     });
   }
 
@@ -81,7 +90,7 @@ inline namespace kernel
     DEFINE_SYNTAX("if", conditional);
     DEFINE_SYNTAX("lambda", lambda);
     DEFINE_SYNTAX("quote", quotation);
-    DEFINE_SYNTAX("reference", reference);
+    DEFINE_SYNTAX("reference", lvalue);
     DEFINE_SYNTAX("set!", assignment);
   }
 
@@ -226,10 +235,11 @@ inline namespace kernel
     {                                                                          \
       const auto compare = std::not_fn([](let const& a, let const& b)          \
       {                                                                        \
-        return a.binding() OPERATOR b;                                         \
+        return a.load() OPERATOR b;                                            \
       });                                                                      \
                                                                                \
-      return std::adjacent_find(std::begin(xs), std::end(xs), compare) == std::end(xs) ? t : f; \
+      return std::adjacent_find(                                               \
+        std::cbegin(xs), std::cend(xs), compare) == std::end(xs) ? t : f;      \
     })
 
     BOILERPLATE(= , ==);
@@ -259,9 +269,6 @@ inline namespace kernel
                });                                                             \
     })
 
-    let static const e0 = make<exact_integer>(0);
-    let static const e1 = make<exact_integer>(1);
-
     BOILERPLATE(+, e0);
     BOILERPLATE(*, e1);
 
@@ -288,25 +295,20 @@ inline namespace kernel
     #define BOILERPLATE(SYMBOL, BASIS)                                         \
     define<procedure>(#SYMBOL, [](auto&& xs)                                   \
     {                                                                          \
+      auto f = [](auto&& x, auto&& y)                                          \
+      {                                                                        \
+        return x SYMBOL y;                                                     \
+      };                                                                       \
+                                                                               \
       if (length(xs) < 2)                                                      \
       {                                                                        \
         let const basis = make<exact_integer>(BASIS);                          \
-                                                                               \
-        return std::accumulate(                                                \
-                 std::begin(xs), std::end(xs), basis, [](auto&& x, auto&& y)   \
-                 {                                                             \
-                   return x SYMBOL y;                                          \
-                 });                                                           \
+        return std::accumulate(std::cbegin(xs), std::cend(xs), basis, f);      \
       }                                                                        \
       else                                                                     \
       {                                                                        \
         auto const head = std::cbegin(xs);                                     \
-                                                                               \
-        return std::accumulate(                                                \
-                 std::next(head), std::cend(xs), *head, [](auto&& x, auto&& y) \
-                 {                                                             \
-                   return x SYMBOL y;                                          \
-                 });                                                           \
+        return std::accumulate(std::next(head), std::cend(xs), *head, f);      \
       }                                                                        \
     })
 
@@ -1224,7 +1226,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("throw", [](let const& xs) -> object
+    define<procedure>("throw", [](let const& xs) -> let
     {
       throw car(xs);
     });
@@ -1421,19 +1423,19 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("input-standard-port", [this](auto&&)
+    define<procedure>("standard-input-port", [](auto&&)
     {
-      return standard_input_port();
+      return default_input_port;
     });
 
-    define<procedure>("output-standard-port", [this](auto&&)
+    define<procedure>("standard-output-port", [](auto&&)
     {
-      return standard_output_port();
+      return default_output_port;
     });
 
-    define<procedure>("error-standard-port", [this](auto&&)
+    define<procedure>("standard-error-port", [](auto&&)
     {
-      return standard_error_port();
+      return default_error_port;
     });
 
 
@@ -1655,19 +1657,19 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs) -> object
+    define<procedure>("emergency-exit", [](let const& xs) -> let
     {
       if (xs.is<null>() or car(xs) == t)
       {
-        std::exit(boost::exit_success);
+        throw boost::exit_success;
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        std::exit(x.as<exact_integer>().to<int>());
+        throw x.as<exact_integer>().to<int>();
       }
       else
       {
-        std::exit(boost::exit_failure);
+        throw boost::exit_failure;
       }
     });
 
@@ -1747,9 +1749,10 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<3>)
   {
-    std::vector<string_view> codes {
+    std::vector<string_view> const codes {
       overture,
-      srfi_8, srfi_1,
+      srfi_8,
+      srfi_1,
       srfi_23,
       srfi_34,
       srfi_39,
@@ -1760,9 +1763,8 @@ inline namespace kernel
 
     for (auto const& code : codes)
     {
-      boost::iostreams::stream<boost::iostreams::basic_array_source<char>> port {
-        code.begin(), code.size()
-      };
+      // NOTE: Since read performs a putback operation on a given stream, it must be copied and used.
+      std::stringstream port { std::string(code) };
 
       for (let e = read(port); e != eof_object; e = read(port))
       {
@@ -1774,13 +1776,41 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot(layer<4>)
   {
+    define<procedure>("disassemble", [](let const& xs)
+    {
+      if (0 < length(xs))
+      {
+        if (let const& f = car(xs); f.is<closure>())
+        {
+          disassemble(std::cout, car(f));
+        }
+      }
+
+      return default_output_port;
+    });
+
+    define<procedure>("gc-collect", [](auto&&)
+    {
+      return make<exact_integer>(gc.collect());
+    });
+
+    define<procedure>("gc-count", [](auto&&)
+    {
+      return make<exact_integer>(gc.count());
+    });
+
+    define<procedure>("ieee-float?", [](auto&&)
+    {
+      return std::numeric_limits<double>::is_iec559 ? t : f;
+    });
+
     define<procedure>("print", [](let const& xs)
     {
       for (let const& x : xs)
       {
         if (x.is<string>())
         {
-          std::cout << static_cast<std::string>(x.template as<string>());
+          std::cout << static_cast<std::string>(x.as<string>());
         }
         else
         {
@@ -1788,19 +1818,37 @@ inline namespace kernel
         }
       }
 
-      return unspecified; // TODO standard-output-port
-    });
+      std::cout << std::endl;
 
-    define<procedure>("iec-60559?", [](auto&&)
-    {
-      return std::numeric_limits<double>::is_iec559 ? t : f;
+      return default_output_port;
     });
 
     define<procedure>("type-of", [](auto&& xs)
     {
       std::cout << car(xs).type().name() << std::endl;
-      return unspecified;
+
+      return default_output_port;
     });
+  }
+
+  static std::size_t count = 0;
+
+  syntactic_continuation::initializer::initializer()
+  {
+    if (not count++)
+    {
+      symbols = {};
+      external_symbols = {}; // XXX DEPRECATED
+    }
+  }
+
+  syntactic_continuation::initializer::~initializer()
+  {
+    if (not --count)
+    {
+      symbols.clear();
+      external_symbols.clear(); // XXX DEPRECATED
+    }
   }
 } // namespace kernel
 } // namespace meevax
