@@ -6,6 +6,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <new>
 #include <set>
 
 #include <meevax/memory/literal.hpp>
@@ -19,14 +20,14 @@ inline namespace memory
 {
   /* ---- Acknowledgement ------------------------------------------------------
    *
-   *  The class is based on the implementation of gc_ptr written by
-   *  William E. Kempf and posted to CodeProject.
+   *  This mark-and-sweep garbage collector is based on the implementation of
+   *  gc_ptr written by William E. Kempf and posted to CodeProject.
    *
    *  - https://www.codeproject.com/Articles/912/A-garbage-collection-framework-for-C
    *  - https://www.codeproject.com/Articles/938/A-garbage-collection-framework-for-C-Part-II
    *
    * ------------------------------------------------------------------------ */
-  class collector // A mark-and-sweep garbage collector.
+  class collector
   {
   public:
     struct object
@@ -100,6 +101,25 @@ inline namespace memory
 
     collector & operator =(collector const&) = delete;
 
+    auto allocate(std::size_t const size)
+    {
+      if (auto data = ::operator new(size); data)
+      {
+        if (overflow())
+        {
+          collect();
+        }
+
+        insert(data, size);
+
+        return data;
+      }
+      else
+      {
+        throw std::bad_alloc();
+      }
+    }
+
     void clear()
     {
       for (auto iter = std::begin(regions); iter != std::end(regions); )
@@ -118,7 +138,7 @@ inline namespace memory
       }
     }
 
-    auto collect()
+    auto collect() -> std::size_t
     {
       auto const before = count();
 
@@ -137,18 +157,33 @@ inline namespace memory
       return std::size(regions);
     }
 
-    auto erase(decltype(regions)::iterator iter)
+    auto deallocate(pointer<void> const data, std::size_t const = 0)
     {
-      return regions.erase(iter);
+      try
+      {
+        if (auto const iter = region_of(data); *iter)
+        {
+          erase(iter);
+        }
+      }
+      catch (...)
+      {}
+
+      ::operator delete(data);
     }
 
-    auto insert(pointer<void> const base, std::size_t const size) -> decltype(auto)
+    auto erase(decltype(regions)::iterator iter) -> void
+    {
+      regions.erase(iter);
+    }
+
+    auto insert(pointer<void> const base, std::size_t const size) -> void
     {
       allocation += size;
-      return regions.insert(new region(base, size));
+      regions.insert(new region(base, size));
     }
 
-    void mark()
+    auto mark() -> void
     {
       marker::toggle();
 
@@ -161,7 +196,7 @@ inline namespace memory
       }
     }
 
-    auto overflow() const noexcept
+    auto overflow() const noexcept -> bool
     {
       return threshold < allocation;
     }
@@ -248,7 +283,7 @@ inline namespace memory
 } // namespace memory
 } // namespace meevax
 
-meevax::pointer<void> operator new(std::size_t const, meevax::collector &);
+auto operator new(std::size_t const, meevax::collector &) -> meevax::pointer<void>;
 
 void operator delete(meevax::pointer<void> const, meevax::collector &) noexcept;
 

@@ -1,4 +1,3 @@
-#include <new>
 
 #include <meevax/memory/collector.hpp>
 
@@ -46,34 +45,10 @@ inline namespace memory
 
 auto operator new(std::size_t const size, meevax::collector & gc) -> meevax::pointer<void>
 {
-  if (auto data = ::operator new(size); data)
-  {
-    if (gc.overflow())
-    {
-      gc.collect();
-    }
-
-    gc.insert(data, size);
-
-    return data;
-  }
-  else
-  {
-    throw std::bad_alloc();
-  }
+  return gc.allocate(size);
 }
 
 void operator delete(meevax::pointer<void> const data, meevax::collector & gc) noexcept
 {
-  try
-  {
-    if (auto const iter = gc.region_of(data); *iter)
-    {
-      gc.erase(iter);
-    }
-  }
-  catch (...)
-  {}
-
-  ::operator delete(data);
+  gc.deallocate(data);
 }
