@@ -35,17 +35,11 @@ inline namespace memory
     struct object
     {
     protected:
-      explicit object()
-      {
-        if (auto const lock = std::unique_lock(resource); lock)
-        {
-          objects.emplace(this, nullptr);
-        }
-      }
+      explicit constexpr object() = default;
 
       explicit object(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
-        if (auto const lock = std::unique_lock(resource); lock)
+        if (auto const lock = std::unique_lock(resource); derived and lock)
         {
           objects.emplace(this, collector::reset(derived, deallocate));
         }
@@ -66,7 +60,7 @@ inline namespace memory
 
       void reset(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
-        if (auto const lock = std::unique_lock(resource); lock)
+        if (auto const lock = std::unique_lock(resource); derived and lock)
         {
           objects[this] = collector::reset(derived, deallocate);
         }
