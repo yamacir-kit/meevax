@@ -119,8 +119,8 @@ sudo apt install libboost-all-dev libgmp-dev
 ### 2. Configure
 
 ``` bash
-mkdir -p build && cd $_
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cd build
 ```
 
 ### 3. Make
