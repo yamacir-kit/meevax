@@ -17,8 +17,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           git archive HEAD --format tar.gz \
-                           --output ${{ github.repository }}-$(cat VERSION).tar.gz \
-                           --prefix ${{ github.repository }}-$(cat VERSION)
-      - run: tar zxvf ${{ github.repository }}-$(cat VERSION)
+                           --output meevax-$(cat VERSION).tar.gz \
+                           --prefix meevax-$(cat VERSION)
+      - run: tar zxvf meevax-$(cat VERSION)
       - run: ls -a
       # - run: sudo apt install build-essential cdbs devscripts dh-make fakeroot pbuilder
