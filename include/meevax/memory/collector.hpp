@@ -30,20 +30,16 @@ inline namespace memory
   class collector
   {
   public:
+    using is_always_equal = std::true_type;
+
     struct object
     {
     protected:
-      explicit object()
-      {
-        if (auto const lock = std::unique_lock(resource); lock)
-        {
-          objects.emplace(this, nullptr);
-        }
-      }
+      explicit constexpr object() = default;
 
       explicit object(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
-        if (auto const lock = std::unique_lock(resource); lock)
+        if (auto const lock = std::unique_lock(resource); derived and lock)
         {
           objects.emplace(this, collector::reset(derived, deallocate));
         }
@@ -64,7 +60,7 @@ inline namespace memory
 
       void reset(pointer<void> const derived, deallocator<void>::signature const deallocate)
       {
-        if (auto const lock = std::unique_lock(resource); lock)
+        if (auto const lock = std::unique_lock(resource); derived and lock)
         {
           objects[this] = collector::reset(derived, deallocate);
         }
@@ -110,7 +106,9 @@ inline namespace memory
           collect();
         }
 
-        insert(data, size);
+        allocation += size;
+
+        regions.insert(new region(data, size));
 
         return data;
       }
@@ -163,24 +161,13 @@ inline namespace memory
       {
         if (auto const iter = region_of(data); *iter)
         {
-          erase(iter);
+          regions.erase(iter);
         }
       }
       catch (...)
       {}
 
       ::operator delete(data);
-    }
-
-    auto erase(decltype(regions)::iterator iter) -> void
-    {
-      regions.erase(iter);
-    }
-
-    auto insert(pointer<void> const base, std::size_t const size) -> void
-    {
-      allocation += size;
-      regions.insert(new region(base, size));
     }
 
     auto mark() -> void
