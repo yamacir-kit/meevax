@@ -2,6 +2,7 @@
 
 required()
 {
+  echo build-essential
   echo cmake
   echo libboost-all-dev
   echo libgmp-dev

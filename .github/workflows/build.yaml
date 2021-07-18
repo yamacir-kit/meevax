@@ -1,43 +1,33 @@
 name: Build and Test
-
 on:
   push:
   schedule:
     - cron: 0 0 * * *
-
 jobs:
   Ubuntu:
     runs-on: ${{ matrix.os }}
+    env:
+      CXX: ${{ matrix.compiler }}
     strategy:
       fail-fast: false
       matrix:
         compiler: [ g++, clang++ ]
         configuration: [ Debug, Release ]
         os: [ ubuntu-18.04, ubuntu-20.04 ]
-
     steps:
       - uses: actions/checkout@v2
-
       - name: 1. Setup
         run: ./script/setup.sh -u -a
-
       - name: 2. Configure
-        env:
-          CXX: ${{ matrix.compiler }}
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-
       - name: 3. Make
         working-directory: build
         run: make -j"$(nproc)"
-
       - name: 4. Install
         working-directory: build
         run: |
           sudo make install
           sudo ldconfig
-
       - name: 5. Test
         working-directory: build
-        run: |
-          sudo apt install valgrind
-          make test ARGS=-j"$(nproc)"
+        run: make test ARGS=-j"$(nproc)"
