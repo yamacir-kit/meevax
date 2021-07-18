@@ -1,0 +1,24 @@
+name: Packaging
+on:
+  push: # Experimental
+jobs:
+  Packaging:
+    runs-on: ${{ matrix.os }}
+    env:
+      CXX: ${{ matrix.compiler }}
+      DEBFULLNAME: ${{ github.repository_owner }}
+      DEBMAIL: httperror@404-notfound.jp
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ g++ ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          git archive HEAD --format tar.gz \
+                           --output ${{ github.repository }}-$(cat VERSION).tar.gz \
+                           --prefix ${{ github.repository }}-$(cat VERSION)
+      - run: tar zxvf ${{ github.repository }}-$(cat VERSION)
+      - run: ls -a
+      # - run: sudo apt install build-essential cdbs devscripts dh-make fakeroot pbuilder

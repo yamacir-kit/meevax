@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: 0 0 * * *
 jobs:
-  Ubuntu:
+  Build:
     runs-on: ${{ matrix.os }}
     env:
       CXX: ${{ matrix.compiler }}
