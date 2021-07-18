@@ -13,20 +13,19 @@ jobs:
         os: [ ubuntu-20.04 ]
     steps:
       - uses: actions/checkout@v2
+      - run: sudo apt install build-essential cdbs devscripts dh-make fakeroot pbuilder
       - run: |
           git archive HEAD --format tar.gz \
                            --output meevax-$(cat VERSION).tar.gz \
                            --prefix meevax-$(cat VERSION)/ \
                            --verbose
       - run: tar xzvf meevax-$(cat VERSION).tar.gz
-      - run: sudo apt install build-essential cdbs devscripts dh-make fakeroot pbuilder
-      - working-directory: meevax-$(cat VERSION)
-        run: |
+      - run: |
+          cd meevax-$(cat VERSION)
           dh_make --copyright apache \
                   --createorig \
                   --library \
                   --yes
-      - run: |
           rm debian/*.EX \
              debian/*.docs \
              debian/*.ex \
