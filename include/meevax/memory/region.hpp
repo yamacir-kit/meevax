@@ -8,6 +8,7 @@
 
 #include <meevax/memory/deallocator.hpp>
 #include <meevax/memory/marker.hpp>
+#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {
@@ -59,7 +60,7 @@ inline namespace memory
 
     auto reset(pointer<void> const x, deallocator<void>::signature const f) noexcept
     {
-      if (f and not assigned())
+      if (not assigned())
       {
         derived = x;
         deallocate = f;
