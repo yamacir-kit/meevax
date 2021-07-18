@@ -5,20 +5,29 @@ jobs:
   Packaging:
     runs-on: ${{ matrix.os }}
     env:
-      CXX: ${{ matrix.compiler }}
-      DEBFULLNAME: ${{ github.repository_owner }}
-      DEBMAIL: httperror@404-notfound.jp
+      DEBEMAIL: httperror@404-notfound.jp
+      DEBFULLNAME: Tatsuya Yamasaki
     strategy:
       fail-fast: false
       matrix:
-        compiler: [ g++ ]
         os: [ ubuntu-20.04 ]
     steps:
       - uses: actions/checkout@v2
       - run: |
           git archive HEAD --format tar.gz \
                            --output meevax-$(cat VERSION).tar.gz \
-                           --prefix meevax-$(cat VERSION)
-      - run: tar zxvf meevax-$(cat VERSION)
-      - run: ls -a
-      # - run: sudo apt install build-essential cdbs devscripts dh-make fakeroot pbuilder
+                           --prefix meevax-$(cat VERSION)/ \
+                           --verbose
+      - run: tar xzvf meevax-$(cat VERSION).tar.gz
+      - run: sudo apt install build-essential cdbs devscripts dh-make fakeroot pbuilder
+      - working-directory: meevax-$(cat VERSION)
+        run: |
+          dh_make --copyright apache \
+                  --createorig \
+                  --library \
+                  --yes
+      - run: |
+          rm debian/*.EX \
+             debian/*.docs \
+             debian/*.ex \
+             debian/README.*
