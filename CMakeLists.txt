@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 
-include(GNUInstallDirs)
-
 # ------------------------------------------------------------------------------
 #  Project Settings
 # ------------------------------------------------------------------------------
@@ -12,6 +10,8 @@ execute_process(
   OUTPUT_VARIABLE CURRENT_VERSION)
 
 project(meevax VERSION ${CURRENT_VERSION} LANGUAGES CXX)
+
+include(GNUInstallDirs)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
