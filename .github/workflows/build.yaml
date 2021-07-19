@@ -31,3 +31,16 @@ jobs:
       - name: 5. Test
         working-directory: build
         run: make test ARGS=-j"$(nproc)"
+  Packaging:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./script/setup.sh --update --required
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - working-directory: build
+        run: |
+          # cmake --build . --parallel $(nproc)
+          cpack --verbose
+          sudo dpkg -i *.deb
