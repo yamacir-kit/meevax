@@ -1,0 +1,24 @@
+name: Release
+on:
+  push: # Experimental
+    # branches:
+    #   - master
+jobs:
+  Package:
+    runs-on: ${{ matrix.os }}
+    env:
+      DEBEMAIL: httperror@404-notfound.jp
+      DEBFULLNAME: Tatsuya Yamasaki
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04 ]
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./script/setup.sh --update --required
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - working-directory: build
+        run: |
+          cpack
+          sudo dpkg -i *.deb
+          make test ARGS=-j"$(nproc)"

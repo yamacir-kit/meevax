@@ -16,22 +16,14 @@ jobs:
         os: [ ubuntu-18.04, ubuntu-20.04 ]
     steps:
       - uses: actions/checkout@v2
-      - name: 1. Setup
-        run: ./script/setup.sh -u -a
-      - name: 2. Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - name: 3. Make
-        working-directory: build
-        run: make -j"$(nproc)"
-      - name: 4. Install
-        working-directory: build
-        run: |
-          sudo make install
-          sudo ldconfig
-      - name: 5. Test
-        working-directory: build
+      - run: ./script/setup.sh --update --all
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+      - run: cmake --build build --parallel $(nproc)
+      - run: sudo cmake --install build
+      - run: sudo ldconfig
+      - working-directory: build
         run: make test ARGS=-j"$(nproc)"
-  Packaging:
+  Package:
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
