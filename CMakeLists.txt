@@ -9,7 +9,10 @@ execute_process(
   COMMAND tr -d "\n"
   OUTPUT_VARIABLE CURRENT_VERSION)
 
-project(meevax VERSION ${CURRENT_VERSION} LANGUAGES CXX)
+project(meevax VERSION ${CURRENT_VERSION}
+               LANGUAGES CXX
+               DESCRIPTION  "A programmable programming language."
+               HOMEPAGE_URL "https://github.com/yamacir-kit/meevax")
 
 include(GNUInstallDirs)
 
@@ -200,6 +203,18 @@ install( # Install Package Version File
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
+# ---- Debian Package ----------------------------------------------------------
+
+set(CPACK_GENERATOR DEB)
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+set(CPACK_RESOURCE_FILE_README  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+set(CPACK_THREADS 0)
+
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Tatsuya Yamasaki")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+include(CPack)
 
 # ------------------------------------------------------------------------------
 #  make uninstall

@@ -1,0 +1,16 @@
+name: Release
+on:
+  push: # Experimental
+    # branches:
+    #   - master
+jobs:
+  Debian:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./script/setup.sh --update --required
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - working-directory: build
+        run: |
+          cpack
+          sudo dpkg -i *.deb
