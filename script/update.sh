@@ -2,18 +2,25 @@
 
 root="$(git rev-parse --show-toplevel)"
 
+# ---- Phase 1 -----------------------------------------------------------------
+
 sudo dpkg -r meevax
 
-"$root/script/version.sh"
+echo "\e[1;31mBUILD AND INSTALL MEEVAX $("$root"/script/version.sh) FROM SOURCE\e[0m"
 
 rm -rf "$root/build"
 
 cmake -B "$root/build" -S "$root" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+cmake --build "$root/build" --parallel "$(nproc)"
+cmake --build "$root/build" --parallel "$(nproc)" --target test -- ARGS=-j"$(nproc)"
+cmake --build "$root/build" --parallel "$(nproc)" --target package
 
-cmake --build "$root/build" --parallel $(nproc)
+sudo dpkg -i "$root/build/meevax_$(cat "$root"/VERSION)_amd64.deb"
 
-cmake --build "$root/build" --parallel $(nproc) --target package
+# ---- Phase 2 -----------------------------------------------------------------
 
-sudo dpkg -i "$root/build/meevax_$(cat $root/VERSION)_amd64.deb"
+rm -rf "$root/example/build"
 
-cmake --build "$root/build" --parallel $(nproc) --target test
+cmake -B "$root/example/build" -S "$root/example" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+cmake --build "$root/example/build" --parallel "$(nproc)"
+cmake --build "$root/example/build" --parallel "$(nproc)" --target test -- ARGS=-j"$(nproc)"

@@ -228,9 +228,7 @@ add_custom_target(uninstall
   COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
 
-# ------------------------------------------------------------------------------
-#  make test
-# ------------------------------------------------------------------------------
+# ---- Test --------------------------------------------------------------------
 
 enable_testing()
 
@@ -249,9 +247,3 @@ define_test(r4rs)
 define_test(r4rs-appendix)
 define_test(r7rs)
 define_test(sicp-1)
-
-add_test(
-  NAME example
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/example/test.sh
-          -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-          -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
