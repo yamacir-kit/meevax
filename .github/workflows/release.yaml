@@ -10,7 +10,6 @@ jobs:
       - uses: actions/checkout@v2
       - run: ./script/setup.sh --update --required
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-      - working-directory: build
-        run: |
-          cpack
-          sudo dpkg -i *.deb
+      - run: cmake --build build --parallel $(nproc)
+      - run: cmake --build build --parallel $(nproc) --target package
+      - run: sudo dpkg -i build/meevax_$(cat VERSION)_amd64.deb

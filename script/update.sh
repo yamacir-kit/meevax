@@ -2,20 +2,18 @@
 
 root="$(git rev-parse --show-toplevel)"
 
+sudo dpkg -r meevax
+
 "$root/script/version.sh"
 
 rm -rf "$root/build"
 
 cmake -B "$root/build" -S "$root" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
 
-cd "$root/build"
+cmake --build "$root/build" --parallel $(nproc)
 
-make uninstall
+cmake --build "$root/build" --parallel $(nproc) --target package
 
-make -j"$(nproc)"
+sudo dpkg -i "$root/build/meevax_$(cat $root/VERSION)_amd64.deb"
 
-sudo make install -j"$(nproc)"
-
-rm -f "$root/build/install_manifest.txt"
-
-make test ARGS=-j"$(nproc)"
+cmake --build "$root/build" --parallel $(nproc) --target test
