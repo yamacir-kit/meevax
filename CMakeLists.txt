@@ -11,7 +11,7 @@ execute_process(
 
 project(meevax VERSION ${CURRENT_VERSION}
                LANGUAGES CXX
-               DESCRIPTION  "A programmable programming language."
+               DESCRIPTION "A programmable programming language."
                HOMEPAGE_URL "https://github.com/yamacir-kit/meevax")
 
 include(GNUInstallDirs)
