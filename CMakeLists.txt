@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2) # Ubuntu 18.04 LTS Default
 
-# ------------------------------------------------------------------------------
-#  Project Settings
-# ------------------------------------------------------------------------------
-
 execute_process(
   COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/VERSION
   COMMAND tr -d "\n"
@@ -32,51 +28,38 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_L
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
 find_package(Boost REQUIRED)
-# find_package(Threads REQUIRED)
+find_package(Threads REQUIRED)
 
-
-# ------------------------------------------------------------------------------
-#  Configure README
-# ------------------------------------------------------------------------------
+# ---- Configure README --------------------------------------------------------
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
-    ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
+                 ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
 
-
-# ------------------------------------------------------------------------------
-#  Configure Headers
-# ------------------------------------------------------------------------------
+# ---- Configure Headers -------------------------------------------------------
 
 string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  execute_process(
-    COMMAND git rev-parse HEAD
-    COMMAND tr -d "\n"
-    OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH)
+  execute_process(COMMAND git rev-parse HEAD
+                  COMMAND tr -d "\n"
+                  OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH)
 else()
   set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp)
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/feature.hpp)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp
+                 ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/feature.hpp)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp
+                 ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
 endif()
 
-
-# ------------------------------------------------------------------------------
-#  Convert Scheme Codes to ELF Binary
-# ------------------------------------------------------------------------------
+# ---- Convert Basis-Library Sources to Binary ---------------------------------
 
 file(GLOB ${PROJECT_NAME}_BASIS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/basis/*.ss)
 
@@ -99,75 +82,41 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach()
 
+# ---- Target kernel -----------------------------------------------------------
 
-# ------------------------------------------------------------------------------
-#  Meevax Kernel
-# ------------------------------------------------------------------------------
+add_library(kernel SHARED "")
 
-add_library(Kernel SHARED "")
-add_library(Meevax::Kernel ALIAS Kernel)
+add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
-target_sources(Kernel PRIVATE
-  ${${PROJECT_NAME}_BASIS}
-  ${${PROJECT_NAME}_KERNEL_SOURCES})
+target_sources(kernel PRIVATE ${${PROJECT_NAME}_BASIS}
+                              ${${PROJECT_NAME}_KERNEL_SOURCES})
 
-target_include_directories(Kernel PUBLIC
+target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(Kernel PRIVATE
-  Boost::boost
-  # Threads::Threads
-  )
+target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
+                                     Boost::boost
+                                     # Threads::Threads
+                                     stdc++fs)
 
-target_link_libraries(Kernel PUBLIC
-  ${CMAKE_DL_LIBS}
-  gmp
-  stdc++fs)
+target_link_libraries(kernel PUBLIC gmp)
 
-set_target_properties(Kernel PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
-  OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
+                                        VERSION ${PROJECT_VERSION}
+                                        SOVERSION ${PROJECT_VERSION_MAJOR})
 
-install(
-  TARGETS Kernel
-  EXPORT ${PROJECT_NAME}-config # Generate Configuration
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# ---- Target shell ------------------------------------------------------------
 
-install( # Install generated config.cmake
-  EXPORT ${PROJECT_NAME}-config
-  EXPORT_LINK_INTERFACE_LIBRARIES
-  NAMESPACE Meevax::
-  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+add_executable(shell ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-install(
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_INSTALL_INCLUDEDIR}/
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+target_link_libraries(shell PRIVATE ${PROJECT_NAME}::kernel)
 
+set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME}) # Rename shell => meevax
 
-# ------------------------------------------------------------------------------
-#   Meevax REPL
-# ------------------------------------------------------------------------------
-
-add_executable(REPL ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
-
-target_link_libraries(REPL PRIVATE Meevax::Kernel)
-
-set_target_properties(REPL PROPERTIES
-  OUTPUT_NAME ${PROJECT_NAME})
-
-install(
-  TARGETS REPL
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-
-# ------------------------------------------------------------------------------
-#  Meevax Native Library (DEPRECATED)
-# ------------------------------------------------------------------------------
+# ---- Deprecated Modules ------------------------------------------------------
 
 file(GLOB ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp)
 
@@ -180,18 +129,14 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR})
 
-  target_link_libraries(${TARGET_NAME} PUBLIC Meevax::Kernel)
+  target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}::kernel)
 
-  install(
-    TARGETS ${TARGET_NAME}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS ${TARGET_NAME}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endforeach()
 
-
-# ------------------------------------------------------------------------------
-#  Package Version
-# ------------------------------------------------------------------------------
+# ---- CMake Package -----------------------------------------------------------
 
 include(CMakePackageConfigHelpers)
 
@@ -199,11 +144,41 @@ write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
   COMPATIBILITY SameMajorVersion)
 
-install( # Install Package Version File
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+# ---- Target install ----------------------------------------------------------
 
-# ---- Debian Package ----------------------------------------------------------
+# /usr/lib/libmeevax
+install(TARGETS kernel
+        EXPORT ${PROJECT_NAME}-config
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+# /usr/bin/meevax
+install(TARGETS shell
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# /usr/include/meevax
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# /usr/share/meevax/meevax-config.cmake
+install(EXPORT ${PROJECT_NAME}-config
+        EXPORT_LINK_INTERFACE_LIBRARIES
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
+        NAMESPACE Meevax::)
+
+# /usr/share/meevax/meevax-config-version.cmake
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+
+# ---- Target uninstall --------------------------------------------------------
+
+add_custom_target(uninstall
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
+  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+
+# ---- Target package ----------------------------------------------------------
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
@@ -216,27 +191,14 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 include(CPack)
 
-# ------------------------------------------------------------------------------
-#  make uninstall
-# ------------------------------------------------------------------------------
-
-add_custom_target(uninstall
-  # COMMAND xargs sudo rm -rfv < ${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
-
-
-# ---- Test --------------------------------------------------------------------
+# ---- Target test -------------------------------------------------------------
 
 enable_testing()
 
 macro(define_test TEST_NAME)
-  add_test(
-    NAME ${TEST_NAME}
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
-            ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
+  add_test(NAME ${TEST_NAME}
+           COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+                   ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
 endmacro()
 
 define_test(abandoned)

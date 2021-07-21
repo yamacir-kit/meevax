@@ -1,5 +1,7 @@
 #!/bin/sh -eu
 
+# THIS SCRIPT IS DEPRECATED
+
 here="$(git rev-parse --show-toplevel)/example"
 
 if test -e "$here/build"
