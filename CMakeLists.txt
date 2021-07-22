@@ -22,7 +22,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -g -DNDEBUG -pipe") # NOTE: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
+set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=native causes "Illegal instruction" error (is Valgrind's bug) on CI.
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
@@ -68,7 +68,6 @@ set(${PROJECT_NAME}_BASIS "")
 foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
   get_filename_component(FILENAME ${EACH} NAME)
   get_filename_component(FILEPATH ${EACH} PATH)
-
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o
     WORKING_DIRECTORY ${FILEPATH}
@@ -78,7 +77,6 @@ foreach(EACH IN LISTS ${PROJECT_NAME}_BASIS_SOURCES)
          -B i386
          ${FILENAME}
          ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
-
   list(APPEND ${PROJECT_NAME}_BASIS ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.o)
 endforeach()
 
@@ -104,9 +102,10 @@ target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
 
 target_link_libraries(kernel PUBLIC gmp)
 
-set_target_properties(kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
-                                        VERSION ${PROJECT_VERSION}
-                                        SOVERSION ${PROJECT_VERSION_MAJOR})
+set_target_properties(
+  kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
+                      VERSION ${PROJECT_VERSION}
+                    SOVERSION ${PROJECT_VERSION_MAJOR})
 
 # ---- Target shell ------------------------------------------------------------
 
@@ -125,9 +124,9 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
 
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
 
-  set_target_properties(${TARGET_NAME} PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR})
+  set_target_properties(
+    ${TARGET_NAME} PROPERTIES   VERSION ${PROJECT_VERSION}
+                              SOVERSION ${PROJECT_VERSION_MAJOR})
 
   target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}::kernel)
 

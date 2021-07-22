@@ -4,8 +4,8 @@ on:
   schedule:
     - cron: 0 0 * * *
 jobs:
-  Build:
-    runs-on: ${{ matrix.os }}
+  Ubuntu:
+    runs-on: ${{ matrix.system }}
     env:
       CXX: ${{ matrix.compiler }}
     strategy:
@@ -13,7 +13,7 @@ jobs:
       matrix:
         compiler: [ g++, clang++ ]
         configuration: [ Debug, Release ]
-        os: [ ubuntu-18.04, ubuntu-20.04 ]
+        system: [ ubuntu-18.04, ubuntu-20.04 ]
     steps:
       - uses: actions/checkout@v2
       - run: ./script/setup.sh --update --all
