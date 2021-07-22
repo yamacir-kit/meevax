@@ -35,6 +35,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_content_type: application/deb
+          asset_content_type: application/zip
           asset_name: meevax_$(cat VERSION)_amd64.deb
           asset_path: build/meevax_$(cat VERSION)_amd64.deb
