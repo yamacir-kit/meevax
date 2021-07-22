@@ -1,0 +1,27 @@
+name: Build and Test
+on:
+  push:
+  schedule:
+    - cron: 0 0 * * *
+jobs:
+  Ubuntu:
+    runs-on: ${{ matrix.system }}
+    env:
+      CXX: ${{ matrix.compiler }}
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ g++, clang++ ]
+        configuration: [ Debug, Release ]
+        system: [ ubuntu-18.04, ubuntu-20.04 ]
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./script/setup.sh --update --all
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+      - run: cmake --build build
+      - run: cmake --build build --target test
+      - run: cmake --build build --target package
+      - run: sudo dpkg -i "build/meevax_$(cat VERSION)_amd64.deb"
+      - run: cmake -B example/build -S example -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+      - run: cmake --build example/build
+      - run: cmake --build example/build --target test

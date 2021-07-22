@@ -51,7 +51,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.3.246.
+Development HEAD: 0.3.268.
 
 ### Characteristic Features
 
@@ -119,8 +119,8 @@ sudo apt install libboost-all-dev libgmp-dev
 ### 2. Configure
 
 ``` bash
-mkdir -p build && cd $_
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cd build
 ```
 
 ### 3. Make
