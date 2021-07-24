@@ -9,22 +9,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: ./script/setup.sh --update --required
+      - run: echo "::set-output name=semantic-version::$(cat VERSION | tr -d '\n')"
+        id: version
       - run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build
           cmake --build build --target package
       - run: |
-          git tag v$(cat VERSION | tr -d "\n")
-          git push origin v$(cat VERSION | tr -d "\n")
+          git tag v${{ steps.version.outputs.sematic-version }}
+          git push origin --tags
       - uses: actions/create-release@v1
         id: create-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          release_name: Release $(cat VERSION | tr -d "\n")
-          tag_name: v$(cat VERSION | tr -d "\n")
-          draft: false
-          prerelease: false
+          release_name: Release ${{ steps.version.outputs.sematic-version }}
+          tag_name: v${{ steps.version.outputs.sematic-version }}
       - uses: actions/upload-release-asset@v1
         id: upload-release-asset
         env:
@@ -32,5 +32,5 @@ jobs:
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_content_type: application/zip
-          asset_name: meevax_$(cat VERSION | tr -d "\n")_amd64.deb
-          asset_path: build/meevax_$(cat VERSION | tr -d "\n")_amd64.deb
+          asset_name: meevax_${{ steps.version.outputs.sematic-version }}_amd64.deb
+          asset_path: build/meevax_${{ steps.version.outputs.sematic-version }}_amd64.deb
