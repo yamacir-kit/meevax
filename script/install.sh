@@ -2,11 +2,15 @@
 
 root="$(git rev-parse --show-toplevel)"
 
+git fetch origin --tags
+
+git tag --list | sed -e 's/^/  /'
+
+echo "\e[32m* v$("$root"/script/version.sh)\e[0m"
+
 # ---- Phase 1 -----------------------------------------------------------------
 
 sudo dpkg -r meevax
-
-echo "\e[1;31mBUILD AND INSTALL MEEVAX $("$root"/script/version.sh) FROM SOURCE\e[0m"
 
 rm -rf "$root/build"
 

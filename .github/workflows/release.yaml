@@ -1,23 +1,18 @@
 name: Release
 on:
   push:
-    # branches:
-    #   - master
+    branches:
+      - master
 jobs:
   Debian:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
-      - run: echo v${{ env.VERSION }} # DEBUG
       - run: ./script/setup.sh --update --required
-      - run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build
-          cmake --build build --target package
-      # - run: |
-      #     git tag v${{ env.VERSION }}
-      #     git push origin --tags
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build
+      - run: cmake --build build --target package
       - uses: actions/create-release@v1
         id: create-release
         env:
