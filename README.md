@@ -9,8 +9,8 @@
 </h3>
 
 <p align="center">
-  [![Build and Test](https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg)](https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml)
-  [![Release](https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg)](https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml)
+  <img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
+  <img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
 </p>
 
 Meevax is a programming language classified as Lisp-1.
@@ -47,7 +47,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.3.275.
+Development HEAD: 0.3.277.
 
 ### Characteristic Features
 
