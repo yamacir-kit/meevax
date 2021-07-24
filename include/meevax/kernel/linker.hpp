@@ -14,7 +14,7 @@ inline namespace kernel
    * A toy dynamic-linker provides interface for "dlopen" and "dlsym".
    *
    * ------------------------------------------------------------------------ */
-  class linker
+  class [[deprecated]] linker
   {
     struct close
     {
