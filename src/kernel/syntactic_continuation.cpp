@@ -1673,12 +1673,7 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("linker", [](auto&& xs)
-    {
-      return make<linker>(car(xs).template as<const string>());
-    });
-
-    define<procedure>("procedure", [](let const& xs)
+    define<procedure>("procedure", [](let const& xs) // TODO Rename to 'foreign-function'
     {
       std::string const& name = cadr(xs).as<string>();
       return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
