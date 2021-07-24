@@ -11,7 +11,6 @@
 #endif
 
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/linker.hpp> // TODO REMOVE
 #include <meevax/kernel/list.hpp>
 
 namespace meevax
@@ -24,7 +23,7 @@ inline namespace kernel
   #define PROCEDURE(...) meevax::let const __VA_ARGS__(                 meevax::let const& xs)
   #endif
 
-  static auto close = [](pointer<void> const handle)
+  auto close_dynamic_library = [](pointer<void> const handle)
   {
     if (handle and ::dlclose(handle))
     {
@@ -32,7 +31,7 @@ inline namespace kernel
     }
   };
 
-  using library_handle = std::unique_ptr<void, decltype(close)>;
+  using library_handle = std::unique_ptr<void, decltype(close_dynamic_library)>;
 
   auto from(std::string const& library_name) -> library_handle const& // NOTE: library_name = "lib*.so"
   {
@@ -46,7 +45,7 @@ inline namespace kernel
     }
     catch (std::out_of_range const&)
     {
-      if (auto handle = library_handle(dlopen(library_name.c_str(), RTLD_LAZY | RTLD_GLOBAL), close); handle)
+      if (auto handle = library_handle(dlopen(library_name.c_str(), RTLD_LAZY | RTLD_GLOBAL), close_dynamic_library); handle)
       {
         dynamic_libraries.emplace(library_name, std::move(handle));
 

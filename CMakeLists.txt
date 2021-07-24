@@ -95,16 +95,16 @@ target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE Boost::boost
+target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
+                                     Boost::boost
                                      # Threads::Threads
                                      stdc++fs)
 
-target_link_libraries(kernel PUBLIC ${CMAKE_DL_LIBS}
-                                    gmp)
+target_link_libraries(kernel PUBLIC gmp)
 
 set_target_properties(
   kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
-                      VERSION ${PROJECT_VERSION}
+                    VERSION ${PROJECT_VERSION}
                     SOVERSION ${PROJECT_VERSION_MAJOR})
 
 # ---- Target shell ------------------------------------------------------------
@@ -125,7 +125,7 @@ foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
   add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
 
   set_target_properties(
-    ${TARGET_NAME} PROPERTIES   VERSION ${PROJECT_VERSION}
+    ${TARGET_NAME} PROPERTIES VERSION ${PROJECT_VERSION}
                               SOVERSION ${PROJECT_VERSION_MAJOR})
 
   target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}::kernel)
