@@ -8,33 +8,24 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
       - run: ./script/setup.sh --update --required
-      - name: Packaging
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build
-          cmake --build build --target package
-      - name: Tagging
-        run: |
-          git tag v$(cat VERSION)
-          git push origin v$(cat VERSION)
-      - name: Release
-        uses: actions/create-release@v1
+      - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build
+      - run: cmake --build build --target package
+      - uses: actions/create-release@v1
         id: create-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          release_name: Release $(cat VERSION)
-          tag_name: v$(cat VERSION)
-          draft: false
-          prerelease: false
-      - name: Upload
-        uses: actions/upload-release-asset@v1
+          release_name: Version ${{ env.VERSION }}
+          tag_name: v${{ env.VERSION }}
+      - uses: actions/upload-release-asset@v1
         id: upload-release-asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_content_type: application/zip
-          asset_name: meevax_$(cat VERSION)_amd64.deb
-          asset_path: build/meevax_$(cat VERSION)_amd64.deb
+          asset_name: meevax_${{ env.VERSION }}_amd64.deb
+          asset_path: build/meevax_${{ env.VERSION }}_amd64.deb
