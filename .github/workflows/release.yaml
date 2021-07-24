@@ -18,7 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          release_name: Release ${{ env.VERSION }}
+          release_name: Version ${{ env.VERSION }}
           tag_name: v${{ env.VERSION }}
       - uses: actions/upload-release-asset@v1
         id: upload-release-asset

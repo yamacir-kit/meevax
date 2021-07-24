@@ -9,12 +9,8 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/yamacir-kit/meevax/actions">
-    <img src="https://github.com/yamacir-kit/meevax/workflows/CI/badge.svg" alt="GitHub Actions Status"/>
-  </a>
-  <a href="https://www.codacy.com/manual/yamacir-kit/meevax?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=yamacir-kit/meevax&amp;utm_campaign=Badge_Grade">
-    <img src="https://api.codacy.com/project/badge/Grade/ebd3aba61f1141049229031b7f068de9"/>
-  </a>
+  [![Build and Test](https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg)](https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml)
+  [![Release](https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg)](https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml)
 </p>
 
 Meevax is a programming language classified as Lisp-1.
@@ -51,13 +47,12 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.3.274.
+Development HEAD: 0.3.275.
 
 ### Characteristic Features
 
 -   **Architecture** - TR-SECD virtual machine.
 -   **Modern C++ compatible dynamic typing** - Meevax provides RTTI-based language runtime library.
--   **Lexical garbage collection**
 
 ### Standards
 
@@ -102,47 +97,13 @@ An subset of R7RS-small.
 
 ## Installation
 
-### 0. Clone
+### Install from source
 
 ``` bash
-git clone https://github.com/yamacir-kit/meevax.git
-cd meevax
+git clone https://github.com/yamacir-kit/meevax.git ~/.meevax && cd $_
+./script/setup.sh --update --all
+./script/install.sh
 ```
-
-### 1. Setup
-
-``` bash
-sudo apt update
-sudo apt install libboost-all-dev libgmp-dev
-```
-
-### 2. Configure
-
-``` bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cd build
-```
-
-### 3. Make
-
-``` bash
-make
-```
-
-### 4. Install
-
-``` bash
-sudo make install
-sudo ldconfig
-```
-
-### 5. Test (Optional)
-
-``` bash
-sudo apt install valgrind kcachegrind massif-visualizer
-make test
-```
-
 
 <br/>
 
