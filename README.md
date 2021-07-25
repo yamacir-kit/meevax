@@ -47,7 +47,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.3.280.
+Development HEAD: 0.3.281.
 
 ### Characteristic Features
 
@@ -100,8 +100,7 @@ An subset of R7RS-small.
 ### Install from source
 
 ``` bash
-git clone https://github.com/yamacir-kit/meevax.git
-cd meevax
+git clone https://github.com/yamacir-kit/meevax.git ~/.meevax && cd $_
 ./script/setup.sh --update --all
 ./script/install.sh
 ```

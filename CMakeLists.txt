@@ -5,10 +5,10 @@ execute_process(
   COMMAND tr -d "\n"
   OUTPUT_VARIABLE CURRENT_VERSION)
 
-project(meevax VERSION ${CURRENT_VERSION}
+project(meevax DESCRIPTION "A programmable programming language"
+               HOMEPAGE_URL "https://github.com/yamacir-kit/meevax"
                LANGUAGES CXX
-               DESCRIPTION "A programmable programming language."
-               HOMEPAGE_URL "https://github.com/yamacir-kit/meevax")
+               VERSION ${CURRENT_VERSION})
 
 include(GNUInstallDirs)
 
@@ -95,12 +95,12 @@ target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
-                                     Boost::boost
+target_link_libraries(kernel PRIVATE Boost::boost
                                      # Threads::Threads
                                      stdc++fs)
 
-target_link_libraries(kernel PUBLIC gmp)
+target_link_libraries(kernel PUBLIC ${CMAKE_DL_LIBS}
+                                    gmp)
 
 set_target_properties(
   kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
