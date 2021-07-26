@@ -7,21 +7,36 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Boost  REQUIRED)
 find_package(Meevax REQUIRED) # NOTE: case-insensitive
 
-set(LEAK_CHECK valgrind --error-exitcode=1
-                        --leak-check=full
-                        --quiet
-                        --show-leak-kinds=all)
+set(MEMCHECK valgrind --error-exitcode=1
+                      --leak-check=full
+                      --quiet
+                      --show-leak-kinds=all)
 
-enable_testing()
+macro(define_library LIBRARY_NAME)
+  add_library(${LIBRARY_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/lib/${LIBRARY_NAME}.cpp)
+  target_link_libraries(${LIBRARY_NAME} PUBLIC Meevax::kernel)
+endmacro()
 
-macro(define_test TEST_NAME)
+define_library(example-1)
+
+macro(define_cxx_example TEST_NAME)
   add_executable(${TEST_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/${TEST_NAME}.cpp)
   target_link_libraries(${TEST_NAME} Boost::boost Meevax::kernel)
   add_test(NAME ${TEST_NAME}
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-           COMMAND ${LEAK_CHECK} ./${TEST_NAME})
+           COMMAND ${MEMCHECK} ./${TEST_NAME})
 endmacro()
 
-define_test(test-collector)
-define_test(test-list)
-define_test(test-r7rs)
+enable_testing()
+
+define_cxx_example(test-collector)
+define_cxx_example(test-list)
+define_cxx_example(test-r7rs)
+
+macro(define_meevax_example EXAMPLE_NAME)
+  add_test(NAME ${EXAMPLE_NAME}
+           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+           COMMAND meevax ${EXAMPLE_NAME}.ss)
+endmacro()
+
+define_meevax_example(foreign-function)

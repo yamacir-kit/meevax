@@ -53,10 +53,7 @@ inline namespace kernel
   #define DEFINE_ERROR(TYPENAME)                                               \
   struct TYPENAME ## _error : public error                                     \
   {                                                                            \
-    template <typename... Ts>                                                  \
-    explicit TYPENAME ## _error(Ts&&... xs)                                    \
-      : error { std::forward<decltype(xs)>(xs)... }                            \
-    {}                                                                         \
+    using error::error;                                                        \
                                                                                \
     ~TYPENAME ## _error() override = default;                                  \
   }

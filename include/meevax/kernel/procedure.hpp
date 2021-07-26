@@ -18,9 +18,9 @@ namespace meevax
 inline namespace kernel
 {
   #if __has_cpp_attribute(maybe_unused)
-  #define PROCEDURE(...) meevax::let const __VA_ARGS__([[maybe_unused]] meevax::let const& xs)
+  #define PROCEDURE(...) meevax::let __VA_ARGS__([[maybe_unused]] meevax::let const& xs)
   #else
-  #define PROCEDURE(...) meevax::let const __VA_ARGS__(                 meevax::let const& xs)
+  #define PROCEDURE(...) meevax::let __VA_ARGS__(                 meevax::let const& xs)
   #endif
 
   auto close_dynamic_library = [](pointer<void> const handle)
