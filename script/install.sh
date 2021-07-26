@@ -10,7 +10,7 @@ echo "\e[32m* v$("$root"/script/version.sh)\e[0m"
 
 # ---- Phase 1 -----------------------------------------------------------------
 
-sudo apt remove meevax
+sudo apt purge --yes meevax
 
 rm -rf "$root/build"
 
@@ -19,7 +19,7 @@ cmake --build "$root/build" --parallel "$(nproc)"
 cmake --build "$root/build" --parallel "$(nproc)" --target test -- ARGS=-j"$(nproc)"
 cmake --build "$root/build" --parallel "$(nproc)" --target package
 
-sudo apt install "$root/build/meevax_$(cat "$root"/VERSION)_amd64.deb"
+sudo apt install --yes "$root/build/meevax_$(cat "$root"/VERSION)_amd64.deb"
 
 # ---- Phase 2 -----------------------------------------------------------------
 

@@ -19,11 +19,7 @@ macro(define_test TEST_NAME)
   target_link_libraries(${TEST_NAME} Boost::boost Meevax::kernel)
   add_test(NAME ${TEST_NAME}
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-           COMMAND ${LEAK_CHECK} ./${TEST_NAME} --build_info=yes
-                                                --catch_system_error=no
-                                                --color_output=yes
-                                                --report_level=short
-                                                --show_progress=yes)
+           COMMAND ${LEAK_CHECK} ./${TEST_NAME})
 endmacro()
 
 define_test(test-collector)
