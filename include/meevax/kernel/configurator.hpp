@@ -250,9 +250,9 @@ inline namespace kernel
     };
 
   public:
-    auto configure(const int argc, char const* const* const argv) -> decltype(auto)
+    auto configure(const int argc, char const* const* const argv)
     {
-      const std::vector<std::string> options {argv + 1, argv + argc};
+      std::vector<std::string> const options { argv + 1, argv + argc };
 
       return configure(options);
     }
@@ -261,15 +261,15 @@ inline namespace kernel
     {
       static const std::regex pattern { "--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)" };
 
-      for (auto option {std::begin(args)}; option != std::end(args); ++option) [&]()
+      for (auto option = std::begin(args); option != std::end(args); ++option) [&]()
       {
         std::smatch analysis {};
 
         std::regex_match(*option, analysis, pattern);
 
-        if (const auto sos { analysis.str(4) }; sos.length()) // short-options
+        if (const auto sos = analysis.str(4); sos.length()) // short-options
         {
-          for (auto so { std::begin(sos) }; so != std::end(sos); ++so) // each short-option
+          for (auto so = std::begin(sos); so != std::end(sos); ++so) // each short-option
           {
             if (auto callee { short_options_.find(*so) }; callee != std::end(short_options_))
             {

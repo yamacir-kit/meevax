@@ -10,7 +10,6 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_keyword.hpp>
 #include <meevax/kernel/syntax.hpp>
-#include <meevax/string/header.hpp>
 
 namespace meevax
 {

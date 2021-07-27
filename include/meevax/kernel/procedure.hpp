@@ -1,9 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
-#include <memory>
-#include <utility>
-
 #if __unix__
 #include <dlfcn.h> // dlopen, dlclose, dlerror
 #else

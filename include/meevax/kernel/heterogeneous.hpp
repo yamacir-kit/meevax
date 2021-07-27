@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
-#include <cstddef>
 #include <meevax/functional/compose.hpp>
 #include <meevax/memory/cell.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
