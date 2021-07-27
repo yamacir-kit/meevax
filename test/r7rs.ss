@@ -1185,16 +1185,6 @@
 
 ; ---- 6.14. System interface --------------------------------------------------
 
-
-; ------------------------------------------------------------------------------
-
-; (define ffi.so (linker "libmeevax-test-foreign-function-interface.so"))
-;
-; (define dummy-procedure
-;   (procedure ffi.so "dummy_procedure"))
-;
-; (check (dummy-procedure "hello, world!\n" 42 '(1 . 2) #(1 2 3) 3.14) => 43)
-
 (check (eval '(+ 1 2 3) (current-environment-specifier)) => 6)
 
 (define-syntax (increment x . n)

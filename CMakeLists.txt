@@ -5,10 +5,10 @@ execute_process(
   COMMAND tr -d "\n"
   OUTPUT_VARIABLE CURRENT_VERSION)
 
-project(meevax VERSION ${CURRENT_VERSION}
+project(meevax DESCRIPTION "A programmable programming language"
+               HOMEPAGE_URL "https://github.com/yamacir-kit/meevax"
                LANGUAGES CXX
-               DESCRIPTION "A programmable programming language."
-               HOMEPAGE_URL "https://github.com/yamacir-kit/meevax")
+               VERSION ${CURRENT_VERSION})
 
 include(GNUInstallDirs)
 
@@ -95,16 +95,16 @@ target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE ${CMAKE_DL_LIBS}
-                                     Boost::boost
+target_link_libraries(kernel PRIVATE Boost::boost
                                      # Threads::Threads
                                      stdc++fs)
 
-target_link_libraries(kernel PUBLIC gmp)
+target_link_libraries(kernel PUBLIC ${CMAKE_DL_LIBS}
+                                    gmp)
 
 set_target_properties(
   kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
-                      VERSION ${PROJECT_VERSION}
+                    VERSION ${PROJECT_VERSION}
                     SOVERSION ${PROJECT_VERSION_MAJOR})
 
 # ---- Target shell ------------------------------------------------------------
@@ -114,26 +114,6 @@ add_executable(shell ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(shell PRIVATE ${PROJECT_NAME}::kernel)
 
 set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME}) # Rename shell => meevax
-
-# ---- Deprecated Modules ------------------------------------------------------
-
-file(GLOB ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp)
-
-foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
-  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
-
-  add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
-
-  set_target_properties(
-    ${TARGET_NAME} PROPERTIES   VERSION ${PROJECT_VERSION}
-                              SOVERSION ${PROJECT_VERSION_MAJOR})
-
-  target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}::kernel)
-
-  install(TARGETS ${TARGET_NAME}
-          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endforeach()
 
 # ---- CMake Package -----------------------------------------------------------
 

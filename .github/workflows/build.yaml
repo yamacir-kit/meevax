@@ -21,7 +21,7 @@ jobs:
       - run: cmake --build build
       - run: cmake --build build --target test
       - run: cmake --build build --target package
-      - run: sudo dpkg -i "build/meevax_$(cat VERSION)_amd64.deb"
+      - run: sudo apt install --yes ./build/meevax_$(cat VERSION)_amd64.deb
       - run: cmake -B example/build -S example -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
       - run: cmake --build example/build
       - run: cmake --build example/build --target test

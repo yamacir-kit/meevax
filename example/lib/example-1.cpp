@@ -1,12 +1,15 @@
-#include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/procedure.hpp>
+#include <meevax/kernel/syntactic_continuation.hpp>
+
+using namespace meevax; // NOTE: DIRTY HACK
 
 extern "C"
 {
-  using namespace meevax::kernel;
+  let length_of_arguments(let const& xs)
+  {
+    return make<exact_integer>(length(xs));
+  }
 
-  PROCEDURE(dummy_procedure)
+  let dummy_procedure(let const& xs)
   {
     std::cout << "\n; calling C++ function via foreign-function-interface." << std::endl;
 
@@ -28,4 +31,4 @@ extern "C"
 
     return unspecified;
   }
-} // extern "C"
+}

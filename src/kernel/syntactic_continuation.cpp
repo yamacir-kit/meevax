@@ -1673,17 +1673,6 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("linker", [](auto&& xs)
-    {
-      return make<linker>(car(xs).template as<const string>());
-    });
-
-    define<procedure>("procedure", [](let const& xs)
-    {
-      std::string const& name = cadr(xs).as<string>();
-      return make<procedure>(name, car(xs).as<linker>().link<procedure::signature>(name));
-    });
-
     define<procedure>("features", [](auto&&...)
     {
       return features();
@@ -1821,6 +1810,16 @@ inline namespace kernel
       std::cout << std::endl;
 
       return default_output_port;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (foreign-function lib*.so function-name)                      procedure
+     *
+     * ---------------------------------------------------------------------- */
+    define<procedure>("foreign-function", [](let const& xs)
+    {
+      return make<procedure>(cadr(xs).as<string>(), from(car(xs).as<string>()));
     });
 
     define<procedure>("type-of", [](auto&& xs)

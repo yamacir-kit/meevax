@@ -1,7 +1,8 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_LIST_HPP
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
-#include <algorithm> // std::equal
+#include <algorithm>
+#include <numeric>
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/boolean.hpp>
