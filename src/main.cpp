@@ -25,33 +25,11 @@ int main(const int argc, char const* const* const argv) try
     root.write_to(root.standard_interaction_port(), "\n", meevax::header(__func__), "I have control of root syntactic-continuation.\n");
   }
 
-  PRINT(meevax::let::default_constructor);
-  PRINT(meevax::let::pointer_constructor);
-  PRINT(meevax::let::copy_constructor);
-  // PRINT(meevax::let::template_copy_constructor);
-  PRINT(meevax::let::move_constructor);
-  // PRINT(meevax::let::template_move_constructor);
-  PRINT(meevax::let::copy_assignment);
-  // PRINT(meevax::let::template_copy_assignment);
-  PRINT(meevax::let::move_assignment);
-  // PRINT(meevax::let::template_move_assignment);
-
   return boost::exit_success;
 }
 
 catch (int exit_code)
 {
-  PRINT(meevax::let::default_constructor);
-  PRINT(meevax::let::pointer_constructor);
-  PRINT(meevax::let::copy_constructor);
-  // PRINT(meevax::let::template_copy_constructor);
-  PRINT(meevax::let::move_constructor);
-  // PRINT(meevax::let::template_move_constructor);
-  PRINT(meevax::let::copy_assignment);
-  // PRINT(meevax::let::template_copy_assignment);
-  PRINT(meevax::let::move_assignment);
-  // PRINT(meevax::let::template_move_assignment);
-
   return exit_code;
 }
 
