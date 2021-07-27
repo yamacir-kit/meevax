@@ -248,11 +248,6 @@ inline namespace kernel
       }
     }
 
-    auto load(path const& p)
-    {
-      return load(p.string());
-    }
-
     auto load(let const& x)
     {
       if (x.is<symbol>())
