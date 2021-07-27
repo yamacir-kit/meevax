@@ -23,12 +23,10 @@ inline namespace kernel
     {}
 
     IMPORT(SK, evaluate, NIL);
+    IMPORT(SK, load, NIL);
     IMPORT(SK, newline, const);
     IMPORT(SK, read, NIL);
-    IMPORT(SK, standard_verbose_port, const);
-    IMPORT(SK, write, const);
     IMPORT(SK, write_line, const);
-    IMPORT(SK, write_to, const);
 
   protected:
     let batch_mode       = f;
@@ -97,7 +95,7 @@ inline namespace kernel
 
       std::make_pair('l', [this](auto&&... xs)
       {
-        return append_path(std::forward<decltype(xs)>(xs)...);
+        return load(std::forward<decltype(xs)>(xs)...);
       }),
     };
 
@@ -159,7 +157,7 @@ inline namespace kernel
 
       std::make_pair("load", [this](auto&&... xs)
       {
-        return append_path(std::forward<decltype(xs)>(xs)...);
+        return load(std::forward<decltype(xs)>(xs)...);
       }),
     };
 
@@ -298,17 +296,17 @@ inline namespace kernel
       write_line("Usage: meevax [OPTION...] [FILE...]");
       write_line();
       write_line("Options:");
-      write_line("  -b, --batch                suppress any system output.");
-      write_line("  -d, --debug                display detailed informations for developers.");
-      write_line("  -e, --evaluate=EXPRESSION  evaluate given EXPRESSION at configuration step.");
-      write_line("      --echo=OBJECT          write an external-representation of OBJECT to the");
-      write_line("                             standard-output-port.");
-      write_line("  -h, --help                 display this help text and exit.");
-      write_line("  -i, --interactive          take over control of root syntactic-continuation.");
-      write_line("  -l, --load=FILE            load given FILE.");
-      write_line("  -t, --trace                display stacks of virtual machine for each steps.");
-      write_line("  -v, --version              display version information and exit.");
-      write_line("      --verbose              display detailed informations.");
+      write_line("  -b, --batch            suppress any system output.");
+      write_line("  -d, --debug            display detailed informations for developers.");
+      write_line("  -e, --evaluate=STRING  read and evaluate given STRING at configuration step.");
+      write_line("      --echo=OBJECT      write an external-representation of OBJECT to the");
+      write_line("                         standard-output-port.");
+      write_line("  -h, --help             display this help text and exit.");
+      write_line("  -i, --interactive      take over control of root syntactic-continuation.");
+      write_line("  -l, --load=FILE        load given FILE on configure step.");
+      write_line("  -t, --trace            display stacks of virtual machine for each steps.");
+      write_line("  -v, --version          display version information and exit.");
+      write_line("      --verbose          display detailed informations.");
       write_line();
       write_line("Boot Sequence:");
       write_line("  1. Load basis libraries");

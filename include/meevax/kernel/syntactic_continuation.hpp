@@ -223,11 +223,11 @@ inline namespace kernel
       return execute();
     }
 
-    auto load(path const& name) -> auto const&
+    auto load(std::string const& s)
     {
-      write_to(standard_debug_port(), header(__func__), "open ", name, " => ");
+      write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
 
-      if (let port = make<input_file_port>(name.c_str()); port)
+      if (let port = make<input_file_port>(s); port)
       {
         write_to(standard_debug_port(), t, "\n");
 
@@ -244,14 +244,33 @@ inline namespace kernel
       {
         write_to(standard_debug_port(), f, "\n");
 
-        throw file_error(make<string>("failed to open file: " + name.string()), unit);
+        throw file_error(make<string>("failed to open file: " + s), unit);
       }
     }
 
-    // XXX DIRTY HACK
-    decltype(auto) load(std::string const& name)
+    auto load(path const& p)
     {
-      return load(path(name));
+      return load(p.string());
+    }
+
+    auto load(let const& x)
+    {
+      if (x.is<symbol>())
+      {
+        return load(x.as<symbol>());
+      }
+      else if (x.is<string>())
+      {
+        return load(x.as<string>());
+      }
+      else if (x.is<path>())
+      {
+        return load(x.as<path>());
+      }
+      else
+      {
+        throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+      }
     }
 
     let const& operator [](let const& name)
