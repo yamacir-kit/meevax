@@ -6,12 +6,6 @@ int main(const int argc, char const* const* const argv) try
 
   root.configure(argc, argv);
 
-  for (auto const& each : root.paths)
-  {
-    root.write_to(root.standard_interaction_port(), meevax::header(__func__), "load ", each, "\n");
-    root.load(each.as<meevax::path>());
-  }
-
   if (root.in_interactive_mode())
   {
     root.write_to(root.standard_interaction_port(), meevax::header(__func__), "You have control of root syntactic-continuation.\n");

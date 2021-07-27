@@ -35,9 +35,6 @@ inline namespace kernel
     let trace_mode       = f;
     let verbose_mode     = f;
 
-  public:
-    let paths = unit;
-
     #define BOILERPLATE(MODE)                                                  \
     auto in_##MODE() const                                                     \
     {                                                                          \
@@ -162,18 +159,6 @@ inline namespace kernel
     };
 
   public:
-    auto append_path(let const& x) -> let const&
-    {
-      if (x.is<symbol>())
-      {
-        return push(paths, make<path>(x.as<std::string>()));
-      }
-      else
-      {
-        return unspecified;
-      }
-    }
-
     auto configure(const int argc, char const* const* const argv)
     {
       std::vector<std::string> const options { argv + 1, argv + argc };
@@ -253,18 +238,11 @@ inline namespace kernel
         }
         else
         {
-          paths = cons(make<path>(*option), paths);
+          return load(*option);
         }
 
         return unspecified;
       }();
-
-      paths = reverse(paths);
-
-      if (auto const rc = path(::getenv("HOME")) / ".meevaxrc"; in_interactive_mode() and std::experimental::filesystem::exists(rc))
-      {
-        paths = cons(make<path>(rc), paths);
-      }
     }
 
     void display_version() const
