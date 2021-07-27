@@ -115,26 +115,6 @@ target_link_libraries(shell PRIVATE ${PROJECT_NAME}::kernel)
 
 set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME}) # Rename shell => meevax
 
-# ---- Deprecated Modules ------------------------------------------------------
-
-file(GLOB ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp)
-
-foreach(EACH_SOURCE IN LISTS ${PROJECT_NAME}_BASIS_LIBRARY_SOURCES)
-  string(REGEX REPLACE "^/(.*/)*(.*).cpp$" "meevax-\\2" TARGET_NAME ${EACH_SOURCE})
-
-  add_library(${TARGET_NAME} SHARED ${EACH_SOURCE})
-
-  set_target_properties(
-    ${TARGET_NAME} PROPERTIES VERSION ${PROJECT_VERSION}
-                              SOVERSION ${PROJECT_VERSION_MAJOR})
-
-  target_link_libraries(${TARGET_NAME} PUBLIC ${PROJECT_NAME}::kernel)
-
-  install(TARGETS ${TARGET_NAME}
-          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endforeach()
-
 # ---- CMake Package -----------------------------------------------------------
 
 include(CMakePackageConfigHelpers)
