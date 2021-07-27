@@ -54,91 +54,8 @@ inline namespace kernel
 
     #undef BOILERPLATE
 
-  public:
-    let display_version() const
-    {
-      write_line("Meevax Lisp System, version ", version());
-      return unspecified;
-    }
-
-    let display_license() const
-    {
-      write(
-        "Copyright (C) 2020 Tatsuya Yamasaki\n"
-        "\n"
-        "Licensed under the Apache License, Version 2.0 (the \"License\");\n"
-        "you may not use this file except in compliance with the License.\n"
-        "You may obtain a copy of the License at\n"
-        "\n"
-        "    http://www.apache.org/licenses/LICENSE-2.0\n"
-        "\n"
-        "Unless required by applicable law or agreed to in writing, software\n"
-        "distributed under the License is distributed on an \"AS IS\" BASIS,\n"
-        "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n"
-        "See the License for the specific language governing permissions and\n"
-        "limitations under the License.\n");
-
-      return unspecified;
-    }
-
-    auto display_help() const
-    {
-      display_version();
-      newline();
-
-      #define SECTION(NAME) write_line(bold, NAME)
-      #define BOLD(...) bold, __VA_ARGS__, reset
-      #define UNDERLINE(...) underline, __VA_ARGS__, reset
-
-      SECTION("Usage:");
-      write_line("  ", BOLD("meevax"), " [", UNDERLINE("option"), "]... [", UNDERLINE("file"), "]...");
-      newline();
-
-      SECTION("Options:");
-      write_line("  ", BOLD("-b"), ", ", BOLD("--batch"), "                Batch mode: Suppress any system output.");
-      write_line("  ", BOLD("-d"), ", ", BOLD("--debug"), "                Debug mode: Display detailed informations for developers.");
-      write_line("  ", BOLD("-e"), ", ", BOLD("--evaluate"), "=", UNDERLINE("expression"), "  Evaluate an ", UNDERLINE("expression"), " at configuration time.");
-      write_line("  ", BOLD("  "), "  ", BOLD("--echo"), "=", UNDERLINE("expression"), "      Write ", UNDERLINE("expression"), ".");
-      write_line("  ", BOLD("-f"), ", ", BOLD("--feature"), "=", UNDERLINE("identifier"), "   (unimplemented)");
-      write_line("  ", BOLD("-h"), ", ", BOLD("--help"), "                 Display this help text and exit.");
-      write_line("  ", BOLD("-i"), ", ", BOLD("--interactive"), "          Interactive mode: Take over control of root syntactic-continuation.");
-      write_line("  ", BOLD("-l"), ", ", BOLD("--load"), "=", UNDERLINE("file"), "            Load ", UNDERLINE("file"), " before main session.");
-      write_line("  ", BOLD("-r"), ", ", BOLD("--revised"), "=", UNDERLINE("integer"), "      (unimplemented)");
-      write_line("  ", BOLD("-t"), ", ", BOLD("--trace"), "                Trace mode: Display stacks of virtual machine for each instruction.");
-      write_line("  ", BOLD("-v"), ", ", BOLD("--version"), "              Display version information and exit.");
-      write_line("  ", BOLD("  "), "  ", BOLD("--verbose"), "              Verbose mode: Display detailed informations.");
-      newline();
-
-      SECTION("Sequence:");
-      write_line("  1. ", BOLD("Boot"));
-      write_line("  2. ", BOLD("Configure"));
-      write_line("  3. ", BOLD("Load"), " (for each ", UNDERLINE("file"), " specified)");
-      write_line("  4. ", BOLD("REPL"), " (when --interactive specified)");
-      newline();
-
-      SECTION("Examples:");
-      write_line("  $ meevax -e '(features)'  ; => Display features.");
-
-      #undef SECTION
-      #undef BOLD
-      #undef UNDERLINE
-    }
-
-    let const& append_path(let const& x)
-    {
-      if (x.is<symbol>())
-      {
-        return push(paths, make<path>(x.as<std::string>()));
-      }
-      else
-      {
-        return unspecified;
-      }
-    }
-
-  public:
-    template <typename T>
-    using dispatcher = std::unordered_map<T, std::function<PROCEDURE()>>;
+    template <typename Key>
+    using dispatcher = std::unordered_map<Key, std::function<PROCEDURE()>>;
 
     const dispatcher<char> short_options
     {
@@ -166,8 +83,6 @@ inline namespace kernel
       std::make_pair('v', [this](auto&&...)
       {
         display_version();
-        newline();
-        display_license();
         return std::exit(boost::exit_success), unspecified;
       }),
     };
@@ -209,9 +124,6 @@ inline namespace kernel
         return interactive_mode = t;
       }),
 
-      // TODO --srfi=0,1,2
-      // TODO --reviced=4,5,7
-
       std::make_pair("trace", [this](auto&&...)
       {
         return trace_mode = t;
@@ -219,12 +131,14 @@ inline namespace kernel
 
       std::make_pair("verbose", [this](auto&&...)
       {
-        return static_cast<SK&>(*this).verbose_mode = t;
+        return verbose_mode = t;
       }),
 
       std::make_pair("version", [this](auto&&...)
       {
         display_version();
+        newline();
+        display_license();
         return std::exit(boost::exit_success), unspecified;
       }),
     };
@@ -250,10 +164,21 @@ inline namespace kernel
     };
 
   public:
+    auto append_path(let const& x) -> let const&
+    {
+      if (x.is<symbol>())
+      {
+        return push(paths, make<path>(x.as<std::string>()));
+      }
+      else
+      {
+        return unspecified;
+      }
+    }
+
     auto configure(const int argc, char const* const* const argv)
     {
       std::vector<std::string> const options { argv + 1, argv + argc };
-
       return configure(options);
     }
 
@@ -342,6 +267,65 @@ inline namespace kernel
       {
         paths = cons(make<path>(rc), paths);
       }
+    }
+
+    void display_version() const
+    {
+      write_line("Meevax Lisp System, version ", version());
+    }
+
+    void display_license() const
+    {
+      write_line("   Copyright 2020 Tatsuya Yamasaki");
+      write_line();
+      write_line("   Licensed under the Apache License, Version 2.0 (the \"License\");");
+      write_line("   you may not use this file except in compliance with the License.");
+      write_line("   You may obtain a copy of the License at");
+      write_line();
+      write_line("       http://www.apache.org/licenses/LICENSE-2.0");
+      write_line();
+      write_line("   Unless required by applicable law or agreed to in writing, software");
+      write_line("   distributed under the License is distributed on an \"AS IS\" BASIS,");
+      write_line("   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.");
+      write_line("   See the License for the specific language governing permissions and");
+      write_line("   limitations under the License.");
+    }
+
+    void display_help() const
+    {
+      display_version();
+      write_line();
+      write_line("Usage: meevax [OPTION...] [FILE...]");
+      write_line();
+      write_line("Options:");
+      write_line("  -b, --batch                suppress any system output.");
+      write_line("  -d, --debug                display detailed informations for developers.");
+      write_line("  -e, --evaluate=EXPRESSION  evaluate given EXPRESSION at configuration step.");
+      write_line("      --echo=OBJECT          write an external-representation of OBJECT to the");
+      write_line("                             standard-output-port.");
+      write_line("  -h, --help                 display this help text and exit.");
+      write_line("  -i, --interactive          take over control of root syntactic-continuation.");
+      write_line("  -l, --load=FILE            load given FILE.");
+      write_line("  -t, --trace                display stacks of virtual machine for each steps.");
+      write_line("  -v, --version              display version information and exit.");
+      write_line("      --verbose              display detailed informations.");
+      write_line();
+      write_line("Boot Sequence:");
+      write_line("  1. Load basis libraries");
+      write_line("  2. Configure");
+      write_line("  3. Load given FILEs");
+      write_line("  4. Interaction (if --interactive specified)");
+      write_line();
+      write_line("Examples:");
+      write_line("  meevax -i");
+      write_line("    => start interactive session.");
+      write_line();
+      write_line("  meevax -e '(+ 1 2 3)'");
+      write_line("    => display 6.");
+      write_line();
+      write_line("  meevax -e \"(define home \\\"$HOME\\\")\" -i");
+      write_line("    => define value of environment variable $HOME to interaction-environment,");
+      write_line("       and then start interactive session.");
     }
   };
 } // namespace kernel
