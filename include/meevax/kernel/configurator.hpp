@@ -167,7 +167,7 @@ inline namespace kernel
 
     void configure(std::vector<std::string> const& args)
     {
-      static const std::regex pattern { "--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)" };
+      static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
 
       for (auto option = std::begin(args); option != std::end(args); ++option) [&]()
       {
@@ -175,36 +175,43 @@ inline namespace kernel
 
         std::regex_match(*option, analysis, pattern);
 
-        if (const auto sos = analysis.str(4); sos.length()) // short-options
+        if (in_debug_mode())
         {
-          for (auto so = std::begin(sos); so != std::end(sos); ++so) // each short-option
+          std::cout << header("configure") << "analysis[0] = " << analysis[0] << std::endl;
+          std::cout << header("")          << "analysis[1] = " << analysis[1] << std::endl;
+          std::cout << header("")          << "analysis[2] = " << analysis[2] << std::endl;
+          std::cout << header("")          << "analysis[3] = " << analysis[3] << std::endl;
+          std::cout << header("")          << "analysis[4] = " << analysis[4] << std::endl;
+        }
+
+        if (const auto current_short_options = analysis.str(4); not current_short_options.empty())
+        {
+          for (auto current_short_option = std::cbegin(current_short_options); current_short_option != std::cend(current_short_options); ++current_short_option)
           {
-            if (auto callee { short_options_.find(*so) }; callee != std::end(short_options_))
+            if (auto iter = short_options_.find(*current_short_option); iter != std::end(short_options_))
             {
-              if (std::string const rest { std::next(so), std::end(sos) }; rest.length())
+              auto const& [name, perform] = *iter;
+
+              if (auto const rest = std::string(std::next(current_short_option), std::end(current_short_options)); not rest.empty())
               {
-                return std::invoke(cdr(*callee), read(*option));
+                return perform(read(rest));
               }
               else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
               {
-                return std::invoke(cdr(*callee), read(*option));
+                return perform(read(*option));
               }
               else
               {
-                throw error(
-                  make<string>(string_append("option -", *so, " requires an argument")),
-                  unit);
+                throw error(make<string>(string_append("option -", name, " requires an argument")), unit);
               }
             }
-            else if (auto callee { short_options.find(*so) }; callee != std::end(short_options))
+            else if (auto callee = short_options.find(*current_short_option); callee != std::end(short_options))
             {
-              return std::invoke(cdr(*callee), unit);
+              std::invoke(cdr(*callee), unit);
             }
             else
             {
-              throw error(
-                make<string>(string_append("unknown short-option: ", *so)),
-                unit);
+              throw error(make<string>(string_append("unknown short-option -", *current_short_option)), unit);
             }
           }
         }
@@ -222,9 +229,7 @@ inline namespace kernel
             }
             else
             {
-              throw error(
-                make<string>(string_append("option --", lo, " requires an argument")),
-                unit);
+              throw error(make<string>(string_append("option --", lo, " requires an argument")), unit);
             }
           }
           else if (auto callee { long_options.find(lo) }; callee != std::end(long_options))
@@ -281,7 +286,7 @@ inline namespace kernel
       write_line("                         standard-output-port.");
       write_line("  -h, --help             display this help text and exit.");
       write_line("  -i, --interactive      take over control of root syntactic-continuation.");
-      write_line("  -l, --load=FILE        load given FILE on configure step.");
+      write_line("  -l, --load=FILE        same as -e '(load FILE)'");
       write_line("  -t, --trace            display stacks of virtual machine for each steps.");
       write_line("  -v, --version          display version information and exit.");
       write_line("      --verbose          display detailed informations.");
