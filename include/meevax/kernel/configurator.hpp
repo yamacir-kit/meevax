@@ -26,6 +26,7 @@ inline namespace kernel
     IMPORT(SK, load, NIL);
     IMPORT(SK, newline, const);
     IMPORT(SK, read, NIL);
+    IMPORT(SK, write, const);
     IMPORT(SK, write_line, const);
 
   protected:
@@ -94,6 +95,11 @@ inline namespace kernel
       {
         return load(std::forward<decltype(xs)>(xs)...);
       }),
+
+      std::make_pair('w', [this](auto&&... xs)
+      {
+        return write(std::forward<decltype(xs)>(xs)...), unspecified;
+      }),
     };
 
     const dispatcher<std::string> long_options
@@ -140,12 +146,6 @@ inline namespace kernel
 
     const dispatcher<std::string> long_options_
     {
-      std::make_pair("echo", [&](const auto& xs)
-      {
-        write_line(xs);
-        return unspecified;
-      }),
-
       std::make_pair("evaluate", [&](auto&&... xs)
       {
         std::cout << evaluate(std::forward<decltype(xs)>(xs)...) << std::endl;
@@ -155,6 +155,11 @@ inline namespace kernel
       std::make_pair("load", [this](auto&&... xs)
       {
         return load(std::forward<decltype(xs)>(xs)...);
+      }),
+
+      std::make_pair("write", [this](auto&&... xs)
+      {
+        return write(std::forward<decltype(xs)>(xs)...), unspecified;
       }),
     };
 
@@ -282,14 +287,13 @@ inline namespace kernel
       write_line("  -b, --batch            suppress any system output.");
       write_line("  -d, --debug            display detailed informations for developers.");
       write_line("  -e, --evaluate=STRING  read and evaluate given STRING at configuration step.");
-      write_line("      --echo=OBJECT      write an external-representation of OBJECT to the");
-      write_line("                         standard-output-port.");
       write_line("  -h, --help             display this help text and exit.");
       write_line("  -i, --interactive      take over control of root syntactic-continuation.");
       write_line("  -l, --load=FILE        same as -e '(load FILE)'");
       write_line("  -t, --trace            display stacks of virtual machine for each steps.");
       write_line("  -v, --version          display version information and exit.");
       write_line("      --verbose          display detailed informations.");
+      write_line("  -w, --write=OBJECT     same as -e '(write OBJECT)'");
       write_line();
       write_line("Boot Sequence:");
       write_line("  1. Load basis libraries");
