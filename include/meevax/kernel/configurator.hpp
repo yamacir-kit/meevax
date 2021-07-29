@@ -36,6 +36,8 @@ inline namespace kernel
     let trace_mode       = f;
     let verbose_mode     = f;
 
+    let prompt = make<symbol>("> ");
+
     template <typename Key>
     using dispatcher = std::unordered_map<Key, std::function<PROCEDURE()>>;
 
@@ -141,6 +143,11 @@ inline namespace kernel
         return load(std::forward<decltype(xs)>(xs)...);
       }),
 
+      std::make_pair("prompt", [this](let const& x)
+      {
+        return prompt = x;
+      }),
+
       std::make_pair("write", [this](auto&&... xs)
       {
         return write(std::forward<decltype(xs)>(xs)...), unspecified;
@@ -236,6 +243,11 @@ inline namespace kernel
       }();
     }
 
+    auto current_prompt() const -> auto const&
+    {
+      return prompt;
+    }
+
     void display_version() const
     {
       write_line("Meevax Lisp System, version ", version());
@@ -271,6 +283,7 @@ inline namespace kernel
       write_line("  -h, --help             display this help text and exit.");
       write_line("  -i, --interactive      take over control of root syntactic-continuation.");
       write_line("  -l, --load=FILE        same as -e '(load FILE)'");
+      write_line("      --prompt=SYMBOL    same as -e '(set-prompt! SYMBOL)'");
       write_line("  -t, --trace            display stacks of virtual machine for each steps.");
       write_line("  -v, --version          display version information and exit.");
       write_line("      --verbose          display detailed informations.");
@@ -285,6 +298,9 @@ inline namespace kernel
       write_line("Examples:");
       write_line("  meevax -i");
       write_line("    => start interactive session.");
+      write_line();
+      write_line("  meevax -i --prompt '#,(string->symbol \"my-prompt> \")'");
+      write_line("    => start interactive session with given prompt.");
       write_line();
       write_line("  meevax -e '(+ 1 2 3)'");
       write_line("    => display 6.");

@@ -127,7 +127,7 @@ inline namespace kernel
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
     {
-      if (auto * const address = dynamic_cast<U *>(Pointer<Top>::get()); address)
+      if (pointer<U> address = dynamic_cast<pointer<U>>(Pointer<Top>::get()); address)
       {
         return *address;
       }

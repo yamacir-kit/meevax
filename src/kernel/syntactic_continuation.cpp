@@ -73,6 +73,11 @@ inline namespace kernel
       return trace_mode = car(std::forward<decltype(xs)>(xs)...);
     });
 
+    define<procedure>("set-prompt!", [this](auto&&... xs)
+    {
+      return prompt = car(std::forward<decltype(xs)>(xs)...);
+    });
+
     define<procedure>("tracker", [](auto&&... xs)
     {
       return make<tracker>(std::forward<decltype(xs)>(xs)...);

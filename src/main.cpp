@@ -12,11 +12,11 @@ int main(const int argc, char const* const* const argv) try
 
     for (auto index = 0; root.ready(); ++index)
     {
-      root.write_to(root.standard_interaction_port(), "\n<< ");
-      root.write_to(root.standard_interaction_port(), "\n; ", root.evaluate(root.read()), "\n");
+      root.write_to(root.standard_interaction_port(), root.current_prompt());
+      root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
     }
 
-    root.write_to(root.standard_interaction_port(), "\n", meevax::header(__func__), "I have control of root syntactic-continuation.\n");
+    root.write_to(root.standard_interaction_port(), meevax::header(__func__), "I have control of root syntactic-continuation.\n");
   }
 
   return boost::exit_success;
