@@ -19,9 +19,6 @@ inline namespace kernel
   {
     friend SK;
 
-    explicit configurator()
-    {}
-
     IMPORT(SK, evaluate, NIL);
     IMPORT(SK, load, NIL);
     IMPORT(SK, newline, const);
@@ -41,120 +38,128 @@ inline namespace kernel
     template <typename Key>
     using dispatcher = std::unordered_map<Key, std::function<PROCEDURE()>>;
 
-    const dispatcher<char> short_options
-    {
-      std::make_pair('b', [this](auto&&...)
-      {
-        return batch_mode = t;
-      }),
+    const dispatcher<char> short_options,
+                           short_options_with_arguments;
 
-      std::make_pair('d', [this](auto&&...)
-      {
-        return debug_mode = t;
-      }),
-
-      std::make_pair('h', [this](auto&&...)
-      {
-        display_help();
-        return std::exit(boost::exit_success), unspecified;
-      }),
-
-      std::make_pair('i', [this](auto&&...)
-      {
-        return interactive_mode = t;
-      }),
-
-      std::make_pair('v', [this](auto&&...)
-      {
-        display_version();
-        return std::exit(boost::exit_success), unspecified;
-      }),
-    };
-
-    const dispatcher<char> short_options_with_arguments
-    {
-      std::make_pair('e', [this](auto&&... xs)
-      {
-        return write_line(evaluate(std::forward<decltype(xs)>(xs)...)), unspecified;
-      }),
-
-      std::make_pair('l', [this](auto&&... xs)
-      {
-        return load(std::forward<decltype(xs)>(xs)...);
-      }),
-
-      std::make_pair('w', [this](auto&&... xs)
-      {
-        return write(std::forward<decltype(xs)>(xs)...), unspecified;
-      }),
-    };
-
-    const dispatcher<std::string> long_options
-    {
-      std::make_pair("batch", [this](auto&&...)
-      {
-        return batch_mode = t;
-      }),
-
-      std::make_pair("debug", [this](auto&&...)
-      {
-        return debug_mode = t;
-      }),
-
-      std::make_pair("help", [this](auto&&...)
-      {
-        display_help();
-        return std::exit(boost::exit_success), unspecified;
-      }),
-
-      std::make_pair("interactive", [this](auto&&...)
-      {
-        return interactive_mode = t;
-      }),
-
-      std::make_pair("trace", [this](auto&&...)
-      {
-        return trace_mode = t;
-      }),
-
-      std::make_pair("verbose", [this](auto&&...)
-      {
-        return verbose_mode = t;
-      }),
-
-      std::make_pair("version", [this](auto&&...)
-      {
-        display_version();
-        newline();
-        display_license();
-        return std::exit(boost::exit_success), unspecified;
-      }),
-    };
-
-    const dispatcher<std::string> long_options_with_arguments
-    {
-      std::make_pair("evaluate", [this](auto&&... xs)
-      {
-        return write_line(evaluate(std::forward<decltype(xs)>(xs)...)), unspecified;
-      }),
-
-      std::make_pair("load", [this](auto&&... xs)
-      {
-        return load(std::forward<decltype(xs)>(xs)...);
-      }),
-
-      std::make_pair("prompt", [this](let const& x)
-      {
-        return prompt = x;
-      }),
-
-      std::make_pair("write", [this](auto&&... xs)
-      {
-        return write(std::forward<decltype(xs)>(xs)...), unspecified;
-      }),
-    };
+    const dispatcher<std::string> long_options,
+                                  long_options_with_arguments;
 
   public:
+    explicit configurator()
+      : short_options
+        {
+          std::make_pair('b', [this](auto&&...)
+          {
+            return batch_mode = t;
+          }),
+
+          std::make_pair('d', [this](auto&&...)
+          {
+            return debug_mode = t;
+          }),
+
+          std::make_pair('h', [this](auto&&...)
+          {
+            display_help();
+            return std::exit(boost::exit_success), unspecified;
+          }),
+
+          std::make_pair('i', [this](auto&&...)
+          {
+            return interactive_mode = t;
+          }),
+
+          std::make_pair('v', [this](auto&&...)
+          {
+            display_version();
+            return std::exit(boost::exit_success), unspecified;
+          }),
+        }
+
+      , short_options_with_arguments
+        {
+          std::make_pair('e', [this](let const& x)
+          {
+            return write_line(evaluate(x)), unspecified;
+          }),
+
+          std::make_pair('l', [this](let const& x)
+          {
+            return load(x);
+          }),
+
+          std::make_pair('w', [this](let const& x)
+          {
+            return write(x), unspecified;
+          }),
+        }
+
+      , long_options
+        {
+          std::make_pair("batch", [this](auto&&...)
+          {
+            return batch_mode = t;
+          }),
+
+          std::make_pair("debug", [this](auto&&...)
+          {
+            return debug_mode = t;
+          }),
+
+          std::make_pair("help", [this](auto&&...)
+          {
+            display_help();
+            return std::exit(boost::exit_success), unspecified;
+          }),
+
+          std::make_pair("interactive", [this](auto&&...)
+          {
+            return interactive_mode = t;
+          }),
+
+          std::make_pair("trace", [this](auto&&...)
+          {
+            return trace_mode = t;
+          }),
+
+          std::make_pair("verbose", [this](auto&&...)
+          {
+            return verbose_mode = t;
+          }),
+
+          std::make_pair("version", [this](auto&&...)
+          {
+            display_version();
+            newline();
+            display_license();
+            return std::exit(boost::exit_success), unspecified;
+          }),
+        }
+
+      , long_options_with_arguments
+        {
+          std::make_pair("evaluate", [this](let const& x)
+          {
+            return write_line(evaluate(x)), unspecified;
+          }),
+
+          std::make_pair("load", [this](let const& x)
+          {
+            return load(x);
+          }),
+
+          std::make_pair("prompt", [this](let const& x)
+          {
+            return prompt = x;
+          }),
+
+          std::make_pair("write", [this](let const& x)
+          {
+            return write(x), unspecified;
+          }),
+        }
+    {}
+
     auto configure(const int argc, char const* const* const argv)
     {
       return configure({ argv + 1, argv + argc });
