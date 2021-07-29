@@ -87,8 +87,7 @@ inline namespace kernel
     {
       std::make_pair('e', [&](auto&&... xs)
       {
-        std::cout << evaluate(std::forward<decltype(xs)>(xs)...) << std::endl;
-        return unspecified;
+        return write_line(evaluate(std::forward<decltype(xs)>(xs)...)), unspecified;
       }),
 
       std::make_pair('l', [this](auto&&... xs)
@@ -146,10 +145,9 @@ inline namespace kernel
 
     const dispatcher<std::string> long_options_
     {
-      std::make_pair("evaluate", [&](auto&&... xs)
+      std::make_pair("evaluate", [this](auto&&... xs)
       {
-        std::cout << evaluate(std::forward<decltype(xs)>(xs)...) << std::endl;
-        return unspecified;
+        return write_line(evaluate(std::forward<decltype(xs)>(xs)...)), unspecified;
       }),
 
       std::make_pair("load", [this](auto&&... xs)
