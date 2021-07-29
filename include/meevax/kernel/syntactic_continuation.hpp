@@ -227,7 +227,7 @@ inline namespace kernel
     {
       write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
 
-      if (let port = make<input_file_port>(s); port)
+      if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
       {
         write_to(standard_debug_port(), t, "\n");
 
