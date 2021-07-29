@@ -36,20 +36,6 @@ inline namespace kernel
     let trace_mode       = f;
     let verbose_mode     = f;
 
-    #define BOILERPLATE(MODE)                                                  \
-    auto in_##MODE() const                                                     \
-    {                                                                          \
-      return not eq(MODE, f);                                                  \
-    } static_assert(true)
-
-    BOILERPLATE(batch_mode);
-    BOILERPLATE(debug_mode);
-    BOILERPLATE(interactive_mode);
-    BOILERPLATE(trace_mode);
-    BOILERPLATE(verbose_mode);
-
-    #undef BOILERPLATE
-
     template <typename Key>
     using dispatcher = std::unordered_map<Key, std::function<PROCEDURE()>>;
 
@@ -83,9 +69,9 @@ inline namespace kernel
       }),
     };
 
-    const dispatcher<char> short_options_
+    const dispatcher<char> short_options_with_arguments
     {
-      std::make_pair('e', [&](auto&&... xs)
+      std::make_pair('e', [this](auto&&... xs)
       {
         return write_line(evaluate(std::forward<decltype(xs)>(xs)...)), unspecified;
       }),
@@ -143,7 +129,7 @@ inline namespace kernel
       }),
     };
 
-    const dispatcher<std::string> long_options_
+    const dispatcher<std::string> long_options_with_arguments
     {
       std::make_pair("evaluate", [this](auto&&... xs)
       {
@@ -164,19 +150,18 @@ inline namespace kernel
   public:
     auto configure(const int argc, char const* const* const argv)
     {
-      std::vector<std::string> const options { argv + 1, argv + argc };
-      return configure(options);
+      return configure({ argv + 1, argv + argc });
     }
 
     void configure(std::vector<std::string> const& args)
     {
       static std::regex const pattern { R"(--(\w[-\w]+)(=(.*))?|-([\w]+))" };
 
-      for (auto option = std::begin(args); option != std::end(args); ++option) [&]()
+      for (auto current_option = std::begin(args); current_option != std::end(args); ++current_option) [&]()
       {
         std::smatch analysis {};
 
-        std::regex_match(*option, analysis, pattern);
+        std::regex_match(*current_option, analysis, pattern);
 
         if (in_debug_mode())
         {
@@ -187,30 +172,28 @@ inline namespace kernel
           std::cout << header("")          << "analysis[4] = " << analysis[4] << std::endl;
         }
 
-        if (const auto current_short_options = analysis.str(4); not current_short_options.empty())
+        if (auto const current_short_options = analysis.str(4); not current_short_options.empty())
         {
           for (auto current_short_option = std::cbegin(current_short_options); current_short_option != std::cend(current_short_options); ++current_short_option)
           {
-            if (auto iter = short_options_.find(*current_short_option); iter != std::end(short_options_))
+            if (auto iter = short_options_with_arguments.find(*current_short_option); iter != std::end(short_options_with_arguments))
             {
-              auto const& [name, perform] = *iter;
-
-              if (auto const rest = std::string(std::next(current_short_option), std::end(current_short_options)); not rest.empty())
+              if (auto const& [name, perform] = *iter; std::next(current_short_option) != std::end(current_short_options))
               {
-                return perform(read(rest));
+                return perform(read(std::string(std::next(current_short_option), std::end(current_short_options))));
               }
-              else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
+              else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
               {
-                return perform(read(*option));
+                return perform(read(*current_option));
               }
               else
               {
                 throw error(make<string>(string_append("option -", name, " requires an argument")), unit);
               }
             }
-            else if (auto callee = short_options.find(*current_short_option); callee != std::end(short_options))
+            else if (auto iter = short_options.find(*current_short_option); iter != std::end(short_options))
             {
-              std::invoke(cdr(*callee), unit);
+              std::get<1>(*iter)(unit);
             }
             else
             {
@@ -218,35 +201,35 @@ inline namespace kernel
             }
           }
         }
-        else if (const auto lo { analysis.str(1) }; lo.length())
+        else if (auto const current_long_option = analysis.str(1); not current_long_option.empty())
         {
-          if (auto callee { long_options_.find(lo) }; callee != std::end(long_options_))
+          if (auto iter = long_options_with_arguments.find(current_long_option); iter != std::cend(long_options_with_arguments))
           {
             if (analysis.length(2)) // argument part
             {
-              return std::invoke(cdr(*callee), read(analysis.str(3)));
+              return std::get<1>(*iter)(read(analysis.str(3)));
             }
-            else if (++option != std::end(args) and not std::regex_match(*option, analysis, pattern))
+            else if (++current_option != std::end(args) and not std::regex_match(*current_option, analysis, pattern))
             {
-              return std::invoke(cdr(*callee), read(*option));
+              return std::get<1>(*iter)(read(*current_option));
             }
             else
             {
-              throw error(make<string>(string_append("option --", lo, " requires an argument")), unit);
+              throw error(make<string>(string_append("option --", current_long_option, " requires an argument")), unit);
             }
           }
-          else if (auto callee { long_options.find(lo) }; callee != std::end(long_options))
+          else if (auto iter = long_options.find(current_long_option); iter != std::end(long_options))
           {
-            return std::invoke(cdr(*callee), unit);
+            return std::get<1>(*iter)(unit);
           }
           else
           {
-            throw error(make<string>(string_append("unknown long-option: ", *option)), unit);
+            throw error(make<string>(string_append("unknown long-option: ", *current_option)), unit);
           }
         }
         else
         {
-          return load(*option);
+          return load(*current_option);
         }
 
         return unspecified;
@@ -310,6 +293,20 @@ inline namespace kernel
       write_line("    => define value of environment variable $HOME to interaction-environment,");
       write_line("       and then start interactive session.");
     }
+
+    #define BOILERPLATE(MODE)                                                  \
+    auto in_##MODE() const -> bool                                             \
+    {                                                                          \
+      return not eq(MODE, f);                                                  \
+    } static_assert(true)
+
+    BOILERPLATE(batch_mode);
+    BOILERPLATE(debug_mode);
+    BOILERPLATE(interactive_mode);
+    BOILERPLATE(trace_mode);
+    BOILERPLATE(verbose_mode);
+
+    #undef BOILERPLATE
   };
 } // namespace kernel
 } // namespace meevax
