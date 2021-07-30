@@ -38,11 +38,9 @@ inline namespace kernel
     template <typename Key>
     using dispatcher = std::unordered_map<Key, std::function<PROCEDURE()>>;
 
-    const dispatcher<char> short_options,
-                           short_options_with_arguments;
+    const dispatcher<char> short_options, short_options_with_arguments;
 
-    const dispatcher<std::string> long_options,
-                                  long_options_with_arguments;
+    const dispatcher<std::string> long_options, long_options_with_arguments;
 
   public:
     explicit configurator()
@@ -318,7 +316,7 @@ inline namespace kernel
     #define BOILERPLATE(MODE)                                                  \
     auto in_##MODE() const -> bool                                             \
     {                                                                          \
-      return not eq(MODE, f);                                                  \
+      return if_(MODE);                                                        \
     } static_assert(true)
 
     BOILERPLATE(batch_mode);

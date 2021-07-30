@@ -429,7 +429,7 @@ inline namespace kernel
         *  where selection = (if test consequent alternate)
         *
         * ------------------------------------------------------------------- */
-        c = car(s).template is<null>() or (car(s) != f) ? cadr(c) : caddr(c);
+        c = if_(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
         goto dispatch;
 
