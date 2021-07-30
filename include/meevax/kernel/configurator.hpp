@@ -27,11 +27,11 @@ inline namespace kernel
     IMPORT(SK, write_line, const);
 
   protected:
-    let batch_mode       = f;
-    let debug_mode       = f;
-    let interactive_mode = f;
-    let trace_mode       = f;
-    let verbose_mode     = f;
+    let batch       = f;
+    let debug       = f;
+    let interactive = f;
+    let trace       = f;
+    let verbose     = f;
 
     let prompt = make<symbol>("> ");
 
@@ -48,12 +48,12 @@ inline namespace kernel
         {
           std::make_pair('b', [this](auto&&...)
           {
-            return batch_mode = t;
+            return batch = t;
           }),
 
           std::make_pair('d', [this](auto&&...)
           {
-            return debug_mode = t;
+            return debug = t;
           }),
 
           std::make_pair('h', [this](auto&&...)
@@ -64,7 +64,7 @@ inline namespace kernel
 
           std::make_pair('i', [this](auto&&...)
           {
-            return interactive_mode = t;
+            return interactive = t;
           }),
 
           std::make_pair('v', [this](auto&&...)
@@ -96,12 +96,12 @@ inline namespace kernel
         {
           std::make_pair("batch", [this](auto&&...)
           {
-            return batch_mode = t;
+            return batch = t;
           }),
 
           std::make_pair("debug", [this](auto&&...)
           {
-            return debug_mode = t;
+            return debug = t;
           }),
 
           std::make_pair("help", [this](auto&&...)
@@ -112,17 +112,17 @@ inline namespace kernel
 
           std::make_pair("interactive", [this](auto&&...)
           {
-            return interactive_mode = t;
+            return interactive = t;
           }),
 
           std::make_pair("trace", [this](auto&&...)
           {
-            return trace_mode = t;
+            return trace = t;
           }),
 
           std::make_pair("verbose", [this](auto&&...)
           {
-            return verbose_mode = t;
+            return verbose = t;
           }),
 
           std::make_pair("version", [this](auto&&...)
@@ -173,7 +173,7 @@ inline namespace kernel
 
         std::regex_match(*current_option, analysis, pattern);
 
-        if (in_debug_mode())
+        if (is_debug_mode())
         {
           std::cout << header("configure") << "analysis[0] = " << analysis[0] << std::endl;
           std::cout << header("")          << "analysis[1] = " << analysis[1] << std::endl;
@@ -313,17 +313,17 @@ inline namespace kernel
       write_line("       and then start interactive session.");
     }
 
-    #define BOILERPLATE(MODE)                                                  \
-    auto in_##MODE() const -> bool                                             \
+    #define BOILERPLATE(NAME)                                                  \
+    auto is_##NAME##_mode() const -> bool                                      \
     {                                                                          \
-      return if_(MODE);                                                        \
+      return if_(NAME);                                                        \
     } static_assert(true)
 
-    BOILERPLATE(batch_mode);
-    BOILERPLATE(debug_mode);
-    BOILERPLATE(interactive_mode);
-    BOILERPLATE(trace_mode);
-    BOILERPLATE(verbose_mode);
+    BOILERPLATE(batch);
+    BOILERPLATE(debug);
+    BOILERPLATE(interactive);
+    BOILERPLATE(trace);
+    BOILERPLATE(verbose);
 
     #undef BOILERPLATE
   };

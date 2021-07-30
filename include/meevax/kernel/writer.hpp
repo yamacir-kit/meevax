@@ -15,10 +15,10 @@ inline namespace kernel
     explicit writer()
     {}
 
-    IMPORT(SK, in_batch_mode, const);
-    IMPORT(SK, in_debug_mode, const);
-    IMPORT(SK, in_interactive_mode, const);
-    IMPORT(SK, in_verbose_mode, const);
+    IMPORT(SK, is_batch_mode, const);
+    IMPORT(SK, is_debug_mode, const);
+    IMPORT(SK, is_interactive_mode, const);
+    IMPORT(SK, is_verbose_mode, const);
 
   public:
     template <typename... Ts>
@@ -60,17 +60,17 @@ inline namespace kernel
 
     auto standard_verbose_port() const -> decltype(auto)
     {
-      return in_verbose_mode() ? default_output_port : standard_null_port();
+      return is_verbose_mode() ? default_output_port : standard_null_port();
     }
 
     auto standard_debug_port() const -> decltype(auto)
     {
-      return in_debug_mode() ? default_error_port : standard_null_port();
+      return is_debug_mode() ? default_error_port : standard_null_port();
     }
 
     auto standard_interaction_port() const -> decltype(auto)
     {
-      return in_interactive_mode() ? default_output_port : standard_null_port();
+      return is_interactive_mode() ? default_output_port : standard_null_port();
     }
   };
 } // namespace kernel

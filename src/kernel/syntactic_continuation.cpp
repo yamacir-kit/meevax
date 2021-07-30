@@ -63,15 +63,8 @@ inline namespace kernel
 
     // TODO (define (set-debug! t/f)
     //        (set! (debug) t/f))
-    define<procedure>("set-debug!", [this](auto&&... xs)
-    {
-      return debug_mode = car(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<procedure>("set-trace!", [this](auto&&... xs)
-    {
-      return trace_mode = car(std::forward<decltype(xs)>(xs)...);
-    });
+    define<procedure>("set-debug!", [this](auto&&... xs) { return debug = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-trace!", [this](auto&&... xs) { return trace = car(std::forward<decltype(xs)>(xs)...); });
 
     define<procedure>("set-prompt!", [this](auto&&... xs)
     {
