@@ -56,11 +56,11 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    using configurator::in_batch_mode;
-    using configurator::in_debug_mode;
-    using configurator::in_interactive_mode;
-    using configurator::in_trace_mode;
-    using configurator::in_verbose_mode;
+    using configurator::is_batch_mode;
+    using configurator::is_debug_mode;
+    using configurator::is_interactive_mode;
+    using configurator::is_trace_mode;
+    using configurator::is_verbose_mode;
 
   public:
     auto build() // NOTE: Only FORK instructions may execute this function.
@@ -154,7 +154,7 @@ inline namespace kernel
     {
       static constexpr auto trace = true;
 
-      if (in_trace_mode())
+      if (is_trace_mode())
       {
         return machine::execute<trace>();
       }
@@ -207,14 +207,14 @@ inline namespace kernel
 
     auto evaluate(let const& expression)
     {
-      if (in_debug_mode())
+      if (is_debug_mode())
       {
         write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
       }
 
       c = compile(in_context_free, *this, expression);
 
-      if (in_debug_mode())
+      if (is_debug_mode())
       {
         write_to(standard_debug_port(), "\n");
         disassemble(standard_debug_port().as<output_port>(), c);
@@ -223,11 +223,11 @@ inline namespace kernel
       return execute();
     }
 
-    auto load(path const& name) -> auto const&
+    auto load(std::string const& s)
     {
-      write_to(standard_debug_port(), header(__func__), "open ", name, " => ");
+      write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
 
-      if (let port = make<input_file_port>(name.c_str()); port)
+      if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
       {
         write_to(standard_debug_port(), t, "\n");
 
@@ -244,14 +244,28 @@ inline namespace kernel
       {
         write_to(standard_debug_port(), f, "\n");
 
-        throw file_error(make<string>("failed to open file: " + name.string()), unit);
+        throw file_error(make<string>("failed to open file: " + s), unit);
       }
     }
 
-    // XXX DIRTY HACK
-    decltype(auto) load(std::string const& name)
+    auto load(let const& x)
     {
-      return load(path(name));
+      if (x.is<symbol>())
+      {
+        return load(x.as<symbol>());
+      }
+      else if (x.is<string>())
+      {
+        return load(x.as<string>());
+      }
+      else if (x.is<path>())
+      {
+        return load(x.as<path>());
+      }
+      else
+      {
+        throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+      }
     }
 
     let const& operator [](let const& name)
@@ -292,7 +306,7 @@ inline namespace kernel
   public:
     SYNTAX(exportation)
     {
-      if (in_verbose_mode())
+      if (is_verbose_mode())
       {
         std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
                   << indent()

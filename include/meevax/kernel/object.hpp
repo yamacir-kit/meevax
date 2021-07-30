@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
-#include <cstddef>
 #include <meevax/kernel/heterogeneous.hpp>
 
 namespace meevax

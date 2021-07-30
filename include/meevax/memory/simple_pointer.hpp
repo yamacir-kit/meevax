@@ -4,8 +4,9 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
-#include <type_traits>
 #include <utility>
+
+#include <meevax/memory/pointer.hpp>
 
 namespace meevax
 {

@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
-#include <cstddef>
 #include <meevax/functional/compose.hpp>
 #include <meevax/memory/cell.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
@@ -128,7 +127,7 @@ inline namespace kernel
     template <typename U>
     auto as() const -> typename std::add_lvalue_reference<U>::type
     {
-      if (auto * const address = dynamic_cast<U *>(Pointer<Top>::get()); address)
+      if (pointer<U> address = dynamic_cast<pointer<U>>(Pointer<Top>::get()); address)
       {
         return *address;
       }

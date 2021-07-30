@@ -6,23 +6,17 @@ int main(const int argc, char const* const* const argv) try
 
   root.configure(argc, argv);
 
-  for (auto const& each : root.paths)
-  {
-    root.write_to(root.standard_interaction_port(), meevax::header(__func__), "load ", each, "\n");
-    root.load(each.as<meevax::path>());
-  }
-
-  if (root.in_interactive_mode())
+  if (root.is_interactive_mode())
   {
     root.write_to(root.standard_interaction_port(), meevax::header(__func__), "You have control of root syntactic-continuation.\n");
 
     for (auto index = 0; root.ready(); ++index)
     {
-      root.write_to(root.standard_interaction_port(), "\n<< ");
-      root.write_to(root.standard_interaction_port(), "\n; ", root.evaluate(root.read()), "\n");
+      root.write_to(root.standard_interaction_port(), root.current_prompt());
+      root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
     }
 
-    root.write_to(root.standard_interaction_port(), "\n", meevax::header(__func__), "I have control of root syntactic-continuation.\n");
+    root.write_to(root.standard_interaction_port(), meevax::header(__func__), "I have control of root syntactic-continuation.\n");
   }
 
   return boost::exit_success;

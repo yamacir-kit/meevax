@@ -10,14 +10,13 @@
 #include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/syntactic_keyword.hpp>
 #include <meevax/kernel/syntax.hpp>
-#include <meevax/string/header.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
   #define WRITE_DEBUG(...)                                                     \
-  if (current_syntactic_continuation.in_debug_mode())                          \
+  if (current_syntactic_continuation.is_debug_mode())                          \
   {                                                                            \
     current_syntactic_continuation.write_to(                                   \
       current_syntactic_continuation.standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
@@ -35,7 +34,7 @@ inline namespace kernel
 
     IMPORT(SK, evaluate, NIL);
     IMPORT(SK, global_environment, NIL); // TODO REMOVE THIS!!!
-    IMPORT(SK, in_trace_mode, const);
+    IMPORT(SK, is_trace_mode, const);
     IMPORT(SK, intern, NIL);
 
   protected:
@@ -430,7 +429,7 @@ inline namespace kernel
         *  where selection = (if test consequent alternate)
         *
         * ------------------------------------------------------------------- */
-        c = car(s).template is<null>() or (car(s) != f) ? cadr(c) : caddr(c);
+        c = if_(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
         goto dispatch;
 

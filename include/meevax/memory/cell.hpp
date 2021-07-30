@@ -26,21 +26,9 @@ inline namespace memory
       , collector::object { simple_pointer<T>::get() }
     {}
 
-    template <typename U>
-    explicit cell(cell<U> const& datum)
-      : simple_pointer<T> { datum.get() }
-      , collector::object { simple_pointer<T>::get() }
-    {}
-
     auto operator =(cell const& another) -> auto &
     {
       return store(another);
-    }
-
-    template <typename... Ts>
-    auto operator =(Ts&&... xs) -> decltype(auto)
-    {
-      return store(std::forward<decltype(xs)>(xs)...);
     }
 
     void reset(const_pointer<T> data = nullptr)

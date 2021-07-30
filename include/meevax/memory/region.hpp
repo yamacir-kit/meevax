@@ -3,8 +3,6 @@
 
 #include <cstdint> // std::uintptr_t
 #include <functional> // std::less
-#include <new>
-#include <type_traits>
 
 #include <meevax/memory/deallocator.hpp>
 #include <meevax/memory/marker.hpp>

@@ -6,15 +6,12 @@
 
 #include <boost/lexical_cast.hpp>
 #include <meevax/iostream/ignore.hpp>
-#include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/numeric_io.hpp>
 #include <meevax/kernel/parser.hpp> // DEPRECATED
 #include <meevax/kernel/port.hpp>
-#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
-#include <meevax/string/header.hpp>
 
 namespace meevax
 {

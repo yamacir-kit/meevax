@@ -1,4 +1,5 @@
 #include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/list.hpp> // for eq?
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
@@ -12,5 +13,10 @@ inline namespace kernel
 
   let const t = make<boolean>(true);
   let const f = make<boolean>(false);
+
+  auto if_(let const& x) -> bool
+  {
+    return not eq(x, f) or not eqv(x, f);
+  }
 } // namespace kernel
 } // namespace meevax

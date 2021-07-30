@@ -25,6 +25,8 @@ inline namespace kernel
 
   extern let const t;
   extern let const f;
+
+  auto if_(let const& x) -> bool;
 } // namespace kernel
 } // namespace meevax
 
