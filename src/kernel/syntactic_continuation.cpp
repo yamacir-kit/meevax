@@ -158,7 +158,7 @@ inline namespace kernel
 
   auto syntactic_continuation::form() noexcept -> let &
   {
-    return std::get<0>(*this);
+    return const_cast<let &>(std::as_const(*this).form());
   }
 
   auto syntactic_continuation::global_environment() const noexcept -> let const&
@@ -168,7 +168,7 @@ inline namespace kernel
 
   auto syntactic_continuation::global_environment() noexcept -> let &
   {
-    return std::get<1>(*this);
+    return const_cast<let &>(std::as_const(*this).global_environment());
   }
 
   auto syntactic_continuation::load(std::string const& s) -> let
