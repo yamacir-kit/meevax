@@ -18,15 +18,17 @@
 
 auto main(const int argc, meevax::const_pointer<meevax::const_pointer<const char>> argv) -> typename std::underlying_type<meevax::exit_status>::type
 {
-  return meevax::with_exception_handler([&]()
+  using namespace meevax;
+
+  return with_exception_handler([&]()
   {
-    auto root = meevax::syntactic_continuation(meevax::layer<4>());
+    auto root = syntactic_continuation(boot_upto<layer::extensions>());
 
     root.configure(argc, argv);
 
     if (root.is_interactive_mode())
     {
-      root.write_to(root.standard_interaction_port(), meevax::header(__func__), "You have control of root syntactic-continuation.\n");
+      root.write_to(root.standard_interaction_port(), header(__func__), "You have control of root syntactic-continuation.\n");
 
       for (auto index = 0; root.ready(); ++index)
       {
@@ -34,9 +36,9 @@ auto main(const int argc, meevax::const_pointer<meevax::const_pointer<const char
         root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
       }
 
-      root.write_to(root.standard_interaction_port(), meevax::header(__func__), "I have control of root syntactic-continuation.\n");
+      root.write_to(root.standard_interaction_port(), header(__func__), "I have control of root syntactic-continuation.\n");
     }
 
-    return meevax::underlying_cast(meevax::exit_status::success);
+    return underlying_cast(exit_status::success);
   });
 }

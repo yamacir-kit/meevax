@@ -27,17 +27,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- System Layers --------------------------------------------------------
-   *
-   *  Layer 0 - Module System (Program Structures)
-   *  Layer 1 - R7RS Primitive Expression Types
-   *  Layer 2 - R7RS Standard Procedures
-   *  Layer 3 - Basis Library
-   *  Layer 4 - Experimental Procedures
-   *
-   * ------------------------------------------------------------------------ */
-  template <std::size_t N>
-  using layer = std::integral_constant<decltype(N), N>;
+  enum class layer : std::size_t
+  {
+    declarations,        // 5.
+    primitives,          // 4.1.
+    standard_procedures, // 6.
+    standard_libraries,  // Appendix A
+    extensions,
+  };
+
+  template <auto Value>
+  using boot_upto = typename std::integral_constant<decltype(Value), Value>;
 
   class syntactic_continuation
     : public virtual pair
@@ -308,15 +308,15 @@ inline namespace kernel
     using pair::pair;
 
   public:
-    template <std::size_t N>
-    explicit syntactic_continuation(layer<N>)
-      : syntactic_continuation { layer<decrement(N)>() }
+    template <auto Layer>
+    explicit syntactic_continuation(boot_upto<Layer>) // if (0 < layer)
+      : syntactic_continuation { boot_upto<underlying_decrement(Layer)>() }
     {
-      boot(layer<N>());
+      boot<Layer>();
     }
 
-    template <std::size_t N>
-    void boot(layer<N>)
+    template <auto = layer::declarations>
+    void boot()
     {}
 
   public:
@@ -386,10 +386,15 @@ inline namespace kernel
     }
   };
 
-  static_assert(std::is_base_of<pair, syntactic_continuation>::value);
+  template <>
+  syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>) // if (layer == 0)
+    : syntactic_continuation::syntactic_continuation {}
+  {}
 
-  auto operator >>(std::istream &, syntactic_continuation      &) -> std::istream &;
-  auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;
+  auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
+
+  auto operator <<(std::ostream &, syntactic_continuation &) -> std::ostream &;
+
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
   extern template class configurator <syntactic_continuation>;
@@ -398,16 +403,11 @@ inline namespace kernel
   extern template class reader       <syntactic_continuation>;
   extern template class writer       <syntactic_continuation>;
 
-  template <> void syntactic_continuation::boot(layer<0>);
-  template <> void syntactic_continuation::boot(layer<1>);
-  template <> void syntactic_continuation::boot(layer<2>);
-  template <> void syntactic_continuation::boot(layer<3>);
-  template <> void syntactic_continuation::boot(layer<4>);
-
-  template <>
-  syntactic_continuation::syntactic_continuation(layer<0>)
-    : syntactic_continuation::syntactic_continuation {}
-  {}
+  template <> void syntactic_continuation::boot<layer::declarations       >();
+  template <> void syntactic_continuation::boot<layer::primitives         >();
+  template <> void syntactic_continuation::boot<layer::standard_procedures>();
+  template <> void syntactic_continuation::boot<layer::standard_libraries >();
+  template <> void syntactic_continuation::boot<layer::extensions         >();
 
   static syntactic_continuation::initializer initializer;
 } // namespace kernel

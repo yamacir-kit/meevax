@@ -29,7 +29,7 @@ inline namespace kernel
     using pair::pair;
   };
 
-  auto operator <<(std::ostream& port, const closure& datum) -> decltype(port);
+  auto operator <<(std::ostream &, closure const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

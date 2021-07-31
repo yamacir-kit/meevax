@@ -10,7 +10,7 @@ struct basis
   syntactic_continuation root;
 
   explicit basis()
-    : root { layer<2>() }
+    : root { boot_upto<layer::standard_procedures>() }
   {}
 };
 

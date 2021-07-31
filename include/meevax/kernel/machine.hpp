@@ -414,7 +414,7 @@ inline namespace kernel
            *  the GC until the SK constructor is complete.
            *
            * ---------------------------------------------------------------- */
-          module.as<SK>().boot(std::integral_constant<std::size_t, 0>());
+          module.as<SK>().boot();
           module.as<SK>().build();
 
           s = cons(module, s);

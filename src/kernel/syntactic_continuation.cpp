@@ -14,12 +14,12 @@
    limitations under the License.
 */
 
+#include <ios>
+#include <iterator>
+
 #include <boost/cstdlib.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/adaptors.hpp>
-
-#include <ios>
-#include <iterator>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -72,7 +72,7 @@ inline namespace kernel
   })
 
   template <>
-  void syntactic_continuation::boot(layer<0>)
+  void syntactic_continuation::boot<layer::declarations>()
   {
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
@@ -97,7 +97,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<1>)
+  void syntactic_continuation::boot<layer::primitives>()
   {
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
@@ -112,7 +112,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<2>)
+  void syntactic_continuation::boot<layer::standard_procedures>()
   {
     /* -------------------------------------------------------------------------
      *
@@ -1753,7 +1753,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<3>)
+  void syntactic_continuation::boot<layer::standard_libraries>()
   {
     std::vector<string_view> const codes {
       overture,
@@ -1780,7 +1780,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<4>)
+  void syntactic_continuation::boot<layer::extensions>()
   {
     define<procedure>("disassemble", [](let const& xs)
     {

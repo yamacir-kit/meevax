@@ -26,9 +26,15 @@ namespace meevax
 inline namespace type_traits
 {
   template <typename T, REQUIRES(std::is_enum<T>)>
-  constexpr auto underlying_cast(T x) -> decltype(auto)
+  constexpr auto underlying_cast(T x)
   {
     return static_cast<typename std::underlying_type<T>::type>(x);
+  }
+
+  template <typename T>
+  constexpr auto underlying_decrement(T && value)
+  {
+    return typename std::decay<T>::type(underlying_cast(value) - 1);
   }
 } // namespace type_traits
 } // namespace meevax
