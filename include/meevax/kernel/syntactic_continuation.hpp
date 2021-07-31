@@ -106,13 +106,13 @@ inline namespace kernel
     void boot()
     {}
 
-    auto build() -> void; // NOTE: Only FORK instructions may execute this function.
+    auto build() -> void; // NOTE: Only fork() may call this function.
 
     auto current_expression() const -> let const&;
 
-    auto define(let const& name, let const& value) -> let const&;
+    auto define(let const&, let const&) -> let const&;
 
-    auto define(std::string const& name, let const& value) -> let const&;
+    auto define(std::string const&, let const&) -> let const&;
 
     template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs)
@@ -125,6 +125,8 @@ inline namespace kernel
     auto evaluate(let const&) -> let;
 
     auto execute() -> let;
+
+    auto fork() -> let;
 
     auto form() const noexcept -> let const&;
 

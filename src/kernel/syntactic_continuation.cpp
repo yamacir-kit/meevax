@@ -44,7 +44,7 @@ inline namespace kernel
     return (*this)[intern(name)];
   }
 
-  auto syntactic_continuation::build() -> void // NOTE: Only FORK instructions may execute this function.
+  auto syntactic_continuation::build() -> void
   {
     /* ---- NOTE -------------------------------------------------------------
      *
@@ -139,6 +139,16 @@ inline namespace kernel
     {
       return machine::execute();
     }
+  }
+
+  auto syntactic_continuation::fork() -> let
+  {
+    let const module = make<syntactic_continuation>(current_continuation(), global_environment());
+
+    module.as<syntactic_continuation>().boot();
+    module.as<syntactic_continuation>().build();
+
+    return module;
   }
 
   auto syntactic_continuation::form() const noexcept -> let const&
@@ -325,7 +335,7 @@ inline namespace kernel
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
     // DEFINE_SYNTAX("cons", construct);
     DEFINE_SYNTAX("define", definition);
-    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork);
+    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork_csc);
     DEFINE_SYNTAX("if", conditional);
     DEFINE_SYNTAX("lambda", lambda);
     DEFINE_SYNTAX("quote", quotation);

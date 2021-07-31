@@ -48,10 +48,10 @@ inline namespace kernel
     machine()
     {}
 
-    IMPORT(SK, evaluate, NIL);
-    IMPORT(SK, global_environment, NIL); // TODO REMOVE THIS!!!
-    IMPORT(SK, is_trace_mode, const);
+    // IMPORT(SK, evaluate, NIL); // TODO REMOVE THIS
+    IMPORT(SK, fork, NIL);
     IMPORT(SK, intern, NIL);
+    IMPORT(SK, is_trace_mode, const);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -398,25 +398,8 @@ inline namespace kernel
         *  where k = (<program declaration> . <frames>)
         *
         * ------------------------------------------------------------------- */
-        if (let const module = make<SK>(current_continuation(), global_environment()); module.is<SK>())
-        {
-          /* ---- NOTE ---------------------------------------------------------
-           *
-           *  Ideally, the following should be done in SK's own constructor.
-           *  When allocating SK to the heap, SK itself is not registered with
-           *  the GC until the SK constructor is complete.
-           *
-           * ---------------------------------------------------------------- */
-          module.as<SK>().boot();
-          module.as<SK>().build();
-
-          s = cons(module, s);
-          c = cddr(c);
-        }
-        else
-        {
-          // TODO ERROR
-        }
+        s = cons(fork(), s);
+        c = cddr(c);
         goto dispatch;
 
       case mnemonic::SELECT: /* ------------------------------------------------
@@ -969,7 +952,7 @@ inline namespace kernel
                           cons(make<instruction>(mnemonic::CALL), continuation)));
     }
 
-    SYNTAX(fork) /* ------------------------------------------------------------
+    SYNTAX(fork_csc) /* --------------------------------------------------------
     *
     *  (fork-with-current-syntactic-continuation <program>)              syntax
     *
