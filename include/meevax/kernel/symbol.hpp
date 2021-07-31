@@ -32,7 +32,7 @@ inline namespace kernel
     {}
   };
 
-  auto operator <<(std::ostream & port, symbol const&) -> decltype(port);
+  auto operator <<(std::ostream & port, symbol const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

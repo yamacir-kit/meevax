@@ -29,6 +29,212 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <>
+  syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
+    : syntactic_continuation::syntactic_continuation {}
+  {}
+
+  auto syntactic_continuation::operator [](let const& name) -> let const&
+  {
+    return cdr(machine::locate(name, global_environment()));
+  }
+
+  auto syntactic_continuation::operator [](std::string const& name) -> let const&
+  {
+    return (*this)[intern(name)];
+  }
+
+  auto syntactic_continuation::build() -> void // NOTE: Only FORK instructions may execute this function.
+  {
+    /* ---- NOTE -------------------------------------------------------------
+     *
+     *  If this class was instantiated by the FORK instruction, the instance
+     *  will have received the compilation continuation as a constructor
+     *  argument.
+     *
+     *  The car part contains the registers of the virtual Lisp machine
+     *  (s e c . d). The cdr part is set to the global environment at the
+     *  time the FORK instruction was executed.
+     *
+     *  Here, the value in the c register is the operand of the FORK
+     *  instruction. The operand of the FORK instruction is a pair of a
+     *  lambda expression form passed to the syntax fork/csc and a lexical
+     *  environment.
+     *
+     * -------------------------------------------------------------------- */
+    if (std::get<0>(*this).is<continuation>())
+    {
+      /* ---- NOTE -----------------------------------------------------------
+       *
+       *  If this class is constructed as make<syntactic_continuation>(...),
+       *  this object until the constructor is completed, the case noted that
+       *  it is the state that is not registered in the GC.
+       *
+       * ------------------------------------------------------------------ */
+      // let const backup = cons(std::get<0>(*this),
+      //                         std::get<1>(*this));
+
+      auto const& k = std::get<0>(*this).as<continuation>();
+
+      s = k.s();
+      e = k.e();
+      c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
+      d = k.d();
+
+      form() = execute();
+
+      assert(form().is<closure>());
+    }
+  }
+
+  auto syntactic_continuation::current_expression() const -> let const&
+  {
+    return car(form());
+  }
+
+  auto syntactic_continuation::dynamic_environment() const -> let const&
+  {
+    return cdr(form());
+  }
+
+  auto syntactic_continuation::evaluate(let const& expression) -> let
+  {
+    if (is_debug_mode())
+    {
+      write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
+    }
+
+    c = compile(in_context_free, *this, expression);
+
+    if (is_debug_mode())
+    {
+      write_to(standard_debug_port(), "\n");
+      disassemble(standard_debug_port().as<output_port>(), c);
+    }
+
+    return execute();
+  }
+
+  auto syntactic_continuation::execute() -> let
+  {
+    static constexpr auto trace = true;
+
+    if (is_trace_mode())
+    {
+      return machine::execute<trace>();
+    }
+    else
+    {
+      return machine::execute();
+    }
+  }
+
+  auto syntactic_continuation::form() const noexcept -> let const&
+  {
+    return std::get<0>(*this);
+  }
+
+  auto syntactic_continuation::form() noexcept -> let &
+  {
+    return std::get<0>(*this);
+  }
+
+  auto syntactic_continuation::global_environment() const noexcept -> let const&
+  {
+    return std::get<1>(*this);
+  }
+
+  auto syntactic_continuation::global_environment() noexcept -> let &
+  {
+    return std::get<1>(*this);
+  }
+
+  auto syntactic_continuation::load(std::string const& s) -> let
+  {
+    write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
+
+    if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
+    {
+      write_to(standard_debug_port(), t, "\n");
+
+      for (let e = read(port); e != eof_object; e = read(port))
+      {
+        write_to(standard_debug_port(), header(__func__), e, "\n");
+
+        evaluate(e);
+      }
+
+      return unspecified;
+    }
+    else
+    {
+      write_to(standard_debug_port(), f, "\n");
+
+      throw file_error(make<string>("failed to open file: " + s), unit);
+    }
+  }
+
+  auto syntactic_continuation::load(let const& x) -> let
+  {
+    if (x.is<symbol>())
+    {
+      return load(x.as<symbol>());
+    }
+    else if (x.is<string>())
+    {
+      return load(x.as<string>());
+    }
+    else if (x.is<path>())
+    {
+      return load(x.as<path>());
+    }
+    else
+    {
+      throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+    }
+  }
+
+  auto syntactic_continuation::macroexpand(let const& keyword, let const& form) -> let
+  {
+    ++generation;
+
+    // XXX ???
+    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
+
+    s = unit;
+
+    // TODO (3)
+    // make<procedure>("rename", [this](auto&& xs)
+    // {
+    //   const auto id { car(xs) };
+    //
+    //
+    // });
+
+    e = cons(
+          // form, // <lambda> parameters
+          cons(keyword, cdr(form)),
+          dynamic_environment());
+    // TODO (4)
+    // => e = cons(
+    //          list(
+    //            expression,
+    //            make<procedure>("rename", [this](auto&& xs) { ... }),
+    //            make<procedure>("compare", [this](auto&& xs) { ... })
+    //            ),
+    //          dynamic_environment()
+    //          );
+
+    // for (auto const& each : global_environment())
+    // {
+    //   std::cout << "  " << each << std::endl;
+    // }
+
+    c = current_expression();
+
+    return execute();
+  }
+
   auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
   {
     datum.write_to(default_output_port,
@@ -60,9 +266,13 @@ inline namespace kernel
   }
 
   template class configurator<syntactic_continuation>;
+
   template class debugger<syntactic_continuation>;
+
   template class machine<syntactic_continuation>;
+
   template class reader<syntactic_continuation>;
+
   template class writer<syntactic_continuation>;
 
   #define DEFINE_SYNTAX(KEYWORD, TRANSFORMER_SPEC)                             \
