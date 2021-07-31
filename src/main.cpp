@@ -16,74 +16,27 @@
 
 #include <meevax/kernel/syntactic_continuation.hpp>
 
-int main(const int argc, char const* const* const argv) try
+auto main(const int argc, meevax::const_pointer<meevax::const_pointer<const char>> argv) -> typename std::underlying_type<meevax::exit_status>::type
 {
-  auto root = meevax::syntactic_continuation(meevax::layer<4>());
-
-  root.configure(argc, argv);
-
-  if (root.is_interactive_mode())
+  return meevax::with_exception_handler([&]()
   {
-    root.write_to(root.standard_interaction_port(), meevax::header(__func__), "You have control of root syntactic-continuation.\n");
+    auto root = meevax::syntactic_continuation(meevax::layer<4>());
 
-    for (auto index = 0; root.ready(); ++index)
+    root.configure(argc, argv);
+
+    if (root.is_interactive_mode())
     {
-      root.write_to(root.standard_interaction_port(), root.current_prompt());
-      root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
+      root.write_to(root.standard_interaction_port(), meevax::header(__func__), "You have control of root syntactic-continuation.\n");
+
+      for (auto index = 0; root.ready(); ++index)
+      {
+        root.write_to(root.standard_interaction_port(), root.current_prompt());
+        root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
+      }
+
+      root.write_to(root.standard_interaction_port(), meevax::header(__func__), "I have control of root syntactic-continuation.\n");
     }
 
-    root.write_to(root.standard_interaction_port(), meevax::header(__func__), "I have control of root syntactic-continuation.\n");
-  }
-
-  return meevax::underlying_cast(meevax::exit_status::success);
+    return meevax::underlying_cast(meevax::exit_status::success);
+  });
 }
-
-catch (meevax::exit_status const value)
-{
-  return meevax::underlying_cast(value);
-}
-
-/* ---- NOTE -------------------------------------------------------------------
- *
- *  Exceptions thrown by the run-time raise procedure reach here via the
- *  default-exception-handler (procedure '%throw'). Except procedure '%throw',
- *  any processing in namespace meevax::kernel must not throw meevax::object
- *  type object.
- *
- *  Perform I/O in the C++ way, as there may be a serious anomaly in system.
- *
- * -------------------------------------------------------------------------- */
-catch (meevax::let const& error)
-{
-  std::cerr << meevax::header("exception-handler") << error << std::endl;
-  std::cerr << meevax::header("exception-handler") << "Terminate the program without running any outstanding dynamic-wind after procedures." << std::endl;
-
-  return underlying_cast(meevax::exit_status::failure);
-}
-
-/* ---- NOTE -------------------------------------------------------------------
- *
- *  Exceptions thrown from the Meevax system itself will eventually reach here.
- *
- * -------------------------------------------------------------------------- */
-catch (meevax::error const& error)
-{
-  std::cerr << meevax::header("system-error") << error.what() << "." << std::endl;
-
-  return underlying_cast(meevax::exit_status::failure);
-}
-
-catch (std::exception const& error)
-{
-  std::cerr << meevax::header("system-error") << error.what() << "." << std::endl;
-
-  return underlying_cast(meevax::exit_status::failure);
-}
-
-catch (...)
-{
-  std::cerr << meevax::header("unknown-error") << "An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
-
-  return underlying_cast(meevax::exit_status::failure);
-}
-

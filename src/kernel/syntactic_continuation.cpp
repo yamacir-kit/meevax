@@ -1243,7 +1243,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("throw", [](let const& xs) -> let
+    define<procedure>("default-exception-handler", [](let const& xs) -> let
     {
       throw car(xs);
     });

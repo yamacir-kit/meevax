@@ -22,7 +22,7 @@
 ;
 ; ------------------------------------------------------------------------------
 
-(define %current-exception-handlers (list throw))
+(define %current-exception-handlers (list default-exception-handler))
 
 (define (%with-exception-handlers new-handlers thunk)
   (let ((old-handlers %current-exception-handlers))

@@ -99,6 +99,48 @@ inline namespace kernel
 
     ~tagged_syntax_error() override = default;
   };
+
+  template <typename Thunk>
+  auto with_exception_handler(Thunk && thunk)
+  {
+    try
+    {
+      return thunk();
+    }
+
+    catch (exit_status const value) // NOTE: emergency-exit
+    {
+      return underlying_cast(value);
+    }
+
+    catch (let const& error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
+    {
+      std::cerr << header("exception-handler") << error << std::endl;
+
+      return underlying_cast(exit_status::failure);
+    }
+
+    catch (error const& error) // NOTE: system-error
+    {
+      std::cerr << header("system-error") << error.what() << std::endl;
+
+      return underlying_cast(exit_status::failure);
+    }
+
+    catch (std::exception const& error)
+    {
+      std::cerr << header("kernel-error") << error.what() << std::endl;
+
+      return underlying_cast(exit_status::failure);
+    }
+
+    catch (...)
+    {
+      std::cerr << header("unknown-error") << "An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
+
+      return underlying_cast(exit_status::failure);
+    }
+  }
 } // namespace kernel
 } // namespace meevax
 
