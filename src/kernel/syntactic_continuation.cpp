@@ -92,6 +92,18 @@ inline namespace kernel
     return car(form());
   }
 
+  auto syntactic_continuation::define(let const& name, let const& value) -> let const&
+  {
+    assert(name.is<symbol>());
+
+    return push(global_environment(), cons(name, value));
+  }
+
+  auto syntactic_continuation::define(std::string const& name, let const& value) -> let const&
+  {
+    return define(intern(name), value);
+  }
+
   auto syntactic_continuation::dynamic_environment() const -> let const&
   {
     return cdr(form());

@@ -110,16 +110,14 @@ inline namespace kernel
 
     auto current_expression() const -> let const&;
 
+    auto define(let const& name, let const& value) -> let const&;
+
+    auto define(std::string const& name, let const& value) -> let const&;
+
     template <typename T, typename... Ts>
     auto define(std::string const& name, Ts&&... xs)
     {
-      return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
-    }
-
-    template <typename... Ts>
-    auto define(std::string const& name, Ts&&... xs)
-    {
-      return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
+      return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
     auto dynamic_environment() const -> let const&;

@@ -74,13 +74,6 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
 
   public:
-    // TODO MOVE INTO SK
-    template <typename... Ts>
-    let const& define(let const& variable, Ts&&... xs)
-    {
-      return push(global_environment(), cons(variable, std::forward<decltype(xs)>(xs)...));
-    }
-
     /* ---- NOTE ---------------------------------------------------------------
      *
      *  This function extends the given syntax environment 'g'. Since the order
