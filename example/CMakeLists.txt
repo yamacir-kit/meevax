@@ -36,7 +36,7 @@ define_cxx_example(test-r7rs)
 macro(define_meevax_example EXAMPLE_NAME)
   add_test(NAME ${EXAMPLE_NAME}
            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-           COMMAND meevax ${EXAMPLE_NAME}.ss)
+           COMMAND ${MEMCHECK} meevax ${EXAMPLE_NAME}.ss)
 endmacro()
 
 define_meevax_example(foreign-function)

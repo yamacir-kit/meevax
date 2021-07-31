@@ -64,10 +64,7 @@ inline namespace kernel
   template <typename... Ts>
   struct tagged_read_error : public read_error
   {
-    template <typename... Us>
-    explicit tagged_read_error(Us&&... xs)
-      : read_error { std::forward<decltype(xs)>(xs)... }
-    {}
+    using read_error::read_error;
 
     ~tagged_read_error() override = default;
   };

@@ -640,7 +640,7 @@ inline namespace kernel
       {
         return make<exact_integer>(static_cast<codeunit const&>(car(xs).as<character>()));
       }
-      catch (std::runtime_error&)
+      catch (std::runtime_error const&)
       {
         return f; // XXX
       }
