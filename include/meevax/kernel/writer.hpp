@@ -67,19 +67,18 @@ inline namespace kernel
     }
 
   public:
-    // TODO MOVE INTO writer.cpp
-    let standard_null_port() const
+    auto standard_null_port() const -> let const& // TODO MOVE INTO writer.cpp
     {
       let static port = make<output_file_port>("/dev/null");
       return port;
     }
 
-    auto standard_verbose_port() const -> decltype(auto)
+    auto standard_verbose_port() const -> let const&
     {
       return is_verbose_mode() ? default_output_port : standard_null_port();
     }
 
-    auto standard_debug_port() const -> decltype(auto)
+    auto standard_debug_port() const -> let const&
     {
       return is_debug_mode() ? default_error_port : standard_null_port();
     }

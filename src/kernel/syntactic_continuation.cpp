@@ -141,7 +141,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::fork() -> let
+  auto syntactic_continuation::fork() const -> let
   {
     let const module = make<syntactic_continuation>(current_continuation(), global_environment());
 

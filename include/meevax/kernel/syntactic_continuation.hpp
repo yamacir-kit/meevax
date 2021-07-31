@@ -62,6 +62,12 @@ inline namespace kernel
 
     let datum = unit;
 
+    using configurator::is_batch_mode;
+    using configurator::is_debug_mode;
+    using configurator::is_interactive_mode;
+    using configurator::is_trace_mode;
+    using configurator::is_verbose_mode;
+
     using reader::read;
 
     using writer::newline;
@@ -70,12 +76,6 @@ inline namespace kernel
     using writer::write;
     using writer::write_to;
     using writer::write_line;
-
-    using configurator::is_batch_mode;
-    using configurator::is_debug_mode;
-    using configurator::is_interactive_mode;
-    using configurator::is_trace_mode;
-    using configurator::is_verbose_mode;
 
   private:
     /* ---- NOTE ---------------------------------------------------------------
@@ -126,7 +126,7 @@ inline namespace kernel
 
     auto execute() -> let;
 
-    auto fork() -> let;
+    auto fork() const -> let;
 
     auto form() const noexcept -> let const&;
 
@@ -241,7 +241,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
-  extern template class configurator <syntactic_continuation>;
+  extern template class configurator<syntactic_continuation>;
 
   extern template class debugger<syntactic_continuation>;
 

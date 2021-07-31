@@ -48,7 +48,6 @@ inline namespace kernel
     machine()
     {}
 
-    // IMPORT(SK, evaluate, NIL); // TODO REMOVE THIS
     IMPORT(SK, fork, NIL);
     IMPORT(SK, intern, NIL);
     IMPORT(SK, is_trace_mode, const);
@@ -110,7 +109,7 @@ inline namespace kernel
       }
     }
 
-    auto current_continuation() const
+    auto current_continuation() const -> let
     {
       return make<continuation>(s, cons(e, cadr(c), d));
     }
