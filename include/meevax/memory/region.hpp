@@ -37,63 +37,23 @@ inline namespace memory
     deallocator<void>::signature deallocate = nullptr;
 
   public:
-    explicit region(pointer<void> const base, std::size_t const size)
-      : base { base }
-      , size { size }
-    {}
+    explicit region(pointer<void> const, std::size_t const);
 
-    ~region()
-    {
-      release();
-    }
+    ~region();
 
-    auto lower_bound() const noexcept
-    {
-      return reinterpret_cast<std::uintptr_t>(base);
-    }
+    auto assigned() const noexcept -> bool;
 
-    auto upper_bound() const noexcept
-    {
-      return lower_bound() + size;
-    }
+    auto contains(std::uintptr_t const) const noexcept -> bool;
 
-    auto contains(std::uintptr_t const k) const noexcept
-    {
-      return lower_bound() <= k and k < upper_bound();
-    }
+    auto contains(pointer<void> const) const noexcept -> bool;
 
-    auto contains(pointer<void> const derived) const noexcept
-    {
-      return contains(reinterpret_cast<std::uintptr_t>(derived));
-    }
+    auto lower_bound() const noexcept -> std::uintptr_t;
 
-    auto assigned() const noexcept
-    {
-      return derived and deallocate;
-    }
+    auto release() -> void;
 
-    auto reset(pointer<void> const x, deallocator<void>::signature const f) noexcept
-    {
-      if (not assigned())
-      {
-        derived = x;
-        deallocate = f;
-      }
+    auto reset(pointer<void> const, deallocator<void>::signature const) noexcept -> pointer<region>;
 
-      return this;
-    }
-
-    void release()
-    {
-      if (assigned())
-      {
-        deallocate(derived);
-      }
-
-      reset(nullptr, nullptr);
-
-      size = 0;
-    }
+    auto upper_bound() const noexcept -> std::uintptr_t;
   };
 } // namespace memory
 } // namespace meevax
