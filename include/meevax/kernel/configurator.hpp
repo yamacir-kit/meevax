@@ -72,10 +72,10 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair('h', [this](auto&&...)
+          std::make_pair('h', [this](auto&&...) -> let
           {
             display_help();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
 
           std::make_pair('i', [this](auto&&...)
@@ -83,10 +83,10 @@ inline namespace kernel
             return interactive = t;
           }),
 
-          std::make_pair('v', [this](auto&&...)
+          std::make_pair('v', [this](auto&&...) -> let
           {
             display_version();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
         }
 
@@ -120,10 +120,10 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair("help", [this](auto&&...)
+          std::make_pair("help", [this](auto&&...) -> let
           {
             display_help();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
 
           std::make_pair("interactive", [this](auto&&...)
@@ -141,12 +141,12 @@ inline namespace kernel
             return verbose = t;
           }),
 
-          std::make_pair("version", [this](auto&&...)
+          std::make_pair("version", [this](auto&&...) -> let
           {
             display_version();
             newline();
             display_license();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
         }
 

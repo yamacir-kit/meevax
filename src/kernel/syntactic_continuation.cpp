@@ -1678,15 +1678,15 @@ inline namespace kernel
     {
       if (xs.is<null>() or car(xs) == t)
       {
-        throw boost::exit_success;
+        throw exit_status::success;
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        throw x.as<exact_integer>().to<int>();
+        throw exit_status(x.as<exact_integer>().to<int>());
       }
       else
       {
-        throw boost::exit_failure;
+        throw exit_status::failure;
       }
     });
 

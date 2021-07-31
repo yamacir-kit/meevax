@@ -35,12 +35,12 @@ int main(const int argc, char const* const* const argv) try
     root.write_to(root.standard_interaction_port(), meevax::header(__func__), "I have control of root syntactic-continuation.\n");
   }
 
-  return boost::exit_success;
+  return meevax::underlying_cast(meevax::exit_status::success);
 }
 
-catch (int exit_code)
+catch (meevax::exit_status const value)
 {
-  return exit_code;
+  return meevax::underlying_cast(value);
 }
 
 /* ---- NOTE -------------------------------------------------------------------
@@ -58,7 +58,7 @@ catch (meevax::let const& error)
   std::cerr << meevax::header("exception-handler") << error << std::endl;
   std::cerr << meevax::header("exception-handler") << "Terminate the program without running any outstanding dynamic-wind after procedures." << std::endl;
 
-  return boost::exit_exception_failure;
+  return underlying_cast(meevax::exit_status::failure);
 }
 
 /* ---- NOTE -------------------------------------------------------------------
@@ -70,20 +70,20 @@ catch (meevax::error const& error)
 {
   std::cerr << meevax::header("system-error") << error.what() << "." << std::endl;
 
-  return boost::exit_exception_failure;
+  return underlying_cast(meevax::exit_status::failure);
 }
 
 catch (std::exception const& error)
 {
   std::cerr << meevax::header("system-error") << error.what() << "." << std::endl;
 
-  return boost::exit_exception_failure;
+  return underlying_cast(meevax::exit_status::failure);
 }
 
 catch (...)
 {
   std::cerr << meevax::header("unknown-error") << "An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
 
-  return boost::exit_exception_failure;
+  return underlying_cast(meevax::exit_status::failure);
 }
 

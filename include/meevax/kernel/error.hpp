@@ -19,6 +19,7 @@
 
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/string.hpp>
+#include <meevax/type_traits/underlying_cast.hpp>
 
 #include <stdexcept>
 
@@ -36,6 +37,12 @@ namespace meevax
 {
 inline namespace kernel
 {
+  enum class exit_status : int
+  {
+    success = boost::exit_success,
+    failure = boost::exit_failure,
+  };
+
   struct error
     : public virtual pair
   {
