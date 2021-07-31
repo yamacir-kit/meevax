@@ -109,179 +109,33 @@ inline namespace memory
 
     ~collector();
 
-    collector & operator =(collector &&) = delete;
+           auto operator =(collector &&) -> collector & = delete;
 
-    collector & operator =(collector const&) = delete;
+           auto operator =(collector const&) -> collector & = delete;
 
-    auto allocate(std::size_t const size)
-    {
-      if (auto data = ::operator new(size); data)
-      {
-        if (overflow())
-        {
-          collect();
-        }
+           auto allocate(std::size_t const) -> pointer<void>;
 
-        allocation += size;
+           auto clear() -> void;
 
-        regions.insert(new region(data, size));
+           auto collect() -> std::size_t;
 
-        return data;
-      }
-      else
-      {
-        throw std::bad_alloc();
-      }
-    }
+           auto count() const noexcept -> std::size_t;
 
-    void clear()
-    {
-      for (auto iter = std::begin(regions); iter != std::end(regions); )
-      {
-        assert(*iter);
+           auto deallocate(pointer<void> const, std::size_t const = 0) -> void;
 
-        if (pointer<region> region = *iter; region->assigned())
-        {
-          delete region;
-          iter = regions.erase(iter);
-        }
-        else
-        {
-          ++iter;
-        }
-      }
-    }
+           auto mark() -> void;
 
-    auto collect() -> std::size_t
-    {
-      auto const before = count();
+           auto overflow() const noexcept -> bool;
 
-      if (auto const lock = std::unique_lock(resource); lock)
-      {
-        mark(), sweep();
+    static auto region_of(pointer<void> const) -> decltype(regions)::iterator;
 
-        allocation = 0;
-      }
+    static auto reset(pointer<void> const, deallocator<void>::signature const) -> pointer<region>;
 
-      return before - count();
-    }
+           void reset_threshold(std::size_t const = std::numeric_limits<std::size_t>::max());
 
-    auto count() const noexcept -> std::size_t
-    {
-      return std::size(regions);
-    }
+           void sweep();
 
-    auto deallocate(pointer<void> const data, std::size_t const = 0)
-    {
-      try
-      {
-        if (auto const iter = region_of(data); *iter)
-        {
-          regions.erase(iter);
-        }
-      }
-      catch (...)
-      {}
-
-      ::operator delete(data);
-    }
-
-    auto mark() -> void
-    {
-      marker::toggle();
-
-      for (auto [derived, region] : objects)
-      {
-        if (region and not region->marked() and region_of(derived) == std::cend(regions))
-        {
-          traverse(region);
-        }
-      }
-    }
-
-    auto overflow() const noexcept -> bool
-    {
-      return threshold < allocation;
-    }
-
-    static auto region_of(pointer<void> const interior) -> decltype(regions)::iterator
-    {
-      region dummy { interior, 0 };
-
-      if (auto iter = regions.lower_bound(&dummy); iter != std::cend(regions) and (**iter).contains(interior))
-      {
-        return iter;
-      }
-      else
-      {
-        return std::cend(regions);
-      }
-    }
-
-    static auto reset(pointer<void> const derived, deallocator<void>::signature const deallocate) -> pointer<region>
-    {
-      if (auto const lock = std::unique_lock(resource); lock and derived)
-      {
-        auto const iter = region_of(derived);
-
-        assert(iter != std::cend(regions));
-        assert(deallocate);
-
-        return (*iter)->reset(derived, deallocate);
-      }
-      else
-      {
-        return nullptr;
-      }
-    }
-
-    void reset_threshold(std::size_t const size = std::numeric_limits<std::size_t>::max())
-    {
-      if (auto const lock = std::unique_lock(resource); lock)
-      {
-        threshold = size;
-      }
-    }
-
-    void sweep()
-    {
-      for (auto iter = std::begin(regions); iter != std::end(regions); )
-      {
-        assert(*iter);
-
-        if (pointer<region> region = *iter; not region->marked())
-        {
-          if (region->assigned())
-          {
-            delete region;
-            iter = regions.erase(iter);
-            continue;
-          }
-          else
-          {
-            region->mark();
-          }
-        }
-
-        ++iter;
-      }
-    }
-
-    void traverse(pointer<region> const the_region)
-    {
-      if (the_region and not the_region->marked())
-      {
-        the_region->mark();
-
-        auto lower = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->lower_bound()));
-        auto upper = objects.lower_bound(reinterpret_cast<pointer<object>>(the_region->upper_bound()));
-
-        for (auto iter = lower; iter != upper; ++iter)
-        {
-          traverse(iter->second);
-        }
-      }
-    }
+           void traverse(pointer<region> const);
   } static gc;
 } // namespace memory
 } // namespace meevax
