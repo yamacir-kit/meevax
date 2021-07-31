@@ -18,10 +18,10 @@ jobs:
       - uses: actions/checkout@v2
       - run: ./script/setup.sh --update --all
       - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - run: cmake --build build
-      - run: cmake --build build --target test
-      - run: cmake --build build --target package
+      - run: cmake --build build --parallel $(nproc)
+      - run: cmake --build build --parallel $(nproc) --target test -- ARGS=-j"$(nproc)"
+      - run: cmake --build build --parallel $(nproc) --target package
       - run: sudo apt install --yes ./build/meevax_$(cat VERSION)_amd64.deb
       - run: cmake -B example/build -S example -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
-      - run: cmake --build example/build
-      - run: cmake --build example/build --target test
+      - run: cmake --build example/build --parallel $(nproc)
+      - run: cmake --build example/build --parallel $(nproc) --target test -- ARGS=-j"$(nproc)"
