@@ -21,10 +21,10 @@
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_brujin_index.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
-#include <meevax/kernel/syntactic_keyword.hpp>
 #include <meevax/kernel/syntax.hpp>
 
 namespace meevax
@@ -101,7 +101,7 @@ inline namespace kernel
          *  an unbound variable.
          *
          * ------------------------------------------------------------------ */
-        return locate(x, push(g, cons(x, make<syntactic_keyword>(x, g))));
+        return locate(x, push(g, cons(x, make<identifier>(x, g))));
       }
       else
       {
@@ -156,7 +156,7 @@ inline namespace kernel
       }
       else if (not expression.is<pair>()) // is <identifier>
       {
-        if (expression.is<symbol>() or expression.is<syntactic_keyword>())
+        if (expression.is<symbol>() or expression.is<identifier>())
         {
           /* ---- R7RS 4.1.1. Variable references ------------------------------
            *
@@ -181,7 +181,7 @@ inline namespace kernel
               return cons(make<instruction>(mnemonic::LOAD_LOCAL), index, continuation);
             }
           }
-          else if (expression.is<syntactic_keyword>())
+          else if (expression.is<identifier>())
           {
             WRITE_DEBUG(expression, faint, " ; is <syntactic-keyword>");
             return cons(make<instruction>(mnemonic::STRIP), expression, continuation);
@@ -363,7 +363,7 @@ inline namespace kernel
         *  => (form . S) E                     C  D
         *
         * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<syntactic_keyword>().lookup(), s);
+        s = cons(cadr(c).template as<identifier>().lookup(), s);
         c = cddr(c);
         goto dispatch;
 
@@ -1010,7 +1010,7 @@ inline namespace kernel
 
         let const g = locate(car(expression), current_syntactic_continuation.global_environment());
 
-        if (the_expression_is.at_the_top_level() and cdr(g).is<syntactic_keyword>())
+        if (the_expression_is.at_the_top_level() and cdr(g).is<identifier>())
         {
           throw syntax_error(
             make<string>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"),

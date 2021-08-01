@@ -537,7 +537,7 @@ inline namespace kernel
    * ======================================================================== */
   inline namespace association_list
   {
-    auto assoc = [](let const& key, let const& alist, auto&& compare = equivalence_comparator<2>()) constexpr
+    auto assoc = [](let const& key, let const& alist, auto&& compare = equivalence_comparator<2>()) -> let const&
     {
       return find(alist, [&](auto&& each)
              {
@@ -545,12 +545,12 @@ inline namespace kernel
              });
     };
 
-    auto assv = [](auto&&... xs) constexpr
+    auto assv = [](auto&&... xs) -> let const&
     {
       return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<1>());
     };
 
-    auto assq = [](auto&&... xs) constexpr
+    auto assq = [](auto&&... xs) -> let const&
     {
       return assoc(std::forward<decltype(xs)>(xs)..., equivalence_comparator<0>());
     };

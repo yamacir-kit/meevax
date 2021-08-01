@@ -32,17 +32,17 @@ inline namespace kernel
       : data { std::forward<decltype(xs)>(xs)... }
     {}
 
-    decltype(auto) at_the_top_level() const
+    auto at_the_top_level() const
     {
       return data.test(0);
     }
 
-    decltype(auto) in_a_tail_context() const
+    auto in_a_tail_context() const
     {
       return data.test(1);
     }
 
-    decltype(auto) take_over(syntactic_context const& context)
+    auto take_over(syntactic_context const& context) -> decltype(auto)
     {
       data |= context.data;
       return *this;

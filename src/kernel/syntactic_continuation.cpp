@@ -1956,11 +1956,11 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
+    define<procedure>("syntactic-keyword?", is<identifier>());
 
     define<procedure>("identifier->symbol", [](let const& xs)
     {
-      return car(xs).as<syntactic_keyword>().unwrap_syntax();
+      return car(xs).as<identifier>().unwrap_syntax();
     });
 
     /* -------------------------------------------------------------------------
@@ -1979,7 +1979,7 @@ inline namespace kernel
       }
       else
       {
-        return x.is<syntactic_keyword>() or x.is<symbol>() ? t : f;
+        return x.is<identifier>() or x.is<symbol>() ? t : f;
       }
     });
   }
