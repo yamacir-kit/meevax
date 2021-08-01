@@ -17,11 +17,11 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ERROR_HPP
 
+#include <stdexcept>
+
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/string.hpp>
 #include <meevax/type_traits/underlying_cast.hpp>
-
-#include <stdexcept>
 
 /* ---- Error ------------------------------------------------------------------
  *
@@ -48,29 +48,16 @@ inline namespace kernel
   {
     using pair::pair;
 
-    virtual auto what() const -> std::string
-    {
-      std::stringstream ss {};
+    auto irritants() const noexcept -> const_reference;
 
-      ss << "error: ";
+    auto message() const noexcept -> const_reference;
 
-      car(*this).as<const string>().write_string(ss);
+    virtual auto raise() const -> void;
 
-      if (cdr(*this))
-      {
-        ss << ": " << cdr(*this);
-      }
-
-      return ss.str();
-    }
-
-    virtual void raise() const
-    {
-      throw *this;
-    }
+    virtual auto what() const -> std::string;
   };
 
-  auto operator <<(output_port & port, error const& datum) -> output_port &;
+  auto operator <<(std::ostream &, error const&) -> std::ostream &;
 
   #define DEFINE_ERROR(TYPENAME)                                               \
   struct TYPENAME ## _error : public error                                     \
