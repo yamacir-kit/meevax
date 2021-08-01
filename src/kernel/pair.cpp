@@ -22,24 +22,24 @@ inline namespace kernel
 {
   let const unit { nullptr };
 
-  auto operator <<(std::ostream& port, const pair& pare) -> decltype(port)
+  auto operator <<(std::ostream & os, pair const& pare) -> std::ostream &
   {
-    port << magenta << "(" << reset << car(pare);
+    os << magenta << "(" << reset << car(pare);
 
     for (let rest = cdr(pare); rest; rest = cdr(rest))
     {
       if (rest.is<pair>())
       {
-        port << " " << car(rest);
+        os << " " << car(rest);
       }
       else // iter is the last element of dotted-list.
       {
-        port << magenta << " . " << reset << rest;
+        os << magenta << " . " << reset << rest;
         break;
       }
     }
 
-    return port << magenta << ")" << reset;
+    return os << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax
