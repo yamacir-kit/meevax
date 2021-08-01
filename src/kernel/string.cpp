@@ -26,6 +26,33 @@ namespace meevax
 {
 inline namespace kernel
 {
+  string::string(std::istream & is)
+    : characters { read(is) }
+  {}
+
+  string::string(std::string const& s)
+  {
+    std::stringstream ss;
+    ss << s << "\""; // XXX HACK
+    static_cast<characters &>(*this) = read(ss);
+  }
+
+  string::string(string::size_type size, character const& c)
+    : characters { size, c }
+  {}
+
+  string::operator codeunits() const // NOTE: codeunits = std::string
+  {
+    codeunits result;
+
+    for (auto const& each : *this)
+    {
+      result.push_back(each); // NOTE: Character's implicit codepoint->codeunit conversion.
+    }
+
+    return result;
+  }
+
   auto string::read(input_port & port) const -> characters
   {
     auto hex_scalar = [](input_port & port)
@@ -95,7 +122,7 @@ inline namespace kernel
     return port << static_cast<codeunits const&>(*this);
   }
 
-  auto operator <<(output_port & port, string const& datum) -> output_port &
+  auto operator <<(std::ostream & port, string const& datum) -> std::ostream &
   {
     auto print = [&](character const& c) -> decltype(auto)
     {

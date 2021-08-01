@@ -24,19 +24,19 @@ namespace meevax
 inline namespace kernel
 {
   template <typename T, typename... Ts>
-  inline decltype(auto) push(T&& stack, Ts&&... xs)
+  auto push(T&& stack, Ts&&... xs) -> decltype(auto)
   {
     return stack = cons(std::forward<decltype(xs)>(xs)..., stack);
   }
 
   template <std::size_t N, typename T>
-  inline decltype(auto) pop(T&& stack)
+  auto pop(T&& stack) -> decltype(auto)
   {
     return stack = std::next(std::begin(stack), N);
   }
 
   template <typename T>
-  inline decltype(auto) pop(T&& stack)
+  auto pop(T&& stack)
   {
     let const x = car(stack);
     pop<1>(stack);

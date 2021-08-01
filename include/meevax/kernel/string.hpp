@@ -86,24 +86,13 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   struct string : public characters // TODO PRIVATE u32vector
   {
-    auto read(input_port &) const -> characters;
-
     explicit string() = default;
 
-    explicit string(input_port & port)
-      : characters { read(port) }
-    {}
+    explicit string(std::istream &);
 
-    explicit string(std::string const& cxx_string)
-    {
-      std::stringstream ss;
-      ss << cxx_string << "\""; // XXX HACK
-      static_cast<characters &>(*this) = read(ss);
-    }
+    explicit string(std::string const&);
 
-    explicit string(size_type size, character const& c)
-      : characters { size, c }
-    {}
+    explicit string(size_type, character const&);
 
     template <typename InputIterator>
     explicit string(InputIterator begin, InputIterator end)
@@ -123,22 +112,14 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     // TODO string(input_port &, size_type k);
 
-    operator codeunits() const // NOTE: codeunits = std::string
-    {
-      codeunits result;
+    operator codeunits() const;
 
-      for (auto const& each : *this)
-      {
-        result.push_back(each); // NOTE: Character's implicit codepoint->codeunit conversion.
-      }
-
-      return result;
-    }
+    auto read(input_port &) const -> characters;
 
     auto write_string(output_port &) const -> output_port &;
   };
 
-  auto operator <<(output_port &, string const&) -> output_port &;
+  auto operator <<(std::ostream &, string const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
