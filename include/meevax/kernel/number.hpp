@@ -82,9 +82,7 @@ inline namespace kernel
     }
     else
     {
-      throw error(
-        make<string>(
-          string_append("no viable operation '", typeid(F).name(), "' with ", a, " and ", b)));
+      throw error(make<string>(string_append("no viable operation ", std::quoted(typeid(F).name()), " with ", a, " and ", b)));
     }
   }
 
@@ -120,9 +118,7 @@ inline namespace kernel
     }
     else
     {
-      throw error(
-        make<string>(
-          string_append("no viable operation '", typeid(F).name(), "' with ", a, " and ", b)));
+      throw error(make<string>(string_append("no viable operation ", std::quoted(typeid(F).name()), " with ", a, " and ", b)));
     }
   }
 
@@ -178,9 +174,7 @@ inline namespace kernel
     }
     else
     {
-      throw error(
-        make<string>(
-          string_append("no viable operation '", typeid(F).name(), "' with ", x)));
+      throw error(make<string>(string_append("no viable operation ", std::quoted(typeid(F).name()), " with ", x)));
     }
   }
 

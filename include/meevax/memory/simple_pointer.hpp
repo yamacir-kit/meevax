@@ -63,7 +63,12 @@ inline namespace memory
       return get();
     }
 
-    auto operator *() const noexcept -> decltype(auto)
+    auto operator *() const noexcept -> const_reference
+    {
+      return load();
+    }
+
+    auto operator *() noexcept -> reference
     {
       return load();
     }
@@ -78,7 +83,13 @@ inline namespace memory
       return data;
     }
 
-    constexpr auto load() const noexcept -> reference
+    constexpr auto load() const noexcept -> const_reference
+    {
+      assert(data);
+      return *data;
+    }
+
+    constexpr auto load() noexcept -> reference
     {
       assert(data);
       return *data;

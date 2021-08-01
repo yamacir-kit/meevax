@@ -47,7 +47,7 @@ subset of **R7RS Scheme** implementation.
 
 There is no stable version.
 
-Development HEAD: 0.3.319.
+Development HEAD: 0.3.320.
 
 ### Characteristic Features
 

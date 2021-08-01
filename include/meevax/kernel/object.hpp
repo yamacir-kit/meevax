@@ -80,21 +80,24 @@ inline namespace kernel
   };
 
   template <typename T, typename... Ts>
-  inline constexpr auto make(Ts&&... xs)
+  constexpr auto make(Ts&&... xs)
   {
     return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
-  inline constexpr auto make(T&& x)
+  constexpr auto make(T&& x)
   {
     return let::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
 
-  template <typename T> using is_object    = std::is_base_of<                       let       , typename std::decay<T>::type>;
-  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<let const>, typename std::decay<T>::type>;
+  template <typename T>
+  using is_object = std::is_base_of<let, typename std::decay<T>::type>;
 
-  auto unwrap = [](auto&& x) -> decltype(auto)
+  template <typename T>
+  using is_reference = std::is_base_of<std::reference_wrapper<let const>, typename std::decay<T>::type>;
+
+  auto unwrap_various_reference = [](auto&& x) -> decltype(auto)
   {
     if constexpr (is_object<decltype(x)>::value)
     {

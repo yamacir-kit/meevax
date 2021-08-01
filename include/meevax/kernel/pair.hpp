@@ -49,8 +49,15 @@ inline namespace kernel
    *  valid operation for everyone except the empty list.
    *
    * ------------------------------------------------------------------------ */
-  auto car = [](auto&& x) noexcept -> decltype(auto) { return std::get<0>(unwrap(std::forward<decltype(x)>(x))); };
-  auto cdr = [](auto&& x) noexcept -> decltype(auto) { return std::get<1>(unwrap(std::forward<decltype(x)>(x))); };
+  auto car = [](auto&& x) noexcept -> decltype(auto)
+  {
+    return std::get<0>(unwrap_various_reference(std::forward<decltype(x)>(x)));
+  };
+
+  auto cdr = [](auto&& x) noexcept -> decltype(auto)
+  {
+    return std::get<1>(unwrap_various_reference(std::forward<decltype(x)>(x)));
+  };
 } // namespace kernel
 } // namespace meevax
 
