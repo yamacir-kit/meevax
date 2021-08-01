@@ -17,116 +17,63 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 
+#include <functional>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/pair.hpp>
-
-#define MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
+#include <meevax/utility/unwrap_reference_wrapper.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename T>
   struct homoiconic_iterator
-  #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
-    : public std::reference_wrapper<T>
-  #else
-    : public let
-  #endif
+    : public std::reference_wrapper<let const>
   {
     using iterator_category = std::forward_iterator_tag;
 
-    #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
-    using value_type = std::reference_wrapper<T>;
-    #else
     using value_type = let;
-    #endif
 
-    using reference = typename std::add_lvalue_reference<value_type>::type;
+    using reference = let &;
 
-    using const_reference = typename std::add_const<reference>::type;
+    using const_reference = let const&;
 
-    using pointer = value_type; // homoiconicity
+    using pointer = const_reference; // homoiconicity
 
     using difference_type = std::ptrdiff_t;
 
     using size_type = std::size_t;
 
-  public:
-    using value_type::value_type;
+    homoiconic_iterator(let const&);
 
-    #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
-    homoiconic_iterator(T const& x)
-      : std::reference_wrapper<T> { std::cref(x) }
-    {}
-    #else
-    template <typename... Ts>
-    constexpr homoiconic_iterator(Ts&&... xs)
-      : let { std::forward<decltype(xs)>(xs)... }
-    {}
-    #endif
+    auto operator *() const -> const_reference;
 
-    auto operator *() const -> let const&
-    {
-      return car(*this);
-    }
+    auto operator ->() const -> pointer;
 
-    auto operator ->() const -> let const&
-    {
-      return operator *();
-    }
+    auto operator ++() -> homoiconic_iterator &;
 
-    auto operator ++() -> auto &
-    {
-      return *this = cdr(*this);
-    }
+    auto operator ++(int) -> homoiconic_iterator;
 
-    auto operator ++(int)
-    {
-      auto copy = *this;
-      operator++();
-      return copy;
-    }
+    operator bool() const;
 
-    #ifdef MEEVAX_ITERATOR_USE_REFERENCE_WRAPPER
-    auto operator ==(homoiconic_iterator const& rhs) const noexcept -> decltype(auto)
-    {
-      return get() == rhs.get();
-    }
-
-    auto operator !=(homoiconic_iterator const& rhs) const noexcept -> decltype(auto)
-    {
-      return get() != rhs.get();
-    }
-
-    operator bool() const
-    {
-      return static_cast<bool>(static_cast<T const&>(*this));
-    }
-
-    operator T&() const noexcept
-    {
-      return std::reference_wrapper<T>::get();
-    }
-
-    using std::reference_wrapper<T>::get;
-    #endif
-
-    auto cbegin() const noexcept -> homoiconic_iterator { return *this; }
-    auto  begin() const noexcept -> homoiconic_iterator { return *this; }
-    auto   cend() const noexcept -> homoiconic_iterator { return unit; }
-    auto    end() const noexcept -> homoiconic_iterator { return unit; }
+    auto unwrap() const noexcept -> const_reference;
   };
+
+  auto operator ==(homoiconic_iterator const& lhs, homoiconic_iterator const& rhs) noexcept -> bool;
+
+  auto operator !=(homoiconic_iterator const& lhs, homoiconic_iterator const& rhs) noexcept -> bool;
 } // namespace kernel
 } // namespace meevax
 
 namespace std
 {
-  auto cbegin(meevax::let const& x) -> meevax::homoiconic_iterator<meevax::let const>;
-  auto  begin(meevax::let const& x) -> meevax::homoiconic_iterator<meevax::let const>;
-  auto   cend(meevax::let const&  ) -> meevax::homoiconic_iterator<meevax::let const>;
-  auto    end(meevax::let const&  ) -> meevax::homoiconic_iterator<meevax::let const>;
+  auto begin(meevax::let const&) -> meevax::homoiconic_iterator;
+
+  auto cbegin(meevax::let const&) -> meevax::homoiconic_iterator;
+
+  auto cend(meevax::let const&) -> meevax::homoiconic_iterator const&;
+
+  auto end(meevax::let const&) -> meevax::homoiconic_iterator const&;
 } // namespace std
 
 #endif // INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
