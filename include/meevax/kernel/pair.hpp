@@ -29,7 +29,7 @@ inline namespace kernel
     : public std::array<let, 2>
     , public top<pair>
   {
-    explicit pair(let const& a = unit, let const& b = unit)
+    explicit pair(const_reference a = unit, const_reference b = unit)
       : std::array<let, 2> { a, b }
     {}
 

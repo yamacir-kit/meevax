@@ -21,9 +21,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto ratio::numerator() const -> exact_integer const&
+  auto ratio::as_exact() const noexcept -> ratio const&
   {
-    return std::get<0>(*this).as<exact_integer>();
+    return *this;
   }
 
   auto ratio::denominator() const -> exact_integer const&
@@ -31,27 +31,29 @@ inline namespace kernel
     return std::get<1>(*this).as<exact_integer>();
   }
 
-  auto ratio::is_integer() const -> bool
-  {
-    return cdr(*this).as<exact_integer>() == 1;
-  }
-
   auto ratio::invert() const -> ratio
   {
-    return ratio(cdr(*this),
-                 car(*this));
+    return ratio(std::get<1>(*this), std::get<0>(*this));
+  }
+
+  auto ratio::is_integer() const -> bool
+  {
+    return denominator() == 1;
+  }
+
+  auto ratio::numerator() const -> exact_integer const&
+  {
+    return std::get<0>(*this).as<exact_integer>();
   }
 
   auto ratio::reduce() const -> ratio
   {
     using boost::multiprecision::gcd;
 
-    if (const exact_integer divisor {
-          gcd(car(*this).as<exact_integer>().value,
-              cdr(*this).as<exact_integer>().value) }; divisor != 1)
+    if (const exact_integer divisor { gcd(numerator().value, denominator().value) }; divisor != 1)
     {
-      return ratio(make<exact_integer>(car(*this).as<exact_integer>().value / divisor.value),
-                   make<exact_integer>(cdr(*this).as<exact_integer>().value / divisor.value));
+      return ratio(make<exact_integer>(numerator().value / divisor.value),
+                   make<exact_integer>(denominator().value / divisor.value));
     }
     else
     {
@@ -59,11 +61,11 @@ inline namespace kernel
     }
   }
 
-  auto operator <<(output_port & port, ratio const& datum) -> output_port &
+  auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
-    return port << cyan << car(datum)
-                << cyan << "/"
-                << cyan << cdr(datum) << reset;
+    return os << cyan << car(datum)
+              << cyan << "/"
+              << cyan << cdr(datum) << reset;
   }
 } // namespace kernel
 } // namespace meevax
