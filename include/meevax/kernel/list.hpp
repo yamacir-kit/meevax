@@ -101,6 +101,16 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto car = [](auto&& x) noexcept -> decltype(auto)
+  {
+    return std::get<0>(unwrap_various_reference(std::forward<decltype(x)>(x)));
+  };
+
+  auto cdr = [](auto&& x) noexcept -> decltype(auto)
+  {
+    return std::get<1>(unwrap_various_reference(std::forward<decltype(x)>(x)));
+  };
+
   template <typename T, typename U, REQUIRES(std::is_convertible<T, let>,
                                              std::is_convertible<U, let>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
