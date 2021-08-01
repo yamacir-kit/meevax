@@ -101,14 +101,30 @@ namespace meevax
 {
 inline namespace kernel
 {
+  auto to_native_reference = [](auto&& x) -> decltype(auto)
+  {
+    if constexpr (std::is_same<typename std::decay<decltype(x)>::type, let>::value)
+    {
+      return x.load();
+    }
+    else if constexpr (std::is_same<typename std::decay<decltype(x)>::type, homoiconic_iterator>::value)
+    {
+      return x.unwrap().load();
+    }
+    else
+    {
+      return std::forward<decltype(x)>(x);
+    }
+  };
+
   auto car = [](auto&& x) noexcept -> decltype(auto)
   {
-    return std::get<0>(unwrap_various_reference(std::forward<decltype(x)>(x)));
+    return std::get<0>(to_native_reference(std::forward<decltype(x)>(x)));
   };
 
   auto cdr = [](auto&& x) noexcept -> decltype(auto)
   {
-    return std::get<1>(unwrap_various_reference(std::forward<decltype(x)>(x)));
+    return std::get<1>(to_native_reference(std::forward<decltype(x)>(x)));
   };
 
   template <typename T, typename U, REQUIRES(std::is_convertible<T, let>,

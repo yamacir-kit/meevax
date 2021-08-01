@@ -54,7 +54,7 @@ inline namespace kernel
 
     auto operator ++(int) -> homoiconic_iterator;
 
-    operator bool() const;
+    explicit operator bool() const;
 
     auto unwrap() const noexcept -> const_reference;
   };

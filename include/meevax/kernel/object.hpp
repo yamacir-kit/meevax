@@ -90,28 +90,6 @@ inline namespace kernel
   {
     return let::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
-
-  template <typename T>
-  using is_object = std::is_base_of<let, typename std::decay<T>::type>;
-
-  template <typename T>
-  using is_reference = std::is_base_of<std::reference_wrapper<let const>, typename std::decay<T>::type>;
-
-  auto unwrap_various_reference = [](auto&& x) -> decltype(auto)
-  {
-    if constexpr (is_object<decltype(x)>::value)
-    {
-      return x.load();
-    }
-    else if constexpr (is_reference<decltype(x)>::value)
-    {
-      return x.get().load();
-    }
-    else
-    {
-      return std::forward<decltype(x)>(x);
-    }
-  };
 } // namespace kernel
 } // namespace meevax
 
