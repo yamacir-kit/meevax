@@ -20,16 +20,16 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream& port, const unspecified_t&) -> decltype(port)
+  auto operator <<(std::ostream & os, unspecified_t const&) -> std::ostream &
   {
-    return port << faint << "#;unspecified" << reset;
+    return os << faint << "#;unspecified" << reset;
   }
 
   let const unspecified = make<unspecified_t>();
 
-  auto operator <<(std::ostream& port, const undefined_t&) -> decltype(port)
+  auto operator <<(std::ostream & os, undefined_t const&) -> std::ostream &
   {
-    return port << faint << "#;undefined" << reset;
+    return os << faint << "#;undefined" << reset;
   }
 
   let const undefined = make<undefined_t>();

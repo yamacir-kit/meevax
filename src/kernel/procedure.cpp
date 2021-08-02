@@ -21,9 +21,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(output_port & port, procedure const& datum) -> output_port &
+  auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
   {
-    return port << magenta << "#,(" << green << "procedure " << reset << datum.name << magenta << ")" << reset;
+    return os << magenta << "#,(" << green << "procedure " << reset << datum.name << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax

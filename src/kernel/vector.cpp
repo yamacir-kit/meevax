@@ -26,7 +26,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let vector::fill(let const& value, vector::size_type from, vector::size_type to)
+  vector::vector(for_each_in_tag, let const& xs)
+    : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
+  {}
+
+  auto vector::fill(let const& value, vector::size_type from, vector::size_type to) -> void
   {
     using boost::adaptors::sliced;
 
@@ -34,11 +38,25 @@ inline namespace kernel
     {
       each = value;
     }
-
-    return value;
   }
 
-  let vector::to_list(vector::size_type from, vector::size_type to) const
+  auto vector::fill(let const& value, size_type from) -> void
+  {
+    fill(value, from, size());
+  }
+
+  auto vector::fill(let const& value, let const& from) -> void
+  {
+    fill(value, from.as<exact_integer>().to<vector::size_type>());
+  }
+
+  auto vector::fill(let const& value, let const& from, let const& to) -> void
+  {
+    fill(value, from.as<exact_integer>().to<vector::size_type>(),
+                  to.as<exact_integer>().to<vector::size_type>());
+  }
+
+  auto vector::to_list(vector::size_type from, vector::size_type to) const -> value_type
   {
     using boost::adaptors::reversed;
     using boost::adaptors::sliced;
@@ -53,7 +71,7 @@ inline namespace kernel
     return x;
   }
 
-  let vector::to_string(vector::size_type from, vector::size_type to) const
+  auto vector::to_string(vector::size_type from, vector::size_type to) const -> value_type
   {
     using boost::adaptors::sliced;
 
@@ -82,9 +100,9 @@ inline namespace kernel
                       std::begin(rhs), std::end(rhs), equal);
   }
 
-  auto operator <<(output_port & port, vector const& datum) -> output_port &
+  auto operator <<(std::ostream & os, vector const& datum) -> std::ostream &
   {
-    return port << magenta << "#(" << reset << for_each(datum) << magenta << ")" << reset;
+    return os << magenta << "#(" << reset << for_each(datum) << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax

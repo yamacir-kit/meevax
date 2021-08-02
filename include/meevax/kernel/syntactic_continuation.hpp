@@ -39,7 +39,7 @@ inline namespace kernel
   template <auto Value>
   using boot_upto = typename std::integral_constant<decltype(Value), Value>;
 
-  struct syntactic_continuation
+  class syntactic_continuation
     : public virtual pair
     , public configurator <syntactic_continuation>
     , public debugger     <syntactic_continuation>
@@ -47,13 +47,19 @@ inline namespace kernel
     , public reader       <syntactic_continuation>
     , public writer       <syntactic_continuation>
   {
-    struct initializer
-    {
-      explicit initializer();
+    /* ---- NOTE ---------------------------------------------------------------
+     *
+     *  If this class is constructed as make<syntactic_continuation>(...) then
+     *  the heterogeneous::binder will have forwarded all constructor arguments
+     *  to the virtual base class pair in advance, and this constructor will be
+     *  called without any arguments.
+     *
+     *  (See the heterogeneous::binder::binder for details)
+     *
+     * ---------------------------------------------------------------------- */
+    using pair::pair;
 
-      ~initializer();
-    };
-
+  public:
     static inline std::unordered_map<std::string, let> symbols;
 
     static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
@@ -61,6 +67,13 @@ inline namespace kernel
     std::size_t generation = 0;
 
     let datum = unit;
+
+    struct initializer
+    {
+      explicit initializer();
+
+      ~initializer();
+    };
 
     using configurator::is_batch_mode;
     using configurator::is_debug_mode;
@@ -77,20 +90,6 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-  private:
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  If this class is constructed as make<syntactic_continuation>(...) then
-     *  the heterogeneous::binder will have forwarded all constructor arguments
-     *  to the virtual base class pair in advance, and this constructor will be
-     *  called without any arguments.
-     *
-     *  (See the heterogeneous::binder::binder for details)
-     *
-     * ---------------------------------------------------------------------- */
-    using pair::pair;
-
-  public:
     template <auto Layer>
     explicit syntactic_continuation(boot_upto<Layer>)
       : syntactic_continuation { boot_upto<underlying_decrement(Layer)>() }
@@ -159,7 +158,7 @@ inline namespace kernel
 
     auto macroexpand(let const& keyword, let const& form) -> let;
 
-  public:
+  private:
     SYNTAX(exportation)
     {
       if (is_verbose_mode())

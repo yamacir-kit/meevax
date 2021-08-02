@@ -37,7 +37,7 @@ inline namespace kernel
     }
   };
 
-  auto operator <<(std::ostream & port, boolean const&) -> std::ostream &;
+  auto operator <<(std::ostream &, boolean const&) -> std::ostream &;
 
   extern let const t;
   extern let const f;

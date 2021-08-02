@@ -36,31 +36,19 @@ inline namespace kernel
       std::copy(from, to, std::back_inserter(*this));
     }
 
-    explicit vector(for_each_in_tag, let const& xs)
-      : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
-    {}
+    explicit vector(for_each_in_tag, let const&);
 
-    let fill(let const& value, size_type, size_type);
+    auto fill(let const&, size_type, size_type) -> void;
 
-    decltype(auto) fill(let const& value, size_type from = 0)
-    {
-      return fill(value, from, size());
-    }
+    auto fill(let const&, size_type = 0) -> void;
 
-    decltype(auto) fill(let const& value, let const& from)
-    {
-      return fill(value, from.as<exact_integer>().to<size_type>());
-    }
+    auto fill(let const&, let const&) -> void;
 
-    decltype(auto) fill(let const& value, let const& from, let const& to)
-    {
-      return fill(value, from.as<exact_integer>().to<size_type>(),
-                         to  .as<exact_integer>().to<size_type>());
-    }
+    auto fill(let const&, let const&, let const&) -> void;
 
-    let to_list(size_type, size_type) const;
+    auto to_list(size_type, size_type) const -> value_type;
 
-    let to_string(size_type, size_type) const;
+    auto to_string(size_type, size_type) const -> value_type;
 
     #define DEFINE_RANGE_OVERLOADS_FOR(NAME)                                   \
     decltype(auto) NAME(size_type from = 0)                                    \
@@ -89,7 +77,7 @@ inline namespace kernel
 
   auto operator ==(vector const&, vector const&) -> bool;
 
-  auto operator <<(std::ostream & port, vector const&) -> std::ostream &;
+  auto operator <<(std::ostream &, vector const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

@@ -1378,15 +1378,15 @@ inline namespace kernel
     {
       if (let const& v = car(xs), value = cadr(xs); cddr(xs).is<null>())
       {
-        return v.as<vector>().fill(value);
+        return v.as<vector>().fill(value), unspecified;
       }
       else if (let const& from = caddr(xs); cdddr(xs).is<null>())
       {
-        return v.as<vector>().fill(value, from);
+        return v.as<vector>().fill(value, from), unspecified;
       }
       else
       {
-        return v.as<vector>().fill(value, from, cadddr(xs));
+        return v.as<vector>().fill(value, from, cadddr(xs)), unspecified;
       }
     });
 

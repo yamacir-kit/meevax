@@ -26,14 +26,14 @@ inline namespace kernel
   struct unspecified_t
   {};
 
-  auto operator <<(std::ostream& port, const unspecified_t&) -> decltype(port);
+  auto operator <<(std::ostream &, unspecified_t const&) -> std::ostream &;
 
   extern let const unspecified;
 
   struct undefined_t
   {};
 
-  auto operator <<(std::ostream& port, const undefined_t&) -> decltype(port);
+  auto operator <<(std::ostream &, undefined_t const&) -> std::ostream &;
 
   extern let const undefined;
 } // namespace kernel

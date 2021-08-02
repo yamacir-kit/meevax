@@ -67,6 +67,19 @@ inline namespace kernel
     }
   }
 
+  template <typename T, REQUIRES(std::is_pointer<T>)>
+  auto link_as(std::string const& symbol_name, library_handle const& handle) -> T
+  {
+    if (pointer<void> const address = dlsym(handle.get(), symbol_name.c_str()); address)
+    {
+      return reinterpret_cast<T>(address);
+    }
+    else
+    {
+      throw file_error(make<string>(dlerror()), unit);
+    }
+  }
+
   struct procedure : public std::function<PROCEDURE()>
   {
     using signature = PROCEDURE((*));
@@ -74,32 +87,19 @@ inline namespace kernel
     std::string const name;
 
     explicit procedure(std::string const& name, std::function<PROCEDURE()> const& function)
-      : std::function<PROCEDURE()> { function  }
+      : std::function<PROCEDURE()> { function }
       , name { name }
     {}
 
-    explicit procedure(std::string const& function_name, library_handle const& handle)
-      : std::function<PROCEDURE()> { link_as<signature>(function_name, handle) }
-      , name { function_name }
+    explicit procedure(std::string const& name, library_handle const& handle)
+      : std::function<PROCEDURE()> { link_as<signature>(name, handle) }
+      , name { name }
     {}
 
     virtual ~procedure() = default;
-
-    template <typename T, REQUIRES(std::is_pointer<T>)>
-    static auto link_as(std::string const& symbol_name, library_handle const& handle) -> T
-    {
-      if (pointer<void> const address = dlsym(handle.get(), symbol_name.c_str()); address)
-      {
-        return reinterpret_cast<T>(address);
-      }
-      else
-      {
-        throw file_error(make<string>(dlerror()), unit);
-      }
-    }
   };
 
-  auto operator <<(output_port & port, procedure const& datum) -> output_port &;
+  auto operator <<(std::ostream & port, procedure const& datum) -> std::ostream &;
 
   template <typename T>
   struct is
