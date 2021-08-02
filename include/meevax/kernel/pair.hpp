@@ -25,39 +25,18 @@ inline namespace kernel
 {
   let extern const unit;
 
-  /* ---- Pair -----------------------------------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
   struct pair
     : public std::array<let, 2>
     , public top<pair>
   {
-    explicit pair(let const& a = unit,
-                  let const& b = unit)
+    explicit pair(const_reference a = unit, const_reference b = unit)
       : std::array<let, 2> { a, b }
     {}
 
     virtual ~pair() = default;
   };
 
-  auto operator <<(output_port & port, pair const&) -> output_port &;
-
-  /* ---- Pair Accessor --------------------------------------------------------
-   *
-   *  Pair accessors are not only for pair type. Accessing car and cdr is a
-   *  valid operation for everyone except the empty list.
-   *
-   * ------------------------------------------------------------------------ */
-  auto car = [](auto&& x) noexcept -> decltype(auto)
-  {
-    return std::get<0>(unwrap_various_reference(std::forward<decltype(x)>(x)));
-  };
-
-  auto cdr = [](auto&& x) noexcept -> decltype(auto)
-  {
-    return std::get<1>(unwrap_various_reference(std::forward<decltype(x)>(x)));
-  };
+  auto operator <<(std::ostream &, pair const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

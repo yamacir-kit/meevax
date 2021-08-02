@@ -36,55 +36,49 @@ inline namespace kernel
     }
   }
 
-  inline namespace selector
+  auto take(let const& exp, std::size_t size) -> let
   {
-    let take(let const& exp, std::size_t size)
+    if (0 < size)
     {
-      if (0 < size)
-      {
-        return car(exp) | take(cdr(exp), --size);
-      }
-      else
-      {
-        return unit;
-      }
+      return car(exp) | take(cdr(exp), --size);
     }
-  } // namespace selector
+    else
+    {
+      return unit;
+    }
+  }
 
-  inline namespace miscellaneous
+  auto append(let const& x, let const& y) -> let
   {
-    let append(let const& x, let const& y)
+    if (x.is<null>())
     {
-      if (x.is<null>())
-      {
-        return y;
-      }
-      else
-      {
-        return cons(car(x), append(cdr(x), y));
-      }
+      return y;
     }
+    else
+    {
+      return cons(car(x), append(cdr(x), y));
+    }
+  }
 
-    let reverse(let const& x)
-    {
-      return x ? append(reverse(cdr(x)), list(car(x))) : unit;
-    }
+  auto reverse(let const& x) -> let
+  {
+    return x ? append(reverse(cdr(x)), list(car(x))) : unit;
+  }
 
-    let zip(let const& x, let const& y)
+  auto zip(let const& x, let const& y) -> let
+  {
+    if (x.is<null>() and y.is<null>())
     {
-      if (x.is<null>() and y.is<null>())
-      {
-        return unit;
-      }
-      else if (x.is<pair>() and y.is<pair>())
-      {
-        return list(car(x), car(y)) | zip(cdr(x), cdr(y));
-      }
-      else
-      {
-        return unit;
-      }
+      return unit;
     }
-  } // namespace miscellaneous
+    else if (x.is<pair>() and y.is<pair>())
+    {
+      return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+    }
+    else
+    {
+      return unit;
+    }
+  }
 } // namespace kernel
 } // namespace meevax

@@ -15,19 +15,35 @@
 */
 
 #include <meevax/kernel/continuation.hpp>
-#include <meevax/kernel/port.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(output_port & port, continuation const& datum) -> output_port &
+  auto continuation::s() const -> const_reference
   {
-    return port << magenta << "#,("
-                << green << "continuation" << reset
-                << faint << " ;#" << &datum << reset
-                << magenta << ")" << reset;
+    return std::get<0>(*this);
+  }
+
+  auto continuation::e() const -> const_reference
+  {
+    return cadr(*this);
+  }
+
+  auto continuation::c() const -> const_reference
+  {
+    return caddr(*this);
+  }
+
+  auto continuation::d() const -> const_reference
+  {
+    return cdddr(*this);
+  }
+
+  auto operator <<(std::ostream & os, continuation const& datum) -> std::ostream &
+  {
+    return os << magenta << "#,(" << green << "continuation" << reset << faint << " ;#" << &datum << reset << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax

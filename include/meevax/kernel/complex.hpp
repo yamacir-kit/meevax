@@ -28,11 +28,13 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto real() const noexcept -> decltype(auto) { return car(*this); }
-    auto real()       noexcept -> decltype(auto) { return car(*this); }
+    auto real() const noexcept -> const_reference;
 
-    auto imag() const noexcept -> decltype(auto) { return cdr(*this); }
-    auto imag()       noexcept -> decltype(auto) { return cdr(*this); }
+    auto real() noexcept -> reference;
+
+    auto imag() const noexcept -> const_reference;
+
+    auto imag() noexcept -> reference;
 
     // friend auto operator +(const complex& lhs, const complex& rhs)
     // {
@@ -52,9 +54,7 @@ inline namespace kernel
     // }
   };
 
-  auto operator <<(output_port &, complex const&) -> output_port &;
-
-  static_assert(std::is_base_of<pair, complex>::value);
+  auto operator <<(std::ostream &, complex const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

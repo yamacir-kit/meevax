@@ -23,34 +23,30 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct ratio
-    : public virtual pair
+  struct ratio : public virtual pair
   {
     using pair::pair;
 
-    auto numerator() const -> exact_integer const&;
-
-    auto denominator() const -> exact_integer const&;
-
-    auto is_integer() const -> bool;
-
-    auto invert() const -> ratio;
-
-    auto reduce() const -> ratio;
-
-    auto as_exact() const noexcept -> ratio const&
-    {
-      return *this;
-    }
+    auto as_exact() const noexcept -> ratio const&;
 
     template <typename T>
     auto as_inexact() const
     {
       return floating_point(numerator().as_inexact<T>() / denominator().as_inexact<T>());
     }
+
+    auto denominator() const -> exact_integer const&;
+
+    auto invert() const -> ratio;
+
+    auto is_integer() const -> bool;
+
+    auto numerator() const -> exact_integer const&;
+
+    auto reduce() const -> ratio;
   };
 
-  auto operator <<(output_port & port, ratio const&) -> output_port &;
+  auto operator <<(std::ostream &, ratio const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

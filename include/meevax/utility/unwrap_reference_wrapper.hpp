@@ -25,11 +25,13 @@ namespace meevax
 inline namespace type_traits
 {
   template<typename T>
-  struct is_reference_wrapper : public std::false_type
+  struct is_reference_wrapper
+    : public std::false_type
   {};
 
   template<typename T>
-  struct is_reference_wrapper<std::reference_wrapper<T>> : public std::true_type
+  struct is_reference_wrapper<std::reference_wrapper<T>>
+    : public std::true_type
   {};
 
   auto unwrap_reference_wrapper = [](auto&& value) -> decltype(auto)

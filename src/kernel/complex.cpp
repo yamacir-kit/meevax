@@ -22,9 +22,29 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(output_port & port, complex const& z) -> output_port &
+  auto complex::real() const noexcept -> complex::const_reference
   {
-    return port << cyan << z.real() << (e0 < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
+    return std::get<0>(*this);
+  }
+
+  auto complex::real() noexcept -> complex::reference
+  {
+    return const_cast<complex::reference>(std::as_const(*this).real());
+  }
+
+  auto complex::imag() const noexcept -> complex::const_reference
+  {
+    return std::get<1>(*this);
+  }
+
+  auto complex::imag() noexcept -> complex::reference
+  {
+    return const_cast<complex::reference>(std::as_const(*this).imag());
+  }
+
+  auto operator <<(std::ostream & os, complex const& z) -> std::ostream &
+  {
+    return os << cyan << z.real() << (e0 < z.imag() ? '+' : '-') << z.imag() << "i" << reset;
   }
 } // namespace kernel
 } // namespace meevax

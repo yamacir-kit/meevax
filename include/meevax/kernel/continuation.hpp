@@ -23,15 +23,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct continuation
-    : public virtual pair
+  struct continuation : public virtual pair
   {
     using pair::pair;
 
-    auto s() const { return   car(*this); }
-    auto e() const { return  cadr(*this); }
-    auto c() const { return caddr(*this); }
-    auto d() const { return cdddr(*this); }
+    auto s() const -> const_reference;
+
+    auto e() const -> const_reference;
+
+    auto c() const -> const_reference;
+
+    auto d() const -> const_reference;
   };
 
   auto operator <<(std::ostream &, continuation const&) -> std::ostream &;

@@ -20,16 +20,47 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(output_port & port, error const& datum) -> output_port &
+  auto error::irritants() const noexcept -> const_reference
   {
-    port << magenta << "#,(" << green << "error " << reset << car(datum);
+    return std::get<1>(*this);
+  }
 
-    for (let const& each : cdr(datum))
+  auto error::message() const noexcept -> const_reference
+  {
+    return std::get<0>(*this);
+  }
+
+  auto error::raise() const -> void
+  {
+    throw *this;
+  }
+
+  auto error::what() const -> std::string
+  {
+    std::stringstream ss {};
+
+    ss << "error: ";
+
+    message().as<string>().write_string(ss);
+
+    if (irritants())
     {
-      port << " " << each;
+      ss << ": " << irritants();
     }
 
-    return port << magenta << ")" << reset;
+    return ss.str();
+  }
+
+  auto operator <<(std::ostream & os, error const& datum) -> std::ostream &
+  {
+    os << magenta << "#,(" << green << "error " << reset << datum.message();
+
+    for (let const& each : datum.irritants())
+    {
+      os << " " << each;
+    }
+
+    return os << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax
