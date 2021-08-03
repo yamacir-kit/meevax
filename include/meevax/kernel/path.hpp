@@ -25,8 +25,6 @@
 #define STD_FILESYSTEM_PATH std::experimental::filesystem::path
 #endif
 
-#include <meevax/kernel/object.hpp>
-
 namespace meevax
 {
 inline namespace kernel

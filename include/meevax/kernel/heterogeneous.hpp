@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
 #include <meevax/functional/compose.hpp>
-#include <meevax/memory/cell.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/module.hpp>

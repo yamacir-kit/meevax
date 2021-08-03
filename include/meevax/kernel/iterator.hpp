@@ -17,11 +17,9 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_ITERATOR_HPP
 
-#include <functional>
 #include <iterator> // std::begin, std::end, std::distance
 
 #include <meevax/kernel/pair.hpp>
-#include <meevax/utility/unwrap_reference_wrapper.hpp>
 
 namespace meevax
 {

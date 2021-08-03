@@ -28,6 +28,7 @@
 #endif
 
 #include <meevax/kernel/numeric_tower.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {

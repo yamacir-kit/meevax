@@ -25,10 +25,8 @@
 #include <new>
 #include <set>
 
-#include <meevax/memory/literal.hpp>
 #include <meevax/memory/region.hpp>
 #include <meevax/string/header.hpp>
-#include <meevax/utility/debug.hpp>
 
 namespace meevax
 {

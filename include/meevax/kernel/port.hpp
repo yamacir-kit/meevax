@@ -21,6 +21,7 @@
 #include <fstream>
 
 #include <meevax/kernel/path.hpp>
+#include <meevax/kernel/object.hpp>
 
 namespace meevax
 {

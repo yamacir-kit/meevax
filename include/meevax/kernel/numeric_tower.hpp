@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP
 #define INCLUDED_MEEVAX_KERNEL_NUMERIC_TOWER_HPP
 
-#include <meevax/kernel/pair.hpp>
-
 namespace meevax
 {
 inline namespace kernel

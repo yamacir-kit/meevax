@@ -15,6 +15,7 @@
 */
 
 #include <meevax/memory/collector.hpp>
+#include <meevax/memory/literal.hpp>
 
 namespace meevax
 {
