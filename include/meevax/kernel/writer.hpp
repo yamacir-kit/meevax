@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 #define INCLUDED_MEEVAX_KERNEL_WRITER_HPP
 
@@ -22,7 +38,7 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(output_port & port, Ts&&... xs) const -> output_port &
+    auto write_to(std::ostream & port, Ts&&... xs) const -> std::ostream &
     {
       return (port << ... << xs) << reset;
     }
@@ -30,7 +46,7 @@ inline namespace kernel
     template <typename... Ts>
     auto write_to(let const& x, Ts&&... xs) const -> decltype(auto)
     {
-      return write_to(x.as<output_port>(), std::forward<decltype(xs)>(xs)...);
+      return write_to(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename... Ts>
@@ -51,19 +67,18 @@ inline namespace kernel
     }
 
   public:
-    // TODO MOVE INTO writer.cpp
-    let standard_null_port() const
+    auto standard_null_port() const -> let const& // TODO MOVE INTO writer.cpp
     {
       let static port = make<output_file_port>("/dev/null");
       return port;
     }
 
-    auto standard_verbose_port() const -> decltype(auto)
+    auto standard_verbose_port() const -> let const&
     {
       return is_verbose_mode() ? default_output_port : standard_null_port();
     }
 
-    auto standard_debug_port() const -> decltype(auto)
+    auto standard_debug_port() const -> let const&
     {
       return is_debug_mode() ? default_error_port : standard_null_port();
     }

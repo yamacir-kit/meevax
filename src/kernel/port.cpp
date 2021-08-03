@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #include <iomanip>
 
 #include <meevax/kernel/port.hpp>
@@ -8,6 +24,12 @@ namespace meevax
 {
 inline namespace kernel
 {
+  let const default_input_port = make<standard_input_port>();
+
+  let const default_output_port = make<standard_output_port>();
+
+  let const default_error_port = make<standard_error_port>();
+
   void copy_ios(std::ios & from, std::ios & to)
   {
     to.copyfmt(from);
@@ -15,36 +37,47 @@ inline namespace kernel
     to.rdbuf(from.rdbuf());
   }
 
-  let const default_input_port  = make<standard_input_port>();
-  let const default_output_port = make<standard_output_port>();
-  let const default_error_port  = make<standard_error_port>();
-
-  auto operator <<(output_port & port, standard_input_port const&) -> output_port &
+  standard_input_port::standard_input_port()
   {
-    return port << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
+    copy_ios(std::cin, *this);
   }
 
-  auto operator <<(output_port & port, standard_output_port const&) -> output_port &
+  auto operator <<(std::ostream & os, standard_input_port const&) -> std::ostream &
   {
-    return port << magenta << "#,(" << reset << "standard-output-port" << magenta << ")" << reset;
+    return os << magenta << "#,(" << reset << "standard-input-port" << magenta << ")" << reset;
   }
 
-  auto operator <<(output_port & port, standard_error_port const&) -> output_port &
+  standard_output_port::standard_output_port()
   {
-    return port << magenta << "#,(" << reset << "standard-error-port" << magenta << ")" << reset;
+    copy_ios(std::cout, *this);
+  }
+
+  auto operator <<(std::ostream & os, standard_output_port const&) -> std::ostream &
+  {
+    return os << magenta << "#,(" << reset << "standard-output-port" << magenta << ")" << reset;
+  }
+
+  standard_error_port::standard_error_port()
+  {
+    copy_ios(std::cerr, *this);
+  }
+
+  auto operator <<(std::ostream & os, standard_error_port const&) -> std::ostream &
+  {
+    return os << magenta << "#,(" << reset << "standard-error-port" << magenta << ")" << reset;
   }
 
   #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
-  auto operator <<(output_port & port, TYPENAME const& datum) -> output_port & \
+  auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    port << magenta << "#,(" << green << "open-" PORTTYPE << " " << datum.name << reset; \
+    os << magenta << "#,(" << green << "open-" PORTTYPE << " " << datum.name << reset; \
                                                                                \
     if (not datum.is_open())                                                   \
     {                                                                          \
-      port << faint << " #;closed" << reset;                                   \
+      os << faint << " #;closed" << reset;                                     \
     }                                                                          \
                                                                                \
-    return port << magenta << ")" << reset;                                    \
+    return os << magenta << ")" << reset;                                      \
   } static_assert(true)
 
   BOILERPLATE( input_file_port,  "input-file");
@@ -53,16 +86,16 @@ inline namespace kernel
   #undef BOILERPLATE
 
   #define BOILERPLATE(TYPENAME, PORTTYPE)                                      \
-  auto operator <<(output_port & port, TYPENAME const& datum) -> output_port & \
+  auto operator <<(std::ostream & os, TYPENAME const& datum) -> std::ostream & \
   {                                                                            \
-    port << magenta << "#,(" << green << "open-" PORTTYPE;                     \
+    os << magenta << "#,(" << green << "open-" PORTTYPE;                       \
                                                                                \
     if (auto const s = datum.str(); not std::empty(s))                         \
     {                                                                          \
-      port << " " << cyan << make<string>(s);                                  \
+      os << " " << cyan << make<string>(s);                                    \
     }                                                                          \
                                                                                \
-    return port << magenta << ")" << reset;                                    \
+    return os << magenta << ")" << reset;                                      \
   } static_assert(true)
 
   BOILERPLATE( input_string_port,  "input-string");

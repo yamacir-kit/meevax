@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
@@ -51,6 +67,19 @@ inline namespace kernel
     }
   }
 
+  template <typename T, REQUIRES(std::is_pointer<T>)>
+  auto link_as(std::string const& symbol_name, library_handle const& handle) -> T
+  {
+    if (pointer<void> const address = dlsym(handle.get(), symbol_name.c_str()); address)
+    {
+      return reinterpret_cast<T>(address);
+    }
+    else
+    {
+      throw file_error(make<string>(dlerror()), unit);
+    }
+  }
+
   struct procedure : public std::function<PROCEDURE()>
   {
     using signature = PROCEDURE((*));
@@ -58,32 +87,19 @@ inline namespace kernel
     std::string const name;
 
     explicit procedure(std::string const& name, std::function<PROCEDURE()> const& function)
-      : std::function<PROCEDURE()> { function  }
+      : std::function<PROCEDURE()> { function }
       , name { name }
     {}
 
-    explicit procedure(std::string const& function_name, library_handle const& handle)
-      : std::function<PROCEDURE()> { link_as<signature>(function_name, handle) }
-      , name { function_name }
+    explicit procedure(std::string const& name, library_handle const& handle)
+      : std::function<PROCEDURE()> { link_as<signature>(name, handle) }
+      , name { name }
     {}
 
     virtual ~procedure() = default;
-
-    template <typename T, REQUIRES(std::is_pointer<T>)>
-    static auto link_as(std::string const& symbol_name, library_handle const& handle) -> T
-    {
-      if (pointer<void> const address = dlsym(handle.get(), symbol_name.c_str()); address)
-      {
-        return reinterpret_cast<T>(address);
-      }
-      else
-      {
-        throw file_error(make<string>(dlerror()), unit);
-      }
-    }
   };
 
-  auto operator <<(output_port & port, procedure const& datum) -> output_port &;
+  auto operator <<(std::ostream & port, procedure const& datum) -> std::ostream &;
 
   template <typename T>
   struct is

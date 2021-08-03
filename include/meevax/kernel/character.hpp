@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
@@ -24,11 +40,6 @@ inline namespace kernel
   struct character
   {
     codepoint value;
-
-    [[deprecated]]
-    auto read_codeunit(input_port &) const -> codeunit;
-
-    auto read(input_port &) const -> codepoint;
 
     explicit character() = default;
 
@@ -64,9 +75,7 @@ inline namespace kernel
      *  characters are available, an end-of-file object is returned.
      *
      * ---------------------------------------------------------------------- */
-    explicit character(input_port & port)
-      : value { read(port) }
-    {}
+    explicit character(std::istream &);
 
     /* ---- R7RS 6.6. Characters -----------------------------------------------
      *
@@ -91,10 +100,12 @@ inline namespace kernel
       return value;
     }
 
-    operator codeunit() const
-    {
-      return codepoint_to_codeunit(value);
-    }
+    operator codeunit() const;
+
+    auto read(std::istream &) const -> codepoint;
+
+    [[deprecated]]
+    auto read_codeunit(std::istream &) const -> codeunit;
 
     /* ---- R7RS 6.13.3. Output ------------------------------------------------
      *
@@ -106,7 +117,7 @@ inline namespace kernel
      *  value.
      *
      * --------------------------------------------------------------------- */
-    auto write(output_port &) const -> output_port &;
+    auto write(std::ostream &) const -> std::ostream &;
   };
 
   /* ---- R7RS 6.6. Characters -------------------------------------------------
@@ -149,7 +160,7 @@ inline namespace kernel
    *  do not have to be quoted in programs.
    *
    * ------------------------------------------------------------------------ */
-  auto operator <<(output_port & port, character const&) -> output_port &;
+  auto operator <<(std::ostream &, character const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

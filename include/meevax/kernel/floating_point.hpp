@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 #define INCLUDED_MEEVAX_KERNEL_FLOATING_POINT_HPP
 
@@ -104,19 +120,19 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto operator <<(output_port & port, floating_point<T> const& rhs) -> output_port &
+  auto operator <<(std::ostream & os, floating_point<T> const& rhs) -> std::ostream &
   {
     if (std::isnan(rhs))
     {
-      return port << cyan << "+nan.0" << reset;
+      return os << cyan << "+nan.0" << reset;
     }
     else if (std::isinf(rhs))
     {
-      return port << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
+      return os << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
     }
     else
     {
-      return port << cyan << std::fixed << rhs.value << reset;
+      return os << cyan << std::fixed << rhs.value << reset;
     }
   }
 } // namespace kernel

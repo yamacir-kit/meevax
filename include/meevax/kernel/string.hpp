@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_STRING_HPP
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
@@ -70,24 +86,13 @@ inline namespace kernel
    * ------------------------------------------------------------------------ */
   struct string : public characters // TODO PRIVATE u32vector
   {
-    auto read(input_port &) const -> characters;
-
     explicit string() = default;
 
-    explicit string(input_port & port)
-      : characters { read(port) }
-    {}
+    explicit string(std::istream &);
 
-    explicit string(std::string const& cxx_string)
-    {
-      std::stringstream ss;
-      ss << cxx_string << "\""; // XXX HACK
-      static_cast<characters &>(*this) = read(ss);
-    }
+    explicit string(std::string const&);
 
-    explicit string(size_type size, character const& c)
-      : characters { size, c }
-    {}
+    explicit string(size_type, character const&);
 
     template <typename InputIterator>
     explicit string(InputIterator begin, InputIterator end)
@@ -105,24 +110,16 @@ inline namespace kernel
      *  available before the end of file, an end-of-file object is returned.
      *
      * ---------------------------------------------------------------------- */
-    // TODO string(input_port &, size_type k);
+    // TODO string(std::istream &, size_type k);
 
-    operator codeunits() const // NOTE: codeunits = std::string
-    {
-      codeunits result;
+    operator codeunits() const;
 
-      for (auto const& each : *this)
-      {
-        result.push_back(each); // NOTE: Character's implicit codepoint->codeunit conversion.
-      }
+    auto read(std::istream &) const -> characters;
 
-      return result;
-    }
-
-    auto write_string(output_port &) const -> output_port &;
+    auto write_string(std::ostream &) const -> std::ostream &;
   };
 
-  auto operator <<(output_port &, string const&) -> output_port &;
+  auto operator <<(std::ostream &, string const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

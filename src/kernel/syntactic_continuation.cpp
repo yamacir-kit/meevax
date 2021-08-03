@@ -1,9 +1,25 @@
-#include <boost/cstdlib.hpp>
-#include <boost/range/adaptor/reversed.hpp>
-#include <boost/range/adaptors.hpp>
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 
 #include <ios>
 #include <iterator>
+
+#include <boost/cstdlib.hpp>
+#include <boost/range/adaptor/reversed.hpp>
+#include <boost/range/adaptors.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -13,6 +29,234 @@ namespace meevax
 {
 inline namespace kernel
 {
+  template <>
+  syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
+    : syntactic_continuation::syntactic_continuation {}
+  {}
+
+  auto syntactic_continuation::operator [](let const& name) -> let const&
+  {
+    return cdr(machine::locate(name, global_environment()));
+  }
+
+  auto syntactic_continuation::operator [](std::string const& name) -> let const&
+  {
+    return (*this)[intern(name)];
+  }
+
+  auto syntactic_continuation::build() -> void
+  {
+    /* ---- NOTE -------------------------------------------------------------
+     *
+     *  If this class was instantiated by the FORK instruction, the instance
+     *  will have received the compilation continuation as a constructor
+     *  argument.
+     *
+     *  The car part contains the registers of the virtual Lisp machine
+     *  (s e c . d). The cdr part is set to the global environment at the
+     *  time the FORK instruction was executed.
+     *
+     *  Here, the value in the c register is the operand of the FORK
+     *  instruction. The operand of the FORK instruction is a pair of a
+     *  lambda expression form passed to the syntax fork/csc and a lexical
+     *  environment.
+     *
+     * -------------------------------------------------------------------- */
+    if (std::get<0>(*this).is<continuation>())
+    {
+      /* ---- NOTE -----------------------------------------------------------
+       *
+       *  If this class is constructed as make<syntactic_continuation>(...),
+       *  this object until the constructor is completed, the case noted that
+       *  it is the state that is not registered in the GC.
+       *
+       * ------------------------------------------------------------------ */
+      // let const backup = cons(std::get<0>(*this),
+      //                         std::get<1>(*this));
+
+      auto const& k = std::get<0>(*this).as<continuation>();
+
+      s = k.s();
+      e = k.e();
+      c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
+      d = k.d();
+
+      form() = execute();
+
+      assert(form().is<closure>());
+    }
+  }
+
+  auto syntactic_continuation::current_expression() const -> let const&
+  {
+    return car(form());
+  }
+
+  auto syntactic_continuation::define(let const& name, let const& value) -> let const&
+  {
+    assert(name.is<symbol>());
+
+    return push(global_environment(), cons(name, value));
+  }
+
+  auto syntactic_continuation::define(std::string const& name, let const& value) -> let const&
+  {
+    return define(intern(name), value);
+  }
+
+  auto syntactic_continuation::dynamic_environment() const -> let const&
+  {
+    return cdr(form());
+  }
+
+  auto syntactic_continuation::evaluate(let const& expression) -> let
+  {
+    if (is_debug_mode())
+    {
+      write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
+    }
+
+    c = compile(in_context_free, *this, expression);
+
+    if (is_debug_mode())
+    {
+      write_to(standard_debug_port(), "\n");
+      disassemble(standard_debug_port().as<std::ostream>(), c);
+    }
+
+    return execute();
+  }
+
+  auto syntactic_continuation::execute() -> let
+  {
+    static constexpr auto trace = true;
+
+    if (is_trace_mode())
+    {
+      return machine::execute<trace>();
+    }
+    else
+    {
+      return machine::execute();
+    }
+  }
+
+  auto syntactic_continuation::fork() const -> let
+  {
+    let const module = make<syntactic_continuation>(current_continuation(), global_environment());
+
+    module.as<syntactic_continuation>().boot();
+    module.as<syntactic_continuation>().build();
+
+    return module;
+  }
+
+  auto syntactic_continuation::form() const noexcept -> let const&
+  {
+    return std::get<0>(*this);
+  }
+
+  auto syntactic_continuation::form() noexcept -> let &
+  {
+    return const_cast<let &>(std::as_const(*this).form());
+  }
+
+  auto syntactic_continuation::global_environment() const noexcept -> let const&
+  {
+    return std::get<1>(*this);
+  }
+
+  auto syntactic_continuation::global_environment() noexcept -> let &
+  {
+    return const_cast<let &>(std::as_const(*this).global_environment());
+  }
+
+  auto syntactic_continuation::load(std::string const& s) -> let
+  {
+    write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
+
+    if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
+    {
+      write_to(standard_debug_port(), t, "\n");
+
+      for (let e = read(port); e != eof_object; e = read(port))
+      {
+        write_to(standard_debug_port(), header(__func__), e, "\n");
+
+        evaluate(e);
+      }
+
+      return unspecified;
+    }
+    else
+    {
+      write_to(standard_debug_port(), f, "\n");
+
+      throw file_error(make<string>("failed to open file: " + s), unit);
+    }
+  }
+
+  auto syntactic_continuation::load(let const& x) -> let
+  {
+    if (x.is<symbol>())
+    {
+      return load(x.as<symbol>());
+    }
+    else if (x.is<string>())
+    {
+      return load(x.as<string>());
+    }
+    else if (x.is<path>())
+    {
+      return load(x.as<path>());
+    }
+    else
+    {
+      throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+    }
+  }
+
+  auto syntactic_continuation::macroexpand(let const& keyword, let const& form) -> let
+  {
+    ++generation;
+
+    // XXX ???
+    push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
+
+    s = unit;
+
+    // TODO (3)
+    // make<procedure>("rename", [this](auto&& xs)
+    // {
+    //   const auto id { car(xs) };
+    //
+    //
+    // });
+
+    e = cons(
+          // form, // <lambda> parameters
+          cons(keyword, cdr(form)),
+          dynamic_environment());
+    // TODO (4)
+    // => e = cons(
+    //          list(
+    //            expression,
+    //            make<procedure>("rename", [this](auto&& xs) { ... }),
+    //            make<procedure>("compare", [this](auto&& xs) { ... })
+    //            ),
+    //          dynamic_environment()
+    //          );
+
+    // for (auto const& each : global_environment())
+    // {
+    //   std::cout << "  " << each << std::endl;
+    // }
+
+    c = current_expression();
+
+    return execute();
+  }
+
   auto operator >>(std::istream & is, syntactic_continuation & datum) -> std::istream &
   {
     datum.write_to(default_output_port,
@@ -44,9 +288,13 @@ inline namespace kernel
   }
 
   template class configurator<syntactic_continuation>;
+
   template class debugger<syntactic_continuation>;
+
   template class machine<syntactic_continuation>;
+
   template class reader<syntactic_continuation>;
+
   template class writer<syntactic_continuation>;
 
   #define DEFINE_SYNTAX(KEYWORD, TRANSFORMER_SPEC)                             \
@@ -56,7 +304,7 @@ inline namespace kernel
   })
 
   template <>
-  void syntactic_continuation::boot(layer<0>)
+  void syntactic_continuation::boot<layer::declarations>()
   {
     DEFINE_SYNTAX("export", exportation);
     DEFINE_SYNTAX("import", importation);
@@ -81,13 +329,13 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<1>)
+  void syntactic_continuation::boot<layer::primitives>()
   {
     DEFINE_SYNTAX("begin", sequence);
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
     // DEFINE_SYNTAX("cons", construct);
     DEFINE_SYNTAX("define", definition);
-    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork);
+    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork_csc);
     DEFINE_SYNTAX("if", conditional);
     DEFINE_SYNTAX("lambda", lambda);
     DEFINE_SYNTAX("quote", quotation);
@@ -96,7 +344,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<2>)
+  void syntactic_continuation::boot<layer::standard_procedures>()
   {
     /* -------------------------------------------------------------------------
      *
@@ -640,7 +888,7 @@ inline namespace kernel
       {
         return make<exact_integer>(static_cast<codeunit const&>(car(xs).as<character>()));
       }
-      catch (std::runtime_error&)
+      catch (std::runtime_error const&)
       {
         return f; // XXX
       }
@@ -1130,15 +1378,15 @@ inline namespace kernel
     {
       if (let const& v = car(xs), value = cadr(xs); cddr(xs).is<null>())
       {
-        return v.as<vector>().fill(value);
+        return v.as<vector>().fill(value), unspecified;
       }
       else if (let const& from = caddr(xs); cdddr(xs).is<null>())
       {
-        return v.as<vector>().fill(value, from);
+        return v.as<vector>().fill(value, from), unspecified;
       }
       else
       {
-        return v.as<vector>().fill(value, from, cadddr(xs));
+        return v.as<vector>().fill(value, from, cadddr(xs)), unspecified;
       }
     });
 
@@ -1227,7 +1475,7 @@ inline namespace kernel
 
     ------------------------------------------------------------------------- */
 
-    define<procedure>("throw", [](let const& xs) -> let
+    define<procedure>("default-exception-handler", [](let const& xs) -> let
     {
       throw car(xs);
     });
@@ -1531,7 +1779,7 @@ inline namespace kernel
     {
       try
       {
-        return make<character>(car(xs).as<input_port>());
+        return make<character>(car(xs).as<std::istream>());
       }
       catch (tagged_read_error<eof> const&)
       {
@@ -1543,9 +1791,9 @@ inline namespace kernel
     {
       try
       {
-        auto const g = car(xs).as<input_port>().tellg();
-        let const c = make<character>(car(xs).as<input_port>());
-        car(xs).as<input_port>().seekg(g);
+        auto const g = car(xs).as<std::istream>().tellg();
+        let const c = make<character>(car(xs).as<std::istream>());
+        car(xs).as<std::istream>().seekg(g);
         return c;
       }
       catch (tagged_read_error<eof> const&)
@@ -1565,7 +1813,7 @@ inline namespace kernel
 
     define<procedure>("::char-ready?", [](let const& xs)
     {
-      return car(xs).as<input_port const>() ? t : f;
+      return car(xs).as<std::istream>() ? t : f;
     });
 
 
@@ -1577,13 +1825,13 @@ inline namespace kernel
 
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write(cadr(xs).as<output_port>());
+      car(xs).as<character>().write(cadr(xs).as<std::ostream>());
       return unspecified;
     });
 
     define<procedure>("::write-string", [](let const& xs)
     {
-      car(xs).as<string>().write_string(cadr(xs).as<output_port>());
+      car(xs).as<string>().write_string(cadr(xs).as<std::ostream>());
       return unspecified;
     });
 
@@ -1592,14 +1840,14 @@ inline namespace kernel
 
     define<procedure>("::write-path", [](let const& xs)
     {
-      cadr(xs).as<output_port>() << car(xs).as<path>().c_str();
+      cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
       return unspecified;
     });
 
 
     define<procedure>("::flush-output-port", [](let const& xs)
     {
-      car(xs).as<output_port>() << std::flush;
+      car(xs).as<std::ostream>() << std::flush;
       return unspecified;
     });
 
@@ -1662,15 +1910,15 @@ inline namespace kernel
     {
       if (xs.is<null>() or car(xs) == t)
       {
-        throw boost::exit_success;
+        throw exit_status::success;
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        throw x.as<exact_integer>().to<int>();
+        throw exit_status(x.as<exact_integer>().to<int>());
       }
       else
       {
-        throw boost::exit_failure;
+        throw exit_status::failure;
       }
     });
 
@@ -1708,11 +1956,11 @@ inline namespace kernel
       }
     });
 
-    define<procedure>("syntactic-keyword?", is<syntactic_keyword>());
+    define<procedure>("syntactic-keyword?", is<identifier>());
 
     define<procedure>("identifier->symbol", [](let const& xs)
     {
-      return car(xs).as<syntactic_keyword>().unwrap_syntax();
+      return car(xs).as<identifier>().unwrap_syntax();
     });
 
     /* -------------------------------------------------------------------------
@@ -1731,13 +1979,13 @@ inline namespace kernel
       }
       else
       {
-        return x.is<syntactic_keyword>() or x.is<symbol>() ? t : f;
+        return x.is<identifier>() or x.is<symbol>() ? t : f;
       }
     });
   }
 
   template <>
-  void syntactic_continuation::boot(layer<3>)
+  void syntactic_continuation::boot<layer::standard_libraries>()
   {
     std::vector<string_view> const codes {
       overture,
@@ -1764,7 +2012,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot(layer<4>)
+  void syntactic_continuation::boot<layer::extensions>()
   {
     define<procedure>("disassemble", [](let const& xs)
     {

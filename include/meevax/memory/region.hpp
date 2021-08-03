@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_MEMORY_REGION_HPP
 #define INCLUDED_MEEVAX_MEMORY_REGION_HPP
 
@@ -21,63 +37,23 @@ inline namespace memory
     deallocator<void>::signature deallocate = nullptr;
 
   public:
-    explicit region(pointer<void> const base, std::size_t const size)
-      : base { base }
-      , size { size }
-    {}
+    explicit region(pointer<void> const, std::size_t const);
 
-    ~region()
-    {
-      release();
-    }
+    ~region();
 
-    auto lower_bound() const noexcept
-    {
-      return reinterpret_cast<std::uintptr_t>(base);
-    }
+    auto assigned() const noexcept -> bool;
 
-    auto upper_bound() const noexcept
-    {
-      return lower_bound() + size;
-    }
+    auto contains(std::uintptr_t const) const noexcept -> bool;
 
-    auto contains(std::uintptr_t const k) const noexcept
-    {
-      return lower_bound() <= k and k < upper_bound();
-    }
+    auto contains(pointer<void> const) const noexcept -> bool;
 
-    auto contains(pointer<void> const derived) const noexcept
-    {
-      return contains(reinterpret_cast<std::uintptr_t>(derived));
-    }
+    auto lower_bound() const noexcept -> std::uintptr_t;
 
-    auto assigned() const noexcept
-    {
-      return derived and deallocate;
-    }
+    auto release() -> void;
 
-    auto reset(pointer<void> const x, deallocator<void>::signature const f) noexcept
-    {
-      if (not assigned())
-      {
-        derived = x;
-        deallocate = f;
-      }
+    auto reset(pointer<void> const, deallocator<void>::signature const) noexcept -> pointer<region>;
 
-      return this;
-    }
-
-    void release()
-    {
-      if (assigned())
-      {
-        deallocate(derived);
-      }
-
-      reset(nullptr, nullptr);
-
-      size = 0;
-    }
+    auto upper_bound() const noexcept -> std::uintptr_t;
   };
 } // namespace memory
 } // namespace meevax

@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
@@ -11,17 +27,17 @@ namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- System Layers --------------------------------------------------------
-   *
-   *  Layer 0 - Module System (Program Structures)
-   *  Layer 1 - R7RS Primitive Expression Types
-   *  Layer 2 - R7RS Standard Procedures
-   *  Layer 3 - Basis Library
-   *  Layer 4 - Experimental Procedures
-   *
-   * ------------------------------------------------------------------------ */
-  template <std::size_t N>
-  using layer = std::integral_constant<decltype(N), N>;
+  enum class layer : std::size_t
+  {
+    declarations,        // 5.
+    primitives,          // 4.1.
+    standard_procedures, // 6.
+    standard_libraries,  // Appendix A
+    extensions,
+  };
+
+  template <auto Value>
+  using boot_upto = typename std::integral_constant<decltype(Value), Value>;
 
   class syntactic_continuation
     : public virtual pair
@@ -31,14 +47,19 @@ inline namespace kernel
     , public reader       <syntactic_continuation>
     , public writer       <syntactic_continuation>
   {
+    /* ---- NOTE ---------------------------------------------------------------
+     *
+     *  If this class is constructed as make<syntactic_continuation>(...) then
+     *  the heterogeneous::binder will have forwarded all constructor arguments
+     *  to the virtual base class pair in advance, and this constructor will be
+     *  called without any arguments.
+     *
+     *  (See the heterogeneous::binder::binder for details)
+     *
+     * ---------------------------------------------------------------------- */
+    using pair::pair;
+
   public:
-    struct initializer
-    {
-      explicit initializer();
-
-      ~initializer();
-    };
-
     static inline std::unordered_map<std::string, let> symbols;
 
     static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
@@ -46,6 +67,19 @@ inline namespace kernel
     std::size_t generation = 0;
 
     let datum = unit;
+
+    struct initializer
+    {
+      explicit initializer();
+
+      ~initializer();
+    };
+
+    using configurator::is_batch_mode;
+    using configurator::is_debug_mode;
+    using configurator::is_interactive_mode;
+    using configurator::is_trace_mode;
+    using configurator::is_verbose_mode;
 
     using reader::read;
 
@@ -56,73 +90,53 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    using configurator::is_batch_mode;
-    using configurator::is_debug_mode;
-    using configurator::is_interactive_mode;
-    using configurator::is_trace_mode;
-    using configurator::is_verbose_mode;
-
-  public:
-    auto build() // NOTE: Only FORK instructions may execute this function.
+    template <auto Layer>
+    explicit syntactic_continuation(boot_upto<Layer>)
+      : syntactic_continuation { boot_upto<underlying_decrement(Layer)>() }
     {
-      /* ---- NOTE -------------------------------------------------------------
-       *
-       *  If this class was instantiated by the FORK instruction, the instance
-       *  will have received the compilation continuation as a constructor
-       *  argument.
-       *
-       *  The car part contains the registers of the virtual Lisp machine
-       *  (s e c . d). The cdr part is set to the global environment at the
-       *  time the FORK instruction was executed.
-       *
-       *  Here, the value in the c register is the operand of the FORK
-       *  instruction. The operand of the FORK instruction is a pair of a
-       *  lambda expression form passed to the syntax fork/csc and a lexical
-       *  environment.
-       *
-       * -------------------------------------------------------------------- */
-      if (std::get<0>(*this).is<continuation>())
-      {
-        /* ---- NOTE -----------------------------------------------------------
-         *
-         *  If this class is constructed as make<syntactic_continuation>(...),
-         *  this object until the constructor is completed, the case noted that
-         *  it is the state that is not registered in the GC.
-         *
-         * ------------------------------------------------------------------ */
-        // let const backup = cons(std::get<0>(*this),
-        //                         std::get<1>(*this));
-
-        auto const& k = std::get<0>(*this).as<continuation>();
-
-        s = k.s();
-        e = k.e();
-        c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
-        d = k.d();
-
-        form() = execute();
-
-        assert(form().is<closure>());
-      }
+      boot<Layer>();
     }
 
-    auto form()               const noexcept -> let const& { return std::get<0>(*this); }
-    auto form()                     noexcept -> let      & { return std::get<0>(*this); }
+    auto operator [](let const&) -> let const&;
 
-    auto global_environment() const noexcept -> let const& { return std::get<1>(*this); }
-    auto global_environment()       noexcept -> let      & { return std::get<1>(*this); }
+    auto operator [](std::string const&) -> let const&;
 
-    auto current_expression() const -> decltype(auto)
+    template <auto = layer::declarations>
+    void boot()
+    {}
+
+    auto build() -> void; // NOTE: Only fork() may call this function.
+
+    auto current_expression() const -> let const&;
+
+    auto define(let const&, let const&) -> let const&;
+
+    auto define(std::string const&, let const&) -> let const&;
+
+    template <typename T, typename... Ts>
+    auto define(std::string const& name, Ts&&... xs)
     {
-      return car(form());
+      return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto dynamic_environment() const -> decltype(auto)
-    {
-      return cdr(form());
-    }
+    auto dynamic_environment() const -> let const&;
 
-    let static const& intern(std::string const& s)
+    auto evaluate(let const&) -> let;
+
+    auto execute() -> let;
+
+    auto fork() const -> let;
+
+    auto form() const noexcept -> let const&;
+
+    auto form() noexcept -> let &;
+
+    auto global_environment() const noexcept -> let const&;
+
+    auto global_environment() noexcept -> let &;
+
+    // TODO MOVE INTO reader
+    static auto intern(std::string const& s) -> let const&
     {
       if (auto const iter = symbols.find(s); iter != std::end(symbols))
       {
@@ -138,172 +152,13 @@ inline namespace kernel
       }
     }
 
-    template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs)
-    {
-      return machine<syntactic_continuation>::define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
-    }
+    auto load(std::string const&) -> let;
 
-    template <typename... Ts>
-    auto define(std::string const& name, Ts&&... xs)
-    {
-      return machine<syntactic_continuation>::define(intern(name), std::forward<decltype(xs)>(xs)...);
-    }
+    auto load(let const& x) -> let;
 
-    auto execute() -> let const
-    {
-      static constexpr auto trace = true;
-
-      if (is_trace_mode())
-      {
-        return machine::execute<trace>();
-      }
-      else
-      {
-        return machine::execute();
-      }
-    }
-
-    auto macroexpand(let const& keyword, let const& form)
-    {
-      ++generation;
-
-      // XXX ???
-      push(d, s, e, cons(make<instruction>(mnemonic::STOP), c));
-
-      s = unit;
-
-      // TODO (3)
-      // make<procedure>("rename", [this](auto&& xs)
-      // {
-      //   const auto id { car(xs) };
-      //
-      //
-      // });
-
-      e = cons(
-            // form, // <lambda> parameters
-            cons(keyword, cdr(form)),
-            dynamic_environment());
-      // TODO (4)
-      // => e = cons(
-      //          list(
-      //            expression,
-      //            make<procedure>("rename", [this](auto&& xs) { ... }),
-      //            make<procedure>("compare", [this](auto&& xs) { ... })
-      //            ),
-      //          dynamic_environment()
-      //          );
-
-      // for (auto const& each : global_environment())
-      // {
-      //   std::cout << "  " << each << std::endl;
-      // }
-
-      c = current_expression();
-
-      return execute();
-    }
-
-    auto evaluate(let const& expression)
-    {
-      if (is_debug_mode())
-      {
-        write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
-      }
-
-      c = compile(in_context_free, *this, expression);
-
-      if (is_debug_mode())
-      {
-        write_to(standard_debug_port(), "\n");
-        disassemble(standard_debug_port().as<output_port>(), c);
-      }
-
-      return execute();
-    }
-
-    auto load(std::string const& s)
-    {
-      write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
-
-      if (let port = make<input_file_port>(s); port and port.as<input_file_port>().is_open())
-      {
-        write_to(standard_debug_port(), t, "\n");
-
-        for (let e = read(port); e != eof_object; e = read(port))
-        {
-          write_to(standard_debug_port(), header(__func__), e, "\n");
-
-          evaluate(e);
-        }
-
-        return unspecified;
-      }
-      else
-      {
-        write_to(standard_debug_port(), f, "\n");
-
-        throw file_error(make<string>("failed to open file: " + s), unit);
-      }
-    }
-
-    auto load(let const& x)
-    {
-      if (x.is<symbol>())
-      {
-        return load(x.as<symbol>());
-      }
-      else if (x.is<string>())
-      {
-        return load(x.as<string>());
-      }
-      else if (x.is<path>())
-      {
-        return load(x.as<path>());
-      }
-      else
-      {
-        throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
-      }
-    }
-
-    let const& operator [](let const& name)
-    {
-      return cdr(machine::locate(name, global_environment()));
-    }
-
-    decltype(auto) operator [](std::string const& name)
-    {
-      return (*this)[intern(name)];
-    }
+    auto macroexpand(let const& keyword, let const& form) -> let;
 
   private:
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  If this class is constructed as make<syntactic_continuation>(...) then
-     *  the heterogeneous::binder will have forwarded all constructor arguments
-     *  to the virtual base class pair in advance, and this constructor will be
-     *  called without any arguments.
-     *
-     *  (See the heterogeneous::binder::binder for details)
-     *
-     * ---------------------------------------------------------------------- */
-    using pair::pair;
-
-  public:
-    template <std::size_t N>
-    explicit syntactic_continuation(layer<N>)
-      : syntactic_continuation { layer<decrement(N)>() }
-    {
-      boot(layer<N>());
-    }
-
-    template <std::size_t N>
-    void boot(layer<N>)
-    {}
-
-  public:
     SYNTAX(exportation)
     {
       if (is_verbose_mode())
@@ -370,28 +225,30 @@ inline namespace kernel
     }
   };
 
-  static_assert(std::is_base_of<pair, syntactic_continuation>::value);
+  template <>
+  syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>);
 
-  auto operator >>(std::istream &, syntactic_continuation      &) -> std::istream &;
-  auto operator <<(std::ostream &, syntactic_continuation      &) -> std::ostream &;
+  template <> auto syntactic_continuation::boot<layer::declarations       >() -> void;
+  template <> auto syntactic_continuation::boot<layer::primitives         >() -> void;
+  template <> auto syntactic_continuation::boot<layer::standard_procedures>() -> void;
+  template <> auto syntactic_continuation::boot<layer::standard_libraries >() -> void;
+  template <> auto syntactic_continuation::boot<layer::extensions         >() -> void;
+
+  auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
+
+  auto operator <<(std::ostream &, syntactic_continuation &) -> std::ostream &;
+
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
-  extern template class configurator <syntactic_continuation>;
-  extern template class debugger     <syntactic_continuation>;
-  extern template class machine      <syntactic_continuation>;
-  extern template class reader       <syntactic_continuation>;
-  extern template class writer       <syntactic_continuation>;
+  extern template class configurator<syntactic_continuation>;
 
-  template <> void syntactic_continuation::boot(layer<0>);
-  template <> void syntactic_continuation::boot(layer<1>);
-  template <> void syntactic_continuation::boot(layer<2>);
-  template <> void syntactic_continuation::boot(layer<3>);
-  template <> void syntactic_continuation::boot(layer<4>);
+  extern template class debugger<syntactic_continuation>;
 
-  template <>
-  syntactic_continuation::syntactic_continuation(layer<0>)
-    : syntactic_continuation::syntactic_continuation {}
-  {}
+  extern template class machine<syntactic_continuation>;
+
+  extern template class reader<syntactic_continuation>;
+
+  extern template class writer<syntactic_continuation>;
 
   static syntactic_continuation::initializer initializer;
 } // namespace kernel

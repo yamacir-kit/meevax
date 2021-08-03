@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 #define INCLUDED_MEEVAX_KERNEL_OBJECT_HPP
 
@@ -36,9 +52,9 @@ inline namespace kernel
       }
     }
 
-    virtual auto write_to(output_port & port) const -> output_port &
+    virtual auto write_to(std::ostream & os) const -> std::ostream &
     {
-      return delay<write>().yield<output_port &>(port, static_cast<T const&>(*this));
+      return delay<write>().yield<std::ostream &>(os, static_cast<T const&>(*this));
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \
@@ -64,35 +80,16 @@ inline namespace kernel
   };
 
   template <typename T, typename... Ts>
-  inline constexpr auto make(Ts&&... xs)
+  constexpr auto make(Ts&&... xs)
   {
     return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
   }
 
   template <typename T>
-  inline constexpr auto make(T&& x)
+  constexpr auto make(T&& x)
   {
     return let::allocate<typename std::decay<T>::type>(std::forward<decltype(x)>(x));
   }
-
-  template <typename T> using is_object    = std::is_base_of<                       let       , typename std::decay<T>::type>;
-  template <typename T> using is_reference = std::is_base_of<std::reference_wrapper<let const>, typename std::decay<T>::type>;
-
-  auto unwrap = [](auto&& x) -> decltype(auto)
-  {
-    if constexpr (is_object<decltype(x)>::value)
-    {
-      return x.load();
-    }
-    else if constexpr (is_reference<decltype(x)>::value)
-    {
-      return x.get().load();
-    }
-    else
-    {
-      return std::forward<decltype(x)>(x);
-    }
-  };
 } // namespace kernel
 } // namespace meevax
 

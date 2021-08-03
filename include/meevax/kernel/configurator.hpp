@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 #define INCLUDED_MEEVAX_KERNEL_CONFIGURATOR_HPP
 
@@ -7,7 +23,6 @@
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
-#include <meevax/kernel/string.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax
@@ -56,10 +71,10 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair('h', [this](auto&&...)
+          std::make_pair('h', [this](auto&&...) -> let
           {
             display_help();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
 
           std::make_pair('i', [this](auto&&...)
@@ -67,10 +82,10 @@ inline namespace kernel
             return interactive = t;
           }),
 
-          std::make_pair('v', [this](auto&&...)
+          std::make_pair('v', [this](auto&&...) -> let
           {
             display_version();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
         }
 
@@ -104,10 +119,10 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair("help", [this](auto&&...)
+          std::make_pair("help", [this](auto&&...) -> let
           {
             display_help();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
 
           std::make_pair("interactive", [this](auto&&...)
@@ -125,12 +140,12 @@ inline namespace kernel
             return verbose = t;
           }),
 
-          std::make_pair("version", [this](auto&&...)
+          std::make_pair("version", [this](auto&&...) -> let
           {
             display_version();
             newline();
             display_license();
-            return std::exit(boost::exit_success), unspecified;
+            throw exit_status::success;
           }),
         }
 
@@ -258,7 +273,7 @@ inline namespace kernel
 
     void display_license() const
     {
-      write_line("   Copyright 2020 Tatsuya Yamasaki");
+      write_line("   Copyright 2018-2021 Tatsuya Yamasaki.");
       write_line();
       write_line("   Licensed under the Apache License, Version 2.0 (the \"License\");");
       write_line("   you may not use this file except in compliance with the License.");

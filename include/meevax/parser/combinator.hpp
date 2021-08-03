@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #ifndef INCLUDED_MEEVAX_PARSER_COMBINATOR_HPP
 #define INCLUDED_MEEVAX_PARSER_COMBINATOR_HPP
 
@@ -13,7 +29,7 @@
 namespace meevax
 {
   template <typename R>
-  using parser = std::function<R (input_port &)>;
+  using parser = std::function<R (std::istream &)>;
 
   auto get_char = [](auto&& port = std::cin)
   {
@@ -74,11 +90,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator +(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       codeunits result {};
 
@@ -89,10 +105,10 @@ namespace meevax
     };
   }
 
-  template <typename F, REQUIRES(std::is_invocable<F, input_port &>)>
+  template <typename F, REQUIRES(std::is_invocable<F, std::istream &>)>
   auto operator *(F&& f, int k)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       codeunits result {};
 
@@ -105,7 +121,7 @@ namespace meevax
     };
   }
 
-  template <typename F, REQUIRES(std::is_invocable<F, input_port &>)>
+  template <typename F, REQUIRES(std::is_invocable<F, std::istream &>)>
   auto operator *(int k, F&& f)
   {
     return f * k;
@@ -113,7 +129,7 @@ namespace meevax
 
   auto many = [](auto&& parse)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       codeunits result;
 
@@ -133,11 +149,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator |(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       auto const backtrack = port.tellg();
 
@@ -155,7 +171,7 @@ namespace meevax
 
   auto backtrack = [](auto&& parse)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       auto const g = port.tellg();
 
@@ -181,7 +197,7 @@ namespace meevax
 
   auto string1 = [](codeunits const& s)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       for (auto const& c : s)
       {
@@ -194,11 +210,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator <<(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       auto const result = f(port);
       g(port);
@@ -208,11 +224,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator >>(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       return f(port), g(port);
     };

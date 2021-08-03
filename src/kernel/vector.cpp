@@ -1,3 +1,19 @@
+/*
+   Copyright 2018-2021 Tatsuya Yamasaki.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #include <boost/range/adaptors.hpp>
 #include <meevax/algorithm/for_each.hpp>
 #include <meevax/kernel/error.hpp>
@@ -10,7 +26,11 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let vector::fill(let const& value, vector::size_type from, vector::size_type to)
+  vector::vector(for_each_in_tag, let const& xs)
+    : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
+  {}
+
+  auto vector::fill(let const& value, vector::size_type from, vector::size_type to) -> void
   {
     using boost::adaptors::sliced;
 
@@ -18,11 +38,25 @@ inline namespace kernel
     {
       each = value;
     }
-
-    return value;
   }
 
-  let vector::to_list(vector::size_type from, vector::size_type to) const
+  auto vector::fill(let const& value, size_type from) -> void
+  {
+    fill(value, from, size());
+  }
+
+  auto vector::fill(let const& value, let const& from) -> void
+  {
+    fill(value, from.as<exact_integer>().to<vector::size_type>());
+  }
+
+  auto vector::fill(let const& value, let const& from, let const& to) -> void
+  {
+    fill(value, from.as<exact_integer>().to<vector::size_type>(),
+                  to.as<exact_integer>().to<vector::size_type>());
+  }
+
+  auto vector::to_list(vector::size_type from, vector::size_type to) const -> value_type
   {
     using boost::adaptors::reversed;
     using boost::adaptors::sliced;
@@ -37,7 +71,7 @@ inline namespace kernel
     return x;
   }
 
-  let vector::to_string(vector::size_type from, vector::size_type to) const
+  auto vector::to_string(vector::size_type from, vector::size_type to) const -> value_type
   {
     using boost::adaptors::sliced;
 
@@ -66,9 +100,9 @@ inline namespace kernel
                       std::begin(rhs), std::end(rhs), equal);
   }
 
-  auto operator <<(output_port & port, vector const& datum) -> output_port &
+  auto operator <<(std::ostream & os, vector const& datum) -> std::ostream &
   {
-    return port << magenta << "#(" << reset << for_each(datum) << magenta << ")" << reset;
+    return os << magenta << "#(" << reset << for_each(datum) << magenta << ")" << reset;
   }
 } // namespace kernel
 } // namespace meevax

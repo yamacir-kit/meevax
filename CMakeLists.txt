@@ -174,9 +174,15 @@ include(CPack)
 
 enable_testing()
 
+set(MEMCHECK valgrind --error-exitcode=1 # = EXIT_FAILURE
+                      --leak-check=full
+                      --quiet
+                      --show-leak-kinds=all)
+
 macro(define_test TEST_NAME)
   add_test(NAME ${TEST_NAME}
-           COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+           COMMAND ${MEMCHECK}
+                   ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
                    ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
 endmacro()
 
