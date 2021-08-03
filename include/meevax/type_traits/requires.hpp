@@ -14,15 +14,12 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_UTILITY_REQUIRES_HPP
-#define INCLUDED_MEEVAX_UTILITY_REQUIRES_HPP
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_REQUIRES_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_REQUIRES_HPP
 
 #include <type_traits>
 
 #define REQUIRES(...) \
-  typename = typename std::enable_if< \
-    std::conjunction<__VA_ARGS__>::value \
-  >::type
+  typename = typename std::enable_if<std::conjunction<__VA_ARGS__>::value>::type
 
-#endif // INCLUDED_MEEVAX_UTILITY_REQUIRES_HPP
-
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_REQUIRES_HPP

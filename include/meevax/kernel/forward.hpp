@@ -21,8 +21,8 @@
 #include <meevax/memory/cell.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/string/append.hpp>
+#include <meevax/type_traits/requires.hpp>
 #include <meevax/utility/hexdump.hpp>
-#include <meevax/utility/requires.hpp>
 
 #define NIL /* nothing */
 
