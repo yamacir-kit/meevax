@@ -21,7 +21,7 @@
 #include <numeric>
 
 #include <meevax/functional/combinator.hpp>
-#include <meevax/kernel/boolean.hpp>
+#include <meevax/kernel/equivalence.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/iterator.hpp>
 
@@ -129,40 +129,6 @@ inline namespace kernel
 
     return x;
   };
-
-  auto eq = [](auto const& x, auto const& y) constexpr // TODO MOVE INTO compare.hpp
-  {
-    return x == y;
-  };
-
-  auto eqv = [](auto const& x, auto const& y) // TODO MOVE INTO compare.hpp
-  {
-    return x.eqv(y);
-  };
-
-  auto equal(let const&, let const&) -> bool; // TODO MOVE INTO compare.hpp
-
-  template <std::size_t Coarseness = 0>
-  struct equivalence_comparator;
-
-  #define SPECIALIZE_EQUIVALENCE_COMPARATOR(COARSENESS, COMPARE)               \
-  template <>                                                                  \
-  struct equivalence_comparator<COARSENESS>                                    \
-  {                                                                            \
-    template <typename... Ts>                                                  \
-    constexpr decltype(auto) operator ()(Ts&&... xs) const                     \
-    {                                                                          \
-      return COMPARE(std::forward<decltype(xs)>(xs)...);                       \
-    }                                                                          \
-  }
-
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(0, eq);
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(1, eqv);
-  SPECIALIZE_EQUIVALENCE_COMPARATOR(2, equal);
-
-  #undef SPECIALIZE_EQUIVALENCE_COMPARATOR
-
-  using default_equivalence_comparator = equivalence_comparator<>;
 
   constexpr auto caar = compose(car, car);
   constexpr auto cadr = compose(car, cdr);

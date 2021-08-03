@@ -67,7 +67,7 @@ inline namespace kernel
      *
      *
      * ---------------------------------------------------------------------- */
-    auto const read(std::istream & is) -> let
+    auto read(std::istream & is) -> let
     {
       std::string token {};
 
@@ -174,7 +174,7 @@ inline namespace kernel
       }
     }
 
-    auto const read() -> let
+    auto read() -> let
     {
       let const result = read(default_input_port);
 

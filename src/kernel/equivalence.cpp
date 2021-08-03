@@ -20,48 +20,19 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto take(let const& exp, std::size_t size) -> let
-  {
-    if (0 < size)
-    {
-      return car(exp) | take(cdr(exp), --size);
-    }
-    else
-    {
-      return unit;
-    }
-  }
-
-  auto append(let const& x, let const& y) -> let
-  {
-    if (x.is<null>())
-    {
-      return y;
-    }
-    else
-    {
-      return cons(car(x), append(cdr(x), y));
-    }
-  }
-
-  auto reverse(let const& x) -> let
-  {
-    return x ? append(reverse(cdr(x)), list(car(x))) : unit;
-  }
-
-  auto zip(let const& x, let const& y) -> let
+  auto equal(let const& x, let const& y) -> bool
   {
     if (x.is<null>() and y.is<null>())
     {
-      return unit;
+      return true;
     }
     else if (x.is<pair>() and y.is<pair>())
     {
-      return list(car(x), car(y)) | zip(cdr(x), cdr(y));
+      return equal(car(x), car(y)) and equal(cdr(x), cdr(y));
     }
     else
     {
-      return unit;
+      return eqv(x, y);
     }
   }
 } // namespace kernel
