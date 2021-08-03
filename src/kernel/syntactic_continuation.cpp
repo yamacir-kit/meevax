@@ -17,7 +17,6 @@
 #include <ios>
 #include <iterator>
 
-#include <boost/cstdlib.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/adaptors.hpp>
 #include <meevax/kernel/basis.hpp>
@@ -34,12 +33,12 @@ inline namespace kernel
     : syntactic_continuation::syntactic_continuation {}
   {}
 
-  auto syntactic_continuation::operator [](let const& name) -> pair::const_reference
+  auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
     return cdr(machine::locate(name, global_environment()));
   }
 
-  auto syntactic_continuation::operator [](std::string const& name) -> pair::const_reference
+  auto syntactic_continuation::operator [](std::string const& name) -> const_reference
   {
     return (*this)[intern(name)];
   }
@@ -87,29 +86,29 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::current_expression() const -> pair::const_reference
+  auto syntactic_continuation::current_expression() const -> const_reference
   {
     return car(form());
   }
 
-  auto syntactic_continuation::define(let const& name, let const& value) -> let const&
+  auto syntactic_continuation::define(const_reference name, const_reference value) -> const_reference
   {
     assert(name.is<symbol>());
 
     return push(global_environment(), cons(name, value));
   }
 
-  auto syntactic_continuation::define(std::string const& name, let const& value) -> let const&
+  auto syntactic_continuation::define(std::string const& name, const_reference value) -> const_reference
   {
     return define(intern(name), value);
   }
 
-  auto syntactic_continuation::dynamic_environment() const -> pair::const_reference
+  auto syntactic_continuation::dynamic_environment() const -> const_reference
   {
     return cdr(form());
   }
 
-  auto syntactic_continuation::evaluate(let const& expression) -> let
+  auto syntactic_continuation::evaluate(const_reference expression) -> value_type
   {
     if (is_debug_mode())
     {
@@ -127,7 +126,7 @@ inline namespace kernel
     return execute();
   }
 
-  auto syntactic_continuation::execute() -> let
+  auto syntactic_continuation::execute() -> value_type
   {
     static constexpr auto trace = true;
 
@@ -141,7 +140,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::fork() const -> let
+  auto syntactic_continuation::fork() const -> value_type
   {
     let const module = make<syntactic_continuation>(current_continuation(), global_environment());
 
@@ -151,27 +150,27 @@ inline namespace kernel
     return module;
   }
 
-  auto syntactic_continuation::form() const noexcept -> pair::const_reference
+  auto syntactic_continuation::form() const noexcept -> const_reference
   {
     return std::get<0>(*this);
   }
 
-  auto syntactic_continuation::form() noexcept -> pair::reference
+  auto syntactic_continuation::form() noexcept -> reference
   {
-    return const_cast<let &>(std::as_const(*this).form());
+    return const_cast<reference>(std::as_const(*this).form());
   }
 
-  auto syntactic_continuation::global_environment() const noexcept -> pair::const_reference
+  auto syntactic_continuation::global_environment() const noexcept -> const_reference
   {
     return std::get<1>(*this);
   }
 
-  auto syntactic_continuation::global_environment() noexcept -> pair::reference
+  auto syntactic_continuation::global_environment() noexcept -> reference
   {
-    return const_cast<let &>(std::as_const(*this).global_environment());
+    return const_cast<reference>(std::as_const(*this).global_environment());
   }
 
-  auto syntactic_continuation::load(std::string const& s) -> let
+  auto syntactic_continuation::load(std::string const& s) -> value_type
   {
     write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
 
@@ -196,7 +195,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::load(let const& x) -> let
+  auto syntactic_continuation::load(const_reference x) -> value_type
   {
     if (x.is<symbol>())
     {
@@ -216,7 +215,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::macroexpand(let const& keyword, let const& form) -> let
+  auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
     ++generation;
 
@@ -2079,24 +2078,24 @@ inline namespace kernel
     });
   }
 
-  static std::size_t count = 0;
-
-  syntactic_continuation::initializer::initializer()
-  {
-    if (not count++)
-    {
-      symbols = {};
-      external_symbols = {}; // XXX DEPRECATED
-    }
-  }
-
-  syntactic_continuation::initializer::~initializer()
-  {
-    if (not --count)
-    {
-      symbols.clear();
-      external_symbols.clear(); // XXX DEPRECATED
-    }
-  }
+  // static std::size_t count = 0; // XXX DEPRECATED
+  //
+  // syntactic_continuation::initializer::initializer() // XXX DEPRECATED
+  // {
+  //   if (not count++)
+  //   {
+  //     symbols = {};
+  //     external_symbols = {}; // XXX DEPRECATED
+  //   }
+  // }
+  //
+  // syntactic_continuation::initializer::~initializer() // XXX DEPRECATED
+  // {
+  //   if (not --count)
+  //   {
+  //     symbols.clear();
+  //     external_symbols.clear(); // XXX DEPRECATED
+  //   }
+  // }
 } // namespace kernel
 } // namespace meevax

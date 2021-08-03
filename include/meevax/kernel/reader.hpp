@@ -48,6 +48,7 @@ inline namespace kernel
     IMPORT(SK, standard_debug_port, NIL);
     IMPORT(SK, write_to,            NIL);
 
+  public:
     using char_type = typename std::istream::char_type;
 
     using seeker = std::istream_iterator<char_type>;
@@ -55,7 +56,6 @@ inline namespace kernel
     template <char_type C>
     using char_constant = std::integral_constant<char_type, C>;
 
-  public:
     auto read(std::istream & is) -> let
     {
       std::string token {};

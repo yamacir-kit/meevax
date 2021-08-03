@@ -68,12 +68,12 @@ inline namespace kernel
 
     let datum = unit;
 
-    struct initializer
-    {
-      explicit initializer();
-
-      ~initializer();
-    };
+    // struct initializer
+    // {
+    //   explicit initializer();
+    //
+    //   ~initializer();
+    // };
 
     using configurator::is_batch_mode;
     using configurator::is_debug_mode;
@@ -97,46 +97,45 @@ inline namespace kernel
       boot<Layer>();
     }
 
-    auto operator [](let const&) -> pair::const_reference;
+    auto operator [](const_reference) -> const_reference;
 
-    auto operator [](std::string const&) -> pair::const_reference;
+    auto operator [](std::string const&) -> const_reference;
 
     template <auto = layer::declarations>
-    void boot()
-    {}
+    void boot();
 
     auto build() -> void; // NOTE: Only fork() may call this function.
 
-    auto current_expression() const -> pair::const_reference;
+    auto current_expression() const -> const_reference;
 
-    auto define(let const&, let const&) -> let const&;
+    auto define(const_reference, const_reference) -> const_reference;
 
-    auto define(std::string const&, let const&) -> let const&;
+    auto define(std::string const&, const_reference) -> const_reference;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs) -> decltype(auto)
+    auto define(std::string const& name, Ts&&... xs) -> const_reference
     {
       return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto dynamic_environment() const -> pair::const_reference;
+    auto dynamic_environment() const -> const_reference;
 
-    auto evaluate(let const&) -> let;
+    auto evaluate(const_reference) -> value_type;
 
-    auto execute() -> let;
+    auto execute() -> value_type;
 
-    auto fork() const -> let;
+    auto fork() const -> value_type;
 
-    auto form() const noexcept -> pair::const_reference;
+    auto form() const noexcept -> const_reference;
 
-    auto form() noexcept -> pair::reference;
+    auto form() noexcept -> reference;
 
-    auto global_environment() const noexcept -> pair::const_reference;
+    auto global_environment() const noexcept -> const_reference;
 
-    auto global_environment() noexcept -> pair::reference;
+    auto global_environment() noexcept -> reference;
 
     // TODO MOVE INTO reader
-    static auto intern(std::string const& s) -> pair::const_reference
+    static auto intern(std::string const& s) -> const_reference
     {
       if (auto const iter = symbols.find(s); iter != std::end(symbols))
       {
@@ -152,11 +151,11 @@ inline namespace kernel
       }
     }
 
-    auto load(std::string const&) -> let;
+    auto load(std::string const&) -> value_type;
 
-    auto load(let const& x) -> let;
+    auto load(const_reference) -> value_type;
 
-    auto macroexpand(let const& keyword, let const& form) -> let;
+    auto macroexpand(const_reference, const_reference) -> value_type;
 
   private:
     SYNTAX(exportation)
@@ -250,7 +249,7 @@ inline namespace kernel
 
   extern template class writer<syntactic_continuation>;
 
-  static syntactic_continuation::initializer initializer;
+  // static syntactic_continuation::initializer initializer;
 } // namespace kernel
 } // namespace meevax
 
