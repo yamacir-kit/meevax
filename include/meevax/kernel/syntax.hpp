@@ -54,7 +54,7 @@ inline namespace kernel
     }
   };
 
-  auto operator <<(output_port &, syntax const&) -> output_port &;
+  auto operator <<(std::ostream &, syntax const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

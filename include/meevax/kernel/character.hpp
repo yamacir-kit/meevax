@@ -41,11 +41,6 @@ inline namespace kernel
   {
     codepoint value;
 
-    [[deprecated]]
-    auto read_codeunit(input_port &) const -> codeunit;
-
-    auto read(input_port &) const -> codepoint;
-
     explicit character() = default;
 
     /* ---- R7RS 6.6. Characters -----------------------------------------------
@@ -80,9 +75,7 @@ inline namespace kernel
      *  characters are available, an end-of-file object is returned.
      *
      * ---------------------------------------------------------------------- */
-    explicit character(input_port & port)
-      : value { read(port) }
-    {}
+    explicit character(std::istream &);
 
     /* ---- R7RS 6.6. Characters -----------------------------------------------
      *
@@ -107,10 +100,12 @@ inline namespace kernel
       return value;
     }
 
-    operator codeunit() const
-    {
-      return codepoint_to_codeunit(value);
-    }
+    operator codeunit() const;
+
+    auto read(std::istream &) const -> codepoint;
+
+    [[deprecated]]
+    auto read_codeunit(std::istream &) const -> codeunit;
 
     /* ---- R7RS 6.13.3. Output ------------------------------------------------
      *
@@ -122,7 +117,7 @@ inline namespace kernel
      *  value.
      *
      * --------------------------------------------------------------------- */
-    auto write(output_port &) const -> output_port &;
+    auto write(std::ostream &) const -> std::ostream &;
   };
 
   /* ---- R7RS 6.6. Characters -------------------------------------------------
@@ -165,7 +160,7 @@ inline namespace kernel
    *  do not have to be quoted in programs.
    *
    * ------------------------------------------------------------------------ */
-  auto operator <<(output_port & port, character const&) -> output_port &;
+  auto operator <<(std::ostream &, character const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

@@ -121,7 +121,7 @@ inline namespace kernel
     if (is_debug_mode())
     {
       write_to(standard_debug_port(), "\n");
-      disassemble(standard_debug_port().as<output_port>(), c);
+      disassemble(standard_debug_port().as<std::ostream>(), c);
     }
 
     return execute();
@@ -1779,7 +1779,7 @@ inline namespace kernel
     {
       try
       {
-        return make<character>(car(xs).as<input_port>());
+        return make<character>(car(xs).as<std::istream>());
       }
       catch (tagged_read_error<eof> const&)
       {
@@ -1791,9 +1791,9 @@ inline namespace kernel
     {
       try
       {
-        auto const g = car(xs).as<input_port>().tellg();
-        let const c = make<character>(car(xs).as<input_port>());
-        car(xs).as<input_port>().seekg(g);
+        auto const g = car(xs).as<std::istream>().tellg();
+        let const c = make<character>(car(xs).as<std::istream>());
+        car(xs).as<std::istream>().seekg(g);
         return c;
       }
       catch (tagged_read_error<eof> const&)
@@ -1813,7 +1813,7 @@ inline namespace kernel
 
     define<procedure>("::char-ready?", [](let const& xs)
     {
-      return car(xs).as<input_port const>() ? t : f;
+      return car(xs).as<std::istream>() ? t : f;
     });
 
 
@@ -1825,13 +1825,13 @@ inline namespace kernel
 
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write(cadr(xs).as<output_port>());
+      car(xs).as<character>().write(cadr(xs).as<std::ostream>());
       return unspecified;
     });
 
     define<procedure>("::write-string", [](let const& xs)
     {
-      car(xs).as<string>().write_string(cadr(xs).as<output_port>());
+      car(xs).as<string>().write_string(cadr(xs).as<std::ostream>());
       return unspecified;
     });
 
@@ -1840,14 +1840,14 @@ inline namespace kernel
 
     define<procedure>("::write-path", [](let const& xs)
     {
-      cadr(xs).as<output_port>() << car(xs).as<path>().c_str();
+      cadr(xs).as<std::ostream>() << car(xs).as<path>().c_str();
       return unspecified;
     });
 
 
     define<procedure>("::flush-output-port", [](let const& xs)
     {
-      car(xs).as<output_port>() << std::flush;
+      car(xs).as<std::ostream>() << std::flush;
       return unspecified;
     });
 

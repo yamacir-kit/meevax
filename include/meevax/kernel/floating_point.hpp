@@ -120,19 +120,19 @@ inline namespace kernel
   };
 
   template <typename T>
-  auto operator <<(output_port & port, floating_point<T> const& rhs) -> output_port &
+  auto operator <<(std::ostream & os, floating_point<T> const& rhs) -> std::ostream &
   {
     if (std::isnan(rhs))
     {
-      return port << cyan << "+nan.0" << reset;
+      return os << cyan << "+nan.0" << reset;
     }
     else if (std::isinf(rhs))
     {
-      return port << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
+      return os << cyan << (0 < rhs.value ? '+' : '-') << "inf.0" << reset;
     }
     else
     {
-      return port << cyan << std::fixed << rhs.value << reset;
+      return os << cyan << std::fixed << rhs.value << reset;
     }
   }
 } // namespace kernel

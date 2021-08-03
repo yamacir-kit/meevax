@@ -53,11 +53,11 @@ inline namespace kernel
     return result;
   }
 
-  auto string::read(input_port & port) const -> characters
+  auto string::read(std::istream & is) const -> characters
   {
-    auto hex_scalar = [](input_port & port)
+    auto hex_scalar = [](std::istream & is)
     {
-      if (std::string token; std::getline(port, token, ';') and port.ignore(1))
+      if (std::string token; std::getline(is, token, ';') and is.ignore(1))
       {
         if (std::stringstream ss; ss << std::hex << token)
         {
@@ -74,7 +74,7 @@ inline namespace kernel
 
     characters cs;
 
-    for (auto c = character(port); not is_eof(c.value); c = character(port))
+    for (auto c = character(is); not is_eof(c.value); c = character(is))
     {
       switch (c.value)
       {
@@ -82,7 +82,7 @@ inline namespace kernel
         return cs;
 
       case '\\':
-        switch (auto const c = character(port); c.value)
+        switch (auto const c = character(is); c.value)
         {
         case 'a': cs.emplace_back('\a'); break;
         case 'b': cs.emplace_back('\b'); break;
@@ -93,12 +93,12 @@ inline namespace kernel
         case 'v': cs.emplace_back('\v'); break;
 
         case 'x':
-          cs.emplace_back(hex_scalar(port));
+          cs.emplace_back(hex_scalar(is));
           break;
 
         case '\n':
         case '\r':
-          ignore(port, is_intraline_whitespace);
+          ignore(is, is_intraline_whitespace);
           break;
 
         default:
@@ -117,12 +117,12 @@ inline namespace kernel
       make<string>("unterminated string"), unit);
   }
 
-  auto string::write_string(output_port & port) const -> output_port &
+  auto string::write_string(std::ostream & os) const -> std::ostream &
   {
-    return port << static_cast<codeunits const&>(*this);
+    return os << static_cast<codeunits const&>(*this);
   }
 
-  auto operator <<(std::ostream & port, string const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
   {
     auto print = [&](character const& c) -> decltype(auto)
     {
@@ -130,33 +130,33 @@ inline namespace kernel
       {
         switch (c.value)
         {
-        case '\a': return port << red << "\\a";
-        case '\b': return port << red << "\\b";
-        case '\t': return port << red << "\\t";
-        case '\n': return port << red << "\\n";
-        case '\r': return port << red << "\\r";
-        case '\"': return port << red << "\\\"";
-        case '\\': return port << red << "\\\\";
-        case '|':  return port << red << "\\|";
+        case '\a': return os << red << "\\a";
+        case '\b': return os << red << "\\b";
+        case '\t': return os << red << "\\t";
+        case '\n': return os << red << "\\n";
+        case '\r': return os << red << "\\r";
+        case '\"': return os << red << "\\\"";
+        case '\\': return os << red << "\\\\";
+        case '|':  return os << red << "\\|";
 
         default:
-          return port << cyan << static_cast<char>(c.value);
+          return os << cyan << static_cast<char>(c.value);
         }
       }
       else
       {
-        return port << red << "\\x" << std::hex << std::uppercase << c.value << ";";
+        return os << red << "\\x" << std::hex << std::uppercase << c.value << ";";
       }
     };
 
-    port << cyan << "\"";
+    os << cyan << "\"";
 
     for (auto const& each : datum)
     {
       print(each);
     }
 
-    return port << cyan << "\"" << reset;
+    return os << cyan << "\"" << reset;
   }
 } // namespace kernel
 } // namespace meevax

@@ -86,7 +86,7 @@ inline namespace kernel
   template <typename T, REQUIRES(std::is_integral<T>)> auto operator > (exact_integer const& a, T&& b) { return a.value >  b; }
   template <typename T, REQUIRES(std::is_integral<T>)> auto operator >=(exact_integer const& a, T&& b) { return a.value >= b; }
 
-  auto operator <<(output_port & port, exact_integer const&) -> output_port &;
+  auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

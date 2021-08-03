@@ -52,9 +52,9 @@ inline namespace kernel
       }
     }
 
-    virtual auto write_to(output_port & port) const -> output_port &
+    virtual auto write_to(std::ostream & os) const -> std::ostream &
     {
-      return delay<write>().yield<output_port &>(port, static_cast<T const&>(*this));
+      return delay<write>().yield<std::ostream &>(os, static_cast<T const&>(*this));
     }
 
     #define BOILERPLATE(SYMBOL, RESULT, FUNCTOR)                               \

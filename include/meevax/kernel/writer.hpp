@@ -38,7 +38,7 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(output_port & port, Ts&&... xs) const -> output_port &
+    auto write_to(std::ostream & port, Ts&&... xs) const -> std::ostream &
     {
       return (port << ... << xs) << reset;
     }
@@ -46,7 +46,7 @@ inline namespace kernel
     template <typename... Ts>
     auto write_to(let const& x, Ts&&... xs) const -> decltype(auto)
     {
-      return write_to(x.as<output_port>(), std::forward<decltype(xs)>(xs)...);
+      return write_to(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
     }
 
     template <typename... Ts>

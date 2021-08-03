@@ -110,13 +110,13 @@ inline namespace kernel
      *  available before the end of file, an end-of-file object is returned.
      *
      * ---------------------------------------------------------------------- */
-    // TODO string(input_port &, size_type k);
+    // TODO string(std::istream &, size_type k);
 
     operator codeunits() const;
 
-    auto read(input_port &) const -> characters;
+    auto read(std::istream &) const -> characters;
 
-    auto write_string(output_port &) const -> output_port &;
+    auto write_string(std::ostream &) const -> std::ostream &;
   };
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;

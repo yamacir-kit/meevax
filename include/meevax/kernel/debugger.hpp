@@ -42,12 +42,12 @@ inline namespace kernel
         std::cout << header("debugger") << "destruct tracker " << this << std::endl;
       }
 
-      friend auto operator <<(output_port & port, tracker const& datum) -> output_port &
+      friend auto operator <<(std::ostream & os, tracker const& datum) -> std::ostream &
       {
-        return port << magenta << "#("
-                    << green << "tracker" << reset
-                    << faint << " #;" << &datum << reset
-                    << magenta << ")" << reset;
+        return os << magenta << "#("
+                  << green << "tracker" << reset
+                  << faint << " #;" << &datum << reset
+                  << magenta << ")" << reset;
       }
     };
   };

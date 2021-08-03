@@ -40,9 +40,6 @@ inline namespace kernel
 
   using null = std::nullptr_t;
 
-  using  input_port = std::istream;
-  using output_port = std::ostream;
-
   template <typename... Ts>
   using define = typename identity<Ts...>::type;
 

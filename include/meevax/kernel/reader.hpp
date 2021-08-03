@@ -33,10 +33,10 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(input_port & port) -> std::string;
+  auto read_token(std::istream &) -> std::string;
 
   // TODO Move into reader class private
-  let read_char(input_port &);
+  auto read_char(std::istream &) -> let;
 
   /* ---- Reader ---------------------------------------------------------------
    *
@@ -55,7 +55,7 @@ inline namespace kernel
     IMPORT(SK, standard_debug_port, NIL);
     IMPORT(SK, write_to,            NIL);
 
-    using char_type = typename input_port::char_type;
+    using char_type = typename std::istream::char_type;
 
     using seeker = std::istream_iterator<char_type>;
 
@@ -67,16 +67,16 @@ inline namespace kernel
      *
      *
      * ---------------------------------------------------------------------- */
-    let const read(input_port & port)
+    auto const read(std::istream & is) -> let
     {
       std::string token {};
 
-      for (seeker head = port; head != seeker(); ++head)
+      for (seeker head = is; head != seeker(); ++head)
       {
         switch (auto const c = *head)
         {
         case ';':
-          port.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
 
         case ' ': case '\f': case '\n': case '\r': case '\t': case '\v':
@@ -87,22 +87,22 @@ inline namespace kernel
         case '{':
           try
           {
-            let const kar = read(port);
-            port.putback(c);
-            return cons(kar, read(port));
+            let const kar = read(is);
+            is.putback(c);
+            return cons(kar, read(is));
           }
           catch (tagged_read_error<char_constant<')'>> const&) { return char_eq(c, '(') ? unit : throw; }
           catch (tagged_read_error<char_constant<']'>> const&) { return char_eq(c, '[') ? unit : throw; }
           catch (tagged_read_error<char_constant<'}'>> const&) { return char_eq(c, '{') ? unit : throw; }
           catch (tagged_read_error<char_constant<'.'>> const&)
           {
-            let const kdr = read(port);
+            let const kdr = read(is);
 
             switch (c)
             {
-            case '(': ignore(port, [](auto c) { return not char_eq(c, ')'); }).get(); break;
-            case '[': ignore(port, [](auto c) { return not char_eq(c, ']'); }).get(); break;
-            case '{': ignore(port, [](auto c) { return not char_eq(c, '}'); }).get(); break;
+            case '(': ignore(is, [](auto c) { return not char_eq(c, ')'); }).get(); break;
+            case '[': ignore(is, [](auto c) { return not char_eq(c, ']'); }).get(); break;
+            case '{': ignore(is, [](auto c) { return not char_eq(c, '}'); }).get(); break;
             }
 
             return kdr;
@@ -118,30 +118,30 @@ inline namespace kernel
           throw tagged_read_error<char_constant<'}'>>(make<string>("unexpected character: "), make<character>(c));
 
         case '#':
-          return discriminate(port);
+          return discriminate(is);
 
         case '"':
-          return make<string>(port);
+          return make<string>(is);
 
         case '\'':
-          return list(intern("quote"), read(port));
+          return list(intern("quote"), read(is));
 
         case '`':
-          return list(intern("quasiquote"), read(port));
+          return list(intern("quasiquote"), read(is));
 
         case ',':
-          switch (port.peek())
+          switch (is.peek())
           {
           case '@':
-            port.ignore(1);
-            return list(intern("unquote-splicing"), read(port));
+            is.ignore(1);
+            return list(intern("unquote-splicing"), read(is));
 
           default:
-            return list(intern("unquote"), read(port));
+            return list(intern("unquote"), read(is));
           }
 
         default:
-          if (token.push_back(c); is_end_of_token(port.peek()))
+          if (token.push_back(c); is_end_of_token(is.peek()))
           {
             if (token == ".")
             {
@@ -164,9 +164,9 @@ inline namespace kernel
 
     auto read(let const& x) -> let
     {
-      if (x.is_polymorphically<input_port>())
+      if (x.is_polymorphically<std::istream>())
       {
-        return read(x.as<input_port>());
+        return read(x.as<std::istream>());
       }
       else
       {
@@ -174,7 +174,7 @@ inline namespace kernel
       }
     }
 
-    let const read()
+    auto const read() -> let
     {
       let const result = read(default_input_port);
 
@@ -183,20 +183,20 @@ inline namespace kernel
       return result;
     }
 
-    decltype(auto) read(std::string const& s)
+    auto read(std::string const& s) -> decltype(auto)
     {
-      std::stringstream port { s };
+      std::stringstream ss { s };
 
-      return read(port);
+      return read(ss);
     }
 
     auto ready() // TODO RENAME TO 'char-ready'
     {
-      return default_input_port.is_polymorphically<input_port>() and default_input_port.as<input_port>();
+      return default_input_port.is_polymorphically<std::istream>() and default_input_port.as<std::istream>();
     }
 
   private:
-    let const discriminate(input_port & is) // TODO MOVE INTO read
+    let const discriminate(std::istream & is) // TODO MOVE INTO read
     {
       switch (auto const discriminator = is.get())
       {

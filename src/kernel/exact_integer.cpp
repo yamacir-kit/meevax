@@ -24,9 +24,9 @@ inline namespace kernel
   let const e0 = make<exact_integer>(0);
   let const e1 = make<exact_integer>(1);
 
-  auto operator <<(output_port & port, exact_integer const& datum) -> output_port &
+  auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return port << cyan << datum.to_string() << reset;
+    return os << cyan << datum.to_string() << reset;
   }
 } // namespace kernel
 } // namespace meevax

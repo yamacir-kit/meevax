@@ -29,7 +29,7 @@
 namespace meevax
 {
   template <typename R>
-  using parser = std::function<R (input_port &)>;
+  using parser = std::function<R (std::istream &)>;
 
   auto get_char = [](auto&& port = std::cin)
   {
@@ -90,11 +90,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator +(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       codeunits result {};
 
@@ -105,10 +105,10 @@ namespace meevax
     };
   }
 
-  template <typename F, REQUIRES(std::is_invocable<F, input_port &>)>
+  template <typename F, REQUIRES(std::is_invocable<F, std::istream &>)>
   auto operator *(F&& f, int k)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       codeunits result {};
 
@@ -121,7 +121,7 @@ namespace meevax
     };
   }
 
-  template <typename F, REQUIRES(std::is_invocable<F, input_port &>)>
+  template <typename F, REQUIRES(std::is_invocable<F, std::istream &>)>
   auto operator *(int k, F&& f)
   {
     return f * k;
@@ -129,7 +129,7 @@ namespace meevax
 
   auto many = [](auto&& parse)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       codeunits result;
 
@@ -149,11 +149,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator |(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       auto const backtrack = port.tellg();
 
@@ -171,7 +171,7 @@ namespace meevax
 
   auto backtrack = [](auto&& parse)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       auto const g = port.tellg();
 
@@ -197,7 +197,7 @@ namespace meevax
 
   auto string1 = [](codeunits const& s)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       for (auto const& c : s)
       {
@@ -210,11 +210,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator <<(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       auto const result = f(port);
       g(port);
@@ -224,11 +224,11 @@ namespace meevax
 
   template <typename F,
             typename G,
-            REQUIRES(std::is_invocable<F, input_port &>),
-            REQUIRES(std::is_invocable<G, input_port &>)>
+            REQUIRES(std::is_invocable<F, std::istream &>),
+            REQUIRES(std::is_invocable<G, std::istream &>)>
   auto operator >>(F&& f, G&& g)
   {
-    return [=](input_port & port)
+    return [=](std::istream & port)
     {
       return f(port), g(port);
     };

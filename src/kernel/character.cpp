@@ -24,47 +24,16 @@ namespace meevax
 {
 inline namespace kernel
 {
-  static_assert(std::alignment_of<character>::value == std::alignment_of<codepoint>::value);
-  static_assert(std::is_trivial<character>::value);
-  static_assert(std::is_standard_layout<character>::value);
-  static_assert(std::is_pod<character>::value);
+  character::character(std::istream & is)
+    : value { read(is) }
+  {}
 
-  auto character::read_codeunit(input_port & port) const -> codeunit
+  character::operator codeunit() const
   {
-    codeunit cu {};
-
-    if (auto const c = port.peek(); is_eof(c))
-    {
-      throw tagged_read_error<eof>(
-        make<string>("no more characters are available"), unit);
-    }
-    else if (0b1111'0000 < c)
-    {
-      cu.push_back(port.narrow(port.get(), '\0'));
-      cu.push_back(port.narrow(port.get(), '\0'));
-      cu.push_back(port.narrow(port.get(), '\0'));
-      cu.push_back(port.narrow(port.get(), '\0'));
-    }
-    else if (0b1110'0000 < c)
-    {
-      cu.push_back(port.narrow(port.get(), '\0'));
-      cu.push_back(port.narrow(port.get(), '\0'));
-      cu.push_back(port.narrow(port.get(), '\0'));
-    }
-    else if (0b1100'0000 < c)
-    {
-      cu.push_back(port.narrow(port.get(), '\0'));
-      cu.push_back(port.narrow(port.get(), '\0'));
-    }
-    else
-    {
-      cu.push_back(port.narrow(port.get(), '\0'));
-    }
-
-    return cu;
+    return codepoint_to_codeunit(value);
   }
 
-  auto character::read(input_port & port) const -> codepoint
+  auto character::read(std::istream & is) const -> codepoint
   {
     /* -------------------------------------------------------------------------
      *
@@ -77,61 +46,101 @@ inline namespace kernel
 
     codepoint point = 0;
 
-    if (auto const c = port.peek(); is_eof(c))
+    if (auto const c = is.peek(); is_eof(c))
     {
       throw tagged_read_error<eof>(
         make<string>("no more characters are available"), unit);
     }
     else if (0b1111'0000 < c)
     {
-      point |= port.get() & 0b0000'0111; point <<= 6;
-      point |= port.get() & 0b0011'1111; point <<= 6;
-      point |= port.get() & 0b0011'1111; point <<= 6;
-      point |= port.get() & 0b0011'1111;
+      point |= is.get() & 0b0000'0111; point <<= 6;
+      point |= is.get() & 0b0011'1111; point <<= 6;
+      point |= is.get() & 0b0011'1111; point <<= 6;
+      point |= is.get() & 0b0011'1111;
     }
     else if (0b1110'0000 < c)
     {
-      point |= port.get() & 0b0000'1111; point <<= 6;
-      point |= port.get() & 0b0011'1111; point <<= 6;
-      point |= port.get() & 0b0011'1111;
+      point |= is.get() & 0b0000'1111; point <<= 6;
+      point |= is.get() & 0b0011'1111; point <<= 6;
+      point |= is.get() & 0b0011'1111;
     }
     else if (0b1100'0000 < c)
     {
-      point |= port.get() & 0b0001'1111; point <<= 6;
-      point |= port.get() & 0b0011'1111;
+      point |= is.get() & 0b0001'1111; point <<= 6;
+      point |= is.get() & 0b0011'1111;
     }
     else // is ascii
     {
-      point |= port.get() & 0b0111'1111;
+      point |= is.get() & 0b0111'1111;
     }
 
     return point;
   }
 
-  auto character::write(output_port & port) const -> output_port &
+  auto character::read_codeunit(std::istream & is) const -> codeunit
   {
-    return port << static_cast<codeunit const&>(*this);
+    codeunit cu {};
+
+    if (auto const c = is.peek(); is_eof(c))
+    {
+      throw tagged_read_error<eof>(
+        make<string>("no more characters are available"), unit);
+    }
+    else if (0b1111'0000 < c)
+    {
+      cu.push_back(is.narrow(is.get(), '\0'));
+      cu.push_back(is.narrow(is.get(), '\0'));
+      cu.push_back(is.narrow(is.get(), '\0'));
+      cu.push_back(is.narrow(is.get(), '\0'));
+    }
+    else if (0b1110'0000 < c)
+    {
+      cu.push_back(is.narrow(is.get(), '\0'));
+      cu.push_back(is.narrow(is.get(), '\0'));
+      cu.push_back(is.narrow(is.get(), '\0'));
+    }
+    else if (0b1100'0000 < c)
+    {
+      cu.push_back(is.narrow(is.get(), '\0'));
+      cu.push_back(is.narrow(is.get(), '\0'));
+    }
+    else
+    {
+      cu.push_back(is.narrow(is.get(), '\0'));
+    }
+
+    return cu;
   }
 
-  auto operator <<(output_port & port, character const& datum) -> output_port &
+  auto character::write(std::ostream & os) const -> std::ostream &
   {
-    port << cyan << "#\\";
+    return os << static_cast<codeunit const&>(*this);
+  }
+
+  auto operator <<(std::ostream & os, character const& datum) -> std::ostream &
+  {
+    os << cyan << "#\\";
 
     switch (datum.value)
     {
-    case 0x00: return port << "null"      << reset;
-    case 0x07: return port << "alarm"     << reset;
-    case 0x08: return port << "backspace" << reset;
-    case 0x09: return port << "tab"       << reset;
-    case 0x0A: return port << "newline"   << reset;
-    case 0x0D: return port << "return"    << reset;
-    case 0x1B: return port << "escape"    << reset;
-    case 0x20: return port << "space"     << reset;
-    case 0x7F: return port << "delete"    << reset;
+    case 0x00: return os << "null"      << reset;
+    case 0x07: return os << "alarm"     << reset;
+    case 0x08: return os << "backspace" << reset;
+    case 0x09: return os << "tab"       << reset;
+    case 0x0A: return os << "newline"   << reset;
+    case 0x0D: return os << "return"    << reset;
+    case 0x1B: return os << "escape"    << reset;
+    case 0x20: return os << "space"     << reset;
+    case 0x7F: return os << "delete"    << reset;
 
     default:
-      return datum.write(port) << reset;
+      return datum.write(os) << reset;
     }
   }
+
+  static_assert(std::alignment_of<character>::value == std::alignment_of<codepoint>::value);
+  static_assert(std::is_pod<character>::value);
+  static_assert(std::is_standard_layout<character>::value);
+  static_assert(std::is_trivial<character>::value);
 } // namespace kernel
 } // namespace meevax
