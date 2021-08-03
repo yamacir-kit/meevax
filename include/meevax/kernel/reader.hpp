@@ -47,15 +47,18 @@ inline namespace kernel
     IMPORT(SK, standard_debug_port, NIL);
     IMPORT(SK, write_to,            NIL);
 
-  public:
     using char_type = typename std::istream::char_type;
-
-    using seeker = std::istream_iterator<char_type>;
 
     template <char_type C>
     using char_constant = std::integral_constant<char_type, C>;
 
-    static inline std::unordered_map<std::string, let> symbols {};
+  public:
+    static inline std::unordered_map<std::string, pair::value_type> symbols {};
+
+    inline auto char_ready() const
+    {
+      return default_input_port.is_polymorphically<std::istream>() and default_input_port.as<std::istream>();
+    }
 
     static auto intern(std::string const& name) -> pair::const_reference
     {
@@ -73,11 +76,11 @@ inline namespace kernel
       }
     }
 
-    auto read(std::istream & is) -> let
+    inline auto read(std::istream & is) -> pair::value_type
     {
       std::string token {};
 
-      for (seeker head = is; head != seeker(); ++head)
+      for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
         switch (auto const c = *head)
         {
@@ -168,7 +171,7 @@ inline namespace kernel
       return eof_object;
     }
 
-    auto read(let const& x) -> let
+    inline auto read(pair::const_reference x) -> pair::value_type
     {
       if (x.is_polymorphically<std::istream>())
       {
@@ -176,11 +179,11 @@ inline namespace kernel
       }
       else
       {
-        throw read_error(make<string>("not an input-port: "), x);
+        throw read_error(make<string>("not an input-port"), x);
       }
     }
 
-    auto read() -> let
+    inline auto read() -> pair::value_type
     {
       let const result = read(default_input_port);
 
@@ -189,16 +192,11 @@ inline namespace kernel
       return result;
     }
 
-    auto read(std::string const& s) -> decltype(auto)
+    inline auto read(std::string const& s) -> pair::value_type
     {
       std::stringstream ss { s };
 
       return read(ss);
-    }
-
-    auto ready() // TODO RENAME TO 'char-ready'
-    {
-      return default_input_port.is_polymorphically<std::istream>() and default_input_port.as<std::istream>();
     }
 
   private:

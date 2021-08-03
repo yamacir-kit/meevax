@@ -2077,25 +2077,5 @@ inline namespace kernel
       return default_output_port;
     });
   }
-
-  // static std::size_t count = 0; // XXX DEPRECATED
-  //
-  // syntactic_continuation::initializer::initializer() // XXX DEPRECATED
-  // {
-  //   if (not count++)
-  //   {
-  //     symbols = {};
-  //     external_symbols = {}; // XXX DEPRECATED
-  //   }
-  // }
-  //
-  // syntactic_continuation::initializer::~initializer() // XXX DEPRECATED
-  // {
-  //   if (not --count)
-  //   {
-  //     symbols.clear();
-  //     external_symbols.clear(); // XXX DEPRECATED
-  //   }
-  // }
 } // namespace kernel
 } // namespace meevax

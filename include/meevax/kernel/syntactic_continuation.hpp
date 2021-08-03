@@ -59,19 +59,12 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     using pair::pair;
 
-    static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
+    static inline std::unordered_map<std::string, value_type> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 
   public:
     let datum = unit;
-
-    // struct initializer
-    // {
-    //   explicit initializer();
-    //
-    //   ~initializer();
-    // };
 
     using configurator::is_batch_mode;
     using configurator::is_debug_mode;
@@ -230,8 +223,6 @@ inline namespace kernel
   extern template class reader<syntactic_continuation>;
 
   extern template class writer<syntactic_continuation>;
-
-  // static syntactic_continuation::initializer initializer;
 } // namespace kernel
 } // namespace meevax
 
