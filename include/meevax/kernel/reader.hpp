@@ -88,7 +88,12 @@ inline namespace kernel
           is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
 
-        case ' ': case '\f': case '\n': case '\r': case '\t': case '\v':
+        case ' ':
+        case '\f':
+        case '\n':
+        case '\r':
+        case '\t':
+        case '\v':
           break;
 
         case '(':
@@ -126,9 +131,6 @@ inline namespace kernel
         case '}':
           throw tagged_read_error<char_constant<'}'>>(make<string>("unexpected character: "), make<character>(c));
 
-        case '#':
-          return discriminate(is);
-
         case '"':
           return make<string>(is);
 
@@ -147,6 +149,75 @@ inline namespace kernel
 
           default:
             return list(intern("unquote"), read(is));
+          }
+
+        case '#':
+          switch (auto const discriminator = is.get())
+          {
+          case '!': // from SRFI-22
+            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return read(is);
+
+          case ',': // from SRFI-10
+            return evaluate(read(is));
+
+          case ';': // from SRFI-62
+            return read(is), read(is);
+
+          case 'b': // (string->number (read) 2)
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 2);
+
+          case 'c': // from Common Lisp
+            if (let const xs = read(is); xs.is<null>())
+            {
+              return make<complex>(e0, e0);
+            }
+            else if (not cdr(xs).is<pair>())
+            {
+              return make<complex>(car(xs), e0);
+            }
+            else
+            {
+              return make<complex>(car(xs), cadr(xs));
+            }
+
+          case 'd':
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 10);
+
+          case 'e':
+            return exact(read(is)); // NOTE: Same as #,(exact (read))
+
+          case 'f':
+            ignore(is, [](auto&& x) { return not is_end_of_token(x); });
+            return f;
+
+          case 'i':
+            return inexact(read(is)); // NOTE: Same as #,(inexact (read))
+
+          case 'o':
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 8);
+
+          case 'p':
+            assert(is.get() == '"');
+            is.ignore(1);
+            return make<path>(string(is));
+
+          case 't':
+            ignore(is, [](auto&& x) { return not is_end_of_token(x); });
+            return t;
+
+          case 'x':
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 16);
+
+          case '(':
+            is.putback(discriminator);
+            return make<vector>(for_each_in, read(is));
+
+          case '\\':
+            return read_char(is);
+
+          default:
+            throw read_error(make<string>("unknown discriminator"), make<character>(discriminator));
           }
 
         default:
@@ -197,78 +268,6 @@ inline namespace kernel
       std::stringstream ss { s };
 
       return read(ss);
-    }
-
-  private:
-    let const discriminate(std::istream & is) // TODO MOVE INTO read
-    {
-      switch (auto const discriminator = is.get())
-      {
-      case '!':
-        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return read(is);
-
-      case ',': // from SRFI-10
-        return evaluate(read(is));
-
-      case ';': // from SRFI-62
-        return read(is), read(is);
-
-      case 'b': // (string->number (read) 2)
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 2);
-
-      case 'c': // from Common Lisp
-        if (let const xs = read(is); not xs.is<pair>())
-        {
-          return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
-        }
-        else if (not cdr(xs).is<pair>())
-        {
-          return make<complex>(car(xs), make<exact_integer>(0));
-        }
-        else
-        {
-          return make<complex>(car(xs), cadr(xs));
-        }
-
-      case 'd':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 10);
-
-      case 'e':
-        return exact(read(is)); // NOTE: Same as #,(exact (read))
-
-      case 'f':
-        ignore(is, [](auto&& x) { return not is_end_of_token(x); });
-        return f;
-
-      case 'i':
-        return inexact(read(is)); // NOTE: Same as #,(inexact (read))
-
-      case 'o':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 8);
-
-      case 'p':
-        assert(is.get() == '"');
-        is.ignore(1);
-        return make<path>(string(is));
-
-      case 't':
-        ignore(is, [](auto&& x) { return not is_end_of_token(x); });
-        return t;
-
-      case 'x':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 16);
-
-      case '(':
-        is.putback(discriminator);
-        return make<vector>(for_each_in, read(is));
-
-      case '\\':
-        return read_char(is);
-
-      default:
-        throw read_error(make<string>("unknown discriminator"), make<character>(discriminator));
-      }
     }
   };
 } // namespace kernel
