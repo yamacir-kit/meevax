@@ -59,13 +59,11 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     using pair::pair;
 
-  public:
-    static inline std::unordered_map<std::string, let> symbols;
-
     static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 
+  public:
     let datum = unit;
 
     // struct initializer
@@ -81,6 +79,7 @@ inline namespace kernel
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;
 
+    using reader::intern;
     using reader::read;
 
     using writer::newline;
@@ -133,23 +132,6 @@ inline namespace kernel
     auto global_environment() const noexcept -> const_reference;
 
     auto global_environment() noexcept -> reference;
-
-    // TODO MOVE INTO reader
-    static auto intern(std::string const& s) -> const_reference
-    {
-      if (auto const iter = symbols.find(s); iter != std::end(symbols))
-      {
-        return cdr(*iter);
-      }
-      else if (auto const [position, success] = symbols.emplace(s, make<symbol>(s)); success)
-      {
-        return cdr(*position);
-      }
-      else
-      {
-        throw error(make<string>("failed to intern a symbol"), unit);
-      }
-    }
 
     auto load(std::string const&) -> value_type;
 

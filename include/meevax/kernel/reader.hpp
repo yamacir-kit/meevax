@@ -44,7 +44,6 @@ inline namespace kernel
     {}
 
     IMPORT(SK, evaluate,            NIL);
-    IMPORT(SK, intern,              NIL);
     IMPORT(SK, standard_debug_port, NIL);
     IMPORT(SK, write_to,            NIL);
 
@@ -55,6 +54,24 @@ inline namespace kernel
 
     template <char_type C>
     using char_constant = std::integral_constant<char_type, C>;
+
+    static inline std::unordered_map<std::string, let> symbols {};
+
+    static auto intern(std::string const& name) -> pair::const_reference
+    {
+      if (auto const iter = symbols.find(name); iter != std::end(symbols))
+      {
+        return std::get<1>(*iter);
+      }
+      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
+      {
+        return std::get<1>(*iter);
+      }
+      else
+      {
+        throw error(make<string>("failed to intern a symbol"), unit);
+      }
+    }
 
     auto read(std::istream & is) -> let
     {
