@@ -34,12 +34,12 @@ inline namespace kernel
     : syntactic_continuation::syntactic_continuation {}
   {}
 
-  auto syntactic_continuation::operator [](let const& name) -> let const&
+  auto syntactic_continuation::operator [](let const& name) -> pair::const_reference
   {
     return cdr(machine::locate(name, global_environment()));
   }
 
-  auto syntactic_continuation::operator [](std::string const& name) -> let const&
+  auto syntactic_continuation::operator [](std::string const& name) -> pair::const_reference
   {
     return (*this)[intern(name)];
   }
@@ -87,7 +87,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::current_expression() const -> let const&
+  auto syntactic_continuation::current_expression() const -> pair::const_reference
   {
     return car(form());
   }
@@ -104,7 +104,7 @@ inline namespace kernel
     return define(intern(name), value);
   }
 
-  auto syntactic_continuation::dynamic_environment() const -> let const&
+  auto syntactic_continuation::dynamic_environment() const -> pair::const_reference
   {
     return cdr(form());
   }
@@ -151,22 +151,22 @@ inline namespace kernel
     return module;
   }
 
-  auto syntactic_continuation::form() const noexcept -> let const&
+  auto syntactic_continuation::form() const noexcept -> pair::const_reference
   {
     return std::get<0>(*this);
   }
 
-  auto syntactic_continuation::form() noexcept -> let &
+  auto syntactic_continuation::form() noexcept -> pair::reference
   {
     return const_cast<let &>(std::as_const(*this).form());
   }
 
-  auto syntactic_continuation::global_environment() const noexcept -> let const&
+  auto syntactic_continuation::global_environment() const noexcept -> pair::const_reference
   {
     return std::get<1>(*this);
   }
 
-  auto syntactic_continuation::global_environment() noexcept -> let &
+  auto syntactic_continuation::global_environment() noexcept -> pair::reference
   {
     return const_cast<let &>(std::as_const(*this).global_environment());
   }

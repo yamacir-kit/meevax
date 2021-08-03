@@ -97,9 +97,9 @@ inline namespace kernel
       boot<Layer>();
     }
 
-    auto operator [](let const&) -> let const&;
+    auto operator [](let const&) -> pair::const_reference;
 
-    auto operator [](std::string const&) -> let const&;
+    auto operator [](std::string const&) -> pair::const_reference;
 
     template <auto = layer::declarations>
     void boot()
@@ -107,19 +107,19 @@ inline namespace kernel
 
     auto build() -> void; // NOTE: Only fork() may call this function.
 
-    auto current_expression() const -> let const&;
+    auto current_expression() const -> pair::const_reference;
 
     auto define(let const&, let const&) -> let const&;
 
     auto define(std::string const&, let const&) -> let const&;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs) -> decltype(auto)
     {
       return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto dynamic_environment() const -> let const&;
+    auto dynamic_environment() const -> pair::const_reference;
 
     auto evaluate(let const&) -> let;
 
@@ -127,16 +127,16 @@ inline namespace kernel
 
     auto fork() const -> let;
 
-    auto form() const noexcept -> let const&;
+    auto form() const noexcept -> pair::const_reference;
 
-    auto form() noexcept -> let &;
+    auto form() noexcept -> pair::reference;
 
-    auto global_environment() const noexcept -> let const&;
+    auto global_environment() const noexcept -> pair::const_reference;
 
-    auto global_environment() noexcept -> let &;
+    auto global_environment() noexcept -> pair::reference;
 
     // TODO MOVE INTO reader
-    static auto intern(std::string const& s) -> let const&
+    static auto intern(std::string const& s) -> pair::const_reference
     {
       if (auto const iter = symbols.find(s); iter != std::end(symbols))
       {

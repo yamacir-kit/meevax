@@ -17,9 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-// #include <boost/iostreams/device/null.hpp>
-// #include <boost/iostreams/stream_buffer.hpp>
-
 #include <boost/lexical_cast.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -38,10 +35,6 @@ inline namespace kernel
   // TODO Move into reader class private
   auto read_char(std::istream &) -> let;
 
-  /* ---- Reader ---------------------------------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
   template <typename SK>
   class reader
   {
@@ -63,10 +56,6 @@ inline namespace kernel
     using char_constant = std::integral_constant<char_type, C>;
 
   public:
-    /* ---- Read ---------------------------------------------------------------
-     *
-     *
-     * ---------------------------------------------------------------------- */
     auto read(std::istream & is) -> let
     {
       std::string token {};
@@ -263,7 +252,7 @@ inline namespace kernel
         return read_char(is);
 
       default:
-        throw read_error(make<string>("unknown <discriminator>: "), make<character>(discriminator));
+        throw read_error(make<string>("unknown discriminator"), make<character>(discriminator));
       }
     }
   };
