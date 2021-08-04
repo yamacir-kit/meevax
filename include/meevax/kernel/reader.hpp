@@ -35,17 +35,17 @@ inline namespace kernel
   // TODO Move into reader class private
   auto read_char(std::istream &) -> let;
 
-  template <typename SK>
+  template <typename Module>
   class reader
   {
-    friend SK;
+    friend Module;
 
     explicit reader()
     {}
 
-    IMPORT(SK, evaluate,            NIL);
-    IMPORT(SK, standard_debug_port, NIL);
-    IMPORT(SK, write_to,            NIL);
+    IMPORT(Module, evaluate,            NIL);
+    IMPORT(Module, standard_debug_port, NIL);
+    IMPORT(Module, write_to,            NIL);
 
     using char_type = typename std::istream::char_type;
 
