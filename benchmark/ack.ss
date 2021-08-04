@@ -6,12 +6,6 @@
 (define m 3)
 (define n 7)
 
-(display "Ack(")
-(display m)
-(display ", ")
-(display n)
-(display ") = ")
-(display (ack m n))
-(newline)
+(ack m n)
 
 (exit)
