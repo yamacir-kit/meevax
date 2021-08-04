@@ -32,8 +32,7 @@ inline namespace kernel
 {
   auto read_token(std::istream &) -> std::string;
 
-  // TODO Move into reader class private
-  auto read_char(std::istream &) -> let;
+  auto read_char(std::istream &) -> pair::value_type;
 
   template <typename Module>
   class reader
@@ -123,13 +122,13 @@ inline namespace kernel
           }
 
         case ')':
-          throw tagged_read_error<char_constant<')'>>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<char_constant<')'>>(make<string>("unexpected character"), make<character>(c));
 
         case ']':
-          throw tagged_read_error<char_constant<']'>>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<char_constant<']'>>(make<string>("unexpected character"), make<character>(c));
 
         case '}':
-          throw tagged_read_error<char_constant<'}'>>(make<string>("unexpected character: "), make<character>(c));
+          throw tagged_read_error<char_constant<'}'>>(make<string>("unexpected character"), make<character>(c));
 
         case '"':
           return make<string>(is);

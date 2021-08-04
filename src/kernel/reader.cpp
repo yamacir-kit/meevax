@@ -50,7 +50,7 @@ inline namespace kernel
    *                   | tab
    *
    * ------------------------------------------------------------------------ */
-  auto read_char(std::istream & is) -> let
+  auto read_char(std::istream & is) -> pair::value_type
   {
     auto any_character = [&](auto const& token, auto)
     {
