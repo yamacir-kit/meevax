@@ -880,7 +880,7 @@ inline namespace kernel
     {
       if (xs.is<pair>() and car(xs).is<character>())
       {
-        return make<exact_integer>(static_cast<codepoint>(car(xs).as<character>()));
+        return make<exact_integer>(car(xs).as<character>().codepoint);
       }
       else
       {
@@ -1040,7 +1040,7 @@ inline namespace kernel
     {
       car(xs).as<string>().at(
         cadr(xs).as<exact_integer>().to<string::size_type>())
-      = caddr(xs).as<const character>();
+      = caddr(xs).as<character>();
 
       return car(xs);
     });
@@ -1197,7 +1197,7 @@ inline namespace kernel
 
       for (let const& x : car(xs))
       {
-        s.push_back(x.as<const character>());
+        s.push_back(x.as<character>());
       }
 
       return make(std::move(s));

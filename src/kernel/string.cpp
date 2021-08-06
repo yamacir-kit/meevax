@@ -74,15 +74,15 @@ inline namespace kernel
 
     characters cs;
 
-    for (auto c = character(is); not is_eof(c.value); c = character(is))
+    for (auto c = character(is); not is_eof(c.codepoint); c = character(is))
     {
-      switch (c.value)
+      switch (c.codepoint)
       {
       case '"':
         return cs;
 
       case '\\':
-        switch (auto const c = character(is); c.value)
+        switch (auto const c = character(is); c.codepoint)
         {
         case 'a': cs.emplace_back('\a'); break;
         case 'b': cs.emplace_back('\b'); break;
@@ -126,9 +126,9 @@ inline namespace kernel
   {
     auto print = [&](character const& c) -> decltype(auto)
     {
-      if (c.value < 0x80)
+      if (c.codepoint < 0x80)
       {
-        switch (c.value)
+        switch (c.codepoint)
         {
         case '\a': return os << red << "\\a";
         case '\b': return os << red << "\\b";
@@ -140,12 +140,12 @@ inline namespace kernel
         case '|':  return os << red << "\\|";
 
         default:
-          return os << cyan << static_cast<char>(c.value);
+          return os << cyan << static_cast<char>(c.codepoint);
         }
       }
       else
       {
-        return os << red << "\\x" << std::hex << std::uppercase << c.value << ";";
+        return os << red << "\\x" << std::hex << std::uppercase << c.codepoint << ";";
       }
     };
 

@@ -25,24 +25,19 @@ inline namespace kernel
 {
   struct character
   {
-    codepoint value;
+    std::char_traits<char>::int_type codepoint;
 
     explicit character() = default;
 
-    explicit character(codepoint const); // integer->char
+    explicit character(std::char_traits<char>::int_type const); // integer->char
 
     explicit character(std::istream &); // read-char
 
-    // TODO explicit character(let const&); // generic constrcutor
-
-    constexpr operator codepoint() const // char->integer
-    {
-      return value;
-    }
+    operator std::char_traits<char>::int_type() const; // char->integer
 
     operator codeunit() const;
 
-    auto write(std::ostream &) const -> std::ostream &;
+    auto write(std::ostream &) const -> std::ostream &; // write-char
   };
 
   auto operator <<(std::ostream &, character const&) -> std::ostream &;

@@ -19,18 +19,18 @@
 #include <meevax/kernel/miscellaneous.hpp> // for eof
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/parser.hpp>
-#include <meevax/posix/vt10x.hpp>
+#include <meevax/posix/vt10x.hpp> // for cyan
 
 namespace meevax
 {
 inline namespace kernel
 {
-  character::character(codepoint const value)
-    : value { value }
+  character::character(std::char_traits<char>::int_type const codepoint)
+    : codepoint { codepoint }
   {}
 
-  character::character(std::istream & is) // bytestream to codepoint
-    : value {}
+  character::character(std::istream & is)
+    : codepoint {}
   {
     /*
        00000000 -- 0000007F: 0xxxxxxx
@@ -45,31 +45,36 @@ inline namespace kernel
     }
     else if (0b1111'0000 < c)
     {
-      value |= is.get() & 0b0000'0111; value <<= 6;
-      value |= is.get() & 0b0011'1111; value <<= 6;
-      value |= is.get() & 0b0011'1111; value <<= 6;
-      value |= is.get() & 0b0011'1111;
+      codepoint |= is.get() & 0b0000'0111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
     }
     else if (0b1110'0000 < c)
     {
-      value |= is.get() & 0b0001'1111; value <<= 6;
-      value |= is.get() & 0b0011'1111; value <<= 6;
-      value |= is.get() & 0b0011'1111;
+      codepoint |= is.get() & 0b0001'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
     }
     else if (0b1100'0000 < c)
     {
-      value |= is.get() & 0b0011'1111; value <<= 6;
-      value |= is.get() & 0b0011'1111;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
     }
     else // ascii
     {
-      value |= is.get() & 0b0111'1111;
+      codepoint |= is.get() & 0b0111'1111;
     }
+  }
+
+  character::operator std::char_traits<char>::int_type() const
+  {
+    return codepoint;
   }
 
   character::operator codeunit() const
   {
-    return codepoint_to_codeunit(value);
+    return codepoint_to_codeunit(codepoint);
   }
 
   auto character::write(std::ostream & os) const -> std::ostream &
@@ -81,7 +86,7 @@ inline namespace kernel
   {
     os << cyan << "#\\";
 
-    switch (datum.value)
+    switch (datum.codepoint)
     {
     case 0x00: return os << "null"      << reset;
     case 0x07: return os << "alarm"     << reset;
