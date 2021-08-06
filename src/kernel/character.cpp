@@ -16,6 +16,7 @@
 
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/miscellaneous.hpp> // for eof
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/parser.hpp>
 #include <meevax/posix/vt10x.hpp>
@@ -24,57 +25,51 @@ namespace meevax
 {
 inline namespace kernel
 {
-  character::character(std::istream & is)
-    : value { read(is) }
+  character::character(codepoint const value)
+    : value { value }
   {}
+
+  character::character(std::istream & is) // bytestream to codepoint
+    : value {}
+  {
+    /*
+       00000000 -- 0000007F: 0xxxxxxx
+       00000080 -- 000007FF: 110xxxxx 10xxxxxx
+       00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+       00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+    */
+
+    if (auto const c = is.peek(); is_eof(c))
+    {
+      throw tagged_read_error<eof>(make<string>("no more characters are available"), unit);
+    }
+    else if (0b1111'0000 < c)
+    {
+      value |= is.get() & 0b0000'0111; value <<= 6;
+      value |= is.get() & 0b0011'1111; value <<= 6;
+      value |= is.get() & 0b0011'1111; value <<= 6;
+      value |= is.get() & 0b0011'1111;
+    }
+    else if (0b1110'0000 < c)
+    {
+      value |= is.get() & 0b0001'1111; value <<= 6;
+      value |= is.get() & 0b0011'1111; value <<= 6;
+      value |= is.get() & 0b0011'1111;
+    }
+    else if (0b1100'0000 < c)
+    {
+      value |= is.get() & 0b0011'1111; value <<= 6;
+      value |= is.get() & 0b0011'1111;
+    }
+    else // ascii
+    {
+      value |= is.get() & 0b0111'1111;
+    }
+  }
 
   character::operator codeunit() const
   {
     return codepoint_to_codeunit(value);
-  }
-
-  auto character::read(std::istream & is) const -> codepoint
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  00000000 -- 0000007F: 0xxxxxxx
-     *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
-     *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
-     *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-     *
-     * ---------------------------------------------------------------------- */
-
-    codepoint point = 0;
-
-    if (auto const c = is.peek(); is_eof(c))
-    {
-      throw tagged_read_error<eof>(
-        make<string>("no more characters are available"), unit);
-    }
-    else if (0b1111'0000 < c)
-    {
-      point |= is.get() & 0b0000'0111; point <<= 6;
-      point |= is.get() & 0b0011'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111;
-    }
-    else if (0b1110'0000 < c)
-    {
-      point |= is.get() & 0b0000'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111;
-    }
-    else if (0b1100'0000 < c)
-    {
-      point |= is.get() & 0b0001'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111;
-    }
-    else // is ascii
-    {
-      point |= is.get() & 0b0111'1111;
-    }
-
-    return point;
   }
 
   auto character::read_codeunit(std::istream & is) const -> codeunit
@@ -138,9 +133,10 @@ inline namespace kernel
     }
   }
 
-  static_assert(std::alignment_of<character>::value == std::alignment_of<codepoint>::value);
   static_assert(std::is_pod<character>::value);
+
   static_assert(std::is_standard_layout<character>::value);
+
   static_assert(std::is_trivial<character>::value);
 } // namespace kernel
 } // namespace meevax

@@ -17,9 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
-#include <unordered_map>
-
-#include <meevax/kernel/miscellaneous.hpp>
 #include <meevax/string/unicode.hpp>
 
 namespace meevax
@@ -32,20 +29,18 @@ inline namespace kernel
 
     explicit character() = default;
 
-    explicit constexpr character(codepoint const value)
-      : value { value }
-    {}
+    explicit character(codepoint const); // integer->char
 
     explicit character(std::istream &); // read-char
 
-    constexpr operator codepoint() const
+    // TODO explicit character(let const&); // generic constrcutor
+
+    constexpr operator codepoint() const // char->integer
     {
       return value;
     }
 
     operator codeunit() const;
-
-    auto read(std::istream &) const -> codepoint;
 
     [[deprecated]]
     auto read_codeunit(std::istream &) const -> codeunit;
