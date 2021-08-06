@@ -827,59 +827,25 @@ inline namespace kernel
       return intern(car(xs).as<string>());
     });
 
-  /* ---- R7RS 6.6. Characters -------------------------------------------------
-
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char?              │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char=?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char<?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char>?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char<=?            │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char>=?            │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci=?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci<?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci>?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci<=?         │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci>=?         │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-alphabetic?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-numeric?      │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-whitespace?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-upper-case?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-lower-case?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ digit-value        │ C++        │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char->integer      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ integer->char      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-upcase        │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-downcase      │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-foldcase      │ Scheme     │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (char? obj)                                                   procedure
+     *
+     *  Returns #t if obj is a character, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("char?", is<character>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (digit-value char)                               char library procedure
+     *
+     *  This procedure returns the numeric value (0 to 9) of its argument if it
+     *  is a numeric digit (that is, if char-numeric? returns #t), or #f on any
+     *  other character.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("digit-value", [](let const& xs)
     {
@@ -893,6 +859,23 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (char->integer char)                                          procedure
+     *  (integer->char n)                                             procedure
+     *
+     *  Given a Unicode character, char->integer returns an exact integer
+     *  between 0 and #xD7FF or between #xE000 and #x10FFFF which is equal to
+     *  the Unicode scalar value of that character. Given a non-Unicode
+     *  character, it returns an exact integer greater than #x10FFFF. This is
+     *  true independent of whether the implementation uses the Unicode
+     *  representation internally.
+     *
+     *  Given an exact integer that is the value returned by a character when
+     *  char->integer is applied to it, integer->char returns that character.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("char->integer", [](let const& xs)
     {
       if (xs.is<pair>() and car(xs).is<character>())
@@ -901,7 +884,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments"), xs);
       }
     });
 
@@ -913,7 +896,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments"), xs);
       }
     });
 
@@ -1774,6 +1757,17 @@ inline namespace kernel
       return read(car(xs));
     });
 
+    /* ---- R7RS 6.13.2. Input -------------------------------------------------
+     *
+     *  (read-char)                                                   procedure
+     *  (read-char port)                                              procedure
+     *
+     *  Returns the next character available from the textual input port,
+     *  updating the port to point to the following character. If no more
+     *  characters are available, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("::read-char", [](let const& xs)
     {
       try
@@ -1821,6 +1815,17 @@ inline namespace kernel
       write_to(cadr(xs), car(xs));
       return unspecified;
     });
+
+    /* ---- R7RS 6.13.3. Output ------------------------------------------------
+     *
+     *  (write-char char)                                             procedure
+     *  (write-char char port)                                        procedure
+     *
+     *  Writes the character char (not an external representation of the
+     *  character) to the given textual output port and returns an unspecified
+     *  value.
+     *
+     * --------------------------------------------------------------------- */
 
     define<procedure>("::write-char", [](let const& xs)
     {
