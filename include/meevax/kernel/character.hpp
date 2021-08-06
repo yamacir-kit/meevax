@@ -42,9 +42,6 @@ inline namespace kernel
 
     operator codeunit() const;
 
-    [[deprecated]]
-    auto read_codeunit(std::istream &) const -> codeunit;
-
     auto write(std::ostream &) const -> std::ostream &;
   };
 

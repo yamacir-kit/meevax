@@ -15,6 +15,3 @@
   (check (read-char (open-input-file newline.ss)) => #\\)
   ; (check (read-string 1 (open-input-file newline.ss)) => "\\")
   )
-
-
-

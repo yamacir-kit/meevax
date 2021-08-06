@@ -72,41 +72,6 @@ inline namespace kernel
     return codepoint_to_codeunit(value);
   }
 
-  auto character::read_codeunit(std::istream & is) const -> codeunit
-  {
-    codeunit cu {};
-
-    if (auto const c = is.peek(); is_eof(c))
-    {
-      throw tagged_read_error<eof>(
-        make<string>("no more characters are available"), unit);
-    }
-    else if (0b1111'0000 < c)
-    {
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-    }
-    else if (0b1110'0000 < c)
-    {
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-    }
-    else if (0b1100'0000 < c)
-    {
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-    }
-    else
-    {
-      cu.push_back(is.narrow(is.get(), '\0'));
-    }
-
-    return cu;
-  }
-
   auto character::write(std::ostream & os) const -> std::ostream &
   {
     return os << static_cast<codeunit const&>(*this);
