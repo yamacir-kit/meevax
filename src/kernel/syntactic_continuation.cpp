@@ -1829,7 +1829,7 @@ inline namespace kernel
 
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write(cadr(xs).as<std::ostream>());
+      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified;
     });
 

@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
 #include <meevax/kernel/character.hpp>
+#include <meevax/string/unicode.hpp> // DEPRECATED
 
 namespace meevax
 {

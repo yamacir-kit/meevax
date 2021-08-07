@@ -25,7 +25,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  character::character(std::char_traits<char>::int_type const codepoint)
+  character::character(value_type const codepoint)
     : codepoint { codepoint }
   {}
 
@@ -43,43 +43,73 @@ inline namespace kernel
     {
       throw tagged_read_error<eof>(make<string>("no more characters are available"), unit);
     }
-    else if (0b1111'0000 < c)
+    else if (0x00 <= c and c <= 0x7F) // 7 bit
+    {
+      codepoint = is.get();
+    }
+    else if (0xC2 <= c and c <= 0xDF) // 11 bit
+    {
+      codepoint |= is.get() & 0b0001'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
+    }
+    else if (0xE0 <= c and c <= 0xEF) // 16 bit
+    {
+      codepoint |= is.get() & 0b0000'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
+    }
+    else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
       codepoint |= is.get() & 0b0000'0111; codepoint <<= 6;
       codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
       codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
       codepoint |= is.get() & 0b0011'1111;
     }
-    else if (0b1110'0000 < c)
+    else
     {
-      codepoint |= is.get() & 0b0001'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111;
-    }
-    else if (0b1100'0000 < c)
-    {
-      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111;
-    }
-    else // ascii
-    {
-      codepoint |= is.get() & 0b0111'1111;
+      throw read_error(make<string>("invalid stream"), unit);
     }
   }
 
-  character::operator std::char_traits<char>::int_type() const
+  character::operator value_type() const
   {
     return codepoint;
   }
 
-  character::operator codeunit() const
+  character::operator std::string() const
   {
-    return codepoint_to_codeunit(codepoint);
-  }
+    std::array<char, 5> bytes {};
 
-  auto character::write(std::ostream & os) const -> std::ostream &
-  {
-    return os << static_cast<codeunit const&>(*this);
+    if (auto value = codepoint; value <= 0x7F)
+    {
+      bytes[0] = (value & 0x7F);
+    }
+    else if (value <= 0x7FF)
+    {
+      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[0] = 0xC0 | (value & 0x1F);
+    }
+    else if (value <= 0xFFFF)
+    {
+      bytes[2] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[0] = 0xE0 | (value & 0x0F);
+    }
+    else if (value <= 0x10FFFF)
+    {
+      bytes[3] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[2] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[0] = 0xF0 | (value & 0x07);
+    }
+    else
+    {
+      bytes[2] = static_cast<char>(0xEF);
+      bytes[1] = static_cast<char>(0xBF);
+      bytes[0] = static_cast<char>(0xBD);
+    }
+
+    return bytes.data();
   }
 
   auto operator <<(std::ostream & os, character const& datum) -> std::ostream &
@@ -99,7 +129,7 @@ inline namespace kernel
     case 0x7F: return os << "delete"    << reset;
 
     default:
-      return datum.write(os) << reset;
+      return os << static_cast<std::string>(datum) << reset;
     }
   }
 

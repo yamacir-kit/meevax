@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_CHARACTER_HPP
 
-#include <meevax/string/unicode.hpp>
+#include <iostream>
 
 namespace meevax
 {
@@ -25,22 +25,22 @@ inline namespace kernel
 {
   struct character
   {
-    std::char_traits<char>::int_type codepoint;
+    using value_type = std::char_traits<char>::int_type;
+
+    value_type codepoint;
 
     explicit character() = default;
 
-    explicit character(std::char_traits<char>::int_type const); // integer->char
+    explicit character(value_type const); // integer->char
 
     explicit character(std::istream &); // read-char
 
-    operator std::char_traits<char>::int_type() const; // char->integer
+    operator value_type() const; // char->integer
 
-    operator codeunit() const;
-
-    auto write(std::ostream &) const -> std::ostream &; // write-char
+    operator std::string() const; // write-char
   };
 
-  auto operator <<(std::ostream &, character const&) -> std::ostream &;
+  auto operator <<(std::ostream &, character const&) -> std::ostream &; // write
 } // namespace kernel
 } // namespace meevax
 
