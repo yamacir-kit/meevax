@@ -954,7 +954,7 @@ inline namespace kernel
 
     define<procedure>("string-ref", [](let const& xs)
     {
-      return make(car(xs).as<string const>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
+      return make(car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
     });
 
     /* -------------------------------------------------------------------------

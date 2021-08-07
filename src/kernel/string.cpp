@@ -27,29 +27,6 @@ namespace meevax
 inline namespace kernel
 {
   string::string(std::istream & is)
-    : std::vector<character> { read(is) }
-  {}
-
-  string::string(std::string const& s)
-  {
-    std::stringstream ss;
-    ss << s << "\""; // XXX HACK
-    static_cast<std::vector<character> &>(*this) = read(ss);
-  }
-
-  string::operator std::string() const
-  {
-    std::string result;
-
-    for (character const& each : *this)
-    {
-      result.append(static_cast<std::string>(each));
-    }
-
-    return result;
-  }
-
-  auto string::read(std::istream & is) const -> std::vector<character>
   {
     auto hex_scalar = [](std::istream & is)
     {
@@ -64,32 +41,29 @@ inline namespace kernel
         }
       }
 
-      throw tagged_read_error<character>(
-        make<string>("invalid escape sequence"), unit);
+      throw tagged_read_error<character>(make<string>("invalid escape sequence"), unit);
     };
-
-    std::vector<character> cs;
 
     for (auto c = character(is); not is_eof(c.codepoint); c = character(is))
     {
       switch (c.codepoint)
       {
       case '"':
-        return cs;
+        return;
 
       case '\\':
         switch (auto const c = character(is); c.codepoint)
         {
-        case 'a': cs.emplace_back('\a'); break;
-        case 'b': cs.emplace_back('\b'); break;
-        case 'f': cs.emplace_back('\f'); break;
-        case 'n': cs.emplace_back('\n'); break;
-        case 'r': cs.emplace_back('\r'); break;
-        case 't': cs.emplace_back('\t'); break;
-        case 'v': cs.emplace_back('\v'); break;
+        case 'a': emplace_back('\a'); break;
+        case 'b': emplace_back('\b'); break;
+        case 'f': emplace_back('\f'); break;
+        case 'n': emplace_back('\n'); break;
+        case 'r': emplace_back('\r'); break;
+        case 't': emplace_back('\t'); break;
+        case 'v': emplace_back('\v'); break;
 
         case 'x':
-          cs.emplace_back(hex_scalar(is));
+          emplace_back(hex_scalar(is));
           break;
 
         case '\n':
@@ -98,19 +72,38 @@ inline namespace kernel
           break;
 
         default:
-          cs.push_back(c);
+          push_back(c);
           break;
         }
         break;
 
       default:
-        cs.push_back(c);
+        push_back(c);
         break;
       }
     }
 
-    throw tagged_read_error<string>(
-      make<string>("unterminated string"), unit);
+    throw tagged_read_error<string>(make<string>("unterminated string"), unit);
+  }
+
+  string::string(std::string const& s)
+  {
+    std::stringstream ss;
+    ss << s << "\""; // XXX HACK
+    // static_cast<std::vector<character> &>(*this) = read(ss);
+    *this = string(ss);
+  }
+
+  string::operator std::string() const
+  {
+    std::string result;
+
+    for (character const& each : *this)
+    {
+      result.append(static_cast<std::string>(each));
+    }
+
+    return result;
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &

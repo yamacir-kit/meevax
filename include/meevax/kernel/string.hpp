@@ -34,8 +34,6 @@ inline namespace kernel
     // TODO string(std::istream &, size_type k);
 
     operator std::string() const; // write-string (for display)
-
-    auto read(std::istream &) const -> std::vector<character>;
   };
 
   auto operator <<(std::ostream &, string const&) -> std::ostream &;
