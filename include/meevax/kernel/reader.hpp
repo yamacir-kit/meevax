@@ -242,6 +242,11 @@ inline namespace kernel
       return eof_object;
     }
 
+    inline auto read(std::istream && is)
+    {
+      return read(is);
+    }
+
     inline auto read(pair::const_reference x) -> pair::value_type
     {
       if (x.is_polymorphically<std::istream>())
@@ -265,9 +270,7 @@ inline namespace kernel
 
     inline auto read(std::string const& s) -> pair::value_type
     {
-      std::stringstream ss { s };
-
-      return read(ss);
+      return read(std::stringstream(s));
     }
   };
 } // namespace kernel

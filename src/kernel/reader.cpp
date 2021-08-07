@@ -114,48 +114,5 @@ inline namespace kernel
 
     return to_character(read_token(is), 16);
   }
-
-  // let read_string(std::istream & is)
-  // {
-  //   switch (auto c = is.narrow(is.get(), '\0'); c)
-  //   {
-  //   case '"': // Right Double Quotation
-  //     return unit;
-  //
-  //   case '\\': // Escape Sequences
-  //     switch (auto c = is.narrow(is.get(), '\0'); c)
-  //     {
-  //     case 'a':  return make<string>(make<character>('\a'), read_string(is));
-  //     case 'b':  return make<string>(make<character>('\b'), read_string(is));
-  //     case 't':  return make<string>(make<character>('\t'), read_string(is));
-  //     case 'n':  return make<string>(make<character>('\n'), read_string(is));
-  //     case 'r':  return make<string>(make<character>('\r'), read_string(is));
-  //     case '"':  return make<string>(make<character>('"'),  read_string(is));
-  //     case '\\': return make<string>(make<character>('\\'), read_string(is));
-  //     case '|':  return make<string>(make<character>('|'),  read_string(is));
-  //
-  //     case '\r':
-  //     case '\n':
-  //       while (is_intraline_whitespace(is.peek()))
-  //       {
-  //         is.ignore(1);
-  //       }
-  //       return read_string(is);
-  //
-  //     default:
-  //       return make<string>(make<character>(c), read_string(is));
-  //     }
-  //
-  //   default:
-  //     return make<string>(make<character>(c), read_string(is));
-  //   }
-  // }
-  //
-  // let make_string(std::string const& text)
-  // {
-  //   std::stringstream ss {};
-  //   ss << text << "\"";
-  //   return read_string(ss);
-  // }
 } // namespace kernel
 } // namespace meevax
