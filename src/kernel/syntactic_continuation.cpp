@@ -851,7 +851,7 @@ inline namespace kernel
     {
       try
       {
-        return make<exact_integer>(static_cast<codeunit const&>(car(xs).as<character>()));
+        return make<exact_integer>(static_cast<std::string const&>(car(xs).as<character>()));
       }
       catch (std::runtime_error const&)
       {
@@ -892,7 +892,7 @@ inline namespace kernel
     {
       if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
-        return make<character>(car(xs).as<exact_integer>().to<codepoint>());
+        return make<character>(car(xs).as<exact_integer>().to<character::value_type>());
       }
       else
       {

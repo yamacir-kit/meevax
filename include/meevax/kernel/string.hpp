@@ -18,15 +18,12 @@
 #define INCLUDED_MEEVAX_KERNEL_STRING_HPP
 
 #include <meevax/kernel/character.hpp>
-#include <meevax/string/unicode.hpp> // DEPRECATED
 
 namespace meevax
 {
 inline namespace kernel
 {
-  using characters = std::vector<character>;
-
-  struct string : public characters // TODO PRIVATE u32vector
+  struct string : public std::vector<character>
   {
     explicit string() = default;
 
@@ -38,14 +35,14 @@ inline namespace kernel
 
     template <typename InputIterator>
     explicit string(InputIterator begin, InputIterator end)
-      : characters { begin, end }
+      : std::vector<character> { begin, end }
     {}
 
     // TODO string(std::istream &, size_type k);
 
-    operator codeunits() const;
+    operator std::string() const; // write-string
 
-    auto read(std::istream &) const -> characters;
+    auto read(std::istream &) const -> std::vector<character>;
 
     auto write_string(std::ostream &) const -> std::ostream &;
   };

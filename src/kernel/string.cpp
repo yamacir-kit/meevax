@@ -27,33 +27,33 @@ namespace meevax
 inline namespace kernel
 {
   string::string(std::istream & is)
-    : characters { read(is) }
+    : std::vector<character> { read(is) }
   {}
 
   string::string(std::string const& s)
   {
     std::stringstream ss;
     ss << s << "\""; // XXX HACK
-    static_cast<characters &>(*this) = read(ss);
+    static_cast<std::vector<character> &>(*this) = read(ss);
   }
 
   string::string(string::size_type size, character const& c)
-    : characters { size, c }
+    : std::vector<character> { size, c }
   {}
 
-  string::operator codeunits() const // NOTE: codeunits = std::string
+  string::operator std::string() const
   {
-    codeunits result;
+    std::string result;
 
-    for (auto const& each : *this)
+    for (character const& each : *this)
     {
-      result.push_back(each); // NOTE: Character's implicit codepoint->codeunit conversion.
+      result.push_back(each); // NOTE: Character's implicit codepoint->std::string conversion.
     }
 
     return result;
   }
 
-  auto string::read(std::istream & is) const -> characters
+  auto string::read(std::istream & is) const -> std::vector<character>
   {
     auto hex_scalar = [](std::istream & is)
     {
@@ -61,7 +61,7 @@ inline namespace kernel
       {
         if (std::stringstream ss; ss << std::hex << token)
         {
-          if (codepoint value = 0; ss >> value)
+          if (character::value_type value = 0; ss >> value)
           {
             return value;
           }
@@ -72,7 +72,7 @@ inline namespace kernel
         make<string>("invalid escape sequence"), unit);
     };
 
-    characters cs;
+    std::vector<character> cs;
 
     for (auto c = character(is); not is_eof(c.codepoint); c = character(is))
     {
@@ -119,7 +119,7 @@ inline namespace kernel
 
   auto string::write_string(std::ostream & os) const -> std::ostream &
   {
-    return os << static_cast<codeunits const&>(*this);
+    return os << static_cast<std::string const&>(*this);
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
