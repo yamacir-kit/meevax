@@ -25,15 +25,13 @@ inline namespace kernel
 {
   struct string : public std::vector<character>
   {
-    using std::vector<character>::vector;
+    using std::vector<character>::vector; // make-string
 
-    explicit string(std::istream &);
+    explicit string(std::istream &, std::size_t = std::numeric_limits<std::size_t>::max()); // read-string
 
     explicit string(std::istream &&);
 
     explicit string(std::string const&);
-
-    // TODO string(std::istream &, size_type k);
 
     operator std::string() const; // write-string (for display)
   };

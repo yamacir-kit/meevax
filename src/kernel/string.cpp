@@ -26,9 +26,9 @@ namespace meevax
 {
 inline namespace kernel
 {
-  string::string(std::istream & is)
+  string::string(std::istream & is, std::size_t k)
   {
-    for (auto c = character(is); not is_eof(c.codepoint); c = character(is))
+    for (auto c = character(is); size() < k and not is_eof(c.codepoint); c = character(is))
     {
       switch (c.codepoint)
       {

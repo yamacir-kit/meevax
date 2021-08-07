@@ -977,10 +977,7 @@ inline namespace kernel
 
     define<procedure>("string-set!", [](let const& xs)
     {
-      car(xs).as<string>().at(
-        cadr(xs).as<exact_integer>().to<string::size_type>())
-      = caddr(xs).as<character>();
-
+      car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()) = caddr(xs).as<character>();
       return car(xs);
     });
 
@@ -1080,14 +1077,14 @@ inline namespace kernel
 
     define<procedure>("string-append", [](let const& xs)
     {
-      string s;
+      string result;
 
       for (let const& x : xs)
       {
-        std::copy(x.as<const string>().begin(), x.as<const string>().end(), std::back_inserter(s));
+        std::copy(std::cbegin(x.as<string>()), std::cend(x.as<string>()), std::back_inserter(result));
       }
 
-      return make(s);
+      return make(result);
     });
 
     /* -------------------------------------------------------------------------
