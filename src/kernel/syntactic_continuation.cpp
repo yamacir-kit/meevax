@@ -851,7 +851,7 @@ inline namespace kernel
     {
       try
       {
-        return make<exact_integer>(static_cast<std::string const&>(car(xs).as<character>()));
+        return make<exact_integer>(static_cast<std::string>(car(xs).as<character>()));
       }
       catch (std::runtime_error const&)
       {
@@ -924,7 +924,7 @@ inline namespace kernel
     define<procedure>("make-string", [](let const& xs)
     {
       return make<string>(car(xs).as<exact_integer>().to<std::size_t>(),
-                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character(' '));
+                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character());
     });
 
     // NOTE: (string char ...) defined in overture.ss
@@ -1787,7 +1787,7 @@ inline namespace kernel
 
     define<procedure>("::write-string", [](let const& xs)
     {
-      car(xs).as<string>().write_string(cadr(xs).as<std::ostream>());
+      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
       return unspecified;
     });
 

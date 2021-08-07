@@ -43,7 +43,7 @@ inline namespace kernel
 
     for (character const& each : *this)
     {
-      result.push_back(each); // NOTE: Character's implicit codepoint->std::string conversion.
+      result.append(static_cast<std::string>(each));
     }
 
     return result;
@@ -113,14 +113,9 @@ inline namespace kernel
       make<string>("unterminated string"), unit);
   }
 
-  auto string::write_string(std::ostream & os) const -> std::ostream &
-  {
-    return os << static_cast<std::string const&>(*this);
-  }
-
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
   {
-    auto print = [&](character const& c) -> decltype(auto)
+    auto write = [&](character const& c) -> decltype(auto)
     {
       if (c.codepoint < 0x80)
       {
@@ -149,7 +144,7 @@ inline namespace kernel
 
     for (auto const& each : datum)
     {
-      print(each);
+      write(each);
     }
 
     return os << cyan << "\"" << reset;

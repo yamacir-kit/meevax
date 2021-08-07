@@ -37,7 +37,7 @@ inline namespace kernel
 
     operator value_type() const; // char->integer
 
-    operator std::string() const; // write-char
+    explicit operator std::string() const; // write-char (for display)
   };
 
   auto operator <<(std::ostream &, character const&) -> std::ostream &; // write
