@@ -37,10 +37,6 @@ inline namespace kernel
     static_cast<std::vector<character> &>(*this) = read(ss);
   }
 
-  string::string(string::size_type size, character const& c)
-    : std::vector<character> { size, c }
-  {}
-
   string::operator std::string() const
   {
     std::string result;

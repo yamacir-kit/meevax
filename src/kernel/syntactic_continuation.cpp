@@ -939,7 +939,7 @@ inline namespace kernel
 
     define<procedure>("string-length", [](let const& xs)
     {
-      return make<exact_integer>(car(xs).as<string const>().size());
+      return make<exact_integer>(car(xs).as<string>().size());
     });
 
     /* -------------------------------------------------------------------------

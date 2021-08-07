@@ -25,18 +25,11 @@ inline namespace kernel
 {
   struct string : public std::vector<character>
   {
-    explicit string() = default;
+    using std::vector<character>::vector;
 
     explicit string(std::istream &);
 
     explicit string(std::string const&);
-
-    explicit string(size_type, character const&);
-
-    template <typename InputIterator>
-    explicit string(InputIterator begin, InputIterator end)
-      : std::vector<character> { begin, end }
-    {}
 
     // TODO string(std::istream &, size_type k);
 
