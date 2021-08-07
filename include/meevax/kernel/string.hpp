@@ -29,6 +29,8 @@ inline namespace kernel
 
     explicit string(std::istream &);
 
+    explicit string(std::istream &&);
+
     explicit string(std::string const&);
 
     // TODO string(std::istream &, size_type k);

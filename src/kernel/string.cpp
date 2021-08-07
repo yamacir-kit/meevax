@@ -80,13 +80,13 @@ inline namespace kernel
     throw tagged_read_error<string>(make<string>("unterminated string"), unit);
   }
 
+  string::string(std::istream && is)
+    : string { is }
+  {}
+
   string::string(std::string const& s)
-  {
-    std::stringstream ss;
-    ss << s << "\""; // XXX HACK
-    // static_cast<std::vector<character> &>(*this) = read(ss);
-    *this = string(ss);
-  }
+    : string { std::stringstream(s + "\"") }
+  {}
 
   string::operator std::string() const
   {
