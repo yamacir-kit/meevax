@@ -28,22 +28,6 @@ inline namespace kernel
 {
   string::string(std::istream & is)
   {
-    auto hex_scalar = [](std::istream & is)
-    {
-      if (std::string token; std::getline(is, token, ';') and is.ignore(1))
-      {
-        if (std::stringstream ss; ss << std::hex << token)
-        {
-          if (character::value_type value = 0; ss >> value)
-          {
-            return value;
-          }
-        }
-      }
-
-      throw tagged_read_error<character>(make<string>("invalid escape sequence"), unit);
-    };
-
     for (auto c = character(is); not is_eof(c.codepoint); c = character(is))
     {
       switch (c.codepoint)
@@ -63,8 +47,18 @@ inline namespace kernel
         case 'v': emplace_back('\v'); break;
 
         case 'x':
-          emplace_back(hex_scalar(is));
-          break;
+          if (std::string token; std::getline(is, token, ';') and is.ignore(1))
+          {
+            if (std::stringstream ss; ss << std::hex << token)
+            {
+              if (character::value_type value = 0; ss >> value)
+              {
+                emplace_back(value);
+                break;
+              }
+            }
+          }
+          throw tagged_read_error<character>(make<string>("invalid escape sequence"), unit);
 
         case '\n':
         case '\r':
