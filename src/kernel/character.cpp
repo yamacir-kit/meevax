@@ -16,112 +16,107 @@
 
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/miscellaneous.hpp> // for eof
 #include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/parser.hpp>
-#include <meevax/posix/vt10x.hpp>
+#include <meevax/posix/vt10x.hpp> // for cyan
 
 namespace meevax
 {
 inline namespace kernel
 {
-  character::character(std::istream & is)
-    : value { read(is) }
+  character::character(value_type const codepoint)
+    : codepoint { codepoint }
   {}
 
-  character::operator codeunit() const
+  character::character(std::istream & is)
+    : codepoint {}
   {
-    return codepoint_to_codeunit(value);
-  }
-
-  auto character::read(std::istream & is) const -> codepoint
-  {
-    /* -------------------------------------------------------------------------
-     *
-     *  00000000 -- 0000007F: 0xxxxxxx
-     *  00000080 -- 000007FF: 110xxxxx 10xxxxxx
-     *  00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
-     *  00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-     *
-     * ---------------------------------------------------------------------- */
-
-    codepoint point = 0;
+    /*
+       00000000 -- 0000007F: 0xxxxxxx
+       00000080 -- 000007FF: 110xxxxx 10xxxxxx
+       00000800 -- 0000FFFF: 1110xxxx 10xxxxxx 10xxxxxx
+       00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+    */
 
     if (auto const c = is.peek(); is_eof(c))
     {
-      throw tagged_read_error<eof>(
-        make<string>("no more characters are available"), unit);
+      throw tagged_read_error<eof>(make<string>("no more characters are available"), unit);
     }
-    else if (0b1111'0000 < c)
+    else if (0x00 <= c and c <= 0x7F) // 7 bit
     {
-      point |= is.get() & 0b0000'0111; point <<= 6;
-      point |= is.get() & 0b0011'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111;
+      codepoint = is.get();
     }
-    else if (0b1110'0000 < c)
+    else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      point |= is.get() & 0b0000'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111;
+      codepoint |= is.get() & 0b0001'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
     }
-    else if (0b1100'0000 < c)
+    else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      point |= is.get() & 0b0001'1111; point <<= 6;
-      point |= is.get() & 0b0011'1111;
+      codepoint |= is.get() & 0b0000'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
     }
-    else // is ascii
+    else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      point |= is.get() & 0b0111'1111;
-    }
-
-    return point;
-  }
-
-  auto character::read_codeunit(std::istream & is) const -> codeunit
-  {
-    codeunit cu {};
-
-    if (auto const c = is.peek(); is_eof(c))
-    {
-      throw tagged_read_error<eof>(
-        make<string>("no more characters are available"), unit);
-    }
-    else if (0b1111'0000 < c)
-    {
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-    }
-    else if (0b1110'0000 < c)
-    {
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
-    }
-    else if (0b1100'0000 < c)
-    {
-      cu.push_back(is.narrow(is.get(), '\0'));
-      cu.push_back(is.narrow(is.get(), '\0'));
+      codepoint |= is.get() & 0b0000'0111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() & 0b0011'1111;
     }
     else
     {
-      cu.push_back(is.narrow(is.get(), '\0'));
+      throw read_error(make<string>("invalid stream"), unit);
     }
-
-    return cu;
   }
 
-  auto character::write(std::ostream & os) const -> std::ostream &
+  character::operator value_type() const
   {
-    return os << static_cast<codeunit const&>(*this);
+    return codepoint;
+  }
+
+  character::operator std::string() const
+  {
+    std::array<char, 5> bytes {};
+
+    if (auto value = codepoint; value <= 0x7F)
+    {
+      bytes[0] = (value & 0x7F);
+    }
+    else if (value <= 0x7FF)
+    {
+      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[0] = 0xC0 | (value & 0x1F);
+    }
+    else if (value <= 0xFFFF)
+    {
+      bytes[2] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[0] = 0xE0 | (value & 0x0F);
+    }
+    else if (value <= 0x10FFFF)
+    {
+      bytes[3] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[2] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
+      bytes[0] = 0xF0 | (value & 0x07);
+    }
+    else
+    {
+      bytes[2] = static_cast<char>(0xEF);
+      bytes[1] = static_cast<char>(0xBF);
+      bytes[0] = static_cast<char>(0xBD);
+    }
+
+    return bytes.data();
   }
 
   auto operator <<(std::ostream & os, character const& datum) -> std::ostream &
   {
     os << cyan << "#\\";
 
-    switch (datum.value)
+    switch (datum.codepoint)
     {
     case 0x00: return os << "null"      << reset;
     case 0x07: return os << "alarm"     << reset;
@@ -134,13 +129,14 @@ inline namespace kernel
     case 0x7F: return os << "delete"    << reset;
 
     default:
-      return datum.write(os) << reset;
+      return os << static_cast<std::string>(datum) << reset;
     }
   }
 
-  static_assert(std::alignment_of<character>::value == std::alignment_of<codepoint>::value);
   static_assert(std::is_pod<character>::value);
+
   static_assert(std::is_standard_layout<character>::value);
+
   static_assert(std::is_trivial<character>::value);
 } // namespace kernel
 } // namespace meevax

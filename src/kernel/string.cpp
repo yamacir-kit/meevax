@@ -26,75 +26,39 @@ namespace meevax
 {
 inline namespace kernel
 {
-  string::string(std::istream & is)
-    : characters { read(is) }
-  {}
-
-  string::string(std::string const& s)
+  string::string(std::istream & is, std::size_t k)
   {
-    std::stringstream ss;
-    ss << s << "\""; // XXX HACK
-    static_cast<characters &>(*this) = read(ss);
-  }
-
-  string::string(string::size_type size, character const& c)
-    : characters { size, c }
-  {}
-
-  string::operator codeunits() const // NOTE: codeunits = std::string
-  {
-    codeunits result;
-
-    for (auto const& each : *this)
+    for (auto c = character(is); size() < k and not is_eof(c.codepoint); c = character(is))
     {
-      result.push_back(each); // NOTE: Character's implicit codepoint->codeunit conversion.
-    }
-
-    return result;
-  }
-
-  auto string::read(std::istream & is) const -> characters
-  {
-    auto hex_scalar = [](std::istream & is)
-    {
-      if (std::string token; std::getline(is, token, ';') and is.ignore(1))
-      {
-        if (std::stringstream ss; ss << std::hex << token)
-        {
-          if (codepoint value = 0; ss >> value)
-          {
-            return value;
-          }
-        }
-      }
-
-      throw tagged_read_error<character>(
-        make<string>("invalid escape sequence"), unit);
-    };
-
-    characters cs;
-
-    for (auto c = character(is); not is_eof(c.value); c = character(is))
-    {
-      switch (c.value)
+      switch (c.codepoint)
       {
       case '"':
-        return cs;
+        return;
 
       case '\\':
-        switch (auto const c = character(is); c.value)
+        switch (auto const c = character(is); c.codepoint)
         {
-        case 'a': cs.emplace_back('\a'); break;
-        case 'b': cs.emplace_back('\b'); break;
-        case 'f': cs.emplace_back('\f'); break;
-        case 'n': cs.emplace_back('\n'); break;
-        case 'r': cs.emplace_back('\r'); break;
-        case 't': cs.emplace_back('\t'); break;
-        case 'v': cs.emplace_back('\v'); break;
+        case 'a': emplace_back('\a'); break;
+        case 'b': emplace_back('\b'); break;
+        case 'f': emplace_back('\f'); break;
+        case 'n': emplace_back('\n'); break;
+        case 'r': emplace_back('\r'); break;
+        case 't': emplace_back('\t'); break;
+        case 'v': emplace_back('\v'); break;
 
         case 'x':
-          cs.emplace_back(hex_scalar(is));
-          break;
+          if (std::string token; std::getline(is, token, ';') and is.ignore(1))
+          {
+            if (std::stringstream ss; ss << std::hex << token)
+            {
+              if (character::value_type value = 0; ss >> value)
+              {
+                emplace_back(value);
+                break;
+              }
+            }
+          }
+          throw tagged_read_error<character>(make<string>("invalid escape sequence"), unit);
 
         case '\n':
         case '\r':
@@ -102,33 +66,47 @@ inline namespace kernel
           break;
 
         default:
-          cs.push_back(c);
+          push_back(c);
           break;
         }
         break;
 
       default:
-        cs.push_back(c);
+        push_back(c);
         break;
       }
     }
 
-    throw tagged_read_error<string>(
-      make<string>("unterminated string"), unit);
+    throw tagged_read_error<string>(make<string>("unterminated string"), unit);
   }
 
-  auto string::write_string(std::ostream & os) const -> std::ostream &
+  string::string(std::istream && is)
+    : string { is }
+  {}
+
+  string::string(std::string const& s)
+    : string { std::stringstream(s + "\"") }
+  {}
+
+  string::operator std::string() const
   {
-    return os << static_cast<codeunits const&>(*this);
+    std::string result;
+
+    for (character const& each : *this)
+    {
+      result.append(static_cast<std::string>(each));
+    }
+
+    return result;
   }
 
   auto operator <<(std::ostream & os, string const& datum) -> std::ostream &
   {
-    auto print = [&](character const& c) -> decltype(auto)
+    auto write = [&](character const& c) -> decltype(auto)
     {
-      if (c.value < 0x80)
+      if (c.codepoint < 0x80)
       {
-        switch (c.value)
+        switch (c.codepoint)
         {
         case '\a': return os << red << "\\a";
         case '\b': return os << red << "\\b";
@@ -140,12 +118,12 @@ inline namespace kernel
         case '|':  return os << red << "\\|";
 
         default:
-          return os << cyan << static_cast<char>(c.value);
+          return os << cyan << static_cast<char>(c.codepoint);
         }
       }
       else
       {
-        return os << red << "\\x" << std::hex << std::uppercase << c.value << ";";
+        return os << red << "\\x" << std::hex << std::uppercase << c.codepoint << ";";
       }
     };
 
@@ -153,7 +131,7 @@ inline namespace kernel
 
     for (auto const& each : datum)
     {
-      print(each);
+      write(each);
     }
 
     return os << cyan << "\"" << reset;

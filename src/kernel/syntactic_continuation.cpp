@@ -827,65 +827,31 @@ inline namespace kernel
       return intern(car(xs).as<string>());
     });
 
-  /* ---- R7RS 6.6. Characters -------------------------------------------------
-
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char?              │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char=?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char<?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char>?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char<=?            │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char>=?            │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci=?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci<?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci>?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci<=?         │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci>=?         │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-alphabetic?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-numeric?      │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-whitespace?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-upper-case?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-lower-case?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ digit-value        │ C++        │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char->integer      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ integer->char      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-upcase        │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-downcase      │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-foldcase      │ Scheme     │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (char? obj)                                                   procedure
+     *
+     *  Returns #t if obj is a character, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("char?", is<character>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (digit-value char)                               char library procedure
+     *
+     *  This procedure returns the numeric value (0 to 9) of its argument if it
+     *  is a numeric digit (that is, if char-numeric? returns #t), or #f on any
+     *  other character.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("digit-value", [](let const& xs)
     {
       try
       {
-        return make<exact_integer>(static_cast<codeunit const&>(car(xs).as<character>()));
+        return make<exact_integer>(static_cast<std::string>(car(xs).as<character>()));
       }
       catch (std::runtime_error const&)
       {
@@ -893,15 +859,32 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (char->integer char)                                          procedure
+     *  (integer->char n)                                             procedure
+     *
+     *  Given a Unicode character, char->integer returns an exact integer
+     *  between 0 and #xD7FF or between #xE000 and #x10FFFF which is equal to
+     *  the Unicode scalar value of that character. Given a non-Unicode
+     *  character, it returns an exact integer greater than #x10FFFF. This is
+     *  true independent of whether the implementation uses the Unicode
+     *  representation internally.
+     *
+     *  Given an exact integer that is the value returned by a character when
+     *  char->integer is applied to it, integer->char returns that character.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("char->integer", [](let const& xs)
     {
       if (xs.is<pair>() and car(xs).is<character>())
       {
-        return make<exact_integer>(static_cast<codepoint>(car(xs).as<character>()));
+        return make<exact_integer>(car(xs).as<character>().codepoint);
       }
       else
       {
-        throw error(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments"), xs);
       }
     });
 
@@ -909,74 +892,13 @@ inline namespace kernel
     {
       if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
-        return make<character>(car(xs).as<exact_integer>().to<codepoint>());
+        return make<character>(car(xs).as<exact_integer>().to<character::value_type>());
       }
       else
       {
-        throw error(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments"), xs);
       }
     });
-
-
-  /* ---- R7RS 6.7. Strings ----------------------------------------------------
-
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string?            │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ make-string        │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-length      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ref         │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-set!        │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string=?           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string<?           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string>?           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string<=?          │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string>=?          │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci=?        │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci<?        │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci>?        │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci<=?       │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci>=?       │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-upcase      │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-downcase    │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-foldcase    │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ substring          │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-append      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string->list       │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list->string       │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-copy        │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-copy!       │ TODO       │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-fill!       │ Scheme     │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
 
     /* -------------------------------------------------------------------------
      *
@@ -1002,7 +924,7 @@ inline namespace kernel
     define<procedure>("make-string", [](let const& xs)
     {
       return make<string>(car(xs).as<exact_integer>().to<std::size_t>(),
-                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character(' '));
+                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character());
     });
 
     // NOTE: (string char ...) defined in overture.ss
@@ -1017,7 +939,7 @@ inline namespace kernel
 
     define<procedure>("string-length", [](let const& xs)
     {
-      return make<exact_integer>(car(xs).as<string const>().size());
+      return make<exact_integer>(car(xs).as<string>().size());
     });
 
     /* -------------------------------------------------------------------------
@@ -1032,7 +954,7 @@ inline namespace kernel
 
     define<procedure>("string-ref", [](let const& xs)
     {
-      return make(car(xs).as<string const>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
+      return make(car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
     });
 
     /* -------------------------------------------------------------------------
@@ -1055,10 +977,7 @@ inline namespace kernel
 
     define<procedure>("string-set!", [](let const& xs)
     {
-      car(xs).as<string>().at(
-        cadr(xs).as<exact_integer>().to<string::size_type>())
-      = caddr(xs).as<const character>();
-
+      car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()) = caddr(xs).as<character>();
       return car(xs);
     });
 
@@ -1158,14 +1077,14 @@ inline namespace kernel
 
     define<procedure>("string-append", [](let const& xs)
     {
-      string s;
+      string result;
 
       for (let const& x : xs)
       {
-        std::copy(x.as<const string>().begin(), x.as<const string>().end(), std::back_inserter(s));
+        std::copy(std::cbegin(x.as<string>()), std::cend(x.as<string>()), std::back_inserter(result));
       }
 
-      return make(s);
+      return make(result);
     });
 
     /* -------------------------------------------------------------------------
@@ -1214,7 +1133,7 @@ inline namespace kernel
 
       for (let const& x : car(xs))
       {
-        s.push_back(x.as<const character>());
+        s.push_back(x.as<character>());
       }
 
       return make(std::move(s));
@@ -1774,6 +1693,17 @@ inline namespace kernel
       return read(car(xs));
     });
 
+    /* ---- R7RS 6.13.2. Input -------------------------------------------------
+     *
+     *  (read-char)                                                   procedure
+     *  (read-char port)                                              procedure
+     *
+     *  Returns the next character available from the textual input port,
+     *  updating the port to point to the following character. If no more
+     *  characters are available, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("::read-char", [](let const& xs)
     {
       try
@@ -1815,6 +1745,19 @@ inline namespace kernel
       return car(xs).as<std::istream>() ? t : f;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (read-string k)                                               procedure
+     *  (read-string k port)                                          procedure
+     *
+     *  Reads the next k characters, or as many as are available before the end
+     *  of file, from the textual input port into a newly allocated string in
+     *  left-to-right order and returns the string. If no characters are
+     *  available before the end of file, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+
+    // TODO read-string
 
     define<procedure>("::write-simple", [this](let const& xs)
     {
@@ -1822,15 +1765,26 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* ---- R7RS 6.13.3. Output ------------------------------------------------
+     *
+     *  (write-char char)                                             procedure
+     *  (write-char char port)                                        procedure
+     *
+     *  Writes the character char (not an external representation of the
+     *  character) to the given textual output port and returns an unspecified
+     *  value.
+     *
+     * --------------------------------------------------------------------- */
+
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write(cadr(xs).as<std::ostream>());
+      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified;
     });
 
     define<procedure>("::write-string", [](let const& xs)
     {
-      car(xs).as<string>().write_string(cadr(xs).as<std::ostream>());
+      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
       return unspecified;
     });
 

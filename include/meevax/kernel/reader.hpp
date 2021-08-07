@@ -20,6 +20,7 @@
 #include <boost/lexical_cast.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/ghost.hpp>
+#include <meevax/kernel/miscellaneous.hpp> // for eof
 #include <meevax/kernel/numeric_io.hpp>
 #include <meevax/kernel/parser.hpp> // DEPRECATED
 #include <meevax/kernel/port.hpp>

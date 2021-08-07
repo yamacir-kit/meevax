@@ -97,7 +97,7 @@ inline namespace kernel
         std::stringstream ss;
         ss << std::hex << token.substr(1);
 
-        codepoint value = 0;
+        character::value_type value = 0;
         ss >> value;
 
         return make<character>(value);
