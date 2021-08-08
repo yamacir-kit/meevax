@@ -34,7 +34,7 @@ inline namespace kernel
   namespace parse
   {
     template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>, std::is_invocable<G, std::istream &>)>
-    auto operator bitor(F&& f, G&& g)
+    auto operator |(F&& f, G&& g)
     {
       return [=](std::istream & is)
       {
@@ -50,6 +50,20 @@ inline namespace kernel
 
           return g(is);
         }
+      };
+    }
+
+    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>, std::is_invocable<G, std::istream &>)>
+    auto operator +(F&& f, G&& g)
+    {
+      return [=](std::istream & is)
+      {
+        std::string s {};
+
+        s += f(is);
+        s += g(is);
+
+        return s;
       };
     }
 
@@ -85,6 +99,19 @@ inline namespace kernel
       };
     };
 
+    auto s = [](auto&& cs)
+    {
+      return [=](std::istream & is)
+      {
+        for (auto c : cs)
+        {
+          any_of(c)(is);
+        }
+
+        return cs;
+      };
+    };
+
     auto intraline_whitespace = any_of(' ', '\t');
 
     auto line_ending = any_of('\n', '\r');
@@ -98,25 +125,91 @@ inline namespace kernel
     auto lower = range_of('a', 'z');
 
     auto letter = upper | lower;
-  }
 
-  /* ---------------------------------------------------------------------------
-   *
-   *  <token> = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
-   *
-   * ------------------------------------------------------------------------ */
+    /* ---------------------------------------------------------------------------
+     *
+     *  <token> = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
+     *
+     * ------------------------------------------------------------------------ */
 
-  auto token = [](std::istream & is)
-  {
-    std::string result;
-
-    for (auto c = is.peek(); not is_end_of_token(c); c = is.peek())
+    auto token = [](std::istream & is)
     {
-      result.push_back(is.get());
-    }
+      std::string result;
 
-    return result;
-  };
+      for (auto c = is.peek(); not is_end_of_token(c); c = is.peek())
+      {
+        result.push_back(is.get());
+      }
+
+      return result;
+    };
+
+    // auto character_name = s("alarm")
+    //                     | s("backspace")
+    //                     | s("delete")
+    //                     | s("escape")
+    //                     | s("newline")
+    //                     | s("null")
+    //                     | s("return")
+    //                     | s("space")
+    //                     | s("tab");
+
+    auto any_character = [](std::istream & is)
+    {
+      switch (auto s = token(is); std::size(s))
+      {
+      case 0:
+        return make<character>(is.get());
+
+      case 1:
+        return make<character>(s[0]);
+
+      default:
+        throw tagged_read_error<character>(
+          make<string>("If <character> in #\\<character> is alphabetic, then any character immediately following <character> cannot be one that can appear in an identifier"), unit);
+      }
+    };
+
+    auto character_name = [](std::istream & is)
+    {
+      std::unordered_map<std::string, char> static const choice
+      {
+        { "alarm"    , 0x07 },
+        { "backspace", 0x08 },
+        { "delete"   , 0x7F },
+        { "escape"   , 0x1B },
+        { "newline"  , 0x0A },
+        { "null"     , 0x00 },
+        { "return"   , 0x0D },
+        { "space"    , 0x20 },
+        { "tab"      , 0x09 },
+      };
+
+      return make<character>(choice.at(token(is)));
+    };
+
+    auto hex_scalar_value = [](std::istream & is)
+    {
+      auto s = token(is);
+
+      if (s[0] == 'x' and 1 < std::size(s))
+      {
+        std::stringstream ss;
+        ss << std::hex << s.substr(1);
+
+        character::value_type value = 0;
+        ss >> value;
+
+        return make<character>(value);
+      }
+      else
+      {
+        throw tagged_read_error<character>(make<string>("invalid <hex scalar value>"), make<string>("\\#" + s));
+      }
+    };
+
+    auto character = any_character | character_name | hex_scalar_value;
+  }
 
   auto comment = [](std::istream & is)
   {
@@ -125,7 +218,7 @@ inline namespace kernel
 
   // ---------------------------------------------------------------------------
 
-  auto read_char(std::istream &) -> pair::value_type;
+  // auto read_char(std::istream &) -> pair::value_type;
 
   template <typename Module>
   class reader
@@ -257,7 +350,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 2);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 2);
 
           case 'c': // from Common Lisp
             if (let const xs = read(is); xs.is<null>())
@@ -274,7 +367,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 10);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 10);
 
           case 'e':
             return exact(read(is)); // NOTE: Same as #,(exact (read))
@@ -287,7 +380,7 @@ inline namespace kernel
             return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 8);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 8);
 
           case 'p':
             assert(is.get() == '"');
@@ -299,14 +392,14 @@ inline namespace kernel
             return t;
 
           case 'x':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 16);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 16);
 
           case '(':
             is.putback(discriminator);
             return make<vector>(for_each_in, read(is));
 
           case '\\':
-            return read_char(is);
+            return parse::character(is);
 
           default:
             throw read_error(make<string>("unknown discriminator"), make<character>(discriminator));
