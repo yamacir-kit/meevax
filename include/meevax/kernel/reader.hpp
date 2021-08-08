@@ -31,25 +31,73 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
-                                             std::is_invocable<G, std::istream &>)>
-  auto operator bitor(F&& f, G&& g)
+  namespace parse
   {
-    return [=](std::istream & is)
+    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>, std::is_invocable<G, std::istream &>)>
+    auto operator bitor(F&& f, G&& g)
     {
-      auto const position = is.tellg();
-
-      try
+      return [=](std::istream & is)
       {
-        return f(is);
-      }
-      catch (...)
-      {
-        is.seekg(position);
+        auto const position = is.tellg();
 
-        return g(is);
-      }
+        try
+        {
+          return f(is);
+        }
+        catch (...)
+        {
+          is.seekg(position);
+
+          return g(is);
+        }
+      };
+    }
+
+    auto any_of = [](auto... xs)
+    {
+      return [=](std::istream & is)
+      {
+        if (auto c = is.get(); (std::char_traits<decltype(c)>::eq(c, xs) or ...))
+        {
+          return c;
+        }
+        else
+        {
+          static const auto error = read_error(make<string>(__func__), unit);
+          throw error;
+        }
+      };
     };
+
+    auto range_of = [](auto a, auto z)
+    {
+      return [=](std::istream & is)
+      {
+        if (auto c = is.get(); a <= c and c <= z)
+        {
+          return c;
+        }
+        else
+        {
+          static const auto error = read_error(make<string>(__func__), unit);
+          throw error;
+        }
+      };
+    };
+
+    auto intraline_whitespace = any_of(' ', '\t');
+
+    auto line_ending = any_of('\n', '\r');
+
+    auto whitespace = intraline_whitespace | line_ending;
+
+    auto delimiter = whitespace | any_of('|', '(', ')', '"', ';');
+
+    auto upper = range_of('A', 'Z');
+
+    auto lower = range_of('a', 'z');
+
+    auto letter = upper | lower;
   }
 
   /* ---------------------------------------------------------------------------
@@ -74,34 +122,6 @@ inline namespace kernel
   {
     is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   };
-
-  auto upper = [](std::istream & is)
-  {
-    if (auto c = is.get(); 'A' <= c and c <= 'Z')
-    {
-      return c;
-    }
-    else
-    {
-      static const auto error = read_error(make<string>("not an upper"), unit);
-      throw error;
-    }
-  };
-
-  auto lower = [](std::istream & is)
-  {
-    if (auto c = is.get(); 'a' <= c and c <= 'z')
-    {
-      return c;
-    }
-    else
-    {
-      static const auto error = read_error(make<string>("not an lower"), unit);
-      throw error;
-    }
-  };
-
-  auto letter = upper | lower;
 
   // ---------------------------------------------------------------------------
 
