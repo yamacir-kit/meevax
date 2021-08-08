@@ -20,18 +20,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(std::istream & is) -> std::string
-  {
-    std::string token;
-
-    for (auto c = is.peek(); not is_end_of_token(c); c = is.peek())
-    {
-      token.push_back(is.get());
-    }
-
-    return token;
-  }
-
   /* ---- R7RS 7.1.1. Lexical structure ----------------------------------------
    *
    *  <character> = #\ <any character>
@@ -112,7 +100,7 @@ inline namespace kernel
 
     auto to_character = hex_scalar_value | character_name | any_character;
 
-    return to_character(read_token(is), 16);
+    return to_character(token(is), 16);
   }
 } // namespace kernel
 } // namespace meevax

@@ -31,7 +31,79 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(std::istream &) -> std::string;
+  template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
+                                             std::is_invocable<G, std::istream &>)>
+  auto operator bitor(F&& f, G&& g)
+  {
+    return [=](std::istream & is)
+    {
+      auto const position = is.tellg();
+
+      try
+      {
+        return f(is);
+      }
+      catch (...)
+      {
+        is.seekg(position);
+
+        return g(is);
+      }
+    };
+  }
+
+  /* ---------------------------------------------------------------------------
+   *
+   *  <token> = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
+   *
+   * ------------------------------------------------------------------------ */
+
+  auto token = [](std::istream & is)
+  {
+    std::string result;
+
+    for (auto c = is.peek(); not is_end_of_token(c); c = is.peek())
+    {
+      result.push_back(is.get());
+    }
+
+    return result;
+  };
+
+  auto comment = [](std::istream & is)
+  {
+    is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  };
+
+  auto upper = [](std::istream & is)
+  {
+    if (auto c = is.get(); 'A' <= c and c <= 'Z')
+    {
+      return c;
+    }
+    else
+    {
+      static const auto error = read_error(make<string>("not an upper"), unit);
+      throw error;
+    }
+  };
+
+  auto lower = [](std::istream & is)
+  {
+    if (auto c = is.get(); 'a' <= c and c <= 'z')
+    {
+      return c;
+    }
+    else
+    {
+      static const auto error = read_error(make<string>("not an lower"), unit);
+      throw error;
+    }
+  };
+
+  auto letter = upper | lower;
+
+  // ---------------------------------------------------------------------------
 
   auto read_char(std::istream &) -> pair::value_type;
 
@@ -78,14 +150,14 @@ inline namespace kernel
 
     inline auto read(std::istream & is) -> pair::value_type
     {
-      std::string token {};
+      std::string buffer {};
 
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
         switch (auto const c = *head)
         {
         case ';':
-          is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          comment(is);
           break;
 
         case ' ':
@@ -155,7 +227,7 @@ inline namespace kernel
           switch (auto const discriminator = is.get())
           {
           case '!': // from SRFI-22
-            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            comment(is);
             return read(is);
 
           case ',': // from SRFI-10
@@ -165,7 +237,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 2);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 2);
 
           case 'c': // from Common Lisp
             if (let const xs = read(is); xs.is<null>())
@@ -182,7 +254,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 10);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 10);
 
           case 'e':
             return exact(read(is)); // NOTE: Same as #,(exact (read))
@@ -195,7 +267,7 @@ inline namespace kernel
             return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 8);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 8);
 
           case 'p':
             assert(is.get() == '"');
@@ -207,7 +279,7 @@ inline namespace kernel
             return t;
 
           case 'x':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 16);
+            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : token(is), 16);
 
           case '(':
             is.putback(discriminator);
@@ -221,19 +293,19 @@ inline namespace kernel
           }
 
         default:
-          if (token.push_back(c); is_end_of_token(is.peek()))
+          if (buffer.push_back(c); is_end_of_token(is.peek()))
           {
-            if (token == ".")
+            if (buffer == ".")
             {
               throw tagged_read_error<char_constant<'.'>>(make<string>("unexpected character: "), make<character>('.'));
             }
             else try
             {
-              return to_number(token, 10);
+              return to_number(buffer, 10);
             }
             catch (...)
             {
-              return intern(token);
+              return intern(buffer);
             }
           }
         }
