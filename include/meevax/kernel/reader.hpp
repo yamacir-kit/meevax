@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
 #include <boost/lexical_cast.hpp>
+#include <meevax/iostream/combinator.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/iostream/putback.hpp>
 #include <meevax/kernel/ghost.hpp>
@@ -71,9 +72,9 @@ inline namespace kernel
     {
       return [=](std::istream & is)
       {
-        if (auto c = is.get(); (std::char_traits<decltype(c)>::eq(c, xs) or ...))
+        if (auto c = static_cast<character>(is.get()); ((c == xs) or ...))
         {
-          return c;
+          return static_cast<std::string>(c);
         }
         else
         {
@@ -87,14 +88,34 @@ inline namespace kernel
     {
       return [=](std::istream & is)
       {
-        if (auto c = is.get(); a <= c and c <= z)
+        if (auto c = static_cast<character>(is.get()); a <= c and c <= z)
         {
-          return c;
+          return static_cast<std::string>(c);
         }
         else
         {
           static const auto error = read_error(make<string>(__func__), unit);
           throw error;
+        }
+      };
+    };
+
+    auto many = [](auto&& f)
+    {
+      return [=](std::istream & is) -> std::string
+      {
+        std::string s {};
+
+        try
+        {
+          while (true)
+          {
+            s += f(is);
+          }
+        }
+        catch (...)
+        {
+          return s;
         }
       };
     };
@@ -118,13 +139,46 @@ inline namespace kernel
 
     auto whitespace = intraline_whitespace | line_ending;
 
-    auto delimiter = whitespace | any_of('|', '(', ')', '"', ';');
+    auto vertical_line = any_of('|');
+
+    auto delimiter = whitespace | vertical_line | any_of('(', ')', '"', ';');
 
     auto upper = range_of('A', 'Z');
 
     auto lower = range_of('a', 'z');
 
     auto letter = upper | lower;
+
+    auto special_initial = any_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
+
+    auto initial = letter | special_initial;
+
+    auto digit = range_of('0', '9');
+
+    auto explicit_sign = any_of('+', '-');
+
+    auto special_subsequent = explicit_sign | any_of('.', '@');
+
+    auto subsequent = initial | digit | special_subsequent;
+
+    auto symbol_element = letter;
+                        //   any_character_other_than_vertical_line_or_backslash
+                        // | inline_hex_escape
+                        // | mnemonic_escape
+                        // | s("\\|")
+
+    auto sign_subsequent = initial | explicit_sign | any_of('@');
+
+    auto dot_subsequent = sign_subsequent | any_of('.');
+
+    auto peculiar_identifier = explicit_sign
+                             | explicit_sign + sign_subsequent + many(subsequent)
+                             | explicit_sign + any_of('.') + dot_subsequent + many(subsequent)
+                             | any_of('.') + dot_subsequent + many(subsequent);
+
+    auto identifier = initial + many(subsequent)
+                    | vertical_line + many(symbol_element) + vertical_line
+                    | peculiar_identifier;
 
     /* ---------------------------------------------------------------------------
      *
@@ -143,16 +197,6 @@ inline namespace kernel
 
       return result;
     };
-
-    // auto character_name = s("alarm")
-    //                     | s("backspace")
-    //                     | s("delete")
-    //                     | s("escape")
-    //                     | s("newline")
-    //                     | s("null")
-    //                     | s("return")
-    //                     | s("space")
-    //                     | s("tab");
 
     auto any_character = [](std::istream & is)
     {
@@ -173,7 +217,7 @@ inline namespace kernel
 
     auto character_name = [](std::istream & is)
     {
-      std::unordered_map<std::string, char> static const character_names
+      std::unordered_map<std::string, character::value_type> static const character_names
       {
         { "alarm"    , 0x07 },
         { "backspace", 0x08 },
@@ -267,7 +311,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("failed to intern a symbol"), unit);
+        throw error(make<string>("failed to intern a symbol"), make<string>(name));
       }
     }
 
