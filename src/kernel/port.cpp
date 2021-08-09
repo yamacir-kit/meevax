@@ -15,6 +15,7 @@
 */
 
 #include <iomanip>
+#include <ios>
 
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/reader.hpp>

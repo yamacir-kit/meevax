@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
 #include <fstream>
-#include <ios>
 
 #include <meevax/kernel/object.hpp>
 #include <meevax/kernel/path.hpp>
@@ -73,19 +72,14 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, output_file_port const&) -> std::ostream &;
 
-  /* ---- String Ports ---------------------------------------------------------
-   *
-   *  SRFI-6
-   *
-   * ------------------------------------------------------------------------ */
-  struct input_string_port : public std::istringstream
+  struct input_string_port : public std::istringstream // SRFI 6
   {
     using std::istringstream::istringstream;
   };
 
   auto operator <<(std::ostream &, input_string_port const&) -> std::ostream &;
 
-  struct output_string_port : public std::ostringstream
+  struct output_string_port : public std::ostringstream // SRFI 6
   {
     using std::ostringstream::ostringstream;
   };
