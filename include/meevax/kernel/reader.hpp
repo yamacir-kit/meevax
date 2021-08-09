@@ -33,7 +33,8 @@ inline namespace kernel
 {
   namespace parse
   {
-    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>, std::is_invocable<G, std::istream &>)>
+    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
+                                               std::is_invocable<G, std::istream &>)>
     auto operator |(F&& f, G&& g)
     {
       return [=](std::istream & is)
@@ -46,9 +47,7 @@ inline namespace kernel
         }
         catch (...)
         {
-          is.seekg(position);
-
-          return g(is);
+          return g(is.seekg(position));
         }
       };
     }
@@ -190,9 +189,7 @@ inline namespace kernel
 
     auto hex_scalar_value = [](std::istream & is)
     {
-      auto s = token(is);
-
-      if (s[0] == 'x' and 1 < std::size(s))
+      if (auto s = token(is); s[0] == 'x' and 1 < std::size(s))
       {
         std::stringstream ss;
         ss << std::hex << s.substr(1);

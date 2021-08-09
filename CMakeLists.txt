@@ -27,7 +27,7 @@ set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=nativ
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
-find_package(Boost REQUIRED)
+find_package(Boost   REQUIRED)
 find_package(Threads REQUIRED)
 
 # ---- Configure README --------------------------------------------------------

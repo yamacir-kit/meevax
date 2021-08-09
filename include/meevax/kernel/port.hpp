@@ -17,11 +17,11 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PORT_HPP
 #define INCLUDED_MEEVAX_KERNEL_PORT_HPP
 
-#include <ios>
 #include <fstream>
+#include <ios>
 
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/object.hpp>
+#include <meevax/kernel/path.hpp>
 
 namespace meevax
 {
