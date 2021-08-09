@@ -19,6 +19,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <meevax/iostream/ignore.hpp>
+#include <meevax/iostream/putback.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/miscellaneous.hpp> // for eof
 #include <meevax/kernel/numeric_io.hpp>
@@ -39,20 +40,20 @@ inline namespace kernel
     {
       return [=](std::istream & is)
       {
-        auto const position = is.tellg();
-
         try
         {
           return f(is);
         }
         catch (...)
         {
-          return g(is.seekg(position));
+          is.clear();
+          return g(is);
         }
       };
     }
 
-    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>, std::is_invocable<G, std::istream &>)>
+    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
+                                               std::is_invocable<G, std::istream &>)>
     auto operator +(F&& f, G&& g)
     {
       return [=](std::istream & is)
@@ -164,6 +165,7 @@ inline namespace kernel
         return make<character>(s[0]);
 
       default:
+        putback(is, s);
         throw tagged_read_error<character>(
           make<string>("If <character> in #\\<character> is alphabetic, then any character immediately following <character> cannot be one that can appear in an identifier"), unit);
       }
@@ -171,7 +173,7 @@ inline namespace kernel
 
     auto character_name = [](std::istream & is)
     {
-      std::unordered_map<std::string, char> static const choice
+      std::unordered_map<std::string, char> static const character_names
       {
         { "alarm"    , 0x07 },
         { "backspace", 0x08 },
@@ -184,7 +186,17 @@ inline namespace kernel
         { "tab"      , 0x09 },
       };
 
-      return make<character>(choice.at(token(is)));
+      auto const name = token(is);
+
+      try
+      {
+        return make<character>(character_names.at(name));
+      }
+      catch (...)
+      {
+        putback(is, name);
+        throw tagged_read_error<character>(make<string>("invalid <charcter name>"), make<string>("\\#" + name));
+      }
     };
 
     auto hex_scalar_value = [](std::istream & is)
@@ -201,6 +213,7 @@ inline namespace kernel
       }
       else
       {
+        putback(is, s);
         throw tagged_read_error<character>(make<string>("invalid <hex scalar value>"), make<string>("\\#" + s));
       }
     };
