@@ -68,7 +68,12 @@ inline namespace kernel
       };
     }
 
-    auto any_of = [](auto... xs)
+    auto empty = [](std::istream &)
+    {
+      return std::string();
+    };
+
+    auto one_of = [](auto... xs)
     {
       return [=](std::istream & is)
       {
@@ -78,8 +83,22 @@ inline namespace kernel
         }
         else
         {
-          static const auto error = read_error(make<string>(__func__), unit);
-          throw error;
+          throw read_error(make<string>("unexpected character"), make<character>(c));
+        }
+      };
+    };
+
+    auto none_of = [](auto... xs)
+    {
+      return [=](std::istream & is)
+      {
+        if (auto c = static_cast<character>(is.get()); ((c != xs) or ...))
+        {
+          return static_cast<std::string>(c);
+        }
+        else
+        {
+          throw read_error(make<string>("unexpected character"), make<character>(c));
         }
       };
     };
@@ -120,28 +139,28 @@ inline namespace kernel
       };
     };
 
-    auto s = [](auto&& cs)
+    auto sequence = [](std::string const& s)
     {
       return [=](std::istream & is)
       {
-        for (auto c : cs)
+        for (auto c : s)
         {
-          any_of(c)(is);
+          one_of(c)(is);
         }
 
-        return cs;
+        return s;
       };
     };
 
-    auto intraline_whitespace = any_of(' ', '\t');
+    auto intraline_whitespace = one_of(' ', '\t');
 
-    auto line_ending = any_of('\n', '\r');
+    auto line_ending = one_of('\n', '\r');
 
     auto whitespace = intraline_whitespace | line_ending;
 
-    auto vertical_line = any_of('|');
+    auto vertical_line = one_of('|');
 
-    auto delimiter = whitespace | vertical_line | any_of('(', ')', '"', ';');
+    auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
 
     auto upper = range_of('A', 'Z');
 
@@ -149,17 +168,23 @@ inline namespace kernel
 
     auto letter = upper | lower;
 
-    auto special_initial = any_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
+    auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
 
     auto initial = letter | special_initial;
 
     auto digit = range_of('0', '9');
 
-    auto explicit_sign = any_of('+', '-');
+    auto explicit_sign = one_of('+', '-');
 
-    auto special_subsequent = explicit_sign | any_of('.', '@');
+    auto special_subsequent = explicit_sign | one_of('.', '@');
 
     auto subsequent = initial | digit | special_subsequent;
+
+    // TODO auto any_character_other_than_vertical_line_or_backslash
+
+    // TODO auto inline_hex_escape
+
+    // TODO auto mnemonic_escape
 
     auto symbol_element = letter;
                         //   any_character_other_than_vertical_line_or_backslash
@@ -167,14 +192,22 @@ inline namespace kernel
                         // | mnemonic_escape
                         // | s("\\|")
 
-    auto sign_subsequent = initial | explicit_sign | any_of('@');
+    auto sign_subsequent = initial | explicit_sign | one_of('@');
 
-    auto dot_subsequent = sign_subsequent | any_of('.');
+    auto dot_subsequent = sign_subsequent | one_of('.');
 
     auto peculiar_identifier = explicit_sign
                              | explicit_sign + sign_subsequent + many(subsequent)
-                             | explicit_sign + any_of('.') + dot_subsequent + many(subsequent)
-                             | any_of('.') + dot_subsequent + many(subsequent);
+                             | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
+                             | one_of('.') + dot_subsequent + many(subsequent);
+
+    // TODO auto boolean
+
+    // TODO auto number
+
+    // TODO auto character
+
+    // TODO auto string
 
     auto identifier = initial + many(subsequent)
                     | vertical_line + many(symbol_element) + vertical_line

@@ -25,13 +25,15 @@ inline namespace kernel
 {
   struct boolean
   {
-    const bool value;
+    using value_type = bool;
 
-    constexpr boolean(bool value)
+    const value_type value;
+
+    constexpr boolean(value_type const value)
       : value { value }
     {}
 
-    constexpr operator bool() const noexcept
+    constexpr operator value_type() const noexcept
     {
       return value;
     }
