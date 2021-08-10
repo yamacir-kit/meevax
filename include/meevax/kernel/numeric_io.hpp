@@ -137,7 +137,7 @@ inline namespace kernel
     }
   };
 
-  /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
+  /* ---------------------------------------------------------------------------
    *
    *  <decimal 10> = <uinteger 10>             <suffix>                    TODO
    *               |             . <digit 10>+ <suffix>                    TODO
@@ -178,7 +178,7 @@ inline namespace kernel
    *  <srfi 144> = fl-pi                                                   TODO
    *
    * ------------------------------------------------------------------------ */
-  constexpr auto to_constant = [](std::string const& token, auto radix = 10)
+  constexpr auto to_constant = [](std::string const& token, auto = 10)
   {
     if (auto iter = constants.find(token); iter != std::end(constants))
     {
@@ -187,8 +187,8 @@ inline namespace kernel
     else
     {
       throw tagged_read_error<system_float>(
-        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
-        unit);
+        make<string>(string_append("invalid number")),
+        make<string>(string_append("(string->number ", std::quoted(token), ")")));
     }
   };
 

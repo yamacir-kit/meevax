@@ -213,13 +213,7 @@ inline namespace kernel
                     | vertical_line + many(symbol_element) + vertical_line
                     | peculiar_identifier;
 
-    /* ---------------------------------------------------------------------------
-     *
-     *  <token> = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
-     *
-     * ------------------------------------------------------------------------ */
-
-    auto token = [](std::istream & is)
+    auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
     {
       std::string result;
 

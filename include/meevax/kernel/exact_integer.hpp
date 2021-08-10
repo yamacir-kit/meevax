@@ -17,16 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 #define INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 
-#ifndef MEEVAX_USE_GMP
-#define MEEVAX_USE_GMP
-#endif
-
-#ifdef MEEVAX_USE_GMP
 #include <boost/multiprecision/gmp.hpp>
-#else
-#include <boost/multiprecision/cpp_int.hpp>
-#endif
-
 #include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/pair.hpp>
 
@@ -36,11 +27,7 @@ inline namespace kernel
 {
   struct exact_integer
   {
-    #ifdef MEEVAX_USE_GMP
     using value_type = boost::multiprecision::mpz_int;
-    #else
-    using value_type = boost::multiprecision::cpp_int;
-    #endif
 
     value_type value;
 
