@@ -48,12 +48,10 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
-    using boost::multiprecision::gcd;
-
-    if (const exact_integer divisor { gcd(numerator().value, denominator().value) }; divisor != 1)
+    if (auto const common_divisor = numerator().gcd(denominator()); common_divisor != 1)
     {
-      return ratio(make<exact_integer>(numerator().value / divisor.value),
-                   make<exact_integer>(denominator().value / divisor.value));
+      return ratio(make<exact_integer>(numerator(), std::divides(), common_divisor),
+                   make<exact_integer>(denominator(), std::divides(), common_divisor));
     }
     else
     {

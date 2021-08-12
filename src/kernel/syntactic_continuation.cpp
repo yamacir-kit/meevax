@@ -725,7 +725,7 @@ inline namespace kernel
 
     define<procedure>("string->number", [](let const& xs)
     {
-      return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>().to<int>() : 10);
+      return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? static_cast<int>(cadr(xs).as<exact_integer>()) : 10);
     });
 
     /* -------------------------------------------------------------------------
@@ -892,7 +892,7 @@ inline namespace kernel
     {
       if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
-        return make<character>(car(xs).as<exact_integer>().to<character::value_type>());
+        return make<character>(static_cast<character::value_type>(car(xs).as<exact_integer>()));
       }
       else
       {
@@ -923,7 +923,7 @@ inline namespace kernel
 
     define<procedure>("make-string", [](let const& xs)
     {
-      return make<string>(car(xs).as<exact_integer>().to<std::size_t>(),
+      return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
                           cdr(xs).is<pair>() ? cadr(xs).as<character>() : character());
     });
 
@@ -954,7 +954,7 @@ inline namespace kernel
 
     define<procedure>("string-ref", [](let const& xs)
     {
-      return make(car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
+      return make(car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())));
     });
 
     /* -------------------------------------------------------------------------
@@ -977,7 +977,7 @@ inline namespace kernel
 
     define<procedure>("string-set!", [](let const& xs)
     {
-      car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()) = caddr(xs).as<character>();
+      car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
       return car(xs);
     });
 
@@ -1111,15 +1111,12 @@ inline namespace kernel
       using boost::adaptors::reverse;
       using boost::adaptors::slice;
 
-      auto start =
-        1 < length(xs) ? cadr(xs).as<exact_integer>().to<string::size_type>()
-                       : 0;
+      auto start = 1 < length(xs) ? static_cast<string::size_type>(cadr(xs).as<exact_integer>()) : 0;
 
-      auto end =
-        2 < length(xs) ? caddr(xs).as<exact_integer>().to<string::size_type>()
-                       : car(xs).as<const string>().size();
+      auto end = 2 < length(xs) ? static_cast<string::size_type>(caddr(xs).as<exact_integer>())
+                                : car(xs).as<string>().size();
 
-      for (auto const& each : reverse(slice(car(xs).as<const string>(), start, end)))
+      for (auto const& each : reverse(slice(car(xs).as<string>(), start, end)))
       {
         x = cons(make(each), x);
       }
@@ -1158,13 +1155,13 @@ inline namespace kernel
       }
       else if (cddr(xs).is<null>())
       {
-        return make<string>(car(xs).as<string>().begin() + cadr(xs).as<exact_integer>().to<string::size_type>(),
+        return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>(cadr(xs).as<exact_integer>()),
                             car(xs).as<string>().end());
       }
       else
       {
-        return make<string>(car(xs).as<string>().begin() +  cadr(xs).as<exact_integer>().to<string::size_type>(),
-                            car(xs).as<string>().begin() + caddr(xs).as<exact_integer>().to<string::size_type>());
+        return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>( cadr(xs).as<exact_integer>()),
+                            car(xs).as<string>().begin() + static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
       }
     });
 
@@ -1208,7 +1205,7 @@ inline namespace kernel
 
     define<procedure>("make-vector", [](let const& xs) // TODO Rename to vector-allocate
     {
-      return make<vector>(car(xs).as<exact_integer>().to<vector::size_type>(),
+      return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()),
                           cdr(xs).is<null>() ? unspecified : cadr(xs));
     });
 
@@ -1224,15 +1221,12 @@ inline namespace kernel
 
     define<procedure>("vector-ref", [](let const& xs)
     {
-      return car(xs).as<vector>().at(
-               cadr(xs).as<exact_integer>().to<vector::size_type>());
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
     });
 
     define<procedure>("vector-set!", [](let const& xs)
     {
-      return car(xs).as<vector>().at(
-               cadr(xs).as<exact_integer>().to<vector::size_type>())
-             = caddr(xs);
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
     });
 
     define<procedure>("vector->list", [](let const& xs)
@@ -1867,7 +1861,7 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        throw exit_status(x.as<exact_integer>().to<int>());
+        throw exit_status(static_cast<int>(x.as<exact_integer>()));
       }
       else
       {

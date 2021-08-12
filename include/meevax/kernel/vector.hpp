@@ -58,13 +58,13 @@ inline namespace kernel
                                                                                \
     decltype(auto) NAME(let const& from)                                       \
     {                                                                          \
-      return NAME(from.as<exact_integer>().to<size_type>());                   \
+      return NAME(static_cast<size_type>(from.as<exact_integer>()));           \
     }                                                                          \
                                                                                \
     decltype(auto) NAME(let const& from, let const& to)                        \
     {                                                                          \
-      return NAME(from.as<exact_integer>().to<size_type>(),                    \
-                  to  .as<exact_integer>().to<size_type>());                   \
+      return NAME(static_cast<size_type>(from.as<exact_integer>()),            \
+                  static_cast<size_type>(to  .as<exact_integer>()));           \
     }                                                                          \
                                                                                \
     static_assert(true)

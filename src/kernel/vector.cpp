@@ -30,7 +30,7 @@ inline namespace kernel
     : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
   {}
 
-  auto vector::fill(let const& value, vector::size_type from, vector::size_type to) -> void
+  auto vector::fill(let const& value, size_type from, size_type to) -> void
   {
     using boost::adaptors::sliced;
 
@@ -47,16 +47,15 @@ inline namespace kernel
 
   auto vector::fill(let const& value, let const& from) -> void
   {
-    fill(value, from.as<exact_integer>().to<vector::size_type>());
+    fill(value, static_cast<size_type>(from.as<exact_integer>()));
   }
 
   auto vector::fill(let const& value, let const& from, let const& to) -> void
   {
-    fill(value, from.as<exact_integer>().to<vector::size_type>(),
-                  to.as<exact_integer>().to<vector::size_type>());
+    fill(value, static_cast<size_type>(from.as<exact_integer>()), static_cast<size_type>(to.as<exact_integer>()));
   }
 
-  auto vector::to_list(vector::size_type from, vector::size_type to) const -> value_type
+  auto vector::to_list(size_type from, size_type to) const -> value_type
   {
     using boost::adaptors::reversed;
     using boost::adaptors::sliced;
@@ -71,7 +70,7 @@ inline namespace kernel
     return x;
   }
 
-  auto vector::to_string(vector::size_type from, vector::size_type to) const -> value_type
+  auto vector::to_string(size_type from, size_type to) const -> value_type
   {
     using boost::adaptors::sliced;
 
@@ -85,9 +84,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(
-          make<string>("It is an error if any element of vector between start and end is not a character."),
-          unit);
+        throw error(make<string>("It is an error if any element of vector between start and end is not a character"), unit);
       }
     }
 
