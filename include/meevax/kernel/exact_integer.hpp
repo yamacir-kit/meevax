@@ -81,13 +81,13 @@ inline namespace kernel
 
     auto gcd(exact_integer const&) const -> exact_integer;
 
+    auto string(int = 10) const -> std::string; // TODO RENAME TO 'string'
+
     auto swap(exact_integer &) noexcept -> void;
 
     auto truncate_remainder(exact_integer const&) const -> exact_integer;
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
-
-    auto to_string(int = 10) const -> std::string; // TODO RENAME TO 'string'
 
     explicit operator bool() const;
 
@@ -100,6 +100,8 @@ inline namespace kernel
     explicit operator float() const;
 
     explicit operator double() const;
+
+    explicit operator std::string() const;
   };
 
   auto operator ==(exact_integer const&, int const) -> bool;

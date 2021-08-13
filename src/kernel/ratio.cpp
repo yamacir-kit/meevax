@@ -50,8 +50,8 @@ inline namespace kernel
   {
     if (auto const common_divisor = numerator().gcd(denominator()); common_divisor != 1)
     {
-      return ratio(make<exact_integer>(numerator(), std::divides(), common_divisor),
-                   make<exact_integer>(denominator(), std::divides(), common_divisor));
+      return ratio(make<exact_integer>(numerator(), std::divides<void>(), common_divisor),
+                   make<exact_integer>(denominator(), std::divides<void>(), common_divisor));
     }
     else
     {

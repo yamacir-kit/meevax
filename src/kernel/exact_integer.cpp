@@ -67,7 +67,7 @@ inline namespace kernel
     if (mpz_init_set_str(value, s.c_str(), radix))
     {
       mpz_clear(value);
-      throw error(make<string>("invalid argument"), make<string>(s));
+      throw error(make<meevax::string>("invalid argument"), make<meevax::string>(s));
     }
   }
 
@@ -122,7 +122,7 @@ inline namespace kernel
   {
     if (mpz_set_str(value, s.c_str(), 0))
     {
-      throw error(make<string>("invalid argument"), make<string>(s));
+      throw error(make<meevax::string>("invalid argument"), make<meevax::string>(s));
     }
     else
     {
@@ -156,6 +156,21 @@ inline namespace kernel
     return result;
   }
 
+  auto exact_integer::string(int radix) const -> std::string
+  {
+    auto deallocate = [](pointer<char> data)
+    {
+      using gmp_free_function = void (*)(pointer<void>, std::size_t);
+      gmp_free_function current_free_function;
+      mp_get_memory_functions(nullptr, nullptr, &current_free_function);
+      std::invoke(current_free_function, static_cast<pointer<void>>(data), std::strlen(data) + 1);
+    };
+
+    std::unique_ptr<char, decltype(deallocate)> result { mpz_get_str(nullptr, radix, value), deallocate };
+
+    return result.get();
+  }
+
   auto exact_integer::swap(exact_integer & rhs) noexcept -> void
   {
     std::swap(*value, *rhs.value);
@@ -173,21 +188,6 @@ inline namespace kernel
     exact_integer result {};
     mpz_tdiv_q(result.value, value, divisor.value);
     return result;
-  }
-
-  auto exact_integer::to_string(int radix) const -> std::string
-  {
-    auto deallocate = [](pointer<char> data)
-    {
-      using gmp_free_function = void (*)(pointer<void>, std::size_t);
-      gmp_free_function current_free_function;
-      mp_get_memory_functions(nullptr, nullptr, &current_free_function);
-      std::invoke(current_free_function, static_cast<pointer<void>>(data), std::strlen(data) + 1);
-    };
-
-    std::unique_ptr<char, decltype(deallocate)> result { mpz_get_str(nullptr, radix, value), deallocate };
-
-    return result.get();
   }
 
   exact_integer::operator bool() const
@@ -220,6 +220,11 @@ inline namespace kernel
     return mpz_get_d(value);
   }
 
+  exact_integer::operator std::string() const
+  {
+    return string();
+  }
+
   auto operator ==(exact_integer const& a, int const b) -> bool { return a == static_cast<signed long>(b); }
   auto operator !=(exact_integer const& a, int const b) -> bool { return a != static_cast<signed long>(b); }
   auto operator < (exact_integer const& a, int const b) -> bool { return a <  static_cast<signed long>(b); }
@@ -250,7 +255,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, exact_integer const& datum) -> std::ostream &
   {
-    return os << cyan << datum.to_string() << reset;
+    return os << cyan << static_cast<std::string>(datum) << reset;
   }
 } // namespace kernel
 } // namespace meevax
