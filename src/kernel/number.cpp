@@ -32,11 +32,11 @@ inline namespace kernel
   auto operator > (exact_integer const& a, let const& b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
   auto operator >=(exact_integer const& a, let const& b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
 
-  auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(a, std::multiplies(), b); }
-  auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(a, std::plus(), b); }
-  auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(a, std::minus(), b); }
+  auto operator * (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(a, std::multiplies<void>(), b); }
+  auto operator + (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(a, std::plus<void>(), b); }
+  auto operator - (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(a, std::minus<void>(), b); }
   auto operator / (exact_integer const& a, exact_integer const& b) -> ratio         { return ratio(make(a), make(b)); }
-  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return a.truncate_remainder(b); }
+  auto operator % (exact_integer const& a, exact_integer const& b) -> exact_integer { return exact_integer(a, std::modulus<void>(), b); }
   auto operator !=(exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) != 0; }
   auto operator < (exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) <  0; }
   auto operator <=(exact_integer const& a, exact_integer const& b) -> boolean       { return mpz_cmp(a.value, b.value) <= 0; }

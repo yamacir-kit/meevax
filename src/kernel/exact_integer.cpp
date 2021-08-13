@@ -98,7 +98,7 @@ inline namespace kernel
   exact_integer::exact_integer(exact_integer const& a, std::modulus<>, exact_integer const& b)
     : exact_integer {}
   {
-    mpz_mod(value, a.value, b.value);
+    mpz_tdiv_r(value, a.value, b.value);
   }
 
   exact_integer::~exact_integer()
