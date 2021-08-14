@@ -19,7 +19,6 @@
 
 #include <typeindex>
 
-#include <boost/math/constants/constants.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
