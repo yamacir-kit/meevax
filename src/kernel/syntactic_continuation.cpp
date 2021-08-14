@@ -19,6 +19,7 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/adaptors.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -703,7 +704,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make<string>(boost::lexical_cast<std::string>(car(xs)));
+      return make<string>(lexical_cast<std::string>(car(xs)));
     });
 
     /* -------------------------------------------------------------------------
