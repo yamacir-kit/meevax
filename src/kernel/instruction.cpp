@@ -14,8 +14,6 @@
    limitations under the License.
 */
 
-#include <bits/c++config.h>
-#include <boost/lexical_cast.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/posix/vt10x.hpp>

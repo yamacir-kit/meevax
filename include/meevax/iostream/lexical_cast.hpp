@@ -28,17 +28,24 @@ inline namespace iostream
   template <typename To, typename From>
   auto lexical_cast(From const& from) -> To
   {
-    if (std::stringstream interpreter; interpreter << from)
+    if (std::stringstream ss; ss << from)
     {
-      if (To to; interpreter >> to)
+      if constexpr (std::is_same<typename std::decay<To>::type, std::string>::value)
       {
-        return to;
+        return ss.str();
       }
       else
       {
-        std::stringstream what;
-        what << "failed to read " << typeid(To).name() << " type object from std::stringstream";
-        throw std::runtime_error(what.str());
+        if (To to; ss >> to)
+        {
+          return to;
+        }
+        else
+        {
+          std::stringstream what;
+          what << "failed to read " << typeid(To).name() << " type object from std::stringstream";
+          throw std::runtime_error(what.str());
+        }
       }
     }
     else
