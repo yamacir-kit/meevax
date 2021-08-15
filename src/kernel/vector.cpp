@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-#include <boost/range/adaptors.hpp>
 #include <meevax/algorithm/for_each.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/stack.hpp>
@@ -32,11 +31,9 @@ inline namespace kernel
 
   auto vector::fill(let const& value, size_type from, size_type to) -> void
   {
-    using boost::adaptors::sliced;
-
-    for (auto&& each : *this | sliced(from, to))
+    for (auto iter = std::next(begin(), from); iter != std::next(begin(), to); ++iter)
     {
-      each = value;
+      *iter = value;
     }
   }
 
@@ -57,14 +54,11 @@ inline namespace kernel
 
   auto vector::to_list(size_type from, size_type to) const -> value_type
   {
-    using boost::adaptors::reversed;
-    using boost::adaptors::sliced;
+    let x = list();
 
-    let x = unit;
-
-    for (let const& each : *this | sliced(from, to) | reversed)
+    for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
     {
-      push(x, each);
+      x = cons(*iter, x);
     }
 
     return x;
@@ -72,15 +66,13 @@ inline namespace kernel
 
   auto vector::to_string(size_type from, size_type to) const -> value_type
   {
-    using boost::adaptors::sliced;
-
     string s;
 
-    for (let const& each : *this | sliced(from, to))
+    for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
     {
-      if (each.is<character>())
+      if ((*iter).is<character>())
       {
-        s.push_back(each.as<character>());
+        s.push_back((*iter).as<character>());
       }
       else
       {

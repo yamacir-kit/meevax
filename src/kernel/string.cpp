@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include <iomanip>
+#include <iomanip> // std::uppercase
 
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
@@ -87,6 +87,28 @@ inline namespace kernel
   string::string(std::string const& s)
     : string { std::stringstream(s + "\"") }
   {}
+
+  auto string::list(size_type from, size_type to) const -> pair::value_type
+  {
+    let x = unit;
+
+    for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
+    {
+      x = cons(make(*iter), x);
+    }
+
+    return x;
+  }
+
+  auto string::list(size_type from) const -> pair::value_type
+  {
+    return list(from, size());
+  }
+
+  auto string::list() const -> pair::value_type
+  {
+    return list(0);
+  }
 
   string::operator std::string() const
   {

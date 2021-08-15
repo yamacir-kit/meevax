@@ -17,8 +17,6 @@
 #include <ios>
 #include <iterator>
 
-#include <boost/range/adaptor/reversed.hpp>
-#include <boost/range/adaptors.hpp>
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
@@ -1105,24 +1103,22 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string->list", [](let const& xs) // TODO MOVE INTO overture.ss
+    define<procedure>("string->list", [](let const& xs)
     {
-      let x = unit;
-
-      using boost::adaptors::reverse;
-      using boost::adaptors::slice;
-
-      auto start = 1 < length(xs) ? static_cast<string::size_type>(cadr(xs).as<exact_integer>()) : 0;
-
-      auto end = 2 < length(xs) ? static_cast<string::size_type>(caddr(xs).as<exact_integer>())
-                                : car(xs).as<string>().size();
-
-      for (auto const& each : reverse(slice(car(xs).as<string>(), start, end)))
+      switch (length(xs))
       {
-        x = cons(make(each), x);
-      }
+      case 1:
+        return car(xs).as<string>().list();
 
-      return x;
+      case 2:
+        return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
+      }
     });
 
     define<procedure>("list->string", [](let const& xs)
