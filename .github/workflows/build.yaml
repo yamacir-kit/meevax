@@ -16,7 +16,7 @@ jobs:
         system: [ ubuntu-18.04, ubuntu-20.04 ]
     steps:
       - uses: actions/checkout@v2
-      - run: ./script/setup.sh --update --all
+      - run: ./script/setup.sh --all
       - run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
       - run: cmake --build build --parallel $(nproc)
       - run: cmake --build build --parallel $(nproc) --target test -- ARGS=-j"$(nproc)"

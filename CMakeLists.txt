@@ -27,8 +27,6 @@ set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=nativ
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
-find_package(Boost REQUIRED)
-
 # ---- Configure README --------------------------------------------------------
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
@@ -94,8 +92,7 @@ target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE Boost::boost
-                             PRIVATE stdc++fs
+target_link_libraries(kernel PRIVATE stdc++fs
                              PUBLIC ${CMAKE_DL_LIBS}
                              PUBLIC gmp)
 
