@@ -19,6 +19,7 @@
 
 #include <gmp.h>
 #include <meevax/functional/addition.hpp>
+#include <meevax/functional/division.hpp>
 #include <meevax/functional/multiplication.hpp>
 #include <meevax/functional/subtraction.hpp>
 #include <meevax/kernel/numeric_tower.hpp>
@@ -58,7 +59,7 @@ inline namespace kernel
 
     explicit exact_integer(multiplication, exact_integer const&, exact_integer const&);
 
-    explicit exact_integer(exact_integer const&, std::divides<>, exact_integer const&);
+    explicit exact_integer(division, exact_integer const&, exact_integer const&);
 
     explicit exact_integer(exact_integer const&, std::modulus<>, exact_integer const&);
 

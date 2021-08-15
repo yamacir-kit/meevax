@@ -23,7 +23,7 @@ inline namespace kernel
   auto operator * (exact_integer const& a, let const& b) -> let { return apply(mul, a, b); }
   auto operator + (exact_integer const& a, let const& b) -> let { return apply(add, a, b); }
   auto operator - (exact_integer const& a, let const& b) -> let { return apply(sub, a, b); }
-  auto operator / (exact_integer const& a, let const& b) -> let { return apply      ([](auto&& a, auto&& b) { return a /  b; }, a, b); }
+  auto operator / (exact_integer const& a, let const& b) -> let { return apply(div, a, b); }
   auto operator % (exact_integer const& a, let const& b) -> let { return apply      ([](auto&& a, auto&& b) { return a %  b; }, a, b); }
   auto operator !=(exact_integer const& a, let const& b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a != b; }, a, b); }
   auto operator < (exact_integer const& a, let const& b) -> bool   { return apply<bool>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
@@ -59,7 +59,7 @@ inline namespace kernel
   auto operator * (ratio const& a, let const& b) -> let  { return apply(mul, a, b); }
   auto operator + (ratio const& a, let const& b) -> let  { return apply(add, a, b); }
   auto operator - (ratio const& a, let const& b) -> let  { return apply(sub, a, b); }
-  auto operator / (ratio const& a, let const& b) -> let  { return apply         ([](auto&& a, auto&& b) { return a /  b; }, a, b); }
+  auto operator / (ratio const& a, let const& b) -> let  { return apply(div, a, b); }
   auto operator % (ratio const& a, let const& b) -> let  { return apply         ([](auto&& a, auto&& b) { return a %  b; }, a, b); }
   auto operator !=(ratio const& a, let const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a != b; }, a, b); }
   auto operator < (ratio const& a, let const& b) -> boolean { return apply<boolean>([](auto&& a, auto&& b) { return a <  b; }, a, b); }

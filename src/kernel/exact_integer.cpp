@@ -89,7 +89,7 @@ inline namespace kernel
     mpz_mul(value, a.value, b.value);
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::divides<>, exact_integer const& b)
+  exact_integer::exact_integer(division, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_div(value, a.value, b.value);
