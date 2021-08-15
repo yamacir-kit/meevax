@@ -71,7 +71,7 @@ inline namespace kernel
     }
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::plus<>, exact_integer const& b)
+  exact_integer::exact_integer(addition, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_add(value, a.value, b.value);
