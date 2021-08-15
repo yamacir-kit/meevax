@@ -48,10 +48,10 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
-    if (auto const common_divisor = numerator().gcd(denominator()); common_divisor != 1)
+    if (auto const common_divisor = exact_integer(gcd, numerator(), denominator()); common_divisor != 1)
     {
-      return ratio(make<exact_integer>(numerator(), std::divides<void>(), common_divisor),
-                   make<exact_integer>(denominator(), std::divides<void>(), common_divisor));
+      return ratio(make<exact_integer>(divide, numerator(), common_divisor),
+                   make<exact_integer>(divide, denominator(), common_divisor));
     }
     else
     {
@@ -61,9 +61,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
-    return os << cyan << car(datum)
-              << cyan << "/"
-              << cyan << cdr(datum) << reset;
+    return os << cyan << std::get<0>(datum) << cyan << "/" << cyan << std::get<1>(datum) << reset;
   }
 } // namespace kernel
 } // namespace meevax

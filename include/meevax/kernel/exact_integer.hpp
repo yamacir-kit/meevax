@@ -18,6 +18,12 @@
 #define INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 
 #include <gmp.h>
+#include <meevax/functional/addition.hpp>
+#include <meevax/functional/division.hpp>
+#include <meevax/functional/greatest_common_divisor.hpp>
+#include <meevax/functional/modulo.hpp>
+#include <meevax/functional/multiplication.hpp>
+#include <meevax/functional/subtraction.hpp>
 #include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/pair.hpp>
 
@@ -49,15 +55,17 @@ inline namespace kernel
 
     explicit exact_integer(std::string const&, int = 0);
 
-    explicit exact_integer(exact_integer const&, std::plus<>, exact_integer const&);
+    explicit exact_integer(addition, exact_integer const&, exact_integer const&);
 
-    explicit exact_integer(exact_integer const&, std::minus<>, exact_integer const&);
+    explicit exact_integer(subtraction, exact_integer const&, exact_integer const&);
 
-    explicit exact_integer(exact_integer const&, std::multiplies<>, exact_integer const&);
+    explicit exact_integer(multiplication, exact_integer const&, exact_integer const&);
 
-    explicit exact_integer(exact_integer const&, std::divides<>, exact_integer const&);
+    explicit exact_integer(division, exact_integer const&, exact_integer const&);
 
-    explicit exact_integer(exact_integer const&, std::modulus<>, exact_integer const&);
+    explicit exact_integer(modulo, exact_integer const&, exact_integer const&);
+
+    explicit exact_integer(greatest_common_divisor, exact_integer const&, exact_integer const&);
 
     ~exact_integer();
 
@@ -78,8 +86,6 @@ inline namespace kernel
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
-
-    auto gcd(exact_integer const&) const -> exact_integer;
 
     auto string(int = 10) const -> std::string; // TODO RENAME TO 'string'
 

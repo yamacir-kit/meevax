@@ -71,34 +71,40 @@ inline namespace kernel
     }
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::plus<>, exact_integer const& b)
+  exact_integer::exact_integer(addition, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_add(value, a.value, b.value);
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::minus<>, exact_integer const& b)
+  exact_integer::exact_integer(subtraction, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_sub(value, a.value, b.value);
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::multiplies<>, exact_integer const& b)
+  exact_integer::exact_integer(multiplication, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_mul(value, a.value, b.value);
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::divides<>, exact_integer const& b)
+  exact_integer::exact_integer(division, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_div(value, a.value, b.value);
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::modulus<>, exact_integer const& b)
+  exact_integer::exact_integer(modulo, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_tdiv_r(value, a.value, b.value);
+  }
+
+  exact_integer::exact_integer(greatest_common_divisor, exact_integer const& a, exact_integer const& b)
+    : exact_integer {}
+  {
+    mpz_gcd(value, a.value, b.value);
   }
 
   exact_integer::~exact_integer()
@@ -146,13 +152,6 @@ inline namespace kernel
   {
     exact_integer result {};
     mpz_fdiv_q(result.value, value, divisor.value);
-    return result;
-  }
-
-  auto exact_integer::gcd(exact_integer const& rhs) const -> exact_integer
-  {
-    exact_integer result {};
-    mpz_gcd(result.value, value, rhs.value);
     return result;
   }
 
