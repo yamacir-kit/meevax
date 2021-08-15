@@ -24,10 +24,10 @@
 
 namespace meevax
 {
-  auto decrement = overload([](auto&& x) constexpr
-  {
-    return --x;
-  });
+  // auto decrement = overload([](auto&& x) constexpr
+  // {
+  //   return --x;
+  // });
 
   // auto                 equal_to = overload([](auto&& a, auto&& b) constexpr { return a == b; });
   // auto             not_equal_to = overload([](auto&& a, auto&& b) constexpr { return a != b; });
