@@ -29,7 +29,6 @@ namespace meevax
     return --x;
   });
 
-  // auto add                      = overload([](auto&& a, auto&& b) constexpr { return a +  b; });
   // auto multiply                 = overload([](auto&& a, auto&& b) constexpr { return a *  b; });
   // auto subtract                 = overload([](auto&& a, auto&& b) constexpr { return a -  b; });
   // auto divide                   = overload([](auto&& a, auto&& b) constexpr { return a /  b; });

@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_FUNCTIONAL_ADDITION_HPP
-#define INCLUDED_MEEVAX_FUNCTIONAL_ADDITION_HPP
+#ifndef INCLUDED_MEEVAX_FUNCTIONAL_MULTIPLICATION_HPP
+#define INCLUDED_MEEVAX_FUNCTIONAL_MULTIPLICATION_HPP
 
 #include <functional>
 #include <ostream>
@@ -24,22 +24,22 @@ namespace meevax
 {
 inline namespace functional
 {
-  struct addition
+  struct multiplication
   {
     template <typename T, typename... Ts>
-    constexpr auto operator ()(T&& x = 0, Ts&&... xs) const -> decltype(auto)
+    constexpr auto operator ()(T&& x = 1, Ts&&... xs) const -> decltype(auto)
     {
-      return (std::forward<decltype(x)>(x) + ... + std::forward<decltype(xs)>(xs));
+      return (std::forward<decltype(x)>(x) * ... * std::forward<decltype(xs)>(xs));
     }
 
-    friend auto operator <<(std::ostream & os, addition const&) -> std::ostream &
+    friend auto operator <<(std::ostream & os, multiplication const&) -> std::ostream &
     {
-      return os << "addition";
+      return os << "multiplication";
     }
   };
 
-  constexpr addition add;
+  constexpr multiplication multiply, mul;
 } // namespace functional
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_FUNCTIONAL_ADDITION_HPP
+#endif // INCLUDED_MEEVAX_FUNCTIONAL_MULTIPLICATION_HPP

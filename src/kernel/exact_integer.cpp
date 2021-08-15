@@ -83,7 +83,7 @@ inline namespace kernel
     mpz_sub(value, a.value, b.value);
   }
 
-  exact_integer::exact_integer(exact_integer const& a, std::multiplies<>, exact_integer const& b)
+  exact_integer::exact_integer(multiplication, exact_integer const& a, exact_integer const& b)
     : exact_integer {}
   {
     mpz_mul(value, a.value, b.value);
