@@ -20,6 +20,7 @@
 #include <gmp.h>
 #include <meevax/functional/addition.hpp>
 #include <meevax/functional/division.hpp>
+#include <meevax/functional/greatest_common_divisor.hpp>
 #include <meevax/functional/modulo.hpp>
 #include <meevax/functional/multiplication.hpp>
 #include <meevax/functional/subtraction.hpp>
@@ -64,6 +65,8 @@ inline namespace kernel
 
     explicit exact_integer(modulo, exact_integer const&, exact_integer const&);
 
+    explicit exact_integer(greatest_common_divisor, exact_integer const&, exact_integer const&);
+
     ~exact_integer();
 
     auto operator=(exact_integer const&) -> exact_integer &;
@@ -83,8 +86,6 @@ inline namespace kernel
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
-
-    auto gcd(exact_integer const&) const -> exact_integer;
 
     auto string(int = 10) const -> std::string; // TODO RENAME TO 'string'
 

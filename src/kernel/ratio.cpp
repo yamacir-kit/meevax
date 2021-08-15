@@ -48,7 +48,7 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
-    if (auto const common_divisor = numerator().gcd(denominator()); common_divisor != 1)
+    if (auto const common_divisor = exact_integer(gcd, numerator(), denominator()); common_divisor != 1)
     {
       return ratio(make<exact_integer>(divide, numerator(), common_divisor),
                    make<exact_integer>(divide, denominator(), common_divisor));

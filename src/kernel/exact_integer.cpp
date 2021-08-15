@@ -101,6 +101,12 @@ inline namespace kernel
     mpz_tdiv_r(value, a.value, b.value);
   }
 
+  exact_integer::exact_integer(greatest_common_divisor, exact_integer const& a, exact_integer const& b)
+    : exact_integer {}
+  {
+    mpz_gcd(value, a.value, b.value);
+  }
+
   exact_integer::~exact_integer()
   {
     mpz_clear(value);
@@ -146,13 +152,6 @@ inline namespace kernel
   {
     exact_integer result {};
     mpz_fdiv_q(result.value, value, divisor.value);
-    return result;
-  }
-
-  auto exact_integer::gcd(exact_integer const& rhs) const -> exact_integer
-  {
-    exact_integer result {};
-    mpz_gcd(result.value, value, rhs.value);
     return result;
   }
 
