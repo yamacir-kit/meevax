@@ -14,8 +14,6 @@
    limitations under the License.
 */
 
-#include <bits/c++config.h>
-#include <boost/lexical_cast.hpp>
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/posix/vt10x.hpp>
@@ -25,23 +23,40 @@ namespace meevax
 {
 inline namespace kernel
 {
+  instruction::operator std::string() const
+  {
+    switch (value)
+    {
+      case mnemonic::CALL:              return "CALL";
+      case mnemonic::CONS:              return "CONS";
+      case mnemonic::DEFINE:            return "DEFINE";
+      case mnemonic::DROP:              return "DROP";
+      case mnemonic::FORK:              return "FORK";
+      case mnemonic::JOIN:              return "JOIN";
+      case mnemonic::LOAD_CLOSURE:      return "LOAD_CLOSURE";
+      case mnemonic::LOAD_CONSTANT:     return "LOAD_CONSTANT";
+      case mnemonic::LOAD_CONTINUATION: return "LOAD_CONTINUATION";
+      case mnemonic::LOAD_GLOBAL:       return "LOAD_GLOBAL";
+      case mnemonic::LOAD_LOCAL:        return "LOAD_LOCAL";
+      case mnemonic::LOAD_VARIADIC:     return "LOAD_VARIADIC";
+      case mnemonic::RETURN:            return "RETURN";
+      case mnemonic::SELECT:            return "SELECT";
+      case mnemonic::STOP:              return "STOP";
+      case mnemonic::STORE_GLOBAL:      return "STORE_GLOBAL";
+      case mnemonic::STORE_LOCAL:       return "STORE_LOCAL";
+      case mnemonic::STORE_VARIADIC:    return "STORE_VARIADIC";
+      case mnemonic::STRIP:             return "STRIP";
+      case mnemonic::TAIL_CALL:         return "TAIL_CALL";
+      case mnemonic::TAIL_SELECT:       return "TAIL_SELECT";
+
+      default:
+        throw std::logic_error(__func__);
+    }
+  }
+
   auto operator <<(std::ostream & os, instruction const& datum) -> std::ostream &
   {
-    os << underline;
-
-    switch (datum.code)
-    {
-    #define MNEMONIC_CASE(_, AUX, EACH)                                        \
-    case mnemonic::EACH:                                                       \
-      os << BOOST_PP_STRINGIZE(EACH);                                          \
-      break;
-
-      BOOST_PP_SEQ_FOR_EACH(MNEMONIC_CASE, _, MNEMONICS)
-    }
-
-    // os << "#" << std::hex << std::setw(2) << std::setfill('0') << i.value();
-
-    return os << reset;
+    return os << underline << static_cast<std::string>(datum) << reset;
   }
 
   auto disassemble(std::ostream & os, let const& c, std::size_t depth) -> std::ostream &
@@ -65,7 +80,7 @@ inline namespace kernel
         os << std::string(4 * depth, ' ');
       }
 
-      switch ((*iter).as<instruction>().code)
+      switch ((*iter).as<instruction>().value)
       {
       case mnemonic::CALL:
       case mnemonic::CONS:
@@ -122,5 +137,11 @@ inline namespace kernel
 
     return os;
   }
+
+  static_assert(std::is_pod<instruction>::value);
+
+  static_assert(std::is_standard_layout<instruction>::value);
+
+  static_assert(std::is_trivial<instruction>::value);
 } // namespace kernel
 } // namespace meevax

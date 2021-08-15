@@ -20,7 +20,6 @@
 #include <string>
 #include <typeinfo>
 
-#include <boost/cstdlib.hpp>
 #include <meevax/memory/pointer.hpp>
 
 namespace meevax

@@ -1,9 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 #define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 
-#include <boost/lexical_cast.hpp>
-#include <boost/version.hpp>
-
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/number.hpp>
 #include <meevax/kernel/symbol.hpp>
@@ -12,18 +9,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  let const& boost_version()
-  {
-    static constexpr std::size_t major = BOOST_VERSION / 100000;
-    static constexpr std::size_t minor = BOOST_VERSION / 100 % 1000;
-    static constexpr std::size_t patch = BOOST_VERSION % 100;
-
-    let static const version = make<symbol>(boost::lexical_cast<std::string>(major) + "." +
-                                            boost::lexical_cast<std::string>(minor) + "." +
-                                            boost::lexical_cast<std::string>(patch));
-    return version;
-  }
-
   let const& gmp_version()
   {
     let static const version = make<symbol>(::gmp_version);

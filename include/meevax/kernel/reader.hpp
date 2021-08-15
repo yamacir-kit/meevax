@@ -17,7 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <boost/lexical_cast.hpp>
 #include <meevax/iostream/combinator.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/iostream/putback.hpp>
@@ -431,7 +430,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 2);
+            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 2);
 
           case 'c': // from Common Lisp
             if (let const xs = read(is); xs.is<null>())
@@ -448,7 +447,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 10);
+            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 10);
 
           case 'e':
             return exact(read(is)); // NOTE: Same as #,(exact (read))
@@ -461,7 +460,7 @@ inline namespace kernel
             return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 8);
+            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
 
           case 'p':
             assert(is.get() == '"');
@@ -473,7 +472,7 @@ inline namespace kernel
             return t;
 
           case 'x':
-            return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : parse::token(is), 16);
+            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 16);
 
           case '(':
             is.putback(discriminator);
