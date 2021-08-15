@@ -29,8 +29,6 @@ namespace meevax
     return --x;
   });
 
-  // auto modulo                   = overload([](auto&& a, auto&& b) constexpr { return a %  b; });
-  //
   // auto                 equal_to = overload([](auto&& a, auto&& b) constexpr { return a == b; });
   // auto             not_equal_to = overload([](auto&& a, auto&& b) constexpr { return a != b; });
   // auto    less_than_or_equal_to = overload([](auto&& a, auto&& b) constexpr { return a <= b; });
