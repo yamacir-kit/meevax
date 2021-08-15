@@ -29,19 +29,6 @@ namespace meevax
     return --x;
   });
 
-  #define DEFINE_OPERATOR(NAME, BASE)                                          \
-  struct NAME : public BASE                                                    \
-  {                                                                            \
-    friend auto operator <<(std::ostream & os, NAME const&) -> std::ostream &  \
-    {                                                                          \
-      return os << #NAME;                                                      \
-    }                                                                          \
-  }
-
-  DEFINE_OPERATOR(add, std::plus<void>);
-
-  #undef DEFINE_OPERATOR
-
   // auto add                      = overload([](auto&& a, auto&& b) constexpr { return a +  b; });
   // auto multiply                 = overload([](auto&& a, auto&& b) constexpr { return a *  b; });
   // auto subtract                 = overload([](auto&& a, auto&& b) constexpr { return a -  b; });
