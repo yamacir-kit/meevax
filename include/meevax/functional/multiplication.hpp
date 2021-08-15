@@ -27,7 +27,7 @@ inline namespace functional
   struct multiplication
   {
     template <typename T, typename... Ts>
-    constexpr auto operator ()(T&& x = 1, Ts&&... xs) const -> decltype(auto)
+    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
     {
       return (std::forward<decltype(x)>(x) * ... * std::forward<decltype(xs)>(xs));
     }
