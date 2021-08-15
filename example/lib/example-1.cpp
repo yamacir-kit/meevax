@@ -25,7 +25,7 @@ extern "C"
       if (each.is<exact_integer>())
       {
         std::cout << "; return incremented left-most integer object." << std::endl;
-        return make<exact_integer>(each.as<exact_integer>().to<int>() + 1);
+        return make<exact_integer>(static_cast<int>(each.as<exact_integer>()) + 1);
       }
     }
 

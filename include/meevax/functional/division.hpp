@@ -14,22 +14,32 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
-#define INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
+#ifndef INCLUDED_MEEVAX_FUNCTIONAL_DIVISION_HPP
+#define INCLUDED_MEEVAX_FUNCTIONAL_DIVISION_HPP
 
-#include <string>
-#include <typeinfo>
-
-#include <meevax/memory/pointer.hpp>
+#include <functional>
+#include <ostream>
 
 namespace meevax
 {
-inline namespace utility
+inline namespace functional
 {
-  auto demangle(const pointer<const char> name) -> std::string;
+  struct division
+  {
+    template <typename T, typename... Ts>
+    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
+    {
+      return (std::forward<decltype(x)>(x) / ... / std::forward<decltype(xs)>(xs));
+    }
 
-  auto demangle(std::type_info const&) -> std::string;
-} // namespace utility
+    friend auto operator <<(std::ostream & os, division const&) -> std::ostream &
+    {
+      return os << "division";
+    }
+  };
+
+  constexpr division divide, div;
+} // namespace functional
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
+#endif // INCLUDED_MEEVAX_FUNCTIONAL_DIVISION_HPP

@@ -39,8 +39,8 @@ inline namespace kernel
 {
   enum class exit_status : int
   {
-    success = boost::exit_success,
-    failure = boost::exit_failure,
+    success = EXIT_SUCCESS,
+    failure = EXIT_FAILURE,
   };
 
   struct error

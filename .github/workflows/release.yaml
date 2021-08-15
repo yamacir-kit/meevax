@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
-      - run: ./script/setup.sh --update --required
+      - run: ./script/setup.sh --required
       - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build
       - run: cmake --build build --target package

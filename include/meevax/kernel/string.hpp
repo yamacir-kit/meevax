@@ -33,6 +33,10 @@ inline namespace kernel
 
     explicit string(std::string const&);
 
+    auto list(size_type, size_type) const -> pair::value_type;
+
+    auto list(size_type = 0) const -> pair::value_type;
+
     operator std::string() const; // write-string (for display)
   };
 
