@@ -105,11 +105,6 @@ inline namespace kernel
     return list(from, size());
   }
 
-  auto string::list() const -> pair::value_type
-  {
-    return list(0);
-  }
-
   string::operator std::string() const
   {
     std::string result;

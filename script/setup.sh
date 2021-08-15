@@ -3,12 +3,12 @@
 required()
 {
   echo libgmp-dev
+  echo libboost-all-dev # for Boost.Test
 }
 
 optional()
 {
   echo kcachegrind
-  echo libboost-all-dev # for Boost.Test
   echo massif-visualizer
   echo valgrind
 }

@@ -38,41 +38,17 @@ inline namespace kernel
 
     explicit vector(for_each_in_tag, let const&);
 
-    auto fill(let const&, size_type, size_type) -> void;
+    auto fill(const_reference, size_type, size_type) -> void;
 
-    auto fill(let const&, size_type = 0) -> void;
+    auto fill(const_reference, size_type = 0) -> void;
 
-    auto fill(let const&, let const&) -> void;
+    auto list(size_type, size_type) const -> value_type;
 
-    auto fill(let const&, let const&, let const&) -> void;
+    auto list(size_type = 0) const -> value_type;
 
-    auto to_list(size_type, size_type) const -> value_type;
+    auto string(size_type, size_type) const -> value_type;
 
-    auto to_string(size_type, size_type) const -> value_type;
-
-    #define DEFINE_RANGE_OVERLOADS_FOR(NAME)                                   \
-    decltype(auto) NAME(size_type from = 0)                                    \
-    {                                                                          \
-      return NAME(from, size());                                               \
-    }                                                                          \
-                                                                               \
-    decltype(auto) NAME(let const& from)                                       \
-    {                                                                          \
-      return NAME(static_cast<size_type>(from.as<exact_integer>()));           \
-    }                                                                          \
-                                                                               \
-    decltype(auto) NAME(let const& from, let const& to)                        \
-    {                                                                          \
-      return NAME(static_cast<size_type>(from.as<exact_integer>()),            \
-                  static_cast<size_type>(to  .as<exact_integer>()));           \
-    }                                                                          \
-                                                                               \
-    static_assert(true)
-
-    DEFINE_RANGE_OVERLOADS_FOR(to_list);
-    DEFINE_RANGE_OVERLOADS_FOR(to_string);
-
-    #undef DEFINE_RANGE_OVERLOADS_FOR
+    auto string(size_type = 0) const -> value_type;
   };
 
   auto operator ==(vector const&, vector const&) -> bool;

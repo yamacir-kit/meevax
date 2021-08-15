@@ -29,32 +29,22 @@ inline namespace kernel
     : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
   {}
 
-  auto vector::fill(let const& value, size_type from, size_type to) -> void
+  auto vector::fill(const_reference x, size_type from, size_type to) -> void
   {
     for (auto iter = std::next(begin(), from); iter != std::next(begin(), to); ++iter)
     {
-      *iter = value;
+      *iter = x;
     }
   }
 
-  auto vector::fill(let const& value, size_type from) -> void
+  auto vector::fill(const_reference x, size_type from) -> void
   {
-    fill(value, from, size());
+    fill(x, from, size());
   }
 
-  auto vector::fill(let const& value, let const& from) -> void
+  auto vector::list(size_type from, size_type to) const -> value_type
   {
-    fill(value, static_cast<size_type>(from.as<exact_integer>()));
-  }
-
-  auto vector::fill(let const& value, let const& from, let const& to) -> void
-  {
-    fill(value, static_cast<size_type>(from.as<exact_integer>()), static_cast<size_type>(to.as<exact_integer>()));
-  }
-
-  auto vector::to_list(size_type from, size_type to) const -> value_type
-  {
-    let x = list();
+    let x = unit;
 
     for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
     {
@@ -64,9 +54,14 @@ inline namespace kernel
     return x;
   }
 
-  auto vector::to_string(size_type from, size_type to) const -> value_type
+  auto vector::list(size_type from) const -> value_type
   {
-    string s;
+    return list(from, size());
+  }
+
+  auto vector::string(size_type from, size_type to) const -> value_type
+  {
+    meevax::string s;
 
     for (auto iter = std::prev(rend(), to); iter != std::prev(rend(), from); ++iter)
     {
@@ -76,11 +71,16 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("It is an error if any element of vector between start and end is not a character"), unit);
+        throw error(make<meevax::string>("It is an error if any element of vector between start and end is not a character"), unit);
       }
     }
 
     return make(s);
+  }
+
+  auto vector::string(size_type from) const -> value_type
+  {
+    return string(from, size());
   }
 
   auto operator ==(vector const& lhs, vector const& rhs) -> bool
