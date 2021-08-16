@@ -17,6 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
+#include <cctype>
 #include <meevax/iostream/combinator.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/iostream/putback.hpp>
@@ -72,22 +73,6 @@ inline namespace kernel
       };
     };
 
-    auto range_of = [](auto a, auto z)
-    {
-      return [=](std::istream & is)
-      {
-        if (auto c = static_cast<character>(is.get()); a <= c and c <= z)
-        {
-          return static_cast<std::string>(c);
-        }
-        else
-        {
-          static const auto error = read_error(make<string>(__func__), unit);
-          throw error;
-        }
-      };
-    };
-
     auto sequence = [](std::string const& s)
     {
       return [=](std::istream & is)
@@ -101,6 +86,22 @@ inline namespace kernel
       };
     };
 
+    auto satisfy = [](auto&& f)
+    {
+      return [=](std::istream & is)
+      {
+        if (auto c = static_cast<character>(is.get()); f(c))
+        {
+          return static_cast<std::string>(c);
+        }
+        else
+        {
+          is.putback(c);
+          read_error(make<string>("unexpected character"), make<character>(c));
+        }
+      };
+    };
+
     auto intraline_whitespace = one_of(' ', '\t');
 
     auto line_ending = one_of('\n', '\r');
@@ -111,9 +112,9 @@ inline namespace kernel
 
     auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
 
-    auto upper = range_of('A', 'Z'); // TODO satisfy(std::isupper);
+    auto upper = satisfy([](auto c) { return std::isupper(c); });
 
-    auto lower = range_of('a', 'z');
+    auto lower = satisfy([](auto c) { return std::islower(c); });
 
     auto letter = upper | lower;
 
@@ -121,7 +122,7 @@ inline namespace kernel
 
     auto initial = letter | special_initial;
 
-    auto digit = range_of('0', '9');
+    auto digit = satisfy([](auto c) { return std::isdigit(c); });
 
     auto explicit_sign = one_of('+', '-');
 
