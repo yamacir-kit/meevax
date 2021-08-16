@@ -25,6 +25,68 @@ namespace meevax
 {
 inline namespace iostream
 {
+  template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
+                                             std::is_invocable<G, std::istream &>)>
+  auto operator |(F&& f, G&& g)
+  {
+    return [=](std::istream & is)
+    {
+      try
+      {
+        return f(is);
+      }
+      catch (...)
+      {
+        is.clear();
+        return g(is);
+      }
+    };
+  }
+
+  template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
+                                             std::is_invocable<G, std::istream &>)>
+  auto operator +(F&& f, G&& g)
+  {
+    return [=](std::istream & is)
+    {
+      std::string s;
+
+      s += f(is);
+      s += g(is);
+
+      return s;
+    };
+  }
+
+  auto choice = [](auto&& f, auto&&... fs)
+  {
+    return (std::forward<decltype(f)>(f) | ... | std::forward<decltype(fs)>(fs));
+  };
+
+  auto chain = [](auto&& f, auto&&... fs)
+  {
+    return (std::forward<decltype(f)>(f) + ... + std::forward<decltype(fs)>(fs));
+  };
+
+  auto many = [](auto&& f)
+  {
+    return [=](std::istream & is)
+    {
+      std::string s;
+
+      try
+      {
+        while (true)
+        {
+          s += f(is);
+        }
+      }
+      catch (...)
+      {
+        return s;
+      }
+    };
+  };
 } // namespace iostream
 } // namespace meevax
 

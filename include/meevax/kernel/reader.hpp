@@ -34,42 +34,12 @@ inline namespace kernel
 {
   namespace parse
   {
-    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
-                                               std::is_invocable<G, std::istream &>)>
-    auto operator |(F&& f, G&& g)
-    {
-      return [=](std::istream & is)
-      {
-        try
-        {
-          return f(is);
-        }
-        catch (...)
-        {
-          is.clear();
-          return g(is);
-        }
-      };
-    }
-
-    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::istream &>,
-                                               std::is_invocable<G, std::istream &>)>
-    auto operator +(F&& f, G&& g)
-    {
-      return [=](std::istream & is)
-      {
-        std::string s {};
-
-        s += f(is);
-        s += g(is);
-
-        return s;
-      };
-    }
+    using meevax::iostream::operator |;
+    using meevax::iostream::operator +;
 
     auto empty = [](std::istream &)
     {
-      return std::string();
+      return static_cast<std::string>("");
     };
 
     auto one_of = [](auto... xs)
@@ -118,26 +88,6 @@ inline namespace kernel
       };
     };
 
-    auto many = [](auto&& f)
-    {
-      return [=](std::istream & is) -> std::string
-      {
-        std::string s {};
-
-        try
-        {
-          while (true)
-          {
-            s += f(is);
-          }
-        }
-        catch (...)
-        {
-          return s;
-        }
-      };
-    };
-
     auto sequence = [](std::string const& s)
     {
       return [=](std::istream & is)
@@ -161,7 +111,7 @@ inline namespace kernel
 
     auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
 
-    auto upper = range_of('A', 'Z');
+    auto upper = range_of('A', 'Z'); // TODO satisfy(std::isupper);
 
     auto lower = range_of('a', 'z');
 
