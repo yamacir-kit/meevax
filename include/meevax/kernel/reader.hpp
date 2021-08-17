@@ -321,18 +321,18 @@ inline namespace kernel
             is.putback(c);
             return cons(kar, read(is));
           }
-          catch (tagged_read_error<char_constant<')'>> const&) { return char_eq(c, '(') ? unit : throw; }
-          catch (tagged_read_error<char_constant<']'>> const&) { return char_eq(c, '[') ? unit : throw; }
-          catch (tagged_read_error<char_constant<'}'>> const&) { return char_eq(c, '{') ? unit : throw; }
+          catch (tagged_read_error<char_constant<')'>> const&) { return std::char_traits<char_type>::eq(c, '(') ? unit : throw; }
+          catch (tagged_read_error<char_constant<']'>> const&) { return std::char_traits<char_type>::eq(c, '[') ? unit : throw; }
+          catch (tagged_read_error<char_constant<'}'>> const&) { return std::char_traits<char_type>::eq(c, '{') ? unit : throw; }
           catch (tagged_read_error<char_constant<'.'>> const&)
           {
             let const kdr = read(is);
 
             switch (c)
             {
-            case '(': ignore(is, [](auto c) { return not char_eq(c, ')'); }).get(); break;
-            case '[': ignore(is, [](auto c) { return not char_eq(c, ']'); }).get(); break;
-            case '{': ignore(is, [](auto c) { return not char_eq(c, '}'); }).get(); break;
+            case '(': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, ')'); }).get(); break;
+            case '[': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, ']'); }).get(); break;
+            case '{': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, '}'); }).get(); break;
             }
 
             return kdr;

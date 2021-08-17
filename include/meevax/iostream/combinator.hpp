@@ -49,12 +49,34 @@ inline namespace iostream
   {
     return [=](std::istream & is)
     {
-      std::string s;
+      std::string result;
 
-      s += f(is);
-      s += g(is);
+      result.append(f(is));
+      result.append(g(is));
 
-      return s;
+      return result;
+    };
+  }
+
+  template <typename F, REQUIRES(std::is_invocable<F, std::istream &>)>
+  auto operator *(F&& f, std::size_t size)
+  {
+    return [=](std::istream & is)
+    {
+      std::string result;
+
+      try
+      {
+        for (std::size_t i = 0; i < size; ++i)
+        {
+          result.append(f(is));
+        }
+      }
+      catch (...)
+      {
+        is.clear();
+        return result;
+      }
     };
   }
 
@@ -68,24 +90,9 @@ inline namespace iostream
     return (std::forward<decltype(f)>(f) + ... + std::forward<decltype(fs)>(fs));
   };
 
-  auto many = [](auto&& f)
+  auto many = [](auto&& f, std::size_t size = std::numeric_limits<std::size_t>::max())
   {
-    return [=](std::istream & is)
-    {
-      std::string s;
-
-      try
-      {
-        while (true)
-        {
-          s += f(is);
-        }
-      }
-      catch (...)
-      {
-        return s;
-      }
-    };
+    return std::forward<decltype(f)>(f) * size;
   };
 } // namespace iostream
 } // namespace meevax
