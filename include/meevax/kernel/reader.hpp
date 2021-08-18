@@ -39,79 +39,16 @@ inline namespace kernel
     using meevax::iostream::operator +;
     using meevax::iostream::operator |;
 
-    auto empty = [](std::istream &)
-    {
-      return static_cast<std::string>("");
-    };
+    auto intraline_whitespace = satisfy([](auto c) { return std::isblank(c); });
 
-    auto one_of = [](auto... xs)
-    {
-      return [=](std::istream & is)
-      {
-        if (auto c = static_cast<character>(is.get()); ((c == xs) or ...))
-        {
-          return static_cast<std::string>(c);
-        }
-        else
-        {
-          throw read_error(make<string>("unexpected character"), make<character>(c));
-        }
-      };
-    };
-
-    auto none_of = [](auto... xs)
-    {
-      return [=](std::istream & is)
-      {
-        if (auto c = static_cast<character>(is.get()); ((c != xs) or ...))
-        {
-          return static_cast<std::string>(c);
-        }
-        else
-        {
-          throw read_error(make<string>("unexpected character"), make<character>(c));
-        }
-      };
-    };
-
-    auto sequence = [](std::string const& s)
-    {
-      return [=](std::istream & is)
-      {
-        for (auto c : s)
-        {
-          one_of(c)(is);
-        }
-
-        return s;
-      };
-    };
-
-    auto satisfy = [](auto&& f)
-    {
-      return [=](std::istream & is)
-      {
-        if (auto c = static_cast<character>(is.get()); f(c))
-        {
-          return static_cast<std::string>(c);
-        }
-        else
-        {
-          is.putback(c);
-          throw read_error(make<string>("unexpected character"), make<character>(c));
-        }
-      };
-    };
-
-    auto intraline_whitespace = one_of(' ', '\t');
-
-    auto line_ending = one_of('\n', '\r');
+    auto line_ending = sequence("\r\n") | one_of('\n', '\r');
 
     auto whitespace = intraline_whitespace | line_ending;
 
     auto vertical_line = one_of('|');
 
     auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
+
 
     auto upper = satisfy([](auto c) { return std::isupper(c); });
 
@@ -125,17 +62,17 @@ inline namespace kernel
 
     auto digit = satisfy([](auto c) { return std::isdigit(c); });
 
+    auto hex_digit = satisfy([](auto c) { return std::isxdigit(c); });
+
     auto explicit_sign = one_of('+', '-');
 
     auto special_subsequent = explicit_sign | one_of('.', '@');
 
     auto subsequent = initial | digit | special_subsequent;
 
+    auto inline_hex_escape = sequence("\\x") + hex_digit + many(hex_digit);
+
     // TODO auto any_character_other_than_vertical_line_or_backslash
-
-    // TODO auto inline_hex_escape
-
-    // TODO auto mnemonic_escape
 
     auto symbol_element = letter;
                         //   any_character_other_than_vertical_line_or_backslash
@@ -152,7 +89,7 @@ inline namespace kernel
                              | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
                              | one_of('.') + dot_subsequent + many(subsequent);
 
-    // TODO auto boolean
+    auto boolean = sequence("#t") | sequence("#f") | sequence("#true") | sequence("#false");
 
     // TODO auto number
 
@@ -243,11 +180,6 @@ inline namespace kernel
     auto character = any_character | character_name | hex_scalar_value;
   }
 
-  auto comment = [](std::istream & is)
-  {
-    is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  };
-
   template <typename Module>
   class reader
   {
@@ -322,7 +254,7 @@ inline namespace kernel
         switch (auto const c = *head)
         {
         case ';':
-          comment(is);
+          is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
 
         case ' ':
@@ -392,7 +324,7 @@ inline namespace kernel
           switch (auto const discriminator = is.get())
           {
           case '!': // from SRFI-22
-            comment(is);
+            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             return read(is);
 
           case ',': // from SRFI-10

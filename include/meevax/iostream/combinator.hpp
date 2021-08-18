@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include <meevax/kernel/character.hpp>
 #include <meevax/type_traits/requires.hpp>
 
 namespace meevax
@@ -95,6 +96,70 @@ inline namespace iostream
   auto many = [](auto&& f, std::size_t size = std::numeric_limits<std::size_t>::max())
   {
     return std::forward<decltype(f)>(f) * size;
+  };
+
+  auto empty = [](std::istream &)
+  {
+    return static_cast<std::string>("");
+  };
+
+  auto one_of = [](auto... xs)
+  {
+    return [=](std::istream & is)
+    {
+      if (auto c = static_cast<character>(is.get()); ((c == xs) or ...))
+      {
+        return static_cast<std::string>(c);
+      }
+      else
+      {
+        throw c;
+      }
+    };
+  };
+
+  auto none_of = [](auto... xs)
+  {
+    return [=](std::istream & is)
+    {
+      if (auto c = static_cast<character>(is.get()); ((c != xs) or ...))
+      {
+        return static_cast<std::string>(c);
+      }
+      else
+      {
+        throw c;
+      }
+    };
+  };
+
+  auto sequence = [](std::string const& s)
+  {
+    return [=](std::istream & is)
+    {
+      for (auto c : s)
+      {
+        one_of(c)(is);
+      }
+
+      return s;
+    };
+  };
+
+  auto satisfy = [](auto&& f)
+  {
+    return [=](std::istream & is)
+    {
+      if (auto c = static_cast<character>(is.get()); f(c))
+      {
+        return static_cast<std::string>(c);
+      }
+      else
+      {
+        is.putback(c);
+        throw c;
+      }
+    };
   };
 } // namespace iostream
 } // namespace meevax
