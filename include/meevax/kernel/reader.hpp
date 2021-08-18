@@ -35,8 +35,9 @@ inline namespace kernel
 {
   namespace parse
   {
-    using meevax::iostream::operator |;
+    using meevax::iostream::operator *;
     using meevax::iostream::operator +;
+    using meevax::iostream::operator |;
 
     auto empty = [](std::istream &)
     {
@@ -97,7 +98,7 @@ inline namespace kernel
         else
         {
           is.putback(c);
-          read_error(make<string>("unexpected character"), make<character>(c));
+          throw read_error(make<string>("unexpected character"), make<character>(c));
         }
       };
     };
@@ -247,10 +248,6 @@ inline namespace kernel
     is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   };
 
-  // ---------------------------------------------------------------------------
-
-  // auto read_char(std::istream &) -> pair::value_type;
-
   template <typename Module>
   class reader
   {
@@ -294,6 +291,30 @@ inline namespace kernel
 
     inline auto read(std::istream & is) -> pair::value_type
     {
+      /*
+         <Datum> is what the read procedure (section 6.13.2) successfully
+         parses. Note that any string that parses as an <expression> will also
+         parse as a <datum>.
+
+         <datum> = <simple datum> | <compound datum> | <label> = <datum> | <label> #
+
+         <simple datum> = <boolean> | <number> | <character> | <string> | <symbol> | <bytevector>
+
+         <symbol> = <identifier>
+
+         <compound datum> = <list> | <vector> | <abbreviation>
+
+         <list> = (<datum>*) | (<datum>+ . <datum>)
+
+         <abbreviation> = <abbrev prefix> <datum>
+
+         <abbrev prefix> = ' | ` | , | ,@
+
+         <vector> = #(<datum>*)
+
+         <label> = # <uinteger 10>
+      */
+
       std::string buffer {};
 
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
@@ -407,6 +428,8 @@ inline namespace kernel
             ignore(is, [](auto&& x) { return not is_end_of_token(x); });
             return f;
 
+            // TODO return parse::boolean(is);
+
           case 'i':
             return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
@@ -421,6 +444,8 @@ inline namespace kernel
           case 't':
             ignore(is, [](auto&& x) { return not is_end_of_token(x); });
             return t;
+
+            // TODO return parse::boolean(is);
 
           case 'x':
             return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 16);
@@ -451,6 +476,8 @@ inline namespace kernel
             {
               return intern(buffer);
             }
+
+            // TODO return parse::number | parse::symbol(is);
           }
         }
       }

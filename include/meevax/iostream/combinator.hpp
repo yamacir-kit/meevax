@@ -71,6 +71,8 @@ inline namespace iostream
         {
           result.append(f(is));
         }
+
+        return result;
       }
       catch (...)
       {
