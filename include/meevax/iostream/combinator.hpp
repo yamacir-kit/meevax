@@ -18,6 +18,7 @@
 #define INCLUDED_MEEVAX_IOSTREAM_COMBINATOR_HPP
 
 #include <iostream>
+#include <limits>
 
 #include <meevax/kernel/character.hpp>
 #include <meevax/type_traits/requires.hpp>

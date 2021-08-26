@@ -89,17 +89,11 @@ inline namespace kernel
                              | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
                              | one_of('.') + dot_subsequent + many(subsequent);
 
-    auto boolean = sequence("#t") | sequence("#f") | sequence("#true") | sequence("#false");
-
-    // TODO auto number
-
-    // TODO auto character
-
-    // TODO auto string
-
     auto identifier = initial + many(subsequent)
                     | vertical_line + many(symbol_element) + vertical_line
                     | peculiar_identifier;
+
+    auto boolean = sequence("#t") | sequence("#f") | sequence("#true") | sequence("#false");
 
     auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
     {
