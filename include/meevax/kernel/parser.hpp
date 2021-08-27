@@ -90,7 +90,7 @@ inline namespace kernel
     return char_eq(c, '#', '\'', '`', ',');
   };
 
-  auto is_end_of_token = [](auto c) constexpr
+  auto is_end_of_token [[deprecated]] = [](auto c) constexpr
   {
     return is_delimiter(c) or is_reader_macro_introducer(c);
   };

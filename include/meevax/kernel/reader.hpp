@@ -92,9 +92,19 @@ inline namespace kernel
 
     auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
     {
+      auto is_end = [](auto c) constexpr
+      {
+        auto one_of = [c](auto... xs) constexpr
+        {
+          return (std::char_traits<char>::eq(c, xs) or ...);
+        };
+
+        return std::isspace(c) or one_of('"', '#', '\'', '(', ')', ',', ';', '[', ']', '`', '{', '|', '}', std::char_traits<char>::eof()); // NOTE: What read treats specially.
+      };
+
       std::string result;
 
-      for (auto c = is.peek(); not is_end_of_token(c); c = is.peek())
+      for (auto c = is.peek(); not is_end(c); c = is.peek())
       {
         result.push_back(is.get());
       }
@@ -322,7 +332,7 @@ inline namespace kernel
             return exact(read(is)); // NOTE: Same as #,(exact (read))
 
           case 'f':
-            ignore(is, [](auto&& x) { return not is_end_of_token(x); });
+            parse::token(is);
             return f;
 
           case 'i':
@@ -337,7 +347,7 @@ inline namespace kernel
             return make<path>(string(is));
 
           case 't':
-            ignore(is, [](auto&& x) { return not is_end_of_token(x); });
+            parse::token(is);
             return t;
 
           case 'x':
@@ -355,20 +365,17 @@ inline namespace kernel
           }
 
         default:
-          if (buffer.push_back(c); is_end_of_token(is.peek()))
+          if (auto const token = c + parse::token(is); token == ".")
           {
-            if (buffer == ".")
-            {
-              throw tagged_read_error<char_constant<'.'>>(make<string>("unexpected character: "), make<character>('.'));
-            }
-            else try
-            {
-              return to_number(buffer, 10);
-            }
-            catch (...)
-            {
-              return intern(buffer);
-            }
+            throw tagged_read_error<char_constant<'.'>>(make<string>("unexpected character: "), make<character>('.'));
+          }
+          else try
+          {
+            return to_number(token, 10);
+          }
+          catch (...)
+          {
+            return intern(token);
           }
         }
       }
