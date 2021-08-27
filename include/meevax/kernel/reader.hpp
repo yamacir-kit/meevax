@@ -49,12 +49,7 @@ inline namespace kernel
 
     auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
 
-
-    auto upper = satisfy([](auto c) { return std::isupper(c); });
-
-    auto lower = satisfy([](auto c) { return std::islower(c); });
-
-    auto letter = upper | lower;
+    auto letter = satisfy([](auto c) { return std::isalpha(c); });
 
     auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
 
@@ -93,7 +88,7 @@ inline namespace kernel
                     | vertical_line + many(symbol_element) + vertical_line
                     | peculiar_identifier;
 
-    auto boolean = sequence("#t") | sequence("#f") | sequence("#true") | sequence("#false");
+    auto boolean = sequence("#true") | sequence("#t") | sequence("#false") | sequence("#f");
 
     auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
     {
@@ -217,30 +212,6 @@ inline namespace kernel
 
     inline auto read(std::istream & is) -> pair::value_type
     {
-      /*
-         <Datum> is what the read procedure (section 6.13.2) successfully
-         parses. Note that any string that parses as an <expression> will also
-         parse as a <datum>.
-
-         <datum> = <simple datum> | <compound datum> | <label> = <datum> | <label> #
-
-         <simple datum> = <boolean> | <number> | <character> | <string> | <symbol> | <bytevector>
-
-         <symbol> = <identifier>
-
-         <compound datum> = <list> | <vector> | <abbreviation>
-
-         <list> = (<datum>*) | (<datum>+ . <datum>)
-
-         <abbreviation> = <abbrev prefix> <datum>
-
-         <abbrev prefix> = ' | ` | , | ,@
-
-         <vector> = #(<datum>*)
-
-         <label> = # <uinteger 10>
-      */
-
       std::string buffer {};
 
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
@@ -315,7 +286,7 @@ inline namespace kernel
           }
 
         case '#':
-          switch (auto const discriminator = is.get())
+          switch (auto const c = is.get())
           {
           case '!': // from SRFI-22
             is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -354,8 +325,6 @@ inline namespace kernel
             ignore(is, [](auto&& x) { return not is_end_of_token(x); });
             return f;
 
-            // TODO return parse::boolean(is);
-
           case 'i':
             return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
@@ -371,20 +340,18 @@ inline namespace kernel
             ignore(is, [](auto&& x) { return not is_end_of_token(x); });
             return t;
 
-            // TODO return parse::boolean(is);
-
           case 'x':
             return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 16);
 
           case '(':
-            is.putback(discriminator);
+            is.putback(c);
             return make<vector>(for_each_in, read(is));
 
           case '\\':
             return parse::character(is);
 
           default:
-            throw read_error(make<string>("unknown discriminator"), make<character>(discriminator));
+            throw read_error(make<string>("unknown discriminator"), make<character>(c));
           }
 
         default:
@@ -402,8 +369,6 @@ inline namespace kernel
             {
               return intern(buffer);
             }
-
-            // TODO return parse::number | parse::symbol(is);
           }
         }
       }
