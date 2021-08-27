@@ -222,8 +222,6 @@ inline namespace kernel
 
     inline auto read(std::istream & is) -> pair::value_type
     {
-      std::string buffer {};
-
       for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
         switch (auto const c = *head)
@@ -249,10 +247,10 @@ inline namespace kernel
             is.putback(c);
             return cons(kar, read(is));
           }
-          catch (tagged_read_error<char_constant<')'>> const&) { return std::char_traits<char_type>::eq(c, '(') ? unit : throw; }
-          catch (tagged_read_error<char_constant<']'>> const&) { return std::char_traits<char_type>::eq(c, '[') ? unit : throw; }
-          catch (tagged_read_error<char_constant<'}'>> const&) { return std::char_traits<char_type>::eq(c, '{') ? unit : throw; }
-          catch (tagged_read_error<char_constant<'.'>> const&)
+          catch (unexpected_character<')'> const&) { return std::char_traits<char_type>::eq(c, '(') ? unit : throw; }
+          catch (unexpected_character<']'> const&) { return std::char_traits<char_type>::eq(c, '[') ? unit : throw; }
+          catch (unexpected_character<'}'> const&) { return std::char_traits<char_type>::eq(c, '{') ? unit : throw; }
+          catch (unexpected_character<'.'> const&)
           {
             let const kdr = read(is);
 
@@ -267,13 +265,13 @@ inline namespace kernel
           }
 
         case ')':
-          throw tagged_read_error<char_constant<')'>>(make<string>("unexpected character"), make<character>(c));
+          throw unexpected_character<')'>::get();
 
         case ']':
-          throw tagged_read_error<char_constant<']'>>(make<string>("unexpected character"), make<character>(c));
+          throw unexpected_character<']'>::get();
 
         case '}':
-          throw tagged_read_error<char_constant<'}'>>(make<string>("unexpected character"), make<character>(c));
+          throw unexpected_character<'}'>::get();
 
         case '"':
           return make<string>(is);
@@ -367,7 +365,7 @@ inline namespace kernel
         default:
           if (auto const token = c + parse::token(is); token == ".")
           {
-            throw tagged_read_error<char_constant<'.'>>(make<string>("unexpected character: "), make<character>('.'));
+            throw unexpected_character<'.'>::get();
           }
           else try
           {

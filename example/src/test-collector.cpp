@@ -17,9 +17,9 @@ struct fixture // Check if all allocated objects are collected.
   std::size_t const size;
 
   explicit fixture()
-    : size { gc.count() }
+    : size { (construct_on_first_use(), gc.count()) }
   {
-    BOOST_CHECK(size == constants.size() + 11);
+    BOOST_CHECK(size == constants.size() + 11 + 8);
 
     BOOST_CHECK(default_error_port.is<standard_error_port>());
     BOOST_CHECK(default_input_port.is<standard_input_port>());
@@ -44,6 +44,21 @@ struct fixture // Check if all allocated objects are collected.
     gc.collect();
 
     BOOST_CHECK(gc.count() == size);
+  }
+
+  auto construct_on_first_use() const -> void
+  {
+    BOOST_CHECK(unexpected_character<')'>::get().message().is<string>());
+    BOOST_CHECK(unexpected_character<')'>::get().irritants().is<character>());
+
+    BOOST_CHECK(unexpected_character<']'>::get().message().is<string>());
+    BOOST_CHECK(unexpected_character<']'>::get().irritants().is<character>());
+
+    BOOST_CHECK(unexpected_character<'}'>::get().message().is<string>());
+    BOOST_CHECK(unexpected_character<'}'>::get().irritants().is<character>());
+
+    BOOST_CHECK(unexpected_character<'.'>::get().message().is<string>());
+    BOOST_CHECK(unexpected_character<'.'>::get().irritants().is<character>());
   }
 };
 
