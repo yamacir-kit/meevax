@@ -149,7 +149,7 @@ inline namespace kernel
         for (auto const& each : xs)
         {
           std::cerr << ";\t\t; staging " << each << std::endl;
-          external_symbols.emplace(boost::lexical_cast<std::string>(each), each);
+          external_symbols.emplace(lexical_cast<std::string>(each), each);
         }
 
         // std::cerr << ";\t\t; exported identifiers are" << std::endl;

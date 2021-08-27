@@ -101,7 +101,7 @@ An subset of R7RS-small.
 
 ``` bash
 git clone https://github.com/yamacir-kit/meevax.git ~/.meevax && cd $_
-./script/setup.sh --update --all
+./script/setup.sh --all
 ./script/install.sh
 ```
 

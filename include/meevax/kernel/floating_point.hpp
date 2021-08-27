@@ -19,6 +19,7 @@
 
 #include <valarray>
 
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/numeric_tower.hpp>
 
 namespace meevax
@@ -79,7 +80,7 @@ inline namespace kernel
 
     template <typename... Ts>
     explicit constexpr floating_point(Ts&&... xs)
-      : value { boost::lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
+      : value { lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
     {}
 
     constexpr auto is_integer() const noexcept
@@ -90,7 +91,7 @@ inline namespace kernel
     // TODO TEMPLATE SPECIALIZATION to<std::string>()
     auto to_string() const
     {
-      return boost::lexical_cast<std::string>(value);
+      return lexical_cast<std::string>(value);
     }
 
     template <typename... Ts>

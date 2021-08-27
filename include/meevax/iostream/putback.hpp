@@ -14,22 +14,17 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
-#define INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
+#ifndef INCLUDED_MEEVAX_IOSTREAM_PUTBACK_HPP
+#define INCLUDED_MEEVAX_IOSTREAM_PUTBACK_HPP
 
-#include <string>
-#include <typeinfo>
-
-#include <meevax/memory/pointer.hpp>
+#include <iostream>
 
 namespace meevax
 {
-inline namespace utility
+inline namespace iostream
 {
-  auto demangle(const pointer<const char> name) -> std::string;
-
-  auto demangle(std::type_info const&) -> std::string;
-} // namespace utility
+  auto putback(std::istream &, std::string const&) -> std::istream &;
+} // namespace iostream
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
+#endif // INCLUDED_MEEVAX_IOSTREAM_PUTBACK_HPP

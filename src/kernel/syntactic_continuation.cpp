@@ -17,8 +17,7 @@
 #include <ios>
 #include <iterator>
 
-#include <boost/range/adaptor/reversed.hpp>
-#include <boost/range/adaptors.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -703,7 +702,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make<string>(boost::lexical_cast<std::string>(car(xs)));
+      return make<string>(lexical_cast<std::string>(car(xs)));
     });
 
     /* -------------------------------------------------------------------------
@@ -725,7 +724,7 @@ inline namespace kernel
 
     define<procedure>("string->number", [](let const& xs)
     {
-      return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>().to<int>() : 10);
+      return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? static_cast<int>(cadr(xs).as<exact_integer>()) : 10);
     });
 
     /* -------------------------------------------------------------------------
@@ -892,7 +891,7 @@ inline namespace kernel
     {
       if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
-        return make<character>(car(xs).as<exact_integer>().to<character::value_type>());
+        return make<character>(static_cast<character::value_type>(car(xs).as<exact_integer>()));
       }
       else
       {
@@ -923,7 +922,7 @@ inline namespace kernel
 
     define<procedure>("make-string", [](let const& xs)
     {
-      return make<string>(car(xs).as<exact_integer>().to<std::size_t>(),
+      return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
                           cdr(xs).is<pair>() ? cadr(xs).as<character>() : character());
     });
 
@@ -954,7 +953,7 @@ inline namespace kernel
 
     define<procedure>("string-ref", [](let const& xs)
     {
-      return make(car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
+      return make(car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())));
     });
 
     /* -------------------------------------------------------------------------
@@ -977,7 +976,7 @@ inline namespace kernel
 
     define<procedure>("string-set!", [](let const& xs)
     {
-      car(xs).as<string>().at(cadr(xs).as<exact_integer>().to<string::size_type>()) = caddr(xs).as<character>();
+      car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
       return car(xs);
     });
 
@@ -1104,27 +1103,22 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string->list", [](let const& xs) // TODO MOVE INTO overture.ss
+    define<procedure>("string->list", [](let const& xs)
     {
-      let x = unit;
-
-      using boost::adaptors::reverse;
-      using boost::adaptors::slice;
-
-      auto start =
-        1 < length(xs) ? cadr(xs).as<exact_integer>().to<string::size_type>()
-                       : 0;
-
-      auto end =
-        2 < length(xs) ? caddr(xs).as<exact_integer>().to<string::size_type>()
-                       : car(xs).as<const string>().size();
-
-      for (auto const& each : reverse(slice(car(xs).as<const string>(), start, end)))
+      switch (length(xs))
       {
-        x = cons(make(each), x);
-      }
+      case 1:
+        return car(xs).as<string>().list();
 
-      return x;
+      case 2:
+        return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
+      }
     });
 
     define<procedure>("list->string", [](let const& xs)
@@ -1158,96 +1152,137 @@ inline namespace kernel
       }
       else if (cddr(xs).is<null>())
       {
-        return make<string>(car(xs).as<string>().begin() + cadr(xs).as<exact_integer>().to<string::size_type>(),
+        return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>(cadr(xs).as<exact_integer>()),
                             car(xs).as<string>().end());
       }
       else
       {
-        return make<string>(car(xs).as<string>().begin() +  cadr(xs).as<exact_integer>().to<string::size_type>(),
-                            car(xs).as<string>().begin() + caddr(xs).as<exact_integer>().to<string::size_type>());
+        return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>( cadr(xs).as<exact_integer>()),
+                            car(xs).as<string>().begin() + static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
       }
     });
 
-  /* ---- R7RS 6.8. Vectors ----------------------------------------------------
-
-     ┌────────────────────┬────────────┬────────────────────────────────────┐
-     │ Symbol             │ Written in │ Note                               │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector?            │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ make-vector        │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector             │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-length      │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-ref         │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-set!        │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector->list       │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ list->vector       │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector->string     │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ string->vector     │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-copy        │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-copy!       │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-append      │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-fill!       │ C++        │                                    │
-     └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector? obj)                                                 procedure
+     *
+     *  Returns #t if obj is a vector; otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector?", is<vector>());
 
-    define<procedure>("make-vector", [](let const& xs) // TODO Rename to vector-allocate
+    /* -------------------------------------------------------------------------
+     *
+     *  (make-vector k)                                               procedure
+     *  (make-vector k fill)                                          procedure
+     *
+     *  Returns a newly allocated vector of k elements. If a second argument is
+     *  given, then each element is initialized to fill. Otherwise the initial
+     *  contents of each element is unspecified.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("make-vector", [](let const& xs)
     {
-      return make<vector>(car(xs).as<exact_integer>().to<vector::size_type>(),
-                          cdr(xs).is<null>() ? unspecified : cadr(xs));
+      switch (length(xs))
+      {
+      case 1:
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified);
+
+      case 2:
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
+      }
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector obj ...)                                              procedure
+     *
+     *  Returns a newly allocated vector whose elements contain the given
+     *  arguments. It is analogous to list.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector", [](auto&&... xs)
     {
       return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-length vector)                                        procedure
+     *
+     *  Returns the number of elements in vector as an exact integer.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector-length", [](let const& xs)
     {
       return make<exact_integer>(car(xs).as<vector>().size());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-ref vector k)                                         procedure
+     *
+     *  It is an error if k is not a valid index of vector. The vector-ref
+     *  procedure returns the contents of element k of vector.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector-ref", [](let const& xs)
     {
-      return car(xs).as<vector>().at(
-               cadr(xs).as<exact_integer>().to<vector::size_type>());
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-set! vector k obj)                                    procedure
+     *
+     *  It is an error if k is not a valid index of vector. The vector-set!
+     *  procedure stores obj in element k of vector.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector-set!", [](let const& xs)
     {
-      return car(xs).as<vector>().at(
-               cadr(xs).as<exact_integer>().to<vector::size_type>())
-             = caddr(xs);
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector->list vector)                                         procedure
+     *  (vector->list vector start)                                   procedure
+     *  (vector->list vector start end)                               procedure
+     *
+     *  (list->vector list)                                           procedure
+     *
+     *  The vector->list procedure returns a newly allocated list of the
+     *  objects contained in the elements of vector between start and end. The
+     *  list->vector procedure returns a newly created vector initialized to
+     *  the elements of the list list.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector->list", [](let const& xs)
     {
-      if (let const& v = car(xs); cdr(xs).is<null>())
+      switch (length(xs))
       {
-        return v.as<vector>().to_list();
-      }
-      else if (let const& from = cadr(xs); cddr(xs).is<null>())
-      {
-        return v.as<vector>().to_list(from);
-      }
-      else
-      {
-        return v.as<vector>().to_list(from, caddr(xs));
+      case 1:
+        return car(xs).as<vector>().list();
+
+      case 2:
+        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
       }
     });
 
@@ -1256,19 +1291,43 @@ inline namespace kernel
       return make<vector>(for_each_in, car(xs));
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector->string vector)                                       procedure
+     *  (vector->string vector start)                                 procedure
+     *  (vector->string vector start end)                             procedure
+     *
+     *  (string->vector string)                                       procedure
+     *  (string->vector string start)                                 procedure
+     *  (string->vector string start end)                             procedure
+     *
+     *  It is an error if any element of vector between start and end is not a
+     *  character.
+     *
+     *  The vector->string procedure returns a newly allocated string of the
+     *  objects contained in the elements of vector between start and end. The
+     *  string->vector procedure returns a newly created vector initialized to
+     *  the elements of the string string between start and end.
+     *
+     *  In both procedures, order is preserved.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector->string", [](let const& xs)
     {
-      if (let const& v = car(xs); cdr(xs).is<null>())
+      switch (length(xs))
       {
-        return v.as<vector>().to_string();
-      }
-      else if (let const& from = cadr(xs); cddr(xs).is<null>())
-      {
-        return v.as<vector>().to_string(from);
-      }
-      else
-      {
-        return v.as<vector>().to_string(from, caddr(xs));
+      case 1:
+        return car(xs).as<vector>().string();
+
+      case 2:
+        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
       }
     });
 
@@ -1292,20 +1351,38 @@ inline namespace kernel
     //   return unspecified;
     // });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-fill! vector fill)                                    procedure
+     *  (vector-fill! vector fill start)                              procedure
+     *  (vector-fill! vector fill start end)                          procedure
+     *
+     *  The vector-fill! procedure stores fill in the elements of vector
+     *  between start and end.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector-fill!", [](let const& xs)
     {
-      if (let const& v = car(xs), value = cadr(xs); cddr(xs).is<null>())
+      switch (length(xs))
       {
-        return v.as<vector>().fill(value), unspecified;
+      case 2:
+        car(xs).as<vector>().fill(cadr(xs));
+        break;
+
+      case 3:
+        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+        break;
+
+      case 4:
+        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()), static_cast<string::size_type>(cadddr(xs).as<exact_integer>()));
+        break;
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
       }
-      else if (let const& from = caddr(xs); cdddr(xs).is<null>())
-      {
-        return v.as<vector>().fill(value, from), unspecified;
-      }
-      else
-      {
-        return v.as<vector>().fill(value, from, cadddr(xs)), unspecified;
-      }
+
+      return unspecified;
     });
 
 
@@ -1867,7 +1944,7 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        throw exit_status(x.as<exact_integer>().to<int>());
+        throw exit_status(static_cast<int>(x.as<exact_integer>()));
       }
       else
       {

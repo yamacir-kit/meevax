@@ -14,14 +14,15 @@ set(MEMCHECK valgrind --error-exitcode=1
 
 macro(define_library LIBRARY_NAME)
   add_library(${LIBRARY_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/lib/${LIBRARY_NAME}.cpp)
-  target_link_libraries(${LIBRARY_NAME} PUBLIC Meevax::kernel)
+  target_link_libraries(${LIBRARY_NAME} PRIVATE Meevax::kernel)
 endmacro()
 
 define_library(example-1)
 
 macro(define_cxx_example TEST_NAME)
   add_executable(${TEST_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/${TEST_NAME}.cpp)
-  target_link_libraries(${TEST_NAME} Boost::boost Meevax::kernel)
+  target_link_libraries(${TEST_NAME} PRIVATE Boost::boost
+                                     PRIVATE Meevax::kernel)
   add_test(NAME ${TEST_NAME}
            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
            COMMAND ${MEMCHECK} ./${TEST_NAME})

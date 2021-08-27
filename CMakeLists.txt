@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-parentheses")
 set(CMAKE_CXX_FLAGS_DEBUG          "-Og -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os    -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
@@ -26,9 +26,6 @@ set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=nativ
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-
-find_package(Boost REQUIRED)
-find_package(Threads REQUIRED)
 
 # ---- Configure README --------------------------------------------------------
 
@@ -89,18 +86,15 @@ add_library(${PROJECT_NAME}::kernel ALIAS kernel)
 file(GLOB_RECURSE ${PROJECT_NAME}_KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp)
 
 target_sources(kernel PRIVATE ${${PROJECT_NAME}_BASIS}
-                              ${${PROJECT_NAME}_KERNEL_SOURCES})
+                      PRIVATE ${${PROJECT_NAME}_KERNEL_SOURCES})
 
 target_include_directories(kernel PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(kernel PRIVATE Boost::boost
-                                     # Threads::Threads
-                                     stdc++fs)
-
-target_link_libraries(kernel PUBLIC ${CMAKE_DL_LIBS}
-                                    gmp)
+target_link_libraries(kernel PRIVATE stdc++fs
+                             PUBLIC ${CMAKE_DL_LIBS}
+                             PUBLIC gmp)
 
 set_target_properties(
   kernel PROPERTIES OUTPUT_NAME ${PROJECT_NAME} # Rename libkernel => libmeevax
@@ -111,7 +105,7 @@ set_target_properties(
 
 add_executable(shell ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(shell PRIVATE ${PROJECT_NAME}::kernel)
+target_link_libraries(shell PRIVATE kernel)
 
 set_target_properties(shell PROPERTIES OUTPUT_NAME ${PROJECT_NAME}) # Rename shell => meevax
 

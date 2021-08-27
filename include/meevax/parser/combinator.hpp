@@ -146,27 +146,27 @@ namespace meevax
     };
   };
 
-  template <typename F,
-            typename G,
-            REQUIRES(std::is_invocable<F, std::istream &>),
-            REQUIRES(std::is_invocable<G, std::istream &>)>
-  auto operator |(F&& f, G&& g)
-  {
-    return [=](std::istream & port)
-    {
-      auto const backtrack = port.tellg();
-
-      try
-      {
-        return f(port);
-      }
-      catch (...)
-      {
-        port.seekg(backtrack);
-        return g(port);
-      }
-    };
-  }
+  // template <typename F,
+  //           typename G,
+  //           REQUIRES(std::is_invocable<F, std::istream &>),
+  //           REQUIRES(std::is_invocable<G, std::istream &>)>
+  // auto operator |(F&& f, G&& g)
+  // {
+  //   return [=](std::istream & port)
+  //   {
+  //     auto const backtrack = port.tellg();
+  //
+  //     try
+  //     {
+  //       return f(port);
+  //     }
+  //     catch (...)
+  //     {
+  //       port.seekg(backtrack);
+  //       return g(port);
+  //     }
+  //   };
+  // }
 
   auto backtrack = [](auto&& parse)
   {
