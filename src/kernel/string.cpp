@@ -19,7 +19,6 @@
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/parser.hpp>
 #include <meevax/kernel/string.hpp>
 
 namespace meevax
@@ -28,7 +27,7 @@ inline namespace kernel
 {
   string::string(std::istream & is, std::size_t k)
   {
-    for (auto c = character(is); size() < k and not is_eof(c.codepoint); c = character(is))
+    for (auto c = character(is); size() < k and not std::char_traits<char>::eq(std::char_traits<char>::eof(), c.codepoint); c = character(is))
     {
       switch (c.codepoint)
       {
@@ -62,7 +61,7 @@ inline namespace kernel
 
         case '\n':
         case '\r':
-          ignore(is, is_intraline_whitespace);
+          ignore(is, [](auto c) { return std::isspace(c); });
           break;
 
         default:

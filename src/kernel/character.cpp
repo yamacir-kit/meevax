@@ -17,8 +17,6 @@
 #include <meevax/kernel/character.hpp>
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/miscellaneous.hpp> // for eof
-#include <meevax/kernel/pair.hpp>
-#include <meevax/kernel/parser.hpp>
 #include <meevax/posix/vt10x.hpp> // for cyan
 
 namespace meevax
@@ -39,7 +37,7 @@ inline namespace kernel
        00010000 -- 001FFFFF: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     */
 
-    if (auto const c = is.peek(); is_eof(c))
+    if (auto const c = is.peek(); std::char_traits<char>::eq(std::char_traits<char>::eof(), c))
     {
       throw tagged_read_error<eof>(make<string>("no more characters are available"), unit);
     }

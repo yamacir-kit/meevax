@@ -23,9 +23,8 @@ namespace meevax
 {
 inline namespace iostream
 {
-  // TODO UNICODE SUPPORT
   template <typename F>
-  decltype(auto) ignore(std::istream & is, F&& f)
+  auto ignore(std::istream & is, F&& f) -> std::istream &
   {
     while (f(is.peek()))
     {

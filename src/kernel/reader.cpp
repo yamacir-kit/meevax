@@ -14,93 +14,11 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/reader.hpp>
+// #include <meevax/kernel/reader.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  /* ---- R7RS 7.1.1. Lexical structure ----------------------------------------
-   *
-   *  <character> = #\ <any character>
-   *              | #\ <character name>
-   *              | #\x <hex scalar value>
-   *              | #\U+ <hex scalar value> TODO
-   *
-   *  <character name> = alarm
-   *                   | backspace
-   *                   | delete
-   *                   | escape
-   *                   | newline
-   *                   | null
-   *                   | return
-   *                   | space
-   *                   | tab
-   *
-   * ------------------------------------------------------------------------ */
-  // auto read_char(std::istream & is) -> pair::value_type
-  // {
-  //   auto any_character = [&](auto const& token, auto)
-  //   {
-  //     switch (token.size())
-  //     {
-  //     case 0:
-  //       return make<character>(is.get());
-  //
-  //     case 1:
-  //       return make<character>(token.front());
-  //
-  //     default:
-  //       throw tagged_read_error<character>(
-  //         make<string>(
-  //           "If <character> in #\\<character> is alphabetic, then any "
-  //           "character immediately following <character> cannot be one that "
-  //           "can appear in an identifier"),
-  //         unit);
-  //     }
-  //   };
-  //
-  //   auto character_name = [](auto const& token, auto)
-  //   {
-  //     std::unordered_map<std::string, char> static const names
-  //     {
-  //       { "alarm"    , 0x07 },
-  //       { "backspace", 0x08 },
-  //       { "delete"   , 0x7F },
-  //       { "escape"   , 0x1B },
-  //       { "newline"  , 0x0A },
-  //       { "null"     , 0x00 },
-  //       { "return"   , 0x0D },
-  //       { "space"    , 0x20 },
-  //       { "tab"      , 0x09 },
-  //     };
-  //
-  //     return make<character>(names.at(token));
-  //   };
-  //
-  //   auto hex_scalar_value = [](auto const& token, auto = 16)
-  //   {
-  //     if (token.front() == 'x' and 1 < token.size())
-  //     {
-  //       std::stringstream ss;
-  //       ss << std::hex << token.substr(1);
-  //
-  //       character::value_type value = 0;
-  //       ss >> value;
-  //
-  //       return make<character>(value);
-  //     }
-  //     else
-  //     {
-  //       throw tagged_read_error<character>(
-  //         make<string>("invalid character literal: "),
-  //         make<string>("\\#" + token));
-  //     }
-  //   };
-  //
-  //   auto to_character = hex_scalar_value | character_name | any_character;
-  //
-  //   return to_character(token(is), 16);
-  // }
 } // namespace kernel
 } // namespace meevax

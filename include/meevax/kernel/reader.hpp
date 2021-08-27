@@ -17,14 +17,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-#include <cctype>
 #include <meevax/iostream/combinator.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/iostream/putback.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/miscellaneous.hpp> // for eof
 #include <meevax/kernel/numeric_io.hpp>
-#include <meevax/kernel/parser.hpp> // DEPRECATED
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -192,9 +190,6 @@ inline namespace kernel
     IMPORT(Module, write_to,            NIL);
 
     using char_type = typename std::istream::char_type;
-
-    template <char_type C>
-    using char_constant = std::integral_constant<char_type, C>;
 
   public:
     static inline std::unordered_map<std::string, pair::value_type> symbols {};
