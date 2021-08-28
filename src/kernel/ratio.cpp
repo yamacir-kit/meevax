@@ -33,9 +33,7 @@ inline namespace kernel
     }
     else
     {
-      throw tagged_read_error<ratio>(
-        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
-        unit);
+      throw read_error(make<string>("not a ratio"), make<string>(token));
     }
   }
 

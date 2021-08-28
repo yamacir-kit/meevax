@@ -44,23 +44,13 @@ inline namespace kernel
     };
   }
 
-  /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
-   *
-   *  <uinteger R> = <digit R>+
-   *
-   *  <digit 2>  = 0 | 1
-   *  <digit 8>  = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
-   *  <digit 10> = <digit>
-   *  <digit 16> = <digit 10> | a | b | c | d | e | f
-   *
-   * ------------------------------------------------------------------------ */
-  constexpr auto to_integer = [](std::string const& token, auto radix = 10)
+  auto to_integer = [](std::string const& token, auto radix = 10)
   {
     auto result = exact_integer(token, radix);
     return make(result);
   };
 
-  constexpr auto to_ratio = [](std::string const& token, auto radix = 10)
+  auto to_ratio = [](std::string const& token, auto radix = 10)
   {
     if (auto const value = ratio(token, radix).reduce(); value.is_integer())
     {
@@ -72,38 +62,10 @@ inline namespace kernel
     }
   };
 
-  /* ---------------------------------------------------------------------------
-   *
-   *  <decimal 10> = <uinteger 10>             <suffix>                    TODO
-   *               |             . <digit 10>+ <suffix>                    TODO
-   *               | <digit 10>+ . <digit 10>* <suffix>
-   *
-   *  <suffix> = <empty> | <exponent marker> <sign> <digit 10>+
-   *
-   *  <exponent marker> = e
-   *
-   * ------------------------------------------------------------------------ */
-  constexpr auto to_decimal = [](std::string const& token, auto radix = 10) // <sign> <decimal 10>
+  auto to_decimal = [](std::string const& token, auto)
   {
-    switch (radix)
-    {
-    case 10:
-      if (std::regex static const r1 { "[+-]?\\d+e[+-]?\\d+" },
-                                  r2 { "[+-]?\\.\\d+" },
-                                  r3 { "[+-]?\\d+.\\d*" };
-          std::regex_match(token, r1) or
-          std::regex_match(token, r2) or
-          std::regex_match(token, r3))
-      {
-        return make<system_float>(token.substr(token[0] == '+' ? 1 : 0));
-      }
-      [[fallthrough]];
-
-    default:
-      throw tagged_read_error<system_float>(
-        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
-        unit);
-    }
+    auto result = system_float(token);
+    return make(result);
   };
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
@@ -113,7 +75,7 @@ inline namespace kernel
    *  <srfi 144> = fl-pi                                                   TODO
    *
    * ------------------------------------------------------------------------ */
-  constexpr auto to_constant = [](std::string const& token, auto = 10)
+  auto to_constant = [](std::string const& token, auto = 10)
   {
     if (auto iter = constants.find(token); iter != std::end(constants))
     {
@@ -121,9 +83,7 @@ inline namespace kernel
     }
     else
     {
-      throw tagged_read_error<system_float>(
-        make<string>(string_append("invalid number")),
-        make<string>(string_append("(string->number ", std::quoted(token), ")")));
+      throw read_error(make<string>("not a number"), make<string>(token));
     }
   };
 
@@ -138,10 +98,10 @@ inline namespace kernel
    *            | <decimal R>
    *
    * ------------------------------------------------------------------------ */
-  constexpr auto to_real = to_integer // <sign> <uinteger R>
-                         | to_ratio   // <sign> <uinteger R> / <uinteger R>
-                         | to_decimal // <sign> <decimal R>
-                         | to_constant; // <infnan> or SRFI-144
+  auto to_real = to_integer // <sign> <uinteger R>
+               | to_ratio   // <sign> <uinteger R> / <uinteger R>
+               | to_decimal // <sign> <decimal R>
+               | to_constant; // <infnan> or SRFI-144
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -159,7 +119,7 @@ inline namespace kernel
    *              |          -           i                                 TODO
    *
    * ------------------------------------------------------------------------ */
-  constexpr auto to_complex = to_real;
+  auto to_complex = to_real;
 
   /* ---- R7RS 7.1.1 Lexical structure -----------------------------------------
    *
@@ -179,7 +139,7 @@ inline namespace kernel
    *  NOTE: <Prefix R> is parsed with 'read'.
    *
    * ------------------------------------------------------------------------ */
-  constexpr auto to_number = to_complex;
+  auto to_number = to_complex;
 } // namespace kernel
 } // namespace meevax
 
