@@ -27,6 +27,8 @@ inline namespace kernel
   {
     using pair::pair;
 
+    explicit ratio(std::string const&, int = 0);
+
     auto as_exact() const noexcept -> ratio const&;
 
     template <typename T>

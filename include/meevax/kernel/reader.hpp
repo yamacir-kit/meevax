@@ -20,9 +20,9 @@
 #include <meevax/iostream/combinator.hpp>
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/iostream/putback.hpp>
+#include <meevax/kernel/constant.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/miscellaneous.hpp> // for eof
-#include <meevax/kernel/numeric_io.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -177,6 +177,68 @@ inline namespace kernel
     auto character = any_character | character_name | hex_scalar_value;
   }
 
+  namespace string_to
+  {
+    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::string const&, int>,
+                                               std::is_invocable<G, std::string const&, int>)>
+    auto operator |(F&& f, G&& g)
+    {
+      return [=](std::string const& token, auto radix)
+      {
+        try
+        {
+          return f(token, radix);
+        }
+        catch (...)
+        {
+          return g(token, radix);
+        }
+      };
+    }
+
+    auto integer = [](std::string const& token, auto radix = 10)
+    {
+      auto const result = exact_integer(token, radix);
+      return make(result);
+    };
+
+    auto ratio = [](std::string const& token, auto radix = 10)
+    {
+      if (auto const value = meevax::ratio(token, radix).reduce(); value.is_integer())
+      {
+        return std::get<0>(value);
+      }
+      else
+      {
+        return make(value);
+      }
+    };
+
+    auto decimal = [](std::string const& token, auto)
+    {
+      auto const result = system_float(token);
+      return make(result);
+    };
+
+    auto flonum = [](std::string const& token, auto)
+    {
+      if (auto iter = constants.find(token); iter != std::end(constants))
+      {
+        return std::get<1>(*iter);
+      }
+      else
+      {
+        throw read_error(make<string>("not a number"), make<string>(token));
+      }
+    };
+
+    auto real = integer | ratio | decimal | flonum;
+
+    auto complex = real;
+
+    auto number = complex;
+  } // namespace string_to
+
   template <typename Module>
   class reader
   {
@@ -302,7 +364,7 @@ inline namespace kernel
             return read(is), read(is);
 
           case 'b': // (string->number (read) 2)
-            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 2);
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 2);
 
           case 'c': // from Common Lisp
             if (let const xs = read(is); xs.is<null>())
@@ -319,7 +381,7 @@ inline namespace kernel
             }
 
           case 'd':
-            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 10);
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 10);
 
           case 'e':
             return exact(read(is)); // NOTE: Same as #,(exact (read))
@@ -332,7 +394,7 @@ inline namespace kernel
             return inexact(read(is)); // NOTE: Same as #,(inexact (read))
 
           case 'o':
-            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
 
           case 'p':
             assert(is.get() == '"');
@@ -344,7 +406,7 @@ inline namespace kernel
             return t;
 
           case 'x':
-            return to_number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 16);
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 16);
 
           case '(':
             is.putback(c);
@@ -364,7 +426,7 @@ inline namespace kernel
           }
           else try
           {
-            return to_number(token, 10);
+            return string_to::number(token, 10);
           }
           catch (...)
           {

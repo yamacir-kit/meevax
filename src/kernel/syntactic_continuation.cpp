@@ -724,7 +724,7 @@ inline namespace kernel
 
     define<procedure>("string->number", [](let const& xs)
     {
-      return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? static_cast<int>(cadr(xs).as<exact_integer>()) : 10);
+      return string_to::number(car(xs).as<string>(), cdr(xs).is<pair>() ? static_cast<int>(cadr(xs).as<exact_integer>()) : 10);
     });
 
     /* -------------------------------------------------------------------------

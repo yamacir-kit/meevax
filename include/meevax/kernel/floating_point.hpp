@@ -67,8 +67,7 @@ inline namespace kernel
   }
 
   template <typename T>
-  struct floating_point
-    : public std::numeric_limits<T>
+  struct floating_point : public std::numeric_limits<T>
   {
     using value_type = T;
 
@@ -78,10 +77,13 @@ inline namespace kernel
       : value { value }
     {}
 
-    template <typename... Ts>
-    explicit constexpr floating_point(Ts&&... xs)
-      : value { lexical_cast<value_type>(std::forward<decltype(xs)>(xs)...) }
+    explicit floating_point(std::string const& token) try
+      : value { lexical_cast<value_type>(token) }
     {}
+    catch (...)
+    {
+      throw read_error(make<string>("not a decimal"), make<string>(token));
+    }
 
     constexpr auto is_integer() const noexcept
     {
