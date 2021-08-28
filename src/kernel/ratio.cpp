@@ -14,8 +14,9 @@
    limitations under the License.
 */
 
+#include <regex>
+
 #include <meevax/kernel/number.hpp>
-#include <meevax/kernel/numeric_io.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
@@ -28,8 +29,13 @@ inline namespace kernel
 
     if (std::smatch result; std::regex_match(token, result, pattern))
     {
-      std::get<0>(*this) = to_integer(result.str(1), radix);
-      std::get<1>(*this) = to_integer(result.str(2), radix);
+      auto numerator = exact_integer(result.str(1), radix);
+
+      std::get<0>(*this) = make(numerator);
+
+      auto denominator = exact_integer(result.str(2), radix);
+
+      std::get<1>(*this) = make(denominator);
     }
     else
     {

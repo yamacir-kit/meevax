@@ -215,7 +215,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
   BOOST_AUTO_TEST_CASE(to_number_)
   {
-    let const x = to_number("3.14", 10);
+    let const x = string_to::number("3.14", 10);
   }
 
   BOOST_AUTO_TEST_CASE(vector_make)
