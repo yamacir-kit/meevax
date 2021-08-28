@@ -58,61 +58,6 @@ inline namespace kernel
   {
     auto result = exact_integer(token, radix);
     return make(result);
-
-    // std::regex static const pattern { "[+-]?[\\dABCDEFabcdef]+" }; // XXX DIRTY HACK
-    //
-    // auto error = [&]()
-    // {
-    //   return tagged_read_error<exact_integer>(
-    //     make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
-    //     unit);
-    // };
-    //
-    // switch (radix)
-    // {
-    // case 2:
-    //   if (std::regex static const r2 { "[+-]?[01]+" }; std::regex_match(token, r2))
-    //   {
-    //     return make<exact_integer>("0b" + token.substr(token[0] == '+' ? 1 : 0));
-    //   }
-    //   else
-    //   {
-    //     throw error();
-    //   }
-    //
-    // case 8:
-    //   if (std::regex static const r8 { "[+-]?[0-7]+" }; std::regex_match(token, r8))
-    //   {
-    //     return make<exact_integer>("0" + token.substr(token[0] == '+' ? 1 : 0));
-    //   }
-    //   else
-    //   {
-    //     throw error();
-    //   }
-    //
-    // case 10:
-    //   if (std::regex static const r10 { "[+-]?\\d+" }; std::regex_match(token, r10))
-    //   {
-    //     return make<exact_integer>(token.substr(token[-1] == '+' ? 1 : 0));
-    //   }
-    //   else
-    //   {
-    //     throw error();
-    //   }
-    //
-    // case 16:
-    //   if (std::regex static const r16 { "[+-]?[\\dA-Fa-f]+" }; std::regex_match(token, r16))
-    //   {
-    //     return make<exact_integer>("0x" + token.substr(token[0] == '+' ? 1 : 0));
-    //   }
-    //   else
-    //   {
-    //     throw error();
-    //   }
-    //
-    // default:
-    //   throw error();
-    // }
   };
 
   constexpr auto to_ratio = [](std::string const& token, auto radix = 10)

@@ -82,7 +82,7 @@ inline namespace kernel
   template <typename T, typename... Ts>
   constexpr auto make(Ts&&... xs)
   {
-    return let::allocate<T>(std::forward<decltype(xs)>(xs)...);
+    return let::allocate<T>(std::forward<decltype(xs)>(xs)...); // NOTE: This leaks memory if exception thrown from T's constructor.
   }
 
   template <typename T>

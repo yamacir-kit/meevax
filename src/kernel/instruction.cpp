@@ -139,9 +139,7 @@ inline namespace kernel
   }
 
   static_assert(std::is_pod<instruction>::value);
-
   static_assert(std::is_standard_layout<instruction>::value);
-
   static_assert(std::is_trivial<instruction>::value);
 } // namespace kernel
 } // namespace meevax
