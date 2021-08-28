@@ -15,12 +15,30 @@
 */
 
 #include <meevax/kernel/number.hpp>
+#include <meevax/kernel/numeric_io.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
+  ratio::ratio(std::string const& token, int radix)
+  {
+    std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
+
+    if (std::smatch result; std::regex_match(token, result, pattern))
+    {
+      std::get<0>(*this) = to_integer(result.str(1), radix);
+      std::get<1>(*this) = to_integer(result.str(2), radix);
+    }
+    else
+    {
+      throw tagged_read_error<ratio>(
+        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
+        unit);
+    }
+  }
+
   auto ratio::as_exact() const noexcept -> ratio const&
   {
     return *this;

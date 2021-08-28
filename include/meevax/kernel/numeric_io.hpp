@@ -62,26 +62,13 @@ inline namespace kernel
 
   constexpr auto to_ratio = [](std::string const& token, auto radix = 10)
   {
-    std::regex static const pattern { "([+-]?[\\dabcdef]+)/([\\dabcdef]+)" };
-
-    if (std::smatch result; std::regex_match(token, result, pattern))
+    if (auto const value = ratio(token, radix).reduce(); value.is_integer())
     {
-      if (auto const value =
-            ratio(to_integer(result.str(1), radix),
-                  to_integer(result.str(2), radix)).reduce(); value.is_integer())
-      {
-        return car(value);
-      }
-      else
-      {
-        return make(value);
-      }
+      return std::get<0>(value);
     }
     else
     {
-      throw tagged_read_error<ratio>(
-        make<string>(string_append("not a number: (string->number ", std::quoted(token), " ", radix, ")")),
-        unit);
+      return make(value);
     }
   };
 
