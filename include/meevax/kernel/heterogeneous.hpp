@@ -129,15 +129,14 @@ inline namespace kernel
     template <typename U>
     inline auto is() const
     {
-      return type() == typeid(typename std::decay<U>::type);
-    }
-
-    template <typename U, typename std::enable_if<
-                            std::is_null_pointer<typename std::decay<U>::type>::value
-                          >::type = 0>
-    inline auto is() const
-    {
-      return not static_cast<bool>(*this);
+      if constexpr (std::is_null_pointer<typename std::decay<U>::type>::value)
+      {
+        return not static_cast<bool>(*this);
+      }
+      else
+      {
+        return type() == typeid(typename std::decay<U>::type);
+      }
     }
 
     template <typename U>
