@@ -132,9 +132,9 @@ inline namespace kernel
     }
 
     template <typename U>
-    auto is_polymorphically() const
+    auto is_also() const
     {
-      return dynamic_cast<pointer<const U>>(Pointer<Top>::get()) != nullptr;
+      return dynamic_cast<pointer<U>>(Pointer<Top>::get()) != nullptr;
     }
 
   public: /* ---- ACCESSORS ------------------------------------------------- */
