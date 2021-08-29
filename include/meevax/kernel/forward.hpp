@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PREFACE_HPP
 
-#include <meevax/functional/operator.hpp>
+#include <meevax/functional/identity.hpp>
 #include <meevax/memory/cell.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/string/append.hpp>

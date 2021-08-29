@@ -17,9 +17,7 @@
 #include <ios>
 #include <iterator>
 
-#include <boost/cstdlib.hpp>
-#include <boost/range/adaptor/reversed.hpp>
-#include <boost/range/adaptors.hpp>
+#include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
 #include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
@@ -34,12 +32,12 @@ inline namespace kernel
     : syntactic_continuation::syntactic_continuation {}
   {}
 
-  auto syntactic_continuation::operator [](let const& name) -> let const&
+  auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
     return cdr(machine::locate(name, global_environment()));
   }
 
-  auto syntactic_continuation::operator [](std::string const& name) -> let const&
+  auto syntactic_continuation::operator [](std::string const& name) -> const_reference
   {
     return (*this)[intern(name)];
   }
@@ -87,29 +85,29 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::current_expression() const -> let const&
+  auto syntactic_continuation::current_expression() const -> const_reference
   {
     return car(form());
   }
 
-  auto syntactic_continuation::define(let const& name, let const& value) -> let const&
+  auto syntactic_continuation::define(const_reference name, const_reference value) -> const_reference
   {
     assert(name.is<symbol>());
 
     return push(global_environment(), cons(name, value));
   }
 
-  auto syntactic_continuation::define(std::string const& name, let const& value) -> let const&
+  auto syntactic_continuation::define(std::string const& name, const_reference value) -> const_reference
   {
     return define(intern(name), value);
   }
 
-  auto syntactic_continuation::dynamic_environment() const -> let const&
+  auto syntactic_continuation::dynamic_environment() const -> const_reference
   {
     return cdr(form());
   }
 
-  auto syntactic_continuation::evaluate(let const& expression) -> let
+  auto syntactic_continuation::evaluate(const_reference expression) -> value_type
   {
     if (is_debug_mode())
     {
@@ -127,7 +125,7 @@ inline namespace kernel
     return execute();
   }
 
-  auto syntactic_continuation::execute() -> let
+  auto syntactic_continuation::execute() -> value_type
   {
     static constexpr auto trace = true;
 
@@ -141,7 +139,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::fork() const -> let
+  auto syntactic_continuation::fork() const -> value_type
   {
     let const module = make<syntactic_continuation>(current_continuation(), global_environment());
 
@@ -151,27 +149,27 @@ inline namespace kernel
     return module;
   }
 
-  auto syntactic_continuation::form() const noexcept -> let const&
+  auto syntactic_continuation::form() const noexcept -> const_reference
   {
     return std::get<0>(*this);
   }
 
-  auto syntactic_continuation::form() noexcept -> let &
+  auto syntactic_continuation::form() noexcept -> reference
   {
-    return const_cast<let &>(std::as_const(*this).form());
+    return const_cast<reference>(std::as_const(*this).form());
   }
 
-  auto syntactic_continuation::global_environment() const noexcept -> let const&
+  auto syntactic_continuation::global_environment() const noexcept -> const_reference
   {
     return std::get<1>(*this);
   }
 
-  auto syntactic_continuation::global_environment() noexcept -> let &
+  auto syntactic_continuation::global_environment() noexcept -> reference
   {
-    return const_cast<let &>(std::as_const(*this).global_environment());
+    return const_cast<reference>(std::as_const(*this).global_environment());
   }
 
-  auto syntactic_continuation::load(std::string const& s) -> let
+  auto syntactic_continuation::load(std::string const& s) -> value_type
   {
     write_to(standard_debug_port(), header(__func__), "open ", s, " => ");
 
@@ -196,7 +194,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::load(let const& x) -> let
+  auto syntactic_continuation::load(const_reference x) -> value_type
   {
     if (x.is<symbol>())
     {
@@ -216,7 +214,7 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::macroexpand(let const& keyword, let const& form) -> let
+  auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
     ++generation;
 
@@ -704,7 +702,7 @@ inline namespace kernel
 
     define<procedure>("number->string", [](auto&& xs)
     {
-      return make<string>(boost::lexical_cast<std::string>(car(xs)));
+      return make<string>(lexical_cast<std::string>(car(xs)));
     });
 
     /* -------------------------------------------------------------------------
@@ -726,7 +724,7 @@ inline namespace kernel
 
     define<procedure>("string->number", [](let const& xs)
     {
-      return to_number(car(xs).as<string>(), cdr(xs).is<pair>() ? cadr(xs).as<exact_integer>().to<int>() : 10);
+      return string_to::number(car(xs).as<string>(), cdr(xs).is<pair>() ? static_cast<int>(cadr(xs).as<exact_integer>()) : 10);
     });
 
     /* -------------------------------------------------------------------------
@@ -828,65 +826,31 @@ inline namespace kernel
       return intern(car(xs).as<string>());
     });
 
-  /* ---- R7RS 6.6. Characters -------------------------------------------------
-
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char?              │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char=?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char<?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char>?             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char<=?            │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char>=?            │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci=?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci<?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci>?          │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci<=?         │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-ci>=?         │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-alphabetic?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-numeric?      │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-whitespace?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-upper-case?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-lower-case?   │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ digit-value        │ C++        │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char->integer      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ integer->char      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-upcase        │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-downcase      │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ char-foldcase      │ Scheme     │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (char? obj)                                                   procedure
+     *
+     *  Returns #t if obj is a character, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("char?", is<character>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (digit-value char)                               char library procedure
+     *
+     *  This procedure returns the numeric value (0 to 9) of its argument if it
+     *  is a numeric digit (that is, if char-numeric? returns #t), or #f on any
+     *  other character.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("digit-value", [](let const& xs)
     {
       try
       {
-        return make<exact_integer>(static_cast<codeunit const&>(car(xs).as<character>()));
+        return make<exact_integer>(static_cast<std::string>(car(xs).as<character>()));
       }
       catch (std::runtime_error const&)
       {
@@ -894,15 +858,32 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (char->integer char)                                          procedure
+     *  (integer->char n)                                             procedure
+     *
+     *  Given a Unicode character, char->integer returns an exact integer
+     *  between 0 and #xD7FF or between #xE000 and #x10FFFF which is equal to
+     *  the Unicode scalar value of that character. Given a non-Unicode
+     *  character, it returns an exact integer greater than #x10FFFF. This is
+     *  true independent of whether the implementation uses the Unicode
+     *  representation internally.
+     *
+     *  Given an exact integer that is the value returned by a character when
+     *  char->integer is applied to it, integer->char returns that character.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("char->integer", [](let const& xs)
     {
       if (xs.is<pair>() and car(xs).is<character>())
       {
-        return make<exact_integer>(static_cast<codepoint>(car(xs).as<character>()));
+        return make<exact_integer>(car(xs).as<character>().codepoint);
       }
       else
       {
-        throw error(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments"), xs);
       }
     });
 
@@ -910,74 +891,13 @@ inline namespace kernel
     {
       if (xs.is<pair>() and car(xs).is<exact_integer>())
       {
-        return make<character>(car(xs).as<exact_integer>().to<codepoint>());
+        return make<character>(static_cast<character::value_type>(car(xs).as<exact_integer>()));
       }
       else
       {
-        throw error(make<string>("invalid arguments: "), xs);
+        throw error(make<string>("invalid arguments"), xs);
       }
     });
-
-
-  /* ---- R7RS 6.7. Strings ----------------------------------------------------
-
-      ┌────────────────────┬────────────┬────────────────────────────────────┐
-      │ Symbol             │ Written in │ Note                               │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string?            │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ make-string        │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string             │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-length      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ref         │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-set!        │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string=?           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string<?           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string>?           │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string<=?          │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string>=?          │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci=?        │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci<?        │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci>?        │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci<=?       │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-ci>=?       │ Scheme     │ (scheme char) library              │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-upcase      │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-downcase    │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-foldcase    │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ substring          │ Scheme     │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-append      │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string->list       │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ list->string       │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-copy        │ C++        │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-copy!       │ TODO       │                                    │
-      ├────────────────────┼────────────┼────────────────────────────────────┤
-      │ string-fill!       │ Scheme     │                                    │
-      └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
 
     /* -------------------------------------------------------------------------
      *
@@ -1002,8 +922,8 @@ inline namespace kernel
 
     define<procedure>("make-string", [](let const& xs)
     {
-      return make<string>(car(xs).as<exact_integer>().to<std::size_t>(),
-                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character(' '));
+      return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
+                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character());
     });
 
     // NOTE: (string char ...) defined in overture.ss
@@ -1018,7 +938,7 @@ inline namespace kernel
 
     define<procedure>("string-length", [](let const& xs)
     {
-      return make<exact_integer>(car(xs).as<string const>().size());
+      return make<exact_integer>(car(xs).as<string>().size());
     });
 
     /* -------------------------------------------------------------------------
@@ -1033,7 +953,7 @@ inline namespace kernel
 
     define<procedure>("string-ref", [](let const& xs)
     {
-      return make(car(xs).as<string const>().at(cadr(xs).as<exact_integer>().to<string::size_type>()));
+      return make(car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())));
     });
 
     /* -------------------------------------------------------------------------
@@ -1056,10 +976,7 @@ inline namespace kernel
 
     define<procedure>("string-set!", [](let const& xs)
     {
-      car(xs).as<string>().at(
-        cadr(xs).as<exact_integer>().to<string::size_type>())
-      = caddr(xs).as<const character>();
-
+      car(xs).as<string>().at(static_cast<string::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs).as<character>();
       return car(xs);
     });
 
@@ -1159,14 +1076,14 @@ inline namespace kernel
 
     define<procedure>("string-append", [](let const& xs)
     {
-      string s;
+      string result;
 
       for (let const& x : xs)
       {
-        std::copy(x.as<const string>().begin(), x.as<const string>().end(), std::back_inserter(s));
+        std::copy(std::cbegin(x.as<string>()), std::cend(x.as<string>()), std::back_inserter(result));
       }
 
-      return make(s);
+      return make(result);
     });
 
     /* -------------------------------------------------------------------------
@@ -1186,27 +1103,22 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("string->list", [](let const& xs) // TODO MOVE INTO overture.ss
+    define<procedure>("string->list", [](let const& xs)
     {
-      let x = unit;
-
-      using boost::adaptors::reverse;
-      using boost::adaptors::slice;
-
-      auto start =
-        1 < length(xs) ? cadr(xs).as<exact_integer>().to<string::size_type>()
-                       : 0;
-
-      auto end =
-        2 < length(xs) ? caddr(xs).as<exact_integer>().to<string::size_type>()
-                       : car(xs).as<const string>().size();
-
-      for (auto const& each : reverse(slice(car(xs).as<const string>(), start, end)))
+      switch (length(xs))
       {
-        x = cons(make(each), x);
-      }
+      case 1:
+        return car(xs).as<string>().list();
 
-      return x;
+      case 2:
+        return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
+      }
     });
 
     define<procedure>("list->string", [](let const& xs)
@@ -1215,7 +1127,7 @@ inline namespace kernel
 
       for (let const& x : car(xs))
       {
-        s.push_back(x.as<const character>());
+        s.push_back(x.as<character>());
       }
 
       return make(std::move(s));
@@ -1240,96 +1152,137 @@ inline namespace kernel
       }
       else if (cddr(xs).is<null>())
       {
-        return make<string>(car(xs).as<string>().begin() + cadr(xs).as<exact_integer>().to<string::size_type>(),
+        return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>(cadr(xs).as<exact_integer>()),
                             car(xs).as<string>().end());
       }
       else
       {
-        return make<string>(car(xs).as<string>().begin() +  cadr(xs).as<exact_integer>().to<string::size_type>(),
-                            car(xs).as<string>().begin() + caddr(xs).as<exact_integer>().to<string::size_type>());
+        return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>( cadr(xs).as<exact_integer>()),
+                            car(xs).as<string>().begin() + static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
       }
     });
 
-  /* ---- R7RS 6.8. Vectors ----------------------------------------------------
-
-     ┌────────────────────┬────────────┬────────────────────────────────────┐
-     │ Symbol             │ Written in │ Note                               │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector?            │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ make-vector        │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector             │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-length      │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-ref         │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-set!        │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector->list       │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ list->vector       │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector->string     │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ string->vector     │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-copy        │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-copy!       │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-append      │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-fill!       │ C++        │                                    │
-     └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector? obj)                                                 procedure
+     *
+     *  Returns #t if obj is a vector; otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector?", is<vector>());
 
-    define<procedure>("make-vector", [](let const& xs) // TODO Rename to vector-allocate
+    /* -------------------------------------------------------------------------
+     *
+     *  (make-vector k)                                               procedure
+     *  (make-vector k fill)                                          procedure
+     *
+     *  Returns a newly allocated vector of k elements. If a second argument is
+     *  given, then each element is initialized to fill. Otherwise the initial
+     *  contents of each element is unspecified.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("make-vector", [](let const& xs)
     {
-      return make<vector>(car(xs).as<exact_integer>().to<vector::size_type>(),
-                          cdr(xs).is<null>() ? unspecified : cadr(xs));
+      switch (length(xs))
+      {
+      case 1:
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified);
+
+      case 2:
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
+      }
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector obj ...)                                              procedure
+     *
+     *  Returns a newly allocated vector whose elements contain the given
+     *  arguments. It is analogous to list.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector", [](auto&&... xs)
     {
       return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-length vector)                                        procedure
+     *
+     *  Returns the number of elements in vector as an exact integer.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector-length", [](let const& xs)
     {
       return make<exact_integer>(car(xs).as<vector>().size());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-ref vector k)                                         procedure
+     *
+     *  It is an error if k is not a valid index of vector. The vector-ref
+     *  procedure returns the contents of element k of vector.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector-ref", [](let const& xs)
     {
-      return car(xs).as<vector>().at(
-               cadr(xs).as<exact_integer>().to<vector::size_type>());
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-set! vector k obj)                                    procedure
+     *
+     *  It is an error if k is not a valid index of vector. The vector-set!
+     *  procedure stores obj in element k of vector.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector-set!", [](let const& xs)
     {
-      return car(xs).as<vector>().at(
-               cadr(xs).as<exact_integer>().to<vector::size_type>())
-             = caddr(xs);
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector->list vector)                                         procedure
+     *  (vector->list vector start)                                   procedure
+     *  (vector->list vector start end)                               procedure
+     *
+     *  (list->vector list)                                           procedure
+     *
+     *  The vector->list procedure returns a newly allocated list of the
+     *  objects contained in the elements of vector between start and end. The
+     *  list->vector procedure returns a newly created vector initialized to
+     *  the elements of the list list.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("vector->list", [](let const& xs)
     {
-      if (let const& v = car(xs); cdr(xs).is<null>())
+      switch (length(xs))
       {
-        return v.as<vector>().to_list();
-      }
-      else if (let const& from = cadr(xs); cddr(xs).is<null>())
-      {
-        return v.as<vector>().to_list(from);
-      }
-      else
-      {
-        return v.as<vector>().to_list(from, caddr(xs));
+      case 1:
+        return car(xs).as<vector>().list();
+
+      case 2:
+        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
       }
     });
 
@@ -1338,19 +1291,43 @@ inline namespace kernel
       return make<vector>(for_each_in, car(xs));
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector->string vector)                                       procedure
+     *  (vector->string vector start)                                 procedure
+     *  (vector->string vector start end)                             procedure
+     *
+     *  (string->vector string)                                       procedure
+     *  (string->vector string start)                                 procedure
+     *  (string->vector string start end)                             procedure
+     *
+     *  It is an error if any element of vector between start and end is not a
+     *  character.
+     *
+     *  The vector->string procedure returns a newly allocated string of the
+     *  objects contained in the elements of vector between start and end. The
+     *  string->vector procedure returns a newly created vector initialized to
+     *  the elements of the string string between start and end.
+     *
+     *  In both procedures, order is preserved.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector->string", [](let const& xs)
     {
-      if (let const& v = car(xs); cdr(xs).is<null>())
+      switch (length(xs))
       {
-        return v.as<vector>().to_string();
-      }
-      else if (let const& from = cadr(xs); cddr(xs).is<null>())
-      {
-        return v.as<vector>().to_string(from);
-      }
-      else
-      {
-        return v.as<vector>().to_string(from, caddr(xs));
+      case 1:
+        return car(xs).as<vector>().string();
+
+      case 2:
+        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
       }
     });
 
@@ -1374,20 +1351,38 @@ inline namespace kernel
     //   return unspecified;
     // });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-fill! vector fill)                                    procedure
+     *  (vector-fill! vector fill start)                              procedure
+     *  (vector-fill! vector fill start end)                          procedure
+     *
+     *  The vector-fill! procedure stores fill in the elements of vector
+     *  between start and end.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("vector-fill!", [](let const& xs)
     {
-      if (let const& v = car(xs), value = cadr(xs); cddr(xs).is<null>())
+      switch (length(xs))
       {
-        return v.as<vector>().fill(value), unspecified;
+      case 2:
+        car(xs).as<vector>().fill(cadr(xs));
+        break;
+
+      case 3:
+        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+        break;
+
+      case 4:
+        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()), static_cast<string::size_type>(cadddr(xs).as<exact_integer>()));
+        break;
+
+      default:
+        throw error(make<string>("invalid argument"), xs);
       }
-      else if (let const& from = caddr(xs); cdddr(xs).is<null>())
-      {
-        return v.as<vector>().fill(value, from), unspecified;
-      }
-      else
-      {
-        return v.as<vector>().fill(value, from, cadddr(xs)), unspecified;
-      }
+
+      return unspecified;
     });
 
 
@@ -1775,6 +1770,17 @@ inline namespace kernel
       return read(car(xs));
     });
 
+    /* ---- R7RS 6.13.2. Input -------------------------------------------------
+     *
+     *  (read-char)                                                   procedure
+     *  (read-char port)                                              procedure
+     *
+     *  Returns the next character available from the textual input port,
+     *  updating the port to point to the following character. If no more
+     *  characters are available, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("::read-char", [](let const& xs)
     {
       try
@@ -1816,6 +1822,19 @@ inline namespace kernel
       return car(xs).as<std::istream>() ? t : f;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (read-string k)                                               procedure
+     *  (read-string k port)                                          procedure
+     *
+     *  Reads the next k characters, or as many as are available before the end
+     *  of file, from the textual input port into a newly allocated string in
+     *  left-to-right order and returns the string. If no characters are
+     *  available before the end of file, an end-of-file object is returned.
+     *
+     * ---------------------------------------------------------------------- */
+
+    // TODO read-string
 
     define<procedure>("::write-simple", [this](let const& xs)
     {
@@ -1823,15 +1842,26 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* ---- R7RS 6.13.3. Output ------------------------------------------------
+     *
+     *  (write-char char)                                             procedure
+     *  (write-char char port)                                        procedure
+     *
+     *  Writes the character char (not an external representation of the
+     *  character) to the given textual output port and returns an unspecified
+     *  value.
+     *
+     * --------------------------------------------------------------------- */
+
     define<procedure>("::write-char", [](let const& xs)
     {
-      car(xs).as<character>().write(cadr(xs).as<std::ostream>());
+      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<character>());
       return unspecified;
     });
 
     define<procedure>("::write-string", [](let const& xs)
     {
-      car(xs).as<string>().write_string(cadr(xs).as<std::ostream>());
+      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
       return unspecified;
     });
 
@@ -1914,7 +1944,7 @@ inline namespace kernel
       }
       else if (let const& x = car(xs); x.is<exact_integer>())
       {
-        throw exit_status(x.as<exact_integer>().to<int>());
+        throw exit_status(static_cast<int>(x.as<exact_integer>()));
       }
       else
       {
@@ -2077,26 +2107,6 @@ inline namespace kernel
 
       return default_output_port;
     });
-  }
-
-  static std::size_t count = 0;
-
-  syntactic_continuation::initializer::initializer()
-  {
-    if (not count++)
-    {
-      symbols = {};
-      external_symbols = {}; // XXX DEPRECATED
-    }
-  }
-
-  syntactic_continuation::initializer::~initializer()
-  {
-    if (not --count)
-    {
-      symbols.clear();
-      external_symbols.clear(); // XXX DEPRECATED
-    }
   }
 } // namespace kernel
 } // namespace meevax

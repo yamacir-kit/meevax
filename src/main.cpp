@@ -28,15 +28,11 @@ auto main(const int argc, meevax::const_pointer<meevax::const_pointer<const char
 
     if (root.is_interactive_mode())
     {
-      root.write_to(root.standard_interaction_port(), header(__func__), "You have control of root syntactic-continuation.\n");
-
-      for (auto index = 0; root.ready(); ++index)
+      for (auto index = 0; root.char_ready(); ++index)
       {
         root.write_to(root.standard_interaction_port(), root.current_prompt());
         root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
       }
-
-      root.write_to(root.standard_interaction_port(), header(__func__), "I have control of root syntactic-continuation.\n");
     }
 
     return underlying_cast(exit_status::success);

@@ -14,28 +14,32 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_STRING_UNICODE_HPP
-#define INCLUDED_MEEVAX_STRING_UNICODE_HPP
+#ifndef INCLUDED_MEEVAX_FUNCTIONAL_DIVISION_HPP
+#define INCLUDED_MEEVAX_FUNCTIONAL_DIVISION_HPP
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <functional>
+#include <ostream>
 
 namespace meevax
 {
-  using codepoint = std::char_traits<char>::int_type;
+inline namespace functional
+{
+  struct division
+  {
+    template <typename T, typename... Ts>
+    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
+    {
+      return (std::forward<decltype(x)>(x) / ... / std::forward<decltype(xs)>(xs));
+    }
 
-  static_assert(4 <= sizeof(codepoint)); // At least 32-bit required.
+    friend auto operator <<(std::ostream & os, division const&) -> std::ostream &
+    {
+      return os << "division";
+    }
+  };
 
-  using codepoints = std::vector<codepoint>;
-
-  using codeunit = std::string;
-
-  using codeunits = std::string;
-
-  auto codepoint_to_codeunit(codepoint) -> codeunit;
-
-  auto codeunit_to_codepoint(codeunit const&) -> codepoint;
+  constexpr division divide, div;
+} // namespace functional
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_STRING_UNICODE_HPP
+#endif // INCLUDED_MEEVAX_FUNCTIONAL_DIVISION_HPP

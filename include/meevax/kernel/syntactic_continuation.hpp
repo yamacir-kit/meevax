@@ -59,21 +59,12 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     using pair::pair;
 
-  public:
-    static inline std::unordered_map<std::string, let> symbols;
-
-    static inline std::unordered_map<std::string, let> external_symbols; // TODO REMOVE
+    static inline std::unordered_map<std::string, value_type> external_symbols; // TODO REMOVE
 
     std::size_t generation = 0;
 
+  public:
     let datum = unit;
-
-    struct initializer
-    {
-      explicit initializer();
-
-      ~initializer();
-    };
 
     using configurator::is_batch_mode;
     using configurator::is_debug_mode;
@@ -81,6 +72,7 @@ inline namespace kernel
     using configurator::is_trace_mode;
     using configurator::is_verbose_mode;
 
+    using reader::intern;
     using reader::read;
 
     using writer::newline;
@@ -97,66 +89,48 @@ inline namespace kernel
       boot<Layer>();
     }
 
-    auto operator [](let const&) -> let const&;
+    auto operator [](const_reference) -> const_reference;
 
-    auto operator [](std::string const&) -> let const&;
+    auto operator [](std::string const&) -> const_reference;
 
     template <auto = layer::declarations>
-    void boot()
-    {}
+    void boot();
 
     auto build() -> void; // NOTE: Only fork() may call this function.
 
-    auto current_expression() const -> let const&;
+    auto current_expression() const -> const_reference;
 
-    auto define(let const&, let const&) -> let const&;
+    auto define(const_reference, const_reference) -> const_reference;
 
-    auto define(std::string const&, let const&) -> let const&;
+    auto define(std::string const&, const_reference) -> const_reference;
 
     template <typename T, typename... Ts>
-    auto define(std::string const& name, Ts&&... xs)
+    auto define(std::string const& name, Ts&&... xs) -> const_reference
     {
       return define(intern(name), make<T>(name, std::forward<decltype(xs)>(xs)...));
     }
 
-    auto dynamic_environment() const -> let const&;
+    auto dynamic_environment() const -> const_reference;
 
-    auto evaluate(let const&) -> let;
+    auto evaluate(const_reference) -> value_type;
 
-    auto execute() -> let;
+    auto execute() -> value_type;
 
-    auto fork() const -> let;
+    auto fork() const -> value_type;
 
-    auto form() const noexcept -> let const&;
+    auto form() const noexcept -> const_reference;
 
-    auto form() noexcept -> let &;
+    auto form() noexcept -> reference;
 
-    auto global_environment() const noexcept -> let const&;
+    auto global_environment() const noexcept -> const_reference;
 
-    auto global_environment() noexcept -> let &;
+    auto global_environment() noexcept -> reference;
 
-    // TODO MOVE INTO reader
-    static auto intern(std::string const& s) -> let const&
-    {
-      if (auto const iter = symbols.find(s); iter != std::end(symbols))
-      {
-        return cdr(*iter);
-      }
-      else if (auto const [position, success] = symbols.emplace(s, make<symbol>(s)); success)
-      {
-        return cdr(*position);
-      }
-      else
-      {
-        throw error(make<string>("failed to intern a symbol"), unit);
-      }
-    }
+    auto load(std::string const&) -> value_type;
 
-    auto load(std::string const&) -> let;
+    auto load(const_reference) -> value_type;
 
-    auto load(let const& x) -> let;
-
-    auto macroexpand(let const& keyword, let const& form) -> let;
+    auto macroexpand(const_reference, const_reference) -> value_type;
 
   private:
     SYNTAX(exportation)
@@ -175,7 +149,7 @@ inline namespace kernel
         for (auto const& each : xs)
         {
           std::cerr << ";\t\t; staging " << each << std::endl;
-          external_symbols.emplace(boost::lexical_cast<std::string>(each), each);
+          external_symbols.emplace(lexical_cast<std::string>(each), each);
         }
 
         // std::cerr << ";\t\t; exported identifiers are" << std::endl;
@@ -249,8 +223,6 @@ inline namespace kernel
   extern template class reader<syntactic_continuation>;
 
   extern template class writer<syntactic_continuation>;
-
-  static syntactic_continuation::initializer initializer;
 } // namespace kernel
 } // namespace meevax
 

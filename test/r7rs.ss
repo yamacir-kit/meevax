@@ -910,7 +910,7 @@
 (check (char? #\newline)   => #t) ; U+000A
 (check (char? #\null)      => #t) ; U+0000
 (check (char? #\return)    => #t) ; U+000D
-(check (char? #\space)     => #t) ;
+(check (char? #\space)     => #t) ; U+0020
 (check (char? #\tab)       => #t) ; U+0009
 
 (check (char? #\a) => #t)

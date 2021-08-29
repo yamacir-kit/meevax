@@ -165,7 +165,7 @@ inline namespace kernel
   {
     if constexpr (std::is_same<typename std::decay<decltype(k)>::type, let>::value)
     {
-      return std::next(std::cbegin(std::forward<decltype(x)>(x)), k.template as<exact_integer>().template to<std::size_t>());
+      return std::next(std::cbegin(std::forward<decltype(x)>(x)), static_cast<std::size_t>(k.template as<exact_integer>()));
     }
     else
     {
@@ -242,4 +242,3 @@ inline namespace kernel
 } // namespace meevax
 
 #endif // INCLUDED_MEEVAX_KERNEL_LIST_HPP
-

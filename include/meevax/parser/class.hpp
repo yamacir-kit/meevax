@@ -19,8 +19,6 @@
 
 #include <type_traits>
 
-#include <meevax/string/unicode.hpp>
-
 namespace meevax
 {
   auto is_eof = [](auto c) constexpr
@@ -30,17 +28,17 @@ namespace meevax
     return character::eq_int_type(character::to_int_type(c), character::eof());
   };
 
-  auto is_upper = [](codeunit const& c)
+  auto is_upper = [](auto const& c)
   {
     return 'A' <= c[0] and c[0] <= 'Z';
   };
 
-  auto is_lower = [](codeunit const& c)
+  auto is_lower = [](auto const& c)
   {
     return 'a' <= c[0] and c[0] <= 'z';
   };
 
-  auto is_letter = [](codeunit const& c)
+  auto is_letter = [](auto const& c)
   {
     return is_upper(c) or is_lower(c);
   };

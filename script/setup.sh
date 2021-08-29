@@ -2,8 +2,8 @@
 
 required()
 {
-  echo libboost-all-dev
   echo libgmp-dev
+  echo libboost-all-dev # for Boost.Test
 }
 
 optional()
@@ -12,6 +12,8 @@ optional()
   echo massif-visualizer
   echo valgrind
 }
+
+sudo apt update
 
 if test "$#" -eq 0
 then
@@ -23,7 +25,6 @@ else
       -a | --all      ) ( required && optional ) | xargs sudo apt install ;;
       -o | --optional ) (             optional ) | xargs sudo apt install ;;
       -r | --required ) ( required             ) | xargs sudo apt install ;;
-      -u | --update   )                                  sudo apt update  ;;
     esac
   done
 fi

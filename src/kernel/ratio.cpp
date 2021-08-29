@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <regex>
+
 #include <meevax/kernel/number.hpp>
 #include <meevax/posix/vt10x.hpp>
 
@@ -21,6 +23,26 @@ namespace meevax
 {
 inline namespace kernel
 {
+  ratio::ratio(std::string const& token, int radix)
+  {
+    std::regex static const pattern { "([+-]?[0-9a-f]+)/([0-9a-f]+)" };
+
+    if (std::smatch result; std::regex_match(token, result, pattern))
+    {
+      auto numerator = exact_integer(result.str(1), radix);
+
+      std::get<0>(*this) = make(numerator);
+
+      auto denominator = exact_integer(result.str(2), radix);
+
+      std::get<1>(*this) = make(denominator);
+    }
+    else
+    {
+      throw read_error(make<string>("not a ratio"), make<string>(token));
+    }
+  }
+
   auto ratio::as_exact() const noexcept -> ratio const&
   {
     return *this;
@@ -48,12 +70,10 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
-    using boost::multiprecision::gcd;
-
-    if (const exact_integer divisor { gcd(numerator().value, denominator().value) }; divisor != 1)
+    if (auto const common_divisor = exact_integer(gcd, numerator(), denominator()); common_divisor != 1)
     {
-      return ratio(make<exact_integer>(numerator().value / divisor.value),
-                   make<exact_integer>(denominator().value / divisor.value));
+      return ratio(make<exact_integer>(divide, numerator(), common_divisor),
+                   make<exact_integer>(divide, denominator(), common_divisor));
     }
     else
     {
@@ -63,9 +83,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
-    return os << cyan << car(datum)
-              << cyan << "/"
-              << cyan << cdr(datum) << reset;
+    return os << cyan << std::get<0>(datum) << cyan << "/" << cyan << std::get<1>(datum) << reset;
   }
 } // namespace kernel
 } // namespace meevax

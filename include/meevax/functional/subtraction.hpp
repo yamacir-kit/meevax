@@ -14,38 +14,32 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
-#define INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
+#ifndef INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
+#define INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
 
-#include <meevax/kernel/pair.hpp>
+#include <functional>
+#include <ostream>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace functional
 {
-  struct boolean
+  struct subtraction
   {
-    using value_type = bool;
-
-    const value_type value;
-
-    constexpr boolean(value_type const value)
-      : value { value }
-    {}
-
-    constexpr operator value_type() const noexcept
+    template <typename T, typename... Ts>
+    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
     {
-      return value;
+      return (std::forward<decltype(x)>(x) - ... - std::forward<decltype(xs)>(xs));
+    }
+
+    friend auto operator <<(std::ostream & os, subtraction const&) -> std::ostream &
+    {
+      return os << "subtraction";
     }
   };
 
-  auto operator <<(std::ostream &, boolean const&) -> std::ostream &;
-
-  extern let const t;
-  extern let const f;
-
-  auto if_(let const& x) -> bool;
-} // namespace kernel
+  constexpr subtraction subtract, sub;
+} // namespace functional
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_BOOLEAN_HPP
+#endif // INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP

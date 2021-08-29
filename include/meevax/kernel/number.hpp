@@ -19,7 +19,6 @@
 
 #include <typeindex>
 
-#include <boost/math/constants/constants.hpp>
 #include <meevax/kernel/boolean.hpp>
 #include <meevax/kernel/complex.hpp>
 #include <meevax/kernel/error.hpp>
@@ -233,17 +232,17 @@ inline namespace kernel
     }
   }
 
-  auto operator * (exact_integer const&, let const&) -> let;
-  auto operator + (exact_integer const&, let const&) -> let;
-  auto operator - (exact_integer const&, let const&) -> let;
-  auto operator / (exact_integer const&, let const&) -> let;
-  auto operator % (exact_integer const&, let const&) -> let;
-  auto operator ==(exact_integer const&, let const&) -> bool;
-  auto operator !=(exact_integer const&, let const&) -> bool;
-  auto operator < (exact_integer const&, let const&) -> bool;
-  auto operator <=(exact_integer const&, let const&) -> bool;
-  auto operator > (exact_integer const&, let const&) -> bool;
-  auto operator >=(exact_integer const&, let const&) -> bool;
+  auto operator * (exact_integer const&, pair::const_reference) -> pair::value_type;
+  auto operator + (exact_integer const&, pair::const_reference) -> pair::value_type;
+  auto operator - (exact_integer const&, pair::const_reference) -> pair::value_type;
+  auto operator / (exact_integer const&, pair::const_reference) -> pair::value_type;
+  auto operator % (exact_integer const&, pair::const_reference) -> pair::value_type;
+  auto operator ==(exact_integer const&, pair::const_reference) -> bool;
+  auto operator !=(exact_integer const&, pair::const_reference) -> bool;
+  auto operator < (exact_integer const&, pair::const_reference) -> bool;
+  auto operator <=(exact_integer const&, pair::const_reference) -> bool;
+  auto operator > (exact_integer const&, pair::const_reference) -> bool;
+  auto operator >=(exact_integer const&, pair::const_reference) -> bool;
 
   auto operator * (exact_integer const&, exact_integer const&) -> exact_integer;
   auto operator + (exact_integer const&, exact_integer const&) -> exact_integer;
@@ -281,17 +280,17 @@ inline namespace kernel
   template <typename T> auto operator > (exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >  b; }
   template <typename T> auto operator >=(exact_integer const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >= b; }
 
-  auto operator * (ratio const&, let const&) -> let;
-  auto operator + (ratio const&, let const&) -> let;
-  auto operator - (ratio const&, let const&) -> let;
-  auto operator / (ratio const&, let const&) -> let;
-  auto operator % (ratio const&, let const&) -> let;
-  auto operator !=(ratio const&, let const&) -> boolean;
-  auto operator < (ratio const&, let const&) -> boolean;
-  auto operator <=(ratio const&, let const&) -> boolean;
-  auto operator ==(ratio const&, let const&) -> boolean;
-  auto operator > (ratio const&, let const&) -> boolean;
-  auto operator >=(ratio const&, let const&) -> boolean;
+  auto operator * (ratio const&, pair::const_reference) -> pair::value_type;
+  auto operator + (ratio const&, pair::const_reference) -> pair::value_type;
+  auto operator - (ratio const&, pair::const_reference) -> pair::value_type;
+  auto operator / (ratio const&, pair::const_reference) -> pair::value_type;
+  auto operator % (ratio const&, pair::const_reference) -> pair::value_type;
+  auto operator !=(ratio const&, pair::const_reference) -> boolean;
+  auto operator < (ratio const&, pair::const_reference) -> boolean;
+  auto operator <=(ratio const&, pair::const_reference) -> boolean;
+  auto operator ==(ratio const&, pair::const_reference) -> boolean;
+  auto operator > (ratio const&, pair::const_reference) -> boolean;
+  auto operator >=(ratio const&, pair::const_reference) -> boolean;
 
   auto operator * (ratio const&, exact_integer const&) -> ratio;
   auto operator + (ratio const&, exact_integer const&) -> ratio;
@@ -329,17 +328,17 @@ inline namespace kernel
   template <typename T> auto operator > (ratio const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >  b; }
   template <typename T> auto operator >=(ratio const& a, floating_point<T> const& b) -> boolean { return a.as_inexact<T>() >= b; }
 
-  template <typename T> auto operator * (floating_point<T> const& a, let const& b) { return apply         ([](auto&& a, auto&& b) { return a *  b; }, a, b); }
-  template <typename T> auto operator + (floating_point<T> const& a, let const& b) { return apply         ([](auto&& a, auto&& b) { return a +  b; }, a, b); }
-  template <typename T> auto operator - (floating_point<T> const& a, let const& b) { return apply         ([](auto&& a, auto&& b) { return a -  b; }, a, b); }
-  template <typename T> auto operator / (floating_point<T> const& a, let const& b) { return apply         ([](auto&& a, auto&& b) { return a /  b; }, a, b); }
-  template <typename T> auto operator % (floating_point<T> const& a, let const& b) { return apply         ([](auto&& a, auto&& b) { return a %  b; }, a, b); }
-  template <typename T> auto operator !=(floating_point<T> const& a, let const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a != b; }, a, b); }
-  template <typename T> auto operator < (floating_point<T> const& a, let const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
-  template <typename T> auto operator <=(floating_point<T> const& a, let const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
-  template <typename T> auto operator ==(floating_point<T> const& a, let const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a == b; }, a, b); }
-  template <typename T> auto operator > (floating_point<T> const& a, let const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
-  template <typename T> auto operator >=(floating_point<T> const& a, let const& b) { return apply<boolean>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
+  template <typename T> auto operator * (floating_point<T> const& a, pair::const_reference b) { return apply(mul, a, b); }
+  template <typename T> auto operator + (floating_point<T> const& a, pair::const_reference b) { return apply(add, a, b); }
+  template <typename T> auto operator - (floating_point<T> const& a, pair::const_reference b) { return apply(sub, a, b); }
+  template <typename T> auto operator / (floating_point<T> const& a, pair::const_reference b) { return apply(div, a, b); }
+  template <typename T> auto operator % (floating_point<T> const& a, pair::const_reference b) { return apply(mod, a, b); }
+  template <typename T> auto operator !=(floating_point<T> const& a, pair::const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a != b; }, a, b); }
+  template <typename T> auto operator < (floating_point<T> const& a, pair::const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a <  b; }, a, b); }
+  template <typename T> auto operator <=(floating_point<T> const& a, pair::const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a <= b; }, a, b); }
+  template <typename T> auto operator ==(floating_point<T> const& a, pair::const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a == b; }, a, b); }
+  template <typename T> auto operator > (floating_point<T> const& a, pair::const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a >  b; }, a, b); }
+  template <typename T> auto operator >=(floating_point<T> const& a, pair::const_reference b) { return apply<boolean>([](auto&& a, auto&& b) { return a >= b; }, a, b); }
 
   template <typename T> auto operator * (floating_point<T> const& a, exact_integer const& b)            { return a *  b.as_inexact<T>(); }
   template <typename T> auto operator + (floating_point<T> const& a, exact_integer const& b)            { return a +  b.as_inexact<T>(); }
@@ -365,11 +364,11 @@ inline namespace kernel
   template <typename T> auto operator > (floating_point<T> const& a, ratio const& b) -> boolean { return a >  b.as_inexact<T>(); }
   template <typename T> auto operator >=(floating_point<T> const& a, ratio const& b) -> boolean { return a >= b.as_inexact<T>(); }
 
-  template <typename T, typename U> auto operator * (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value * b.value); }
-  template <typename T, typename U> auto operator + (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value + b.value); }
-  template <typename T, typename U> auto operator - (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value - b.value); }
-  template <typename T, typename U> auto operator / (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(a.value / b.value); }
-  template <typename T, typename U> auto operator % (floating_point<T> const& a, floating_point<U> const& b)            { return floating_point(std::remainder(a.value, b.value)); }
+  template <typename T, typename U> auto operator * (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value * b.value); }
+  template <typename T, typename U> auto operator + (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value + b.value); }
+  template <typename T, typename U> auto operator - (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value - b.value); }
+  template <typename T, typename U> auto operator / (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(a.value / b.value); }
+  template <typename T, typename U> auto operator % (floating_point<T> const& a, floating_point<U> const& b) { return floating_point(std::remainder(a.value, b.value)); }
   template <typename T, typename U> auto operator ==(floating_point<T> const& a, floating_point<U> const& b) -> boolean
   {
     if (std::isnan(a.value) and std::isnan(b.value))

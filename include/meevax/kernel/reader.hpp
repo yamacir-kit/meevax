@@ -17,14 +17,12 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_READER_HPP
 #define INCLUDED_MEEVAX_KERNEL_READER_HPP
 
-// #include <boost/iostreams/device/null.hpp>
-// #include <boost/iostreams/stream_buffer.hpp>
-
-#include <boost/lexical_cast.hpp>
+#include <meevax/iostream/combinator.hpp>
 #include <meevax/iostream/ignore.hpp>
+#include <meevax/iostream/putback.hpp>
+#include <meevax/kernel/constant.hpp>
 #include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/numeric_io.hpp>
-#include <meevax/kernel/parser.hpp> // DEPRECATED
+#include <meevax/kernel/miscellaneous.hpp> // for eof
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -33,45 +31,255 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto read_token(std::istream &) -> std::string;
+  namespace parse
+  {
+    using meevax::iostream::operator *;
+    using meevax::iostream::operator +;
+    using meevax::iostream::operator |;
 
-  // TODO Move into reader class private
-  auto read_char(std::istream &) -> let;
+    auto intraline_whitespace = satisfy([](auto c) { return std::isblank(c); });
 
-  /* ---- Reader ---------------------------------------------------------------
-   *
-   *
-   * ------------------------------------------------------------------------ */
-  template <typename SK>
+    auto line_ending = sequence("\r\n") | one_of('\n', '\r');
+
+    auto whitespace = intraline_whitespace | line_ending;
+
+    auto vertical_line = one_of('|');
+
+    auto delimiter = whitespace | vertical_line | one_of('(', ')', '"', ';');
+
+    auto letter = satisfy([](auto c) { return std::isalpha(c); });
+
+    auto special_initial = one_of('!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '^', '_', '~');
+
+    auto initial = letter | special_initial;
+
+    auto digit = satisfy([](auto c) { return std::isdigit(c); });
+
+    auto hex_digit = satisfy([](auto c) { return std::isxdigit(c); });
+
+    auto explicit_sign = one_of('+', '-');
+
+    auto special_subsequent = explicit_sign | one_of('.', '@');
+
+    auto subsequent = initial | digit | special_subsequent;
+
+    auto inline_hex_escape = sequence("\\x") + hex_digit + many(hex_digit);
+
+    // TODO auto any_character_other_than_vertical_line_or_backslash
+
+    auto symbol_element = letter;
+                        //   any_character_other_than_vertical_line_or_backslash
+                        // | inline_hex_escape
+                        // | mnemonic_escape
+                        // | s("\\|")
+
+    auto sign_subsequent = initial | explicit_sign | one_of('@');
+
+    auto dot_subsequent = sign_subsequent | one_of('.');
+
+    auto peculiar_identifier = explicit_sign
+                             | explicit_sign + sign_subsequent + many(subsequent)
+                             | explicit_sign + one_of('.') + dot_subsequent + many(subsequent)
+                             | one_of('.') + dot_subsequent + many(subsequent);
+
+    auto identifier = initial + many(subsequent)
+                    | vertical_line + many(symbol_element) + vertical_line
+                    | peculiar_identifier;
+
+    auto boolean = sequence("#true") | sequence("#t") | sequence("#false") | sequence("#f");
+
+    auto token = [](std::istream & is) //  = <identifier> | <boolean> | <number> | <character> | <string> | ( | ) | #( | #u8( | ’ | ` | , | ,@ | .
+    {
+      auto is_end = [](auto c) constexpr
+      {
+        auto one_of = [c](auto... xs) constexpr
+        {
+          return (std::char_traits<char>::eq(c, xs) or ...);
+        };
+
+        return std::isspace(c) or one_of('"', '#', '\'', '(', ')', ',', ';', '[', ']', '`', '{', '|', '}', std::char_traits<char>::eof()); // NOTE: What read treats specially.
+      };
+
+      std::string result;
+
+      for (auto c = is.peek(); not is_end(c); c = is.peek())
+      {
+        result.push_back(is.get());
+      }
+
+      return result;
+    };
+
+    auto any_character = [](std::istream & is)
+    {
+      switch (auto s = token(is); std::size(s))
+      {
+      case 0:
+        return make<character>(is.get());
+
+      case 1:
+        return make<character>(s[0]);
+
+      default:
+        putback(is, s);
+        throw tagged_read_error<character>(
+          make<string>("If <character> in #\\<character> is alphabetic, then any character immediately following <character> cannot be one that can appear in an identifier"), unit);
+      }
+    };
+
+    auto character_name = [](std::istream & is)
+    {
+      std::unordered_map<std::string, character::value_type> static const character_names
+      {
+        { "alarm"    , 0x07 },
+        { "backspace", 0x08 },
+        { "delete"   , 0x7F },
+        { "escape"   , 0x1B },
+        { "newline"  , 0x0A },
+        { "null"     , 0x00 },
+        { "return"   , 0x0D },
+        { "space"    , 0x20 },
+        { "tab"      , 0x09 },
+      };
+
+      auto const name = token(is);
+
+      try
+      {
+        return make<character>(character_names.at(name));
+      }
+      catch (...)
+      {
+        putback(is, name);
+        throw tagged_read_error<character>(make<string>("invalid <charcter name>"), make<string>("\\#" + name));
+      }
+    };
+
+    auto hex_scalar_value = [](std::istream & is)
+    {
+      if (auto s = token(is); s[0] == 'x' and 1 < std::size(s))
+      {
+        std::stringstream ss;
+        ss << std::hex << s.substr(1);
+
+        character::value_type value = 0;
+        ss >> value;
+
+        return make<character>(value);
+      }
+      else
+      {
+        putback(is, s);
+        throw tagged_read_error<character>(make<string>("invalid <hex scalar value>"), make<string>("\\#" + s));
+      }
+    };
+
+    auto character = any_character | character_name | hex_scalar_value;
+  }
+
+  namespace string_to
+  {
+    template <typename F, typename G, REQUIRES(std::is_invocable<F, std::string const&, int>,
+                                               std::is_invocable<G, std::string const&, int>)>
+    auto operator |(F&& f, G&& g)
+    {
+      return [=](std::string const& token, auto radix)
+      {
+        try
+        {
+          return f(token, radix);
+        }
+        catch (...)
+        {
+          return g(token, radix);
+        }
+      };
+    }
+
+    auto integer = [](std::string const& token, auto radix = 10)
+    {
+      auto const result = exact_integer(token, radix);
+      return make(result);
+    };
+
+    auto ratio = [](std::string const& token, auto radix = 10)
+    {
+      if (auto const value = meevax::ratio(token, radix).reduce(); value.is_integer())
+      {
+        return std::get<0>(value);
+      }
+      else
+      {
+        return make(value);
+      }
+    };
+
+    auto decimal = [](std::string const& token, auto)
+    {
+      auto const result = system_float(token);
+      return make(result);
+    };
+
+    auto flonum = [](std::string const& token, auto)
+    {
+      if (auto iter = constants.find(token); iter != std::end(constants))
+      {
+        return std::get<1>(*iter);
+      }
+      else
+      {
+        throw read_error(make<string>("not a number"), make<string>(token));
+      }
+    };
+
+    auto real = integer | ratio | decimal | flonum;
+
+    auto complex = real;
+
+    auto number = complex;
+  } // namespace string_to
+
+  template <typename Module>
   class reader
   {
-    friend SK;
+    friend Module;
 
     explicit reader()
     {}
 
-    IMPORT(SK, evaluate,            NIL);
-    IMPORT(SK, intern,              NIL);
-    IMPORT(SK, standard_debug_port, NIL);
-    IMPORT(SK, write_to,            NIL);
+    IMPORT(Module, evaluate,            NIL);
+    IMPORT(Module, standard_debug_port, NIL);
+    IMPORT(Module, write_to,            NIL);
 
     using char_type = typename std::istream::char_type;
 
-    using seeker = std::istream_iterator<char_type>;
-
-    template <char_type C>
-    using char_constant = std::integral_constant<char_type, C>;
-
   public:
-    /* ---- Read ---------------------------------------------------------------
-     *
-     *
-     * ---------------------------------------------------------------------- */
-    auto read(std::istream & is) -> let
-    {
-      std::string token {};
+    static inline std::unordered_map<std::string, pair::value_type> symbols {};
 
-      for (seeker head = is; head != seeker(); ++head)
+    inline auto char_ready() const
+    {
+      return default_input_port.is_polymorphically<std::istream>() and default_input_port.as<std::istream>();
+    }
+
+    static auto intern(std::string const& name) -> pair::const_reference
+    {
+      if (auto const iter = symbols.find(name); iter != std::end(symbols))
+      {
+        return std::get<1>(*iter);
+      }
+      else if (auto const [iter, success] = symbols.emplace(name, make<symbol>(name)); success)
+      {
+        return std::get<1>(*iter);
+      }
+      else
+      {
+        throw error(make<string>("failed to intern a symbol"), make<string>(name));
+      }
+    }
+
+    inline auto read(std::istream & is) -> pair::value_type
+    {
+      for (auto head = std::istream_iterator<char_type>(is); head != std::istream_iterator<char_type>(); ++head)
       {
         switch (auto const c = *head)
         {
@@ -79,7 +287,12 @@ inline namespace kernel
           is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           break;
 
-        case ' ': case '\f': case '\n': case '\r': case '\t': case '\v':
+        case ' ':
+        case '\f':
+        case '\n':
+        case '\r':
+        case '\t':
+        case '\v':
           break;
 
         case '(':
@@ -91,34 +304,31 @@ inline namespace kernel
             is.putback(c);
             return cons(kar, read(is));
           }
-          catch (tagged_read_error<char_constant<')'>> const&) { return char_eq(c, '(') ? unit : throw; }
-          catch (tagged_read_error<char_constant<']'>> const&) { return char_eq(c, '[') ? unit : throw; }
-          catch (tagged_read_error<char_constant<'}'>> const&) { return char_eq(c, '{') ? unit : throw; }
-          catch (tagged_read_error<char_constant<'.'>> const&)
+          catch (unexpected_character<')'> const&) { return std::char_traits<char_type>::eq(c, '(') ? unit : throw; }
+          catch (unexpected_character<']'> const&) { return std::char_traits<char_type>::eq(c, '[') ? unit : throw; }
+          catch (unexpected_character<'}'> const&) { return std::char_traits<char_type>::eq(c, '{') ? unit : throw; }
+          catch (unexpected_character<'.'> const&)
           {
             let const kdr = read(is);
 
             switch (c)
             {
-            case '(': ignore(is, [](auto c) { return not char_eq(c, ')'); }).get(); break;
-            case '[': ignore(is, [](auto c) { return not char_eq(c, ']'); }).get(); break;
-            case '{': ignore(is, [](auto c) { return not char_eq(c, '}'); }).get(); break;
+            case '(': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, ')'); }).get(); break;
+            case '[': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, ']'); }).get(); break;
+            case '{': ignore(is, [](auto c) { return not std::char_traits<char_type>::eq(c, '}'); }).get(); break;
             }
 
             return kdr;
           }
 
         case ')':
-          throw tagged_read_error<char_constant<')'>>(make<string>("unexpected character: "), make<character>(c));
+          throw unexpected_character<')'>::get();
 
         case ']':
-          throw tagged_read_error<char_constant<']'>>(make<string>("unexpected character: "), make<character>(c));
+          throw unexpected_character<']'>::get();
 
         case '}':
-          throw tagged_read_error<char_constant<'}'>>(make<string>("unexpected character: "), make<character>(c));
-
-        case '#':
-          return discriminate(is);
+          throw unexpected_character<'}'>::get();
 
         case '"':
           return make<string>(is);
@@ -140,21 +350,87 @@ inline namespace kernel
             return list(intern("unquote"), read(is));
           }
 
-        default:
-          if (token.push_back(c); is_end_of_token(is.peek()))
+        case '#':
+          switch (auto const c = is.get())
           {
-            if (token == ".")
+          case '!': // from SRFI-22
+            is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return read(is);
+
+          case ',': // from SRFI-10
+            return evaluate(read(is));
+
+          case ';': // from SRFI-62
+            return read(is), read(is);
+
+          case 'b': // (string->number (read) 2)
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 2);
+
+          case 'c': // from Common Lisp
+            if (let const xs = read(is); xs.is<null>())
             {
-              throw tagged_read_error<char_constant<'.'>>(make<string>("unexpected character: "), make<character>('.'));
+              return make<complex>(e0, e0);
             }
-            else try
+            else if (not cdr(xs).is<pair>())
             {
-              return to_number(token, 10);
+              return make<complex>(car(xs), e0);
             }
-            catch (...)
+            else
             {
-              return intern(token);
+              return make<complex>(car(xs), cadr(xs));
             }
+
+          case 'd':
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 10);
+
+          case 'e':
+            return exact(read(is)); // NOTE: Same as #,(exact (read))
+
+          case 'f':
+            parse::token(is);
+            return f;
+
+          case 'i':
+            return inexact(read(is)); // NOTE: Same as #,(inexact (read))
+
+          case 'o':
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
+
+          case 'p':
+            assert(is.get() == '"');
+            is.ignore(1);
+            return make<path>(string(is));
+
+          case 't':
+            parse::token(is);
+            return t;
+
+          case 'x':
+            return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 16);
+
+          case '(':
+            is.putback(c);
+            return make<vector>(for_each_in, read(is));
+
+          case '\\':
+            return parse::character(is);
+
+          default:
+            throw read_error(make<string>("unknown discriminator"), make<character>(c));
+          }
+
+        default:
+          if (auto const token = c + parse::token(is); token == ".")
+          {
+            throw unexpected_character<'.'>::get();
+          }
+          else try
+          {
+            return string_to::number(token, 10);
+          }
+          catch (...)
+          {
+            return intern(token);
           }
         }
       }
@@ -162,7 +438,12 @@ inline namespace kernel
       return eof_object;
     }
 
-    auto read(let const& x) -> let
+    inline auto read(std::istream && is)
+    {
+      return read(is);
+    }
+
+    inline auto read(pair::const_reference x) -> pair::value_type
     {
       if (x.is_polymorphically<std::istream>())
       {
@@ -170,11 +451,11 @@ inline namespace kernel
       }
       else
       {
-        throw read_error(make<string>("not an input-port: "), x);
+        throw read_error(make<string>("not an input-port"), x);
       }
     }
 
-    auto read() -> let
+    inline auto read() -> pair::value_type
     {
       let const result = read(default_input_port);
 
@@ -183,88 +464,9 @@ inline namespace kernel
       return result;
     }
 
-    auto read(std::string const& s) -> decltype(auto)
+    inline auto read(std::string const& s) -> pair::value_type
     {
-      std::stringstream ss { s };
-
-      return read(ss);
-    }
-
-    auto ready() // TODO RENAME TO 'char-ready'
-    {
-      return default_input_port.is_polymorphically<std::istream>() and default_input_port.as<std::istream>();
-    }
-
-  private:
-    let const discriminate(std::istream & is) // TODO MOVE INTO read
-    {
-      switch (auto const discriminator = is.get())
-      {
-      case '!':
-        is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return read(is);
-
-      case ',': // from SRFI-10
-        return evaluate(read(is));
-
-      case ';': // from SRFI-62
-        return read(is), read(is);
-
-      case 'b': // (string->number (read) 2)
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 2);
-
-      case 'c': // from Common Lisp
-        if (let const xs = read(is); not xs.is<pair>())
-        {
-          return make<complex>(make<exact_integer>(0), make<exact_integer>(0));
-        }
-        else if (not cdr(xs).is<pair>())
-        {
-          return make<complex>(car(xs), make<exact_integer>(0));
-        }
-        else
-        {
-          return make<complex>(car(xs), cadr(xs));
-        }
-
-      case 'd':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 10);
-
-      case 'e':
-        return exact(read(is)); // NOTE: Same as #,(exact (read))
-
-      case 'f':
-        ignore(is, [](auto&& x) { return not is_end_of_token(x); });
-        return f;
-
-      case 'i':
-        return inexact(read(is)); // NOTE: Same as #,(inexact (read))
-
-      case 'o':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 8);
-
-      case 'p':
-        assert(is.get() == '"');
-        is.ignore(1);
-        return make<path>(string(is));
-
-      case 't':
-        ignore(is, [](auto&& x) { return not is_end_of_token(x); });
-        return t;
-
-      case 'x':
-        return to_number(is.peek() == '#' ? boost::lexical_cast<std::string>(read(is)) : read_token(is), 16);
-
-      case '(':
-        is.putback(discriminator);
-        return make<vector>(for_each_in, read(is));
-
-      case '\\':
-        return read_char(is);
-
-      default:
-        throw read_error(make<string>("unknown <discriminator>: "), make<character>(discriminator));
-      }
+      return read(std::stringstream(s));
     }
   };
 } // namespace kernel

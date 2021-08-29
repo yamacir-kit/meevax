@@ -298,7 +298,7 @@ inline namespace kernel
                   << faint << header("      d") << reset <<  d << "\n" << std::endl;
       }
 
-      switch (car(c).template as<instruction>().code)
+      switch (car(c).template as<instruction>().value)
       {
       case mnemonic::LOAD_LOCAL: /* --------------------------------------------
         *

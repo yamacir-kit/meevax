@@ -39,9 +39,7 @@ inline namespace kernel
   {
     std::stringstream ss {};
 
-    ss << "error: ";
-
-    message().as<string>().write_string(ss);
+    ss << "error: " << static_cast<std::string>(message().as<string>());
 
     if (irritants())
     {

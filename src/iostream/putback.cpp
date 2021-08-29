@@ -14,22 +14,22 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
-#define INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP
+#include <iterator>
 
-#include <string>
-#include <typeinfo>
-
-#include <meevax/memory/pointer.hpp>
+#include <meevax/iostream/putback.hpp>
 
 namespace meevax
 {
-inline namespace utility
+inline namespace iostream
 {
-  auto demangle(const pointer<const char> name) -> std::string;
+  auto putback(std::istream & is, std::string const& s) -> std::istream &
+  {
+    for (auto iter = std::crbegin(s); iter != std::crend(s); ++iter)
+    {
+      is.putback(*iter);
+    }
 
-  auto demangle(std::type_info const&) -> std::string;
-} // namespace utility
+    return is;
+  }
+} // namespace iostream
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_UTILITY_DEMANGLE_HPP

@@ -22,7 +22,6 @@
 #include <type_traits>
 
 #include <meevax/parser/class.hpp>
-#include <meevax/string/unicode.hpp>
 #include <meevax/kernel/error.hpp> // for read_error
 #include <meevax/kernel/miscellaneous.hpp> // for eof
 
@@ -33,7 +32,7 @@ namespace meevax
 
   auto get_char = [](auto&& port = std::cin)
   {
-    codeunit cu {};
+    std::string cu {};
 
     if (auto const c = port.peek(); is_eof(c))
     {
@@ -96,7 +95,7 @@ namespace meevax
   {
     return [=](std::istream & port)
     {
-      codeunits result {};
+      std::string result {};
 
       result += f(port);
       result += g(port);
@@ -110,7 +109,7 @@ namespace meevax
   {
     return [=](std::istream & port)
     {
-      codeunits result {};
+      std::string result {};
 
       for (auto i = 0; i < k; ++i)
       {
@@ -131,7 +130,7 @@ namespace meevax
   {
     return [=](std::istream & port)
     {
-      codeunits result;
+      std::string result;
 
       try
       {
@@ -147,27 +146,27 @@ namespace meevax
     };
   };
 
-  template <typename F,
-            typename G,
-            REQUIRES(std::is_invocable<F, std::istream &>),
-            REQUIRES(std::is_invocable<G, std::istream &>)>
-  auto operator |(F&& f, G&& g)
-  {
-    return [=](std::istream & port)
-    {
-      auto const backtrack = port.tellg();
-
-      try
-      {
-        return f(port);
-      }
-      catch (...)
-      {
-        port.seekg(backtrack);
-        return g(port);
-      }
-    };
-  }
+  // template <typename F,
+  //           typename G,
+  //           REQUIRES(std::is_invocable<F, std::istream &>),
+  //           REQUIRES(std::is_invocable<G, std::istream &>)>
+  // auto operator |(F&& f, G&& g)
+  // {
+  //   return [=](std::istream & port)
+  //   {
+  //     auto const backtrack = port.tellg();
+  //
+  //     try
+  //     {
+  //       return f(port);
+  //     }
+  //     catch (...)
+  //     {
+  //       port.seekg(backtrack);
+  //       return g(port);
+  //     }
+  //   };
+  // }
 
   auto backtrack = [](auto&& parse)
   {
@@ -187,21 +186,21 @@ namespace meevax
     };
   };
 
-  auto char1 = [](codeunit const& c)
+  auto char1 = [](std::string const& c)
   {
-    return satisfy([=](codeunit const& x)
+    return satisfy([=](std::string const& x)
     {
       return c == x;
     });
   };
 
-  auto string1 = [](codeunits const& s)
+  auto string1 = [](std::string const& s)
   {
     return [=](std::istream & port)
     {
       for (auto const& c : s)
       {
-        char1(codeunit(c, 1))(port);
+        char1(std::string(c, 1))(port);
       }
 
       return s;

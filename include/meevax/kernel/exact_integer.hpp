@@ -17,16 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 #define INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 
-#ifndef MEEVAX_USE_GMP
-#define MEEVAX_USE_GMP
-#endif
-
-#ifdef MEEVAX_USE_GMP
-#include <boost/multiprecision/gmp.hpp>
-#else
-#include <boost/multiprecision/cpp_int.hpp>
-#endif
-
+#include <gmp.h>
+#include <meevax/functional/addition.hpp>
+#include <meevax/functional/division.hpp>
+#include <meevax/functional/greatest_common_divisor.hpp>
+#include <meevax/functional/modulo.hpp>
+#include <meevax/functional/multiplication.hpp>
+#include <meevax/functional/subtraction.hpp>
 #include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/pair.hpp>
 
@@ -36,58 +33,114 @@ inline namespace kernel
 {
   struct exact_integer
   {
-    #ifdef MEEVAX_USE_GMP
-    using value_type = boost::multiprecision::mpz_int;
-    #else
-    using value_type = boost::multiprecision::cpp_int;
-    #endif
+    using value_type = mpz_t;
 
     value_type value;
 
-    template <typename... Ts>
-    explicit constexpr exact_integer(Ts&&... xs)
-      : value { std::forward<decltype(xs)>(xs)... }
-    {}
-
     static constexpr std::true_type is_integer {};
 
-    template <typename T>
-    auto to() const
-    {
-      return value.convert_to<T>();
-    }
+    explicit exact_integer() noexcept;
 
-    auto to_string() const
-    {
-      return value.str();
-    }
+    exact_integer(exact_integer const&) noexcept;
 
-    auto as_exact() const noexcept -> decltype(auto)
-    {
-      return *this;
-    }
+    explicit exact_integer(exact_integer &&) noexcept;
+
+    explicit exact_integer(int);
+
+    explicit exact_integer(signed long);
+
+    explicit exact_integer(unsigned long);
+
+    explicit exact_integer(double);
+
+    explicit exact_integer(std::string const&, int = 0);
+
+    explicit exact_integer(addition, exact_integer const&, exact_integer const&);
+
+    explicit exact_integer(subtraction, exact_integer const&, exact_integer const&);
+
+    explicit exact_integer(multiplication, exact_integer const&, exact_integer const&);
+
+    explicit exact_integer(division, exact_integer const&, exact_integer const&);
+
+    explicit exact_integer(modulo, exact_integer const&, exact_integer const&);
+
+    explicit exact_integer(greatest_common_divisor, exact_integer const&, exact_integer const&);
+
+    ~exact_integer();
+
+    auto operator=(exact_integer const&) -> exact_integer &;
+
+    auto operator=(exact_integer &&) noexcept -> exact_integer &;
+
+    auto operator=(std::string const&) -> exact_integer &;
+
+    auto as_exact() const noexcept -> exact_integer const&;
 
     template <typename T, REQUIRES(std::is_floating_point<T>)>
     auto as_inexact() const
     {
-      return floating_point(to<T>());
+      return floating_point(static_cast<T>(*this));
     }
 
-    operator value_type() const noexcept { return value; }
-    operator value_type()       noexcept { return value; }
+    auto floor_remainder(exact_integer const&) const -> exact_integer;
+
+    auto floor_quotient(exact_integer const&) const -> exact_integer;
+
+    auto string(int = 10) const -> std::string; // TODO RENAME TO 'string'
+
+    auto swap(exact_integer &) noexcept -> void;
+
+    auto truncate_remainder(exact_integer const&) const -> exact_integer;
+
+    auto truncate_quotient(exact_integer const&) const -> exact_integer;
+
+    explicit operator bool() const;
+
+    explicit operator int() const;
+
+    explicit operator signed long() const;
+
+    explicit operator unsigned long() const;
+
+    explicit operator float() const;
+
+    explicit operator double() const;
+
+    explicit operator std::string() const;
   };
 
-  // Extremely frequently used exact-integer values.
-  let extern const e0, e1;
+  auto operator ==(exact_integer const&, int const) -> bool;
+  auto operator !=(exact_integer const&, int const) -> bool;
+  auto operator < (exact_integer const&, int const) -> bool;
+  auto operator <=(exact_integer const&, int const) -> bool;
+  auto operator > (exact_integer const&, int const) -> bool;
+  auto operator >=(exact_integer const&, int const) -> bool;
 
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator ==(exact_integer const& a, T&& b) { return a.value == b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator !=(exact_integer const& a, T&& b) { return a.value != b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator < (exact_integer const& a, T&& b) { return a.value <  b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator <=(exact_integer const& a, T&& b) { return a.value <= b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator > (exact_integer const& a, T&& b) { return a.value >  b; }
-  template <typename T, REQUIRES(std::is_integral<T>)> auto operator >=(exact_integer const& a, T&& b) { return a.value >= b; }
+  auto operator ==(exact_integer const&, signed long const) -> bool;
+  auto operator !=(exact_integer const&, signed long const) -> bool;
+  auto operator < (exact_integer const&, signed long const) -> bool;
+  auto operator <=(exact_integer const&, signed long const) -> bool;
+  auto operator > (exact_integer const&, signed long const) -> bool;
+  auto operator >=(exact_integer const&, signed long const) -> bool;
+
+  auto operator ==(exact_integer const&, unsigned long const) -> bool;
+  auto operator !=(exact_integer const&, unsigned long const) -> bool;
+  auto operator < (exact_integer const&, unsigned long const) -> bool;
+  auto operator <=(exact_integer const&, unsigned long const) -> bool;
+  auto operator > (exact_integer const&, unsigned long const) -> bool;
+  auto operator >=(exact_integer const&, unsigned long const) -> bool;
+
+  auto operator ==(exact_integer const&, double const) -> bool;
+  auto operator !=(exact_integer const&, double const) -> bool;
+  auto operator < (exact_integer const&, double const) -> bool;
+  auto operator <=(exact_integer const&, double const) -> bool;
+  auto operator > (exact_integer const&, double const) -> bool;
+  auto operator >=(exact_integer const&, double const) -> bool;
 
   auto operator <<(std::ostream &, exact_integer const&) -> std::ostream &;
+
+  let extern const e0, e1; // Frequently used exact-integer values.
 } // namespace kernel
 } // namespace meevax
 
