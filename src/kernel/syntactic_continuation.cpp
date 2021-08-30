@@ -1404,7 +1404,6 @@ inline namespace kernel
       return unspecified;
     });
 
-
     /* -------------------------------------------------------------------------
      *
      *  (procedure? obj)                                              procedure
@@ -1419,45 +1418,55 @@ inline namespace kernel
 
     define<procedure>("foreign-function?", is<procedure>());
 
-
-  /* ---- R7RS 6.11. Exceptions ------------------------------------------------
-
-      Standard procedures
-      -------------------
-
-     ┌────────────────────────┬────────────┬──────────────────────────────────┐
-     │ Symbol                 │ Written in │ Note                             │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ with-exception-handler │ TODO       │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ raise                  │ TODO       │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ raise-continuable      │ TODO       │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error                  │ TODO       │ SRFI-23                          │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object?          │ Scheme     │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-message   │ Scheme     │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-irritants │ Scheme     │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ read-error?            │ C++        │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ file-error?            │ C++        │                                  │
-     └────────────────────────┴────────────┴──────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (with-exception-handler handler thunk)                        procedure
+     *
+     *  It is an error if handler does not accept one argument. It is also an
+     *  error if thunk does not accept zero arguments.
+     *
+     *  The with-exception-handler procedure returns the results of invoking
+     *  thunk. Handler is installed as the current exception handler in the
+     *  dynamic environment used for the invocation of thunk.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("default-exception-handler", [](let const& xs) -> let
     {
       throw car(xs);
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (error message obj ...)                                       procedure
+     *
+     *  Message should be a string.
+     *
+     *  Raises an exception as if by calling raise on a newly allocated
+     *  implementation-defined object which encapsulates the information
+     *  provided by message, as well as any objs, known as the irritants. The
+     *  procedure error-object? must return #t on such objects.
+     *
+     *    (define (error . xs)
+     *      (raise (apply make-error xs)))
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("make-error", [](let const& xs)
     {
       return make<error>(car(xs), cdr(xs));
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (read-error? obj)                                             procedure
+     *  (file-error? obj)                                             procedure
+     *
+     *  Error type predicates. Returns #t if obj is an object raised by the
+     *  read procedure or by the inability to open an input or output port on a
+     *  file, respectively. Otherwise, it returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>(       "error?", is<       error>());
     define<procedure>(  "read-error?", is<  read_error>());
