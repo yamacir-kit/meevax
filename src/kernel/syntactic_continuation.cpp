@@ -735,7 +735,6 @@ inline namespace kernel
       default:
         throw std::invalid_argument("string->number");
       }
-
     });
 
     /* -------------------------------------------------------------------------
@@ -859,13 +858,13 @@ inline namespace kernel
 
     define<procedure>("digit-value", [](let const& xs)
     {
-      try
+      if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
-        return make<exact_integer>(static_cast<std::string>(car(xs).as<character>()));
+        return make<exact_integer>(c.codepoint - '0');
       }
-      catch (std::runtime_error const&)
+      else
       {
-        return f; // XXX
+        return f;
       }
     });
 
