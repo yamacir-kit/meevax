@@ -1165,19 +1165,19 @@ inline namespace kernel
 
     define<procedure>("string-copy", [](let const& xs)
     {
-      if (cdr(xs).is<null>())
+      switch (length(xs))
       {
+      case 1:
         return make<string>(car(xs).as<string>());
-      }
-      else if (cddr(xs).is<null>())
-      {
+
+      case 2:
         return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>(cadr(xs).as<exact_integer>()),
                             car(xs).as<string>().end());
-      }
-      else
-      {
+      case 3:
         return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>( cadr(xs).as<exact_integer>()),
                             car(xs).as<string>().begin() + static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+      default:
+        throw invalid_application(intern("string-copy") | xs);
       }
     });
 
