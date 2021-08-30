@@ -702,9 +702,9 @@
 ; ---- 6.10. Control features --------------------------------------------------
 
 (define (procedure? x)
-  (or (native-procedure? x)
-      (closure? x)
-      (continuation? x)))
+  (or (closure? x)
+      (continuation? x)
+      (foreign-function? x)))
 
 (define %current-dynamic-extents '()) ; https://www.cs.hmc.edu/~fleck/envision/scheme48/meeting/node7.html
 
