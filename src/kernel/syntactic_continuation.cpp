@@ -2011,10 +2011,52 @@ inline namespace kernel
       return features();
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (identifier? syntax-object)                                   procedure
+     *
+     *  Returns #t if syntax-object represents an identifier, otherwise returns
+     *  #f.
+     *
+     *    (identifier? (syntax x)) => #t
+     *
+     *    (identifier? (quote x)) => #f
+     *
+     *    (identifier? 3) => #f
+     *
+     * ---------------------------------------------------------------------- */
 
-  /* ---- R4RS APPENDIX: A compatible low-level macro facility -------------- */
+    define<procedure>("identifier?", [](let const& xs)
+    {
+      if (let const& x = car(xs); x.is<syntactic_continuation>())
+      {
+        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
+      }
+      else
+      {
+        return x.is<identifier>() or x.is<symbol>() ? t : f;
+      }
+    });
 
-    define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
+    /* -------------------------------------------------------------------------
+     *
+     *  (unwrap-syntax syntax-object)                                 procedure
+     *
+     *  If syntax-object is an identifier, then it is returned unchanged.
+     *  Otherwise unwrap-syntax converts the outermost structure of
+     *  syntax-object into a data object whose external representation is the
+     *  same as that of syntax-object. The result is either an identifier, a
+     *  pair whose car and cdr are syntax objects, a vector whose elements are
+     *  syntax objects, an empty list, a string, a boolean, a character, or a
+     *  number.
+     *
+     *    (identifier? (unwrap-syntax (syntax x))) => #t
+     *
+     *    (identifier? (car (unwrap-syntax (syntax (x))))) => #t
+     *
+     *    (unwrap-syntax (cdr (unwrap-syntax (syntax (x))))) => ()
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("unwrap-syntax", [](let const& xs)
     {
@@ -2028,6 +2070,26 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (identifier->symbol id)                                       procedure
+     *
+     *  Returns a symbol representing the original name of id.
+     *  Identifier->symbol is used to examine identifiers that appear in
+     *  literal contexts, i.e., identifiers that will appear in quoted
+     *  structures.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("identifier->symbol", [](let const& xs)
+    {
+      return car(xs).as<identifier>().unwrap_syntax();
+    });
+
+    define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
+
+    define<procedure>("syntactic-keyword?", is<identifier>());
+
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
       if (let const& macro = (*this)[caar(xs)]; macro.is<syntactic_continuation>())
@@ -2037,34 +2099,6 @@ inline namespace kernel
       else
       {
         throw error(make<string>("not a macro"), caar(xs));
-      }
-    });
-
-    define<procedure>("syntactic-keyword?", is<identifier>());
-
-    define<procedure>("identifier->symbol", [](let const& xs)
-    {
-      return car(xs).as<identifier>().unwrap_syntax();
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (identifier? syntax-object)                                   procedure
-     *
-     *  Returns #t if syntax-object represents an identifier, otherwise returns
-     *  #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("identifier?", [](let const& xs)
-    {
-      if (let const& x = car(xs); x.is<syntactic_continuation>())
-      {
-        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
-      }
-      else
-      {
-        return x.is<identifier>() or x.is<symbol>() ? t : f;
       }
     });
   }
