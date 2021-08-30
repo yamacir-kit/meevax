@@ -1468,208 +1468,44 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>(       "error?", is<       error>());
-    define<procedure>(  "read-error?", is<  read_error>());
-    define<procedure>(  "file-error?", is<  file_error>());
+    define<procedure>("error?", is<error>());
+
+    define<procedure>("read-error?", is<read_error>());
+
+    define<procedure>("file-error?", is<file_error>());
+
     define<procedure>("syntax-error?", is<syntax_error>());
 
-  /* ---- R7RS 6.12. Environments and evaluation -------------------------------
-
-      Standard procedures
-      -------------------
-
-     ┌───────────────────────────┬────────────┬───────────────────────────────┐
-     │ Symbol                    │ Written in │ Note                          │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ environment               │ TODO       │ (scheme eval) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ scheme-report-environment │ TODO       │ (scheme r5rs) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ null-environment          │ TODO       │ (scheme r5rs) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ interaction-environment   │ TODO       │ (scheme repl) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ eval                      │ TODO       │ (scheme eval) library         │
-     └───────────────────────────┴────────────┴───────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (eval expr-or-def environment-specifier)         eval library procedure
+     *
+     *  If expr-or-def is an expression, it is evaluated in the specified
+     *  environment and its values are returned. If it is a definition, the
+     *  specified identifier(s) are defined in the specified environment,
+     *  provided the environment is not immutable. Implementations may extend
+     *  eval to allow other objects.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("eval", [](let const& xs)
     {
       return cadr(xs).as<syntactic_continuation>().evaluate(car(xs));
     });
 
-
-  /* ---- R7RS 6.13. Input and output ------------------------------------------
-
-       Non-standard procedures
-       -----------------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Identifier              │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ standard-input-port     │ C++        │ std::cin                      │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ standard-output-port    │ C++        │ std::cout                     │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ standard-error-port     │ C++        │ std::cerr                     │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-file-port?        │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-file-port?       │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-string-port?      │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-string-port?     │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-file-port-open?   │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-file-port-open?  │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-input-file-port   │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-output-file-port  │ C++        │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-
-       6.13.1. Port
-       ------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Identifier              │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ call-with-port          │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ call-with-input-file    │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ call-with-output-file   │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-port?             │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-port?            │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ textual-port?           │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ binary-port?            │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ port?                   │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-port-open?        │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-port-open?       │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ current-input-port      │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ current-output-port     │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ current-error-port      │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ with-input-from-file    │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ with-output-to-file     │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-file         │ C++        │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-binary-input-file  │ TODO       │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-file        │ C++        │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-binary-output-file │ TODO       │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-port              │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-input-port        │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-output-port       │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-string       │ C++        │ SRFI-6                        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-string      │ C++        │ SRFI-6                        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ get-output-string       │ C++        │ SRFI-6                        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-bytevector   │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-bytevector  │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ get-output-bytevector   │ TODO       │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-
-       6.13.2. Input
-       -------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Symbol                  │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read                    │ C++/Scheme │ (scheme read) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-char               │ C++/Scheme │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ peek-char               │ C++/Scheme │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-line               │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ eof-object?             │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ eof-object              │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ char-ready?             │ C++/Scheme │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-string             │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-u8                 │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ peek-u8                 │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ u8-ready?               │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-bytevector         │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-bytevector!        │ TODO       │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-
-       6.13.3. Output
-       --------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Symbol                  │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write                   │ TODO       │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-shared            │ TODO       │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-simple            │ Scheme     │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ display                 │ Scheme     │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ newline                 │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-char              │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-string            │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-u8                │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-bytevector        │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ flush-output-port       │ Scheme     │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
-
-    define<procedure>("standard-input-port", [](auto&&)
-    {
-      return default_input_port;
-    });
-
-    define<procedure>("standard-output-port", [](auto&&)
-    {
-      return default_output_port;
-    });
-
-    define<procedure>("standard-error-port", [](auto&&)
-    {
-      return default_error_port;
-    });
-
+    /* -------------------------------------------------------------------------
+     *
+     *  (input-port? obj)                                             procedure
+     *  (output-port? obj)                                            procedure
+     *  (textual-port? obj)                                           procedure
+     *  (binary-port? obj)                                            procedure
+     *  (port? obj)                                                   procedure
+     *
+     *  These procedures return #t if obj is an input port, output port,
+     *  textual port, binary port, or any kind of port, respectively. Otherwise
+     *  they return #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("input-file-port?", is<input_file_port>());
 
@@ -1679,6 +1515,15 @@ inline namespace kernel
 
     define<procedure>("output-string-port?", is<output_string_port>());
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (input-port-open? port)                                       procedure
+     *  (output-port-open? port)                                      procedure
+     *
+     *  Returns #t if port is still open and capable of performing input or
+     *  output, respectively, and #f otherwise.
+     *
+     * --------------------------------------------------------------------- */
 
     define<procedure>("input-file-port-open?", [](let const& xs)
     {
@@ -1690,17 +1535,76 @@ inline namespace kernel
       return car(xs).as<output_file_port>().is_open() ? t : f;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (current-input-port)                                          procedure
+     *  (current-output-port)                                         procedure
+     *  (current-error-port)                                          procedure
+     *
+     *  Returns the current default input port, output port, or error port (an
+     *  output port), respectively. These procedures are parameter objects,
+     *  which can be overridden with parameterize (see section 4.2.6). The
+     *  initial bindings for these are implementation-defined textual ports.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("standard-input-port", [](auto&&) { return default_input_port; });
+
+    define<procedure>("standard-output-port", [](auto&&) { return default_output_port; });
+
+    define<procedure>("standard-error-port", [](auto&&) { return default_error_port; });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-input-file string)                         file library procedure
+     *  (open-binary-input-file string)                  file library procedure
+     *
+     *  Takes a string for an existing file and returns a textual input port or
+     *  binary input port that is capable of delivering data from the file. If
+     *  the file does not exist or cannot be opened, an error that satisfies
+     *  file-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("open-input-file", [](let const& xs)
     {
       return make<input_file_port>(car(xs).as<string>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-output-file string)                        file library procedure
+     *  (open-binary-output-file string)                 file library procedure
+     *
+     *  Takes a string naming an output file to be created and returns a
+     *  textual output port or binary output port that is capable of writing
+     *  data to a new file by that name. If a file with the given name already
+     *  exists, the effect is unspecified. If the file cannot be opened, an
+     *  error that satisfies file-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("open-output-file", [](let const& xs)
     {
       return make<output_file_port>(car(xs).as<string>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (close-port port)                                             procedure
+     *  (close-input-port port)                                       procedure
+     *  (close-output-port port)                                      procedure
+     *
+     *  Closes the resource associated with port, rendering the port incapable
+     *  of delivering or accepting data. It is an error to apply the last two
+     *  procedures to a port which is not an input or output port, respectively.
+     *  Scheme implementations may provide ports which are simultaneously input
+     *  and output ports, such as sockets; the close-input-port and
+     *  close-output-port procedures can then be used to close the input and
+     *  output sides of the port independently. These routines have no effect
+     *  if the port has already been closed.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("close-input-file-port", [](let const& xs)
     {
@@ -1714,51 +1618,103 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-input-string string)                                    procedure
+     *
+     *  Takes a string and returns a textual input port that delivers
+     *  characters from the string. If the string is modified, the effect is
+     *  unspecified.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("open-input-string", [](let const& xs)
     {
-      if (xs.is<null>())
+      switch (length(xs))
       {
+      case 0:
         return make<input_string_port>();
-      }
-      else if (let const& x = car(xs); x.is<string>())
-      {
-        return make<input_string_port>(x.as<string>());
-      }
-      else
-      {
-        throw error(make<string>("not a string"), car(xs));
+
+      case 1:
+        return make<input_string_port>(car(xs).as<string>());
+
+      default:
+        throw invalid_application(intern("open-input-string") | xs);
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-output-string)                                          procedure
+     *
+     *  Returns a textual output port that will accumulate characters for
+     *  retrieval by get-output-string.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("open-output-string", [](let const& xs)
     {
-      if (xs.is<null>())
+      switch (length(xs))
       {
+      case 0:
         return make<output_string_port>();
-      }
-      else if (let const x = car(xs); x.is<string>())
-      {
-        return make<output_string_port>(x.as<string>());
-      }
-      else
-      {
-        throw error(make<string>("not a string"), car(xs));
+
+      case 1:
+        return make<output_string_port>(car(xs).as<string>());
+
+      default:
+        throw invalid_application(intern("open-output-string") | xs);
       }
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (get-output-string port)                                      procedure
+     *
+     *  It is an error if port was not created with open-output-string.
+     *
+     *  Returns a string consisting of the characters that have been output to
+     *  the port so far in the order they were output. If the result string is
+     *  modified, the effect is unspecified.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("get-output-string", [](let const& xs)
     {
       return make<string>(car(xs).as<output_string_port>().str());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (read)                                           read library procedure
+     *  (read port)                                      read library procedure
+     *
+     *  The read procedure converts external representations of Scheme objects
+     *  into the objects themselves. That is, it is a parser for the
+     *  non-terminal hdatumi (see sections 7.1.2 and 6.4). It returns the next
+     *  object parsable from the given textual input port, updating port to
+     *  point to the first character past the end of the external
+     *  representation of the object.
+     *
+     *  Implementations may support extended syntax to represent record types
+     *  or other types that do not have datum representations.
+     *
+     *  If an end of file is encountered in the input before any characters are
+     *  found that can begin an object, then an end-of-file object is returned.
+     *  The port remains open, and further attempts to read will also return an
+     *  end-of-file object. If an end of file is encountered after the
+     *  beginning of an object’s external representation, but the external
+     *  representation is incomplete and therefore not parsable, an error that
+     *  satisfies read-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::read", [this](let const& xs)
     {
       return read(car(xs));
     });
 
-    /* ---- R7RS 6.13.2. Input -------------------------------------------------
+    /* -------------------------------------------------------------------------
      *
      *  (read-char)                                                   procedure
      *  (read-char port)                                              procedure
@@ -1781,6 +1737,25 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (peek-char)                                                   procedure
+     *  (peek-char port)                                              procedure
+     *
+     *  Returns the next character available from the textual input port, but
+     *  without updating the port to point to the following character. If no
+     *  more characters are available, an end-of-file object is returned.
+     *
+     *  Note: The value returned by a call to peek-char is the same as the
+     *  value that would have been returned by a call to read-char with the
+     *  same port. The only difference is that the very next call to read-char
+     *  or peek-char on that port will return the value returned by the
+     *  preceding call to peek-char. In particular, a call to peek-char on an
+     *  interactive port will hang waiting for input whenever a call to
+     *  read-char would have hung.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("::peek-char", [](let const& xs)
     {
       try
@@ -1796,14 +1771,51 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (eof-object? obj)                                             procedure
+     *
+     *  Returns #t if obj is an end-of-file object, otherwise returns #f. The
+     *  precise set of end-of-file objects will vary among implementations, but
+     *  in any case no end-of-file object will ever be an object that can be
+     *  read in using read.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("eof-object?", is<eof>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (eof-object)                                                  procedure
+     *
+     *  Returns an end-of-file object, not necessarily unique.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("eof-object", [](auto&&)
     {
       return eof_object;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (char-ready?)                                                 procedure
+     *  (char-ready? port)                                            procedure
+     *
+     *  Returns #t if a character is ready on the textual input port and
+     *  returns #f otherwise. If char-ready returns #t then the next read-char
+     *  operation on the given port is guaranteed not to hang. If the port is
+     *  at end of file then char-ready? returns #t.
+     *
+     *  Rationale: The char-ready? procedure exists to make it possible for a
+     *  program to accept characters from interactive ports without getting
+     *  stuck waiting for input. Any input editors associated with such ports
+     *  must ensure that characters whose existence has been asserted by
+     *  char-ready? cannot be removed from the input. If char-ready? were to
+     *  return #f at end of file, a port at end of file would be
+     *  indistinguishable from an interactive port that has no ready characters.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::char-ready?", [](let const& xs)
     {
@@ -1822,7 +1834,28 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    // TODO read-string
+    define<procedure>("::read-string", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 2:
+        return make<string>(cadr(xs).as<std::istream>(), static_cast<string::size_type>(car(xs).as<exact_integer>()));
+
+      default:
+        throw invalid_application(intern("read-string") | xs);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-simple obj)                              write library procedure
+     *  (write-simple obj port)                         write library procedure
+     *
+     *  The write-simple procedure is the same as write, except that shared
+     *  structure is never represented using datum labels. This can cause
+     *  write-simple not to terminate if obj contains circular structure.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::write-simple", [this](let const& xs)
     {
@@ -1830,7 +1863,7 @@ inline namespace kernel
       return unspecified;
     });
 
-    /* ---- R7RS 6.13.3. Output ------------------------------------------------
+    /* -------------------------------------------------------------------------
      *
      *  (write-char char)                                             procedure
      *  (write-char char port)                                        procedure
@@ -1847,12 +1880,35 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-string string)                                         procedure
+     *  (write-string string port)                                    procedure
+     *  (write-string string port start)                              procedure
+     *  (write-string string port start end)                          procedure
+     *
+     *  Writes the characters of string from start to end in left-to-right
+     *  order to the textual output port.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("::write-string", [](let const& xs)
     {
-      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+      switch (length(xs))
+      {
+      case 2:
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        break;
+
+      case 3: // TODO
+      case 4: // TODO
+
+      default:
+        throw invalid_application(intern("write-string") | xs);
+      }
+
       return unspecified;
     });
-
 
     define<procedure>("path?", is<path>());
 
@@ -1862,13 +1918,21 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (flush-output-port)                                           procedure
+     *  (flush-output-port port)                                      procedure
+     *
+     *  Flushes any buffered output from the buffer of output-port to the
+     *  underlying file or device and returns an unspecified value.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::flush-output-port", [](let const& xs)
     {
       car(xs).as<std::ostream>() << std::flush;
       return unspecified;
     });
-
 
   /* ---- R7RS 6.14. System interface ------------------------------------------
 
