@@ -733,7 +733,7 @@ inline namespace kernel
         return string_to::number(car(xs).as<string>(), static_cast<int>(cadr(xs).as<exact_integer>()));
 
       default:
-        throw std::invalid_argument("string->number");
+        throw invalid_application(intern("string->number") | xs);
       }
     });
 
@@ -893,7 +893,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("invalid arguments"), xs);
+        throw invalid_application(intern("char->integer") | xs);
       }
     });
 
@@ -905,7 +905,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("invalid arguments"), xs);
+        throw invalid_application(intern("integer->char") | xs);
       }
     });
 
@@ -932,8 +932,17 @@ inline namespace kernel
 
     define<procedure>("make-string", [](let const& xs)
     {
-      return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
-                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character());
+      switch (length(xs))
+      {
+      case 1:
+        return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()), character());
+
+      case 2:
+        return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()), cadr(xs).as<character>());
+
+      default:
+        throw invalid_application(intern("make-string") | xs);
+      }
     });
 
     // NOTE: (string char ...) defined in overture.ss
@@ -1127,7 +1136,7 @@ inline namespace kernel
         return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("string->list") | xs);
       }
     });
 
@@ -1204,7 +1213,7 @@ inline namespace kernel
         return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("make-vector") | xs);
       }
     });
 
@@ -1292,7 +1301,7 @@ inline namespace kernel
         return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("vector->list") | xs);
       }
     });
 
@@ -1337,7 +1346,7 @@ inline namespace kernel
         return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("vector->string") | xs);
       }
     });
 
@@ -1389,7 +1398,7 @@ inline namespace kernel
         break;
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("vector-fill!") | xs);
       }
 
       return unspecified;
