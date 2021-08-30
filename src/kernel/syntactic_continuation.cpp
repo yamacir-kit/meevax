@@ -1934,44 +1934,32 @@ inline namespace kernel
       return unspecified;
     });
 
-  /* ---- R7RS 6.14. System interface ------------------------------------------
-
-      Standard procedures
-      -------------------
-
-     ┌───────────────────────────┬────────────┬──────────────────────────────────┐
-     │ Symbol                    │ Written in │ Note                             │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ load                      │ C++        │ (scheme load) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ file-exists?              │ TODO       │ (scheme file) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ delete-file               │ TODO       │ (scheme file) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ command-line              │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ exit                      │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ emergency-exit            │ C++        │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ get-environment-variable  │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ get-environment-variables │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ current-second            │ TODO       │ (scheme time) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ current-jiffy             │ TODO       │ (scheme time) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ jiffies-per-second        │ TODO       │ (scheme time) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ features                  │ C++        │                                  │
-     └───────────────────────────┴────────────┴──────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (load filename)                                  load library procedure
+     *  (load filename environment-specifier)            load library procedure
+     *
+     *  It is an error if filename is not a string. An implementation-dependent
+     *  operation is used to transform filename into the name of an existing
+     *  file containing Scheme source code. The load procedure reads
+     *  expressions and definitions from the file and evaluates them
+     *  sequentially in the environment specified by environment-specifier. If
+     *  environment-specifier is omitted, (interaction-environment) is assumed.
+     *
+     *  It is unspecified whether the results of the expressions are printed.
+     *  The load procedure does not affect the values returned by
+     *  current-input-port and current-output-port. It returns an unspecified
+     *  value.
+     *
+     *  Rationale: For portability, load must operate on source files. Its
+     *  operation on other kinds of files necessarily varies among
+     *  implementations.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("load", [this](let const& xs)
     {
-      return load(car(xs).as<const string>());
+      return load(car(xs).as<string>());
     });
 
     /* -------------------------------------------------------------------------
@@ -2003,6 +1991,20 @@ inline namespace kernel
         throw exit_status::failure;
       }
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (features)                                                    procedure
+     *
+     *  Returns a list of the feature identifiers which cond-expand treats as
+     *  true. It is an error to modify this list. Here is an example of what
+     *  features might return:
+     *
+     *    (features) =>
+     *      (r7rs ratios exact-complex full-unicode gnu-linux little-endian
+     *      fantastic-scheme fantastic-scheme-1.0 space-ship-control-system)
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("features", [](auto&&...)
     {
@@ -2053,6 +2055,7 @@ inline namespace kernel
      *  #f.
      *
      * ---------------------------------------------------------------------- */
+
     define<procedure>("identifier?", [](let const& xs)
     {
       if (let const& x = car(xs); x.is<syntactic_continuation>())
