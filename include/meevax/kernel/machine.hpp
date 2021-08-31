@@ -987,7 +987,7 @@ inline namespace kernel
       return cons(make<instruction>(mnemonic::FORK), cons(car(expression), frames), continuation);
     }
 
-    SYNTAX(assignment) /* ------------------------------------------------------
+    static SYNTAX(assignment) /* -----------------------------------------------
     *
     *  (set! <variable> <expression>)                                    syntax
     *
@@ -1001,7 +1001,7 @@ inline namespace kernel
     {
       if (expression.is<null>())
       {
-        throw syntax_error(make<string>("set!"), unit);
+        throw syntax_error(make<string>("set!"), expression);
       }
       else if (de_bruijn_index index { car(expression), frames }; not index.is<null>())
       {
@@ -1030,13 +1030,11 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        let const g = locate(car(expression), current_syntactic_continuation.global_environment());
+        let const location = current_syntactic_continuation.locate(car(expression), current_syntactic_continuation.global_environment());
 
-        if (the_expression_is.at_the_top_level() and cdr(g).is<identifier>())
+        if (the_expression_is.at_the_top_level() and cdr(location).is<identifier>())
         {
-          throw syntax_error(
-            make<string>("set!: it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"),
-            unit);
+          throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
         else
         {
@@ -1044,7 +1042,7 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_GLOBAL), g, continuation));
+                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location, continuation));
         }
       }
     }

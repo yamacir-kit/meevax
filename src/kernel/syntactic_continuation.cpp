@@ -359,7 +359,11 @@ inline namespace kernel
     });
 
     DEFINE_SYNTAX("reference", lvalue);
-    DEFINE_SYNTAX("set!", assignment);
+
+    define<syntax>("set!", [](auto&&... xs)
+    {
+      return assignment(std::forward<decltype(xs)>(xs)...);
+    });
   }
 
   template <>
