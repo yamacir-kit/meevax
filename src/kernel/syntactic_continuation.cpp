@@ -295,17 +295,11 @@ inline namespace kernel
 
   template class writer<syntactic_continuation>;
 
-  #define DEFINE_SYNTAX(KEYWORD, TRANSFORMER_SPEC)                             \
-  define<syntax>(KEYWORD, [this](auto&&... xs)                                 \
-  {                                                                            \
-    return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
-  })
-
   template <>
   void syntactic_continuation::boot<layer::declarations>()
   {
-    DEFINE_SYNTAX("export", exportation);
-    DEFINE_SYNTAX("import", importation);
+    define<syntax>("export", [](auto&&... xs) { return exportation(std::forward<decltype(xs)>(xs)...); }); // XXX DEPRECATED
+    define<syntax>("import", [](auto&&... xs) { return importation(std::forward<decltype(xs)>(xs)...); }); // XXX DEPRECATED
 
     // TODO (define (set-debug! t/f)
     //        (set! (debug) t/f))
@@ -329,16 +323,50 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot<layer::primitives>()
   {
-    DEFINE_SYNTAX("begin", sequence);
-    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
-    // DEFINE_SYNTAX("cons", construct);
-    DEFINE_SYNTAX("define", definition);
-    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork_csc);
-    DEFINE_SYNTAX("if", conditional);
-    DEFINE_SYNTAX("lambda", lambda);
-    DEFINE_SYNTAX("quote", quotation);
-    DEFINE_SYNTAX("reference", lvalue);
-    DEFINE_SYNTAX("set!", assignment);
+    define<syntax>("begin", [](auto&&... xs)
+    {
+      return sequence(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("call-with-current-continuation", [](auto&&... xs)
+    {
+      return call_with_current_continuation(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("define", [](auto&&... xs)
+    {
+      return definition(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("fork-with-current-syntactic-continuation", [](auto&&... xs)
+    {
+      return fork_csc(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("if", [](auto&&... xs)
+    {
+      return conditional(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("lambda", [](auto&&... xs)
+    {
+      return lambda(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("quote", [](auto&&... xs)
+    {
+      return quotation(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("reference", [](auto&&... xs) // XXX DEPRECATED
+    {
+      return lvalue(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("set!", [](auto&&... xs)
+    {
+      return assignment(std::forward<decltype(xs)>(xs)...);
+    });
   }
 
   template <>
