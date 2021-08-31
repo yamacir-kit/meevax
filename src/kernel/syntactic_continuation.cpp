@@ -334,7 +334,11 @@ inline namespace kernel
       return sequence(std::forward<decltype(xs)>(xs)...);
     });
 
-    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
+    define<syntax>("call-with-current-continuation", [](auto&&... xs)
+    {
+      return call_with_current_continuation(std::forward<decltype(xs)>(xs)...);
+    });
+
     // DEFINE_SYNTAX("cons", construct);
     DEFINE_SYNTAX("define", definition);
     DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork_csc);

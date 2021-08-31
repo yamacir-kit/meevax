@@ -941,7 +941,7 @@ inline namespace kernel
      *  TODO documentation
      *
      * ---------------------------------------------------------------------- */
-    SYNTAX(call_cc)
+    static SYNTAX(call_with_current_continuation)
     {
       WRITE_DEBUG(car(expression), faint, " ; is <procedure>");
 
