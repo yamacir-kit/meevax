@@ -133,9 +133,9 @@ inline namespace kernel
     auto macroexpand(const_reference, const_reference) -> value_type;
 
   private:
-    SYNTAX(exportation)
+    static SYNTAX(exportation)
     {
-      if (is_verbose_mode())
+      if (current_syntactic_continuation.is_verbose_mode())
       {
         std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
                   << indent()
@@ -168,7 +168,7 @@ inline namespace kernel
                   continuation);
     }
 
-    SYNTAX(importation)
+    static SYNTAX(importation)
     {
       auto importation = [&](let const& xs)
       {

@@ -295,17 +295,11 @@ inline namespace kernel
 
   template class writer<syntactic_continuation>;
 
-  #define DEFINE_SYNTAX(KEYWORD, TRANSFORMER_SPEC)                             \
-  define<syntax>(KEYWORD, [this](auto&&... xs)                                 \
-  {                                                                            \
-    return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
-  })
-
   template <>
   void syntactic_continuation::boot<layer::declarations>()
   {
-    DEFINE_SYNTAX("export", exportation);
-    DEFINE_SYNTAX("import", importation);
+    define<syntax>("export", [](auto&&... xs) { return exportation(std::forward<decltype(xs)>(xs)...); }); // XXX DEPRECATED
+    define<syntax>("import", [](auto&&... xs) { return importation(std::forward<decltype(xs)>(xs)...); }); // XXX DEPRECATED
 
     // TODO (define (set-debug! t/f)
     //        (set! (debug) t/f))
