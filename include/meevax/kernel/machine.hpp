@@ -616,16 +616,31 @@ inline namespace kernel
       return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
     }
 
-    /* ---- Sequence -----------------------------------------------------------
-     *
-     *  <sequence> = <command>* <expression>
-     *
-     *  <command> = <expression>
-     *
-     *  Note: The return value of <Command> is discarded.
-     *
-     * ---------------------------------------------------------------------- */
-    static SYNTAX(sequence)
+    static SYNTAX(sequence) /* -------------------------------------------------
+    *
+    *  Both of Scheme's sequencing constructs are named begin, but the two
+    *  have slightly different forms and uses:
+    *
+    *  (begin <expression or definition> ...)                            syntax
+    *
+    *  This form of begin can appear as part of a <body>, or at the outermost
+    *  level of a <program>, or at the REPL, or directly nested in a begin that
+    *  is itself of this form. It causes the contained expressions and
+    *  definitions to be evaluated exactly as if the enclosing begin construct
+    *  were not present.
+    *
+    *  Rationale: This form is commonly used in the output of macros (see
+    *  section 4.3) which need to generate multiple definitions and splice them
+    *  into the context in which they are expanded.
+    *
+    *  (begin <expression 1> <expression 2> ...)                         syntax
+    *
+    *  This form of begin can be used as an ordinary expression. The
+    *  <expression>s are evaluated sequentially from left to right, and the
+    *  values of the last <expression> are returned. This expression type is
+    *  used to sequence side effects such as assignments or input and output.
+    *
+    * ---------------------------------------------------------------------- */
     {
       if (the_expression_is.at_the_top_level())
       {
@@ -686,8 +701,7 @@ inline namespace kernel
     *    and another variable (as in a lambda expression). This form is
     *    equivalent to
     *
-    *        (define <variable>
-    *          (lambda (<formals>) <body>)).
+    *        (define <variable> (lambda (<formals>) <body>)).
     *
     *  - (define (<variable> . <formal>) <body>)
     *
@@ -730,12 +744,7 @@ inline namespace kernel
       }
     }
 
-    /* ---- Lambda Body --------------------------------------------------------
-     *
-     *  <body> = <definition>* <sequence>
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(body)
+    static SYNTAX(body)
     {
       auto is_definition = [&](auto const& form)
       {
@@ -787,17 +796,17 @@ inline namespace kernel
         // std::cout << ";\t\t; inits = " << inits << std::endl;
 
         let const head_body = map(
-          [this](auto&& x)
+          [&](auto&& x)
           {
             if (car(x).template is<pair>())
             {
-              return list(intern("set!"),
+              return list(current_syntactic_continuation.intern("set!"),
                           caar(x),
-                          cons(intern("lambda"), cdar(x), cdr(x)));
+                          cons(current_syntactic_continuation.intern("lambda"), cdar(x), cdr(x)));
             }
             else
             {
-              return cons(intern("set!"), x);
+              return cons(current_syntactic_continuation.intern("set!"), x);
             }
           }, binding_specs);
 
@@ -808,7 +817,7 @@ inline namespace kernel
         //   std::cout << ";\t\t; " << each << std::endl;
         // }
 
-        let const result = cons(cons(intern("lambda"), // XXX NOT HYGIENIC!!!
+        let const result = cons(cons(current_syntactic_continuation.intern("lambda"), // XXX NOT HYGIENIC!!!
                                      variables,
                                      append(head_body, tail_body)),
                                 inits);
@@ -849,11 +858,6 @@ inline namespace kernel
       }
     }
 
-    /* ---- Operand ------------------------------------------------------------
-     *
-     *  <operand> = <expression>
-     *
-     * ---------------------------------------------------------------------- */
     static SYNTAX(operand)
     {
       if (expression.is<pair>())
@@ -874,12 +878,21 @@ inline namespace kernel
       }
     }
 
-    /* ---- Conditional --------------------------------------------------------
-     *
-     *  <conditional> = (if <test> <consequent> <alternate>)
-     *
-     * ---------------------------------------------------------------------- */
-    static SYNTAX(conditional)
+    static SYNTAX(conditional) /* ----------------------------------------------
+    *
+    *  (if <test> <consequent> <alternate>)                              syntax
+    *  (if <test> <consequent>)                                          syntax
+    *
+    *  Syntax: <Test>, <consequent>, and <alternate> are expressions.
+    *
+    *  Semantics: An if expression is evaluated as follows: first, <test> is
+    *  evaluated. If it yields a true value (see section 6.3), then
+    *  <consequent> is evaluated and its values are returned. Otherwise
+    *  <alternate> is evaluated and its values are returned. If <test> yields a
+    *  false value and no <alternate> is specified, then the result of the
+    *  expression is unspecified.
+    *
+    * ----------------------------------------------------------------------- */
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
@@ -937,12 +950,29 @@ inline namespace kernel
       }
     }
 
-    /* ---- Lambda Expression --------------------------------------------------
-     *
-     * <lambda expression> = (lambda <formals> <body>)
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(lambda)
+    static SYNTAX(lambda) /* ---------------------------------------------------
+    *
+    *  (lambda <formals> <body>)                                         syntax
+    *
+    *  Syntax: <Formals> is a formal arguments list as described below, and
+    *  <body> is a sequence of zero or more definitions followed by one or more
+    *  expressions.
+    *
+    *  Semantics: A lambda expression evaluates to a procedure. The environment
+    *  in effect when the lambda expression was evaluated is remembered as part
+    *  of the procedure. When the procedure is later called with some actual
+    *  arguments, the environment in which the lambda expression was evaluated
+    *  will be extended by binding the variables in the formal argument list to
+    *  fresh locations, and the corresponding actual argument values will be
+    *  stored in those locations. (A fresh location is one that is distinct
+    *  from every previously existing location.) Next, the expressions in the
+    *  body of the lambda expression (which, if it contains definitions,
+    *  represents a letrec* form - see section 4.2.2) will be evaluated
+    *  sequentially in the extended environment. The results of the last
+    *  expression in the body will be returned as the results of the procedure
+    *  call.
+    *
+    * ----------------------------------------------------------------------- */
     {
       WRITE_DEBUG(car(expression), faint, " ; is <formals>");
 
@@ -955,12 +985,12 @@ inline namespace kernel
                   continuation);
     }
 
-    /* ---- Call-With-Current-Continuation -------------------------------------
-     *
-     *  TODO documentation
-     *
-     * ---------------------------------------------------------------------- */
-    static SYNTAX(call_with_current_continuation)
+    static SYNTAX(call_with_current_continuation) /* ---------------------------
+    *
+    *  (define (call-with-current-continuation procedure)
+    *    (call-with-current-continuation procedure))
+    *
+    * ----------------------------------------------------------------------- */
     {
       WRITE_DEBUG(car(expression), faint, " ; is <procedure>");
 
@@ -1047,13 +1077,7 @@ inline namespace kernel
       }
     }
 
-    /* ---- Explicit Variable Reference ----------------------------------------
-     *
-     *  TODO DEPRECATED
-     *  TODO REMOVE AFTER IMPLEMENTED MODULE SYSTEM
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(lvalue)
+    SYNTAX(lvalue) // XXX DEPRECATED
     {
       if (expression.is<null>())
       {
@@ -1080,17 +1104,7 @@ inline namespace kernel
       }
     }
 
-    /* ---- Construct ----------------------------------------------------------
-     *
-     *  This primitive expression type is not currently in use. The procedure
-     *  cons is not a primitive expression type and must be redefined as
-     *
-     *    (define cons
-     *      (lambda (a b)
-     *        (cons a b)))
-     *
-     * ---------------------------------------------------------------------- */
-    SYNTAX(construct)
+    SYNTAX(construct) // XXX DEPRECATED
     {
       return compile(in_context_free,
                      current_syntactic_continuation,

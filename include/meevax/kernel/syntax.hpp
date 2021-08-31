@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/syntactic_context.hpp>
 
 #define SYNTAX(NAME)                                                           \
@@ -26,7 +26,7 @@
     [[maybe_unused]] syntactic_continuation & current_syntactic_continuation,  \
     [[maybe_unused]] let const& expression,                                    \
     [[maybe_unused]] let const& frames,                                        \
-    [[maybe_unused]] let const& continuation) -> let const
+    [[maybe_unused]] let const& continuation) -> pair::value_type
 
 namespace meevax
 {

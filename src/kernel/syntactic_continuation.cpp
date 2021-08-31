@@ -354,7 +354,10 @@ inline namespace kernel
       return conditional(std::forward<decltype(xs)>(xs)...);
     });
 
-    DEFINE_SYNTAX("lambda", lambda);
+    define<syntax>("lambda", [](auto&&... xs)
+    {
+      return lambda(std::forward<decltype(xs)>(xs)...);
+    });
 
     define<syntax>("quote", [](auto&&... xs)
     {
