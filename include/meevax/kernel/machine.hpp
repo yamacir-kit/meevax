@@ -1077,7 +1077,7 @@ inline namespace kernel
       }
     }
 
-    SYNTAX(lvalue) // XXX DEPRECATED
+    static SYNTAX(lvalue) // XXX DEPRECATED
     {
       if (expression.is<null>())
       {
@@ -1100,7 +1100,7 @@ inline namespace kernel
       else
       {
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of free variable");
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), locate(car(expression), current_syntactic_continuation.global_environment()), continuation);
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(car(expression), current_syntactic_continuation.global_environment()), continuation);
       }
     }
 
