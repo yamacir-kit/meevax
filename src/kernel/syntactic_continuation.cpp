@@ -345,7 +345,12 @@ inline namespace kernel
     });
 
     DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork_csc);
-    DEFINE_SYNTAX("if", conditional);
+
+    define<syntax>("if", [](auto&&... xs)
+    {
+      return conditional(std::forward<decltype(xs)>(xs)...);
+    });
+
     DEFINE_SYNTAX("lambda", lambda);
 
     define<syntax>("quote", [](auto&&... xs)

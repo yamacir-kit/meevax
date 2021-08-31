@@ -879,7 +879,7 @@ inline namespace kernel
      *  <conditional> = (if <test> <consequent> <alternate>)
      *
      * ---------------------------------------------------------------------- */
-    SYNTAX(conditional)
+    static SYNTAX(conditional)
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
