@@ -973,7 +973,7 @@ inline namespace kernel
                           cons(make<instruction>(mnemonic::CALL), continuation)));
     }
 
-    SYNTAX(fork_csc) /* --------------------------------------------------------
+    static SYNTAX(fork_csc) /* -------------------------------------------------
     *
     *  (fork-with-current-syntactic-continuation <program>)              syntax
     *

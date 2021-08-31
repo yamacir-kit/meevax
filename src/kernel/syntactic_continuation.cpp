@@ -344,7 +344,10 @@ inline namespace kernel
       return definition(std::forward<decltype(xs)>(xs)...);
     });
 
-    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork_csc);
+    define<syntax>("fork-with-current-syntactic-continuation", [](auto&&... xs)
+    {
+      return fork_csc(std::forward<decltype(xs)>(xs)...);
+    });
 
     define<syntax>("if", [](auto&&... xs)
     {
