@@ -671,9 +671,29 @@ inline namespace kernel
 
     enum class internal_definition_tag {};
 
-    SYNTAX(definition) /* ------------------------------------------------------
+    static SYNTAX(definition) /* -----------------------------------------------
     *
-    *  <definition> = (define <identifier> <expression>)
+    *  A variable definition binds one or more identifiers and specifies an
+    *  initial value for each of them. The simplest kind of variable definition
+    *  takes one of the following forms:
+    *
+    *  - (define <variable> <expression>)
+    *
+    *  - (define (<variable> <formals>) <body>)
+    *
+    *    <Formals> are either a sequence of zero or more variables, or a
+    *    sequence of one or more variables followed by a space-delimited period
+    *    and another variable (as in a lambda expression). This form is
+    *    equivalent to
+    *
+    *        (define <variable>
+    *          (lambda (<formals>) <body>)).
+    *
+    *  - (define (<variable> . <formal>) <body>)
+    *
+    *    <Formal> is a single variable. This form is equivalent to
+    *
+    *        (define <variable> (lambda <formal> <body>)).
     *
     * ----------------------------------------------------------------------- */
     {
@@ -683,17 +703,17 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          let const g = locate(caar(expression), current_syntactic_continuation.global_environment());
+          let const g = current_syntactic_continuation.locate(caar(expression), current_syntactic_continuation.global_environment());
 
           return compile(in_context_free,
                          current_syntactic_continuation,
-                         cons(intern("lambda"), cdar(expression), cdr(expression)),
+                         cons(current_syntactic_continuation.intern("lambda"), cdar(expression), cdr(expression)),
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), g, continuation));
         }
         else // (define x ...)
         {
-          let const g = locate(car(expression), current_syntactic_continuation.global_environment());
+          let const g = current_syntactic_continuation.locate(car(expression), current_syntactic_continuation.global_environment());
 
           return compile(in_context_free,
                          current_syntactic_continuation,
@@ -706,8 +726,7 @@ inline namespace kernel
       else
       {
         indent() << indent::width; // XXX DIRTY HACK!
-        throw tagged_syntax_error<internal_definition_tag>(
-          make<string>("definition cannot appear in this context"), unit);
+        throw tagged_syntax_error<internal_definition_tag>(make<string>("definition cannot appear in this context"), unit);
       }
     }
 
