@@ -591,7 +591,7 @@ inline namespace kernel
     }
 
   protected: // PRIMITIVE EXPRESSION TYPES
-    SYNTAX(quotation) /* -------------------------------------------------------
+    static SYNTAX(quotation) /* ------------------------------------------------
     *
     *  (quote <datum>)                                                   syntax
     *
