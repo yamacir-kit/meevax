@@ -135,7 +135,7 @@ inline namespace kernel
      *  with the delay, delay-force, and parameterize expression types.
      *
      * ---------------------------------------------------------------------- */
-    let compile(
+    let static compile(
       syntactic_context const& the_expression_is,
       syntactic_continuation & current_syntactic_continuation,
       let const& expression,
@@ -189,7 +189,10 @@ inline namespace kernel
           else
           {
             WRITE_DEBUG(expression, faint, " ; is a <free variable>");
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), locate(expression, current_syntactic_continuation.global_environment()), continuation);
+            return cons(make<instruction>(mnemonic::LOAD_GLOBAL),
+                        current_syntactic_continuation.locate(
+                          expression, current_syntactic_continuation.global_environment()),
+                        continuation);
           }
         }
         else // is <self-evaluating>
@@ -622,7 +625,7 @@ inline namespace kernel
      *  Note: The return value of <Command> is discarded.
      *
      * ---------------------------------------------------------------------- */
-    SYNTAX(sequence)
+    static SYNTAX(sequence)
     {
       if (the_expression_is.at_the_top_level())
       {
@@ -832,7 +835,7 @@ inline namespace kernel
      *  <operand> = <expression>
      *
      * ---------------------------------------------------------------------- */
-    SYNTAX(operand)
+    static SYNTAX(operand)
     {
       if (expression.is<pair>())
       {

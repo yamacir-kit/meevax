@@ -329,7 +329,11 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot<layer::primitives>()
   {
-    DEFINE_SYNTAX("begin", sequence);
+    define<syntax>("begin", [](auto&&... xs)
+    {
+      return sequence(std::forward<decltype(xs)>(xs)...);
+    });
+
     DEFINE_SYNTAX("call-with-current-continuation", call_cc);
     // DEFINE_SYNTAX("cons", construct);
     DEFINE_SYNTAX("define", definition);

@@ -48,9 +48,9 @@ inline namespace kernel
     {}
 
     template <typename... Ts>
-    decltype(auto) compile(Ts&&... xs)
+    auto compile(Ts&&... xs) -> decltype(auto)
     {
-      return (*this)(std::forward<decltype(xs)>(xs)...);
+      return std::invoke(*this, std::forward<decltype(xs)>(xs)...);
     }
   };
 
