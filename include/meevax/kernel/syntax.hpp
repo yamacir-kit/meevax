@@ -22,7 +22,7 @@
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
-    [[maybe_unused]] syntactic_context const& the_expression_is,               \
+    [[maybe_unused]] syntactic_context const& current_syntactic_context,       \
     [[maybe_unused]] syntactic_continuation & current_syntactic_continuation,  \
     [[maybe_unused]] let const& expression,                                    \
     [[maybe_unused]] let const& frames,                                        \

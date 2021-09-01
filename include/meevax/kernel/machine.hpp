@@ -101,7 +101,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     let static compile(
-      syntactic_context const& the_expression_is,
+      syntactic_context const& current_syntactic_context,
       syntactic_continuation & current_syntactic_continuation,
       let const& expression,
       let const& frames = unit,
@@ -175,7 +175,7 @@ inline namespace kernel
 
             let result =
               applicant.as<syntax>().compile(
-                the_expression_is, current_syntactic_continuation, cdr(expression), frames, continuation);
+                current_syntactic_context, current_syntactic_continuation, cdr(expression), frames, continuation);
 
             WRITE_DEBUG(magenta, ")") << indent::width;
 
@@ -243,8 +243,8 @@ inline namespace kernel
                           current_syntactic_continuation,
                           car(expression),
                           frames,
-                          cons(make<instruction>(the_expression_is.in_a_tail_context() ? mnemonic::TAIL_CALL
-                                                                                       : mnemonic::     CALL),
+                          cons(make<instruction>(current_syntactic_context.in_a_tail_context() ? mnemonic::TAIL_CALL
+                                                                                               : mnemonic::     CALL),
                                continuation)));
 
         WRITE_DEBUG(magenta, ")") << indent::width;
@@ -606,7 +606,7 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (the_expression_is.at_the_top_level())
+      if (current_syntactic_context.at_the_top_level())
       {
         if (cdr(expression).is<null>())
         {
@@ -630,7 +630,7 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>()) // is tail sequence
         {
-          return compile(the_expression_is, current_syntactic_continuation, car(expression), frames, continuation);
+          return compile(current_syntactic_context, current_syntactic_continuation, car(expression), frames, continuation);
         }
         else
         {
@@ -675,7 +675,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or the_expression_is.at_the_top_level())
+      if (frames.is<null>() or current_syntactic_context.at_the_top_level())
       {
         WRITE_DEBUG(car(expression), faint, " ; is <variable>");
 
@@ -714,7 +714,7 @@ inline namespace kernel
       {
         try
         {
-          compile(the_expression_is, current_syntactic_continuation, form, frames, continuation);
+          compile(current_syntactic_context, current_syntactic_continuation, form, frames, continuation);
           return false;
         }
         catch (const tagged_syntax_error<internal_definition_tag>&)
@@ -793,7 +793,7 @@ inline namespace kernel
 
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return compile(in_a_tail_context.take_over(the_expression_is),
+        return compile(in_a_tail_context.take_over(current_syntactic_context),
                        current_syntactic_continuation,
                        car(expression),
                        frames,
@@ -801,7 +801,7 @@ inline namespace kernel
       }
       else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
       {
-        return compile(the_expression_is,
+        return compile(current_syntactic_context,
                        current_syntactic_continuation,
                        letrec(binding_specs, tail_body),
                        frames,
@@ -809,12 +809,12 @@ inline namespace kernel
       }
       else
       {
-        return compile(the_expression_is,
+        return compile(current_syntactic_context,
                        current_syntactic_continuation,
                        car(expression),
                        frames,
                        cons(make<instruction>(mnemonic::DROP),
-                            sequence(the_expression_is,
+                            sequence(current_syntactic_context,
                                      current_syntactic_continuation,
                                      cdr(expression),
                                      frames,
@@ -860,7 +860,7 @@ inline namespace kernel
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
-      if (the_expression_is.in_a_tail_context())
+      if (current_syntactic_context.in_a_tail_context())
       {
         auto consequent =
           compile(in_a_tail_context,
@@ -941,7 +941,7 @@ inline namespace kernel
       WRITE_DEBUG(car(expression), faint, " ; is <formals>");
 
       return cons(make<instruction>(mnemonic::LOAD_CLOSURE),
-                  body(the_expression_is,
+                  body(current_syntactic_context,
                        current_syntactic_continuation,
                        cdr(expression),
                        cons(car(expression), frames),
@@ -960,7 +960,7 @@ inline namespace kernel
 
       return cons(make<instruction>(mnemonic::LOAD_CONTINUATION),
                   continuation,
-                  compile(the_expression_is,
+                  compile(current_syntactic_context,
                           current_syntactic_continuation,
                           car(expression),
                           frames,
@@ -1024,8 +1024,7 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        if (let const location = current_syntactic_continuation.locate(car(expression));
-            the_expression_is.at_the_top_level() and cdr(location).is<identifier>())
+        if (let const location = current_syntactic_continuation.locate(car(expression)); current_syntactic_context.at_the_top_level() and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
