@@ -76,7 +76,7 @@ inline namespace kernel
 
       s = k.s();
       e = k.e();
-      c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
+      c = compile(context::outermost, *this, car(k.c()), cdr(k.c()));
       d = k.d();
 
       form() = execute();
@@ -114,7 +114,7 @@ inline namespace kernel
       write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
     }
 
-    c = compile(in_context_free, *this, expression);
+    c = compile(context::free, *this, expression);
 
     if (is_debug_mode())
     {

@@ -154,8 +154,7 @@ inline namespace kernel
           else
           {
             WRITE_DEBUG(expression, faint, " ; is a <free variable>");
-            return cons(make<instruction>(mnemonic::LOAD_GLOBAL),
-                        current_syntactic_continuation.locate(expression),
+            return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(expression),
                         continuation);
           }
         }
@@ -189,7 +188,7 @@ inline namespace kernel
 
             WRITE_DEBUG(result);
 
-            return compile(in_context_free, current_syntactic_continuation, result, frames, continuation);
+            return compile(context::free, current_syntactic_continuation, result, frames, continuation);
           }
         }
 
@@ -235,16 +234,17 @@ inline namespace kernel
         WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>") >> indent::width;
 
         let const result =
-          operand(in_context_free,
+          operand(context::free,
                   current_syntactic_continuation,
                   cdr(expression),
                   frames,
-                  compile(in_context_free,
+                  compile(context::free,
                           current_syntactic_continuation,
                           car(expression),
                           frames,
-                          cons(make<instruction>(current_syntactic_context.in_a_tail_context() ? mnemonic::TAIL_CALL
-                                                                                               : mnemonic::     CALL),
+                          cons(make<instruction>(current_syntactic_context.is_in(context::tail_call)
+                                                   ? mnemonic::TAIL_CALL
+                                                   : mnemonic::     CALL),
                                continuation)));
 
         WRITE_DEBUG(magenta, ")") << indent::width;
@@ -606,20 +606,20 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (current_syntactic_context.at_the_top_level())
+      if (current_syntactic_context.is_in(context::outermost))
       {
         if (cdr(expression).is<null>())
         {
-          return compile(at_the_top_level, current_syntactic_continuation, car(expression), frames, continuation);
+          return compile(context::outermost, current_syntactic_continuation, car(expression), frames, continuation);
         }
         else
         {
-          return compile(at_the_top_level,
+          return compile(context::outermost,
                          current_syntactic_continuation,
                          car(expression),
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
-                              sequence(at_the_top_level,
+                              sequence(context::outermost,
                                        current_syntactic_continuation,
                                        cdr(expression),
                                        frames,
@@ -634,12 +634,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(in_context_free,
+          return compile(context::free,
                          current_syntactic_continuation,
                          car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::DROP), // pop result of head expression
-                              sequence(in_context_free,
+                              sequence(context::free,
                                        current_syntactic_continuation,
                                        cdr(expression), // rest expressions
                                        frames,
@@ -675,13 +675,13 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or current_syntactic_context.at_the_top_level())
+      if (frames.is<null>() or current_syntactic_context.is_in(context::outermost))
       {
         WRITE_DEBUG(car(expression), faint, " ; is <variable>");
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(in_context_free,
+          return compile(context::free,
                          current_syntactic_continuation,
                          cons(current_syntactic_continuation.intern("lambda"), cdar(expression), cdr(expression)),
                          frames,
@@ -690,7 +690,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(in_context_free,
+          return compile(context::free,
                          current_syntactic_continuation,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
@@ -790,7 +790,7 @@ inline namespace kernel
 
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return compile(in_a_tail_context.take_over(current_syntactic_context),
+        return compile(current_syntactic_context | context::tail_call,
                        current_syntactic_continuation,
                        car(expression),
                        frames,
@@ -823,11 +823,11 @@ inline namespace kernel
     {
       if (expression.is<pair>())
       {
-        return operand(in_context_free,
+        return operand(context::free,
                        current_syntactic_continuation,
                        cdr(expression),
                        frames,
-                       compile(in_context_free,
+                       compile(context::free,
                                current_syntactic_continuation,
                                car(expression),
                                frames,
@@ -835,7 +835,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(in_context_free, current_syntactic_continuation, expression, frames, continuation);
+        return compile(context::free, current_syntactic_continuation, expression, frames, continuation);
       }
     }
 
@@ -857,10 +857,10 @@ inline namespace kernel
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
-      if (current_syntactic_context.in_a_tail_context())
+      if (current_syntactic_context.is_in(context::tail_call))
       {
         auto consequent =
-          compile(in_a_tail_context,
+          compile(context::tail_call,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -868,7 +868,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(in_a_tail_context,
+            ? compile(context::tail_call,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
@@ -876,7 +876,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::RETURN));
 
-        return compile(in_context_free,
+        return compile(context::free,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -886,7 +886,7 @@ inline namespace kernel
       else
       {
         auto consequent =
-          compile(in_context_free,
+          compile(context::free,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -894,7 +894,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(in_context_free,
+            ? compile(context::free,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
@@ -902,7 +902,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::JOIN));
 
-        return compile(in_context_free,
+        return compile(context::free,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -1000,7 +1000,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
 
-          return compile(in_context_free,
+          return compile(context::free,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1010,7 +1010,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, index);
 
-          return compile(in_context_free,
+          return compile(context::free,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1021,13 +1021,13 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        if (let const location = current_syntactic_continuation.locate(car(expression)); current_syntactic_context.at_the_top_level() and cdr(location).is<identifier>())
+        if (let const location = current_syntactic_continuation.locate(car(expression)); current_syntactic_context.is_in(context::outermost) and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
         else
         {
-          return compile(in_context_free,
+          return compile(context::free,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1066,11 +1066,11 @@ inline namespace kernel
 
     SYNTAX(construct) // XXX DEPRECATED
     {
-      return compile(in_context_free,
+      return compile(context::free,
                      current_syntactic_continuation,
                      cadr(expression),
                      frames,
-                     compile(in_context_free,
+                     compile(context::free,
                              current_syntactic_continuation,
                              car(expression),
                              frames,

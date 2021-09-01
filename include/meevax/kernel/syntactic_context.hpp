@@ -17,7 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
 
-#include <bitset>
+#include <cstdint>
 
 namespace meevax
 {
@@ -25,39 +25,39 @@ inline namespace kernel
 {
   struct syntactic_context
   {
-    std::bitset<2> data;
+    using value_type = std::uint64_t;
 
-    template <typename... Ts>
-    explicit constexpr syntactic_context(Ts&&... xs)
-      : data { std::forward<decltype(xs)>(xs)... }
+    const value_type value;
+
+    explicit constexpr syntactic_context(value_type value = 0)
+      : value { value }
     {}
 
-    auto at_the_top_level() const
+    template <typename... Ts>
+    constexpr auto operator [](Ts&&... xs) const noexcept
     {
-      return data.test(0);
+      return in(std::forward<decltype(xs)>(xs)...);
     }
 
-    auto in_a_tail_context() const
+    constexpr auto operator |(syntactic_context const& c) const noexcept
     {
-      return data.test(1);
+      return syntactic_context(value | c.value);
     }
 
-    auto take_over(syntactic_context const& context) -> decltype(auto)
+    constexpr auto is_in(syntactic_context c) const noexcept -> bool
     {
-      data |= context.data;
-      return *this;
-    }
-
-    auto take_over(syntactic_context const& context) const
-    {
-      syntactic_context result { data | context.data };
-      return result;
+      return value & c.value;
     }
   };
 
-  constexpr syntactic_context in_context_free   { static_cast<std::uint64_t>(0x00) };
-  constexpr syntactic_context at_the_top_level  { static_cast<std::uint64_t>(0x01) };
-  constexpr syntactic_context in_a_tail_context { static_cast<std::uint64_t>(0x02) };
+  namespace context
+  {
+    constexpr auto free = syntactic_context();
+
+    constexpr auto outermost = syntactic_context(1 << 0);
+
+    constexpr auto tail_call = syntactic_context(1 << 1);
+  }
 } // namespace kernel
 } // namespace meevax
 
