@@ -34,7 +34,7 @@ inline namespace kernel
 
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
-    return cdr(machine::locate(name, global_environment()));
+    return cdr(machine::locate(name));
   }
 
   auto syntactic_continuation::operator [](std::string const& name) -> const_reference
@@ -211,6 +211,37 @@ inline namespace kernel
     else
     {
       throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+    }
+  }
+
+  auto syntactic_continuation::locate(const_reference x) -> const_reference
+  {
+    if (let const& binding = assq(x, global_environment()); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
+    {
+      /* -----------------------------------------------------------------------
+       *
+       *  At the outermost level of a program, a definition
+       *
+       *      (define <variable> <expression>)
+       *
+       *  has essentially the same effect as the assignment expression
+       *
+       *      (set! <variable> <expression>)
+       *
+       *  if <variable> is bound to a non-syntax value. However, if <variable>
+       *  is not bound, or is a syntactic keyword, then the definition will
+       *  bind <variable> to a new location before performing the assignment,
+       *  whereas it would be an error to perform a set! on an unbound variable.
+       *
+       * -------------------------------------------------------------------- */
+
+      push(global_environment(), cons(x, make<identifier>(x, global_environment())));
+
+      return car(global_environment());
+    }
+    else
+    {
+      return binding;
     }
   }
 

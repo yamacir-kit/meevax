@@ -51,6 +51,7 @@ inline namespace kernel
     IMPORT(SK, fork, NIL);
     IMPORT(SK, intern, NIL);
     IMPORT(SK, is_trace_mode, const);
+    IMPORT(SK, locate, NIL);
 
   protected:
     let s, // stack (holding intermediate results and return address)
@@ -73,42 +74,6 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
 
   public:
-    /* ---- NOTE ---------------------------------------------------------------
-     *
-     *  This function extends the given syntax environment 'g'. Since the order
-     *  of operand evaluation in C++ is undefined, be aware of the execution
-     *  timing of side effects of this function.
-     *
-     * ---------------------------------------------------------------------- */
-    let const locate(let const& x, let & g)
-    {
-      if (let const binding = assq(x, g); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
-      {
-        /* ---- R7RS 5.3.1. Top level definitions ------------------------------
-         *
-         *  At the outermost level of a program, a definition
-         *
-         *      (define <variable> <expression>)
-         *
-         *  has essentially the same effect as the assignment expression
-         *
-         *      (set! <variable> <expression>)
-         *
-         *  if <variable> is bound to a non-syntax value. However, if
-         *  <variable> is not bound, or is a syntactic keyword, then the
-         *  definition will bind <variable> to a new location before performing
-         *  the assignment, whereas it would be an error to perform a set! on
-         *  an unbound variable.
-         *
-         * ------------------------------------------------------------------ */
-        return locate(x, push(g, cons(x, make<identifier>(x, g))));
-      }
-      else
-      {
-        return binding;
-      }
-    }
-
     auto current_continuation() const -> let
     {
       return make<continuation>(s, cons(e, cadr(c), d));
@@ -190,8 +155,7 @@ inline namespace kernel
           {
             WRITE_DEBUG(expression, faint, " ; is a <free variable>");
             return cons(make<instruction>(mnemonic::LOAD_GLOBAL),
-                        current_syntactic_continuation.locate(
-                          expression, current_syntactic_continuation.global_environment()),
+                        current_syntactic_continuation.locate(expression),
                         continuation);
           }
         }
@@ -717,7 +681,7 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          let const g = current_syntactic_continuation.locate(caar(expression), current_syntactic_continuation.global_environment());
+          let const g = current_syntactic_continuation.locate(caar(expression));
 
           return compile(in_context_free,
                          current_syntactic_continuation,
@@ -727,7 +691,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          let const g = current_syntactic_continuation.locate(car(expression), current_syntactic_continuation.global_environment());
+          let const g = current_syntactic_continuation.locate(car(expression));
 
           return compile(in_context_free,
                          current_syntactic_continuation,
@@ -1060,9 +1024,8 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        let const location = current_syntactic_continuation.locate(car(expression), current_syntactic_continuation.global_environment());
-
-        if (the_expression_is.at_the_top_level() and cdr(location).is<identifier>())
+        if (let const location = current_syntactic_continuation.locate(car(expression));
+            the_expression_is.at_the_top_level() and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
@@ -1100,7 +1063,7 @@ inline namespace kernel
       else
       {
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of free variable");
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(car(expression), current_syntactic_continuation.global_environment()), continuation);
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(car(expression)), continuation);
       }
     }
 

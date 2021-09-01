@@ -130,6 +130,8 @@ inline namespace kernel
 
     auto load(const_reference) -> value_type;
 
+    auto locate(const_reference) -> const_reference;
+
     auto macroexpand(const_reference, const_reference) -> value_type;
 
   private:
