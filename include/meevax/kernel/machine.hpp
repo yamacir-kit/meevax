@@ -681,23 +681,20 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          let const g = current_syntactic_continuation.locate(caar(expression));
-
           return compile(in_context_free,
                          current_syntactic_continuation,
                          cons(current_syntactic_continuation.intern("lambda"), cdar(expression), cdr(expression)),
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), g, continuation));
+                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(caar(expression)),
+                              continuation));
         }
         else // (define x ...)
         {
-          let const g = current_syntactic_continuation.locate(car(expression));
-
           return compile(in_context_free,
                          current_syntactic_continuation,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
-                         cons(make<instruction>(mnemonic::DEFINE), g,
+                         cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(car(expression)),
                               continuation));
         }
       }
@@ -1062,7 +1059,8 @@ inline namespace kernel
       else
       {
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of free variable");
-        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(car(expression)), continuation);
+        return cons(make<instruction>(mnemonic::LOAD_GLOBAL), current_syntactic_continuation.locate(car(expression)),
+                    continuation);
       }
     }
 
