@@ -191,7 +191,7 @@ inline namespace kernel
       };
 
       // XXX DIRTY HACK
-      return lvalue(context::free,
+      return lvalue(context::none,
                     current_syntactic_continuation,
                     expression,
                     frames,

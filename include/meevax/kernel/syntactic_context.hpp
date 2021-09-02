@@ -52,7 +52,7 @@ inline namespace kernel
 
   namespace context
   {
-    constexpr auto free = syntactic_context();
+    constexpr auto none = syntactic_context();
 
     constexpr auto outermost = syntactic_context(1 << 0);
 

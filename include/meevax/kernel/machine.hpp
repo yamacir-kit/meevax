@@ -188,7 +188,7 @@ inline namespace kernel
 
             WRITE_DEBUG(result);
 
-            return compile(context::free, current_syntactic_continuation, result, frames, continuation);
+            return compile(context::none, current_syntactic_continuation, result, frames, continuation);
           }
         }
 
@@ -234,11 +234,11 @@ inline namespace kernel
         WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>") >> indent::width;
 
         let const result =
-          operand(context::free,
+          operand(context::none,
                   current_syntactic_continuation,
                   cdr(expression),
                   frames,
-                  compile(context::free,
+                  compile(context::none,
                           current_syntactic_continuation,
                           car(expression),
                           frames,
@@ -634,12 +634,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(context::free,
+          return compile(context::none,
                          current_syntactic_continuation,
                          car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::DROP), // pop result of head expression
-                              sequence(context::free,
+                              sequence(context::none,
                                        current_syntactic_continuation,
                                        cdr(expression), // rest expressions
                                        frames,
@@ -681,7 +681,7 @@ inline namespace kernel
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(context::free,
+          return compile(context::none,
                          current_syntactic_continuation,
                          cons(current_syntactic_continuation.intern("lambda"), cdar(expression), cdr(expression)),
                          frames,
@@ -690,7 +690,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(context::free,
+          return compile(context::none,
                          current_syntactic_continuation,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
@@ -823,11 +823,11 @@ inline namespace kernel
     {
       if (expression.is<pair>())
       {
-        return operand(context::free,
+        return operand(context::none,
                        current_syntactic_continuation,
                        cdr(expression),
                        frames,
-                       compile(context::free,
+                       compile(context::none,
                                current_syntactic_continuation,
                                car(expression),
                                frames,
@@ -835,7 +835,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(context::free, current_syntactic_continuation, expression, frames, continuation);
+        return compile(context::none, current_syntactic_continuation, expression, frames, continuation);
       }
     }
 
@@ -876,7 +876,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::RETURN));
 
-        return compile(context::free,
+        return compile(context::none,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -886,7 +886,7 @@ inline namespace kernel
       else
       {
         auto consequent =
-          compile(context::free,
+          compile(context::none,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -894,7 +894,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(context::free,
+            ? compile(context::none,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
@@ -902,7 +902,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::JOIN));
 
-        return compile(context::free,
+        return compile(context::none,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -1000,7 +1000,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
 
-          return compile(context::free,
+          return compile(context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1010,7 +1010,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, index);
 
-          return compile(context::free,
+          return compile(context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1027,7 +1027,7 @@ inline namespace kernel
         }
         else
         {
-          return compile(context::free,
+          return compile(context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1066,11 +1066,11 @@ inline namespace kernel
 
     SYNTAX(construct) // XXX DEPRECATED
     {
-      return compile(context::free,
+      return compile(context::none,
                      current_syntactic_continuation,
                      cadr(expression),
                      frames,
-                     compile(context::free,
+                     compile(context::none,
                              current_syntactic_continuation,
                              car(expression),
                              frames,

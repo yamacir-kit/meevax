@@ -114,7 +114,7 @@ inline namespace kernel
       write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
     }
 
-    c = compile(context::free, *this, expression);
+    c = compile(context::none, *this, expression);
 
     if (is_debug_mode())
     {
