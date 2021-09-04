@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_DE_BRUJIN_INDEX_HPP
-#define INCLUDED_MEEVAX_KERNEL_DE_BRUJIN_INDEX_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_DE_BRUIJN_INDEX_HPP
+#define INCLUDED_MEEVAX_KERNEL_DE_BRUIJN_INDEX_HPP
 
 #include <meevax/kernel/list.hpp>
 
@@ -80,4 +80,4 @@ inline namespace kernel
 } // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_DE_BRUJIN_INDEX_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_DE_BRUIJN_INDEX_HPP

@@ -19,7 +19,7 @@
 
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
-#include <meevax/kernel/de_brujin_index.hpp>
+#include <meevax/kernel/de_bruijn_index.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
@@ -1007,7 +1007,8 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_VARIADIC), index, continuation));
+                         cons(make<instruction>(mnemonic::STORE_VARIADIC), index,
+                              continuation));
         }
         else
         {
@@ -1017,7 +1018,8 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_LOCAL), index, continuation));
+                         cons(make<instruction>(mnemonic::STORE_LOCAL), index,
+                              continuation));
         }
       }
       else
@@ -1051,12 +1053,14 @@ inline namespace kernel
         if (variable.is_variadic())
         {
           WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable);
-          return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable, continuation);
+          return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable,
+                      continuation);
         }
         else
         {
           WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local ", reset, variable);
-          return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable, continuation);
+          return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable,
+                      continuation);
         }
       }
       else

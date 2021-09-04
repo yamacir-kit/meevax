@@ -389,10 +389,10 @@ inline namespace kernel
       return quotation(std::forward<decltype(xs)>(xs)...);
     });
 
-    define<syntax>("reference", [](auto&&... xs) // XXX DEPRECATED
-    {
-      return lvalue(std::forward<decltype(xs)>(xs)...);
-    });
+    // define<syntax>("reference", [](auto&&... xs) // XXX DEPRECATED
+    // {
+    //   return lvalue(std::forward<decltype(xs)>(xs)...);
+    // });
 
     define<syntax>("set!", [](auto&&... xs)
     {
