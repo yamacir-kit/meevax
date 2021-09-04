@@ -74,11 +74,6 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
 
   public:
-    auto current_continuation() const -> let
-    {
-      return make<continuation>(s, cons(e, cadr(c), d));
-    }
-
     /* ---- R7RS 4. Expressions ------------------------------------------------
      *
      *  <expression> = <identifier>
@@ -100,12 +95,12 @@ inline namespace kernel
      *  with the delay, delay-force, and parameterize expression types.
      *
      * ---------------------------------------------------------------------- */
-    let static compile(
+    static auto compile(
       syntactic_context const current_syntactic_context,
       syntactic_continuation & current_syntactic_continuation,
-      let const& expression,
-      let const& frames = unit,
-      let const& continuation = list(make<instruction>(mnemonic::STOP)))
+      pair::const_reference expression,
+      pair::const_reference frames = unit,
+      pair::const_reference continuation = list(make<instruction>(mnemonic::STOP))) -> pair::value_type
     {
       if (expression.is<null>())
       {
@@ -133,23 +128,26 @@ inline namespace kernel
            *  is an error to reference an unbound variable.
            *
            * ------------------------------------------------------------------ */
-          if (de_bruijn_index index { expression, frames }; index)
+          if (auto const index = de_bruijn_index(expression, frames); index.is_bound())
           {
             if (index.is_variadic())
             {
               WRITE_DEBUG(expression, faint, " ; is a <variadic bound variable> references ", reset, index);
-              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), index, continuation);
+              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), index,
+                          continuation);
             }
             else
             {
               WRITE_DEBUG(expression, faint, " ; is a <bound variable> references ", reset, index);
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), index, continuation);
+              return cons(make<instruction>(mnemonic::LOAD_LOCAL), index,
+                          continuation);
             }
           }
           else if (expression.is<identifier>())
           {
             WRITE_DEBUG(expression, faint, " ; is <syntactic-keyword>");
-            return cons(make<instruction>(mnemonic::STRIP), expression, continuation);
+            return cons(make<instruction>(mnemonic::STRIP), expression,
+                        continuation);
           }
           else
           {
@@ -166,7 +164,7 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = lookup(car(expression), current_syntactic_continuation.global_environment()); not de_bruijn_index(car(expression), frames))
+        if (let const& applicant = lookup(car(expression), current_syntactic_continuation.global_environment()); not de_bruijn_index(car(expression), frames).is_bound())
         {
           if (applicant.is<syntax>())
           {
@@ -251,6 +249,11 @@ inline namespace kernel
 
         return result;
       }
+    }
+
+    inline auto current_continuation() const -> pair::value_type
+    {
+      return make<continuation>(s, cons(e, cadr(c), d));
     }
 
     template <bool Trace = false>
@@ -994,7 +997,7 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (de_bruijn_index index { car(expression), frames }; not index.is<null>())
+      else if (auto index = de_bruijn_index(car(expression), frames); index.is_bound())
       {
         if (index.is_variadic())
         {
@@ -1043,7 +1046,7 @@ inline namespace kernel
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of itself");
         return unit;
       }
-      else if (de_bruijn_index<equivalence_comparator<2>> variable { car(expression), frames }; variable)
+      else if (auto variable = de_bruijn_index<equivalence_comparator<2>>(car(expression), frames); variable.is_bound())
       {
         if (variable.is_variadic())
         {

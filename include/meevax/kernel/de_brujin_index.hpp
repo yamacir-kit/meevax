@@ -24,8 +24,7 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Comparator = default_equivalence_comparator>
-  class de_bruijn_index
-    : public let
+  class de_bruijn_index : public let
   {
     bool variadic;
 
@@ -41,7 +40,7 @@ inline namespace kernel
     {
       std::size_t layer = 0;
 
-      for (const auto& frame : frames)
+      for (auto const& frame : frames)
       {
         std::size_t index = 0;
 
@@ -64,10 +63,16 @@ inline namespace kernel
         ++layer;
       }
 
-      return unit;
+      return make<pair>();
     }
 
-    bool is_variadic() const noexcept
+    auto is_bound() const
+    {
+      return car(static_cast<let const&>(*this)) and
+             cdr(static_cast<let const&>(*this));
+    }
+
+    auto is_variadic() const noexcept -> bool
     {
       return variadic;
     }
