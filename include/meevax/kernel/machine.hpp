@@ -101,7 +101,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
     let static compile(
-      syntactic_context const& current_syntactic_context,
+      syntactic_context const current_syntactic_context,
       syntactic_continuation & current_syntactic_continuation,
       let const& expression,
       let const& frames = unit,
@@ -172,7 +172,7 @@ inline namespace kernel
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>") >> indent::width;
 
-            let result =
+            let const result =
               applicant.as<syntax>().compile(
                 current_syntactic_context, current_syntactic_continuation, cdr(expression), frames, continuation);
 
