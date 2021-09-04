@@ -257,9 +257,9 @@ inline namespace kernel
     }
 
     template <bool Trace = false>
-    let execute()
+    inline auto execute() -> pair::value_type
     {
-    dispatch:
+    decode:
       if constexpr (Trace)
       {
         std::cerr << faint << header("trace s") << reset <<  s << "\n"
@@ -283,7 +283,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(list_ref(list_ref(e, caadr(c)), cdadr(c)), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::LOAD_VARIADIC: /* -----------------------------------------
         *
@@ -295,7 +295,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(list_tail(list_ref(e, caadr(c)), cdadr(c)), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::LOAD_CONSTANT: /* -----------------------------------------
         *
@@ -305,7 +305,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cadr(c), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       // case mnemonic::LOAD_SYNTAX: /* -------------------------------------------
       //   *
@@ -315,7 +315,7 @@ inline namespace kernel
       //   * ------------------------------------------------------------------- */
       //   push(s, cadr(c));
       //   pop<2>(c);
-      //   goto dispatch;
+      //   goto decode;
 
       case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
@@ -325,7 +325,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cdadr(c), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::STRIP: /* -------------------------------------------------
         *
@@ -335,7 +335,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cadr(c).template as<identifier>().lookup(), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::LOAD_CLOSURE: /* ------------------------------------------
         *
@@ -345,7 +345,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(make<closure>(cadr(c), e), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::LOAD_CONTINUATION: /* -------------------------------------
         *
@@ -357,7 +357,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(list(current_continuation()), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::FORK: /* --------------------------------------------------
         *
@@ -369,7 +369,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(fork(), s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::SELECT: /* ------------------------------------------------
         *
@@ -392,7 +392,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         c = if_(car(s)) ? cadr(c) : caddr(c);
         s = cdr(s);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::JOIN: /* --------------------------------------------------
         *
@@ -402,7 +402,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         c = car(d);
         d = cdr(d);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
@@ -414,7 +414,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         cdadr(c) = car(s);
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::CALL: /* --------------------------------------------------
         *
@@ -450,7 +450,7 @@ inline namespace kernel
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto dispatch;
+        goto decode;
 
       case mnemonic::TAIL_CALL: /* ---------------------------------------------
         *
@@ -478,7 +478,7 @@ inline namespace kernel
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto dispatch;
+        goto decode;
 
       case mnemonic::RETURN: /* ------------------------------------------------
         *
@@ -489,7 +489,7 @@ inline namespace kernel
         s = cons(car(s), pop(d));
         e = pop(d);
         c = pop(d);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::CONS: /* --------------------------------------------------
         *
@@ -499,7 +499,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cons(cons(car(s), cadr(s)), cddr(s));
         c = cdr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::DROP: /* --------------------------------------------------
         *
@@ -509,7 +509,7 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         s = cdr(s);
         c = cdr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::STORE_GLOBAL: /* ------------------------------------------
         *
@@ -528,7 +528,7 @@ inline namespace kernel
           cdr(binding).store(car(s));
         }
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::STORE_LOCAL: /* -------------------------------------------
         *
@@ -538,12 +538,12 @@ inline namespace kernel
         * ------------------------------------------------------------------- */
         car(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       case mnemonic::STORE_VARIADIC:
         cdr(list_tail(list_ref(e, caadr(c)), cdadr(c))).store(car(s));
         c = cddr(c);
-        goto dispatch;
+        goto decode;
 
       default: // ERROR
       case mnemonic::STOP: /* --------------------------------------------------
