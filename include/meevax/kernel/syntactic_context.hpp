@@ -19,45 +19,37 @@
 
 #include <cstdint>
 
+#include <meevax/type_traits/underlying_cast.hpp>
+
 namespace meevax
 {
 inline namespace kernel
 {
-  struct syntactic_context
+  enum class syntactic_context : std::uint64_t
   {
-    using value_type = std::uint64_t;
+    none,
 
-    const value_type value;
+    outermost = (1 << 0),
 
-    explicit constexpr syntactic_context(value_type value = 0)
-      : value { value }
-    {}
-
-    template <typename... Ts>
-    constexpr auto operator [](Ts&&... xs) const noexcept
-    {
-      return in(std::forward<decltype(xs)>(xs)...);
-    }
-
-    constexpr auto operator |(syntactic_context const& c) const noexcept
-    {
-      return syntactic_context(value | c.value);
-    }
-
-    constexpr auto is_in(syntactic_context c) const noexcept -> bool
-    {
-      return value & c.value;
-    }
+    tail_call = (1 << 1),
   };
 
-  namespace context
+  constexpr auto operator |(syntactic_context const c1, syntactic_context const c2) noexcept
   {
-    constexpr auto none = syntactic_context();
-
-    constexpr auto outermost = syntactic_context(1 << 0);
-
-    constexpr auto tail_call = syntactic_context(1 << 1);
+    return static_cast<syntactic_context>(underlying_cast(c1) | underlying_cast(c2));
   }
+
+  constexpr auto operator &(syntactic_context const c1, syntactic_context const c2) noexcept
+  {
+    return static_cast<syntactic_context>(underlying_cast(c1) & underlying_cast(c2));
+  }
+
+  constexpr auto operator &&(syntactic_context const c1, syntactic_context const c2) noexcept
+  {
+    return static_cast<bool>(underlying_cast(c1) & underlying_cast(c2));
+  }
+
+  using context = syntactic_context;
 } // namespace kernel
 } // namespace meevax
 

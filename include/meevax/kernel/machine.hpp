@@ -242,7 +242,7 @@ inline namespace kernel
                           current_syntactic_continuation,
                           car(expression),
                           frames,
-                          cons(make<instruction>(current_syntactic_context.is_in(context::tail_call)
+                          cons(make<instruction>(current_syntactic_context && context::tail_call
                                                    ? mnemonic::TAIL_CALL
                                                    : mnemonic::     CALL),
                                continuation)));
@@ -606,7 +606,7 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (current_syntactic_context.is_in(context::outermost))
+      if (current_syntactic_context && context::outermost)
       {
         if (cdr(expression).is<null>())
         {
@@ -675,7 +675,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or current_syntactic_context.is_in(context::outermost))
+      if (frames.is<null>() or current_syntactic_context && context::outermost)
       {
         WRITE_DEBUG(car(expression), faint, " ; is <variable>");
 
@@ -857,7 +857,7 @@ inline namespace kernel
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
-      if (current_syntactic_context.is_in(context::tail_call))
+      if (current_syntactic_context && context::tail_call)
       {
         auto consequent =
           compile(context::tail_call,
@@ -1021,7 +1021,7 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        if (let const location = current_syntactic_continuation.locate(car(expression)); current_syntactic_context.is_in(context::outermost) and cdr(location).is<identifier>())
+        if (let const location = current_syntactic_continuation.locate(car(expression)); (current_syntactic_context && context::outermost) and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
