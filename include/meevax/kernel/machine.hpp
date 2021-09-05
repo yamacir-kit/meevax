@@ -128,18 +128,18 @@ inline namespace kernel
            *  is an error to reference an unbound variable.
            *
            * ------------------------------------------------------------------ */
-          if (auto const index = de_bruijn_index(expression, frames); index.is_bound())
+          if (auto const variable = de_bruijn_index(expression, frames); variable.is_bound())
           {
-            if (index.is_variadic())
+            if (variable.is_variadic)
             {
-              WRITE_DEBUG(expression, faint, " ; is a <variadic bound variable> references ", reset, index);
-              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), index,
+              WRITE_DEBUG(expression, faint, " ; is a <variadic bound variable> references ", reset, variable.index);
+              return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
                           continuation);
             }
             else
             {
-              WRITE_DEBUG(expression, faint, " ; is a <bound variable> references ", reset, index);
-              return cons(make<instruction>(mnemonic::LOAD_LOCAL), index,
+              WRITE_DEBUG(expression, faint, " ; is a <bound variable> references ", reset, variable.index);
+              return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
                           continuation);
             }
           }
@@ -997,28 +997,28 @@ inline namespace kernel
       {
         throw syntax_error(make<string>("set!"), expression);
       }
-      else if (auto index = de_bruijn_index(car(expression), frames); index.is_bound())
+      else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
       {
-        if (index.is_variadic())
+        if (variable.is_variadic)
         {
-          WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, index);
+          WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, variable.index);
 
           return compile(context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_VARIADIC), index,
+                         cons(make<instruction>(mnemonic::STORE_VARIADIC), variable.index,
                               continuation));
         }
         else
         {
-          WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, index);
+          WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, variable.index);
 
           return compile(context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_LOCAL), index,
+                         cons(make<instruction>(mnemonic::STORE_LOCAL), variable.index,
                               continuation));
         }
       }
@@ -1050,16 +1050,16 @@ inline namespace kernel
       }
       else if (auto variable = de_bruijn_index<equivalence_comparator<2>>(car(expression), frames); variable.is_bound())
       {
-        if (variable.is_variadic())
+        if (variable.is_variadic)
         {
-          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable);
-          return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable,
+          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local variadic ", reset, variable.index);
+          return cons(make<instruction>(mnemonic::LOAD_VARIADIC), variable.index,
                       continuation);
         }
         else
         {
-          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local ", reset, variable);
-          return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable,
+          WRITE_DEBUG(car(expression), faint, " ; is <identifier> of local ", reset, variable.index);
+          return cons(make<instruction>(mnemonic::LOAD_LOCAL), variable.index,
                       continuation);
         }
       }

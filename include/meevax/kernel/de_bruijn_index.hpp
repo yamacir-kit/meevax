@@ -24,19 +24,20 @@ namespace meevax
 inline namespace kernel
 {
   template <typename Comparator = default_equivalence_comparator>
-  class de_bruijn_index : public let
+  struct de_bruijn_index
   {
-    bool variadic;
-
-  public:
     Comparator compare {};
+
+    bool is_variadic;
+
+    let const index;
 
     template <typename... Ts>
     explicit de_bruijn_index(Ts&&... xs)
-      : let { lookup(std::forward<decltype(xs)>(xs)...) }
+      : index { notate(std::forward<decltype(xs)>(xs)...) }
     {}
 
-    let lookup(let const& value, let const& frames)
+    auto notate(pair::const_reference value, pair::const_reference frames) -> pair::value_type // XXX UGLY CODE!!!
     {
       std::size_t layer = 0;
 
@@ -44,16 +45,16 @@ inline namespace kernel
       {
         std::size_t index = 0;
 
-        for (auto iter = std::begin(frame); iter != std::end(frame); ++iter)
+        for (let node = frame; node; node = cdr(node))
         {
-          if (static_cast<let const&>(iter).is<pair>() and compare(*iter, value))
+          if (node.is<pair>() and compare(car(node), value))
           {
-            variadic = false;
+            is_variadic = false;
             return cons(make<exact_integer>(layer), make<exact_integer>(index));
           }
-          else if (static_cast<let const&>(iter).is<symbol>() and compare(iter, value))
+          else if (node.is<symbol>() and compare(node, value))
           {
-            variadic = true;
+            is_variadic = true;
             return cons(make<exact_integer>(layer), make<exact_integer>(index));
           }
 
@@ -63,18 +64,12 @@ inline namespace kernel
         ++layer;
       }
 
-      return make<pair>();
+      return unit;
     }
 
-    auto is_bound() const
+    auto is_bound() const -> bool
     {
-      return car(static_cast<let const&>(*this)) and
-             cdr(static_cast<let const&>(*this));
-    }
-
-    auto is_variadic() const noexcept -> bool
-    {
-      return variadic;
+      return not index.is<null>();
     }
   };
 } // namespace kernel
