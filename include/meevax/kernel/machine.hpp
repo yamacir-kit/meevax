@@ -143,12 +143,6 @@ inline namespace kernel
                           continuation);
             }
           }
-          else if (expression.is<identifier>())
-          {
-            WRITE_DEBUG(expression, faint, " ; is <syntactic-keyword>");
-            return cons(make<instruction>(mnemonic::STRIP), expression,
-                        continuation);
-          }
           else
           {
             WRITE_DEBUG(expression, faint, " ; is a <free variable>");
@@ -324,16 +318,6 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         s = cons(cdadr(c), s);
-        c = cddr(c);
-        goto decode;
-
-      case mnemonic::STRIP: /* -------------------------------------------------
-        *
-        *             S  E (STRIP identifier . C) D
-        *  => (form . S) E                     C  D
-        *
-        * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<identifier>().lookup(), s);
         c = cddr(c);
         goto decode;
 
