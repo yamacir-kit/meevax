@@ -28,10 +28,6 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto assq() const -> const_reference;
-
-    auto global_environment() const noexcept -> const_reference;
-
     auto is_bound() const -> bool;
 
     auto is_free() const -> bool;

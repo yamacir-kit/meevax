@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+#include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/posix/vt10x.hpp>
 
@@ -21,16 +22,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identifier::assq() const -> const_reference
-  {
-    return kernel::assq(symbol(), global_environment());
-  }
-
-  auto identifier::global_environment() const noexcept -> const_reference
-  {
-    return std::get<1>(*this);
-  }
-
   auto identifier::is_bound() const -> bool
   {
     return not is_free();
@@ -38,7 +29,7 @@ inline namespace kernel
 
   auto identifier::is_free() const -> bool
   {
-    return assq().eqv(f);
+    return std::get<1>(*this).eqv(undefined);
   }
 
   auto identifier::symbol() const noexcept -> const_reference

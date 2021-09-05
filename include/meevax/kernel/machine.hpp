@@ -303,8 +303,10 @@ inline namespace kernel
 
       case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
-        *               S  E (LOAD-GLOBAL cell . C) D
-        *  => (object . S) E                     C  D
+        *               S  E (LOAD-GLOBAL <identifier> . C) D
+        *  => (object . S) E                             C  D
+        *
+        *  where <identifier> = (<symbol> . <unknown>)
         *
         * ------------------------------------------------------------------- */
         s = cons(cdadr(c), s);
@@ -380,10 +382,10 @@ inline namespace kernel
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *     (x . S) E (DEFINE cell . C) D
-        *  => (x . S) E                C  D
+        *     (x . S) E (DEFINE <identifier> . C) D
+        *  => (x . S) E                        C  D
         *
-        *  where cell = (identifier . <unknown>)
+        *  where <identifier> = (<symbol> . <unknown>)
         *
         * ------------------------------------------------------------------- */
         cdadr(c) = car(s);
@@ -487,10 +489,10 @@ inline namespace kernel
 
       case mnemonic::STORE_GLOBAL: /* ------------------------------------------
         *
-        *     (value . S) E (STORE-GLOBAL cell . C) D
-        *  => (value . S) E                      C  D
+        *     (value . S) E (STORE-GLOBAL <identifier> . C) D
+        *  => (value . S) E                              C  D
         *
-        *  where cell = (identifier . x)
+        *  where <identifier> = (<symbol> . x)
         *
         * ------------------------------------------------------------------- */
         if (let const& binding = cadr(c); cdr(binding).is<null>())

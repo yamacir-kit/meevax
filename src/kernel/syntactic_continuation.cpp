@@ -235,7 +235,7 @@ inline namespace kernel
        *
        * -------------------------------------------------------------------- */
 
-      push(global_environment(), cons(x, make<identifier>(x, global_environment())));
+      push(global_environment(), cons(x, make<identifier>(x, undefined)));
 
       return car(global_environment());
     }
