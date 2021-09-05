@@ -21,12 +21,12 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto identifier::assq() const -> let const&
+  auto identifier::assq() const -> const_reference
   {
-    return kernel::assq(unwrap_syntax(), global_environment());
+    return kernel::assq(symbol(), global_environment());
   }
 
-  auto identifier::global_environment() const noexcept -> let const&
+  auto identifier::global_environment() const noexcept -> const_reference
   {
     return std::get<1>(*this);
   }
@@ -41,7 +41,7 @@ inline namespace kernel
     return assq().eqv(f);
   }
 
-  auto identifier::lookup() const -> let const&
+  auto identifier::lookup() const -> const_reference
   {
     if (let const& x = assq(); x != f)
     {
@@ -49,18 +49,18 @@ inline namespace kernel
     }
     else
     {
-      return unwrap_syntax();
+      return symbol();
     }
   }
 
-  auto identifier::unwrap_syntax() const noexcept -> let const&
+  auto identifier::symbol() const noexcept -> const_reference
   {
     return std::get<0>(*this);
   }
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
   {
-    return os << underline << datum.unwrap_syntax() << reset;
+    return os << underline << datum.symbol() << reset;
   }
 
   auto lookup(let const& x, let const& g) -> let const&

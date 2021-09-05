@@ -28,17 +28,17 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto assq() const -> let const&;
+    auto assq() const -> const_reference;
 
-    auto global_environment() const noexcept -> let const&;
+    auto global_environment() const noexcept -> const_reference;
 
     auto is_bound() const -> bool;
 
     auto is_free() const -> bool;
 
-    auto lookup() const -> let const&;
+    auto lookup() const -> const_reference;
 
-    auto unwrap_syntax() const noexcept -> let const&;
+    auto symbol() const noexcept -> const_reference;
   };
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &;

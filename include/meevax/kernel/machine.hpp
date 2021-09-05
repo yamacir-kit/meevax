@@ -301,16 +301,6 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      // case mnemonic::LOAD_SYNTAX: /* -------------------------------------------
-      //   *
-      //   *                 S  E (LOAD-SYNTAX syntax . C) D
-      //   *  => (constant . S) E                       C  D
-      //   *
-      //   * ------------------------------------------------------------------- */
-      //   push(s, cadr(c));
-      //   pop<2>(c);
-      //   goto decode;
-
       case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
         *               S  E (LOAD-GLOBAL cell . C) D

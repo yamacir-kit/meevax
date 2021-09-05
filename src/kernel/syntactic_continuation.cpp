@@ -2142,7 +2142,7 @@ inline namespace kernel
 
     define<procedure>("identifier->symbol", [](let const& xs)
     {
-      return car(xs).as<identifier>().unwrap_syntax();
+      return car(xs).as<identifier>().symbol();
     });
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
