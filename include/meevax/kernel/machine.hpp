@@ -1012,7 +1012,8 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location, continuation));
+                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location,
+                              continuation));
         }
       }
     }
