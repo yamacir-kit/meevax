@@ -216,7 +216,7 @@ inline namespace kernel
 
   auto syntactic_continuation::locate(const_reference x) -> const_reference
   {
-    if (let const& binding = assq(x, global_environment()); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
+    if (let const& binding = assq(x, global_environment()); eq(binding, f)) // TODO
     {
       /* -----------------------------------------------------------------------
        *

@@ -41,18 +41,6 @@ inline namespace kernel
     return assq().eqv(f);
   }
 
-  auto identifier::lookup() const -> const_reference
-  {
-    if (let const& x = assq(); x != f)
-    {
-      return cdr(x);
-    }
-    else
-    {
-      return symbol();
-    }
-  }
-
   auto identifier::symbol() const noexcept -> const_reference
   {
     return std::get<0>(*this);
@@ -71,7 +59,7 @@ inline namespace kernel
     }
     else
     {
-      return x.is<identifier>() ? x.as<identifier>().lookup() : x;
+      return x.is<identifier>() ? x.as<identifier>().symbol() : x;
     }
   }
 } // namespace kernel

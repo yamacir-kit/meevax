@@ -36,13 +36,12 @@ inline namespace kernel
 
     auto is_free() const -> bool;
 
-    auto lookup() const -> const_reference;
-
     auto symbol() const noexcept -> const_reference;
   };
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &;
 
+  [[deprecated]]
   auto lookup(let const& x, let const& g) -> let const&;
 } // namespace kernel
 } // namespace meevax
