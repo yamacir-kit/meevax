@@ -143,12 +143,6 @@ inline namespace kernel
                           continuation);
             }
           }
-          else if (expression.is<identifier>())
-          {
-            WRITE_DEBUG(expression, faint, " ; is <syntactic-keyword>");
-            return cons(make<instruction>(mnemonic::STRIP), expression,
-                        continuation);
-          }
           else
           {
             WRITE_DEBUG(expression, faint, " ; is a <free variable>");
@@ -307,33 +301,15 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      // case mnemonic::LOAD_SYNTAX: /* -------------------------------------------
-      //   *
-      //   *                 S  E (LOAD-SYNTAX syntax . C) D
-      //   *  => (constant . S) E                       C  D
-      //   *
-      //   * ------------------------------------------------------------------- */
-      //   push(s, cadr(c));
-      //   pop<2>(c);
-      //   goto decode;
-
       case mnemonic::LOAD_GLOBAL: /* -------------------------------------------
         *
-        *               S  E (LOAD-GLOBAL cell . C) D
-        *  => (object . S) E                     C  D
+        *               S  E (LOAD-GLOBAL <identifier> . C) D
+        *  => (object . S) E                             C  D
+        *
+        *  where <identifier> = (<symbol> . <unknown>)
         *
         * ------------------------------------------------------------------- */
         s = cons(cdadr(c), s);
-        c = cddr(c);
-        goto decode;
-
-      case mnemonic::STRIP: /* -------------------------------------------------
-        *
-        *             S  E (STRIP identifier . C) D
-        *  => (form . S) E                     C  D
-        *
-        * ------------------------------------------------------------------- */
-        s = cons(cadr(c).template as<identifier>().lookup(), s);
         c = cddr(c);
         goto decode;
 
@@ -406,10 +382,10 @@ inline namespace kernel
 
       case mnemonic::DEFINE: /* ------------------------------------------------
         *
-        *     (x . S) E (DEFINE cell . C) D
-        *  => (x . S) E                C  D
+        *     (x . S) E (DEFINE <identifier> . C) D
+        *  => (x . S) E                        C  D
         *
-        *  where cell = (identifier . <unknown>)
+        *  where <identifier> = (<symbol> . <unknown>)
         *
         * ------------------------------------------------------------------- */
         cdadr(c) = car(s);
@@ -513,10 +489,10 @@ inline namespace kernel
 
       case mnemonic::STORE_GLOBAL: /* ------------------------------------------
         *
-        *     (value . S) E (STORE-GLOBAL cell . C) D
-        *  => (value . S) E                      C  D
+        *     (value . S) E (STORE-GLOBAL <identifier> . C) D
+        *  => (value . S) E                              C  D
         *
-        *  where cell = (identifier . x)
+        *  where <identifier> = (<symbol> . x)
         *
         * ------------------------------------------------------------------- */
         if (let const& binding = cadr(c); cdr(binding).is<null>())
@@ -1036,7 +1012,8 @@ inline namespace kernel
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
-                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location, continuation));
+                         cons(make<instruction>(mnemonic::STORE_GLOBAL), location,
+                              continuation));
         }
       }
     }

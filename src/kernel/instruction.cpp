@@ -45,7 +45,6 @@ inline namespace kernel
       case mnemonic::STORE_GLOBAL:      return "STORE_GLOBAL";
       case mnemonic::STORE_LOCAL:       return "STORE_LOCAL";
       case mnemonic::STORE_VARIADIC:    return "STORE_VARIADIC";
-      case mnemonic::STRIP:             return "STRIP";
       case mnemonic::TAIL_CALL:         return "TAIL_CALL";
       case mnemonic::TAIL_SELECT:       return "TAIL_SELECT";
 
@@ -103,7 +102,6 @@ inline namespace kernel
       case mnemonic::LOAD_VARIADIC:
       case mnemonic::STORE_LOCAL:
       case mnemonic::STORE_VARIADIC:
-      case mnemonic::STRIP:
         os << *iter << " " << *++iter << "\n";
         index += 2;
         break;

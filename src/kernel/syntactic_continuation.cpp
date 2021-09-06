@@ -214,9 +214,9 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::locate(const_reference x) -> const_reference
+  auto syntactic_continuation::locate(const_reference variable) -> const_reference
   {
-    if (let const& binding = assq(x, global_environment()); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
+    if (let const& binding = assq(variable, global_environment()); eq(binding, f))
     {
       /* -----------------------------------------------------------------------
        *
@@ -235,7 +235,11 @@ inline namespace kernel
        *
        * -------------------------------------------------------------------- */
 
-      push(global_environment(), cons(x, make<identifier>(x, global_environment())));
+      let const id = make<identifier>(variable);
+
+      cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
+
+      global_environment() = cons(id, global_environment());
 
       return car(global_environment());
     }
@@ -2142,7 +2146,7 @@ inline namespace kernel
 
     define<procedure>("identifier->symbol", [](let const& xs)
     {
-      return car(xs).as<identifier>().unwrap_syntax();
+      return car(xs).as<identifier>().symbol();
     });
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());

@@ -28,21 +28,16 @@ inline namespace kernel
   {
     using pair::pair;
 
-    auto assq() const -> let const&;
-
-    auto global_environment() const noexcept -> let const&;
-
     auto is_bound() const -> bool;
 
     auto is_free() const -> bool;
 
-    auto lookup() const -> let const&;
-
-    auto unwrap_syntax() const noexcept -> let const&;
+    auto symbol() const noexcept -> const_reference;
   };
 
   auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &;
 
+  [[deprecated]]
   auto lookup(let const& x, let const& g) -> let const&;
 } // namespace kernel
 } // namespace meevax

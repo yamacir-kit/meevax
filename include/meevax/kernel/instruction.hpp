@@ -48,7 +48,6 @@ inline namespace kernel
     STORE_GLOBAL,
     STORE_LOCAL,
     STORE_VARIADIC,
-    STRIP,
     TAIL_CALL,
     TAIL_SELECT,
   };
