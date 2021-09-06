@@ -29,7 +29,8 @@ inline namespace kernel
 
   auto identifier::is_free() const -> bool
   {
-    return std::get<1>(*this).eqv(undefined);
+    return std::get<1>(*this).is<identifier>() and
+           std::get<1>(*this).as<identifier>() == *this; // NOTE: See syntactic_continuation::locate
   }
 
   auto identifier::symbol() const noexcept -> const_reference
