@@ -16,7 +16,7 @@
 
 #include <meevax/kernel/syntactic_continuation.hpp>
 
-auto main(const int argc, meevax::const_pointer<meevax::const_pointer<const char>> argv) -> typename std::underlying_type<meevax::exit_status>::type
+auto main(int const argc, char const* const* const argv) -> int
 {
   using namespace meevax;
 
@@ -26,13 +26,10 @@ auto main(const int argc, meevax::const_pointer<meevax::const_pointer<const char
 
     root.configure(argc, argv);
 
-    if (root.is_interactive_mode())
+    while (root.is_interactive_mode() and root.char_ready())
     {
-      for (auto index = 0; root.char_ready(); ++index)
-      {
-        root.write_to(root.standard_interaction_port(), root.current_prompt());
-        root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
-      }
+      root.write_to(root.standard_interaction_port(), root.current_prompt());
+      root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
     }
 
     return underlying_cast(exit_status::success);
