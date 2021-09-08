@@ -533,7 +533,7 @@ inline namespace kernel
       }
     }
 
-  protected: // PRIMITIVE EXPRESSION TYPES
+  protected:
     static SYNTAX(quotation) /* ------------------------------------------------
     *
     *  (quote <datum>)                                                   syntax
@@ -556,7 +556,8 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       WRITE_DEBUG(car(expression), faint, " ; is <datum>");
-      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
+      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
+                  continuation);
     }
 
     static SYNTAX(sequence) /* -------------------------------------------------
@@ -693,7 +694,7 @@ inline namespace kernel
           compile(current_syntactic_context, current_syntactic_continuation, form, frames, continuation);
           return false;
         }
-        catch (const tagged_syntax_error<internal_definition_tag>&)
+        catch (tagged_syntax_error<internal_definition_tag> const&)
         {
           return true;
         }
@@ -767,6 +768,11 @@ inline namespace kernel
         return result;
       };
 
+      /*
+         (lambda <formals> <body>)
+
+           where <body> = <definition>* <expression>* <tail expression>
+      */
       if (cdr(expression).is<null>()) // is tail-sequence
       {
         return compile(current_syntactic_context | context::tail_call,
@@ -810,7 +816,8 @@ inline namespace kernel
                                current_syntactic_continuation,
                                car(expression),
                                frames,
-                               cons(make<instruction>(mnemonic::CONS), continuation)));
+                               cons(make<instruction>(mnemonic::CONS),
+                                    continuation)));
       }
       else
       {
@@ -920,7 +927,7 @@ inline namespace kernel
                   body(current_syntactic_context,
                        current_syntactic_continuation,
                        cdr(expression),
-                       cons(car(expression), frames),
+                       cons(car(expression), frames), // Extend lexical environment.
                        list(make<instruction>(mnemonic::RETURN))),
                   continuation);
     }
