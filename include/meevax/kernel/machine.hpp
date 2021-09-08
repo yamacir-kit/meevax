@@ -590,7 +590,11 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>())
         {
-          return compile(context::outermost, current_syntactic_continuation, car(expression), frames, continuation);
+          return compile(context::outermost,
+                         current_syntactic_continuation,
+                         car(expression),
+                         frames,
+                         continuation);
         }
         else
         {
@@ -610,7 +614,11 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>()) // is tail sequence
         {
-          return compile(current_syntactic_context, current_syntactic_continuation, car(expression), frames, continuation);
+          return compile(current_syntactic_context,
+                         current_syntactic_continuation,
+                         car(expression),
+                         frames,
+                         continuation);
         }
         else
         {
@@ -721,20 +729,13 @@ inline namespace kernel
 
       auto letrec = [&](auto const& binding_specs, auto const& tail_body)
       {
-        // std::cout << "\n"
-        //           << "; compiler\t; letrec\n"
-        //           << ";\t\t; binding-specs = " << binding_specs << "\n"
-        //           << ";\t\t; tail-body = " << tail_body << std::endl;
-
         let const variables = map(
           [](let const& x)
           {
             return car(x).is<pair>() ? caar(x) : car(x);
           }, binding_specs);
-        // std::cout << ";\t\t; variables = " << variables << std::endl;
 
         let const inits = make_list(length(variables), undefined);
-        // std::cout << ";\t\t; inits = " << inits << std::endl;
 
         let const head_body = map(
           [&](auto&& x)
@@ -751,21 +752,10 @@ inline namespace kernel
             }
           }, binding_specs);
 
-        // std::cout << ";\t\t; head_body length is " << length(head_body) << std::endl;
-        //
-        // for (const auto& each : head_body)
-        // {
-        //   std::cout << ";\t\t; " << each << std::endl;
-        // }
-
-        let const result = cons(cons(current_syntactic_continuation.intern("lambda"), // XXX NOT HYGIENIC!!!
-                                     variables,
-                                     append(head_body, tail_body)),
-                                inits);
-
-        // std::cout << "\t\t; result = " << result << std::endl;
-
-        return result;
+        return cons(cons(current_syntactic_continuation.intern("lambda"), // XXX NOT HYGIENIC!!!
+                         variables,
+                         append(head_body, tail_body)),
+                    inits);
       };
 
       /*
