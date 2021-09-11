@@ -158,7 +158,7 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = lookup(car(expression), current_syntactic_continuation.global_environment()); not de_bruijn_index(car(expression), frames).is_bound())
+        if (let const& applicant = lookup(car(expression), current_syntactic_continuation.global_environment()); de_bruijn_index(car(expression), frames).is_free())
         {
           if (applicant.is<syntax>())
           {
@@ -590,7 +590,7 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>())
         {
-          return compile(context::outermost,
+          return compile(current_syntactic_context,
                          current_syntactic_continuation,
                          car(expression),
                          frames,
@@ -727,7 +727,7 @@ inline namespace kernel
         return std::make_pair(reverse(binding_specs), std::end(form));
       };
 
-      auto letrec = [&](auto const& binding_specs, auto const& tail_body)
+      auto letrec = [&](auto const& binding_specs, auto const& body)
       {
         let const variables = map(
           [](let const& x)
@@ -735,9 +735,9 @@ inline namespace kernel
             return car(x).is<pair>() ? caar(x) : car(x);
           }, binding_specs);
 
-        let const inits = make_list(length(variables), undefined);
+        let const initials = make_list(length(variables), undefined);
 
-        let const head_body = map(
+        let const assignments = map(
           [&](auto&& x)
           {
             if (car(x).template is<pair>())
@@ -752,16 +752,26 @@ inline namespace kernel
             }
           }, binding_specs);
 
+        /*
+            (letrec <binding specs> <body>)
+
+            where <binding specs> = ((<variable 1> <init 1>) ...)
+
+              => ((lambda <variables>
+                    <assignments>
+                    <body>)
+                  <initials>)
+        */
         return cons(cons(current_syntactic_continuation.intern("lambda"), // XXX NOT HYGIENIC!!!
                          variables,
-                         append(head_body, tail_body)),
-                    inits);
+                         append(assignments, body)),
+                    initials);
       };
 
       /*
          (lambda <formals> <body>)
 
-           where <body> = <definition>* <expression>* <tail expression>
+         where <body> = <definition>* <expression>* <tail expression>
       */
       if (cdr(expression).is<null>()) // is tail-sequence
       {
