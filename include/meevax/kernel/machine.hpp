@@ -158,7 +158,7 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = lookup(car(expression), current_syntactic_continuation.global_environment()); de_bruijn_index(car(expression), frames).is_free())
+        if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
         {
           if (applicant.is<syntax>())
           {
@@ -724,7 +724,7 @@ inline namespace kernel
           }
         }
 
-        return std::make_pair(reverse(binding_specs), std::end(form));
+        return std::make_pair(reverse(binding_specs), std::cend(form));
       };
 
       auto letrec = [&](auto const& binding_specs, auto const& body)
@@ -734,8 +734,6 @@ inline namespace kernel
           {
             return car(x).is<pair>() ? caar(x) : car(x);
           }, binding_specs);
-
-        let const initials = make_list(length(variables), undefined);
 
         let const assignments = map(
           [&](auto&& x)
@@ -751,6 +749,8 @@ inline namespace kernel
               return cons(current_syntactic_continuation.intern("set!"), x);
             }
           }, binding_specs);
+
+        let const initials = make_list(length(variables), undefined);
 
         /*
             (letrec <binding specs> <body>)

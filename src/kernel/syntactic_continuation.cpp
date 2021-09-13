@@ -249,6 +249,18 @@ inline namespace kernel
     }
   }
 
+  auto syntactic_continuation::lookup(const_reference variable) const -> const_reference
+  {
+    if (let const& x = assq(variable, global_environment()); eq(x, f))
+    {
+      return variable.is<identifier>() ? variable.as<identifier>().symbol() : variable;
+    }
+    else
+    {
+      return cdr(x);
+    }
+  }
+
   auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
     ++generation;
