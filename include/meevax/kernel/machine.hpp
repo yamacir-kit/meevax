@@ -695,16 +695,16 @@ inline namespace kernel
 
     static SYNTAX(body)
     {
-      auto is_definition = [&](auto const& form)
+      auto is_definition = [&](let const& form)
       {
-        try
+        if (form.is<pair>() and de_bruijn_index(car(form), frames).is_free())
         {
-          compile(current_syntactic_context, current_syntactic_continuation, form, frames, continuation);
-          return false;
+          let const& callee = current_syntactic_continuation.lookup(car(form));
+          return callee.is<syntax>() and callee.as<syntax>().name == "define";
         }
-        catch (tagged_syntax_error<internal_definition_tag> const&)
+        else
         {
-          return true;
+          return false;
         }
       };
 
@@ -781,11 +781,11 @@ inline namespace kernel
                        frames,
                        continuation);
       }
-      else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
+      else if (auto const [binding_specs, body] = sweep(expression); binding_specs)
       {
         return compile(current_syntactic_context,
                        current_syntactic_continuation,
-                       letrec(binding_specs, tail_body),
+                       letrec(binding_specs, body),
                        frames,
                        continuation);
       }

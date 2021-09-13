@@ -35,7 +35,7 @@ inline namespace kernel
     auto symbol() const noexcept -> const_reference;
   };
 
-  auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &;
+  auto operator <<(std::ostream &, identifier const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 
