@@ -712,11 +712,26 @@ inline namespace kernel
       {
         let binding_specs = unit;
 
-        for (auto iter = std::cbegin(form); iter != std::cend(form); ++iter)
+        for (auto iter = std::begin(form); iter != std::end(form); ++iter)
         {
           if (is_definition(*iter))
           {
-            binding_specs = cons(cdr(*iter), binding_specs);
+            if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) <body>)
+            {
+              let const& variable = caadr(*iter);
+              let const& formals = cdadr(*iter);
+              let const& body = cddr(*iter);
+
+              let const binding_spec = list(variable, cons(current_syntactic_continuation.intern("lambda"), formals, body));
+
+              binding_specs = cons(binding_spec, binding_specs);
+            }
+            else // (define <variable> <expression>)
+            {
+              let const binding_spec = cdr(*iter);
+
+              binding_specs = cons(binding_spec, binding_specs);
+            }
           }
           else
           {
@@ -724,31 +739,19 @@ inline namespace kernel
           }
         }
 
-        return std::make_pair(reverse(binding_specs), std::cend(form));
+        return std::make_pair(reverse(binding_specs), std::end(form));
       };
 
       auto letrec = [&](auto const& binding_specs, auto const& body)
       {
-        let const variables = map(
-          [](let const& x)
-          {
-            return car(x).is<pair>() ? caar(x) : car(x);
-          }, binding_specs);
+        let const variables = map(car, binding_specs);
 
-        let const assignments = map(
-          [&](auto&& x)
-          {
-            if (car(x).template is<pair>())
-            {
-              return list(current_syntactic_continuation.intern("set!"),
-                          caar(x),
-                          cons(current_syntactic_continuation.intern("lambda"), cdar(x), cdr(x)));
-            }
-            else
-            {
-              return cons(current_syntactic_continuation.intern("set!"), x);
-            }
-          }, binding_specs);
+        auto procedure = [&](auto&& x)
+        {
+          return cons(current_syntactic_continuation.intern("set!"), x);
+        };
+
+        let const assignments = map(procedure, binding_specs);
 
         let const initials = make_list(length(variables), undefined);
 
