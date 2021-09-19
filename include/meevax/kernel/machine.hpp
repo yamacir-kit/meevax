@@ -392,28 +392,39 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::CALL: /* --------------------------------------------------
+      case mnemonic::CALL:
+        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
+        *     (<closure> arguments . s)              e (CALL . c)          d
+        *  =>                        () (arguments . e')       c' (s e c . d)
+        *
+        *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
-        if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           d = cons(cddr(s), e, cdr(c), d);
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) /* ------------------------------------
+        *
+        *     (<procedure> arguments . s) e (CALL . c) d
+        *  =>              (<result> . s) e         c  d
+        *
+        *  where <result> = procedure(arguments)
+        *
+        * ------------------------------------------------------------------- */
         {
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           c = cdr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *     (k operands . s)  e (CALL . c) d
-        *  =>   (operand  . s') e'        c' d'
+        *     (<continuation> arguments . s)  e (CALL . c) d
+        *  =>                (arguments . s') e'        c' d'
         *
-        *  where k = (s' e' c' . 'd)
+        *  where <continuation> = (s' e' c' . 'd)
         *
         * ------------------------------------------------------------------- */
         {
@@ -454,6 +465,31 @@ inline namespace kernel
         {
           throw error(make<string>("not applicable"), callee);
         }
+        goto decode;
+
+      case mnemonic::DUMMY: /* -------------------------------------------------
+        *
+        *     s                e (DUMMY . c) d
+        *  => s (<undefined> . e)         c  d
+        *
+        * ------------------------------------------------------------------- */
+        e = cons(undefined, e);
+        c = cdr(c);
+        goto decode;
+
+      case mnemonic::RECURSIVE_CALL: /* ----------------------------------------
+        *
+        *      (<closure> arguments . s) (<dummy> . e) (RECURSIVE_CALL . c) d
+        *  =>  () (set-car! e' arguments) c' (s e c . d)
+        *
+        *  where <closure> = (c' . e')
+        *
+        * ------------------------------------------------------------------- */
+        cadar(s) = cadr(s);
+        d = cons(cddr(s), cdr(e), cdr(c), d);
+        c = caar(s);
+        e = cdar(s);
+        s = unit;
         goto decode;
 
       case mnemonic::RETURN: /* ------------------------------------------------
@@ -693,6 +729,69 @@ inline namespace kernel
       }
     }
 
+    static SYNTAX(letrec) /* ---------------------------------------------------
+    *
+    *  (letrec <bindings> <body>)                                        syntax
+    *
+    *  Syntax: <Bindings> has the form
+    *
+    *      ((<variable 1> <init 1>) ...),
+    *
+    *  and <body> is a sequence of zero or more definitions followed by one or
+    *  more expressions as described in section 4.1.4. It is an error for a
+    *  <variable> to appear more than once in the list of variables being bound.
+    *
+    *  Semantics: The <variable>s are bound to fresh locations holding
+    *  unspecified values, the <init>s are evaluated in the resulting
+    *  environment (in some unspecified order), each <variable> is assigned to
+    *  the result of the corresponding <init>, the <body> is evaluated in the
+    *  resulting environment, and the values of the last expression in <body>
+    *  are returned. Each binding of a <variable> has the entire letrec
+    *  expression as its region, making it possible to define mutually
+    *  recursive procedures.
+    *
+    *      (letrec ((even?
+    *                 (lambda (n)
+    *                   (if (zero? n) #t
+    *                       (odd? (- n 1)))))
+    *               (odd?
+    *                 (lambda (n)
+    *                   (if (zero? n) #f
+    *                       (even? (- n 1))))))
+    *        (even? 88))
+    *                                  => #t
+    *
+    *  One restriction on letrec is very important: if it is not possible to
+    *  evaluate each <init> without assigning or referring to the value of any
+    *  <variable>, it is an error. The restriction is necessary because letrec
+    *  is defined in terms of a procedure call where a lambda expression binds
+    *  the <variable>s to the values of the <init>s. In the most common uses of
+    *  letrec, all the <init>s are lambda expressions and the restriction is
+    *  satisfied automatically.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      let const& bindings = car(expression);
+
+      let const& body = cdr(expression);
+
+      let const variables = map(car, bindings);
+
+      let const inits = map(cadr, bindings);
+
+      return cons(make<instruction>(mnemonic::DUMMY),
+                  operand(context::none,
+                          current_syntactic_continuation,
+                          inits,
+                          cons(variables, frames),
+                          lambda(context::none,
+                                 current_syntactic_continuation,
+                                 cons(variables, body),
+                                 frames,
+                                 cons(make<instruction>(mnemonic::RECURSIVE_CALL),
+                                      continuation))));
+    }
+
     static SYNTAX(body)
     {
       auto is_definition = [&](let const& form)
@@ -742,7 +841,7 @@ inline namespace kernel
         return std::make_pair(reverse(binding_specs), std::end(form));
       };
 
-      auto letrec = [&](auto const& binding_specs, auto const& body)
+      auto internal_definition = [&](auto const& binding_specs, auto const& body)
       {
         let const variables = map(car, binding_specs);
 
@@ -788,7 +887,7 @@ inline namespace kernel
       {
         return compile(current_syntactic_context,
                        current_syntactic_continuation,
-                       letrec(binding_specs, body),
+                       internal_definition(binding_specs, body),
                        frames,
                        continuation);
       }

@@ -30,7 +30,9 @@ inline namespace kernel
   template <>
   syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
     : syntactic_continuation::syntactic_continuation {}
-  {}
+  {
+    boot<layer::declarations>();
+  }
 
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
@@ -398,6 +400,11 @@ inline namespace kernel
     define<syntax>("lambda", [](auto&&... xs)
     {
       return lambda(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("letrec", [](auto&&... xs)
+    {
+      return letrec(std::forward<decltype(xs)>(xs)...);
     });
 
     define<syntax>("quote", [](auto&&... xs)

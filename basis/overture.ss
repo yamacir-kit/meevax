@@ -261,12 +261,10 @@
           #f)
       (any-2+ f (cons x xs))))
 
-(define-syntax (letrec bindings . body)
+(define-syntax (letrec* bindings . body)
   ((lambda (definitions)
      `((,lambda () ,@definitions ,@body)) )
    (map (lambda (x) (cons define x)) bindings)))
-
-(define-syntax letrec* letrec) ; TODO MOVE INTO (scheme base)
 
 (define-syntax (let bindings . body)
   (if (identifier? bindings)
