@@ -811,17 +811,11 @@ inline namespace kernel
             {
               auto const& [variable, formals] = unpair(cadr(*iter));
 
-              let const& body = cddr(*iter);
-
-              let const binding_spec = list(variable, cons(make<syntax>("lambda", lambda), formals, body));
-
-              binding_specs = cons(binding_spec, binding_specs);
+              binding_specs = list(variable, cons(make<syntax>("lambda", lambda), formals, cddr(*iter))) | binding_specs;
             }
             else // (define <variable> <expression>)
             {
-              let const binding_spec = cdr(*iter);
-
-              binding_specs = cons(binding_spec, binding_specs);
+              binding_specs = cdr(*iter) | binding_specs;
             }
           }
           else
@@ -831,35 +825,6 @@ inline namespace kernel
         }
 
         return std::make_pair(reverse(binding_specs), std::end(form));
-      };
-
-      auto letrec_star = [&](auto const& binding_specs, auto const& body)
-      {
-        let const variables = unzip1(binding_specs);
-
-        auto procedure = [&](auto&& x)
-        {
-          return cons(make<syntax>("set!", assignment), x);
-        };
-
-        let const assignments = map(procedure, binding_specs);
-
-        let const initials = make_list(length(variables), undefined);
-
-        /*
-            (letrec* <binding specs> <body>)
-
-            where <binding specs> = ((<variable 1> <init 1>) ...)
-
-              => ((lambda <variables>
-                    <assignments>
-                    <body>)
-                  <initials>)
-        */
-        return cons(cons(make<syntax>("lambda", lambda),
-                         variables,
-                         append(assignments, body)),
-                    initials);
       };
 
       /*
@@ -877,9 +842,19 @@ inline namespace kernel
       }
       else if (auto const& [binding_specs, body] = sweep(expression); binding_specs)
       {
+        /*
+           (letrec* <binding specs> <body>)
+
+               => ((lambda <variables> <assignments> <body>) <initials>)
+
+           where <binding specs> = ((<variable 1> <init 1>) ...)
+        */
         return compile(current_syntactic_context,
                        current_syntactic_continuation,
-                       letrec_star(binding_specs, body),
+                       cons(cons(make<syntax>("lambda", lambda),
+                                 unzip1(binding_specs),
+                                 append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
+                            make_list(length(binding_specs), undefined)),
                        frames,
                        continuation);
       }
