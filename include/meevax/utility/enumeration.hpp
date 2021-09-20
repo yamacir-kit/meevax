@@ -14,33 +14,28 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/ghost.hpp>
-#include <meevax/kernel/identifier.hpp>
-#include <meevax/posix/vt10x.hpp>
+#ifndef INCLUDED_MEEVAX_UTILITY_ENUMERATION_HPP
+#define INCLUDED_MEEVAX_UTILITY_ENUMERATION_HPP
+
+#include <meevax/type_traits/is_scoped_enum.hpp>
+#include <meevax/type_traits/underlying_cast.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto identifier::is_bound() const -> bool
+  template <typename T, REQUIRES(is_scoped_enum<T>)>
+  constexpr auto operator |(T const e1, T const e2) noexcept
   {
-    return not is_free();
+    return static_cast<T>(underlying_cast(e1) | underlying_cast(e2));
   }
 
-  auto identifier::is_free() const -> bool
+  template <typename T, REQUIRES(is_scoped_enum<T>)>
+  constexpr auto operator &(T const e1, T const e2) noexcept
   {
-    return std::get<1>(*this).is<identifier>() and
-           std::get<1>(*this).as<identifier>() == *this; // NOTE: See syntactic_continuation::locate
-  }
-
-  auto identifier::symbol() const noexcept -> const_reference
-  {
-    return std::get<0>(*this);
-  }
-
-  auto operator <<(std::ostream & os, identifier const& datum) -> std::ostream &
-  {
-    return os << underline << datum.symbol() << reset;
+    return static_cast<T>(underlying_cast(e1) & underlying_cast(e2));
   }
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_UTILITY_ENUMERATION_HPP

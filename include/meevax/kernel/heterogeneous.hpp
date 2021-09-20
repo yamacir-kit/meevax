@@ -41,12 +41,7 @@ inline namespace kernel
 
       ~binder() override = default;
 
-      auto type() const noexcept -> std::type_info const& override
-      {
-        return typeid(Bound);
-      }
-
-      bool eqv(heterogeneous const& x) const override
+      auto eqv(heterogeneous const& x) const -> bool override
       {
         if constexpr (is_equality_comparable<Bound>::value)
         {
@@ -63,6 +58,11 @@ inline namespace kernel
         {
           return false;
         }
+      }
+
+      auto type() const noexcept -> std::type_info const& override
+      {
+        return typeid(Bound);
       }
 
       auto write_to(std::ostream & port) const -> std::ostream & override
@@ -92,8 +92,7 @@ inline namespace kernel
       #undef BOILERPLATE
     };
 
-  public: /* ---- CONSTRUCTORS ---------------------------------------------- */
-
+  public:
     using Pointer<Top>::Pointer;
 
     template <typename Bound, typename... Ts, REQUIRES(std::is_compound<Bound>)>
@@ -109,60 +108,53 @@ inline namespace kernel
       }
     }
 
-  public: /* ---- TYPE PREDICATES ------------------------------------------- */
-
-    auto type() const -> decltype(auto)
-    {
-      return *this ? Pointer<Top>::load().type() : typeid(null);
-    }
-
     template <typename U>
-    auto is() const
+    inline auto as() const -> U &
     {
-      return type() == typeid(typename std::decay<U>::type);
-    }
-
-    template <typename U,
-              typename std::enable_if<
-                std::is_null_pointer<typename std::decay<U>::type>::value
-              >::type = 0>
-    auto is() const
-    {
-      return not static_cast<bool>(*this);
-    }
-
-    template <typename U>
-    auto is_polymorphically() const
-    {
-      return dynamic_cast<pointer<const U>>(Pointer<Top>::get()) != nullptr;
-    }
-
-  public: /* ---- ACCESSORS ------------------------------------------------- */
-
-    template <typename U>
-    auto as() const -> typename std::add_lvalue_reference<U>::type
-    {
-      if (pointer<U> address = dynamic_cast<pointer<U>>(Pointer<Top>::get()); address)
+      if (pointer<U> data = dynamic_cast<pointer<U>>(Pointer<Top>::get()); data)
       {
-        return *address;
+        return *data;
       }
       else
       {
-        throw make_error(
-          "no viable conversion from ", demangle(Pointer<Top>::load().type()), " to ", demangle(typeid(U)));
+        throw make_error("no viable conversion from ", demangle(Pointer<Top>::load().type()), " to ", demangle(typeid(U)));
       }
     }
 
-    bool eqv(heterogeneous const& rhs) const
+    inline auto eqv(heterogeneous const& rhs) const -> bool
     {
       return type() == rhs.type() and Pointer<Top>::load().eqv(rhs);
+    }
+
+    template <typename U>
+    inline auto is() const
+    {
+      if constexpr (std::is_null_pointer<typename std::decay<U>::type>::value)
+      {
+        return not static_cast<bool>(*this);
+      }
+      else
+      {
+        return type() == typeid(typename std::decay<U>::type);
+      }
+    }
+
+    template <typename U>
+    inline auto is_also() const
+    {
+      return dynamic_cast<pointer<U>>(Pointer<Top>::get()) != nullptr;
+    }
+
+    inline auto type() const -> std::type_info const&
+    {
+      return *this ? Pointer<Top>::load().type() : typeid(null);
     }
   };
 
   template <template <typename...> typename Pointer, typename Top>
-  auto operator <<(std::ostream & port, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, heterogeneous<Pointer, Top> const& datum) -> std::ostream &
   {
-    return (datum.template is<null>() ? port << magenta << "()" : datum.load().write_to(port)) << reset;
+    return (datum.template is<null>() ? os << magenta << "()" : datum.load().write_to(os)) << reset;
   }
 
   #define BOILERPLATE(SYMBOL)                                                  \

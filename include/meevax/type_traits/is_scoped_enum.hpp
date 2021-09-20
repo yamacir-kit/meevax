@@ -14,24 +14,20 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/syntactic_continuation.hpp>
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_SCOPED_ENUM_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_SCOPED_ENUM_HPP
 
-auto main(int const argc, char const* const* const argv) -> int
+#include <type_traits>
+
+namespace meevax
 {
-  using namespace meevax;
+inline namespace type_traits
+{
+  template <typename T>
+  struct is_scoped_enum
+    : public std::bool_constant<std::is_enum<T>::value and not std::is_convertible<T, int>::value>
+  {};
+} // namespace type_traits
+} // namespace meevax
 
-  return with_exception_handler([&]()
-  {
-    auto root = syntactic_continuation(boot_upto<layer::extensions>());
-
-    root.configure(argc, argv);
-
-    while (root.is_interactive_mode() and root.char_ready())
-    {
-      root.write_to(root.standard_interaction_port(), root.current_prompt());
-      root.write_to(root.standard_interaction_port(), root.evaluate(root.read()), "\n");
-    }
-
-    return underlying_cast(exit_status::success);
-  });
-}
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_SCOPED_ENUM_HPP

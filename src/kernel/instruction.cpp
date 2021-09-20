@@ -31,6 +31,7 @@ inline namespace kernel
       case mnemonic::CONS:              return "CONS";
       case mnemonic::DEFINE:            return "DEFINE";
       case mnemonic::DROP:              return "DROP";
+      case mnemonic::DUMMY:             return "DUMMY";
       case mnemonic::FORK:              return "FORK";
       case mnemonic::JOIN:              return "JOIN";
       case mnemonic::LOAD_CLOSURE:      return "LOAD_CLOSURE";
@@ -39,13 +40,13 @@ inline namespace kernel
       case mnemonic::LOAD_GLOBAL:       return "LOAD_GLOBAL";
       case mnemonic::LOAD_LOCAL:        return "LOAD_LOCAL";
       case mnemonic::LOAD_VARIADIC:     return "LOAD_VARIADIC";
+      case mnemonic::RECURSIVE_CALL:    return "RECURSIVE_CALL";
       case mnemonic::RETURN:            return "RETURN";
       case mnemonic::SELECT:            return "SELECT";
       case mnemonic::STOP:              return "STOP";
       case mnemonic::STORE_GLOBAL:      return "STORE_GLOBAL";
       case mnemonic::STORE_LOCAL:       return "STORE_LOCAL";
       case mnemonic::STORE_VARIADIC:    return "STORE_VARIADIC";
-      case mnemonic::STRIP:             return "STRIP";
       case mnemonic::TAIL_CALL:         return "TAIL_CALL";
       case mnemonic::TAIL_SELECT:       return "TAIL_SELECT";
 
@@ -85,7 +86,9 @@ inline namespace kernel
       case mnemonic::CALL:
       case mnemonic::CONS:
       case mnemonic::DROP:
+      case mnemonic::DUMMY:
       case mnemonic::JOIN:
+      case mnemonic::RECURSIVE_CALL:
       case mnemonic::TAIL_CALL:
         os << *iter << "\n";
         ++index;
@@ -103,7 +106,6 @@ inline namespace kernel
       case mnemonic::LOAD_VARIADIC:
       case mnemonic::STORE_LOCAL:
       case mnemonic::STORE_VARIADIC:
-      case mnemonic::STRIP:
         os << *iter << " " << *++iter << "\n";
         index += 2;
         break;

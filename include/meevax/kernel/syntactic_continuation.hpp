@@ -130,12 +130,16 @@ inline namespace kernel
 
     auto load(const_reference) -> value_type;
 
+    auto locate(const_reference) -> const_reference;
+
+    auto lookup(const_reference) const -> const_reference;
+
     auto macroexpand(const_reference, const_reference) -> value_type;
 
   private:
-    SYNTAX(exportation)
+    static SYNTAX(exportation)
     {
-      if (is_verbose_mode())
+      if (current_syntactic_continuation.is_verbose_mode())
       {
         std::cerr << (not indent::depth ? "; compile\t; " : ";\t\t; ")
                   << indent()
@@ -168,7 +172,7 @@ inline namespace kernel
                   continuation);
     }
 
-    SYNTAX(importation)
+    static SYNTAX(importation)
     {
       auto importation = [&](let const& xs)
       {
@@ -189,7 +193,7 @@ inline namespace kernel
       };
 
       // XXX DIRTY HACK
-      return lvalue(in_context_free,
+      return lvalue(context::none,
                     current_syntactic_continuation,
                     expression,
                     frames,

@@ -17,16 +17,16 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTAX_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/syntactic_context.hpp>
 
 #define SYNTAX(NAME)                                                           \
   auto NAME(                                                                   \
-    [[maybe_unused]] syntactic_context const& the_expression_is,               \
+    [[maybe_unused]] syntactic_context const current_syntactic_context,        \
     [[maybe_unused]] syntactic_continuation & current_syntactic_continuation,  \
-    [[maybe_unused]] let const& expression,                                    \
-    [[maybe_unused]] let const& frames,                                        \
-    [[maybe_unused]] let const& continuation) -> let const
+    [[maybe_unused]] pair::const_reference expression,                         \
+    [[maybe_unused]] pair::const_reference frames,                             \
+    [[maybe_unused]] pair::const_reference continuation) -> pair::value_type
 
 namespace meevax
 {
@@ -48,9 +48,9 @@ inline namespace kernel
     {}
 
     template <typename... Ts>
-    decltype(auto) compile(Ts&&... xs)
+    auto compile(Ts&&... xs) -> decltype(auto)
     {
-      return (*this)(std::forward<decltype(xs)>(xs)...);
+      return std::invoke(*this, std::forward<decltype(xs)>(xs)...);
     }
   };
 

@@ -258,7 +258,7 @@ inline namespace kernel
 
     inline auto char_ready() const
     {
-      return default_input_port.is_polymorphically<std::istream>() and default_input_port.as<std::istream>();
+      return default_input_port.is_also<std::istream>() and default_input_port.as<std::istream>();
     }
 
     static auto intern(std::string const& name) -> pair::const_reference
@@ -445,7 +445,7 @@ inline namespace kernel
 
     inline auto read(pair::const_reference x) -> pair::value_type
     {
-      if (x.is_polymorphically<std::istream>())
+      if (x.is_also<std::istream>())
       {
         return read(x.as<std::istream>());
       }

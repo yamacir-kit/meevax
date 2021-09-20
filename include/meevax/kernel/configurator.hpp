@@ -48,7 +48,7 @@ inline namespace kernel
     let trace       = f;
     let verbose     = f;
 
-    let prompt = make<symbol>("> ");
+    let prompt = make<string>(u8"λ> ");
 
     template <typename Key>
     using dispatcher = std::unordered_map<Key, std::function<PROCEDURE()>>;
@@ -261,9 +261,9 @@ inline namespace kernel
       }();
     }
 
-    auto current_prompt() const -> auto const&
+    auto current_prompt() const
     {
-      return prompt;
+      return static_cast<std::string>(prompt.as<string>());
     }
 
     void display_version() const
@@ -300,8 +300,8 @@ inline namespace kernel
       write_line("  -e, --evaluate=STRING  read and evaluate given STRING at configuration step.");
       write_line("  -h, --help             display this help text and exit.");
       write_line("  -i, --interactive      take over control of root syntactic-continuation.");
-      write_line("  -l, --load=FILE        same as -e '(load FILE)'");
-      write_line("      --prompt=SYMBOL    same as -e '(set-prompt! SYMBOL)'");
+      write_line("  -l, --load=FILENAME    same as -e '(load FILENAME)'");
+      write_line("      --prompt=STRING    same as -e '(set-prompt! STRING)'");
       write_line("  -t, --trace            display stacks of virtual machine for each steps.");
       write_line("  -v, --version          display version information and exit.");
       write_line("      --verbose          display detailed informations.");
@@ -317,14 +317,14 @@ inline namespace kernel
       write_line("  meevax -i");
       write_line("    => start interactive session.");
       write_line();
-      write_line("  meevax -i --prompt '#,(string->symbol \"my-prompt> \")'");
-      write_line("    => start interactive session with given prompt.");
+      write_line("  meevax -i --prompt '\"my-prompt> \"'");
+      write_line("    => Start interactive session with given prompt.");
       write_line();
       write_line("  meevax -e '(+ 1 2 3)'");
-      write_line("    => display 6.");
+      write_line("    => Display 6.");
       write_line();
       write_line("  meevax -e \"(define home \\\"$HOME\\\")\" -i");
-      write_line("    => define value of environment variable $HOME to interaction-environment,");
+      write_line("    => Define value of environment variable $HOME to interaction-environment,");
       write_line("       and then start interactive session.");
     }
 

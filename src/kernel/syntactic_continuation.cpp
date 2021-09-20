@@ -30,11 +30,13 @@ inline namespace kernel
   template <>
   syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
     : syntactic_continuation::syntactic_continuation {}
-  {}
+  {
+    boot<layer::declarations>();
+  }
 
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
-    return cdr(machine::locate(name, global_environment()));
+    return cdr(machine::locate(name));
   }
 
   auto syntactic_continuation::operator [](std::string const& name) -> const_reference
@@ -69,19 +71,20 @@ inline namespace kernel
        *  it is the state that is not registered in the GC.
        *
        * ------------------------------------------------------------------ */
-      // let const backup = cons(std::get<0>(*this),
-      //                         std::get<1>(*this));
-
       auto const& k = std::get<0>(*this).as<continuation>();
 
       s = k.s();
       e = k.e();
-      c = compile(at_the_top_level, *this, car(k.c()), cdr(k.c()));
+      c = compile(context::outermost, *this, car(k.c()), cdr(k.c()));
       d = k.d();
 
       form() = execute();
 
       assert(form().is<closure>());
+    }
+    else
+    {
+      throw error(make<string>(__func__, " was called by something other than the FORK instruction"), unit);
     }
   }
 
@@ -114,7 +117,7 @@ inline namespace kernel
       write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
     }
 
-    c = compile(in_context_free, *this, expression);
+    c = compile(context::none, *this, expression);
 
     if (is_debug_mode())
     {
@@ -127,11 +130,9 @@ inline namespace kernel
 
   auto syntactic_continuation::execute() -> value_type
   {
-    static constexpr auto trace = true;
-
     if (is_trace_mode())
     {
-      return machine::execute<trace>();
+      return machine::execute<execution_context::trace>();
     }
     else
     {
@@ -211,6 +212,53 @@ inline namespace kernel
     else
     {
       throw file_error(make<string>(string_append(__FILE__, ":", __LINE__, ":", __func__)), unit);
+    }
+  }
+
+  auto syntactic_continuation::locate(const_reference variable) -> const_reference
+  {
+    if (let const& binding = assq(variable, global_environment()); eq(binding, f))
+    {
+      /* -----------------------------------------------------------------------
+       *
+       *  At the outermost level of a program, a definition
+       *
+       *      (define <variable> <expression>)
+       *
+       *  has essentially the same effect as the assignment expression
+       *
+       *      (set! <variable> <expression>)
+       *
+       *  if <variable> is bound to a non-syntax value. However, if <variable>
+       *  is not bound, or is a syntactic keyword, then the definition will
+       *  bind <variable> to a new location before performing the assignment,
+       *  whereas it would be an error to perform a set! on an unbound variable.
+       *
+       * -------------------------------------------------------------------- */
+
+      let const id = make<identifier>(variable);
+
+      cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
+
+      global_environment() = cons(id, global_environment());
+
+      return car(global_environment());
+    }
+    else
+    {
+      return binding;
+    }
+  }
+
+  auto syntactic_continuation::lookup(const_reference variable) const -> const_reference
+  {
+    if (let const& x = assq(variable, global_environment()); eq(x, f))
+    {
+      return variable.is<identifier>() ? variable.as<identifier>().symbol() : variable;
+    }
+    else
+    {
+      return cdr(x);
     }
   }
 
@@ -295,17 +343,11 @@ inline namespace kernel
 
   template class writer<syntactic_continuation>;
 
-  #define DEFINE_SYNTAX(KEYWORD, TRANSFORMER_SPEC)                             \
-  define<syntax>(KEYWORD, [this](auto&&... xs)                                 \
-  {                                                                            \
-    return TRANSFORMER_SPEC(std::forward<decltype(xs)>(xs)...);                \
-  })
-
   template <>
   void syntactic_continuation::boot<layer::declarations>()
   {
-    DEFINE_SYNTAX("export", exportation);
-    DEFINE_SYNTAX("import", importation);
+    define<syntax>("export", exportation); // XXX DEPRECATED
+    define<syntax>("import", importation); // XXX DEPRECATED
 
     // TODO (define (set-debug! t/f)
     //        (set! (debug) t/f))
@@ -329,16 +371,15 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot<layer::primitives>()
   {
-    DEFINE_SYNTAX("begin", sequence);
-    DEFINE_SYNTAX("call-with-current-continuation", call_cc);
-    // DEFINE_SYNTAX("cons", construct);
-    DEFINE_SYNTAX("define", definition);
-    DEFINE_SYNTAX("fork-with-current-syntactic-continuation", fork_csc);
-    DEFINE_SYNTAX("if", conditional);
-    DEFINE_SYNTAX("lambda", lambda);
-    DEFINE_SYNTAX("quote", quotation);
-    DEFINE_SYNTAX("reference", lvalue);
-    DEFINE_SYNTAX("set!", assignment);
+    define<syntax>("begin", sequence);
+    define<syntax>("call-with-current-continuation", call_with_current_continuation);
+    define<syntax>("define", definition);
+    define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
+    define<syntax>("if", conditional);
+    define<syntax>("lambda", lambda);
+    define<syntax>("letrec", letrec);
+    define<syntax>("quote", quotation);
+    define<syntax>("set!", assignment);
   }
 
   template <>
@@ -595,27 +636,27 @@ inline namespace kernel
     DEFINE_CMATH_1("truncate", trunc);
     DEFINE_CMATH_1("round", round);
 
-    define<procedure>( "sin"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
-    define<procedure>( "sinh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
-    define<procedure>("asinh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asinh(x   ); }, car(xs)          ); });
-    define<procedure>("asin"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asin (x   ); }, car(xs)          ); });
+    define<procedure>( "sin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
+    define<procedure>( "sinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
+    define<procedure>("asinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asinh(x   ); }, car(xs)          ); });
+    define<procedure>("asin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asin (x   ); }, car(xs)          ); });
 
-    define<procedure>( "cos"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cos (x   ); }, car(xs)          ); });
-    define<procedure>( "cosh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cosh(x   ); }, car(xs)          ); });
-    define<procedure>("acosh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acosh(x   ); }, car(xs)          ); });
-    define<procedure>("acos"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acos (x   ); }, car(xs)          ); });
+    define<procedure>( "cos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cos (x   ); }, car(xs)          ); });
+    define<procedure>( "cosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cosh(x   ); }, car(xs)          ); });
+    define<procedure>("acosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acosh(x   ); }, car(xs)          ); });
+    define<procedure>("acos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acos (x   ); }, car(xs)          ); });
 
-    define<procedure>( "tan"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tan (x   ); }, car(xs)          ); });
-    define<procedure>( "tanh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tanh(x   ); }, car(xs)          ); });
-    define<procedure>("atanh"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atanh(x   ); }, car(xs)          ); });
-    define<procedure>("atan-1"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atan (x   ); }, car(xs)          ); });
-    define<procedure>("atan-2"  , [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
+    define<procedure>( "tan"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tan (x   ); }, car(xs)          ); });
+    define<procedure>( "tanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tanh(x   ); }, car(xs)          ); });
+    define<procedure>("atanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atanh(x   ); }, car(xs)          ); });
+    define<procedure>("atan-1", [](let const& xs) { return apply_1([](auto&& x          ) { return std::atan (x   ); }, car(xs)          ); });
+    define<procedure>("atan-2", [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
 
-    define<procedure>("sqrt"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::sqrt (x   ); }, car(xs)          ); });
+    define<procedure>("sqrt"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::sqrt (x   ); }, car(xs)          ); });
 
-    define<procedure>("ln"      , [](let const& xs) { return apply_1([](auto&& x          ) { return std::log  (x   ); }, car(xs)          ); });
-    define<procedure>("exp"     , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
-    define<procedure>("expt"    , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
+    define<procedure>("ln"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::log  (x   ); }, car(xs)          ); });
+    define<procedure>("exp"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
+    define<procedure>("expt"  , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
 
     /* -------------------------------------------------------------------------
      *
@@ -724,7 +765,17 @@ inline namespace kernel
 
     define<procedure>("string->number", [](let const& xs)
     {
-      return string_to::number(car(xs).as<string>(), cdr(xs).is<pair>() ? static_cast<int>(cadr(xs).as<exact_integer>()) : 10);
+      switch (length(xs))
+      {
+      case 1:
+        return string_to::number(car(xs).as<string>(), 10);
+
+      case 2:
+        return string_to::number(car(xs).as<string>(), static_cast<int>(cadr(xs).as<exact_integer>()));
+
+      default:
+        throw invalid_application(intern("string->number") | xs);
+      }
     });
 
     /* -------------------------------------------------------------------------
@@ -848,13 +899,13 @@ inline namespace kernel
 
     define<procedure>("digit-value", [](let const& xs)
     {
-      try
+      if (auto c = car(xs).as<character>(); std::isdigit(c.codepoint))
       {
-        return make<exact_integer>(static_cast<std::string>(car(xs).as<character>()));
+        return make<exact_integer>(c.codepoint - '0');
       }
-      catch (std::runtime_error const&)
+      else
       {
-        return f; // XXX
+        return f;
       }
     });
 
@@ -883,7 +934,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("invalid arguments"), xs);
+        throw invalid_application(intern("char->integer") | xs);
       }
     });
 
@@ -895,7 +946,7 @@ inline namespace kernel
       }
       else
       {
-        throw error(make<string>("invalid arguments"), xs);
+        throw invalid_application(intern("integer->char") | xs);
       }
     });
 
@@ -922,8 +973,17 @@ inline namespace kernel
 
     define<procedure>("make-string", [](let const& xs)
     {
-      return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()),
-                          cdr(xs).is<pair>() ? cadr(xs).as<character>() : character());
+      switch (length(xs))
+      {
+      case 1:
+        return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()), character());
+
+      case 2:
+        return make<string>(static_cast<std::size_t>(car(xs).as<exact_integer>()), cadr(xs).as<character>());
+
+      default:
+        throw invalid_application(intern("make-string") | xs);
+      }
     });
 
     // NOTE: (string char ...) defined in overture.ss
@@ -1117,7 +1177,7 @@ inline namespace kernel
         return car(xs).as<string>().list(static_cast<string::size_type>(cadr(xs).as<exact_integer>()), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("string->list") | xs);
       }
     });
 
@@ -1146,19 +1206,19 @@ inline namespace kernel
 
     define<procedure>("string-copy", [](let const& xs)
     {
-      if (cdr(xs).is<null>())
+      switch (length(xs))
       {
+      case 1:
         return make<string>(car(xs).as<string>());
-      }
-      else if (cddr(xs).is<null>())
-      {
+
+      case 2:
         return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>(cadr(xs).as<exact_integer>()),
                             car(xs).as<string>().end());
-      }
-      else
-      {
+      case 3:
         return make<string>(car(xs).as<string>().begin() + static_cast<string::size_type>( cadr(xs).as<exact_integer>()),
                             car(xs).as<string>().begin() + static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+      default:
+        throw invalid_application(intern("string-copy") | xs);
       }
     });
 
@@ -1194,7 +1254,7 @@ inline namespace kernel
         return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("make-vector") | xs);
       }
     });
 
@@ -1282,7 +1342,7 @@ inline namespace kernel
         return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("vector->list") | xs);
       }
     });
 
@@ -1327,7 +1387,7 @@ inline namespace kernel
         return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("vector->string") | xs);
       }
     });
 
@@ -1379,309 +1439,114 @@ inline namespace kernel
         break;
 
       default:
-        throw error(make<string>("invalid argument"), xs);
+        throw invalid_application(intern("vector-fill!") | xs);
       }
 
       return unspecified;
     });
 
-
-  /* ---- R7RS 6.10. Control features ------------------------------------------
-
-      Non-standard procedures
-      -----------------------
-
-     ┌────────────────────┬────────────┬────────────────────────────────────┐
-     │ Symbol             │ Written in │ Note                               │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ native-procedure?  │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ closure?           │ C++        │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ continuation?      │ C++        │                                    │
-     └────────────────────┴────────────┴────────────────────────────────────┘
-
-      Standard procedures
-      -------------------
-
-     ┌────────────────────┬────────────┬────────────────────────────────────┐
-     │ Symbol             │ Written in │ Note                               │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ procedure?         │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ apply              │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ map                │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ string-map         │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-map         │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ for-each           │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ string-for-each    │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ vector-for-each    │ TODO       │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ call/cc            │ C++/Scheme │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ values             │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ call-with-values   │ Scheme     │                                    │
-     ├────────────────────┼────────────┼────────────────────────────────────┤
-     │ dynamic-wind       │ Scheme     │                                    │
-     └────────────────────┴────────────┴────────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
-
-    define<procedure>("native-procedure?", is<procedure>());
+    /* -------------------------------------------------------------------------
+     *
+     *  (procedure? obj)                                              procedure
+     *
+     *  Returns #t if obj is a procedure, otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("closure?", is<closure>());
 
     define<procedure>("continuation?", is<continuation>());
 
+    define<procedure>("foreign-function?", is<procedure>());
 
-  /* ---- R7RS 6.11. Exceptions ------------------------------------------------
-
-      Standard procedures
-      -------------------
-
-     ┌────────────────────────┬────────────┬──────────────────────────────────┐
-     │ Symbol                 │ Written in │ Note                             │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ with-exception-handler │ TODO       │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ raise                  │ TODO       │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ raise-continuable      │ TODO       │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error                  │ TODO       │ SRFI-23                          │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object?          │ Scheme     │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-message   │ Scheme     │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ error-object-irritants │ Scheme     │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ read-error?            │ C++        │                                  │
-     ├────────────────────────┼────────────┼──────────────────────────────────┤
-     │ file-error?            │ C++        │                                  │
-     └────────────────────────┴────────────┴──────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (with-exception-handler handler thunk)                        procedure
+     *
+     *  It is an error if handler does not accept one argument. It is also an
+     *  error if thunk does not accept zero arguments.
+     *
+     *  The with-exception-handler procedure returns the results of invoking
+     *  thunk. Handler is installed as the current exception handler in the
+     *  dynamic environment used for the invocation of thunk.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("default-exception-handler", [](let const& xs) -> let
     {
       throw car(xs);
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (error message obj ...)                                       procedure
+     *
+     *  Message should be a string.
+     *
+     *  Raises an exception as if by calling raise on a newly allocated
+     *  implementation-defined object which encapsulates the information
+     *  provided by message, as well as any objs, known as the irritants. The
+     *  procedure error-object? must return #t on such objects.
+     *
+     *    (define (error . xs)
+     *      (raise (apply make-error xs)))
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("make-error", [](let const& xs)
     {
       return make<error>(car(xs), cdr(xs));
     });
 
-    define<procedure>(       "error?", is<       error>());
-    define<procedure>(  "read-error?", is<  read_error>());
-    define<procedure>(  "file-error?", is<  file_error>());
+    /* -------------------------------------------------------------------------
+     *
+     *  (read-error? obj)                                             procedure
+     *  (file-error? obj)                                             procedure
+     *
+     *  Error type predicates. Returns #t if obj is an object raised by the
+     *  read procedure or by the inability to open an input or output port on a
+     *  file, respectively. Otherwise, it returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("error?", is<error>());
+
+    define<procedure>("read-error?", is<read_error>());
+
+    define<procedure>("file-error?", is<file_error>());
+
     define<procedure>("syntax-error?", is<syntax_error>());
 
-  /* ---- R7RS 6.12. Environments and evaluation -------------------------------
-
-      Standard procedures
-      -------------------
-
-     ┌───────────────────────────┬────────────┬───────────────────────────────┐
-     │ Symbol                    │ Written in │ Note                          │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ environment               │ TODO       │ (scheme eval) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ scheme-report-environment │ TODO       │ (scheme r5rs) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ null-environment          │ TODO       │ (scheme r5rs) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ interaction-environment   │ TODO       │ (scheme repl) library         │
-     ├───────────────────────────┼────────────┼───────────────────────────────┤
-     │ eval                      │ TODO       │ (scheme eval) library         │
-     └───────────────────────────┴────────────┴───────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (eval expr-or-def environment-specifier)         eval library procedure
+     *
+     *  If expr-or-def is an expression, it is evaluated in the specified
+     *  environment and its values are returned. If it is a definition, the
+     *  specified identifier(s) are defined in the specified environment,
+     *  provided the environment is not immutable. Implementations may extend
+     *  eval to allow other objects.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("eval", [](let const& xs)
     {
       return cadr(xs).as<syntactic_continuation>().evaluate(car(xs));
     });
 
-
-  /* ---- R7RS 6.13. Input and output ------------------------------------------
-
-       Non-standard procedures
-       -----------------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Identifier              │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ standard-input-port     │ C++        │ std::cin                      │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ standard-output-port    │ C++        │ std::cout                     │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ standard-error-port     │ C++        │ std::cerr                     │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-file-port?        │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-file-port?       │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-string-port?      │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-string-port?     │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-file-port-open?   │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-file-port-open?  │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-input-file-port   │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-output-file-port  │ C++        │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-
-       6.13.1. Port
-       ------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Identifier              │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ call-with-port          │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ call-with-input-file    │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ call-with-output-file   │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-port?             │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-port?            │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ textual-port?           │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ binary-port?            │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ port?                   │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ input-port-open?        │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ output-port-open?       │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ current-input-port      │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ current-output-port     │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ current-error-port      │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ with-input-from-file    │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ with-output-to-file     │ Scheme     │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-file         │ C++        │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-binary-input-file  │ TODO       │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-file        │ C++        │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-binary-output-file │ TODO       │ (scheme file) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-port              │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-input-port        │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ close-output-port       │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-string       │ C++        │ SRFI-6                        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-string      │ C++        │ SRFI-6                        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ get-output-string       │ C++        │ SRFI-6                        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-input-bytevector   │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ open-output-bytevector  │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ get-output-bytevector   │ TODO       │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-
-       6.13.2. Input
-       -------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Symbol                  │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read                    │ C++/Scheme │ (scheme read) library         │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-char               │ C++/Scheme │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ peek-char               │ C++/Scheme │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-line               │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ eof-object?             │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ eof-object              │ C++        │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ char-ready?             │ C++/Scheme │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-string             │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-u8                 │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ peek-u8                 │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ u8-ready?               │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-bytevector         │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ read-bytevector!        │ TODO       │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-
-       6.13.3. Output
-       --------------
-      ┌─────────────────────────┬────────────┬───────────────────────────────┐
-      │ Symbol                  │ Written in │ Note                          │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write                   │ TODO       │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-shared            │ TODO       │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-simple            │ Scheme     │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ display                 │ Scheme     │ (scheme write) library        │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ newline                 │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-char              │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-string            │ Scheme     │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-u8                │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ write-bytevector        │ TODO       │                               │
-      ├─────────────────────────┼────────────┼───────────────────────────────┤
-      │ flush-output-port       │ Scheme     │                               │
-      └─────────────────────────┴────────────┴───────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
-
-    define<procedure>("standard-input-port", [](auto&&)
-    {
-      return default_input_port;
-    });
-
-    define<procedure>("standard-output-port", [](auto&&)
-    {
-      return default_output_port;
-    });
-
-    define<procedure>("standard-error-port", [](auto&&)
-    {
-      return default_error_port;
-    });
-
+    /* -------------------------------------------------------------------------
+     *
+     *  (input-port? obj)                                             procedure
+     *  (output-port? obj)                                            procedure
+     *  (textual-port? obj)                                           procedure
+     *  (binary-port? obj)                                            procedure
+     *  (port? obj)                                                   procedure
+     *
+     *  These procedures return #t if obj is an input port, output port,
+     *  textual port, binary port, or any kind of port, respectively. Otherwise
+     *  they return #f.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("input-file-port?", is<input_file_port>());
 
@@ -1691,6 +1556,15 @@ inline namespace kernel
 
     define<procedure>("output-string-port?", is<output_string_port>());
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (input-port-open? port)                                       procedure
+     *  (output-port-open? port)                                      procedure
+     *
+     *  Returns #t if port is still open and capable of performing input or
+     *  output, respectively, and #f otherwise.
+     *
+     * --------------------------------------------------------------------- */
 
     define<procedure>("input-file-port-open?", [](let const& xs)
     {
@@ -1702,17 +1576,76 @@ inline namespace kernel
       return car(xs).as<output_file_port>().is_open() ? t : f;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (current-input-port)                                          procedure
+     *  (current-output-port)                                         procedure
+     *  (current-error-port)                                          procedure
+     *
+     *  Returns the current default input port, output port, or error port (an
+     *  output port), respectively. These procedures are parameter objects,
+     *  which can be overridden with parameterize (see section 4.2.6). The
+     *  initial bindings for these are implementation-defined textual ports.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("standard-input-port", [](auto&&) { return default_input_port; });
+
+    define<procedure>("standard-output-port", [](auto&&) { return default_output_port; });
+
+    define<procedure>("standard-error-port", [](auto&&) { return default_error_port; });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-input-file string)                         file library procedure
+     *  (open-binary-input-file string)                  file library procedure
+     *
+     *  Takes a string for an existing file and returns a textual input port or
+     *  binary input port that is capable of delivering data from the file. If
+     *  the file does not exist or cannot be opened, an error that satisfies
+     *  file-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("open-input-file", [](let const& xs)
     {
       return make<input_file_port>(car(xs).as<string>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-output-file string)                        file library procedure
+     *  (open-binary-output-file string)                 file library procedure
+     *
+     *  Takes a string naming an output file to be created and returns a
+     *  textual output port or binary output port that is capable of writing
+     *  data to a new file by that name. If a file with the given name already
+     *  exists, the effect is unspecified. If the file cannot be opened, an
+     *  error that satisfies file-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("open-output-file", [](let const& xs)
     {
       return make<output_file_port>(car(xs).as<string>());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (close-port port)                                             procedure
+     *  (close-input-port port)                                       procedure
+     *  (close-output-port port)                                      procedure
+     *
+     *  Closes the resource associated with port, rendering the port incapable
+     *  of delivering or accepting data. It is an error to apply the last two
+     *  procedures to a port which is not an input or output port, respectively.
+     *  Scheme implementations may provide ports which are simultaneously input
+     *  and output ports, such as sockets; the close-input-port and
+     *  close-output-port procedures can then be used to close the input and
+     *  output sides of the port independently. These routines have no effect
+     *  if the port has already been closed.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("close-input-file-port", [](let const& xs)
     {
@@ -1726,51 +1659,103 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-input-string string)                                    procedure
+     *
+     *  Takes a string and returns a textual input port that delivers
+     *  characters from the string. If the string is modified, the effect is
+     *  unspecified.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("open-input-string", [](let const& xs)
     {
-      if (xs.is<null>())
+      switch (length(xs))
       {
+      case 0:
         return make<input_string_port>();
-      }
-      else if (let const& x = car(xs); x.is<string>())
-      {
-        return make<input_string_port>(x.as<string>());
-      }
-      else
-      {
-        throw error(make<string>("not a string"), car(xs));
+
+      case 1:
+        return make<input_string_port>(car(xs).as<string>());
+
+      default:
+        throw invalid_application(intern("open-input-string") | xs);
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (open-output-string)                                          procedure
+     *
+     *  Returns a textual output port that will accumulate characters for
+     *  retrieval by get-output-string.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("open-output-string", [](let const& xs)
     {
-      if (xs.is<null>())
+      switch (length(xs))
       {
+      case 0:
         return make<output_string_port>();
-      }
-      else if (let const x = car(xs); x.is<string>())
-      {
-        return make<output_string_port>(x.as<string>());
-      }
-      else
-      {
-        throw error(make<string>("not a string"), car(xs));
+
+      case 1:
+        return make<output_string_port>(car(xs).as<string>());
+
+      default:
+        throw invalid_application(intern("open-output-string") | xs);
       }
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (get-output-string port)                                      procedure
+     *
+     *  It is an error if port was not created with open-output-string.
+     *
+     *  Returns a string consisting of the characters that have been output to
+     *  the port so far in the order they were output. If the result string is
+     *  modified, the effect is unspecified.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("get-output-string", [](let const& xs)
     {
       return make<string>(car(xs).as<output_string_port>().str());
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (read)                                           read library procedure
+     *  (read port)                                      read library procedure
+     *
+     *  The read procedure converts external representations of Scheme objects
+     *  into the objects themselves. That is, it is a parser for the
+     *  non-terminal hdatumi (see sections 7.1.2 and 6.4). It returns the next
+     *  object parsable from the given textual input port, updating port to
+     *  point to the first character past the end of the external
+     *  representation of the object.
+     *
+     *  Implementations may support extended syntax to represent record types
+     *  or other types that do not have datum representations.
+     *
+     *  If an end of file is encountered in the input before any characters are
+     *  found that can begin an object, then an end-of-file object is returned.
+     *  The port remains open, and further attempts to read will also return an
+     *  end-of-file object. If an end of file is encountered after the
+     *  beginning of an object’s external representation, but the external
+     *  representation is incomplete and therefore not parsable, an error that
+     *  satisfies read-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::read", [this](let const& xs)
     {
       return read(car(xs));
     });
 
-    /* ---- R7RS 6.13.2. Input -------------------------------------------------
+    /* -------------------------------------------------------------------------
      *
      *  (read-char)                                                   procedure
      *  (read-char port)                                              procedure
@@ -1793,6 +1778,25 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (peek-char)                                                   procedure
+     *  (peek-char port)                                              procedure
+     *
+     *  Returns the next character available from the textual input port, but
+     *  without updating the port to point to the following character. If no
+     *  more characters are available, an end-of-file object is returned.
+     *
+     *  Note: The value returned by a call to peek-char is the same as the
+     *  value that would have been returned by a call to read-char with the
+     *  same port. The only difference is that the very next call to read-char
+     *  or peek-char on that port will return the value returned by the
+     *  preceding call to peek-char. In particular, a call to peek-char on an
+     *  interactive port will hang waiting for input whenever a call to
+     *  read-char would have hung.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("::peek-char", [](let const& xs)
     {
       try
@@ -1808,14 +1812,51 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (eof-object? obj)                                             procedure
+     *
+     *  Returns #t if obj is an end-of-file object, otherwise returns #f. The
+     *  precise set of end-of-file objects will vary among implementations, but
+     *  in any case no end-of-file object will ever be an object that can be
+     *  read in using read.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("eof-object?", is<eof>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (eof-object)                                                  procedure
+     *
+     *  Returns an end-of-file object, not necessarily unique.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("eof-object", [](auto&&)
     {
       return eof_object;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (char-ready?)                                                 procedure
+     *  (char-ready? port)                                            procedure
+     *
+     *  Returns #t if a character is ready on the textual input port and
+     *  returns #f otherwise. If char-ready returns #t then the next read-char
+     *  operation on the given port is guaranteed not to hang. If the port is
+     *  at end of file then char-ready? returns #t.
+     *
+     *  Rationale: The char-ready? procedure exists to make it possible for a
+     *  program to accept characters from interactive ports without getting
+     *  stuck waiting for input. Any input editors associated with such ports
+     *  must ensure that characters whose existence has been asserted by
+     *  char-ready? cannot be removed from the input. If char-ready? were to
+     *  return #f at end of file, a port at end of file would be
+     *  indistinguishable from an interactive port that has no ready characters.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::char-ready?", [](let const& xs)
     {
@@ -1834,7 +1875,28 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    // TODO read-string
+    define<procedure>("::read-string", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 2:
+        return make<string>(cadr(xs).as<std::istream>(), static_cast<string::size_type>(car(xs).as<exact_integer>()));
+
+      default:
+        throw invalid_application(intern("read-string") | xs);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-simple obj)                              write library procedure
+     *  (write-simple obj port)                         write library procedure
+     *
+     *  The write-simple procedure is the same as write, except that shared
+     *  structure is never represented using datum labels. This can cause
+     *  write-simple not to terminate if obj contains circular structure.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::write-simple", [this](let const& xs)
     {
@@ -1842,7 +1904,7 @@ inline namespace kernel
       return unspecified;
     });
 
-    /* ---- R7RS 6.13.3. Output ------------------------------------------------
+    /* -------------------------------------------------------------------------
      *
      *  (write-char char)                                             procedure
      *  (write-char char port)                                        procedure
@@ -1859,12 +1921,35 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-string string)                                         procedure
+     *  (write-string string port)                                    procedure
+     *  (write-string string port start)                              procedure
+     *  (write-string string port start end)                          procedure
+     *
+     *  Writes the characters of string from start to end in left-to-right
+     *  order to the textual output port.
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("::write-string", [](let const& xs)
     {
-      cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+      switch (length(xs))
+      {
+      case 2:
+        cadr(xs).as<std::ostream>() << static_cast<std::string>(car(xs).as<string>());
+        break;
+
+      case 3: // TODO
+      case 4: // TODO
+
+      default:
+        throw invalid_application(intern("write-string") | xs);
+      }
+
       return unspecified;
     });
-
 
     define<procedure>("path?", is<path>());
 
@@ -1874,6 +1959,15 @@ inline namespace kernel
       return unspecified;
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (flush-output-port)                                           procedure
+     *  (flush-output-port port)                                      procedure
+     *
+     *  Flushes any buffered output from the buffer of output-port to the
+     *  underlying file or device and returns an unspecified value.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("::flush-output-port", [](let const& xs)
     {
@@ -1881,45 +1975,32 @@ inline namespace kernel
       return unspecified;
     });
 
-
-  /* ---- R7RS 6.14. System interface ------------------------------------------
-
-      Standard procedures
-      -------------------
-
-     ┌───────────────────────────┬────────────┬──────────────────────────────────┐
-     │ Symbol                    │ Written in │ Note                             │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ load                      │ C++        │ (scheme load) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ file-exists?              │ TODO       │ (scheme file) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ delete-file               │ TODO       │ (scheme file) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ command-line              │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ exit                      │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ emergency-exit            │ C++        │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ get-environment-variable  │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ get-environment-variables │ TODO       │ (scheme process-context) library │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ current-second            │ TODO       │ (scheme time) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ current-jiffy             │ TODO       │ (scheme time) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ jiffies-per-second        │ TODO       │ (scheme time) library            │
-     ├───────────────────────────┼────────────┼──────────────────────────────────┤
-     │ features                  │ C++        │                                  │
-     └───────────────────────────┴────────────┴──────────────────────────────────┘
-
-    ------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------
+     *
+     *  (load filename)                                  load library procedure
+     *  (load filename environment-specifier)            load library procedure
+     *
+     *  It is an error if filename is not a string. An implementation-dependent
+     *  operation is used to transform filename into the name of an existing
+     *  file containing Scheme source code. The load procedure reads
+     *  expressions and definitions from the file and evaluates them
+     *  sequentially in the environment specified by environment-specifier. If
+     *  environment-specifier is omitted, (interaction-environment) is assumed.
+     *
+     *  It is unspecified whether the results of the expressions are printed.
+     *  The load procedure does not affect the values returned by
+     *  current-input-port and current-output-port. It returns an unspecified
+     *  value.
+     *
+     *  Rationale: For portability, load must operate on source files. Its
+     *  operation on other kinds of files necessarily varies among
+     *  implementations.
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("load", [this](let const& xs)
     {
-      return load(car(xs).as<const string>());
+      return load(car(xs).as<string>());
     });
 
     /* -------------------------------------------------------------------------
@@ -1952,15 +2033,71 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (features)                                                    procedure
+     *
+     *  Returns a list of the feature identifiers which cond-expand treats as
+     *  true. It is an error to modify this list. Here is an example of what
+     *  features might return:
+     *
+     *    (features) =>
+     *      (r7rs ratios exact-complex full-unicode gnu-linux little-endian
+     *      fantastic-scheme fantastic-scheme-1.0 space-ship-control-system)
+     *
+     * ---------------------------------------------------------------------- */
+
     define<procedure>("features", [](auto&&...)
     {
       return features();
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (identifier? syntax-object)                                   procedure
+     *
+     *  Returns #t if syntax-object represents an identifier, otherwise returns
+     *  #f.
+     *
+     *    (identifier? (syntax x)) => #t
+     *
+     *    (identifier? (quote x)) => #f
+     *
+     *    (identifier? 3) => #f
+     *
+     * ---------------------------------------------------------------------- */
 
-  /* ---- R4RS APPENDIX: A compatible low-level macro facility -------------- */
+    define<procedure>("identifier?", [](let const& xs)
+    {
+      if (let const& x = car(xs); x.is<syntactic_continuation>())
+      {
+        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
+      }
+      else
+      {
+        return x.is<identifier>() or x.is<symbol>() ? t : f;
+      }
+    });
 
-    define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
+    /* -------------------------------------------------------------------------
+     *
+     *  (unwrap-syntax syntax-object)                                 procedure
+     *
+     *  If syntax-object is an identifier, then it is returned unchanged.
+     *  Otherwise unwrap-syntax converts the outermost structure of
+     *  syntax-object into a data object whose external representation is the
+     *  same as that of syntax-object. The result is either an identifier, a
+     *  pair whose car and cdr are syntax objects, a vector whose elements are
+     *  syntax objects, an empty list, a string, a boolean, a character, or a
+     *  number.
+     *
+     *    (identifier? (unwrap-syntax (syntax x))) => #t
+     *
+     *    (identifier? (car (unwrap-syntax (syntax (x))))) => #t
+     *
+     *    (unwrap-syntax (cdr (unwrap-syntax (syntax (x))))) => ()
+     *
+     * ---------------------------------------------------------------------- */
 
     define<procedure>("unwrap-syntax", [](let const& xs)
     {
@@ -1974,6 +2111,26 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (identifier->symbol id)                                       procedure
+     *
+     *  Returns a symbol representing the original name of id.
+     *  Identifier->symbol is used to examine identifiers that appear in
+     *  literal contexts, i.e., identifiers that will appear in quoted
+     *  structures.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("identifier->symbol", [](let const& xs)
+    {
+      return car(xs).as<identifier>().symbol();
+    });
+
+    define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
+
+    define<procedure>("syntactic-keyword?", is<identifier>());
+
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
       if (let const& macro = (*this)[caar(xs)]; macro.is<syntactic_continuation>())
@@ -1983,33 +2140,6 @@ inline namespace kernel
       else
       {
         throw error(make<string>("not a macro"), caar(xs));
-      }
-    });
-
-    define<procedure>("syntactic-keyword?", is<identifier>());
-
-    define<procedure>("identifier->symbol", [](let const& xs)
-    {
-      return car(xs).as<identifier>().unwrap_syntax();
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (identifier? syntax-object)                                   procedure
-     *
-     *  Returns #t if syntax-object represents an identifier, otherwise returns
-     *  #f.
-     *
-     * ---------------------------------------------------------------------- */
-    define<procedure>("identifier?", [](let const& xs)
-    {
-      if (let const& x = car(xs); x.is<syntactic_continuation>())
-      {
-        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
-      }
-      else
-      {
-        return x.is<identifier>() or x.is<symbol>() ? t : f;
       }
     });
   }
