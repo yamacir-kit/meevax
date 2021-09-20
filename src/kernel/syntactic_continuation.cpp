@@ -347,8 +347,8 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot<layer::declarations>()
   {
-    define<syntax>("export", [](auto&&... xs) { return exportation(std::forward<decltype(xs)>(xs)...); }); // XXX DEPRECATED
-    define<syntax>("import", [](auto&&... xs) { return importation(std::forward<decltype(xs)>(xs)...); }); // XXX DEPRECATED
+    define<syntax>("export", exportation); // XXX DEPRECATED
+    define<syntax>("import", importation); // XXX DEPRECATED
 
     // TODO (define (set-debug! t/f)
     //        (set! (debug) t/f))
@@ -372,55 +372,15 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot<layer::primitives>()
   {
-    define<syntax>("begin", [](auto&&... xs)
-    {
-      return sequence(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<syntax>("call-with-current-continuation", [](auto&&... xs)
-    {
-      return call_with_current_continuation(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<syntax>("define", [](auto&&... xs)
-    {
-      return definition(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<syntax>("fork-with-current-syntactic-continuation", [](auto&&... xs)
-    {
-      return fork_csc(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<syntax>("if", [](auto&&... xs)
-    {
-      return conditional(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<syntax>("lambda", [](auto&&... xs)
-    {
-      return lambda(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<syntax>("letrec", [](auto&&... xs)
-    {
-      return letrec(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<syntax>("quote", [](auto&&... xs)
-    {
-      return quotation(std::forward<decltype(xs)>(xs)...);
-    });
-
-    // define<syntax>("reference", [](auto&&... xs) // XXX DEPRECATED
-    // {
-    //   return lvalue(std::forward<decltype(xs)>(xs)...);
-    // });
-
-    define<syntax>("set!", [](auto&&... xs)
-    {
-      return assignment(std::forward<decltype(xs)>(xs)...);
-    });
+    define<syntax>("begin", sequence);
+    define<syntax>("call-with-current-continuation", call_with_current_continuation);
+    define<syntax>("define", definition);
+    define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
+    define<syntax>("if", conditional);
+    define<syntax>("lambda", lambda);
+    define<syntax>("letrec", letrec);
+    define<syntax>("quote", quotation);
+    define<syntax>("set!", assignment);
   }
 
   template <>
