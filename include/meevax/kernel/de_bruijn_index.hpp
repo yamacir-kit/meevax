@@ -69,7 +69,12 @@ inline namespace kernel
 
     auto is_bound() const -> bool
     {
-      return not index.is<null>();
+      return not is_free();
+    }
+
+    auto is_free() const -> bool
+    {
+      return index.is<null>();
     }
   };
 } // namespace kernel

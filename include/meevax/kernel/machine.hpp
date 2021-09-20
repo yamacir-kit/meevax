@@ -49,7 +49,6 @@ inline namespace kernel
     {}
 
     IMPORT(SK, fork, NIL);
-    IMPORT(SK, intern, NIL);
     IMPORT(SK, is_trace_mode, const);
     IMPORT(SK, locate, NIL);
 
@@ -158,7 +157,7 @@ inline namespace kernel
       }
       else // is (applicant . arguments)
       {
-        if (let const& applicant = lookup(car(expression), current_syntactic_continuation.global_environment()); not de_bruijn_index(car(expression), frames).is_bound())
+        if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
         {
           if (applicant.is<syntax>())
           {
@@ -392,28 +391,39 @@ inline namespace kernel
         c = cddr(c);
         goto decode;
 
-      case mnemonic::CALL: /* --------------------------------------------------
+      case mnemonic::CALL:
+        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
+        *     (<closure> arguments . s)              e (CALL . c)          d
+        *  =>                        () (arguments . e')       c' (s e c . d)
+        *
+        *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
-        if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           d = cons(cddr(s), e, cdr(c), d);
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
+        else if (callee.is<procedure>()) /* ------------------------------------
+        *
+        *     (<procedure> arguments . s) e (CALL . c) d
+        *  =>              (<result> . s) e         c  d
+        *
+        *  where <result> = procedure(arguments)
+        *
+        * ------------------------------------------------------------------- */
         {
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           c = cdr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
-        *     (k operands . s)  e (CALL . c) d
-        *  =>   (operand  . s') e'        c' d'
+        *     (<continuation> arguments . s)  e (CALL . c) d
+        *  =>                (arguments . s') e'        c' d'
         *
-        *  where k = (s' e' c' . 'd)
+        *  where <continuation> = (s' e' c' . 'd)
         *
         * ------------------------------------------------------------------- */
         {
@@ -454,6 +464,31 @@ inline namespace kernel
         {
           throw error(make<string>("not applicable"), callee);
         }
+        goto decode;
+
+      case mnemonic::DUMMY: /* -------------------------------------------------
+        *
+        *     s                e (DUMMY . c) d
+        *  => s (<undefined> . e)         c  d
+        *
+        * ------------------------------------------------------------------- */
+        e = cons(undefined, e);
+        c = cdr(c);
+        goto decode;
+
+      case mnemonic::RECURSIVE_CALL: /* ----------------------------------------
+        *
+        *      (<closure> arguments . s) (<dummy> . e) (RECURSIVE_CALL . c) d
+        *  =>  () (set-car! e' arguments) c' (s e c . d)
+        *
+        *  where <closure> = (c' . e')
+        *
+        * ------------------------------------------------------------------- */
+        cadar(s) = cadr(s);
+        d = cons(cddr(s), cdr(e), cdr(c), d);
+        c = caar(s);
+        e = cdar(s);
+        s = unit;
         goto decode;
 
       case mnemonic::RETURN: /* ------------------------------------------------
@@ -533,7 +568,7 @@ inline namespace kernel
       }
     }
 
-  protected: // PRIMITIVE EXPRESSION TYPES
+  protected:
     static SYNTAX(quotation) /* ------------------------------------------------
     *
     *  (quote <datum>)                                                   syntax
@@ -556,7 +591,8 @@ inline namespace kernel
     * ----------------------------------------------------------------------- */
     {
       WRITE_DEBUG(car(expression), faint, " ; is <datum>");
-      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression), continuation);
+      return cons(make<instruction>(mnemonic::LOAD_CONSTANT), car(expression),
+                  continuation);
     }
 
     static SYNTAX(sequence) /* -------------------------------------------------
@@ -589,7 +625,11 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>())
         {
-          return compile(context::outermost, current_syntactic_continuation, car(expression), frames, continuation);
+          return compile(current_syntactic_context,
+                         current_syntactic_continuation,
+                         car(expression),
+                         frames,
+                         continuation);
         }
         else
         {
@@ -609,7 +649,11 @@ inline namespace kernel
       {
         if (cdr(expression).is<null>()) // is tail sequence
         {
-          return compile(current_syntactic_context, current_syntactic_continuation, car(expression), frames, continuation);
+          return compile(current_syntactic_context,
+                         current_syntactic_continuation,
+                         car(expression),
+                         frames,
+                         continuation);
         }
         else
         {
@@ -626,8 +670,6 @@ inline namespace kernel
         }
       }
     }
-
-    enum class internal_definition_tag {};
 
     static SYNTAX(definition) /* -----------------------------------------------
     *
@@ -662,7 +704,7 @@ inline namespace kernel
         {
           return compile(context::none,
                          current_syntactic_continuation,
-                         cons(current_syntactic_continuation.intern("lambda"), cdar(expression), cdr(expression)),
+                         cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(caar(expression)),
                               continuation));
@@ -679,23 +721,81 @@ inline namespace kernel
       }
       else
       {
-        indent() << indent::width; // XXX DIRTY HACK!
-        throw tagged_syntax_error<internal_definition_tag>(make<string>("definition cannot appear in this context"), unit);
+        throw syntax_error(make<string>("definition cannot appear in this context"), unit);
       }
+    }
+
+    static SYNTAX(letrec) /* ---------------------------------------------------
+    *
+    *  (letrec <bindings> <body>)                                        syntax
+    *
+    *  Syntax: <Bindings> has the form
+    *
+    *      ((<variable 1> <init 1>) ...),
+    *
+    *  and <body> is a sequence of zero or more definitions followed by one or
+    *  more expressions as described in section 4.1.4. It is an error for a
+    *  <variable> to appear more than once in the list of variables being bound.
+    *
+    *  Semantics: The <variable>s are bound to fresh locations holding
+    *  unspecified values, the <init>s are evaluated in the resulting
+    *  environment (in some unspecified order), each <variable> is assigned to
+    *  the result of the corresponding <init>, the <body> is evaluated in the
+    *  resulting environment, and the values of the last expression in <body>
+    *  are returned. Each binding of a <variable> has the entire letrec
+    *  expression as its region, making it possible to define mutually
+    *  recursive procedures.
+    *
+    *      (letrec ((even?
+    *                 (lambda (n)
+    *                   (if (zero? n) #t
+    *                       (odd? (- n 1)))))
+    *               (odd?
+    *                 (lambda (n)
+    *                   (if (zero? n) #f
+    *                       (even? (- n 1))))))
+    *        (even? 88))
+    *                                  => #t
+    *
+    *  One restriction on letrec is very important: if it is not possible to
+    *  evaluate each <init> without assigning or referring to the value of any
+    *  <variable>, it is an error. The restriction is necessary because letrec
+    *  is defined in terms of a procedure call where a lambda expression binds
+    *  the <variable>s to the values of the <init>s. In the most common uses of
+    *  letrec, all the <init>s are lambda expressions and the restriction is
+    *  satisfied automatically.
+    *
+    * ----------------------------------------------------------------------- */
+    {
+      auto const& [bindings, body] = unpair(expression);
+
+      auto const& [variables, inits] = unzip2(bindings);
+
+      return cons(make<instruction>(mnemonic::DUMMY),
+                  operand(context::none,
+                          current_syntactic_continuation,
+                          inits,
+                          cons(variables, frames),
+                          lambda(context::none,
+                                 current_syntactic_continuation,
+                                 cons(variables, body),
+                                 frames,
+                                 cons(make<instruction>(mnemonic::RECURSIVE_CALL),
+                                      continuation))));
     }
 
     static SYNTAX(body)
     {
-      auto is_definition = [&](auto const& form)
+      auto is_definition = [&](let const& form)
       {
-        try
+        if (form.is<pair>() and de_bruijn_index(car(form), frames).is_free())
         {
-          compile(current_syntactic_context, current_syntactic_continuation, form, frames, continuation);
-          return false;
+          let const& callee = current_syntactic_continuation.lookup(car(form));
+          return callee.is<syntax>() and callee.as<syntax>().name == "define";
         }
-        catch (const tagged_syntax_error<internal_definition_tag>&)
+        else
         {
-          return true;
+          return false;
         }
       };
 
@@ -703,11 +803,20 @@ inline namespace kernel
       {
         let binding_specs = unit;
 
-        for (auto iter = std::cbegin(form); iter != std::cend(form); ++iter)
+        for (auto iter = std::begin(form); iter != std::end(form); ++iter)
         {
           if (is_definition(*iter))
           {
-            binding_specs = cons(cdr(*iter), binding_specs);
+            if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) <body>)
+            {
+              auto const& [variable, formals] = unpair(cadr(*iter));
+
+              binding_specs = list(variable, cons(make<syntax>("lambda", lambda), formals, cddr(*iter))) | binding_specs;
+            }
+            else // (define <variable> <expression>)
+            {
+              binding_specs = cdr(*iter) | binding_specs;
+            }
           }
           else
           {
@@ -718,55 +827,11 @@ inline namespace kernel
         return std::make_pair(reverse(binding_specs), std::end(form));
       };
 
-      auto letrec = [&](auto const& binding_specs, auto const& tail_body)
-      {
-        // std::cout << "\n"
-        //           << "; compiler\t; letrec\n"
-        //           << ";\t\t; binding-specs = " << binding_specs << "\n"
-        //           << ";\t\t; tail-body = " << tail_body << std::endl;
+      /*
+         (lambda <formals> <body>)
 
-        let const variables = map(
-          [](let const& x)
-          {
-            return car(x).is<pair>() ? caar(x) : car(x);
-          }, binding_specs);
-        // std::cout << ";\t\t; variables = " << variables << std::endl;
-
-        let const inits = make_list(length(variables), undefined);
-        // std::cout << ";\t\t; inits = " << inits << std::endl;
-
-        let const head_body = map(
-          [&](auto&& x)
-          {
-            if (car(x).template is<pair>())
-            {
-              return list(current_syntactic_continuation.intern("set!"),
-                          caar(x),
-                          cons(current_syntactic_continuation.intern("lambda"), cdar(x), cdr(x)));
-            }
-            else
-            {
-              return cons(current_syntactic_continuation.intern("set!"), x);
-            }
-          }, binding_specs);
-
-        // std::cout << ";\t\t; head_body length is " << length(head_body) << std::endl;
-        //
-        // for (const auto& each : head_body)
-        // {
-        //   std::cout << ";\t\t; " << each << std::endl;
-        // }
-
-        let const result = cons(cons(current_syntactic_continuation.intern("lambda"), // XXX NOT HYGIENIC!!!
-                                     variables,
-                                     append(head_body, tail_body)),
-                                inits);
-
-        // std::cout << "\t\t; result = " << result << std::endl;
-
-        return result;
-      };
-
+         where <body> = <definition>* <expression>* <tail expression>
+      */
       if (cdr(expression).is<null>()) // is tail-sequence
       {
         return compile(current_syntactic_context | context::tail_call,
@@ -775,11 +840,21 @@ inline namespace kernel
                        frames,
                        continuation);
       }
-      else if (auto const [binding_specs, tail_body] = sweep(expression); binding_specs)
+      else if (auto const& [binding_specs, body] = sweep(expression); binding_specs)
       {
+        /*
+           (letrec* <binding specs> <body>)
+
+               => ((lambda <variables> <assignments> <body>) <initials>)
+
+           where <binding specs> = ((<variable 1> <init 1>) ...)
+        */
         return compile(current_syntactic_context,
                        current_syntactic_continuation,
-                       letrec(binding_specs, tail_body),
+                       cons(cons(make<syntax>("lambda", lambda),
+                                 unzip1(binding_specs),
+                                 append(map(curry(cons)(make<syntax>("set!", assignment)), binding_specs), body)),
+                            make_list(length(binding_specs), undefined)),
                        frames,
                        continuation);
       }
@@ -810,7 +885,8 @@ inline namespace kernel
                                current_syntactic_continuation,
                                car(expression),
                                frames,
-                               cons(make<instruction>(mnemonic::CONS), continuation)));
+                               cons(make<instruction>(mnemonic::CONS),
+                                    continuation)));
       }
       else
       {
@@ -920,7 +996,7 @@ inline namespace kernel
                   body(current_syntactic_context,
                        current_syntactic_continuation,
                        cdr(expression),
-                       cons(car(expression), frames),
+                       cons(car(expression), frames), // Extend lexical environment.
                        list(make<instruction>(mnemonic::RETURN))),
                   continuation);
     }

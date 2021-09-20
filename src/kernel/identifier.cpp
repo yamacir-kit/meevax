@@ -42,17 +42,5 @@ inline namespace kernel
   {
     return os << underline << datum.symbol() << reset;
   }
-
-  auto lookup(let const& x, let const& g) -> let const&
-  {
-    if (let const& p = assq(x, g); p != f)
-    {
-      return cdr(p);
-    }
-    else
-    {
-      return x.is<identifier>() ? x.as<identifier>().symbol() : x;
-    }
-  }
 } // namespace kernel
 } // namespace meevax

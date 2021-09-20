@@ -23,16 +23,15 @@ namespace meevax
 {
 inline namespace functional
 {
-  template <typename F>
-  constexpr auto curry(F&& f) -> decltype(auto)
+  template <typename Function>
+  constexpr auto curry(Function&& function) -> decltype(auto)
   {
     return [&](auto&&... xs)
     {
       return [&](auto&&... ys) -> decltype(auto)
       {
-        return
-          f(std::forward<decltype(xs)>(xs)...,
-            std::forward<decltype(ys)>(ys)...);
+        return function(std::forward<decltype(xs)>(xs)...,
+                        std::forward<decltype(ys)>(ys)...);
       };
     };
   }

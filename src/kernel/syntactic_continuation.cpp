@@ -30,7 +30,9 @@ inline namespace kernel
   template <>
   syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
     : syntactic_continuation::syntactic_continuation {}
-  {}
+  {
+    boot<layer::declarations>();
+  }
 
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
@@ -249,6 +251,18 @@ inline namespace kernel
     }
   }
 
+  auto syntactic_continuation::lookup(const_reference variable) const -> const_reference
+  {
+    if (let const& x = assq(variable, global_environment()); eq(x, f))
+    {
+      return variable.is<identifier>() ? variable.as<identifier>().symbol() : variable;
+    }
+    else
+    {
+      return cdr(x);
+    }
+  }
+
   auto syntactic_continuation::macroexpand(const_reference keyword, const_reference form) -> value_type
   {
     ++generation;
@@ -386,6 +400,11 @@ inline namespace kernel
     define<syntax>("lambda", [](auto&&... xs)
     {
       return lambda(std::forward<decltype(xs)>(xs)...);
+    });
+
+    define<syntax>("letrec", [](auto&&... xs)
+    {
+      return letrec(std::forward<decltype(xs)>(xs)...);
     });
 
     define<syntax>("quote", [](auto&&... xs)
