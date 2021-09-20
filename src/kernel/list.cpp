@@ -20,36 +20,22 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto take(let const& exp, std::size_t size) -> let
+  auto take(pair::const_reference x, std::size_t size) -> pair::value_type
   {
-    if (0 < size)
-    {
-      return car(exp) | take(cdr(exp), --size);
-    }
-    else
-    {
-      return unit;
-    }
+    return 0 < size ? car(x) | take(cdr(x), --size) : unit;
   }
 
-  auto append(let const& x, let const& y) -> let
+  auto append(pair::const_reference x, pair::const_reference y) -> pair::value_type
   {
-    if (x.is<null>())
-    {
-      return y;
-    }
-    else
-    {
-      return cons(car(x), append(cdr(x), y));
-    }
+    return x.is<null>() ? y : cons(car(x), append(cdr(x), y));
   }
 
-  auto reverse(let const& x) -> let
+  auto reverse(pair::const_reference x) -> pair::value_type
   {
     return x ? append(reverse(cdr(x)), list(car(x))) : unit;
   }
 
-  auto zip(let const& x, let const& y) -> let
+  auto zip(pair::const_reference x, pair::const_reference y) -> pair::value_type
   {
     if (x.is<null>() and y.is<null>())
     {
@@ -63,6 +49,11 @@ inline namespace kernel
     {
       return unit;
     }
+  }
+
+  auto unzip1(pair::const_reference xs) -> pair::value_type
+  {
+    return map(car, xs);
   }
 
   auto unzip2(pair::const_reference xs) -> std::tuple<pair::value_type, pair::value_type>

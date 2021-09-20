@@ -49,7 +49,6 @@ inline namespace kernel
     {}
 
     IMPORT(SK, fork, NIL);
-    IMPORT(SK, intern, NIL);
     IMPORT(SK, is_trace_mode, const);
     IMPORT(SK, locate, NIL);
 
@@ -705,7 +704,7 @@ inline namespace kernel
         {
           return compile(context::none,
                          current_syntactic_continuation,
-                         cons(current_syntactic_continuation.intern("lambda"), cdar(expression), cdr(expression)),
+                         cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
                          cons(make<instruction>(mnemonic::DEFINE), current_syntactic_continuation.locate(caar(expression)),
                               continuation));
@@ -810,11 +809,11 @@ inline namespace kernel
           {
             if (cadr(*iter).template is<pair>()) // (define (<variable> . <formals>) <body>)
             {
-              let const& variable = caadr(*iter);
-              let const& formals = cdadr(*iter);
+              auto const& [variable, formals] = unpair(cadr(*iter));
+
               let const& body = cddr(*iter);
 
-              let const binding_spec = list(variable, cons(current_syntactic_continuation.intern("lambda"), formals, body));
+              let const binding_spec = list(variable, cons(make<syntax>("lambda", lambda), formals, body));
 
               binding_specs = cons(binding_spec, binding_specs);
             }
@@ -834,13 +833,13 @@ inline namespace kernel
         return std::make_pair(reverse(binding_specs), std::end(form));
       };
 
-      auto internal_definition = [&](auto const& binding_specs, auto const& body)
+      auto letrec_star = [&](auto const& binding_specs, auto const& body)
       {
-        let const variables = map(car, binding_specs);
+        let const variables = unzip1(binding_specs);
 
         auto procedure = [&](auto&& x)
         {
-          return cons(current_syntactic_continuation.intern("set!"), x);
+          return cons(make<syntax>("set!", assignment), x);
         };
 
         let const assignments = map(procedure, binding_specs);
@@ -848,7 +847,7 @@ inline namespace kernel
         let const initials = make_list(length(variables), undefined);
 
         /*
-            (letrec <binding specs> <body>)
+            (letrec* <binding specs> <body>)
 
             where <binding specs> = ((<variable 1> <init 1>) ...)
 
@@ -857,7 +856,7 @@ inline namespace kernel
                     <body>)
                   <initials>)
         */
-        return cons(cons(current_syntactic_continuation.intern("lambda"), // XXX NOT HYGIENIC!!!
+        return cons(cons(make<syntax>("lambda", lambda),
                          variables,
                          append(assignments, body)),
                     initials);
@@ -876,11 +875,11 @@ inline namespace kernel
                        frames,
                        continuation);
       }
-      else if (auto const [binding_specs, body] = sweep(expression); binding_specs)
+      else if (auto const& [binding_specs, body] = sweep(expression); binding_specs)
       {
         return compile(current_syntactic_context,
                        current_syntactic_continuation,
-                       internal_definition(binding_specs, body),
+                       letrec_star(binding_specs, body),
                        frames,
                        continuation);
       }

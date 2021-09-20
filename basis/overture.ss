@@ -12,7 +12,7 @@
 ; display do dynamic-wind else                 equal?           even?
 ; exact->inexact exact?                for-each force gcd    imag-part
 ; inexact->exact inexact? input-port?               integer?
-; interaction-environment        lcm length let let* let-syntax letrec
+; interaction-environment        lcm length let let* let-syntax
 ; letrec-syntax list                           list-ref list-tail list?      log
 ; magnitude make-polar make-rectangular                         map max member
 ; memq memv min modulo negative? newline not null-environment null?
