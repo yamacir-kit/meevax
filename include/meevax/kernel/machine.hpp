@@ -233,7 +233,7 @@ inline namespace kernel
                           current_syntactic_continuation,
                           car(expression),
                           frames,
-                          cons(make<instruction>(current_syntactic_context && context::tail ? mnemonic::TAIL_CALL : mnemonic::CALL),
+                          cons(make<instruction>(marked<context::tail>(current_syntactic_context) ? mnemonic::TAIL_CALL : mnemonic::CALL),
                                continuation)));
 
         WRITE_DEBUG(magenta, ")") << indent::width;
@@ -619,7 +619,7 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (current_syntactic_context && context::outermost)
+      if (marked<context::outermost>(current_syntactic_context))
       {
         if (cdr(expression).is<null>())
         {
@@ -694,7 +694,7 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or current_syntactic_context && context::outermost)
+      if (frames.is<null>() or marked<context::outermost>(current_syntactic_context))
       {
         WRITE_DEBUG(car(expression), faint, " ; is <variable>");
 
@@ -910,7 +910,7 @@ inline namespace kernel
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
-      if (current_syntactic_context && context::tail)
+      if (marked<context::tail>(current_syntactic_context))
       {
         auto consequent =
           compile(context::tail,
@@ -1076,7 +1076,7 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        if (let const location = current_syntactic_continuation.locate(car(expression)); (current_syntactic_context && context::outermost) and cdr(location).is<identifier>())
+        if (let const location = current_syntactic_continuation.locate(car(expression)); marked<context::outermost>(current_syntactic_context) and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }

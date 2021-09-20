@@ -14,29 +14,20 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
-#define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_IS_SCOPED_ENUM_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_IS_SCOPED_ENUM_HPP
 
-#include <cstdint>
-
-#include <meevax/utility/enumeration.hpp>
+#include <type_traits>
 
 namespace meevax
 {
-inline namespace kernel
+inline namespace type_traits
 {
-  enum class syntactic_context
-  {
-    none,
-
-    outermost = (1 << 0),
-    tail      = (1 << 1),
-
-    size
-  };
-
-  using context = syntactic_context;
-} // namespace kernel
+  template <typename T>
+  struct is_scoped_enum
+    : public std::bool_constant<std::is_enum<T>::value and not std::is_convertible<T, int>::value>
+  {};
+} // namespace type_traits
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_IS_SCOPED_ENUM_HPP

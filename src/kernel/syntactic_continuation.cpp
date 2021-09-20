@@ -71,9 +71,6 @@ inline namespace kernel
        *  it is the state that is not registered in the GC.
        *
        * ------------------------------------------------------------------ */
-      // let const backup = cons(std::get<0>(*this),
-      //                         std::get<1>(*this));
-
       auto const& k = std::get<0>(*this).as<continuation>();
 
       s = k.s();
@@ -84,6 +81,10 @@ inline namespace kernel
       form() = execute();
 
       assert(form().is<closure>());
+    }
+    else
+    {
+      throw error(make<string>(__func__, " was called by something other than the FORK instruction"), unit);
     }
   }
 
