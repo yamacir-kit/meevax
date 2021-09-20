@@ -130,11 +130,9 @@ inline namespace kernel
 
   auto syntactic_continuation::execute() -> value_type
   {
-    static constexpr auto trace = true;
-
     if (is_trace_mode())
     {
-      return machine::execute<trace>();
+      return machine::execute<execution_context::trace>();
     }
     else
     {

@@ -32,7 +32,7 @@ inline namespace kernel
     outermost = (1 << 0),
     tail      = (1 << 1),
 
-    size
+    size,
   };
 
   using context = syntactic_context;

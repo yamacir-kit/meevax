@@ -72,6 +72,15 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
+    enum class execution_context
+    {
+      none,
+
+      trace = (1 << 0),
+
+      size,
+    };
+
   public:
     /* ---- R7RS 4. Expressions ------------------------------------------------
      *
@@ -247,16 +256,16 @@ inline namespace kernel
       return make<continuation>(s, cons(e, cadr(c), d));
     }
 
-    template <bool Trace = false>
+    template <auto Context = execution_context::none>
     inline auto execute() -> pair::value_type
     {
     decode:
-      if constexpr (Trace)
+      if constexpr (marked<execution_context::trace>(Context))
       {
-        std::cerr << faint << header("trace s") << reset <<  s << "\n"
-                  << faint << header("      e") << reset <<  e << "\n"
-                  << faint << header("      c") << reset <<  c << "\n"
-                  << faint << header("      d") << reset <<  d << "\n" << std::endl;
+        std::cerr << faint << header("trace s") << reset << s << "\n"
+                  << faint << header("      e") << reset << e << "\n"
+                  << faint << header("      c") << reset << c << "\n"
+                  << faint << header("      d") << reset << d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().value)
