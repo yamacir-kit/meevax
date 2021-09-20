@@ -25,13 +25,14 @@ namespace meevax
 {
 inline namespace kernel
 {
-  enum class syntactic_context : std::uint64_t
+  enum class syntactic_context
   {
     none,
 
     outermost = (1 << 0),
+    tail      = (1 << 1),
 
-    tail_call = (1 << 1),
+    size
   };
 
   constexpr auto operator |(syntactic_context const c1, syntactic_context const c2) noexcept

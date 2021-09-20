@@ -233,9 +233,7 @@ inline namespace kernel
                           current_syntactic_continuation,
                           car(expression),
                           frames,
-                          cons(make<instruction>(current_syntactic_context && context::tail_call
-                                                   ? mnemonic::TAIL_CALL
-                                                   : mnemonic::     CALL),
+                          cons(make<instruction>(current_syntactic_context && context::tail ? mnemonic::TAIL_CALL : mnemonic::CALL),
                                continuation)));
 
         WRITE_DEBUG(magenta, ")") << indent::width;
@@ -834,7 +832,7 @@ inline namespace kernel
       */
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return compile(current_syntactic_context | context::tail_call,
+        return compile(current_syntactic_context | context::tail,
                        current_syntactic_continuation,
                        car(expression),
                        frames,
@@ -912,10 +910,10 @@ inline namespace kernel
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
-      if (current_syntactic_context && context::tail_call)
+      if (current_syntactic_context && context::tail)
       {
         auto consequent =
-          compile(context::tail_call,
+          compile(context::tail,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -923,7 +921,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(context::tail_call,
+            ? compile(context::tail,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
