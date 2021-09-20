@@ -672,8 +672,6 @@ inline namespace kernel
       }
     }
 
-    enum class internal_definition_tag {};
-
     static SYNTAX(definition) /* -----------------------------------------------
     *
     *  A variable definition binds one or more identifiers and specifies an
@@ -724,8 +722,7 @@ inline namespace kernel
       }
       else
       {
-        indent() << indent::width; // XXX DIRTY HACK!
-        throw tagged_syntax_error<internal_definition_tag>(make<string>("definition cannot appear in this context"), unit);
+        throw syntax_error(make<string>("definition cannot appear in this context"), unit);
       }
     }
 
