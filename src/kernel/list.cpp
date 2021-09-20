@@ -64,5 +64,22 @@ inline namespace kernel
       return unit;
     }
   }
+
+  auto unzip2(pair::const_reference xs) -> std::tuple<pair::value_type, pair::value_type>
+  {
+    if (xs.is<null>())
+    {
+      return std::make_tuple(unit, unit);
+    }
+    else
+    {
+      auto const& x = car(xs);
+
+      auto const& [a, b] = unzip2(cdr(xs));
+
+      return std::make_tuple(cons( car(x), a),
+                             cons(cadr(x), b));
+    }
+  }
 } // namespace kernel
 } // namespace meevax

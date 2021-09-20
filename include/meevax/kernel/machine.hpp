@@ -768,13 +768,9 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      let const& bindings = car(expression);
+      auto const& [bindings, body] = unpair(expression);
 
-      let const& body = cdr(expression);
-
-      let const variables = map(car, bindings);
-
-      let const inits = map(cadr, bindings);
+      auto const& [variables, inits] = unzip2(bindings);
 
       return cons(make<instruction>(mnemonic::DUMMY),
                   operand(context::none,

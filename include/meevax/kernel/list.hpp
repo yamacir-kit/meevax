@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <tuple>
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/equivalence.hpp>
@@ -161,6 +162,11 @@ inline namespace kernel
   constexpr auto cdddar = compose(cdr, cddar);
   constexpr auto cddddr = compose(cdr, cdddr);
 
+  auto unpair = [](pair::const_reference x) // a.k.a car+cdr (SRFI 1)
+  {
+    return std::forward_as_tuple(car(x), cdr(x));
+  };
+
   auto list_tail = [](auto&& x, auto&& k) -> decltype(auto)
   {
     if constexpr (std::is_same<typename std::decay<decltype(k)>::type, let>::value)
@@ -190,6 +196,8 @@ inline namespace kernel
   let reverse(let const&);
 
   let zip(let const&, let const&);
+
+  auto unzip2(pair::const_reference xs) -> std::tuple<pair::value_type, pair::value_type>;
 
   template <typename F>
   let map(F&& f, let const& x)
