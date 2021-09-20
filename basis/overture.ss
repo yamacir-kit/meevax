@@ -12,7 +12,7 @@
 ; display do dynamic-wind else                 equal?           even?
 ; exact->inexact exact?                for-each force gcd    imag-part
 ; inexact->exact inexact? input-port?               integer?
-; interaction-environment        lcm length let let* let-syntax letrec
+; interaction-environment        lcm length let let* let-syntax
 ; letrec-syntax list                           list-ref list-tail list?      log
 ; magnitude make-polar make-rectangular                         map max member
 ; memq memv min modulo negative? newline not null-environment null?
@@ -261,12 +261,10 @@
           #f)
       (any-2+ f (cons x xs))))
 
-(define-syntax (letrec bindings . body)
+(define-syntax (letrec* bindings . body)
   ((lambda (definitions)
      `((,lambda () ,@definitions ,@body)) )
    (map (lambda (x) (cons define x)) bindings)))
-
-(define-syntax letrec* letrec) ; TODO MOVE INTO (scheme base)
 
 (define-syntax (let bindings . body)
   (if (identifier? bindings)

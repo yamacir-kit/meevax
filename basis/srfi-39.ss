@@ -24,17 +24,17 @@
             (if (null? conv) (lambda (x) x) (car conv))))
       (let ((global-cell
               (cons #f (converter init))))
-        (define parameter
-          (lambda new-val
-            (let ((cell (dynamic-lookup parameter global-cell)))
-              (cond ((null? new-val)
-                     (cdr cell))
-                    ((null? (cdr new-val))
-                     (set-cdr! cell (converter (car new-val))))
-                    (else ; this case is needed for parameterize
-                      (converter (car new-val)))))))
-        (set-car! global-cell parameter)
-        parameter))))
+        (letrec ((parameter
+                   (lambda new-val
+                     (let ((cell (dynamic-lookup parameter global-cell)))
+                       (cond ((null? new-val)
+                              (cdr cell))
+                             ((null? (cdr new-val))
+                              (set-cdr! cell (converter (car new-val))))
+                             (else ; this case is needed for parameterize
+                               (converter (car new-val))))))))
+          (set-car! global-cell parameter)
+          parameter)))))
 
 (define dynamic-bind
   (lambda (parameters values body)
@@ -59,12 +59,10 @@
 
 (define dynamic-env-local '())
 
-(define dynamic-env-local-get
-  (lambda () dynamic-env-local))
+(define (dynamic-env-local-get) dynamic-env-local)
 
-(define dynamic-env-local-set!
-  (lambda (new-env)
-    (set! dynamic-env-local new-env)))
+(define (dynamic-env-local-set! new-env)
+  (set! dynamic-env-local new-env))
 
 ; (define-syntax parameterize
 ;   (er-macro-transformer

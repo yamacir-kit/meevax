@@ -317,14 +317,14 @@ inline namespace kernel
       write_line("  meevax -i");
       write_line("    => start interactive session.");
       write_line();
-      write_line("  meevax -i --prompt '#,(string->symbol \"my-prompt> \")'");
-      write_line("    => start interactive session with given prompt.");
+      write_line("  meevax -i --prompt '\"my-prompt> \"'");
+      write_line("    => Start interactive session with given prompt.");
       write_line();
       write_line("  meevax -e '(+ 1 2 3)'");
-      write_line("    => display 6.");
+      write_line("    => Display 6.");
       write_line();
       write_line("  meevax -e \"(define home \\\"$HOME\\\")\" -i");
-      write_line("    => define value of environment variable $HOME to interaction-environment,");
+      write_line("    => Define value of environment variable $HOME to interaction-environment,");
       write_line("       and then start interactive session.");
     }
 

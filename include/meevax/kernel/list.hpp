@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <tuple>
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/equivalence.hpp>
@@ -161,6 +162,11 @@ inline namespace kernel
   constexpr auto cdddar = compose(cdr, cddar);
   constexpr auto cddddr = compose(cdr, cdddr);
 
+  auto unpair = [](pair::const_reference x) // a.k.a car+cdr (SRFI 1)
+  {
+    return std::forward_as_tuple(car(x), cdr(x));
+  };
+
   auto list_tail = [](auto&& x, auto&& k) -> decltype(auto)
   {
     if constexpr (std::is_same<typename std::decay<decltype(k)>::type, let>::value)
@@ -178,7 +184,7 @@ inline namespace kernel
     return car(list_tail(std::forward<decltype(xs)>(xs)...));
   };
 
-  let take(let const& exp, std::size_t size);
+  auto take(pair::const_reference, std::size_t) -> pair::value_type;
 
   auto length = [](auto const& x) constexpr
   {
@@ -187,21 +193,18 @@ inline namespace kernel
 
   let append(let const&, let const&);
 
-  let reverse(let const&);
+  auto reverse(pair::const_reference) -> pair::value_type;
 
-  let zip(let const&, let const&);
+  auto zip(pair::const_reference, pair::const_reference) -> pair::value_type;
 
-  template <typename F>
-  let map(F&& f, let const& x)
+  auto unzip1(pair::const_reference xs) -> pair::value_type;
+
+  auto unzip2(pair::const_reference xs) -> std::tuple<pair::value_type, pair::value_type>;
+
+  template <typename Function>
+  auto map(Function&& function, let const& x) -> pair::value_type
   {
-    if (x.is<null>())
-    {
-      return unit;
-    }
-    else
-    {
-      return cons(f(car(x)), map(f, cdr(x)));
-    }
+    return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
   }
 
   auto find = [](let const& x, auto&& predicate) constexpr -> pair::const_reference

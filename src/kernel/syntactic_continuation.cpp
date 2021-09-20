@@ -30,7 +30,9 @@ inline namespace kernel
   template <>
   syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
     : syntactic_continuation::syntactic_continuation {}
-  {}
+  {
+    boot<layer::declarations>();
+  }
 
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
@@ -214,9 +216,9 @@ inline namespace kernel
     }
   }
 
-  auto syntactic_continuation::locate(const_reference x) -> const_reference
+  auto syntactic_continuation::locate(const_reference variable) -> const_reference
   {
-    if (let const& binding = assq(x, global_environment()); eq(binding, f) /* or cdr(binding).is<keyword>() */) // TODO
+    if (let const& binding = assq(variable, global_environment()); eq(binding, f))
     {
       /* -----------------------------------------------------------------------
        *
@@ -235,13 +237,29 @@ inline namespace kernel
        *
        * -------------------------------------------------------------------- */
 
-      push(global_environment(), cons(x, make<identifier>(x, global_environment())));
+      let const id = make<identifier>(variable);
+
+      cdr(id) = id; // NOTE: Identifier is self-evaluate if is unbound.
+
+      global_environment() = cons(id, global_environment());
 
       return car(global_environment());
     }
     else
     {
       return binding;
+    }
+  }
+
+  auto syntactic_continuation::lookup(const_reference variable) const -> const_reference
+  {
+    if (let const& x = assq(variable, global_environment()); eq(x, f))
+    {
+      return variable.is<identifier>() ? variable.as<identifier>().symbol() : variable;
+    }
+    else
+    {
+      return cdr(x);
     }
   }
 
@@ -384,15 +402,20 @@ inline namespace kernel
       return lambda(std::forward<decltype(xs)>(xs)...);
     });
 
+    define<syntax>("letrec", [](auto&&... xs)
+    {
+      return letrec(std::forward<decltype(xs)>(xs)...);
+    });
+
     define<syntax>("quote", [](auto&&... xs)
     {
       return quotation(std::forward<decltype(xs)>(xs)...);
     });
 
-    define<syntax>("reference", [](auto&&... xs) // XXX DEPRECATED
-    {
-      return lvalue(std::forward<decltype(xs)>(xs)...);
-    });
+    // define<syntax>("reference", [](auto&&... xs) // XXX DEPRECATED
+    // {
+    //   return lvalue(std::forward<decltype(xs)>(xs)...);
+    // });
 
     define<syntax>("set!", [](auto&&... xs)
     {
@@ -2142,7 +2165,7 @@ inline namespace kernel
 
     define<procedure>("identifier->symbol", [](let const& xs)
     {
-      return car(xs).as<identifier>().unwrap_syntax();
+      return car(xs).as<identifier>().symbol();
     });
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
