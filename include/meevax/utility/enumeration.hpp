@@ -35,12 +35,6 @@ inline namespace kernel
   {
     return static_cast<T>(underlying_cast(e1) & underlying_cast(e2));
   }
-
-  template <auto X, REQUIRES(is_scoped_enum<decltype(X)>)>
-  constexpr auto marked(decltype(X) const x) noexcept
-  {
-    return static_cast<bool>(X & x);
-  }
 } // namespace kernel
 } // namespace meevax
 
