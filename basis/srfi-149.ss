@@ -1,3 +1,28 @@
+; Copyright (c) 2009-2021 Alex Shinn
+; All rights reserved.
+;
+; Redistribution and use in source and binary forms, with or without
+; modification, are permitted provided that the following conditions
+; are met:
+; 1. Redistributions of source code must retain the above copyright
+;    notice, this list of conditions and the following disclaimer.
+; 2. Redistributions in binary form must reproduce the above copyright
+;    notice, this list of conditions and the following disclaimer in the
+;    documentation and/or other materials provided with the distribution.
+; 3. The name of the author may not be used to endorse or promote products
+;    derived from this software without specific prior written permission.
+;
+; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+; IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+; OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+; IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+; INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+; NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+; DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+; THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 (define %number->string number->string)
 
 (define (length* ls)
@@ -5,8 +30,7 @@
     (cond ((positive? r) r) ; no worry
           ((= r -2) #f) ; -2 is circular list so return #f
           (else (let loop ((i 0) (ls ls))
-                  (if (not (pair? ls))
-                      i
+                  (if (not (pair? ls)) i
                       (loop (+ i 1) (cdr ls))))))))
 
 (define (cons-source kar kdr source)
@@ -15,56 +39,32 @@
 (define (syntax-rules-transformer expr rename compare)
   (let ((ellipsis-specified? (identifier? (cadr expr)))
         (count 0)
-        (_-                    (rename '-))
-        (_>=                   (rename '>=))
-        (_and                  (rename 'and))
-        (_append               (rename 'append))
-        (_apply                (rename 'apply))
-        (_begin                (rename 'begin))
-        (_car                  (rename 'car))
-        (_cdr                  (rename 'cdr))
-        (_compare              (rename 'compare))
-        (_cons                 (rename 'cons))
-        (_cons3                (rename 'cons-source))
-        (_eq?                  (rename 'eq?))
-        (_equal?               (rename 'equal?))
         (_er-macro-transformer (rename 'er-macro-transformer))
-        (_error                (rename 'error))
-        (_expr                 (rename 'expr))
-        (_i                    (rename 'i))
-        (_if                   (rename 'if))
-        (_lambda               (rename 'lambda))
-        (_len                  (rename 'len))
-        (_length               (rename 'length*))
-        (_let                  (rename 'let))
-        (_list->vector         (rename 'list->vector))
-        (_list?                (rename 'list?))
-        (_ls                   (rename 'ls))
-        (_map                  (rename 'map))
-        (_null?                (rename 'null?))
-        (_or                   (rename 'or))
-        (_pair?                (rename 'pair?))
-        (_quote                (rename 'quote)) ; syntax-quote
-        (_rename               (rename 'rename))
-        (_res                  (rename 'res))
-        (_reverse              (rename 'reverse))
-        (_underscore           (rename '_))
-        (_vector->list         (rename 'vector->list))
-        (_vector?              (rename 'vector?))
-        )
-    (define ellipsis
-      (if ellipsis-specified? (cadr expr) (rename '...)))
-
-    (define lits
-      (if ellipsis-specified? (car (cddr expr)) (cadr expr)))
-
-    (define forms
-      (if ellipsis-specified? (cdr (cddr expr)) (cddr expr)))
-
+        (_lambda (rename 'lambda))      (_let (rename 'let))
+        (_begin (rename 'begin))        (_if (rename 'if))
+        (_and (rename 'and))            (_or (rename 'or))
+        (_eq? (rename 'eq?))            (_equal? (rename 'equal?))
+        (_car (rename 'car))            (_cdr (rename 'cdr))
+        (_cons (rename 'cons))          (_pair? (rename 'pair?))
+        (_null? (rename 'null?))        (_expr (rename 'expr))
+        (_rename (rename 'rename))      (_compare (rename 'compare))
+        (_quote (rename 'syntax-quote)) (_apply (rename 'apply))
+        (_append (rename 'append))      (_map (rename 'map))
+        (_vector? (rename 'vector?))    (_list? (rename 'list?))
+        (_len (rename'len))             (_length (rename 'length*))
+        (_- (rename '-))   (_>= (rename '>=))   (_error (rename 'error))
+        (_ls (rename 'ls)) (_res (rename 'res)) (_i (rename 'i))
+        (_reverse (rename 'reverse))
+        (_vector->list (rename 'vector->list))
+        (_list->vector (rename 'list->vector))
+        (_cons3 (rename 'cons-source))
+        (_underscore (rename '_)))
+    (define ellipsis (if ellipsis-specified? (cadr expr) (rename '...)))
+    (define lits (if ellipsis-specified? (car (cddr expr)) (cadr expr)))
+    (define forms (if ellipsis-specified? (cdr (cddr expr)) (cddr expr)))
     (define (next-symbol s)
       (set! count (+ count 1))
       (rename (string->symbol (string-append s (%number->string count)))))
-
     (define (expand-pattern pat tmpl)
       (let lp ((p (cdr pat))
                (x (list _cdr _expr))
@@ -73,12 +73,14 @@
                (k (lambda (vars)
                     (list _cons (expand-template tmpl vars) #f))))
         (let ((v (next-symbol "v.")))
-          (list _let (list (list v x))
+          (list
+            _let (list (list v x))
             (cond
               ((identifier? p)
                (if (any (lambda (l) (compare p l)) lits)
-                   (list _and (list _compare v (list _rename (list _quote p)))
-                              (k vars))
+                   (list _and
+                         (list _compare v (list _rename (list _quote p)))
+                         (k vars))
                    (if (compare p _underscore)
                        (k vars)
                        (list _let (list (list p v)) (k (cons (cons p dim) vars))))))
@@ -93,22 +95,24 @@
                       (let ((len (length* (cdr (cdr p))))
                             (_lp (next-symbol "lp.")))
                         `(,_let ((,_len (,_length ,v)))
-                           (,_and (,_>= ,_len ,len)
-                                  (,_let ,_lp ((,_ls ,v)
-                                               (,_i (,_- ,_len ,len))
-                                               (,_res (,_quote ())))
-                                    (,_if (,_>= 0 ,_i)
-                                          ,(lp `(,(cddr p) (,(car p) ,(car (cdr p))))
-                                               `(,_cons ,_ls (,_cons (,_reverse ,_res)
-                                                                     (,_quote ())))
-                                               dim
-                                               vars
-                                               k)
-                                          (,_lp (,_cdr ,_ls)
-                                                (,_- ,_i 1)
-                                                (,_cons3 (,_car ,_ls)
-                                                         ,_res
-                                                         ,_ls))))))))))
+                                (,_and (,_>= ,_len ,len)
+                                       (,_let ,_lp ((,_ls ,v)
+                                                    (,_i (,_- ,_len ,len))
+                                                    (,_res (,_quote ())))
+                                              (,_if (,_>= 0 ,_i)
+                                                    ,(lp `(,(cddr p)
+                                                            (,(car p) ,(car (cdr p))))
+                                                         `(,_cons ,_ls
+                                                                  (,_cons (,_reverse ,_res)
+                                                                          (,_quote ())))
+                                                         dim
+                                                         vars
+                                                         k)
+                                                    (,_lp (,_cdr ,_ls)
+                                                          (,_- ,_i 1)
+                                                          (,_cons3 (,_car ,_ls)
+                                                                   ,_res
+                                                                   ,_ls))))))))))
                  ((identifier? (car p))
                   (list _and (list _list? v)
                         (list _let (list (list (car p) v))
@@ -127,17 +131,20 @@
                           (once
                             (lp (car p) (list _car w) (+ dim 1) '()
                                 (lambda (_)
-                                  (cons _lp
+                                  (cons
+                                    _lp
                                     (cons
                                       (list _cdr w)
                                       (map (lambda (x l)
                                              (list _cons (car x) l))
                                            new-vars
                                            ls-vars)))))))
-                     (list _let _lp (cons (list w v)
-                                          (map (lambda (x) (list x (list _quote '()))) ls-vars))
+                     (list
+                       _let
+                       _lp (cons (list w v)
+                                 (map (lambda (x) (list x (list _quote '()))) ls-vars))
                        (list _if (list _null? w)
-                                 (list _let (map (lambda (x l)
+                             (list _let (map (lambda (x l)
                                                (list (car x) (list _reverse l)))
                                              new-vars
                                              ls-vars)
@@ -157,26 +164,17 @@
                      (lp (vector->list p) (list _vector->list v) dim vars k)))
               ((null? p) (list _and (list _null? v) (k vars)))
               (else (list _and (list _equal? v p) (k vars))))))))
-
-    (define (ellipsis-escape? x)
-      (and (pair? x)
-           (compare ellipsis (car x))))
-
+    (define (ellipsis-escape? x) (and (pair? x) (compare ellipsis (car x))))
     (define (ellipsis? x)
-      (and (pair? x)
-           (pair? (cdr x))
-           (compare ellipsis (cadr x))))
-
+      (and (pair? x) (pair? (cdr x)) (compare ellipsis (cadr x))))
     (define (ellipsis-depth x)
       (if (ellipsis? x)
           (+ 1 (ellipsis-depth (cdr x)))
           0))
-
     (define (ellipsis-tail x)
       (if (ellipsis? x)
           (ellipsis-tail (cdr x))
           (cdr x)))
-
     (define (all-vars x dim)
       (let lp ((x x) (dim dim) (vars '()))
         (cond ((identifier? x)
@@ -187,21 +185,18 @@
               ((pair? x) (lp (car x) dim (lp (cdr x) dim vars)))
               ((vector? x) (lp (vector->list x) dim vars))
               (else vars))))
-
     (define (free-vars x vars dim)
       (let lp ((x x) (free '()))
         (cond
           ((identifier? x)
            (if (and (not (memq x free))
-                    (cond ((assq x vars) => (lambda (cell)
-                                              (>= (cdr cell) dim)))
+                    (cond ((assq x vars) => (lambda (cell) (>= (cdr cell) dim)))
                           (else #f)))
                (cons x free)
                free))
           ((pair? x) (lp (car x) (lp (cdr x) free)))
           ((vector? x) (lp (vector->list x) free))
           (else free))))
-
     (define (expand-template tmpl vars)
       (let lp ((t tmpl) (dim 0))
         (cond
@@ -251,11 +246,13 @@
           ((vector? t) (list _list->vector (lp (vector->list t) dim)))
           ((null? t) (list _quote '()))
           (else t))))
-
-    (list _er-macro-transformer
+    (list
+      _er-macro-transformer
       (list _lambda (list _expr _rename _compare)
-        (list _car
-              (cons _or
+            (list
+              _car
+              (cons
+                _or
                 (append
                   (map
                     (lambda (clause) (expand-pattern (car clause) (cadr clause)))
