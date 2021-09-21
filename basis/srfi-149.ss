@@ -36,6 +36,8 @@
 (define (cons-source kar kdr source)
   (cons kar kdr))
 
+(define syntax-quote quote)
+
 (define (syntax-rules-transformer expr rename compare)
   (let ((ellipsis-specified? (identifier? (cadr expr)))
         (count 0)

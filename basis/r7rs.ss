@@ -1,36 +1,67 @@
-; ------------------------------------------------------------------------------
-;       ...          =>
-;
-;
-;
-;
-;
-;
-;
-;
-; current-input-port current-output-port
-;                         else
-;
-;
-; interaction-environment                            let-syntax
-; letrec-syntax                                         list-tail
-;
-;                                            null-environment
-;
-;
-;
-; scheme-report-environment
-;
-;
-;
-;                                  syntax-rules
-;
-; with-input-from-file with-output-to-file
-; ------------------------------------------------------------------------------
+; ---- 4.2.1. Conditionals -----------------------------------------------------
+
+(define-syntax cond
+  (syntax-rules (else =>)
+    ((cond (else result1 result2 ...))
+     (begin result1 result2 ...))
+    ((cond (test => result))
+     (let ((temp test))
+       (if temp (result temp))))
+    ((cond (test => result) clause1 clause2 ...)
+     (let ((temp test))
+       (if temp
+           (result temp)
+           (cond clause1 clause2 ...))))
+    ((cond (test)) test)
+    ((cond (test) clause1 clause2 ...)
+     (let ((temp test))
+       (if temp
+           temp
+           (cond clause1 clause2 ...))))
+    ((cond (test result1 result2 ...))
+     (if test (begin result1 result2 ...)))
+    ((cond (test result1 result2 ...)
+           clause1 clause2 ...)
+     (if test
+         (begin result1 result2 ...)
+         (cond clause1 clause2 ...)))))
+
+(define-syntax case ; errata version
+  (syntax-rules (else =>)
+    ((case (key ...)
+       clauses ...)
+     (let ((atom-key (key ...)))
+       (case atom-key clauses ...)))
+    ((case key
+       (else => result))
+     (result key))
+    ((case key
+       (else result1 result2 ...))
+     (begin result1 result2 ...))
+    ((case key
+       ((atoms ...) => result))
+     (if (memv key '(atoms ...))
+         (result key)))
+    ((case key
+       ((atoms ...) => result)
+       clause clauses ...)
+     (if (memv key '(atoms ...))
+         (result key)
+         (case key clause clauses ...)))
+    ((case key
+       ((atoms ...) result1 result2 ...))
+     (if (memv key '(atoms ...))
+         (begin result1 result2 ...)))
+    ((case key
+       ((atoms ...) result1 result2 ...)
+       clause clauses ...)
+     (if (memv key '(atoms ...))
+         (begin result1 result2 ...)
+         (case key clause clauses ...)))))
 
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
-(define delay-force lazy) ; from SRFI-45
+(define-syntax delay-force lazy) ; from SRFI-45
 
 ; ---- 6.1. Equivalence predicates ---------------------------------------------
 

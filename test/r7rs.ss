@@ -115,7 +115,7 @@
          ((1 4 6 8 9) 'composite)) => composite)
 (check (case (car '(c d))
          ((a) 'a)
-         ((b) 'b)) => #f) ; unspecified
+         ((b) 'b)) => #,(unspecified))
 (check (case (car '(c d))
          ((a e i o u) 'vowel)
          ((w y) 'semivowel)

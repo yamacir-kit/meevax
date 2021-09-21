@@ -2156,6 +2156,7 @@ inline namespace kernel
       srfi_39,
       srfi_45,
       srfi_78,
+      srfi_149,
       r7rs,
     };
 
