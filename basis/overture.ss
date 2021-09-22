@@ -16,9 +16,7 @@
 (define-syntax (syntax datum)
   (if (pair? datum)
       (list fork/csc (list lambda '() datum))
-      (eval datum (fork/csc identity))
-    )
-  )
+      (eval datum (fork/csc identity))))
 
 (define (free-identifier=? x y)
   (if (symbol? x)
@@ -279,7 +277,7 @@
 
   (define (each-clause clauses)
     (cond
-      ((null? clauses) #false)
+      ((null? clauses) (unspecified))
       ((free-identifier=? else (caar clauses))
        (body (cdar clauses)))
       ((and (pair? (caar clauses))
