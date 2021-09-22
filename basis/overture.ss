@@ -85,14 +85,13 @@
                     #f))))
 
 (define-syntax (or . tests)
-  (cond
-    ((null? tests) #f)
-    ((null? (cdr tests)) (car tests))
-    (else (list (list lambda (list result)
-                  (list if result
-                           result
-                           (cons or (cdr tests))))
-                (car tests)))))
+  (cond ((null? tests) #f)
+        ((null? (cdr tests)) (car tests))
+        (else (list (list lambda (list result)
+                          (list if result
+                                result
+                                (cons or (cdr tests))))
+                    (car tests)))))
 
 (define (append-2 x y)
   (if (null? x) y

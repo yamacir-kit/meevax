@@ -2017,19 +2017,26 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs) -> let
+    define<procedure>("emergency-exit", [](let const& xs) -> value_type
     {
-      if (xs.is<null>() or car(xs) == t)
+      switch (length(xs))
       {
+      case 0:
         throw exit_status::success;
-      }
-      else if (let const& x = car(xs); x.is<exact_integer>())
-      {
-        throw exit_status(static_cast<int>(x.as<exact_integer>()));
-      }
-      else
-      {
-        throw exit_status::failure;
+
+      case 1:
+        if (let const& x = car(xs); x.is<boolean>())
+        {
+          throw if_(x) ? exit_status::success : exit_status::failure;
+        }
+        else if (x.is<exact_integer>())
+        {
+          throw exit_status(static_cast<int>(x.as<exact_integer>()));
+        }
+        [[fallthrough]];
+
+      default:
+        throw invalid_application(intern("emergency-exit") | xs);
       }
     });
 
