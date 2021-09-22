@@ -13,12 +13,11 @@
               (list lambda keyword . transformer)))
           (list define keyword . transformer)))))
 
-; (define-syntax (syntax datum) ; Experimental: DON'T USE THIS!
-;   (list fork/csc
-;     (list lambda '() datum)))
-
 (define-syntax (syntax datum)
-  (eval datum (fork/csc identity))
+  (if (pair? datum)
+      (list fork/csc (list lambda '() datum))
+      (eval datum (fork/csc identity))
+    )
   )
 
 (define (free-identifier=? x y)

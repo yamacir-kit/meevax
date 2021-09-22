@@ -2069,14 +2069,8 @@ inline namespace kernel
 
     define<procedure>("identifier?", [](let const& xs)
     {
-      if (let const& x = car(xs); x.is<syntactic_continuation>())
-      {
-        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
-      }
-      else
-      {
-        return x.is<identifier>() or x.is<symbol>() ? t : f;
-      }
+      let const& x = car(xs);
+      return x.is<identifier>() or x.is<symbol>() ? t : f;
     });
 
     /* -------------------------------------------------------------------------
