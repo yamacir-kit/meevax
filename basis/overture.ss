@@ -18,21 +18,6 @@
       (list fork/csc (list lambda '() datum))
       (eval datum (fork/csc identity))))
 
-(define (free-identifier=? x y)
-  (if (symbol? x)
-      (if (symbol? y)
-          (eq? x y)
-          (if (r6rs:identifier? y)
-              (eq? x (car y))
-              #f))
-      (if (r6rs:identifier? x)
-          (if (r6rs:identifier? y)
-              (eqv? x y)
-              (if (symbol? y)
-                  (eq? (car x) y)
-                  #f))
-          #f)))
-
 (define (current-environment-specifier)
   (fork/csc identity))
 

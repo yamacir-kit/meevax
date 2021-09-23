@@ -97,7 +97,7 @@ inline namespace kernel
   {
     assert(name.is<symbol>());
 
-    return push(global_environment(), cons(name, value));
+    return global_environment() = make<identifier>(name, value) | global_environment();
   }
 
   auto syntactic_continuation::define(std::string const& name, const_reference value) -> const_reference
@@ -346,6 +346,39 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot<layer::declarations>()
   {
+    define<procedure>("free-identifier=?", [this](let const& xs)
+    {
+      if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      {
+        if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+        {
+          if (let const& id1 = a.is<identifier>() ? a.as<identifier>().symbol() : a)
+          {
+            if (let const& id2 = b.is<identifier>() ? b.as<identifier>().symbol() : b)
+            {
+              return id1 == id2 ? t : f;
+            }
+          }
+        }
+      }
+
+      // if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      // {
+      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+      //   {
+      //     if (auto const& id1 = a.is<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
+      //     {
+      //       if (auto const& id2 = b.is<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
+      //       {
+      //         return id1 == id2 ? t : f;
+      //       }
+      //     }
+      //   }
+      // }
+
+      return f;
+    });
+
     define<syntax>("export", exportation); // XXX DEPRECATED
     define<syntax>("import", importation); // XXX DEPRECATED
 
