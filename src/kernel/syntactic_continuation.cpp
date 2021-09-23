@@ -349,8 +349,6 @@ inline namespace kernel
     define<syntax>("export", exportation); // XXX DEPRECATED
     define<syntax>("import", importation); // XXX DEPRECATED
 
-    // TODO (define (set-debug! t/f)
-    //        (set! (debug) t/f))
     define<procedure>("set-batch!",       [this](auto&&... xs) { return batch       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-debug!",       [this](auto&&... xs) { return debug       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-interactive!", [this](auto&&... xs) { return interactive = car(std::forward<decltype(xs)>(xs)...); });
@@ -2130,7 +2128,7 @@ inline namespace kernel
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("syntactic-keyword?", is<identifier>());
+    define<procedure>("r6rs:identifier?", is<identifier>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
