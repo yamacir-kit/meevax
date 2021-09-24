@@ -181,10 +181,10 @@
 ; (check (let-values (((root rem) (exact-integer-sqrt 32)))
 ;          (* root rem)) => 35)
 
-; (check (let ((a 'a) (b 'b) (x 'x) (y 'y))
-;          (let*-values (((a b) (values x y))
-;                        ((x y) (values a b)))
-;            (list a b x y))) => (x y x y))
+(check (let ((a 'a) (b 'b) (x 'x) (y 'y))
+         (let*-values (((a b) (values x y))
+                       ((x y) (values a b)))
+           (list a b x y))) => (x y x y))
 
 ; ---- 4.2.3. Sequencing -------------------------------------------------------
 
