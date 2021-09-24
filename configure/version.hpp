@@ -1,69 +1,68 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 #define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 
+#include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/list.hpp>
-#include <meevax/kernel/number.hpp>
-#include <meevax/kernel/path.hpp>
 #include <meevax/kernel/symbol.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  let const& gmp_version()
+  [[deprecated]]
+  auto gmp_version() -> pair::const_reference
   {
     let static const version = make<symbol>(::gmp_version);
-
     return version;
   }
 
-  let const& major_version()
-  {
-    let static const major = make<exact_integer>("${PROJECT_VERSION_MAJOR}");
-
-    return major;
-  }
-
-  let const& minor_version()
-  {
-    let static const minor = make<exact_integer>("${PROJECT_VERSION_MINOR}");
-
-    return minor;
-  }
-
-  let const& patch_version()
-  {
-    let static const patch = make<exact_integer>("${PROJECT_VERSION_PATCH}");
-
-    return patch;
-  }
-
-  let const& version()
+  auto version() -> pair::const_reference
   {
     let static const version = make<symbol>("${PROJECT_VERSION}");
-
     return version;
   }
 
-  let const& features()
+  auto major_version() -> pair::const_reference
+  {
+    let static const version = make<exact_integer>("${PROJECT_VERSION_MAJOR}");
+    return version;
+  }
+
+  auto minor_version() -> pair::const_reference
+  {
+    let static const version = make<exact_integer>("${PROJECT_VERSION_MINOR}");
+    return version;
+  }
+
+  auto patch_version() -> pair::const_reference
+  {
+    let static const version = make<exact_integer>("${PROJECT_VERSION_PATCH}");
+    return version;
+  }
+
+  auto exact_version() -> pair::const_reference
+  {
+    let static const version = make<symbol>("${${PROJECT_NAME}_VERSION_EXACT}");
+    return version;
+  }
+
+  auto features() -> pair::const_reference
   {
     let static const features = list(
-
-      // make<symbol>("r7rs"), // All R7RS Scheme implementations have this feature.
-      make<symbol>("exact-closed"), // All algebraic operations except / produce exact values given exact inputs.
-      // make<symbol>("exact-complex"), // Exact complex numbers are provided.
-      make<symbol>("ieee-float"), // Inexact numbers are IEEE 754 binary floating point values.
-      // make<symbol>("full-unicode"), // All Unicode characters present in Unicode version 6.0 are supported as Scheme characters.
-      make<symbol>("ratios"), // / with exact arguments produces an exact result when the divisor is nonzero.
-      make<symbol>("posix"), // This implementation is running on a POSIX system.
-      // make<symbol>("windows"), // This implementation is running on Windows.
-      make<symbol>("${CMAKE_SYSTEM_NAME}"), // Operating system flags (perhaps more than one).
-      make<symbol>("${CMAKE_SYSTEM_PROCESSOR}"), // CPU architecture flags.
+      // STANDARD FEATURE IDENTIFIERS
+      make<symbol>("r4rs"),
+      make<symbol>("exact-closed"),
+      // make<symbol>("exact-complex"),
+      make<symbol>("ieee-float"),
+      // make<symbol>("full-unicode"),
+      make<symbol>("ratios"),
+      make<symbol>("posix"),
+      make<symbol>("${CMAKE_SYSTEM_NAME}"),
+      make<symbol>("${CMAKE_SYSTEM_PROCESSOR}"),
       // TODO C memory model flags.
-      // TODO Byte order flags.
-
-      make<symbol>("${PROJECT_NAME}"), // The name of this implementation.
-      make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}"), // The name and version of this implementation.
+      make<symbol>("${${PROJECT_NAME}_BYTE_ORDER}"),
+      make<symbol>("${PROJECT_NAME}"),
+      make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}"),
 
       // SUPPORTED SRFIS
       make<symbol>("srfi-5"),
@@ -80,54 +79,47 @@ inline namespace kernel
     return features;
   }
 
-  let const& install_prefix()
-  {
-    let static const prefix = make<path>("${CMAKE_INSTALL_PREFIX}");
-
-    return prefix;
-  }
-
-  let const& build_date()
-  {
-    let static const result = make<symbol>("${${PROJECT_NAME}_BUILD_DATE}");
-
-    return result;
-  }
-
-  let const& build_hash()
-  {
-    let static const result = make<symbol>("${${PROJECT_NAME}_BUILD_HASH}");
-
-    return result;
-  }
-
-  let const& build_type()
-  {
-    let static const result = make<symbol>("${CMAKE_BUILD_TYPE}");
-
-    return result;
-  }
-
-  let const& cxx_compiler()
-  {
-    let static const result = make<symbol>("${CMAKE_CXX_COMPILER}");
-
-    return result;
-  }
-
-  let const& cxx_flags()
-  {
-    let static const result = make<symbol>("${CMAKE_CXX_FLAGS}");
-
-    return result;
-  }
-
-  let const& cxx_standard()
-  {
-    let static const result = make<exact_integer>("${CMAKE_CXX_STANDARD}");
-
-    return result;
-  }
+  // let const& install_prefix()
+  // {
+  //   let static const prefix = make<path>("${CMAKE_INSTALL_PREFIX}");
+  //
+  //   return prefix;
+  // }
+  //
+  // let const& build_date()
+  // {
+  //   let static const result = make<symbol>("${${PROJECT_NAME}_BUILD_DATE}");
+  //
+  //   return result;
+  // }
+  //
+  // let const& build_type()
+  // {
+  //   let static const result = make<symbol>("${CMAKE_BUILD_TYPE}");
+  //
+  //   return result;
+  // }
+  //
+  // let const& cxx_compiler()
+  // {
+  //   let static const result = make<symbol>("${CMAKE_CXX_COMPILER}");
+  //
+  //   return result;
+  // }
+  //
+  // let const& cxx_flags()
+  // {
+  //   let static const result = make<symbol>("${CMAKE_CXX_FLAGS}");
+  //
+  //   return result;
+  // }
+  //
+  // let const& cxx_standard()
+  // {
+  //   let static const result = make<exact_integer>("${CMAKE_CXX_STANDARD}");
+  //
+  //   return result;
+  // }
 } // namespace kernel
 } // namespace meevax
 
