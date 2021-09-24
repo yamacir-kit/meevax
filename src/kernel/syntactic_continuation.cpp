@@ -611,29 +611,23 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define BOILERPLATE(SYMBOL, BASIS)                                         \
-    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    #define BOILERPLATE(SYMBOL, FUNCTOR, BASIS)                                \
+    define<procedure>(SYMBOL, [](auto&& xs)                                    \
     {                                                                          \
-      auto f = [](auto&& x, auto&& y)                                          \
-      {                                                                        \
-        return x SYMBOL y;                                                     \
-      };                                                                       \
-                                                                               \
       if (length(xs) < 2)                                                      \
       {                                                                        \
-        let const basis = make<exact_integer>(BASIS);                          \
-        return std::accumulate(std::cbegin(xs), std::cend(xs), basis, f);      \
+        return std::accumulate(std::begin(xs), std::end(xs), BASIS, FUNCTOR);  \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        auto const head = std::cbegin(xs);                                     \
-        return std::accumulate(std::next(head), std::cend(xs), *head, f);      \
+        auto const head = std::begin(xs);                                      \
+        return std::accumulate(std::next(head), std::end(xs), *head, FUNCTOR); \
       }                                                                        \
     })
 
-    BOILERPLATE(-, 0);
-    BOILERPLATE(/, 1);
-    BOILERPLATE(%, 1);
+    BOILERPLATE("-", sub, e0);
+    BOILERPLATE("/", div, e1);
+    BOILERPLATE("%", mod, e1);
 
     #undef BOILERPLATE
 
