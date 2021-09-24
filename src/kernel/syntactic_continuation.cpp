@@ -2156,7 +2156,22 @@ inline namespace kernel
 
     define<procedure>("identifier->symbol", [](let const& xs)
     {
-      return car(xs).as<identifier>().symbol();
+      switch (length(xs))
+      {
+      case 1:
+        if (let const& x = car(xs); x.is<identifier>())
+        {
+          return x.as<identifier>().symbol();
+        }
+        else if (x.is<symbol>())
+        {
+          return x;
+        }
+        else [[fallthrough]];
+
+      default:
+        throw invalid_application(intern("identifier->symbol") | xs);
+      }
     });
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());

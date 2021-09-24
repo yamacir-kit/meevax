@@ -38,6 +38,8 @@
 
 (define syntax-quote quote)
 
+(define strip-syntactic-closures identity)
+
 (define (syntax-rules-transformer expr rename compare)
   (let ((ellipsis-specified? (identifier? (cadr expr)))
         (count 0)
