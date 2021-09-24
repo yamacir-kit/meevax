@@ -86,6 +86,15 @@
      (if (not test)
          (begin result1 result2 ...)))))
 
+; ---- 4.2.2. Binding constructs -----------------------------------------------
+
+(define-syntax let
+  (syntax-rules ()
+    ((let ((name val) ...) body1 body2 ...)
+     ((lambda (name ...) body1 body2 ...) val ...))
+    ((let tag ((name val) ...) body1 body2 ...)
+     ((letrec ((tag (lambda (name ...) body1 body2 ...))) tag) val ...))))
+
 ; ---- 4.2.5. Delayed evaluation -----------------------------------------------
 
 (define-syntax delay-force lazy) ; from SRFI-45

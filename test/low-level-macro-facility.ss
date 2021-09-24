@@ -2,7 +2,7 @@
 
 (check x => 42)
 
-(define hygienic-x (syntax x))
+; (define hygienic-x (syntax x))
 
 (define rename
   (let ((e (fork/csc identity)))
@@ -11,8 +11,7 @@
 
 (let ((x 3.14))
   (check x => 3.14)
-  (check (hygienic-x) => 42)
-  (check (macroexpand-1 '(hygienic-x)) => 42)
+  ; (check hygienic-x => 42)
   (check (rename 'x) => 42))
 
 ; (define-syntax (swap! x y)
