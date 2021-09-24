@@ -194,8 +194,9 @@
             (begin (set! x 5)
                    (+ x 1))) => 6)
 
-(begin (display "4 plus 1 equals ")
-       (display (+ 4 1))) ; => unspecified
+(check
+  (begin (display "4 plus 1 equals ")
+         (display (+ 4 1))) => #,(unspecified))
 
 ; ---- 4.2.4. Iteration --------------------------------------------------------
 
@@ -266,21 +267,23 @@
 (check (begin (set! x 10)
               (force p)) => 6)
 
-; (check (eqv? (delay 1) 1) => ???) ; unspecified
-; (check (pair? (delay (cons 1 2))) => ???) ; unspecified
+(check (eqv? (delay 1) 1) => #f) ; unspecified
+
+(check (pair? (delay (cons 1 2))) => #t) ; unspecified
 
 ; ---- 4.2.6. Dynamic bindings -------------------------------------------------
 
-; (define radix
-;   (make-parameter 10
-;     (lambda (x)
-;       (if (and (exact-integer? x) (<= 2 x 16))
-;           x
-;           (error "invalid radix")))))
-;
-; (define (f n) (number->string n (radix)))
-;
-; (check (f 12) => "12")
+(define radix
+  (make-parameter 10
+    (lambda (x)
+      (if (and (exact-integer? x) (<= 2 x 16))
+          x
+          (error "invalid radix")))))
+
+(define (f n) (number->string n (radix)))
+
+(check (f 12) => "12")
+
 ; (parameterize ((radix 2))
 ;   (check (f 12) => "1100")
 ; (check (f 12) => "12")
@@ -296,7 +299,7 @@
 ;                 ((assq 'a condition) => cdr)
 ;                 ((assq 'b condition)))
 ;               (raise (list (cons 'a 42)))) => 42)
-;
+
 ; (check (guard (condition
 ;                 ((assq 'a condition) => cdr)
 ;                 ((assq 'b condition)))
@@ -326,7 +329,7 @@
 
 (check (quasiquote (list (unquote (+ 1 2)) 4)) => (list 3 4))
 
-; (check '(quasiquote (list (unquote (+ 1 2)) 4)) => `(list ,(+ 1 2) 4))
+(check '(quasiquote (list (unquote (+ 1 2)) 4)) => `(list ,(+ 1 2) 4))
 
 ; ---- 4.2.9. Case-lambda ------------------------------------------------------
 
@@ -377,21 +380,21 @@
 
 ; ---- 4.3.2. Pattern language -------------------------------------------------
 
-; (define-syntax be-like-begin
-;   (syntax-rules ()
-;     ((be-like-begin name)
-;      (define-syntax name
-;        (syntax-rules ()
-;          ((name expr (... ...))
-;           (begin expr (... ...))))))))
-;
-; (be-like-begin sequence)
-;
-; (check (sequence 1 2 3 4) => 4)
-;
+(define-syntax be-like-begin
+  (syntax-rules ()
+    ((be-like-begin name)
+     (define-syntax name
+       (syntax-rules ()
+         ((name expr (... ...))
+          (begin expr (... ...))))))))
+
+(be-like-begin sequence)
+
+(check (sequence 1 2 3 4) => 4)
+
 ; (check (let ((=> #f))
 ;          (cond (#t => 'ok))) => ok)
-;
+
 ; (define-syntax simple-let
 ;   (syntax-rules ()
 ;     (((head ... ((x . y) val) . tail) body1 body2 ...)
@@ -869,7 +872,7 @@
 (check (assq 'd e) => #f)
 (check (assq (list 'a) '(((a)) ((b)) ((c)))) => #f)
 (check (assoc (list 'a) '(((a)) ((b)) ((c)))) => ((a)))
-; (check (assoc 2.0 '((2 3) (5 7) (11 13)) =) => (2 4))
+(check (assoc 2.0 '((1 1) (2 4) (3 9)) =) => (2 4))
 (check (assq 5 '((2 3) (5 7) (11 13))) => #f) ; unspecified
 (check (assv 5 '((2 3) (5 7) (11 13))) => (5 7))
 
@@ -1057,7 +1060,7 @@
 ; (check (vector-map cadr '#((a b) (d e) (g h))) => #(b e h))
 ; (check (vector-map (lambda (n) (expt n n)) '#(1 2 3 4 5)) => (1 4 27 256 3125))
 ; (check (vector-map + '#(1 2 3) '#(4 5 6 7)) => #(5 7 9))
-;
+
 ; (check (let ((count 0))
 ;          (vector-map
 ;            (lambda (ignored)
