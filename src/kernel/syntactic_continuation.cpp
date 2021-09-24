@@ -19,8 +19,8 @@
 
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
-#include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/kernel/version.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax

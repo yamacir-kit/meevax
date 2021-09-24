@@ -1,4 +1,3 @@
 benchmark/gmon.*
 build
-include/meevax/kernel/feature.hpp
 include/meevax/kernel/version.hpp

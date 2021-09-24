@@ -46,11 +46,6 @@ else()
   set(${PROJECT_NAME}_BUILD_HASH "unspecified")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp
-                 ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/feature.hpp)
-endif()
-
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp
                  ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/version.hpp)
