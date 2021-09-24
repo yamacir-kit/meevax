@@ -30,12 +30,16 @@ inline namespace kernel
       make<symbol>("${PROJECT_NAME}"), // The name of this implementation.
       make<symbol>("${PROJECT_NAME}-${PROJECT_VERSION}"), // The name and version of this implementation.
 
+      // SUPPORTED SRFIS
       make<symbol>("srfi-5"),
       make<symbol>("srfi-6"),
       make<symbol>("srfi-8"),
       make<symbol>("srfi-10"),
       make<symbol>("srfi-62"),
-      make<symbol>("srfi-87")
+      make<symbol>("srfi-87"),
+
+      // SUPPORTED OPTIMIZATIONS
+      make<symbol>("tail-call-optimization")
       );
 
     return features;

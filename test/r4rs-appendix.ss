@@ -69,7 +69,7 @@
 ;       (alpha)))
 ;   => error)
 
-; (check (identifier? (syntax x)) => #t)
+(check (identifier? (syntax x)) => #t)
 ; (check (identifier? (quote x)) => #f)
 (check (identifier? 3) => #f)
 

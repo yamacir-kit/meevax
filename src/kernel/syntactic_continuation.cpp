@@ -97,7 +97,7 @@ inline namespace kernel
   {
     assert(name.is<symbol>());
 
-    return push(global_environment(), cons(name, value));
+    return global_environment() = make<identifier>(name, value) | global_environment();
   }
 
   auto syntactic_continuation::define(std::string const& name, const_reference value) -> const_reference
@@ -346,11 +346,42 @@ inline namespace kernel
   template <>
   void syntactic_continuation::boot<layer::declarations>()
   {
+    define<procedure>("free-identifier=?", [this](let const& xs)
+    {
+      if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      {
+        if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+        {
+          if (let const& id1 = a.is<identifier>() ? a.as<identifier>().symbol() : a)
+          {
+            if (let const& id2 = b.is<identifier>() ? b.as<identifier>().symbol() : b)
+            {
+              return id1 == id2 ? t : f;
+            }
+          }
+        }
+      }
+
+      // if (let const& a = car(xs); a.is<symbol>() or a.is<identifier>())
+      // {
+      //   if (let const& b = cadr(xs); b.is<symbol>() or b.is<identifier>())
+      //   {
+      //     if (auto const& id1 = a.is<identifier>() ? a.as<identifier>() : locate(a).as<identifier>(); id1.is_free())
+      //     {
+      //       if (auto const& id2 = b.is<identifier>() ? b.as<identifier>() : locate(b).as<identifier>(); id2.is_free())
+      //       {
+      //         return id1 == id2 ? t : f;
+      //       }
+      //     }
+      //   }
+      // }
+
+      return f;
+    });
+
     define<syntax>("export", exportation); // XXX DEPRECATED
     define<syntax>("import", importation); // XXX DEPRECATED
 
-    // TODO (define (set-debug! t/f)
-    //        (set! (debug) t/f))
     define<procedure>("set-batch!",       [this](auto&&... xs) { return batch       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-debug!",       [this](auto&&... xs) { return debug       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-interactive!", [this](auto&&... xs) { return interactive = car(std::forward<decltype(xs)>(xs)...); });
@@ -2017,19 +2048,26 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("emergency-exit", [](let const& xs) -> let
+    define<procedure>("emergency-exit", [](let const& xs) -> value_type
     {
-      if (xs.is<null>() or car(xs) == t)
+      switch (length(xs))
       {
+      case 0:
         throw exit_status::success;
-      }
-      else if (let const& x = car(xs); x.is<exact_integer>())
-      {
-        throw exit_status(static_cast<int>(x.as<exact_integer>()));
-      }
-      else
-      {
-        throw exit_status::failure;
+
+      case 1:
+        if (let const& x = car(xs); x.is<boolean>())
+        {
+          throw if_(x) ? exit_status::success : exit_status::failure;
+        }
+        else if (x.is<exact_integer>())
+        {
+          throw exit_status(static_cast<int>(x.as<exact_integer>()));
+        }
+        [[fallthrough]];
+
+      default:
+        throw invalid_application(intern("emergency-exit") | xs);
       }
     });
 
@@ -2069,14 +2107,8 @@ inline namespace kernel
 
     define<procedure>("identifier?", [](let const& xs)
     {
-      if (let const& x = car(xs); x.is<syntactic_continuation>())
-      {
-        return x.as<syntactic_continuation>().datum.is<symbol>() ? t : f;
-      }
-      else
-      {
-        return x.is<identifier>() or x.is<symbol>() ? t : f;
-      }
+      let const& x = car(xs);
+      return x.is<identifier>() or x.is<symbol>() ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -2124,12 +2156,27 @@ inline namespace kernel
 
     define<procedure>("identifier->symbol", [](let const& xs)
     {
-      return car(xs).as<identifier>().symbol();
+      switch (length(xs))
+      {
+      case 1:
+        if (let const& x = car(xs); x.is<identifier>())
+        {
+          return x.as<identifier>().symbol();
+        }
+        else if (x.is<symbol>())
+        {
+          return x;
+        }
+        else [[fallthrough]];
+
+      default:
+        throw invalid_application(intern("identifier->symbol") | xs);
+      }
     });
 
     define<procedure>("syntactic-continuation?", is<syntactic_continuation>());
 
-    define<procedure>("syntactic-keyword?", is<identifier>());
+    define<procedure>("r6rs:identifier?", is<identifier>());
 
     define<procedure>("macroexpand-1", [this](let const& xs)
     {
@@ -2156,6 +2203,7 @@ inline namespace kernel
       srfi_39,
       srfi_45,
       srfi_78,
+      srfi_149,
       r7rs,
     };
 

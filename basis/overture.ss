@@ -1,33 +1,3 @@
-; ------------------------------------------------------------------------------
-;       ...          =>      abs      and angle append apply      assoc assq
-; assv atan       boolean? caaaar caaadr caaar caadar caaddr caadr caar cadaar
-; cadadr cadar caddar cadddr caddr cadr call-with-current-continuation
-; call-with-input-file call-with-output-file call-with-values     case cdaaar
-; cdaadr cdaar cdadar cdaddr cdadr cdar cddaar cddadr cddar cdddar cddddr cdddr
-; cddr                           char-alphabetic? char-ci<=? char-ci<? char-ci=?
-; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
-; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
-; char>?       close-input-port close-output-port complex? cond
-; current-input-port current-output-port        define-syntax delay denominator
-; display do dynamic-wind else                 equal?           even?
-; exact->inexact exact?                for-each force gcd    imag-part
-; inexact->exact inexact? input-port?               integer?
-; interaction-environment        lcm length let let* let-syntax
-; letrec-syntax list                           list-ref list-tail list?      log
-; magnitude make-polar make-rectangular                         map max member
-; memq memv min modulo negative? newline not null-environment null?
-;                number? numerator odd?                                  or
-; output-port?       peek-char positive? procedure? quasiquote       quotient
-; rational? rationalize read read-char real-part real? remainder reverse
-; scheme-report-environment                                 string
-;                                             string-ci<=? string-ci<?
-; string-ci=? string-ci>=? string-ci>?             string-fill!
-;
-; substring                        syntax-rules              values
-;
-; with-input-from-file with-output-to-file write write-char zero?
-; ------------------------------------------------------------------------------
-
 (define (identity x) x)
 
 (define (list . xs) xs)
@@ -43,29 +13,15 @@
               (list lambda keyword . transformer)))
           (list define keyword . transformer)))))
 
-(define-syntax (syntax datum) ; Experimental: DON'T USE THIS!
-  (list fork/csc
-    (list lambda '() datum)))
-
-(define (free-identifier=? x y)
-  (if (symbol? x)
-      (if (symbol? y)
-          (eq? x y)
-          (if (syntactic-keyword? y)
-              (eq? x (car y))
-              #f))
-      (if (syntactic-keyword? x)
-          (if (syntactic-keyword? y)
-              (eqv? x y)
-              (if (symbol? y)
-                  (eq? (car x) y)
-                  #f))
-          #f)))
+(define-syntax (syntax datum)
+  (if (pair? datum)
+      (list fork/csc (list lambda '() datum))
+      (eval datum (fork/csc identity))))
 
 (define (current-environment-specifier)
   (fork/csc identity))
 
-(define (current-renamer)
+(define (current-evaluator)
   ((lambda (e)
      (lambda (x)
        (eval x e)))
@@ -74,7 +30,7 @@
 (define (er-macro-transformer transform)
   (fork/csc
     (lambda form
-      (transform form (current-renamer) free-identifier=?))))
+      (transform form (current-evaluator) free-identifier=?))))
 
 (define (null? x) (eqv? x '()))
 
@@ -114,14 +70,13 @@
                     #f))))
 
 (define-syntax (or . tests)
-  (cond
-    ((null? tests) #f)
-    ((null? (cdr tests)) (car tests))
-    (else (list (list lambda (list result)
-                  (list if result
-                           result
-                           (cons or (cdr tests))))
-                (car tests)))))
+  (cond ((null? tests) #f)
+        ((null? (cdr tests)) (car tests))
+        (else (list (list lambda (list result)
+                          (list if result
+                                result
+                                (cons or (cdr tests))))
+                    (car tests)))))
 
 (define (append-2 x y)
   (if (null? x) y
@@ -306,7 +261,7 @@
 
   (define (each-clause clauses)
     (cond
-      ((null? clauses) #false)
+      ((null? clauses) (unspecified))
       ((free-identifier=? else (caar clauses))
        (body (cdar clauses)))
       ((and (pair? (caar clauses))
@@ -337,36 +292,6 @@
                 `(,let ((,result ,(car test)))
                        (,if ,result ,result ,body))
                 `(,if ,(car test) (,begin ,@(cdr test)) ,body)))))
-
-; ------------------------------------------------------------------------------
-;       ...          =>      abs          angle                   assoc assq
-; assv atan       boolean? caaaar caaadr       caadar caaddr            cadaar
-; cadadr       caddar cadddr            call-with-current-continuation
-; call-with-input-file call-with-output-file call-with-values          cdaaar
-; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
-;                                char-alphabetic? char-ci<=? char-ci<? char-ci=?
-; char-ci>=? char-ci>? char-downcase char-lower-case? char-numeric? char-ready?
-; char-upcase char-upper-case? char-whitespace? char<=? char<? char=? char>=?
-; char>?       close-input-port close-output-port complex?
-; current-input-port current-output-port                      delay denominator
-; display    dynamic-wind else                 equal?           even?
-; exact->inexact exact?                for-each force gcd    imag-part
-; inexact->exact inexact? input-port?               integer?
-; interaction-environment        lcm length          let-syntax
-; letrec-syntax                                list-ref list-tail list?      log
-; magnitude make-polar make-rectangular                             max
-;           min modulo negative? newline     null-environment
-;                number? numerator odd?
-; output-port?       peek-char positive? procedure?                  quotient
-; rational? rationalize read read-char real-part real? remainder
-; scheme-report-environment                                 string
-;                                             string-ci<=? string-ci<?
-; string-ci=? string-ci>=? string-ci>?             string-fill!
-;
-; substring                        syntax-rules              values
-;
-; with-input-from-file with-output-to-file write write-char zero?
-; ------------------------------------------------------------------------------
 
 ; ---- 6.1. Equivalence predicates ---------------------------------------------
 
@@ -841,35 +766,3 @@
   (::write-char char (if (pair? port)
                          (car port)
                          (current-output-port))))
-
-; ---- 6.14. System interface --------------------------------------------------
-
-; ------------------------------------------------------------------------------
-;       ...          =>                                           assoc assq
-; assv                     caaaar caaadr       caadar caaddr            cadaar
-; cadadr       caddar cadddr
-;                                                                      cdaaar
-; cdaadr       cdadar cdaddr            cddaar cddadr       cdddar cddddr
-;
-;
-;
-;
-; current-input-port current-output-port                      delay
-;                         else
-;                                      for-each force
-;
-; interaction-environment            length          let-syntax
-; letrec-syntax                                list-ref list-tail list?
-;
-;                                            null-environment
-;
-;
-;
-; scheme-report-environment
-;
-;
-;
-;                                  syntax-rules
-;
-; with-input-from-file with-output-to-file
-; ------------------------------------------------------------------------------
