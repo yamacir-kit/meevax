@@ -14,6 +14,13 @@
    limitations under the License.
 */
 
+#if __unix__
+#include <dlfcn.h> // dlopen, dlclose, dlerror
+#else
+#error
+#endif
+
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/posix/vt10x.hpp>
 
@@ -27,37 +34,25 @@ inline namespace kernel
   {}
 
   procedure::procedure(std::string const& name, std::string const& libfoo_so)
-    : std::function<PROCEDURE()> { load(name, open(libfoo_so)) }
+    : std::function<PROCEDURE()> { dlsym(name, dlopen(libfoo_so)) }
     , name { name }
   {}
 
-  auto procedure::load(std::string const& symbol_name, pointer<void> const& handle) -> signature
+  auto procedure::dlopen(std::string const& libfoo_so) -> pointer<void>
   {
-    if (pointer<void> const address = dlsym(handle, symbol_name.c_str()); address)
-    {
-      return reinterpret_cast<signature>(address);
-    }
-    else
-    {
-      throw file_error(make<string>(dlerror()), unit);
-    }
-  }
-
-  auto procedure::open(std::string const& libfoo_so) -> pointer<void>
-  {
-    auto close_dynamic_library = [](pointer<void> const handle)
+    auto dlclose = [](const_pointer<void> handle)
     {
       if (handle and ::dlclose(handle))
       {
-        std::cerr << dlerror() << std::endl;
+        std::cerr << ::dlerror() << std::endl;
       }
     };
 
-    using library_handle = std::unique_ptr<void, decltype(close_dynamic_library)>;
+    static std::unordered_map<
+      std::string, std::unique_ptr<void, decltype(dlclose)>
+    > dynamic_libraries {};
 
-    static std::unordered_map<std::string, library_handle> dynamic_libraries {};
-
-    dlerror(); // clear
+    ::dlerror(); // clear
 
     try
     {
@@ -65,16 +60,31 @@ inline namespace kernel
     }
     catch (std::out_of_range const&)
     {
-      if (pointer<void> handle = dlopen(libfoo_so.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+      if (const_pointer<void> handle = ::dlopen(libfoo_so.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
       {
-        dynamic_libraries.emplace(libfoo_so, library_handle(handle, close_dynamic_library));
+        dynamic_libraries.emplace(
+          std::piecewise_construct,
+          std::forward_as_tuple(libfoo_so),
+          std::forward_as_tuple(handle, dlclose));
 
-        return open(libfoo_so);
+        return dlopen(libfoo_so);
       }
       else
       {
-        throw file_error(make<string>(dlerror()), unit);
+        throw file_error(make<string>(::dlerror()), unit);
       }
+    }
+  }
+
+  auto procedure::dlsym(std::string const& name, const_pointer<void> handle) -> signature
+  {
+    if (const_pointer<void> address = ::dlsym(handle, name.c_str()); address)
+    {
+      return reinterpret_cast<signature>(address);
+    }
+    else
+    {
+      throw file_error(make<string>(::dlerror()), unit);
     }
   }
 

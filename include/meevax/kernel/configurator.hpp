@@ -19,10 +19,10 @@
 
 #include <regex>
 
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax

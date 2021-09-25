@@ -17,13 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
-#if __unix__
-#include <dlfcn.h> // dlopen, dlclose, dlerror
-#else
-#error
-#endif
-
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax
@@ -44,9 +37,9 @@ inline namespace kernel
 
     virtual ~procedure() = default;
 
-    auto load(std::string const&, pointer<void> const&) -> signature;
+    auto dlopen(std::string const&) -> pointer<void>;
 
-    auto open(std::string const&) -> pointer<void>;
+    auto dlsym(std::string const&, const_pointer<void>) -> signature;
   };
 
   auto operator <<(std::ostream & port, procedure const& datum) -> std::ostream &;
