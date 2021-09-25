@@ -23,8 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct symbol
-    : public std::string
+  struct symbol : public std::string
   {
     template <typename... Ts>
     explicit constexpr symbol(Ts&&... xs)

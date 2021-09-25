@@ -25,7 +25,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  vector::vector(for_each_in_tag, let const& xs)
+  vector::vector(for_each_in_tag, const_reference xs)
     : vector { for_each_in, std::cbegin(xs), std::cend(xs) }
   {}
 

@@ -2270,7 +2270,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     define<procedure>("foreign-function", [](let const& xs)
     {
-      return make<procedure>(cadr(xs).as<string>(), from(car(xs).as<string>()));
+      return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
     });
 
     define<procedure>("type-of", [](auto&& xs)
