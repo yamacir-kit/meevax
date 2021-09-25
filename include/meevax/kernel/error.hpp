@@ -43,8 +43,7 @@ inline namespace kernel
     failure = EXIT_FAILURE,
   };
 
-  struct error
-    : public virtual pair
+  struct error : public virtual pair
   {
     using pair::pair;
 
@@ -114,7 +113,7 @@ inline namespace kernel
       return underlying_cast(value);
     }
 
-    catch (let const& error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
+    catch (pair::const_reference error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
     {
       std::cerr << header("exception-handler") << error << std::endl;
 
@@ -143,7 +142,7 @@ inline namespace kernel
     }
   }
 
-  auto invalid_application(let const&) -> error;
+  auto invalid_application(pair::const_reference) -> error;
 } // namespace kernel
 } // namespace meevax
 

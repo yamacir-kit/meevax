@@ -33,7 +33,7 @@ inline namespace kernel
     return x.eqv(y);
   };
 
-  auto equal(let const&, let const&) -> bool;
+  auto equal(pair::const_reference, pair::const_reference) -> bool;
 
   template <std::size_t Coarseness = 0>
   struct equivalence_comparator;

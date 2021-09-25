@@ -38,13 +38,13 @@ inline namespace kernel
 
   public:
     template <typename... Ts>
-    auto write_to(std::ostream & port, Ts&&... xs) const -> std::ostream &
+    auto write_to(std::ostream & os, Ts&&... xs) const -> std::ostream &
     {
-      return (port << ... << xs) << reset;
+      return (os << ... << xs) << reset;
     }
 
     template <typename... Ts>
-    auto write_to(let const& x, Ts&&... xs) const -> decltype(auto)
+    auto write_to(pair::const_reference x, Ts&&... xs) const -> decltype(auto)
     {
       return write_to(x.as<std::ostream>(), std::forward<decltype(xs)>(xs)...);
     }
@@ -67,23 +67,23 @@ inline namespace kernel
     }
 
   public:
-    auto standard_null_port() const -> let const& // TODO MOVE INTO writer.cpp
+    auto standard_null_port() const -> pair::const_reference
     {
       let static port = make<output_file_port>("/dev/null");
       return port;
     }
 
-    auto standard_verbose_port() const -> let const&
+    auto standard_verbose_port() const -> pair::const_reference
     {
       return is_verbose_mode() ? default_output_port : standard_null_port();
     }
 
-    auto standard_debug_port() const -> let const&
+    auto standard_debug_port() const -> pair::const_reference
     {
       return is_debug_mode() ? default_error_port : standard_null_port();
     }
 
-    auto standard_interaction_port() const -> decltype(auto)
+    auto standard_interaction_port() const -> pair::const_reference
     {
       return is_interactive_mode() ? default_output_port : standard_null_port();
     }

@@ -1486,9 +1486,10 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("default-exception-handler", [](let const& xs) -> let
+    define<procedure>("default-exception-handler", [](let const& xs)
     {
       throw car(xs);
+      return unspecified;
     });
 
     /* -------------------------------------------------------------------------

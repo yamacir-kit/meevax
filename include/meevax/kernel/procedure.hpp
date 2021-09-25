@@ -23,7 +23,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::pair::value_type __VA_ARGS__(meevax::pair::const_reference)
+  #define PROCEDURE(...) meevax::pair::value_type __VA_ARGS__(meevax::pair::const_reference xs)
 
   struct procedure : public std::function<PROCEDURE()>
   {
@@ -49,9 +49,9 @@ inline namespace kernel
   template <typename T>
   struct is
   {
-    let const& operator ()(let const& xs) const
+    auto operator ()(pair::const_reference xs) const -> pair::const_reference
     {
-      auto is_T = [](let const& x)
+      auto is_T = [](pair::const_reference x)
       {
         return x.is<T>();
       };

@@ -79,42 +79,42 @@ inline namespace kernel
     return features;
   }
 
-  // let const& install_prefix()
+  // auto install_prefix() -> pair::const_reference
   // {
   //   let static const prefix = make<path>("${CMAKE_INSTALL_PREFIX}");
   //
   //   return prefix;
   // }
   //
-  // let const& build_date()
+  // auto build_date() -> pair::const_reference
   // {
   //   let static const result = make<symbol>("${${PROJECT_NAME}_BUILD_DATE}");
   //
   //   return result;
   // }
   //
-  // let const& build_type()
+  // auto build_type() -> pair::const_reference
   // {
   //   let static const result = make<symbol>("${CMAKE_BUILD_TYPE}");
   //
   //   return result;
   // }
   //
-  // let const& cxx_compiler()
+  // auto cxx_compiler() -> pair::const_reference
   // {
   //   let static const result = make<symbol>("${CMAKE_CXX_COMPILER}");
   //
   //   return result;
   // }
   //
-  // let const& cxx_flags()
+  // auto cxx_flags() -> pair::const_reference
   // {
   //   let static const result = make<symbol>("${CMAKE_CXX_FLAGS}");
   //
   //   return result;
   // }
   //
-  // let const& cxx_standard()
+  // auto cxx_standard() -> pair::const_reference
   // {
   //   let static const result = make<exact_integer>("${CMAKE_CXX_STANDARD}");
   //

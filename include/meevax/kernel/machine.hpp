@@ -793,7 +793,7 @@ inline namespace kernel
 
     static SYNTAX(body)
     {
-      auto is_definition = [&](let const& form)
+      auto is_definition = [&](pair::const_reference form)
       {
         if (form.is<pair>() and de_bruijn_index(car(form), frames).is_free())
         {

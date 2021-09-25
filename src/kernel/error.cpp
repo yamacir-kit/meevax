@@ -61,7 +61,7 @@ inline namespace kernel
     return os << magenta << ")" << reset;
   }
 
-  auto invalid_application(let const& irritants) -> error
+  auto invalid_application(pair::const_reference irritants) -> error
   {
     let static const message = make<string>("invalid application");
     return error(message, irritants);

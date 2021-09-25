@@ -41,10 +41,10 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, boolean const&) -> std::ostream &;
 
-  extern let const t;
-  extern let const f;
+  let extern const t;
+  let extern const f;
 
-  auto if_(let const& x) -> bool;
+  auto if_(pair::const_reference x) -> bool;
 } // namespace kernel
 } // namespace meevax
 
