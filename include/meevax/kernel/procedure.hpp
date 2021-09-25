@@ -23,26 +23,28 @@ namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::let __VA_ARGS__(meevax::let const& xs)
+  #define PROCEDURE(...) meevax::pair::value_type __VA_ARGS__(meevax::pair::const_reference)
 
   struct procedure : public std::function<PROCEDURE()>
   {
-    using signature = PROCEDURE((*));
+    using function_pointer = PROCEDURE((*));
+
+    using function = std::function<PROCEDURE()>;
 
     std::string const name;
 
-    explicit procedure(std::string const&, std::function<PROCEDURE()> const&);
+    explicit procedure(std::string const&, function const&);
 
-    explicit procedure(std::string const& name, std::string const& libfoo_so);
+    explicit procedure(std::string const&, std::string const&);
 
     virtual ~procedure() = default;
 
-    auto dlopen(std::string const&) -> pointer<void>;
+    static auto dlopen(std::string const&) -> pointer<void>;
 
-    auto dlsym(std::string const&, const_pointer<void>) -> signature;
+    static auto dlsym(std::string const&, const_pointer<void>) -> function_pointer;
   };
 
-  auto operator <<(std::ostream & port, procedure const& datum) -> std::ostream &;
+  auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
   template <typename T>
   struct is

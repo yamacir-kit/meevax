@@ -28,13 +28,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  procedure::procedure(std::string const& name, std::function<PROCEDURE()> const& function)
-    : std::function<PROCEDURE()> { function }
+  procedure::procedure(std::string const& name, function const& invocable)
+    : function { invocable }
     , name { name }
   {}
 
   procedure::procedure(std::string const& name, std::string const& libfoo_so)
-    : std::function<PROCEDURE()> { dlsym(name, dlopen(libfoo_so)) }
+    : function { dlsym(name, dlopen(libfoo_so)) }
     , name { name }
   {}
 
@@ -60,7 +60,7 @@ inline namespace kernel
     }
     catch (std::out_of_range const&)
     {
-      if (const_pointer<void> handle = ::dlopen(libfoo_so.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+      if (auto handle = ::dlopen(libfoo_so.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
       {
         dynamic_libraries.emplace(
           std::piecewise_construct,
@@ -76,11 +76,11 @@ inline namespace kernel
     }
   }
 
-  auto procedure::dlsym(std::string const& name, const_pointer<void> handle) -> signature
+  auto procedure::dlsym(std::string const& name, const_pointer<void> handle) -> function_pointer
   {
-    if (const_pointer<void> address = ::dlsym(handle, name.c_str()); address)
+    if (auto address = ::dlsym(handle, name.c_str()); address)
     {
-      return reinterpret_cast<signature>(address);
+      return reinterpret_cast<function_pointer>(address);
     }
     else
     {
