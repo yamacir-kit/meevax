@@ -31,9 +31,9 @@ inline namespace utility
   #if __has_include(<cxxabi.h>)
     int failed {};
 
-    std::unique_ptr<char, decltype(&std::free)> demangled
+    std::unique_ptr<char, decltype(std::addressof(std::free))> demangled
     {
-      abi::__cxa_demangle(name, nullptr, nullptr, &failed),
+      abi::__cxa_demangle(name, nullptr, nullptr, std::addressof(failed)),
       [](void* x) noexcept -> void { std::free(x); }
     };
 

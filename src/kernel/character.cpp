@@ -47,21 +47,21 @@ inline namespace kernel
     }
     else if (0xC2 <= c and c <= 0xDF) // 11 bit
     {
-      codepoint |= is.get() & 0b0001'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111;
+      codepoint |= is.get() bitand 0b0001'1111; codepoint <<= 6;
+      codepoint |= is.get() bitand 0b0011'1111;
     }
     else if (0xE0 <= c and c <= 0xEF) // 16 bit
     {
-      codepoint |= is.get() & 0b0000'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111;
+      codepoint |= is.get() bitand 0b0000'1111; codepoint <<= 6;
+      codepoint |= is.get() bitand 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() bitand 0b0011'1111;
     }
     else if (0xF0 <= c and c <= 0xF4) // 21 bit
     {
-      codepoint |= is.get() & 0b0000'0111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111; codepoint <<= 6;
-      codepoint |= is.get() & 0b0011'1111;
+      codepoint |= is.get() bitand 0b0000'0111; codepoint <<= 6;
+      codepoint |= is.get() bitand 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() bitand 0b0011'1111; codepoint <<= 6;
+      codepoint |= is.get() bitand 0b0011'1111;
     }
     else
     {
@@ -80,25 +80,25 @@ inline namespace kernel
 
     if (auto value = codepoint; value <= 0x7F)
     {
-      bytes[0] = (value & 0x7F);
+      bytes[0] = (value bitand 0x7F);
     }
     else if (value <= 0x7FF)
     {
-      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
-      bytes[0] = 0xC0 | (value & 0x1F);
+      bytes[1] = 0x80 | (value bitand 0x3F); value >>= 6;
+      bytes[0] = 0xC0 | (value bitand 0x1F);
     }
     else if (value <= 0xFFFF)
     {
-      bytes[2] = 0x80 | (value & 0x3F); value >>= 6;
-      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
-      bytes[0] = 0xE0 | (value & 0x0F);
+      bytes[2] = 0x80 | (value bitand 0x3F); value >>= 6;
+      bytes[1] = 0x80 | (value bitand 0x3F); value >>= 6;
+      bytes[0] = 0xE0 | (value bitand 0x0F);
     }
     else if (value <= 0x10FFFF)
     {
-      bytes[3] = 0x80 | (value & 0x3F); value >>= 6;
-      bytes[2] = 0x80 | (value & 0x3F); value >>= 6;
-      bytes[1] = 0x80 | (value & 0x3F); value >>= 6;
-      bytes[0] = 0xF0 | (value & 0x07);
+      bytes[3] = 0x80 | (value bitand 0x3F); value >>= 6;
+      bytes[2] = 0x80 | (value bitand 0x3F); value >>= 6;
+      bytes[1] = 0x80 | (value bitand 0x3F); value >>= 6;
+      bytes[0] = 0xF0 | (value bitand 0x07);
     }
     else
     {

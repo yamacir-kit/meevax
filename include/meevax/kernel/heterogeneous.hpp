@@ -56,7 +56,7 @@ inline namespace kernel
           }
           else
           {
-            return std::is_same<Bound, std::nullptr_t>::value;
+            return std::is_same<Bound, null>::value;
           }
         }
         else
@@ -70,9 +70,9 @@ inline namespace kernel
         return typeid(Bound);
       }
 
-      auto write_to(std::ostream & port) const -> std::ostream & override
+      auto write_to(std::ostream & os) const -> std::ostream & override
       {
-        return delay<write>().yield<decltype(port)>(port, static_cast<Bound const&>(*this));
+        return delay<write>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
       }
 
       #define BOILERPLATE(SYMBOL, RESULT, FUNCTION)                            \
