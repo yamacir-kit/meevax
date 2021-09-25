@@ -19,10 +19,8 @@
 
 #include <meevax/functional/identity.hpp>
 #include <meevax/memory/cell.hpp>
-#include <meevax/posix/vt10x.hpp>
 #include <meevax/string/append.hpp>
 #include <meevax/type_traits/requires.hpp>
-#include <meevax/utility/hexdump.hpp>
 
 #define NIL /* nothing */
 
@@ -37,9 +35,8 @@ inline namespace kernel
   template <typename T>
   struct floating_point;
 
-  using single_float = floating_point<float>;
-  using double_float = floating_point<double>;
-  using system_float = floating_point<decltype(0.0)>;
+  using f32 = floating_point<float>;
+  using f64 = floating_point<double>; // NOTE: typeid(0.0) == typeid(double)
 
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;

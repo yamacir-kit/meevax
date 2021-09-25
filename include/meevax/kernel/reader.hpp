@@ -218,7 +218,7 @@ inline namespace kernel
 
     auto decimal = [](std::string const& token, auto)
     {
-      auto const result = system_float(token);
+      auto const result = f64(token);
       return make(result);
     };
 

@@ -475,8 +475,8 @@ inline namespace kernel
 
     define<procedure>("%complex?", is<complex>());
     define<procedure>("ratio?", is<ratio>());
-    define<procedure>("single-float?", is<single_float>());
-    define<procedure>("double-float?", is<double_float>());
+    define<procedure>("single-float?", is<f32>());
+    define<procedure>("double-float?", is<f64>());
 
     /* -------------------------------------------------------------------------
      *

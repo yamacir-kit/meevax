@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_SUITE_END();
 
 BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 {
-  using decimals = boost::mpl::list<single_float, double_float>;
+  using decimals = boost::mpl::list<f32, f64>;
 
   BOOST_AUTO_TEST_CASE_TEMPLATE(number, T, decimals)
   {

@@ -24,28 +24,28 @@ inline namespace kernel
   std::unordered_map<std::string, pair::value_type> const constants
   {
     // R7RS 7.1.1. Lexical structure
-    { "+inf.0", make<system_float>(+system_float::infinity()) },
-    { "-inf.0", make<system_float>(-system_float::infinity()) },
+    { "+inf.0", make<f64>(+f64::infinity()) },
+    { "-inf.0", make<f64>(-f64::infinity()) },
 
-    { "+nan.0", make<system_float>(+system_float::quiet_NaN()) },
-    { "-nan.0", make<system_float>(-system_float::quiet_NaN()) },
+    { "+nan.0", make<f64>(+f64::quiet_NaN()) },
+    { "-nan.0", make<f64>(-f64::quiet_NaN()) },
 
     // SRFI-144
-    { "fl-e",         make<system_float>(M_E       ) },
-    { "fl-log2-e",    make<system_float>(M_LOG2E   ) },
-    { "fl-log10-e",   make<system_float>(M_LOG10E  ) },
-    { "fl-log-2",     make<system_float>(M_LN2     ) },
-    { "fl-1/log-2",   make<system_float>(M_LN2     ) },
-    { "fl-log-10",    make<system_float>(M_LN10    ) },
-    { "fl-1/log-10",  make<system_float>(M_LN10    ) },
-    { "fl-pi",        make<system_float>(M_PI      ) },
-    { "fl-1/pi",      make<system_float>(M_1_PI    ) },
-    { "fl-pi/2",      make<system_float>(M_PI_2    ) },
-    { "fl-pi/4",      make<system_float>(M_PI_4    ) },
-    { "fl-2/pi",      make<system_float>(M_2_PI    ) },
-    { "fl-2/sqrt-pi", make<system_float>(M_2_SQRTPI) },
-    { "fl-sqrt-2",    make<system_float>(M_SQRT2   ) },
-    { "fl-1/sqrt-2",  make<system_float>(M_SQRT1_2 ) },
+    { "fl-e",         make<f64>(M_E       ) },
+    { "fl-log2-e",    make<f64>(M_LOG2E   ) },
+    { "fl-log10-e",   make<f64>(M_LOG10E  ) },
+    { "fl-log-2",     make<f64>(M_LN2     ) },
+    { "fl-1/log-2",   make<f64>(M_LN2     ) },
+    { "fl-log-10",    make<f64>(M_LN10    ) },
+    { "fl-1/log-10",  make<f64>(M_LN10    ) },
+    { "fl-pi",        make<f64>(M_PI      ) },
+    { "fl-1/pi",      make<f64>(M_1_PI    ) },
+    { "fl-pi/2",      make<f64>(M_PI_2    ) },
+    { "fl-pi/4",      make<f64>(M_PI_4    ) },
+    { "fl-2/pi",      make<f64>(M_2_PI    ) },
+    { "fl-2/sqrt-pi", make<f64>(M_2_SQRTPI) },
+    { "fl-sqrt-2",    make<f64>(M_SQRT2   ) },
+    { "fl-1/sqrt-2",  make<f64>(M_SQRT1_2 ) },
   };
 } // namespace kernel
 } // namespace meevax

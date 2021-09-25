@@ -1,7 +1,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 #define INCLUDED_MEEVAX_KERNEL_VERSION_HPP
 
-#include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/kernel/symbol.hpp>
 
