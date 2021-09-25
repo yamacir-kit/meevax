@@ -20,8 +20,8 @@ namespace meevax
 {
 inline namespace kernel
 {
-  homoiconic_iterator::homoiconic_iterator(let const& x)
-    : std::reference_wrapper<let const> { std::cref(x) }
+  homoiconic_iterator::homoiconic_iterator(pair::const_reference x)
+    : std::reference_wrapper<pair::value_type const> { std::cref(x) }
   {}
 
   auto homoiconic_iterator::operator *() const -> homoiconic_iterator::const_reference
@@ -70,23 +70,23 @@ inline namespace kernel
 
 namespace std
 {
-  auto begin(meevax::let const& x) -> meevax::homoiconic_iterator
+  auto begin(meevax::pair::const_reference x) -> meevax::homoiconic_iterator
   {
     return cbegin(x);
   }
 
-  auto cbegin(meevax::let const& x) -> meevax::homoiconic_iterator
+  auto cbegin(meevax::pair::const_reference x) -> meevax::homoiconic_iterator
   {
     return x;
   }
 
-  auto cend(meevax::let const&) -> meevax::homoiconic_iterator const&
+  auto cend(meevax::pair::const_reference) -> meevax::homoiconic_iterator const&
   {
     static meevax::homoiconic_iterator const cend { meevax::unit };
     return cend;
   }
 
-  auto end(meevax::let const&) -> meevax::homoiconic_iterator const&
+  auto end(meevax::pair::const_reference) -> meevax::homoiconic_iterator const&
   {
     static meevax::homoiconic_iterator const cend { meevax::unit };
     return cend;

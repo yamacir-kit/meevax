@@ -30,11 +30,11 @@ inline namespace kernel
   {
     using iterator_category = std::forward_iterator_tag;
 
-    using value_type = let;
+    using value_type = pair::value_type;
 
-    using reference = let &;
+    using reference = pair::reference;
 
-    using const_reference = let const&;
+    using const_reference = pair::const_reference;
 
     using pointer = const_reference; // homoiconicity
 
@@ -57,9 +57,9 @@ inline namespace kernel
     auto unwrap() const noexcept -> const_reference;
   };
 
-  auto operator ==(homoiconic_iterator const& lhs, homoiconic_iterator const& rhs) noexcept -> bool;
+  auto operator ==(homoiconic_iterator const&, homoiconic_iterator const&) noexcept -> bool;
 
-  auto operator !=(homoiconic_iterator const& lhs, homoiconic_iterator const& rhs) noexcept -> bool;
+  auto operator !=(homoiconic_iterator const&, homoiconic_iterator const&) noexcept -> bool;
 } // namespace kernel
 } // namespace meevax
 

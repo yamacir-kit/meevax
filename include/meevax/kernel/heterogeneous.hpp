@@ -35,9 +35,8 @@ inline namespace kernel
   class heterogeneous : public Pointer<Top>
   {
     template <typename Bound>
-    struct binder
-      : public virtual Top
-      , public Bound
+    struct binder : public virtual Top
+                  , public Bound
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)

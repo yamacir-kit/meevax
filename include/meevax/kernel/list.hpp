@@ -30,7 +30,7 @@ inline namespace kernel
 {
   auto to_native_reference = [](auto&& x) -> decltype(auto)
   {
-    if constexpr (std::is_same<typename std::decay<decltype(x)>::type, let>::value)
+    if constexpr (std::is_same<typename std::decay<decltype(x)>::type, pair::value_type>::value)
     {
       return x.load();
     }
@@ -54,8 +54,8 @@ inline namespace kernel
     return std::get<1>(to_native_reference(std::forward<decltype(x)>(x)));
   };
 
-  template <typename T, typename U, REQUIRES(std::is_convertible<T, let>,
-                                             std::is_convertible<U, let>)>
+  template <typename T, typename U, REQUIRES(std::is_convertible<T, pair::value_type>,
+                                             std::is_convertible<U, pair::value_type>)>
   auto operator |(T&& x, U&& y) -> decltype(auto)
   {
     return make<pair>(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
@@ -76,7 +76,7 @@ inline namespace kernel
     return cons(std::forward<decltype(a)>(a), std::forward<decltype(d)>(d));
   };
 
-  auto make_list = [](std::size_t k, let const& x = unit)
+  auto make_list = [](std::size_t k, pair::const_reference x = unit)
   {
     let result = list();
 
@@ -102,7 +102,7 @@ inline namespace kernel
 
   auto list_copy = [](auto const& x)
   {
-    auto copy = [](auto&& rec, let const& x) -> let
+    auto copy = [](auto&& rec, pair::const_reference x) -> pair::value_type
     {
       if (x.is<pair>())
       {
@@ -167,7 +167,7 @@ inline namespace kernel
 
   auto list_tail = [](auto&& x, auto&& k) -> decltype(auto)
   {
-    if constexpr (std::is_same<typename std::decay<decltype(k)>::type, let>::value)
+    if constexpr (std::is_same<typename std::decay<decltype(k)>::type, pair::value_type>::value)
     {
       return std::next(std::cbegin(std::forward<decltype(x)>(x)), static_cast<std::size_t>(k.template as<exact_integer>()));
     }
@@ -189,23 +189,25 @@ inline namespace kernel
     return std::distance(std::cbegin(x), std::cend(x));
   };
 
-  let append(let const&, let const&);
+  auto append(pair::const_reference,
+              pair::const_reference) -> pair::value_type;
 
   auto reverse(pair::const_reference) -> pair::value_type;
 
-  auto zip(pair::const_reference, pair::const_reference) -> pair::value_type;
+  auto zip(pair::const_reference,
+           pair::const_reference) -> pair::value_type;
 
   auto unzip1(pair::const_reference xs) -> pair::value_type;
 
   auto unzip2(pair::const_reference xs) -> std::tuple<pair::value_type, pair::value_type>;
 
   template <typename Function>
-  auto map(Function&& function, let const& x) -> pair::value_type
+  auto map(Function&& function, pair::const_reference x) -> pair::value_type
   {
     return x.is<null>() ? unit : cons(function(car(x)), map(function, cdr(x)));
   }
 
-  auto find = [](let const& x, auto&& predicate) constexpr -> pair::const_reference
+  auto find = [](pair::const_reference x, auto&& predicate) constexpr -> pair::const_reference
   {
     if (auto const& iter = std::find_if(std::cbegin(x), std::cend(x), std::forward<decltype(predicate)>(predicate)); iter)
     {
@@ -217,7 +219,9 @@ inline namespace kernel
     }
   };
 
-  auto assoc = [](let const& key, let const& alist, auto&& compare = equivalence_comparator<2>()) -> pair::const_reference
+  auto assoc = [](pair::const_reference key,
+                  pair::const_reference alist,
+                  auto&& compare = equivalence_comparator<2>()) -> pair::const_reference
   {
     return find(alist, [&](auto&& each)
     {

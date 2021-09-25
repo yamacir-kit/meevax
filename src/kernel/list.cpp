@@ -25,7 +25,8 @@ inline namespace kernel
     return 0 < size ? car(x) | take(cdr(x), --size) : unit;
   }
 
-  auto append(pair::const_reference x, pair::const_reference y) -> pair::value_type
+  auto append(pair::const_reference x,
+              pair::const_reference y) -> pair::value_type
   {
     return x.is<null>() ? y : cons(car(x), append(cdr(x), y));
   }
@@ -35,7 +36,8 @@ inline namespace kernel
     return x ? append(reverse(cdr(x)), list(car(x))) : unit;
   }
 
-  auto zip(pair::const_reference x, pair::const_reference y) -> pair::value_type
+  auto zip(pair::const_reference x,
+           pair::const_reference y) -> pair::value_type
   {
     if (x.is<null>() and y.is<null>())
     {
