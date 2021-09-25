@@ -20,7 +20,6 @@
 #include <gmp.h>
 
 #include <meevax/functional/greatest_common_divisor.hpp>
-#include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/pair.hpp>
 
 namespace meevax

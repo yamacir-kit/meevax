@@ -30,17 +30,26 @@ namespace meevax
 {
 inline namespace kernel
 {
+  struct exact_integer;
+  struct pair;
+  struct ratio;
+
+  template <typename T>
+  struct floating_point;
+
+  using single_float = floating_point<float>;
+  using double_float = floating_point<double>;
+  using system_float = floating_point<decltype(0.0)>;
+
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
-
-  struct pair;
 
   using let = heterogeneous<cell, pair>;
 
   using null = std::nullptr_t;
 
   template <typename... Ts>
-  using define = typename identity<Ts...>::type;
+  using define [[deprecated]] = typename identity<Ts...>::type;
 
   template <typename... Ts>
   auto make_error(Ts&&... xs)

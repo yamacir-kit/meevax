@@ -21,7 +21,6 @@
 
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/error.hpp>
-#include <meevax/kernel/numeric_tower.hpp>
 
 namespace meevax
 {
