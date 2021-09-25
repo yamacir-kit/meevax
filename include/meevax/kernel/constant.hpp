@@ -17,13 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_CONSTANT_HPP
 #define INCLUDED_MEEVAX_KERNEL_CONSTANT_HPP
 
-#include <meevax/kernel/number.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  extern std::unordered_map<std::string, let> const constants;
+  extern std::unordered_map<std::string, pair::value_type> const constants;
 } // namespace kernel
 } // namespace meevax
 

@@ -1108,7 +1108,7 @@ inline namespace kernel
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of itself");
         return unit;
       }
-      else if (auto variable = de_bruijn_index<equivalence_comparator<2>>(car(expression), frames); variable.is_bound())
+      else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
       {
         if (variable.is_variadic)
         {

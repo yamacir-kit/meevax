@@ -15,12 +15,13 @@
 */
 
 #include <meevax/kernel/constant.hpp>
+#include <meevax/kernel/number.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  std::unordered_map<std::string, let> const constants
+  std::unordered_map<std::string, pair::value_type> const constants
   {
     // R7RS 7.1.1. Lexical structure
     { "+inf.0", make<system_float>(+system_float::infinity()) },
