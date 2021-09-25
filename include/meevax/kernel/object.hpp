@@ -63,11 +63,11 @@ inline namespace kernel
       return delay<FUNCTOR>().yield<RESULT>(static_cast<T const&>(*this), x);  \
     } static_assert(true)
 
-    BOILERPLATE(+, let, std::plus      <void>);
-    BOILERPLATE(-, let, std::minus     <void>);
-    BOILERPLATE(*, let, std::multiplies<void>);
-    BOILERPLATE(/, let, std::divides   <void>);
-    BOILERPLATE(%, let, std::modulus   <void>);
+    BOILERPLATE(+, let, addition);
+    BOILERPLATE(-, let, subtraction);
+    BOILERPLATE(*, let, multiplication);
+    BOILERPLATE(/, let, division);
+    BOILERPLATE(%, let, modulo);
 
     BOILERPLATE(!=, bool, std::not_equal_to <void>);
     BOILERPLATE(<,  bool, std::less         <void>);

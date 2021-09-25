@@ -24,19 +24,10 @@ namespace meevax
 {
 inline namespace functional
 {
-  struct modulo
-  {
-    template <typename T, typename... Ts>
-    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
-    {
-      return (std::forward<decltype(x)>(x) % ... % std::forward<decltype(xs)>(xs));
-    }
+  struct modulo : public std::modulus<void>
+  {};
 
-    friend auto operator <<(std::ostream & os, modulo const&) -> std::ostream &
-    {
-      return os << "modulo";
-    }
-  };
+  auto operator <<(std::ostream &, modulo const&) -> std::ostream &;
 
   constexpr modulo mod, truncate_remainder;
 } // namespace functional

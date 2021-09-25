@@ -24,19 +24,10 @@ namespace meevax
 {
 inline namespace functional
 {
-  struct division
-  {
-    template <typename T, typename... Ts>
-    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
-    {
-      return (std::forward<decltype(x)>(x) / ... / std::forward<decltype(xs)>(xs));
-    }
+  struct division : public std::divides<void>
+  {};
 
-    friend auto operator <<(std::ostream & os, division const&) -> std::ostream &
-    {
-      return os << "division";
-    }
-  };
+  auto operator <<(std::ostream &, division const&) -> std::ostream &;
 
   constexpr division divide, div;
 } // namespace functional

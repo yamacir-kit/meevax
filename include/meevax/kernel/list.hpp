@@ -18,8 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_LIST_HPP
 
 #include <algorithm>
-#include <numeric>
-#include <tuple>
 
 #include <meevax/functional/combinator.hpp>
 #include <meevax/kernel/equivalence.hpp>

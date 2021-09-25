@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
 #include <meevax/kernel/object.hpp>
-#include <meevax/type_traits/underlying_cast.hpp>
 
 // TODO
 //   convert to lower-case

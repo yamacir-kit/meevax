@@ -95,7 +95,7 @@ inline namespace kernel
    *
    *    let operator +(Number const& lhs, let const& rhs)
    *    {
-   *      return apply(std::plus<void>(), lhs, rhs);
+   *      return apply(add, lhs, rhs);
    *    }
    *
    * ------------------------------------------------------------------------ */

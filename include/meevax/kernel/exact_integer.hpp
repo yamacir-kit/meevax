@@ -18,12 +18,8 @@
 #define INCLUDED_MEEVAX_KERNEL_EXACT_INTEGER_HPP
 
 #include <gmp.h>
-#include <meevax/functional/addition.hpp>
-#include <meevax/functional/division.hpp>
+
 #include <meevax/functional/greatest_common_divisor.hpp>
-#include <meevax/functional/modulo.hpp>
-#include <meevax/functional/multiplication.hpp>
-#include <meevax/functional/subtraction.hpp>
 #include <meevax/kernel/numeric_tower.hpp>
 #include <meevax/kernel/pair.hpp>
 
