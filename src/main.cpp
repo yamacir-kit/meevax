@@ -22,7 +22,7 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto root = syntactic_continuation(boot_upto<layer::extensions>());
+    auto root = syntactic_continuation(boot_upto<layer::experimental_procedure>());
 
     root.configure(argc, argv);
 

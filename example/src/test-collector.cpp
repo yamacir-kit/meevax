@@ -290,7 +290,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
   BOOST_AUTO_TEST_CASE(list_read)
   {
-    syntactic_continuation module { boot_upto<layer::declarations>() };
+    syntactic_continuation module { boot_upto<layer::module_system>() };
 
     auto const size = gc.count();
 
@@ -303,7 +303,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
   BOOST_AUTO_TEST_CASE(vector_from_list_2)
   {
-    syntactic_continuation module { boot_upto<layer::declarations>() };
+    syntactic_continuation module { boot_upto<layer::module_system>() };
 
     auto const size = gc.count();
 
@@ -347,7 +347,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
   BOOST_AUTO_TEST_CASE(vector_literal)
   {
-    syntactic_continuation module { boot_upto<layer::declarations>() };
+    syntactic_continuation module { boot_upto<layer::module_system>() };
 
     auto const size = gc.count();
 
@@ -383,7 +383,7 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
 
   BOOST_AUTO_TEST_CASE(vector_evaluate)
   {
-    syntactic_continuation module { boot_upto<layer::declarations>() };
+    syntactic_continuation module { boot_upto<layer::module_system>() };
 
     module.define<procedure>("vector", [](auto&&... xs)
     {
@@ -397,29 +397,29 @@ BOOST_AUTO_TEST_SUITE_END();
 
 BOOST_FIXTURE_TEST_SUITE(layers, fixture); namespace
 {
-  BOOST_AUTO_TEST_CASE(declarations)
+  BOOST_AUTO_TEST_CASE(module_system)
   {
-    syntactic_continuation root { boot_upto<layer::declarations>() };
+    syntactic_continuation root { boot_upto<layer::module_system>() };
   }
 
-  BOOST_AUTO_TEST_CASE(primitives)
+  BOOST_AUTO_TEST_CASE(primitive_expression)
   {
-    syntactic_continuation root { boot_upto<layer::primitives>() };
+    syntactic_continuation root { boot_upto<layer::primitive_expression>() };
   }
 
-  BOOST_AUTO_TEST_CASE(standard_procedures)
+  BOOST_AUTO_TEST_CASE(standard_procedure)
   {
-    syntactic_continuation root { boot_upto<layer::standard_procedures>() };
+    syntactic_continuation root { boot_upto<layer::standard_procedure>() };
   }
 
-  BOOST_AUTO_TEST_CASE(standard_libraries)
+  BOOST_AUTO_TEST_CASE(standard_library)
   {
-    syntactic_continuation root { boot_upto<layer::standard_libraries>() };
+    syntactic_continuation root { boot_upto<layer::standard_library>() };
   }
 
-  BOOST_AUTO_TEST_CASE(extensions)
+  BOOST_AUTO_TEST_CASE(experimental_procedure)
   {
-    syntactic_continuation root { boot_upto<layer::extensions>() };
+    syntactic_continuation root { boot_upto<layer::experimental_procedure>() };
   }
 }
 BOOST_AUTO_TEST_SUITE_END();

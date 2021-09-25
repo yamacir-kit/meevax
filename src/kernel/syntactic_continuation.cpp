@@ -28,10 +28,10 @@ namespace meevax
 inline namespace kernel
 {
   template <>
-  syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
+  syntactic_continuation::syntactic_continuation(boot_upto<layer::module_system>)
     : syntactic_continuation::syntactic_continuation {}
   {
-    boot<layer::declarations>();
+    boot<layer::module_system>();
   }
 
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
@@ -342,7 +342,7 @@ inline namespace kernel
   template class writer<syntactic_continuation>;
 
   template <>
-  void syntactic_continuation::boot<layer::declarations>()
+  void syntactic_continuation::boot<layer::module_system>()
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
     {
@@ -389,7 +389,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::primitives>()
+  void syntactic_continuation::boot<layer::primitive_expression>()
   {
     define<syntax>("begin", sequence);
     define<syntax>("call-with-current-continuation", call_with_current_continuation);
@@ -403,7 +403,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::standard_procedures>()
+  void syntactic_continuation::boot<layer::standard_procedure>()
   {
     /* -------------------------------------------------------------------------
      *
@@ -2176,7 +2176,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::standard_libraries>()
+  void syntactic_continuation::boot<layer::standard_library>()
   {
     std::vector<string_view> const codes {
       overture,
@@ -2204,7 +2204,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::extensions>()
+  void syntactic_continuation::boot<layer::experimental_procedure>()
   {
     define<procedure>("disassemble", [](let const& xs)
     {

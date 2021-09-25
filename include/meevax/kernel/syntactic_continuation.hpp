@@ -28,11 +28,11 @@ inline namespace kernel
 {
   enum class layer : std::size_t
   {
-    declarations,        // 5.
-    primitives,          // 4.1.
-    standard_procedures, // 6.
-    standard_libraries,  // Appendix A
-    extensions,
+    module_system,
+    primitive_expression, // 4.1.
+    standard_procedure, // 6.
+    standard_library,
+    experimental_procedure,
   };
 
   template <auto Value>
@@ -91,7 +91,7 @@ inline namespace kernel
 
     auto operator [](std::string const&) -> const_reference;
 
-    template <auto = layer::declarations>
+    template <auto = layer::module_system>
     void boot();
 
     auto build() -> void; // NOTE: Only fork() may call this function.
@@ -202,13 +202,13 @@ inline namespace kernel
   };
 
   template <>
-  syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>);
+  syntactic_continuation::syntactic_continuation(boot_upto<layer::module_system>);
 
-  template <> auto syntactic_continuation::boot<layer::declarations       >() -> void;
-  template <> auto syntactic_continuation::boot<layer::primitives         >() -> void;
-  template <> auto syntactic_continuation::boot<layer::standard_procedures>() -> void;
-  template <> auto syntactic_continuation::boot<layer::standard_libraries >() -> void;
-  template <> auto syntactic_continuation::boot<layer::extensions         >() -> void;
+  template <> auto syntactic_continuation::boot<layer::module_system         >() -> void;
+  template <> auto syntactic_continuation::boot<layer::primitive_expression  >() -> void;
+  template <> auto syntactic_continuation::boot<layer::standard_procedure    >() -> void;
+  template <> auto syntactic_continuation::boot<layer::standard_library      >() -> void;
+  template <> auto syntactic_continuation::boot<layer::experimental_procedure>() -> void;
 
   auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
 
