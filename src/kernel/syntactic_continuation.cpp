@@ -335,8 +335,6 @@ inline namespace kernel
 
   template class configurator<syntactic_continuation>;
 
-  template class debugger<syntactic_continuation>;
-
   template class machine<syntactic_continuation>;
 
   template class reader<syntactic_continuation>;
@@ -385,18 +383,9 @@ inline namespace kernel
     define<procedure>("set-batch!",       [this](auto&&... xs) { return batch       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-debug!",       [this](auto&&... xs) { return debug       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-interactive!", [this](auto&&... xs) { return interactive = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-prompt!",      [this](auto&&... xs) { return prompt      = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-trace!",       [this](auto&&... xs) { return trace       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-verbose!",     [this](auto&&... xs) { return verbose     = car(std::forward<decltype(xs)>(xs)...); });
-
-    define<procedure>("set-prompt!", [this](auto&&... xs)
-    {
-      return prompt = car(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<procedure>("tracker", [](auto&&... xs)
-    {
-      return make<tracker>(std::forward<decltype(xs)>(xs)...);
-    });
   }
 
   template <>

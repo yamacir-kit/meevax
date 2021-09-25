@@ -18,7 +18,6 @@
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTINUATION_HPP
 
 #include <meevax/kernel/configurator.hpp>
-#include <meevax/kernel/debugger.hpp>
 #include <meevax/kernel/machine.hpp>
 #include <meevax/kernel/reader.hpp>
 #include <meevax/kernel/writer.hpp>
@@ -42,7 +41,6 @@ inline namespace kernel
   class syntactic_continuation
     : public virtual pair
     , public configurator <syntactic_continuation>
-    , public debugger     <syntactic_continuation>
     , public machine      <syntactic_continuation>
     , public reader       <syntactic_continuation>
     , public writer       <syntactic_continuation>
@@ -219,8 +217,6 @@ inline namespace kernel
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
   extern template class configurator<syntactic_continuation>;
-
-  extern template class debugger<syntactic_continuation>;
 
   extern template class machine<syntactic_continuation>;
 
