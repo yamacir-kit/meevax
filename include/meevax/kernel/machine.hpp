@@ -440,7 +440,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
+          s = callee.as<procedure>()(cadr(s)) | cddr(s);
           c = cdr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
@@ -475,7 +475,7 @@ inline namespace kernel
         }
         else if (callee.is<procedure>() or callee.is<inline_procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
+          s = callee.as<procedure>()(cadr(s)) | cddr(s);
           c = cdr(c);
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
@@ -1149,7 +1149,7 @@ inline namespace kernel
       }
     }
 
-    static SYNTAX(construct) // XXX DEPRECATED
+    static SYNTAX(construction)
     {
       return compile(context::none,
                      current_syntactic_continuation,
