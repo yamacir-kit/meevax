@@ -41,13 +41,11 @@ inline namespace kernel
   struct inline_procedure : public syntax
                           , public procedure
   {
-    using syntax::operator ();
-
     explicit inline_procedure(std::string const& name,
-                              syntax::transformer const& transformer,
-                              procedure::function const& function)
-      : syntax { name, transformer }
-      , procedure { name, function }
+                              syntax::transformer const& transform,
+                              procedure::applicable const& apply)
+      : syntax { name, transform }
+      , procedure { name, apply }
     {}
 
     friend auto operator <<(std::ostream & os, inline_procedure const& datum) -> std::ostream &
@@ -186,12 +184,12 @@ inline namespace kernel
       {
         if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
         {
-          if (applicant.is<syntax>() or applicant.is<inline_procedure>())
+          if (applicant.is_also<syntax>())
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>") >> indent::width;
 
             let const result =
-              applicant.as<syntax>().compile(
+              applicant.as<syntax>().transform(
                 current_syntactic_context, current_syntactic_continuation, cdr(expression), frames, continuation);
 
             WRITE_DEBUG(magenta, ")") << indent::width;
@@ -280,10 +278,10 @@ inline namespace kernel
     decode:
       if constexpr (static_cast<bool>(Context bitand execution_context::trace))
       {
-        std::cerr << faint << header("trace s") << reset << s << "\n"
-                  << faint << header("      e") << reset << e << "\n"
-                  << faint << header("      c") << reset << c << "\n"
-                  << faint << header("      d") << reset << d << "\n" << std::endl;
+        std::cerr << faint << "; s = " << reset << s << "\n"
+                  << faint << "; e = " << reset << e << "\n"
+                  << faint << "; c = " << reset << c << "\n"
+                  << faint << "; d = " << reset << d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().value)
@@ -431,7 +429,7 @@ inline namespace kernel
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>() or callee.is<inline_procedure>()) /* ---
+        else if (callee.is_also<procedure>()) /* -------------------------------
         *
         *     (<procedure> arguments . s) e (CALL . c) d
         *  =>              (<result> . s) e         c  d
@@ -440,7 +438,7 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          s = callee.as<procedure>()(cadr(s)) | cddr(s);
+          s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
         }
         else if (callee.is<continuation>()) /* ---------------------------------
@@ -475,7 +473,7 @@ inline namespace kernel
         }
         else if (callee.is<procedure>() or callee.is<inline_procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
-          s = callee.as<procedure>()(cadr(s)) | cddr(s);
+          s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
         }
         else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D

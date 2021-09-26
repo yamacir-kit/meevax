@@ -34,7 +34,7 @@ inline namespace kernel
 {
   class syntactic_continuation;
 
-  struct syntax : public std::function<SYNTAX()>
+  struct syntax
   {
     using signature = SYNTAX((*));
 
@@ -42,17 +42,13 @@ inline namespace kernel
 
     std::string const name;
 
-    template <typename... Ts>
-    explicit syntax(std::string const& name, Ts&&... xs)
-      : std::function<SYNTAX()> { std::forward<decltype(xs)>(xs)...  }
-      , name { name }
-    {}
+    transformer transform;
 
     template <typename... Ts>
-    auto compile(Ts&&... xs) -> decltype(auto)
-    {
-      return std::invoke(*this, std::forward<decltype(xs)>(xs)...);
-    }
+    explicit syntax(std::string const& name, Ts&&... xs)
+      : name { name }
+      , transform { std::forward<decltype(xs)>(xs)...  }
+    {}
   };
 
   auto operator <<(std::ostream &, syntax const&) -> std::ostream &;
