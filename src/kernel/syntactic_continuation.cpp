@@ -813,7 +813,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("cons", [](auto&& xs)
+    define<inline_procedure>("cons", construct, [](auto&& xs)
     {
       return cons(car(xs), cadr(xs));
     });

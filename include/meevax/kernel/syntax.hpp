@@ -34,10 +34,11 @@ inline namespace kernel
 {
   class syntactic_continuation;
 
-  struct syntax
-    : public std::function<SYNTAX()>
+  struct syntax : public std::function<SYNTAX()>
   {
     using signature = SYNTAX((*));
+
+    using transformer = std::function<SYNTAX()>;
 
     std::string const name;
 

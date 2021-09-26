@@ -38,6 +38,24 @@ inline namespace kernel
       current_syntactic_continuation.standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
   } indent()
 
+  struct inline_procedure : public syntax
+                          , public procedure
+  {
+    using syntax::operator ();
+
+    explicit inline_procedure(std::string const& name,
+                              syntax::transformer const& transformer,
+                              procedure::function const& function)
+      : syntax { name, transformer }
+      , procedure { name, function }
+    {}
+
+    friend auto operator <<(std::ostream & os, inline_procedure const& datum) -> std::ostream &
+    {
+      return os << static_cast<procedure const&>(datum);
+    }
+  };
+
   enum class execution_context
   {
     none,
@@ -168,7 +186,7 @@ inline namespace kernel
       {
         if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
         {
-          if (applicant.is<syntax>())
+          if (applicant.is<syntax>() or applicant.is<inline_procedure>())
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>") >> indent::width;
 
@@ -413,7 +431,7 @@ inline namespace kernel
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) /* ------------------------------------
+        else if (callee.is<procedure>() or callee.is<inline_procedure>()) /* ---
         *
         *     (<procedure> arguments . s) e (CALL . c) d
         *  =>              (<result> . s) e         c  d
@@ -455,7 +473,7 @@ inline namespace kernel
           e = cons(cadr(s), cdr(callee));
           s = unit;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
+        else if (callee.is<procedure>() or callee.is<inline_procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
         {
           s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
           c = cdr(c);
@@ -1131,7 +1149,7 @@ inline namespace kernel
       }
     }
 
-    SYNTAX(construct) // XXX DEPRECATED
+    static SYNTAX(construct) // XXX DEPRECATED
     {
       return compile(context::none,
                      current_syntactic_continuation,
