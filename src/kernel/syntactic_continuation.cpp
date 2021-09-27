@@ -392,7 +392,7 @@ inline namespace kernel
   void syntactic_continuation::boot<layer::primitive_expression>()
   {
     define<syntax>("begin", sequence);
-    define<syntax>("call-with-current-continuation", call_with_current_continuation);
+    define<syntax>("call-with-current-continuation!", call_with_current_continuation);
     define<syntax>("define", definition);
     define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
     define<syntax>("if", conditional);
