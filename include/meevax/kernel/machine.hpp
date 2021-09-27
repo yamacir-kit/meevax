@@ -428,6 +428,7 @@ inline namespace kernel
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
+          goto decode;
         }
         else if (callee.is_also<procedure>()) /* -------------------------------
         *
@@ -440,6 +441,7 @@ inline namespace kernel
         {
           s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
+          goto decode;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -454,40 +456,60 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
+          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto decode;
 
-      case mnemonic::TAIL_CALL: /* ---------------------------------------------
+      case mnemonic::TAIL_CALL:
+        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
+        *     (<closure> arguments . s)              e (CALL . c) d
+        *  =>                        () (arguments . e')       c' d
+        *
+        *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
-        if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
+          goto decode;
         }
-        else if (callee.is<procedure>() or callee.is<inline_procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
+        else if (callee.is_also<procedure>()) /* -------------------------------
+        *
+        *     (<procedure> arguments . s) e (CALL . c) d
+        *  =>              (<result> . s) e         c  d
+        *
+        *  where <result> = procedure(arguments)
+        *
+        * ------------------------------------------------------------------- */
         {
           s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
+          goto decode;
         }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
+        else if (callee.is<continuation>()) /* ---------------------------------
+        *
+        *     (<continuation> arguments . s)  e (CALL . c) d
+        *  =>                (arguments . s') e'        c' d'
+        *
+        *  where <continuation> = (s' e' c' . 'd)
+        *
+        * ------------------------------------------------------------------- */
         {
           s = cons(caadr(s), callee.as<continuation>().s());
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
+          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto decode;
 
       case mnemonic::DUMMY: /* -------------------------------------------------
         *

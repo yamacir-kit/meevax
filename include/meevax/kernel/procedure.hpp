@@ -39,8 +39,6 @@ inline namespace kernel
 
     explicit procedure(std::string const&, std::string const&);
 
-    virtual ~procedure() = default;
-
     static auto dlopen(std::string const&) -> pointer<void>;
 
     static auto dlsym(std::string const&, const_pointer<void>) -> signature;

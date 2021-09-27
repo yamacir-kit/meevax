@@ -44,11 +44,7 @@ inline namespace kernel
 
     transformer transform;
 
-    template <typename... Ts>
-    explicit syntax(std::string const& name, Ts&&... xs)
-      : name { name }
-      , transform { std::forward<decltype(xs)>(xs)...  }
-    {}
+    explicit syntax(std::string const&, transformer const&);
   };
 
   auto operator <<(std::ostream &, syntax const&) -> std::ostream &;

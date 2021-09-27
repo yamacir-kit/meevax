@@ -21,6 +21,11 @@ namespace meevax
 {
 inline namespace kernel
 {
+  syntax::syntax(std::string const& name, transformer const& transform)
+    : name { name }
+    , transform { transform  }
+  {}
+
   auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
   {
     return os << magenta << "#,(" << green << "syntax" << reset << " " << datum.name << magenta << ")" << reset;
