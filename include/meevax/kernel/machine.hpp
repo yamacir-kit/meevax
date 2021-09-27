@@ -41,11 +41,10 @@ inline namespace kernel
   struct inline_procedure : public syntax
                           , public procedure
   {
-    explicit inline_procedure(std::string const& name,
-                              syntax::transformer const& transform,
-                              procedure::applicable const& apply)
-      : syntax { name, transform }
-      , procedure { name, apply }
+    template <typename Transformer, typename Applicable>
+    explicit inline_procedure(std::string const& name, Transformer && transform, Applicable && apply)
+      : syntax { name, std::forward<decltype(transform)>(transform) }
+      , procedure { name, std::forward<decltype(apply)>(apply) }
     {}
 
     friend auto operator <<(std::ostream & os, inline_procedure const& datum) -> std::ostream &
