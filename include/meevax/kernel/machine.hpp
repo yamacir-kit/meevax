@@ -23,9 +23,8 @@
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
-#include <meevax/kernel/syntax.hpp>
+#include <meevax/kernel/syntactic_procedure.hpp>
 
 namespace meevax
 {
@@ -37,21 +36,6 @@ inline namespace kernel
     current_syntactic_continuation.write_to(                                   \
       current_syntactic_continuation.standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
   } indent()
-
-  struct inline_procedure : public syntax
-                          , public procedure
-  {
-    template <typename Transformer, typename Applicable>
-    explicit inline_procedure(std::string const& name, Transformer && transform, Applicable && apply)
-      : syntax { name, std::forward<decltype(transform)>(transform) }
-      , procedure { name, std::forward<decltype(apply)>(apply) }
-    {}
-
-    friend auto operator <<(std::ostream & os, inline_procedure const& datum) -> std::ostream &
-    {
-      return os << static_cast<procedure const&>(datum);
-    }
-  };
 
   enum class execution_context
   {
