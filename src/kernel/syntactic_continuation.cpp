@@ -132,7 +132,7 @@ inline namespace kernel
   {
     if (is_trace_mode())
     {
-      return machine::execute<execution_context::trace>();
+      return machine::execute<declaration::trace>();
     }
     else
     {

@@ -20,6 +20,7 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_bruijn_index.hpp>
+#include <meevax/kernel/declaration.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
@@ -36,15 +37,6 @@ inline namespace kernel
     current_syntactic_continuation.write_to(                                   \
       current_syntactic_continuation.standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
   } indent()
-
-  enum class execution_context
-  {
-    none,
-
-    trace = (1 << 0),
-
-    size,
-  };
 
   template <typename SK>
   class machine // TR-SECD machine.
@@ -255,11 +247,11 @@ inline namespace kernel
       return make<continuation>(s, cons(e, cadr(c), d));
     }
 
-    template <auto Context = execution_context::none>
+    template <auto Declaration = declaration::none>
     inline auto execute() -> pair::value_type
     {
     decode:
-      if constexpr (static_cast<bool>(Context bitand execution_context::trace))
+      if constexpr (static_cast<bool>(Declaration bitand declaration::trace))
       {
         std::cerr << faint << "; s = " << reset << s << "\n"
                   << faint << "; e = " << reset << e << "\n"
