@@ -187,7 +187,7 @@ inline namespace kernel
 
             WRITE_DEBUG(result);
 
-            return compile(context::none, current_syntactic_continuation, result, frames, continuation);
+            return compile(syntactic_context::none, current_syntactic_continuation, result, frames, continuation);
           }
         }
 
@@ -233,15 +233,15 @@ inline namespace kernel
         WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>") >> indent::width;
 
         let const result =
-          operand(context::none,
+          operand(syntactic_context::none,
                   current_syntactic_continuation,
                   cdr(expression),
                   frames,
-                  compile(context::none,
+                  compile(syntactic_context::none,
                           current_syntactic_continuation,
                           car(expression),
                           frames,
-                          cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
+                          cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand syntactic_context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
                                continuation)));
 
         WRITE_DEBUG(magenta, ")") << indent::width;
@@ -649,7 +649,7 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (static_cast<bool>(current_syntactic_context bitand context::outermost))
+      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
       {
         if (cdr(expression).is<null>())
         {
@@ -661,12 +661,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(context::outermost,
+          return compile(syntactic_context::outermost,
                          current_syntactic_continuation,
                          car(expression),
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
-                              sequence(context::outermost,
+                              sequence(syntactic_context::outermost,
                                        current_syntactic_continuation,
                                        cdr(expression),
                                        frames,
@@ -685,12 +685,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::DROP), // pop result of head expression
-                              sequence(context::none,
+                              sequence(syntactic_context::none,
                                        current_syntactic_continuation,
                                        cdr(expression), // rest expressions
                                        frames,
@@ -724,13 +724,13 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or static_cast<bool>(current_syntactic_context bitand context::outermost))
+      if (frames.is<null>() or static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
       {
         WRITE_DEBUG(car(expression), faint, " ; is <variable>");
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
@@ -739,7 +739,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
@@ -749,7 +749,7 @@ inline namespace kernel
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this context"), unit);
+        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"), unit);
       }
     }
 
@@ -800,11 +800,11 @@ inline namespace kernel
       auto const& [variables, inits] = unzip2(bindings);
 
       return cons(make<instruction>(mnemonic::DUMMY),
-                  operand(context::none,
+                  operand(syntactic_context::none,
                           current_syntactic_continuation,
                           inits,
                           cons(variables, frames),
-                          lambda(context::none,
+                          lambda(syntactic_context::none,
                                  current_syntactic_continuation,
                                  cons(variables, body),
                                  frames,
@@ -862,7 +862,7 @@ inline namespace kernel
       */
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return compile(current_syntactic_context | context::tail,
+        return compile(current_syntactic_context | syntactic_context::tail,
                        current_syntactic_continuation,
                        car(expression),
                        frames,
@@ -905,11 +905,11 @@ inline namespace kernel
     {
       if (expression.is<pair>())
       {
-        return operand(context::none,
+        return operand(syntactic_context::none,
                        current_syntactic_continuation,
                        cdr(expression),
                        frames,
-                       compile(context::none,
+                       compile(syntactic_context::none,
                                current_syntactic_continuation,
                                car(expression),
                                frames,
@@ -918,7 +918,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(context::none, current_syntactic_continuation, expression, frames, continuation);
+        return compile(syntactic_context::none, current_syntactic_continuation, expression, frames, continuation);
       }
     }
 
@@ -940,10 +940,10 @@ inline namespace kernel
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
-      if (static_cast<bool>(current_syntactic_context bitand context::tail))
+      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::tail))
       {
         auto consequent =
-          compile(context::tail,
+          compile(syntactic_context::tail,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -951,7 +951,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(context::tail,
+            ? compile(syntactic_context::tail,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
@@ -959,7 +959,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::RETURN));
 
-        return compile(context::none,
+        return compile(syntactic_context::none,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -969,7 +969,7 @@ inline namespace kernel
       else
       {
         auto consequent =
-          compile(context::none,
+          compile(syntactic_context::none,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -977,7 +977,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(context::none,
+            ? compile(syntactic_context::none,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
@@ -985,7 +985,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::JOIN));
 
-        return compile(context::none,
+        return compile(syntactic_context::none,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -1083,7 +1083,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, variable.index);
 
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1094,7 +1094,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, variable.index);
 
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1106,13 +1106,13 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        if (let const location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand context::outermost) and cdr(location).is<identifier>())
+        if (let const location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
         else
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1154,11 +1154,11 @@ inline namespace kernel
 
     static SYNTAX(construction)
     {
-      return compile(context::none,
+      return compile(syntactic_context::none,
                      current_syntactic_continuation,
                      cadr(expression),
                      frames,
-                     compile(context::none,
+                     compile(syntactic_context::none,
                              current_syntactic_continuation,
                              car(expression),
                              frames,

@@ -75,7 +75,7 @@ inline namespace kernel
 
       s = k.s();
       e = k.e();
-      c = compile(context::outermost, *this, car(k.c()), cdr(k.c()));
+      c = compile(syntactic_context::outermost, *this, car(k.c()), cdr(k.c()));
       d = k.d();
 
       form() = execute();
@@ -117,7 +117,7 @@ inline namespace kernel
       write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
     }
 
-    c = compile(context::none, *this, expression);
+    c = compile(syntactic_context::none, *this, expression);
 
     if (is_debug_mode())
     {
@@ -2048,7 +2048,7 @@ inline namespace kernel
         {
           throw exit_status(static_cast<int>(x.as<exact_integer>()));
         }
-        [[fallthrough]];
+        else [[fallthrough]];
 
       default:
         throw invalid_application(intern("emergency-exit") | xs);
