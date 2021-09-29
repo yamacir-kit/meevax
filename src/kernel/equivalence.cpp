@@ -20,7 +20,7 @@ namespace meevax
 {
 inline namespace kernel
 {
-  auto equal(let const& x, let const& y) -> bool
+  auto equal(pair::const_reference x, pair::const_reference y) -> bool
   {
     if (x.is<null>() and y.is<null>())
     {

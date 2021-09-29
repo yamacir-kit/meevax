@@ -15,22 +15,22 @@
 */
 
 #include <meevax/kernel/boolean.hpp>
-#include <meevax/kernel/list.hpp> // for eq?
+#include <meevax/kernel/equivalence.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  auto operator <<(std::ostream & port, const boolean& datum) -> std::ostream &
+  auto operator <<(std::ostream & os, boolean const& datum) -> std::ostream &
   {
-    return port << cyan << "#" << std::boolalpha << datum.value << reset;
+    return os << cyan << "#" << std::boolalpha << datum.value << reset;
   }
 
   let const t = make<boolean>(true);
   let const f = make<boolean>(false);
 
-  auto if_(let const& x) -> bool
+  auto if_(pair::const_reference x) -> bool
   {
     return not eq(x, f) or not eqv(x, f);
   }

@@ -17,14 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYMBOL_HPP
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  struct symbol
-    : public std::string
+  struct symbol : public std::string
   {
     template <typename... Ts>
     explicit constexpr symbol(Ts&&... xs)
@@ -32,7 +31,7 @@ inline namespace kernel
     {}
   };
 
-  auto operator <<(std::ostream & port, symbol const&) -> std::ostream &;
+  auto operator <<(std::ostream &, symbol const&) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

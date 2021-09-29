@@ -19,7 +19,7 @@
 
 #include <fstream>
 
-#include <meevax/kernel/object.hpp>
+#include <meevax/kernel/pair.hpp>
 #include <meevax/kernel/path.hpp>
 
 namespace meevax

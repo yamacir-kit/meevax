@@ -20,7 +20,7 @@
 #include <valarray>
 
 #include <meevax/iostream/lexical_cast.hpp>
-#include <meevax/kernel/numeric_tower.hpp>
+#include <meevax/kernel/error.hpp>
 
 namespace meevax
 {

@@ -14,6 +14,13 @@
    limitations under the License.
 */
 
+#if __unix__
+#include <dlfcn.h> // dlopen, dlclose, dlerror
+#else
+#error
+#endif
+
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/procedure.hpp>
 #include <meevax/posix/vt10x.hpp>
 
@@ -21,6 +28,66 @@ namespace meevax
 {
 inline namespace kernel
 {
+  procedure::procedure(std::string const& name, applicable const& applicable)
+    : name { name }
+    , apply { applicable }
+  {}
+
+  procedure::procedure(std::string const& name, std::string const& libfoo_so)
+    : name { name }
+    , apply { dlsym(name, dlopen(libfoo_so)) }
+  {}
+
+  auto procedure::dlopen(std::string const& libfoo_so) -> pointer<void>
+  {
+    auto dlclose = [](const_pointer<void> handle)
+    {
+      if (handle and ::dlclose(handle))
+      {
+        std::cerr << ::dlerror() << std::endl;
+      }
+    };
+
+    static std::unordered_map<
+      std::string, std::unique_ptr<void, decltype(dlclose)>
+    > dynamic_libraries {};
+
+    ::dlerror(); // clear
+
+    try
+    {
+      return dynamic_libraries.at(libfoo_so).get();
+    }
+    catch (std::out_of_range const&)
+    {
+      if (auto handle = ::dlopen(libfoo_so.c_str(), RTLD_LAZY | RTLD_GLOBAL); handle)
+      {
+        dynamic_libraries.emplace(
+          std::piecewise_construct,
+          std::forward_as_tuple(libfoo_so),
+          std::forward_as_tuple(handle, dlclose));
+
+        return dlopen(libfoo_so);
+      }
+      else
+      {
+        throw file_error(make<string>(::dlerror()), unit);
+      }
+    }
+  }
+
+  auto procedure::dlsym(std::string const& name, const_pointer<void> handle) -> signature
+  {
+    if (auto address = ::dlsym(handle, name.c_str()); address)
+    {
+      return reinterpret_cast<signature>(address);
+    }
+    else
+    {
+      throw file_error(make<string>(::dlerror()), unit);
+    }
+  }
+
   auto operator <<(std::ostream & os, procedure const& datum) -> std::ostream &
   {
     return os << magenta << "#,(" << green << "procedure " << reset << datum.name << magenta << ")" << reset;

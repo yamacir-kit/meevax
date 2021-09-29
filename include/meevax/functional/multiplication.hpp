@@ -24,19 +24,10 @@ namespace meevax
 {
 inline namespace functional
 {
-  struct multiplication
-  {
-    template <typename T, typename... Ts>
-    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
-    {
-      return (std::forward<decltype(x)>(x) * ... * std::forward<decltype(xs)>(xs));
-    }
+  struct multiplication : public std::multiplies<void>
+  {};
 
-    friend auto operator <<(std::ostream & os, multiplication const&) -> std::ostream &
-    {
-      return os << "multiplication";
-    }
-  };
+  auto operator <<(std::ostream &, multiplication const&) -> std::ostream &;
 
   constexpr multiplication multiply, mul;
 } // namespace functional

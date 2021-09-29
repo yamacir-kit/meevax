@@ -26,9 +26,9 @@ inline namespace kernel
   enum class for_each_in_tag {} constexpr for_each_in {};
 
   struct vector
-    : public std::vector<let>
+    : public std::vector<pair::value_type>
   {
-    using std::vector<let>::vector;
+    using std::vector<pair::value_type>::vector;
 
     template <typename InputIterator>
     explicit vector(for_each_in_tag, InputIterator from, InputIterator to)
@@ -36,7 +36,7 @@ inline namespace kernel
       std::copy(from, to, std::back_inserter(*this));
     }
 
-    explicit vector(for_each_in_tag, let const&);
+    explicit vector(for_each_in_tag, const_reference);
 
     auto fill(const_reference, size_type, size_type) -> void;
 

@@ -17,65 +17,25 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_DE_BRUIJN_INDEX_HPP
 #define INCLUDED_MEEVAX_KERNEL_DE_BRUIJN_INDEX_HPP
 
-#include <meevax/kernel/list.hpp>
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  template <typename Comparator = default_equivalence_comparator>
   struct de_bruijn_index
   {
-    Comparator compare {};
-
     bool is_variadic;
 
     let const index;
 
-    template <typename... Ts>
-    explicit de_bruijn_index(Ts&&... xs)
-      : index { notate(std::forward<decltype(xs)>(xs)...) }
-    {}
+    explicit de_bruijn_index(pair::const_reference, pair::const_reference);
 
-    auto notate(pair::const_reference value, pair::const_reference frames) -> pair::value_type // XXX UGLY CODE!!!
-    {
-      std::size_t layer = 0;
+    auto notate(pair::const_reference, pair::const_reference) -> pair::value_type;
 
-      for (auto const& frame : frames)
-      {
-        std::size_t index = 0;
+    auto is_bound() const -> bool;
 
-        for (let node = frame; node; node = cdr(node))
-        {
-          if (node.is<pair>() and compare(car(node), value))
-          {
-            is_variadic = false;
-            return cons(make<exact_integer>(layer), make<exact_integer>(index));
-          }
-          else if (node.is<symbol>() and compare(node, value))
-          {
-            is_variadic = true;
-            return cons(make<exact_integer>(layer), make<exact_integer>(index));
-          }
-
-          ++index;
-        }
-
-        ++layer;
-      }
-
-      return unit;
-    }
-
-    auto is_bound() const -> bool
-    {
-      return not is_free();
-    }
-
-    auto is_free() const -> bool
-    {
-      return index.is<null>();
-    }
+    auto is_free() const -> bool;
   };
 } // namespace kernel
 } // namespace meevax

@@ -17,7 +17,13 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 #define INCLUDED_MEEVAX_KERNEL_POINTER_HPP
 
+#include <meevax/functional/addition.hpp>
 #include <meevax/functional/compose.hpp>
+#include <meevax/functional/division.hpp>
+#include <meevax/functional/modulo.hpp>
+#include <meevax/functional/multiplication.hpp>
+#include <meevax/functional/subtraction.hpp>
+#include <meevax/posix/vt10x.hpp>
 #include <meevax/type_traits/is_equality_comparable.hpp>
 #include <meevax/utility/delay.hpp>
 #include <meevax/utility/module.hpp>
@@ -30,9 +36,8 @@ inline namespace kernel
   class heterogeneous : public Pointer<Top>
   {
     template <typename Bound>
-    struct binder
-      : public virtual Top
-      , public Bound
+    struct binder : public virtual Top
+                  , public Bound
     {
       template <typename... Ts>
       explicit constexpr binder(Ts&&... xs)
@@ -51,7 +56,7 @@ inline namespace kernel
           }
           else
           {
-            return std::is_same<Bound, std::nullptr_t>::value;
+            return std::is_same<Bound, null>::value;
           }
         }
         else
@@ -65,9 +70,9 @@ inline namespace kernel
         return typeid(Bound);
       }
 
-      auto write_to(std::ostream & port) const -> std::ostream & override
+      auto write_to(std::ostream & os) const -> std::ostream & override
       {
-        return delay<write>().yield<decltype(port)>(port, static_cast<Bound const&>(*this));
+        return delay<write>().yield<decltype(os)>(os, static_cast<Bound const&>(*this));
       }
 
       #define BOILERPLATE(SYMBOL, RESULT, FUNCTION)                            \
@@ -76,11 +81,11 @@ inline namespace kernel
         return delay<FUNCTION>().yield<RESULT>(static_cast<Bound const&>(*this), x); \
       } static_assert(true)
 
-      BOILERPLATE(+, heterogeneous, std::plus      <void>);
-      BOILERPLATE(-, heterogeneous, std::minus     <void>);
-      BOILERPLATE(*, heterogeneous, std::multiplies<void>);
-      BOILERPLATE(/, heterogeneous, std::divides   <void>);
-      BOILERPLATE(%, heterogeneous, std::modulus   <void>);
+      BOILERPLATE(+, heterogeneous, addition);
+      BOILERPLATE(-, heterogeneous, subtraction);
+      BOILERPLATE(*, heterogeneous, multiplication);
+      BOILERPLATE(/, heterogeneous, division);
+      BOILERPLATE(%, heterogeneous, modulo);
 
       BOILERPLATE(==, bool, std::equal_to     <void>);
       BOILERPLATE(!=, bool, std::not_equal_to <void>);

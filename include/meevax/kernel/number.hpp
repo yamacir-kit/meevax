@@ -24,6 +24,7 @@
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
 #include <meevax/kernel/floating_point.hpp>
+#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/ratio.hpp>
 
 namespace meevax
@@ -57,22 +58,22 @@ inline namespace kernel
    *
    *  Usage:
    *
-   *    auto operator <(Number const& lhs, let const& rhs)
+   *    auto operator <(Number const& lhs, pair::const_reference rhs)
    *    {
    *      return apply<bool>(std::less<void>(), lhs, rhs);
    *    }
    *
    * ------------------------------------------------------------------------ */
   template <typename R, typename F, typename T>
-  auto apply(F&& procedure, T const& a, let const& b) -> decltype(auto)
+  auto apply(F&& procedure, T const& a, pair::const_reference b) -> decltype(auto)
   {
     static std::unordered_map<
-      std::type_index, std::function<R (T const&, let const&)>> const overloads
+      std::type_index, std::function<R (T const&, pair::const_reference)>> const overloads
     {
-      { typeid(single_float),  [&](T const& a, let const& b) { return procedure(a, b.as<single_float> ()); } },
-      { typeid(double_float),  [&](T const& a, let const& b) { return procedure(a, b.as<double_float> ()); } },
-      { typeid(ratio),         [&](T const& a, let const& b) { return procedure(a, b.as<ratio>        ()); } },
-      { typeid(exact_integer), [&](T const& a, let const& b) { return procedure(a, b.as<exact_integer>()); } },
+      { typeid(f32),           [&](T const& a, pair::const_reference b) { return procedure(a, b.as<f32          >()); } },
+      { typeid(f64),           [&](T const& a, pair::const_reference b) { return procedure(a, b.as<f64          >()); } },
+      { typeid(ratio),         [&](T const& a, pair::const_reference b) { return procedure(a, b.as<ratio        >()); } },
+      { typeid(exact_integer), [&](T const& a, pair::const_reference b) { return procedure(a, b.as<exact_integer>()); } },
     };
 
     if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
@@ -93,22 +94,22 @@ inline namespace kernel
    *
    *  Usage:
    *
-   *    let operator +(Number const& lhs, let const& rhs)
+   *    let operator +(Number const& lhs, pair::const_reference rhs)
    *    {
-   *      return apply(std::plus<void>(), lhs, rhs);
+   *      return apply(add, lhs, rhs);
    *    }
    *
    * ------------------------------------------------------------------------ */
   template <typename F, typename T>
-  auto apply(F&& procedure, T const& a, let const& b) -> decltype(auto)
+  auto apply(F&& procedure, T const& a, pair::const_reference b) -> decltype(auto)
   {
     static std::unordered_map<
-      std::type_index, std::function<let (T const&, let const&)>> const overloads
+      std::type_index, std::function<let (T const&, pair::const_reference)>> const overloads
     {
-      { typeid(single_float),  [&](T const& a, let const& b) { return make_number(procedure(a, b.as<single_float >())); } },
-      { typeid(double_float),  [&](T const& a, let const& b) { return make_number(procedure(a, b.as<double_float >())); } },
-      { typeid(ratio),         [&](T const& a, let const& b) { return make_number(procedure(a, b.as<ratio        >())); } },
-      { typeid(exact_integer), [&](T const& a, let const& b) { return make_number(procedure(a, b.as<exact_integer>())); } },
+      { typeid(f32),           [&](T const& a, pair::const_reference b) { return make_number(procedure(a, b.as<f32          >())); } },
+      { typeid(f64),           [&](T const& a, pair::const_reference b) { return make_number(procedure(a, b.as<f64          >())); } },
+      { typeid(ratio),         [&](T const& a, pair::const_reference b) { return make_number(procedure(a, b.as<ratio        >())); } },
+      { typeid(exact_integer), [&](T const& a, pair::const_reference b) { return make_number(procedure(a, b.as<exact_integer>())); } },
     };
 
     if (auto const iter = overloads.find(b.type()); iter != std::end(overloads))
@@ -132,23 +133,22 @@ inline namespace kernel
    *
    *  Usage:
    *
-   *    apply(std::sin, make<double_float>(1.0));
+   *    apply(std::sin, make<f64>(1.0));
    *
    *  TODO: RENAME TO apply_unary / apply_binary
    *
    * ------------------------------------------------------------------------ */
   template <typename F>
-  auto apply_1(F&& cmath, let const& x) -> decltype(auto)
+  auto apply_1(F&& cmath, pair::const_reference x) -> decltype(auto)
   {
     auto aux1 = [&](auto&& x)
     {
-      return make(floating_point(cmath(x.template as_inexact<decltype(0.0)>())));
+      return make(floating_point(cmath(x.template as_inexact<f64::value_type>())));
     };
 
     auto aux2 = [&](auto&& x)
     {
-      if (floating_point const y {
-            cmath(x.template as_inexact<decltype(0.0)>()) }; y.is_integer())
+      if (auto const y = floating_point(cmath(x.template as_inexact<f64::value_type>())); y.is_integer())
       {
         return make<exact_integer>(y.value);
       }
@@ -158,13 +158,12 @@ inline namespace kernel
       }
     };
 
-    static std::unordered_map<
-      std::type_index, std::function<let (let const&)>> const overloads
+    static std::unordered_map<std::type_index, procedure::applicable> const overloads
     {
-      { typeid(single_float),  [&](let const& x) { return aux1(x.as<single_float >()); } },
-      { typeid(double_float),  [&](let const& x) { return aux1(x.as<double_float >()); } },
-      { typeid(ratio),         [&](let const& x) { return aux2(x.as<ratio        >()); } },
-      { typeid(exact_integer), [&](let const& x) { return aux2(x.as<exact_integer>()); } },
+      { typeid(f32),           [&](pair::const_reference x) { return aux1(x.as<f32          >()); } },
+      { typeid(f64),           [&](pair::const_reference x) { return aux1(x.as<f64          >()); } },
+      { typeid(ratio),         [&](pair::const_reference x) { return aux2(x.as<ratio        >()); } },
+      { typeid(exact_integer), [&](pair::const_reference x) { return aux2(x.as<exact_integer>()); } },
     };
 
     if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
@@ -178,17 +177,17 @@ inline namespace kernel
   }
 
   template <typename F>
-  auto apply_2(F&& cmath, let const& a, let const& b)
+  auto apply_2(F&& cmath, pair::const_reference a, pair::const_reference b)
   {
-    auto inexact = [](let const& x)
+    auto inexact = [](pair::const_reference x)
     {
       static std::unordered_map<
-        std::type_index, std::function<decltype(0.0) (let const&)>> const overloads
+        std::type_index, std::function<f64::value_type(pair::const_reference)>> const overloads
       {
-        { typeid(single_float),  [](let const& x) { return x.as<single_float>() .as_inexact<decltype(0.0)>().value; } },
-        { typeid(double_float),  [](let const& x) { return x.as<double_float>() .as_inexact<decltype(0.0)>().value; } },
-        { typeid(ratio),         [](let const& x) { return x.as<ratio>()        .as_inexact<decltype(0.0)>().value; } },
-        { typeid(exact_integer), [](let const& x) { return x.as<exact_integer>().as_inexact<decltype(0.0)>().value; } },
+        { typeid(f32),           [](pair::const_reference x) { return x.as<f32>()          .as_inexact<f64::value_type>().value; } },
+        { typeid(f64),           [](pair::const_reference x) { return x.as<f64>()          .as_inexact<f64::value_type>().value; } },
+        { typeid(ratio),         [](pair::const_reference x) { return x.as<ratio>()        .as_inexact<f64::value_type>().value; } },
+        { typeid(exact_integer), [](pair::const_reference x) { return x.as<exact_integer>().as_inexact<f64::value_type>().value; } },
       };
 
       if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
@@ -221,8 +220,7 @@ inline namespace kernel
       }
     };
 
-    if (a.is<single_float>() or a.is<double_float>() or
-        b.is<single_float>() or b.is<double_float>())
+    if (a.is<f32>() or a.is<f64>() or b.is<f32>() or b.is<f64>())
     {
       return aux1(a, b);
     }
@@ -390,8 +388,8 @@ inline namespace kernel
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >= b.value; }
 
-  template <typename T>
-  T resolve(std::unordered_map<std::type_index, std::function<T (let const&)>> const& overloads, let const& x)
+  template <typename Result>
+  auto resolve(std::unordered_map<std::type_index, std::function<Result(pair::const_reference)>> const& overloads, pair::const_reference x)
   {
     if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
     {
@@ -399,45 +397,43 @@ inline namespace kernel
     }
     else
     {
-      return T(); // NOTE N4296 Section 8.5 (6.1)
+      return Result(); // NOTE N4296 Section 8.5 (6.1)
     }
   }
 
-  auto exact = [](let const& z)
+  auto exact = [](pair::const_reference z)
   {
-    static std::unordered_map<
-      std::type_index, std::function<let (let const&)>> const overloads
+    static std::unordered_map<std::type_index, procedure::applicable> const overloads
     {
-      { typeid(single_float),  [](let const& x) { return make_number(x.as<single_float >().as_exact()); } },
-      { typeid(double_float),  [](let const& x) { return make_number(x.as<double_float >().as_exact()); } },
-      { typeid(ratio),         [](let const& x) { return make_number(x.as<ratio        >().as_exact()); } },
-      { typeid(exact_integer), [](let const& x) { return make_number(x.as<exact_integer>().as_exact()); } },
+      { typeid(f32),           [](pair::const_reference x) { return make_number(x.as<f32          >().as_exact()); } },
+      { typeid(f64),           [](pair::const_reference x) { return make_number(x.as<f64          >().as_exact()); } },
+      { typeid(ratio),         [](pair::const_reference x) { return make_number(x.as<ratio        >().as_exact()); } },
+      { typeid(exact_integer), [](pair::const_reference x) { return make_number(x.as<exact_integer>().as_exact()); } },
     };
 
     return resolve(overloads, z);
   };
 
-  auto inexact = [](let const& z)
+  auto inexact = [](pair::const_reference z)
   {
-    static std::unordered_map<
-      std::type_index, std::function<let (let const&)>> const overloads
+    static std::unordered_map<std::type_index, procedure::applicable> const overloads
     {
-      { typeid(single_float),  [](let const& x) { return make(x.as<single_float >().as_inexact<decltype(0.0)>()); } },
-      { typeid(double_float),  [](let const& x) { return make(x.as<double_float >().as_inexact<decltype(0.0)>()); } },
-      { typeid(ratio),         [](let const& x) { return make(x.as<ratio        >().as_inexact<decltype(0.0)>()); } },
-      { typeid(exact_integer), [](let const& x) { return make(x.as<exact_integer>().as_inexact<decltype(0.0)>()); } },
+      { typeid(f32),           [](pair::const_reference x) { return make(x.as<f32          >().as_inexact<f64::value_type>()); } },
+      { typeid(f64),           [](pair::const_reference x) { return make(x.as<f64          >().as_inexact<f64::value_type>()); } },
+      { typeid(ratio),         [](pair::const_reference x) { return make(x.as<ratio        >().as_inexact<f64::value_type>()); } },
+      { typeid(exact_integer), [](pair::const_reference x) { return make(x.as<exact_integer>().as_inexact<f64::value_type>()); } },
     };
 
     return resolve(overloads, z);
   };
 
-  auto is_nan = [](let const& x)
+  auto is_nan = [](pair::const_reference x)
   {
     static std::unordered_map<
-      std::type_index, std::function<bool (let const&)>> const overloads
+      std::type_index, std::function<bool(pair::const_reference)>> const overloads
     {
-      { typeid(single_float), [](let const& x) { return std::isnan(x.as<single_float>()); } },
-      { typeid(double_float), [](let const& x) { return std::isnan(x.as<double_float>()); } },
+      { typeid(f32), [](pair::const_reference x) { return std::isnan(x.as<f32>()); } },
+      { typeid(f64), [](pair::const_reference x) { return std::isnan(x.as<f64>()); } },
     };
 
     return resolve(overloads, x);

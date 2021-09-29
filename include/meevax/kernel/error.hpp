@@ -43,8 +43,7 @@ inline namespace kernel
     failure = EXIT_FAILURE,
   };
 
-  struct error
-    : public virtual pair
+  struct error : public virtual pair
   {
     using pair::pair;
 
@@ -114,36 +113,32 @@ inline namespace kernel
       return underlying_cast(value);
     }
 
-    catch (let const& error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
+    catch (pair::const_reference error) // NOTE: default-exception-handler (Terminate the program without running any outstanding dynamic-wind after procedures)
     {
-      std::cerr << header("exception-handler") << error << std::endl;
-
+      std::cerr << "; " << error << std::endl;
       return underlying_cast(exit_status::failure);
     }
 
     catch (error const& error) // NOTE: system-error
     {
-      std::cerr << header("system-error") << error.what() << std::endl;
-
+      std::cerr << "; " << error << std::endl;
       return underlying_cast(exit_status::failure);
     }
 
     catch (std::exception const& error)
     {
-      std::cerr << header("kernel-error") << error.what() << std::endl;
-
+      std::cerr << "; error" << error.what() << std::endl;
       return underlying_cast(exit_status::failure);
     }
 
     catch (...)
     {
-      std::cerr << header("unknown-error") << "An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
-
+      std::cerr << "; error: An unknown object was thrown that was neither a Meevax exception type nor a C++ standard exception type." << std::endl;
       return underlying_cast(exit_status::failure);
     }
   }
 
-  auto invalid_application(let const&) -> error;
+  auto invalid_application(pair::const_reference) -> error;
 } // namespace kernel
 } // namespace meevax
 

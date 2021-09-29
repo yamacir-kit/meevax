@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_TYPE_TRAITS_UNDERLYING_CAST_HPP
 #define INCLUDED_MEEVAX_TYPE_TRAITS_UNDERLYING_CAST_HPP
 
-#include <type_traits>
-
 #include <meevax/type_traits/requires.hpp>
 
 namespace meevax

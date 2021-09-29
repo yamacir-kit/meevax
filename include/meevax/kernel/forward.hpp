@@ -19,10 +19,8 @@
 
 #include <meevax/functional/identity.hpp>
 #include <meevax/memory/cell.hpp>
-#include <meevax/posix/vt10x.hpp>
 #include <meevax/string/append.hpp>
 #include <meevax/type_traits/requires.hpp>
-#include <meevax/utility/hexdump.hpp>
 
 #define NIL /* nothing */
 
@@ -30,17 +28,25 @@ namespace meevax
 {
 inline namespace kernel
 {
+  struct exact_integer;
+  struct pair;
+  struct ratio;
+
+  template <typename T>
+  struct floating_point;
+
+  using f32 = floating_point<float>;
+  using f64 = floating_point<double>; // NOTE: typeid(0.0) == typeid(double)
+
   template <template <typename...> typename Pointer, typename T>
   class heterogeneous;
-
-  struct pair;
 
   using let = heterogeneous<cell, pair>;
 
   using null = std::nullptr_t;
 
   template <typename... Ts>
-  using define = typename identity<Ts...>::type;
+  using define [[deprecated]] = typename identity<Ts...>::type;
 
   template <typename... Ts>
   auto make_error(Ts&&... xs)

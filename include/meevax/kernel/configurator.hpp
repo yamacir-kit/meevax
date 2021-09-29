@@ -19,10 +19,10 @@
 
 #include <regex>
 
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/path.hpp>
 #include <meevax/kernel/procedure.hpp>
-#include <meevax/kernel/stack.hpp>
 #include <meevax/kernel/version.hpp>
 
 namespace meevax
@@ -51,7 +51,7 @@ inline namespace kernel
     let prompt = make<string>(u8"λ> ");
 
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, std::function<PROCEDURE()>>;
+    using dispatcher = std::unordered_map<Key, procedure::applicable>;
 
     const dispatcher<char> short_options, short_options_with_arguments;
 
@@ -71,10 +71,11 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair('h', [this](auto&&...) -> let
+          std::make_pair('h', [this](auto&&...)
           {
             display_help();
             throw exit_status::success;
+            return unspecified;
           }),
 
           std::make_pair('i', [this](auto&&...)
@@ -82,26 +83,27 @@ inline namespace kernel
             return interactive = t;
           }),
 
-          std::make_pair('v', [this](auto&&...) -> let
+          std::make_pair('v', [this](auto&&...)
           {
             display_version();
             throw exit_status::success;
+            return unspecified;
           }),
         }
 
       , short_options_with_arguments
         {
-          std::make_pair('e', [this](let const& x)
+          std::make_pair('e', [this](pair::const_reference x)
           {
             return write_line(evaluate(x)), unspecified;
           }),
 
-          std::make_pair('l', [this](let const& x)
+          std::make_pair('l', [this](pair::const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair('w', [this](let const& x)
+          std::make_pair('w', [this](pair::const_reference x)
           {
             return write(x), unspecified;
           }),
@@ -119,10 +121,11 @@ inline namespace kernel
             return debug = t;
           }),
 
-          std::make_pair("help", [this](auto&&...) -> let
+          std::make_pair("help", [this](auto&&...)
           {
             display_help();
             throw exit_status::success;
+            return unspecified;
           }),
 
           std::make_pair("interactive", [this](auto&&...)
@@ -140,33 +143,34 @@ inline namespace kernel
             return verbose = t;
           }),
 
-          std::make_pair("version", [this](auto&&...) -> let
+          std::make_pair("version", [this](auto&&...)
           {
             display_version();
             newline();
             display_license();
             throw exit_status::success;
+            return unspecified;
           }),
         }
 
       , long_options_with_arguments
         {
-          std::make_pair("evaluate", [this](let const& x)
+          std::make_pair("evaluate", [this](pair::const_reference x)
           {
             return write_line(evaluate(x)), unspecified;
           }),
 
-          std::make_pair("load", [this](let const& x)
+          std::make_pair("load", [this](pair::const_reference x)
           {
             return load(x);
           }),
 
-          std::make_pair("prompt", [this](let const& x)
+          std::make_pair("prompt", [this](pair::const_reference x)
           {
             return prompt = x;
           }),
 
-          std::make_pair("write", [this](let const& x)
+          std::make_pair("write", [this](pair::const_reference x)
           {
             return write(x), unspecified;
           }),

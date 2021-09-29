@@ -17,7 +17,6 @@
 #include <meevax/kernel/instruction.hpp>
 #include <meevax/kernel/list.hpp>
 #include <meevax/posix/vt10x.hpp>
-#include <meevax/string/header.hpp>
 
 namespace meevax
 {
@@ -60,7 +59,7 @@ inline namespace kernel
     return os << underline << static_cast<std::string>(datum) << reset;
   }
 
-  auto disassemble(std::ostream & os, let const& c, std::size_t depth) -> std::ostream &
+  auto disassemble(std::ostream & os, pair::const_reference c, std::size_t depth) -> std::ostream &
   {
     assert(0 < depth);
 

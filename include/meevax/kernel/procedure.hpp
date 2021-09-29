@@ -17,96 +17,41 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 #define INCLUDED_MEEVAX_KERNEL_PROCEDURE_HPP
 
-#if __unix__
-#include <dlfcn.h> // dlopen, dlclose, dlerror
-#else
-#error
-#endif
-
-#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/list.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  #define PROCEDURE(...) meevax::let __VA_ARGS__(meevax::let const& xs)
+  #define PROCEDURE(...) meevax::pair::value_type __VA_ARGS__(meevax::pair::const_reference xs)
 
-  auto close_dynamic_library = [](pointer<void> const handle)
-  {
-    if (handle and ::dlclose(handle))
-    {
-      std::cerr << dlerror() << std::endl;
-    }
-  };
-
-  using library_handle = std::unique_ptr<void, decltype(close_dynamic_library)>;
-
-  auto from(std::string const& library_name) -> library_handle const& // NOTE: library_name = "lib*.so"
-  {
-    static std::unordered_map<std::string, library_handle> dynamic_libraries {};
-
-    dlerror(); // clear
-
-    try
-    {
-      return dynamic_libraries.at(library_name);
-    }
-    catch (std::out_of_range const&)
-    {
-      if (auto handle = library_handle(dlopen(library_name.c_str(), RTLD_LAZY | RTLD_GLOBAL), close_dynamic_library); handle)
-      {
-        dynamic_libraries.emplace(library_name, std::move(handle));
-
-        return from(library_name);
-      }
-      else
-      {
-        throw file_error(make<string>(dlerror()), unit);
-      }
-    }
-  }
-
-  template <typename T, REQUIRES(std::is_pointer<T>)>
-  auto link_as(std::string const& symbol_name, library_handle const& handle) -> T
-  {
-    if (pointer<void> const address = dlsym(handle.get(), symbol_name.c_str()); address)
-    {
-      return reinterpret_cast<T>(address);
-    }
-    else
-    {
-      throw file_error(make<string>(dlerror()), unit);
-    }
-  }
-
-  struct procedure : public std::function<PROCEDURE()>
+  struct procedure
   {
     using signature = PROCEDURE((*));
 
+    using applicable = std::function<PROCEDURE()>;
+
     std::string const name;
 
-    explicit procedure(std::string const& name, std::function<PROCEDURE()> const& function)
-      : std::function<PROCEDURE()> { function }
-      , name { name }
-    {}
+    applicable apply;
 
-    explicit procedure(std::string const& name, library_handle const& handle)
-      : std::function<PROCEDURE()> { link_as<signature>(name, handle) }
-      , name { name }
-    {}
+    explicit procedure(std::string const&, applicable const&);
 
-    virtual ~procedure() = default;
+    explicit procedure(std::string const&, std::string const&);
+
+    static auto dlopen(std::string const&) -> pointer<void>;
+
+    static auto dlsym(std::string const&, const_pointer<void>) -> signature;
   };
 
-  auto operator <<(std::ostream & port, procedure const& datum) -> std::ostream &;
+  auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
 
   template <typename T>
   struct is
   {
-    let const& operator ()(let const& xs) const
+    auto operator ()(pair::const_reference xs) const -> pair::const_reference
     {
-      auto is_T = [](let const& x)
+      auto is_T = [](pair::const_reference x)
       {
         return x.is<T>();
       };

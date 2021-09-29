@@ -4,12 +4,12 @@ using namespace meevax; // NOTE: DIRTY HACK
 
 extern "C"
 {
-  let length_of_arguments(let const& xs)
+  PROCEDURE(length_of_arguments)
   {
     return make<exact_integer>(length(xs));
   }
 
-  let dummy_procedure(let const& xs)
+  PROCEDURE(dummy_procedure)
   {
     std::cout << "\n; calling C++ function via foreign-function-interface." << std::endl;
 

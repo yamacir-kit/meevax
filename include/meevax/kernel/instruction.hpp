@@ -17,12 +17,7 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 #define INCLUDED_MEEVAX_KERNEL_INSTRUCTION_HPP
 
-#include <meevax/kernel/object.hpp>
-#include <meevax/type_traits/underlying_cast.hpp>
-
-// TODO
-//   convert to lower-case
-//   use #! as external representation
+#include <meevax/kernel/pair.hpp>
 
 namespace meevax
 {
@@ -65,7 +60,7 @@ inline namespace kernel
 
   auto operator <<(std::ostream &, instruction const&) -> std::ostream &;
 
-  auto disassemble(std::ostream &, let const&, std::size_t = 1) -> std::ostream &;
+  auto disassemble(std::ostream &, pair::const_reference, std::size_t = 1) -> std::ostream &;
 } // namespace kernel
 } // namespace meevax
 

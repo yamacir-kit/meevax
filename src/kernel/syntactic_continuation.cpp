@@ -19,8 +19,8 @@
 
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/basis.hpp>
-#include <meevax/kernel/feature.hpp>
 #include <meevax/kernel/syntactic_continuation.hpp>
+#include <meevax/kernel/version.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
@@ -28,10 +28,10 @@ namespace meevax
 inline namespace kernel
 {
   template <>
-  syntactic_continuation::syntactic_continuation(boot_upto<layer::declarations>)
+  syntactic_continuation::syntactic_continuation(boot_upto<layer::module_system>)
     : syntactic_continuation::syntactic_continuation {}
   {
-    boot<layer::declarations>();
+    boot<layer::module_system>();
   }
 
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
@@ -75,7 +75,7 @@ inline namespace kernel
 
       s = k.s();
       e = k.e();
-      c = compile(context::outermost, *this, car(k.c()), cdr(k.c()));
+      c = compile(syntactic_context::outermost, *this, car(k.c()), cdr(k.c()));
       d = k.d();
 
       form() = execute();
@@ -117,7 +117,7 @@ inline namespace kernel
       write_to(standard_debug_port(), "\n"); // Blank for compiler's debug-mode prints
     }
 
-    c = compile(context::none, *this, expression);
+    c = compile(syntactic_context::none, *this, expression);
 
     if (is_debug_mode())
     {
@@ -132,7 +132,7 @@ inline namespace kernel
   {
     if (is_trace_mode())
     {
-      return machine::execute<execution_context::trace>();
+      return machine::execute<declaration::trace>();
     }
     else
     {
@@ -335,8 +335,6 @@ inline namespace kernel
 
   template class configurator<syntactic_continuation>;
 
-  template class debugger<syntactic_continuation>;
-
   template class machine<syntactic_continuation>;
 
   template class reader<syntactic_continuation>;
@@ -344,7 +342,7 @@ inline namespace kernel
   template class writer<syntactic_continuation>;
 
   template <>
-  void syntactic_continuation::boot<layer::declarations>()
+  void syntactic_continuation::boot<layer::module_system>()
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
     {
@@ -385,25 +383,16 @@ inline namespace kernel
     define<procedure>("set-batch!",       [this](auto&&... xs) { return batch       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-debug!",       [this](auto&&... xs) { return debug       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-interactive!", [this](auto&&... xs) { return interactive = car(std::forward<decltype(xs)>(xs)...); });
+    define<procedure>("set-prompt!",      [this](auto&&... xs) { return prompt      = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-trace!",       [this](auto&&... xs) { return trace       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-verbose!",     [this](auto&&... xs) { return verbose     = car(std::forward<decltype(xs)>(xs)...); });
-
-    define<procedure>("set-prompt!", [this](auto&&... xs)
-    {
-      return prompt = car(std::forward<decltype(xs)>(xs)...);
-    });
-
-    define<procedure>("tracker", [](auto&&... xs)
-    {
-      return make<tracker>(std::forward<decltype(xs)>(xs)...);
-    });
   }
 
   template <>
-  void syntactic_continuation::boot<layer::primitives>()
+  void syntactic_continuation::boot<layer::primitive_expression>()
   {
     define<syntax>("begin", sequence);
-    define<syntax>("call-with-current-continuation", call_with_current_continuation);
+    define<syntax>("call-with-current-continuation!", call_with_current_continuation);
     define<syntax>("define", definition);
     define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
     define<syntax>("if", conditional);
@@ -414,7 +403,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::standard_procedures>()
+  void syntactic_continuation::boot<layer::standard_procedure>()
   {
     /* -------------------------------------------------------------------------
      *
@@ -486,8 +475,8 @@ inline namespace kernel
 
     define<procedure>("%complex?", is<complex>());
     define<procedure>("ratio?", is<ratio>());
-    define<procedure>("single-float?", is<single_float>());
-    define<procedure>("double-float?", is<double_float>());
+    define<procedure>("single-float?", is<f32>());
+    define<procedure>("double-float?", is<f64>());
 
     /* -------------------------------------------------------------------------
      *
@@ -611,29 +600,23 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define BOILERPLATE(SYMBOL, BASIS)                                         \
-    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
+    #define BOILERPLATE(SYMBOL, FUNCTOR, BASIS)                                \
+    define<procedure>(SYMBOL, [](auto&& xs)                                    \
     {                                                                          \
-      auto f = [](auto&& x, auto&& y)                                          \
-      {                                                                        \
-        return x SYMBOL y;                                                     \
-      };                                                                       \
-                                                                               \
       if (length(xs) < 2)                                                      \
       {                                                                        \
-        let const basis = make<exact_integer>(BASIS);                          \
-        return std::accumulate(std::cbegin(xs), std::cend(xs), basis, f);      \
+        return std::accumulate(std::begin(xs), std::end(xs), BASIS, FUNCTOR);  \
       }                                                                        \
       else                                                                     \
       {                                                                        \
-        auto const head = std::cbegin(xs);                                     \
-        return std::accumulate(std::next(head), std::cend(xs), *head, f);      \
+        auto const head = std::begin(xs);                                      \
+        return std::accumulate(std::next(head), std::end(xs), *head, FUNCTOR); \
       }                                                                        \
     })
 
-    BOILERPLATE(-, 0);
-    BOILERPLATE(/, 1);
-    BOILERPLATE(%, 1);
+    BOILERPLATE("-", sub, e0);
+    BOILERPLATE("/", div, e1);
+    BOILERPLATE("%", mod, e1);
 
     #undef BOILERPLATE
 
@@ -830,7 +813,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("cons", [](auto&& xs)
+    define<syntactic_procedure>("cons", construction, [](auto&& xs)
     {
       return cons(car(xs), cadr(xs));
     });
@@ -1503,9 +1486,10 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("default-exception-handler", [](let const& xs) -> let
+    define<procedure>("default-exception-handler", [](let const& xs)
     {
       throw car(xs);
+      return unspecified;
     });
 
     /* -------------------------------------------------------------------------
@@ -2064,7 +2048,7 @@ inline namespace kernel
         {
           throw exit_status(static_cast<int>(x.as<exact_integer>()));
         }
-        [[fallthrough]];
+        else [[fallthrough]];
 
       default:
         throw invalid_application(intern("emergency-exit") | xs);
@@ -2192,7 +2176,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::standard_libraries>()
+  void syntactic_continuation::boot<layer::standard_library>()
   {
     std::vector<string_view> const codes {
       overture,
@@ -2220,7 +2204,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::extensions>()
+  void syntactic_continuation::boot<layer::experimental_procedure>()
   {
     define<procedure>("disassemble", [](let const& xs)
     {
@@ -2276,7 +2260,7 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
     define<procedure>("foreign-function", [](let const& xs)
     {
-      return make<procedure>(cadr(xs).as<string>(), from(car(xs).as<string>()));
+      return make<procedure>(cadr(xs).as<string>(), car(xs).as<string>());
     });
 
     define<procedure>("type-of", [](auto&& xs)

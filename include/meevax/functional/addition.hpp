@@ -24,19 +24,10 @@ namespace meevax
 {
 inline namespace functional
 {
-  struct addition
-  {
-    template <typename T, typename... Ts>
-    constexpr auto operator ()(T&& x, Ts&&... xs) const -> decltype(auto)
-    {
-      return (std::forward<decltype(x)>(x) + ... + std::forward<decltype(xs)>(xs));
-    }
+  struct addition : public std::plus<void>
+  {};
 
-    friend auto operator <<(std::ostream & os, addition const&) -> std::ostream &
-    {
-      return os << "addition";
-    }
-  };
+  auto operator <<(std::ostream &, addition const&) -> std::ostream &;
 
   constexpr addition add;
 } // namespace functional

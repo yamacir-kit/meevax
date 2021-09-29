@@ -14,23 +14,24 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
-#define INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
+#ifndef INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP
+#define INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP
 
-#include <functional>
-#include <ostream>
+#include <meevax/utility/enumeration.hpp>
 
 namespace meevax
 {
-inline namespace functional
+inline namespace kernel
 {
-  struct subtraction : public std::minus<void>
-  {};
+  enum class declaration
+  {
+    none,
 
-  auto operator <<(std::ostream &, subtraction const&) -> std::ostream &;
+    trace = (1 << 0),
 
-  constexpr subtraction subtract, sub;
-} // namespace functional
+    size,
+  };
+} // namespace kernel
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
+#endif // INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP

@@ -21,8 +21,10 @@
 #include <meevax/iostream/ignore.hpp>
 #include <meevax/iostream/putback.hpp>
 #include <meevax/kernel/constant.hpp>
+#include <meevax/kernel/error.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/miscellaneous.hpp> // for eof
+#include <meevax/kernel/number.hpp>
 #include <meevax/kernel/port.hpp>
 #include <meevax/kernel/symbol.hpp>
 #include <meevax/kernel/vector.hpp>
@@ -216,7 +218,7 @@ inline namespace kernel
 
     auto decimal = [](std::string const& token, auto)
     {
-      auto const result = system_float(token);
+      auto const result = f64(token);
       return make(result);
     };
 

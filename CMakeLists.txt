@@ -11,6 +11,7 @@ project(meevax DESCRIPTION "A programmable programming language"
                VERSION ${CURRENT_VERSION})
 
 include(GNUInstallDirs)
+include(TestBigEndian)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
@@ -41,14 +42,16 @@ string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   execute_process(COMMAND git rev-parse HEAD
                   COMMAND tr -d "\n"
-                  OUTPUT_VARIABLE ${PROJECT_NAME}_BUILD_HASH)
+                  OUTPUT_VARIABLE ${PROJECT_NAME}_VERSION_EXACT)
 else()
-  set(${PROJECT_NAME}_BUILD_HASH "unspecified")
+  set(${PROJECT_NAME}_VERSION_EXACT "")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/feature.hpp
-                 ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/kernel/feature.hpp)
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN) # Use CMAKE_CXX_BYTE_ORDER if CMake >= 3.20
+if(${IS_BIG_ENDIAN})
+  set(${PROJECT_NAME}_BYTE_ORDER "big-endian")
+else()
+  set(${PROJECT_NAME}_BYTE_ORDER "little-endian")
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/version.hpp)

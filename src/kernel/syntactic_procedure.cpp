@@ -14,23 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
-#define INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP
-
-#include <functional>
-#include <ostream>
+#include <meevax/kernel/syntactic_procedure.hpp>
 
 namespace meevax
 {
-inline namespace functional
+inline namespace kernel
 {
-  struct subtraction : public std::minus<void>
-  {};
-
-  auto operator <<(std::ostream &, subtraction const&) -> std::ostream &;
-
-  constexpr subtraction subtract, sub;
-} // namespace functional
+  auto operator <<(std::ostream & os, syntactic_procedure const& datum) -> std::ostream &
+  {
+    return os << static_cast<procedure const&>(datum);
+  }
+} // namespace kernel
 } // namespace meevax
-
-#endif // INCLUDED_MEEVAX_FUNCTIONAL_SUBTRACTION_HPP

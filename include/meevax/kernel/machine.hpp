@@ -20,12 +20,12 @@
 #include <meevax/kernel/closure.hpp>
 #include <meevax/kernel/continuation.hpp>
 #include <meevax/kernel/de_bruijn_index.hpp>
+#include <meevax/kernel/declaration.hpp>
 #include <meevax/kernel/ghost.hpp>
 #include <meevax/kernel/identifier.hpp>
 #include <meevax/kernel/instruction.hpp>
-#include <meevax/kernel/procedure.hpp>
 #include <meevax/kernel/stack.hpp>
-#include <meevax/kernel/syntax.hpp>
+#include <meevax/kernel/syntactic_procedure.hpp>
 
 namespace meevax
 {
@@ -37,15 +37,6 @@ inline namespace kernel
     current_syntactic_continuation.write_to(                                   \
       current_syntactic_continuation.standard_debug_port(), header(__func__), indent(), __VA_ARGS__, "\n"); \
   } indent()
-
-  enum class execution_context
-  {
-    none,
-
-    trace = (1 << 0),
-
-    size,
-  };
 
   template <typename SK>
   class machine // TR-SECD machine.
@@ -168,12 +159,12 @@ inline namespace kernel
       {
         if (let const& applicant = current_syntactic_continuation.lookup(car(expression)); de_bruijn_index(car(expression), frames).is_free())
         {
-          if (applicant.is<syntax>())
+          if (applicant.is_also<syntax>())
           {
             WRITE_DEBUG(magenta, "(", reset, car(expression), faint, " ; is <primitive expression>") >> indent::width;
 
             let const result =
-              applicant.as<syntax>().compile(
+              applicant.as<syntax>().transform(
                 current_syntactic_context, current_syntactic_continuation, cdr(expression), frames, continuation);
 
             WRITE_DEBUG(magenta, ")") << indent::width;
@@ -188,7 +179,7 @@ inline namespace kernel
 
             WRITE_DEBUG(result);
 
-            return compile(context::none, current_syntactic_continuation, result, frames, continuation);
+            return compile(syntactic_context::none, current_syntactic_continuation, result, frames, continuation);
           }
         }
 
@@ -234,15 +225,15 @@ inline namespace kernel
         WRITE_DEBUG(magenta, "(", reset, faint, " ; is <procedure call>") >> indent::width;
 
         let const result =
-          operand(context::none,
+          operand(syntactic_context::none,
                   current_syntactic_continuation,
                   cdr(expression),
                   frames,
-                  compile(context::none,
+                  compile(syntactic_context::none,
                           current_syntactic_continuation,
                           car(expression),
                           frames,
-                          cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
+                          cons(make<instruction>(static_cast<bool>(current_syntactic_context bitand syntactic_context::tail) ? mnemonic::TAIL_CALL : mnemonic::CALL),
                                continuation)));
 
         WRITE_DEBUG(magenta, ")") << indent::width;
@@ -256,16 +247,16 @@ inline namespace kernel
       return make<continuation>(s, cons(e, cadr(c), d));
     }
 
-    template <auto Context = execution_context::none>
+    template <auto Declaration = declaration::none>
     inline auto execute() -> pair::value_type
     {
     decode:
-      if constexpr (static_cast<bool>(Context bitand execution_context::trace))
+      if constexpr (static_cast<bool>(Declaration bitand declaration::trace))
       {
-        std::cerr << faint << header("trace s") << reset << s << "\n"
-                  << faint << header("      e") << reset << e << "\n"
-                  << faint << header("      c") << reset << c << "\n"
-                  << faint << header("      d") << reset << d << "\n" << std::endl;
+        std::cerr << faint << "; s = " << reset << s << "\n"
+                  << faint << "; e = " << reset << e << "\n"
+                  << faint << "; c = " << reset << c << "\n"
+                  << faint << "; d = " << reset << d << "\n" << std::endl;
       }
 
       switch (car(c).template as<instruction>().value)
@@ -412,8 +403,9 @@ inline namespace kernel
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
+          goto decode;
         }
-        else if (callee.is<procedure>()) /* ------------------------------------
+        else if (callee.is_also<procedure>()) /* -------------------------------
         *
         *     (<procedure> arguments . s) e (CALL . c) d
         *  =>              (<result> . s) e         c  d
@@ -422,8 +414,9 @@ inline namespace kernel
         *
         * ------------------------------------------------------------------- */
         {
-          s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
+          s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
+          goto decode;
         }
         else if (callee.is<continuation>()) /* ---------------------------------
         *
@@ -438,40 +431,60 @@ inline namespace kernel
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
+          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto decode;
 
-      case mnemonic::TAIL_CALL: /* ---------------------------------------------
+      case mnemonic::TAIL_CALL:
+        if (let const& callee = car(s); callee.is<closure>()) /* ---------------
         *
+        *     (<closure> arguments . s)              e (CALL . c) d
+        *  =>                        () (arguments . e')       c' d
+        *
+        *  where <closure> = (c' . e')
         *
         * ------------------------------------------------------------------- */
-        if (let const& callee = car(s); callee.is<closure>()) // (closure operands . S) E (CALL . C) D
         {
           c = car(callee);
           e = cons(cadr(s), cdr(callee));
           s = unit;
+          goto decode;
         }
-        else if (callee.is<procedure>()) // (procedure operands . S) E (CALL . C) D => (result . S) E C D
+        else if (callee.is_also<procedure>()) /* -------------------------------
+        *
+        *     (<procedure> arguments . s) e (CALL . c) d
+        *  =>              (<result> . s) e         c  d
+        *
+        *  where <result> = procedure(arguments)
+        *
+        * ------------------------------------------------------------------- */
         {
-          s = cons(std::invoke(callee.as<procedure>(), cadr(s)), cddr(s));
+          s = callee.as<procedure>().apply(cadr(s)) | cddr(s);
           c = cdr(c);
+          goto decode;
         }
-        else if (callee.is<continuation>()) // (continuation operands . S) E (CALL . C) D
+        else if (callee.is<continuation>()) /* ---------------------------------
+        *
+        *     (<continuation> arguments . s)  e (CALL . c) d
+        *  =>                (arguments . s') e'        c' d'
+        *
+        *  where <continuation> = (s' e' c' . 'd)
+        *
+        * ------------------------------------------------------------------- */
         {
           s = cons(caadr(s), callee.as<continuation>().s());
           e =                callee.as<continuation>().e();
           c =                callee.as<continuation>().c();
           d =                callee.as<continuation>().d();
+          goto decode;
         }
         else
         {
           throw error(make<string>("not applicable"), callee);
         }
-        goto decode;
 
       case mnemonic::DUMMY: /* -------------------------------------------------
         *
@@ -628,7 +641,7 @@ inline namespace kernel
     *
     * ---------------------------------------------------------------------- */
     {
-      if (static_cast<bool>(current_syntactic_context bitand context::outermost))
+      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
       {
         if (cdr(expression).is<null>())
         {
@@ -640,12 +653,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(context::outermost,
+          return compile(syntactic_context::outermost,
                          current_syntactic_continuation,
                          car(expression),
                          frames,
                          cons(make<instruction>(mnemonic::DROP),
-                              sequence(context::outermost,
+                              sequence(syntactic_context::outermost,
                                        current_syntactic_continuation,
                                        cdr(expression),
                                        frames,
@@ -664,12 +677,12 @@ inline namespace kernel
         }
         else
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          car(expression), // head expression
                          frames,
                          cons(make<instruction>(mnemonic::DROP), // pop result of head expression
-                              sequence(context::none,
+                              sequence(syntactic_context::none,
                                        current_syntactic_continuation,
                                        cdr(expression), // rest expressions
                                        frames,
@@ -703,13 +716,13 @@ inline namespace kernel
     *
     * ----------------------------------------------------------------------- */
     {
-      if (frames.is<null>() or static_cast<bool>(current_syntactic_context bitand context::outermost))
+      if (frames.is<null>() or static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost))
       {
         WRITE_DEBUG(car(expression), faint, " ; is <variable>");
 
         if (car(expression).is<pair>()) // (define (f . <formals>) <body>)
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cons(make<syntax>("lambda", lambda), cdar(expression), cdr(expression)),
                          frames,
@@ -718,7 +731,7 @@ inline namespace kernel
         }
         else // (define x ...)
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cdr(expression) ? cadr(expression) : unspecified,
                          frames,
@@ -728,7 +741,7 @@ inline namespace kernel
       }
       else
       {
-        throw syntax_error(make<string>("definition cannot appear in this context"), unit);
+        throw syntax_error(make<string>("definition cannot appear in this syntactic-context"), unit);
       }
     }
 
@@ -779,11 +792,11 @@ inline namespace kernel
       auto const& [variables, inits] = unzip2(bindings);
 
       return cons(make<instruction>(mnemonic::DUMMY),
-                  operand(context::none,
+                  operand(syntactic_context::none,
                           current_syntactic_continuation,
                           inits,
                           cons(variables, frames),
-                          lambda(context::none,
+                          lambda(syntactic_context::none,
                                  current_syntactic_continuation,
                                  cons(variables, body),
                                  frames,
@@ -793,7 +806,7 @@ inline namespace kernel
 
     static SYNTAX(body)
     {
-      auto is_definition = [&](let const& form)
+      auto is_definition = [&](pair::const_reference form)
       {
         if (form.is<pair>() and de_bruijn_index(car(form), frames).is_free())
         {
@@ -841,7 +854,7 @@ inline namespace kernel
       */
       if (cdr(expression).is<null>()) // is tail-sequence
       {
-        return compile(current_syntactic_context | context::tail,
+        return compile(current_syntactic_context | syntactic_context::tail,
                        current_syntactic_continuation,
                        car(expression),
                        frames,
@@ -884,11 +897,11 @@ inline namespace kernel
     {
       if (expression.is<pair>())
       {
-        return operand(context::none,
+        return operand(syntactic_context::none,
                        current_syntactic_continuation,
                        cdr(expression),
                        frames,
-                       compile(context::none,
+                       compile(syntactic_context::none,
                                current_syntactic_continuation,
                                car(expression),
                                frames,
@@ -897,7 +910,7 @@ inline namespace kernel
       }
       else
       {
-        return compile(context::none, current_syntactic_continuation, expression, frames, continuation);
+        return compile(syntactic_context::none, current_syntactic_continuation, expression, frames, continuation);
       }
     }
 
@@ -919,10 +932,10 @@ inline namespace kernel
     {
       WRITE_DEBUG(car(expression), faint, " ; is <test>");
 
-      if (static_cast<bool>(current_syntactic_context bitand context::tail))
+      if (static_cast<bool>(current_syntactic_context bitand syntactic_context::tail))
       {
         auto consequent =
-          compile(context::tail,
+          compile(syntactic_context::tail,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -930,7 +943,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(context::tail,
+            ? compile(syntactic_context::tail,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
@@ -938,7 +951,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::RETURN));
 
-        return compile(context::none,
+        return compile(syntactic_context::none,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -948,7 +961,7 @@ inline namespace kernel
       else
       {
         auto consequent =
-          compile(context::none,
+          compile(syntactic_context::none,
                   current_syntactic_continuation,
                   cadr(expression),
                   frames,
@@ -956,7 +969,7 @@ inline namespace kernel
 
         auto alternate =
           cddr(expression)
-            ? compile(context::none,
+            ? compile(syntactic_context::none,
                       current_syntactic_continuation,
                       caddr(expression),
                       frames,
@@ -964,7 +977,7 @@ inline namespace kernel
             : list(make<instruction>(mnemonic::LOAD_CONSTANT), unspecified,
                    make<instruction>(mnemonic::JOIN));
 
-        return compile(context::none,
+        return compile(syntactic_context::none,
                        current_syntactic_continuation,
                        car(expression), // <test>
                        frames,
@@ -1062,7 +1075,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, " ; is <variadic bound variable> references ", reset, variable.index);
 
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1073,7 +1086,7 @@ inline namespace kernel
         {
           WRITE_DEBUG(car(expression), faint, "; is a <bound variable> references ", reset, variable.index);
 
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1085,13 +1098,13 @@ inline namespace kernel
       {
         WRITE_DEBUG(car(expression), faint, "; is a <free variable>");
 
-        if (let const location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand context::outermost) and cdr(location).is<identifier>())
+        if (let const location = current_syntactic_continuation.locate(car(expression)); static_cast<bool>(current_syntactic_context bitand syntactic_context::outermost) and cdr(location).is<identifier>())
         {
           throw syntax_error(make<string>("it would be an error to perform a set! on an unbound variable (R7RS 5.3.1)"), expression);
         }
         else
         {
-          return compile(context::none,
+          return compile(syntactic_context::none,
                          current_syntactic_continuation,
                          cadr(expression),
                          frames,
@@ -1108,7 +1121,7 @@ inline namespace kernel
         WRITE_DEBUG(car(expression), faint, " ; is <identifier> of itself");
         return unit;
       }
-      else if (auto variable = de_bruijn_index<equivalence_comparator<2>>(car(expression), frames); variable.is_bound())
+      else if (auto variable = de_bruijn_index(car(expression), frames); variable.is_bound())
       {
         if (variable.is_variadic)
         {
@@ -1131,13 +1144,13 @@ inline namespace kernel
       }
     }
 
-    SYNTAX(construct) // XXX DEPRECATED
+    static SYNTAX(construction)
     {
-      return compile(context::none,
+      return compile(syntactic_context::none,
                      current_syntactic_continuation,
                      cadr(expression),
                      frames,
-                     compile(context::none,
+                     compile(syntactic_context::none,
                              current_syntactic_continuation,
                              car(expression),
                              frames,
