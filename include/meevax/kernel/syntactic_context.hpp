@@ -17,8 +17,6 @@
 #ifndef INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
 #define INCLUDED_MEEVAX_KERNEL_SYNTACTIC_CONTEXT_HPP
 
-#include <cstdint>
-
 #include <meevax/utility/enumeration.hpp>
 
 namespace meevax
@@ -34,8 +32,6 @@ inline namespace kernel
 
     size,
   };
-
-  using context = syntactic_context;
 } // namespace kernel
 } // namespace meevax
 

@@ -158,7 +158,7 @@ inline namespace kernel
       }
     };
 
-    static std::unordered_map<std::type_index, procedure::function> const overloads
+    static std::unordered_map<std::type_index, procedure::applicable> const overloads
     {
       { typeid(f32),           [&](pair::const_reference x) { return aux1(x.as<f32          >()); } },
       { typeid(f64),           [&](pair::const_reference x) { return aux1(x.as<f64          >()); } },
@@ -403,7 +403,7 @@ inline namespace kernel
 
   auto exact = [](pair::const_reference z)
   {
-    static std::unordered_map<std::type_index, procedure::function> const overloads
+    static std::unordered_map<std::type_index, procedure::applicable> const overloads
     {
       { typeid(f32),           [](pair::const_reference x) { return make_number(x.as<f32          >().as_exact()); } },
       { typeid(f64),           [](pair::const_reference x) { return make_number(x.as<f64          >().as_exact()); } },
@@ -416,7 +416,7 @@ inline namespace kernel
 
   auto inexact = [](pair::const_reference z)
   {
-    static std::unordered_map<std::type_index, procedure::function> const overloads
+    static std::unordered_map<std::type_index, procedure::applicable> const overloads
     {
       { typeid(f32),           [](pair::const_reference x) { return make(x.as<f32          >().as_inexact<f64::value_type>()); } },
       { typeid(f64),           [](pair::const_reference x) { return make(x.as<f64          >().as_inexact<f64::value_type>()); } },

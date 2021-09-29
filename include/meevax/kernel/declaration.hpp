@@ -14,21 +14,24 @@
    limitations under the License.
 */
 
-#include <meevax/kernel/syntax.hpp>
-#include <meevax/posix/vt10x.hpp>
+#ifndef INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP
+#define INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP
+
+#include <meevax/utility/enumeration.hpp>
 
 namespace meevax
 {
 inline namespace kernel
 {
-  syntax::syntax(std::string const& name, transformer const& transform)
-    : name { name }
-    , transform { transform  }
-  {}
-
-  auto operator <<(std::ostream & os, syntax const& datum) -> std::ostream &
+  enum class declaration
   {
-    return os << magenta << "#,(" << green << "syntax" << reset << " " << datum.name << magenta << ")" << reset;
-  }
+    none,
+
+    trace = (1 << 0),
+
+    size,
+  };
 } // namespace kernel
 } // namespace meevax
+
+#endif // INCLUDED_MEEVAX_KERNEL_DECLARATION_HPP

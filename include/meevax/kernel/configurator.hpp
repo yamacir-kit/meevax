@@ -51,7 +51,7 @@ inline namespace kernel
     let prompt = make<string>(u8"λ> ");
 
     template <typename Key>
-    using dispatcher = std::unordered_map<Key, procedure::function>;
+    using dispatcher = std::unordered_map<Key, procedure::applicable>;
 
     const dispatcher<char> short_options, short_options_with_arguments;
 

@@ -25,23 +25,23 @@ inline namespace kernel
 {
   #define PROCEDURE(...) meevax::pair::value_type __VA_ARGS__(meevax::pair::const_reference xs)
 
-  struct procedure : public std::function<PROCEDURE()>
+  struct procedure
   {
-    using function_pointer = PROCEDURE((*));
+    using signature = PROCEDURE((*));
 
-    using function = std::function<PROCEDURE()>;
+    using applicable = std::function<PROCEDURE()>;
 
     std::string const name;
 
-    explicit procedure(std::string const&, function const&);
+    applicable apply;
+
+    explicit procedure(std::string const&, applicable const&);
 
     explicit procedure(std::string const&, std::string const&);
 
-    virtual ~procedure() = default;
-
     static auto dlopen(std::string const&) -> pointer<void>;
 
-    static auto dlsym(std::string const&, const_pointer<void>) -> function_pointer;
+    static auto dlsym(std::string const&, const_pointer<void>) -> signature;
   };
 
   auto operator <<(std::ostream &, procedure const&) -> std::ostream &;
