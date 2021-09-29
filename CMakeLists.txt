@@ -28,14 +28,12 @@ set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=nativ
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
-# ---- Configure README --------------------------------------------------------
+# ---- Configure ---------------------------------------------------------------
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
                  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
-
-# ---- Configure Headers -------------------------------------------------------
 
 string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
@@ -145,14 +143,6 @@ install(EXPORT ${PROJECT_NAME}-config
 # /usr/share/meevax/meevax-config-version.cmake
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
         DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
-
-# ---- Target uninstall --------------------------------------------------------
-
-add_custom_target(uninstall
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
 # ---- Target package ----------------------------------------------------------
 
