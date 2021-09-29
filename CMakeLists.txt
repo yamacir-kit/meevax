@@ -171,14 +171,12 @@ include(CPack)
 
 enable_testing()
 
-set(MEMCHECK valgrind --error-exitcode=1 # = EXIT_FAILURE
-                      --leak-check=full
-                      --quiet
-                      --show-leak-kinds=all)
-
 macro(define_test TEST_NAME)
   add_test(NAME ${TEST_NAME}
-           COMMAND ${MEMCHECK}
+           COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
+                            --leak-check=full
+                            --quiet
+                            --show-leak-kinds=all
                    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
                    ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
 endmacro()
@@ -191,3 +189,11 @@ define_test(r4rs)
 define_test(r4rs-appendix)
 define_test(r7rs)
 define_test(sicp-1)
+
+# ---- Target all+ -------------------------------------------------------------
+
+execute_process(COMMAND nproc OUTPUT_VARIABLE NPROC)
+
+add_custom_target(all+ COMMAND make all -j ${NPROC}
+                       COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
+                       COMMAND ${CMAKE_CPACK_COMMAND})
