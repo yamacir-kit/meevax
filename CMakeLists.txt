@@ -161,7 +161,7 @@ include(CPack)
 
 enable_testing()
 
-macro(define_test TEST_NAME)
+macro(check TEST_NAME)
   add_test(NAME ${TEST_NAME}
            COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
                             --leak-check=full
@@ -171,14 +171,14 @@ macro(define_test TEST_NAME)
                    ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
 endmacro()
 
-define_test(abandoned)
-define_test(chibi-basic)
-define_test(low-level-macro-facility)
-define_test(numerical-operations)
-define_test(r4rs)
-define_test(r4rs-appendix)
-define_test(r7rs)
-define_test(sicp-1)
+check(abandoned)
+check(chibi-basic)
+check(low-level-macro-facility)
+check(numerical-operations)
+check(r4rs)
+check(r4rs-appendix)
+check(r7rs)
+check(sicp-1)
 
 # ---- Target all+ -------------------------------------------------------------
 
