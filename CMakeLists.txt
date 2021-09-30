@@ -167,7 +167,7 @@ macro(check TEST_NAME)
                             --leak-check=full
                             --quiet
                             --show-leak-kinds=all
-                   ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
                    ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
 endmacro()
 
@@ -179,6 +179,19 @@ check(r4rs)
 check(r4rs-appendix)
 check(r7rs)
 check(sicp-1)
+
+file(GLOB ${PROJECT_NAME}_TEST_CXX ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
+foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)
+  get_filename_component(FILENAME ${FILEPATH} NAME_WE)
+  add_executable(test-${FILENAME} ${FILEPATH})
+  target_link_libraries(test-${FILENAME} PRIVATE kernel)
+  add_test(NAME test-${FILENAME}
+           COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
+                            --leak-check=full
+                            --quiet
+                            --show-leak-kinds=all
+                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-${FILENAME})
+endforeach()
 
 # ---- Target all+ -------------------------------------------------------------
 
