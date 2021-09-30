@@ -1,7 +1,8 @@
 #undef NDEBUG
 
 #include <cassert>
-#include <meevax/kernel/list.hpp>
+
+#include <meevax/kernel/pair.hpp>
 
 auto main() -> int
 {

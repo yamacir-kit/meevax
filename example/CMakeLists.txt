@@ -31,7 +31,6 @@ endmacro()
 enable_testing()
 
 define_cxx_example(test-collector)
-define_cxx_example(test-list)
 define_cxx_example(test-r7rs)
 
 macro(define_meevax_example EXAMPLE_NAME)
