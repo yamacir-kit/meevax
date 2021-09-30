@@ -94,7 +94,7 @@ target_include_directories(kernel PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_link_libraries(kernel PRIVATE stdc++fs
-                             PUBLIC ${CMAKE_DL_LIBS}
+                             PRIVATE ${CMAKE_DL_LIBS}
                              PUBLIC gmp)
 
 set_target_properties(

@@ -11,17 +11,23 @@ echo "\e[32m* v$("$root"/script/version.sh)\e[0m"
 build_and_test()
 {
   rm -rf "$1"
-  cmake -B "$1" -S "$(dirname "$1")" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
-  cmake --build "$1" --target all+
+
+  cmake -B "$1" \
+        -S "$(dirname "$1")" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_COMPILER=g++
+
+  cmake --build "$1" \
+        --target all+
 }
 
 # ---- Phase 1 -----------------------------------------------------------------
 
-sudo dpkg -r meevax
+sudo apt remove --yes meevax
 
 build_and_test "$root/build"
 
-sudo dpkg -i "$root/build/meevax_$(cat "$root"/VERSION)_amd64.deb"
+sudo apt install --yes "$root/build/meevax_$(cat "$root"/VERSION)_amd64.deb"
 
 # ---- Phase 2 -----------------------------------------------------------------
 
