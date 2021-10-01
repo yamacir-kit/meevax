@@ -394,32 +394,3 @@ BOOST_FIXTURE_TEST_SUITE(types, fixture); namespace
   }
 }
 BOOST_AUTO_TEST_SUITE_END();
-
-BOOST_FIXTURE_TEST_SUITE(layers, fixture); namespace
-{
-  BOOST_AUTO_TEST_CASE(module_system)
-  {
-    syntactic_continuation root { boot_upto<layer::module_system>() };
-  }
-
-  BOOST_AUTO_TEST_CASE(primitive_expression)
-  {
-    syntactic_continuation root { boot_upto<layer::primitive_expression>() };
-  }
-
-  BOOST_AUTO_TEST_CASE(standard_procedure)
-  {
-    syntactic_continuation root { boot_upto<layer::standard_procedure>() };
-  }
-
-  BOOST_AUTO_TEST_CASE(standard_library)
-  {
-    syntactic_continuation root { boot_upto<layer::standard_library>() };
-  }
-
-  BOOST_AUTO_TEST_CASE(experimental_procedure)
-  {
-    syntactic_continuation root { boot_upto<layer::experimental_procedure>() };
-  }
-}
-BOOST_AUTO_TEST_SUITE_END();

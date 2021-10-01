@@ -35,8 +35,8 @@ inline namespace kernel
     experimental_procedure,
   };
 
-  template <auto Value>
-  using boot_upto = typename std::integral_constant<decltype(Value), Value>;
+  template <auto N>
+  using boot_upto = typename std::integral_constant<decltype(N), N>;
 
   class syntactic_continuation
     : public virtual pair
@@ -80,11 +80,11 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    template <auto Layer>
-    explicit syntactic_continuation(boot_upto<Layer>)
-      : syntactic_continuation { boot_upto<underlying_decrement(Layer)>() }
+    template <auto N>
+    explicit syntactic_continuation(boot_upto<N>)
+      : syntactic_continuation { boot_upto<underlying_decrement(N)>() }
     {
-      boot<Layer>();
+      boot<N>();
     }
 
     auto operator [](const_reference) -> const_reference;
@@ -217,12 +217,9 @@ inline namespace kernel
   auto operator <<(std::ostream &, syntactic_continuation const&) -> std::ostream &;
 
   extern template class configurator<syntactic_continuation>;
-
-  extern template class machine<syntactic_continuation>;
-
-  extern template class reader<syntactic_continuation>;
-
-  extern template class writer<syntactic_continuation>;
+  extern template class machine     <syntactic_continuation>;
+  extern template class reader      <syntactic_continuation>;
+  extern template class writer      <syntactic_continuation>;
 } // namespace kernel
 } // namespace meevax
 
