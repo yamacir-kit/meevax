@@ -2,16 +2,22 @@
 
 root="$(git rev-parse --show-toplevel)"
 
-major=0
-major_offset=0
+current_version()
+{
+  count="$(git rev-list --count HEAD)"
+  echo "0.3.$((count - 2135))"
+}
 
-minor=2
-minor_offset=1000
+update_version()
+{
+  current_version > "$root/VERSION"
+}
 
-minor=3
-minor_offset=$((minor_offset + 1135))
+list_version()
+{
+  git fetch origin --tags
+  git tag --list | sed -e 's/^/  /'
+  echo "\e[32m* v$(current_version)\e[0m"
+}
 
-revision="$(git rev-list --count --all)"
-patch="$((revision - major_offset - minor_offset))"
-
-printf '%d.%d.%d\n' "$major" "$minor" "$patch" | tee "$root/VERSION"
+update_version && list_version

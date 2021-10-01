@@ -2,23 +2,11 @@
 
 root="$(git rev-parse --show-toplevel)"
 
-git fetch origin --tags
-
-git tag --list | sed -e 's/^/  /'
-
-echo "\e[32m* v$("$root"/script/version.sh)\e[0m"
-
 build_and_test()
 {
   rm -rf "$1"
-
-  cmake -B "$1" \
-        -S "$(dirname "$1")" \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_CXX_COMPILER=g++
-
-  cmake --build "$1" \
-        --target all+
+  cmake -B "$1" -S "$(dirname "$1")" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+  cmake --build "$1" --target all+
 }
 
 # ---- Phase 1 -----------------------------------------------------------------
