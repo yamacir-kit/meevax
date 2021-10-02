@@ -36,7 +36,7 @@ namespace meevax
 
     if (auto const c = port.peek(); is_eof(c))
     {
-      throw tagged_read_error<eof>("exhausted input-port");
+      throw eof();
     }
     else if (0b1111'0000 < c)
     {

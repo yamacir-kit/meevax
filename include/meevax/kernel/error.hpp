@@ -69,14 +69,6 @@ inline namespace kernel
   DEFINE_ERROR(read);
   DEFINE_ERROR(syntax);
 
-  template <typename... Ts>
-  struct tagged_read_error : public read_error
-  {
-    using read_error::read_error;
-
-    ~tagged_read_error() override = default;
-  };
-
   template <typename Thunk>
   auto with_exception_handler(Thunk && thunk)
   {
