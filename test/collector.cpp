@@ -157,5 +157,7 @@ auto main() -> int
     assert(x.as<exact_integer>() == 42);
   }
 
+  gc.collect();
+
   return EXIT_SUCCESS;
 }
