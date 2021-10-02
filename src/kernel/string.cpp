@@ -57,7 +57,7 @@ inline namespace kernel
               }
             }
           }
-          throw tagged_read_error<character>(make<string>("invalid escape sequence"), unit);
+          throw read_error(make<string>("invalid escape sequence"));
 
         case '\n':
         case '\r':
@@ -76,7 +76,7 @@ inline namespace kernel
       }
     }
 
-    throw tagged_read_error<string>(make<string>("unterminated string"), unit);
+    throw read_error(make<string>("unterminated string"), unit);
   }
 
   string::string(std::istream && is)

@@ -61,6 +61,11 @@ inline namespace kernel
     return os << magenta << ")" << reset;
   }
 
+  auto raise(std::string const& message) -> void
+  {
+    throw error(make<string>(message));
+  }
+
   auto invalid_application(pair::const_reference irritants) -> error
   {
     let static const message = make<string>("invalid application");

@@ -567,20 +567,8 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define BOILERPLATE(SYMBOL, BASIS)                                         \
-    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
-    {                                                                          \
-      return std::accumulate(                                                  \
-               std::begin(xs), std::end(xs), BASIS, [](auto&& x, auto&& y)     \
-               {                                                               \
-                 return x SYMBOL y;                                            \
-               });                                                             \
-    })
-
-    BOILERPLATE(+, e0);
-    BOILERPLATE(*, e1);
-
-    #undef BOILERPLATE
+    define<procedure>("+", [](auto&& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, add); });
+    define<procedure>("*", [](auto&& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, mul); });
 
     /* -------------------------------------------------------------------------
      *
@@ -1767,7 +1755,28 @@ inline namespace kernel
 
     define<procedure>("::read", [this](let const& xs)
     {
-      return read(car(xs));
+      try
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return read(default_input_port);
+
+        case 1:
+          return read(car(xs));
+
+        default:
+          throw invalid_application(intern("read") | xs);
+        }
+      }
+      catch (eof const&)
+      {
+        return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
+      }
     });
 
     /* -------------------------------------------------------------------------
@@ -1787,9 +1796,13 @@ inline namespace kernel
       {
         return make<character>(car(xs).as<std::istream>());
       }
-      catch (tagged_read_error<eof> const&)
+      catch (eof const&)
       {
         return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
       }
     });
 
@@ -1821,9 +1834,13 @@ inline namespace kernel
         car(xs).as<std::istream>().seekg(g);
         return c;
       }
-      catch (tagged_read_error<eof> const&)
+      catch (eof const&)
       {
         return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
       }
     });
 

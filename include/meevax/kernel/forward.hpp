@@ -28,12 +28,13 @@ namespace meevax
 {
 inline namespace kernel
 {
-  struct exact_integer;
-  struct pair;
-  struct ratio;
+  struct error;          // error.hpp
+  struct exact_integer;  // exact_integer.hpp
+  struct pair;           // pair.hpp
+  struct ratio;          // ratio.hpp
 
   template <typename T>
-  struct floating_point;
+  struct floating_point; // floating_point.hpp
 
   using f32 = floating_point<float>;
   using f64 = floating_point<double>; // NOTE: typeid(0.0) == typeid(double)
@@ -48,11 +49,8 @@ inline namespace kernel
   template <typename... Ts>
   using define [[deprecated]] = typename identity<Ts...>::type;
 
-  template <typename... Ts>
-  auto make_error(Ts&&... xs)
-  {
-    return std::runtime_error(string_append(std::forward<decltype(xs)>(xs)...));
-  }
+  [[noreturn]]
+  auto raise(std::string const&) -> void; // error.hpp
 } // namespace kernel
 } // namespace meevax
 

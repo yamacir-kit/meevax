@@ -39,7 +39,7 @@ inline namespace kernel
 
     if (auto const c = is.peek(); std::char_traits<char>::eq(std::char_traits<char>::eof(), c))
     {
-      throw tagged_read_error<eof>(make<string>("no more characters are available"), unit);
+      throw eof();
     }
     else if (0x00 <= c and c <= 0x7F) // 7 bit
     {
