@@ -6,12 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(Meevax REQUIRED) # NOTE: case-insensitive
 
-add_library(example SHARED ${CMAKE_CURRENT_SOURCE_DIR}/example.cpp)
+add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cpp)
 
-target_link_libraries(example PRIVATE Meevax::kernel)
+target_link_libraries(${PROJECT_NAME} PRIVATE Meevax::kernel)
 
 enable_testing()
 
-add_test(NAME foreign-function
-         COMMAND meevax foreign-function.ss
+add_test(NAME ${PROJECT_NAME}
+         COMMAND meevax ${PROJECT_NAME}.ss
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
