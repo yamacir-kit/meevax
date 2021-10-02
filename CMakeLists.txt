@@ -183,14 +183,14 @@ check(sicp-1)
 file(GLOB ${PROJECT_NAME}_TEST_CXX ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
 foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)
   get_filename_component(FILENAME ${FILEPATH} NAME_WE)
-  add_executable(test-${FILENAME} ${FILEPATH})
-  target_link_libraries(test-${FILENAME} PRIVATE kernel)
-  add_test(NAME test-${FILENAME}
+  add_executable(assert-${FILENAME} ${FILEPATH})
+  target_link_libraries(assert-${FILENAME} PRIVATE kernel)
+  add_test(NAME assert-${FILENAME}
            COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
                             --leak-check=full
                             --quiet
                             --show-leak-kinds=all
-                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test-${FILENAME})
+                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
 endforeach()
 
 # ---- Target all+ -------------------------------------------------------------

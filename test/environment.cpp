@@ -1,8 +1,6 @@
-#include <type_traits>
 #undef NDEBUG
 
 #include <cassert>
-
 #include <meevax/kernel/syntactic_continuation.hpp>
 
 auto main() -> int
