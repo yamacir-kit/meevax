@@ -159,5 +159,39 @@ auto main() -> int
 
   gc.collect();
 
+  // number
+  {
+    {
+      let const x = make<f64>(42.0);
+
+      assert(x.is<f64>());
+      assert(x.as<f64>() == 42);
+
+      let const y = make<f64>("42");
+
+      assert(y.is<f64>());
+      assert(y.as<f64>() == 42);
+    }
+
+    assert(gc.count() == gc_count + 2);
+    assert(gc.collect() == 2);
+    assert(gc.count() == gc_count);
+  }
+
+  gc.collect();
+
+  // read list
+  {
+    auto module = syntactic_continuation(boot_upto<layer::module_system>());
+
+    const auto gc_count = gc.count();
+
+    module.read("(a a a)");
+
+    gc.collect();
+
+    assert(gc.count() == gc_count + 1);
+  }
+
   return EXIT_SUCCESS;
 }
