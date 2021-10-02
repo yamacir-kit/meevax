@@ -1787,9 +1787,13 @@ inline namespace kernel
       {
         return make<character>(car(xs).as<std::istream>());
       }
-      catch (tagged_read_error<eof> const&)
+      catch (eof const&)
       {
         return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
       }
     });
 
@@ -1821,9 +1825,13 @@ inline namespace kernel
         car(xs).as<std::istream>().seekg(g);
         return c;
       }
-      catch (tagged_read_error<eof> const&)
+      catch (eof const&)
       {
         return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
       }
     });
 
