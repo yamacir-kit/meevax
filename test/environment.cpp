@@ -7,16 +7,6 @@ auto main() -> int
 {
   using namespace meevax;
 
-  const auto singletons_count = 8;
-  assert(unexpected_character<')'>::get().message().is<string>());
-  assert(unexpected_character<')'>::get().irritants().is<character>());
-  assert(unexpected_character<']'>::get().message().is<string>());
-  assert(unexpected_character<']'>::get().irritants().is<character>());
-  assert(unexpected_character<'}'>::get().message().is<string>());
-  assert(unexpected_character<'}'>::get().irritants().is<character>());
-  assert(unexpected_character<'.'>::get().message().is<string>());
-  assert(unexpected_character<'.'>::get().irritants().is<character>());
-
   const auto specials_count = 11;
   assert(default_error_port.is<standard_error_port>());
   assert(default_input_port.is<standard_input_port>());
@@ -31,7 +21,7 @@ auto main() -> int
   assert(unspecified.is<unspecified_t>());
 
   const auto gc_count = gc.count();
-  assert(gc_count == constants.size() + singletons_count + specials_count);
+  assert(gc_count == constants.size() + specials_count);
 
   {
     auto main = syntactic_continuation(boot_upto<layer::experimental_procedure>());
