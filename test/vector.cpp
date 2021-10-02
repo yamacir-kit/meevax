@@ -7,15 +7,6 @@ auto main() -> int
 {
   using namespace meevax;
 
-  assert(unexpected_character<')'>::get().message().is<string>());
-  assert(unexpected_character<')'>::get().irritants().is<character>());
-  assert(unexpected_character<']'>::get().message().is<string>());
-  assert(unexpected_character<']'>::get().irritants().is<character>());
-  assert(unexpected_character<'}'>::get().message().is<string>());
-  assert(unexpected_character<'}'>::get().irritants().is<character>());
-  assert(unexpected_character<'.'>::get().message().is<string>());
-  assert(unexpected_character<'.'>::get().irritants().is<character>());
-
   const auto gc_count = gc.count();
 
   // make-vector
