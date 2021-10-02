@@ -77,14 +77,6 @@ inline namespace kernel
     ~tagged_read_error() override = default;
   };
 
-  template <typename... Ts>
-  struct tagged_syntax_error : public syntax_error
-  {
-    using syntax_error::syntax_error;
-
-    ~tagged_syntax_error() override = default;
-  };
-
   template <typename Thunk>
   auto with_exception_handler(Thunk && thunk)
   {
