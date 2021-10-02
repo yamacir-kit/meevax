@@ -1767,7 +1767,28 @@ inline namespace kernel
 
     define<procedure>("::read", [this](let const& xs)
     {
-      return read(car(xs));
+      try
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return read(default_input_port);
+
+        case 1:
+          return read(car(xs));
+
+        default:
+          throw invalid_application(intern("read") | xs);
+        }
+      }
+      catch (eof const&)
+      {
+        return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
+      }
     });
 
     /* -------------------------------------------------------------------------
