@@ -90,7 +90,6 @@ An subset of R7RS-small.
 -   GNU Make
 -   GNU Binutils
 -   [**GNU Multiple Precision Arithmetic Library** (GMP)](https://gmplib.org/)
--   [**Boost C++ Libraries**](https://www.boost.org/) (1.65.1 or later)
 
 <br/>
 

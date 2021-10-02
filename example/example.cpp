@@ -20,12 +20,15 @@ extern "C"
       std::cout << "; [" << count++ << "] is " << each << " (C++ typename " << each.type().name() << ")" << std::endl;
     }
 
-    for (let const& each : xs)
+    for (let const& x : xs)
     {
-      if (each.is<exact_integer>())
+      if (x.is<exact_integer>())
       {
         std::cout << "; return incremented left-most integer object." << std::endl;
-        return make<exact_integer>(static_cast<int>(each.as<exact_integer>()) + 1);
+
+        auto value = static_cast<int>(x.as<exact_integer>());
+
+        return make<exact_integer>(++value);
       }
     }
 

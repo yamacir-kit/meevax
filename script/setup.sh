@@ -3,7 +3,6 @@
 required()
 {
   echo libgmp-dev
-  echo libboost-all-dev # for Boost.Test
 }
 
 optional()
