@@ -28,7 +28,6 @@
  * - error
  *    |-- file-error
  *    |-- read_error
- *    |    `-- unexpected_character
  *    `-- syntax_error
  *
  * -------------------------------------------------------------------------- */
