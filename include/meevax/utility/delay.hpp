@@ -51,8 +51,9 @@ inline namespace utility
         }
         else
         {
-          // TODO USE demangle
-          throw make_error("no viable operation ", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
+          std::stringstream ss {};
+          ss << "no viable operation " << demangle(typeid(F)) << " with " << demangle(typeid(T)) << " and " << demangle(typeid(U));
+          raise(ss.str());
         }
       }
     };
@@ -74,13 +75,7 @@ inline namespace utility
     }
   };
 
-  /* ---- Miscellaneous --------------------------------------------------------
-   *
-   *  Temporary
-   *
-   * ------------------------------------------------------------------------ */
-
-  struct read
+  struct [[deprecated]] read
   {
     template <typename Port, typename... Ts>
     constexpr auto operator ()(Port&& port, Ts&&... xs) const -> decltype(auto)

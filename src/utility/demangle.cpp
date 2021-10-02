@@ -26,7 +26,7 @@ namespace meevax
 {
 inline namespace utility
 {
-  auto demangle(const pointer<const char> name) -> std::string
+  auto demangle(const_pointer<const char> name) -> std::string
   {
   #if __has_include(<cxxabi.h>)
     int failed {};

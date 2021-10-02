@@ -122,7 +122,9 @@ inline namespace kernel
       }
       else
       {
-        throw make_error("no viable conversion from ", demangle(Pointer<Top>::load().type()), " to ", demangle(typeid(U)));
+        std::stringstream ss {};
+        ss << "no viable conversion from " << demangle(Pointer<Top>::load().type()) << " to " << demangle(typeid(U));
+        raise(ss.str());
       }
     }
 
@@ -173,7 +175,9 @@ inline namespace kernel
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      throw make_error("no viable operation " #SYMBOL " with ", a, " and ", b); \
+      std::stringstream ss {};                                                 \
+      ss << "no viable operation " #SYMBOL " with " << a << " and " << b;      \
+      raise(ss.str());                                                         \
     }                                                                          \
   } static_assert(true)
 
