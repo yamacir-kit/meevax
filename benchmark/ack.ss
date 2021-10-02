@@ -3,9 +3,6 @@
         ((= n 0) (ack (- m 1) 1))
         (else (ack (- m 1) (ack m (- n 1))))))
 
-(define m 3)
-(define n 7)
-
-(ack m n)
+(ack 3 7)
 
 (exit)

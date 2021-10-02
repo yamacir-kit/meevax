@@ -5,6 +5,7 @@ root="$(git rev-parse --show-toplevel)"
 scripts()
 {
   echo ack
+  echo tarai
 }
 
 real()
