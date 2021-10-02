@@ -14,15 +14,15 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
-#define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 
 #include <meevax/kernel/forward.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax
 {
-inline namespace utility
+inline namespace type_traits
 {
   template <typename F>
   struct delay
@@ -89,7 +89,7 @@ inline namespace utility
       return port << "#" << std::quoted(datum);
     }
   };
-} // namespace utility
+} // namespace type_traits
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_UTILITY_DELAY_HPP
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
