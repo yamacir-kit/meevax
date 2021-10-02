@@ -567,20 +567,8 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define BOILERPLATE(SYMBOL, BASIS)                                         \
-    define<procedure>(#SYMBOL, [](auto&& xs)                                   \
-    {                                                                          \
-      return std::accumulate(                                                  \
-               std::begin(xs), std::end(xs), BASIS, [](auto&& x, auto&& y)     \
-               {                                                               \
-                 return x SYMBOL y;                                            \
-               });                                                             \
-    })
-
-    BOILERPLATE(+, e0);
-    BOILERPLATE(*, e1);
-
-    #undef BOILERPLATE
+    define<procedure>("+", [](auto&& xs) { return std::accumulate(std::begin(xs), std::end(xs), e0, add); });
+    define<procedure>("*", [](auto&& xs) { return std::accumulate(std::begin(xs), std::end(xs), e1, mul); });
 
     /* -------------------------------------------------------------------------
      *

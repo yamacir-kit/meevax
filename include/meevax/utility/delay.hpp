@@ -27,7 +27,7 @@ inline namespace utility
   template <typename F>
   struct delay
   {
-    static inline F f {};
+    static inline F invoke {};
 
     template <typename T, typename U, typename = void>
     struct viable
@@ -64,7 +64,7 @@ inline namespace utility
       template <typename R>
       static constexpr auto apply(T&& x, U&& y) -> R
       {
-        return f(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
+        return invoke(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
       }
     };
 
@@ -72,15 +72,6 @@ inline namespace utility
     static constexpr auto yield(Ts&&... xs) -> decltype(auto)
     {
       return select<Ts...>().template apply<R>(std::forward<decltype(xs)>(xs)...);
-    }
-  };
-
-  struct [[deprecated]] read
-  {
-    template <typename Port, typename... Ts>
-    constexpr auto operator ()(Port&& port, Ts&&... xs) const -> decltype(auto)
-    {
-      return (port >> ... >> xs);
     }
   };
 
