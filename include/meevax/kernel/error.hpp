@@ -28,7 +28,6 @@
  * - error
  *    |-- file-error
  *    |-- read_error
- *    |    `-- unexpected_character
  *    `-- syntax_error
  *
  * -------------------------------------------------------------------------- */
@@ -69,36 +68,6 @@ inline namespace kernel
   DEFINE_ERROR(file);
   DEFINE_ERROR(read);
   DEFINE_ERROR(syntax);
-
-  template <char C>
-  struct unexpected_character : public read_error
-  {
-    using read_error::read_error;
-
-    ~unexpected_character() override = default;
-
-    static auto get() -> auto const&
-    {
-      static auto const result = unexpected_character(make<string>("unexpected character"), make<character>(C));
-      return result;
-    }
-  };
-
-  template <typename... Ts>
-  struct tagged_read_error : public read_error
-  {
-    using read_error::read_error;
-
-    ~tagged_read_error() override = default;
-  };
-
-  template <typename... Ts>
-  struct tagged_syntax_error : public syntax_error
-  {
-    using syntax_error::syntax_error;
-
-    ~tagged_syntax_error() override = default;
-  };
 
   template <typename Thunk>
   auto with_exception_handler(Thunk && thunk)

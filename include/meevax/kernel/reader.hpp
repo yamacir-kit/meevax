@@ -124,8 +124,7 @@ inline namespace kernel
 
       default:
         putback(is, s);
-        throw tagged_read_error<character>(
-          make<string>("If <character> in #\\<character> is alphabetic, then any character immediately following <character> cannot be one that can appear in an identifier"), unit);
+        throw read_error(make<string>("If <character> in #\\<character> is alphabetic, then any character immediately following <character> cannot be one that can appear in an identifier"));
       }
     };
 
@@ -153,7 +152,7 @@ inline namespace kernel
       catch (...)
       {
         putback(is, name);
-        throw tagged_read_error<character>(make<string>("invalid <charcter name>"), make<string>("\\#" + name));
+        throw read_error(make<string>("invalid <charcter name>"), make<string>("\\#" + name));
       }
     };
 
@@ -172,7 +171,7 @@ inline namespace kernel
       else
       {
         putback(is, s);
-        throw tagged_read_error<character>(make<string>("invalid <hex scalar value>"), make<string>("\\#" + s));
+        throw read_error(make<string>("invalid <hex scalar value>"), make<string>("\\#" + s));
       }
     };
 
@@ -306,10 +305,10 @@ inline namespace kernel
             is.putback(c);
             return cons(kar, read(is));
           }
-          catch (unexpected_character<')'> const&) { return std::char_traits<char_type>::eq(c, '(') ? unit : throw; }
-          catch (unexpected_character<']'> const&) { return std::char_traits<char_type>::eq(c, '[') ? unit : throw; }
-          catch (unexpected_character<'}'> const&) { return std::char_traits<char_type>::eq(c, '{') ? unit : throw; }
-          catch (unexpected_character<'.'> const&)
+          catch (std::integral_constant<char_type, ')'> const&) { return std::char_traits<char_type>::eq(c, '(') ? unit : throw; }
+          catch (std::integral_constant<char_type, ']'> const&) { return std::char_traits<char_type>::eq(c, '[') ? unit : throw; }
+          catch (std::integral_constant<char_type, '}'> const&) { return std::char_traits<char_type>::eq(c, '{') ? unit : throw; }
+          catch (std::integral_constant<char_type, '.'> const&)
           {
             let const kdr = read(is);
 
@@ -323,14 +322,9 @@ inline namespace kernel
             return kdr;
           }
 
-        case ')':
-          throw unexpected_character<')'>::get();
-
-        case ']':
-          throw unexpected_character<']'>::get();
-
-        case '}':
-          throw unexpected_character<'}'>::get();
+        case ')': throw std::integral_constant<char_type, ')'>();
+        case ']': throw std::integral_constant<char_type, ']'>();
+        case '}': throw std::integral_constant<char_type, '}'>();
 
         case '"':
           return make<string>(is);
@@ -424,7 +418,7 @@ inline namespace kernel
         default:
           if (auto const token = c + parse::token(is); token == ".")
           {
-            throw unexpected_character<'.'>::get();
+            throw std::integral_constant<char_type, '.'>();
           }
           else try
           {

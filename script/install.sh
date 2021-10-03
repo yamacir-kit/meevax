@@ -2,24 +2,20 @@
 
 root="$(git rev-parse --show-toplevel)"
 
-git fetch origin --tags
-
-git tag --list | sed -e 's/^/  /'
-
-echo "\e[32m* v$("$root"/script/version.sh)\e[0m"
+build_and_test()
+{
+  rm -rf "$1"
+  cmake -B "$1" -S "$(dirname "$1")" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
+  cmake --build "$1" --target all+
+}
 
 # ---- Phase 1 -----------------------------------------------------------------
 
-sudo dpkg -r meevax
+sudo apt remove --yes meevax
 
-rm -rf "$root/build"
+build_and_test "$root/build"
 
-cmake -B "$root/build" -S "$root" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
-cmake --build "$root/build" --parallel "$(nproc)"
-cmake --build "$root/build" --parallel "$(nproc)" --target test -- ARGS=-j"$(nproc)"
-cmake --build "$root/build" --parallel "$(nproc)" --target package
-
-sudo dpkg -i "$root/build/meevax_$(cat "$root"/VERSION)_amd64.deb"
+sudo apt install --yes "$root/build/meevax_$(cat "$root"/VERSION)_amd64.deb"
 
 # ---- Phase 2 -----------------------------------------------------------------
 

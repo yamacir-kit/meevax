@@ -14,20 +14,20 @@
    limitations under the License.
 */
 
-#ifndef INCLUDED_MEEVAX_UTILITY_DELAY_HPP
-#define INCLUDED_MEEVAX_UTILITY_DELAY_HPP
+#ifndef INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
+#define INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP
 
 #include <meevax/kernel/forward.hpp>
 #include <meevax/utility/demangle.hpp>
 
 namespace meevax
 {
-inline namespace utility
+inline namespace type_traits
 {
   template <typename F>
   struct delay
   {
-    static inline F f {};
+    static inline F invoke {};
 
     template <typename T, typename U, typename = void>
     struct viable
@@ -51,8 +51,9 @@ inline namespace utility
         }
         else
         {
-          // TODO USE demangle
-          throw make_error("no viable operation ", typeid(F).name(), " with ", typeid(T).name(), " and ", typeid(U).name());
+          std::stringstream ss {};
+          ss << "no viable operation " << demangle(typeid(F)) << " with " << demangle(typeid(T)) << " and " << demangle(typeid(U));
+          raise(ss.str());
         }
       }
     };
@@ -63,7 +64,7 @@ inline namespace utility
       template <typename R>
       static constexpr auto apply(T&& x, U&& y) -> R
       {
-        return f(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
+        return invoke(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
       }
     };
 
@@ -71,21 +72,6 @@ inline namespace utility
     static constexpr auto yield(Ts&&... xs) -> decltype(auto)
     {
       return select<Ts...>().template apply<R>(std::forward<decltype(xs)>(xs)...);
-    }
-  };
-
-  /* ---- Miscellaneous --------------------------------------------------------
-   *
-   *  Temporary
-   *
-   * ------------------------------------------------------------------------ */
-
-  struct read
-  {
-    template <typename Port, typename... Ts>
-    constexpr auto operator ()(Port&& port, Ts&&... xs) const -> decltype(auto)
-    {
-      return (port >> ... >> xs);
     }
   };
 
@@ -103,7 +89,7 @@ inline namespace utility
       return port << "#" << std::quoted(datum);
     }
   };
-} // namespace utility
+} // namespace type_traits
 } // namespace meevax
 
-#endif // INCLUDED_MEEVAX_UTILITY_DELAY_HPP
+#endif // INCLUDED_MEEVAX_TYPE_TRAITS_DELAY_HPP

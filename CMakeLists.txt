@@ -28,14 +28,12 @@ set(CMAKE_CXX_FLAGS_RELEASE        "-O3    -DNDEBUG -pipe") # NOTE: -march=nativ
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
-# ---- Configure README --------------------------------------------------------
+# ---- Configure ---------------------------------------------------------------
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/README.md
                  ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 endif()
-
-# ---- Configure Headers -------------------------------------------------------
 
 string(TIMESTAMP ${PROJECT_NAME}_BUILD_DATE "%Y/%m/%d-%H:%M:%S")
 
@@ -96,7 +94,7 @@ target_include_directories(kernel PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_link_libraries(kernel PRIVATE stdc++fs
-                             PUBLIC ${CMAKE_DL_LIBS}
+                             PRIVATE ${CMAKE_DL_LIBS}
                              PUBLIC gmp)
 
 set_target_properties(
@@ -146,14 +144,6 @@ install(EXPORT ${PROJECT_NAME}-config
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
         DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
 
-# ---- Target uninstall --------------------------------------------------------
-
-add_custom_target(uninstall
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
-  COMMAND sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
-
 # ---- Target package ----------------------------------------------------------
 
 set(CPACK_GENERATOR DEB)
@@ -171,23 +161,42 @@ include(CPack)
 
 enable_testing()
 
-set(MEMCHECK valgrind --error-exitcode=1 # = EXIT_FAILURE
-                      --leak-check=full
-                      --quiet
-                      --show-leak-kinds=all)
-
-macro(define_test TEST_NAME)
+macro(check TEST_NAME)
   add_test(NAME ${TEST_NAME}
-           COMMAND ${MEMCHECK}
-                   ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/meevax
+           COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
+                            --leak-check=full
+                            --quiet
+                            --show-leak-kinds=all
+                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/meevax
                    ${CMAKE_CURRENT_SOURCE_DIR}/test/${TEST_NAME}.ss)
 endmacro()
 
-define_test(abandoned)
-define_test(chibi-basic)
-define_test(low-level-macro-facility)
-define_test(numerical-operations)
-define_test(r4rs)
-define_test(r4rs-appendix)
-define_test(r7rs)
-define_test(sicp-1)
+check(abandoned)
+check(chibi-basic)
+check(low-level-macro-facility)
+check(numerical-operations)
+check(r4rs)
+check(r4rs-appendix)
+check(r7rs)
+check(sicp-1)
+
+file(GLOB ${PROJECT_NAME}_TEST_CXX ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
+foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)
+  get_filename_component(FILENAME ${FILEPATH} NAME_WE)
+  add_executable(assert-${FILENAME} ${FILEPATH})
+  target_link_libraries(assert-${FILENAME} PRIVATE kernel)
+  add_test(NAME assert-${FILENAME}
+           COMMAND valgrind --error-exitcode=1 # = EXIT_FAILURE
+                            --leak-check=full
+                            --quiet
+                            --show-leak-kinds=all
+                   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
+endforeach()
+
+# ---- Target all+ -------------------------------------------------------------
+
+execute_process(COMMAND nproc OUTPUT_VARIABLE NPROC)
+
+add_custom_target(all+ COMMAND make all -j ${NPROC}
+                       COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
+                       COMMAND ${CMAKE_CPACK_COMMAND})
