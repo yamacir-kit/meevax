@@ -80,18 +80,15 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    template <typename... Ts>
-    explicit syntactic_continuation(Ts&&... xs)
+    template <typename... ImportSets>
+    explicit syntactic_continuation(ImportSets&&... import_sets)
     {
-      (boot(xs), ...);
+      (import(import_sets), ...);
     }
 
     auto operator [](const_reference) -> const_reference;
 
     auto operator [](std::string const&) -> const_reference;
-
-    template <auto M>
-    void boot(import_set<M>);
 
     auto build() -> void; // NOTE: Only fork() may call this function.
 
@@ -122,6 +119,9 @@ inline namespace kernel
     auto global_environment() const noexcept -> const_reference;
 
     auto global_environment() noexcept -> reference;
+
+    template <auto M>
+    void import(import_set<M>);
 
     auto load(std::string const&) -> value_type;
 
@@ -200,11 +200,11 @@ inline namespace kernel
     }
   };
 
-  template <> auto syntactic_continuation::boot(import_set<layer::module_system         >) -> void;
-  template <> auto syntactic_continuation::boot(import_set<layer::primitive_expression  >) -> void;
-  template <> auto syntactic_continuation::boot(import_set<layer::standard_procedure    >) -> void;
-  template <> auto syntactic_continuation::boot(import_set<layer::standard_library      >) -> void;
-  template <> auto syntactic_continuation::boot(import_set<layer::experimental_procedure>) -> void;
+  template <> auto syntactic_continuation::import(import_set<layer::module_system         >) -> void;
+  template <> auto syntactic_continuation::import(import_set<layer::primitive_expression  >) -> void;
+  template <> auto syntactic_continuation::import(import_set<layer::standard_procedure    >) -> void;
+  template <> auto syntactic_continuation::import(import_set<layer::standard_library      >) -> void;
+  template <> auto syntactic_continuation::import(import_set<layer::experimental_procedure>) -> void;
 
   auto operator >>(std::istream &, syntactic_continuation &) -> std::istream &;
 
