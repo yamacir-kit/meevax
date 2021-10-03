@@ -1,64 +1,45 @@
-<h1 align="center">
-  <a href="https://github.com/yamacir-kit/meevax/">
-    <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v8.png" alt="Meevax Lisp System"/>
-  </a>
-</h1>
-
-<h3 align="center">
+<p align="center">
+  <img src="https://github.com/yamacir-kit/meevax/wiki/svg/meevax-logo.v8.png" alt="Meevax Lisp System"/>
+  <br/>
   <img src="https://github.com/yamacir-kit/meevax/wiki/svg/description.png" alt="A programmable programming lanugage."/>
-</h3>
-
+</p>
+<hr color=#c1ab05/>
 <p align="center">
   <img src="https://github.com/yamacir-kit/meevax/actions/workflows/build.yaml/badge.svg"/>
   <img src="https://github.com/yamacir-kit/meevax/actions/workflows/release.yaml/badge.svg"/>
 </p>
-
-Meevax is a programming language classified as Lisp-1.
-This language inherits the minimalism of Scheme, which is summarized in the following sentence:
-
-> Programming languages should be designed not by piling feature on top of feature, but by removing the weaknesses and restrictions that make additional features appear necessary.
-> <p align="right"> --
->   <a href="https://bitbucket.org/cowan/r7rs/raw/tip/rnrs/r7rs.pdf"> Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1] </a>
-> </p>
-
-Meevax provides
-
-*   not "**ad-hoc informally-specified**",
-*   not "**bug-ridden**",
-*   ~~not "**slow**"~~
-
-subset of **R7RS Scheme** implementation.
-
-<br/>
-
-
-## Contents
-
-0. [Overview](#Overview)
-1. [Requirements](#Requirements)
-2. [Installation](#Installation)
-3. [References](#References)
-4. [Resources](#Resources)
-
-<br/>
-
+<p align="center">
+  <b><a href="#Overview" >Overview</a></b> &nbsp;|&nbsp;
+  <b><a href="#Requirements">Requirements</a></b> &nbsp;|&nbsp;
+  <b><a href="#Installation">Installation</a></b> &nbsp;|&nbsp;
+  <b><a href="#Usage">Usage</a></b> &nbsp;|&nbsp;
+  <b><a href="#License">Lisence</a></b> &nbsp;|&nbsp;
+  <b><a href="#References">References</a></b>
+</p>
 
 ## Overview
 
-There is no stable version.
+> Programming languages should be designed not by piling feature on top of feature, but by removing the weaknesses and restrictions that make additional features appear necessary.
+> <div align="right">
+>   Revised<sup>7</sup> Report on the Algorithmic Language Scheme [1]
+> </div>
 
-Development HEAD: ${PROJECT_VERSION}.
+Meevax is an implementation of Lisp-1 programming language, supporting subset of the [Scheme](http://www.scheme-reports.org/) (R7RS) and [SRFI](https://srfi.schemers.org/)s.
 
-### Characteristic Features
+### Releases
 
--   **Architecture** - TR-SECD virtual machine.
--   **Modern C++ compatible dynamic typing** - Meevax provides RTTI-based language runtime library.
+Latest release is [here](https://github.com/yamacir-kit/meevax/releases).
+
+### Features
+
+-   Architecture - TR-SECD virtual machine.
+-   Modern C++ compatible dynamic typing - Meevax provides RTTI-based language runtime library.
 
 ### Standards
 
-An subset of R7RS-small.
+Subset of R7RS-small.
 
-### SRFI
+### SRFIs
 
 | Number                                                | Name                                                     | Import from | Note       |
 |------------------------------------------------------:|:---------------------------------------------------------|:------------|:-----------|
@@ -74,59 +55,96 @@ An subset of R7RS-small.
 |  [78](https://srfi.schemers.org/srfi-78/srfi-78.html) | Lightweight testing                                      | built-in    | Except `check-ec`
 |  [87](https://srfi.schemers.org/srfi-87/srfi-87.html) | => in case clauses                                       | built-in    | R7RS 4.2.1 |
 
-<br/>
-
-
 ## Requirements
 
-### System
+### Software
 
--   Ubuntu 18.04 or later
-
-### Tools
-
--   Compiler with C++17 support (GCC >= 7.5.0, Clang >= 6.0.0)
--   CMake (>= 3.10.2) <!-- Ubuntu 18.04 LTS default CMake version -->
--   GNU Make
--   GNU Binutils
--   [**GNU Multiple Precision Arithmetic Library** (GMP)](https://gmplib.org/)
-
-<br/>
-
+-   [GCC](https://gcc.gnu.org/) (>= 7.5.0) or [Clang](https://clang.llvm.org/) (>= 6.0.0)
+-   [CMake](https://cmake.org/) (>= ${CMAKE_MINIMUM_REQUIRED_VERSION})
+-   [GNU Make](http://savannah.gnu.org/projects/make)
+-   [GNU Binutils](https://www.gnu.org/software/binutils/)
+-   [GNU Multiple Precision Arithmetic Library (GMP)](https://gmplib.org/)
 
 ## Installation
 
-### Install from source
+### Install
 
 ``` bash
-git clone https://github.com/yamacir-kit/meevax.git ~/.meevax && cd $_
-./script/setup.sh --all
-./script/install.sh
+$ cmake -B build -DCMAKE_BUILD_TYPE=Release
+$ cd build
+$ make apt-install
 ```
 
-<br/>
+### Uninstall
 
+```bash
+sudo apt remove meevax
+```
+<!--
+or
+``` bash
+sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}
+sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*
+sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
+```
+-->
+
+### CMake targets
+
+| Target Name          | Description
+|:---------------------|:--
+| `all` (default)      | Build shared-library `libmeevax.${PROJECT_VERSION}.so` and executable `meevax`.
+| `test`               | Test executable `meevax`.
+| `package`            | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`.
+| `install`            | Copy files into `/usr/local` __(1)__.
+| `apt-install`        | `all` + `package` +<br/> `sudo apt install ./build/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb`
+| `apt-install-tested` | `all` + `test` + `package` +<br/> `sudo apt install ./build/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb`
+
+__(1)__ Meevax installed by `make install` cannot be uninstalled by the system's package manager (for example, `apt remove meevax`). You need to manually delete the following files to uninstall:
+
+- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}`
+- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}`
+- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}*`
+- `${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}`
+
+## Usage
+
+```
+Meevax Lisp System, version ${PROJECT_VERSION}
+
+Usage: meevax [OPTION...] [FILE...]
+
+Options:
+  -b, --batch            Suppress any system output.
+  -d, --debug            Display detailed informations for developers.
+  -e, --evaluate=STRING  Read and evaluate given STRING at configuration step.
+  -h, --help             Display this help text and exit.
+  -i, --interactive      Take over control of root syntactic-continuation.
+  -l, --load=FILENAME    Same as -e '(load FILENAME)'
+      --prompt=STRING    Same as -e '(set-prompt! STRING)'
+  -t, --trace            Display stacks of virtual machine for each steps.
+  -v, --version          Display version information and exit.
+      --verbose          Display detailed informations.
+  -w, --write=OBJECT     Same as -e '(write OBJECT)'
+```
+
+| Example                                    | Effects |
+|:-------------------------------------------|:--|
+| `$ meevax -i`                              | Start interactive session. You can exit the session by input `(exit)` or Ctrl+C or Ctrl+D.
+| `$ meevax foo.ss`                          | Evaluate a script `foo.ss`. |
+| `$ meevax -e '(+ 1 2 3)'`                  | Display `6`.
+| `$ meevax -e "(define home \"$HOME\")" -i` | Define value of shell-environment variable `$HOME` as string typed Scheme variable `home`, and then start interactive session on environment includes the variable `home`.
 
 ## Liscence
 
-See [LICENSE](./LICENSE)
-
-| Name                | License                                  |
-|:--------------------|:-----------------------------------------|
-| Boost C++ Libraries | Boost Software License                   |
-| GNU MP              | GNU Lesser General Public License (LGPL) |
-
-<br/>
-
+See [LICENSE](./LICENSE).
 
 ## References
 
-- [1] A.shinn, J.Cowan, A. A. Greckler, editors, "<cite><a href="https://bitbucket.org/cowan/r7rs/raw/tip/rnrs/r7rs.pdf">Revised<sup>7</sup> Report on the Algorithmic Language Scheme</a></cite>", Technical report, 2013.
+- [1] A.shinn, J.Cowan, A. A. Greckler, editors, "[Revised<sup>7</sup> Report on the Algorithmic Language Scheme](https://bitbucket.org/cowan/r7rs/raw/tip/rnrs/r7rs.pdf)", Technical report, 2013.
 
-<br/>
-
-
-## Resources
+### Resources
 
 *   [TinyScheme](http://tinyscheme.sourceforge.net/)
 *   [SECDR-Scheme](http://www.maroon.dti.ne.jp/nagar17/mulasame/)

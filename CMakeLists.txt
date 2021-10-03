@@ -193,10 +193,17 @@ foreach(FILEPATH IN LISTS ${PROJECT_NAME}_TEST_CXX)
                    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assert-${FILENAME})
 endforeach()
 
-# ---- Target all+ -------------------------------------------------------------
+# ---- Additional Targets ------------------------------------------------------
 
 execute_process(COMMAND nproc OUTPUT_VARIABLE NPROC)
 
-add_custom_target(all+ COMMAND make all -j ${NPROC}
-                       COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
-                       COMMAND ${CMAKE_CPACK_COMMAND})
+add_custom_target(apt-install
+  COMMAND make -j ${NPROC}
+  COMMAND ${CMAKE_CPACK_COMMAND}
+  COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
+
+add_custom_target(apt-install-tested
+  COMMAND make -j ${NPROC}
+  COMMAND ${CMAKE_CTEST_COMMAND} -j ${NPROC}
+  COMMAND ${CMAKE_CPACK_COMMAND}
+  COMMAND sudo apt install ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb)
