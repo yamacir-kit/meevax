@@ -77,7 +77,7 @@ $ make apt-install
 
 ### Uninstall
 
-```bash
+``` bash
 sudo apt remove meevax
 ```
 <!--

@@ -77,7 +77,7 @@ $ make apt-install
 
 ### Uninstall
 
-```bash
+``` bash
 sudo apt remove meevax
 ```
 <!--
@@ -94,12 +94,12 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name          | Description
 |:---------------------|:--
-| `all` (default)      | Build shared-library `libmeevax.0.3.547.so` and executable `meevax`.
+| `all` (default)      | Build shared-library `libmeevax.0.3.548.so` and executable `meevax`.
 | `test`               | Test executable `meevax`.
-| `package`            | Generate debian package `meevax_0.3.547_amd64.deb`.
+| `package`            | Generate debian package `meevax_0.3.548_amd64.deb`.
 | `install`            | Copy files into `/usr/local` __(1)__.
-| `apt-install`        | `all` + `package` +<br/> `sudo apt install ./build/meevax_0.3.547_amd64.deb`
-| `apt-install-tested` | `all` + `test` + `package` +<br/> `sudo apt install ./build/meevax_0.3.547_amd64.deb`
+| `apt-install`        | `all` + `package` +<br/> `sudo apt install ./build/meevax_0.3.548_amd64.deb`
+| `apt-install-tested` | `all` + `test` + `package` +<br/> `sudo apt install ./build/meevax_0.3.548_amd64.deb`
 
 __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's package manager (for example, `apt remove meevax`). You need to manually delete the following files to uninstall:
 
@@ -111,7 +111,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version 0.3.547
+Meevax Lisp System, version 0.3.548
 
 Usage: meevax [OPTION...] [FILE...]
 
