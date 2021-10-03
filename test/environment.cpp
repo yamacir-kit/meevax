@@ -24,7 +24,12 @@ auto main() -> int
   assert(gc_count == constants.size() + specials_count);
 
   {
-    auto main = syntactic_continuation(boot_upto<layer::experimental_procedure>());
+    auto root = syntactic_continuation(import_set<layer::module_system         >(),
+                                       import_set<layer::primitive_expression  >(),
+                                       import_set<layer::standard_procedure    >(),
+                                       import_set<layer::standard_library      >(),
+                                       import_set<layer::experimental_procedure>()
+                                       );
   }
 
   syntactic_continuation::symbols.clear();

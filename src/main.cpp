@@ -22,8 +22,12 @@ auto main(int const argc, char const* const* const argv) -> int
 
   return with_exception_handler([&]()
   {
-    auto root = syntactic_continuation(boot_upto<layer::experimental_procedure>());
-
+    auto root = syntactic_continuation(import_set<layer::module_system         >(),
+                                       import_set<layer::primitive_expression  >(),
+                                       import_set<layer::standard_procedure    >(),
+                                       import_set<layer::standard_library      >(),
+                                       import_set<layer::experimental_procedure>()
+                                       );
     root.configure(argc, argv);
 
     while (root.is_interactive_mode() and root.char_ready())

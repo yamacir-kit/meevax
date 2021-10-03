@@ -85,7 +85,7 @@ auto main() -> int
 
   // list->vector
   {
-    auto module = syntactic_continuation(boot_upto<layer::module_system>());
+    auto module = syntactic_continuation();
 
     auto const gc_count = gc.count();
 
@@ -132,7 +132,7 @@ auto main() -> int
 
   // vector literal
   {
-    auto module = syntactic_continuation(boot_upto<layer::module_system>());
+    auto module = syntactic_continuation();
 
     auto const gc_count = gc.count();
 
@@ -171,7 +171,7 @@ auto main() -> int
 
   // vector constructor
   {
-    auto module = syntactic_continuation(boot_upto<layer::module_system>());
+    auto module = syntactic_continuation();
 
     module.define<procedure>("vector", [](auto&&... xs)
     {

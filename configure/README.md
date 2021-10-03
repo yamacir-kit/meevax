@@ -59,7 +59,7 @@ Subset of R7RS-small.
 
 ### Software
 
--   [GCC](https://gcc.gnu.org/) (>= 7.5.0) or [Clang](https://clang.llvm.org/) (>= 6.0.0)
+-   [GCC](https://gcc.gnu.org/) (>= 7.5.0) or [Clang](https://clang.llvm.org/) (>= 9.0.0)
 -   [CMake](https://cmake.org/) (>= ${CMAKE_MINIMUM_REQUIRED_VERSION})
 -   [GNU Make](http://savannah.gnu.org/projects/make)
 -   [GNU Binutils](https://www.gnu.org/software/binutils/)
@@ -98,8 +98,8 @@ sudo rm -rf ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 | `test`               | Test executable `meevax`.
 | `package`            | Generate debian package `meevax_${PROJECT_VERSION}_amd64.deb`.
 | `install`            | Copy files into `/usr/local` __(1)__.
-| `apt-install`        | `all` + `package` +<br/> `sudo apt install ./build/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb`
-| `apt-install-tested` | `all` + `test` + `package` +<br/> `sudo apt install ./build/${PROJECT_NAME}_${PROJECT_VERSION}_amd64.deb`
+| `apt-install`        | `all` + `package` + `sudo apt install <meevax>.deb`
+| `apt-install-tested` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
 
 __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's package manager (for example, `apt remove meevax`). You need to manually delete the following files to uninstall:
 

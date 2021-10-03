@@ -182,7 +182,7 @@ auto main() -> int
 
   // read list
   {
-    auto module = syntactic_continuation(boot_upto<layer::module_system>());
+    auto module = syntactic_continuation();
 
     const auto gc_count = gc.count();
 

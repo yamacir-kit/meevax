@@ -59,7 +59,7 @@ Subset of R7RS-small.
 
 ### Software
 
--   [GCC](https://gcc.gnu.org/) (>= 7.5.0) or [Clang](https://clang.llvm.org/) (>= 6.0.0)
+-   [GCC](https://gcc.gnu.org/) (>= 7.5.0) or [Clang](https://clang.llvm.org/) (>= 9.0.0)
 -   [CMake](https://cmake.org/) (>= 3.10.2)
 -   [GNU Make](http://savannah.gnu.org/projects/make)
 -   [GNU Binutils](https://www.gnu.org/software/binutils/)
@@ -94,12 +94,12 @@ sudo rm -rf /usr/local/share/meevax
 
 | Target Name          | Description
 |:---------------------|:--
-| `all` (default)      | Build shared-library `libmeevax.0.3.548.so` and executable `meevax`.
+| `all` (default)      | Build shared-library `libmeevax.0.3.549.so` and executable `meevax`.
 | `test`               | Test executable `meevax`.
-| `package`            | Generate debian package `meevax_0.3.548_amd64.deb`.
+| `package`            | Generate debian package `meevax_0.3.549_amd64.deb`.
 | `install`            | Copy files into `/usr/local` __(1)__.
-| `apt-install`        | `all` + `package` +<br/> `sudo apt install ./build/meevax_0.3.548_amd64.deb`
-| `apt-install-tested` | `all` + `test` + `package` +<br/> `sudo apt install ./build/meevax_0.3.548_amd64.deb`
+| `apt-install`        | `all` + `package` + `sudo apt install <meevax>.deb`
+| `apt-install-tested` | `all` + `test` + `package` + `sudo apt install <meevax>.deb`
 
 __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's package manager (for example, `apt remove meevax`). You need to manually delete the following files to uninstall:
 
@@ -111,7 +111,7 @@ __(1)__ Meevax installed by `make install` cannot be uninstalled by the system's
 ## Usage
 
 ```
-Meevax Lisp System, version 0.3.548
+Meevax Lisp System, version 0.3.549
 
 Usage: meevax [OPTION...] [FILE...]
 

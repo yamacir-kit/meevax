@@ -27,13 +27,6 @@ namespace meevax
 {
 inline namespace kernel
 {
-  template <>
-  syntactic_continuation::syntactic_continuation(boot_upto<layer::module_system>)
-    : syntactic_continuation::syntactic_continuation {}
-  {
-    boot<layer::module_system>();
-  }
-
   auto syntactic_continuation::operator [](const_reference name) -> const_reference
   {
     return cdr(machine::locate(name));
@@ -144,7 +137,7 @@ inline namespace kernel
   {
     let const module = make<syntactic_continuation>(current_continuation(), global_environment());
 
-    module.as<syntactic_continuation>().boot();
+    module.as<syntactic_continuation>().boot(import_set<layer::module_system>());
     module.as<syntactic_continuation>().build();
 
     return module;
@@ -342,7 +335,7 @@ inline namespace kernel
   template class writer<syntactic_continuation>;
 
   template <>
-  void syntactic_continuation::boot<layer::module_system>()
+  void syntactic_continuation::boot(import_set<layer::module_system>)
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
     {
@@ -389,7 +382,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::primitive_expression>()
+  void syntactic_continuation::boot(import_set<layer::primitive_expression>)
   {
     define<syntax>("begin", sequence);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
@@ -403,7 +396,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::standard_procedure>()
+  void syntactic_continuation::boot(import_set<layer::standard_procedure>)
   {
     /* -------------------------------------------------------------------------
      *
@@ -2193,7 +2186,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::standard_library>()
+  void syntactic_continuation::boot(import_set<layer::standard_library>)
   {
     std::vector<string_view> const codes {
       overture,
@@ -2221,7 +2214,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::boot<layer::experimental_procedure>()
+  void syntactic_continuation::boot(import_set<layer::experimental_procedure>)
   {
     define<procedure>("disassemble", [](let const& xs)
     {
