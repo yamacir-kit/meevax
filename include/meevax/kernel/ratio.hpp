@@ -86,6 +86,14 @@ inline namespace kernel
     auto reduce() const -> ratio;
 
     auto simple() const -> value_type;
+
+    #define DEFINE(NAME) auto NAME() const -> value_type
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;

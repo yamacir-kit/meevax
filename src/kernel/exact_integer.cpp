@@ -195,6 +195,25 @@ inline namespace kernel
     return result;
   }
 
+  #define DEFINE(NAME)                                                         \
+  auto exact_integer::NAME() const -> pair::value_type                         \
+  {                                                                            \
+    if (const f64 x { std::NAME(static_cast<double>(*this)) }; x.is_integer()) \
+    {                                                                          \
+      return make<exact_integer>(x.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(x);                                                          \
+    }                                                                          \
+  } static_assert(true)
+
+  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+  #undef DEFINE
+
   exact_integer::operator bool() const
   {
     return (*value)._mp_size;

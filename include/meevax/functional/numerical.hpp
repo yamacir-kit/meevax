@@ -39,7 +39,7 @@ inline namespace functional
     }
   };
 
-  #define DEFINE_PROCEDURE_1(NAME)                                             \
+  #define DEFINE(NAME)                                                         \
   struct NAME##_t                                                              \
   {                                                                            \
     template <typename T>                                                      \
@@ -54,10 +54,14 @@ inline namespace functional
     }                                                                          \
   }
 
-  DEFINE_PROCEDURE_1(exact);
-  DEFINE_PROCEDURE_1(inexact);
+  DEFINE(exact);
+  DEFINE(inexact);
 
-  #undef DEFINE_PROCEDURE_1
+  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+  #undef DEFINE
 } // namespace functional
 } // namespace meevax
 

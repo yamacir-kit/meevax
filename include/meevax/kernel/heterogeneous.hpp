@@ -102,17 +102,21 @@ inline namespace kernel
 
       #undef BOILERPLATE
 
-      #define DEFINE_PROCEDURE_1(NAME)                                         \
+      #define DEFINE(NAME)                                                     \
       auto NAME() const -> heterogeneous override                              \
       {                                                                        \
         return delay<NAME##_t>().yield<heterogeneous>(                         \
           static_cast<Bound const&>(*this));                                   \
       } static_assert(true)
 
-      DEFINE_PROCEDURE_1(exact);
-      DEFINE_PROCEDURE_1(inexact);
+      DEFINE(exact);
+      DEFINE(inexact);
 
-      #undef DEFINE_PROCEDURE_0
+      DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+      DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+      DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+      #undef DEFINE
     };
 
   public:
@@ -180,7 +184,7 @@ inline namespace kernel
       return *this ? Pointer<Top>::load().type() : typeid(null);
     }
 
-    #define DEFINE_PROCEDURE(NAME)                                             \
+    #define DEFINE(NAME)                                                       \
     template <typename... Ts>                                                  \
     inline auto NAME(Ts&&... xs) const                                         \
     {                                                                          \
@@ -196,8 +200,12 @@ inline namespace kernel
       }                                                                        \
     } static_assert(true)
 
-    DEFINE_PROCEDURE(exact);
-    DEFINE_PROCEDURE(inexact);
+    DEFINE(exact);
+    DEFINE(inexact);
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
 
     #undef DEFINE
   };

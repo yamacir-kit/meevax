@@ -78,13 +78,21 @@ inline namespace kernel
 
     auto inexact() const -> pair::value_type;
 
-    auto string(int = 10) const -> std::string; // TODO RENAME TO 'string'
+    auto string(int = 10) const -> std::string;
 
     auto swap(exact_integer &) noexcept -> void;
 
     auto truncate_remainder(exact_integer const&) const -> exact_integer;
 
     auto truncate_quotient(exact_integer const&) const -> exact_integer;
+
+    #define DEFINE(NAME) auto NAME() const -> pair::value_type
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+    #undef DEFINE
 
     explicit operator bool() const;
 

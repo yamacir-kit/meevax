@@ -97,6 +97,27 @@ inline namespace kernel
     }
   }
 
+  #define DEFINE(NAME)                                                         \
+  auto ratio::NAME() const -> value_type                                       \
+  {                                                                            \
+    if (const f64 x {                                                          \
+          std::NAME(numerator().inexact().as<f64>() / denominator().inexact().as<f64>()) \
+        }; x.is_integer())                                                     \
+    {                                                                          \
+      return make<exact_integer>(x.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(x);                                                          \
+    }                                                                          \
+  } static_assert(true)
+
+  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+  #undef DEFINE
+
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {
     return os << cyan << std::get<0>(datum) << cyan << "/" << cyan << std::get<1>(datum) << reset;

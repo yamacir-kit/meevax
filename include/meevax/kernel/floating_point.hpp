@@ -75,6 +75,18 @@ inline namespace kernel
       return make(floating_point<double>(value));
     }
 
+    #define DEFINE(NAME)                                                       \
+    auto NAME() const                                                          \
+    {                                                                          \
+      return make(floating_point(std::NAME(value)));                           \
+    } static_assert(true)
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+    #undef DEFINE
+
     constexpr operator value_type() const noexcept { return value; }
     constexpr operator value_type()       noexcept { return value; }
   };
