@@ -39,33 +39,25 @@ inline namespace functional
     }
   };
 
-  struct exact_t
-  {
-    template <typename T>
-    auto operator ()(T&& x) -> decltype(x.std::template decay<T>::type::exact())
-    {
-      return x.std::template decay<T>::type::exact();
-    }
+  #define DEFINE_PROCEDURE_1(NAME)                                             \
+  struct NAME##_t                                                              \
+  {                                                                            \
+    template <typename T>                                                      \
+    auto operator ()(T&& x) -> decltype(x.std::template decay<T>::type::NAME()) \
+    {                                                                          \
+      return x.std::template decay<T>::type::NAME();                           \
+    }                                                                          \
+                                                                               \
+    friend auto operator <<(std::ostream & os, NAME##_t const&) -> std::ostream & \
+    {                                                                          \
+      return os << #NAME;                                                      \
+    }                                                                          \
+  }
 
-    friend auto operator <<(std::ostream & os, exact_t const&) -> std::ostream &
-    {
-      return os << "exact";
-    }
-  };
+  DEFINE_PROCEDURE_1(exact);
+  DEFINE_PROCEDURE_1(inexact);
 
-  struct inexact_t
-  {
-    template <typename T>
-    auto operator ()(T&& x) -> decltype(x.std::template decay<T>::type::inexact())
-    {
-      return x.std::template decay<T>::type::inexact();
-    }
-
-    friend auto operator <<(std::ostream & os, inexact_t const&) -> std::ostream &
-    {
-      return os << "inexact";
-    }
-  };
+  #undef DEFINE_PROCEDURE_1
 } // namespace functional
 } // namespace meevax
 

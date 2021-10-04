@@ -52,16 +52,6 @@ inline namespace kernel
       }
     }
 
-    virtual auto exact() const -> let
-    {
-      return delay<exact_t>().yield<let>(static_cast<T const&>(*this));
-    }
-
-    virtual auto inexact() const -> let
-    {
-      return delay<inexact_t>().yield<let>(static_cast<T const&>(*this));
-    }
-
     virtual auto is_nan() const -> bool
     {
       return delay<nanp>().yield<bool>(static_cast<T const&>(*this));
@@ -92,6 +82,17 @@ inline namespace kernel
     BOILERPLATE(>=, bool, std::greater_equal<void>);
 
     #undef BOILERPLATE
+
+    #define DEFINE(NAME)                                                       \
+    virtual auto NAME() const -> let                                           \
+    {                                                                          \
+      return delay<NAME##_t>().yield<let>(static_cast<T const&>(*this));       \
+    } static_assert(true)
+
+    DEFINE(exact);
+    DEFINE(inexact);
+
+    #undef DEFINE
   };
 
   template <typename T, typename... Ts>

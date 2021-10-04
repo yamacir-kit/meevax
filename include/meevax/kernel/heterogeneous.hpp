@@ -66,14 +66,9 @@ inline namespace kernel
         }
       }
 
-      auto exact() const -> let override
+      auto is_nan() const -> bool override
       {
-        return delay<exact_t>().yield<let>(static_cast<Bound const&>(*this));
-      }
-
-      auto inexact() const -> let override
-      {
-        return delay<inexact_t>().yield<let>(static_cast<Bound const&>(*this));
+        return delay<nanp>().yield<bool>(static_cast<Bound const&>(*this));
       }
 
       auto type() const noexcept -> std::type_info const& override
@@ -107,10 +102,17 @@ inline namespace kernel
 
       #undef BOILERPLATE
 
-      auto is_nan() const -> bool override
-      {
-        return delay<nanp>().yield<bool>(static_cast<Bound const&>(*this));
-      }
+      #define DEFINE_PROCEDURE_1(NAME)                                         \
+      auto NAME() const -> heterogeneous override                              \
+      {                                                                        \
+        return delay<NAME##_t>().yield<heterogeneous>(                         \
+          static_cast<Bound const&>(*this));                                   \
+      } static_assert(true)
+
+      DEFINE_PROCEDURE_1(exact);
+      DEFINE_PROCEDURE_1(inexact);
+
+      #undef DEFINE_PROCEDURE_0
     };
 
   public:
