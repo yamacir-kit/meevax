@@ -55,7 +55,10 @@ inline namespace functional
   }
 
   DEFINE(exact);
+  DEFINE(exp);
   DEFINE(inexact);
+  DEFINE(log);
+  DEFINE(sqrt);
 
   DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
   DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);

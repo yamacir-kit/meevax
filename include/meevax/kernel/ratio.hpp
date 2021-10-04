@@ -89,6 +89,10 @@ inline namespace kernel
 
     #define DEFINE(NAME) auto NAME() const -> value_type
 
+    DEFINE(exp);
+    DEFINE(log);
+    DEFINE(sqrt);
+
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);

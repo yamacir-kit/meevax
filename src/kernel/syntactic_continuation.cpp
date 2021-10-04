@@ -371,23 +371,25 @@ inline namespace kernel
       return car(xs).is_nan() ? t : f;
     });
 
-    define<procedure>("sin",    [](let const& xs) { return car(xs).sin(); });
-    define<procedure>("cos",    [](let const& xs) { return car(xs).cos(); });
-    define<procedure>("tan",    [](let const& xs) { return car(xs).tan(); });
-    define<procedure>("asin",   [](let const& xs) { return car(xs).asin(); });
-    define<procedure>("acos",   [](let const& xs) { return car(xs).acos(); });
-    define<procedure>("atan-1", [](let const& xs) { return car(xs).atan(); });
-    define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh(); });
-    define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh(); });
-    define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh(); });
+    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();   });
+    define<procedure>("ln",     [](let const& xs) { return car(xs).log();   });
+    // define<procedure>("sqrt",   [](let const& xs) { return car(xs).sqrt(); });
+
+    define<procedure>("sin",    [](let const& xs) { return car(xs).sin();   });
+    define<procedure>("cos",    [](let const& xs) { return car(xs).cos();   });
+    define<procedure>("tan",    [](let const& xs) { return car(xs).tan();   });
+    define<procedure>("asin",   [](let const& xs) { return car(xs).asin();  });
+    define<procedure>("acos",   [](let const& xs) { return car(xs).acos();  });
+    define<procedure>("atan-1", [](let const& xs) { return car(xs).atan();  });
+    define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh();  });
+    define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh();  });
+    define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh();  });
     define<procedure>("asinh",  [](let const& xs) { return car(xs).asinh(); });
     define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
     define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
 
     define<procedure>("atan-2", [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
     define<procedure>("sqrt"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::sqrt (x   ); }, car(xs)          ); });
-    define<procedure>("ln"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::log  (x   ); }, car(xs)          ); });
-    define<procedure>("exp"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
     define<procedure>("expt"  , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
   }
 
