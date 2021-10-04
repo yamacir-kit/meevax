@@ -335,7 +335,7 @@ inline namespace kernel
   template class writer<syntactic_continuation>;
 
   template <>
-  auto syntactic_continuation::import(import_set<scheme::base>) -> void
+  auto syntactic_continuation::import(base_t) -> void
   {
     define<syntax>("begin", sequence);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
@@ -349,12 +349,12 @@ inline namespace kernel
   }
 
   template <>
-  auto syntactic_continuation::import(import_set<scheme::character>) -> void
+  auto syntactic_continuation::import(character_t) -> void
   {
   }
 
   template <>
-  auto syntactic_continuation::import(import_set<scheme::inexact>) -> void
+  auto syntactic_continuation::import(inexact_t) -> void
   {
     /* -------------------------------------------------------------------------
      *

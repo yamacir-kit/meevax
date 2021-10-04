@@ -33,7 +33,7 @@ inline namespace kernel
       return typeid(T);
     }
 
-    virtual bool eqv(let const& x) const
+    virtual auto eqv(let const& x) const -> bool
     {
       if constexpr (is_equality_comparable<T>::value)
       {

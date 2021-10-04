@@ -197,32 +197,35 @@ inline namespace kernel
     }
   };
 
-  enum class scheme
-  {
-    base,
-    case_lambda,
-    character,
-    complex,
-    cxr,
-    evaluate,
-    file,
-    inexact,
-    lazy,
-    load,
-    process_context,
-    r5rs,
-    read,
-    repl,
-    time,
-    write,
-  };
+  #define DEFINE_LIBRARY(NAME)                                                 \
+  struct NAME##_t                                                              \
+  {                                                                            \
+    explicit NAME##_t() = default;                                             \
+  }                                                                            \
+  inline constexpr NAME##_v {};                                                \
+                                                                               \
+  template <>                                                                  \
+  auto syntactic_continuation::import(NAME##_t) -> void
+
+  DEFINE_LIBRARY(base);
+  // DEFINE_LIBRARY(case_lambda);
+  DEFINE_LIBRARY(character);
+  // DEFINE_LIBRARY(complex);
+  // DEFINE_LIBRARY(cxr);
+  // DEFINE_LIBRARY(evaluate);
+  // DEFINE_LIBRARY(file);
+  DEFINE_LIBRARY(inexact);
+  // DEFINE_LIBRARY(lazy);
+  // DEFINE_LIBRARY(load);
+  // DEFINE_LIBRARY(process_context);
+  // DEFINE_LIBRARY(r5rs);
+  // DEFINE_LIBRARY(read);
+  // DEFINE_LIBRARY(repl);
+  // DEFINE_LIBRARY(time);
+  // DEFINE_LIBRARY(write);
 
   template <auto N>
   using import_set = typename std::integral_constant<decltype(N), N>;
-
-  template <> auto syntactic_continuation::import(import_set<scheme::base     >) -> void;
-  template <> auto syntactic_continuation::import(import_set<scheme::character>) -> void;
-  template <> auto syntactic_continuation::import(import_set<scheme::inexact  >) -> void;
 
   template <> auto syntactic_continuation::import(import_set<layer::module_system         >) -> void;
   template <> auto syntactic_continuation::import(import_set<layer::standard_procedure    >) -> void;
