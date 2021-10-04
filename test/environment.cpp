@@ -25,7 +25,7 @@ auto main() -> int
 
   {
     auto root = syntactic_continuation(import_set<layer::module_system         >(),
-                                       meevax::base,
+                                       import_set<scheme::base>(),
                                        import_set<layer::standard_procedure    >(),
                                        import_set<layer::standard_library      >(),
                                        import_set<layer::experimental_procedure>()

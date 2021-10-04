@@ -335,7 +335,7 @@ inline namespace kernel
   template class writer<syntactic_continuation>;
 
   template <>
-  auto syntactic_continuation::import(import_set<meevax::base>) -> void
+  auto syntactic_continuation::import(import_set<scheme::base>) -> void
   {
     define<syntax>("begin", sequence);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
@@ -346,6 +346,52 @@ inline namespace kernel
     define<syntax>("letrec", letrec);
     define<syntax>("quote", quotation);
     define<syntax>("set!", assignment);
+  }
+
+  template <>
+  auto syntactic_continuation::import(import_set<scheme::character>) -> void
+  {
+  }
+
+  template <>
+  auto syntactic_continuation::import(import_set<scheme::inexact>) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (nan? z)                                      inexact library procedure
+     *
+     *  The nan? procedure returns #t on +nan.0, and on complex numbers if
+     *  their real or imaginary parts or both are +nan.0. Otherwise it returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("%nan?", [](auto&& xs)
+    {
+      return is_nan(car(xs)) ? t : f;
+    });
+
+    define<procedure>( "sin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
+    define<procedure>( "sinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
+    define<procedure>("asinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asinh(x   ); }, car(xs)          ); });
+    define<procedure>("asin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asin (x   ); }, car(xs)          ); });
+
+    define<procedure>( "cos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cos (x   ); }, car(xs)          ); });
+    define<procedure>( "cosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cosh(x   ); }, car(xs)          ); });
+    define<procedure>("acosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acosh(x   ); }, car(xs)          ); });
+    define<procedure>("acos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acos (x   ); }, car(xs)          ); });
+
+    define<procedure>( "tan"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tan (x   ); }, car(xs)          ); });
+    define<procedure>( "tanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tanh(x   ); }, car(xs)          ); });
+    define<procedure>("atanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atanh(x   ); }, car(xs)          ); });
+    define<procedure>("atan-1", [](let const& xs) { return apply_1([](auto&& x          ) { return std::atan (x   ); }, car(xs)          ); });
+    define<procedure>("atan-2", [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
+
+    define<procedure>("sqrt"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::sqrt (x   ); }, car(xs)          ); });
+
+    define<procedure>("ln"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::log  (x   ); }, car(xs)          ); });
+    define<procedure>("exp"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
+    define<procedure>("expt"  , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
   }
 
   template <>
@@ -404,20 +450,15 @@ inline namespace kernel
      *
      *  The eqv? procedure defines a useful equivalence relation on objects.
      *  Briefly, it returns #t if obj1 and obj2 are normally regarded as the
-     *  same object.
+     *  same object. This relation is left slightly open to interpretation, but
+     *  the following partial specification of eqv? holds for all
+     *  implementations of Scheme.
      *
      * ---------------------------------------------------------------------- */
 
     define<procedure>("eqv?", [](let const& xs)
     {
-      let const& a = car(xs);
-
-      auto is_equiv = [&](let const& b)
-      {
-        return eq(a, b) or a.eqv(b);
-      };
-
-      return std::all_of(std::next(std::begin(xs)), std::end(xs), is_equiv) ? t : f;
+      return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
     });
 
     /* -------------------------------------------------------------------------
@@ -480,21 +521,6 @@ inline namespace kernel
      * ---------------------------------------------------------------------- */
 
     define<procedure>("exact-integer?", is<exact_integer>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (nan? z)                                      inexact library procedure
-     *
-     *  The nan? procedure returns #t on +nan.0, and on complex numbers if
-     *  their real or imaginary parts or both are +nan.0. Otherwise it returns
-     *  #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("%nan?", [](auto&& xs)
-    {
-      return std::all_of(std::begin(xs), std::end(xs), is_nan) ? t : f;
-    });
 
     /* -------------------------------------------------------------------------
      *
@@ -630,28 +656,6 @@ inline namespace kernel
     DEFINE_CMATH_1("ceiling", ceil);
     DEFINE_CMATH_1("truncate", trunc);
     DEFINE_CMATH_1("round", round);
-
-    define<procedure>( "sin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
-    define<procedure>( "sinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
-    define<procedure>("asinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asinh(x   ); }, car(xs)          ); });
-    define<procedure>("asin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asin (x   ); }, car(xs)          ); });
-
-    define<procedure>( "cos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cos (x   ); }, car(xs)          ); });
-    define<procedure>( "cosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cosh(x   ); }, car(xs)          ); });
-    define<procedure>("acosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acosh(x   ); }, car(xs)          ); });
-    define<procedure>("acos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acos (x   ); }, car(xs)          ); });
-
-    define<procedure>( "tan"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tan (x   ); }, car(xs)          ); });
-    define<procedure>( "tanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tanh(x   ); }, car(xs)          ); });
-    define<procedure>("atanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atanh(x   ); }, car(xs)          ); });
-    define<procedure>("atan-1", [](let const& xs) { return apply_1([](auto&& x          ) { return std::atan (x   ); }, car(xs)          ); });
-    define<procedure>("atan-2", [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
-
-    define<procedure>("sqrt"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::sqrt (x   ); }, car(xs)          ); });
-
-    define<procedure>("ln"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::log  (x   ); }, car(xs)          ); });
-    define<procedure>("exp"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
-    define<procedure>("expt"  , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
 
     /* -------------------------------------------------------------------------
      *

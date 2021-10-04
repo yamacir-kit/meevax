@@ -197,7 +197,7 @@ inline namespace kernel
     }
   };
 
-  enum class meevax
+  enum class scheme
   {
     base,
     case_lambda,
@@ -220,9 +220,9 @@ inline namespace kernel
   template <auto N>
   using import_set = typename std::integral_constant<decltype(N), N>;
 
-  inline constexpr import_set<meevax::base> base {};
-
-  template <> auto syntactic_continuation::import(import_set<meevax::base>) -> void;
+  template <> auto syntactic_continuation::import(import_set<scheme::base     >) -> void;
+  template <> auto syntactic_continuation::import(import_set<scheme::character>) -> void;
+  template <> auto syntactic_continuation::import(import_set<scheme::inexact  >) -> void;
 
   template <> auto syntactic_continuation::import(import_set<layer::module_system         >) -> void;
   template <> auto syntactic_continuation::import(import_set<layer::standard_procedure    >) -> void;
