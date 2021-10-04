@@ -35,14 +35,7 @@ inline namespace kernel
   {
     if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)
     {
-      if (auto const x = z.reduce(); x.is_integer())
-      {
-        return car(x);
-      }
-      else
-      {
-        return make(x);
-      }
+      return z.simplify();
     }
     else
     {

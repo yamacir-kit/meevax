@@ -75,14 +75,25 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
-    if (auto const common_divisor = exact_integer(gcd, numerator(), denominator()); common_divisor != 1)
+    if (auto const d = exact_integer(gcd, numerator(), denominator()); d != 1)
     {
-      return ratio(make<exact_integer>(divide, numerator(), common_divisor),
-                   make<exact_integer>(divide, denominator(), common_divisor));
+      return ratio(make<exact_integer>(div, numerator(), d), make<exact_integer>(div, denominator(), d));
     }
     else
     {
       return *this;
+    }
+  }
+
+  auto ratio::simplify() const -> value_type
+  {
+    if (auto x = reduce(); x.is_integer())
+    {
+      return std::get<0>(x);
+    }
+    else
+    {
+      return make(x);
     }
   }
 

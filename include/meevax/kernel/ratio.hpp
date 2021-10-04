@@ -42,6 +42,8 @@ inline namespace kernel
     auto numerator() const -> exact_integer const&;
 
     auto reduce() const -> ratio;
+
+    auto simplify() const -> value_type;
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;
