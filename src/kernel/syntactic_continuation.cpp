@@ -368,7 +368,7 @@ inline namespace kernel
 
     define<procedure>("%nan?", [](auto&& xs)
     {
-      return is_nan(car(xs)) ? t : f;
+      return car(xs).is_nan() ? t : f;
     });
 
     define<procedure>( "sin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });

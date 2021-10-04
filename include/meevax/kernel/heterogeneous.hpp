@@ -22,6 +22,7 @@
 #include <meevax/functional/division.hpp>
 #include <meevax/functional/modulo.hpp>
 #include <meevax/functional/multiplication.hpp>
+#include <meevax/functional/numerical.hpp>
 #include <meevax/functional/subtraction.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/type_traits/delay.hpp>
@@ -95,6 +96,11 @@ inline namespace kernel
       BOILERPLATE(>=, bool, std::greater_equal<void>);
 
       #undef BOILERPLATE
+
+      auto is_nan() const -> bool override
+      {
+        return delay<nanp>().yield<bool>(static_cast<Bound const&>(*this));
+      }
     };
 
   public:
@@ -150,6 +156,11 @@ inline namespace kernel
     inline auto is_also() const
     {
       return dynamic_cast<pointer<U>>(Pointer<Top>::get()) != nullptr;
+    }
+
+    inline auto is_nan() const
+    {
+      return not is<null>() and Pointer<Top>::load().is_nan();
     }
 
     inline auto type() const -> std::type_info const&

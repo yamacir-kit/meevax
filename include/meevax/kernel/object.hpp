@@ -52,6 +52,11 @@ inline namespace kernel
       }
     }
 
+    virtual auto is_nan() const -> bool
+    {
+      return delay<nanp>().yield<bool>(static_cast<T const&>(*this));
+    }
+
     virtual auto write_to(std::ostream & os) const -> std::ostream &
     {
       return delay<write>().yield<std::ostream &>(os, static_cast<T const&>(*this));

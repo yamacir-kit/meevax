@@ -426,18 +426,6 @@ inline namespace kernel
 
     return resolve(overloads, z);
   };
-
-  auto is_nan = [](pair::const_reference x)
-  {
-    static std::unordered_map<
-      std::type_index, std::function<bool(pair::const_reference)>> const overloads
-    {
-      { typeid(f32), [](pair::const_reference x) { return std::isnan(x.as<f32>()); } },
-      { typeid(f64), [](pair::const_reference x) { return std::isnan(x.as<f64>()); } },
-    };
-
-    return resolve(overloads, x);
-  };
 } // namespace kernel
 } // namespace meevax
 
