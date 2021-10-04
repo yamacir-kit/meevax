@@ -85,19 +85,7 @@ inline namespace kernel
       throw read_error(make<string>("not a decimal"), make<string>(token));
     }
 
-    constexpr auto is_integer() const noexcept
-    {
-      return value == std::trunc(value);
-    }
-
-    // TODO TEMPLATE SPECIALIZATION to<std::string>()
-    auto to_string() const
-    {
-      return lexical_cast<std::string>(value);
-    }
-
-    template <typename... Ts>
-    auto as_exact(Ts&&... xs) const -> decltype(auto)
+    auto exact() const -> pair::value_type
     {
       /* ---- R7RS 6.2.6 (exact z) ---------------------------------------------
        *
@@ -109,7 +97,18 @@ inline namespace kernel
        *
        * -------------------------------------------------------------------- */
 
-      return rationalize(value, std::forward<decltype(xs)>(xs)...);
+      return rationalize(value).simple();
+    }
+
+    constexpr auto is_integer() const noexcept
+    {
+      return value == std::trunc(value);
+    }
+
+    // TODO TEMPLATE SPECIALIZATION to<std::string>()
+    auto to_string() const
+    {
+      return lexical_cast<std::string>(value);
     }
 
     constexpr auto inexact() const noexcept

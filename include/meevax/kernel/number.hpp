@@ -35,7 +35,7 @@ inline namespace kernel
   {
     if constexpr (std::is_same<typename std::decay<decltype(z)>::type, ratio>::value)
     {
-      return z.simplify();
+      return z.simple();
     }
     else
     {
@@ -398,10 +398,10 @@ inline namespace kernel
   {
     static std::unordered_map<std::type_index, procedure::applicable> const overloads
     {
-      { typeid(f32),           [](pair::const_reference x) { return make_number(x.as<f32          >().as_exact()); } },
-      { typeid(f64),           [](pair::const_reference x) { return make_number(x.as<f64          >().as_exact()); } },
-      { typeid(ratio),         [](pair::const_reference x) { return make_number(x.as<ratio        >().as_exact()); } },
-      { typeid(exact_integer), [](pair::const_reference x) { return make_number(x.as<exact_integer>().as_exact()); } },
+      { typeid(f32),           [](pair::const_reference x) { return x.as<f32          >().exact(); } },
+      { typeid(f64),           [](pair::const_reference x) { return x.as<f64          >().exact(); } },
+      { typeid(ratio),         [](pair::const_reference x) { return x.as<ratio        >().exact(); } },
+      { typeid(exact_integer), [](pair::const_reference x) { return x.as<exact_integer>().exact(); } },
     };
 
     return resolve(overloads, z);

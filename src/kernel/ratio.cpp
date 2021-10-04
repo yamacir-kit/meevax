@@ -43,9 +43,9 @@ inline namespace kernel
     }
   }
 
-  auto ratio::as_exact() const noexcept -> ratio const&
+  auto ratio::exact() const -> value_type
   {
-    return *this;
+    return simple();
   }
 
   auto ratio::denominator() const -> exact_integer const&
@@ -85,7 +85,7 @@ inline namespace kernel
     }
   }
 
-  auto ratio::simplify() const -> value_type
+  auto ratio::simple() const -> value_type
   {
     if (auto x = reduce(); x.is_integer())
     {

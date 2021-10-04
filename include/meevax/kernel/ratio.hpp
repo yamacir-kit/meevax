@@ -29,9 +29,9 @@ inline namespace kernel
 
     explicit ratio(std::string const&, int = 0);
 
-    auto as_exact() const noexcept -> ratio const&;
+    auto exact() const -> value_type;
 
-    auto inexact() const -> pair::value_type override;
+    auto inexact() const -> value_type override;
 
     auto denominator() const -> exact_integer const&;
 
@@ -43,7 +43,7 @@ inline namespace kernel
 
     auto reduce() const -> ratio;
 
-    auto simplify() const -> value_type;
+    auto simple() const -> value_type;
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;

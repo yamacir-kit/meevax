@@ -70,7 +70,7 @@ inline namespace kernel
 
     auto operator=(std::string const&) -> exact_integer &;
 
-    auto as_exact() const noexcept -> exact_integer const&;
+    auto exact() const -> pair::value_type;
 
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 

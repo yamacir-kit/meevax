@@ -137,9 +137,9 @@ inline namespace kernel
     }
   }
 
-  auto exact_integer::as_exact() const noexcept -> exact_integer const&
+  auto exact_integer::exact() const -> pair::value_type
   {
-    return *this;
+    return make(*this);
   }
 
   auto exact_integer::floor_remainder(exact_integer const& divisor) const -> exact_integer
