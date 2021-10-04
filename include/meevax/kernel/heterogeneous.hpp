@@ -66,6 +66,11 @@ inline namespace kernel
         }
       }
 
+      auto inexact() const -> let override
+      {
+        return delay<inexact_t>().yield<let>(static_cast<Bound const&>(*this));
+      }
+
       auto type() const noexcept -> std::type_info const& override
       {
         return typeid(Bound);
@@ -167,6 +172,26 @@ inline namespace kernel
     {
       return *this ? Pointer<Top>::load().type() : typeid(null);
     }
+
+    #define DEFINE_PROCEDURE(NAME)                                             \
+    template <typename... Ts>                                                  \
+    inline auto NAME(Ts&&... xs) const                                         \
+    {                                                                          \
+      if (not is<null>())                                                      \
+      {                                                                        \
+        return Pointer<Top>::load().NAME(std::forward<decltype(xs)>(xs)...);   \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        std::stringstream ss {};                                               \
+        ss << "no viable operation " #NAME " for " << *this;                   \
+        raise(ss.str());                                                       \
+      }                                                                        \
+    } static_assert(true)
+
+    DEFINE_PROCEDURE(inexact);
+
+    #undef DEFINE
   };
 
   template <template <typename...> typename Pointer, typename Top>

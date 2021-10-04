@@ -700,7 +700,7 @@ inline namespace kernel
 
     define<procedure>("inexact", [](auto&& xs)
     {
-      return inexact(car(xs));
+      return car(xs).inexact();
     });
 
     /* -------------------------------------------------------------------------

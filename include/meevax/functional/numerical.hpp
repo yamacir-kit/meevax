@@ -38,6 +38,20 @@ inline namespace functional
       return os << "nan?";
     }
   };
+
+  struct inexact_t
+  {
+    template <typename T>
+    auto operator ()(T&& x) -> decltype(x.std::decay<T>::type::inexact())
+    {
+      return x.std::decay<T>::type::inexact();
+    }
+
+    friend auto operator <<(std::ostream & os, inexact_t const&) -> std::ostream &
+    {
+      return os << "inexact";
+    }
+  };
 } // namespace functional
 } // namespace meevax
 

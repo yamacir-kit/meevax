@@ -55,7 +55,7 @@ inline namespace kernel
 
   auto ratio::inexact() const -> pair::value_type
   {
-    return make(floating_point(numerator().inexact().as<f64>() / denominator().inexact().as<f64>()));
+    return make<f64>(numerator().inexact().as<f64>() / denominator().inexact().as<f64>());
   }
 
   auto ratio::invert() const -> ratio

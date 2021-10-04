@@ -31,7 +31,7 @@ inline namespace kernel
 
     auto as_exact() const noexcept -> ratio const&;
 
-    auto inexact() const -> pair::value_type;
+    auto inexact() const -> pair::value_type override;
 
     auto denominator() const -> exact_integer const&;
 

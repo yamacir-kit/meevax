@@ -52,6 +52,11 @@ inline namespace kernel
       }
     }
 
+    virtual auto inexact() const -> let
+    {
+      return delay<inexact_t>().yield<let>(static_cast<T const&>(*this));
+    }
+
     virtual auto is_nan() const -> bool
     {
       return delay<nanp>().yield<bool>(static_cast<T const&>(*this));
