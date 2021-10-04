@@ -53,6 +53,11 @@ inline namespace kernel
     return std::get<1>(*this).as<exact_integer>();
   }
 
+  auto ratio::inexact() const -> pair::value_type
+  {
+    return make(floating_point(numerator().inexact().as<f64>() / denominator().inexact().as<f64>()));
+  }
+
   auto ratio::invert() const -> ratio
   {
     return ratio(std::get<1>(*this), std::get<0>(*this));

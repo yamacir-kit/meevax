@@ -31,11 +31,7 @@ inline namespace kernel
 
     auto as_exact() const noexcept -> ratio const&;
 
-    template <typename T>
-    auto as_inexact() const
-    {
-      return floating_point(numerator().as_inexact<T>() / denominator().as_inexact<T>());
-    }
+    auto inexact() const -> pair::value_type;
 
     auto denominator() const -> exact_integer const&;
 

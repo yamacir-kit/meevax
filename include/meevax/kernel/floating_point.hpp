@@ -112,10 +112,9 @@ inline namespace kernel
       return rationalize(value, std::forward<decltype(xs)>(xs)...);
     }
 
-    template <typename U, REQUIRES(std::is_floating_point<U>)>
-    constexpr auto as_inexact() const noexcept
+    constexpr auto inexact() const noexcept
     {
-      return floating_point<U>(value);
+      return make(floating_point<double>(value));
     }
 
     constexpr operator value_type() const noexcept { return value; }

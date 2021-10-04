@@ -72,15 +72,11 @@ inline namespace kernel
 
     auto as_exact() const noexcept -> exact_integer const&;
 
-    template <typename T, REQUIRES(std::is_floating_point<T>)>
-    auto as_inexact() const
-    {
-      return floating_point(static_cast<T>(*this));
-    }
-
     auto floor_remainder(exact_integer const&) const -> exact_integer;
 
     auto floor_quotient(exact_integer const&) const -> exact_integer;
+
+    auto inexact() const -> pair::value_type;
 
     auto string(int = 10) const -> std::string; // TODO RENAME TO 'string'
 

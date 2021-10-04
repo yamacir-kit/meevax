@@ -18,6 +18,7 @@
 
 #include <meevax/kernel/error.hpp>
 #include <meevax/kernel/exact_integer.hpp>
+#include <meevax/kernel/floating_point.hpp>
 #include <meevax/posix/vt10x.hpp>
 
 namespace meevax
@@ -153,6 +154,11 @@ inline namespace kernel
     exact_integer result {};
     mpz_fdiv_q(result.value, value, divisor.value);
     return result;
+  }
+
+  auto exact_integer::inexact() const -> pair::value_type
+  {
+    return make<f64>(static_cast<double>(*this));
   }
 
   auto exact_integer::string(int radix) const -> std::string
