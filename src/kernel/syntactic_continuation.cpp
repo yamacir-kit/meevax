@@ -335,6 +335,20 @@ inline namespace kernel
   template class writer<syntactic_continuation>;
 
   template <>
+  auto syntactic_continuation::import(import_set<meevax::base>) -> void
+  {
+    define<syntax>("begin", sequence);
+    define<syntax>("call-with-current-continuation!", call_with_current_continuation);
+    define<syntax>("define", definition);
+    define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
+    define<syntax>("if", conditional);
+    define<syntax>("lambda", lambda);
+    define<syntax>("letrec", letrec);
+    define<syntax>("quote", quotation);
+    define<syntax>("set!", assignment);
+  }
+
+  template <>
   void syntactic_continuation::import(import_set<layer::module_system>)
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
@@ -379,20 +393,6 @@ inline namespace kernel
     define<procedure>("set-prompt!",      [this](auto&&... xs) { return prompt      = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-trace!",       [this](auto&&... xs) { return trace       = car(std::forward<decltype(xs)>(xs)...); });
     define<procedure>("set-verbose!",     [this](auto&&... xs) { return verbose     = car(std::forward<decltype(xs)>(xs)...); });
-  }
-
-  template <>
-  void syntactic_continuation::import(import_set<layer::primitive_expression>)
-  {
-    define<syntax>("begin", sequence);
-    define<syntax>("call-with-current-continuation!", call_with_current_continuation);
-    define<syntax>("define", definition);
-    define<syntax>("fork-with-current-syntactic-continuation", fork_csc);
-    define<syntax>("if", conditional);
-    define<syntax>("lambda", lambda);
-    define<syntax>("letrec", letrec);
-    define<syntax>("quote", quotation);
-    define<syntax>("set!", assignment);
   }
 
   template <>

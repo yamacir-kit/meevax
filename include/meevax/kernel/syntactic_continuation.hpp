@@ -35,9 +35,6 @@ inline namespace kernel
     experimental_procedure,
   };
 
-  template <auto N>
-  using import_set = typename std::integral_constant<decltype(N), N>;
-
   class syntactic_continuation
     : public virtual pair
     , public configurator <syntactic_continuation>
@@ -80,10 +77,10 @@ inline namespace kernel
     using writer::write_to;
     using writer::write_line;
 
-    template <typename... ImportSets>
-    explicit syntactic_continuation(ImportSets&&... import_sets)
+    template <typename... Ts>
+    explicit syntactic_continuation(Ts&&... xs)
     {
-      (import(import_sets), ...);
+      (import(xs), ...);
     }
 
     auto operator [](const_reference) -> const_reference;
@@ -120,8 +117,8 @@ inline namespace kernel
 
     auto global_environment() noexcept -> reference;
 
-    template <auto M>
-    void import(import_set<M>);
+    template <typename T>
+    auto import(T) -> void;
 
     auto load(std::string const&) -> value_type;
 
@@ -200,8 +197,34 @@ inline namespace kernel
     }
   };
 
+  enum class meevax
+  {
+    base,
+    case_lambda,
+    character,
+    complex,
+    cxr,
+    evaluate,
+    file,
+    inexact,
+    lazy,
+    load,
+    process_context,
+    r5rs,
+    read,
+    repl,
+    time,
+    write,
+  };
+
+  template <auto N>
+  using import_set = typename std::integral_constant<decltype(N), N>;
+
+  inline constexpr import_set<meevax::base> base {};
+
+  template <> auto syntactic_continuation::import(import_set<meevax::base>) -> void;
+
   template <> auto syntactic_continuation::import(import_set<layer::module_system         >) -> void;
-  template <> auto syntactic_continuation::import(import_set<layer::primitive_expression  >) -> void;
   template <> auto syntactic_continuation::import(import_set<layer::standard_procedure    >) -> void;
   template <> auto syntactic_continuation::import(import_set<layer::standard_library      >) -> void;
   template <> auto syntactic_continuation::import(import_set<layer::experimental_procedure>) -> void;
