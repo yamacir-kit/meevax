@@ -380,7 +380,7 @@ inline namespace kernel
             return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 10);
 
           case 'e':
-            return exact(read(is)); // NOTE: Same as #,(exact (read))
+            return read(is).exact(); // NOTE: Same as #,(exact (read))
 
           case 'f':
             parse::token(is);

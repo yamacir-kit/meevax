@@ -21,6 +21,7 @@
 
 #include <meevax/iostream/lexical_cast.hpp>
 #include <meevax/kernel/error.hpp>
+#include <meevax/kernel/ratio.hpp>
 
 namespace meevax
 {

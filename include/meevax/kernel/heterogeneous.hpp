@@ -66,6 +66,11 @@ inline namespace kernel
         }
       }
 
+      auto exact() const -> let override
+      {
+        return delay<exact_t>().yield<let>(static_cast<Bound const&>(*this));
+      }
+
       auto inexact() const -> let override
       {
         return delay<inexact_t>().yield<let>(static_cast<Bound const&>(*this));
@@ -189,6 +194,7 @@ inline namespace kernel
       }                                                                        \
     } static_assert(true)
 
+    DEFINE_PROCEDURE(exact);
     DEFINE_PROCEDURE(inexact);
 
     #undef DEFINE

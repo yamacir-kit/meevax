@@ -695,7 +695,7 @@ inline namespace kernel
 
     define<procedure>("exact", [](auto&& xs)
     {
-      return exact(car(xs));
+      return car(xs).exact();
     });
 
     define<procedure>("inexact", [](auto&& xs)

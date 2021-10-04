@@ -39,6 +39,20 @@ inline namespace functional
     }
   };
 
+  struct exact_t
+  {
+    template <typename T>
+    auto operator ()(T&& x) -> decltype(x.std::template decay<T>::type::exact())
+    {
+      return x.std::template decay<T>::type::exact();
+    }
+
+    friend auto operator <<(std::ostream & os, exact_t const&) -> std::ostream &
+    {
+      return os << "exact";
+    }
+  };
+
   struct inexact_t
   {
     template <typename T>

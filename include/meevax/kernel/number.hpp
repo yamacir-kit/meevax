@@ -380,32 +380,6 @@ inline namespace kernel
   template <typename T, typename U> auto operator <=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value <= b.value; }
   template <typename T, typename U> auto operator > (floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >  b.value; }
   template <typename T, typename U> auto operator >=(floating_point<T> const& a, floating_point<U> const& b) -> boolean { return a.value >= b.value; }
-
-  template <typename Result>
-  auto resolve(std::unordered_map<std::type_index, std::function<Result(pair::const_reference)>> const& overloads, pair::const_reference x)
-  {
-    if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
-    {
-      return std::get<1>(*iter)(x);
-    }
-    else
-    {
-      return Result(); // NOTE N4296 Section 8.5 (6.1)
-    }
-  }
-
-  auto exact = [](pair::const_reference z)
-  {
-    static std::unordered_map<std::type_index, procedure::applicable> const overloads
-    {
-      { typeid(f32),           [](pair::const_reference x) { return x.as<f32          >().exact(); } },
-      { typeid(f64),           [](pair::const_reference x) { return x.as<f64          >().exact(); } },
-      { typeid(ratio),         [](pair::const_reference x) { return x.as<ratio        >().exact(); } },
-      { typeid(exact_integer), [](pair::const_reference x) { return x.as<exact_integer>().exact(); } },
-    };
-
-    return resolve(overloads, z);
-  };
 } // namespace kernel
 } // namespace meevax
 

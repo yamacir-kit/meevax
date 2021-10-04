@@ -52,6 +52,11 @@ inline namespace kernel
       }
     }
 
+    virtual auto exact() const -> let
+    {
+      return delay<exact_t>().yield<let>(static_cast<T const&>(*this));
+    }
+
     virtual auto inexact() const -> let
     {
       return delay<inexact_t>().yield<let>(static_cast<T const&>(*this));
