@@ -387,7 +387,7 @@ inline namespace kernel
             return f;
 
           case 'i':
-            return inexact(read(is)); // NOTE: Same as #,(inexact (read))
+            return read(is).inexact(); // NOTE: Same as #,(inexact (read))
 
           case 'o':
             return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);

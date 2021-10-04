@@ -413,19 +413,6 @@ inline namespace kernel
 
     return resolve(overloads, z);
   };
-
-  auto inexact = [](pair::const_reference z)
-  {
-    static std::unordered_map<std::type_index, procedure::applicable> const overloads
-    {
-      { typeid(f32),           [](pair::const_reference x) { return x.as<f32          >().inexact(); } },
-      { typeid(f64),           [](pair::const_reference x) { return x.as<f64          >().inexact(); } },
-      { typeid(ratio),         [](pair::const_reference x) { return x.as<ratio        >().inexact(); } },
-      { typeid(exact_integer), [](pair::const_reference x) { return x.as<exact_integer>().inexact(); } },
-    };
-
-    return resolve(overloads, z);
-  };
 } // namespace kernel
 } // namespace meevax
 

@@ -42,9 +42,9 @@ inline namespace functional
   struct inexact_t
   {
     template <typename T>
-    auto operator ()(T&& x) -> decltype(x.std::decay<T>::type::inexact())
+    auto operator ()(T&& x) -> decltype(x.std::template decay<T>::type::inexact())
     {
-      return x.std::decay<T>::type::inexact();
+      return x.std::template decay<T>::type::inexact();
     }
 
     friend auto operator <<(std::ostream & os, inexact_t const&) -> std::ostream &
