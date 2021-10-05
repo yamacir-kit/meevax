@@ -110,14 +110,11 @@ inline namespace kernel
       } static_assert(true)
 
       DEFINE(exact);
-      DEFINE(exp);
       DEFINE(inexact);
-      DEFINE(log);
-      DEFINE(sqrt);
 
-      DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
-      DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
-      DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+      DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+      DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+      DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
       #undef DEFINE
     };
@@ -204,14 +201,11 @@ inline namespace kernel
     } static_assert(true)
 
     DEFINE(exact);
-    DEFINE(exp);
     DEFINE(inexact);
-    DEFINE(log);
-    DEFINE(sqrt);
 
-    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
-    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
     #undef DEFINE
   };
