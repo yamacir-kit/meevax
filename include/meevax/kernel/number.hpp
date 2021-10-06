@@ -169,60 +169,6 @@ inline namespace kernel
     }
   }
 
-  template <typename F>
-  auto apply_2(F&& cmath, pair::const_reference a, pair::const_reference b)
-  {
-    auto inexact = [](pair::const_reference x)
-    {
-      static std::unordered_map<
-        std::type_index, std::function<f64::value_type(pair::const_reference)>> const overloads
-      {
-        { typeid(f32),           [](pair::const_reference x) { return x.as<f32>()          .inexact().template as<f64>().value; } },
-        { typeid(f64),           [](pair::const_reference x) { return x.as<f64>()          .inexact().template as<f64>().value; } },
-        { typeid(ratio),         [](pair::const_reference x) { return x.as<ratio>()        .inexact().template as<f64>().value; } },
-        { typeid(exact_integer), [](pair::const_reference x) { return x.as<exact_integer>().inexact().template as<f64>().value; } },
-      };
-
-      if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
-      {
-        return std::get<1>(*iter)(x);
-      }
-      else
-      {
-        return 0.0;
-      }
-    };
-
-    auto aux1 = [&](auto&& x, auto&& y)
-    {
-      return make(floating_point(cmath(inexact(std::forward<decltype(x)>(x)),
-                                       inexact(std::forward<decltype(y)>(y)))));
-    };
-
-    auto aux2 = [&](auto&& x, auto&& y)
-    {
-      if (floating_point const z {
-            cmath(inexact(std::forward<decltype(x)>(x)),
-                  inexact(std::forward<decltype(y)>(y))) }; z.is_integer())
-      {
-        return make<exact_integer>(z.value);
-      }
-      else
-      {
-        return make(z);
-      }
-    };
-
-    if (a.is<f32>() or a.is<f64>() or b.is<f32>() or b.is<f64>())
-    {
-      return aux1(a, b);
-    }
-    else
-    {
-      return aux2(a, b);
-    }
-  }
-
   auto operator * (exact_integer const&, pair::const_reference) -> pair::value_type;
   auto operator + (exact_integer const&, pair::const_reference) -> pair::value_type;
   auto operator - (exact_integer const&, pair::const_reference) -> pair::value_type;

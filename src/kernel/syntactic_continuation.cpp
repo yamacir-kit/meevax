@@ -366,7 +366,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%nan?", [](auto&& xs)
+    define<procedure>("nan?", [](auto&& xs)
     {
       return car(xs).is_nan() ? t : f;
     });
