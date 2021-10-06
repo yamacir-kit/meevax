@@ -490,11 +490,6 @@
          (ln (car base)))
       (ln z)))
 
-(define (atan y . o)
-  (if (pair? o)
-      (atan-2 y (car o))
-      (atan-1 y)))
-
 (define (make-rectangular x y) (+ x (* y (sqrt -1))))
 
 (define (make-polar radius phi)

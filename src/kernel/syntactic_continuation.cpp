@@ -380,7 +380,6 @@ inline namespace kernel
     define<procedure>("tan",    [](let const& xs) { return car(xs).tan();   });
     define<procedure>("asin",   [](let const& xs) { return car(xs).asin();  });
     define<procedure>("acos",   [](let const& xs) { return car(xs).acos();  });
-    define<procedure>("atan-1", [](let const& xs) { return car(xs).atan();  });
     define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh();  });
     define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh();  });
     define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh();  });
@@ -388,9 +387,19 @@ inline namespace kernel
     define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
     define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
 
-    define<procedure>("atan-2", [](let const& xs)
+    define<procedure>("atan", [](let const& xs)
     {
-      return car(xs).atan2(cadr(xs));
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).atan();
+
+      case 2:
+        return car(xs).atan2(cadr(xs));
+
+      default:
+        throw invalid_application(intern("atan") | xs);
+      }
     });
 
     define<procedure>("expt", [](let const& xs)
