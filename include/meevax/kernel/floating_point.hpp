@@ -96,7 +96,7 @@ inline namespace kernel
     #define DEFINE(NAME)                                                       \
     auto NAME(pair::const_reference x) const                                   \
     {                                                                          \
-      return make(floating_point(std::NAME(value, x.inexact().as<f64>())));    \
+      return make(floating_point(std::NAME(value, x.inexact().as<double_float>()))); \
     }                                                                          \
     static_assert(true)
 

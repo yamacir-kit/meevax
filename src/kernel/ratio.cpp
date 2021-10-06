@@ -55,7 +55,7 @@ inline namespace kernel
 
   auto ratio::inexact() const -> pair::value_type
   {
-    return make<f64>(numerator().inexact().as<f64>() / denominator().inexact().as<f64>());
+    return make<double_float>(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>());
   }
 
   auto ratio::invert() const -> ratio
@@ -100,8 +100,8 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto ratio::NAME() const -> value_type                                       \
   {                                                                            \
-    if (const f64 x {                                                          \
-          std::NAME(numerator().inexact().as<f64>() / denominator().inexact().as<f64>()) \
+    if (const double_float x {                                                 \
+          std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>()) \
         }; x.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(x.value);                                     \
@@ -127,8 +127,9 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto ratio::NAME(pair::const_reference x) const -> value_type                \
   {                                                                            \
-    if (const f64 n {                                                          \
-          std::NAME(numerator().inexact().as<f64>() / denominator().inexact().as<f64>(), x.inexact().as<f64>()) \
+    if (const double_float n {                                                 \
+          std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>(), \
+                    x.inexact().as<double_float>())                            \
         }; n.is_integer())                                                     \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \

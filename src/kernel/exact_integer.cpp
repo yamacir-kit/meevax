@@ -158,7 +158,7 @@ inline namespace kernel
 
   auto exact_integer::inexact() const -> pair::value_type
   {
-    return make<f64>(static_cast<double>(*this));
+    return make<double_float>(static_cast<double>(*this));
   }
 
   auto exact_integer::string(int radix) const -> std::string
@@ -198,7 +198,7 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto exact_integer::NAME() const -> pair::value_type                         \
   {                                                                            \
-    if (const f64 n { std::NAME(static_cast<double>(*this)) }; n.is_integer()) \
+    if (const double_float n { std::NAME(static_cast<double>(*this)) }; n.is_integer()) \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \
     }                                                                          \
@@ -222,9 +222,7 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto exact_integer::NAME(pair::const_reference x) const -> pair::value_type  \
   {                                                                            \
-    if (const f64 n {                                                          \
-          std::NAME(static_cast<double>(*this), x.inexact().as<f64>())         \
-        }; n.is_integer())                                                     \
+    if (const double_float n { std::NAME(static_cast<double>(*this), x.inexact().as<double_float>()) }; n.is_integer()) \
     {                                                                          \
       return make<exact_integer>(n.value);                                     \
     }                                                                          \

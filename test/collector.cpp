@@ -162,15 +162,15 @@ auto main() -> int
   // number
   {
     {
-      let const x = make<f64>(42.0);
+      let const x = make<double_float>(42.0);
 
-      assert(x.is<f64>());
-      assert(x.as<f64>() == 42);
+      assert(x.is<double_float>());
+      assert(x.as<double_float>() == 42);
 
-      let const y = make<f64>("42");
+      let const y = make<double_float>("42");
 
-      assert(y.is<f64>());
-      assert(y.as<f64>() == 42);
+      assert(y.is<double_float>());
+      assert(y.as<double_float>() == 42);
     }
 
     assert(gc.count() == gc_count + 2);
