@@ -93,6 +93,11 @@ inline namespace kernel
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
+    DEFINE(floor);
+    DEFINE(ceil);
+    DEFINE(trunc);
+    DEFINE(round);
+
     #undef DEFINE
 
     #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type

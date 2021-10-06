@@ -671,19 +671,25 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define DEFINE_CMATH_1(NAME, CMATH)                                        \
-    define<procedure>(NAME, [](let const& xs)                                  \
-    {                                                                          \
-      return apply_1([](auto&&... xs)                                          \
-      {                                                                        \
-        return std::CMATH(std::forward<decltype(xs)>(xs)...);                  \
-      }, car(xs));                                                             \
-    })
+    define<procedure>("floor", [](let const& xs)
+    {
+      return car(xs).floor();
+    });
 
-    DEFINE_CMATH_1("floor", floor);
-    DEFINE_CMATH_1("ceiling", ceil);
-    DEFINE_CMATH_1("truncate", trunc);
-    DEFINE_CMATH_1("round", round);
+    define<procedure>("ceiling", [](let const& xs)
+    {
+      return car(xs).ceil();
+    });
+
+    define<procedure>("truncate", [](let const& xs)
+    {
+      return car(xs).trunc();
+    });
+
+    define<procedure>("round", [](let const& xs)
+    {
+      return car(xs).round();
+    });
 
     /* -------------------------------------------------------------------------
      *

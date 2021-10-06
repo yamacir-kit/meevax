@@ -115,60 +115,6 @@ inline namespace kernel
     }
   }
 
-  /* ---- C Mathematical Functions Adapter -------------------------------------
-   *
-   *  Apply the given unary function to a dynamic numeric type. It is assumed
-   *  that the function is given a C math function, and the numeric type is
-   *  automatically converted to an inaccurate numeric type. An inaccurate
-   *  numeric type is a type that corresponds to a C++ literal "0.0" and is
-   *  either a float or a double. If the object does not bind a numeric type, an
-   *  exception will be thrown.
-   *
-   *  Usage:
-   *
-   *    apply(std::sin, make<f64>(1.0));
-   *
-   *  TODO: RENAME TO apply_unary / apply_binary
-   *
-   * ------------------------------------------------------------------------ */
-  template <typename F>
-  auto apply_1(F&& cmath, pair::const_reference x) -> decltype(auto)
-  {
-    auto aux1 = [&](auto&& x)
-    {
-      return make<f64>(cmath(x.inexact().template as<f64>()));
-    };
-
-    auto aux2 = [&](auto&& x)
-    {
-      if (const auto y = f64(cmath(x.inexact().template as<f64>())); y.is_integer())
-      {
-        return make<exact_integer>(y.value);
-      }
-      else
-      {
-        return make(y);
-      }
-    };
-
-    static std::unordered_map<std::type_index, procedure::applicable> const overloads
-    {
-      { typeid(f32),           [&](pair::const_reference x) { return aux1(x.as<f32          >()); } },
-      { typeid(f64),           [&](pair::const_reference x) { return aux1(x.as<f64          >()); } },
-      { typeid(ratio),         [&](pair::const_reference x) { return aux2(x.as<ratio        >()); } },
-      { typeid(exact_integer), [&](pair::const_reference x) { return aux2(x.as<exact_integer>()); } },
-    };
-
-    if (auto const iter = overloads.find(x.type()); iter != std::end(overloads))
-    {
-      return std::get<1>(*iter)(x);
-    }
-    else
-    {
-      throw error(make<string>(string_append("no viable operation ", demangle(typeid(F)), " with ", x)));
-    }
-  }
-
   auto operator * (exact_integer const&, pair::const_reference) -> pair::value_type;
   auto operator + (exact_integer const&, pair::const_reference) -> pair::value_type;
   auto operator - (exact_integer const&, pair::const_reference) -> pair::value_type;
