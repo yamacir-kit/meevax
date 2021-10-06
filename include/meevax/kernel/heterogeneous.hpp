@@ -105,9 +105,9 @@ inline namespace kernel
       #define DEFINE(NAME)                                                     \
       auto NAME() const -> heterogeneous override                              \
       {                                                                        \
-        return delay<NAME##_t>().yield<heterogeneous>(                         \
-          static_cast<Bound const&>(*this));                                   \
-      } static_assert(true)
+        return delay<NAME##_t>().yield<heterogeneous>(static_cast<Bound const&>(*this)); \
+      }                                                                        \
+      static_assert(true)
 
       DEFINE(exact);
       DEFINE(inexact);
@@ -115,6 +115,18 @@ inline namespace kernel
       DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
       DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
       DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+      #undef DEFINE
+
+      #define DEFINE(NAME)                                                     \
+      auto NAME(heterogeneous const& x) const -> heterogeneous override        \
+      {                                                                        \
+        return delay<NAME##_t>().yield<heterogeneous>(static_cast<Bound const&>(*this), x); \
+      }                                                                        \
+      static_assert(true)
+
+      DEFINE(atan2);
+      DEFINE(pow);
 
       #undef DEFINE
     };
@@ -198,14 +210,16 @@ inline namespace kernel
         ss << "no viable operation " #NAME " for " << *this;                   \
         raise(ss.str());                                                       \
       }                                                                        \
-    } static_assert(true)
+    }                                                                          \
+    static_assert(true)
 
     DEFINE(exact);
     DEFINE(inexact);
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
-    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(pow);
+                 DEFINE(atan2);                             DEFINE(sqrt);
 
     #undef DEFINE
   };

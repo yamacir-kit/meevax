@@ -79,11 +79,24 @@ inline namespace kernel
     auto NAME() const                                                          \
     {                                                                          \
       return make(floating_point(std::NAME(value)));                           \
-    } static_assert(true)
+    }                                                                          \
+    static_assert(true)
 
     DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
     DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+    #undef DEFINE
+
+    #define DEFINE(NAME)                                                       \
+    auto NAME(pair::const_reference x) const                                   \
+    {                                                                          \
+      return make(floating_point(std::NAME(value, x.inexact().as<f64>())));    \
+    }                                                                          \
+    static_assert(true)
+
+    DEFINE(atan2);
+    DEFINE(pow);
 
     #undef DEFINE
 

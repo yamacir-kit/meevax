@@ -198,19 +198,40 @@ inline namespace kernel
   #define DEFINE(NAME)                                                         \
   auto exact_integer::NAME() const -> pair::value_type                         \
   {                                                                            \
-    if (const f64 x { std::NAME(static_cast<double>(*this)) }; x.is_integer()) \
+    if (const f64 n { std::NAME(static_cast<double>(*this)) }; n.is_integer()) \
     {                                                                          \
-      return make<exact_integer>(x.value);                                     \
+      return make<exact_integer>(n.value);                                     \
     }                                                                          \
     else                                                                       \
     {                                                                          \
-      return make(x);                                                          \
+      return make(n);                                                          \
     }                                                                          \
   } static_assert(true)
 
   DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
   DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
   DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+  #undef DEFINE
+
+  #define DEFINE(NAME)                                                         \
+  auto exact_integer::NAME(pair::const_reference x) const -> pair::value_type  \
+  {                                                                            \
+    if (const f64 n {                                                          \
+          std::NAME(static_cast<double>(*this), x.inexact().as<f64>())         \
+        }; n.is_integer())                                                     \
+    {                                                                          \
+      return make<exact_integer>(n.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(n);                                                          \
+    }                                                                          \
+  }                                                                            \
+  static_assert(true)
+
+  DEFINE(atan2);
+  DEFINE(pow);
 
   #undef DEFINE
 

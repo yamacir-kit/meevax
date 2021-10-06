@@ -94,6 +94,13 @@ inline namespace kernel
 
     #undef DEFINE
 
+    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type
+
+    DEFINE(atan2);
+    DEFINE(pow);
+
+    #undef DEFINE
+
     explicit operator bool() const;
 
     explicit operator int() const;

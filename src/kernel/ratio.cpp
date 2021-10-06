@@ -110,11 +110,33 @@ inline namespace kernel
     {                                                                          \
       return make(x);                                                          \
     }                                                                          \
-  } static_assert(true)
+  }                                                                            \
+  static_assert(true)
 
   DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
   DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
   DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+  #undef DEFINE
+
+  #define DEFINE(NAME)                                                         \
+  auto ratio::NAME(pair::const_reference x) const -> value_type                \
+  {                                                                            \
+    if (const f64 n {                                                          \
+          std::NAME(numerator().inexact().as<f64>() / denominator().inexact().as<f64>(), x.inexact().as<f64>()) \
+        }; n.is_integer())                                                     \
+    {                                                                          \
+      return make<exact_integer>(n.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(n);                                                          \
+    }                                                                          \
+  }                                                                            \
+  static_assert(true)
+
+  DEFINE(atan2);
+  DEFINE(pow);
 
   #undef DEFINE
 

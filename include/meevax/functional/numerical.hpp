@@ -42,10 +42,11 @@ inline namespace functional
   #define DEFINE(NAME)                                                         \
   struct NAME##_t                                                              \
   {                                                                            \
-    template <typename T>                                                      \
-    auto operator ()(T&& x) -> decltype(x.std::template decay<T>::type::NAME()) \
+    template <typename T, typename... Ts>                                      \
+    auto operator ()(T&& x, Ts&&... xs)                                        \
+      -> decltype(x.std::template decay<T>::type::NAME(std::forward<decltype(xs)>(xs)...)) \
     {                                                                          \
-      return x.std::template decay<T>::type::NAME();                           \
+      return x.std::template decay<T>::type::NAME(std::forward<decltype(xs)>(xs)...); \
     }                                                                          \
                                                                                \
     friend auto operator <<(std::ostream & os, NAME##_t const&) -> std::ostream & \
@@ -55,14 +56,13 @@ inline namespace functional
   }
 
   DEFINE(exact);
-  DEFINE(exp);
   DEFINE(inexact);
-  DEFINE(log);
-  DEFINE(sqrt);
 
-  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);
-  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);
-  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);
+
+  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh);  DEFINE(exp);
+  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh);  DEFINE(log);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh);  DEFINE(pow);
+               DEFINE(atan2);                              DEFINE(sqrt);
 
   #undef DEFINE
 } // namespace functional

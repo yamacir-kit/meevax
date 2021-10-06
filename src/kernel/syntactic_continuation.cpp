@@ -388,8 +388,15 @@ inline namespace kernel
     define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
     define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
 
-    define<procedure>("atan-2", [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
-    define<procedure>("expt"  , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
+    define<procedure>("atan-2", [](let const& xs)
+    {
+      return car(xs).atan2(cadr(xs));
+    });
+
+    define<procedure>("expt", [](let const& xs)
+    {
+      return car(xs).pow(cadr(xs));
+    });
   }
 
   template <>

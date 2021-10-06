@@ -94,6 +94,13 @@ inline namespace kernel
     DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
 
     #undef DEFINE
+
+    #define DEFINE(NAME) auto NAME(pair::const_reference) const -> pair::value_type
+
+    DEFINE(atan2);
+    DEFINE(pow);
+
+    #undef DEFINE
   };
 
   auto operator <<(std::ostream &, ratio const&) -> std::ostream &;
