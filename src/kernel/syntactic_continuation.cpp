@@ -371,9 +371,23 @@ inline namespace kernel
       return car(xs).is_nan() ? t : f;
     });
 
-    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();   });
-    define<procedure>("ln",     [](let const& xs) { return car(xs).log();   });
+    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();  });
     define<procedure>("sqrt",   [](let const& xs) { return car(xs).sqrt(); });
+
+    define<procedure>("log", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).log();
+
+      case 2:
+        return car(xs).log() / cadr(xs).log();
+
+      default:
+        throw invalid_application(intern("log") | xs);
+      }
+    });
 
     define<procedure>("sin",    [](let const& xs) { return car(xs).sin();   });
     define<procedure>("cos",    [](let const& xs) { return car(xs).cos();   });

@@ -484,12 +484,6 @@
         (e (abs e)))
     (sr (- x e) (+ x e) return)))
 
-(define (log z . base)
-  (if (pair? base)
-      (/ (ln z)
-         (ln (car base)))
-      (ln z)))
-
 (define (make-rectangular x y) (+ x (* y (sqrt -1))))
 
 (define (make-polar radius phi)
