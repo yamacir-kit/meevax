@@ -220,7 +220,7 @@ inline namespace kernel
   DEFINE_LIBRARY(inexact);
   // DEFINE_LIBRARY(lazy);
   DEFINE_LIBRARY(load);
-  // DEFINE_LIBRARY(process_context);
+  DEFINE_LIBRARY(process_context);
   // DEFINE_LIBRARY(r5rs);
   // DEFINE_LIBRARY(read);
   // DEFINE_LIBRARY(repl);

@@ -476,6 +476,47 @@ inline namespace kernel
   }
 
   template <>
+  auto syntactic_continuation::import(standard::process_context_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (emergency-exit)                      process-context library procedure
+     *  (emergency-exit obj)                  process-context library procedure
+     *
+     *  Terminates the program without running any outstanding dynamic-wind
+     *  after procedures and communicates an exit value to the operating system
+     *  in the same manner as exit.
+     *
+     *  NOTE: The emergency-exit procedure corresponds to the exit procedure in
+     *  Windows and Posix.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("emergency-exit", [](let const& xs) -> value_type
+    {
+      switch (length(xs))
+      {
+      case 0:
+        throw exit_status::success;
+
+      case 1:
+        if (let const& x = car(xs); x.is<boolean>())
+        {
+          throw if_(x) ? exit_status::success : exit_status::failure;
+        }
+        else if (x.is<exact_integer>())
+        {
+          throw exit_status(static_cast<int>(x.as<exact_integer>()));
+        }
+        else [[fallthrough]];
+
+      default:
+        throw invalid_application(intern("emergency-exit") | xs);
+      }
+    });
+  }
+
+  template <>
   void syntactic_continuation::import(import_set<layer::module_system>)
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
@@ -2072,43 +2113,6 @@ inline namespace kernel
     {
       car(xs).as<std::ostream>() << std::flush;
       return unspecified;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (emergency-exit)                      process-context library procedure
-     *  (emergency-exit obj)                  process-context library procedure
-     *
-     *  Terminates the program without running any outstanding dynamic-wind
-     *  after procedures and communicates an exit value to the operating system
-     *  in the same manner as exit.
-     *
-     *  NOTE: The emergency-exit procedure corresponds to the exit procedure in
-     *  Windows and Posix.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("emergency-exit", [](let const& xs) -> value_type
-    {
-      switch (length(xs))
-      {
-      case 0:
-        throw exit_status::success;
-
-      case 1:
-        if (let const& x = car(xs); x.is<boolean>())
-        {
-          throw if_(x) ? exit_status::success : exit_status::failure;
-        }
-        else if (x.is<exact_integer>())
-        {
-          throw exit_status(static_cast<int>(x.as<exact_integer>()));
-        }
-        else [[fallthrough]];
-
-      default:
-        throw invalid_application(intern("emergency-exit") | xs);
-      }
     });
 
     /* -------------------------------------------------------------------------
