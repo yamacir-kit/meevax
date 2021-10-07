@@ -366,32 +366,60 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("%nan?", [](auto&& xs)
+    define<procedure>("nan?", [](auto&& xs)
     {
-      return is_nan(car(xs)) ? t : f;
+      return car(xs).is_nan() ? t : f;
     });
 
-    define<procedure>( "sin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sin (x   ); }, car(xs)          ); });
-    define<procedure>( "sinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: sinh(x   ); }, car(xs)          ); });
-    define<procedure>("asinh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asinh(x   ); }, car(xs)          ); });
-    define<procedure>("asin"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::asin (x   ); }, car(xs)          ); });
+    define<procedure>("exp",    [](let const& xs) { return car(xs).exp();  });
+    define<procedure>("sqrt",   [](let const& xs) { return car(xs).sqrt(); });
 
-    define<procedure>( "cos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cos (x   ); }, car(xs)          ); });
-    define<procedure>( "cosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: cosh(x   ); }, car(xs)          ); });
-    define<procedure>("acosh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acosh(x   ); }, car(xs)          ); });
-    define<procedure>("acos"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::acos (x   ); }, car(xs)          ); });
+    define<procedure>("log", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).log();
 
-    define<procedure>( "tan"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tan (x   ); }, car(xs)          ); });
-    define<procedure>( "tanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std:: tanh(x   ); }, car(xs)          ); });
-    define<procedure>("atanh" , [](let const& xs) { return apply_1([](auto&& x          ) { return std::atanh(x   ); }, car(xs)          ); });
-    define<procedure>("atan-1", [](let const& xs) { return apply_1([](auto&& x          ) { return std::atan (x   ); }, car(xs)          ); });
-    define<procedure>("atan-2", [](let const& xs) { return apply_2([](auto&& y, auto&& x) { return std::atan2(y, x); }, car(xs), cadr(xs)); });
+      case 2:
+        return car(xs).log() / cadr(xs).log();
 
-    define<procedure>("sqrt"  , [](let const& xs) { return apply_1([](auto&& x          ) { return std::sqrt (x   ); }, car(xs)          ); });
+      default:
+        throw invalid_application(intern("log") | xs);
+      }
+    });
 
-    define<procedure>("ln"    , [](let const& xs) { return apply_1([](auto&& x          ) { return std::log  (x   ); }, car(xs)          ); });
-    define<procedure>("exp"   , [](let const& xs) { return apply_1([](auto&& x          ) { return std::exp  (x   ); }, car(xs)          ); });
-    define<procedure>("expt"  , [](let const& xs) { return apply_2([](auto&& x, auto&& y) { return std::pow  (x, y); }, car(xs), cadr(xs)); });
+    define<procedure>("sin",    [](let const& xs) { return car(xs).sin();   });
+    define<procedure>("cos",    [](let const& xs) { return car(xs).cos();   });
+    define<procedure>("tan",    [](let const& xs) { return car(xs).tan();   });
+    define<procedure>("asin",   [](let const& xs) { return car(xs).asin();  });
+    define<procedure>("acos",   [](let const& xs) { return car(xs).acos();  });
+    define<procedure>("sinh",   [](let const& xs) { return car(xs).sinh();  });
+    define<procedure>("cosh",   [](let const& xs) { return car(xs).cosh();  });
+    define<procedure>("tanh",   [](let const& xs) { return car(xs).tanh();  });
+    define<procedure>("asinh",  [](let const& xs) { return car(xs).asinh(); });
+    define<procedure>("acosh",  [](let const& xs) { return car(xs).acosh(); });
+    define<procedure>("atanh",  [](let const& xs) { return car(xs).atanh(); });
+
+    define<procedure>("atan", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).atan();
+
+      case 2:
+        return car(xs).atan2(cadr(xs));
+
+      default:
+        throw invalid_application(intern("atan") | xs);
+      }
+    });
+
+    define<procedure>("expt", [](let const& xs)
+    {
+      return car(xs).pow(cadr(xs));
+    });
   }
 
   template <>
@@ -509,8 +537,8 @@ inline namespace kernel
 
     define<procedure>("%complex?", is<complex>());
     define<procedure>("ratio?", is<ratio>());
-    define<procedure>("single-float?", is<f32>());
-    define<procedure>("double-float?", is<f64>());
+    define<procedure>("single-float?", is<single_float>());
+    define<procedure>("double-float?", is<double_float>());
 
     /* -------------------------------------------------------------------------
      *
@@ -643,19 +671,25 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    #define DEFINE_CMATH_1(NAME, CMATH)                                        \
-    define<procedure>(NAME, [](let const& xs)                                  \
-    {                                                                          \
-      return apply_1([](auto&&... xs)                                          \
-      {                                                                        \
-        return std::CMATH(std::forward<decltype(xs)>(xs)...);                  \
-      }, car(xs));                                                             \
-    })
+    define<procedure>("floor", [](let const& xs)
+    {
+      return car(xs).floor();
+    });
 
-    DEFINE_CMATH_1("floor", floor);
-    DEFINE_CMATH_1("ceiling", ceil);
-    DEFINE_CMATH_1("truncate", trunc);
-    DEFINE_CMATH_1("round", round);
+    define<procedure>("ceiling", [](let const& xs)
+    {
+      return car(xs).ceil();
+    });
+
+    define<procedure>("truncate", [](let const& xs)
+    {
+      return car(xs).trunc();
+    });
+
+    define<procedure>("round", [](let const& xs)
+    {
+      return car(xs).round();
+    });
 
     /* -------------------------------------------------------------------------
      *
@@ -695,12 +729,12 @@ inline namespace kernel
 
     define<procedure>("exact", [](auto&& xs)
     {
-      return exact(car(xs));
+      return car(xs).exact();
     });
 
     define<procedure>("inexact", [](auto&& xs)
     {
-      return inexact(car(xs));
+      return car(xs).inexact();
     });
 
     /* -------------------------------------------------------------------------

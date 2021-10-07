@@ -43,14 +43,19 @@ inline namespace kernel
     }
   }
 
-  auto ratio::as_exact() const noexcept -> ratio const&
+  auto ratio::exact() const -> value_type
   {
-    return *this;
+    return simple();
   }
 
   auto ratio::denominator() const -> exact_integer const&
   {
     return std::get<1>(*this).as<exact_integer>();
+  }
+
+  auto ratio::inexact() const -> pair::value_type
+  {
+    return make<double_float>(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>());
   }
 
   auto ratio::invert() const -> ratio
@@ -70,16 +75,76 @@ inline namespace kernel
 
   auto ratio::reduce() const -> ratio
   {
-    if (auto const common_divisor = exact_integer(gcd, numerator(), denominator()); common_divisor != 1)
+    if (auto const d = exact_integer(gcd, numerator(), denominator()); d != 1)
     {
-      return ratio(make<exact_integer>(divide, numerator(), common_divisor),
-                   make<exact_integer>(divide, denominator(), common_divisor));
+      return ratio(make<exact_integer>(div, numerator(), d), make<exact_integer>(div, denominator(), d));
     }
     else
     {
       return *this;
     }
   }
+
+  auto ratio::simple() const -> value_type
+  {
+    if (auto x = reduce(); x.is_integer())
+    {
+      return std::get<0>(x);
+    }
+    else
+    {
+      return make(x);
+    }
+  }
+
+  #define DEFINE(NAME)                                                         \
+  auto ratio::NAME() const -> value_type                                       \
+  {                                                                            \
+    if (const double_float x {                                                 \
+          std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>()) \
+        }; x.is_integer())                                                     \
+    {                                                                          \
+      return make<exact_integer>(x.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(x);                                                          \
+    }                                                                          \
+  }                                                                            \
+  static_assert(true)
+
+  DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+  DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+  DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+  DEFINE(floor);
+  DEFINE(ceil);
+  DEFINE(trunc);
+  DEFINE(round);
+
+  #undef DEFINE
+
+  #define DEFINE(NAME)                                                         \
+  auto ratio::NAME(pair::const_reference x) const -> value_type                \
+  {                                                                            \
+    if (const double_float n {                                                 \
+          std::NAME(numerator().inexact().as<double_float>() / denominator().inexact().as<double_float>(), \
+                    x.inexact().as<double_float>())                            \
+        }; n.is_integer())                                                     \
+    {                                                                          \
+      return make<exact_integer>(n.value);                                     \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      return make(n);                                                          \
+    }                                                                          \
+  }                                                                            \
+  static_assert(true)
+
+  DEFINE(atan2);
+  DEFINE(pow);
+
+  #undef DEFINE
 
   auto operator <<(std::ostream & os, ratio const& datum) -> std::ostream &
   {

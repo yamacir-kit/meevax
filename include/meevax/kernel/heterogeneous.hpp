@@ -22,6 +22,7 @@
 #include <meevax/functional/division.hpp>
 #include <meevax/functional/modulo.hpp>
 #include <meevax/functional/multiplication.hpp>
+#include <meevax/functional/numerical.hpp>
 #include <meevax/functional/subtraction.hpp>
 #include <meevax/posix/vt10x.hpp>
 #include <meevax/type_traits/delay.hpp>
@@ -65,6 +66,11 @@ inline namespace kernel
         }
       }
 
+      auto is_nan() const -> bool override
+      {
+        return delay<nanp>().yield<bool>(static_cast<Bound const&>(*this));
+      }
+
       auto type() const noexcept -> std::type_info const& override
       {
         return typeid(Bound);
@@ -95,6 +101,39 @@ inline namespace kernel
       BOILERPLATE(>=, bool, std::greater_equal<void>);
 
       #undef BOILERPLATE
+
+      #define DEFINE(NAME)                                                     \
+      auto NAME() const -> heterogeneous override                              \
+      {                                                                        \
+        return delay<NAME##_t>().yield<heterogeneous>(static_cast<Bound const&>(*this)); \
+      }                                                                        \
+      static_assert(true)
+
+      DEFINE(exact);
+      DEFINE(inexact);
+
+      DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+      DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+      DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(sqrt);
+
+      DEFINE(floor);
+      DEFINE(ceil);
+      DEFINE(trunc);
+      DEFINE(round);
+
+      #undef DEFINE
+
+      #define DEFINE(NAME)                                                     \
+      auto NAME(heterogeneous const& x) const -> heterogeneous override        \
+      {                                                                        \
+        return delay<NAME##_t>().yield<heterogeneous>(static_cast<Bound const&>(*this), x); \
+      }                                                                        \
+      static_assert(true)
+
+      DEFINE(atan2);
+      DEFINE(pow);
+
+      #undef DEFINE
     };
 
   public:
@@ -152,10 +191,47 @@ inline namespace kernel
       return dynamic_cast<pointer<U>>(Pointer<Top>::get()) != nullptr;
     }
 
+    inline auto is_nan() const
+    {
+      return not is<null>() and Pointer<Top>::load().is_nan();
+    }
+
     inline auto type() const -> std::type_info const&
     {
       return *this ? Pointer<Top>::load().type() : typeid(null);
     }
+
+    #define DEFINE(NAME)                                                       \
+    template <typename... Ts>                                                  \
+    inline auto NAME(Ts&&... xs) const                                         \
+    {                                                                          \
+      if (not is<null>())                                                      \
+      {                                                                        \
+        return Pointer<Top>::load().NAME(std::forward<decltype(xs)>(xs)...);   \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        std::stringstream ss {};                                               \
+        ss << "no viable operation " #NAME " for " << *this;                   \
+        raise(ss.str());                                                       \
+      }                                                                        \
+    }                                                                          \
+    static_assert(true)
+
+    DEFINE(exact);
+    DEFINE(inexact);
+
+    DEFINE(sin); DEFINE(asin); DEFINE(sinh); DEFINE(asinh); DEFINE(exp);
+    DEFINE(cos); DEFINE(acos); DEFINE(cosh); DEFINE(acosh); DEFINE(log);
+    DEFINE(tan); DEFINE(atan); DEFINE(tanh); DEFINE(atanh); DEFINE(pow);
+                 DEFINE(atan2);                             DEFINE(sqrt);
+
+    DEFINE(floor);
+    DEFINE(ceil);
+    DEFINE(trunc);
+    DEFINE(round);
+
+    #undef DEFINE
   };
 
   template <template <typename...> typename Pointer, typename Top>

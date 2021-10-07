@@ -217,7 +217,7 @@ inline namespace kernel
 
     auto decimal = [](std::string const& token, auto)
     {
-      auto const result = f64(token);
+      auto const result = double_float(token);
       return make(result);
     };
 
@@ -380,14 +380,14 @@ inline namespace kernel
             return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 10);
 
           case 'e':
-            return exact(read(is)); // NOTE: Same as #,(exact (read))
+            return read(is).exact(); // NOTE: Same as #,(exact (read))
 
           case 'f':
             parse::token(is);
             return f;
 
           case 'i':
-            return inexact(read(is)); // NOTE: Same as #,(inexact (read))
+            return read(is).inexact(); // NOTE: Same as #,(inexact (read))
 
           case 'o':
             return string_to::number(is.peek() == '#' ? lexical_cast<std::string>(read(is)) : parse::token(is), 8);
