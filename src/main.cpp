@@ -25,6 +25,7 @@ auto main(int const argc, char const* const* const argv) -> int
     auto root = syntactic_continuation(import_set<layer::module_system         >(),
                                        meevax::base_v,
                                        meevax::inexact_v,
+                                       meevax::load_v,
                                        import_set<layer::standard_procedure    >(),
                                        import_set<layer::standard_library      >(),
                                        import_set<layer::experimental_procedure>()

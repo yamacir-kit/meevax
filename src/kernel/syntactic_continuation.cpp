@@ -423,6 +423,38 @@ inline namespace kernel
   }
 
   template <>
+  auto syntactic_continuation::import(load_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (load filename)                                  load library procedure
+     *  (load filename environment-specifier)            load library procedure
+     *
+     *  It is an error if filename is not a string. An implementation-dependent
+     *  operation is used to transform filename into the name of an existing
+     *  file containing Scheme source code. The load procedure reads
+     *  expressions and definitions from the file and evaluates them
+     *  sequentially in the environment specified by environment-specifier. If
+     *  environment-specifier is omitted, (interaction-environment) is assumed.
+     *
+     *  It is unspecified whether the results of the expressions are printed.
+     *  The load procedure does not affect the values returned by
+     *  current-input-port and current-output-port. It returns an unspecified
+     *  value.
+     *
+     *  Rationale: For portability, load must operate on source files. Its
+     *  operation on other kinds of files necessarily varies among
+     *  implementations.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("load", [this](let const& xs)
+    {
+      return load(car(xs).as<string>());
+    });
+  }
+
+  template <>
   void syntactic_continuation::import(import_set<layer::module_system>)
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
@@ -2036,34 +2068,6 @@ inline namespace kernel
     {
       car(xs).as<std::ostream>() << std::flush;
       return unspecified;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (load filename)                                  load library procedure
-     *  (load filename environment-specifier)            load library procedure
-     *
-     *  It is an error if filename is not a string. An implementation-dependent
-     *  operation is used to transform filename into the name of an existing
-     *  file containing Scheme source code. The load procedure reads
-     *  expressions and definitions from the file and evaluates them
-     *  sequentially in the environment specified by environment-specifier. If
-     *  environment-specifier is omitted, (interaction-environment) is assumed.
-     *
-     *  It is unspecified whether the results of the expressions are printed.
-     *  The load procedure does not affect the values returned by
-     *  current-input-port and current-output-port. It returns an unspecified
-     *  value.
-     *
-     *  Rationale: For portability, load must operate on source files. Its
-     *  operation on other kinds of files necessarily varies among
-     *  implementations.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("load", [this](let const& xs)
-    {
-      return load(car(xs).as<string>());
     });
 
     /* -------------------------------------------------------------------------
