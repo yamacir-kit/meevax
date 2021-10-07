@@ -335,7 +335,7 @@ inline namespace kernel
   template class writer<syntactic_continuation>;
 
   template <>
-  auto syntactic_continuation::import(base_t) -> void
+  auto syntactic_continuation::import(standard::base_t) -> void
   {
     define<syntax>("begin", sequence);
     define<syntax>("call-with-current-continuation!", call_with_current_continuation);
@@ -349,12 +349,33 @@ inline namespace kernel
   }
 
   template <>
-  auto syntactic_continuation::import(character_t) -> void
+  auto syntactic_continuation::import(standard::character_t) -> void
   {
   }
 
   template <>
-  auto syntactic_continuation::import(inexact_t) -> void
+  auto syntactic_continuation::import(standard::evaluate_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (eval expr-or-def environment-specifier)         eval library procedure
+     *
+     *  If expr-or-def is an expression, it is evaluated in the specified
+     *  environment and its values are returned. If it is a definition, the
+     *  specified identifier(s) are defined in the specified environment,
+     *  provided the environment is not immutable. Implementations may extend
+     *  eval to allow other objects.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("eval", [](let const& xs)
+    {
+      return cadr(xs).as<syntactic_continuation>().evaluate(car(xs));
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::inexact_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -423,7 +444,7 @@ inline namespace kernel
   }
 
   template <>
-  auto syntactic_continuation::import(load_t) -> void
+  auto syntactic_continuation::import(standard::load_t) -> void
   {
     /* -------------------------------------------------------------------------
      *
@@ -1582,23 +1603,6 @@ inline namespace kernel
     define<procedure>("file-error?", is<file_error>());
 
     define<procedure>("syntax-error?", is<syntax_error>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (eval expr-or-def environment-specifier)         eval library procedure
-     *
-     *  If expr-or-def is an expression, it is evaluated in the specified
-     *  environment and its values are returned. If it is a definition, the
-     *  specified identifier(s) are defined in the specified environment,
-     *  provided the environment is not immutable. Implementations may extend
-     *  eval to allow other objects.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("eval", [](let const& xs)
-    {
-      return cadr(xs).as<syntactic_continuation>().evaluate(car(xs));
-    });
 
     /* -------------------------------------------------------------------------
      *

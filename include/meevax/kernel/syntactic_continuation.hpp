@@ -198,21 +198,24 @@ inline namespace kernel
   };
 
   #define DEFINE_LIBRARY(NAME)                                                 \
-  struct NAME##_t                                                              \
+  namespace standard                                                           \
   {                                                                            \
-    explicit NAME##_t() = default;                                             \
+    struct NAME##_t                                                            \
+    {                                                                          \
+      explicit NAME##_t() = default;                                           \
+    }                                                                          \
+    inline constexpr NAME {};                                                  \
   }                                                                            \
-  inline constexpr NAME##_v {};                                                \
                                                                                \
   template <>                                                                  \
-  auto syntactic_continuation::import(NAME##_t) -> void
+  auto syntactic_continuation::import(standard::NAME##_t) -> void
 
   DEFINE_LIBRARY(base);
   // DEFINE_LIBRARY(case_lambda);
   DEFINE_LIBRARY(character);
   // DEFINE_LIBRARY(complex);
   // DEFINE_LIBRARY(cxr);
-  // DEFINE_LIBRARY(evaluate);
+  DEFINE_LIBRARY(evaluate);
   // DEFINE_LIBRARY(file);
   DEFINE_LIBRARY(inexact);
   // DEFINE_LIBRARY(lazy);
