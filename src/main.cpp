@@ -28,6 +28,8 @@ auto main(int const argc, char const* const* const argv) -> int
                                        standard::inexact,
                                        standard::load,
                                        standard::process_context,
+                                       standard::read,
+                                       standard::write,
                                        import_set<layer::standard_procedure    >(),
                                        import_set<layer::standard_library      >(),
                                        import_set<layer::experimental_procedure>()

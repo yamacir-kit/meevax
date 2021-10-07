@@ -517,6 +517,82 @@ inline namespace kernel
   }
 
   template <>
+  auto syntactic_continuation::import(standard::read_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (read)                                           read library procedure
+     *  (read port)                                      read library procedure
+     *
+     *  The read procedure converts external representations of Scheme objects
+     *  into the objects themselves. That is, it is a parser for the
+     *  non-terminal hdatumi (see sections 7.1.2 and 6.4). It returns the next
+     *  object parsable from the given textual input port, updating port to
+     *  point to the first character past the end of the external
+     *  representation of the object.
+     *
+     *  Implementations may support extended syntax to represent record types
+     *  or other types that do not have datum representations.
+     *
+     *  If an end of file is encountered in the input before any characters are
+     *  found that can begin an object, then an end-of-file object is returned.
+     *  The port remains open, and further attempts to read will also return an
+     *  end-of-file object. If an end of file is encountered after the
+     *  beginning of an object’s external representation, but the external
+     *  representation is incomplete and therefore not parsable, an error that
+     *  satisfies read-error? is signaled.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("::read", [this](let const& xs)
+    {
+      try
+      {
+        switch (length(xs))
+        {
+        case 0:
+          return read(default_input_port);
+
+        case 1:
+          return read(car(xs));
+
+        default:
+          throw invalid_application(intern("read") | xs);
+        }
+      }
+      catch (eof const&)
+      {
+        return eof_object;
+      }
+      catch (read_error const& error)
+      {
+        return make(error);
+      }
+    });
+  }
+
+  template <>
+  auto syntactic_continuation::import(standard::write_t) -> void
+  {
+    /* -------------------------------------------------------------------------
+     *
+     *  (write-simple obj)                              write library procedure
+     *  (write-simple obj port)                         write library procedure
+     *
+     *  The write-simple procedure is the same as write, except that shared
+     *  structure is never represented using datum labels. This can cause
+     *  write-simple not to terminate if obj contains circular structure.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("::write-simple", [this](let const& xs)
+    {
+      write_to(cadr(xs), car(xs));
+      return unspecified;
+    });
+  }
+
+  template <>
   void syntactic_continuation::import(import_set<layer::module_system>)
   {
     define<procedure>("free-identifier=?", [this](let const& xs)
@@ -1838,57 +1914,6 @@ inline namespace kernel
 
     /* -------------------------------------------------------------------------
      *
-     *  (read)                                           read library procedure
-     *  (read port)                                      read library procedure
-     *
-     *  The read procedure converts external representations of Scheme objects
-     *  into the objects themselves. That is, it is a parser for the
-     *  non-terminal hdatumi (see sections 7.1.2 and 6.4). It returns the next
-     *  object parsable from the given textual input port, updating port to
-     *  point to the first character past the end of the external
-     *  representation of the object.
-     *
-     *  Implementations may support extended syntax to represent record types
-     *  or other types that do not have datum representations.
-     *
-     *  If an end of file is encountered in the input before any characters are
-     *  found that can begin an object, then an end-of-file object is returned.
-     *  The port remains open, and further attempts to read will also return an
-     *  end-of-file object. If an end of file is encountered after the
-     *  beginning of an object’s external representation, but the external
-     *  representation is incomplete and therefore not parsable, an error that
-     *  satisfies read-error? is signaled.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::read", [this](let const& xs)
-    {
-      try
-      {
-        switch (length(xs))
-        {
-        case 0:
-          return read(default_input_port);
-
-        case 1:
-          return read(car(xs));
-
-        default:
-          throw invalid_application(intern("read") | xs);
-        }
-      }
-      catch (eof const&)
-      {
-        return eof_object;
-      }
-      catch (read_error const& error)
-      {
-        return make(error);
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
      *  (read-char)                                                   procedure
      *  (read-char port)                                              procedure
      *
@@ -2025,23 +2050,6 @@ inline namespace kernel
       default:
         throw invalid_application(intern("read-string") | xs);
       }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (write-simple obj)                              write library procedure
-     *  (write-simple obj port)                         write library procedure
-     *
-     *  The write-simple procedure is the same as write, except that shared
-     *  structure is never represented using datum labels. This can cause
-     *  write-simple not to terminate if obj contains circular structure.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("::write-simple", [this](let const& xs)
-    {
-      write_to(cadr(xs), car(xs));
-      return unspecified;
     });
 
     /* -------------------------------------------------------------------------

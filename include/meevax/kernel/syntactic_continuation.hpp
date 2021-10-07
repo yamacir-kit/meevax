@@ -222,10 +222,10 @@ inline namespace kernel
   DEFINE_LIBRARY(load);
   DEFINE_LIBRARY(process_context);
   // DEFINE_LIBRARY(r5rs);
-  // DEFINE_LIBRARY(read);
+  DEFINE_LIBRARY(read);
   // DEFINE_LIBRARY(repl);
   // DEFINE_LIBRARY(time);
-  // DEFINE_LIBRARY(write);
+  DEFINE_LIBRARY(write);
 
   template <auto N>
   using import_set = typename std::integral_constant<decltype(N), N>;
