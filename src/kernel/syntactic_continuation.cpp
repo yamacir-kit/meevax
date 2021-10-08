@@ -346,6 +346,47 @@ inline namespace kernel
     define<syntax>("letrec", letrec);
     define<syntax>("quote", quotation);
     define<syntax>("set!", assignment);
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (eqv? obj1 obj2)                                              procedure
+     *
+     *  The eqv? procedure defines a useful equivalence relation on objects.
+     *  Briefly, it returns #t if obj1 and obj2 are normally regarded as the
+     *  same object. This relation is left slightly open to interpretation, but
+     *  the following partial specification of eqv? holds for all
+     *  implementations of Scheme.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("eqv?", [](let const& xs)
+    {
+      return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (eq? obj1 obj2)                                               procedure
+     *
+     *  The eq? procedure is similar to eqv? except that in some cases it is
+     *  capable of discerning distinctions finer than those detectable by eqv?.
+     *  It must always return #f when eqv? also would, but may return #f in
+     *  some cases where eqv? would return #t.
+     *
+     *  On symbols, booleans, the empty list, pairs, and records, and also on
+     *  non-empty strings, vectors, and bytevectors, eq? and eqv? are
+     *  guaranteed to have the same behavior. On procedures, eq? must return
+     *  true if the arguments' location tags are equal. On numbers and
+     *  characters, eq?'s behavior is implementation-dependent, but it will
+     *  always return either true or false. On empty strings, empty vectors,
+     *  and empty bytevectors, eq? may also behave differently from eqv?.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("eq?", [](auto&& xs)
+    {
+      return car(xs) == cadr(xs) ? t : f;
+    });
   }
 
   template <>
@@ -642,47 +683,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (eqv? obj1 obj2)                                              procedure
-     *
-     *  The eqv? procedure defines a useful equivalence relation on objects.
-     *  Briefly, it returns #t if obj1 and obj2 are normally regarded as the
-     *  same object. This relation is left slightly open to interpretation, but
-     *  the following partial specification of eqv? holds for all
-     *  implementations of Scheme.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("eqv?", [](let const& xs)
-    {
-      return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (eq? obj1 obj2)                                               procedure
-     *
-     *  The eq? procedure is similar to eqv? except that in some cases it is
-     *  capable of discerning distinctions finer than those detectable by eqv?.
-     *  It must always return #f when eqv? also would, but may return #f in
-     *  some cases where eqv? would return #t.
-     *
-     *  On symbols, booleans, the empty list, pairs, and records, and also on
-     *  non-empty strings, vectors, and bytevectors, eq? and eqv? are
-     *  guaranteed to have the same behavior. On procedures, eq? must return
-     *  true if the arguments' location tags are equal. On numbers and
-     *  characters, eq?'s behavior is implementation-dependent, but it will
-     *  always return either true or false. On empty strings, empty vectors,
-     *  and empty bytevectors, eq? may also behave differently from eqv?.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("eq?", [](auto&& xs)
-    {
-      return car(xs) == cadr(xs) ? t : f;
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (number? obj)                                                 procedure
@@ -2272,7 +2272,7 @@ inline namespace kernel
   }
 
   template <>
-  void syntactic_continuation::import(import_set<layer::experimental_procedure>)
+  auto syntactic_continuation::import(standard::experimental_t) -> void
   {
     define<procedure>("disassemble", [](let const& xs)
     {
