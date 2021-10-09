@@ -274,8 +274,6 @@ parameterize ; is defined in srfi-39.ss
 
 ; ---- 6.3. Booleans -----------------------------------------------------------
 
-(define boolean=? eqv?)
-
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
 
 (define list-tail drop) ; from SRFI-1

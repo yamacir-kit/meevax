@@ -359,7 +359,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eqv?", [](let const& xs)
+    define<procedure>("eqv?", [](let const& xs) // TODO Rename to value=?
     {
       return ::meevax::eqv(car(xs), cadr(xs)) ? t : f;
     });
@@ -383,7 +383,7 @@ inline namespace kernel
      *
      * ---------------------------------------------------------------------- */
 
-    define<procedure>("eq?", [](auto&& xs)
+    define<procedure>("eq?", [](auto&& xs) // TODO Rename to reference=?
     {
       return eq(car(xs), cadr(xs)) ? t : f;
     });
@@ -709,6 +709,65 @@ inline namespace kernel
         throw invalid_application(intern("string->number") | xs);
       }
     });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (pair? obj)                                                   procedure
+     *
+     *  The pair? predicate returns #t if obj is a pair, and otherwise returns
+     *  #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("pair?", is<pair>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (cons obj1 obj2)                                              procedure
+     *
+     *  Returns a newly allocated pair whose car is obj1 and whose cdr is obj2.
+     *  The pair is guaranteed to be different (in the sense of eqv?) from
+     *  every existing object.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<syntactic_procedure>("cons", construction, [](let const& xs)
+    {
+      return cons(car(xs), cadr(xs));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (car pair)                                                    procedure
+     *
+     *  Returns the contents of the car field of pair. Note that it is an error
+     *  to take the car of the empty list.
+     *
+     *  (cdr pair)                                                    procedure
+     *
+     *  Returns the contents of the cdr field of pair. Note that it is an error
+     *  to take the cdr of the empty list.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("car", [](let const& xs) { return caar(xs); });
+    define<procedure>("cdr", [](let const& xs) { return cdar(xs); });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (set-car! pair obj)                                           procedure
+     *
+     *  Stores obj in the car field of pair.
+     *
+     *  (set-cdr! pair obj)                                           procedure
+     *
+     *  Stores obj in the cdr field of pair.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
+    define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
+
   }
 
   template <>
@@ -1000,65 +1059,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (pair? obj)                                                   procedure
-     *
-     *  The pair? predicate returns #t if obj is a pair, and otherwise returns
-     *  #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("pair?", is<pair>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (cons obj1 obj2)                                              procedure
-     *
-     *  Returns a newly allocated pair whose car is obj1 and whose cdr is obj2.
-     *  The pair is guaranteed to be different (in the sense of eqv?) from
-     *  every existing object.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<syntactic_procedure>("cons", construction, [](auto&& xs)
-    {
-      return cons(car(xs), cadr(xs));
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (car pair)                                                    procedure
-     *
-     *  Returns the contents of the car field of pair. Note that it is an error
-     *  to take the car of the empty list.
-     *
-     *  (cdr pair)                                                    procedure
-     *
-     *  Returns the contents of the cdr field of pair. Note that it is an error
-     *  to take the cdr of the empty list.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("car", [](auto&& xs) { return caar(xs); });
-    define<procedure>("cdr", [](auto&& xs) { return cdar(xs); });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (set-car! pair obj)                                           procedure
-     *
-     *  Stores obj in the car field of pair.
-     *
-     *  (set-cdr! pair obj)                                           procedure
-     *
-     *  Stores obj in the cdr field of pair.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("set-car!", [](auto&& xs) { return caar(xs) = cadr(xs); });
-    define<procedure>("set-cdr!", [](auto&& xs) { return cdar(xs) = cadr(xs); });
-
-
     /* -------------------------------------------------------------------------
      *
      *  (symbol? obj)                                                 procedure

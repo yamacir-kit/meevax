@@ -295,7 +295,7 @@
 
 ; ---- 6.1. Equivalence predicates ---------------------------------------------
 
-(define (equal? x y)
+(define (equal? x y) ; structure=?
   (if (and (pair? x)
            (pair? y))
       (and (equal? (car x)
@@ -460,6 +460,8 @@
 (define (boolean? x)
   (or (eqv? x #t)
       (eqv? x #f)))
+
+(define boolean=? eqv?)
 
 ; ---- 6.4. Pairs and lists ----------------------------------------------------
 
