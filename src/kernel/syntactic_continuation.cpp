@@ -1105,6 +1105,229 @@ inline namespace kernel
       }
     });
 
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector? obj)                                                 procedure
+     *
+     *  Returns #t if obj is a vector; otherwise returns #f.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector?", is<vector>());
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (make-vector k)                                               procedure
+     *  (make-vector k fill)                                          procedure
+     *
+     *  Returns a newly allocated vector of k elements. If a second argument is
+     *  given, then each element is initialized to fill. Otherwise the initial
+     *  contents of each element is unspecified.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("make-vector", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified);
+
+      case 2:
+        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
+
+      default:
+        throw invalid_application(intern("make-vector") | xs);
+      }
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector obj ...)                                              procedure
+     *
+     *  Returns a newly allocated vector whose elements contain the given
+     *  arguments. It is analogous to list.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector", [](auto&&... xs)
+    {
+      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-length vector)                                        procedure
+     *
+     *  Returns the number of elements in vector as an exact integer.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector-length", [](let const& xs)
+    {
+      return make<exact_integer>(car(xs).as<vector>().size());
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-ref vector k)                                         procedure
+     *
+     *  It is an error if k is not a valid index of vector. The vector-ref
+     *  procedure returns the contents of element k of vector.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector-ref", [](let const& xs)
+    {
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-set! vector k obj)                                    procedure
+     *
+     *  It is an error if k is not a valid index of vector. The vector-set!
+     *  procedure stores obj in element k of vector.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector-set!", [](let const& xs)
+    {
+      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector->list vector)                                         procedure
+     *  (vector->list vector start)                                   procedure
+     *  (vector->list vector start end)                               procedure
+     *
+     *  (list->vector list)                                           procedure
+     *
+     *  The vector->list procedure returns a newly allocated list of the
+     *  objects contained in the elements of vector between start and end. The
+     *  list->vector procedure returns a newly created vector initialized to
+     *  the elements of the list list.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector->list", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).as<vector>().list();
+
+      case 2:
+        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw invalid_application(intern("vector->list") | xs);
+      }
+    });
+
+    define<procedure>("list->vector", [](let const& xs)
+    {
+      return make<vector>(for_each_in, car(xs));
+    });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector->string vector)                                       procedure
+     *  (vector->string vector start)                                 procedure
+     *  (vector->string vector start end)                             procedure
+     *
+     *  (string->vector string)                                       procedure
+     *  (string->vector string start)                                 procedure
+     *  (string->vector string start end)                             procedure
+     *
+     *  It is an error if any element of vector between start and end is not a
+     *  character.
+     *
+     *  The vector->string procedure returns a newly allocated string of the
+     *  objects contained in the elements of vector between start and end. The
+     *  string->vector procedure returns a newly created vector initialized to
+     *  the elements of the string string between start and end.
+     *
+     *  In both procedures, order is preserved.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector->string", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 1:
+        return car(xs).as<vector>().string();
+
+      case 2:
+        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
+
+      case 3:
+        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
+
+      default:
+        throw invalid_application(intern("vector->string") | xs);
+      }
+    });
+
+    // define<procedure>("string->vector", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("vector-copy", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("vector-copy!", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    // define<procedure>("vector-append", [](auto&& xs)
+    // {
+    //   return unspecified;
+    // });
+
+    /* -------------------------------------------------------------------------
+     *
+     *  (vector-fill! vector fill)                                    procedure
+     *  (vector-fill! vector fill start)                              procedure
+     *  (vector-fill! vector fill start end)                          procedure
+     *
+     *  The vector-fill! procedure stores fill in the elements of vector
+     *  between start and end.
+     *
+     * ---------------------------------------------------------------------- */
+
+    define<procedure>("vector-fill!", [](let const& xs)
+    {
+      switch (length(xs))
+      {
+      case 2:
+        car(xs).as<vector>().fill(cadr(xs));
+        break;
+
+      case 3:
+        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
+        break;
+
+      case 4:
+        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()), static_cast<string::size_type>(cadddr(xs).as<exact_integer>()));
+        break;
+
+      default:
+        throw invalid_application(intern("vector-fill!") | xs);
+      }
+
+      return unspecified;
+    });
+
   }
 
   template <>
@@ -1437,229 +1660,6 @@ inline namespace kernel
   template <>
   void syntactic_continuation::import(import_set<layer::standard_procedure>)
   {
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector? obj)                                                 procedure
-     *
-     *  Returns #t if obj is a vector; otherwise returns #f.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector?", is<vector>());
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (make-vector k)                                               procedure
-     *  (make-vector k fill)                                          procedure
-     *
-     *  Returns a newly allocated vector of k elements. If a second argument is
-     *  given, then each element is initialized to fill. Otherwise the initial
-     *  contents of each element is unspecified.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("make-vector", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 1:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), unspecified);
-
-      case 2:
-        return make<vector>(static_cast<vector::size_type>(car(xs).as<exact_integer>()), cadr(xs));
-
-      default:
-        throw invalid_application(intern("make-vector") | xs);
-      }
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector obj ...)                                              procedure
-     *
-     *  Returns a newly allocated vector whose elements contain the given
-     *  arguments. It is analogous to list.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector", [](auto&&... xs)
-    {
-      return make<vector>(for_each_in, std::forward<decltype(xs)>(xs)...);
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector-length vector)                                        procedure
-     *
-     *  Returns the number of elements in vector as an exact integer.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector-length", [](let const& xs)
-    {
-      return make<exact_integer>(car(xs).as<vector>().size());
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector-ref vector k)                                         procedure
-     *
-     *  It is an error if k is not a valid index of vector. The vector-ref
-     *  procedure returns the contents of element k of vector.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector-ref", [](let const& xs)
-    {
-      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector-set! vector k obj)                                    procedure
-     *
-     *  It is an error if k is not a valid index of vector. The vector-set!
-     *  procedure stores obj in element k of vector.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector-set!", [](let const& xs)
-    {
-      return car(xs).as<vector>().at(static_cast<vector::size_type>(cadr(xs).as<exact_integer>())) = caddr(xs);
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector->list vector)                                         procedure
-     *  (vector->list vector start)                                   procedure
-     *  (vector->list vector start end)                               procedure
-     *
-     *  (list->vector list)                                           procedure
-     *
-     *  The vector->list procedure returns a newly allocated list of the
-     *  objects contained in the elements of vector between start and end. The
-     *  list->vector procedure returns a newly created vector initialized to
-     *  the elements of the list list.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector->list", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 1:
-        return car(xs).as<vector>().list();
-
-      case 2:
-        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
-
-      case 3:
-        return car(xs).as<vector>().list(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
-
-      default:
-        throw invalid_application(intern("vector->list") | xs);
-      }
-    });
-
-    define<procedure>("list->vector", [](let const& xs)
-    {
-      return make<vector>(for_each_in, car(xs));
-    });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector->string vector)                                       procedure
-     *  (vector->string vector start)                                 procedure
-     *  (vector->string vector start end)                             procedure
-     *
-     *  (string->vector string)                                       procedure
-     *  (string->vector string start)                                 procedure
-     *  (string->vector string start end)                             procedure
-     *
-     *  It is an error if any element of vector between start and end is not a
-     *  character.
-     *
-     *  The vector->string procedure returns a newly allocated string of the
-     *  objects contained in the elements of vector between start and end. The
-     *  string->vector procedure returns a newly created vector initialized to
-     *  the elements of the string string between start and end.
-     *
-     *  In both procedures, order is preserved.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector->string", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 1:
-        return car(xs).as<vector>().string();
-
-      case 2:
-        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()));
-
-      case 3:
-        return car(xs).as<vector>().string(static_cast<vector::size_type>(cadr(xs).as<exact_integer>()), static_cast<vector::size_type>(caddr(xs).as<exact_integer>()));
-
-      default:
-        throw invalid_application(intern("vector->string") | xs);
-      }
-    });
-
-    // define<procedure>("string->vector", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
-
-    // define<procedure>("vector-copy", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
-
-    // define<procedure>("vector-copy!", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
-
-    // define<procedure>("vector-append", [](auto&& xs)
-    // {
-    //   return unspecified;
-    // });
-
-    /* -------------------------------------------------------------------------
-     *
-     *  (vector-fill! vector fill)                                    procedure
-     *  (vector-fill! vector fill start)                              procedure
-     *  (vector-fill! vector fill start end)                          procedure
-     *
-     *  The vector-fill! procedure stores fill in the elements of vector
-     *  between start and end.
-     *
-     * ---------------------------------------------------------------------- */
-
-    define<procedure>("vector-fill!", [](let const& xs)
-    {
-      switch (length(xs))
-      {
-      case 2:
-        car(xs).as<vector>().fill(cadr(xs));
-        break;
-
-      case 3:
-        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()));
-        break;
-
-      case 4:
-        car(xs).as<vector>().fill(cadr(xs), static_cast<string::size_type>(caddr(xs).as<exact_integer>()), static_cast<string::size_type>(cadddr(xs).as<exact_integer>()));
-        break;
-
-      default:
-        throw invalid_application(intern("vector-fill!") | xs);
-      }
-
-      return unspecified;
-    });
-
     /* -------------------------------------------------------------------------
      *
      *  (procedure? obj)                                              procedure
